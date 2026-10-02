@@ -101,6 +101,37 @@ describe("mkDefinePluginOptsForEnv", () => {
       "process.env.STRIPE_PUBLISHABLE_KEY": '"stripe_publishable_key"',
     });
   });
+  it("allows missing optional services in a self-hosted production build", () => {
+    process.env.NODE_ENV = "production";
+    process.env.PLASMIC_SELF_HOSTED = "1";
+    const result = mkDefinePluginOptsForEnv({
+      NODE_ENV: REQUIRED_VAR,
+      COMMITHASH: "123456",
+      STATIC_URL: OPTIONAL_VAR,
+      POSTHOG_API_KEY: OPTIONAL_VAR,
+      POSTHOG_HOST: OPTIONAL_VAR,
+      POSTHOG_REVERSE_PROXY_HOST: OPTIONAL_VAR,
+      SENTRY_DSN: OPTIONAL_VAR,
+      SENTRY_ORG_ID: OPTIONAL_VAR,
+      SENTRY_PROJECT_ID: OPTIONAL_VAR,
+      STRIPE_PUBLISHABLE_KEY: OPTIONAL_VAR,
+    });
+    expect(result["process.env.NODE_ENV"]).toBe('"production"');
+    expect(result["process.env.POSTHOG_API_KEY"]).toBeUndefined();
+    delete process.env.NODE_ENV;
+    expect(() => mkDefinePluginOptsForEnv({
+      NODE_ENV: REQUIRED_VAR,
+      COMMITHASH: "123456",
+      STATIC_URL: OPTIONAL_VAR,
+      POSTHOG_API_KEY: OPTIONAL_VAR,
+      POSTHOG_HOST: OPTIONAL_VAR,
+      POSTHOG_REVERSE_PROXY_HOST: OPTIONAL_VAR,
+      SENTRY_DSN: OPTIONAL_VAR,
+      SENTRY_ORG_ID: OPTIONAL_VAR,
+      SENTRY_PROJECT_ID: OPTIONAL_VAR,
+      STRIPE_PUBLISHABLE_KEY: OPTIONAL_VAR,
+    })).toThrow("NODE_ENV missing");
+  });
   it("throws if process.env value is found", () => {
     expect(() =>
       mkDefinePluginOptsForEnv({

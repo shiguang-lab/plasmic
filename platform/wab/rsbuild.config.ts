@@ -162,7 +162,7 @@ const appConfig = defineConfig({
   performance: {
     chunkSplit: {
       strategy: "split-by-experience",
-      override: { maxSize: 1_000_000 },
+      override: { maxSize: isProd ? 3_000_000 : 1_000_000 },
     },
   },
   tools: {

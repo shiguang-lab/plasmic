@@ -35,7 +35,7 @@ ARG PLASMIC_COMMIT
 ENV PLASMIC_COMMIT=$PLASMIC_COMMIT
 WORKDIR /plasmic/platform/wab
 RUN pnpm build-css
-RUN NODE_ENV=development PUBLIC_URL=http://plasmic-origin.invalid STATIC_URL=http://plasmic-origin.invalid NODE_OPTIONS=--max-old-space-size=8192 pnpm build
+RUN NODE_ENV=production PLASMIC_SELF_HOSTED=1 PUBLIC_URL=http://plasmic-origin.invalid STATIC_URL=http://plasmic-origin.invalid NODE_OPTIONS=--max-old-space-size=8192 pnpm build
 
 FROM nginx:1.29-alpine AS web
 RUN apk add --no-cache python3

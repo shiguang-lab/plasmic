@@ -43,8 +43,11 @@ docker compose run --rm server node_modules/typeorm/cli.js migration:run
 docker compose up -d server web
 ```
 
-The image runs Studio in development mode to retain the public-source self-hosting
-behavior. Cloud hosting is separate and is not provided by these images.
+The server runs in development mode to retain the public-source self-hosting
+behavior. The frontend uses a production build; `PLASMIC_SELF_HOSTED=1` allows
+optional cloud analytics and billing build variables to remain unset. Versioned
+static resources use immutable caching; HTML and unversioned entry points are
+revalidated. Cloud hosting is separate and is not provided by these images.
 
 ## Shared hosting package
 
