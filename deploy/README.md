@@ -11,7 +11,7 @@ For a newly forked repository, enable Actions in the GitHub Actions tab first.
 New GHCR packages are private by default. Make both packages public for anonymous
 NAS pulls, or log in on the NAS with a token that has read:packages.
 
-Copy `compose.yml`, `postgres-init.sql`, and `.env.example` to a NAS directory.
+Copy `compose.yml`, `nginx.conf`, `postgres-init.sql`, and `.env.example` to a NAS directory.
 Rename `.env.example` to `.env`, set IMAGE_TAG to a published tag, and fill in the
 origins and random secrets. Copy `platform/wab/tools/docker-dev/secrets.json` to
 `secrets/plasmic.json` and replace its secret values for your deployment. Keep this
@@ -53,3 +53,16 @@ settings type out of ApiSchema.ts but omitted the new workspace package from the
 public tree. `platform/shared/hosting` preserves the earlier favicon contract
 (including optional mimeType) and adds that commit's textFiles map. This is a type
 contract; it does not implement the cloud hosting API.
+
+## Public domains
+
+Studio uses https://plasmic.studio.publib.cn and its canvas uses the separate origin
+https://plasmic.canvas.publib.cn. Both DNS A records point to Seoul (43.128.155.40).
+The shared relay config is maintained in `shiguang/deploy/umami`: HAProxy routes
+SNI to Caddy on loopback ports 8454/8455, and Caddy forwards over Tailscale to
+NAS ports 3900/3901. Caddy terminates HTTPS and supports WebSocket upgrades.
+Nginx preserves the forwarded HTTPS protocol.
+
+For an existing database, changing .env alone does not change the stored
+`defaultHostUrl` and `codegenOriginHost` dev flag overrides. Update those values
+along with STUDIO_ORIGIN and CANVAS_ORIGIN before restarting server/web.
