@@ -1,0 +1,6 @@
+{
+  "name": "@plasmic-shared/hosting",
+  "version": "0.0.1",
+  "private": true,
+  "types": "index.ts"
+}

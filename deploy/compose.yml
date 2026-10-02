@@ -1,0 +1,98 @@
+name: shiguang-plasmic-images
+x-server: &server
+  image: ghcr.io/shiguang-lab/plasmic-server:${IMAGE_TAG:?set IMAGE_TAG}
+  init: true
+  command: [src/wab/server/main.ts]
+  environment: &env
+    NODE_ENV: development
+    DATABASE_URI: postgresql://wab:${POSTGRES_PASSWORD}@db:5432/wab
+    SESSION_SECRET: ${SESSION_SECRET}
+    HOST: ${STUDIO_ORIGIN}
+    REACT_APP_PUBLIC_URL: ${STUDIO_ORIGIN}
+    REACT_APP_CDN_URL: ${STUDIO_ORIGIN}
+    REACT_APP_DEFAULT_HOST_URL: ${CANVAS_ORIGIN}/static/host.html
+    CODEGEN_HOST: ${STUDIO_ORIGIN}
+    PLASMIC_SECRETS_FILE: /run/secrets/plasmic.json
+    ADMIN_EMAILS: '["${ADMIN_EMAIL}"]'
+    AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+    AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+    AWS_REGION: us-east-1
+    S3_ENDPOINT: http://storage:8333
+    AWS_ENDPOINT_URL: http://storage:8333
+    AWS_ENDPOINT_URL_S3: http://storage:8333
+    S3_FORCE_PATH_STYLE: "true"
+    SITE_ASSETS_BUCKET: plasmic-site-assets
+    SITE_ASSETS_BASE_URL: ${STUDIO_ORIGIN}/assets/
+    GENERIC_WORKER_POOL_SIZE: "1"
+    LOADER_WORKER_POOL_SIZE: "1"
+    MAX_HEAP_SIZE: "1536"
+    DISABLE_BWRAP: "1"
+    BACKEND_PORT: "3004"
+  volumes:
+    - ./secrets/plasmic.json:/run/secrets/plasmic.json:ro
+  depends_on:
+    db: {condition: service_healthy}
+    storage: {condition: service_healthy}
+  mem_limit: 2304m
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+services:
+  db:
+    image: postgres@sha256:3d0f7584ed7d04e27fa050d6683a74746608faf21f202be78460d679cc56461f
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wab
+      POSTGRES_DB: wab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/plasmic.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U wab -d wab]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 512m
+  storage:
+    image: chrislusf/seaweedfs@sha256:52194fba4fecd0083c842158b3a902ba6e04a63619b2b0efcd08007bdb6a4602
+    restart: unless-stopped
+    command: [mini, "-dir=/data", "-ip=storage", "-ip.bind=0.0.0.0"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+    volumes: [storage-data:/data]
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O /dev/null http://127.0.0.1:8888/']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    mem_limit: 384m
+  bootstrap:
+    <<: *server
+    profiles: [init]
+    command: [src/wab/server/nas-init.ts]
+    environment:
+      <<: *env
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+  server:
+    <<: *server
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3004/healthcheck').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      start_period: 90s
+      retries: 20
+  web:
+    image: ghcr.io/shiguang-lab/plasmic-web:${IMAGE_TAG:?set IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      STUDIO_ORIGIN: ${STUDIO_ORIGIN}
+    ports: ["${BIND_IP:-127.0.0.1}:3900:8080", "${BIND_IP:-127.0.0.1}:3901:8081"]
+    depends_on:
+      server: {condition: service_healthy}
+volumes:
+  postgres-data:
+  storage-data:

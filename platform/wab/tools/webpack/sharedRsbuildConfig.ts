@@ -10,7 +10,10 @@ import {
 } from "./mkDefinePluginOptsForEnv";
 
 export function getCommitHash(): string {
-  return execSync("git rev-parse HEAD").toString().slice(0, 6);
+  return (
+    process.env.PLASMIC_COMMIT ||
+    execSync("git rev-parse HEAD").toString().trim()
+  ).slice(0, 6);
 }
 
 /**

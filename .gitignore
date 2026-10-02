@@ -48,3 +48,6 @@ dist/
 # Playwright test results
 test-results/
 playwright-report/
+
+# NAS deployment credentials
+/deploy/secrets/

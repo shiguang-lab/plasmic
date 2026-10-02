@@ -52,13 +52,15 @@ export class StudioHtmlPlugin implements RspackPluginInstance {
             `<script id="ReactDevToolsScript" crossorigin="anonymous"></script>`, // Replaced in studio.js
           );
 
-          // Allow our instrumentation to run when the host URL uses HTTP
-          root
-            .querySelector("head")
-            .insertAdjacentHTML(
-              "afterbegin",
-              `<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">`,
-            );
+          // HTTPS deployments upgrade requests; HTTP self-hosting must keep its origin.
+          if (process.env.PUBLIC_URL?.startsWith("https://")) {
+            root
+              .querySelector("head")
+              .insertAdjacentHTML(
+                "afterbegin",
+                `<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">`,
+              );
+          }
 
           // Add our own <base> to direct all requests to the main origin.
           root.querySelector("head").insertAdjacentHTML(

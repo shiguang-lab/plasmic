@@ -1,0 +1,9 @@
+.git
+**/node_modules
+**/.pnpm-store
+**/build
+**/dev-build
+**/dist
+.env
+**/secrets
+**/__pycache__
