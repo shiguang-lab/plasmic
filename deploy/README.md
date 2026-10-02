@@ -1,5 +1,6 @@
 # NAS image deployment
 
+Release tags use version numbers starting at `0.0.1` (without a `v` prefix).
 Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
 `ghcr.io/shiguang-lab/plasmic-server:<tag>` and
 `ghcr.io/shiguang-lab/plasmic-web:<tag>` for Linux amd64.
