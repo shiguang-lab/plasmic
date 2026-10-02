@@ -51,14 +51,6 @@ const COMMON_DECORATOR_PROPS = {
     type: "slot",
     hidePlaceholder: true,
   },
-  addonAfter: {
-    type: "slot",
-    hidePlaceholder: true,
-  },
-  addonBefore: {
-    type: "slot",
-    hidePlaceholder: true,
-  },
 } as const;
 
 const COMMON_ADVANCED_PROPS = {
@@ -276,7 +268,10 @@ export function registerNumberInput(loader?: Registerable) {
         advanced: true,
       },
       ...COMMON_DECORATOR_PROPS,
-      ...COMMON_ADVANCED_PROPS,
+      maxLength: COMMON_ADVANCED_PROPS.maxLength,
+      variant: COMMON_ADVANCED_PROPS.variant,
+      autoFocus: COMMON_ADVANCED_PROPS.autoFocus,
+      readOnly: COMMON_ADVANCED_PROPS.readOnly,
       ...COMMON_EVENT_HANDLERS,
       // onChange directly called with the number
       onChange: {

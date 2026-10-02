@@ -1,5 +1,5 @@
-import React from "react";
 import { Steps } from "antd";
+import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdSteps(props: React.ComponentProps<typeof Steps>) {
@@ -53,7 +53,7 @@ export function registerSteps(loader?: Registerable) {
       },
       size: {
         type: "choice",
-        options: ["small", "medium", "large"],
+        options: ["small", "medium"],
         description: "Set the size of steps",
         defaultValueHint: "medium",
       },

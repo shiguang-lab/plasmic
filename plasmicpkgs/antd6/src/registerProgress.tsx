@@ -82,7 +82,7 @@ export function registerProgress(loader?: Registerable) {
         defaultValueHint: "medium",
         description: `Size of progress`,
         advanced: true,
-        options: ["medium", "small", "large"],
+        options: ["medium", "small"],
       },
       showInfo: {
         type: "boolean",

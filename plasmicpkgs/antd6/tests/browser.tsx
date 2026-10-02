@@ -1,27 +1,28 @@
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { AntdConfigProvider } from "../src/registerConfigProvider";
-import { AntdButton } from "../src/registerButton";
-import { AntdSelect } from "../src/registerSelect";
-import { AntdModal } from "../src/registerModal";
-import { AntdDrawer } from "../src/registerDrawer";
-import { AntdDatePicker } from "../src/registerDatePicker";
-import { AntdTabs, AntdTabItem } from "../src/registerTabs";
-import { AntdMenu, AntdMenuItem, AntdSubMenu } from "../src/registerMenu";
-import { AntdSteps } from "../src/registerSteps";
 import {
   AntdCard,
   AntdInputSearch,
   AntdMultipleDatePicker,
-  AntdTimePicker,
+  AntdSpaceCompact,
   AntdSplitter,
   AntdSplitterPanel,
+  AntdTimePicker,
 } from "../src/registerAdditional";
+import { AntdButton } from "../src/registerButton";
+import { AntdConfigProvider } from "../src/registerConfigProvider";
+import { AntdDatePicker } from "../src/registerDatePicker";
+import { AntdDrawer } from "../src/registerDrawer";
+import { AntdMenu, AntdMenuItem, AntdSubMenu } from "../src/registerMenu";
+import { AntdModal } from "../src/registerModal";
+import { AntdSelect } from "../src/registerSelect";
+import { AntdSteps } from "../src/registerSteps";
+import { AntdTabItem, AntdTabs } from "../src/registerTabs";
 
 import { FormWrapper } from "../src/form/Form";
 import { FormItemWrapper } from "../src/form/FormItem";
 import { FormListWrapper } from "../src/form/FormList";
-import { AntdInput } from "../src/registerInput";
+import { AntdInput, AntdInputNumber } from "../src/registerInput";
 
 function App() {
   const [submitted, setSubmitted] = useState("");
@@ -52,6 +53,16 @@ function App() {
           variant="filled"
         />
         <output id="choice">{choice}</output>
+        <AntdSpaceCompact>
+          <AntdInput placeholder="Compact input" />
+          <AntdButton>Compact action</AntdButton>
+        </AntdSpaceCompact>
+        <AntdInputNumber
+          defaultValue={123}
+          prefix="$"
+          suffix="USD"
+          variant="filled"
+        />
         <AntdInputSearch
           value={search}
           onChange={setSearch}

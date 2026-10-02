@@ -32,7 +32,9 @@ Input controls use `variant`, Tabs uses `tabPlacement`, Steps uses `orientation`
 and item `content`, and Avatar.Group uses `max`. Popup styles use semantic
 `classNames`; components use `destroyOnHidden`. Modal exposes
 `closeOnOutsideClick`, which sets `mask.closable`. Size controls use `medium`
-where v6 replaces `middle` or `default`. BackTop uses FloatButton.BackTop and the
+where v6 replaces `middle` or `default`. Card, Steps and Progress offer only
+`small` / `medium`; deprecated List retains its own size enum. Input addons are
+composed with Space.Compact instead of `addonBefore` / `addonAfter`. BackTop uses FloatButton.BackTop and the
 timer uses Statistic.Timer. Ant Design's deprecated List remains available;
 Listy is registered separately.
 

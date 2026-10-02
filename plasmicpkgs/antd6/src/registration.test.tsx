@@ -134,6 +134,22 @@ test("registrations expose v6 APIs instead of deprecated v5 controls", () => {
   assert(!props("steps").progressDot);
   assert(props("avatar-group").max);
   assert(!props("avatar-group").maxCount);
+  for (const suffix of ["input", "input-number"]) {
+    assert(!props(suffix).addonBefore, suffix);
+    assert(!props(suffix).addonAfter, suffix);
+  }
+  assert(!props("input-number").allowClear);
+  for (const suffix of ["card", "steps", "progress"]) {
+    assert.deepEqual(
+      new Set(props(suffix).size.options),
+      new Set(["small", "medium"]),
+      suffix,
+    );
+  }
+  assert.deepEqual(
+    new Set(props("list").size.options),
+    new Set(["small", "default", "large"]),
+  );
   assert(props("modal").closeOnOutsideClick);
   assert(!props("modal").maskClosable);
 });
