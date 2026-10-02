@@ -3,7 +3,9 @@
 Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
 `ghcr.io/shiguang-lab/plasmic-server:<tag>` and
 `ghcr.io/shiguang-lab/plasmic-web:<tag>` for Linux amd64.
-The workflow uses the built-in GITHUB_TOKEN with packages:write.
+The workflow publishes server/web through one matrix step, with separate mode=min
+GHA caches. The server target skips frontend/canvas bundling and copies only the
+platform runtime workspaces. It uses the built-in GITHUB_TOKEN with packages:write.
 For a newly forked repository, enable Actions in the GitHub Actions tab first.
 New GHCR packages are private by default. Make both packages public for anonymous
 NAS pulls, or log in on the NAS with a token that has read:packages.
