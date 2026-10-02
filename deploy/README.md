@@ -28,7 +28,10 @@ docker compose up -d server web
 
 Bootstrap runs migrations and creates the initial administrator, workspace and
 component packages. It refuses a populated database. Container restarts never seed
-or truncate the database. Keep the canvas origin separate from the Studio origin.
+or truncate the database. Keep the canvas origin separate from the Studio origin. The S3 service uses
+virtual-host bucket addresses; its storage domain and Docker network aliases must
+match the endpoint hostname. The web health check waits for address injection and
+Nginx startup.
 
 For an existing deployment, back up the database and assets first. Change IMAGE_TAG,
 then run migrations before starting the new server:
