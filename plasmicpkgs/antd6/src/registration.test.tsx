@@ -126,6 +126,14 @@ test("registrations expose v6 APIs instead of deprecated v5 controls", () => {
     assert(props(suffix).variant, suffix);
     assert(!props(suffix).bordered, suffix);
   }
+  assert.equal(
+    props("popover").popoverContentClassName.selectors[0].selector,
+    ":popover.ant-popover .ant-popover-container",
+  );
+  assert.equal(
+    props("modal").modalContentClassName.selectors[0].selector,
+    ":modal .ant-modal-container",
+  );
   assert(props("tabs").tabPlacement);
   assert(!props("tabs").tabPosition);
   assert(props("tabs").destroyOnHidden);

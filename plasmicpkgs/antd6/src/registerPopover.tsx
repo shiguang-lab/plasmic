@@ -60,7 +60,7 @@ export function registerPopover(loader?: Registerable) {
         displayName: "Popover content",
         selectors: [
           {
-            selector: ":popover.ant-popover .ant-popover-inner",
+            selector: ":popover.ant-popover .ant-popover-container",
             label: "Base",
           },
         ],

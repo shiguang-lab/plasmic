@@ -12,6 +12,8 @@ import {
 import { AntdButton } from "../src/registerButton";
 import { AntdConfigProvider } from "../src/registerConfigProvider";
 import { AntdDatePicker } from "../src/registerDatePicker";
+import { AntdPopover } from "../src/registerPopover";
+import { AntdDropdown } from "../src/registerDropdown";
 import { AntdDrawer } from "../src/registerDrawer";
 import { AntdMenu, AntdMenuItem, AntdSubMenu } from "../src/registerMenu";
 import { AntdModal } from "../src/registerModal";
@@ -74,6 +76,15 @@ function App() {
           value={["2026-10-02T10:20:00Z", "2026-10-03T10:20:00Z"]}
         />
         <AntdTimePicker value="2026-10-02T10:20:00Z" />
+        <AntdPopover open content="Popover content">
+          <AntdButton>Popover trigger</AntdButton>
+        </AntdPopover>
+        <AntdDropdown
+          open
+          menuItemsJson={[{ key: "action", label: "Dropdown action" }]}
+        >
+          <AntdButton>Dropdown trigger</AntdButton>
+        </AntdDropdown>
         <AntdMenu mode="inline">
           <AntdMenuItem key="one">Menu one</AntdMenuItem>
           <AntdSubMenu key="sub" title="Submenu">

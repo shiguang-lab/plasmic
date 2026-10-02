@@ -3,12 +3,13 @@ import React from "react";
 import { buttonComponentName } from "./names";
 import { Registerable, registerComponentHelper } from "./utils";
 
-export function AntdButton(
-  props: Omit<React.ComponentProps<typeof Button>, "target"> & {
+export const AntdButton = React.forwardRef<
+  React.ComponentRef<typeof Button>,
+  Omit<React.ComponentPropsWithoutRef<typeof Button>, "target"> & {
     submitsForm?: boolean;
     target?: React.ComponentProps<typeof Button>["target"] | boolean;
-  },
-) {
+  }
+>(function AntdButton(props, ref) {
   const { submitsForm = false, children, ...rest } = props;
   const target =
     props.target === true
@@ -19,6 +20,7 @@ export function AntdButton(
   return (
     <Button
       {...rest}
+      ref={ref}
       children={
         <div
           style={{
@@ -32,7 +34,7 @@ export function AntdButton(
       target={target}
     />
   );
-}
+});
 
 export function registerButton(loader?: Registerable) {
   registerComponentHelper(loader, AntdButton, {
