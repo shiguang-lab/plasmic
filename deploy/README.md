@@ -47,7 +47,10 @@ The server runs in development mode to retain the public-source self-hosting
 behavior. The frontend uses a production build; `PLASMIC_SELF_HOSTED=1` allows
 optional cloud analytics and billing build variables to remain unset. Versioned
 static resources use immutable caching; HTML and unversioned entry points are
-revalidated. Cloud hosting is separate and is not provided by these images.
+revalidated. Nginx compresses text resources before they cross the NAS relay.
+Copy the current `nginx.conf` when upgrading; Compose mounts this deployment
+configuration over the image default. Cloud hosting is separate and is not
+provided by these images.
 
 ## Shared hosting package
 
