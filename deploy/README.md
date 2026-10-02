@@ -66,3 +66,24 @@ Nginx preserves the forwarded HTTPS protocol.
 For an existing database, changing .env alone does not change the stored
 `defaultHostUrl` and `codegenOriginHost` dev flag overrides. Update those values
 along with STUDIO_ORIGIN and CANVAS_ORIGIN before restarting server/web.
+
+## Ant Design 6
+
+The images include `@shiguang-lab/plasmic-antd6` and the antd6 canvas bundle.
+After deploying the images, add the library to an existing database:
+
+```sh
+docker compose run --rm server src/wab/server/nas-antd6.ts
+```
+
+This creates and publishes the component library and adds its entry to the
+design-system catalog while preserving existing projects and dev flags. Running
+it again leaves the installed library unchanged. Reload Studio and install
+**Ant Design 6** from the component library panel.
+
+The registration package is distributed with the web image. For a separate
+Codegen or Loader application, install it before syncing/rendering components:
+
+```sh
+npm install https://plasmic.studio.publib.cn/static/packages/shiguang-lab-plasmic-antd6-0.0.1.tgz
+```

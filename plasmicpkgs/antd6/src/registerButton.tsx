@@ -1,0 +1,156 @@
+import { Button } from "antd";
+import React from "react";
+import { buttonComponentName } from "./names";
+import { Registerable, registerComponentHelper } from "./utils";
+
+export function AntdButton(
+  props: Omit<React.ComponentProps<typeof Button>, "target"> & {
+    submitsForm?: boolean;
+    target?: React.ComponentProps<typeof Button>["target"] | boolean;
+  },
+) {
+  const { submitsForm = false, children, ...rest } = props;
+  const target =
+    props.target === true
+      ? "_blank"
+      : props.target === false
+        ? undefined
+        : props.target;
+  return (
+    <Button
+      {...rest}
+      children={
+        <div
+          style={{
+            display: "inline-block",
+          }}
+        >
+          {children}
+        </div>
+      }
+      htmlType={submitsForm ? "submit" : "button"}
+      target={target}
+    />
+  );
+}
+
+export function registerButton(loader?: Registerable) {
+  registerComponentHelper(loader, AntdButton, {
+    name: buttonComponentName,
+    displayName: "Button",
+    props: {
+      type: {
+        type: "choice",
+        options: ["default", "primary", "dashed", "link", "text"],
+        description: "Can be set to primary, dashed, link, text, default",
+        defaultValueHint: "default",
+      },
+      variant: {
+        type: "choice",
+        options: ["outlined", "dashed", "solid", "filled", "text", "link"],
+      },
+      color: {
+        type: "choice",
+        options: [
+          "default",
+          "primary",
+          "danger",
+          "blue",
+          "purple",
+          "cyan",
+          "green",
+          "magenta",
+          "pink",
+          "red",
+          "orange",
+          "yellow",
+          "volcano",
+          "geekblue",
+          "lime",
+          "gold",
+        ],
+      },
+      iconPlacement: {
+        type: "choice",
+        options: ["start", "end"],
+        defaultValueHint: "start",
+      },
+      size: {
+        type: "choice",
+        options: ["small", "medium", "large"],
+        description: "Set the size of button",
+        defaultValueHint: "medium",
+      },
+      shape: {
+        type: "choice",
+        options: ["default", "circle", "round"],
+        description: "Set the button shape",
+        defaultValueHint: "default",
+      },
+      disabled: {
+        type: "boolean",
+        description: "Whether the button is disabled",
+        defaultValueHint: false,
+      },
+      submitsForm: {
+        type: "boolean",
+        displayName: "Submits form?",
+        defaultValueHint: false,
+        description:
+          "whether clicking this button should submit the enclosing form.",
+        advanced: true,
+      },
+      ghost: {
+        type: "boolean",
+        description:
+          "Make background transparent and invert text and border colors",
+        defaultValueHint: false,
+        advanced: true,
+      },
+      danger: {
+        type: "boolean",
+        description: "Set the danger status of button",
+        defaultValueHint: false,
+        advanced: true,
+      },
+      loading: {
+        type: "boolean",
+        description: "Set the loading status of button",
+        defaultValueHint: false,
+        advanced: true,
+      },
+      href: {
+        displayName: "Link to",
+        type: "href",
+        description: "Use this button as a link to this url",
+      },
+      target: {
+        type: "boolean",
+        displayName: "Open in new tab?",
+        description: "Whether to open the link in a new window",
+        hidden: (props: any) => !props.href,
+        defaultValueHint: false,
+      },
+      children: {
+        type: "slot",
+        defaultValue: [
+          {
+            type: "text",
+            value: "Button",
+          },
+        ],
+        ...({ mergeWithParent: true } as any),
+      },
+      icon: {
+        type: "slot",
+        hidePlaceholder: true,
+      },
+      onClick: {
+        type: "eventHandler",
+        argTypes: [],
+      },
+    },
+    importPath: "@shiguang-lab/plasmic-antd6/skinny/registerButton",
+    importName: "AntdButton",
+  });
+}

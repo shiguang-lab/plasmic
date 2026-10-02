@@ -12,6 +12,7 @@ export const fstPartyHostLessComponents = [
   "react-youtube",
   "antd",
   "antd5",
+  "antd6",
   "lottie-react",
   "react-twitter-widgets",
   "plasmic-cms",

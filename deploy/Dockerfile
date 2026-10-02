@@ -6,6 +6,8 @@ WORKDIR /plasmic
 COPY . .
 RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
 RUN pnpm setup
+RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
+RUN cd platform/canvas-packages && pnpm exec esbuild src/antd6.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd6.js
 
 FROM node:24.16.0-alpine AS server
 RUN apk add --no-cache bash git && corepack enable
@@ -13,10 +15,12 @@ WORKDIR /plasmic/platform/wab
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
 COPY --from=builder --chown=node:node /plasmic/platform/package.json /plasmic/platform/pnpm-lock.yaml /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/
 COPY --from=builder --chown=node:node /plasmic/platform/shared /plasmic/platform/shared
+COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd6.js /plasmic/platform/canvas-packages/build-server/antd6.js
 COPY --from=builder --chown=node:node /plasmic/platform/wab /plasmic/platform/wab
 COPY --from=builder --chown=node:node /plasmic/platform/loader-bundle-env /plasmic/platform/loader-bundle-env
 COPY --from=builder --chown=node:node /plasmic/platform/loader-html-hydrate /plasmic/platform/loader-html-hydrate
 COPY --chown=node:node deploy/nas-init.ts src/wab/server/nas-init.ts
+COPY --chown=node:node deploy/nas-antd6.ts src/wab/server/nas-antd6.ts
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node
