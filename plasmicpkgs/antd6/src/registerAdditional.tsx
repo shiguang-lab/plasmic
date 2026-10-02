@@ -286,9 +286,10 @@ export function AntdTour(
       steps={props.steps?.map(({ targetSelector, ...step }) => ({
         ...step,
         title: step.title ?? "",
-        target: targetSelector
-          ? document.querySelector<HTMLElement>(targetSelector)
-          : null,
+        target:
+          targetSelector && typeof document !== "undefined"
+            ? document.querySelector<HTMLElement>(targetSelector)
+            : null,
       }))}
     />
   );

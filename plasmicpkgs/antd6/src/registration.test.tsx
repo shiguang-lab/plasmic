@@ -185,3 +185,14 @@ test("v6 wrappers render native props and ISO dates", () => {
     assert(!html.includes("Invalid Date"), suffix);
   }
 });
+
+test("Tour target selectors do not access the DOM during SSR", () => {
+  assert.doesNotThrow(() =>
+    renderToStaticMarkup(
+      React.createElement(components.get("plasmic-antd6-tour")!.component, {
+        open: false,
+        steps: [{ title: "Intro", targetSelector: "#tour-anchor" }],
+      }),
+    ),
+  );
+});
