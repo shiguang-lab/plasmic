@@ -174,6 +174,9 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
     externalGlobalPlugin({
       react: "__Sub.React",
       "react-dom": "__Sub.ReactDOM",
+      ...(pkg === "antd6"
+        ? { "react-dom/client": "__Sub.ReactDOMClient" }
+        : {}),
       "@plasmicapp/host": "__Sub",
       "@plasmicapp/query": "__Sub.PlasmicQuery",
       ...(pkg.includes("plasmic-rich-components") ? antdModules : {}),
@@ -231,6 +234,7 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
   external: [
     "react",
     "react-dom",
+    ...(pkg === "antd6" ? ["react-dom/client"] : []),
     "@plasmicapp/host",
     ...(pkg.includes("plasmic-rich-components")
       ? Object.keys(antdModules)
