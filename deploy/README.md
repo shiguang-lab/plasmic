@@ -86,12 +86,12 @@ After deploying the images, add the library to an existing database:
 docker compose run --rm server src/wab/server/nas-antd6.ts
 ```
 
-This registers both versions, reusing existing published libraries. It updates
+This registers both versions and publishes changed Ant Design 6 registrations into the existing library. It updates
 the catalog while preserving other entries and dev flags, and restores the
 default Plume and HTML entries if missing. Design systems shows one cover card
 per version; Ant Design lists components grouped under Ant Design 5 and Ant
 Design 6. Reload Studio after running the command. Re-running refreshes the
-catalog without creating duplicate libraries.
+catalog without creating duplicate libraries. Existing projects upgrade their installed library through the desktop MCP `execute` → `upgradeLibrary` with the library project ID, then `save`; `read` confirms the new component contracts.
 
 The registration package is distributed with the web image. For a separate
 Codegen or Loader application, install it before syncing/rendering components:

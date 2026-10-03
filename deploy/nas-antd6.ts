@@ -1,3 +1,4 @@
+import { publishHostlessProject } from "@/wab/server/db/PublishHostless";
 import { loadConfig } from "@/wab/server/config";
 import { ensureDbConnection } from "@/wab/server/db/DbCon";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
@@ -32,6 +33,9 @@ async function main() {
               "Missing Ant Design package"
             )
           : undefined;
+        if (version === 6 && existingPkg) {
+          await publishHostlessProject(db, existingPkg.projectId);
+        }
         const dependency = existingPkg
           ? await unbundlePkgVersion(
               db, bundler, await db.getPkgVersion(existingPkg.id)

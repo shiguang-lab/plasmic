@@ -1,3 +1,4 @@
+import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import { getFrameHeight, normalizeMixedArenaFrames } from "@/wab/shared/Arenas";
 import { Pt } from "@/wab/shared/geom";
 import { readAndSanitizeSvgXmlAsImage } from "@/wab/client/dom-utils";
@@ -992,6 +993,18 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   updateVector: defineCopilotTool(meta.updateVector, (studio, input) =>
     runMutation(studio, { name: "updateVector", input }),
   ),
+  upgradeLibrary: defineCopilotTool(meta.upgradeLibrary, async (studio, input) => {
+    assertCanEditPrototype(studio);
+    assert(!studio.contentEditorMode, "Library upgrades require full editor permission");
+    const dependency = ensure(studio.site.projectDependencies.find(dep => dep.projectId === input.projectId), "Library is not installed in this project");
+    const previousVersion = dependency.version;
+    const { pkg, depPkgs } = await studio.appCtx.api.getPkgVersion(dependency.pkgId);
+    const { projectDependency } = unbundleProjectDependency(studio.bundler(), pkg, depPkgs);
+    assert(projectDependency.projectId === input.projectId && projectDependency.pkgId === dependency.pkgId, "Published package does not match installed library");
+    const upgraded = projectDependency.version !== previousVersion;
+    if (upgraded) await studio.projectDependencyManager.upgradeProjectDeps([projectDependency]);
+    return { projectId: input.projectId, previousVersion, version: projectDependency.version, upgraded };
+  }),
   queryElements: defineCopilotTool(
     meta.queryElements,
     async (studio, input) => {

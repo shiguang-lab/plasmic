@@ -1,3 +1,7 @@
+import { runInAction } from "mobx";
+import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
+import { createSite } from "@/wab/shared/core/sites";
+import { ProjectDependency } from "@/wab/shared/model/classes";
 import { vi } from "vitest";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
@@ -37,6 +41,36 @@ function fixture() {
 }
 
 describe("AI prototype editor tools", () => {
+  it("upgrades installed library references through the dependency manager and skips unchanged versions", async () => {
+    const { studioCtx, call } = fixture();
+    const dependency = new ProjectDependency({ name: "antd6", pkgId: "pkg-antd6", projectId: "library-antd6", version: "1.0.0", uuid: "dep-old", site: createSite() });
+    const published = new ProjectDependency({ name: "antd6", pkgId: dependency.pkgId, projectId: dependency.projectId, version: "1.1.0", uuid: "dep-new", site: createSite() });
+    runInAction(() => studioCtx.site.projectDependencies.push(dependency));
+    const originalFetch = studioCtx.appCtx.api.getPkgVersion;
+    const fetch = vi.fn().mockResolvedValue({ pkg: {}, depPkgs: [] });
+    studioCtx.appCtx.api.getPkgVersion = fetch;
+    const unbundle = vi.spyOn(taggedUnbundle, "unbundleProjectDependency").mockReturnValue({ projectDependency: published } as any);
+    const upgrade = vi.spyOn(studioCtx.projectDependencyManager, "upgradeProjectDeps").mockResolvedValue(undefined);
+    try {
+      expect(await call("upgradeLibrary", { projectId: dependency.projectId })).toEqual({ projectId: dependency.projectId, previousVersion: "1.0.0", version: "1.1.0", upgraded: true });
+      expect(fetch).toHaveBeenCalledWith(dependency.pkgId);
+      expect(upgrade).toHaveBeenCalledWith([published]);
+      published.version = "1.0.0";
+      upgrade.mockClear();
+      expect((await call("upgradeLibrary", { projectId: dependency.projectId })).upgraded).toBe(false);
+      expect(upgrade).not.toHaveBeenCalled();
+      published.pkgId = "wrong-package";
+      await expect(call("upgradeLibrary", { projectId: dependency.projectId })).rejects.toThrow("does not match");
+    } finally { studioCtx.appCtx.api.getPkgVersion = originalFetch; unbundle.mockRestore(); upgrade.mockRestore(); }
+  });
+  it("rejects library upgrades on read-only projects and for uninstalled libraries", async () => {
+    const { studioCtx, call } = fixture();
+    await expect(call("upgradeLibrary", { projectId: "missing" })).rejects.toThrow("not installed");
+    const permission = vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
+    try { await expect(call("upgradeLibrary", { projectId: "missing" })).rejects.toThrow("read-only"); }
+    finally { permission.mockRestore(); }
+  });
+
   it("imports captured block paragraphs without adding flex-only styles", async () => {
     const { call, createPage } = fixture();
     const page = await createPage();

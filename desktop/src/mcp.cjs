@@ -13,6 +13,7 @@ const { requestRpc } = require("./local-rpc.cjs");
 const EDITOR_METHODS = [
   "identify",
   "read",
+  "upgradeLibrary",
   "queryElements",
   "readVector",
   "createCanvas",
