@@ -33,5 +33,29 @@ AppSource 选择器参照 fintechgrowthui 中 `@react/ui` 的显示效果：180p
 业务页通过事件处理切换、导航、翻译和用户操作；选择语言不会自动翻译业务内容。
 本地示例按模板展示增长管理平台、四项菜单、PAKORA 应用源及空白业务内容插槽。面包屑由菜单树自动生成，菜单事件更新选中项，语言选项通过地球图标菜单选择。
 
+### 自动面包屑
+
+AppShell 读取 Plasmic `PageParamsProvider` 的 `pagePath`，在 `menuItems` 中递归匹配 `href`，显示产品名及完整父级链。父级带 `href` 时可点击；隐藏详情路由会选中侧栏中最近的可见父级。没有页面路由上下文的独立组件预览使用 `selectedMenuKey`。
+
+```json
+[
+  {
+    "key": "groups",
+    "label": "客群列表",
+    "href": "/req-075/groups",
+    "children": [
+      {
+        "key": "detail",
+        "label": "常规客群详情",
+        "href": "/req-075/regular-detail",
+        "hidden": true
+      }
+    ]
+  }
+]
+```
+
+以上配置在详情页自动显示「产品名 / 客群列表 / 常规客群详情」，详情不加入侧栏，不再配置独立的 `breadcrumbItems`。
+
 注册代码随组件包构建。NAS 上的现有镜像需要经过正式发布更新，
 才会包含新的 AppShell；本地预览不修改现有项目的 Host 配置或页面模型。

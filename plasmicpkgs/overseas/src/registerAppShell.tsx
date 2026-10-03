@@ -17,6 +17,8 @@ export interface AppShellProps {
   currentTime?: string;
   productName?: string;
   logoUrl?: string;
+  /** Reserved by the published hostless contract; never used for rendering. */
+  breadcrumbItems?: { title: string }[];
   userName?: string;
   languages?: ShellOption[];
   language?: string;
@@ -124,6 +126,7 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
       direction: { type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" }, onDirectionChange: { type: "eventHandler", argTypes: [{ name: "value", type: "string" }] },
       timeZone: { type: "string", defaultValue: "Asia/Shanghai" }, currentTime: { type: "string", description: "Host-supplied clock text; otherwise show the current time in timeZone." },
       productName: { type: "string", defaultValue: "增长管理平台" }, logoUrl: "imageUrl", userName: { type: "string", defaultValue: "示例用户" },
+      breadcrumbItems: { type: "array", hidden: () => true, itemType: { type: "object", fields: { title: "string" } } },
       languages: { type: "array", itemType: optionType, defaultValue: DEFAULT_LANGUAGES },
       language: "string", onLanguageChange: { type: "eventHandler", argTypes: [{ name: "value", type: "string" }] },
       appSources: { type: "array", itemType: optionType, defaultValue: DEFAULT_APP_SOURCES }, appSource: "string",
