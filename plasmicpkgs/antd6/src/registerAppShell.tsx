@@ -64,7 +64,8 @@ export function AppShell({
   const timeParts = Object.fromEntries(new Intl.DateTimeFormat(currentLanguage, { timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(now).map(({ type, value }) => [type, value]));
   const clock = currentTime ?? `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
   return <ConfigProvider direction={currentDirection}>
-    <Layout className={className} style={{ width: "100%", height: "100%", minHeight: 0, overflow: "hidden", background: "#f0f2f5" }}>
+    <div className={className} style={{ minHeight: 0, overflow: "hidden" }}>
+    <Layout style={{ width: "100%", height: "100%", minHeight: 0, overflow: "hidden", background: "#f0f2f5" }}>
       <Layout.Sider width={239} collapsedWidth={80} collapsed={isCollapsed} theme="light" style={{ borderInlineEnd: `1px solid ${token.colorBorderSecondary}`, overflow: "auto" }}>
         <div style={{ height: 64, padding: "0 16px", display: "flex", alignItems: "center", gap: 10, overflow: "hidden", whiteSpace: "nowrap" }}>
           {logoUrl ? <img src={logoUrl} alt="" style={{ width: 30, height: 30, objectFit: "contain", flexShrink: 0 }} /> : <Avatar shape="square" size={30} style={{ flexShrink: 0 }}>{productName.slice(0, 1)}</Avatar>}
@@ -95,6 +96,7 @@ export function AppShell({
         </Layout.Content>
       </Layout>
     </Layout>
+    </div>
   </ConfigProvider>;
 }
 

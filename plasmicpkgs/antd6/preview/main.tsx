@@ -16,7 +16,7 @@ function Preview() {
   const [page, setPage] = useState("apps");
   const [source, setSource] = useState("PAKORA");
   const [language, setLanguage] = useState("zh-CN");
-  return <AppShell timeZone="Asia/Shanghai" productName="增长管理平台" logoUrl={logo} userName="示例用户" breadcrumbItems={[{ title: "增长管理平台" }, { title: menus.find(item => item.key === page)?.label || "APP 配置" }]} menuItems={menus} selectedMenuKey={page} onMenuSelect={setPage} appSources={sources} appSource={source} onAppSourceChange={setSource} languages={languages} language={language} onLanguageChange={setLanguage}>
+  return <AppShell className="app-shell-preview" timeZone="Asia/Shanghai" productName="增长管理平台" logoUrl={logo} userName="示例用户" breadcrumbItems={[{ title: "增长管理平台" }, { title: menus.find(item => item.key === page)?.label || "APP 配置" }]} menuItems={menus} selectedMenuKey={page} onMenuSelect={setPage} appSources={sources} appSource={source} onAppSourceChange={setSource} languages={languages} language={language} onLanguageChange={setLanguage}>
     <div style={{ height: "100%", minHeight: "calc(100vh - 96px)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
       <strong style={{ color: "#536176", fontSize: 18 }}>页面业务内容插槽 (Page Body Slot)</strong>
       <span style={{ color: "#9cacc1", fontSize: 14 }}>在实例中直接替换此 Slot 填充业务页面；外层固定保留 16px 内容间距</span>
