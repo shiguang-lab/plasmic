@@ -3612,7 +3612,7 @@ export function mkCodeComponent(
       importName: meta.importName,
       description: meta.description,
       section: !isGlobalContextMeta(meta) ? meta.section : undefined,
-      thumbnailUrl: !isGlobalContextMeta(meta) ? meta.section : undefined,
+      thumbnailUrl: !isGlobalContextMeta(meta) ? meta.thumbnailUrl : undefined,
       defaultStyles: styles
         ? mkRuleSet({
             values: Object.fromEntries(

@@ -5,6 +5,7 @@ import {
   _testonly,
   getNewProps,
   makePlumeComponentMeta,
+  mkCodeComponent,
 } from "@/wab/shared/code-components/code-components";
 import { arrayRemove } from "@/wab/shared/collections";
 import { PlumeComponent } from "@/wab/shared/core/components";
@@ -178,4 +179,14 @@ describe("code-components", () => {
       ).toBeTrue();
     });
   });
+});
+
+test("new code components preserve the thumbnail independently of the section", () => {
+  const thumbnailUrl = "data:image/svg+xml,%3Csvg/%3E";
+  const component = mkCodeComponent("overseas-app-shell", {
+    name: "overseas-app-shell", importPath: "@shiguang-lab/plasmic-overseas",
+    section: "Application layouts", thumbnailUrl, props: {},
+  }, {});
+  expect(component.codeComponentMeta?.section).toBe("Application layouts");
+  expect(component.codeComponentMeta?.thumbnailUrl).toBe(thumbnailUrl);
 });

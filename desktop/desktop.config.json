@@ -1,5 +1,5 @@
 {
   "studioOrigin": "https://plasmic.studio.publib.cn",
   "canvasOrigin": "https://plasmic.canvas.publib.cn",
-  "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.0.21"
+  "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.0.22"
 }
