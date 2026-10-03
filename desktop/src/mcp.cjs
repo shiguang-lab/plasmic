@@ -311,6 +311,7 @@ tools.push(
                     ![
                       "identify",
                       "read",
+                      "upgradeLibrary",
                       "queryElements",
                       "readVector",
                       "findEmptySpace",
