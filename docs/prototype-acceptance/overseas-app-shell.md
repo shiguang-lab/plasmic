@@ -8,13 +8,13 @@
 
 Studio 插入面板中，Overseas 与 Ant Design 6 是两个独立库。AppShell 位于 Overseas 的 Application layouts 分组，缩略图随注册信息内置；Ant Design 6 根据组件注册的 section 分类。
 
-AppShell 支持产品名、Logo、用户名、时区、面包屑、语言列表、App Source 列表、菜单、用户操作和折叠状态。菜单的 href 使用 Plasmic Link；页面业务内容放入 children 插槽。展开侧栏 239px、折叠侧栏 80px、顶部 64px、业务区外间距 16px。
+AppShell 支持产品名、Logo、用户名、时区、语言列表、App Source 列表、菜单、用户操作和折叠状态。菜单的 href 使用 Plasmic Link；AppShell 根据当前页面路由递归匹配菜单树，自动显示包含父级的面包屑并选中侧栏，详情路由可用 hidden 隐藏；页面业务内容放入 children 插槽。展开侧栏 239px、折叠侧栏 80px、顶部 64px、业务区外间距 16px。
 
-已发布的 Ant Design 6 AppShell 契约不能被原生 hostless 发布器删除，因此旧注册仅转发到同一实现，并在插入面板隐藏。新页面使用 Overseas 注册。
+Ant Design 6 AppShell 注册转发到同一实现，并在插入面板隐藏。新页面使用 Overseas 注册。两套 AppShell 均彻底移除 `breadcrumbItems` 参数；正式 hostless 发布通过限定的参数删除迁移发布主版本，项目升级后清除实例中的旧参数。
 
 ## 实现检查
 
-- Overseas：1 项注册测试、类型检查、Rollup 与声明构建通过。
+- Overseas：2 项测试、类型检查、Rollup 与声明构建通过。
 - Ant Design 6：12 项注册测试、类型检查与 Rollup 构建通过。
 - 生产依赖构建 `pnpm --filter @shiguang-lab/plasmic-antd6... build` 通过。
 - WAB MCP 与插入面板分组：29 项测试通过。
@@ -31,9 +31,11 @@ REQ075 五个 PC Desktop 1440×1024 页面复用 Overseas AppShell。迁移通�
 
 ## MCP 持久化与画面检查
 
-当前保存 revision **134**。重新启动客户端并打开项目后，确认每页只有一个 Overseas AppShell，556 个业务节点、8 个覆盖层和 30 个业务交互 UUID 保留。模型校验错误 0、警告 0，共 199 个代码组件实例，其中 Ant Design 6 为 194，Overseas 为 5。
+当前保存 revision **139**。重新启动客户端并打开项目后，确认每页只有一个 Overseas AppShell，556 个业务节点、8 个覆盖层和 30 个业务交互 UUID 保留。模型校验错误 0、警告 0，共 199 个代码组件实例，其中 Ant Design 6 为 194，Overseas 为 5。
 
 唯一总览 `REQ075 · Desktop` 引用这五个业务 Pages；原生 Page 预览只有 Desktop 列，画板和实际文档均为 1440×1024，没有移动端断点。页面根容器为 width=100%、minWidth=1440px、height=minHeight=maxHeight=1024px，长内容内部滚动。
+
+重新打开后的五页 MCP 模型及两套注册契约没有 `breadcrumbItems`。五页实际 DOM 和截图验证自动父级面包屑、当前菜单选中与隐藏子路由；证据见 `route-appshell-contracts.json`、`*-route-breadcrumb-layout-0.json`、`*-route-breadcrumb-visual-0.png`。
 
 ## 实际运行预览回归
 
@@ -50,6 +52,6 @@ REQ075 五个 PC Desktop 1440×1024 页面复用 Overseas AppShell。迁移通�
 
 ## 正式发布
 
-当前 NAS 镜像 tag **0.0.23**、Overseas 原生库版本 **0.2.0**。AppSource 的 180px 选择器、320px 下拉面板、状态点、当前标记与中英文提示参照 fintechgrowthui 的效果实现，没有引入 @react/ui。Desktop 静态资源来自正式 web 镜像，API 调用 NAS。发布来源、备份与验收详见 [Desktop 交付验收](req075-desktop.md)。
+当前 NAS 镜像 tag **0.0.26**、Overseas 原生库版本 **1.0.0**。AppSource 的 180px 选择器、320px 下拉面板、状态点、当前标记与中英文提示参照 fintechgrowthui 的效果实现，没有引入 @react/ui。Desktop 静态资源来自正式 web 镜像，API 调用 NAS。发布来源、备份与验收详见 [Desktop 交付验收](req075-desktop.md)。
 
 组件插入预览已检查 Overseas → Application layouts → AppShell 图片卡片，以及 Ant Design 6 分组；对应证据位于本机 `desktop/desktop-report/app-shell/overseas-insert-preview.png` 和 `antd6-installed-groups.png`。

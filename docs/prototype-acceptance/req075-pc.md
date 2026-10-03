@@ -26,7 +26,7 @@
 
 ## 验收结果
 
-当前使用独立 Overseas AppShell，MCP 保存 revision **134**。重新启动客户端并打开项目后读取五页：556 个业务节点、8 个覆盖层及 30 个业务交互 UUID 全部保留；每页复用一个 Overseas AppShell。`validate` 返回 `valid: true`，5 个业务页面，199 个代码组件实例（Ant Design 6 为 194、Overseas 为 5），错误 0、警告 0。
+当前使用独立 Overseas AppShell，MCP 保存 revision **139**。重新启动客户端并打开项目后读取五页：556 个业务节点、8 个覆盖层及 30 个业务交互 UUID 全部保留；每页复用一个 Overseas AppShell。`validate` 返回 `valid: true`，5 个业务页面，199 个代码组件实例（Ant Design 6 为 194、Overseas 为 5），错误 0、警告 0。
 
 原生 Page 预览和总览中的 5 个画板均为 **1440×1024**，没有移动断点。五页实际渲染的文档高度均为 1024，AppShell 从 (0,0) 填满画板。宽表在内部横向滚动，分页及 SQL 页面底部操作保留在视口内。
 
@@ -55,7 +55,8 @@ MCP 已读取布局、模型和截图。编辑模式的空槽占位会影响 Bad
 - `plan.json`：输入、范围、规范取舍、规范化路径和画布 UUID。
 - `transcript.jsonl`：脱敏 MCP 调用记录，包含失败尝试及后续成功修正。
 - `accepted-validation.json`、`*-accepted-model.json`：重开后的模型验证。
-- `formal-final-save.json`：Desktop 整理 revision 133；面包屑修复保存在 `breadcrumb-fixed-save.json`，revision 134。
+- `route-migration-save.json`：当前 revision 139；`route-appshell-contracts.json` 和 `route-breadcrumb-reopened-models.json` 确认注册参数及旧实例参数已删除，五页共用完整菜单树。
+- `*-route-breadcrumb-layout-0.json`、`*-route-breadcrumb-visual-0.png`：自动父级面包屑及侧栏选中验收。
 - `formal-reopened-overview.json`、`*-formal-reopened-model.json`、`formal-reopened-validation.json`：正式交付重开后的结构、业务 UUID 与校验。
 - `formal-desktop-layout-checks.json`、`*-formal-visual-0.png`：正式交付五页的布局及 MCP 截图，1440×1024。
 - `overseas-list-runtime-final-0.png`：此前 1920×1080 壳层运行预览截图。
