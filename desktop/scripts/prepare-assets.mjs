@@ -9,7 +9,7 @@ import {
   mkdtemp,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { createHash } from "node:crypto";
+import { bundleStudioFonts } from "../../scripts/bundle-studio-fonts.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -64,74 +64,7 @@ try {
     recursive: true,
     filter: (file) => !file.endsWith(".map"),
   });
-  // The Studio HTML includes a fixed Google Fonts stylesheet. Bundle it and
-  // its fonts too, so launching the editor never waits for Google's CDN.
-  const html = await readFile(path.join(target, "index.html"), "utf8");
-  const fontUrls = [
-    ...new Set(
-      html.match(/https:\/\/fonts\.googleapis\.com\/css2[^"<>]+/g) || [],
-    ),
-  ];
-  const fontReplacements = new Map();
-  const fontsDirectory = path.join(target, "static/desktop-fonts");
-  await mkdir(fontsDirectory, { recursive: true });
-  function download(url) {
-    return execFileSync(
-      "curl",
-      [
-        "--fail",
-        "--silent",
-        "--show-error",
-        "--location",
-        "--max-time",
-        "60",
-        "--user-agent",
-        "Mozilla/5.0 Chrome/130.0.0.0 Safari/537.36",
-        url,
-      ],
-      { maxBuffer: 64 * 1024 * 1024 },
-    );
-  }
-  for (const encodedUrl of fontUrls) {
-    const url = encodedUrl.replaceAll("&amp;", "&");
-    let css = download(url).toString();
-    for (const assetUrl of new Set(
-      css.match(/https:\/\/fonts\.gstatic\.com\/[^)\s]+/g) || [],
-    )) {
-      const name =
-        createHash("sha256").update(assetUrl).digest("hex").slice(0, 24) +
-        path.extname(new URL(assetUrl).pathname);
-      await writeFile(path.join(fontsDirectory, name), download(assetUrl));
-      css = css.replaceAll(
-        assetUrl,
-        config.studioOrigin + "/static/desktop-fonts/" + name,
-      );
-    }
-    const name =
-      createHash("sha256").update(url).digest("hex").slice(0, 24) + ".css";
-    await writeFile(path.join(fontsDirectory, name), css);
-    fontReplacements.set(
-      encodedUrl,
-      config.studioOrigin + "/static/desktop-fonts/" + name,
-    );
-  }
-  for (const family of [
-    "ibmplexmono",
-    "inconsolata",
-    "inter",
-    "paytoneone",
-    "roboto",
-    "robotomono",
-  ]) {
-    await writeFile(
-      path.join(fontsDirectory, family + "-OFL.txt"),
-      download(
-        "https://raw.githubusercontent.com/google/fonts/main/ofl/" +
-          family +
-          "/OFL.txt",
-      ),
-    );
-  }
+  await bundleStudioFonts(target, config.studioOrigin);
   let count = 0,
     bytes = 0;
   async function configure(directory) {
@@ -144,8 +77,6 @@ try {
           let text = data
             .toString()
             .replaceAll("http://plasmic-origin.invalid", config.studioOrigin);
-          for (const [url, local] of fontReplacements)
-            text = text.replaceAll(url, local);
           data = Buffer.from(text);
           await writeFile(file, data);
         }

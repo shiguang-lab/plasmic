@@ -39,6 +39,8 @@ WORKDIR /plasmic/platform/wab
 RUN pnpm build-css
 RUN NODE_ENV=production PLASMIC_SELF_HOSTED=1 PUBLIC_URL=http://plasmic-origin.invalid STATIC_URL=http://plasmic-origin.invalid NODE_OPTIONS=--max-old-space-size=8192 pnpm build
 
+RUN node ../../scripts/bundle-studio-fonts.mjs build http://plasmic-origin.invalid
+
 FROM nginx:1.29-alpine AS web
 RUN apk add --no-cache python3
 COPY --from=web-build /plasmic/platform/wab/build /opt/plasmic-web

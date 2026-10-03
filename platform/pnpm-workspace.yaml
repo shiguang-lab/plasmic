@@ -240,6 +240,8 @@ overrides:
   "@react-types/tooltip": 3.4.17
 
 patchedDependencies:
+  # Reset iframe selector state without registering the deprecated unload event.
+  jquery@3.5.1: patches/jquery.patch
   # Versionless key on purpose: apply to ANY resolved teeny-request version so a
   # transitive upgrade (e.g. to v10) can't silently drop the patch. If a future
   # version changes build/src/agents.js enough that the hunk no longer applies,

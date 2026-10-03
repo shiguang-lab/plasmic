@@ -22,9 +22,9 @@ src/wab/styles/_tokens.sass: src/wab/styles/plasmic-tokens.theo.json tools/gen-t
 	pnpm gen:plasmic-tokens-sass
 src/wab/styles/_tokens.ts: src/wab/styles/plasmic-tokens.theo.json tools/gen-theo.ts
 	pnpm gen:plasmic-tokens-ts
-src/wab/styles/css-variables.ts: src/wab/styles/css-variables.json
+src/wab/styles/css-variables.ts: src/wab/styles/css-variable-definitions.json
 	node src/wab/styles/css-variables.gen.js
-src/wab/styles/css-variables.scss: src/wab/styles/css-variables.json
+src/wab/styles/css-variables.scss: src/wab/styles/css-variable-definitions.json
 	node src/wab/styles/css-variables.gen.js
 
 src/wab/gen/GridStyleParser.js: PEGJS_FLAGS = --allowed-start-rules axisTemplate,size,atomicSize,numSize,flexibleSize

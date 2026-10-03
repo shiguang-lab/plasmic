@@ -1,4 +1,4 @@
-const styleVariables = require("./css-variables.json");
+const styleVariables = require("./css-variable-definitions.json");
 const fs = require("fs");
 const path = require("path");
 

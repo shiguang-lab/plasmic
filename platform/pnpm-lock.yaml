@@ -220,6 +220,7 @@ overrides:
   '@react-types/tooltip': 3.4.17
 
 patchedDependencies:
+  jquery@3.5.1: bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7
   '@octokit/app@16.1.2': 9e7952e20fd240b64e2d3fed37dbd15ac2b0944cc0d6c9643725b24b6e042d87
   '@octokit/auth-unauthenticated@7.0.3': 57f65b2b2ebf56cf9c0bdc1edbc1676a36c2b3b346fcec42780ae7103670f8e2
   '@octokit/webhooks-methods@6.0.0': 8deb356fdbbe7be80569972d3c523541c6aaadc06be07459732378e1baea731a
@@ -1477,7 +1478,7 @@ importers:
         version: 3.1.0
       jquery:
         specifier: ~3.5.1
-        version: 3.5.1
+        version: 3.5.1(patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7)
       js-cookie:
         specifier: 3.0.5
         version: 3.0.5
@@ -29765,7 +29766,7 @@ snapshots:
 
   jose@4.15.9: {}
 
-  jquery@3.5.1: {}
+  jquery@3.5.1(patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7): {}
 
   jquery@3.7.1: {}
 

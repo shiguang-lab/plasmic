@@ -1,0 +1,11 @@
+--- a/dist/jquery.js
++++ b/dist/jquery.js
+@@ -1151,7 +1151,7 @@
+ 
+ 		// Support: IE 11, Edge
+ 		if ( subWindow.addEventListener ) {
+-			subWindow.addEventListener( "unload", unloadHandler, false );
++			subWindow.addEventListener( "pagehide", unloadHandler, false );
+ 
+ 		// Support: IE 9 - 10 only
+ 		} else if ( subWindow.attachEvent ) {
