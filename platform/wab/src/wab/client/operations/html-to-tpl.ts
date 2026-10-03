@@ -82,6 +82,7 @@ import {
   FunctionExpr,
   ImageAssetRef,
   Interaction,
+  isKnownColorPropType,
   isKnownDateRangeStrings,
   isKnownDateString,
   isKnownHrefType,
@@ -1197,6 +1198,15 @@ export function getComponentArgFromHtmlProp(
   // (non-variant-group) param type regardless of its declared type.
   if (typeof value === "string" && isDynamicValue(value)) {
     return ok([param, interpolatedStringToExpr(value)]);
+  }
+
+  // Color props also accept component-specific presets (such as Ant Design Tag's
+  // "success"), so validate their string type rather than restricting them to CSS.
+  if (isKnownColorPropType(param.type)) {
+    if (typeof value !== "string") {
+      return fail(`expects a color string but got ${JSON.stringify(value)}`);
+    }
+    return ok([param, codeLit(value)]);
   }
 
   // Primitive-valued types (bool, num, text/img/href/target).

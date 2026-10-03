@@ -1,5 +1,7 @@
 import { setupComponentWithInstance } from "@/wab/client/operations/__testonly__/utils";
 import { setComponentInstanceProp } from "@/wab/client/operations/set-component-instance-prop";
+import { mkParam } from "@/wab/shared/core/lang";
+import { typeFactory } from "@/wab/shared/model/model-util";
 import { assert } from "@/wab/shared/common";
 import { tryExtractJson } from "@/wab/shared/core/exprs";
 import { ensureKnownVariantsRef } from "@/wab/shared/model/classes";
@@ -19,6 +21,27 @@ describe("setComponentInstanceProp", () => {
       expect(result.isOk()).toBe(true);
       expect(tryExtractJson(getArg(instance, propName)!.expr)).toEqual(value);
     }
+  });
+
+  it("supports Ant Design color presets and CSS colors, and rejects non-string colors", () => {
+    const { button, instance, getArg, opts } = setupComponentWithInstance();
+    button.params.push(
+      mkParam({ name: "color", type: typeFactory.color(), paramType: "prop" }),
+    );
+    for (const color of ["blue", "success", "#1677ff", "rgba(0, 0, 0, 0.5)"]) {
+      expect(
+        setComponentInstanceProp(instance, "color", color, opts).isOk(),
+      ).toBe(true);
+      expect(tryExtractJson(getArg(instance, "color")!.expr)).toEqual(color);
+    }
+    for (const color of [123, false, {}, null]) {
+      expect(
+        setComponentInstanceProp(instance, "color", color, opts).isErr(),
+      ).toBe(true);
+    }
+    expect(tryExtractJson(getArg(instance, "color")!.expr)).toEqual(
+      "rgba(0, 0, 0, 0.5)",
+    );
   });
 
   it("sets literal null on an any-typed prop", () => {
