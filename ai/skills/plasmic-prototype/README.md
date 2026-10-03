@@ -19,6 +19,14 @@ AI 通过 Chrome DevTools MCP 调用 Studio 顶层窗口的 `PLASMIC_AI_TOOLS`�
 
    Chrome DevTools MCP 的安装要求和浏览器连接选项见其[官方文档](https://github.com/ChromeDevTools/chrome-devtools-mcp)。这是浏览器 MCP，不是 NAS 上的远程 `/mcp` 服务。浏览器打开 Studio 后，编辑接口才可用。
 
+   Codex 可直接执行以下配置命令；重启客户端后载入 MCP：
+
+   ```sh
+   codex mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest --no-usage-statistics
+   ```
+
+   配置方式见 [Codex 官方 MCP 文档](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。首次使用时，在 MCP 打开的 Chrome 会话中登录 Studio。
+
 2. 将本目录的 `SKILL.md` 安装为客户端的 `plasmic-prototype` Skill。客户端没有 Skill 功能时，可将其内容作为工作指令。
 3. 在 MCP 使用的 Chrome 会话中登录 `https://plasmic.studio.publib.cn`。
 4. 给 AI 项目 URL 和需求，例如：

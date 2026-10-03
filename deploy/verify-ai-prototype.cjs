@@ -105,15 +105,24 @@ let browser;
     }
     throw new Error("Full preview did not render");
   }
+  let interactive;
   for (const width of [1440, 390]) {
     const frame = await previewFrame(dashboard.pageMeta.path, width);
+    interactive = frame;
     await frame.getByText("项目概览", { exact: true }).waitFor();
+    assert.equal(await frame.locator(".ant-tag-blue").count(), 1, "Registered Tag color was not rendered");
     await preview.waitForTimeout(1000);
     const overflow = await frame.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
     assert(overflow.content <= overflow.viewport + 2, "Horizontal overflow at " + width + "px: " + JSON.stringify(overflow));
     await preview.screenshot({ path: path.join(reportDir, `preview-${width}.png`) });
+    if (width === 390) {
+      await frame.getByRole("link", { name: "创建类似项目", exact: true }).scrollIntoViewIfNeeded();
+      await preview.screenshot({ path: path.join(reportDir, "preview-390-bottom.png") });
+    }
   }
-  const interactive = await previewFrame(form.pageMeta.path, 390);
+  await interactive.getByRole("link", { name: "新建项目", exact: true }).click();
+  await preview.waitForURL(url => url.pathname === "/projects/" + projectId + "/preview-full" + form.pageMeta.path, { timeout: 30000 });
+  await interactive.getByRole("heading", { name: "新建项目", exact: true }).waitFor();
   await interactive.getByLabel("项目名称").fill("AI 原型项目");
   await interactive.getByLabel("负责人").fill("林晓");
   await interactive.getByRole("button", { name: "创建项目", exact: true }).click();
@@ -127,7 +136,7 @@ let browser;
   assert(reopened[0].baseVariantTplTree.includes("项目概览"), "Dashboard did not persist");
   assert(reopened[1].interactions?.length && reopened[1].states?.length, "Interactions/state did not persist");
   assert(!errors.length, "Browser errors: " + errors.join("; "));
-  const report = { status: "PASS", projectId, revision: saved.revision, pages: reopened.map(c => ({ name: c.name, uuid: c.uuid, path: c.pageMeta.path })), validation, toolCalls: calls.length, browserErrors: errors, checkedViewportWidths: [1440, 390], interactionVerified: true };
+  const report = { status: "PASS", projectId, revision: saved.revision, pages: reopened.map(c => ({ name: c.name, uuid: c.uuid, path: c.pageMeta.path })), validation, toolCalls: calls.length, browserErrors: errors, checkedViewportWidths: [1440, 390], interactionVerified: true, navigationVerified: true, tagColorVerified: true };
   fs.writeFileSync(path.join(reportDir, "report.json"), JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report));
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => { await browser?.close(); });
