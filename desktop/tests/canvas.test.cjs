@@ -1,13 +1,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('node:module');
+const {EventEmitter} = require('node:events');
 const originalLoad = Module._load;
 let destroyed = 0;
 let capturedRect;
-const image = {toPNG: () => Buffer.from('png'), toJPEG: () => Buffer.from('jpeg')};
+const image = {toPNG: () => Buffer.from('png'), toJPEG: () => Buffer.from('jpeg'), getSize: () => ({width:1366,height:1000}), crop: rect => {capturedRect=rect;return image;}};
 const main = {webContents: {getURL: () => "https://studio.example/projects/test", session: {}, mainFrame: {framesInSubtree: [{url: 'https://canvas.example/static/host.html#canvas=true', executeJavaScript: async (script) => script.includes('snapshotDocument') ? '<html>snapshot</html>' : {ready: true, width: 1366, height: 900, elements: [{tag: "main"}], images: []}}]}}};
 class Preview {
- constructor(options) { assert.equal(options.webPreferences.nodeIntegration, false); assert.equal(options.webPreferences.sandbox, true); this.webContents = {setWindowOpenHandler(){},on(){},executeJavaScript: async script => script.includes("Element is not visible") ? {x: 20, y: 30, width: 200, height: 80} : 1000, capturePage: async rect => {capturedRect = rect; return image;}, printToPDF: async () => Buffer.from('%PDF')}; }
+ constructor(options) { assert.equal(options.webPreferences.nodeIntegration, false); assert.equal(options.webPreferences.sandbox, true); this.webContents = Object.assign(new EventEmitter(), {setWindowOpenHandler(){},invalidate(){queueMicrotask(()=>this.emit('paint',{}, {},image));},executeJavaScript: async script => script.includes("Element is not visible") ? {x: 20, y: 30, width: 200, height: 80} : 1000, capturePage: async () => {throw new Error('Offscreen capturePage must not be used');}, printToPDF: async () => Buffer.from('%PDF')}); }
  async loadURL(url) {assert.ok(url.startsWith('data:text/html'));}
  setContentSize(width,height) {assert.equal(width,1366);assert.equal(height,1000);}
  destroy(){destroyed++;}

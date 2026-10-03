@@ -246,7 +246,28 @@ async function renderCanvas(win, origin, input = {}) {
           "Element extends beyond the captured artboard; increase width/height",
         );
     }
-    const image = await preview.webContents.capturePage(rect);
+    // Offscreen windows expose their rendered bitmap through paint events.
+    // capturePage can fail with UnknownVizError on hidden offscreen surfaces.
+    const bitmap = await new Promise((resolve, reject) => {
+      const contents = preview.webContents;
+      const cleanup = () => {
+        clearTimeout(timer);
+        contents.removeListener("paint", painted);
+      };
+      const painted = (_event, _dirty, image) => {
+        const size = image.getSize();
+        if (size.width !== width || size.height !== height) return;
+        cleanup();
+        resolve(image);
+      };
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("Offscreen canvas did not finish painting"));
+      }, 10000);
+      contents.on("paint", painted);
+      contents.invalidate();
+    });
+    const image = rect ? bitmap.crop(rect) : bitmap;
     let webp;
     if (input.format === "webp") {
       const dataUrl = image.toDataURL();

@@ -1,5 +1,7 @@
 # Overseas AppShell 集成验收
 
+当前正式交付使用 Desktop 1440×1024、一个总览 Arena 和五个业务 Pages，见 [Desktop 交付验收](req075-desktop.md)。本文运行交互证据来自此前的壳层集成验收。
+
 ## 注册与使用
 
 `plasmicpkgs/overseas` 是独立的 Overseas 业务组件库。`registerAll()` 注册 `plasmic-overseas-app-shell`，画布入口是 `platform/canvas-packages/src/overseas.ts`。NAS 的 `deploy/nas-antd6.ts` 通过原生 hostless 发布流程建立组件库和组件商店入口。
@@ -23,17 +25,15 @@ AppShell 支持产品名、Logo、用户名、时区、面包屑、语言列表�
 
 ## 原型回归范围
 
-REQ075 五个 PC 1920×1080 页面复用 Overseas AppShell。迁移通过桌面 MCP 完成，保留业务元素 UUID、状态和交互；原型业务仍使用演示数据。
+REQ075 五个 PC Desktop 1440×1024 页面复用 Overseas AppShell。迁移通过桌面 MCP 完成，保留业务元素 UUID、状态和交互；原型业务仍使用演示数据。
 
 本机证据目录：`desktop/desktop-report/req075-pc/`。`transcript.jsonl` 记录脱敏 MCP 调用；`appshell-migration-plan.json` 定义迁移前的 556 个业务节点和 30 个业务交互。
 
 ## MCP 持久化与画面检查
 
-保存 revision **127**，重新加载桌面项目后读取五页，确认每页只有一个 `plasmic-overseas-app-shell` 实例，没有旧 Ant Design 6 AppShell；556 个业务节点和 30 个业务交互 UUID 全部保留。`validate` 返回 valid=true、错误 0、警告 0；共 199 个代码组件实例，其中 Ant Design 6 为 194，Overseas AppShell 为 5。
+当前保存 revision **133**。重新启动客户端并打开项目后，确认每页只有一个 Overseas AppShell，556 个业务节点、8 个覆盖层和 30 个业务交互 UUID 保留。模型校验错误 0、警告 0，共 199 个代码组件实例，其中 Ant Design 6 为 194，Overseas 为 5。
 
-五个独立画布的实际根布局均为 **1920×1080**，文档高度 1080，AppShell 起点为 (0,0)。固定 PC 页面根容器使用 width=100%、minWidth=1920px、minHeight=maxHeight=1080px，避免外层主题容器中未确定的百分比宽度导致收缩。长内容在业务区内部滚动。
-
-截图在确认目标业务元素 UUID 已渲染后获取，避免导航切换过程中抓到上一页。一次性详情实际为一次性类型及 5 个 Tab，常规详情为 6 个 Tab。
+唯一总览 `REQ075 · Desktop` 引用这五个业务 Pages；原生 Page 预览只有 Desktop 列，画板和实际文档均为 1440×1024，没有移动端断点。页面根容器为 width=100%、minWidth=1440px、height=minHeight=maxHeight=1024px，长内容内部滚动。
 
 ## 实际运行预览回归
 
@@ -50,22 +50,6 @@ REQ075 五个 PC 1920×1080 页面复用 Overseas AppShell。迁移通过桌面 
 
 ## 正式发布
 
-发布 tag **0.0.22**，源提交 `dea0069270125701867c3fe58eac92d6b3836ecf`，[GitHub Actions 37133787414](https://github.com/shiguang-lab/plasmic/actions/runs/37133787414) 的 server/web 任务成功。NAS 通过拉取 GHCR 镜像更新，并运行迁移及原生 hostless 组件库发布；没有挂载本地源码覆盖服务。
+当前 NAS 镜像 tag **0.0.23**、Overseas 原生库版本 **0.2.0**。AppSource 的 180px 选择器、320px 下拉面板、状态点、当前标记与中英文提示参照 fintechgrowthui 的效果实现，没有引入 @react/ui。Desktop 静态资源来自正式 web 镜像，API 调用 NAS。发布来源、备份与验收详见 [Desktop 交付验收](req075-desktop.md)。
 
-更新前备份：`/volume1/docker/plasmic/backups/pre-0.0.22-20261003-154130`，包含数据库、Compose、环境配置及 storage 文件。数据库约 249 MiB；环境配置仅本机用户可读。
-
-- server 镜像 digest：`sha256:c5439bfdc867a9938799e5f5337a3e3dba3ffd05c1fe97eb64a7ff9e5c189502`。
-- web 镜像 digest：`sha256:642bd21ed876319d8da7a5f07ee30ee21abbaab596044a98dc986bba15ef7a8e`。
-- Overseas 发布项目 ID：`f3f4ju424PVNTAQPkwovrE`；Ant Design 6 发布项目 ID：`eYLujTHmWfX9qEoQaFDSi4`。
-
-本机 Electron 包从正式 web 镜像提取静态资源后重建，包含 810 个本地资源，78.4 MiB，接口继续调用 NAS。`prepare-assets --from` 生成的 manifest revision 为 null，因此来源提交以 NAS 镜像 OCI 标签核对，不把 manifest 的空 revision 作为来源证明。
-
-正式部署后 server/web/db/storage 四个容器均 healthy，server/web OCI revision 均为源提交 `dea0069270125701867c3fe58eac92d6b3836ecf`。项目通过 MCP 升级 Overseas 到原生组件库版本 0.1.0，保存 revision 127 后重新加载，五页的实例及业务节点验证通过。
-
-正式桌面客户端的插入面板验收：
-
-- Overseas → Application layouts → AppShell 以带图片的卡片显示，`overseas-insert-preview.png` 已保存。
-- 搜索 AppShell 只返回 Overseas → Application layouts，旧 Ant Design 6 入口已隐藏；证据 `overseas-search-registration.txt`。
-- Ant Design 6 分类标题实际显示，截图 `antd6-installed-groups.png`。
-
-以上 UI 截图及注册搜索记录位于 `desktop/desktop-report/app-shell/`。最终客户端停留在客群列表画布，并打开 Overseas 插入面板供直接查看。
+组件插入预览已检查 Overseas → Application layouts → AppShell 图片卡片，以及 Ant Design 6 分组；对应证据位于本机 `desktop/desktop-report/app-shell/overseas-insert-preview.png` 和 `antd6-installed-groups.png`。

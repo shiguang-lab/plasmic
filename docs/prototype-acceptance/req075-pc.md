@@ -1,6 +1,6 @@
 # REQ075 PC 原型验收
 
-2026-10-03。完成 REQ075「海外客群管理平台」P0 的可编辑原型与交互验收，目标仅 PC 1920×1080。圈选、权限角色、名单和审计反馈使用演示数据；未连接业务 SQL 引擎、生产客群服务或真实导出任务。
+2026-10-04。REQ075「海外客群管理平台」P0 的正式原型仅包含 PC，使用 Studio 默认 Desktop **1440×1024**。正式结构、持久化及截图验收见 [Desktop 交付验收](req075-desktop.md)。圈选、权限角色、名单和审计反馈使用演示数据；未连接业务 SQL 引擎、生产客群服务或真实导出任务。
 
 ## 输入与范围
 
@@ -8,11 +8,11 @@
 
 产品设计：同目录 `海外客群管理平台.pen`，通过 Pen MCP 读取。原需求和设计保持不变。设计约定来自 `/Users/yanxianliang/overseas/pen-antd-kit/pen-prototype-platform/standards/` manifest 11.0.1，已吸收到仓库 `skills/plasmic-prototype/` 并安装到本机同名 skill。
 
-采用最新具体条款：详情只读，列表承载管理动作；SQL 仅初始化/首次圈选失败可改，基本属性按 §5.2/6.4 可改。App TACO 从入口带入，不增加 App 筛选。用户指定的 1080 高度优先于参考设计的自增高度，长表内部滚动。不加入 P1 AI/可视化条件/观测或 P2 标签画像/历史版本。
+采用最新具体条款：详情只读，列表承载管理动作；SQL 仅初始化/首次圈选失败可改，基本属性按 §5.2/6.4 可改。App TACO 从入口带入，不增加 App 筛选。采用用户指定的 Studio Desktop 默认尺寸，长表内部滚动。不加入 P1 AI/可视化条件/观测或 P2 标签画像/历史版本。
 
 ## 可编辑交付
 
-[Studio 项目](https://plasmic.studio.publib.cn/projects/b1VPmGnbGvyKc4rnA2xLVv)，画布 `REQ075 · PC 1920×1080`。
+[Studio 项目](https://plasmic.studio.publib.cn/projects/b1VPmGnbGvyKc4rnA2xLVv)，唯一总览画布 `REQ075 · Desktop`，包含以上业务 Pages 的引用。
 
 | 页面 | 页面路径 | 组件 UUID |
 | --- | --- | --- |
@@ -22,13 +22,13 @@
 | 常规详情 | `/req-075/regular-detail` | `ayKXc8e7JTsP` |
 | 一次性详情 | `/req-075/onetime-detail` | `N5dvwSUWcJMa` |
 
-全部生成、修改、保存均通过桌面 MCP 的 SDK/stdIO 调用完成。浏览器操作仅用于实际预览验收，没有使用浏览器脚本修改设计模型。项目已有其他验收页面保持原样。
+全部生成、修改、保存均通过桌面 MCP 的 SDK/stdIO 调用完成。浏览器操作仅用于实际预览验收，没有使用浏览器脚本修改设计模型。交付中已移除空 home、MCP 测试页面及重复的逐页 Arena；仅保留 5 个业务 Pages 和 1 个总览 Arena，不包含移动端断点。
 
 ## 验收结果
 
-当前交付已更新为独立 Overseas AppShell，MCP 保存 revision **127**。重新加载桌面项目后读取五页，556 个业务节点和 30 个业务交互保留；每页复用一个 Overseas AppShell。`validate` 返回 `valid: true`，5 个页面，199 个代码组件实例（Ant Design 6 为 194、Overseas 为 5），错误 0、警告 0。壳层集成、插入预览及本次运行回归详见 [Overseas AppShell 验收](overseas-app-shell.md)。
+当前使用独立 Overseas AppShell，MCP 保存 revision **133**。重新启动客户端并打开项目后读取五页：556 个业务节点、8 个覆盖层及 30 个业务交互 UUID 全部保留；每页复用一个 Overseas AppShell。`validate` 返回 `valid: true`，5 个业务页面，199 个代码组件实例（Ant Design 6 为 194、Overseas 为 5），错误 0、警告 0。
 
-按保留的业务根元素 UUID 匹配实际渲染帧，五页均测得画布、根布局 **1920×1080**，文档高度 **1080**。真实预览侧栏 239px、顶部 64px；四列查询、16px 区块间距、8px 行内操作间距；展开查询后操作位于最后一行。列表 1730px 宽表在自身滚动容器中水平滚动，操作列固定右侧，不能把内部滚动内容的布局诊断误判为画布扩大。
+原生 Page 预览和总览中的 5 个画板均为 **1440×1024**，没有移动断点。五页实际渲染的文档高度均为 1024，AppShell 从 (0,0) 填满画板。宽表在内部横向滚动，分页及 SQL 页面底部操作保留在视口内。
 
 业务 P0 在 AppShell 迁移前已执行并保留 **32 项真实预览交互**证据；本次迁移保留其模型与交互，并额外回归壳层菜单、角色和 SQL 校验。原业务验收覆盖：
 
@@ -55,10 +55,10 @@ MCP 已读取布局、模型和截图。编辑模式的空槽占位会影响 Bad
 - `plan.json`：输入、范围、规范取舍、规范化路径和画布 UUID。
 - `transcript.jsonl`：脱敏 MCP 调用记录，包含失败尝试及后续成功修正。
 - `accepted-validation.json`、`*-accepted-model.json`：重开后的模型验证。
-- `overseas-final-save.json`：当前交付保存 revision 127。
-- `overseas-reopened-invariants.json`、`overseas-reopened-validation.json`：本次重开后的组件与业务节点验证。
-- `overseas-layout-checks.json`、`*-overseas-visual-0.png`：当前五页的布局与截图。
-- `overseas-list-runtime-final-0.png`：当前壳层运行预览截图。
+- `formal-final-save.json`：正式交付 revision 133。
+- `formal-reopened-overview.json`、`*-formal-reopened-model.json`、`formal-reopened-validation.json`：正式交付重开后的结构、业务 UUID 与校验。
+- `formal-desktop-layout-checks.json`、`*-formal-visual-0.png`：正式交付五页的布局及 MCP 截图，1440×1024。
+- `overseas-list-runtime-final-0.png`：此前 1920×1080 壳层运行预览截图。
 - `layout-checks.json`：按页面根 UUID 匹配尺寸与滚动诊断。
 - `preview-acceptance.json`：32 项实际交互证据。
 - `list-runtime-screenshot-0.png`：原业务验收运行预览 MCP 截图，1920×1080。
