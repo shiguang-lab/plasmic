@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import React from "react";
+import * as antd from "antd";
+import { componentChildren } from "./componentSections";
 import { renderToStaticMarkup } from "react-dom/server";
 import { registerAll } from "./index";
 import { Registerable } from "./utils";
@@ -283,4 +285,77 @@ test("optional decoration slots do not inject empty canvas placeholders", () => 
   assert.match(html, /\$/);
   assert.match(html, /12/);
   assert.match(html, /users/);
+});
+
+
+
+
+test("visual components have sections and related children retain their parents", () => {
+  for (const { meta } of components.values()) {
+    assert(meta.section, `Missing section for ${meta.name}`);
+    if (meta.parentComponentName) {
+      const parent = components.get(meta.parentComponentName);
+      assert(parent, `Missing parent for ${meta.name}`);
+      assert.equal(meta.section, parent.meta.section, meta.name);
+    }
+  }
+  for (const [child, parent] of Object.entries({
+    "avatar-group": "avatar", "badge-ribbon": "badge", "breadcrumb-item": "breadcrumb",
+    "card-grid": "card", "card-meta": "card",
+  })) {
+    assert.equal(components.get(`plasmic-antd6-${child}`)?.meta.parentComponentName,
+      `plasmic-antd6-${parent}`);
+  }
+  assert.equal(components.get("plasmic-antd6-button")?.meta.section, "General");
+  assert.equal(components.get("plasmic-antd6-form")?.meta.section, "Data Entry");
+  assert.equal(components.get("plasmic-antd6-table")?.meta.section, "Data Display");
+});
+
+test("static child labels resolve to real Antd exports with matching hierarchy", () => {
+  for (const [suffix, child] of Object.entries(componentChildren)) {
+    const meta = components.get(`plasmic-antd6-${suffix}`)?.meta;
+    assert(meta, suffix);
+    assert.equal(meta.displayName, child.displayName);
+    assert.equal(meta.parentComponentName, `plasmic-antd6-${child.parent}`);
+    assert(child.displayName.split(".").reduce((value, key) => value?.[key], antd as any), child.displayName);
+  }
+  for (const suffix of ["radio", "input-number"]) {
+    assert.equal(components.get(`plasmic-antd6-${suffix}`)?.meta.parentComponentName, undefined);
+  }
+});
+
+test("Collapse follows Antd items, keys and accordion mode", () => {
+  const { component, meta } = components.get("plasmic-antd6-collapse")!;
+  assert.equal(meta.props.accordion.defaultValueHint, false);
+  const items = [{ key: "1", label: "First", children: "First body" }, { key: "2", label: "Second", children: "Second body" }];
+  const multiple = renderToStaticMarkup(React.createElement(component, { items, activeKey: ["1", "2"] }));
+  assert.equal((multiple.match(/aria-expanded="true"/g) ?? []).length, 2);
+  const accordion = renderToStaticMarkup(React.createElement(component, { items, activeKey: ["1", "2"], accordion: true }));
+  assert.equal((accordion.match(/aria-expanded="true"/g) ?? []).length, 1);
+  const single = renderToStaticMarkup(React.createElement(component, { items: items.slice(0, 1), activeKey: "1" }));
+  assert.match(single, /First body/);
+  assert(!components.has("plasmic-antd6-single-collapse"));
+});
+
+test("mode variants and editor-only option components use native props", () => {
+  for (const suffix of ["range-slider", "date-picker-multiple", "segmented-option", "slider-mark"]) {
+    assert(!components.has(`plasmic-antd6-${suffix}`), suffix);
+  }
+  const slider = components.get("plasmic-antd6-slider")!;
+  assert(slider.meta.props.range);
+  const html = renderToStaticMarkup(React.createElement(slider.component, { range: true, value: [20, 80], marks: { 50: "Middle" } }));
+  assert.equal((html.match(/role="slider"/g) ?? []).length, 2);
+  assert.match(html, /Middle/);
+  const single = renderToStaticMarkup(React.createElement(slider.component, { value: 20 }));
+  assert.equal((single.match(/role="slider"/g) ?? []).length, 1);
+  const segmented = components.get("plasmic-antd6-segmented")!;
+  assert(!segmented.meta.props.optionsSlot);
+  const segments = renderToStaticMarkup(React.createElement(segmented.component, { options: [0, "A", { value: "B", label: "Bee", disabled: true }], value: 0 }));
+  assert.match(segments, /Bee/);
+  assert.match(segments, /disabled/);
+  const date = components.get("plasmic-antd6-date-picker")!;
+  assert(date.meta.props.multiple);
+  const dates = renderToStaticMarkup(React.createElement(date.component, { multiple: true, value: ["2026-10-01", "2026-10-02"] }));
+  assert.match(dates, /2026-10-01/);
+  assert.match(dates, /2026-10-02/);
 });

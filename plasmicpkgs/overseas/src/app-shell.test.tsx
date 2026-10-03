@@ -5,10 +5,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { registerAppShell } from "./registerAppShell";
 
 const components = new Map<string, any>();
-registerAppShell({ registerComponent(component, meta) { components.set(meta.name, { component, meta }); }, registerGlobalContext() {}, registerToken() {} });
+registerAppShell({ registerComponent(component, meta) { components.set(meta.name, { component, meta }); } });
 
 test("AppShell registers configurable shared layout, editable body and an offline thumbnail", () => {
-  const shell = components.get("plasmic-antd6-app-shell")!;
+  const shell = components.get("plasmic-overseas-app-shell")!;
   assert(shell.meta.section);
   assert.match(shell.meta.thumbnailUrl, /^data:image\/svg\+xml/);
   assert.equal(shell.meta.props.children.type, "slot");

@@ -62,6 +62,13 @@ const EDIT_TOOL_META = {
       .strict(),
     outputSchema: resources,
   },
+  installLibrary: {
+    toolName: "installLibrary",
+    title: "Install a published component library",
+    description: "Install a library through Studio dependency operations and load its component registrations. Requires full edit permission. Save separately and read the installed contracts before inserting components.",
+    inputSchema: z.object({ projectId: uuid }).strict(),
+    outputSchema: z.object({ projectId: uuid, version: uuid, installed: z.boolean() }),
+  },
   upgradeLibrary: {
     toolName: "upgradeLibrary",
     title: "Upgrade an installed component library",

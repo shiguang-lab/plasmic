@@ -7,6 +7,8 @@ COPY . .
 RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
 RUN pnpm setup
 RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
+RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/public/static/packages
+RUN cd platform/canvas-packages && pnpm exec esbuild src/overseas.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/overseas.js
 RUN cd platform/canvas-packages && pnpm exec esbuild src/antd6.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd6.js
 RUN cd platform/canvas-packages && pnpm exec esbuild src/antd5.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd5.js
 
@@ -16,6 +18,7 @@ WORKDIR /plasmic/platform/wab
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
 COPY --from=builder --chown=node:node /plasmic/platform/package.json /plasmic/platform/pnpm-lock.yaml /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/
 COPY --from=builder --chown=node:node /plasmic/platform/shared /plasmic/platform/shared
+COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/overseas.js /plasmic/platform/canvas-packages/build-server/overseas.js
 COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd6.js /plasmic/platform/canvas-packages/build-server/antd6.js
 COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd5.js /plasmic/platform/canvas-packages/build-server/antd5.js
 COPY --from=builder --chown=node:node /plasmic/platform/wab /plasmic/platform/wab

@@ -1,4 +1,5 @@
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
+import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import { getFrameHeight, normalizeMixedArenaFrames } from "@/wab/shared/Arenas";
 import { Pt } from "@/wab/shared/geom";
 import { readAndSanitizeSvgXmlAsImage } from "@/wab/client/dom-utils";
@@ -993,6 +994,14 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   updateVector: defineCopilotTool(meta.updateVector, (studio, input) =>
     runMutation(studio, { name: "updateVector", input }),
   ),
+  installLibrary: defineCopilotTool(meta.installLibrary, async (studio, input) => {
+    assertCanEditPrototype(studio);
+    assert(!studio.contentEditorMode, "Library installation requires full editor permission");
+    const existing = studio.site.projectDependencies.find(dep => dep.projectId === input.projectId);
+    const dependency = existing ?? await studio.projectDependencyManager.addByProjectId(input.projectId);
+    await studio.updateCcRegistry(usedHostLessPkgs(studio.site));
+    return { projectId: dependency.projectId, version: dependency.version, installed: !existing };
+  }),
   upgradeLibrary: defineCopilotTool(meta.upgradeLibrary, async (studio, input) => {
     assertCanEditPrototype(studio);
     assert(!studio.contentEditorMode, "Library upgrades require full editor permission");

@@ -41,6 +41,25 @@ function fixture() {
 }
 
 describe("AI prototype editor tools", () => {
+  it("installs published libraries with the dependency manager and reloads registrations", async () => {
+    const { studioCtx, call } = fixture();
+    const dependency = new ProjectDependency({ name: "overseas", pkgId: "pkg-overseas", projectId: "library-overseas", version: "1.0.0", uuid: "dep-overseas", site: createSite() });
+    const add = vi.spyOn(studioCtx.projectDependencyManager, "addByProjectId").mockImplementation(async () => {
+      runInAction(() => studioCtx.site.projectDependencies.push(dependency));
+      return dependency;
+    });
+    const registry = vi.spyOn(studioCtx, "updateCcRegistry").mockResolvedValue(undefined);
+    try {
+      expect(await call("installLibrary", { projectId: dependency.projectId })).toEqual({ projectId: dependency.projectId, version: "1.0.0", installed: true });
+      expect(add).toHaveBeenCalledWith(dependency.projectId);
+      expect(registry).toHaveBeenCalledOnce();
+      expect((await call("installLibrary", { projectId: dependency.projectId })).installed).toBe(false);
+      expect(add).toHaveBeenCalledOnce();
+      const permission = vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
+      try { await expect(call("installLibrary", { projectId: "other" })).rejects.toThrow("read-only"); }
+      finally { permission.mockRestore(); }
+    } finally { add.mockRestore(); registry.mockRestore(); }
+  });
   it("upgrades installed library references through the dependency manager and skips unchanged versions", async () => {
     const { studioCtx, call } = fixture();
     const dependency = new ProjectDependency({ name: "antd6", pkgId: "pkg-antd6", projectId: "library-antd6", version: "1.0.0", uuid: "dep-old", site: createSite() });

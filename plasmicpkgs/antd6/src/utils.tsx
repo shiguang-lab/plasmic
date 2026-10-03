@@ -8,6 +8,7 @@ import {
 } from "@plasmicapp/host/registerGlobalContext";
 import { default as registerToken } from "@plasmicapp/host/registerToken";
 import React from "react";
+import { componentChildren, getComponentSection } from "./componentSections";
 
 export type Registerable = {
   registerComponent: typeof registerComponent;
@@ -42,6 +43,16 @@ export function registerComponentHelper<P>(
   component: React.ComponentType<P>,
   meta: CodeComponentMeta<P>,
 ) {
+  const suffix = meta.name.replace(/^plasmic-antd6-/, "");
+  const child = componentChildren[suffix];
+  const isStandalone = suffix === "radio" || suffix === "input-number";
+  meta = {
+    ...meta,
+    displayName: child?.displayName ?? meta.displayName,
+    section: meta.section ?? getComponentSection(meta.name),
+    parentComponentName: child ? `plasmic-antd6-${child.parent}` :
+      isStandalone ? undefined : meta.parentComponentName,
+  };
   if (loader) {
     loader.registerComponent(component, meta);
   } else {

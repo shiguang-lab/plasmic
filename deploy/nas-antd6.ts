@@ -15,14 +15,18 @@ async function main() {
       const db = new DbMgr(em, SUPER_USER);
       const flags = JSON.parse((await db.tryGetDevFlagOverrides())?.data ?? "{}");
       const catalog: CatalogPackage[] = flags.hostLessComponents ?? DEVFLAGS.hostLessComponents ?? [];
-      const nextCatalog = catalog.filter(entry => !["antd5", "antd6"].includes(entry.codeName ?? ""));
+      const nextCatalog = catalog.filter(entry => !["antd5", "antd6", "overseas"].includes(entry.codeName ?? ""));
       for (const entry of DEVFLAGS.hostLessComponents ?? []) {
         if (entry.syntheticPackage && !nextCatalog.some(item => item.codeName === entry.codeName)) {
           nextCatalog.push(entry);
         }
       }
-      for (const version of [5, 6]) {
-        const codeName = `antd${version}`;
+      for (const library of [
+        { codeName: "antd5", name: "Ant Design 5", npmPkg: "@plasmicpkgs/antd5", image: "antd6.svg" },
+        { codeName: "antd6", name: "Ant Design 6", npmPkg: "@shiguang-lab/plasmic-antd6", image: "antd6.svg" },
+        { codeName: "overseas", name: "Overseas", npmPkg: "@shiguang-lab/plasmic-overseas", image: "overseas.svg" },
+      ]) {
+        const { codeName } = library;
         const existing = catalog.find(entry => entry.codeName === codeName);
         const bundler = new Bundler();
         const existingPkg = existing
@@ -33,7 +37,7 @@ async function main() {
               "Missing Ant Design package"
             )
           : undefined;
-        if (version === 6 && existingPkg) {
+        if (codeName !== "antd5" && existingPkg) {
           await publishHostlessProject(db, existingPkg.projectId);
         }
         const dependency = existingPkg
@@ -42,28 +46,29 @@ async function main() {
             )
           : await db.createHostLessProject(new HostLessPackageInfo({
               name: codeName,
-              npmPkg: [version === 5 ? "@plasmicpkgs/antd5" : "@shiguang-lab/plasmic-antd6"],
+              npmPkg: [library.npmPkg],
               cssImport: [], deps: [], registerCalls: [], minimumReactVersion: "18.0.0",
             }), bundler);
         await db.updateProject({ id: dependency.projectId, readableByPublic: true });
-        const imageUrl = "https://plasmic.studio.publib.cn/static/img/antd6.svg";
+        const imageUrl = `https://plasmic.studio.publib.cn/static/img/${library.image}`;
         const shared = {
-          type: "hostless-package" as const, name: `Ant Design ${version}`, codeName,
+          type: "hostless-package" as const, name: library.name, codeName,
           codeLink: `https://github.com/shiguang-lab/plasmic/tree/master/plasmicpkgs/${codeName}`,
           imageUrl, projectId: [dependency.projectId],
         };
         nextCatalog.push({
-          ...shared, sectionLabel: "Design systems", isInstallOnly: true, isHeaderLess: true,
+          ...shared, sectionLabel: codeName === "overseas" ? "Business components" : "Design systems", isInstallOnly: true, isHeaderLess: true,
           items: [{ type: "hostless-component", componentName: `${codeName}-design-system`,
-            displayName: `Ant Design System ${version}`, imageUrl }],
+            displayName: library.name, imageUrl }],
         }, {
-          ...shared, sectionLabel: "Ant Design",
+          ...shared, sectionLabel: codeName === "overseas" ? "Business components" : "Ant Design",
           items: dependency.site.components.filter(c => !c.codeComponentMeta?.isContext).map(c => ({
             type: "hostless-component", componentName: c.name,
             displayName: c.codeComponentMeta?.displayName ?? c.name,
+            ...(codeName === "antd6" && c.name === "plasmic-antd6-app-shell" ? { hidden: true } : {}),
           })),
         });
-        console.log(`Registered Ant Design ${version}: ${dependency.site.components.length} components, project ${dependency.projectId}`);
+        console.log(`Registered ${library.name}: ${dependency.site.components.length} components, project ${dependency.projectId}`);
       }
       flags.hostLessComponents = nextCatalog;
       await db.setDevFlagOverrides(JSON.stringify(flags));

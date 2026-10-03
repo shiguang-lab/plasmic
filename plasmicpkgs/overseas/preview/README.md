@@ -1,13 +1,13 @@
 # AppShell 本地预览
 
-运行 `pnpm --filter @shiguang-lab/plasmic-antd6 preview:app-shell`。
+运行 `pnpm --filter @shiguang-lab/plasmic-overseas preview:app-shell`。
 
 - 缩略图卡片：<http://127.0.0.1:3106/>
 - 交互预览：<http://127.0.0.1:3106/?preview>
 - Plasmic 本地组件 Host：<http://127.0.0.1:3106/?host>
 
-AppShell 已加入 Ant Design 6 的 `registerAll()`，组件名为
-`plasmic-antd6-app-shell`，分组为 `Application layouts`。
+AppShell 已加入 Overseas 的 `registerAll()`，组件名为
+`plasmic-overseas-app-shell`，分组为 `Application layouts`。
 `section` 和内嵌 `thumbnailUrl` 让 Studio 插入面板显示静态预览卡片。
 预览首页直接使用这份注册元数据；完整交互在交互预览页查看。
 
@@ -24,7 +24,7 @@ AppShell 已加入 Ant Design 6 的 `registerAll()`，组件名为
 | `userName`、`userMenuItems` | 用户名及用户操作菜单 |
 | `languages`、`language` | 语言选项 `{value,label}` 和当前值 |
 | `appSources`、`appSource` | 应用源选项 `{value,label}` 和当前值 |
-| `menuItems`、`selectedMenuKey` | 支持嵌套的 Ant Design 菜单及选中项 |
+| `menuItems`、`selectedMenuKey` | 支持嵌套菜单、`href` 页面路由及选中项 |
 | `collapsed` | 侧栏折叠状态 |
 | `direction` | 独立于语言的 `ltr` / `rtl` 布局 |
 | `timeZone`、`currentTime` | IANA 时区或外部提供的时间文本 |

@@ -1,3 +1,4 @@
+import { groupInstalledItems } from "@/wab/client/components/insert-panel/groupInstalledItems";
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { useFocusManager } from "@/wab/client/components/aria-utils";
 import {
@@ -27,6 +28,7 @@ import {
   createAddPackageFunction,
   createAddTemplateComponent,
   createAddTplCodeComponents,
+  createAddTplCodeComponent,
   createAddTplComponent,
   createAddTplImage,
   createFakeHostLessComponent,
@@ -1263,7 +1265,9 @@ export function buildAddItemGroups({
                     isShownHostLessCodeComponent(c, hostLessComponentsMeta)) &&
                   !isContextCodeComponent(c),
               ),
-            ).map((comp) => createAddTplComponent(comp)),
+            ).map((comp) => isCodeComponent(comp)
+              ? createAddTplCodeComponent(comp, !!comp.codeComponentMeta.thumbnailUrl)
+              : createAddTplComponent(comp)),
             ...dep.site.customFunctions
               .filter((fn) => fn.isQuery)
               .map((fn) => createAddCustomFunction(fn, dep)),
@@ -1603,23 +1607,36 @@ export function buildAddItemGroups({
 
     // Imported hostless packages
     ...naturalSort(
-      deps.map((dep) => ({
-        key: isHostLessPackage(dep.site)
-          ? `hostless-packages--${dep.projectId}`
-          : dep.pkgId,
-        label:
-          hostLessComponentsMeta?.flatMap((pkg) => {
-            return getLeafProjectIdForHostLessPackageMeta(pkg) ===
-              dep.projectId &&
-              pkg.onlyShownIn !== "old" &&
-              shouldShowHostLessPackage(studioCtx, pkg)
-              ? [pkg.name]
-              : [];
-          })[0] ?? dep.name,
-        familyKey: "installed" as const,
-        items: buildDepItems(dep),
-      })),
-      (item) => item.label,
+      deps.flatMap((dep) => {
+        const group: AddItemGroup = {
+          key: isHostLessPackage(dep.site)
+            ? `hostless-packages--${dep.projectId}`
+            : dep.pkgId,
+          label:
+            hostLessComponentsMeta?.flatMap((pkg) => {
+              return getLeafProjectIdForHostLessPackageMeta(pkg) ===
+                dep.projectId &&
+                pkg.onlyShownIn !== "old" &&
+                shouldShowHostLessPackage(studioCtx, pkg)
+                ? [pkg.name]
+                : [];
+            })[0] ?? dep.name,
+          familyKey: "installed" as const,
+          items: buildDepItems(dep),
+        };
+        const sections = groupInstalledItems(group.items);
+        return sections.length === 1 && !sections[0].label
+          ? [group]
+          : sections.map(({ label, items }) => ({
+              ...group,
+              key: `${group.key}--section--${label}`,
+              sectionKey: group.key,
+              sectionLabel: group.label,
+              label: label || group.label,
+              items,
+            }));
+      }),
+      (item) => item.sectionLabel ?? item.label,
     ),
 
     // Bundle entries: one group per `bundleName`.
@@ -1721,7 +1738,10 @@ export function buildAddItemGroups({
 
   if (matcher.hasQuery()) {
     groupedItems.forEach((group) => {
-      if (matcher.matches(group.label)) {
+      if (
+        matcher.matches(group.label) ||
+        (group.sectionLabel && matcher.matches(group.sectionLabel))
+      ) {
         return; // don't filter items if group label matches
       }
 

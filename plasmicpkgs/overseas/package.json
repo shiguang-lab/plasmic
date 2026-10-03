@@ -1,0 +1,81 @@
+{
+  "name": "@shiguang-lab/plasmic-overseas",
+  "version": "0.0.1",
+  "description": "Overseas business components for Plasmic",
+  "homepage": "https://www.plasmic.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiguang-lab/plasmic.git",
+    "directory": "plasmicpkgs/overseas"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.esm.js",
+  "nx": {
+    "targets": {
+      "build": {
+        "inputs": [
+          "{projectRoot}/**/*",
+          "!{projectRoot}/**/dist/**/*",
+          "!{projectRoot}/skinny/**/*"
+        ],
+        "outputs": [
+          "{projectRoot}/**/dist/**/*",
+          "{projectRoot}/skinny/**/*"
+        ]
+      }
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.esm.js"
+    },
+    "./skinny/*": {
+      "types": "./dist/*.d.ts",
+      "require": "./skinny/*.cjs.js",
+      "import": "./skinny/*.esm.js"
+    }
+  },
+  "files": [
+    "dist",
+    "skinny"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
+    "test": "tsx --test src/*.test.tsx",
+    "typecheck": "tsc --noEmit",
+    "preview:app-shell": "node preview/server.mjs"
+  },
+  "dependencies": {
+    "antd": "6.6.5",
+    "@ant-design/icons": "^6.0.0"
+  },
+  "devDependencies": {
+    "@plasmicapp/host": "2.0.19",
+    "@rollup/plugin-commonjs": "28.0.9",
+    "@rollup/plugin-json": "6.1.0",
+    "@rollup/plugin-node-resolve": "16.0.3",
+    "@types/node": "22.20.0",
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7",
+    "glob": "8.1.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "rollup": "4.62.2",
+    "rollup-plugin-esbuild": "5.0.0",
+    "tsx": "4.23.15"
+  },
+  "peerDependencies": {
+    "@plasmicapp/host": ">=1.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

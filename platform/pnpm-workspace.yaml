@@ -3,6 +3,7 @@ packages:
   - analytics-rproxy
   - mini-cache
   - wab
+  - ../plasmicpkgs/overseas
   - canvas-packages
   - loader-bundle-env
   - loader-bundle-env/internal_pkgs/*

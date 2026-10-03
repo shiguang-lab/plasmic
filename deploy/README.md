@@ -132,3 +132,9 @@ uniquely named pages, never replaces existing pages, and leaves them saved for
 review. Its transcript and screenshots are stored in the report directory. It
 checks the browser/editor tool chain; evaluate model generation quality separately
 with natural-language requests through the AI client.
+
+## Overseas business components
+
+The NAS `nas-antd6.ts` registration command also publishes the independent Overseas library from `@shiguang-lab/plasmic-overseas`. AppShell is listed in Overseas with a thumbnail. Ant Design 6 retains its General, Layout, Navigation, Data Entry, Data Display, Feedback and Other sections, with static subcomponents grouped under their parent.
+
+MCP `installLibrary` installs the published Overseas project; `upgradeLibrary` refreshes an installed library. Read exact contracts before inserting `plasmic-overseas-app-shell`, and save explicitly. Previously published Ant Design AppShell contracts are hidden in the catalog to preserve saved revisions; new page instances belong to Overseas.

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { PlasmicCanvasHost } from "@plasmicapp/host";
 import { Button, ConfigProvider, Typography } from "antd";
 import { AppShell, registerAppShell } from "../src/registerAppShell";
-import { Registerable } from "../src/utils";
+import { Registerable } from "../src/registerAppShell";
 
 registerAppShell();
 let registration: any;

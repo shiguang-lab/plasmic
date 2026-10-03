@@ -1357,7 +1357,7 @@ importers:
 
   plasmicpkgs/antd6:
     dependencies:
-      '@ant-design/icons':
+      "@ant-design/icons":
         specifier: ^6.0.0
         version: 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       antd:
@@ -1375,48 +1375,51 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.18.1
+      "@shiguang-lab/plasmic-overseas":
+        specifier: workspace:*
+        version: link:../overseas
     devDependencies:
-      '@babel/preset-env':
-        specifier: 'catalog:'
+      "@babel/preset-env":
+        specifier: "catalog:"
         version: 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-react':
-        specifier: 'catalog:'
+      "@babel/preset-react":
+        specifier: "catalog:"
         version: 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-typescript':
-        specifier: 'catalog:'
+      "@babel/preset-typescript":
+        specifier: "catalog:"
         version: 7.29.7(@babel/core@7.29.7)
-      '@plasmicapp/data-sources':
+      "@plasmicapp/data-sources":
         specifier: 1.0.29
         version: link:../../packages/data-sources
-      '@plasmicapp/host':
+      "@plasmicapp/host":
         specifier: 2.0.19
         version: link:../../packages/host
-      '@plasmicapp/query':
+      "@plasmicapp/query":
         specifier: 0.1.88
         version: link:../../packages/query
-      '@plasmicapp/react-web':
+      "@plasmicapp/react-web":
         specifier: 1.0.39
         version: link:../../packages/react-web
-      '@rollup/plugin-commonjs':
+      "@rollup/plugin-commonjs":
         specifier: ^28.0.0
         version: 28.0.9(rollup@4.62.2)
-      '@rollup/plugin-json':
+      "@rollup/plugin-json":
         specifier: ^6.0.0
         version: 6.1.0(rollup@4.62.2)
-      '@rollup/plugin-node-resolve':
+      "@rollup/plugin-node-resolve":
         specifier: ^16.0.0
         version: 16.0.3(rollup@4.62.2)
-      '@types/lodash':
-        specifier: 'catalog:'
+      "@types/lodash":
+        specifier: "catalog:"
         version: 4.17.25
-      '@types/node':
+      "@types/node":
         specifier: ^22.10.0
         version: 22.20.0
-      '@types/react':
-        specifier: 'catalog:'
+      "@types/react":
+        specifier: "catalog:"
         version: 18.3.27
-      '@types/react-dom':
-        specifier: 'catalog:'
+      "@types/react-dom":
+        specifier: "catalog:"
         version: 18.3.7(@types/react@18.3.27)
       glob:
         specifier: ^8.1.0
@@ -1431,16 +1434,65 @@ importers:
         specifier: ^4.0.0
         version: 4.62.2
       rollup-plugin-dts:
-        specifier: 'catalog:'
+        specifier: "catalog:"
         version: 5.3.1(rollup@4.62.2)(typescript@5.2.2)
       rollup-plugin-esbuild:
-        specifier: 'catalog:'
+        specifier: "catalog:"
         version: 5.0.0(esbuild@0.28.2)(rollup@4.62.2)
       rollup-plugin-replace-imports:
-        specifier: 'catalog:'
+        specifier: "catalog:"
         version: 1.0.0
       tsx:
-        specifier: 'catalog:'
+        specifier: "catalog:"
+        version: 4.23.15
+
+  plasmicpkgs/overseas:
+    dependencies:
+      antd:
+        specifier: 6.6.5
+        version: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@ant-design/icons":
+        specifier: ^6.0.0
+        version: 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      "@plasmicapp/host":
+        specifier: 2.0.19
+        version: link:../../packages/host
+      "@rollup/plugin-commonjs":
+        specifier: 28.0.9
+        version: 28.0.9(rollup@4.62.2)
+      "@rollup/plugin-json":
+        specifier: 6.1.0
+        version: 6.1.0(rollup@4.62.2)
+      "@rollup/plugin-node-resolve":
+        specifier: 16.0.3
+        version: 16.0.3(rollup@4.62.2)
+      "@types/node":
+        specifier: 22.20.0
+        version: 22.20.0
+      "@types/react":
+        specifier: 18.3.27
+        version: 18.3.27
+      "@types/react-dom":
+        specifier: 18.3.7
+        version: 18.3.7(@types/react@18.3.27)
+      glob:
+        specifier: 8.1.0
+        version: 8.1.0
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
+      rollup:
+        specifier: 4.62.2
+        version: 4.62.2
+      rollup-plugin-esbuild:
+        specifier: 5.0.0
+        version: 5.0.0(esbuild@0.28.2)(rollup@4.62.2)
+      tsx:
+        specifier: 4.23.15
         version: 4.23.15
 
   plasmicpkgs/chakra-ui:
