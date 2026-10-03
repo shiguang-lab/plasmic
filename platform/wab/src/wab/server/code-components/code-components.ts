@@ -239,14 +239,18 @@ export async function createSiteForHostlessProject(
   return site;
 }
 
+export type HostlessParamRemovals = Readonly<Record<string, readonly string[]>>;
+
 /**
- * Updates site, a hostless package site, by evaluating the latest hostless canvas package
- * and updating the site component's metadata
+ * Updates a hostless package. Published components, slots and props are preserved,
+ * except non-slot props explicitly named in a breaking publication migration.
  */
+
 export async function updateHostlessPackage(
   site: Site,
   projectName: string,
   plumeSite: Site,
+  removedParams: HostlessParamRemovals = {},
 ) {
   await withFreshRegistries(async () => {
     const existingComponents = site.components
@@ -372,11 +376,19 @@ export async function updateHostlessPackage(
       });
       nonSlots.forEach((param) => {
         assert(
-          component.params.some((p) => !isSlot(p) && p.variable.name === param),
+          component.params.some((p) => !isSlot(p) && p.variable.name === param) ||
+            removedParams[component.name]?.includes(param),
           () => `Deleted param ${param} of component ${component.name}`,
         );
       });
     });
+
+    for (const [name, params] of Object.entries(removedParams)) {
+      const component = ensure(site.components.find(c => c.name === name), `Missing migration component ${name}`);
+      for (const param of params) {
+        assert(!component.params.some(p => p.variable.name === param), `Removal migration still registers ${name}.${param}`);
+      }
+    }
 
     // Assert all custom functions and code libraries have been preserved
     const newLibraries = new Set(site.codeLibraries.map((c) => c.name));

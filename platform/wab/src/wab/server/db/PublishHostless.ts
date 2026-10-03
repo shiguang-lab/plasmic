@@ -1,4 +1,4 @@
-import { updateHostlessPackage } from "@/wab/server/code-components/code-components";
+import { type HostlessParamRemovals, updateHostlessPackage } from "@/wab/server/code-components/code-components";
 import { DEFAULT_DATABASE_URI } from "@/wab/server/config";
 import {
   getLastBundleVersion,
@@ -68,6 +68,7 @@ export async function publishHostlessProject(
   projectId: ProjectId,
   opts?: {
     plumeSite?: Site;
+    removedParams?: HostlessParamRemovals;
   },
 ) {
   const project = await db.getProjectById(projectId);
@@ -88,7 +89,10 @@ export async function publishHostlessProject(
     latestVersion,
   );
   const site = ensureKnownProjectDependency(siteOrProjectDep).site;
-  await updateHostlessPackage(site, project.name, plumeSite);
+  const hasBreakingParamRemoval = site.components.some(component =>
+    component.params.some(param => opts?.removedParams?.[component.name]?.includes(param.variable.name))
+  );
+  await updateHostlessPackage(site, project.name, plumeSite, opts?.removedParams);
   const newBundle = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -103,7 +107,7 @@ export async function publishHostlessProject(
   assertSiteInvariants(site);
   logger().info("Saving new version and publishing...");
   // Make sure we're able to identify whether the project changed or not
-  await updateHostlessPackage(site, project.name, plumeSite);
+  await updateHostlessPackage(site, project.name, plumeSite, opts?.removedParams);
   const newBundle2 = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -131,7 +135,7 @@ export async function publishHostlessProject(
 
   await db.publishProject(
     projectId,
-    semver.inc(latestVersion.version, "minor") ?? undefined,
+    semver.inc(latestVersion.version, hasBreakingParamRemoval ? "major" : "minor") ?? undefined,
     [],
     "",
   );

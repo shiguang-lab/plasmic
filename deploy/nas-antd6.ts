@@ -38,7 +38,9 @@ async function main() {
             )
           : undefined;
         if (codeName !== "antd5" && existingPkg) {
-          await publishHostlessProject(db, existingPkg.projectId);
+          await publishHostlessProject(db, existingPkg.projectId, {
+            removedParams: { [`plasmic-${codeName}-app-shell`]: ["breadcrumbItems"] },
+          });
         }
         const dependency = existingPkg
           ? await unbundlePkgVersion(

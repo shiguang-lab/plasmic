@@ -48,12 +48,11 @@ test("route-derived breadcrumbs include every parent and hidden detail routes", 
   assert.equal(visible[0].children![0].children, undefined);
   assert.equal(routes[0].children![0].children!.length, 1);
   const shell = components.get("plasmic-overseas-app-shell")!;
-  assert.equal(shell.meta.props.breadcrumbItems.hidden(), true);
+  assert.equal(shell.meta.props.breadcrumbItems, undefined);
   const html = renderToStaticMarkup(<PageParamsProvider route="/groups/detail">
-    <shell.component productName="经营平台" menuItems={routes} selectedMenuKey="sql" breadcrumbItems={[{title:"Incorrect manual breadcrumb"}]} currentTime="00:00" />
+    <shell.component productName="经营平台" menuItems={routes} selectedMenuKey="sql" currentTime="00:00" />
   </PageParamsProvider>);
   const breadcrumb = html.match(/<nav[^>]*ant-breadcrumb[\s\S]*?<\/nav>/)![0];
-  assert(!breadcrumb.includes("Incorrect manual breadcrumb"));
   assert.match(breadcrumb, /经营平台/);assert.match(breadcrumb, /客户运营/);assert.match(breadcrumb, /客群列表/);assert.match(breadcrumb, /常规客群详情/);
   assert.match(breadcrumb, /href="\/groups"/);
   const menu = html.match(/<ul[^>]*role="menu"[\s\S]*?<\/ul>/)![0];

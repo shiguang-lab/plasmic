@@ -712,3 +712,38 @@ describe("getDependenciesWithReferencedCss", () => {
     ).toEqual(["DepA", "DepB"]);
   });
 });
+
+import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
+import { ensure } from "@/wab/shared/common";
+import { codeLit } from "@/wab/shared/core/exprs";
+import { writeable } from "@/wab/shared/core/sites";
+import { mkTplComponent } from "@/wab/shared/core/tpls";
+import { ensureKnownTplComponent } from "@/wab/shared/model/classes";
+
+test("a library upgrade deletes removed AppShell arguments and preserves its other props", () => {
+  const meta = { name: "plasmic-overseas-app-shell", importPath: "test", props: { productName: "string" as const } };
+  const oldShell = mkCodeComponent(meta.name, meta, {});
+  const newShell = mkCodeComponent(meta.name, meta, {});
+  oldShell.params.push(mkParam({name:"productName",paramType:"prop",type:typeFactory.text()}), mkParam({name:"breadcrumbItems",paramType:"prop",type:typeFactory.any()}));
+  newShell.params.push(mkParam({name:"productName",paramType:"prop",type:typeFactory.text()}));
+  ensure(oldShell.codeComponentMeta).isHostLess = true;
+  ensure(newShell.codeComponentMeta).isHostLess = true;
+  writeable(newShell).uuid = oldShell.uuid;
+  writeable(ensure(newShell.params.find(p => p.variable.name === "productName"))).uuid = ensure(oldShell.params.find(p => p.variable.name === "productName")).uuid;
+  const dep = (version: string, shell: typeof oldShell) => new ProjectDependency({
+    name: "Overseas", pkgId: "overseas-pkg", projectId: "overseas-project", version, uuid: version,
+    site: createSite({components:[shell]}),
+  });
+  const oldDep = dep("0.2.0",oldShell), newDep = dep("1.0.0",newShell);
+  const productExpr = codeLit("经营平台");
+  const owner = mkComponent({ name: "Customer list", type: ComponentType.Plain,
+    tplTree: baseVariant => mkTplComponent(oldShell, baseVariant, { productName: productExpr, breadcrumbItems: codeLit(["Old breadcrumb"]) }),
+  });
+  const site = createSite({components:[owner],projectDependencies:[oldDep]});
+  trackComponentSite(owner,site);trackComponentRoot(owner);
+  upgradeProjectDeps(site,[{oldDep,newDep}]);
+  const shell = ensureKnownTplComponent(owner.tplTree);
+  expect(shell.component).toBe(newShell);
+  expect(shell.vsettings[0].args.map(arg => arg.param.variable.name)).toEqual(["productName"]);
+  expect(shell.vsettings[0].args[0].expr).toBe(productExpr);
+});
