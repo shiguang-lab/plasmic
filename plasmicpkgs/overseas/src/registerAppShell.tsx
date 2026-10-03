@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, Breadcrumb, Button, ConfigProvider, Dropdown, Layout, Menu, theme } from "antd";
 import { DownOutlined, GlobalOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined } from "@ant-design/icons";
-import { usePlasmicLink } from "@plasmicapp/host";
+import { usePlasmicLink, useSelector } from "@plasmicapp/host";
 import { menuItemType } from "./menuItemType";
 import { AppSourceSelect } from "./AppSourceSelect";
+import { findMenuPath, visibleMenuItems, ShellMenuItem } from "./menuNavigation";
 import registerComponent, { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 export type Registerable = { registerComponent: typeof registerComponent };
 
@@ -16,7 +17,6 @@ export interface AppShellProps {
   currentTime?: string;
   productName?: string;
   logoUrl?: string;
-  breadcrumbItems?: { title: string }[];
   userName?: string;
   languages?: ShellOption[];
   language?: string;
@@ -24,7 +24,7 @@ export interface AppShellProps {
   appSources?: ShellOption[];
   appSource?: string;
   onAppSourceChange?: (value: string) => void;
-  menuItems?: React.ComponentProps<typeof Menu>["items"];
+  menuItems?: ShellMenuItem[];
   selectedMenuKey?: string;
   onMenuSelect?: (key: string) => void;
   userMenuItems?: React.ComponentProps<typeof Menu>["items"];
@@ -40,7 +40,7 @@ export const DEFAULT_APP_SOURCES: ShellOption[] = [{ value: "PAKORA", label: "PA
 export const DEFAULT_MENU_ITEMS = [{ key: "apps", label: "APP 配置" }, { key: "pages", label: "页面管理" }, { key: "errors", label: "错误码管理" }, { key: "settings", label: "中台配置管理" }];
 
 export function AppShell({
-  className, productName = "增长管理平台", logoUrl, breadcrumbItems = [], userName = "示例用户",
+  className, productName = "增长管理平台", logoUrl, userName = "示例用户",
   languages = DEFAULT_LANGUAGES, language, onLanguageChange,
   appSources = DEFAULT_APP_SOURCES, appSource, onAppSourceChange,
   menuItems = DEFAULT_MENU_ITEMS, selectedMenuKey, onMenuSelect,
@@ -63,10 +63,17 @@ export function AppShell({
   const currentLanguage = language || localLanguage || languages[0]?.value || "en";
   const currentSource = appSource || localSource || appSources[0]?.value;
   const currentDirection = direction ?? localDirection;
-  const selectedKey = selectedMenuKey ?? localMenu;
+  const PlasmicLink = usePlasmicLink();
+  const pagePath = useSelector("pagePath") as string | undefined;
+  const menuPath = findMenuPath(menuItems ?? [], pagePath, selectedMenuKey ?? localMenu);
+  const selectedKey = [...menuPath].reverse().find(item => !item.hidden && item.type !== "group")?.key;
+  const breadcrumbItems = [{ title: productName }, ...menuPath.filter(item => item.label).map(item => ({
+    title: item.href && item !== menuPath.at(-1)
+      ? <PlasmicLink href={item.href}>{item.label}</PlasmicLink>
+      : item.label,
+  }))];
   const timeParts = Object.fromEntries(new Intl.DateTimeFormat(currentLanguage, { timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(now).map(({ type, value }) => [type, value]));
   const clock = currentTime ?? `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
-  const PlasmicLink = usePlasmicLink();
   const linkedMenu = (items: any[]): any[] => items.map(item => item && ({ ...item, ...(item.href ? { label: <PlasmicLink href={item.href}>{item.label}</PlasmicLink> } : {}), ...(item.children ? { children: linkedMenu(item.children) } : {}) }));
   return <ConfigProvider direction={currentDirection}>
     <div className={className} style={{ minHeight: 0, overflow: "hidden" }}>
@@ -76,7 +83,7 @@ export function AppShell({
           {logoUrl ? <img src={logoUrl} alt="" style={{ width: 30, height: 30, objectFit: "contain", flexShrink: 0 }} /> : <Avatar shape="square" size={30} style={{ flexShrink: 0 }}>{productName.slice(0, 1)}</Avatar>}
           {!isCollapsed && <strong style={{ fontSize: 16, color: token.colorText }} title={productName}>{productName}</strong>}
         </div>
-        <Menu mode="inline" theme="light" inlineCollapsed={isCollapsed} items={linkedMenu(menuItems ?? [])} selectedKeys={selectedKey ? [selectedKey] : []} onClick={({ key }) => { setMenu(key); onMenuSelect?.(key); }} style={{ borderInlineEnd: 0 }} />
+        <Menu mode="inline" theme="light" inlineCollapsed={isCollapsed} items={linkedMenu(visibleMenuItems(menuItems ?? []))} defaultOpenKeys={menuPath.slice(0, -1).filter(item => !item.hidden).map(item => item.key)} selectedKeys={selectedKey ? [selectedKey] : []} onClick={({ key }) => { setMenu(key); onMenuSelect?.(key); }} style={{ borderInlineEnd: 0 }} />
       </Layout.Sider>
       <Layout style={{ minWidth: 0, minHeight: 0 }}>
         <Layout.Header style={{ height: 64, padding: "0 24px", background: token.colorBgContainer, borderBottom: `1px solid ${token.colorBorderSecondary}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, lineHeight: "normal" }}>
@@ -110,14 +117,13 @@ const thumbnail = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="2
 export const appShellThumbnail = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(thumbnail)}`;
 export const appShellMeta: CodeComponentMeta<AppShellProps> = {
     name: "plasmic-overseas-app-shell", displayName: "AppShell", section: "Application layouts", thumbnailUrl: appShellThumbnail,
-    description: "Shared admin shell with configurable product, user, languages, App Sources and menu. Put page content in the children slot.",
+    description: "Shared admin shell with menu-derived route selection and breadcrumbs, configurable product, user, languages and App Sources. Put page content in the children slot.",
     importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell", importName: "AppShell",
     defaultStyles: { width: "1440px", height: "1024px" },
     props: {
       direction: { type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" }, onDirectionChange: { type: "eventHandler", argTypes: [{ name: "value", type: "string" }] },
       timeZone: { type: "string", defaultValue: "Asia/Shanghai" }, currentTime: { type: "string", description: "Host-supplied clock text; otherwise show the current time in timeZone." },
       productName: { type: "string", defaultValue: "增长管理平台" }, logoUrl: "imageUrl", userName: { type: "string", defaultValue: "示例用户" },
-      breadcrumbItems: { type: "array", itemType: { type: "object", fields: { title: "string" }, nameFunc: (item: { title: string }) => item.title } },
       languages: { type: "array", itemType: optionType, defaultValue: DEFAULT_LANGUAGES },
       language: "string", onLanguageChange: { type: "eventHandler", argTypes: [{ name: "value", type: "string" }] },
       appSources: { type: "array", itemType: optionType, defaultValue: DEFAULT_APP_SOURCES }, appSource: "string",
