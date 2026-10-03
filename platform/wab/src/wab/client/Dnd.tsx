@@ -1343,13 +1343,11 @@ export class NodeTargeter {
      * component instances in the current component.
      */
     const isNodeInCurrentComponentContext = (node: ValNode) => {
-      return (
-        // If there's no currentValComponentCtx, then this node must be owned by the top-level component
-        (!currentValComponentCtx &&
-          node.valOwner === this.vc.valState().valSysRoot()) ||
-        // Else, this node must be owned by the currentValComponentCtx
-        node.valOwner === currentValComponentCtx
-      );
+      // Global context providers have no valOwner. They are outside the editable
+      // component tree and must not become drop targets when no component is drilled into.
+      return currentValComponentCtx
+        ? node.valOwner === currentValComponentCtx
+        : node.valOwner === this.vc.valState().valSysRoot();
     };
 
     // ValComponents should get node boxes, but if we only traverse DOM
