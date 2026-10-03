@@ -251,11 +251,13 @@ export default InsertPanel;
  * Returns true if the item should show a full height preview.
  * Returns false if the item should show a short height row with an icon.
  */
-const shouldShowPreview = (group: AddItemGroup): boolean => {
+const shouldShowPreview = (group: AddItemGroup, item: AddItem): boolean => {
+  if (group.familyKey === "installed") {
+    return !!item.previewImageUrl || !!item.previewVideoUrl;
+  }
   if (
     group.sectionKey === "Code Libraries" ||
-    group.sectionKey === "Functions" ||
-    group.familyKey === "installed"
+    group.sectionKey === "Functions"
   ) {
     return false;
   }
@@ -278,7 +280,7 @@ function shouldShowCompact(virtualItem: VirtualItem): boolean {
   return (
     virtualItem.type === "item" &&
     !!virtualItem.item.isCompact &&
-    shouldShowPreview(virtualItem.group)
+    shouldShowPreview(virtualItem.group, virtualItem.item)
   );
 }
 
@@ -753,7 +755,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                         } else if (virtualItem.type === "header") {
                           return 40;
                         } else if (virtualItem.type === "item") {
-                          if (shouldShowPreview(virtualItem.group)) {
+                          if (shouldShowPreview(virtualItem.group, virtualItem.item)) {
                             return 112;
                           } else {
                             return 32;
@@ -830,7 +832,7 @@ const Row = React.memo(function Row(props: {
 
   const firstItem = virtualRow[0];
   const showPreview =
-    firstItem?.type === "item" ? shouldShowPreview(firstItem.group) : false;
+    firstItem?.type === "item" ? shouldShowPreview(firstItem.group, firstItem.item) : false;
   const itemWidth = shouldShowCompact(firstItem) ? compactItemWidth : "100%";
 
   return (
