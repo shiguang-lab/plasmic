@@ -18,6 +18,11 @@ const EDITOR_METHODS = [
   "queryElements",
   "readVector",
   "createCanvas",
+  "deleteCanvas",
+  "updateCanvas",
+  "updateArtboard",
+  "setPageViewport",
+  "deleteBreakpoint",
   "createArtboard",
   "findEmptySpace",
   "navigateCanvas",
@@ -92,10 +97,11 @@ const tools = [
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. elementUuid crops a visible node (including repeated instances). width selects the closest existing artboard and resizes the static rendering. Use mode workspace for editor diagnostics; rect applies only to workspace. Not an interactive preview.",
+      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). width selects the closest existing artboard and resizes the static rendering. Use mode workspace for editor diagnostics; rect applies only to workspace. Not an interactive preview.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       elementUuid: { type: "string", minLength: 1 },
+      artboardElementUuid: { type: "string", minLength: 1 },
       mode: { type: "string", enum: ["artboard", "workspace"] },
       width: { type: "integer", minimum: 320, maximum: 4096 },
       height: { type: "integer", minimum: 1, maximum: 16384 },

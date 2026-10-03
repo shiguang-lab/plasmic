@@ -2,6 +2,40 @@
 
 exports[`Project Serialization > serialize project with all filters enabled 1`] = `
 "<Project id="testProjectId">
+  <canvases>
+    <ARRAY></ARRAY>
+  </canvases>
+  <pageFrames>
+    <ARRAY>
+      <ITEM componentUuid="ypvAo6PBDTFP" frameUuid="8-ZJ3FFUcUIN" width="1440" height="1024"></ITEM>
+      <ITEM componentUuid="ypvAo6PBDTFP" frameUuid="JrTZWqeSYX-4" width="414" height="736"></ITEM>
+    </ARRAY>
+  </pageFrames>
+  <devicePresets>
+    <ARRAY>
+      <ITEM name="iPhone 14 & 15 Pro Max" width="430" height="932"></ITEM>
+      <ITEM name="iPhone 14 & 15 Pro" width="393" height="852"></ITEM>
+      <ITEM name="iPhone 13 & 14" width="390" height="844"></ITEM>
+      <ITEM name="iPhone 14 Plus" width="428" height="926"></ITEM>
+      <ITEM name="iPhone SE" width="320" height="568"></ITEM>
+      <ITEM name="iPhone 8 Plus" width="414" height="736"></ITEM>
+      <ITEM name="iPhone 8" width="375" height="667"></ITEM>
+      <ITEM name="Google Pixel 8" width="412" height="732"></ITEM>
+      <ITEM name="Android Small" width="360" height="640"></ITEM>
+      <ITEM name="Android Large" width="360" height="800"></ITEM>
+      <ITEM name="Surface Pro 8" width="1440" height="960"></ITEM>
+      <ITEM name="iPad mini 8.3" width="744" height="1133"></ITEM>
+      <ITEM name='iPad Pro 11"' width="834" height="1194"></ITEM>
+      <ITEM name='iPad Pro 12.9"' width="1024" height="1366"></ITEM>
+      <ITEM name="Desktop" width="1440" height="1024"></ITEM>
+      <ITEM name="MacBook Air" width="1280" height="832"></ITEM>
+      <ITEM name="MacBook Pro" width="1512" height="982"></ITEM>
+      <ITEM name="Surface Book" width="1500" height="1000"></ITEM>
+      <ITEM name="iMac" width="1280" height="720"></ITEM>
+      <ITEM name="Standard 4K UDH" width="3840" height="2160"></ITEM>
+      <ITEM name="Cinema" width="4096" height="2160"></ITEM>
+    </ARRAY>
+  </devicePresets>
   <screenBreakpoints>
     <ARRAY>
       <ITEM>
@@ -2848,6 +2882,7 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
 {
   "__type": "Project",
   "animations": [],
+  "canvases": [],
   "components": [
     {
       "__type": "Component",
@@ -3020,6 +3055,113 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
       "name": "TestComponent",
       "type": "plain",
       "uuid": "JqzpTYaVCfc0",
+    },
+  ],
+  "devicePresets": [
+    {
+      "height": 932,
+      "name": "iPhone 14 & 15 Pro Max",
+      "width": 430,
+    },
+    {
+      "height": 852,
+      "name": "iPhone 14 & 15 Pro",
+      "width": 393,
+    },
+    {
+      "height": 844,
+      "name": "iPhone 13 & 14",
+      "width": 390,
+    },
+    {
+      "height": 926,
+      "name": "iPhone 14 Plus",
+      "width": 428,
+    },
+    {
+      "height": 568,
+      "name": "iPhone SE",
+      "width": 320,
+    },
+    {
+      "height": 736,
+      "name": "iPhone 8 Plus",
+      "width": 414,
+    },
+    {
+      "height": 667,
+      "name": "iPhone 8",
+      "width": 375,
+    },
+    {
+      "height": 732,
+      "name": "Google Pixel 8",
+      "width": 412,
+    },
+    {
+      "height": 640,
+      "name": "Android Small",
+      "width": 360,
+    },
+    {
+      "height": 800,
+      "name": "Android Large",
+      "width": 360,
+    },
+    {
+      "height": 960,
+      "name": "Surface Pro 8",
+      "width": 1440,
+    },
+    {
+      "height": 1133,
+      "name": "iPad mini 8.3",
+      "width": 744,
+    },
+    {
+      "height": 1194,
+      "name": "iPad Pro 11"",
+      "width": 834,
+    },
+    {
+      "height": 1366,
+      "name": "iPad Pro 12.9"",
+      "width": 1024,
+    },
+    {
+      "height": 1024,
+      "name": "Desktop",
+      "width": 1440,
+    },
+    {
+      "height": 832,
+      "name": "MacBook Air",
+      "width": 1280,
+    },
+    {
+      "height": 982,
+      "name": "MacBook Pro",
+      "width": 1512,
+    },
+    {
+      "height": 1000,
+      "name": "Surface Book",
+      "width": 1500,
+    },
+    {
+      "height": 720,
+      "name": "iMac",
+      "width": 1280,
+    },
+    {
+      "height": 2160,
+      "name": "Standard 4K UDH",
+      "width": 3840,
+    },
+    {
+      "height": 2160,
+      "name": "Cinema",
+      "width": 4096,
     },
   ],
   "globalVariantGroups": [
@@ -6267,6 +6409,20 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
       ],
       "id": "xawVbnXnpTdzmP3BKZNH31",
       "name": "[PlasmicKit] Animations",
+    },
+  ],
+  "pageFrames": [
+    {
+      "componentUuid": "ypvAo6PBDTFP",
+      "frameUuid": "8-ZJ3FFUcUIN",
+      "height": 1024,
+      "width": 1440,
+    },
+    {
+      "componentUuid": "ypvAo6PBDTFP",
+      "frameUuid": "JrTZWqeSYX-4",
+      "height": 736,
+      "width": 414,
     },
   ],
   "screenBreakpoints": [

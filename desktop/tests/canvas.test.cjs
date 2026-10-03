@@ -51,3 +51,14 @@ test('empty ready artboards remain capturable', async () => {
  const empty = {webContents: {getURL: () => 'https://studio.example/projects/test', mainFrame: {framesInSubtree: [{url: 'https://canvas.example/static/host.html#canvas=true', executeJavaScript: async () => ({ready: true, elements: [], images: [], width: 1366, height: 900})}]}}};
  assert.equal((await canvasFrames(empty, 'https://canvas.example')).length, 1);
 });
+test('captures the requested artboard when multiple pages have the same viewport', async () => {
+ let captured;
+ const frame = id => ({url:'https://canvas.example/static/host.html#canvas=true',executeJavaScript:async script=>{
+  if(script.includes('snapshotDocument')){captured=id;return '<html>snapshot</html>';}
+  return {ready:true,width:1366,height:900,elements:[{elementUuid:id}],images:[]};
+ }});
+ const overview={webContents:{...main.webContents,mainFrame:{framesInSubtree:[frame('first'),frame('second')]}}};
+ await renderCanvas(overview,'https://canvas.example',{width:1366,artboardElementUuid:'first'});
+ assert.equal(captured,'first');
+ await assert.rejects(renderCanvas(overview,'https://canvas.example',{width:1366,artboardElementUuid:'missing'}),/not rendered/);
+});

@@ -182,7 +182,11 @@ async function canvasFrames(win, origin) {
   );
 }
 async function renderCanvas(win, origin, input = {}) {
-  const frames = await canvasFrames(win, origin);
+  const available = await canvasFrames(win, origin);
+  const frames = input.artboardElementUuid
+    ? available.filter(({layout}) => layout.elements.some(el => el.elementUuid === input.artboardElementUuid))
+    : available;
+  if (!frames.length) throw new Error("Artboard containing the requested element is not rendered");
   const selected = input.width
     ? frames.reduce((a, b) =>
         Math.abs(a.layout.width - input.width) <

@@ -22,6 +22,6 @@ Read [references/admin-design.md](references/admin-design.md) for admin prototyp
 
 ## Acceptance
 
-Review every screen with `get_screenshot` and `snapshot_layout`, including meaningful tabs, overlays, filters, permission gates and long values. Exercise real preview interactions, not only definitions. `validate` checks model integrity, not visual quality. Fix issues via MCP and recheck changed screens.
+For same-sized artboards in one overview, pass `artboardElementUuid` (a unique business-body element from `read`) to `get_screenshot` to select the intended whole page; width alone can match a different page. Wait for that element to appear in `snapshot_layout` after navigation. Review every screen with `get_screenshot` and `snapshot_layout`, including meaningful tabs, overlays, filters, permission gates and long values. Exercise real preview interactions, not only definitions. `validate` checks model integrity, not visual quality. Fix issues via MCP and recheck changed screens.
 
 Call `save`, record revision, reopen the project, then `read` to confirm persisted elements, props, states and interactions. Inspect screenshots again after reopen. Keep a sanitized MCP transcript and an evidence report linking sources, screenshots, actual checks, and unresolved limits. Never report acceptance from a successful save alone. Do not publish a release without user authorization.
