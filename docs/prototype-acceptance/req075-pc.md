@@ -26,11 +26,11 @@
 
 ## 验收结果
 
-MCP 保存 revision **103**，随后 `open_design` 重开并 `read` 五个页面，确认筛选布局、属性、状态和交互持久化。`validate` 返回 `valid: true`，5 个页面，270 个代码组件实例全部为 Ant Design 6，错误 0、警告 0。
+当前交付已更新为独立 Overseas AppShell，MCP 保存 revision **127**。重新加载桌面项目后读取五页，556 个业务节点和 30 个业务交互保留；每页复用一个 Overseas AppShell。`validate` 返回 `valid: true`，5 个页面，199 个代码组件实例（Ant Design 6 为 194、Overseas 为 5），错误 0、警告 0。壳层集成、插入预览及本次运行回归详见 [Overseas AppShell 验收](overseas-app-shell.md)。
 
-按 appShell 的元素 UUID 匹配实际渲染帧，五页均测得画布、根布局 **1920×1080**，文档高度 **1080**。真实预览侧栏 239px、顶部 64px；四列查询、16px 区块间距、8px 行内操作间距；展开查询后操作位于最后一行。列表 1730px 宽表在自身滚动容器中水平滚动，操作列固定右侧，不能把内部滚动内容的布局诊断误判为画布扩大。
+按保留的业务根元素 UUID 匹配实际渲染帧，五页均测得画布、根布局 **1920×1080**，文档高度 **1080**。真实预览侧栏 239px、顶部 64px；四列查询、16px 区块间距、8px 行内操作间距；展开查询后操作位于最后一行。列表 1730px 宽表在自身滚动容器中水平滚动，操作列固定右侧，不能把内部滚动内容的布局诊断误判为画布扩大。
 
-已执行并保留 **32 项真实预览交互**证据，覆盖：
+业务 P0 在 AppShell 迁移前已执行并保留 **32 项真实预览交互**证据；本次迁移保留其模型与交互，并额外回归壳层菜单、角色和 SQL 校验。原业务验收覆盖：
 
 - 草稿/应用筛选分离、ID 查询、重置、全部/我负责的、第二页、50 条切换回第一页。
 - 名称修改、停用、初始化删除、管理员/运营/只读权限，管理员导出成功反馈。
@@ -46,7 +46,7 @@ MCP 已读取布局、模型和截图。编辑模式的空槽占位会影响 Bad
 
 补充 Antd6 Table 的 size、pagination、scroll、onChange 和列 width/ellipsis 注册契约。执行依赖构建成功、6 项注册测试通过、类型检查通过。发布提交 `30dee0af261f6117adcf5ce20f2d335d99c199bd`，tag `0.0.12`，[Actions 37121503821](https://github.com/shiguang-lab/plasmic/actions/runs/37121503821) 成功，GHCR 镜像随后部署 NAS。通过官方 hostless 发布流程更新 Antd6 库，并配置自动升级。
 
-验收结束前再次读取 NAS 容器状态：server/web 已由并行发布更新到正式 GHCR `0.0.13`，四个容器均 healthy。本报告不把该并行发布计为本次工作成果。
+当前壳层部署与镜像版本、构建结果见 [Overseas AppShell 验收](overseas-app-shell.md)。
 
 ## 本机证据
 
@@ -55,10 +55,13 @@ MCP 已读取布局、模型和截图。编辑模式的空槽占位会影响 Bad
 - `plan.json`：输入、范围、规范取舍、规范化路径和画布 UUID。
 - `transcript.jsonl`：脱敏 MCP 调用记录，包含失败尝试及后续成功修正。
 - `accepted-validation.json`、`*-accepted-model.json`：重开后的模型验证。
-- `query-layout-save.json`：成功保存 revision 103。
+- `overseas-final-save.json`：当前交付保存 revision 127。
+- `overseas-reopened-invariants.json`、`overseas-reopened-validation.json`：本次重开后的组件与业务节点验证。
+- `overseas-layout-checks.json`、`*-overseas-visual-0.png`：当前五页的布局与截图。
+- `overseas-list-runtime-final-0.png`：当前壳层运行预览截图。
 - `layout-checks.json`：按页面根 UUID 匹配尺寸与滚动诊断。
 - `preview-acceptance.json`：32 项实际交互证据。
-- `list-runtime-screenshot-0.png`：最终运行预览 MCP 截图，1920×1080。
+- `list-runtime-screenshot-0.png`：原业务验收运行预览 MCP 截图，1920×1080。
 - `preflight-running-final.jpg`、`preflight-failed.jpg`、`preflight-success.jpg`、`members-last-page.jpg`：关键状态与长分页截图。
 
 这是原型生成和更新流程验收，不代表业务后端 SQL、导出或生产权限服务已经上线。
