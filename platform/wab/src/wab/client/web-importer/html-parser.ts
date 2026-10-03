@@ -676,6 +676,18 @@ export function processUnsanitizedStyles(
       newStyles["display"] === "grid" || newStyles["display"] === "inline-grid";
 
     const expandedGapProperties = expandGapProperty(gapValue, isGridLayout);
+    // A non-wrapping flex container has no cross-axis gutters. Keeping that
+    // longhand makes the editable-model validator reject otherwise valid gap CSS.
+    const isFlex =
+      newStyles["display"] === "flex" || newStyles["display"] === "inline-flex";
+    if (isFlex && !newStyles["flexWrap"]?.startsWith("wrap")) {
+      const isColumn = newStyles["flexDirection"]?.startsWith("column");
+      if (isColumn) {
+        delete expandedGapProperties.columnGap;
+      } else {
+        delete expandedGapProperties.rowGap;
+      }
+    }
 
     delete newStyles["gap"];
     Object.assign(newStyles, expandedGapProperties);

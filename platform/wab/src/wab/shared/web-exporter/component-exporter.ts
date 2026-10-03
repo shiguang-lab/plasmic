@@ -66,6 +66,8 @@ import {
   isKnownObjectPath,
   isKnownPageHref,
   isKnownPropParam,
+  isKnownStateParam,
+  isKnownStateChangeHandlerParam,
   isKnownRawText,
   isKnownRenderExpr,
   isKnownStyleTokenRef,
@@ -533,7 +535,15 @@ function getTplOverrides(
 
 function buildComponentProps(component: Component): PropJson[] {
   return component.params
-    .filter((param) => isKnownPropParam(param))
+    .filter(
+      (param) =>
+        (isKnownPropParam(param) ||
+          isSlot(param) ||
+          ((isKnownStateParam(param) ||
+            isKnownStateChangeHandlerParam(param)) &&
+            param.exportType === "External")) &&
+        !component.variantGroups.some((group) => group.param === param),
+    )
     .map((param) => {
       // Options are stored either as plain values or as {label, value}
       // objects; read always shows the labeled form so the tools have one
@@ -545,7 +555,11 @@ function buildComponentProps(component: Component): PropJson[] {
         __type: "Prop",
         name: paramToVarName(component, param),
         uuid: param.uuid,
-        type: options ? "enum" : getParamType(component, param),
+        type: isSlot(param)
+          ? "slot"
+          : options
+            ? "enum"
+            : getParamType(component, param),
       };
       if (options) {
         prop.options = options;

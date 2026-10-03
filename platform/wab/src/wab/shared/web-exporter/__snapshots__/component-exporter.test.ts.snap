@@ -26,6 +26,15 @@ exports[`Component Serialization > serializes all components 1`] = `
       <ITEM>
         <Prop name="openLinkInNewTab" uuid="yy2_KKU6W4Gr" type="boolean" default="false"></Prop>
       </ITEM>
+      <ITEM>
+        <Prop name="start" uuid="KXkdHYVyJVKv" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="RBzi5yHD7auH" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="end" uuid="ja4I8x7eZTqb" type="slot"></Prop>
+      </ITEM>
     </ARRAY>
   </props>
   <variants>
@@ -789,6 +798,15 @@ exports[`Component Serialization > serializes all components 1`] = `
       <ITEM>
         <Prop name="ariaLabel" uuid="ZAeKaaZ-U1Jk" type="text"></Prop>
       </ITEM>
+      <ITEM>
+        <Prop name="isSelected" uuid="PARs2uSgmnFT" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="pkQ8qQCoNGEd" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="ysl4_rM43ncO" type="slot"></Prop>
+      </ITEM>
     </ARRAY>
   </props>
   <variants>
@@ -817,6 +835,9 @@ exports[`Component Serialization > serializes all components 1`] = `
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="value" uuid="9jCOvXOQ2Ocf" type="any"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="showLabel" uuid="qwc-fA9gE7__" type="boolean" default="true"></Prop>
       </ITEM>
       <ITEM>
@@ -829,7 +850,19 @@ exports[`Component Serialization > serializes all components 1`] = `
         <Prop name="ariaLabel" uuid="vszCw-lldHdk" type="text"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="onChange" uuid="Cpu59ke0G-j1" type="func"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="readOnly" uuid="1bmahVfmcwBn" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="JpHTiiPHnCb4" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="options" uuid="xTiymgw1ZDVZ" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="description" uuid="EMoveOYpZnV_" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -885,6 +918,15 @@ exports[`Component Serialization > serializes all components 1`] = `
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="isOpen" uuid="vzyiFOUgHYmh" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onOpenChange" uuid="8pE-cOdLfi2C" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="value" uuid="BhDADAjRzJxn" type="text"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="placeholder" uuid="WGCCv7DDW4ba" type="text" default="Select an item"></Prop>
       </ITEM>
       <ITEM>
@@ -892,6 +934,9 @@ exports[`Component Serialization > serializes all components 1`] = `
       </ITEM>
       <ITEM>
         <Prop name="showDescription" uuid="m3anLo71q773" type="boolean" default="false"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="iQYMZjbm9aRZ" type="func"></Prop>
       </ITEM>
       <ITEM>
         <Prop name="autoFocus" uuid="2vqnoCRdx06m" type="boolean"></Prop>
@@ -907,6 +952,15 @@ exports[`Component Serialization > serializes all components 1`] = `
       </ITEM>
       <ITEM>
         <Prop name="readOnly" uuid="cf0G1VdfjZ0R" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="b5ewel5xCO7p" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="description" uuid="zaHMOvVibMUm" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="items" uuid="igghrATLCae3" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -992,7 +1046,11 @@ exports[`Component Serialization > serializes all components 1`] = `
 </Component>",
   "Description": "<Component name="Description" uuid="8ANP8VyLXTfo" type="plain">
   <props>
-    <ARRAY></ARRAY>
+    <ARRAY>
+      <ITEM>
+        <Prop name="children" uuid="-ToohAFyElP3" type="slot"></Prop>
+      </ITEM>
+    </ARRAY>
   </props>
   <variants>
     <ARRAY></ARRAY>
@@ -1011,6 +1069,9 @@ exports[`Component Serialization > serializes all components 1`] = `
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="isOpen" uuid="WWAR4e_xlUN9" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="closeOnBackdropClick" uuid="hc-vEOR205Vv" type="boolean" default="true"></Prop>
       </ITEM>
       <ITEM>
@@ -1024,6 +1085,21 @@ exports[`Component Serialization > serializes all components 1`] = `
       </ITEM>
       <ITEM>
         <Prop name="isKeyboardDismissDisabled" uuid="r4xxnbDzdJgo" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onOpenChange" uuid="vJEHACC02trw" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="trigger" uuid="8rdyBlIMnv3A" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="heading" uuid="onbspqwdQbZo" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="content" uuid="mV1x-5Y4fQGb" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="footer" uuid="RHz4UuJJhWd-" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -1320,7 +1396,11 @@ Join our Slack community (icon in bottom left) for help any time.</div>
 </Component>",
   "Label": "<Component name="Label" uuid="JVCv_cilvEWB" type="plain">
   <props>
-    <ARRAY></ARRAY>
+    <ARRAY>
+      <ITEM>
+        <Prop name="children" uuid="mjYMDGOVLf01" type="slot"></Prop>
+      </ITEM>
+    </ARRAY>
   </props>
   <variants>
     <ARRAY>
@@ -1488,6 +1568,9 @@ Join our Slack community (icon in bottom left) for help any time.</div>
         <Prop name="offset" uuid="O_XXXSn_5ZBB" type="number" default="2"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="menuItems" uuid="_gl_7eGflG_D" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="initialSelectedKey" uuid="HAatoUv1hSxL" type="enum">
           <options>
             <ARRAY>
@@ -1534,7 +1617,14 @@ Join our Slack community (icon in bottom left) for help any time.</div>
 </Component>",
   "Menu Section": "<Component name="Menu Section" uuid="Fx3lwSohpxtr" type="plain">
   <props>
-    <ARRAY></ARRAY>
+    <ARRAY>
+      <ITEM>
+        <Prop name="header" uuid="BpXOY8C4jeph" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="items" uuid="D1kOcVHscd_2" type="slot"></Prop>
+      </ITEM>
+    </ARRAY>
   </props>
   <variants>
     <ARRAY></ARRAY>
@@ -1560,6 +1650,9 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="isOpen" uuid="O7tuIIZ_EZem" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="closeOnBackdropClick" uuid="LGib3TF0UEVh" type="boolean" default="true"></Prop>
       </ITEM>
       <ITEM>
@@ -1570,6 +1663,21 @@ Join our Slack community (icon in bottom left) for help any time.</div>
       </ITEM>
       <ITEM>
         <Prop name="isKeyboardDismissDisabled" uuid="wSBJUtL_n4l2" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onOpenChange" uuid="rE97G5rq3ThM" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="trigger" uuid="DXDvRws-chtP" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="heading" uuid="C4tcJAv3JSTV" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="content" uuid="2nJRAV9kfnfq" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="footer" uuid="hibM1QWCtmlp" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -1751,10 +1859,16 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="isOpen" uuid="hBnA9ChRWOJ2" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="shouldFlip" uuid="fAt93jOIn8LV" type="boolean" default="true"></Prop>
       </ITEM>
       <ITEM>
         <Prop name="offset" uuid="R1ULzdSaZhfB" type="number" default="12"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onOpenChange" uuid="CaRXgyaAThUe" type="func"></Prop>
       </ITEM>
       <ITEM>
         <Prop name="showArrow" uuid="O2WSC2949LCP" type="boolean"></Prop>
@@ -1772,6 +1886,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
             </ARRAY>
           </options>
         </Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="trigger" uuid="eOtoUDD7BXUO" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="content" uuid="_hej62yP5ahV" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -1828,6 +1948,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         <Prop name="value" uuid="SmFTueN3xSrH" type="text"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="label" uuid="Tv4GL84cDMVk" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="autoFocus" uuid="5DGZrRr4od2W" type="boolean"></Prop>
       </ITEM>
       <ITEM>
@@ -1856,6 +1979,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="value" uuid="Zgka_BaU1U1J" type="any"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="showLabel" uuid="xjlHDdHCv3IC" type="boolean" default="true"></Prop>
       </ITEM>
       <ITEM>
@@ -1866,6 +1992,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="ariaLabel" uuid="g4a-_aqB_-M-" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="kTWJBH4ScZQc" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="20WwYg-FWUxn" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="options" uuid="AHx-FkSYmj5W" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="description" uuid="qLiVVkUvRSPM" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -1948,7 +2086,19 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         <Prop name="disabled" uuid="vA2eXNBNpqo8" type="boolean"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="value" uuid="-szCRSoc-rJp" type="any"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="1qla3CmaPhtK" type="func"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="ariaLabel" uuid="mtQnjh3gIgbk" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="SiHW6sGd1YoN" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="thumbs" uuid="Oj-_Lg5mVQiR" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -2004,6 +2154,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="isOpen" uuid="4SNnUAN6pQ9S" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onOpenChange" uuid="tCFEXiMWUs2i" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="value" uuid="MTY4BeRazZTi" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="1Mza44coHAyk" type="func"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="placeholder" uuid="8BKx3PdkCDQp" type="text" default="Select an item"></Prop>
       </ITEM>
       <ITEM>
@@ -2017,6 +2179,15 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="ariaLabel" uuid="lbgAs4SojKA2" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="m5hI_z6vfTld" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="description" uuid="DeVF5_mAOddm" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="items" uuid="hglN89L9ntbb" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -2105,6 +2276,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="value" uuid="z4733k960gUc" type="number"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="showLabel" uuid="1c2qMGZa8f-B" type="boolean" default="true"></Prop>
       </ITEM>
       <ITEM>
@@ -2132,7 +2306,16 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         <Prop name="disabled" uuid="1DYB7selkyPP" type="boolean"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="onChange" uuid="a3Ni8jSQw11L" type="func"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="ariaLabel" uuid="tf9Eo6ah2BL2" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="1E-8WntFKeRz" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="thumbs" uuid="0fOrlGM05DlK" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -2215,6 +2398,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         <Prop name="autoFocus" uuid="Y5FoTAVBd0Aw" type="boolean" default="false"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="isSelected" uuid="-KQ--oGB1A43" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="disabled" uuid="R8UPZPSQDD2V" type="boolean" default="false"></Prop>
       </ITEM>
       <ITEM>
@@ -2222,6 +2408,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="ariaLabel" uuid="7ft7dweSwtUq" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="rOYv_6oi69LQ" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="v_Xp7dUJ2ZUg" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -2273,6 +2465,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   "Text Field": "<Component name="Text Field" uuid="M0hmO976FWhA" type="plain">
   <props>
     <ARRAY>
+      <ITEM>
+        <Prop name="value" uuid="kZEkBx_AeP79" type="text"></Prop>
+      </ITEM>
       <ITEM>
         <Prop name="placeholder" uuid="yWb_t303oZc5" type="text"></Prop>
       </ITEM>
@@ -2390,6 +2585,21 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="ariaLabel" uuid="1xESXiUetCDz" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="bMjquSoCW-fO" type="func"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="label" uuid="Ye1wgGwklJQu" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="start" uuid="Bx1si2lEkjEm" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="end" uuid="OA4oUaoxpaGH" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="description" uuid="OjFVAdF-O6hk" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -2537,6 +2747,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         <Prop name="placeholder" uuid="-5HB3zSTo2dZ" type="text"></Prop>
       </ITEM>
       <ITEM>
+        <Prop name="value" uuid="sEAycUKOkOJe" type="text"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="disabled" uuid="w3Q2sMnCN4f5" type="boolean"></Prop>
       </ITEM>
       <ITEM>
@@ -2644,6 +2857,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="ariaLabel" uuid="J4K4kt4q2EaE" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="p2lRzV51i6r2" type="func"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -2861,6 +3077,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="value" uuid="L1AvEltDyZ2_" type="text"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="placeholder" uuid="Fn-Fedyn4Tgs" type="text"></Prop>
       </ITEM>
       <ITEM>
@@ -2890,6 +3109,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="ariaLabel" uuid="6Go6pans-5xS" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onChange" uuid="yxAGOcH6XauQ" type="func"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -3107,6 +3329,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <props>
     <ARRAY>
       <ITEM>
+        <Prop name="isOpen" uuid="a_wqJulunKCd" type="boolean"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="onOpenChange" uuid="uNRroN4ufvn9" type="func"></Prop>
+      </ITEM>
+      <ITEM>
         <Prop name="openDelay" uuid="oQw6SqSZbh0L" type="number" default="0"></Prop>
       </ITEM>
       <ITEM>
@@ -3142,6 +3370,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
             </ARRAY>
           </options>
         </Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="trigger" uuid="XNo2vs7Wwssq" type="slot"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="content" uuid="BMhdkp5vL3da" type="slot"></Prop>
       </ITEM>
     </ARRAY>
   </props>
@@ -3202,6 +3436,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
       <ITEM>
         <Prop name="name" uuid="rU9aeGTC_HJi" type="text"></Prop>
+      </ITEM>
+      <ITEM>
+        <Prop name="children" uuid="4-hMw3fFUsmR" type="slot"></Prop>
       </ITEM>
       <ITEM>
         <Prop name="pageSize" uuid="1aRq4s0zOkxU" type="number"></Prop>
@@ -3292,6 +3529,24 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "openLinkInNewTab",
         "type": "boolean",
         "uuid": "yy2_KKU6W4Gr",
+      },
+      {
+        "__type": "Prop",
+        "name": "start",
+        "type": "slot",
+        "uuid": "KXkdHYVyJVKv",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "RBzi5yHD7auH",
+      },
+      {
+        "__type": "Prop",
+        "name": "end",
+        "type": "slot",
+        "uuid": "ja4I8x7eZTqb",
       },
     ],
     "states": [
@@ -4328,6 +4583,24 @@ exports[`Component Serialization > serializes all components 2`] = `
         "type": "text",
         "uuid": "ZAeKaaZ-U1Jk",
       },
+      {
+        "__type": "Prop",
+        "name": "isSelected",
+        "type": "boolean",
+        "uuid": "PARs2uSgmnFT",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "pkQ8qQCoNGEd",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "ysl4_rM43ncO",
+      },
     ],
     "states": [
       {
@@ -4387,6 +4660,12 @@ exports[`Component Serialization > serializes all components 2`] = `
     "props": [
       {
         "__type": "Prop",
+        "name": "value",
+        "type": "any",
+        "uuid": "9jCOvXOQ2Ocf",
+      },
+      {
+        "__type": "Prop",
         "default": true,
         "name": "showLabel",
         "type": "boolean",
@@ -4413,9 +4692,33 @@ exports[`Component Serialization > serializes all components 2`] = `
       },
       {
         "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "Cpu59ke0G-j1",
+      },
+      {
+        "__type": "Prop",
         "name": "readOnly",
         "type": "boolean",
         "uuid": "1bmahVfmcwBn",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "JpHTiiPHnCb4",
+      },
+      {
+        "__type": "Prop",
+        "name": "options",
+        "type": "slot",
+        "uuid": "xTiymgw1ZDVZ",
+      },
+      {
+        "__type": "Prop",
+        "name": "description",
+        "type": "slot",
+        "uuid": "EMoveOYpZnV_",
       },
     ],
     "states": [
@@ -4484,6 +4787,24 @@ exports[`Component Serialization > serializes all components 2`] = `
     "props": [
       {
         "__type": "Prop",
+        "name": "isOpen",
+        "type": "boolean",
+        "uuid": "vzyiFOUgHYmh",
+      },
+      {
+        "__type": "Prop",
+        "name": "onOpenChange",
+        "type": "func",
+        "uuid": "8pE-cOdLfi2C",
+      },
+      {
+        "__type": "Prop",
+        "name": "value",
+        "type": "text",
+        "uuid": "BhDADAjRzJxn",
+      },
+      {
+        "__type": "Prop",
         "default": "Select an item",
         "name": "placeholder",
         "type": "text",
@@ -4502,6 +4823,12 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "showDescription",
         "type": "boolean",
         "uuid": "m3anLo71q773",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "iQYMZjbm9aRZ",
       },
       {
         "__type": "Prop",
@@ -4532,6 +4859,24 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "readOnly",
         "type": "boolean",
         "uuid": "cf0G1VdfjZ0R",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "b5ewel5xCO7p",
+      },
+      {
+        "__type": "Prop",
+        "name": "description",
+        "type": "slot",
+        "uuid": "zaHMOvVibMUm",
+      },
+      {
+        "__type": "Prop",
+        "name": "items",
+        "type": "slot",
+        "uuid": "igghrATLCae3",
       },
     ],
     "states": [
@@ -4606,7 +4951,14 @@ exports[`Component Serialization > serializes all components 2`] = `
   </slot>
 </plasmic-component>",
     "name": "Description",
-    "props": [],
+    "props": [
+      {
+        "__type": "Prop",
+        "name": "children",
+        "type": "slot",
+        "uuid": "-ToohAFyElP3",
+      },
+    ],
     "type": "plain",
     "uuid": "8ANP8VyLXTfo",
     "variants": [],
@@ -4703,6 +5055,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "isOpen",
+        "type": "boolean",
+        "uuid": "WWAR4e_xlUN9",
+      },
+      {
+        "__type": "Prop",
         "default": true,
         "name": "closeOnBackdropClick",
         "type": "boolean",
@@ -4734,6 +5092,36 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "isKeyboardDismissDisabled",
         "type": "boolean",
         "uuid": "r4xxnbDzdJgo",
+      },
+      {
+        "__type": "Prop",
+        "name": "onOpenChange",
+        "type": "func",
+        "uuid": "vJEHACC02trw",
+      },
+      {
+        "__type": "Prop",
+        "name": "trigger",
+        "type": "slot",
+        "uuid": "8rdyBlIMnv3A",
+      },
+      {
+        "__type": "Prop",
+        "name": "heading",
+        "type": "slot",
+        "uuid": "onbspqwdQbZo",
+      },
+      {
+        "__type": "Prop",
+        "name": "content",
+        "type": "slot",
+        "uuid": "mV1x-5Y4fQGb",
+      },
+      {
+        "__type": "Prop",
+        "name": "footer",
+        "type": "slot",
+        "uuid": "RHz4UuJJhWd-",
       },
     ],
     "states": [
@@ -5008,7 +5396,14 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   </slot>
 </plasmic-component>",
     "name": "Label",
-    "props": [],
+    "props": [
+      {
+        "__type": "Prop",
+        "name": "children",
+        "type": "slot",
+        "uuid": "mjYMDGOVLf01",
+      },
+    ],
     "states": [
       {
         "__type": "State",
@@ -5231,6 +5626,12 @@ Join our Slack community (icon in bottom left) for help any time.</div>
       },
       {
         "__type": "Prop",
+        "name": "menuItems",
+        "type": "slot",
+        "uuid": "_gl_7eGflG_D",
+      },
+      {
+        "__type": "Prop",
         "name": "initialSelectedKey",
         "options": [
           {
@@ -5275,7 +5676,20 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   </slot>
 </plasmic-component>",
     "name": "Menu Section",
-    "props": [],
+    "props": [
+      {
+        "__type": "Prop",
+        "name": "header",
+        "type": "slot",
+        "uuid": "BpXOY8C4jeph",
+      },
+      {
+        "__type": "Prop",
+        "name": "items",
+        "type": "slot",
+        "uuid": "D1kOcVHscd_2",
+      },
+    ],
     "type": "plain",
     "uuid": "Fx3lwSohpxtr",
     "variants": [],
@@ -5368,6 +5782,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "isOpen",
+        "type": "boolean",
+        "uuid": "O7tuIIZ_EZem",
+      },
+      {
+        "__type": "Prop",
         "default": true,
         "name": "closeOnBackdropClick",
         "type": "boolean",
@@ -5392,6 +5812,36 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "isKeyboardDismissDisabled",
         "type": "boolean",
         "uuid": "wSBJUtL_n4l2",
+      },
+      {
+        "__type": "Prop",
+        "name": "onOpenChange",
+        "type": "func",
+        "uuid": "rE97G5rq3ThM",
+      },
+      {
+        "__type": "Prop",
+        "name": "trigger",
+        "type": "slot",
+        "uuid": "DXDvRws-chtP",
+      },
+      {
+        "__type": "Prop",
+        "name": "heading",
+        "type": "slot",
+        "uuid": "C4tcJAv3JSTV",
+      },
+      {
+        "__type": "Prop",
+        "name": "content",
+        "type": "slot",
+        "uuid": "2nJRAV9kfnfq",
+      },
+      {
+        "__type": "Prop",
+        "name": "footer",
+        "type": "slot",
+        "uuid": "hibM1QWCtmlp",
       },
     ],
     "states": [
@@ -5547,6 +5997,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "isOpen",
+        "type": "boolean",
+        "uuid": "hBnA9ChRWOJ2",
+      },
+      {
+        "__type": "Prop",
         "default": true,
         "name": "shouldFlip",
         "type": "boolean",
@@ -5558,6 +6014,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "offset",
         "type": "number",
         "uuid": "R1ULzdSaZhfB",
+      },
+      {
+        "__type": "Prop",
+        "name": "onOpenChange",
+        "type": "func",
+        "uuid": "CaRXgyaAThUe",
       },
       {
         "__type": "Prop",
@@ -5598,6 +6060,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "type": "enum",
         "uuid": "ouxVEFx2FrBF",
       },
+      {
+        "__type": "Prop",
+        "name": "trigger",
+        "type": "slot",
+        "uuid": "eOtoUDD7BXUO",
+      },
+      {
+        "__type": "Prop",
+        "name": "content",
+        "type": "slot",
+        "uuid": "_hej62yP5ahV",
+      },
     ],
     "states": [
       {
@@ -5633,6 +6107,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "value",
         "type": "text",
         "uuid": "SmFTueN3xSrH",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "Tv4GL84cDMVk",
       },
       {
         "__type": "Prop",
@@ -5700,6 +6180,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "value",
+        "type": "any",
+        "uuid": "Zgka_BaU1U1J",
+      },
+      {
+        "__type": "Prop",
         "default": true,
         "name": "showLabel",
         "type": "boolean",
@@ -5723,6 +6209,30 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaLabel",
         "type": "text",
         "uuid": "g4a-_aqB_-M-",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "kTWJBH4ScZQc",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "20WwYg-FWUxn",
+      },
+      {
+        "__type": "Prop",
+        "name": "options",
+        "type": "slot",
+        "uuid": "AHx-FkSYmj5W",
+      },
+      {
+        "__type": "Prop",
+        "name": "description",
+        "type": "slot",
+        "uuid": "qLiVVkUvRSPM",
       },
     ],
     "states": [
@@ -5841,9 +6351,33 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       },
       {
         "__type": "Prop",
+        "name": "value",
+        "type": "any",
+        "uuid": "-szCRSoc-rJp",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "1qla3CmaPhtK",
+      },
+      {
+        "__type": "Prop",
         "name": "ariaLabel",
         "type": "text",
         "uuid": "mtQnjh3gIgbk",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "SiHW6sGd1YoN",
+      },
+      {
+        "__type": "Prop",
+        "name": "thumbs",
+        "type": "slot",
+        "uuid": "Oj-_Lg5mVQiR",
       },
     ],
     "states": [
@@ -5916,6 +6450,30 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "isOpen",
+        "type": "boolean",
+        "uuid": "4SNnUAN6pQ9S",
+      },
+      {
+        "__type": "Prop",
+        "name": "onOpenChange",
+        "type": "func",
+        "uuid": "tCFEXiMWUs2i",
+      },
+      {
+        "__type": "Prop",
+        "name": "value",
+        "type": "text",
+        "uuid": "MTY4BeRazZTi",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "1Mza44coHAyk",
+      },
+      {
+        "__type": "Prop",
         "default": "Select an item",
         "name": "placeholder",
         "type": "text",
@@ -5946,6 +6504,24 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaLabel",
         "type": "text",
         "uuid": "lbgAs4SojKA2",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "m5hI_z6vfTld",
+      },
+      {
+        "__type": "Prop",
+        "name": "description",
+        "type": "slot",
+        "uuid": "DeVF5_mAOddm",
+      },
+      {
+        "__type": "Prop",
+        "name": "items",
+        "type": "slot",
+        "uuid": "hglN89L9ntbb",
       },
     ],
     "states": [
@@ -6043,6 +6619,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "value",
+        "type": "number",
+        "uuid": "z4733k960gUc",
+      },
+      {
+        "__type": "Prop",
         "default": true,
         "name": "showLabel",
         "type": "boolean",
@@ -6101,9 +6683,27 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       },
       {
         "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "a3Ni8jSQw11L",
+      },
+      {
+        "__type": "Prop",
         "name": "ariaLabel",
         "type": "text",
         "uuid": "tf9Eo6ah2BL2",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "1E-8WntFKeRz",
+      },
+      {
+        "__type": "Prop",
+        "name": "thumbs",
+        "type": "slot",
+        "uuid": "0fOrlGM05DlK",
       },
     ],
     "states": [
@@ -6189,6 +6789,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       },
       {
         "__type": "Prop",
+        "name": "isSelected",
+        "type": "boolean",
+        "uuid": "-KQ--oGB1A43",
+      },
+      {
+        "__type": "Prop",
         "default": false,
         "name": "disabled",
         "type": "boolean",
@@ -6205,6 +6811,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaLabel",
         "type": "text",
         "uuid": "7ft7dweSwtUq",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "rOYv_6oi69LQ",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "v_Xp7dUJ2ZUg",
       },
     ],
     "states": [
@@ -6279,6 +6897,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 </plasmic-component>",
     "name": "Text Field",
     "props": [
+      {
+        "__type": "Prop",
+        "name": "value",
+        "type": "text",
+        "uuid": "kZEkBx_AeP79",
+      },
       {
         "__type": "Prop",
         "name": "placeholder",
@@ -6641,6 +7265,36 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "type": "text",
         "uuid": "1xESXiUetCDz",
       },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "bMjquSoCW-fO",
+      },
+      {
+        "__type": "Prop",
+        "name": "label",
+        "type": "slot",
+        "uuid": "Ye1wgGwklJQu",
+      },
+      {
+        "__type": "Prop",
+        "name": "start",
+        "type": "slot",
+        "uuid": "Bx1si2lEkjEm",
+      },
+      {
+        "__type": "Prop",
+        "name": "end",
+        "type": "slot",
+        "uuid": "OA4oUaoxpaGH",
+      },
+      {
+        "__type": "Prop",
+        "name": "description",
+        "type": "slot",
+        "uuid": "OjFVAdF-O6hk",
+      },
     ],
     "states": [
       {
@@ -6795,6 +7449,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "placeholder",
         "type": "text",
         "uuid": "-5HB3zSTo2dZ",
+      },
+      {
+        "__type": "Prop",
+        "name": "value",
+        "type": "text",
+        "uuid": "sEAycUKOkOJe",
       },
       {
         "__type": "Prop",
@@ -7136,6 +7796,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "type": "text",
         "uuid": "J4K4kt4q2EaE",
       },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "p2lRzV51i6r2",
+      },
     ],
     "states": [
       {
@@ -7404,6 +8070,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "value",
+        "type": "text",
+        "uuid": "L1AvEltDyZ2_",
+      },
+      {
+        "__type": "Prop",
         "name": "placeholder",
         "type": "text",
         "uuid": "Fn-Fedyn4Tgs",
@@ -7471,6 +8143,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaLabel",
         "type": "text",
         "uuid": "6Go6pans-5xS",
+      },
+      {
+        "__type": "Prop",
+        "name": "onChange",
+        "type": "func",
+        "uuid": "yxAGOcH6XauQ",
       },
     ],
     "states": [
@@ -7755,6 +8433,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "props": [
       {
         "__type": "Prop",
+        "name": "isOpen",
+        "type": "boolean",
+        "uuid": "a_wqJulunKCd",
+      },
+      {
+        "__type": "Prop",
+        "name": "onOpenChange",
+        "type": "func",
+        "uuid": "uNRroN4ufvn9",
+      },
+      {
+        "__type": "Prop",
         "default": 0,
         "name": "openDelay",
         "type": "number",
@@ -7828,6 +8518,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "type": "enum",
         "uuid": "LBien6Xm-Qfz",
       },
+      {
+        "__type": "Prop",
+        "name": "trigger",
+        "type": "slot",
+        "uuid": "XNo2vs7Wwssq",
+      },
+      {
+        "__type": "Prop",
+        "name": "content",
+        "type": "slot",
+        "uuid": "BMhdkp5vL3da",
+      },
     ],
     "states": [
       {
@@ -7896,6 +8598,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "name",
         "type": "text",
         "uuid": "rU9aeGTC_HJi",
+      },
+      {
+        "__type": "Prop",
+        "name": "children",
+        "type": "slot",
+        "uuid": "4-hMw3fFUsmR",
       },
       {
         "__type": "Prop",

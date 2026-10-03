@@ -393,7 +393,6 @@ describe("parseHtmlToWebImporterTree", () => {
               safeStyles: {
                 display: "flex",
                 flexDirection: "row",
-                rowGap: "10px",
                 columnGap: "10px",
               },
               unsafeStyles: {},

@@ -207,7 +207,7 @@ export function componentSchema() {
       .describe("Imported project id, present only for imported components."),
     props: z
       .array(propSchema())
-      .describe("Component props (non-variant params)."),
+      .describe("Component props and slots (non-variant params); slot values must be supplied as markup, not data-props."),
     variants: z
       .array(variantDefSchema())
       .describe("Component variant definitions (group + element variants)."),

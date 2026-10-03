@@ -92,10 +92,13 @@ export function setTplStyles(
 
   const effectiveRsh = vtm.effectiveRsh(tpl, variantCombo);
   // `gap` expands to grid or flex longhands depending on display.
-  const display = effectiveRsh.getRaw("display");
-  const changes = prepareStyleChanges(styles, {
-    layoutContext: display ? { display } : {},
-  });
+  const layoutContext = Object.fromEntries(
+    ["display", "flex-direction", "flex-wrap"].flatMap((prop) => {
+      const value = effectiveRsh.getRaw(prop);
+      return value ? [[prop, value]] : [];
+    }),
+  );
+  const changes = prepareStyleChanges(styles, { layoutContext });
   const messages = [...changes.messages];
 
   const rsh = RSH(vs.rs, tpl);

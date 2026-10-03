@@ -544,7 +544,6 @@ exports[`snapshot tests > parse landing page html properly 1`] = `
                       "paddingLeft": "0",
                       "paddingRight": "0",
                       "paddingTop": "0",
-                      "rowGap": "2rem",
                     },
                     "unsafeStyles": {},
                     "unsanitizedStyles": {
@@ -697,7 +696,6 @@ exports[`snapshot tests > parse landing page html properly 1`] = `
                       "paddingLeft": "0",
                       "paddingRight": "0",
                       "paddingTop": "0",
-                      "rowGap": "1rem",
                     },
                     "unsafeStyles": {},
                     "unsanitizedStyles": {
@@ -2074,7 +2072,6 @@ exports[`snapshot tests > parse landing page html properly 1`] = `
                       "paddingLeft": "0",
                       "paddingRight": "0",
                       "paddingTop": "0",
-                      "rowGap": "1rem",
                     },
                     "unsafeStyles": {},
                     "unsanitizedStyles": {

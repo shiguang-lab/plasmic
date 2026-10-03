@@ -93,3 +93,36 @@ Codegen or Loader application, install it before syncing/rendering components:
 ```sh
 npm install https://plasmic.studio.publib.cn/static/packages/shiguang-lab-plasmic-antd6-0.0.1.tgz
 ```
+
+## AI prototype editing
+
+Studio exposes `window.PLASMIC_AI_TOOLS` on an open, authorized project after its
+host frame connects. Connect an AI client through Chrome DevTools MCP and use
+[`plasmic-prototype`](../ai/skills/plasmic-prototype/README.md). The AI client's
+model generates designs; this does not enable the official cloud Copilot chat.
+No model key is stored in the NAS deployment.
+
+Tools read the installed component contracts and use Studio's model operations,
+permissions, transaction rollback and undo. Use Ant Design 6 registered props;
+invalid props or HTML import errors fail the call. `save` confirms persistence
+and returns the project revision. `validate` reports structural correctness and
+component usage; screenshots and task-specific behavior still need review.
+
+Run the fixed tool-chain acceptance scenario in a NAS container with Playwright
+and Chrome installed:
+
+```sh
+PLASMIC_ENV_FILE=/run/plasmic.env \
+PLASMIC_PROJECT_ID=YOUR_ACCEPTANCE_PROJECT_ID \
+PLASMIC_PLAYWRIGHT_PATH=/verify/runtime/playwright-core \
+PLASMIC_CHROMIUM_PATH=/verify/runtime/chromium-1080/chrome-linux/chrome \
+PLASMIC_REPORT_DIR=/verify/ai-prototype-report \
+node /verify/verify-ai-prototype.cjs
+```
+
+Mount the private deployment `.env` read-only. Use an acceptance project owned by
+the configured admin and with Ant Design 6 already installed. The scenario adds
+uniquely named pages, never replaces existing pages, and leaves them saved for
+review. Its transcript and screenshots are stored in the report directory. It
+checks the browser/editor tool chain; evaluate model generation quality separately
+with natural-language requests through the AI client.
