@@ -77,8 +77,9 @@
     "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
-    "test": "tsx --test src/registration.test.tsx",
-    "typecheck": "tsc --noEmit"
+    "test": "tsx --test src/*.test.tsx",
+    "typecheck": "tsc --noEmit",
+    "preview:app-shell": "node preview/server.mjs"
   },
   "dependencies": {
     "antd": "6.6.5",

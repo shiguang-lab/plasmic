@@ -1,3 +1,4 @@
+import { registerAppShell } from "./registerAppShell";
 import { registerAdditional } from "./registerAdditional";
 import { InputType } from "./form/Form";
 import { registerForm } from "./form/registerForm";
@@ -62,6 +63,7 @@ import { registerUpload } from "./registerUpload";
 import { Registerable } from "./utils";
 
 export function registerAll(loader?: Registerable) {
+  registerAppShell(loader);
   registerAdditional(loader);
   registerConfigProvider(loader);
   registerTokens(loader);
@@ -130,3 +132,5 @@ export const inputTypeToComponentName = Object.fromEntries(
 ) as Record<InputType, string>;
 
 export * from "./registerAdditional";
+
+export * from "./registerAppShell";
