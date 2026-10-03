@@ -357,13 +357,13 @@ export function registerAdditional(loader?: Registerable) {
     onChange: event("affixed", "boolean"),
   });
   register(loader, AntdAlert, "alert", "AntdAlert", {
-    title: slot("Alert title"),
-    description: slot("Alert description"),
+    title: { ...slot("Alert title"), hidePlaceholder: true },
+    description: { ...slot("Alert description"), hidePlaceholder: true },
     type: choice(["success", "info", "warning", "error"], "info"),
     showIcon: "boolean",
     banner: "boolean",
     closable: "object",
-    action: "slot",
+    action: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdAnchor, "anchor", "AntdAnchor", {
     items: {
@@ -396,7 +396,7 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("text") },
   );
   register(loader, AntdBadge, "badge", "AntdBadge", {
-    children: slot("Badge"),
+    children: { ...slot("Badge"), hidePlaceholder: true },
     count: { type: "number", defaultValue: 5 },
     dot: "boolean",
     showZero: "boolean",
@@ -408,7 +408,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
     children: slot("Ribbon content"),
-    text: slot("Ribbon"),
+    text: { ...slot("Ribbon"), hidePlaceholder: true },
     color: { type: "color" },
     placement: choice(["start", "end"]),
   });
@@ -418,10 +418,10 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdCard, "card", "AntdCard", {
     children: slot("Card content"),
-    title: slot("Card title"),
-    extra: "slot",
-    cover: "slot",
-    actions: "slot",
+    title: { ...slot("Card title"), hidePlaceholder: true },
+    extra: { type: "slot", hidePlaceholder: true },
+    cover: { type: "slot", hidePlaceholder: true },
+    actions: { type: "slot", hidePlaceholder: true },
     size: choice(["small", "medium"], "medium"),
     variant: choice(["outlined", "borderless"]),
     hoverable: "boolean",
@@ -430,9 +430,9 @@ export function registerAdditional(loader?: Registerable) {
     classNames: "object",
   });
   register(loader, AntdCardMeta, "card-meta", "AntdCardMeta", {
-    title: slot("Title"),
-    description: slot("Description"),
-    avatar: "slot",
+    title: { ...slot("Title"), hidePlaceholder: true },
+    description: { ...slot("Description"), hidePlaceholder: true },
+    avatar: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdCardGrid, "card-grid", "AntdCardGrid", {
     children: slot("Grid cell"),
@@ -534,7 +534,7 @@ export function registerAdditional(loader?: Registerable) {
     xxl: "object",
   });
   register(loader, AntdDescriptions, "descriptions", "AntdDescriptions", {
-    title: slot("Details"),
+    title: { ...slot("Details"), hidePlaceholder: true },
     items: {
       type: "array",
       defaultValue: [{ key: "name", label: "Name", children: "Example" }],
@@ -555,8 +555,8 @@ export function registerAdditional(loader?: Registerable) {
     size: sizes,
   });
   register(loader, AntdEmpty, "empty", "AntdEmpty", {
-    description: slot("No data"),
-    children: "slot",
+    description: { ...slot("No data"), hidePlaceholder: true },
+    children: { type: "slot", hidePlaceholder: true },
     image: "imageUrl",
   });
   register(loader, AntdFlex, "flex", "AntdFlex", {
@@ -575,8 +575,8 @@ export function registerAdditional(loader?: Registerable) {
     ]),
   });
   register(loader, AntdFloatButton, "float-button", "AntdFloatButton", {
-    icon: "slot",
-    content: slot("Help"),
+    icon: { type: "slot", hidePlaceholder: true },
+    content: { ...slot("Help"), hidePlaceholder: true },
     tooltip: "string",
     type: choice(["default", "primary"]),
     shape: choice(["circle", "square"]),
@@ -607,7 +607,7 @@ export function registerAdditional(loader?: Registerable) {
   register(loader, AntdBackTop, "back-top", "AntdBackTop", {
     visibilityHeight: "number",
     duration: "number",
-    icon: "slot",
+    icon: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdImage, "image", "AntdImage", {
     src: { type: "imageUrl", defaultValue: "https://placehold.co/320x200" },
@@ -665,10 +665,10 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("boolean", "collapsed", "onCollapse") },
   );
   register(loader, AntdList, "list", "AntdList", {
-    children: "slot",
+    children: { type: "slot", hidePlaceholder: true },
     dataSource: { type: "array", defaultValue: ["First item", "Second item"] },
-    header: "slot",
-    footer: "slot",
+    header: { type: "slot", hidePlaceholder: true },
+    footer: { type: "slot", hidePlaceholder: true },
     size: choice(["small", "default", "large"], "default"),
     split: "boolean",
     bordered: "boolean",
@@ -676,13 +676,13 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdListItem, "list-item", "AntdListItem", {
     children: slot("Item"),
-    extra: "slot",
-    actions: "slot",
+    extra: { type: "slot", hidePlaceholder: true },
+    actions: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdListItemMeta, "list-item-meta", "AntdListItemMeta", {
-    title: slot("Item title"),
-    description: slot("Item description"),
-    avatar: "slot",
+    title: { ...slot("Item title"), hidePlaceholder: true },
+    description: { ...slot("Item description"), hidePlaceholder: true },
+    avatar: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdListy, "listy", "AntdListy", {
     items: {
@@ -727,8 +727,8 @@ export function registerAdditional(loader?: Registerable) {
   );
   register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
     children: slot("Delete"),
-    title: slot("Delete this item?"),
-    description: "slot",
+    title: { ...slot("Delete this item?"), hidePlaceholder: true },
+    description: { type: "slot", hidePlaceholder: true },
     okText: "string",
     cancelText: "string",
     disabled: "boolean",
@@ -745,10 +745,10 @@ export function registerAdditional(loader?: Registerable) {
     status: choice(["active", "expired", "loading", "scanned"]),
   });
   register(loader, AntdResult, "result", "AntdResult", {
-    title: slot("Success"),
-    subTitle: slot("The operation completed"),
-    extra: "slot",
-    icon: "slot",
+    title: { ...slot("Success"), hidePlaceholder: true },
+    subTitle: { ...slot("The operation completed"), hidePlaceholder: true },
+    extra: { type: "slot", hidePlaceholder: true },
+    icon: { type: "slot", hidePlaceholder: true },
     status: choice([
       "success",
       "error",
@@ -760,7 +760,7 @@ export function registerAdditional(loader?: Registerable) {
     ]),
   });
   register(loader, AntdSkeleton, "skeleton", "AntdSkeleton", {
-    children: "slot",
+    children: { type: "slot", hidePlaceholder: true },
     active: "boolean",
     loading: { type: "boolean", defaultValue: true },
     avatar: "boolean",
@@ -787,7 +787,7 @@ export function registerAdditional(loader?: Registerable) {
   register(loader, AntdSpace, "space", "AntdSpace", {
     ...spaceProps,
     wrap: "boolean",
-    separator: "slot",
+    separator: { type: "slot", hidePlaceholder: true },
     align: choice(["start", "end", "center", "baseline"]),
   });
   register(loader, AntdSpaceCompact, "space-compact", "AntdSpaceCompact", {
@@ -840,11 +840,11 @@ export function registerAdditional(loader?: Registerable) {
     collapsible: "object",
   });
   register(loader, AntdStatistic, "statistic", "AntdStatistic", {
-    title: slot("Total"),
+    title: { ...slot("Total"), hidePlaceholder: true },
     value: { type: "number", defaultValue: 128 },
     precision: "number",
-    prefix: "slot",
-    suffix: "slot",
+    prefix: { type: "slot", hidePlaceholder: true },
+    suffix: { type: "slot", hidePlaceholder: true },
     loading: "boolean",
     styles: "object",
   });
@@ -854,7 +854,7 @@ export function registerAdditional(loader?: Registerable) {
     "statistic-timer",
     "AntdStatisticTimer",
     {
-      title: slot("Timer"),
+      title: { ...slot("Timer"), hidePlaceholder: true },
       type: choice(["countdown", "countup"]),
       value: { type: "number", description: "Unix timestamp in milliseconds" },
       format: "string",
@@ -866,7 +866,7 @@ export function registerAdditional(loader?: Registerable) {
     color: { type: "color" },
     variant: choice(["outlined", "filled", "solid"]),
     closable: "boolean",
-    icon: "slot",
+    icon: { type: "slot", hidePlaceholder: true },
     onClose: event("event", "object"),
   });
   register(

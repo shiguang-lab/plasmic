@@ -241,3 +241,46 @@ test("Tour target selectors do not access the DOM during SSR", () => {
     ),
   );
 });
+
+
+test("optional decoration slots do not inject empty canvas placeholders", () => {
+  const optionalSlots = {
+    statistic: ["title", "prefix", "suffix"],
+    tag: ["icon"],
+    badge: ["children"],
+    alert: ["action"],
+    card: ["title", "extra", "cover", "actions"],
+    "card-meta": ["avatar"],
+    empty: ["children"],
+    "float-button": ["icon"],
+    "back-top": ["icon"],
+    list: ["children", "header", "footer"],
+    "list-item": ["extra", "actions"],
+    "list-item-meta": ["avatar"],
+    popconfirm: ["description"],
+    result: ["extra", "icon"],
+    skeleton: ["children"],
+    space: ["separator"],
+  };
+  for (const [name, slots] of Object.entries(optionalSlots)) {
+    const registration = components.get(`plasmic-antd6-${name}`);
+    assert(registration, name);
+    for (const prop of slots) {
+      assert.equal(registration.meta.props[prop].type, "slot", `${name}.${prop}`);
+      assert.equal(registration.meta.props[prop].hidePlaceholder, true, `${name}.${prop}`);
+    }
+  }
+  for (const name of ["tag", "flex", "card", "splitter-panel"]) {
+    const registration = components.get(`plasmic-antd6-${name}`);
+    assert(registration);
+    assert.notEqual(registration.meta.props.children.hidePlaceholder, true, `${name}.children stays editable`);
+  }
+  const statistic = components.get("plasmic-antd6-statistic");
+  assert(statistic);
+  const html = renderToStaticMarkup(React.createElement(statistic.component, {
+    value: 12, prefix: React.createElement("span", null, "$"), suffix: "users",
+  }));
+  assert.match(html, /\$/);
+  assert.match(html, /12/);
+  assert.match(html, /users/);
+});
