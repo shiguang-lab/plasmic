@@ -146,6 +146,23 @@ export function projectSchema() {
   return z.object({
     __type: z.literal("Project"),
     id: z.string().describe("Project id."),
+    canvases: z
+      .array(
+        z.object({
+          name: z.string(),
+          frames: z.array(
+            z.object({
+              uuid: z.string(),
+              componentUuid: z.string(),
+              x: z.number(),
+              y: z.number(),
+              width: z.number(),
+              height: z.number(),
+            }),
+          ),
+        }),
+      )
+      .optional(),
     screenBreakpoints: z
       .array(screenBreakpointSchema())
       .optional()
@@ -207,10 +224,25 @@ export function componentSchema() {
       .describe("Imported project id, present only for imported components."),
     props: z
       .array(propSchema())
-      .describe("Component props and slots (non-variant params); slot values must be supplied as markup, not data-props."),
+      .describe(
+        "Component props and slots (non-variant params); slot values must be supplied as markup, not data-props.",
+      ),
     variants: z
       .array(variantDefSchema())
       .describe("Component variant definitions (group + element variants)."),
+    variantGroups: z
+      .array(
+        z.object({
+          uuid: z.string(),
+          name: z.string(),
+          multi: z.boolean(),
+          variants: z.array(variantSchema()),
+        }),
+      )
+      .optional()
+      .describe(
+        "Variant groups, including empty groups, with IDs for editing.",
+      ),
     states: z
       .array(stateSchema())
       .optional()

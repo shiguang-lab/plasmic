@@ -1,0 +1,198 @@
+# Plasmic Desktop
+
+Electron desktop app with bundled Studio, canvas, Ant Design component bundles,
+fonts, CSS and Monaco workers. The NAS serves APIs, project data, user-uploaded
+assets and WebSocket updates. Static files are never downloaded at runtime; a
+missing bundled file returns 404.
+
+## Build and run
+
+Requires Node >=22.12, npm, curl, and Docker for extracting the released web build.
+Run in `desktop`:
+
+```sh
+npm ci
+npm run assets
+npm start
+npm run package:mac
+# Or: npm run package:win / npm run package:linux
+```
+
+`desktop.config.json` pins the web release and Studio/Canvas origins. Keep this
+web release aligned with the NAS server release. `assets` extracts `/opt/plasmic-web`
+from the pinned image, sets its deployment origin, excludes source maps, and
+writes `renderer/desktop-assets.json`. The fixed Studio Google Fonts stylesheet,
+font binaries and OFL license files are bundled at build time too. Project requests
+for those same bundled font families reuse local font faces; other Google font
+families still require the network. Docker and curl
+are build dependencies only. Custom project fonts and external project hosts
+remain project-managed resources.
+
+To bundle a production frontend built from this checkout instead:
+
+```sh
+npm run assets -- --from ../platform/wab/build
+```
+
+That directory must be a complete self-hosted WAB production build, including
+canvas packages and generated CSS. The existing `deploy/Dockerfile` web target
+produces it at `/opt/plasmic-web`; a partial development build is insufficient.
+
+Packaging creates platform application bundles in `dist/<version>/`, with renderer files
+inside `resources/app.asar`. It does not produce signed installers. macOS
+signing/notarization requires the appropriate Apple credentials and a macOS
+build environment. `package:mac` defaults to Apple Silicon; Intel builds use
+`npm run package -- darwin x64`. No backend or database is included.
+
+## Runtime
+
+The application's persistent Electron session handles the two existing HTTPS
+origins. Studio routes resolve to local `index.html`; static URLs, canvas scripts
+and workers resolve inside the packaged renderer. API requests are forwarded
+with Chromium's network stack and the same session cookies, method, headers and
+body. Real-time WebSockets retain their NAS URL. This preserves origin checks
+and the cross-origin Studio/Canvas split without disabling web security.
+
+The renderer has no Node access; sandbox and context isolation remain enabled.
+External navigation opens the system browser. Internal preview popups share the
+same asset handler and authenticated session. Remote custom project hosts are
+still remote, because their code is not part of this application bundle.
+
+Email/password login uses the NAS's existing authentication. Google login uses an intermediate page in the main window and opens
+the system browser and keeps the existing Google redirect URI on the NAS.
+After authorization, the browser stays on the Studio domain at
+`/api/v1/auth/desktop/google/complete`. It immediately attempts to open
+`plasmic-desktop://oauth/google/callback` to bring the app back. The **Open Plasmic Desktop**
+button remains available when the browser requires a manual click. The five-minute,
+single-use handoff stays in the URL fragment, out of server request logs.
+Electron verifies the original state and redeems it using S256 PKCE and CSRF
+protection, establishing its own HttpOnly session. Google credentials remain on
+the NAS. A pending login is stored with owner-only permissions for ten minutes,
+so opening the app after a restart can still finish it. Canceling clears that
+pending login. The packaged app registers its URL scheme; macOS requires a
+packaged application for browser-to-app login. Successful login returns to the
+requested workspace in the main window.
+
+The NAS must use the matching published server release, built by
+`deploy/Dockerfile` through the tag-triggered image workflow. Its handoff-code store
+belongs to one app-server process; restarting it invalidates outstanding codes.
+Google OAuth state is verified using the browser session. No Google Console
+redirect changes are needed.
+
+The desktop honors the OS proxy by default. When launched from a terminal,
+`HTTPS_PROXY` / `HTTP_PROXY` and `NO_PROXY` can explicitly configure its proxy. The desktop exposes a native stdio MCP server backed by the active editor. No
+Chrome DevTools connection is needed.
+
+Local files remove frontend download latency, but project loading and saves
+still depend on NAS response time and the editor still performs its normal
+initialization work. This is not an offline editor.
+
+## Desktop verification
+
+```sh
+npm test
+# On the current computer; the env file contains only acceptance-account credentials:
+PLASMIC_ENV_FILE=/absolute/path/to/acceptance.env \
+PLASMIC_REPORT_DIR=/tmp/plasmic-desktop-report \
+npm run test:smoke
+```
+
+The smoke test reads existing acceptance-project data, verifies a real NAS
+login, locally served Studio/canvas resources, validation and save/reload, and
+an offline static asset. It never writes credentials or session cookies to its
+report. The desktop application runs on the current computer; only its API
+backend runs on the NAS. Test profiles are isolated from the normal app profile.
+
+## MCP
+
+Choose **MCP → MCP 设置…** to open the local settings dialog. Enable a client
+to register Plasmic automatically; disable it to remove its Plasmic entry.
+Selections are saved and reapplied at startup. Restart or refresh the client
+after changing its configuration. Other servers are preserved, and conflicting
+entries are reported without being overwritten. Claude Code, Codex, Gemini,
+Antigravity 2.0, OpenCode, Kiro, and Claude Desktop are supported (Claude Desktop
+on macOS and Windows). The dialog also provides a copyable JSON configuration
+for other MCP clients. Start the desktop and sign in before using editor tools. The packaged
+application itself runs with `--mcp` as a dedicated stdio process; the normal GUI
+process owns the editor. The configuration uses an absolute executable path, so
+copy it again after moving the application.
+
+The server provides these tools:
+
+| Tool | Function |
+| --- | --- |
+| `get_app_state` | Read readiness, active project and exact editor schemas |
+| `list_projects` / `open_design` | List accessible NAS projects and open a design |
+| `read_skill` / `get_style` | Editing workflow and local palette/spacing presets |
+| `execute` / `execute_batch` | Validated edits; a batch rolls back completely on failure and is one undo step |
+| `snapshot_layout` | Rendered desktop/mobile geometry and image load status |
+| `get_screenshot` | Clean static artboard PNG; `mode: "workspace"` captures the editor |
+| `import_image` / `read_image` | Import a local raster into NAS and read design image pixels |
+| `export_design` / `export_pages` | Static exports and ordered multi-page PDF |
+| `export_code` | Editable React/TypeScript/CSS from NAS codegen |
+| `capture_browser` / `browser` | Reference PNG/DOM and persistent isolated browser CDP |
+| `search_stock_images` | Commons images with license/source/attribution metadata |
+| `vectorize_image` | Local raster tracing to SVG paths |
+| `make_vector` | SVG paths and union/intersection/subtraction/xor geometry |
+| `generate_image` | Configured Images generation/edit/background service |
+
+`execute` supports `identify`, `read`, `createComponent`, `insertHtml`,
+`changeElement`, `deleteElement`, `createState`, `createInteraction`,
+`createStyleToken`, `copyElement`, `moveElement`, `queryElements`,
+`updateState`, `deleteState`, `updateStyleToken`, `deleteStyleToken`,
+`createVariantGroup`, `createVariant`, `createGlobalVariantGroup`,
+`createGlobalVariant`, `createBreakpoint`, `deleteComponent`,
+`readVector`, `updateVector`, `createCanvas`, `createArtboard`,
+`findEmptySpace`, `navigateCanvas`,
+`navigate`, `validate`, `save` and `undo`. Read the schemas in
+`get_app_state` and component/slot contracts from `execute` → `read` before
+editing. New pages and component definitions are created with `createComponent`;
+new elements and registered Ant Design 6 instances are inserted with `insertHtml`.
+Call `validate`, inspect a screenshot and then `save`. Changes persist through the
+NAS API and remain editable in Studio.
+
+The stdio process forwards commands to a local Unix socket (Windows named pipe).
+A random token and owner-only files in the Electron user-data directory protect
+that connection. Editing commands run serially through the sandboxed preload and the
+existing `PLASMIC_AI_TOOLS` transaction API. Read-only canvas inspection uses
+fixed DOM code; exports render sanitized snapshots in isolated windows. Clients cannot evaluate arbitrary JavaScript in the Studio renderer. The isolated reference browser exposes restricted CDP domains and shares no Studio session or preload. Runtime prototype
+interaction code is supported only by the validated createInteraction contract. Do not share the user-data directory or `mcp-connection.json`.
+
+For a development checkout, the copied configuration uses the local Electron
+binary and the `desktop` directory as its first argument. Keep that GUI instance
+running while calling tools. To run the end-to-end MCP acceptance test on the
+current computer using an already authenticated, isolated acceptance profile:
+Set `PLASMIC_TEST_PROJECT_ID` and `PLASMIC_TEST_COMPONENT_PROJECT_ID` to an editable
+acceptance project and its imported Ant Design 6 catalog. The test creates a new page.
+
+```sh
+PLASMIC_DESKTOP_PROFILE=/absolute/path/to/acceptance-profile npm run test:mcp
+```
+
+This test connects through the actual stdio MCP transport, lists/opens a project,
+creates an Ant Design 6 page, reads and modifies it, validates and saves it,
+captures a PNG, reloads it from the NAS, and checks rejection of arbitrary code.
+It adds a uniquely named page to the acceptance project. Reports and screenshots
+are written to `PLASMIC_REPORT_DIR` (default `/tmp/plasmic-desktop-mcp-report`).
+
+
+Screenshots and exports clone the rendered canvas into an isolated window with
+scripting disabled and empty slot placeholders removed. They wait for fonts and
+images with bounded timeouts. Use an existing artboard width for responsive
+validation: resizing a static snapshot does not re-evaluate Studio variants.
+HTML exports retain asset links and do not include live interactions or React
+source. Imports convert raster images to PNG and do not preserve animation.
+
+See [MCP guide](mcp-guide.md) for exact sequencing and current limitations, and
+[MCP capability status](MCP-CAPABILITIES.md) for acceptance evidence and the Pen
+comparison. Full Pen MCP parity is not implemented.
+
+## Image service
+
+Open **MCP → MCP 设置… → 图像服务** to enter the API base URL, supported image model and API key. The key is stored with owner-only permissions and is never returned through MCP. Alternatively, create `image-service.json` in the desktop user-data directory (`~/Library/Application Support/Plasmic Desktop` on macOS), with owner-only permissions:
+
+```json
+{"baseUrl":"https://api.openai.com/v1","model":"YOUR_IMAGE_MODEL","apiKey":"YOUR_KEY"}
+```
+
+The chosen service must implement JSON `/images/generations`, multipart `/images/edits`, and `data[0].b64_json` PNG output. Background removal requires transparency support. `get_app_state` reports whether it is configured, without returning credentials. No image service is enabled by default.

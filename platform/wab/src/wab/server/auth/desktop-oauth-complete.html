@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>返回 Plasmic Desktop</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1d2536;background:#f7f8fa}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.login-content{width:min(520px,100%);text-align:center}.logo{width:56px;height:34px;display:block;margin:0 auto 24px}.eyebrow{margin:0 0 10px;color:#929baa;font-size:11px;line-height:16px;letter-spacing:1.3px}h1{font-size:22px;font-weight:650;line-height:1.4;letter-spacing:-.4px;margin:0 0 12px}p{font-size:13px;color:#758094;line-height:1.75;margin:0}a{display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;height:34px;padding:0 13px;margin-top:24px;border-radius:7px;background:#1677ff;color:white;text-decoration:none}a:hover{background:#0966e8}a:focus-visible{outline:3px solid #1677ff40;outline-offset:2px}.hint{margin-top:24px;font-size:12px;color:#929baa}[hidden]{display:none!important}
+</style></head>
+<body><main class="login-content"><svg class="logo" viewBox="0 0 80 48" aria-hidden="true"><defs><linearGradient id="brand"><stop stop-color="#f44ab4"/><stop offset="1" stop-color="#8956ff"/></linearGradient></defs><g fill="none" stroke="url(#brand)" stroke-width="7"><path d="M7 43a33 33 0 0 1 66 0"/><path d="M20 43a20 20 0 0 1 40 0"/><path d="M33 43a7 7 0 0 1 14 0"/></g></svg><p class="eyebrow">PLASMIC DESKTOP</p><h1 id="title">Google 授权已完成</h1><p id="message">正在打开桌面应用，完成登录并继续设计。</p><a id="open" hidden>打开 Plasmic Desktop</a><p class="hint">如浏览器询问是否打开应用，请选择“打开”。<br>若应用未打开，请点击上方按钮。</p></main>
+<script nonce="__NONCE__">
+const params = new URLSearchParams(location.hash.slice(1));
+const valid = /^[A-Za-z0-9_-]{43}$/;
+const state = params.get('state'), code = params.get('code');
+const button = document.getElementById('open');
+function expire() {
+  document.getElementById('title').textContent = '登录已过期';
+  document.getElementById('message').textContent = '请返回 Plasmic Desktop 发起新的 Google 登录。';
+  button.textContent = '返回 Plasmic Desktop';
+  button.href = 'plasmic-desktop://oauth/google/callback?' + new URLSearchParams({state, error:'expired'});
+}
+if (!valid.test(state || '') || (!params.has('error') && !valid.test(code || ''))) {
+  document.getElementById('title').textContent = '登录链接无效';
+  document.getElementById('message').textContent = '请在 Plasmic Desktop 中重新发起 Google 登录。';
+} else {
+  const callback = new URL('plasmic-desktop://oauth/google/callback');
+  callback.searchParams.set('state', state);
+  if (params.has('error')) {
+    const expired = params.get('error') === 'expired';
+    callback.searchParams.set('error', expired ? 'expired' : 'authentication_failed');
+    document.getElementById('title').textContent = expired ? '登录请求已过期' : 'Google 授权未完成';
+    document.getElementById('message').textContent = expired ? 'Google 授权已完成，但本次桌面登录请求已超时。请返回应用重新登录。' : '请返回应用重试登录。';
+    button.textContent = '返回 Plasmic Desktop';
+  } else callback.searchParams.set('code', code);
+  button.href = callback.toString();
+  button.hidden = false;
+  if (!params.has('error')) {
+    const remaining = Number(params.get('expiresAt')) - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) expire();
+    else {
+      setTimeout(expire, Math.min(remaining, 5 * 60_000));
+      location.assign(callback.toString());
+    }
+  }
+}
+</script></body></html>

@@ -7,3 +7,5 @@
 .env
 **/secrets
 **/__pycache__
+desktop/renderer
+desktop/desktop-report

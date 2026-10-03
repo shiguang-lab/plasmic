@@ -974,6 +974,7 @@ export function buildComponentResource(
     ...(fromProject ? { fromProject } : {}),
     props: buildComponentProps(component),
     variants: buildComponentVariantDefs(component),
+    variantGroups: component.variantGroups.map(group => ({uuid: group.uuid, name: group.param.variable.name, multi: group.multi, variants: group.variants.map(variant => ({__type: "Variant" as const, uuid: variant.uuid, name: variant.name}))})),
     ...(states.length > 0 ? { states } : {}),
     ...(interactions.length > 0 ? { interactions } : {}),
     ...(opts.dataQueries?.length ? { dataQueries: opts.dataQueries } : {}),

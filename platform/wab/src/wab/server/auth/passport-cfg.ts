@@ -102,6 +102,7 @@ export async function setupPassport(
         clientID: getGoogleClientId(),
         clientSecret: getGoogleClientSecret(),
         callbackURL: `${config.host}/api/v1/oauth2/google/callback`,
+        state: true,
         passReqToCallback: true,
       },
       (req, accessToken, refreshToken, profile, done) =>

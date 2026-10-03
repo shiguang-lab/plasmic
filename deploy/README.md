@@ -36,6 +36,10 @@ Nginx startup.
 For an existing deployment, back up the database and assets first. Change IMAGE_TAG,
 then run migrations before starting the new server:
 
+Remove any local-image or source-file overrides from `compose.override.yml`
+before upgrading. Both services must resolve to the published GHCR tag;
+runtime source and component bundles are supplied by the release images.
+
 ```sh
 docker compose pull
 docker compose stop server web
@@ -73,7 +77,7 @@ For an existing database, changing .env alone does not change the stored
 `defaultHostUrl` and `codegenOriginHost` dev flag overrides. Update those values
 along with STUDIO_ORIGIN and CANVAS_ORIGIN before restarting server/web.
 
-## Ant Design 6
+## Ant Design 5 and 6
 
 The images include `@shiguang-lab/plasmic-antd6` and the antd6 canvas bundle.
 After deploying the images, add the library to an existing database:
@@ -82,10 +86,12 @@ After deploying the images, add the library to an existing database:
 docker compose run --rm server src/wab/server/nas-antd6.ts
 ```
 
-This creates and publishes the component library and adds its entry to the
-design-system catalog while preserving existing projects and dev flags. Running
-it again leaves the installed library unchanged. Reload Studio and install
-**Ant Design 6** from the component library panel.
+This registers both versions, reusing existing published libraries. It updates
+the catalog while preserving other entries and dev flags, and restores the
+default Plume and HTML entries if missing. Design systems shows one cover card
+per version; Ant Design lists components grouped under Ant Design 5 and Ant
+Design 6. Reload Studio after running the command. Re-running refreshes the
+catalog without creating duplicate libraries.
 
 The registration package is distributed with the web image. For a separate
 Codegen or Loader application, install it before syncing/rendering components:

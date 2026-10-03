@@ -1198,7 +1198,17 @@ export function addMainAppServerRoutes(
     "/api/v1/auth/getEmailVerificationToken",
     authRoutes.getEmailVerificationToken,
   );
-  app.get("/api/v1/auth/google", authRoutes.googleLogin);
+  app.get(
+    "/api/v1/auth/google",
+    sensitiveRateLimiter,
+    withNext(authRoutes.googleLogin),
+  );
+  app.get("/api/v1/auth/desktop/google/complete", authRoutes.desktopGoogleComplete);
+  app.post(
+    "/api/v1/auth/desktop/google/exchange",
+    sensitiveRateLimiter,
+    withNext(authRoutes.desktopGoogleExchange),
+  );
   app.get(
     "/api/v1/oauth2/google/callback",
     withNext(authRoutes.googleCallback),

@@ -1,3 +1,10 @@
+import { randomBytes } from "node:crypto";
+import {
+  consumeDesktopOAuthCode,
+  desktopOAuthRedirect,
+  DesktopOAuthFlow,
+  parseDesktopOAuthFlow,
+} from "@/wab/server/auth/desktop-oauth";
 import {
   customTeamApiAuth,
   customTeamApiUserAuth,
@@ -551,18 +558,20 @@ export async function googleLogin(
   res: Response,
   next: NextFunction,
 ) {
+  if (req.query.desktop === "1") {
+    req.session.desktopOAuth = parseDesktopOAuthFlow({
+      state: req.query.desktopState,
+      challenge: req.query.challenge,
+    });
+  } else if (!req.query.force) {
+    delete req.session.desktopOAuth;
+  }
   const prompt = req.query.force ? { prompt: "consent" } : {};
-  await new Promise<void>((resolve) =>
-    passport.authenticate(
-      "google",
-      {
-        ...prompt,
-        accessType: "offline",
-        scope: ["email", "profile", "openid"],
-      } as AuthenticateOptionsGoogle,
-      () => resolve(),
-    )(req, res, next),
-  );
+  passport.authenticate("google", {
+    ...prompt,
+    accessType: "offline",
+    scope: ["email", "profile", "openid"],
+  } as AuthenticateOptionsGoogle)(req, res, next);
 }
 
 async function handleOauthCallback(
@@ -572,6 +581,7 @@ async function handleOauthCallback(
   {
     ssoConfig,
     beforeLogin,
+    desktopFlow,
   }: {
     /**
      * Callback to do something before logging the user in.
@@ -581,6 +591,7 @@ async function handleOauthCallback(
      */
     beforeLogin?: (user: User) => Promise<boolean>;
     ssoConfig?: SsoConfig;
+    desktopFlow?: DesktopOAuthFlow;
   },
 ) {
   const strategy = ssoConfig ? "sso" : "google";
@@ -598,7 +609,8 @@ async function handleOauthCallback(
               `${logPrefix} could not auth due to error: ${errName}`,
             );
             Sentry.captureException(err);
-            res.send(callbackHtml(errName));
+            if (desktopFlow) res.redirect(desktopOAuthRedirect(desktopFlow));
+            else res.send(callbackHtml(errName));
             return;
           }
 
@@ -622,7 +634,9 @@ async function handleOauthCallback(
             ) {
               req.session.cookie.maxAge = ssoConfig.config.maxAge;
             }
-            res.send(callbackHtml("Success"));
+            if (desktopFlow)
+              res.redirect(desktopOAuthRedirect(desktopFlow, user.id));
+            else res.send(callbackHtml("Success"));
           });
         })().then(() => resolve()),
     )(req, res, next),
@@ -634,7 +648,14 @@ export async function googleCallback(
   res: Response,
   next: NextFunction,
 ) {
+  const desktopFlow = req.session.desktopOAuth;
+  delete req.session.desktopOAuth;
+  if (desktopFlow) {
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Referrer-Policy", "no-referrer");
+  }
   await handleOauthCallback(req, res, next, {
+    desktopFlow,
     beforeLogin: async (user: User) => {
       const mgr = superDbMgr(req);
 
@@ -655,6 +676,9 @@ export async function googleCallback(
         // determine whether this .authenticate() call is the initial request or
         // the callback request.  So, we rely on redirecting to our own endpoint,
         // which in turn redirects us to the oauth provider.
+        // OAuth user upsert regenerates the browser session; retain the desktop
+        // destination when Google needs another consent round.
+        if (desktopFlow) req.session.desktopOAuth = desktopFlow;
         res.redirect(`/api/v1/auth/google?force=1`);
         return false;
       }
@@ -988,4 +1012,25 @@ export async function getUserAuthIntegrations(req: Request, res: Response) {
       return { name: p.provider, id: p.id };
     }),
   } as ListAuthIntegrationsResponse);
+}
+
+/** Redeem a browser-authorized code into this desktop request's own session. */
+export async function desktopGoogleExchange(req: Request, res: Response) {
+  const userId = consumeDesktopOAuthCode(req.body);
+  const user = await superDbMgr(req).getUserById(userId);
+  await new Promise<void>((resolve, reject) => {
+    doLogin(req, user, (error) => (error ? reject(error) : resolve()));
+  });
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ status: true });
+}
+
+/** Browser landing page; the handoff stays in the URL fragment, out of HTTP logs. */
+export function desktopGoogleComplete(_req: Request, res: Response) {
+  const nonce = randomBytes(16).toString("base64");
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Content-Security-Policy", `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'`);
+  res.type("html").send(fs.readFileSync(__dirname + "/desktop-oauth-complete.html", "utf8").replace("__NONCE__", nonce));
 }

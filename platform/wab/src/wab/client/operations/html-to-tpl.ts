@@ -602,11 +602,17 @@ async function wiTreeToTpl(
     node: Exclude<WIElement, WIFragment>,
     tpl: TplNode,
   ) {
-    // Container layout defaults don't apply to text and slots nodes.
+    const baseVariantSetting = node.variantSettings.find(
+      isWIBaseVariantSettings,
+    );
+    const authoredDisplay = baseVariantSetting?.safeStyles?.display;
+    // Preserve explicit non-flex layouts; SVG assets are images.
     const defaultStyles: Record<string, string> =
       node.type === "text" ||
+      node.type === "svg" ||
       node.type === "slot-target" ||
-      node.type === "component"
+      node.type === "component" ||
+      (authoredDisplay !== undefined && authoredDisplay !== "flex")
         ? {}
         : {
             display: "flex",
@@ -617,11 +623,6 @@ async function wiTreeToTpl(
       defaultStyles["width"] = node.width;
       defaultStyles["height"] = node.height;
     }
-
-    // Find base variant settings
-    const baseVariantSetting = node.variantSettings.find(
-      isWIBaseVariantSettings,
-    );
 
     const baseStyles = {
       ...defaultStyles,

@@ -1,3 +1,4 @@
+import { getFrameHeight } from "@/wab/shared/Arenas";
 import {
   getDataTokenType,
   toDataTokenDisplayValue,
@@ -157,6 +158,17 @@ export function buildProjectResource(
   return {
     __type: "Project",
     id: opts.projectId,
+    canvases: site.arenas.map((arena) => ({
+      name: arena.name,
+      frames: arena.children.map((frame) => ({
+        uuid: frame.uuid,
+        componentUuid: frame.container.component.uuid,
+        x: frame.left ?? 0,
+        y: frame.top ?? 0,
+        width: frame.width,
+        height: getFrameHeight(frame),
+      })),
+    })),
     ...(screenBreakpoints ? { screenBreakpoints } : {}),
     ...buildSections(),
     ...(customFunctions ? { dataQueryFunctions: customFunctions } : {}),
