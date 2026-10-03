@@ -31,7 +31,7 @@ REQ075 五个 PC Desktop 1440×1024 页面复用 Overseas AppShell。迁移通�
 
 ## MCP 持久化与画面检查
 
-当前保存 revision **133**。重新启动客户端并打开项目后，确认每页只有一个 Overseas AppShell，556 个业务节点、8 个覆盖层和 30 个业务交互 UUID 保留。模型校验错误 0、警告 0，共 199 个代码组件实例，其中 Ant Design 6 为 194，Overseas 为 5。
+当前保存 revision **134**。重新启动客户端并打开项目后，确认每页只有一个 Overseas AppShell，556 个业务节点、8 个覆盖层和 30 个业务交互 UUID 保留。模型校验错误 0、警告 0，共 199 个代码组件实例，其中 Ant Design 6 为 194，Overseas 为 5。
 
 唯一总览 `REQ075 · Desktop` 引用这五个业务 Pages；原生 Page 预览只有 Desktop 列，画板和实际文档均为 1440×1024，没有移动端断点。页面根容器为 width=100%、minWidth=1440px、height=minHeight=maxHeight=1024px，长内容内部滚动。
 

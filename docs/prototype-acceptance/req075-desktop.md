@@ -9,12 +9,13 @@
 - 移除空 home、两张 MCP 测试页面、测试 Arena 和五个重复的逐页 Arena。
 - 原生 Page 预览仅一个 Desktop 列，总览与 Page 画板均为 Studio 默认 **1440×1024**，移动端断点数为 0。
 - 每页使用一个 Overseas AppShell；页面根高度固定，宽表和长内容在内部滚动。
+- 顶部面包屑配置为产品名 → 菜单层级 → 当前页面；列表为两级，SQL 建群及详情为三级。
 
 所有原型修改通过桌面 MCP 完成。MCP 补充了删除/重命名 Arena、调整画板、设置原生 Page 的 Desktop 预览列、删除断点能力，遵守原有编辑权限及撤销机制。
 
 ## 保存后验收
 
-保存 revision **133**，重新启动桌面客户端并打开项目后，通过 MCP 读取模型、布局及截图：
+保存 revision **134**，重新启动桌面客户端并打开项目后，通过 MCP 读取模型、布局及截图：
 
 - 556 个业务节点、8 个覆盖层和 30 个业务交互 UUID 全部保留。
 - 5 个原生 Page 画板与 5 个总览画板均为 1440×1024。
@@ -24,11 +25,11 @@
 
 本次检查聚焦正式结构、Desktop 尺寸、业务 UUID 保留及五页默认画面；此前的 32 项运行交互证据不作为本次重新执行的结果。
 
-证据目录：`desktop/desktop-report/req075-pc/`（本机忽略产物）。主要文件为 `formal-final-save.json`、`formal-reopened-overview.json`、`*-formal-reopened-model.json`、`formal-desktop-layout-checks.json`、`formal-reopened-validation.json` 和 `*-formal-visual-0.png`。MCP 脱敏调用记录为 `transcript.jsonl`。
+证据目录：`desktop/desktop-report/req075-pc/`（本机忽略产物）。主要文件为 `formal-final-save.json`、`formal-reopened-overview.json`、`*-formal-reopened-model.json`、`formal-desktop-layout-checks.json`、`formal-reopened-validation.json` 和 `*-formal-visual-0.png`。面包屑修复证据为 `breadcrumb-fixed-save.json`、`breadcrumb-reopened-models.json`、`*-breadcrumb-layout-0.json` 和 `*-breadcrumb-visual-0.png`；重开后的五页 DOM 验证面包屑文字及顶部 64px 内的边界。MCP 脱敏调用记录为 `transcript.jsonl`。
 
 ## Skill 与验证
 
-仓库 `skills/plasmic-prototype/` 与本机 `/Users/yanxianliang/.codex/skills/plasmic-prototype/` 已同步：PC 默认读取 Desktop preset；只交付业务 Pages 和一个总览 Arena；不生成移动端模式；移除测试产物；固定视口并内部滚动；保存后重开验证。同尺寸多画板截图使用 `artboardElementUuid` 指定目标页面。
+仓库 `skills/plasmic-prototype/` 与本机 `/Users/yanxianliang/.codex/skills/plasmic-prototype/` 已同步：PC 默认读取 Desktop preset；只交付业务 Pages 和一个总览 Arena；不生成移动端模式；移除测试产物；固定视口并内部滚动；保存后重开验证。独立管理页面必须配置 AppShell 面包屑，不在业务区重复绘制。 同尺寸多画板截图使用 `artboardElementUuid` 指定目标页面。
 
 技能验证通过。WAB 原型操作测试 28 项、资源导出测试 9 项、桌面画板导出测试 6 项、MCP 配置及 RPC 测试 16 项通过。Overseas 注册测试及类型检查通过。WAB 全量类型检查仍有 9 项已有的 TopFrame、enterprise chat、OAuth session 错误，相关修改文件没有报错。
 
