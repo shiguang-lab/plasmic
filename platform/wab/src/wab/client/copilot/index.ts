@@ -1,6 +1,7 @@
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
-import { getFrameHeight, normalizeMixedArenaFrames } from "@/wab/shared/Arenas";
+import { getFrameHeight, normalizeMixedArenaFrames, ensureActivatedScreenVariantsForFrameByWidth } from "@/wab/shared/Arenas";
+import { frameSizeGroups } from "@/wab/shared/responsiveness";
 import { Pt } from "@/wab/shared/geom";
 import { readAndSanitizeSvgXmlAsImage } from "@/wab/client/dom-utils";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
@@ -299,6 +300,50 @@ async function prepareMutation(
   studio: StudioCtx,
   operation: PrototypeMutation,
 ): Promise<MutationPlan> {
+  if (operation.name === "deleteCanvas" || operation.name === "updateCanvas") {
+    const arena = findCanvas(studio, operation.input.canvasName);
+    return { components: [], apply: () => {
+      assert(studio.site.arenas.includes(arena), "Canvas removed during batch");
+      if (operation.name === "deleteCanvas") {
+        studio.tplMgr().removeArena(arena);
+      } else {
+        assert(!studio.site.arenas.some(a => a !== arena && a.name === operation.input.name), "Canvas name already exists");
+        arena.name = operation.input.name;
+      }
+    }, result: () => canvasResult(studio) };
+  }
+  if (operation.name === "updateArtboard") {
+    const input = operation.input;
+    const arena = findCanvas(studio, input.canvasName);
+    const frame = ensure(arena.children.find(f => f.uuid === input.frameUuid), "Artboard not found");
+    return { components: [frame.container.component], apply: () => {
+      assert(studio.site.arenas.includes(arena) && arena.children.includes(frame), "Artboard removed during batch");
+      frame.width = input.width; frame.height = input.height; frame.left = input.x; frame.top = input.y;
+      ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+      normalizeMixedArenaFrames(arena);
+    }, result: () => canvasResult(studio) };
+  }
+  if (operation.name === "setPageViewport") {
+    const size = ensure(frameSizeGroups.flatMap(g => g.sizes).find(s => s.name === operation.input.preset), "Unknown Studio device preset");
+    return { components: studio.site.pageArenas.map(a => a.component), apply: () => {
+      for (const arena of studio.site.pageArenas) {
+        for (const row of arena.matrix.rows) row.cols.splice(1);
+        for (const row of [...arena.matrix.rows, ...arena.customMatrix.rows]) {
+          for (const { frame } of row.cols) {
+            frame.width = size.width; frame.height = size.height;
+            ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+          }
+        }
+      }
+    }, result: () => canvasResult(studio) };
+  }
+  if (operation.name === "deleteBreakpoint") {
+    const variant = ensure(studio.site.activeScreenVariantGroup?.variants.find(v => v.uuid === operation.input.variantUuid), "Active screen breakpoint not found");
+    return { components: studio.site.components.filter(c => !isCodeComponent(c)), apply: () => {
+      assert(studio.site.activeScreenVariantGroup?.variants.includes(variant), "Breakpoint removed during batch");
+      studio.tplMgr().tryRemoveVariant(variant, undefined);
+    }, result: () => canvasResult(studio) };
+  }
   if (operation.name === "createCanvas") {
     const input = operation.input;
     return {
@@ -948,6 +993,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       ),
     ]);
   }),
+  deleteCanvas: defineCopilotTool(meta.deleteCanvas, (studio, input) => runMutation(studio, { name: "deleteCanvas", input })),
+  updateCanvas: defineCopilotTool(meta.updateCanvas, (studio, input) => runMutation(studio, { name: "updateCanvas", input })),
+  updateArtboard: defineCopilotTool(meta.updateArtboard, (studio, input) => runMutation(studio, { name: "updateArtboard", input })),
+  setPageViewport: defineCopilotTool(meta.setPageViewport, (studio, input) => runMutation(studio, { name: "setPageViewport", input })),
+  deleteBreakpoint: defineCopilotTool(meta.deleteBreakpoint, (studio, input) => runMutation(studio, { name: "deleteBreakpoint", input })),
   createCanvas: defineCopilotTool(meta.createCanvas, (studio, input) =>
     runMutation(studio, { name: "createCanvas", input }),
   ),

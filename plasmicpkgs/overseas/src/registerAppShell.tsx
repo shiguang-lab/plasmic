@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Avatar, Breadcrumb, Button, ConfigProvider, Dropdown, Layout, Menu, Select, theme } from "antd";
+import { Avatar, Breadcrumb, Button, ConfigProvider, Dropdown, Layout, Menu, theme } from "antd";
 import { DownOutlined, GlobalOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined } from "@ant-design/icons";
 import { usePlasmicLink } from "@plasmicapp/host";
 import { menuItemType } from "./menuItemType";
+import { AppSourceSelect } from "./AppSourceSelect";
 import registerComponent, { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 export type Registerable = { registerComponent: typeof registerComponent };
 
@@ -85,7 +86,7 @@ export function AppShell({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
             <time style={{ color: token.colorTextSecondary, whiteSpace: "nowrap", fontSize: 14 }}>当地时间：{clock}</time>
-            {appSources.length > 0 && <Select aria-label="App Source" value={currentSource} options={appSources} style={{ width: 180 }} onChange={value => { setSource(value); onAppSourceChange?.(value); }} />}
+            {appSources.length > 0 && <AppSourceSelect value={currentSource} options={appSources} language={currentLanguage} onChange={value => { setSource(value); onAppSourceChange?.(value); }} />}
             {languages.length > 0 && <Dropdown trigger={["click"]} menu={{ items: languages.map(({ value, label }) => ({ key: value, label })), selectedKeys: [currentLanguage], onClick: ({ key }) => { setLanguage(key); onLanguageChange?.(key); } }}>
               <Button type="text" aria-label="语言" title={languages.find(option => option.value === currentLanguage)?.label} icon={<GlobalOutlined />} />
             </Dropdown>}
@@ -111,7 +112,7 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
     name: "plasmic-overseas-app-shell", displayName: "AppShell", section: "Application layouts", thumbnailUrl: appShellThumbnail,
     description: "Shared admin shell with configurable product, user, languages, App Sources and menu. Put page content in the children slot.",
     importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell", importName: "AppShell",
-    defaultStyles: { width: "1920px", height: "1080px" },
+    defaultStyles: { width: "1440px", height: "1024px" },
     props: {
       direction: { type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" }, onDirectionChange: { type: "eventHandler", argTypes: [{ name: "value", type: "string" }] },
       timeZone: { type: "string", defaultValue: "Asia/Shanghai" }, currentTime: { type: "string", description: "Host-supplied clock text; otherwise show the current time in timeZone." },

@@ -1,4 +1,5 @@
 import { getFrameHeight } from "@/wab/shared/Arenas";
+import { frameSizeGroups } from "@/wab/shared/responsiveness";
 import {
   getDataTokenType,
   toDataTokenDisplayValue,
@@ -169,6 +170,8 @@ export function buildProjectResource(
         height: getFrameHeight(frame),
       })),
     })),
+    pageFrames: site.pageArenas.flatMap(arena => [...arena.matrix.rows, ...arena.customMatrix.rows].flatMap(row => row.cols.map(({frame}) => ({ componentUuid: arena.component.uuid, frameUuid: frame.uuid, width: frame.width, height: getFrameHeight(frame) })))),
+    devicePresets: frameSizeGroups.flatMap(group => group.sizes),
     ...(screenBreakpoints ? { screenBreakpoints } : {}),
     ...buildSections(),
     ...(customFunctions ? { dataQueryFunctions: customFunctions } : {}),

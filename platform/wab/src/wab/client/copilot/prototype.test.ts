@@ -41,6 +41,37 @@ function fixture() {
 }
 
 describe("AI prototype editor tools", () => {
+  it("organizes canvases and keeps pages while replacing device previews with Desktop", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    await call("createCanvas", { name: "Draft" });
+    await call("createArtboard", { canvasName: "Draft", componentUuid: page.uuid, width: 1920, height: 1080 });
+    const arena = ensure(studioCtx.site.arenas.find(a => a.name === "Draft"), "Canvas missing");
+    const frame = arena.children[0];
+    await call("updateArtboard", { canvasName: "Draft", frameUuid: frame.uuid, width: 1440, height: 1024, x: 0, y: 0 });
+    expect(frame.width).toBe(1440);
+    expect(frame.height).toBe(1024);
+    await call("updateCanvas", { canvasName: "Draft", name: "Overview" });
+    expect(arena.name).toBe("Overview");
+    await call("setPageViewport", { preset: "Desktop" });
+    for (const a of studioCtx.site.pageArenas) for (const row of a.matrix.rows) {
+      expect(row.cols).toHaveLength(1);
+      expect(row.cols[0].frame.width).toBe(1440);
+      expect(row.cols[0].frame.height).toBe(1024);
+    }
+    const breakpoint = await call("createBreakpoint", { name: "Test mobile", maxWidth: 640 });
+    const variant = ensure(studioCtx.site.activeScreenVariantGroup?.variants.find(v => v.name === "Test mobile"), "Breakpoint missing");
+    await call("deleteBreakpoint", { variantUuid: variant.uuid });
+    expect(studioCtx.site.activeScreenVariantGroup?.variants).not.toContain(variant);
+    expect(breakpoint).toBeDefined();
+    await call("deleteCanvas", { canvasName: "Overview" });
+    expect(studioCtx.site.arenas).not.toContain(arena);
+    expect(studioCtx.site.components).toContain(page);
+    expect((await call("validate")).valid).toBe(true);
+    await call("undo");
+    expect(studioCtx.site.arenas).toContain(arena);
+    await expect(call("setPageViewport", { preset: "Unknown" })).rejects.toThrow("Unknown Studio device preset");
+  });
   it("installs published libraries with the dependency manager and reloads registrations", async () => {
     const { studioCtx, call } = fixture();
     const dependency = new ProjectDependency({ name: "overseas", pkgId: "pkg-overseas", projectId: "library-overseas", version: "1.0.0", uuid: "dep-overseas", site: createSite() });

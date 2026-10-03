@@ -163,6 +163,8 @@ export function projectSchema() {
         }),
       )
       .optional(),
+    pageFrames: z.array(z.object({ componentUuid: z.string(), frameUuid: z.string(), width: z.number(), height: z.number() })).optional().describe("Native Page arena viewports, including variant previews."),
+    devicePresets: z.array(z.object({ name: z.string(), width: z.number(), height: z.number() })).optional().describe("Studio device size presets; use Desktop unless another viewport is requested."),
     screenBreakpoints: z
       .array(screenBreakpointSchema())
       .optional()
