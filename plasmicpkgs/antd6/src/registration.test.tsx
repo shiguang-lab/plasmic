@@ -21,6 +21,27 @@ registerAll({
   registerToken() {},
 } as Registerable);
 
+test("table supports a paginated, bounded viewport with fixed columns", () => {
+  const table = components.get("plasmic-antd6-table")!;
+  const column = components.get("plasmic-antd6-table-column")!;
+  const html = renderToStaticMarkup(
+    React.createElement(table.component, {
+      data: { data: Array.from({ length: 41 }, (_, i) => ({ id: i + 1, name: `Audience ${i + 1}` })) },
+      rowKey: "id",
+      size: "large",
+      scroll: { x: 1200, y: 640 },
+      pagination: { defaultPageSize: 20, pageSizeOptions: [20, 50, 100], showSizeChanger: true },
+      children: React.createElement(column.component, { title: "Audience", dataIndex: "name", width: 240, fixed: "right", ellipsis: true }),
+    })
+  );
+  assert.equal((html.match(/data-row-key=/g) || []).length, 20);
+  assert.match(html, /max-height:640px/);
+  assert.match(html, /ant-table-cell-fix-end/);
+  assert.match(html, /width:240px/);
+  assert(table.meta.props.pagination && table.meta.props.scroll && table.meta.props.onChange);
+  assert(column.meta.props.width && column.meta.props.ellipsis);
+});
+
 // The non-deprecated top-level visual components exported by antd 6.6.5.
 const families = [
   "affix",

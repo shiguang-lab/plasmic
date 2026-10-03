@@ -111,7 +111,6 @@ export const AntdTable = React.forwardRef(function AntdTable(
 export const AntdColumnGroup = Table.ColumnGroup;
 export const AntdColumn = Table.Column;
 
-/** @deprecated Use the Table component from plasmic-rich-components instead */
 export function registerTable(loader?: Registerable) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
@@ -132,6 +131,28 @@ export function registerTable(loader?: Registerable) {
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
+      },
+      size: {
+        type: "choice",
+        options: ["small", "medium", "large"],
+        defaultValueHint: "large",
+      },
+      pagination: {
+        type: "object",
+        description: "Ant Design pagination options, or false to hide pagination.",
+      },
+      scroll: {
+        type: "object",
+        description: "Scrollable table viewport: x is the content width; y is the body height.",
+      },
+      onChange: {
+        type: "eventHandler",
+        argTypes: [
+          { name: "pagination", type: "object" },
+          { name: "filters", type: "object" },
+          { name: "sorter", type: "object" },
+          { name: "extra", type: "object" },
+        ],
       },
       isSelectable: {
         type: "choice",
@@ -244,6 +265,14 @@ export function registerTable(loader?: Registerable) {
       colSpan: {
         type: "number",
         advanced: true,
+      },
+      width: {
+        type: "number",
+        description: "Column width in pixels.",
+      },
+      ellipsis: {
+        type: "boolean",
+        description: "Ellipsize overflowing cells; Ant Design preserves the full value in the title.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",

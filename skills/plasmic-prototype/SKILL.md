@@ -1,0 +1,24 @@
+---
+name: plasmic-prototype
+description: Generate, update, and verify editable Ant Design 6 prototypes through the self-hosted Plasmic desktop MCP. Use for requirement-driven PC pages, forms, dashboards, and product flows.
+---
+
+# Plasmic prototype
+
+Studio: https://plasmic.studio.publib.cn. Use the logged-in desktop MCP and the user's project. Read `get_app_state`, then `execute` → `identify`; require `canEdit`. Do not use private Studio globals, database bundles, browser evaluation, or raw REST to generate/update a design. If MCP lacks a required capability, implement and test it before continuing through MCP.
+
+Read [references/admin-design.md](references/admin-design.md) for admin prototypes. Derive business behavior from the original requirement and product design; previous generated prototypes are reference evidence, not authoritative requirements. Access `.pen` through its MCP. Record scope, conflicts, mock data, and source paths in a sidecar plan outside the UI. Respect explicitly requested viewport and platforms.
+
+## Build through MCP
+
+- `get_app_state` supplies exact editor operation schemas. `execute` calls validated operations; `execute_batch` is atomic but does not resolve IDs created by earlier steps. Discover IDs with `read`; inspect exact props, choices, slots, and imported project IDs before using a component. Never copy Antd5 props or Pen library IDs.
+- Use `createComponent`, `insertHtml`, `changeElement` and component copies for editable structure. Use Antd6 registrations for controls, tables, tabs, feedback and forms; native HTML for semantic layout/text. Build reusable shared structure when pages actually repeat it. Use flex/grid and natural flow, not a screenshot or absolutely positioned imitation.
+- `data-props` is JSON, not JSX. Direct children of `plasmic-component` can be `<slot name="...">`. Styles on code components control layout; use supported props for appearance. Dynamic values use `{{ expression }}` through `changeElement`. Read render-prop parameter names before binding table cells.
+- Add real local `createState` / `createInteraction` behavior for the required flow. Keep draft filters separate from applied filters. Label simulated processing in the plan; do not imply that business APIs are connected.
+- For multiple screens, use `createCanvas`, `createArtboard`, `navigateCanvas` and exact frame sizes. A page may auto-grow: bound its root height and put long content in internal scroll regions when the requested viewport is fixed.
+
+## Acceptance
+
+Review every screen with `get_screenshot` and `snapshot_layout`, including meaningful tabs, overlays, filters, permission gates and long values. Exercise real preview interactions, not only definitions. `validate` checks model integrity, not visual quality. Fix issues via MCP and recheck changed screens.
+
+Call `save`, record revision, reopen the project, then `read` to confirm persisted elements, props, states and interactions. Inspect screenshots again after reopen. Keep a sanitized MCP transcript and an evidence report linking sources, screenshots, actual checks, and unresolved limits. Never report acceptance from a successful save alone. Do not publish a release without user authorization.
