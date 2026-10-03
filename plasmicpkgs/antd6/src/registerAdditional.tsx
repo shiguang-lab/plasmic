@@ -192,29 +192,6 @@ export function AntdTimeRangePicker({
   );
 }
 
-export function AntdMultipleDatePicker({
-  value,
-  onChange,
-  ...rest
-}: {
-  value?: string[];
-  onChange?: (value: string[]) => void;
-  picker?: "date" | "week" | "month" | "quarter" | "year";
-  disabled?: boolean;
-}) {
-  return (
-    <Ant.DatePicker
-      {...rest}
-      multiple
-      value={value?.map((date) => dayjs(date))}
-      onChange={(dates) =>
-        onChange?.(
-          Array.isArray(dates) ? dates.map((date) => date.toISOString()) : [],
-        )
-      }
-    />
-  );
-}
 
 // Render callbacks cannot be serialized as ordinary JSON props in Studio.
 export function AntdList(
@@ -1086,19 +1063,6 @@ export function registerAdditional(loader?: Registerable) {
       use12Hours: "boolean",
       disabled: "boolean",
       variant,
-      onChange: event("value", "object"),
-    },
-    { states: valueState("array") },
-  );
-  register(
-    loader,
-    AntdMultipleDatePicker,
-    "date-picker-multiple",
-    "AntdMultipleDatePicker",
-    {
-      value: { type: "array" },
-      picker: choice(["date", "week", "month", "quarter", "year"]),
-      disabled: "boolean",
       onChange: event("value", "object"),
     },
     { states: valueState("array") },

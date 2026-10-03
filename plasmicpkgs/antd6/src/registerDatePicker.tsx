@@ -10,11 +10,11 @@ import { capitalize, Registerable, registerComponentHelper } from "./utils";
 export function AntdDatePicker(
   props: Omit<
     React.ComponentProps<typeof DatePicker>,
-    "value" | "onChange" | "defaultValue" | "multiple"
+    "value" | "onChange" | "defaultValue"
   > & {
-    onChange?: (value: string | null) => void;
-    value?: Dayjs | string | null;
-    defaultValue?: string;
+    onChange?: (value: string | string[] | null) => void;
+    value?: Dayjs | string | (Dayjs | string)[] | null;
+    defaultValue?: string | string[];
     // Not sure why this is missing from DatePicker props!
     showTime?: boolean;
     popupScopeClassName?: string;
@@ -90,27 +90,24 @@ export function AntdDatePicker(
     <>
       <DatePicker
         {...rest}
-        multiple={false}
         picker={picker as any}
         value={
           props.value === undefined
             ? undefined
             : !props.value
               ? null
-              : dayjs(props.value)
+              : Array.isArray(props.value) ? props.value.map((value) => dayjs(value)) : dayjs(props.value)
         }
         defaultValue={
           props.defaultValue === undefined
             ? undefined
-            : dayjs(props.defaultValue as string)
+            : Array.isArray(props.defaultValue) ? props.defaultValue.map((value) => dayjs(value)) : dayjs(props.defaultValue)
         }
         classNames={{ popup: { root: popupScopeClassName } }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(value, _dateString) => {
           props.onChange?.(
-            value !== null && !Array.isArray(value)
-              ? value.toISOString()
-              : null,
+            Array.isArray(value) ? value.map((date) => date.toISOString()) : value?.toISOString() ?? null,
           );
         }}
       />
@@ -124,7 +121,7 @@ export const datePickerComponentName = "plasmic-antd6-date-picker";
 export const datePickerHelpers = {
   states: {
     value: {
-      onChangeArgsToValue: (value: string) => (value ? value : undefined),
+      onChangeArgsToValue: (value: string | string[] | null) => value,
       hidden: (ps: any) => !!ps.__plasmicFormField,
     },
   },
@@ -133,10 +130,11 @@ export const datePickerHelpers = {
 export function registerDatePicker(loader?: Registerable) {
   registerComponentHelper(loader, AntdDatePicker, {
     name: datePickerComponentName,
-    displayName: "Date/Time Picker",
+    displayName: "DatePicker",
     props: {
+      multiple: { type: "boolean", defaultValueHint: false },
       value: {
-        type: "dateString",
+        type: "object",
         editOnly: true,
         uncontrolledProp: "defaultValue",
         description:
@@ -155,7 +153,7 @@ export function registerDatePicker(loader?: Registerable) {
       },
       onChange: {
         type: "eventHandler",
-        argTypes: [{ name: "value", type: "string" }],
+        argTypes: [{ name: "value", type: "object" }],
       },
       picker: {
         type: "choice",
@@ -257,7 +255,7 @@ export function registerDatePicker(loader?: Registerable) {
         type: "writable",
         valueProp: "value",
         onChangeProp: "onChange",
-        variableType: "text",
+        variableType: "object",
         ...datePickerHelpers.states.value,
       },
     },
