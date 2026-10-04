@@ -11,6 +11,8 @@ Use the user's project ID (the segment after `/projects/`). If absent, inspect t
 
 Use Chrome DevTools MCP navigation, evaluation and screenshot tools. Run API calls in the top-level Studio window, which forwards validated calls into the editor iframe. Do not access private StudioCtx/model globals or edit database bundles.
 
+Button icons must be independent SVG Icon nodes, using the Button icon Slot and iconPlacement for a leading/trailing icon. Use official Ant Design icon geometry and currentColor. For triggers with two icons, put the leading action icon in icon and a separate dropdown indicator beside the text. Never put Unicode icon substitutes such as ＋, ⌄, ‹ or › in button labels. Verify actual delivered nodes and dropdown behavior.
+
 ## Generate
 
 1. Navigate to the project. Wait for `window.PLASMIC_AI_TOOLS`; call `identify` with model/client/skill identity and `outputFormat: "json"`. Stop if `canEdit` is false. Do not change permissions or disable branch protection.
