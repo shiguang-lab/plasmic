@@ -591,6 +591,10 @@ importers:
       "@shiguang-lab/plasmic-overseas":
         specifier: file:../../plasmicpkgs/overseas
         version: file:../plasmicpkgs/overseas(@plasmicapp/host@2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@shiguang-lab/plasmic-antd-icons":
+        specifier: file:../../plasmicpkgs/antd-icons
+        version: file:../plasmicpkgs/antd-icons(@plasmicapp/host@2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+
     devDependencies:
       "@babel/core":
         specifier: ^7.29.0
@@ -18073,6 +18077,12 @@ packages:
       "@plasmicapp/host": ">=1.0.0"
       react: ">=18.0.0"
       react-dom: ">=18.0.0"
+
+  '@shiguang-lab/plasmic-antd-icons@file:../plasmicpkgs/antd-icons':
+    resolution: {directory: ../plasmicpkgs/antd-icons, type: directory}
+    peerDependencies:
+      '@plasmicapp/host': '>=1.0.0'
+      react: '>=18.0.0'
 
 snapshots:
   '@adobe/css-tools@4.5.0': {}
@@ -37458,3 +37468,11 @@ snapshots:
       - date-fns
       - luxon
       - moment
+
+  '@shiguang-lab/plasmic-antd-icons@file:../plasmicpkgs/antd-icons(@plasmicapp/host@2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@ant-design/icons': 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@plasmicapp/host': 2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+    transitivePeerDependencies:
+      - react-dom

@@ -7,7 +7,8 @@
     "gen-types": "node ./makePkgTypes.js",
     "test": "node --test makePkgTypes.test.js",
     "size": "size-limit",
-    "upgrade-aria": "pnpm up --latest react-aria && pnpm dedupe"
+    "upgrade-aria": "pnpm up --latest react-aria && pnpm dedupe",
+    "test:icons": "node --test antd-icons.test.cjs"
   },
   "dependenciesComments": {
     "@react-aria/focus": "Pinned to the version wab's patch targets; enforced by the workspace-wide override in ../pnpm-workspace.yaml. Upgrade there (and rebase the patch), not here.",
@@ -120,7 +121,8 @@
     "vanilla-cookieconsent": "^3.1.0",
     "zod": "^3.22.4",
     "@shiguang-lab/plasmic-antd6": "file:../../plasmicpkgs/antd6",
-    "@shiguang-lab/plasmic-overseas": "file:../../plasmicpkgs/overseas"
+    "@shiguang-lab/plasmic-overseas": "file:../../plasmicpkgs/overseas",
+    "@shiguang-lab/plasmic-antd-icons": "file:../../plasmicpkgs/antd-icons"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

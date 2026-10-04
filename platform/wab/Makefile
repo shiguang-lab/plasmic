@@ -6,6 +6,7 @@ all: \
 	src/wab/gen/cssPegParser.js \
 	src/wab/gen/GridStyleParser.js \
 	public/static/img/custom-code.svg \
+	public/static/img/antd-icons.svg \
 	src/wab/styles/_tokens.sass \
 	src/wab/styles/_tokens.ts \
 	src/wab/styles/css-variables.ts \
