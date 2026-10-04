@@ -37,4 +37,19 @@ MCP 确认项目 `b1VPmGnbGvyKc4rnA2xLVv`（Untitled Project）可编辑；Overs
 - 临时页面 validate 无错误或警告；截图 `studio-inserted.png`、`studio-edited.png` 已检查。
 - 保存后正常退出、重启 Desktop，再 read：完整组件内容深度比较一致，字段/控件/Slot/状态/交互 UUID 与属性均保留。重开后的渲染截图 `studio-reopened.png` 已检查。
 
-证据位于 `desktop/desktop-report/search-form/`。临时验收页面完成后删除；原有五个 REQ075 业务页面的 571 个节点 UUID 和顺序保持一致。全项目 validate 无错误，现有 Text Input、TextArea Input、Slider Thumb 三个空子节点警告保留。
+证据位于 `desktop/desktop-report/search-form/`。组件发布验收的临时页面完成后删除，该阶段未修改已有 REQ075 搜索区。现有业务页的实际替换见下节。全项目 validate 无错误，现有 Text Input、TextArea Input、Slider Thumb 三个空子节点警告保留。
+
+## REQ075 实际搜索区
+
+当前项目客群列表 `Ne1KXZPJ2Up_` 的搜索区已通过桌面 MCP 替换为 Overseas SearchForm（`X19zAviElJPK`），保存 revision **153**。市场、场景、类型、状态、关键字均为可编辑 Item，原五个输入控件 UUID 保留，初始值和清除值由 Item 配置。删除旧搜索网格、查询/重置/展开按钮及 expanded 状态；表格高度随 SearchForm.collapsed 调整。
+
+实际 Desktop 交互预览重新执行：
+
+- 默认折叠为三项及操作区；展开显示状态/关键字，折叠保留草稿并参与查询。
+- 输入完整客群 Key 后查询得到 1 条；修改草稿为不存在的关键字，应用前保留原结果，折叠后查询显示 No data。
+- 类型选择“一次性”后查询得到 21 条；重置回市场 MX / 其它选项全部 / 空关键字，恢复 63 条。
+- 翻到第 2 页后查询，回到第 1 页（首行 1001，上一页禁用）。
+- 其它四页节点、状态和交互 UUID 保留；列表其它业务交互保持原定义。页面 validate 无错误或警告。
+- 保存后重新加载 App，通过 MCP read 对五页完整模型深度比较一致，确认新表单、字段、Slot、事件绑定已持久化。
+
+本次证据目录 `desktop/desktop-report/search-form-migration/`，包括迁移前后及重开模型、公开 MCP 操作记录、实际预览 `live-reset.png` 和编辑画布截图。查询数据仍为原型演示数据。
