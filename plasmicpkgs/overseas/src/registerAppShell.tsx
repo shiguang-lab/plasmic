@@ -104,7 +104,7 @@ export function AppShell({
           </div>
         </Layout.Header>
         <Layout.Content style={{ padding: 16, minHeight: 0, overflow: "auto" }}>
-          <div style={{ minHeight: "100%", background: token.colorBgContainer }}>{children}</div>
+          <div style={{ minHeight: "100%" }}>{children}</div>
         </Layout.Content>
       </Layout>
     </Layout>

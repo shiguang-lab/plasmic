@@ -5,6 +5,9 @@
 - 缩略图卡片：<http://127.0.0.1:3106/>
 - 交互预览：<http://127.0.0.1:3106/?preview>
 - Plasmic 本地组件 Host：<http://127.0.0.1:3106/?host>
+- SearchForm 交互预览：<http://127.0.0.1:3106/?search-form>（字段、Slot、折叠、查询/重置、校验及插入/修改/删除演示）。组件设计与生成规则见 [SearchForm](../../../docs/search-form.md)。
+
+预览服务运行后，在仓库根目录执行 `node plasmicpkgs/overseas/preview/verify-search-form.mjs` 进行浏览器验收。使用 WAB 已安装的 Playwright，默认打开本机 Google Chrome；其它环境用 PLASMIC_BROWSER_PATH 指定 Chromium 可执行文件。截图保存至 `desktop/desktop-report/search-form/runtime.png`。
 
 AppShell 已加入 Overseas 的 `registerAll()`，组件名为
 `plasmic-overseas-app-shell`，分组为 `Application layouts`。
@@ -12,7 +15,7 @@ AppShell 已加入 Overseas 的 `registerAll()`，组件名为
 预览首页直接使用这份注册元数据；完整交互在交互预览页查看。
 
 布局参考 pen-antd-kit 的 `standards/patterns/admin-app-shell.md`：
-239px 侧栏、80px 折叠侧栏、64px 顶栏、16px 内容外边距、白色内容区域。
+239px 侧栏、80px 折叠侧栏、64px 顶栏、16px 内容外边距。业务内容区域背景由页面决定。
 每页使用同一个 AppShell，在 `Page body` 插槽中编辑业务内容。
 
 配置项：

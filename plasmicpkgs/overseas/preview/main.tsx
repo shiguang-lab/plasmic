@@ -3,9 +3,12 @@ import { createRoot } from "react-dom/client";
 import { PlasmicCanvasHost } from "@plasmicapp/host";
 import { Button, ConfigProvider, Typography } from "antd";
 import { AppShell, registerAppShell } from "../src/registerAppShell";
+import { registerSearchForm } from "../src/registerSearchForm";
+import { SearchFormPreview } from "./SearchFormPreview";
 import { Registerable } from "../src/registerAppShell";
 
 registerAppShell();
+registerSearchForm();
 let registration: any;
 registerAppShell({ registerComponent(_component, meta) { registration = meta; } } as Registerable);
 const sources = [{ value: "PAKORA", label: "PAKORA" }, { value: "TACO", label: "TACO" }];
@@ -37,4 +40,4 @@ function Gallery() {
   </div>;
 }
 const params = new URLSearchParams(location.search);
-createRoot(document.getElementById("root")!).render(params.has("host") ? <PlasmicCanvasHost /> : <ConfigProvider><>{params.has("preview") ? <Preview /> : <Gallery />}</></ConfigProvider>);
+createRoot(document.getElementById("root")!).render(params.has("host") ? <PlasmicCanvasHost /> : params.has("search-form") ? <SearchFormPreview /> : <ConfigProvider><>{params.has("preview") ? <Preview /> : <Gallery />}</></ConfigProvider>);
