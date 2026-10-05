@@ -23,11 +23,18 @@ const fetchLiveFrameClient = memoizeOne(() =>
 
 const fetchHostLessPkg = memoize(
   async (pkg: string, version: string) => {
-    return fetch(
+    const source = await fetch(
       `${getStaticBaseUrl()}/canvas-packages/build/${pkg}${version}.${
         ENV.COMMITHASH
       }.js`,
     ).then((res) => res.text());
+    // Registrations also run in the metadata iframe, before a canvas exists.
+    // Bootstrap the shared runtime in every destination window, just once.
+    if (pkg === "antd6" || pkg === "overseas" || pkg === "react-ui") {
+      const runtime = await getCanvasPkgs();
+      return `if (!window.__CanvasPkgs) {\n${runtime}\n}\n${source}`;
+    }
+    return source;
   },
   (pkg, version) => `${pkg}${version}`,
 );
