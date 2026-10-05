@@ -18,3 +18,47 @@
   opacity: 0.4;
   pointer-events: none;
 }
+
+.iconLibraryContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.iconLibraryFilters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px;
+  border-bottom: 1px solid #e5e5e5;
+
+  > :first-child {
+    flex: 0 0 96px;
+  }
+
+  > :last-child {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.iconLibraryResults {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.iconLibraryEmpty {
+  position: absolute;
+  inset: 0;
+  padding: 24px 8px;
+  color: #888;
+  text-align: center;
+}
+
+.iconCard img {
+  transform: scale(2);
+}

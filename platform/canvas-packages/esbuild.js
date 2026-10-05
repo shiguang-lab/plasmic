@@ -123,6 +123,32 @@ const antdModules = {
   "antd/es/upload/style": "__Sub._antd_es_upload_style_",
 };
 
+// @react/ui imports Antd's ESM component entry points. They must use the same
+// ConfigProvider and CSS-in-JS cache as the ordinary `antd` imports.
+const antd6Modules = {
+  antd: "(__Sub.Antd6 ?? __CanvasPkgs.Antd6)",
+  ...Object.fromEntries(
+    [
+      ["button", "Button"],
+      ["config-provider", "ConfigProvider"],
+      ["divider", "Divider"],
+      ["dropdown", "Dropdown"],
+      ["message", "message"],
+      ["modal", "Modal"],
+      ["notification", "notification"],
+      ["tooltip", "Tooltip"],
+    ].map(([entry, exported]) => [
+      `antd/es/${entry}/index.js`,
+      `(__Sub.Antd6 ?? __CanvasPkgs.Antd6).${exported}`,
+    ]),
+  ),
+  "antd/es/locale/zh_CN": "(__Sub.Antd6 ?? __CanvasPkgs.Antd6).localeZhCN",
+  "antd/es/locale/zh_CN.js": "(__Sub.Antd6 ?? __CanvasPkgs.Antd6).localeZhCN",
+  "antd/lib/locale/en_US.js": "(__Sub.Antd6 ?? __CanvasPkgs.Antd6).localeEnUS",
+  "antd/es/locale/en_US": "(__Sub.Antd6 ?? __CanvasPkgs.Antd6).localeEnUS",
+  "antd/es/locale/en_US.js": "(__Sub.Antd6 ?? __CanvasPkgs.Antd6).localeEnUS",
+};
+
 // We will be bundling the canvas-packages in two different ways:
 // 1. Accessing react/jsx-runtime from node_modules/jsx-runtime
 // 2. Accessing react/jsx-runtime from __Sub.jsxRuntime
@@ -174,11 +200,12 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
     externalGlobalPlugin({
       react: "__Sub.React",
       "react-dom": "__Sub.ReactDOM",
-      ...(["antd6", "overseas"].includes(pkg)
+      ...(["index", "antd6", "overseas", "react-ui"].includes(pkg)
         ? { "react-dom/client": "__Sub.ReactDOMClient" }
         : {}),
       "@plasmicapp/host": "__Sub",
       "@plasmicapp/query": "__Sub.PlasmicQuery",
+      ...(["antd6", "overseas", "react-ui"].includes(pkg) ? antd6Modules : {}),
       ...(pkg.includes("plasmic-rich-components") ? antdModules : {}),
       ...(pkg.startsWith("commerce-")
         ? { "@plasmicpkgs/commerce": "__PlasmicCommerceCommon" }
@@ -234,8 +261,9 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
   external: [
     "react",
     "react-dom",
-    ...(["antd6", "overseas"].includes(pkg) ? ["react-dom/client"] : []),
+    ...(["index", "antd6", "overseas", "react-ui"].includes(pkg) ? ["react-dom/client"] : []),
     "@plasmicapp/host",
+    ...(["antd6", "overseas", "react-ui"].includes(pkg) ? Object.keys(antd6Modules) : []),
     ...(pkg.includes("plasmic-rich-components")
       ? Object.keys(antdModules)
       : []),

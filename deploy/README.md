@@ -156,3 +156,18 @@ to Installed. Its components use the standard thumbnail cards and are grouped by
 Outlined, Filled and Two Tone. Additional icon libraries each have their own
 Installed entry. No icon library is injected into every project, and the original
 top-level Icons entry continues to show project SVG assets.
+
+## React UI business components
+
+React UI is an independent hostless library from `@shiguang-lab/plasmic-react-ui`.
+The default host and Overseas do not register its ActionGroup. After deploying,
+register its project and catalog card:
+
+```sh
+docker compose run --rm server src/wab/server/nas-react-ui.ts
+```
+
+Component Store → Business components lists React UI beside Overseas. Installing
+the card adds React UI to Installed. The command updates only this library and its
+catalog entry, preserving other flags and reusing an existing library project.
+The vendored source scope is documented in [vendor/react-ui](../vendor/react-ui/README.md).

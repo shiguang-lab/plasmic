@@ -1,0 +1,57 @@
+{
+  "name": "@shiguang-lab/plasmic-react-ui",
+  "version": "0.0.1",
+  "description": "Installable React UI business components for Plasmic",
+  "homepage": "https://www.plasmic.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiguang-lab/plasmic.git",
+    "directory": "plasmicpkgs/react-ui"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.esm.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.esm.js"
+    },
+    "./skinny/*": {
+      "types": "./dist/*.d.ts",
+      "require": "./skinny/*.cjs.js",
+      "import": "./skinny/*.esm.js"
+    }
+  },
+  "files": [
+    "dist",
+    "skinny"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
+    "test": "tsx --test src/*.test.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react/ui": "file:../../vendor/react-ui",
+    "antd": "6.6.5"
+  },
+  "devDependencies": {
+    "@plasmicapp/host": "2.0.19",
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "peerDependencies": {
+    "@plasmicapp/host": ">=1.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

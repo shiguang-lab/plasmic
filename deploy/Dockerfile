@@ -8,9 +8,11 @@ RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp
 RUN pnpm setup
 RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/public/static/packages
+RUN cd plasmicpkgs/react-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd platform/canvas-packages && pnpm exec esbuild src/overseas.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/overseas.js
 RUN cd platform/canvas-packages && pnpm exec esbuild src/antd6.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd6.js
 RUN cd platform/canvas-packages && pnpm exec esbuild src/antd-icons.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd-icons.js
+RUN cd platform/canvas-packages && pnpm exec esbuild src/react-ui.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/react-ui.js
 RUN cd platform/canvas-packages && pnpm exec esbuild src/antd5.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd5.js
 
 FROM node:24.16.0-alpine AS server
@@ -22,6 +24,7 @@ COPY --from=builder --chown=node:node /plasmic/platform/shared /plasmic/platform
 COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/overseas.js /plasmic/platform/canvas-packages/build-server/overseas.js
 COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd6.js /plasmic/platform/canvas-packages/build-server/antd6.js
 COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd-icons.js /plasmic/platform/canvas-packages/build-server/antd-icons.js
+COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/react-ui.js /plasmic/platform/canvas-packages/build-server/react-ui.js
 COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd5.js /plasmic/platform/canvas-packages/build-server/antd5.js
 COPY --from=builder --chown=node:node /plasmic/platform/wab /plasmic/platform/wab
 COPY --from=builder --chown=node:node /plasmic/platform/loader-bundle-env /plasmic/platform/loader-bundle-env
@@ -29,6 +32,7 @@ COPY --from=builder --chown=node:node /plasmic/platform/loader-html-hydrate /pla
 COPY --chown=node:node deploy/nas-init.ts src/wab/server/nas-init.ts
 COPY --chown=node:node deploy/nas-antd6.ts src/wab/server/nas-antd6.ts
 COPY --chown=node:node deploy/nas-icons.ts src/wab/server/nas-icons.ts
+COPY --chown=node:node deploy/nas-react-ui.ts src/wab/server/nas-react-ui.ts
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node

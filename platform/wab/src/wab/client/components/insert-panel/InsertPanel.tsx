@@ -1,17 +1,18 @@
-import { groupInstalledItems } from "@/wab/client/components/insert-panel/groupInstalledItems";
+import { DragInsertManager } from "@/wab/client/Dnd";
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
+import { WithContextMenu } from "@/wab/client/components/ContextMenu";
+import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
+import ListSectionSeparator from "@/wab/client/components/ListSectionSeparator";
 import { useFocusManager } from "@/wab/client/components/aria-utils";
 import {
+  InsertRelLoc,
   getFocusedInsertAnchor,
   getValidInsertLocs,
-  InsertRelLoc,
 } from "@/wab/client/components/canvas/view-ops";
-import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import S from "@/wab/client/components/insert-panel/InsertPanel.module.scss";
 import InsertPanelTabGroup from "@/wab/client/components/insert-panel/InsertPanelTabGroup";
 import InsertPanelTabItem from "@/wab/client/components/insert-panel/InsertPanelTabItem";
-import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
-import ListSectionSeparator from "@/wab/client/components/ListSectionSeparator";
+import { groupInstalledItems } from "@/wab/client/components/insert-panel/groupInstalledItems";
 import {
   notifyInstallableFailure,
   notifyInstallableSuccess,
@@ -27,8 +28,8 @@ import {
   createAddPackageComponent,
   createAddPackageFunction,
   createAddTemplateComponent,
-  createAddTplCodeComponents,
   createAddTplCodeComponent,
+  createAddTplCodeComponents,
   createAddTplComponent,
   createAddTplImage,
   createFakeHostLessComponent,
@@ -55,13 +56,12 @@ import {
   isTemplateComponent,
   isTplAddItem,
 } from "@/wab/client/definitions/insertables";
-import { DragInsertManager } from "@/wab/client/Dnd";
 import { useVirtualCombobox } from "@/wab/client/hooks/useVirtualCombobox";
 import { DOWNLOAD_ICON } from "@/wab/client/icons";
 import {
-  getEventDataForTplComponent,
   InsertItemEventData,
   InsertOpts,
+  getEventDataForTplComponent,
   trackInsertItem,
 } from "@/wab/client/observability/events/insert-item";
 import {
@@ -69,14 +69,15 @@ import {
   PlasmicInsertPanel,
 } from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicInsertPanel";
 import {
-  normalizeTemplateSpec,
   StudioCtx,
+  normalizeTemplateSpec,
   useStudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { isFlexContainer } from "@/wab/client/utils/tpl-client-utils";
 import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
+import { FRAMES_CAP } from "@/wab/shared/Labels";
 import { isBuiltinCodeComponent } from "@/wab/shared/code-components/builtin-code-components";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { createMapFromObject } from "@/wab/shared/collections";
@@ -124,29 +125,28 @@ import {
 } from "@/wab/shared/core/tpls";
 import {
   DEVFLAGS,
-  flattenInsertableTemplates,
-  flattenInsertableTemplatesByType,
   HostLessComponentInfo,
   HostLessPackageInfo,
   InsertableTemplatesGroup,
+  flattenInsertableTemplates,
+  flattenInsertableTemplatesByType,
 } from "@/wab/shared/devflags";
 import { PLEXUS_INSERTABLE_ID } from "@/wab/shared/insertables";
-import { FRAMES_CAP } from "@/wab/shared/Labels";
 import {
   Component,
-  isKnownArena,
-  isKnownComponent,
-  isKnownTplNode,
   ProjectDependency,
   TplNode,
   TplTag,
+  isKnownArena,
+  isKnownComponent,
+  isKnownTplNode,
 } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import {
   canInsertAlias,
   canInsertHostlessPackage,
 } from "@/wab/shared/ui-config-utils";
-import { Menu } from "antd";
+import { Input, Menu, Select } from "antd";
 import cn from "classnames";
 import { UseComboboxGetItemPropsOptions } from "downshift";
 import L, { groupBy, partition, sortBy, uniq } from "lodash";
@@ -157,7 +157,7 @@ import * as React from "react";
 import { useMemo, useState } from "react";
 import { FocusScope } from "react-aria";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { areEqual, VariableSizeList } from "react-window";
+import { VariableSizeList, areEqual } from "react-window";
 
 const leftSideWidth = 200;
 const rightSideWidth = 330;
@@ -169,6 +169,15 @@ const sameRowGap = 5;
 const compactPerRow = 3;
 const compactItemWidth =
   (rightSideContentWidth - (compactPerRow - 1) * sameRowGap) / compactPerRow; // 97.3333333333
+
+function isAntDesignIconItem(item: AddItem) {
+  return (
+    isTplAddItem(item) &&
+    !!item.component &&
+    isCodeComponent(item.component) &&
+    item.component.codeComponentMeta.importPath === "@ant-design/icons"
+  );
+}
 
 export interface InsertPanelProps extends DefaultInsertPanelProps {
   onClose: () => any;
@@ -346,11 +355,18 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   );
 
   const [section, setSection] = useState(allSectionKeysFlattened[0]);
+  const [iconQuery, setIconQuery] = useState("");
+  const [iconTheme, setIconTheme] = useState("");
+  const isIconLibrary = (allFamilies.installed ?? []).some(
+    (group) =>
+      (group.sectionKey ?? group.key) === section &&
+      group.items.some(isAntDesignIconItem),
+  );
 
   const buildItems = React.useCallback(
     (query: string) => {
       const matcher = new Matcher(query, { matchMiddleOfWord: true });
-      const groupedItems = buildAddItemGroups({
+      let groupedItems = buildAddItemGroups({
         studioCtx: studioCtx,
         matcher: matcher,
         includeFrames: isKnownArena(studioCtx.currentArena),
@@ -359,6 +375,22 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         insertLoc,
         projectDependencies,
       });
+      if (isIconLibrary && !query) {
+        const iconMatcher = new Matcher(iconQuery, { matchMiddleOfWord: true });
+        groupedItems = groupedItems
+          .filter(
+            (group) =>
+              (group.sectionKey ?? group.key) === section &&
+              (!iconTheme || group.label === iconTheme),
+          )
+          .map((group) => ({
+            ...group,
+            items: group.items.filter((item) =>
+              iconMatcher.matches(item.label),
+            ),
+          }))
+          .filter((group) => group.items.length > 0);
+      }
 
       // We keep track of two parallel lists of items:
       // 1. `virtualItems` -- a list of items that reflect the structure of the virtualized VariableSizeList.
@@ -419,7 +451,16 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
       return { virtualItems, items, virtualRows };
     },
-    [studioCtx, recentItems, section, highlightSection, projectDependencies],
+    [
+      studioCtx,
+      recentItems,
+      section,
+      highlightSection,
+      projectDependencies,
+      isIconLibrary,
+      iconQuery,
+      iconTheme,
+    ],
   );
 
   const {
@@ -431,6 +472,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     query,
     highlightedItemIndex,
     setHighlightedItemIndex,
+    items,
   } = useVirtualCombobox({
     listRef,
     buildItems,
@@ -443,7 +485,10 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
   const virtualRows = ensure(virtualRowsRaw, "virtualRows must be set");
 
-  const matcher = new Matcher(query, { matchMiddleOfWord: true });
+  const showIconFilters = isIconLibrary && !query;
+  const matcher = new Matcher(query || (showIconFilters ? iconQuery : ""), {
+    matchMiddleOfWord: true,
+  });
 
   const validTplLocs = vc
     ? getValidInsertLocs(vc, getFocusedInsertAnchor(vc))
@@ -727,6 +772,60 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           ),
         }}
         content={{
+          wrap: (node) =>
+            showIconFilters ? (
+              <div className={S.iconLibraryContent}>
+                <div
+                  className={S.iconLibraryFilters}
+                  onKeyDown={(event) => event.stopPropagation()}
+                >
+                  <Select
+                    aria-label="图标样式"
+                    getPopupContainer={(trigger) =>
+                      ensure(
+                        trigger.parentElement,
+                        "Missing icon filter container",
+                      )
+                    }
+                    value={iconTheme}
+                    onChange={(value) => {
+                      setIconTheme(value);
+                      setHighlightedItemIndex(0);
+                    }}
+                    options={[
+                      { value: "", label: "全部样式" },
+                      { value: "Outlined", label: "线框" },
+                      { value: "Filled", label: "实底" },
+                      { value: "Two Tone", label: "双色" },
+                    ]}
+                  />
+                  <Input.Search
+                    aria-label="搜索图标名称"
+                    placeholder="搜索图标名称"
+                    allowClear
+                    value={iconQuery}
+                    onChange={(event) => {
+                      setIconQuery(event.target.value);
+                      setHighlightedItemIndex(0);
+                    }}
+                    onSearch={(value) => {
+                      setIconQuery(value);
+                      setHighlightedItemIndex(0);
+                    }}
+                  />
+                </div>
+                <div className={S.iconLibraryResults}>
+                  {node}
+                  {!items.length && (
+                    <div className={S.iconLibraryEmpty} role="status">
+                      未找到匹配的图标
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              node
+            ),
           props: {
             ...getMenuProps({
               "aria-label": "Insert",
@@ -740,6 +839,9 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                 {({ width, height }) => {
                   return (
                     <VariableSizeList
+                      key={
+                        showIconFilters ? `${iconTheme}:${iconQuery}` : section
+                      }
                       ref={listRef}
                       itemData={virtualRows}
                       itemCount={virtualRows.length}
@@ -757,7 +859,12 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                         } else if (virtualItem.type === "header") {
                           return 40;
                         } else if (virtualItem.type === "item") {
-                          if (shouldShowPreview(virtualItem.group, virtualItem.item)) {
+                          if (
+                            shouldShowPreview(
+                              virtualItem.group,
+                              virtualItem.item,
+                            )
+                          ) {
                             return 112;
                           } else {
                             return 32;
@@ -834,7 +941,9 @@ const Row = React.memo(function Row(props: {
 
   const firstItem = virtualRow[0];
   const showPreview =
-    firstItem?.type === "item" ? shouldShowPreview(firstItem.group, firstItem.item) : false;
+    firstItem?.type === "item"
+      ? shouldShowPreview(firstItem.group, firstItem.item)
+      : false;
   const itemWidth = shouldShowCompact(firstItem) ? compactItemWidth : "100%";
 
   return (
@@ -944,6 +1053,7 @@ const Row = React.memo(function Row(props: {
                 className={cn({
                   grabbable: item.type === "tpl" && !item.isDisabled,
                   [S.disabled]: item.isDisabled,
+                  [S.iconCard]: isAntDesignIconItem(item),
                 })}
                 style={{ width: itemWidth }}
               >
@@ -1265,9 +1375,14 @@ export function buildAddItemGroups({
                     isShownHostLessCodeComponent(c, hostLessComponentsMeta)) &&
                   !isContextCodeComponent(c),
               ),
-            ).map((comp) => isCodeComponent(comp)
-              ? createAddTplCodeComponent(comp, !!comp.codeComponentMeta.thumbnailUrl)
-              : createAddTplComponent(comp)),
+            ).map((comp) =>
+              isCodeComponent(comp)
+                ? createAddTplCodeComponent(
+                    comp,
+                    !!comp.codeComponentMeta.thumbnailUrl,
+                  )
+                : createAddTplComponent(comp),
+            ),
             ...dep.site.customFunctions
               .filter((fn) => fn.isQuery)
               .map((fn) => createAddCustomFunction(fn, dep)),

@@ -122,7 +122,8 @@
     "zod": "^3.22.4",
     "@shiguang-lab/plasmic-antd6": "file:../../plasmicpkgs/antd6",
     "@shiguang-lab/plasmic-overseas": "file:../../plasmicpkgs/overseas",
-    "@shiguang-lab/plasmic-antd-icons": "file:../../plasmicpkgs/antd-icons"
+    "@shiguang-lab/plasmic-antd-icons": "file:../../plasmicpkgs/antd-icons",
+    "@shiguang-lab/plasmic-react-ui": "file:../../plasmicpkgs/react-ui"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

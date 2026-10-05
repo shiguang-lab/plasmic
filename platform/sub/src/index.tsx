@@ -1,6 +1,12 @@
 import { PlasmicCanvasHost } from "@plasmicapp/host";
+import * as Antd6 from "antd";
+import localeZhCN from "antd/es/locale/zh_CN";
+import localeEnUS from "antd/es/locale/en_US";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+
+// Host registrations and canvas packages must share theme contexts and styles.
+(window as any).__Sub.Antd6 = { ...Antd6, localeZhCN, localeEnUS };
 
 export function renderHostScaffold() {
   const appRoot = document.querySelector(".app-root");

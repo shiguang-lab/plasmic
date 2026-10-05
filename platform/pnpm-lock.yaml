@@ -595,6 +595,9 @@ importers:
         specifier: file:../../plasmicpkgs/antd-icons
         version: file:../plasmicpkgs/antd-icons(@plasmicapp/host@2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
+      "@shiguang-lab/plasmic-react-ui":
+        specifier: file:../../plasmicpkgs/react-ui
+        version: file:../plasmicpkgs/react-ui(@plasmicapp/host@2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       "@babel/core":
         specifier: ^7.29.0
@@ -2130,6 +2133,32 @@ importers:
       tsx:
         specifier: 4.23.15
         version: 4.23.15
+
+  ../plasmicpkgs/react-ui:
+    dependencies:
+      "@react/ui":
+        specifier: file:../../vendor/react-ui
+        version: file:../vendor/react-ui(date-fns@2.30.0)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd:
+        specifier: 6.6.5
+        version: 6.6.5(date-fns@2.30.0)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      "@plasmicapp/host":
+        specifier: 2.0.19
+        version: 2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@types/react":
+        specifier: 18.3.18
+        version: 18.3.18
+      "@types/react-dom":
+        specifier: 18.3.5
+        version: 18.3.5(@types/react@18.3.18)
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
+
 
 packages:
   '@adobe/css-tools@4.5.0':
@@ -18083,6 +18112,24 @@ packages:
     peerDependencies:
       '@plasmicapp/host': '>=1.0.0'
       react: '>=18.0.0'
+
+  "@react/ui@file:../vendor/react-ui":
+    resolution:
+      directory: ../vendor/react-ui
+      type: directory
+    peerDependencies:
+      react: ">=18"
+      react-dom: ">=18"
+
+  "@shiguang-lab/plasmic-react-ui@file:../plasmicpkgs/react-ui":
+    resolution:
+      directory: ../plasmicpkgs/react-ui
+      type: directory
+    peerDependencies:
+      "@plasmicapp/host": ">=1.0.0"
+      react: ">=18.0.0"
+      react-dom: ">=18.0.0"
+
 
 snapshots:
   '@adobe/css-tools@4.5.0': {}
@@ -37476,3 +37523,271 @@ snapshots:
       react: 18.3.1
     transitivePeerDependencies:
       - react-dom
+
+  "@rc-component/picker@1.12.2(date-fns@2.30.0)(dayjs@1.11.23)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+    dependencies:
+      "@rc-component/overflow": 1.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/resize-observer": 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/trigger": 3.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/util": 1.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      clsx: 2.1.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      date-fns: 2.30.0
+      dayjs: 1.11.23
+      moment: 2.31.0
+
+  "@react/ui@file:../vendor/react-ui(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+    dependencies:
+      "@ant-design/icons": 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classcat: 5.0.5
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+
+  "@react/ui@file:../vendor/react-ui(date-fns@2.30.0)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+    dependencies:
+      "@ant-design/icons": 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd: 6.6.5(date-fns@2.30.0)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classcat: 5.0.5
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+
+  "@shiguang-lab/plasmic-react-ui@file:../plasmicpkgs/react-ui(@plasmicapp/host@2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+    dependencies:
+      "@plasmicapp/host": 2.0.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@react/ui": file:../vendor/react-ui(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+
+  "@vitejs/plugin-react@4.7.0(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))":
+    dependencies:
+      "@babel/core": 7.29.7
+      "@babel/plugin-transform-react-jsx-self": 7.29.7(@babel/core@7.29.7)
+      "@babel/plugin-transform-react-jsx-source": 7.29.7(@babel/core@7.29.7)
+      "@rolldown/pluginutils": 1.0.0-beta.27
+      "@types/babel__core": 7.20.5
+      react-refresh: 0.17.0
+      vite: 6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - supports-color
+
+  "@vitest/mocker@3.2.7(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))":
+    dependencies:
+      "@vitest/spy": 3.2.7
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      msw: 2.7.3(@types/node@24.12.2)(typescript@7.0.2)
+      vite: 6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+
+  "@vitest/mocker@4.1.10(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))":
+    dependencies:
+      "@vitest/spy": 4.1.10
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      msw: 2.7.3(@types/node@24.12.2)(typescript@7.0.2)
+      vite: 6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+
+  antd@6.6.5(date-fns@2.30.0)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      "@ant-design/colors": 8.0.1
+      "@ant-design/cssinjs": 2.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@ant-design/cssinjs-utils": 2.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@ant-design/fast-color": 3.0.1
+      "@ant-design/icons": 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@ant-design/react-slick": 2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@babel/runtime": 7.29.7
+      "@rc-component/cascader": 1.22.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/checkbox": 2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/collapse": 1.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/color-picker": 3.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/dialog": 1.10.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/drawer": 1.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/dropdown": 1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/form": 1.8.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/image": 1.10.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/input": 1.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/input-number": 1.6.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/listy": 1.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/mentions": 1.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/menu": 1.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/motion": 1.3.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/mutate-observer": 2.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/notification": 2.0.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/pagination": 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/picker": 1.12.2(date-fns@2.30.0)(dayjs@1.11.23)(moment@2.31.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/progress": 1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/qrcode": 2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/rate": 1.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/resize-observer": 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/segmented": 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/select": 1.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/slider": 1.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/steps": 1.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/switch": 1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/table": 1.11.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/tabs": 1.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/tooltip": 1.5.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/tour": 2.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/tree": 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/tree-select": 1.16.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/trigger": 3.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/upload": 1.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@rc-component/util": 1.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      clsx: 2.1.1
+      dayjs: 1.11.23
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      scroll-into-view-if-needed: 3.1.0
+      throttle-debounce: 5.0.2
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+
+  storybook-builder-rsbuild@3.4.2(@rsbuild/core@1.7.6)(@rspack/core@1.7.12(@swc/helpers@0.4.14))(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@10.6.0(@types/react@18.3.18)(prettier@3.9.6)(react@18.3.1))(typescript@7.0.2)(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)):
+    dependencies:
+      "@rsbuild/core": 1.7.6
+      "@rsbuild/plugin-type-check": 1.6.0(@rsbuild/core@1.7.6)(@rspack/core@1.7.12(@swc/helpers@0.4.14))(typescript@7.0.2)
+      "@vitest/mocker": 3.2.7(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+      browser-assert: 1.2.1
+      case-sensitive-paths-webpack-plugin: 2.4.0
+      cjs-module-lexer: 2.2.1
+      constants-browserify: 1.0.0
+      es-module-lexer: 1.7.0
+      fs-extra: 11.4.0
+      magic-string: 0.30.21
+      path-browserify: 1.0.1
+      pathe: 2.0.3
+      picocolors: 1.1.1
+      process: 0.11.10
+      rsbuild-plugin-html-minifier-terser: 1.1.5(@rsbuild/core@1.7.6)
+      sirv: 2.0.4
+      storybook: 10.6.0(@types/react@18.3.18)(prettier@3.9.6)(react@18.3.1)
+      ts-dedent: 2.3.0
+      url: 0.11.4
+      util: 0.12.5
+      util-deprecate: 1.0.2
+    optionalDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      typescript: 7.0.2
+    transitivePeerDependencies:
+      - "@rspack/core"
+      - "@typescript/native-preview"
+      - msw
+      - vite
+
+  storybook-react-rsbuild@3.4.2(@rsbuild/core@1.7.6)(@rspack/core@1.7.12(@swc/helpers@0.4.14))(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.39.0)(storybook@10.6.0(@types/react@18.3.18)(prettier@3.9.6)(react@18.3.1))(typescript@7.0.2)(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)):
+    dependencies:
+      "@rollup/pluginutils": 5.4.0(rollup@4.39.0)
+      "@rsbuild/core": 1.7.6
+      "@storybook/react": 10.6.0(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@10.6.0(@types/react@18.3.18)(prettier@3.9.6)(react@18.3.1))(typescript@7.0.2)
+      "@storybook/react-docgen-typescript-plugin": 1.0.1(typescript@7.0.2)(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4))
+      find-up: 5.0.0
+      magic-string: 0.30.21
+      react: 18.3.1
+      react-docgen: 8.0.3
+      react-docgen-typescript: 2.4.0(typescript@7.0.2)
+      react-dom: 18.3.1(react@18.3.1)
+      resolve: 1.22.12
+      storybook: 10.6.0(@types/react@18.3.18)(prettier@3.9.6)(react@18.3.1)
+      storybook-builder-rsbuild: 3.4.2(@rsbuild/core@1.7.6)(@rspack/core@1.7.12(@swc/helpers@0.4.14))(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@10.6.0(@types/react@18.3.18)(prettier@3.9.6)(react@18.3.1))(typescript@7.0.2)(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+      tsconfig-paths: 4.2.0
+    optionalDependencies:
+      typescript: 7.0.2
+    transitivePeerDependencies:
+      - "@rspack/core"
+      - "@types/react"
+      - "@types/react-dom"
+      - "@typescript/native-preview"
+      - msw
+      - rollup
+      - supports-color
+      - vite
+      - webpack
+
+  vite-node@3.2.4(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0):
+    dependencies:
+      cac: 6.7.14
+      debug: 4.4.3
+      es-module-lexer: 1.7.0
+      pathe: 2.0.3
+      vite: 6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - "@types/node"
+      - jiti
+      - less
+      - lightningcss
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
+      - yaml
+
+  vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0):
+    dependencies:
+      esbuild: 0.25.4
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
+      postcss: 8.5.26
+      rollup: 4.39.0
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      "@types/node": 24.12.2
+      fsevents: 2.3.3
+      jiti: 2.7.0
+      sass: 1.99.0
+      sass-embedded: 1.100.0
+      terser: 5.51.2
+      tsx: 4.23.15
+      yaml: 2.9.0
+
+  vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.10)(jsdom@22.1.0)(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)):
+    dependencies:
+      "@vitest/expect": 4.1.10
+      "@vitest/mocker": 4.1.10(msw@2.7.3(@types/node@24.12.2)(typescript@7.0.2))(vite@6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+      "@vitest/pretty-format": 4.1.10
+      "@vitest/runner": 4.1.10
+      "@vitest/snapshot": 4.1.10
+      "@vitest/spy": 4.1.10
+      "@vitest/utils": 4.1.10
+      es-module-lexer: 2.3.2
+      expect-type: 1.4.0
+      magic-string: 0.30.21
+      obug: 2.1.4
+      pathe: 2.0.3
+      picomatch: 4.0.7
+      std-env: 4.2.0
+      tinybench: 2.9.0
+      tinyexec: 1.3.0
+      tinyglobby: 0.2.17
+      tinyrainbow: 3.1.1
+      vite: 6.4.2(@types/node@24.12.2)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.99.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      "@opentelemetry/api": 1.9.1
+      "@types/node": 24.12.2
+      "@vitest/coverage-v8": 4.1.10(vitest@4.1.10)
+      jsdom: 22.1.0
+    transitivePeerDependencies:
+      - msw
