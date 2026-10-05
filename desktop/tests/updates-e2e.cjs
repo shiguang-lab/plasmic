@@ -54,16 +54,20 @@ async function activateUpdate(page, command) {
   const before = await page.evaluate(() => window.desktopUpdates.command("status"));
   report.before = before.currentVersion;
   assert.notEqual(before.currentVersion, expectedVersion);
-  await page.waitForFunction(async () => ["available", "error"].includes((await window.desktopUpdates.command("status")).phase), undefined, { timeout: 45000, polling: 1000 });
-  const available = await page.evaluate(() => window.desktopUpdates.command("status"));
+  const available = await until(async () => {
+    const status = await page.evaluate(() => window.desktopUpdates.command("status"));
+    return ["available", "error"].includes(status.phase) && status;
+  }, 45000);
   assert.equal(available.phase, "available", available.error);
   assert.equal(available.version, expectedVersion);
   report.nasDetection = true;
   report.startupDetection = true;
   console.log(`Detected NAS version ${available.version} from installed ${before.currentVersion}`);
   await activateUpdate(page, "download");
-  await page.waitForFunction(async () => ["downloaded", "error"].includes((await window.desktopUpdates.command("status")).phase), undefined, { timeout: 25 * 60 * 1000, polling: 1000 });
-  const downloaded = await page.evaluate(() => window.desktopUpdates.command("status"));
+  const downloaded = await until(async () => {
+    const status = await page.evaluate(() => window.desktopUpdates.command("status"));
+    return ["downloaded", "error"].includes(status.phase) && status;
+  }, 25 * 60 * 1000);
   assert.equal(downloaded.phase, "downloaded", downloaded.error);
   report.downloadVerified = true;
   console.log("NAS download completed and verified; installing");
