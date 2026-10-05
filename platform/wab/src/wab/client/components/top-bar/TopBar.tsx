@@ -2,6 +2,7 @@
 
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
 import { PublicLink } from "@/wab/client/components/PublicLink";
+import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import {
   MenuBuilder,
@@ -53,6 +54,51 @@ function _TopBar({ preview }: TopBarProps) {
   const appCtx = useAppCtx();
   const previewCtx = usePreviewCtx();
   const topFrameApi = useTopFrameApi();
+  const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
+  const topBarRef = React.useRef<HTMLDivElement>(null);
+  const leftRef = React.useRef<HTMLDivElement>(null);
+  const rightRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    if (!isMacDesktop) {
+      return;
+    }
+    const root = ensure(topBarRef.current, "Top bar is mounted");
+    const left = ensure(leftRef.current, "Top bar left section is mounted");
+    const right = ensure(rightRef.current, "Top bar right section is mounted");
+    // Electron only honors drag regions in the main frame, so mirror the
+    // header's empty space there instead of marking this host iframe draggable.
+    const update = () => {
+      const bounds = root.getBoundingClientRect();
+      const start = Math.max(
+        left.getBoundingClientRect().left,
+        ...Array.from(left.children, (child) => child.getBoundingClientRect().right),
+      ) + 8;
+      const end = right.getBoundingClientRect().left - 8;
+      spawn(topFrameApi.setDesktopTitleBarDragRegion(end > start ? {
+        left: start,
+        top: bounds.top,
+        width: end - start,
+        height: bounds.height,
+      } : null));
+    };
+    const resizeObserver = new ResizeObserver(update);
+    const observe = () => {
+      resizeObserver.disconnect();
+      [root, left, right, ...left.children, ...right.children].forEach(
+        (element) => resizeObserver.observe(element),
+      );
+      update();
+    };
+    const mutationObserver = new MutationObserver(observe);
+    mutationObserver.observe(root, { childList: true, subtree: true });
+    observe();
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      spawn(topFrameApi.setDesktopTitleBarDragRegion(null));
+    };
+  }, [isMacDesktop, topFrameApi]);
   const { data } = useSWR("top-bar-config", async () => {
     const [team, canEditUiConfig] = await Promise.all([
       topFrameApi.getCurrentTeam(),
@@ -349,13 +395,9 @@ function _TopBar({ preview }: TopBarProps) {
   return (
     <>
       <PlasmicTopBar
-        root={
-          isObserver
-            ? {
-                className: "topbar--isObserver",
-              }
-            : undefined
-        }
+        root={{ ref: topBarRef, className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isObserver ? "topbar--isObserver" : ""}` }}
+        left={{ ref: leftRef }}
+        right={{ ref: rightRef }}
         mode={preview ? "preview" : undefined}
         hideAvatar
         // Projects outside an org (e.g. in a playground) have no trial.

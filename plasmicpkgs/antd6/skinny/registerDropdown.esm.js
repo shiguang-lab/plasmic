@@ -1,7 +1,12 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import { Dropdown } from "antd";
 import React from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import { AntdMenu, UNKEYED_MENU_ITEM_TYPE } from "./registerMenu.esm.js";
 import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
 
@@ -30,6 +35,11 @@ function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
 }
 function AntdDropdown(props) {
   const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "children");
+  const {
     children,
     onAction,
     menuItems,
@@ -38,12 +48,15 @@ function AntdDropdown(props) {
     trigger = "hover",
     dropdownMenuScopeClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const keyedMenuItems = addKeysToUnkeyedMenuItems(unkeyedMenuItems);
   return /* @__PURE__ */ React.createElement(
     Dropdown,
     {
       ...rest,
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
       trigger: [trigger],
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? (menuItems?.() ?? []) : void 0;
@@ -52,7 +65,7 @@ function AntdDropdown(props) {
           AntdMenu,
           {
             className: `${dropdownMenuScopeClassName}`,
-            onClick: (event) => onAction?.(event.key),
+            onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
             items,
           },
           itemsChildren,
@@ -69,6 +82,7 @@ function registerDropdown(loader) {
     name: "plasmic-antd6-dropdown",
     displayName: "Dropdown",
     props: {
+      previewOpen: previewOpenProp,
       menuItems: {
         type: "slot",
         displayName: "Menu items",

@@ -1,21 +1,26 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import { Drawer } from "antd";
 import cls from "classnames";
 import React from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
 
 function AntdDrawer(props) {
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
     onOpenChange,
     onClose,
-    open,
     footer,
     drawerScopeClassName,
     rootClassName,
     defaultStylesClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const memoOnClose = React.useMemo(() => {
     if (onOpenChange || onClose) {
       return (e) => {
@@ -28,9 +33,16 @@ function AntdDrawer(props) {
   }, [onOpenChange, onClose]);
   return /* @__PURE__ */ React.createElement(Drawer, {
     ...rest,
-    onClose: memoOnClose,
+    onClose: isEditing ? void 0 : memoOnClose,
+    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
     rootClassName: cls(rootClassName, drawerScopeClassName),
     open,
+    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+    forceRender: isEditing ? false : props.forceRender,
+    autoFocus: isEditing ? false : props.autoFocus,
+    focusable: isEditing
+      ? { trap: false, focusTriggerAfterClose: false }
+      : props.focusable,
     footer,
     className: cls(props.className, defaultStylesClassName),
   });
@@ -40,6 +52,7 @@ function registerDrawer(loader) {
     name: "plasmic-antd6-drawer",
     displayName: "Drawer",
     props: {
+      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
       },

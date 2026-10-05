@@ -2,6 +2,7 @@ import { PublicLink } from "@/wab/client/components/PublicLink";
 import NavSeparator from "@/wab/client/components/dashboard/NavSeparator";
 import NavTeamSection from "@/wab/client/components/dashboard/NavTeamSection";
 import NavWorkspaceButton from "@/wab/client/components/dashboard/NavWorkspaceButton";
+import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { promptNewTeam } from "@/wab/client/components/dashboard/dashboard-actions";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -67,8 +68,13 @@ function DefaultLayout_(
 
   return (
     <PlasmicDefaultLayout
-      root={{ ref }}
       {...rest}
+      root={{ ref, className: `${styles.applicationLayout} ${navigator.userAgent.includes("PlasmicDesktop/darwin") ? styles.desktopLayout : ""}` }}
+      header={{ className: styles.applicationHeader }}
+      headerWrapper={{ className: styles.headerWrapper }}
+      wrapper={{ className: styles.layoutWrapper }}
+      sidebar={{ className: styles.sidebar }}
+      main={{ className: styles.main }}
       headerLogoLink={{
         as: PublicLink,
         props: brand.logoHref

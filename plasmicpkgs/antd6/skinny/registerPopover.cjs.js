@@ -3,7 +3,9 @@
 var Ant = require("antd");
 var cls = require("classnames");
 var React = require("react");
+var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
 var utils = require("./utils-CRCm44nj.cjs.js");
+require("@plasmicapp/host");
 require("@plasmicapp/host/registerComponent");
 require("@plasmicapp/host/registerGlobalContext");
 
@@ -16,6 +18,11 @@ var React__default = /*#__PURE__*/ _interopDefault(React);
 
 function AntdPopover(props) {
   const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = canvasOverlay.useCanvasOverlay(props, "children");
+  const {
     popupRootClassName,
     popoverScopeClassName,
     defaultStylesClassName,
@@ -23,7 +30,7 @@ function AntdPopover(props) {
     content,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
   return /* @__PURE__ */ React__default.default.createElement(Ant.Popover, {
     content: content === void 0 ? contentText : content,
     classNames: (info) => {
@@ -40,6 +47,10 @@ function AntdPopover(props) {
       };
     },
     ...rest,
+    open,
+    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+    onOpenChange: isEditing ? void 0 : props.onOpenChange,
+    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
   });
 }
 function registerPopover(loader) {
@@ -48,6 +59,7 @@ function registerPopover(loader) {
     displayName: "Popover",
     isAttachment: true,
     props: {
+      previewOpen: canvasOverlay.previewOpenProp,
       open: {
         type: "boolean",
         editOnly: true,

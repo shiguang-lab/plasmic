@@ -2,6 +2,11 @@ import type { StyleSection } from "@plasmicapp/host/registerComponent";
 import { Modal } from "antd";
 import classNames from "classnames";
 import React, { ReactElement, useMemo } from "react";
+import {
+  CanvasOverlayProps,
+  previewOpenProp,
+  useCanvasOverlay,
+} from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
 // hide sizing section, as width can only be set via a width prop, and not css!
@@ -20,21 +25,26 @@ const styleSections: StyleSection[] = [
 ];
 
 export function AntdModal(
-  props: React.ComponentProps<typeof Modal> & {
-    onOpenChange?: (open: boolean) => void;
-    defaultStylesClassName?: string;
-    modalScopeClassName: string;
-    wrapClassName: string;
-    hideFooter?: boolean;
-    closeOnOutsideClick?: boolean;
-    trigger?: ReactElement;
-  },
+  props: React.ComponentProps<typeof Modal> &
+    CanvasOverlayProps & {
+      onOpenChange?: (open: boolean) => void;
+      defaultStylesClassName?: string;
+      modalScopeClassName: string;
+      wrapClassName: string;
+      hideFooter?: boolean;
+      closeOnOutsideClick?: boolean;
+      trigger?: ReactElement;
+    },
 ) {
+  const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "trigger");
   const {
     onOpenChange,
     onOk,
     onCancel,
-    open,
     width,
     footer,
     hideFooter,
@@ -45,7 +55,7 @@ export function AntdModal(
     closeOnOutsideClick,
     defaultStylesClassName,
     ...rest
-  } = props;
+  } = canvasProps;
 
   const memoOnCancel = React.useMemo(() => {
     if (onOpenChange || onCancel) {
@@ -81,10 +91,19 @@ export function AntdModal(
                 closable: closeOnOutsideClick,
               }
         }
-        onOk={onOk}
+        onOk={isEditing ? undefined : onOk}
         width={widthProp}
-        onCancel={memoOnCancel}
+        onCancel={isEditing ? undefined : memoOnCancel}
+        afterOpenChange={isEditing ? undefined : props.afterOpenChange}
+        afterClose={isEditing ? undefined : props.afterClose}
         open={open}
+        destroyOnHidden={isEditing ? true : props.destroyOnHidden}
+        forceRender={isEditing ? false : props.forceRender}
+        focusable={
+          isEditing
+            ? { trap: false, focusTriggerAfterClose: false }
+            : props.focusable
+        }
         footer={hideFooter ? null : footer}
         wrapClassName={wrapClassName}
         className={classNames(
@@ -94,7 +113,9 @@ export function AntdModal(
         )}
       />
       {trigger ? (
-        <div onClick={() => onOpenChange?.(true)}>{trigger}</div>
+        <div onClick={isEditing ? undefined : () => onOpenChange?.(true)}>
+          {trigger}
+        </div>
       ) : null}
     </>
   );
@@ -108,6 +129,7 @@ export function registerModal(loader?: Registerable) {
     description:
       "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
+      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
       },

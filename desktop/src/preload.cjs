@@ -1,4 +1,14 @@
 const { ipcRenderer, contextBridge } = require("electron");
+if (window.top === window) {
+  contextBridge.exposeInMainWorld("desktopUpdates", {
+    command: (command) => ipcRenderer.invoke("desktop:update", command),
+    onStatus: (callback) => {
+      const listener = (_event, status) => callback(status);
+      ipcRenderer.on("desktop:update-status", listener);
+      return () => ipcRenderer.removeListener("desktop:update-status", listener);
+    },
+  });
+}
 const pending = new Set();
 ipcRenderer.on("desktop:invoke", (_event, request) => {
   pending.add(request.id);
@@ -35,20 +45,5 @@ if (location.pathname === "/desktop/google-login") {
       ipcRenderer.on("desktop:google-status", (_event, status) =>
         callback(status),
       ),
-  });
-}
-
-if (window.top === window) {
-  contextBridge.exposeInMainWorld("desktopMcpSettings", {
-    get: () => ipcRenderer.invoke("desktop:mcp-settings", "get"),
-    set: (id, enabled) =>
-      ipcRenderer.invoke("desktop:mcp-settings", "set", { id, enabled }),
-    copy: () => ipcRenderer.invoke("desktop:mcp-settings", "copy"),
-    onOpen: (callback) => {
-      const listener = () => callback();
-      ipcRenderer.on("desktop:mcp-settings-open", listener);
-      return () =>
-        ipcRenderer.removeListener("desktop:mcp-settings-open", listener);
-    },
   });
 }

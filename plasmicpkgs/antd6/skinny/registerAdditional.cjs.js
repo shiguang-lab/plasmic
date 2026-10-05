@@ -3,7 +3,9 @@
 var Ant = require("antd");
 var dayjs = require("dayjs");
 var React = require("react");
+var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
 var utils = require("./utils-CRCm44nj.cjs.js");
+require("@plasmicapp/host");
 require("@plasmicapp/host/registerComponent");
 require("@plasmicapp/host/registerGlobalContext");
 
@@ -80,7 +82,25 @@ const AntdLayoutFooter = Ant__namespace.Layout.Footer;
 const AntdLayoutContent = Ant__namespace.Layout.Content;
 const AntdLayoutSider = Ant__namespace.Layout.Sider;
 const AntdMentions = Ant__namespace.Mentions;
-const AntdPopconfirm = Ant__namespace.Popconfirm;
+function AntdPopconfirm(props) {
+  const {
+    props: rest,
+    open,
+    isEditing,
+  } = canvasOverlay.useCanvasOverlay(props, "children");
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant__namespace.Popconfirm,
+    {
+      ...rest,
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      onConfirm: isEditing ? void 0 : props.onConfirm,
+      onCancel: isEditing ? void 0 : props.onCancel,
+    },
+  );
+}
 const AntdQRCode = Ant__namespace.QRCode;
 const AntdResult = Ant__namespace.Result;
 const AntdRow = Ant__namespace.Row;
@@ -674,6 +694,7 @@ function registerAdditional(loader) {
     { states: valueState("text") },
   );
   register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
+    previewOpen: canvasOverlay.previewOpenProp,
     icon: { type: "slot", hidePlaceholder: true },
     children: slot("Delete"),
     title: { ...slot("Delete this item?"), hidePlaceholder: true },

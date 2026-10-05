@@ -1,11 +1,21 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import { Popover } from "antd";
 import cls from "classnames";
 import React from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
 
 function AntdPopover(props) {
+  const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "children");
   const {
     popupRootClassName,
     popoverScopeClassName,
@@ -14,7 +24,7 @@ function AntdPopover(props) {
     content,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
   return /* @__PURE__ */ React.createElement(Popover, {
     content: content === void 0 ? contentText : content,
     classNames: (info) => {
@@ -31,6 +41,10 @@ function AntdPopover(props) {
       };
     },
     ...rest,
+    open,
+    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+    onOpenChange: isEditing ? void 0 : props.onOpenChange,
+    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
   });
 }
 function registerPopover(loader) {
@@ -39,6 +53,7 @@ function registerPopover(loader) {
     displayName: "Popover",
     isAttachment: true,
     props: {
+      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
         editOnly: true,

@@ -66,6 +66,9 @@ export interface TopFrameApi {
   promptBilling(): Promise<void>;
 
   setDocumentTitle(val: string): Promise<void>;
+  setDesktopTitleBarDragRegion(
+    region: { left: number; top: number; width: number; height: number } | null,
+  ): Promise<void>;
   setShowPublishModal(val: boolean): Promise<void>;
   setKeepPublishModalOpen(val: boolean): Promise<void>;
   setMergeModalContext(val: MergeModalContext | undefined): Promise<void>;
@@ -74,7 +77,6 @@ export interface TopFrameApi {
   setShowProjectNameModal(val: boolean): Promise<void>;
   setShowCloneProjectModal(val: boolean): Promise<void>;
   setShowHostModal(val: boolean): Promise<void>;
-  openMcpSettings(): Promise<void>;
   setShowLocalizationModal(val: boolean): Promise<void>;
   setShowUiConfigModal(val: boolean): Promise<void>;
   showRegenerateSecretTokenModal(): Promise<void>;

@@ -160,13 +160,13 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
           paneContainer={{
             props: {
               className: "canvas-editor__left-pane auto-pointer-events",
-              style: !studioCtx.leftTabKey
-                ? {
-                    display: "none",
-                  }
-                : {
-                    width: studioCtx.leftPaneWidth,
-                  },
+              style: {
+                position: "absolute",
+                left: "100%",
+                top: 0,
+                width: studioCtx.leftPaneWidth,
+                display: studioCtx.leftTabKey ? undefined : "none",
+              },
             },
 
             wrapChildren: (children) => (

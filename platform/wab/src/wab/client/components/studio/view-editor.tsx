@@ -109,6 +109,7 @@ import {
   isKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, notification } from "antd";
 import { ArgsProps } from "antd/lib/notification";
 import { default as cn, default as cx } from "classnames";
@@ -143,7 +144,7 @@ interface ViewEditorProps {
 type ViewEditorState = {};
 
 class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
-  private canvasClipper = createRef<HTMLDivElement>();
+  private canvasClipper: HTMLElement | null = null;
   private canvas = createRef<HTMLDivElement>();
   private canvasScaler = createRef<HTMLDivElement>();
   private onClipperScrollListener: (() => void) | null = null;
@@ -156,7 +157,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private resizeObserver?: ResizeObserver;
   private canvasContainer = createRef<HTMLDivElement>();
 
-  private unbindShortcutHandlers: () => void;
+  private unbindShortcutHandlers?: () => void;
 
   constructor(props: ViewEditorProps) {
     super(props);
@@ -214,8 +215,14 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     this.listeners.length = 0;
   }
 
-  componentDidMount(): void {
-    const canvasClipper = this.canvasClipper.current;
+  // Scrollbar initializes its viewport after mount. All canvas operations must
+  // use that scrolling element, rather than the scrollbar host.
+  private initializeCanvas = (canvasClipper: HTMLElement | null) => {
+    if (!canvasClipper || this.canvasClipper === canvasClipper) {
+      return;
+    }
+    this.canvasClipper = canvasClipper;
+    canvasClipper.classList.add("canvas-editor__canvas-clipper");
     const canvas = this.canvas.current;
     const canvasScaler = this.canvasScaler.current;
     if (!canvasClipper || !canvas || !canvasScaler) {
@@ -813,30 +820,22 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       shortcutHandlers,
       shouldHandleStudioShortcut(this.props.studioCtx),
     );
-  }
+  };
 
   componentWillUnmount() {
-    const canvasClipper = this.canvasClipper.current;
-    const canvas = this.canvas.current;
-    const canvasScaler = this.canvasScaler.current;
-    if (!canvasClipper || !canvas || !canvasScaler) {
-      unexpected();
-    }
+    const canvasClipper = this.canvasClipper;
 
-    this.unbindShortcutHandlers();
+    this.unbindShortcutHandlers?.();
     this.unregisterListeners();
 
-    if (this.resizeObserver) {
-      this.resizeObserver.unobserve(canvasClipper);
-      this.resizeObserver.unobserve(canvasScaler);
-    }
+    this.resizeObserver?.disconnect();
     if (this.focusResetListener) {
       this.focusResetListener.detach();
       this.focusResetListener = undefined;
     }
 
     if (this.onClipperScrollListener) {
-      canvasClipper.removeEventListener("scroll", this.onClipperScrollListener);
+      canvasClipper?.removeEventListener("scroll", this.onClipperScrollListener);
       this.onClipperScrollListener = null;
     }
 
@@ -944,6 +943,13 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     e: MouseEvent,
     focusedVc: ViewCtx | undefined | null,
   ) {
+    if (
+      (e.target as HTMLElement).closest(
+        ".canvas-editor__canvas-scrollbar .os-scrollbar",
+      )
+    ) {
+      return;
+    }
     if (
       this.props.studioCtx.isLiveMode ||
       this.props.studioCtx.isInteractiveMode
@@ -1874,9 +1880,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                   </div>
                 </div>
               )}
-              <div
-                ref={this.canvasClipper}
-                className="canvas-editor__canvas-clipper"
+              <Scrollbar
+                ref={this.initializeCanvas}
+                defer={false}
+                className="canvas-editor__canvas-scrollbar"
               >
                 {studioCtx.isDevMode && (
                   <div className="canvas-editor__canvas-clipper-grid" />
@@ -1942,7 +1949,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                   <div className="canvas-editor__viewport-click-guard" />
                 </div>
                 {!studioCtx.focusedMode && <VariantsBar />}
-              </div>
+              </Scrollbar>
               <CanvasDndOverlay container={this.canvasContainer} />
               {this.viewCtx()?.editingTextContext() && (
                 <RichTextToolbar

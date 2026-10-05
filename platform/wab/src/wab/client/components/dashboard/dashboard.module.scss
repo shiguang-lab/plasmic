@@ -5,3 +5,89 @@
   border: solid 1px #fff;
   margin-left: -8px;
 }
+
+.applicationLayout {
+  height: 100vh;
+  overflow: hidden;
+
+  > div {
+    min-height: 0;
+    height: calc(100% - 49px);
+    flex: 1;
+  }
+
+  .headerWrapper,
+  .layoutWrapper {
+    max-width: none;
+  }
+
+  .headerWrapper {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .layoutWrapper {
+    height: 100%;
+    align-items: stretch;
+  }
+
+  .sidebar {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    width: 220px;
+    height: 100%;
+    padding: 12px;
+  }
+
+  .main {
+    flex: 1;
+    margin-left: 0;
+    overflow: auto;
+
+    > * {
+      max-width: 1200px;
+    }
+
+    > .projects {
+      max-width: none;
+    }
+  }
+}
+
+.applicationLayout.desktopLayout {
+  .applicationHeader {
+    -webkit-app-region: drag;
+
+    a,
+    button,
+    [role="button"] {
+      -webkit-app-region: no-drag;
+    }
+  }
+
+  .headerWrapper {
+    padding-left: 96px;
+  }
+}
+
+@media (max-width: 768px) {
+  .applicationLayout {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+
+    > div {
+      height: auto;
+    }
+
+    .sidebar {
+      width: 100%;
+      height: auto;
+    }
+
+    .main {
+      overflow: visible;
+    }
+  }
+}

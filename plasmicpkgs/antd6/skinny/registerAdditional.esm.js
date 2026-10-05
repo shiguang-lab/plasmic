@@ -1,8 +1,13 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import * as Ant from "antd";
 import dayjs from "dayjs";
 import React from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
 
 const AntdAffix = Ant.Affix;
@@ -39,7 +44,18 @@ const AntdLayoutFooter = Ant.Layout.Footer;
 const AntdLayoutContent = Ant.Layout.Content;
 const AntdLayoutSider = Ant.Layout.Sider;
 const AntdMentions = Ant.Mentions;
-const AntdPopconfirm = Ant.Popconfirm;
+function AntdPopconfirm(props) {
+  const { props: rest, open, isEditing } = useCanvasOverlay(props, "children");
+  return /* @__PURE__ */ React.createElement(Ant.Popconfirm, {
+    ...rest,
+    open,
+    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+    onOpenChange: isEditing ? void 0 : props.onOpenChange,
+    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+    onConfirm: isEditing ? void 0 : props.onConfirm,
+    onCancel: isEditing ? void 0 : props.onCancel,
+  });
+}
 const AntdQRCode = Ant.QRCode;
 const AntdResult = Ant.Result;
 const AntdRow = Ant.Row;
@@ -581,6 +597,7 @@ function registerAdditional(loader) {
     { states: valueState("text") },
   );
   register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
+    previewOpen: previewOpenProp,
     icon: { type: "slot", hidePlaceholder: true },
     children: slot("Delete"),
     title: { ...slot("Delete this item?"), hidePlaceholder: true },

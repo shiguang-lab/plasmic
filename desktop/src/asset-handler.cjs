@@ -27,6 +27,7 @@ function createAssetHandler({
   remoteFetch,
   bridgePath,
   authPagePath,
+  updateUiPath,
   bundledFontCss = "",
 }) {
   root = path.resolve(root);
@@ -107,6 +108,9 @@ function createAssetHandler({
     if (bridgePath && pathname === "/static/desktop/editor-bridge.js") {
       return fileResponse(bridgePath);
     }
+    if (updateUiPath && pathname === "/static/desktop/update-ui.js") {
+      return fileResponse(updateUiPath);
+    }
     const target = path.resolve(root, "." + pathname);
     if (target !== root && !target.startsWith(root + path.sep)) {
       return new Response("Forbidden", { status: 403 });
@@ -122,6 +126,9 @@ function createAssetHandler({
               `<script defer src="${studioOrigin}/static/desktop/editor-bridge.js"></script></head>`,
             ),
         );
+      }
+      if (updateUiPath && path.basename(file) === "index.html") {
+        data = Buffer.from(data.toString().replace("</head>", `<script defer src="${studioOrigin}/static/desktop/update-ui.js"></script></head>`));
       }
       return new Response(request.method === "HEAD" ? null : data, {
         headers: {

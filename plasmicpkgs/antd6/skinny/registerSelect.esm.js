@@ -1,8 +1,13 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import { Select } from "antd";
 import cls from "classnames";
 import React from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import {
   o as optionComponentName,
   h as optionGroupComponentName,
@@ -17,6 +22,7 @@ import {
 const AntdOption = Select.Option;
 const AntdOptionGroup = Select.OptGroup;
 function AntdSelect(props) {
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
     popupRootClassName,
     popupScopeClassName,
@@ -26,13 +32,16 @@ function AntdSelect(props) {
     useChildren,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
   const curated = { ...rest };
   if (useChildren) {
     curated.options = void 0;
   }
   return /* @__PURE__ */ React.createElement(Select, {
     ...curated,
+    open,
+    onOpenChange: isEditing ? void 0 : props.onOpenChange,
+    onChange: isEditing ? void 0 : props.onChange,
     mode: !mode || mode === "single" ? void 0 : mode,
     classNames: (info) => {
       const names =
@@ -74,6 +83,7 @@ function registerSelect(loader) {
     name: selectComponentName,
     displayName: "Select",
     props: {
+      previewOpen: previewOpenProp,
       options: {
         type: "array",
         hidden: (ps) => !!ps.useChildren,

@@ -52,6 +52,19 @@ test("Studio navigation and refresh use local index without a network fallback",
   }
   assert.equal(remote.length, count);
 });
+test("update UI is injected and served locally without fetching NAS static assets", async () => {
+  const page = path.join(root, "updates-page");
+  await fs.mkdir(page);
+  await fs.writeFile(path.join(page, "index.html"), "<html><head></head><body></body></html>");
+  const updateUiPath = path.join(page, "update-ui.js");
+  await fs.writeFile(updateUiPath, "window.updateUiLoaded = true;");
+  const handler = createAssetHandler({ root: page, ...config, updateUiPath, remoteFetch: () => { throw new Error("Unexpected network request"); } });
+  const response = await handler(new Request(config.studioOrigin + "/projects/123"));
+  assert.match(await response.text(), /script defer src="https:\/\/plasmic.studio.publib.cn\/static\/desktop\/update-ui.js"/);
+  const script = await handler(new Request(config.studioOrigin + "/static/desktop/update-ui.js"));
+  assert.match(script.headers.get("Content-Type"), /javascript/);
+  assert.equal(await script.text(), "window.updateUiLoaded = true;");
+});
 test("Canvas scripts and Monaco workers are local with executable MIME types", async () => {
   for (const url of [
     config.canvasOrigin + "/static/antd6.js?v=1",

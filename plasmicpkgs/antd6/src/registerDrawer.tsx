@@ -1,25 +1,31 @@
 import { Drawer } from "antd";
 import classNames from "classnames";
 import React from "react";
+import {
+  CanvasOverlayProps,
+  previewOpenProp,
+  useCanvasOverlay,
+} from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdDrawer(
-  props: React.ComponentProps<typeof Drawer> & {
-    onOpenChange?: (open: boolean) => void;
-    defaultStylesClassName?: string;
-    drawerScopeClassName?: string;
-  },
+  props: React.ComponentProps<typeof Drawer> &
+    CanvasOverlayProps & {
+      onOpenChange?: (open: boolean) => void;
+      defaultStylesClassName?: string;
+      drawerScopeClassName?: string;
+    },
 ) {
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
     onOpenChange,
     onClose,
-    open,
     footer,
     drawerScopeClassName,
     rootClassName,
     defaultStylesClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const memoOnClose = React.useMemo(() => {
     if (onOpenChange || onClose) {
       return (
@@ -37,9 +43,18 @@ export function AntdDrawer(
   return (
     <Drawer
       {...rest}
-      onClose={memoOnClose}
+      onClose={isEditing ? undefined : memoOnClose}
+      afterOpenChange={isEditing ? undefined : props.afterOpenChange}
       rootClassName={classNames(rootClassName, drawerScopeClassName)}
       open={open}
+      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
+      forceRender={isEditing ? false : props.forceRender}
+      autoFocus={isEditing ? false : props.autoFocus}
+      focusable={
+        isEditing
+          ? { trap: false, focusTriggerAfterClose: false }
+          : props.focusable
+      }
       footer={footer}
       className={classNames(props.className, defaultStylesClassName)}
     />
@@ -51,6 +66,7 @@ export function registerDrawer(loader?: Registerable) {
     name: "plasmic-antd6-drawer",
     displayName: "Drawer",
     props: {
+      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
       },

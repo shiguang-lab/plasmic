@@ -3,6 +3,11 @@ import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import * as Ant from "antd";
 import dayjs from "dayjs";
 import React from "react";
+import {
+  CanvasOverlayProps,
+  previewOpenProp,
+  useCanvasOverlay,
+} from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
 // Export the same implementations that generated pages import.
@@ -50,7 +55,22 @@ export const AntdLayoutFooter: typeof Ant.Layout.Footer = Ant.Layout.Footer;
 export const AntdLayoutContent: typeof Ant.Layout.Content = Ant.Layout.Content;
 export const AntdLayoutSider: typeof Ant.Layout.Sider = Ant.Layout.Sider;
 export const AntdMentions: typeof Ant.Mentions = Ant.Mentions;
-export const AntdPopconfirm: typeof Ant.Popconfirm = Ant.Popconfirm;
+export function AntdPopconfirm(
+  props: React.ComponentProps<typeof Ant.Popconfirm> & CanvasOverlayProps,
+) {
+  const { props: rest, open, isEditing } = useCanvasOverlay(props, "children");
+  return (
+    <Ant.Popconfirm
+      {...rest}
+      open={open}
+      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
+      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      afterOpenChange={isEditing ? undefined : props.afterOpenChange}
+      onConfirm={isEditing ? undefined : props.onConfirm}
+      onCancel={isEditing ? undefined : props.onCancel}
+    />
+  );
+}
 export const AntdQRCode: typeof Ant.QRCode = Ant.QRCode;
 export const AntdResult: typeof Ant.Result = Ant.Result;
 export const AntdRow: typeof Ant.Row = Ant.Row;
@@ -703,6 +723,7 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("text") },
   );
   register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
+    previewOpen: previewOpenProp,
     icon: { type: "slot", hidePlaceholder: true },
     children: slot("Delete"),
     title: { ...slot("Delete this item?"), hidePlaceholder: true },

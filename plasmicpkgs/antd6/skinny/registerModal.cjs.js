@@ -3,7 +3,9 @@
 var Ant = require("antd");
 var cls = require("classnames");
 var React = require("react");
+var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
 var utils = require("./utils-CRCm44nj.cjs.js");
+require("@plasmicapp/host");
 require("@plasmicapp/host/registerComponent");
 require("@plasmicapp/host/registerGlobalContext");
 
@@ -29,10 +31,14 @@ const styleSections = [
 ];
 function AntdModal(props) {
   const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = canvasOverlay.useCanvasOverlay(props, "trigger");
+  const {
     onOpenChange,
     onOk,
     onCancel,
-    open,
     width,
     footer,
     hideFooter,
@@ -43,7 +49,7 @@ function AntdModal(props) {
     closeOnOutsideClick,
     defaultStylesClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const memoOnCancel = React__default.default.useMemo(() => {
     if (onOpenChange || onCancel) {
       return (e) => {
@@ -72,10 +78,17 @@ function AntdModal(props) {
               ...(typeof mask === "object" ? mask : {}),
               closable: closeOnOutsideClick,
             },
-      onOk,
+      onOk: isEditing ? void 0 : onOk,
       width: widthProp,
-      onCancel: memoOnCancel,
+      onCancel: isEditing ? void 0 : memoOnCancel,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      afterClose: isEditing ? void 0 : props.afterClose,
       open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      forceRender: isEditing ? false : props.forceRender,
+      focusable: isEditing
+        ? { trap: false, focusTriggerAfterClose: false }
+        : props.focusable,
       footer: hideFooter ? null : footer,
       wrapClassName,
       className: cls__default.default(
@@ -87,7 +100,7 @@ function AntdModal(props) {
     trigger
       ? /* @__PURE__ */ React__default.default.createElement(
           "div",
-          { onClick: () => onOpenChange?.(true) },
+          { onClick: isEditing ? void 0 : () => onOpenChange?.(true) },
           trigger,
         )
       : null,
@@ -101,6 +114,7 @@ function registerModal(loader) {
     description:
       "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
+      previewOpen: canvasOverlay.previewOpenProp,
       open: {
         type: "boolean",
       },

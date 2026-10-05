@@ -9,6 +9,7 @@ import { FormItemWrapper } from "../src/form/FormItem";
 const capture = vi.hoisted(() => ({ props: null as any }));
 vi.mock("antd", async (importOriginal) => {
   const original = await importOriginal<typeof import("antd")>();
+  const React = await import("react");
   const CapturedForm = Object.assign(
     React.forwardRef((props: any, ref: any) => {
       capture.props = props;

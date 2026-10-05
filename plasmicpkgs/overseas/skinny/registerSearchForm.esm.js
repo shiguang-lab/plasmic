@@ -1,16 +1,14 @@
-import { DownOutlined } from "@ant-design/icons";
-import { usePlasmicCanvasContext } from "@plasmicapp/host";
-import registerComponent from "@plasmicapp/host/registerComponent";
-import { Button, Col, Form, Row, Space, Typography, theme } from "antd";
-import React, {
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import registerComponent from '@plasmicapp/host/registerComponent';
+import { DownOutlined } from '@ant-design/icons';
+import { usePlasmicCanvasContext } from '@plasmicapp/host';
+import { Form, theme, Row, Col, Space, Button, Typography } from 'antd';
+import React, { useState, useMemo, useRef, useEffect, useImperativeHandle } from 'react';
 
-function FieldControl({ control, trigger, ...binding }) {
+function FieldControl({
+  control,
+  trigger,
+  ...binding
+}) {
   const child = React.Children.toArray(control)[0];
   if (!React.isValidElement(child)) {
     return /* @__PURE__ */ React.createElement(React.Fragment, null, control);
@@ -22,7 +20,7 @@ function FieldControl({ control, trigger, ...binding }) {
     [trigger]: (...args) => {
       formHandler?.(...args);
       ownHandler?.(...args);
-    },
+    }
   });
 }
 function SearchFormItem({
@@ -36,12 +34,10 @@ function SearchFormItem({
   rules,
   valuePropName,
   trigger,
-  help,
+  help
 }) {
   const child = React.Children.toArray(children)[0];
-  const controlMeta = React.isValidElement(child)
-    ? child.type.__plasmicFormFieldMeta
-    : void 0;
+  const controlMeta = React.isValidElement(child) ? child.type.__plasmicFormFieldMeta : void 0;
   const changeEvent = trigger ?? controlMeta?.onChangeProp ?? "onChange";
   return /* @__PURE__ */ React.createElement(
     Form.Item,
@@ -54,23 +50,16 @@ function SearchFormItem({
       valuePropName: valuePropName ?? controlMeta?.valueProp ?? "value",
       trigger: changeEvent,
       rules: [
-        ...(required
-          ? [
-              {
-                required: true,
-                message:
-                  requiredMessage ??
-                  `\u8BF7\u8F93\u5165${label ?? name ?? "\u67E5\u8BE2\u6761\u4EF6"}`,
-              },
-            ]
-          : []),
-        ...(rules ?? []),
-      ],
+        ...required ? [
+          {
+            required: true,
+            message: requiredMessage ?? `\u8BF7\u8F93\u5165${label ?? name ?? "\u67E5\u8BE2\u6761\u4EF6"}`
+          }
+        ] : [],
+        ...rules ?? []
+      ]
     },
-    /* @__PURE__ */ React.createElement(FieldControl, {
-      control: children,
-      trigger: changeEvent,
-    }),
+    /* @__PURE__ */ React.createElement(FieldControl, { control: children, trigger: changeEvent })
   );
 }
 function collectSearchItems(children) {
@@ -94,8 +83,7 @@ function normalizedSpan(span) {
   return Math.min(24, Math.max(1, Math.round(span) || 8));
 }
 function searchGrid(spans) {
-  let rows = 1,
-    lastRowSpan = 0;
+  let rows = 1, lastRowSpan = 0;
   for (const rawSpan of spans) {
     const span = normalizedSpan(rawSpan);
     if (lastRowSpan + span > 24) {
@@ -109,7 +97,7 @@ function searchGrid(spans) {
     rows,
     lastRowSpan,
     rowsWithActions: rows + (lastRowSpan === 24 ? 1 : 0),
-    actionSpan: lastRowSpan === 24 ? 24 : 24 - lastRowSpan,
+    actionSpan: lastRowSpan === 24 ? 24 : 24 - lastRowSpan
   };
 }
 function searchLayout(spans, minRows, collapsed) {
@@ -118,11 +106,7 @@ function searchLayout(spans, minRows, collapsed) {
   let visibleCount = spans.length;
   if (collapsed && showExpand) {
     visibleCount = 0;
-    while (
-      visibleCount < spans.length &&
-      searchGrid(spans.slice(0, visibleCount + 1)).rowsWithActions <=
-        Math.max(1, minRows)
-    ) {
+    while (visibleCount < spans.length && searchGrid(spans.slice(0, visibleCount + 1)).rowsWithActions <= Math.max(1, minRows)) {
       visibleCount++;
     }
     if (spans.length && visibleCount === 0) {
@@ -132,7 +116,7 @@ function searchLayout(spans, minRows, collapsed) {
   return {
     showExpand,
     visibleCount,
-    actionSpan: searchGrid(spans.slice(0, visibleCount)).actionSpan,
+    actionSpan: searchGrid(spans.slice(0, visibleCount)).actionSpan
   };
 }
 function searchDefaults(items, initialValues = {}) {
@@ -153,8 +137,8 @@ function searchDefaults(items, initialValues = {}) {
   }
   return { initialValues: values, clearValues };
 }
-const SearchForm = React.forwardRef(function SearchForm2(
-  {
+const SearchForm = React.forwardRef(
+  function SearchForm2({
     className,
     children,
     extraActions,
@@ -175,208 +159,179 @@ const SearchForm = React.forwardRef(function SearchForm2(
     expandText = "\u5C55\u5F00",
     collapseText = "\u6536\u8D77",
     embedded = false,
-    marginBottom = 16,
-  },
-  ref,
-) {
-  const [form] = Form.useForm();
-  const { token } = theme.useToken();
-  const canvas = usePlasmicCanvasContext();
-  const editing = !!canvas && !canvas.interactive;
-  const [localCollapsed, setCollapsed] = useState(defaultCollapsed);
-  const isCollapsed = collapsed ?? localCollapsed;
-  const displayCollapsed = editing ? false : isCollapsed;
-  const items = useMemo(() => collectSearchItems(children), [children]);
-  const defaults = useMemo(
-    () =>
-      searchDefaults(
+    marginBottom = 16
+  }, ref) {
+    const [form] = Form.useForm();
+    const { token } = theme.useToken();
+    const canvas = usePlasmicCanvasContext();
+    const editing = !!canvas && !canvas.interactive;
+    const [localCollapsed, setCollapsed] = useState(defaultCollapsed);
+    const isCollapsed = collapsed ?? localCollapsed;
+    const displayCollapsed = editing ? false : isCollapsed;
+    const items = useMemo(() => collectSearchItems(children), [children]);
+    const defaults = useMemo(
+      () => searchDefaults(
         items.map((item) => item.props),
-        initialValues,
+        initialValues
       ),
-    [items, initialValues],
-  );
-  const defaultKey = JSON.stringify(defaults.initialValues);
-  const names = items.flatMap((item) =>
-    item.props.name ? [item.props.name] : [],
-  );
-  const namesKey = JSON.stringify(names);
-  const previousNames = useRef(/* @__PURE__ */ new Set());
-  const getValues = () => form.getFieldsValue(names);
-  useEffect(() => {
-    if (editing) {
-      form.resetFields();
-    } else {
-      previousNames.current.forEach((name) => {
-        if (!names.includes(name)) {
-          form.setFieldValue(name, void 0);
+      [items, initialValues]
+    );
+    const defaultKey = JSON.stringify(defaults.initialValues);
+    const names = items.flatMap(
+      (item) => item.props.name ? [item.props.name] : []
+    );
+    const namesKey = JSON.stringify(names);
+    const previousNames = useRef(/* @__PURE__ */ new Set());
+    const getValues = () => form.getFieldsValue(names);
+    useEffect(() => {
+      if (editing) {
+        form.resetFields();
+      } else {
+        previousNames.current.forEach((name) => {
+          if (!names.includes(name)) {
+            form.setFieldValue(name, void 0);
+          }
+        });
+        const addedValues = {};
+        for (const name of names) {
+          if (!previousNames.current.has(name)) {
+            addedValues[name] = defaults.initialValues[name];
+          }
         }
-      });
-      const addedValues = {};
-      for (const name of names) {
-        if (!previousNames.current.has(name)) {
-          addedValues[name] = defaults.initialValues[name];
-        }
+        form.setFieldsValue(addedValues);
       }
-      form.setFieldsValue(addedValues);
-    }
-    previousNames.current = new Set(names);
-    onValuesChange?.(getValues());
-  }, [form, editing, defaultKey, namesKey]);
-  const layout = searchLayout(
-    items.map((item) => item.props.span ?? colSpan),
-    minRows,
-    displayCollapsed,
-  );
-  const notify = () => onValuesChange?.(getValues());
-  const changeCollapsed = (next) => {
-    setCollapsed(next);
-    onCollapsedChange?.(next);
-  };
-  const reset = () => {
-    form.resetFields();
-    form.setFieldsValue(defaults.clearValues);
-    notify();
-    onReset?.(getValues());
-  };
-  useImperativeHandle(ref, () => ({
-    submit: () => form.submit(),
-    reset,
-    setFieldsValue: (values) => {
-      form.setFieldsValue(values);
+      previousNames.current = new Set(names);
+      onValuesChange?.(getValues());
+    }, [form, editing, defaultKey, namesKey]);
+    const layout = searchLayout(
+      items.map((item) => item.props.span ?? colSpan),
+      minRows,
+      displayCollapsed
+    );
+    const notify = () => onValuesChange?.(getValues());
+    const changeCollapsed = (next) => {
+      setCollapsed(next);
+      onCollapsedChange?.(next);
+    };
+    const reset = () => {
+      form.resetFields();
+      form.setFieldsValue(defaults.clearValues);
       notify();
-    },
-  }));
-  return /* @__PURE__ */ React.createElement(
-    "div",
-    {
-      className,
-      style: embedded
-        ? { marginBottom: 0 }
-        : {
-            background: token.colorBgContainer,
-            padding: "16px 20px 0",
-            borderRadius: 8,
-            border: `1px solid ${token.colorBorderSecondary}`,
-            marginBottom,
-          },
-    },
-    /* @__PURE__ */ React.createElement(
-      Form,
+      onReset?.(getValues());
+    };
+    useImperativeHandle(ref, () => ({
+      submit: () => form.submit(),
+      reset,
+      setFieldsValue: (values) => {
+        form.setFieldsValue(values);
+        notify();
+      }
+    }));
+    return /* @__PURE__ */ React.createElement(
+      "div",
       {
-        form,
-        initialValues: defaults.initialValues,
-        disabled,
-        preserve: true,
-        layout: "horizontal",
-        labelCol: labelWidth === void 0 ? void 0 : { flex: `${labelWidth}px` },
-        wrapperCol: { flex: "1", style: { minWidth: 0 } },
-        onFinish: onSearch,
-        onFinishFailed: ({ errorFields }) => {
-          if (
-            isCollapsed &&
-            errorFields.some((error) =>
-              items
-                .slice(layout.visibleCount)
-                .some((item) => item.props.name === error.name[0]),
-            )
-          ) {
-            changeCollapsed(false);
-          }
-        },
-        onValuesChange: (changedValues) => {
-          const restored = {};
-          for (const [name, clearValue] of Object.entries(
-            defaults.clearValues,
-          )) {
-            if (
-              name in changedValues &&
-              (changedValues[name] === void 0 || changedValues[name] === null)
-            ) {
-              restored[name] = clearValue;
-            }
-          }
-          form.setFieldsValue(restored);
-          notify();
-        },
+        className,
+        style: embedded ? { marginBottom: 0 } : {
+          background: token.colorBgContainer,
+          padding: "16px 20px 0",
+          borderRadius: 8,
+          border: `1px solid ${token.colorBorderSecondary}`,
+          marginBottom
+        }
       },
       /* @__PURE__ */ React.createElement(
-        Row,
-        { gutter: 24 },
-        items.map((item, index) =>
-          /* @__PURE__ */ React.createElement(
-            Col,
-            {
-              key: item.key ?? item.props.name ?? index,
-              span: normalizedSpan(item.props.span ?? colSpan),
-              xs: 24,
-              sm: 12,
-              md: normalizedSpan(item.props.span ?? colSpan),
-              style: {
-                display: index < layout.visibleCount ? void 0 : "none",
-              },
-            },
-            item,
-          ),
-        ),
-        /* @__PURE__ */ React.createElement(
+        Form,
+        {
+          form,
+          initialValues: defaults.initialValues,
+          disabled,
+          preserve: true,
+          layout: "horizontal",
+          labelCol: labelWidth === void 0 ? void 0 : { flex: `${labelWidth}px` },
+          wrapperCol: { flex: "1", style: { minWidth: 0 } },
+          onFinish: onSearch,
+          onFinishFailed: ({ errorFields }) => {
+            if (isCollapsed && errorFields.some(
+              (error) => items.slice(layout.visibleCount).some((item) => item.props.name === error.name[0])
+            )) {
+              changeCollapsed(false);
+            }
+          },
+          onValuesChange: (changedValues) => {
+            const restored = {};
+            for (const [name, clearValue] of Object.entries(
+              defaults.clearValues
+            )) {
+              if (name in changedValues && (changedValues[name] === void 0 || changedValues[name] === null)) {
+                restored[name] = clearValue;
+              }
+            }
+            form.setFieldsValue(restored);
+            notify();
+          }
+        },
+        /* @__PURE__ */ React.createElement(Row, { gutter: 24 }, items.map((item, index) => /* @__PURE__ */ React.createElement(
+          Col,
+          {
+            key: item.key ?? item.props.name ?? index,
+            span: normalizedSpan(item.props.span ?? colSpan),
+            xs: 24,
+            sm: 12,
+            md: normalizedSpan(item.props.span ?? colSpan),
+            style: {
+              display: index < layout.visibleCount ? void 0 : "none"
+            }
+          },
+          item
+        )), /* @__PURE__ */ React.createElement(
           Col,
           {
             span: layout.actionSpan,
             xs: 24,
             sm: layout.actionSpan,
             md: layout.actionSpan,
-            style: { textAlign: "right" },
+            style: { textAlign: "right" }
           },
-          /* @__PURE__ */ React.createElement(
-            Form.Item,
-            { style: { marginBottom: 16 } },
-            /* @__PURE__ */ React.createElement(
-              Space,
+          /* @__PURE__ */ React.createElement(Form.Item, { style: { marginBottom: 16 } }, /* @__PURE__ */ React.createElement(
+            Space,
+            {
+              size: "small",
+              wrap: true,
+              style: { justifyContent: "flex-end", width: "100%" }
+            },
+            /* @__PURE__ */ React.createElement(Button, { type: "primary", htmlType: "submit", loading }, searchText),
+            /* @__PURE__ */ React.createElement(Button, { onClick: reset }, resetText),
+            extraActions,
+            layout.showExpand && /* @__PURE__ */ React.createElement(
+              Typography.Link,
               {
-                size: "small",
-                wrap: true,
-                style: { justifyContent: "flex-end", width: "100%" },
+                "aria-expanded": !displayCollapsed,
+                onClick: () => {
+                  changeCollapsed(!isCollapsed);
+                },
+                style: {
+                  fontSize: 12,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  userSelect: "none"
+                }
               },
               /* @__PURE__ */ React.createElement(
-                Button,
-                { type: "primary", htmlType: "submit", loading },
-                searchText,
+                DownOutlined,
+                {
+                  rotate: displayCollapsed ? 0 : 180,
+                  style: { transition: "transform 0.24s" }
+                }
               ),
-              /* @__PURE__ */ React.createElement(
-                Button,
-                { onClick: reset },
-                resetText,
-              ),
-              extraActions,
-              layout.showExpand &&
-                /* @__PURE__ */ React.createElement(
-                  Typography.Link,
-                  {
-                    "aria-expanded": !displayCollapsed,
-                    onClick: () => {
-                      changeCollapsed(!isCollapsed);
-                    },
-                    style: {
-                      fontSize: 12,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                      userSelect: "none",
-                    },
-                  },
-                  /* @__PURE__ */ React.createElement(DownOutlined, {
-                    rotate: displayCollapsed ? 0 : 180,
-                    style: { transition: "transform 0.24s" },
-                  }),
-                  displayCollapsed ? expandText : collapseText,
-                ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-});
+              displayCollapsed ? expandText : collapseText
+            )
+          ))
+        ))
+      )
+    );
+  }
+);
 
 const searchFormName = "plasmic-overseas-search-form";
 const searchFormItemName = "plasmic-overseas-search-form-item";
@@ -385,8 +340,7 @@ const searchFormMeta = {
   name: searchFormName,
   displayName: "SearchForm",
   section: "Business forms",
-  description:
-    "Editable query form. Insert SearchForm.Item nodes in Fields and an Ant Design 6 control in each item's Control slot. Query returns all fields, including collapsed ones; Reset restores defaults and clear values.",
+  description: "Editable query form. Insert SearchForm.Item nodes in Fields and an Ant Design 6 control in each item's Control slot. Query returns all fields, including collapsed ones; Reset restores defaults and clear values.",
   importPath,
   importName: "SearchForm",
   defaultStyles: { width: "stretch" },
@@ -399,43 +353,41 @@ const searchFormMeta = {
         {
           type: "component",
           name: searchFormItemName,
-          props: { name: "keyword", label: "\u5173\u952E\u8BCD" },
-        },
-      ],
+          props: { name: "keyword", label: "\u5173\u952E\u8BCD" }
+        }
+      ]
     },
     extraActions: {
       type: "slot",
       displayName: "Extra actions",
-      hidePlaceholder: true,
+      hidePlaceholder: true
     },
     initialValues: {
       type: "object",
-      description:
-        "Defaults by field name. An item's initialValue takes precedence.",
+      description: "Defaults by field name. An item's initialValue takes precedence."
     },
     onSearch: {
       type: "eventHandler",
-      argTypes: [{ name: "values", type: "object" }],
+      argTypes: [{ name: "values", type: "object" }]
     },
     onReset: {
       type: "eventHandler",
-      argTypes: [{ name: "values", type: "object" }],
+      argTypes: [{ name: "values", type: "object" }]
     },
     onValuesChange: {
       type: "eventHandler",
-      argTypes: [{ name: "values", type: "object" }],
+      argTypes: [{ name: "values", type: "object" }]
     },
     loading: "boolean",
     disabled: "boolean",
     collapsed: {
       type: "boolean",
       defaultValue: true,
-      description:
-        "Collapse at runtime; the editor displays every field for editing.",
+      description: "Collapse at runtime; the editor displays every field for editing."
     },
     onCollapsedChange: {
       type: "eventHandler",
-      argTypes: [{ name: "value", type: "boolean" }],
+      argTypes: [{ name: "value", type: "boolean" }]
     },
     minRows: { type: "number", min: 1, defaultValue: 1 },
     colSpan: {
@@ -443,14 +395,12 @@ const searchFormMeta = {
       min: 1,
       max: 24,
       defaultValue: 8,
-      description:
-        "24-column grid. Use 6 for four columns or 8 for three columns.",
+      description: "24-column grid. Use 6 for four columns or 8 for three columns."
     },
     labelWidth: {
       type: "number",
       min: 0,
-      description:
-        "Optional shared label width in pixels. Unset labels follow their content. Set a width that fits every label on one line to align controls across rows.",
+      description: "Optional shared label width in pixels. Unset labels follow their content. Set a width that fits every label on one line to align controls across rows."
     },
     searchText: { type: "string", defaultValue: "\u67E5\u8BE2" },
     resetText: { type: "string", defaultValue: "\u91CD\u7F6E" },
@@ -458,99 +408,91 @@ const searchFormMeta = {
     collapseText: { type: "string", defaultValue: "\u6536\u8D77" },
     embedded: {
       type: "boolean",
-      description:
-        "Remove the outer card when embedding in an existing container.",
+      description: "Remove the outer card when embedding in an existing container."
     },
     marginBottom: {
       type: "number",
       min: 0,
       defaultValue: 16,
-      hidden: (props) => !!props.embedded,
-    },
+      hidden: (props) => !!props.embedded
+    }
   },
   states: {
     values: {
       type: "readonly",
       variableType: "object",
-      onChangeProp: "onValuesChange",
+      onChangeProp: "onValuesChange"
     },
     collapsed: {
       type: "writable",
       variableType: "boolean",
       valueProp: "collapsed",
-      onChangeProp: "onCollapsedChange",
-    },
+      onChangeProp: "onCollapsedChange"
+    }
   },
   refActions: {
     submit: { displayName: "Query", argTypes: [] },
     reset: { displayName: "Reset", argTypes: [] },
     setFieldsValue: {
       displayName: "Set draft values",
-      argTypes: [{ name: "values", type: "exprEditor" }],
-    },
-  },
+      argTypes: [{ name: "values", type: "exprEditor" }]
+    }
+  }
 };
 const searchFormItemMeta = {
   name: searchFormItemName,
   displayName: "SearchForm.Item",
   parentComponentName: searchFormName,
-  description:
-    "One editable query field. Use a unique name and exactly one input control in the Control slot; configure the control itself through its own props.",
+  description: "One editable query field. Use a unique name and exactly one input control in the Control slot; configure the control itself through its own props.",
   importPath,
   importName: "SearchFormItem",
   props: {
     name: {
       type: "string",
-      description: "Unique field key in submitted values.",
+      description: "Unique field key in submitted values."
     },
     label: { type: "string", defaultValue: "\u6761\u4EF6" },
     labelContent: {
       type: "slot",
       displayName: "Custom label",
-      hidePlaceholder: true,
+      hidePlaceholder: true
     },
     children: {
       type: "slot",
       displayName: "Control",
-      description:
-        "One Input, Select, DatePicker, Checkbox or custom value/onChange control.",
+      description: "One Input, Select, DatePicker, Checkbox or custom value/onChange control."
     },
     span: {
       type: "number",
       min: 1,
       max: 24,
-      description: "Override the form's colSpan.",
+      description: "Override the form's colSpan."
     },
     initialValue: {
       type: "exprEditor",
-      description:
-        "Initial/default value; accepts strings, numbers, booleans, arrays or objects.",
+      description: "Initial/default value; accepts strings, numbers, booleans, arrays or objects."
     },
     clearValue: {
       type: "exprEditor",
-      description:
-        "Business value restored when the control clears to null/undefined or the form resets.",
+      description: "Business value restored when the control clears to null/undefined or the form resets."
     },
     required: "boolean",
     requiredMessage: { type: "string", hidden: (props) => !props.required },
     rules: {
       type: "object",
-      description:
-        "Ant Design validation rules array; configure required, type, min/max, pattern or validator expressions.",
+      description: "Ant Design validation rules array; configure required, type, min/max, pattern or validator expressions."
     },
     valuePropName: {
       type: "string",
-      description:
-        "Default value; inferred from registered controls (e.g. checked for Checkbox). Override for custom controls.",
+      description: "Default value; inferred from registered controls (e.g. checked for Checkbox). Override for custom controls."
     },
     trigger: {
       type: "string",
       defaultValueHint: "onChange",
-      description:
-        "Event that updates this field; inferred from registered control metadata, otherwise onChange.",
+      description: "Event that updates this field; inferred from registered control metadata, otherwise onChange."
     },
-    help: { type: "slot", hidePlaceholder: true },
-  },
+    help: { type: "slot", hidePlaceholder: true }
+  }
 };
 function registerSearchForm(loader) {
   const register = loader?.registerComponent ?? registerComponent;
@@ -558,13 +500,5 @@ function registerSearchForm(loader) {
   register(SearchForm, searchFormMeta);
 }
 
-export {
-  SearchForm,
-  SearchFormItem,
-  registerSearchForm,
-  searchFormItemMeta,
-  searchFormItemName,
-  searchFormMeta,
-  searchFormName,
-};
+export { SearchForm, SearchFormItem, registerSearchForm, searchFormItemMeta, searchFormItemName, searchFormMeta, searchFormName };
 //# sourceMappingURL=registerSearchForm.esm.js.map

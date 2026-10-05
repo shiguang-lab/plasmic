@@ -44,6 +44,41 @@ pages import the same wrappers from the package's `skinny` entry points.
   selection events receive native info objects. RangePicker preserves inherited
   disabling and explicit whole-control overrides over endpoint flags.
 
+## Editing overlays
+
+Tooltip, Popover, Popconfirm, Modal, Drawer, Dropdown and Select temporarily open
+in the design canvas when selected, including when selecting a node inside their
+content slots. Keep Studio's **View → auto-open mode** enabled. Selecting a
+trigger slot does not automatically open its overlay. Selecting an option inside
+a Select inside a Modal opens both containers.
+
+**Preview open** overrides selection in the design canvas: true keeps it open,
+false keeps it closed, and unset follows selection and the configured `open`.
+This property is excluded from generated code. Interactive preview and published
+pages use the native `open` / `defaultOpen` and business interactions.
+
+Use the Outline to select hidden content, then edit text, styles and child nodes
+on the canvas. Tooltip's `title`, Popover's `title` / `content`, Popconfirm's
+`title` / `description`, and Modal / Drawer content are slots. For editable menu
+or option nodes, enable Dropdown's **Use menu items slot** (`useMenuItemsSlot`) or Select's
+**Use slot** (`useChildren`); JSON menu items/options remain property data.
+
+Automatic opening does not invoke open/close or confirmation callbacks, change
+business state, or trap focus inside Modal / Drawer. Modal, Drawer, Tooltip,
+Popover, Popconfirm and Dropdown unmount hidden editing content so nested portals
+cannot remain visible after their parent closes. Runtime caching settings remain
+native.
+
+Publish and upgrade the Ant Design 6 hostless library metadata to expose the new
+**Preview open** property in existing Studio projects. Selection-driven opening
+is available when the updated canvas runtime is loaded.
+
+The implementation uses
+Plasmic's [canvas selection API](https://docs.plasmic.app/learn/code-components-ref/)
+and [auto-open convention](https://plasmic.substack.com/p/plasmic-product-updates),
+with separate editing and runtime behavior as in
+[Framer's overlay editor](https://www.framer.com/academy/lessons/overlays).
+
 ## Icons
 
 Install the independent **Ant Design Icons** library from **Component Store → Icons**.

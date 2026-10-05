@@ -1,5 +1,10 @@
 import { Dropdown } from "antd";
 import React from "react";
+import {
+  CanvasOverlayProps,
+  previewOpenProp,
+  useCanvasOverlay,
+} from "./canvas-overlay";
 import { AntdMenu as Menu, UNKEYED_MENU_ITEM_TYPE } from "./registerMenu";
 import { Registerable, registerComponentHelper } from "./utils";
 
@@ -31,15 +36,21 @@ function addKeysToUnkeyedMenuItems(
 }
 
 export function AntdDropdown(
-  props: Omit<React.ComponentProps<typeof Dropdown>, "menu" | "overlay"> & {
-    onAction?: (key: string) => void;
-    menuItems?: () => React.ReactNode;
-    useMenuItemsSlot?: boolean;
-    menuItemsJson?: React.ComponentProps<typeof Menu>["items"];
-    trigger?: "click" | "hover" | "contextMenu";
-    dropdownMenuScopeClassName?: string;
-  },
+  props: Omit<React.ComponentProps<typeof Dropdown>, "menu" | "overlay"> &
+    CanvasOverlayProps & {
+      onAction?: (key: string) => void;
+      menuItems?: () => React.ReactNode;
+      useMenuItemsSlot?: boolean;
+      menuItemsJson?: React.ComponentProps<typeof Menu>["items"];
+      trigger?: "click" | "hover" | "contextMenu";
+      dropdownMenuScopeClassName?: string;
+    },
 ) {
+  const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "children");
   const {
     children,
     onAction,
@@ -49,13 +60,16 @@ export function AntdDropdown(
     trigger = "hover",
     dropdownMenuScopeClassName,
     ...rest
-  } = props;
+  } = canvasProps;
 
   const keyedMenuItems = addKeysToUnkeyedMenuItems(unkeyedMenuItems);
 
   return (
     <Dropdown
       {...rest}
+      open={open}
+      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
+      onOpenChange={isEditing ? undefined : props.onOpenChange}
       trigger={[trigger]}
       popupRender={() => {
         const itemsChildren = useMenuItemsSlot
@@ -65,7 +79,7 @@ export function AntdDropdown(
         return (
           <Menu
             className={`${dropdownMenuScopeClassName}`}
-            onClick={(event) => onAction?.(event.key)}
+            onClick={isEditing ? undefined : (event) => onAction?.(event.key)}
             items={items}
           >
             {itemsChildren}
@@ -86,6 +100,7 @@ export function registerDropdown(loader?: Registerable) {
     name: "plasmic-antd6-dropdown",
     displayName: "Dropdown",
     props: {
+      previewOpen: previewOpenProp,
       menuItems: {
         type: "slot",
         displayName: "Menu items",

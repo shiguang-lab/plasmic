@@ -1,9 +1,11 @@
 "use strict";
 
 var Ant = require("antd");
-var registerMenu = require("./registerMenu.cjs.js");
 var React = require("react");
+var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
+var registerMenu = require("./registerMenu.cjs.js");
 var utils = require("./utils-CRCm44nj.cjs.js");
+require("@plasmicapp/host");
 require("@plasmicapp/host/registerComponent");
 require("@plasmicapp/host/registerGlobalContext");
 
@@ -38,6 +40,11 @@ function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
 }
 function AntdDropdown(props) {
   const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = canvasOverlay.useCanvasOverlay(props, "children");
+  const {
     children,
     onAction,
     menuItems,
@@ -46,12 +53,15 @@ function AntdDropdown(props) {
     trigger = "hover",
     dropdownMenuScopeClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const keyedMenuItems = addKeysToUnkeyedMenuItems(unkeyedMenuItems);
   return /* @__PURE__ */ React__default.default.createElement(
     Ant.Dropdown,
     {
       ...rest,
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
       trigger: [trigger],
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? (menuItems?.() ?? []) : void 0;
@@ -60,7 +70,7 @@ function AntdDropdown(props) {
           registerMenu.AntdMenu,
           {
             className: `${dropdownMenuScopeClassName}`,
-            onClick: (event) => onAction?.(event.key),
+            onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
             items,
           },
           itemsChildren,
@@ -81,6 +91,7 @@ function registerDropdown(loader) {
     name: "plasmic-antd6-dropdown",
     displayName: "Dropdown",
     props: {
+      previewOpen: canvasOverlay.previewOpenProp,
       menuItems: {
         type: "slot",
         displayName: "Menu items",

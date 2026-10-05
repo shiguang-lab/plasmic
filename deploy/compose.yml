@@ -94,6 +94,7 @@ services:
       STUDIO_ORIGIN: ${STUDIO_ORIGIN}
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - desktop-updates:/srv/desktop-updates:ro
     ports: ["${BIND_IP:-127.0.0.1}:3900:8080", "${BIND_IP:-127.0.0.1}:3901:8081"]
     healthcheck:
       test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/static/host.html]
@@ -104,5 +105,7 @@ services:
     depends_on:
       server: {condition: service_healthy}
 volumes:
+  desktop-updates:
+    name: plasmic-desktop-updates
   postgres-data:
   storage-data:

@@ -73,6 +73,20 @@ SNI to Caddy on loopback ports 8454/8455, and Caddy forwards over Tailscale to
 NAS ports 3900/3901. Caddy terminates HTTPS and supports WebSocket upgrades.
 Nginx preserves the forwarded HTTPS protocol.
 
+## Desktop update hosting
+
+The web container mounts the NAS Docker volume `plasmic-desktop-updates` read-only
+at `/srv/desktop-updates`. This avoids shared-folder ACL restrictions on Nginx workers.
+`/desktop-updates/<platform>/<arch>/latest*.yml` serves uncached update manifests;
+versioned ZIP, DMG, NSIS, AppImage and blockmap files use immutable caching and
+support ranged downloads. Missing files return 404; directory listing and writes
+are disabled. Desktop updates do not require changing the NAS backend image tag.
+
+Run `npm run setup:nas-updates` from `desktop` to configure an existing NAS deployment,
+then `npm run release -- darwin arm64` to build and publish a new desktop version.
+See [desktop release instructions](../desktop/README.md#nas-updates-and-releases)
+for versioning, other platforms and installation behavior.
+
 For an existing database, changing .env alone does not change the stored
 `defaultHostUrl` and `codegenOriginHost` dev flag overrides. Update those values
 along with STUDIO_ORIGIN and CANVAS_ORIGIN before restarting server/web.

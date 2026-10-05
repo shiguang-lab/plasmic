@@ -1,14 +1,28 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import { Tooltip } from "antd";
 import cls from "classnames";
 import React from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
 
 function AntdTooltip(props) {
-  const { popupRootClassName, titleText, classNames, ...rest } = props;
+  const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "children");
+  const { popupRootClassName, titleText, classNames, ...rest } = canvasProps;
   return /* @__PURE__ */ React.createElement(Tooltip, {
     ...rest,
+    open,
+    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+    onOpenChange: isEditing ? void 0 : props.onOpenChange,
+    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
     classNames: (info) => {
       const names =
         typeof classNames === "function" ? classNames(info) : classNames;
@@ -23,6 +37,7 @@ function registerTooltip(loader) {
     displayName: "Tooltip",
     isAttachment: true,
     props: {
+      previewOpen: previewOpenProp,
       children: {
         type: "slot",
         defaultValue: {

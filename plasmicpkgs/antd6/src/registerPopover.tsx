@@ -1,16 +1,27 @@
 import { Popover } from "antd";
 import cls from "classnames";
 import React from "react";
+import {
+  CanvasOverlayProps,
+  previewOpenProp,
+  useCanvasOverlay,
+} from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdPopover(
-  props: React.ComponentProps<typeof Popover> & {
-    popupRootClassName?: string;
-    popoverScopeClassName?: string;
-    contentText?: string;
-    defaultStylesClassName?: string;
-  },
+  props: React.ComponentProps<typeof Popover> &
+    CanvasOverlayProps & {
+      popupRootClassName?: string;
+      popoverScopeClassName?: string;
+      contentText?: string;
+      defaultStylesClassName?: string;
+    },
 ) {
+  const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "children");
   const {
     popupRootClassName,
     popoverScopeClassName,
@@ -19,7 +30,7 @@ export function AntdPopover(
     content,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
   return (
     <Popover
       content={content === undefined ? contentText : content}
@@ -37,6 +48,10 @@ export function AntdPopover(
         };
       }}
       {...rest}
+      open={open}
+      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
+      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      afterOpenChange={isEditing ? undefined : props.afterOpenChange}
     />
   );
 }
@@ -47,6 +62,7 @@ export function registerPopover(loader?: Registerable) {
     displayName: "Popover",
     isAttachment: true,
     props: {
+      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
         editOnly: true,

@@ -1,4 +1,4 @@
-import { packager } from "@electron/packager";
+import { build, Platform, Arch } from "electron-builder";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,19 +20,30 @@ for (const key of ["studioOrigin", "canvasOrigin", "webImage"]) {
 }
 const [platform = process.platform, arch = process.arch] =
   process.argv.slice(2);
-const outputs = await packager({
-  dir: root,
-  out: path.join(root, "dist", metadata.version),
-  name: "Plasmic",
-  icon: path.join(root, "assets", "icon"),
-  appBundleId: "cn.publib.plasmic.desktop",
-  appVersion: metadata.version,
-  protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
-  platform,
-  arch,
-  asar: true,
-  overwrite: true,
-  prune: true,
-  ignore: [/^\/(dist|scripts|tests|desktop-report)(\/|$)/, /^\/README\.md$/],
+const platforms = { darwin: Platform.MAC, win32: Platform.WINDOWS, linux: Platform.LINUX };
+if (!platforms[platform] || !["arm64", "x64"].includes(arch)) throw new Error("Unsupported platform or architecture");
+const notesIndex = process.argv.indexOf("--notes");
+const releaseNotes = notesIndex < 0 ? undefined : await readFile(process.argv[notesIndex + 1], "utf8");
+const outputs = await build({
+  projectDir: root,
+  targets: platforms[platform].createTarget(undefined, Arch[arch]),
+  publish: "never",
+  config: {
+    appId: "cn.publib.plasmic.desktop",
+    productName: "Plasmic",
+    electronVersion: metadata.devDependencies.electron,
+    directories: { output: `dist/${metadata.version}/${platform}-${arch}`, buildResources: "assets" },
+    files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
+    asar: true,
+    npmRebuild: false,
+    artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",
+    protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
+    publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
+    releaseInfo: releaseNotes ? { releaseNotes } : undefined,
+    mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: "-", hardenedRuntime: false },
+    win: { target: ["nsis"], icon: "assets/icon.ico" },
+    nsis: { oneClick: true, perMachine: false, deleteAppDataOnUninstall: false },
+    linux: { target: ["AppImage"], icon: "assets/icon.png", category: "Development" },
+  },
 });
 console.log(outputs.join("\n"));

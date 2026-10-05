@@ -25,7 +25,8 @@ const { startRpc } = require("./local-rpc.cjs");
 const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
-let controller, stopRpc, openMcpSettings;
+const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
+let controller, stopRpc, openMcpSettings, updates;
 
 let mainWindow;
 let desktopSession;
@@ -91,6 +92,7 @@ function protectWindow(win) {
 }
 
 async function startDesktop() {
+  if (process.platform === "darwin") await acknowledgeMacUpdate(app, false);
   if (process.platform === "darwin") {
     app.dock.setIcon(appIcon);
   }
@@ -136,6 +138,7 @@ async function startDesktop() {
         ...config,
         bridgePath: path.join(__dirname, "editor-bridge.js"),
         authPagePath: path.join(__dirname, "google-login.html"),
+        updateUiPath: path.join(__dirname, "update-ui.js"),
         bundledFontCss: fs
           .readdirSync(path.join(root, "static/desktop-fonts"))
           .filter((file) => file.endsWith(".css"))
@@ -165,6 +168,9 @@ async function startDesktop() {
     icon: appIcon,
     show: false,
     backgroundColor: "#ffffff",
+    ...(process.platform === "darwin"
+      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 16, y: 16 } }
+      : {}),
     webPreferences: {
       session: desktopSession,
       preload: path.join(__dirname, "preload.cjs"),
@@ -174,6 +180,9 @@ async function startDesktop() {
       webSecurity: true,
     },
   });
+  mainWindow.webContents.setUserAgent(
+    `${mainWindow.webContents.getUserAgent()} PlasmicDesktop/${process.platform}`,
+  );
   googleAuth = new GoogleAuthWindow(
     mainWindow,
     config.studioOrigin,
@@ -195,7 +204,6 @@ async function startDesktop() {
     openMcpSettings = createMcpSettings(
       integrations,
       () => mainWindow,
-      config.studioOrigin,
     );
     const trustedAuthSender = (event) => {
       return (
@@ -244,6 +252,20 @@ async function startDesktop() {
   mainWindow.on("closed", () => {
     mainWindow = undefined;
   });
+  if (!updates) {
+    updates = await createUpdates({
+      config,
+      getWindow: () => mainWindow,
+      session: desktopSession,
+      beforeInstall: async () => {
+        const state = await controller.state();
+        if (state.projectId) {
+          if (!state.ready) throw new Error("当前设计尚未就绪，请等待设计加载完成再安装更新。");
+          await controller.dispatch("execute", { name: "save", input: {} });
+        }
+      },
+    });
+  }
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
@@ -251,6 +273,12 @@ async function startDesktop() {
       { role: "editMenu" },
       { role: "viewMenu" },
       { role: "windowMenu" },
+      { label: "更新", submenu: [{ label: "检查更新…", click: async () => {
+        const status = await updates.command("check");
+        if (["current", "disabled", "error"].includes(status.phase)) {
+          void dialog.showMessageBox(mainWindow, { title: "Plasmic 更新", message: status.error || (status.phase === "disabled" ? "请使用已安装的应用检查更新。" : `当前已是最新版本 ${status.currentVersion}`) });
+        }
+      } }] },
       {
         label: "AI",
         submenu: [{ label: "MCP", click: () => openMcpSettings() }],
@@ -258,6 +286,7 @@ async function startDesktop() {
     ]),
   );
   await mainWindow.loadURL(config.studioOrigin + "/");
+  if (process.platform === "darwin") await acknowledgeMacUpdate(app);
   if (queuedOAuthUrl) {
     const url = queuedOAuthUrl;
     queuedOAuthUrl = undefined;
@@ -276,7 +305,7 @@ function ensureDesktop() {
 }
 
 function bootstrap() {
-  const userData = path.join(app.getPath("appData"), "Plasmic Desktop");
+  const userData = process.env.PLASMIC_DESKTOP_PROFILE || path.join(app.getPath("appData"), "Plasmic Desktop");
   fs.mkdirSync(userData, { recursive: true });
   app.setPath("userData", userData);
   app.setPath("sessionData", userData);

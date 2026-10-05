@@ -1,8 +1,13 @@
+import "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
 import { Modal } from "antd";
 import cls from "classnames";
 import React, { useMemo } from "react";
+import {
+  p as previewOpenProp,
+  u as useCanvasOverlay,
+} from "./canvas-overlay-BurdwRe9.esm.js";
 import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
 
 const styleSections = [
@@ -20,10 +25,14 @@ const styleSections = [
 ];
 function AntdModal(props) {
   const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, "trigger");
+  const {
     onOpenChange,
     onOk,
     onCancel,
-    open,
     width,
     footer,
     hideFooter,
@@ -34,7 +43,7 @@ function AntdModal(props) {
     closeOnOutsideClick,
     defaultStylesClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const memoOnCancel = React.useMemo(() => {
     if (onOpenChange || onCancel) {
       return (e) => {
@@ -63,10 +72,17 @@ function AntdModal(props) {
               ...(typeof mask === "object" ? mask : {}),
               closable: closeOnOutsideClick,
             },
-      onOk,
+      onOk: isEditing ? void 0 : onOk,
       width: widthProp,
-      onCancel: memoOnCancel,
+      onCancel: isEditing ? void 0 : memoOnCancel,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      afterClose: isEditing ? void 0 : props.afterClose,
       open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      forceRender: isEditing ? false : props.forceRender,
+      focusable: isEditing
+        ? { trap: false, focusTriggerAfterClose: false }
+        : props.focusable,
       footer: hideFooter ? null : footer,
       wrapClassName,
       className: cls(
@@ -78,7 +94,7 @@ function AntdModal(props) {
     trigger
       ? /* @__PURE__ */ React.createElement(
           "div",
-          { onClick: () => onOpenChange?.(true) },
+          { onClick: isEditing ? void 0 : () => onOpenChange?.(true) },
           trigger,
         )
       : null,
@@ -92,6 +108,7 @@ function registerModal(loader) {
     description:
       "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
+      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
       },

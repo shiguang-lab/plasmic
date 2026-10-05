@@ -3998,6 +3998,11 @@ $color-stops-width: 100%
 
 .canvas-editor__left-pane-container
   background-color: transparent
+  flex-shrink: 0
+  z-index: 1
+
+.canvas-editor__left-pane
+  box-shadow: 8px 0 24px rgba(0, 0, 0, .08)
 
 .canvas-editor__right-pane__top
   overflow: hidden
@@ -4119,8 +4124,8 @@ $color-stops-width: 100%
   height: $bottom-pane-height
   overflow: scroll
 // We need to clip the canvas content.
-.canvas-editor__canvas-clipper
-  overflow: auto
+.canvas-editor__canvas-scrollbar
+  overflow: hidden
   height: 100%
   width: 100%
   position: absolute
@@ -5705,6 +5710,12 @@ $size-controls-width: $spacing-control-width - 2 * ($spacing-control-x-thickness
   cursor: ew-resize
   z-index: 10
   top: 0
+
+.desktop-titlebar-drag-region
+  position: fixed
+  z-index: 1
+  -webkit-app-region: drag
+  user-select: none
 
 .studio-frame
   width: 100vw

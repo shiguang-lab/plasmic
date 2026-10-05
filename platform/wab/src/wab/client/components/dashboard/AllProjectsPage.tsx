@@ -1,5 +1,6 @@
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
+import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { Spinner } from "@/wab/client/components/widgets";
 import {
@@ -46,6 +47,7 @@ function AllProjectsPage_(
       <PlasmicAllProjectsPage
         root={{ ref }}
         {...props}
+        projects={{ className: styles.projects }}
         defaultLayout={{ props: { helpButton: { render: () => null } } }}
         newProjectButton={{ onClick: () => setShowNewProjectModal(true) }}
         filter={{ props: filterProps }}

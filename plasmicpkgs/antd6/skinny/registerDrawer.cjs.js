@@ -3,7 +3,9 @@
 var Ant = require("antd");
 var cls = require("classnames");
 var React = require("react");
+var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
 var utils = require("./utils-CRCm44nj.cjs.js");
+require("@plasmicapp/host");
 require("@plasmicapp/host/registerComponent");
 require("@plasmicapp/host/registerGlobalContext");
 
@@ -16,15 +18,19 @@ var React__default = /*#__PURE__*/ _interopDefault(React);
 
 function AntdDrawer(props) {
   const {
+    props: canvasProps,
+    open,
+    isEditing,
+  } = canvasOverlay.useCanvasOverlay(props);
+  const {
     onOpenChange,
     onClose,
-    open,
     footer,
     drawerScopeClassName,
     rootClassName,
     defaultStylesClassName,
     ...rest
-  } = props;
+  } = canvasProps;
   const memoOnClose = React__default.default.useMemo(() => {
     if (onOpenChange || onClose) {
       return (e) => {
@@ -37,9 +43,16 @@ function AntdDrawer(props) {
   }, [onOpenChange, onClose]);
   return /* @__PURE__ */ React__default.default.createElement(Ant.Drawer, {
     ...rest,
-    onClose: memoOnClose,
+    onClose: isEditing ? void 0 : memoOnClose,
+    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
     rootClassName: cls__default.default(rootClassName, drawerScopeClassName),
     open,
+    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+    forceRender: isEditing ? false : props.forceRender,
+    autoFocus: isEditing ? false : props.autoFocus,
+    focusable: isEditing
+      ? { trap: false, focusTriggerAfterClose: false }
+      : props.focusable,
     footer,
     className: cls__default.default(props.className, defaultStylesClassName),
   });
@@ -49,6 +62,7 @@ function registerDrawer(loader) {
     name: "plasmic-antd6-drawer",
     displayName: "Drawer",
     props: {
+      previewOpen: canvasOverlay.previewOpenProp,
       open: {
         type: "boolean",
       },

@@ -85,6 +85,7 @@ export interface TopFrameChromeProps {
   latestPublishedVersionData:
     { revisionId: string; version: string } | undefined;
   revisionNum: number;
+  desktopTitleBarDragRegion: TopFrameApiArgs<"setDesktopTitleBarDragRegion">;
   noComponents: boolean;
   isLocalizationEnabled: boolean;
   showPublishModal: boolean;
@@ -243,6 +244,14 @@ export function TopFrameChrome({
 
   return (
     <>
+      {!fullPreview && rest.desktopTitleBarDragRegion &&
+        navigator.userAgent.includes("PlasmicDesktop/darwin") && (
+          <div
+            className="desktop-titlebar-drag-region"
+            aria-hidden="true"
+            style={rest.desktopTitleBarDragRegion}
+          />
+        )}
       {!fullPreview &&
         (APP_ROUTES.projectDocs.parse(pathname, false) ? null : (
           <>
@@ -527,6 +536,8 @@ export function useTopFrameState({
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
     React.useState<{ revisionId: string; version: string }>();
   const [revisionNum, setRevisionNum] = React.useState(0);
+  const [desktopTitleBarDragRegion, setDesktopTitleBarDragRegion] =
+    React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegion">>(null);
   const [showPublishModal, setShowPublishModal] = React.useState(false);
   const [keepPublishModalOpen, setKeepPublishModalOpen] = React.useState(false);
   const [mergeModalContext, setMergeModalContext] = React.useState<
@@ -638,6 +649,7 @@ export function useTopFrameState({
       setDocumentTitle: async (val: string) => {
         document.title = val;
       },
+      setDesktopTitleBarDragRegion: asyncWrapper(setDesktopTitleBarDragRegion),
       setPrimitiveValues: async (vals) => {
         setNoComponents(vals.noComponents);
         setRevisionNum(vals.revisionNum);
@@ -660,9 +672,6 @@ export function useTopFrameState({
       setShowProjectNameModal: asyncWrapper(setShowProjectNameModal),
       setShowCloneProjectModal: asyncWrapper(setShowCloneProjectModal),
       setShowHostModal: asyncWrapper(setShowHostModal),
-      openMcpSettings: async () => {
-        window.dispatchEvent(new Event("plasmic:open-mcp-settings"));
-      },
       setShowLocalizationModal: asyncWrapper(setShowLocalizationModal),
       setShowUiConfigModal: asyncWrapper(setShowUiConfigModal),
       showRegenerateSecretTokenModal: async () =>
@@ -734,6 +743,7 @@ export function useTopFrameState({
     topFrameApi,
     latestPublishedVersionData,
     revisionNum,
+    desktopTitleBarDragRegion,
     noComponents,
     subjectComponentInfo,
     activatedBranch,

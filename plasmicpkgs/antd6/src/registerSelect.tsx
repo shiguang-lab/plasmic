@@ -2,6 +2,11 @@ import { Select } from "antd";
 import cls from "classnames";
 import React, { ComponentProps } from "react";
 import {
+  CanvasOverlayProps,
+  previewOpenProp,
+  useCanvasOverlay,
+} from "./canvas-overlay";
+import {
   optionComponentName,
   optionGroupComponentName,
   selectComponentName,
@@ -17,13 +22,15 @@ export const AntdOption: typeof Select.Option = Select.Option;
 export const AntdOptionGroup: typeof Select.OptGroup = Select.OptGroup;
 
 export function AntdSelect(
-  props: ComponentProps<typeof Select> & {
-    popupScopeClassName?: string;
-    popupRootClassName?: string;
-    defaultStylesClassName?: string;
-    useChildren?: boolean;
-  },
+  props: ComponentProps<typeof Select> &
+    CanvasOverlayProps & {
+      popupScopeClassName?: string;
+      popupRootClassName?: string;
+      defaultStylesClassName?: string;
+      useChildren?: boolean;
+    },
 ) {
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
     popupRootClassName,
     popupScopeClassName,
@@ -33,7 +40,7 @@ export function AntdSelect(
     useChildren,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
   const curated = { ...rest };
   if (useChildren) {
     curated.options = undefined;
@@ -41,6 +48,9 @@ export function AntdSelect(
   return (
     <Select
       {...curated}
+      open={open}
+      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      onChange={isEditing ? undefined : props.onChange}
       mode={!mode || (mode as any) === "single" ? undefined : mode}
       classNames={(info) => {
         const names =
@@ -88,6 +98,7 @@ export function registerSelect(loader?: Registerable) {
     name: selectComponentName,
     displayName: "Select",
     props: {
+      previewOpen: previewOpenProp,
       options: {
         type: "array",
         hidden: (ps: any) => !!ps.useChildren,

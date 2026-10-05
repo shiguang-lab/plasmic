@@ -42,11 +42,76 @@ That directory must be a complete self-hosted WAB production build, including
 canvas packages and generated CSS. The existing `deploy/Dockerfile` web target
 produces it at `/opt/plasmic-web`; a partial development build is insufficient.
 
-Packaging creates platform application bundles in `dist/<version>/`, with renderer files
-inside `resources/app.asar`. It does not produce signed installers. macOS
-signing/notarization requires the appropriate Apple credentials and a macOS
+Packaging creates applications, installers and update manifests in
+`dist/<version>/<platform>-<arch>/`, with renderer files inside `resources/app.asar`.
+macOS produces an ad-hoc signed DMG and ZIP for internal distribution, Windows
+produces a per-user NSIS installer, and Linux produces an AppImage. macOS
+Developer ID signing/notarization requires Apple credentials and a macOS
 build environment. `package:mac` defaults to Apple Silicon; Intel builds use
 `npm run package -- darwin x64`. No backend or database is included.
+
+## NAS updates and releases
+
+Updates use `desktop.config.json`'s HTTPS `updateUrl`, partitioned by platform and
+architecture. GitHub is not contacted when checking, downloading or installing.
+The application checks ten seconds after startup and every four hours. The sidebar
+shows the current version, download progress, release notes, retry and **重启并安装**.
+An update button remains accessible in the editor and login page; the native
+**更新 → 检查更新…** menu also starts a check. Development launches disable installation.
+
+Configure the existing NAS web service once (SSH access via `nasHost` is required):
+
+```sh
+npm run setup:nas-updates
+```
+
+This backs up the deployed Compose/Nginx files, adds the read-only Docker update volume
+and recreates only the web container. Manifests have `no-store` caching; versioned
+installers are immutable and support HTTP ranges. The directory has no listing or
+write endpoint. This setup preserves the deployed image tag and backend settings.
+The `plasmic-desktop-updates` Docker volume stores releases on the NAS; a temporary
+release container writes it, avoiding shared-folder ACL restrictions on Nginx.
+
+For each release, set a higher stable version in `package.json` (and regenerate
+`package-lock.json` with `npm install --package-lock-only --package-lock=true`). Pin the matching web
+image in `desktop.config.json`, then prepare complete renderer assets. Desktop
+version numbers are independent of NAS backend image tags.
+
+```sh
+npm run assets
+# Or, for frontend changes from this checkout:
+# npm run assets -- --from ../platform/wab/build
+npm test
+npm run test:updates-native
+npm run release -- darwin arm64 --notes /absolute/path/to/release-notes.txt
+# Build Windows on Windows and Linux on Linux:
+# npm run release -- win32 x64
+# npm run release -- linux x64
+# Upload an already built release:
+# npm run publish:nas -- darwin arm64
+```
+
+Publishing verifies sizes and SHA-512 locally and on the NAS, uploads artifacts
+first, and atomically promotes the manifest last under a publication lock.
+Downgrades, prereleases and overwriting a published version are rejected. Keep old
+versioned files available for clients that have already started a download.
+Failed uploads leave the existing manifest intact. Credentials remain in the
+local SSH configuration; they are not included in the app.
+
+Clicking **重启并安装** saves an open design before quitting; a failed save blocks
+installation. Downloaded updates do not install on an ordinary quit. macOS verifies
+SHA-512, bundle identity, version, CPU architecture and code signature, stages the
+new bundle alongside the installed app, then uses a detached helper to replace it.
+The old bundle is retained until the new app loads successfully. If startup fails,
+the helper restores and reopens the old bundle. Install from the DMG into a writable
+Applications directory before updating; running from the mounted DMG cannot update.
+Windows and Linux use `electron-updater` with NSIS/AppImage installation.
+
+The first update-capable release must be installed manually on clients that
+predate this updater. Subsequent versions use the in-app flow. Login cookies,
+projects and MCP settings stay in the existing user-data directory. macOS install
+diagnostics are under `Plasmic Desktop/updates/install.log`. For isolated acceptance
+runs, `PLASMIC_DESKTOP_PROFILE` selects a separate application-data directory.
 
 The application is named **Plasmic**. Its local data remains in
 `Plasmic Desktop` under the OS application-data directory, including login
@@ -116,20 +181,29 @@ an offline static asset. It never writes credentials or session cookies to its
 report. The desktop application runs on the current computer; only its API
 backend runs on the NAS. Test profiles are isolated from the normal app profile.
 
+After publishing a newer version, verify a real NAS download, bundle replacement,
+restart and backup cleanup with an older update-capable application bundle:
+
+```sh
+npm run test:updates-e2e -- /absolute/path/to/older/Plasmic.app 0.0.6
+```
+
+This copies the old app into `desktop-report/updates/installed`, uses a separate
+profile, and writes `report.json` and screenshots. It does not replace the ordinary
+installed application or use its login profile. This acceptance runner is for macOS
+and uses the repository's Playwright installation.
+
 ## MCP
 
-Choose **AI → MCP** to open Studio's Ant Design Modal. The desktop menu and
-Studio sidebar use the same component; no separate settings window is created.
-On the desktop, enable a client
+Choose **AI → MCP** in the desktop menu to open the local Electron modal window.
+Its header stays fixed while the settings body scrolls. Enable a client
 to register Plasmic automatically; disable it to remove its Plasmic entry.
 Selections are saved and reapplied at startup. Restart or refresh the client
 after changing its configuration. Other servers are preserved, and conflicting
 entries are reported without being overwritten. Claude Code, Codex, Gemini,
 Antigravity 2.0, OpenCode, Kiro, and Claude Desktop are supported (Claude Desktop
 on macOS and Windows). The dialog also provides a copyable JSON configuration
-for other MCP clients. The Web Studio sidebar also includes **AI → MCP**, with
-connection instructions; local client configuration is managed by the desktop app.
-Start the desktop and sign in before using editor tools. The packaged
+for other MCP clients. Start the desktop and sign in before using editor tools. The packaged
 application itself runs with `--mcp` as a dedicated stdio process; the normal GUI
 process owns the editor. The configuration uses an absolute executable path, so
 copy it again after moving the application.
