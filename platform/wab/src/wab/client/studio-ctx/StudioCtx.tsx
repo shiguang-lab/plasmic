@@ -33,6 +33,7 @@ import {
   showSaveErrorRecoveredNotice,
 } from "@/wab/client/components/Messages";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import { handleCanvasContentWheel } from "@/wab/client/components/canvas/canvas-scroll";
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
 import {
   InsertRelLoc,
@@ -66,7 +67,8 @@ import {
   AlertSpec,
 } from "@/wab/client/components/widgets/plasmic/AlertBanner";
 import { personalProjectPaywallMessage } from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
-import { frameToScalerRect } from "@/wab/client/coords";
+import { clientToFramePt, frameToScalerRect } from "@/wab/client/coords";
+import { CopilotActivity } from "@/wab/client/copilot/activity";
 import { DbCtx, WithDbCtx } from "@/wab/client/db";
 import {
   AddFakeItem,
@@ -1713,6 +1715,7 @@ export class StudioCtx extends WithDbCtx {
 
   /** Observable list of ViewCtxs */
   viewCtxs = observable.array<ViewCtx>();
+  readonly copilotActivity = new CopilotActivity();
 
   private frame2ViewCtx = computedFn(
     () =>
@@ -1791,6 +1794,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   dispose() {
+    this.copilotActivity.dispose();
     this.disposals.forEach((d) => d());
     this.clearUndoLog();
     this.viewInfoObserverDispose?.();
@@ -4056,6 +4060,25 @@ export class StudioCtx extends WithDbCtx {
 
   handleWheel = (e: WheelEvent, topClientX: number, topClientY: number) => {
     const isZooming = e.ctrlKey || e.metaKey;
+    if (!this.isInteractiveMode && !this.isLiveMode && e.altKey && !isZooming) {
+      // Both iframe events and Studio selection/spacing overlays arrive here.
+      const clientPt = new Pt(topClientX, topClientY);
+      const viewCtx = this.viewCtxs.find((vc) =>
+        Box.fromRect(vc.canvasCtx.viewport().getBoundingClientRect()).contains(
+          clientPt,
+        ),
+      );
+      if (viewCtx) {
+        const framePt = clientToFramePt(clientPt, viewCtx, false);
+        const target = viewCtx.canvasCtx.getActualTargetUnderCanvasOverlay(
+          framePt.x,
+          framePt.y,
+        );
+        if (handleCanvasContentWheel(e, target)) {
+          return;
+        }
+      }
+    }
     if (this.isInteractiveMode && !isZooming) {
       return;
     }

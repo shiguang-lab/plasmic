@@ -74,6 +74,7 @@ export interface TopFrameApi {
   setShowProjectNameModal(val: boolean): Promise<void>;
   setShowCloneProjectModal(val: boolean): Promise<void>;
   setShowHostModal(val: boolean): Promise<void>;
+  openMcpSettings(): Promise<void>;
   setShowLocalizationModal(val: boolean): Promise<void>;
   setShowUiConfigModal(val: boolean): Promise<void>;
   showRegenerateSecretTokenModal(): Promise<void>;

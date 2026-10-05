@@ -762,6 +762,11 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       ? extractReferencedParam(ownerComponent, expr)
       : undefined;
   const isCustomCode = isRealCodeExpr(expr);
+  const isSwitchRow =
+    isBooleanPropType(propType) &&
+    !isCustomCode &&
+    !referencedParam &&
+    layout !== "vertical";
   // True when prop supports callback: is a CustomCode dynamic expression,
   // is not edited as a templated string (which manages dynamic parts inline),
   // and is not a direct query binding (which manages its own loading state).
@@ -1226,6 +1231,8 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                 subtitle={subtitle}
                 definedIndicator={definedIndicator}
                 layout={layout}
+                compactControl={isSwitchRow}
+                alignment={isSwitchRow ? "center" : undefined}
                 menu={
                   allowPointerInteractions && !isMenuEmpty(contextMenu)
                     ? contextMenu
@@ -1235,7 +1242,13 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                 icon={icon}
                 tooltip={props.tooltip}
               >
-                <div className="flex-col fill-width flex-align-start">
+                <div
+                  className={
+                    isSwitchRow
+                      ? "flex-col flex-align-end"
+                      : "flex-col fill-width flex-align-start"
+                  }
+                >
                   <ContextMenuIndicator
                     menu={!isMenuEmpty(contextMenu) ? contextMenu : undefined}
                     showDynamicValueButton={showDynamicValueButton}
@@ -1398,8 +1411,7 @@ interface PageHrefRowsProps extends Pick<
 }
 
 type DeletePageHrefProps =
-  | { type: "Fragment" }
-  | { type: "Path" | "Query"; param: string };
+  { type: "Fragment" } | { type: "Path" | "Query"; param: string };
 
 type UpdatePageHrefProps = DeletePageHrefProps & {
   paramValue: Expr | undefined;

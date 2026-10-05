@@ -11,6 +11,12 @@ const {
 const path = require("node:path");
 const fs = require("node:fs");
 const config = require("../desktop.config.json");
+const appIcon = path.join(
+  __dirname,
+  "..",
+  "assets",
+  process.platform === "win32" ? "icon.ico" : "icon.png",
+);
 const { createAssetHandler } = require("./asset-handler.cjs");
 const { openBrowser } = require("./open-browser.cjs");
 const { GoogleAuthWindow, AUTH_PATH } = require("./google-auth-window.cjs");
@@ -36,8 +42,9 @@ function isInternal(url) {
   }
 }
 function openExternal(url) {
-  if (["https:", "http:"].includes(new URL(url).protocol))
+  if (["https:", "http:"].includes(new URL(url).protocol)) {
     void shell.openExternal(url);
+  }
 }
 function isGoogleLogin(url) {
   const parsed = new URL(url);
@@ -77,13 +84,16 @@ function protectWindow(win) {
       },
     };
   });
-  win.webContents.on("did-create-window", (child, details) => {
+  win.webContents.on("did-create-window", (child) => {
     protectWindow(child);
   });
   win.webContents.on("will-attach-webview", (event) => event.preventDefault());
 }
 
 async function startDesktop() {
+  if (process.platform === "darwin") {
+    app.dock.setIcon(appIcon);
+  }
   const root = path.join(__dirname, "..", "renderer");
   const manifest = JSON.parse(
     fs.readFileSync(path.join(root, "desktop-assets.json"), "utf8"),
@@ -101,11 +111,12 @@ async function startDesktop() {
   if (!desktopSession) {
     desktopSession = session.fromPartition("persist:plasmic-desktop");
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
-    if (proxy)
+    if (proxy) {
       await desktopSession.setProxy({
         proxyRules: proxy,
         proxyBypassRules: process.env.NO_PROXY || "",
       });
+    }
     desktopSession.setPermissionRequestHandler(
       (contents, permission, callback, details) => {
         callback(
@@ -150,7 +161,8 @@ async function startDesktop() {
     height: 1000,
     minWidth: 1100,
     minHeight: 720,
-    title: "Plasmic Desktop",
+    title: "Plasmic",
+    icon: appIcon,
     show: false,
     backgroundColor: "#ffffff",
     webPreferences: {
@@ -166,7 +178,11 @@ async function startDesktop() {
     mainWindow,
     config.studioOrigin,
     openBrowser,
-    new DesktopGoogleLogin({ userData: app.getPath("userData"), session: desktopSession, studioOrigin: config.studioOrigin }),
+    new DesktopGoogleLogin({
+      userData: app.getPath("userData"),
+      session: desktopSession,
+      studioOrigin: config.studioOrigin,
+    }),
   );
   protectWindow(mainWindow);
   if (!controller) {
@@ -176,24 +192,31 @@ async function startDesktop() {
       args: app.isPackaged ? ["--mcp"] : [app.getAppPath(), "--mcp"],
     });
     integrations.restore();
-    openMcpSettings = createMcpSettings(integrations, () => mainWindow);
-    function trustedAuthSender(event) {
+    openMcpSettings = createMcpSettings(
+      integrations,
+      () => mainWindow,
+      config.studioOrigin,
+    );
+    const trustedAuthSender = (event) => {
       return (
         mainWindow &&
         event.sender === mainWindow.webContents &&
         event.senderFrame === event.sender.mainFrame &&
         new URL(event.senderFrame.url).origin === config.studioOrigin
       );
-    }
+    };
     ipcMain.on("desktop:google-start", (event) => {
-      if (trustedAuthSender(event)) void googleAuth.begin();
+      if (trustedAuthSender(event)) {
+        void googleAuth.begin();
+      }
     });
     ipcMain.handle("desktop:google-command", (event, command) => {
       if (
         !trustedAuthSender(event) ||
         new URL(event.senderFrame.url).pathname !== AUTH_PATH
-      )
+      ) {
         throw new Error("Invalid login page");
+      }
       if (
         command === "copy-link" &&
         googleAuth.authorizationUrl &&
@@ -229,8 +252,8 @@ async function startDesktop() {
       { role: "viewMenu" },
       { role: "windowMenu" },
       {
-        label: "MCP",
-        submenu: [{ label: "MCP 设置…", click: () => openMcpSettings() }],
+        label: "AI",
+        submenu: [{ label: "MCP", click: () => openMcpSettings() }],
       },
     ]),
   );
@@ -244,12 +267,20 @@ async function startDesktop() {
 }
 
 function ensureDesktop() {
-  if (!startingDesktop) startingDesktop = startDesktop().finally(() => { startingDesktop = undefined; });
+  if (!startingDesktop) {
+    startingDesktop = startDesktop().finally(() => {
+      startingDesktop = undefined;
+    });
+  }
   return startingDesktop;
 }
 
 function bootstrap() {
-  app.setName("Plasmic Desktop");
+  const userData = path.join(app.getPath("appData"), "Plasmic Desktop");
+  fs.mkdirSync(userData, { recursive: true });
+  app.setPath("userData", userData);
+  app.setPath("sessionData", userData);
+  app.setName("Plasmic");
   if (process.argv.includes("--mcp")) {
     // Dedicated stdio process: no BrowserWindow and no instance lock.
     // The active GUI process owns the editor and local command socket.
@@ -264,25 +295,38 @@ function bootstrap() {
         process.stderr.write(error.message + "\n");
         app.exit(1);
       });
-  } else if (!app.requestSingleInstanceLock()) app.quit();
-  else {
-    async function receiveOAuth(url) {
-      if (!url?.startsWith(SCHEME + "://")) return;
+  } else if (!app.requestSingleInstanceLock()) {
+    app.quit();
+  } else {
+    const receiveOAuth = async (url) => {
+      if (!url?.startsWith(SCHEME + "://")) {
+        return;
+      }
       queuedOAuthUrl = url;
-      if (startingDesktop || !app.isReady()) return;
+      if (startingDesktop || !app.isReady()) {
+        return;
+      }
       if (!mainWindow) {
         await ensureDesktop();
       } else {
         queuedOAuthUrl = undefined;
         await googleAuth.receiveCallback(url);
       }
+    };
+    app.on("open-url", (event, url) => {
+      event.preventDefault();
+      void receiveOAuth(url);
+    });
+    queuedOAuthUrl = process.argv.find((arg) => arg.startsWith(SCHEME + "://"));
+    if (app.isPackaged) {
+      app.setAsDefaultProtocolClient(SCHEME);
+    } else if (process.platform === "win32") {
+      app.setAsDefaultProtocolClient(SCHEME, process.execPath, [
+        app.getAppPath(),
+      ]);
     }
-    app.on("open-url", (event, url) => { event.preventDefault(); void receiveOAuth(url); });
-    queuedOAuthUrl = process.argv.find(arg => arg.startsWith(SCHEME + "://"));
-    if (app.isPackaged) app.setAsDefaultProtocolClient(SCHEME);
-    else if (process.platform === "win32") app.setAsDefaultProtocolClient(SCHEME, process.execPath, [app.getAppPath()]);
     app.on("second-instance", (_event, argv) => {
-      void receiveOAuth(argv.find(arg => arg.startsWith(SCHEME + "://")));
+      void receiveOAuth(argv.find((arg) => arg.startsWith(SCHEME + "://")));
       if (mainWindow) {
         mainWindow.restore();
         mainWindow.focus();
@@ -292,17 +336,20 @@ function bootstrap() {
       .whenReady()
       .then(ensureDesktop)
       .catch((error) => {
-        dialog.showErrorBox("Plasmic Desktop could not start", error.message);
+        dialog.showErrorBox("Plasmic could not start", error.message);
         app.quit();
       });
     app.on("activate", () => {
-      if (!mainWindow)
+      if (!mainWindow) {
         ensureDesktop().catch((error) =>
           dialog.showErrorBox("Startup failed", error.message),
         );
+      }
     });
     app.on("window-all-closed", () => {
-      if (process.platform !== "darwin") app.quit();
+      if (process.platform !== "darwin") {
+        app.quit();
+      }
     });
   }
 }

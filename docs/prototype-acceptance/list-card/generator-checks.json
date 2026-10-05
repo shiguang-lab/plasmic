@@ -1,0 +1,27 @@
+[
+  {
+    "page": "list",
+    "cards": 1,
+    "nativeSections": 0
+  },
+  {
+    "page": "regular",
+    "cards": 3,
+    "nativeSections": 0
+  },
+  {
+    "page": "onetime",
+    "cards": 3,
+    "nativeSections": 0
+  },
+  {
+    "page": "regularDetail",
+    "cards": 9,
+    "nativeSections": 0
+  },
+  {
+    "page": "onetimeDetail",
+    "cards": 9,
+    "nativeSections": 0
+  }
+]

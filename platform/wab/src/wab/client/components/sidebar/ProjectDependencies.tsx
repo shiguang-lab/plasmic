@@ -1,3 +1,5 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+import { ProjectDependencyData } from "@/wab/client/ProjectDependencyManager";
 import { openNewTab } from "@/wab/client/cli-routes";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
@@ -14,15 +16,14 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
-import { showError } from "@/wab/client/ErrorNotifications";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftImportsPanel, {
   PlasmicLeftImportsPanel__VariantsArgs,
 } from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftImportsPanel";
 import AlertIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
-import { ProjectDependencyData } from "@/wab/client/ProjectDependencyManager";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
+import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
@@ -30,8 +31,8 @@ import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { ProjectDependency } from "@/wab/shared/model/classes";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { extractProjectIdFromUrlOrId, getPublicUrl } from "@/wab/shared/urls";
-import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
-import { Menu, notification, Tooltip } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Menu, Tooltip, notification } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -361,7 +362,11 @@ function _ProjectDependenciesPanel() {
       }
       state={state}
       withUpdateAll={dependenciesWithUpdates.length > 1}
-      content={<div className="overflow-scroll-y">{rendered}</div>}
+      content={
+        <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
+          {rendered}
+        </Scrollbar>
+      }
     />
   );
 }

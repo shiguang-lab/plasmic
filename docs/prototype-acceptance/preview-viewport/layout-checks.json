@@ -1,0 +1,122 @@
+[
+  {
+    "case": "desktop-restored",
+    "iframeWidth": 1600,
+    "iframeHeight": 872,
+    "contentHeight": 872,
+    "result": "pass"
+  },
+  {
+    "case": "desktop-resized",
+    "iframeWidth": 1400,
+    "iframeHeight": 772,
+    "contentHeight": 772,
+    "result": "pass"
+  },
+  {
+    "case": "phone",
+    "iframeWidth": 390,
+    "iframeHeight": 844,
+    "contentHeight": 844,
+    "result": "pass",
+    "path": "req-075/groups",
+    "viewport": {
+      "viewport": ["phone"],
+      "width": ["390"],
+      "height": ["844"]
+    }
+  },
+  {
+    "case": "phone-landscape",
+    "iframeWidth": 844,
+    "iframeHeight": 390,
+    "contentHeight": 390,
+    "result": "pass"
+  },
+  {
+    "case": "tablet",
+    "iframeWidth": 768,
+    "iframeHeight": 1024,
+    "contentHeight": 1024,
+    "result": "pass"
+  },
+  {
+    "case": "tablet-landscape",
+    "iframeWidth": 1024,
+    "iframeHeight": 768,
+    "contentHeight": 768,
+    "result": "pass"
+  },
+  {
+    "case": "custom",
+    "iframeWidth": 1280,
+    "iframeHeight": 720,
+    "contentHeight": 720,
+    "result": "pass"
+  },
+  {
+    "case": "custom-width-drag",
+    "iframeWidth": 1440,
+    "iframeHeight": 720,
+    "contentHeight": 720,
+    "result": "pass",
+    "path": "req-075/groups",
+    "viewport": {
+      "viewport": ["custom"],
+      "width": ["1440"],
+      "height": ["720"]
+    }
+  },
+  {
+    "case": "custom-height-drag",
+    "iframeWidth": 1440,
+    "iframeHeight": 800,
+    "contentHeight": 800,
+    "result": "pass",
+    "path": "req-075/groups",
+    "viewport": {
+      "viewport": ["custom"],
+      "width": ["1440"],
+      "height": ["800"]
+    }
+  },
+  {
+    "case": "detail",
+    "iframeWidth": 1440,
+    "iframeHeight": 800,
+    "contentHeight": 800,
+    "result": "pass",
+    "path": "req-075/regular-detail",
+    "viewport": {
+      "viewport": ["custom"],
+      "width": ["1440"],
+      "height": ["800"]
+    }
+  },
+  {
+    "case": "reloaded",
+    "iframeWidth": 1440,
+    "iframeHeight": 800,
+    "contentHeight": 800,
+    "result": "pass",
+    "path": "req-075/regular-detail",
+    "viewport": {
+      "viewport": ["custom"],
+      "width": ["1440"],
+      "height": ["800"]
+    }
+  },
+  {
+    "case": "scaled-drag",
+    "iframeWidth": 1563,
+    "iframeHeight": 1024,
+    "contentHeight": 1024,
+    "result": "pass",
+    "path": "req-075/regular-detail",
+    "viewport": {
+      "viewport": ["custom"],
+      "width": ["1563"],
+      "height": ["1024"]
+    }
+  }
+]

@@ -18,3 +18,89 @@
   opacity: 0.4;
   pointer-events: none;
 }
+
+.sectionsScrollbar > :global([data-overlayscrollbars-viewport]) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 2px;
+}
+
+.iconLibraryContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.iconLibraryFilters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px;
+  border-bottom: 1px solid #e5e5e5;
+
+  > :first-child {
+    flex: 0 0 96px;
+  }
+
+  > :last-child {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.iconLibraryResults {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.iconLibraryEmpty {
+  position: absolute;
+  inset: 0;
+  padding: 24px 8px;
+  color: #888;
+  text-align: center;
+}
+
+.iconCardLayout > div:has(> .iconCardTitle) {
+  display: grid;
+  align-content: center;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 24px auto;
+  row-gap: 10px;
+  padding: 8px 4px;
+}
+
+.iconCardLayout > div:has(> .iconCardTitle) > div:first-child {
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.iconCardLayout img {
+  // The registered thumbnail has a 192×112 canvas and a centered 32×32 icon.
+  // Render the icon at 24px while its transparent canvas overflows the preview.
+  width: 144px;
+  height: 84px;
+  max-width: none;
+  max-height: none;
+  flex-shrink: 0;
+}
+
+.iconCardTitle {
+  min-width: 0;
+  min-height: 28px;
+  justify-content: center;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
+
+  > * {
+    font-size: 10px;
+    line-height: 14px;
+  }
+}

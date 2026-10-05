@@ -6,6 +6,8 @@
     "watch": "node ./makePkgTypes.js && ESBUILD_WATCH=true node ./esbuild.js",
     "gen-types": "node ./makePkgTypes.js",
     "test": "node --test makePkgTypes.test.js",
+    "test:preview-runtime": "node --test antd6-runtime.test.cjs",
+    "test:icons": "node --test antd-icons.test.cjs",
     "size": "size-limit",
     "upgrade-aria": "pnpm up --latest react-aria && pnpm dedupe"
   },
@@ -120,7 +122,9 @@
     "vanilla-cookieconsent": "^3.1.0",
     "zod": "^3.22.4",
     "@shiguang-lab/plasmic-antd6": "file:../../plasmicpkgs/antd6",
-    "@shiguang-lab/plasmic-overseas": "file:../../plasmicpkgs/overseas"
+    "@shiguang-lab/plasmic-overseas": "file:../../plasmicpkgs/overseas",
+    "@shiguang-lab/plasmic-antd-icons": "file:../../plasmicpkgs/antd-icons",
+    "@shiguang-lab/plasmic-react-ui": "file:../../plasmicpkgs/react-ui"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

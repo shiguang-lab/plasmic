@@ -1,0 +1,26 @@
+{
+  "before": {
+    "missingComponents": ["listCard"],
+    "wrongComponents": [],
+    "emptyCards": [],
+    "cardContentOutsideSlot": [],
+    "unprovidedSlotChildren": [],
+    "passed": false
+  },
+  "after": {
+    "missingComponents": [],
+    "wrongComponents": [],
+    "emptyCards": [],
+    "cardContentOutsideSlot": [],
+    "unprovidedSlotChildren": [],
+    "passed": true
+  },
+  "reopened": {
+    "missingComponents": [],
+    "wrongComponents": [],
+    "emptyCards": [],
+    "cardContentOutsideSlot": [],
+    "unprovidedSlotChildren": [],
+    "passed": true
+  }
+}

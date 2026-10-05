@@ -1,5 +1,5 @@
 import { Pagination } from "antd";
-import React, { useEffect } from "react";
+import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
 type AntdPaginationProps = Omit<
@@ -12,13 +12,6 @@ type AntdPaginationProps = Omit<
 
 export function AntdPagination(props: AntdPaginationProps) {
   const { paginatedUrl, pageSizeOptions, ...rest } = props;
-
-  //   to populate startIndex and endIndex states which are set via onChange prop.
-  useEffect(() => {
-    if (props.current && props.pageSize && props.onChange) {
-      props.onChange(props.current, props.pageSize);
-    }
-  }, []);
 
   return (
     <Pagination
@@ -69,10 +62,17 @@ export const paginationHelpers = {
       onChangeArgsToValue: (_: number, pageSize: number) => pageSize,
     },
     startIndex: {
+      initFunc: (props: AntdPaginationProps) =>
+        ((props.current ?? props.defaultCurrent ?? 1) - 1) *
+        (props.pageSize ?? props.defaultPageSize ?? 10),
       onChangeArgsToValue: (currentPage: number, pageSize: number) =>
         (currentPage - 1) * pageSize,
     },
     endIndex: {
+      initFunc: (props: AntdPaginationProps) =>
+        (props.current ?? props.defaultCurrent ?? 1) *
+          (props.pageSize ?? props.defaultPageSize ?? 10) -
+        1,
       onChangeArgsToValue: (currentPage: number, pageSize: number) =>
         pageSize * currentPage - 1,
     },

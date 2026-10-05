@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-05",
+  "release": "0.0.28",
+  "commit": "c2b96911b93d9faa1e7d905c2d4790347ae9ce63",
+  "library": {
+    "projectId": "vuoraLeVbtw7rQTKJ6UKar",
+    "components": 848,
+    "installation": "native Component Store card click"
+  },
+  "save": {
+    "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+    "revision": 135,
+    "saved": true
+  },
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "pages": 5,
+    "components": 5,
+    "codeComponentInstances": 193,
+    "antDesign6Instances": 174
+  },
+  "legacyDefinitions": 0,
+  "icons": [
+    {
+      "componentUuid": "S2fCQS6U6wJM",
+      "elementUuid": "MEamlQFsfK1w",
+      "tag": "<plasmic-component id=\"MEamlQFsfK1w\" data-plasmic-component=\"plasmicAntdIconPlusOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; line-height: 1\">"
+    },
+    {
+      "componentUuid": "S2fCQS6U6wJM",
+      "elementUuid": "0ESFnxvfAK4Z",
+      "tag": "<plasmic-component id=\"0ESFnxvfAK4Z\" data-plasmic-component=\"plasmicAntdIconDownOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; line-height: 1\">"
+    },
+    {
+      "componentUuid": "wdUoHJNcC_mv",
+      "elementUuid": "5cfptC47zQqw",
+      "tag": "<plasmic-component id=\"5cfptC47zQqw\" data-plasmic-component=\"plasmicAntdIconArrowLeftOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; line-height: 1\">"
+    },
+    {
+      "componentUuid": "wdUoHJNcC_mv",
+      "elementUuid": "qwKxyZjJvGT8",
+      "tag": "<plasmic-component id=\"qwKxyZjJvGT8\" data-plasmic-component=\"plasmicAntdIconRightOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; line-height: 1\">"
+    },
+    {
+      "componentUuid": "TCeXywxCJ1x8",
+      "elementUuid": "5uqDCYfXF9gy",
+      "tag": "<plasmic-component id=\"5uqDCYfXF9gy\" data-plasmic-component=\"plasmicAntdIconArrowLeftOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; line-height: 1\">"
+    },
+    {
+      "componentUuid": "TCeXywxCJ1x8",
+      "elementUuid": "3JJVWMpPEwZM",
+      "tag": "<plasmic-component id=\"3JJVWMpPEwZM\" data-plasmic-component=\"plasmicAntdIconRightOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; line-height: 1\">"
+    }
+  ]
+}

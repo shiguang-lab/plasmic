@@ -1,0 +1,10 @@
+src/wab/client/components/TopFrame/TopFrameChrome.tsx(442,7): error TS2322: Type '{ className?: string | undefined; project: ApiProject; chatOpenOpts?: CopilotChatOpenOpts | undefined; canStartNewChat: boolean; onClose: () => void; onPlanReady: () => void; hiddenByModal: boolean; }' is not assignable to type 'IntrinsicAttributes & CopilotChatDialogProps'.
+  Property 'hiddenByModal' does not exist on type 'IntrinsicAttributes & CopilotChatDialogProps'.
+src/wab/client/components/copilot/anonymous-chat.test.ts(3,3): error TS2305: Module '"@/wab/client/components/copilot/anonymous-chat"' has no exported member 'isGenerationComplete'.
+src/wab/client/components/copilot/anonymous-chat.test.ts(8,8): error TS2307: Cannot find module '@/wab/client/components/copilot/enterprise/chat-storage' or its corresponding type declarations.
+src/wab/client/components/copilot/anonymous-chat.test.ts(9,39): error TS2307: Cannot find module '@/wab/client/components/copilot/enterprise/useCopilotChat' or its corresponding type declarations.
+src/wab/server/auth/routes.ts(562,17): error TS2339: Property 'desktopOAuth' does not exist on type 'Session & Partial<SessionData>'.
+src/wab/server/auth/routes.ts(567,24): error TS2339: Property 'desktopOAuth' does not exist on type 'Session & Partial<SessionData>'.
+src/wab/server/auth/routes.ts(651,35): error TS2339: Property 'desktopOAuth' does not exist on type 'Session & Partial<SessionData>'.
+src/wab/server/auth/routes.ts(652,22): error TS2339: Property 'desktopOAuth' does not exist on type 'Session & Partial<SessionData>'.
+src/wab/server/auth/routes.ts(681,38): error TS2339: Property 'desktopOAuth' does not exist on type 'Session & Partial<SessionData>'.

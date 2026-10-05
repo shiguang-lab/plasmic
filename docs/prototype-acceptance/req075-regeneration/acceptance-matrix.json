@@ -1,0 +1,127 @@
+{
+  "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+  "scope": "REQ075 P0; simulated business data; local App; no NAS release",
+  "requirement": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md",
+  "designSource": "Read through Pen MCP: a24Wsd, T42P55, iRaBC, po2Sc, MN0Fg",
+  "skillFiles": {
+    "SKILL.md": "fb96bfaa85c043afb8e16b4bc02c85b872a0cb7bac236234f6d8f7e7615f07e9",
+    "references/admin-design.md": "36147f2f0f3544ad862ccf0f64705fbde51759de81801b35b97782e0d6f0a0e3",
+    "references/reproducibility.md": "03f5776773a9edff11ed22c2d420e159bd27e20ddd08a989fb676db6fc2567fd",
+    "scripts/verify_slots.py": "20091dc61501553b814a3523994e77ee9014ee4e065fb63d3d6d7f12fe685b04",
+    "scripts/compare_models.py": "3b98dd4e60b068a651d113bd83f691fdfb099433484c184077661c949760e2d1"
+  },
+  "generatorHash": "91c6d90beafe89d1ce2769ef4495330f74a273f9536547d7d889eefa862d7fda",
+  "cases": [
+    {
+      "key": "source-P0",
+      "source": "REQ §1/5/6",
+      "expected": "5 routed PC Pages; no AI, verification, observation or versioning",
+      "evidence": "model+visual",
+      "status": "passed",
+      "observed": "两轮模型和5页截图；按当前REQ P0排除Pen中过时的AI/核验/观察/版本。"
+    },
+    {
+      "key": "shell",
+      "source": "current App + §6.1",
+      "expected": "one registered AppShell; correct menu/breadcrumb; 1440×1024",
+      "evidence": "layout+visual",
+      "status": "passed",
+      "observed": "两轮71项测量及重启后截图；单AppShell、1440×1024、正确导航。"
+    },
+    {
+      "key": "query",
+      "source": "current App + §6.2",
+      "expected": "SearchForm; draft/applied separation; collapse retains draft; reset/query page1",
+      "evidence": "real UI",
+      "status": "passed",
+      "observed": "第二轮App：展开/收起保留草稿、完整Key命中1条、重置；全部63条/我负责32条。页码复位和空结果在诊断轮实际操作。"
+    },
+    {
+      "key": "table",
+      "source": "pen kit table-columns + user correction",
+      "expected": "same widths All/Mine; max3; last fixed operations; horizontal scroll; full raw Key",
+      "evidence": "model+layout+real UI",
+      "status": "passed",
+      "observed": "两轮All/Mine列契约相同；宽度/操作组实测；第二轮更多菜单与复制/删除真实操作。"
+    },
+    {
+      "key": "roles",
+      "source": "REQ §5.1",
+      "expected": "admin/operations/read-only action visibility; disable/export admin only",
+      "evidence": "real UI",
+      "status": "passed",
+      "observed": "第二轮SQL只读时编辑/格式化/校验/提交/保存/上线均禁用；第二轮管理员停用和导出。三角色列表菜单在诊断轮实际操作。"
+    },
+    {
+      "key": "row-management",
+      "source": "REQ §5.2/6.2",
+      "expected": "edit name/owner/retention/deadline; confirmation disable/delete; copy initialized",
+      "evidence": "real UI",
+      "status": "passed",
+      "observed": "第一最终轮复制→编辑名称→删除，总数63→64→63；第二轮复制→删除和停用状态更新、导出完成反馈。其余编辑字段通过模型/控件验证。",
+      "currentEvidence": "../feedback-confirm.md: copy Message, Popconfirm cancel/outside/confirm, disable, Mine enable verified in local App."
+    },
+    {
+      "key": "sql",
+      "source": "REQ §6.3/6.5",
+      "expected": "validation/preflight/save/launch gates; read-only cannot execute; success Top100 full SQL columns and sensitive values masked; failure blocks save/launch; 5-second simulated processing",
+      "evidence": "real UI+visual",
+      "status": "passed",
+      "observed": "第二轮实际校验→提交→Top100成功→保存初始化；捕获处理中。失败、上线后圈选中/空历史、只读取消在诊断轮执行，最终两轮交互模型相同。"
+    },
+    {
+      "key": "new-onetime",
+      "source": "REQ §6.5",
+      "expected": "required name; unique editable Key; type locked; searchable owner; route handoff; 14 days/max365",
+      "evidence": "real UI",
+      "status": "passed",
+      "observed": "第二轮清空名称/重复已有Key均禁用继续；唯一Key携带名称/负责人/场景进入SQL页；默认14，输入366失焦归为365。"
+    },
+    {
+      "key": "details",
+      "source": "REQ §6.4 + current Header",
+      "expected": "return icon/real navigation; 2-column info; default overview; 6/5 tabs; read-only SQL",
+      "evidence": "real UI+visual+layout",
+      "status": "passed",
+      "observed": "第二轮返回导航、基本信息只读及成员脱敏/617页；两轮默认概览与6/5 Tabs；SQL查看弹窗在诊断轮操作。"
+    },
+    {
+      "key": "detail-boundaries",
+      "source": "REQ §5.2/6.4",
+      "expected": "long name wraps; pending/initialization gray/processing and members0/no old records; full members pagination12340",
+      "evidence": "real UI+visual",
+      "status": "passed",
+      "observed": "第一最终轮80字长名称换行截图；第二轮完整成员分页617页。初始化/圈选中成员0与空历史在诊断轮操作，最终状态逻辑模型相同。"
+    },
+    {
+      "key": "persistence",
+      "source": "skill acceptance",
+      "expected": "exact models equal after App restart; screenshots rechecked",
+      "evidence": "read+visual",
+      "status": "passed",
+      "observed": "两轮真实退出/启动App后，5页public read模型完全相等；保存revision98/107；均重拍5页。"
+    },
+    {
+      "key": "repeat",
+      "source": "user stability requirement",
+      "expected": "two final clean builds satisfy same gate; normalized contracts and geometry match",
+      "evidence": "compare+real UI+visual",
+      "status": "passed",
+      "observed": "两轮同生成器/skill/需求/运行时代码哈希；各71/71；5/5归一化模型一致；除实时钟的全部布局一致，除两个processing Badge的静态业务像素一致。"
+    }
+  ],
+  "requirementHash": "d6d89d92dfab25cc5d43010d1ae3f8b35cf2206796c90a10762d6370f9c58200",
+  "runtimeCodeHash": "5ae30cd534497cb7f5ef4f602a2a63b5ff6b8cc4e23745286320015c2f08c9aa",
+  "projectName": "REQ075 客群管理 · Skill 重生成",
+  "finalCleanRuns": 2,
+  "limitations": [
+    "业务SQL/名单/状态为本地交互模拟，未接业务API。",
+    "未发布NAS；私有npm接通后仍需正式依赖安装及NAS独立验证。",
+    "完整desktop测试50通过/1失败：Paper缺少当前Node环境的原生Canvas支持。",
+    "两轮证明当前固定输入可重复；未声称任意需求或所有未来运行确定性。"
+  ],
+  "followUp": {
+    "report": "../feedback-confirm.md",
+    "scope": "Feedback/confirmation rules updated; earlier two generation rounds are historical evidence, not current-rule stability verification."
+  }
+}

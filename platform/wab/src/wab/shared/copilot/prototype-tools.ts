@@ -1,5 +1,5 @@
-import type { JsonValue } from "@/wab/shared/core/lang";
 import { tokenTypes } from "@/wab/commons/StyleToken";
+import type { JsonValue } from "@/wab/shared/core/lang";
 import {
   interactionActionSchema,
   NORMAL_STATE_VARIABLE_TYPES,
@@ -65,16 +65,27 @@ const EDIT_TOOL_META = {
   installLibrary: {
     toolName: "installLibrary",
     title: "Install a published component library",
-    description: "Install a library through Studio dependency operations and load its component registrations. Requires full edit permission. Save separately and read the installed contracts before inserting components.",
+    description:
+      "Install a library through Studio dependency operations and load its component registrations. Requires full edit permission. Save separately and read the installed contracts before inserting components.",
     inputSchema: z.object({ projectId: uuid }).strict(),
-    outputSchema: z.object({ projectId: uuid, version: uuid, installed: z.boolean() }),
+    outputSchema: z.object({
+      projectId: uuid,
+      version: uuid,
+      installed: z.boolean(),
+    }),
   },
   upgradeLibrary: {
     toolName: "upgradeLibrary",
     title: "Upgrade an installed component library",
-    description: "Upgrade an already installed library to its latest published package through Studio dependency operations. Keeps local pages and rewrites their references. Requires an editable project; save separately and read the new component contracts before use.",
+    description:
+      "Upgrade an already installed library to its latest published package through Studio dependency operations. Keeps local pages and rewrites their references. Requires an editable project; save separately and read the new component contracts before use.",
     inputSchema: z.object({ projectId: uuid }).strict(),
-    outputSchema: z.object({ projectId: uuid, previousVersion: uuid, version: uuid, upgraded: z.boolean() }),
+    outputSchema: z.object({
+      projectId: uuid,
+      previousVersion: uuid,
+      version: uuid,
+      upgraded: z.boolean(),
+    }),
   },
   queryElements: {
     toolName: "queryElements",
@@ -105,29 +116,53 @@ const EDIT_TOOL_META = {
     outputSchema: resources,
   },
   deleteCanvas: {
-    toolName: "deleteCanvas", title: "Delete a freeform canvas",
-    description: "Remove a mixed arena and its preview frames; referenced pages and named components remain. Undo is supported.",
-    inputSchema: z.object({ canvasName: uuid }).strict(), outputSchema: resources,
+    toolName: "deleteCanvas",
+    title: "Delete a freeform canvas",
+    description:
+      "Remove a mixed arena and its preview frames; referenced pages and named components remain. Undo is supported.",
+    inputSchema: z.object({ canvasName: uuid }).strict(),
+    outputSchema: resources,
   },
   updateCanvas: {
-    toolName: "updateCanvas", title: "Rename a freeform canvas",
-    description: "Rename an existing mixed arena without recreating its frames.",
-    inputSchema: z.object({ canvasName: uuid, name: uuid }).strict(), outputSchema: resources,
+    toolName: "updateCanvas",
+    title: "Rename a freeform canvas",
+    description:
+      "Rename an existing mixed arena without recreating its frames.",
+    inputSchema: z.object({ canvasName: uuid, name: uuid }).strict(),
+    outputSchema: resources,
   },
   updateArtboard: {
-    toolName: "updateArtboard", title: "Resize and arrange a preview artboard",
-    description: "Update viewport dimensions and position of an existing mixed-canvas frame, preserving its component reference.",
-    inputSchema: z.object({ canvasName: uuid, frameUuid: uuid, width: z.number().int().min(320).max(4096), height: z.number().int().min(1).max(16384), x: z.number().min(0).max(100000), y: z.number().min(0).max(100000) }).strict(), outputSchema: resources,
+    toolName: "updateArtboard",
+    title: "Resize and arrange a preview artboard",
+    description:
+      "Update viewport dimensions and position of an existing mixed-canvas frame, preserving its component reference.",
+    inputSchema: z
+      .object({
+        canvasName: uuid,
+        frameUuid: uuid,
+        width: z.number().int().min(320).max(4096),
+        height: z.number().int().min(1).max(16384),
+        x: z.number().min(0).max(100000),
+        y: z.number().min(0).max(100000),
+      })
+      .strict(),
+    outputSchema: resources,
   },
   setPageViewport: {
-    toolName: "setPageViewport", title: "Use one device preset for all page previews",
-    description: "Set the project's shared Page arena columns to a single Studio device preset (Desktop by default), removing other device columns. Keeps page definitions and variant rows. Custom variant frames use the same size. Does not change page CSS; update fixed root constraints separately.",
-    inputSchema: z.object({ preset: uuid.default("Desktop") }).strict(), outputSchema: resources,
+    toolName: "setPageViewport",
+    title: "Use one device preset for all page previews",
+    description:
+      "Set the project's shared Page arena columns to a single Studio device preset (Desktop by default), removing other device columns. Keeps page definitions and variant rows. Custom variant frames use the same size. Does not change page CSS; update fixed root constraints separately.",
+    inputSchema: z.object({ preset: uuid.default("Desktop") }).strict(),
+    outputSchema: resources,
   },
   deleteBreakpoint: {
-    toolName: "deleteBreakpoint", title: "Remove a screen breakpoint",
-    description: "Remove an active screen variant through native variant operations, including its style overrides and frame references. Read affected content first; undo is supported.",
-    inputSchema: z.object({ variantUuid: uuid }).strict(), outputSchema: resources,
+    toolName: "deleteBreakpoint",
+    title: "Remove a screen breakpoint",
+    description:
+      "Remove an active screen variant through native variant operations, including its style overrides and frame references. Read affected content first; undo is supported.",
+    inputSchema: z.object({ variantUuid: uuid }).strict(),
+    outputSchema: resources,
   },
   createArtboard: {
     toolName: "createArtboard",
@@ -451,6 +486,31 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({ componentUuid: uuid }).strict(),
     outputSchema: resources,
   },
+  scrollElementIntoView: {
+    toolName: "scrollElementIntoView",
+    title: "Scroll a rendered element into view",
+    description:
+      "Reveal an element in the current canvas by minimally scrolling its nested content containers. Navigate to its page first and wait for rendering. Preserves selection, editor mode, Studio pan/zoom and design properties. Specify frameUuid for an artboard; instanceIndex selects a repeated rendered instance (zero-based). Hidden/unrendered targets fail; visible=false means clipping still prevents visibility. Bounds are in artboard CSS pixels. Use a workspace screenshot to inspect the resulting editor position.",
+    inputSchema: z
+      .object({
+        ...element,
+        frameUuid: uuid.optional(),
+        instanceIndex: z.number().int().min(0).default(0),
+      })
+      .strict(),
+    outputSchema: z.object({
+      ...element,
+      frameUuid: uuid,
+      instanceIndex: z.number().int().min(0),
+      visible: z.boolean(),
+      bounds: z.object({
+        x: z.number(),
+        y: z.number(),
+        width: z.number(),
+        height: z.number(),
+      }),
+    }),
+  },
   validate: {
     toolName: "validate",
     title: "Validate prototype structure",
@@ -492,11 +552,36 @@ const EDIT_TOOL_META = {
 };
 
 export const prototypeMutationSchema = z.discriminatedUnion("name", [
-  z.object({ name: z.literal("deleteCanvas"), input: EDIT_TOOL_META.deleteCanvas.inputSchema }).strict(),
-  z.object({ name: z.literal("updateCanvas"), input: EDIT_TOOL_META.updateCanvas.inputSchema }).strict(),
-  z.object({ name: z.literal("updateArtboard"), input: EDIT_TOOL_META.updateArtboard.inputSchema }).strict(),
-  z.object({ name: z.literal("setPageViewport"), input: EDIT_TOOL_META.setPageViewport.inputSchema }).strict(),
-  z.object({ name: z.literal("deleteBreakpoint"), input: EDIT_TOOL_META.deleteBreakpoint.inputSchema }).strict(),
+  z
+    .object({
+      name: z.literal("deleteCanvas"),
+      input: EDIT_TOOL_META.deleteCanvas.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      name: z.literal("updateCanvas"),
+      input: EDIT_TOOL_META.updateCanvas.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      name: z.literal("updateArtboard"),
+      input: EDIT_TOOL_META.updateArtboard.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      name: z.literal("setPageViewport"),
+      input: EDIT_TOOL_META.setPageViewport.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      name: z.literal("deleteBreakpoint"),
+      input: EDIT_TOOL_META.deleteBreakpoint.inputSchema,
+    })
+    .strict(),
   z
     .object({
       name: z.literal("createCanvas"),

@@ -1,0 +1,53 @@
+{
+  "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+  "save": {
+    "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+    "revision": 118,
+    "saved": true
+  },
+  "reopenVerified": {
+    "inlineError": true,
+    "whitespaceGuard": true,
+    "actionGroupSize": ["medium", "medium"]
+  },
+  "frames": {
+    "remaining-invalid-layout": [
+      {
+        "contentHeight": 872,
+        "elements": [
+          {
+            "classes": "plasmic_default__all Req075客群列表__editNameError__rTtj0",
+            "x": 504,
+            "y": 223,
+            "width": 288,
+            "height": 20,
+            "text": "请输入客群名称"
+          },
+          {
+            "classes": "plasmic_default__all plasmic_default__span plasmic_default__span__2Ddvq __wab_text Req075客群列表__span___6CKOo",
+            "x": 504,
+            "y": 223,
+            "width": 288,
+            "height": 20,
+            "text": "请输入客群名称"
+          }
+        ]
+      }
+    ],
+    "remaining-select-layout": [
+      {
+        "contentHeight": 872,
+        "elements": [
+          {
+            "classes": "ant-select-dropdown root_reset_2DdvqnozKTQgbqsQAu4c4X plasmic_default_styles plasmic_mixins plasmic_tokens_2DdvqnozKTQgbqsQAu4c4X plasmic_tokens_eYLujTHmWfX9qEoQaFDSi4 Req075客群列表__editOwner__paIas__popup css-var-r0 ant-select-css-var css-oc1rc0 ant-select-dropdown-placement-bottomLeft",
+            "x": 808,
+            "y": 219,
+            "width": 288,
+            "height": 72,
+            "text": "经营 OS 管理员运营负责人经营 OS 管理员运营负责人"
+          }
+        ]
+      }
+    ]
+  }
+}

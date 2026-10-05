@@ -3,6 +3,7 @@ import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
 import { AnonymousAvatar, Avatar } from "@/wab/client/components/studio/Avatar";
 import { FigmaModalContent } from "@/wab/client/components/studio/FigmaModalContent";
 import LeftTabButton from "@/wab/client/components/studio/LeftTabButton";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { DataTokenIcon } from "@/wab/client/icons";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
@@ -25,6 +26,7 @@ import MessagesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Plasmic
 import Paintbrush2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Paintbrush2Svg";
 import PhotosvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PhotoSvg";
 import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
+import SparklesSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SparklesSvg";
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
 import WarningTrianglesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import {
@@ -77,6 +79,7 @@ export interface NavMenuGroup {
 
 const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const studioCtx = useStudioCtx();
+  const topFrameApi = useTopFrameApi();
   const isLoggedIn = studioCtx.appCtx.selfInfo != null;
   const contentEditorMode = studioCtx.contentEditorMode;
   const hasGlobalContexts = studioCtx.site.globalContexts.length > 0;
@@ -123,6 +126,19 @@ Help
   Keyboard shortcuts
    */
   const mainGroups: Record<string, NavMenuGroup> = {
+    ai: {
+      type: "group",
+      icon: <SparklesSvgIcon />,
+      title: "AI",
+      items: {
+        mcp: {
+          type: "item",
+          icon: <SparklesSvgIcon />,
+          label: "MCP",
+          onClick: () => spawn(topFrameApi.openMcpSettings()),
+        },
+      },
+    },
     assets: {
       type: "group",
       icon: <ComponentssvgIcon />,

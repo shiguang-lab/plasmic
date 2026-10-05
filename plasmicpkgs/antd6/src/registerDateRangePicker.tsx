@@ -1,4 +1,5 @@
 import { DatePicker } from "antd";
+import cls from "classnames";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import kebabCase from "lodash/kebabCase";
@@ -46,7 +47,7 @@ export function AntdDateRangePicker(
     | "allowEmpty"
   > & {
     onChange: (value: [string | undefined, string | undefined]) => void;
-    value?: [Dayjs, Dayjs];
+    value?: [Dayjs | string | null, Dayjs | string | null] | null;
     // Not sure why this is missing from DatePicker props!
     showTime?: boolean;
     popupScopeClassName: string;
@@ -72,6 +73,8 @@ export function AntdDateRangePicker(
   const {
     defaultStartDate,
     defaultEndDate,
+    value,
+    defaultValue,
     startDate,
     endDate,
     allowEmpty,
@@ -87,76 +90,9 @@ export function AntdDateRangePicker(
     onChange,
     popupScopeClassName,
     className,
+    classNames,
     ...rest
   } = props;
-
-  const css = `
-    @media(max-width: 500px) {
-      .ant-picker-dropdown {
-        top: 20px !important;
-        left: 10px !important;
-        right: 10px !important;
-        max-height: 95vh;
-        position: fixed;
-        overflow-y: scroll;
-      }
-
-      .ant-picker-panel-layout {
-        flex-direction: column;
-      }
-
-      .ant-picker-presets {
-        min-height: 50px;
-        min-width: 100% !important;
-      }
-
-      .ant-picker-presets > ul {
-        overflow-y: hidden;
-        overflow-x: auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        flex-direction: column;
-      }
-
-      .ant-picker-presets > ul > li {
-        margin: 0 !important;
-      }
-
-      .ant-picker-panel-container {
-        width: 300px;
-      }
-
-      .ant-picker-datetime-panel {
-        flex-direction: column;
-      }
-
-      .${className} .ant-picker-input > input {
-        font-size: 16px !important;
-      }
-
-      .ant-picker-header-view {
-        line-height: unset !important;
-      }
-
-      .ant-picker-content {
-        height: unset !important;
-      }
-
-      .ant-picker-time-panel-column {
-        height: 100px;
-      }
-
-      .ant-picker-time-panel-column::after {
-        height: 0px !important;
-      }
-
-      .ant-picker-range-arrow {
-        display: none;
-      }
-    }
-  `;
 
   const presetsDayjs = useMemo(
     () =>
@@ -172,26 +108,54 @@ export function AntdDateRangePicker(
         picker={picker as any}
         presets={presetsDayjs}
         allowEmpty={
-          allowEmpty
+          allowEmpty !== undefined
             ? [allowEmpty, allowEmpty]
             : [allowEmptyStartDate, allowEmptyEndDate]
         }
-        value={getDayjsRange([startDate, endDate])}
-        defaultValue={getDayjsRange([defaultStartDate, defaultEndDate])}
+        value={
+          value !== undefined
+            ? value === null
+              ? null
+              : getDayjsRange(value)
+            : startDate !== undefined || endDate !== undefined
+              ? getDayjsRange([startDate, endDate])
+              : undefined
+        }
+        defaultValue={
+          defaultValue !== undefined
+            ? defaultValue
+            : defaultStartDate !== undefined || defaultEndDate !== undefined
+              ? getDayjsRange([defaultStartDate, defaultEndDate])
+              : undefined
+        }
         renderExtraFooter={
           renderExtraFooter ? () => renderExtraFooter : undefined
         }
         className={className}
-        inputReadOnly
-        disabled={disabled ? disabled : [disableStartDate, disableEndDate]}
+        disabled={
+          disabled ??
+          (disableStartDate !== undefined || disableEndDate !== undefined
+            ? [!!disableStartDate, !!disableEndDate]
+            : undefined)
+        }
         placeholder={placeholder?.split(/,\s*/).slice(0, 2) as [string, string]}
-        classNames={{ popup: { root: popupScopeClassName } }}
+        classNames={(info) => {
+          const names =
+            typeof classNames === "function" ? classNames(info) : classNames;
+          const popup =
+            typeof names?.popup === "string"
+              ? { root: names.popup }
+              : names?.popup;
+          return {
+            ...names,
+            popup: { ...popup, root: cls(popup?.root, popupScopeClassName) },
+          };
+        }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(values, _dateStrings) => {
           onChange?.((getStrRange(values) as [string, string]) || [null, null]);
         }}
       />
-      <style dangerouslySetInnerHTML={{ __html: css }} />
     </>
   );
 }
@@ -216,6 +180,7 @@ export function registerDateRangePicker(loader?: Registerable) {
     name: dateRangePickerComponentName,
     displayName: "Date Range Picker",
     props: {
+      inputReadOnly: { type: "boolean", defaultValueHint: false },
       startDate: {
         type: "dateString",
         editOnly: true,

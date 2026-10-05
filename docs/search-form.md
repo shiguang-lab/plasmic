@@ -16,6 +16,8 @@ Item 另提供 Custom label (`labelContent`) 和 `help` Slot，SearchForm 提供
 
 默认 `colSpan=8`、`minRows=1`；需要四列查询布局时设置 `colSpan=6`。Item 可单独覆盖 span。动作使用末行剩余栅格；末行占满时换行。超出 minRows 时提供折叠；折叠至少保留第一个字段。小屏保持原组件 xs=24、sm=12、md=指定 span 的响应式栅格。
 
+`labelWidth` 是可选的共享标签栏宽度，单位为 px，没有固定默认值。未配置时标签随内容宽度；配置后所有 Item 使用该宽度。生成页面时检查全部标签、冒号和必填标记，按最长标签选择并显式配置足够的单行宽度，使上下行控件对齐。选中 SearchForm 后在属性面板的 Label width 中修改；导入库的属性契约也必须包含 `labelWidth`。
+
 卡片使用主题背景和边框，内边距 16px/20px、圆角 8px，默认下间距 16px；父级已有 gap 时设置 marginBottom=0。`embedded` 移除卡片和外间距。className 接收画布样式。
 
 编辑画布展示全部字段，便于选取和修改；交互预览/运行态遵循 collapsed。折叠仅隐藏列，字段不卸载，初始值、校验和提交均包含折叠字段。若折叠区字段校验失败，表单请求展开，以显示可修改的错误字段。
@@ -29,11 +31,20 @@ Item 另提供 Custom label (`labelContent`) 和 `help` Slot，SearchForm 提供
 列表查询区统一使用 Overseas SearchForm，按需求插入真实 Item 和 Antd6 控件，默认四列 colSpan=6。不得生成另一套原生查询网格、重复查询按钮，或不可编辑的 fields/element JSON。生成前读取已发布 Overseas 和 Antd6 契约，必要时安装/升级库并保存。额外操作使用 extraActions，字段增删排序使用节点操作，查询/重置事件接页面状态。
 
 ```html
-<plasmic-component data-plasmic-component="plasmic-overseas-search-form" data-props='{"colSpan":6,"marginBottom":0}'>
+<plasmic-component
+  data-plasmic-component="plasmic-overseas-search-form"
+  data-props='{"colSpan":6,"labelWidth":72,"marginBottom":0}'
+>
   <slot name="children">
-    <plasmic-component data-plasmic-component="plasmic-overseas-search-form-item" data-props='{"name":"keyword","label":"关键词"}'>
+    <plasmic-component
+      data-plasmic-component="plasmic-overseas-search-form-item"
+      data-props='{"name":"keyword","label":"关键词"}'
+    >
       <slot name="children">
-        <plasmic-component data-plasmic-component="plasmic-antd6-input" data-props='{"placeholder":"请输入关键词","allowClear":true}'></plasmic-component>
+        <plasmic-component
+          data-plasmic-component="plasmic-antd6-input"
+          data-props='{"placeholder":"请输入关键词","allowClear":true}'
+        ></plasmic-component>
       </slot>
     </plasmic-component>
   </slot>

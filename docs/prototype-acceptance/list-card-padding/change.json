@@ -1,0 +1,5 @@
+{
+  "operation": "changeElement",
+  "props": { "styles": { "body": { "padding": "0 20px", "minWidth": 0 } } },
+  "success": true
+}

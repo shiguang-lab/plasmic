@@ -12,6 +12,10 @@ module.exports = {
   devtool: "source-map",
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".json"],
+    // Canvas packages and the host share the same Ant Design module graph.
+    alias: {
+      antd$: require.resolve("antd/es/index.js"),
+    },
   },
   module: {
     rules: [

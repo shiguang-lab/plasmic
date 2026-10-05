@@ -1556,9 +1556,13 @@ a.btn-link
 .select-dropdown__container
   position: relative
   display: flex
+  align-items: center
+  gap: 8px
 .select-dropdown__selected
   display: block
   flex: 1
+  min-width: 0
+  text-align: left
   white-space: nowrap
   text-overflow: ellipsis
   overflow: hidden
@@ -3967,6 +3971,10 @@ $color-stops-width: 100%
   margin-left: auto
   border-left: 1px solid $sand6
 
+.canvas-editor__right-pane .tab-content
+  overflow: hidden
+  min-height: 0
+
 .canvas-editor__disable-right-pane
   position: absolute
   top: 0
@@ -3992,7 +4000,8 @@ $color-stops-width: 100%
   background-color: transparent
 
 .canvas-editor__right-pane__top
-  overflow-y: auto
+  overflow: hidden
+  min-height: 0
   display: flex
   flex-direction: column
 
@@ -4003,14 +4012,15 @@ $color-stops-width: 100%
 
 .canvas-editor__right-pane__bottom
   padding-top: 10px
-  overflow-y: auto
+  overflow: hidden
+  min-height: 0
   flex: 1
   display: flex
   flex-direction: column
   position: relative
 
 .canvas-editor__right-pane__bottom__scroll
-  overflow-y: auto
+  min-height: 0
   flex: 1
   display: flex
   flex-direction: column
@@ -5987,3 +5997,7 @@ a, button.link-like
 .no-padding-ant-modal
   .ant-modal-body
     padding: 0
+
+.studio-scrollbar > [data-overlayscrollbars-viewport]
+  display: flex
+  flex-direction: column

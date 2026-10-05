@@ -2,6 +2,10 @@
 
 2026-10-04。[Studio 项目](https://plasmic.studio.publib.cn/projects/b1VPmGnbGvyKc4rnA2xLVv)。业务需求、页面路径及演示数据范围见 [REQ075 PC 原型验收](req075-pc.md)。
 
+客群列表当前的逐列配置、实际尺寸及保存重开检查见 [列宽与内容验收](table-columns.md)，本地 App revision **168**。该列宽更新尚未发布 NAS。
+
+两类详情的返回入口、标题层级、元信息、长名称和初始化状态见 [详情 Header 验收](detail-header.md)，本地 App revision **170**，含完整截图及分区分析、实际返回交互和重开校验；未发布 NAS。
+
 ## 正式结构
 
 - 5 个业务 Pages：客群列表、常规 SQL 建群、一次性 SQL 建群、常规详情、一次性详情；页面 UUID 和路由保持。

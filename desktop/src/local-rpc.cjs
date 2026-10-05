@@ -11,29 +11,38 @@ function socketPath(profile) {
 async function startRpc(profile, dispatch) {
   await fs.mkdir(profile, { recursive: true, mode: 0o700 });
   const socket = socketPath(profile);
-  if (process.platform !== "win32")
+  if (process.platform !== "win32") {
     await fs.unlink(socket).catch((error) => {
-      if (error.code !== "ENOENT") throw error;
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
     });
+  }
   const token = randomBytes(32).toString("hex");
   const server = net.createServer((connection) => {
+    connection.setEncoding("utf8");
     let buffer = "",
       accepted = false;
     connection.setTimeout(150000, () => connection.destroy());
     connection.on("error", () => {});
     connection.on("data", async (chunk) => {
-      if (accepted) return;
+      if (accepted) {
+        return;
+      }
       buffer += chunk;
       if (Buffer.byteLength(buffer) > 1024 * 1024) {
         connection.destroy();
         return;
       }
-      if (!buffer.includes("\n")) return;
+      if (!buffer.includes("\n")) {
+        return;
+      }
       accepted = true;
       try {
         const request = JSON.parse(buffer.slice(0, buffer.indexOf("\n")));
-        if (request.token !== token)
+        if (request.token !== token) {
           throw new Error("Unauthorized local client");
+        }
         const result = await dispatch(request.method, request.input || {});
         connection.end(JSON.stringify({ result }) + "\n");
       } catch (error) {
@@ -45,7 +54,9 @@ async function startRpc(profile, dispatch) {
     server.once("error", reject);
     server.listen(socket, resolve);
   });
-  if (process.platform !== "win32") await fs.chmod(socket, 0o600);
+  if (process.platform !== "win32") {
+    await fs.chmod(socket, 0o600);
+  }
   await fs.writeFile(
     path.join(profile, "mcp-connection.json"),
     JSON.stringify({ socket, token }),
@@ -54,7 +65,9 @@ async function startRpc(profile, dispatch) {
   return async () => {
     await new Promise((resolve) => server.close(resolve));
     await fs.unlink(path.join(profile, "mcp-connection.json")).catch(() => {});
-    if (process.platform !== "win32") await fs.unlink(socket).catch(() => {});
+    if (process.platform !== "win32") {
+      await fs.unlink(socket).catch(() => {});
+    }
   };
 }
 async function requestRpc(profile, method, input = {}) {
@@ -64,10 +77,11 @@ async function requestRpc(profile, method, input = {}) {
       await fs.readFile(path.join(profile, "mcp-connection.json"), "utf8"),
     );
   } catch {
-    throw new Error("Start Plasmic Desktop before connecting MCP");
+    throw new Error("Start Plasmic before connecting MCP");
   }
   return new Promise((resolve, reject) => {
     const connection = net.createConnection(address.socket);
+    connection.setEncoding("utf8");
     let buffer = "";
     connection.setTimeout(150000, () =>
       connection.destroy(new Error("Desktop command timed out")),
@@ -80,14 +94,18 @@ async function requestRpc(profile, method, input = {}) {
     );
     connection.on("data", (chunk) => {
       buffer += chunk;
-      if (Buffer.byteLength(buffer) > 32 * 1024 * 1024)
+      if (Buffer.byteLength(buffer) > 32 * 1024 * 1024) {
         connection.destroy(new Error("Desktop response too large"));
+      }
     });
     connection.on("end", () => {
       try {
         const response = JSON.parse(buffer);
-        if (response.error) reject(new Error(response.error));
-        else resolve(response.result);
+        if (response.error) {
+          reject(new Error(response.error));
+        } else {
+          resolve(response.result);
+        }
       } catch (error) {
         reject(error);
       }

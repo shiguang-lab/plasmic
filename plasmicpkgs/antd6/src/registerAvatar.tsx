@@ -1,7 +1,7 @@
-import React from "react";
-import { Avatar } from "antd";
-import { Registerable, registerComponentHelper } from "./utils";
 import { usePlasmicLink } from "@plasmicapp/host";
+import { Avatar } from "antd";
+import React from "react";
+import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdAvatar({
   letters,
@@ -13,7 +13,12 @@ export function AntdAvatar({
   href?: string;
   target?: boolean;
 }) {
-  const avatar = <Avatar {...props} children={props.children || letters} />;
+  const avatar = (
+    <Avatar
+      {...props}
+      children={props.children === undefined ? letters : props.children}
+    />
+  );
   const PlasmicLink = usePlasmicLink();
   return href ? (
     <PlasmicLink href={href} target={target ? "_blank" : undefined}>
@@ -35,6 +40,7 @@ export function registerAvatar(loader?: Registerable) {
     name: "plasmic-antd6-avatar",
     displayName: "Avatar",
     props: {
+      icon: { type: "slot", hidePlaceholder: true },
       href: {
         type: "href",
         displayName: "Link to",
@@ -62,7 +68,7 @@ export function registerAvatar(loader?: Registerable) {
       },
       shape: {
         type: "choice",
-        options: ["circle", "round"],
+        options: ["circle", "square"],
         description: "Set the avatar shape",
         defaultValueHint: "circle",
       },
@@ -94,7 +100,7 @@ export function registerAvatarGroup(loader?: Registerable) {
           },
         })),
       },
-      max: { type: "object", defaultValue: { count: 2 } },
+      max: { type: "object" },
       size: {
         type: "choice",
         options: ["small", "medium", "large"],

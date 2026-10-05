@@ -15,6 +15,7 @@ import {
   useStudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { maybe } from "@/wab/shared/common";
@@ -132,6 +133,12 @@ function PreselectBoxInner(props: {
     props;
 
   const hoverTagRef = React.useRef<HTMLDivElement>(null);
+  const forceUpdate = useForceUpdate();
+  React.useEffect(() => {
+    const doc = viewCtx.canvasCtx.$doc()[0];
+    doc.addEventListener("scroll", forceUpdate, true);
+    return () => doc.removeEventListener("scroll", forceUpdate, true);
+  }, [viewCtx, forceUpdate]);
 
   const tpl = selectable.tpl;
 

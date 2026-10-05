@@ -954,6 +954,12 @@ function HoverBox_({
   const viewProps = computeHoverBoxViewState(viewCtx, target);
 
   React.useEffect(() => {
+    const doc = viewCtx.canvasCtx.$doc()[0];
+    doc.addEventListener("scroll", forceUpdate, true);
+    return () => doc.removeEventListener("scroll", forceUpdate, true);
+  }, [viewCtx, forceUpdate]);
+
+  React.useEffect(() => {
     // Subscribe to events that may cause HoverBoxes to need to re-render
     // as underlying DOM elements may have changed in size or location
     const stylesListener = viewCtx.studioCtx.styleChanged.add(forceUpdate);

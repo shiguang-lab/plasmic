@@ -8,6 +8,7 @@ import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import PageSettings from "@/wab/client/components/PageSettings";
 import { CanvasDndOverlay } from "@/wab/client/components/canvas/CanvasDndOverlay";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
+import { CopilotActivityStatus } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { FreestyleBox } from "@/wab/client/components/canvas/FreestyleBox";
 import { CloneBoxes } from "@/wab/client/components/canvas/HoverBox/CloneBoxes";
 import { HoverBoxes } from "@/wab/client/components/canvas/HoverBox/HoverBoxes";
@@ -1860,6 +1861,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                   hexColor={watchedPlayer.color}
                 />
               )}
+              <CopilotActivityStatus studioCtx={studioCtx} />
               {studioCtx.showDevControls && (
                 <div className="canvas-editor__top-pane">
                   <div className="canvas-editor__top-pane__floating-elements-container">
@@ -2069,6 +2071,12 @@ const RightPane = observer(function RightPane(props: {
     }
   }, [tabs.length]);
 
+  const showCommentsPanel =
+    studioCtx.showComments() && studioCtx.showCommentsPanel;
+  if (tabs.length === 0 && !showCommentsPanel) {
+    return null;
+  }
+
   return providesSidebarPopupSetting({ left: false })(
     <DevContainer
       className={cx({
@@ -2083,7 +2091,7 @@ const RightPane = observer(function RightPane(props: {
       {disabled && !studioCtx.showCommentsPanel && (
         <div className="canvas-editor__disable-right-pane" />
       )}
-      {studioCtx.showComments() && studioCtx.showCommentsPanel ? (
+      {showCommentsPanel ? (
         <CommentsTab />
       ) : (
         <widgets.Tabs

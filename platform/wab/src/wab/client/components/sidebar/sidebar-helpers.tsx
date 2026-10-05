@@ -77,6 +77,7 @@ export function LabeledItem(props: {
   autoWidth?: boolean;
   indentLabel?: boolean;
   contentAlignment?: "right";
+  compactControl?: boolean;
   noMenuButton?: boolean;
   icon?: React.ReactNode;
   noContent?: boolean;
@@ -146,6 +147,23 @@ export function LabeledItem(props: {
       icon={icon}
       menu={menu}
       labelSize={labelSize}
+      labelContainer={
+        props.compactControl
+          ? {
+              style: {
+                flex: "1 1 0",
+                minWidth: 0,
+                width: "auto",
+                alignSelf: "center",
+              },
+            }
+          : undefined
+      }
+      contentContainer={
+        props.compactControl
+          ? { style: { width: "auto", flexShrink: 0 } }
+          : undefined
+      }
       label={
         <MaybeWrap
           cond={!!props.tooltip}

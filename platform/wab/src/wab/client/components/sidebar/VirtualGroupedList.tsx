@@ -1,5 +1,6 @@
 import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { sum } from "lodash";
 import React from "react";
 import { ListChildComponentProps, VariableSizeList } from "react-window";
@@ -221,6 +222,7 @@ export function VirtualGroupedList<I, G>(props: {
     <ListSpace space={totalSpace}>
       {({ height }) => (
         <VariableSizeList
+          outerElementType={VirtualListScrollbar}
           height={height}
           itemData={renderRow}
           itemSize={itemSizer}

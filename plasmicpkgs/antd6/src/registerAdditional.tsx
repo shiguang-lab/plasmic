@@ -192,7 +192,6 @@ export function AntdTimeRangePicker({
   );
 }
 
-
 // Render callbacks cannot be serialized as ordinary JSON props in Studio.
 export function AntdList(
   props: Omit<React.ComponentProps<typeof Ant.List>, "renderItem">,
@@ -293,7 +292,7 @@ const variant = choice(
   "outlined",
 );
 const valueState = (
-  variableType: "text" | "boolean" | "number" | "array",
+  variableType: "text" | "boolean" | "number" | "array" | "object",
   valueProp = "value",
   onChangeProp = "onChange",
 ) => ({
@@ -334,6 +333,7 @@ export function registerAdditional(loader?: Registerable) {
     onChange: event("affixed", "boolean"),
   });
   register(loader, AntdAlert, "alert", "AntdAlert", {
+    icon: { type: "slot", hidePlaceholder: true },
     title: { ...slot("Alert title"), hidePlaceholder: true },
     description: { ...slot("Alert description"), hidePlaceholder: true },
     type: choice(["success", "info", "warning", "error"], "info"),
@@ -373,8 +373,8 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("text") },
   );
   register(loader, AntdBadge, "badge", "AntdBadge", {
-    children: { ...slot("Badge"), hidePlaceholder: true },
-    count: { type: "number", defaultValue: 5 },
+    children: { type: "slot", hidePlaceholder: true },
+    count: { type: "number" },
     dot: "boolean",
     showZero: "boolean",
     overflowCount: "number",
@@ -703,6 +703,7 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("text") },
   );
   register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
+    icon: { type: "slot", hidePlaceholder: true },
     children: slot("Delete"),
     title: { ...slot("Delete this item?"), hidePlaceholder: true },
     description: { type: "slot", hidePlaceholder: true },
@@ -774,6 +775,7 @@ export function registerAdditional(loader?: Registerable) {
     block: "boolean",
   });
   register(loader, AntdSpin, "spin", "AntdSpin", {
+    indicator: { type: "slot", hidePlaceholder: true },
     children: slot("Loading content"),
     spinning: { type: "boolean", defaultValue: true },
     description: "string",
@@ -839,6 +841,7 @@ export function registerAdditional(loader?: Registerable) {
     },
   );
   register(loader, AntdTag, "tag", "AntdTag", {
+    closeIcon: { type: "slot", hidePlaceholder: true },
     children: slot("Tag"),
     color: { type: "color" },
     variant: choice(["outlined", "filled", "solid"]),
@@ -906,7 +909,11 @@ export function registerAdditional(loader?: Registerable) {
           },
         ],
       },
-      value: "string",
+      value: {
+        type: "object",
+        description:
+          "Single value, array of values in multiple/checkable mode, or labelInValue objects.",
+      },
       multiple: "boolean",
       treeCheckable: "boolean",
       treeDefaultExpandAll: "boolean",
@@ -916,7 +923,7 @@ export function registerAdditional(loader?: Registerable) {
       variant,
       onChange: event("value", "object"),
     },
-    { states: valueState("text") },
+    { states: valueState("object") },
   );
   register(loader, AntdTypography, "typography", "AntdTypography", {
     children: slot("Typography"),

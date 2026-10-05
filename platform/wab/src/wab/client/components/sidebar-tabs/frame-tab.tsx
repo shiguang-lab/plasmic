@@ -196,10 +196,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
           >
             <button className="right-panel-input-background select-dropdown__button flex-fill">
               <div className="select-dropdown__container">
-                <span
-                  className="select-dropdown__selected"
-                  style={{ padding: "6px 8px" }}
-                >
+                <span className="select-dropdown__selected">
                   {(() => {
                     const curSize = L.flatten(
                       frameSizeGroups.map((g) => g.sizes),

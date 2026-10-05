@@ -4,6 +4,7 @@ import { StudioCtx, withStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewComponentBase } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure, maybe } from "@/wab/shared/common";
 import { Box, Pt, Side, horizontalSides } from "@/wab/shared/geom";
+import { reaction } from "mobx";
 import { Observer } from "mobx-react";
 import * as React from "react";
 import { memo } from "react";
@@ -85,6 +86,30 @@ type MeasureToolProps = {
 };
 
 class _MeasureTool extends ViewComponentBase<MeasureToolProps, {}> {
+  private stopWatchingScroll?: () => void;
+
+  componentDidMount() {
+    let doc: Document | undefined;
+    const update = () => this.forceUpdate();
+    const dispose = reaction(
+      () => this.viewCtxMaybe()?.canvasCtx.$doc()[0],
+      (nextDoc) => {
+        doc?.removeEventListener("scroll", update, true);
+        doc = nextDoc;
+        doc?.addEventListener("scroll", update, true);
+      },
+      { fireImmediately: true },
+    );
+    this.stopWatchingScroll = () => {
+      dispose();
+      doc?.removeEventListener("scroll", update, true);
+    };
+  }
+
+  componentWillUnmount() {
+    this.stopWatchingScroll?.();
+  }
+
   viewCtx() {
     return ensure(this.viewCtxMaybe());
   }

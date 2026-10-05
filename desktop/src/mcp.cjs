@@ -48,6 +48,7 @@ const EDITOR_METHODS = [
   "deleteComponent",
   "executeBatch",
   "navigate",
+  "scrollElementIntoView",
   "validate",
   "save",
   "undo",
@@ -85,7 +86,7 @@ const tools = [
   {
     name: "execute",
     description:
-      "Call a validated Studio editing operation. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, validate, save and undo. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Save explicitly after changes.",
+      "Call a validated Studio operation. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Save explicitly after design changes.",
     inputSchema: {
       ...object({
         name: { type: "string", enum: EDITOR_METHODS },
@@ -392,9 +393,13 @@ async function serveMcp(profile) {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
       const validator = validators.get(request.params.name);
-      if (!validator) throw new Error("Unknown desktop tool");
+      if (!validator) {
+        throw new Error("Unknown desktop tool");
+      }
       const checked = validator(request.params.arguments || {});
-      if (!checked.valid) throw new Error(checked.errorMessage);
+      if (!checked.valid) {
+        throw new Error(checked.errorMessage);
+      }
       const result =
         request.params.name === "get_style"
           ? require("./design-styles.cjs").getStyle(
@@ -428,13 +433,14 @@ async function serveMcp(profile) {
           isError: false,
         };
       }
-      if (["get_screenshot", "read_image"].includes(request.params.name))
+      if (["get_screenshot", "read_image"].includes(request.params.name)) {
         return {
           content: [
             { type: "image", data: result.data, mimeType: "image/png" },
           ],
           isError: false,
         };
+      }
       return {
         content: [{ type: "text", text: JSON.stringify(result) }],
         structuredContent: result,

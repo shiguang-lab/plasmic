@@ -1,0 +1,14 @@
+{
+  "registeredDefaults": {
+    "animated": true,
+    "animateTabBar": true,
+    "animateTabContent": false
+  },
+  "disabledBaselineAnimated": false,
+  "enabledInkBar": true,
+  "computedTransition": "width var(--ant-motion-duration-slow),left var(--ant-motion-duration-slow),right var(--ant-motion-duration-slow)",
+  "motionDurationSlow": "0.3s",
+  "activeAfterClick": "我负责的",
+  "contentAfterClick": "32 条",
+  "tabPaneMotion": false
+}

@@ -78,6 +78,12 @@ export const searchFormMeta: CodeComponentMeta<SearchFormProps> = {
       description:
         "24-column grid. Use 6 for four columns or 8 for three columns.",
     },
+    labelWidth: {
+      type: "number",
+      min: 0,
+      description:
+        "Optional shared label width in pixels. Unset labels follow their content. Set a width that fits every label on one line to align controls across rows.",
+    },
     searchText: { type: "string", defaultValue: "查询" },
     resetText: { type: "string", defaultValue: "重置" },
     expandText: { type: "string", defaultValue: "展开" },

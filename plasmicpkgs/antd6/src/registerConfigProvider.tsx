@@ -4,7 +4,13 @@ import {
   default as registerToken,
 } from "@plasmicapp/host/registerToken";
 import { addLoadingStateListener } from "@plasmicapp/query";
-import { App, ConfigProvider, message, notification, theme } from "antd";
+import {
+  App,
+  ConfigProvider,
+  message as antdMessage,
+  notification,
+  theme,
+} from "antd";
 import type { ConfigProviderProps } from "antd/es/config-provider";
 import type { MessageInstance } from "antd/es/message/interface";
 import type {
@@ -168,6 +174,13 @@ function InnerConfigProvider(props: {
   const app = useAppContext();
   const actions = React.useMemo(
     () => ({
+      showMessage: (
+        type: "success" | "error" | "info" | "warning",
+        content: string,
+        duration?: number,
+      ) => {
+        app.message.open({ type, content, duration });
+      },
       showNotification: (
         type: "success" | "error" | "info" | "warning",
         // eslint-disable-next-line no-shadow
@@ -312,7 +325,7 @@ function useAppContext() {
  * Forking antd's App, to avoid rendering an extra <div/>
  */
 function ForkedApp(props: { children?: React.ReactNode }) {
-  const [messageApi, messageContextHolder] = message.useMessage();
+  const [messageApi, messageContextHolder] = antdMessage.useMessage();
   const [notificationApi, notificationContextHolder] =
     notification.useNotification();
 
@@ -652,6 +665,21 @@ export const registerConfigProvider = makeRegisterGlobalContext(
     },
     ...{
       globalActions: {
+        showMessage: {
+          displayName: "Show message",
+          parameters: [
+            {
+              name: "type",
+              type: {
+                type: "choice",
+                options: ["success", "error", "info", "warning"],
+                defaultValue: "success",
+              },
+            },
+            { name: "content", type: "string" },
+            { name: "duration", type: { type: "number", defaultValueHint: 3 } },
+          ],
+        },
         showNotification: {
           displayName: "Show notification",
           parameters: [

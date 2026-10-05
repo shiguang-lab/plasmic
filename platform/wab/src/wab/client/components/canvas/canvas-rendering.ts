@@ -1513,8 +1513,7 @@ function renderTplComponent(
   }
 
   let ComponentImpl:
-    | React.ComponentType<any>
-    | React.DetailedReactHTMLElement<any, any>;
+    React.ComponentType<any> | React.DetailedReactHTMLElement<any, any>;
 
   const meta = maybeGetCodeComponentMeta(ctx.viewCtx, node.component);
   if (
@@ -1945,7 +1944,9 @@ function computeTplComponentArgs(
     return switchType(expr)
       .when(RenderExpr, (_expr) => {
         if (_expr.tpl.length === 0) {
-          return null;
+          // An empty code-component slot leaves the native default intact.
+          // Explicit null expressions still override it.
+          return ofCodeComponent ? undefined : null;
         } else {
           const contents = (envOverrides: Partial<CanvasEnv>) => {
             if (isRenderFuncType(param.type)) {
@@ -3362,13 +3363,11 @@ function supressSlotPlaceholder(node: TplSlot, ctx: RenderingCtx) {
   return !(
     // We should show placeholder for this TplSlot if:
     // 1. This is a TplSlot of a component we are currently editing
-    (
-      (ctx.ownerKey && isKeyInEditableStack(ctx, ctx.ownerKey)) ||
-      // 2. This is a SlotSelection of a component instance that belongs
-      //    to the component we're currently editing
-      (ctx.ownersStack.length > 1 &&
-        isKeyInEditableStack(ctx, ctx.ownersStack[ctx.ownersStack.length - 2]))
-    )
+    (ctx.ownerKey && isKeyInEditableStack(ctx, ctx.ownerKey)) ||
+    // 2. This is a SlotSelection of a component instance that belongs
+    //    to the component we're currently editing
+    (ctx.ownersStack.length > 1 &&
+      isKeyInEditableStack(ctx, ctx.ownersStack[ctx.ownersStack.length - 2]))
   );
 }
 
@@ -4024,6 +4023,7 @@ function pinMapEquals(map1: PinMap, map2: PinMap) {
 }
 
 export const _testOnlyUtils = {
+  computeTplComponentArgs,
   getQueryFetcherHookCounts,
   useComponentLevelQueries,
 };

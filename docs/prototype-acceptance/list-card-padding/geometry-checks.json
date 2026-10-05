@@ -1,0 +1,10 @@
+{
+  "viewport": [1440, 1024],
+  "bodyToWrapperTop": 0,
+  "wrapperToTabsTop": 0,
+  "bodyToTabsTop": 0,
+  "bodyToTabsBottom": 0,
+  "paginationToInnerCardBottom": 16,
+  "horizontalPadding": [20, 20],
+  "cardHeightReduction": 32
+}

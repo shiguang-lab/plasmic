@@ -1,0 +1,92 @@
+[
+  {
+    "state": "list-all",
+    "viewport": {
+      "width": 1440,
+      "height": 848
+    },
+    "ink": {
+      "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+      "elementUuid": null,
+      "height": 2,
+      "index": 153,
+      "tag": "div",
+      "text": "",
+      "width": 64,
+      "x": 276,
+      "y": 209
+    }
+  },
+  {
+    "state": "list-mine",
+    "viewport": {
+      "width": 1440,
+      "height": 848
+    },
+    "ink": {
+      "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+      "elementUuid": null,
+      "height": 2,
+      "index": 153,
+      "tag": "div",
+      "text": "",
+      "width": 64,
+      "x": 372,
+      "y": 209
+    }
+  },
+  {
+    "state": "regular-members",
+    "viewport": {
+      "width": 1440,
+      "height": 848
+    },
+    "ink": {
+      "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+      "elementUuid": null,
+      "height": 2,
+      "index": 111,
+      "tag": "div",
+      "text": "",
+      "width": 32,
+      "x": 436,
+      "y": 305
+    }
+  },
+  {
+    "state": "onetime-basic",
+    "viewport": {
+      "width": 1440,
+      "height": 848
+    },
+    "ink": {
+      "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+      "elementUuid": null,
+      "height": 2,
+      "index": 108,
+      "tag": "div",
+      "text": "",
+      "width": 64,
+      "x": 340,
+      "y": 305
+    }
+  },
+  {
+    "state": "reopened-mine",
+    "viewport": {
+      "width": 1440,
+      "height": 848
+    },
+    "ink": {
+      "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+      "elementUuid": null,
+      "height": 2,
+      "index": 153,
+      "tag": "div",
+      "text": "",
+      "width": 64,
+      "x": 372,
+      "y": 209
+    }
+  }
+]

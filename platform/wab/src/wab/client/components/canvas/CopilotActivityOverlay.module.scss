@@ -1,0 +1,114 @@
+.region,
+.status {
+  --scan-color: #1677ff;
+  --scan-rgb: 22, 119, 255;
+  pointer-events: none;
+
+  &[data-mode="edit"] {
+    --scan-color: #722ed1;
+    --scan-rgb: 114, 46, 209;
+  }
+
+  &[data-status="error"] {
+    --scan-color: #cf1322;
+    --scan-rgb: 207, 19, 34;
+  }
+}
+
+.region {
+  position: absolute;
+  z-index: 100;
+  box-sizing: border-box;
+  border: solid var(--scan-color);
+  background: rgba(var(--scan-rgb), 0.04);
+  box-shadow: 0 0 12px rgba(var(--scan-rgb), 0.16);
+  overflow: hidden;
+  contain: paint;
+}
+
+.scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(var(--scan-rgb), 0.05) 55%,
+    rgba(var(--scan-rgb), 0.24) 96%,
+    var(--scan-color) 100%
+  );
+  animation: copilotScan 1.4s ease-in-out infinite;
+}
+
+.label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  max-width: 480px;
+  padding: 4px 8px;
+  border-radius: 0 0 5px 0;
+  color: white;
+  background: var(--scan-color);
+  font:
+    12px/18px system-ui,
+    sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status {
+  position: absolute;
+  z-index: 100;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 80%;
+  padding: 8px 12px;
+  border: 1px solid rgba(var(--scan-rgb), 0.3);
+  border-radius: 8px;
+  background: white;
+  color: var(--scan-color);
+  box-shadow: 0 4px 16px #00000014;
+  font:
+    12px/18px system-ui,
+    sans-serif;
+
+  span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--scan-color);
+}
+
+[data-status="error"] .scan {
+  animation: none;
+  opacity: 0.2;
+}
+
+@keyframes copilotScan {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan {
+    animation: none;
+    background: rgba(var(--scan-rgb), 0.06);
+  }
+}

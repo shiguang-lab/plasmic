@@ -30,14 +30,19 @@ export function menuChildrenToItems(
     [];
   const visit = (nodes: React.ReactNode) =>
     React.Children.forEach(nodes, (child) => {
-      if (!React.isValidElement(child)) return;
+      if (!React.isValidElement(child)) {
+        return;
+      }
       const { children: content, title, ...rest } = child.props;
       const key = child.key ?? rest.eventKey ?? String(result.length);
-      if (child.type === AntdMenuItem)
+      if (child.type === AntdMenuItem) {
         result.push({ ...rest, key, label: content });
-      else if (child.type === AntdMenuDivider)
+      } else if (child.type === AntdMenuDivider) {
         result.push({ type: "divider", key });
-      else if (child.type === AntdSubMenu || child.type === AntdMenuItemGroup) {
+      } else if (
+        child.type === AntdSubMenu ||
+        child.type === AntdMenuItemGroup
+      ) {
         result.push({
           ...rest,
           key,
@@ -47,7 +52,9 @@ export function menuChildrenToItems(
             : {}),
           children: menuChildrenToItems(content),
         });
-      } else visit(content);
+      } else {
+        visit(content);
+      }
     });
   visit(children);
   return result;
@@ -93,7 +100,7 @@ export const MENU_ITEM_TYPE = {
       displayName: "Menu item key",
       description:
         "Key of the menu item; the onClick will receive this as the value to indicate which item was clicked.",
-      hidden: (_ps: any, _ctx: any, { item }: any) => item.type !== "item",
+      hidden: (_ps: any, _ctx: any, { item }: any) => item.type === "divider",
     },
     label: {
       type: "string",
@@ -126,16 +133,6 @@ export const UNKEYED_MENU_ITEM_TYPE = {
 (UNKEYED_MENU_ITEM_TYPE.fields.children as any).itemType =
   UNKEYED_MENU_ITEM_TYPE;
 
-/**
- * Note that the Menu component by itself isn't that useful.
- * It is supposed to be a stateful component, but we don't have state yet (for selected, open, etc.).
- *
- * Nor can you make it non-selectable yet and just make it be a list of clickable things.
- *
- * But we also can't get rid of it right now because it's used by Dropdown.
- *
- * Note also that we don't yet support the simpler `items` prop for configuration.
- */
 export function registerMenu(loader?: Registerable) {
   registerComponentHelper(loader, AntdMenu, {
     name: "plasmic-antd6-menu",
@@ -210,7 +207,7 @@ export function registerMenu(loader?: Registerable) {
       },
       onSelect: {
         type: "eventHandler",
-        argTypes: [{ name: "key", type: "string" }],
+        argTypes: [{ name: "info", type: "object" }],
       } as any,
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerMenu",
@@ -221,6 +218,7 @@ export function registerMenu(loader?: Registerable) {
     name: "plasmic-antd6-menu-item",
     displayName: "Menu Item",
     props: {
+      icon: { type: "slot", hidePlaceholder: true },
       danger: {
         type: "boolean",
         description: "Display the danger style",
@@ -310,6 +308,7 @@ export function registerMenu(loader?: Registerable) {
     name: "plasmic-antd6-submenu",
     displayName: "Sub Menu",
     props: {
+      icon: { type: "slot", hidePlaceholder: true },
       disabled: {
         type: "boolean",
         description: "Whether sub-menu is disabled",

@@ -10,6 +10,7 @@ import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { arrayRemove } from "@/wab/shared/collections";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, notification, Tooltip } from "antd";
 import * as _ from "lodash";
 import { observer } from "mobx-react";
@@ -144,7 +145,11 @@ ${missingUsedFonts.map((font) => `- \`${font}\``).join("\n")}\n`
           </StandardMarkdown>
         ),
       }}
-      content={<div className="overflow-scroll-y">{renderFonts()}</div>}
+      content={
+        <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
+          {renderFonts()}
+        </Scrollbar>
+      }
     />
   );
 }

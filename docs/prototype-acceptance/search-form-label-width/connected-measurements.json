@@ -1,0 +1,541 @@
+{
+  "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+  "componentUuid": "S2fCQS6U6wJM",
+  "elementUuid": "yd6UFaD_ANvW",
+  "libraryProjectId": "f3f4ju424PVNTAQPkwovrE",
+  "libraryVersion": "1.2.0",
+  "revision": 122,
+  "labelWidth": 72,
+  "label-width-width96-layout": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 68,
+          "tag": "div",
+          "text": "市场",
+          "width": 96,
+          "x": 276,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 87,
+          "tag": "div",
+          "text": "场景",
+          "width": 96,
+          "x": 563.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 106,
+          "tag": "div",
+          "text": "类型",
+          "width": 96,
+          "x": 851.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 125,
+          "tag": "div",
+          "text": "状态",
+          "width": 96,
+          "x": 1139.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 144,
+          "tag": "div",
+          "text": "关键字",
+          "width": 96,
+          "x": 276,
+          "y": 145
+        }
+      ],
+      "controls": [
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 70,
+          "tag": "div",
+          "text": "MX",
+          "width": 167.75,
+          "x": 372,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 89,
+          "tag": "div",
+          "text": "全部",
+          "width": 167.75,
+          "x": 659.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 108,
+          "tag": "div",
+          "text": "全部",
+          "width": 167.75,
+          "x": 947.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 127,
+          "tag": "div",
+          "text": "全部",
+          "width": 167.75,
+          "x": 1235.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 146,
+          "tag": "div",
+          "text": "",
+          "width": 167.75,
+          "x": 372,
+          "y": 145
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 159,
+          "tag": "div",
+          "text": "查 询重 置收起",
+          "width": 839.25,
+          "x": 563.75,
+          "y": 145
+        }
+      ]
+    }
+  ],
+  "label-width-unset-layout": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 68,
+          "tag": "div",
+          "text": "市场",
+          "width": 45.875,
+          "x": 276,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 87,
+          "tag": "div",
+          "text": "场景",
+          "width": 45.875,
+          "x": 563.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 106,
+          "tag": "div",
+          "text": "类型",
+          "width": 45.875,
+          "x": 851.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 125,
+          "tag": "div",
+          "text": "状态",
+          "width": 45.875,
+          "x": 1139.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 144,
+          "tag": "div",
+          "text": "关键字",
+          "width": 61.875,
+          "x": 276,
+          "y": 145
+        }
+      ],
+      "controls": [
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 70,
+          "tag": "div",
+          "text": "MX",
+          "width": 217.875,
+          "x": 321.875,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 89,
+          "tag": "div",
+          "text": "全部",
+          "width": 217.875,
+          "x": 609.625,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 108,
+          "tag": "div",
+          "text": "全部",
+          "width": 217.875,
+          "x": 897.375,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 127,
+          "tag": "div",
+          "text": "全部",
+          "width": 217.875,
+          "x": 1185.125,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 146,
+          "tag": "div",
+          "text": "",
+          "width": 201.875,
+          "x": 337.875,
+          "y": 145
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 159,
+          "tag": "div",
+          "text": "查 询重 置收起",
+          "width": 839.25,
+          "x": 563.75,
+          "y": 145
+        }
+      ]
+    }
+  ],
+  "label-width-final-layout": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 68,
+          "tag": "div",
+          "text": "市场",
+          "width": 72,
+          "x": 276,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 87,
+          "tag": "div",
+          "text": "场景",
+          "width": 72,
+          "x": 563.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 106,
+          "tag": "div",
+          "text": "类型",
+          "width": 72,
+          "x": 851.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 125,
+          "tag": "div",
+          "text": "状态",
+          "width": 72,
+          "x": 1139.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 144,
+          "tag": "div",
+          "text": "关键字",
+          "width": 72,
+          "x": 276,
+          "y": 145
+        }
+      ],
+      "controls": [
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 70,
+          "tag": "div",
+          "text": "MX",
+          "width": 191.75,
+          "x": 348,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 89,
+          "tag": "div",
+          "text": "全部",
+          "width": 191.75,
+          "x": 635.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 108,
+          "tag": "div",
+          "text": "全部",
+          "width": 191.75,
+          "x": 923.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 127,
+          "tag": "div",
+          "text": "全部",
+          "width": 191.75,
+          "x": 1211.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 146,
+          "tag": "div",
+          "text": "",
+          "width": 191.75,
+          "x": 348,
+          "y": 145
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 159,
+          "tag": "div",
+          "text": "查 询重 置收起",
+          "width": 839.25,
+          "x": 563.75,
+          "y": 145
+        }
+      ]
+    }
+  ],
+  "label-width-final-preview-layout": [
+    {
+      "viewport": {
+        "width": 1600,
+        "height": 872
+      },
+      "labels": [
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 70,
+          "tag": "div",
+          "text": "市场",
+          "width": 72,
+          "x": 276,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 89,
+          "tag": "div",
+          "text": "场景",
+          "width": 72,
+          "x": 603.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 108,
+          "tag": "div",
+          "text": "类型",
+          "width": 72,
+          "x": 931.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 127,
+          "tag": "div",
+          "text": "状态",
+          "width": 72,
+          "x": 1259.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-label css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 146,
+          "tag": "div",
+          "text": "关键字",
+          "width": 72,
+          "x": 276,
+          "y": 145
+        }
+      ],
+      "controls": [
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 72,
+          "tag": "div",
+          "text": "MX",
+          "width": 231.75,
+          "x": 348,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 91,
+          "tag": "div",
+          "text": "全部",
+          "width": 231.75,
+          "x": 675.75,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 110,
+          "tag": "div",
+          "text": "全部",
+          "width": 231.75,
+          "x": 1003.5,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 129,
+          "tag": "div",
+          "text": "全部",
+          "width": 231.75,
+          "x": 1331.25,
+          "y": 97
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 148,
+          "tag": "div",
+          "text": "",
+          "width": 231.75,
+          "x": 348,
+          "y": 145
+        },
+        {
+          "classes": "ant-col ant-form-item-control css-oc1rc0 css-var-r0",
+          "elementUuid": null,
+          "height": 32,
+          "index": 161,
+          "tag": "div",
+          "text": "查 询重 置收起",
+          "width": 959.25,
+          "x": 603.75,
+          "y": 145
+        }
+      ]
+    }
+  ]
+}

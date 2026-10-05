@@ -44,6 +44,9 @@ export const AntdTable = React.forwardRef(function AntdTable(
     isSelectable && rowKey
       ? {
           onChange: (rowKeys, rows) => {
+            if (!isControlled) {
+              setUncontrolledSelectedRowKeys(rowKeys as string[]);
+            }
             onSelectedRowsChange?.(rows);
             onSelectedRowKeysChange?.(rowKeys as string[]);
           },
@@ -95,7 +98,14 @@ export const AntdTable = React.forwardRef(function AntdTable(
         }
       },
     }),
-    [data, onSelectedRowKeysChange, onSelectedRowsChange, isSelectable, rowKey],
+    [
+      data,
+      onSelectedRowKeysChange,
+      onSelectedRowsChange,
+      isSelectable,
+      rowKey,
+      isControlled,
+    ],
   );
   return (
     <Table
@@ -139,11 +149,13 @@ export function registerTable(loader?: Registerable) {
       },
       pagination: {
         type: "object",
-        description: "Ant Design pagination options, or false to hide pagination.",
+        description:
+          "Ant Design pagination options, or false to hide pagination.",
       },
       scroll: {
         type: "object",
-        description: "Scrollable table viewport: x is the content width; y is the body height.",
+        description:
+          "Scrollable table viewport: x is the content width; y is the body height.",
       },
       onChange: {
         type: "eventHandler",
@@ -272,7 +284,8 @@ export function registerTable(loader?: Registerable) {
       },
       ellipsis: {
         type: "boolean",
-        description: "Ellipsize overflowing cells; Ant Design preserves the full value in the title.",
+        description:
+          "Ellipsize overflowing cells; Ant Design preserves the full value in the title.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",

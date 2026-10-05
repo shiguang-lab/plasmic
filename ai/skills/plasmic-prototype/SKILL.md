@@ -11,7 +11,7 @@ Use the user's project ID (the segment after `/projects/`). If absent, inspect t
 
 Use Chrome DevTools MCP navigation, evaluation and screenshot tools. Run API calls in the top-level Studio window, which forwards validated calls into the editor iframe. Do not access private StudioCtx/model globals or edit database bundles.
 
-Button icons must be independent SVG Icon nodes, using the Button icon Slot and iconPlacement for a leading/trailing icon. Use official Ant Design icon geometry and currentColor. For triggers with two icons, put the leading action icon in icon and a separate dropdown indicator beside the text. Never put Unicode icon substitutes such as ＋, ⌄, ‹ or › in button labels. Verify actual delivered nodes and dropdown behavior.
+Install **Ant Design Icons** through **Component Store → Icons** before inserting library icons. Confirm the imported library in `read`, then inspect the specific icon contracts. The top-level Icons entry is for project SVG assets and must keep its upstream behavior. Do not inject the icon library into every host/project. Button icons must be independently registered `@ant-design/icons` components (such as `plasmic-antd-icon-PlusOutlined` and `plasmic-antd-icon-DownOutlined`), using the Button icon Slot and iconPlacement for a leading/trailing icon. Read the specific icon component contract; use its own component identity and official import, without a generic Icon/name wrapper. Do not create project SVG assets or copy SVG paths for icons; inherit color through currentColor. For triggers with two icons, put the leading action icon in icon and a separate dropdown indicator beside the text. Never put Unicode icon substitutes such as ＋, ⌄, ‹ or › in button labels. Verify actual delivered nodes and dropdown behavior.
 
 ## Generate
 
@@ -20,6 +20,7 @@ Button icons must be independent SVG Icon nodes, using the Button icon Slot and 
 3. `read({})` to discover pages, reusable components, installed library names, project IDs, tokens and screen breakpoints. `read({componentUuids: [...]})` for exact props, choices, slots and names of components you will use. Reuse Ant Design 6 registrations (`plasmic-antd6-*`) and existing local components. Never assume Ant Design 5 or React Aria props are valid.
 4. Translate the request into a short page/flow plan: navigation, main task, states, realistic sample content and mobile behavior. For a new prototype create pages/components with unique names and routes. For changes read the target before modifying it; never replace an existing root without explicit user intent.
 5. `createComponent` and `insertHtml` build editable elements. Use native HTML for semantic text and layout; use Ant Design 6 for controls, cards, forms and data display. Use flex/grid, spacing tokens, a readable hierarchy, sensible max widths and real task content. Avoid absolute-positioned mockups and screenshots as UI.
+   Business surfaces (list with toolbar/Tabs/Table, grouped form information, detail panels and metric cards) must use registered `plasmic-antd6-card`, with existing business nodes in its children Slot. Read Card's live contract; configure appearance and body padding through supported props such as styles.body. Tabs-first / Table-last list Cards use body padding `0 20px` when Tabs and Table pagination already own the top/bottom spacing; do not apply the plain information Card's `16px 20px` to them or add padding in intervening wrappers. Measure these edges after save/reopen, allowing only the Card border outside its body. Do not imitate a card by giving a native section/div its own background, border, radius and padding. Ordinary layout wrappers stay native; do not wrap SearchForm/AppShell in another Card. Verify the delivered Card identity and content ownership after save/reopen, not only its visual resemblance. See skills/plasmic-prototype/references/admin-design.md#card-ownership.
    For list query regions, use Overseas `plasmic-overseas-search-form` and editable `plasmic-overseas-search-form-item` nodes in its children Slot. Read installed Overseas contracts; install/upgrade the published library if these components are absent. Use colSpan=6 for four-column layouts. Configure unique name, label, span, initialValue, clearValue and validation on each Item; place exactly one Antd6 control in its children Slot and edit placeholder/options/date mode on that control. Extra buttons go in extraActions; custom labels/help use labelContent/help. Insert, modify, move and delete real Item/control nodes. Bind onSearch(values)/onReset(values) to applied filters and page one; values tracks drafts. Do not construct another native query grid or opaque fields/element JSON. See docs/search-form.md for the component contract.
 6. Use `createState`, bindings and `createInteraction` for requested interactions; links should use registered `href` props or native links. Forms should have labels, an obvious submit action and a meaningful outcome. Mark simulated data honestly. Do not claim a backend integration that is not implemented.
 7. `navigate` to each generated page. Review screenshots and actual DOM behavior at desktop and mobile widths. Fix clipping, overlapping text, inaccessible labels, empty components and broken navigation. `validate` checks model integrity and library usage; it is not a visual quality score.
@@ -28,12 +29,16 @@ Button icons must be independent SVG Icon nodes, using the Button icon Slot and 
 ## Markup
 
 ```html
-<section data-plasmic-name="actions" style="display:flex;flex-wrap:wrap;gap:12px">
+<section
+  data-plasmic-name="actions"
+  style="display:flex;flex-wrap:wrap;gap:12px"
+>
   <plasmic-component
     data-plasmic-component="plasmic-antd6-button"
     data-plasmic-project="PROJECT_ID_FROM_READ"
     data-plasmic-name="primaryAction"
-    data-props='{"type":"primary"}'>
+    data-props='{"type":"primary"}'
+  >
     <slot name="children"><span>Create project</span></slot>
   </plasmic-component>
 </section>

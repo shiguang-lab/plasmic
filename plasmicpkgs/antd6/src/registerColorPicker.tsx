@@ -13,8 +13,8 @@ export function AntdColorPicker({
   return (
     <ColorPicker
       {...props}
-      showText={props.showText || showTextSwitch}
-      onChangeComplete={(value: any) => {
+      showText={props.showText ?? showTextSwitch}
+      onChange={(value: any) => {
         onChange?.(typeof value === "string" ? value : value.toHexString());
       }}
     />

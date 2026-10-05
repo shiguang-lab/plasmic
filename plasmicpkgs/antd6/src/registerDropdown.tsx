@@ -1,7 +1,6 @@
 import { Dropdown } from "antd";
-import { AntdMenu as Menu } from "./registerMenu";
 import React from "react";
-import { UNKEYED_MENU_ITEM_TYPE } from "./registerMenu";
+import { AntdMenu as Menu, UNKEYED_MENU_ITEM_TYPE } from "./registerMenu";
 import { Registerable, registerComponentHelper } from "./utils";
 
 function addKeysToUnkeyedMenuItems(
@@ -47,7 +46,7 @@ export function AntdDropdown(
     menuItems,
     useMenuItemsSlot = false,
     menuItemsJson: unkeyedMenuItems,
-    trigger = "click",
+    trigger = "hover",
     dropdownMenuScopeClassName,
     ...rest
   } = props;
@@ -196,7 +195,7 @@ export function registerDropdown(loader?: Registerable) {
           { value: "contextMenu", label: "Right-click" },
         ],
         description: "The trigger mode which executes the dropdown action",
-        defaultValueHint: "click",
+        defaultValueHint: "hover",
       },
       useMenuItemsSlot: {
         type: "boolean",

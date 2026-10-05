@@ -1,0 +1,16 @@
+{
+  "size": [3200, 1936],
+  "comparison": "Before copy / after repeated copy with message dismissed",
+  "regions": [
+    {
+      "name": "queryForm",
+      "rect": [680, 360, 2990, 486],
+      "changedPixels": 0
+    },
+    {
+      "name": "tableHeader",
+      "rect": [712, 655, 2965, 763],
+      "changedPixels": 0
+    }
+  ]
+}

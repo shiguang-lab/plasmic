@@ -138,3 +138,36 @@ with natural-language requests through the AI client.
 The NAS `nas-antd6.ts` registration command also publishes the independent Overseas library from `@shiguang-lab/plasmic-overseas`. AppShell is listed in Overseas with a thumbnail. Ant Design 6 retains its General, Layout, Navigation, Data Entry, Data Display, Feedback and Other sections, with static subcomponents grouped under their parent.
 
 MCP `installLibrary` installs the published Overseas project; `upgradeLibrary` refreshes an installed library. Read exact contracts before inserting `plasmic-overseas-app-shell`, and save explicitly. Previously published Ant Design AppShell contracts are hidden in the catalog to preserve saved revisions; new page instances belong to Overseas.
+
+## Ant Design Icons
+
+The images include the independent `antd-icons` hostless canvas and server bundles.
+After deploying, register its library and Component Store card:
+
+```sh
+docker compose run --rm server src/wab/server/nas-icons.ts
+```
+
+The command creates or updates only Ant Design Icons and its catalog entry, within
+one transaction. Re-running preserves other libraries and dev flags and reuses
+the existing icons library. Component Store → Icons shows one `@ant-design/icons`
+preview card with the standard install action. Installation adds **Ant Design Icons**
+to Installed. Its components use the standard thumbnail cards and are grouped by
+Outlined, Filled and Two Tone. Additional icon libraries each have their own
+Installed entry. No icon library is injected into every project, and the original
+top-level Icons entry continues to show project SVG assets.
+
+## React UI business components
+
+React UI is an independent hostless library from `@shiguang-lab/plasmic-react-ui`.
+The default host and Overseas do not register its ActionGroup. After deploying,
+register its project and catalog card:
+
+```sh
+docker compose run --rm server src/wab/server/nas-react-ui.ts
+```
+
+Component Store → Business components lists React UI beside Overseas. Installing
+the card adds React UI to Installed. The command updates only this library and its
+catalog entry, preserving other flags and reusing an existing library project.
+The vendored source scope is documented in [vendor/react-ui](../vendor/react-ui/README.md).

@@ -5,6 +5,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import PlasmicLeftVersionsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftVersionsPanel";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown, Menu, Spin } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
@@ -105,6 +106,11 @@ export const VersionsTab = observer(function VersionsTab(
         <VersionsList studioCtx={studioCtx} matcher={matcher} />
       }
       content={{
+        as: Scrollbar,
+        props: {
+          scrollX: false,
+          style: { overflow: "hidden" },
+        },
         wrap: (node) => (
           <>
             {isPublishing && renderPublishingSkeleton()}

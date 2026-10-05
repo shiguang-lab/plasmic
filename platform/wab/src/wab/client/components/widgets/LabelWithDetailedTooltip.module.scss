@@ -1,0 +1,15 @@
+.root {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.infoIcon {
+  flex-shrink: 0;
+}

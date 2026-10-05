@@ -1,0 +1,439 @@
+{
+  "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+  "page": "REQ075 客群列表",
+  "componentUuid": "S2fCQS6U6wJM",
+  "save": {
+    "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+    "revision": 118,
+    "saved": true
+  },
+  "layouts": {
+    "search-canvas-fixed-layout": {
+      "viewport": {
+        "width": 1440,
+        "height": 1024,
+        "contentHeight": 1024
+      },
+      "labels": [
+        {
+          "text": "市场",
+          "x": 276,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "场景",
+          "x": 563.75,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "类型",
+          "x": 851.5,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "状态",
+          "x": 1139.25,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "关键字",
+          "x": 276,
+          "y": 145,
+          "width": 80,
+          "height": 32
+        }
+      ],
+      "controls": [
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 368,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 655.75,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 943.5,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 1231.25,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-input css-oc1rc0",
+          "x": 368,
+          "y": 149,
+          "width": 141.75,
+          "height": 24
+        }
+      ],
+      "suffixes": [
+        {
+          "classes": "ant-select-suffix",
+          "x": 513.75,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 801.5,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1089.25,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1377,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        }
+      ]
+    },
+    "search-preview-expanded-layout": {
+      "viewport": {
+        "width": 1600,
+        "height": 872,
+        "contentHeight": 872
+      },
+      "labels": [
+        {
+          "text": "市场",
+          "x": 276,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "场景",
+          "x": 603.75,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "类型",
+          "x": 931.5,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "状态",
+          "x": 1259.25,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "关键字",
+          "x": 276,
+          "y": 145,
+          "width": 80,
+          "height": 32
+        }
+      ],
+      "controls": [
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 368,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 695.75,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 1023.5,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 1351.25,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-input css-oc1rc0",
+          "x": 368,
+          "y": 149,
+          "width": 181.75,
+          "height": 24
+        }
+      ],
+      "suffixes": [
+        {
+          "classes": "ant-select-suffix",
+          "x": 553.75,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 881.5,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1209.25,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1537,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        }
+      ]
+    },
+    "search-preview-collapsed-layout": {
+      "viewport": {
+        "width": 1600,
+        "height": 872,
+        "contentHeight": 872
+      },
+      "labels": [
+        {
+          "text": "市场",
+          "x": 276,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "场景",
+          "x": 603.75,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "类型",
+          "x": 931.5,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        }
+      ],
+      "controls": [
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 368,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 695.75,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 1023.5,
+          "y": 101,
+          "width": 179.75,
+          "height": 24
+        }
+      ],
+      "suffixes": [
+        {
+          "classes": "ant-select-suffix",
+          "x": 553.75,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 881.5,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1209.25,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        }
+      ]
+    },
+    "search-reopened-layout": {
+      "viewport": {
+        "width": 1440,
+        "height": 1024,
+        "contentHeight": 1024
+      },
+      "labels": [
+        {
+          "text": "市场",
+          "x": 276,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "场景",
+          "x": 563.75,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "类型",
+          "x": 851.5,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "状态",
+          "x": 1139.25,
+          "y": 97,
+          "width": 80,
+          "height": 32
+        },
+        {
+          "text": "关键字",
+          "x": 276,
+          "y": 145,
+          "width": 80,
+          "height": 32
+        }
+      ],
+      "controls": [
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 368,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 655.75,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 943.5,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-select-input",
+          "x": 1231.25,
+          "y": 101,
+          "width": 139.75,
+          "height": 24
+        },
+        {
+          "tag": "input",
+          "classes": "ant-input css-oc1rc0",
+          "x": 368,
+          "y": 149,
+          "width": 141.75,
+          "height": 24
+        }
+      ],
+      "suffixes": [
+        {
+          "classes": "ant-select-suffix",
+          "x": 513.75,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 801.5,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1089.25,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        },
+        {
+          "classes": "ant-select-suffix",
+          "x": 1377,
+          "y": 106,
+          "width": 14,
+          "height": 14
+        }
+      ]
+    }
+  }
+}

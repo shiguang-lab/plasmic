@@ -1,4 +1,5 @@
 import { Drawer } from "antd";
+import classNames from "classnames";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
@@ -9,8 +10,16 @@ export function AntdDrawer(
     drawerScopeClassName?: string;
   },
 ) {
-  const { onOpenChange, onClose, open, footer, drawerScopeClassName, ...rest } =
-    props;
+  const {
+    onOpenChange,
+    onClose,
+    open,
+    footer,
+    drawerScopeClassName,
+    rootClassName,
+    defaultStylesClassName,
+    ...rest
+  } = props;
   const memoOnClose = React.useMemo(() => {
     if (onOpenChange || onClose) {
       return (
@@ -29,10 +38,10 @@ export function AntdDrawer(
     <Drawer
       {...rest}
       onClose={memoOnClose}
-      rootClassName={drawerScopeClassName}
+      rootClassName={classNames(rootClassName, drawerScopeClassName)}
       open={open}
-      footer={footer ?? undefined}
-      className={`${props.className} ${props.defaultStylesClassName}`}
+      footer={footer}
+      className={classNames(props.className, defaultStylesClassName)}
     />
   );
 }

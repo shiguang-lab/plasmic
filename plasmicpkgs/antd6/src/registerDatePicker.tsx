@@ -1,4 +1,5 @@
 import { DatePicker } from "antd";
+import cls from "classnames";
 import dayjs, { Dayjs } from "dayjs";
 import React from "react";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
@@ -20,71 +21,7 @@ export function AntdDatePicker(
     popupScopeClassName?: string;
   },
 ) {
-  const { picker, popupScopeClassName, ...rest } = props;
-
-  const css = `
-
-  @media(max-width: 500px) {
-    .ant-picker-dropdown {
-      top: 20px !important;
-      left: 10px !important;
-      right: 10px !important;
-      max-height: 95vh;
-      position: fixed;
-      overflow-y: scroll;
-    }
-
-    .ant-picker-panel-layout {
-      flex-direction: column;
-    }
-
-    .ant-picker-presets {
-      min-height: 50px;
-      min-width: 100%;
-    }
-
-    .ant-picker-presets > ul {
-      overflow-y: hidden;
-      overflow-x: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      flex-direction: column;
-    }
-
-    .ant-picker-presets > ul > li {
-      margin: 0 !important;
-    }
-
-    .ant-picker-panel-container {
-      width: 300px;
-    }
-
-    .ant-picker-datetime-panel {
-      flex-direction: column;
-    }
-
-    .ant-picker-header-view {
-      line-height: unset !important;
-    }
-
-    .ant-picker-content {
-      height: unset !important;
-    }
-
-    .ant-picker-time-panel-column {
-      height: 100px;
-    }
-
-    .ant-picker-time-panel-column::after {
-      height: 0px !important;
-    }
-
-    .ant-picker-time-panel-column::after {
-      display: none;
-    }
-  }`;
+  const { picker, popupScopeClassName, classNames, ...rest } = props;
 
   return (
     <>
@@ -96,22 +33,38 @@ export function AntdDatePicker(
             ? undefined
             : !props.value
               ? null
-              : Array.isArray(props.value) ? props.value.map((value) => dayjs(value)) : dayjs(props.value)
+              : Array.isArray(props.value)
+                ? props.value.map((value) => dayjs(value))
+                : dayjs(props.value)
         }
         defaultValue={
           props.defaultValue === undefined
             ? undefined
-            : Array.isArray(props.defaultValue) ? props.defaultValue.map((value) => dayjs(value)) : dayjs(props.defaultValue)
+            : Array.isArray(props.defaultValue)
+              ? props.defaultValue.map((value) => dayjs(value))
+              : dayjs(props.defaultValue)
         }
-        classNames={{ popup: { root: popupScopeClassName } }}
+        classNames={(info) => {
+          const names =
+            typeof classNames === "function" ? classNames(info) : classNames;
+          const popup =
+            typeof names?.popup === "string"
+              ? { root: names.popup }
+              : names?.popup;
+          return {
+            ...names,
+            popup: { ...popup, root: cls(popup?.root, popupScopeClassName) },
+          };
+        }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(value, _dateString) => {
           props.onChange?.(
-            Array.isArray(value) ? value.map((date) => date.toISOString()) : value?.toISOString() ?? null,
+            Array.isArray(value)
+              ? value.map((date) => date.toISOString())
+              : (value?.toISOString() ?? null),
           );
         }}
       />
-      <style dangerouslySetInnerHTML={{ __html: css }} />
     </>
   );
 }

@@ -1,0 +1,118 @@
+{
+  "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+  "savedRevision": 130,
+  "runtime": "848 individually registered official @ant-design/icons components",
+  "genericIconRegistrationCount": 0,
+  "pages": [
+    {
+      "componentUuid": "S2fCQS6U6wJM",
+      "name": "REQ075 客群列表",
+      "icons": [
+        {
+          "elementUuid": "oFeO_5Rd2vMb",
+          "componentName": "plasmicAntd6IconPlusOutlined",
+          "importPath": "@ant-design/icons",
+          "importName": "PlusOutlined"
+        },
+        {
+          "elementUuid": "c7F2lyCwuC84",
+          "componentName": "plasmicAntd6IconDownOutlined",
+          "importPath": "@ant-design/icons",
+          "importName": "DownOutlined"
+        }
+      ],
+      "svgNodeCount": 0,
+      "statesAndInteractionsUnchanged": true
+    },
+    {
+      "componentUuid": "0iDAdUR4Kr_n",
+      "name": "REQ075 常规客群 SQL 建群",
+      "icons": [],
+      "svgNodeCount": 0,
+      "statesAndInteractionsUnchanged": true
+    },
+    {
+      "componentUuid": "AawrNYF-ymM1",
+      "name": "REQ075 一次性客群 SQL 建群",
+      "icons": [],
+      "svgNodeCount": 0,
+      "statesAndInteractionsUnchanged": true
+    },
+    {
+      "componentUuid": "wdUoHJNcC_mv",
+      "name": "REQ075 常规客群详情",
+      "icons": [
+        {
+          "elementUuid": "u0k7xsx-F4jU",
+          "componentName": "plasmicAntd6IconArrowLeftOutlined",
+          "importPath": "@ant-design/icons",
+          "importName": "ArrowLeftOutlined"
+        },
+        {
+          "elementUuid": "0M_hLzrgUPyu",
+          "componentName": "plasmicAntd6IconRightOutlined",
+          "importPath": "@ant-design/icons",
+          "importName": "RightOutlined"
+        }
+      ],
+      "svgNodeCount": 0,
+      "statesAndInteractionsUnchanged": true
+    },
+    {
+      "componentUuid": "TCeXywxCJ1x8",
+      "name": "REQ075 一次性客群详情",
+      "icons": [
+        {
+          "elementUuid": "kMLPFHgYM7ef",
+          "componentName": "plasmicAntd6IconArrowLeftOutlined",
+          "importPath": "@ant-design/icons",
+          "importName": "ArrowLeftOutlined"
+        },
+        {
+          "elementUuid": "EZzO1O-3REkg",
+          "componentName": "plasmicAntd6IconRightOutlined",
+          "importPath": "@ant-design/icons",
+          "importName": "RightOutlined"
+        }
+      ],
+      "svgNodeCount": 0,
+      "statesAndInteractionsUnchanged": true
+    }
+  ],
+  "reopenedFromSavedProject": true,
+  "validate": {
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "pages": 5,
+    "components": 5,
+    "codeComponentInstances": 193,
+    "antDesign6Instances": 180
+  },
+  "checks": {
+    "nodeTests": 14,
+    "vitestTests": 6,
+    "antd6RollupAndDeclarationBuild": "passed",
+    "subWebpackBuild": "passed",
+    "wabSelfHostedBuild": "passed",
+    "desktopPackage": "passed",
+    "nativePreview": [
+      "RightOutlined button opens SQL modal",
+      "ArrowLeftOutlined link returns to list"
+    ],
+    "registrationAssertions": [
+      "Every registered component is the identical official React export",
+      "Import path is @ant-design/icons; import name is the concrete icon export",
+      "No registered icon has a name prop"
+    ]
+  },
+  "visualReview": {
+    "S2fCQS6U6wJM.png": "1440x1024 list: PlusOutlined and DownOutlined aligned with the new-group label; no placeholder; button retains primary color.",
+    "wdUoHJNcC_mv.png": "1440x1024 regular detail: ArrowLeftOutlined aligns with return label; RightOutlined aligns with SQL link and inherits blue.",
+    "TCeXywxCJ1x8.png": "1440x1024 one-time detail: distinct page identity confirmed; both navigation icons display with correct spacing and inherited color."
+  },
+  "limits": [
+    "Hover dropdown opening was not confirmed through native UI automation; original trigger, menus and interactions are unchanged.",
+    "List layout reports horizontal overflow inside the existing scrollable table."
+  ]
+}

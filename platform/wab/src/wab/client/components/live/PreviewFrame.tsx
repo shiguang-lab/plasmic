@@ -1,13 +1,12 @@
-import {
-  HandlePosition,
-  ResizingHandle,
-} from "@/wab/client/components/ResizingHandle";
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
+import { PreviewViewportControls } from "@/wab/client/components/live/PreviewViewportControls";
 import {
   onLoadInjectSystemJS,
   pushPreviewModules,
 } from "@/wab/client/components/live/live-syncer";
+import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
 import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
@@ -32,7 +31,7 @@ import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
-import { useMountedState, usePreviousDistinct } from "react-use";
+import { useMountedState } from "react-use";
 
 const frameHash =
   `#live=true&origin=${encodeURIComponent(getPublicUrl())}` +
@@ -220,237 +219,236 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   };
 }
 
-export const PreviewFrame = observer(function PreviewFrame(
-  props: PreviewFrameProps,
-) {
-  const { previewCtx } = props;
+export const PreviewFrame = observer(function PreviewFrame({
+  previewCtx,
+}: PreviewFrameProps) {
   const studioCtx = previewCtx.studioCtx;
-
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const stageRef = React.useRef<HTMLDivElement | null>(null);
   const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
   const { frameRef, onLoad } = useLivePreview(previewCtx);
-
-  const [deltaX, setDeltaX] = React.useState(0);
-  const [deltaY, setDeltaY] = React.useState(0);
-  const [wrapperWidth, setWrapperWidth] = React.useState(0);
-
+  const [available, setAvailable] = React.useState({ width: 0, height: 0 });
+  const [draft, setDraft] = React.useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [dragging, setDragging] = React.useState(false);
   const [toggleTrailingSlash, setToggleTrailingSlash] = React.useState(false);
+  const drag = React.useRef<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    scale: number;
+    edge: "left" | "right" | "bottom";
+  } | null>(null);
 
   React.useEffect(() => {
     frameRef.current = iframeRef.current?.contentWindow || null;
   }, [iframeRef.current]);
 
-  const ensureMaxViewportSize = () => {
-    const wrapper = containerRef.current?.parentElement;
-    if (!wrapper || previewCtx.full) {
+  React.useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) {
       return;
     }
-    const { width, height } = wrapper.getBoundingClientRect();
-    const maxWidth = Math.floor(width - 40);
-    const maxHeight = Math.floor(height - 120);
-
-    const newWidth = previewCtx.width > maxWidth ? maxWidth : undefined;
-    const newHeight = previewCtx.height > maxHeight ? maxHeight : undefined;
-    if (newWidth || newHeight) {
-      spawn(
-        previewCtx.replaceViewport({
-          width: newWidth,
-          height: newHeight,
-        }),
-      );
-    }
-  };
+    const resizeObserver = new ResizeObserver(() => {
+      setAvailable({ width: stage.clientWidth, height: stage.clientHeight });
+    });
+    setAvailable({ width: stage.clientWidth, height: stage.clientHeight });
+    resizeObserver.observe(stage);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   React.useEffect(() => {
-    // Reset delta AFTER width/height change to avoid scrollbars flashing back to original position
-    // before width/height change gets propagated to previewCtx.
-    setDeltaX(0);
-    setDeltaY(0);
-
-    ensureMaxViewportSize();
-  }, [previewCtx.width, previewCtx.height, containerRef.current]);
+    setDraft(null);
+  }, [previewCtx.viewport, previewCtx.width, previewCtx.height]);
 
   const setFrameColor = React.useCallback(
     (
       iframe: React.MutableRefObject<HTMLIFrameElement | null>,
       color: string | null | undefined,
     ) => {
-      if (iframe?.current?.contentDocument?.body?.style) {
+      if (iframe.current?.contentDocument?.body?.style) {
         iframe.current.contentDocument.body.style.backgroundColor = color ?? "";
       }
     },
     [],
   );
-
   useFrameBgColor(iframeRef, previewCtx, setFrameColor);
 
-  const previousComponent = usePreviousDistinct(previewCtx.component);
-  const adjustPreviewSize = () => {
-    if (!previewCtx.component) {
-      return;
-    }
-    if (!previousComponent) {
-      // Initial load: the URL (from getUrlsForLiveMode or a shared preview
-      // link) may already specify an explicit viewport size; respect it and
-      // only default to the arena frame size when it doesn't. Otherwise this
-      // races the URL-driven viewport and can clobber it with stale
-      // dimensions. (This race predates the react-router removal; it just
-      // resolved in the URL's favor on some environments.)
-      const hashParams = new URLSearchParams(
-        previewCtx.hostFrameCtx.history.location.hash.replace(/^#/, ""),
-      );
-      if (hashParams.has("width") || hashParams.has("height")) {
-        return;
-      }
-    }
-    if (
-      previousComponent &&
-      isPageComponent(previousComponent) &&
-      isPageComponent(previewCtx.component)
-    ) {
-      return;
-    }
-    const arena = previewCtx.studioCtx.getDedicatedArena(previewCtx.component);
-    if (!arena) {
-      return;
-    }
-
-    if (arena.matrix.rows.length > 0 && arena.matrix.rows[0].cols.length > 0) {
-      const frame = arena.matrix.rows[0].cols[0].frame;
-      spawn(
-        previewCtx.replaceViewport({
-          height: frame.height,
-          width: frame.width,
-        }),
-      );
-    }
+  const fillsWindow = previewCtx.full || previewCtx.viewport === "desktop";
+  const dimensions = draft ?? {
+    width: previewCtx.width,
+    height: previewCtx.height,
+  };
+  const scale = fillsWindow
+    ? 1
+    : dragging && drag.current
+      ? drag.current.scale
+      : getViewportScale(available, dimensions);
+  const viewport = {
+    viewport: previewCtx.viewport,
+    ...(fillsWindow ? available : dimensions),
   };
 
-  React.useEffect(() => {
-    adjustPreviewSize();
-  }, [previewCtx.component]);
-
-  // Set wrapperWidth according to browser resizing.
-  const wrapperObserver = new ResizeObserver(
-    (entries: ResizeObserverEntry[]) => {
-      setWrapperWidth(entries[0].contentRect.width);
-      ensureMaxViewportSize();
-    },
-  );
-  React.useEffect(() => {
-    const wrapper = containerRef.current?.parentElement;
-    if (wrapper) {
-      wrapperObserver.observe(wrapper);
-    }
-    return () => {
-      if (wrapper) {
-        wrapperObserver.unobserve(wrapper);
-      }
+  const draggedDimensions = (event: React.PointerEvent) => {
+    const start = ensure(drag.current, "Expected active preview resize");
+    const deltaX = (event.clientX - start.x) / start.scale;
+    const deltaY = (event.clientY - start.y) / start.scale;
+    return {
+      width: Math.round(
+        Math.min(
+          7680,
+          Math.max(
+            240,
+            start.width +
+              (start.edge === "bottom"
+                ? 0
+                : deltaX * (start.edge === "left" ? -2 : 2)),
+          ),
+        ),
+      ),
+      height: Math.round(
+        Math.min(
+          7680,
+          Math.max(240, start.height + (start.edge === "bottom" ? deltaY : 0)),
+        ),
+      ),
     };
-  }, [containerRef.current]);
-
-  const onStartDragging = () => {
-    setDragging(true);
   };
-
-  const onStopDragging = () => {
-    setDragging(false);
-    spawn(
-      previewCtx.pushViewport({
-        width: previewCtx.width + deltaX * 2,
-        height: previewCtx.height + deltaY,
-      }),
-    );
-  };
-
-  const onDrag = ({ deltaX: newDeltaX = 0, deltaY: newDeltaY = 0 }) => {
-    if (!containerRef.current) {
-      return;
-    }
-
-    setDeltaX(newDeltaX);
-    setDeltaY(newDeltaY);
-  };
-
-  const adjustedWidth = previewCtx.width + deltaX * 2;
-  const adjustedHeight = previewCtx.height + deltaY;
-  const adjustedLeft = (wrapperWidth - adjustedWidth) / 2;
-  const style = previewCtx.full
-    ? {
-        width: "100%",
-        height: "100%",
-        left: 0,
-        top: 0,
-      }
-    : {
-        width: adjustedWidth,
-        height: adjustedHeight,
-        left: adjustedLeft,
-        top: 100,
-      };
 
   return (
-    <div
-      className="CanvasFrame__Container CanvasFrame__Container--live"
-      ref={containerRef}
-      style={{
-        display: "block",
-        ...style,
-      }}
-    >
-      <iframe
-        src={
-          maybeToggleTrailingSlash(
-            toggleTrailingSlash,
-            studioCtx.getHostUrl(),
-          ) + frameHash
-        }
-        ref={iframeRef}
-        onLoad={async () => {
-          try {
-            await onLoad();
-          } catch (e: any) {
-            if (!toggleTrailingSlash && e?.name === "SecurityError") {
-              console.log(
-                "SecurityError while accessing preview frame. Trying again...",
-              );
-              setToggleTrailingSlash(true);
-              return;
+    <div className={`${styles.viewport} ${previewCtx.full ? styles.full : ""}`}>
+      {!previewCtx.full && (
+        <PreviewViewportControls
+          value={viewport}
+          scale={scale}
+          onChange={(value) => {
+            setDraft(null);
+            spawn(previewCtx.pushViewport(value));
+          }}
+        />
+      )}
+      <div
+        ref={stageRef}
+        className={`${styles.stage} ${fillsWindow ? styles.desktop : ""}`}
+        data-test-id="preview-stage"
+      >
+        <div
+          className="CanvasFrame__Container CanvasFrame__Container--live"
+          style={{
+            display: "block",
+            width: fillsWindow ? "100%" : dimensions.width,
+            height: fillsWindow ? "100%" : dimensions.height,
+            left: fillsWindow
+              ? 0
+              : (available.width - dimensions.width * scale) / 2,
+            top: fillsWindow ? 0 : 20,
+            transform: fillsWindow ? undefined : `scale(${scale})`,
+            transformOrigin: "top left",
+            boxShadow: fillsWindow ? "none" : undefined,
+          }}
+        >
+          <iframe
+            src={
+              maybeToggleTrailingSlash(
+                toggleTrailingSlash,
+                studioCtx.getHostUrl(),
+              ) + frameHash
             }
-            throw e;
-          }
-        }}
-        style={{
-          width: "100%",
-          height: "100%",
-          userSelect: "none",
-        }}
-        data-test-id="live-frame"
-      />
-      {
-        // This cover is put on top of the iframe when the container is being
-        // resized so that the dragEnd event is handled by ResizingHandler.
-        !previewCtx.full && dragging && <div className="CanvasFrame__Cover" />
-      }
-      {!previewCtx.full &&
-        [HandlePosition.bottom, HandlePosition.left, HandlePosition.right].map(
-          (pos) => (
-            <ResizingHandle
-              key={`${pos}.${previewCtx.width}.${previewCtx.height}`}
-              position={pos}
-              zoom={1}
-              onDrag={onDrag}
-              onStartDragging={onStartDragging}
-              onStopDragging={onStopDragging}
-              size={
-                pos === HandlePosition.bottom
-                  ? iframeRef.current?.offsetWidth
-                  : iframeRef.current?.offsetHeight
+            ref={iframeRef}
+            onLoad={async () => {
+              try {
+                await onLoad();
+              } catch (e: any) {
+                if (!toggleTrailingSlash && e?.name === "SecurityError") {
+                  setToggleTrailingSlash(true);
+                  return;
+                }
+                throw e;
               }
-            />
-          ),
-        )}
+            }}
+            title="Page preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              border: 0,
+              display: "block",
+            }}
+            data-test-id="live-frame"
+          />
+          {dragging && <div className="CanvasFrame__Cover" />}
+          {!previewCtx.full &&
+            previewCtx.viewport === "custom" &&
+            (["left", "right", "bottom"] as const).map((edge) => (
+              <button
+                key={edge}
+                type="button"
+                aria-label={
+                  edge === "bottom"
+                    ? "Drag to resize preview height"
+                    : `Drag to resize preview width (${edge} edge)`
+                }
+                className={`${styles.resize} ${styles[edge]}`}
+                onPointerDown={(event) => {
+                  if (event.button !== 0) {
+                    return;
+                  }
+                  event.preventDefault();
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  drag.current = {
+                    x: event.clientX,
+                    y: event.clientY,
+                    ...dimensions,
+                    scale,
+                    edge,
+                  };
+                  setDragging(true);
+                }}
+                onPointerMove={(event) => {
+                  if (drag.current) {
+                    setDraft(draggedDimensions(event));
+                  }
+                }}
+                onPointerUp={(event) => {
+                  if (!drag.current) {
+                    return;
+                  }
+                  const next = draggedDimensions(event);
+                  drag.current = null;
+                  setDraft(next);
+                  setDragging(false);
+                  spawn(
+                    previewCtx.pushViewport({ viewport: "custom", ...next }),
+                  );
+                }}
+                onPointerCancel={() => {
+                  drag.current = null;
+                  setDraft(null);
+                  setDragging(false);
+                }}
+                onKeyDown={(event) => {
+                  const step =
+                    event.key === "ArrowRight" || event.key === "ArrowDown"
+                      ? 10
+                      : event.key === "ArrowLeft" || event.key === "ArrowUp"
+                        ? -10
+                        : 0;
+                  if (!step) {
+                    return;
+                  }
+                  event.preventDefault();
+                  const next = { ...dimensions };
+                  const axis = edge === "bottom" ? "height" : "width";
+                  next[axis] = Math.min(7680, Math.max(240, next[axis] + step));
+                  spawn(
+                    previewCtx.pushViewport({ viewport: "custom", ...next }),
+                  );
+                }}
+              />
+            ))}
+        </div>
+      </div>
     </div>
   );
 });

@@ -83,8 +83,7 @@ export interface TopFrameChromeProps {
   topFrameApi: TopFrameApi;
 
   latestPublishedVersionData:
-    | { revisionId: string; version: string }
-    | undefined;
+    { revisionId: string; version: string } | undefined;
   revisionNum: number;
   noComponents: boolean;
   isLocalizationEnabled: boolean;
@@ -661,6 +660,9 @@ export function useTopFrameState({
       setShowProjectNameModal: asyncWrapper(setShowProjectNameModal),
       setShowCloneProjectModal: asyncWrapper(setShowCloneProjectModal),
       setShowHostModal: asyncWrapper(setShowHostModal),
+      openMcpSettings: async () => {
+        window.dispatchEvent(new Event("plasmic:open-mcp-settings"));
+      },
       setShowLocalizationModal: asyncWrapper(setShowLocalizationModal),
       setShowUiConfigModal: asyncWrapper(setShowUiConfigModal),
       showRegenerateSecretTokenModal: async () =>

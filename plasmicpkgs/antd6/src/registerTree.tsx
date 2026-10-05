@@ -1,32 +1,11 @@
-import { Tree } from "antd";
 import type { TreeDataNode, TreeProps } from "antd";
-import React, { Key, useState } from "react";
-import { Registerable, registerComponentHelper } from "./utils";
+import { Tree } from "antd";
 import type { DirectoryTreeProps } from "antd/es/tree";
-
-function useMunged(props: TreeProps) {
-  const [autoExpandParent, setAutoExpandParent] = useState(
-    props.autoExpandParent,
-  );
-  const munged = { ...props, autoExpandParent };
-  if (!props.expandedKeys) {
-    delete munged["expandedKeys"];
-  }
-  // Currently, when you pass in defaultExpandAll, Tree internally adds *all* nodes to be expandedKeys, including leaf
-  // nodes. If autoExpandParent is set, then this means it's impossible to collapse any part of the tree! Ideally, the
-  // initial expandedKeys will be just parent nodes. But for now, we just do this. It's not nice because if you do
-  // expect autoExpandParent behavior, it won't be there at this point. But it's a quick fix for now for the more
-  // glaring issue, and what is done in the controlled demo on https://ant.design/components/tree.
-  munged.onExpand = (expandedKeys, info) => {
-    props.onExpand?.(expandedKeys, info);
-    setAutoExpandParent(false);
-  };
-  return munged;
-}
+import React, { Key } from "react";
+import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdTree(props: TreeProps) {
-  const munged = useMunged(props);
-  return <Tree {...munged} />;
+  return <Tree {...props} />;
 }
 
 // AntdTree.__plasmicFormFieldMeta = {
@@ -35,8 +14,7 @@ export function AntdTree(props: TreeProps) {
 // };
 
 export function AntdDirectoryTree(props: DirectoryTreeProps) {
-  const munged = useMunged(props);
-  return <Tree.DirectoryTree {...munged} />;
+  return <Tree.DirectoryTree {...props} />;
 }
 
 export interface CheckedDetails<
@@ -201,19 +179,18 @@ function registerTreeHelper({
         description:
           "Whether to automatically expand all nodes at initialization",
         defaultValueHint: false,
-        defaultValue: true,
       },
       autoExpandParent: {
         type: "boolean",
         description: "Whether to automatically expand a parent node",
-        defaultValue: true,
+        defaultValueHint: false,
         advanced: true,
       },
       defaultExpandParent: {
         type: "boolean",
         description:
           "Whether to automatically expand a parent node at initialization",
-        defaultValueHint: false,
+        defaultValueHint: true,
         advanced: true,
       },
       expandAction: {
@@ -240,6 +217,9 @@ function registerTreeHelper({
         description: "Whether to allow multiple selection",
         advanced: true,
       },
+      icon: { type: "slot", hidePlaceholder: true },
+      switcherIcon: { type: "slot", hidePlaceholder: true },
+      showIcon: "boolean",
       titleRender: {
         type: "slot",
         hidePlaceholder: true,

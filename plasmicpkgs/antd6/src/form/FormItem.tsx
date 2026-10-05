@@ -108,6 +108,14 @@ function plasmicRulesToAntdRules(
             `${effectiveLabel} must be at least ${plasmicRule.length} characters`,
         });
         break;
+      case "len":
+        rules.push({
+          len: plasmicRule.length,
+          message:
+            plasmicRule.message ??
+            `${effectiveLabel} must be exactly ${plasmicRule.length} characters`,
+        });
+        break;
       case "max":
         rules.push({
           [plasmicRule.ruleType]: plasmicRule.length,
@@ -136,8 +144,8 @@ export function FormItemWrapper(props: InternalFormItemProps) {
     noLabel,
     name,
     hideValidationMessage,
-    customizeProps,
-    setControlContextData,
+    customizeProps: _customizeProps,
+    setControlContextData: _setControlContextData,
     alignLabellessWithControls = true,
     ...rest
   } = props;

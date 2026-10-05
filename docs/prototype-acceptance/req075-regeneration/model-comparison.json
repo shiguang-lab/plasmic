@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "pages": [
+    {
+      "path": "/req-075/groups",
+      "equal": true,
+      "firstFingerprint": "f18ed2c3e1c0c8017f5f51177a8d7b1e38a03d457adcd46a9d897eb746c14c89",
+      "secondFingerprint": "f18ed2c3e1c0c8017f5f51177a8d7b1e38a03d457adcd46a9d897eb746c14c89"
+    },
+    {
+      "path": "/req-075/onetime",
+      "equal": true,
+      "firstFingerprint": "39cd561fbb2ab3e0a88bb83e280cdaaba531ae4f8014c725f6ce05963cc3e72c",
+      "secondFingerprint": "39cd561fbb2ab3e0a88bb83e280cdaaba531ae4f8014c725f6ce05963cc3e72c"
+    },
+    {
+      "path": "/req-075/onetime-detail",
+      "equal": true,
+      "firstFingerprint": "d51cb91354780c2595adebd74330d7ba0908de0aa14771693b6185881b31ad2c",
+      "secondFingerprint": "d51cb91354780c2595adebd74330d7ba0908de0aa14771693b6185881b31ad2c"
+    },
+    {
+      "path": "/req-075/regular",
+      "equal": true,
+      "firstFingerprint": "474b62b2ab9eba5510c47fcfe462b83f6b5d6595af1037cc920ef76a24abf506",
+      "secondFingerprint": "474b62b2ab9eba5510c47fcfe462b83f6b5d6595af1037cc920ef76a24abf506"
+    },
+    {
+      "path": "/req-075/regular-detail",
+      "equal": true,
+      "firstFingerprint": "106879a5343e03ca998f040f5b529af6d76c4845f6984fa0943a152f10587356",
+      "secondFingerprint": "106879a5343e03ca998f040f5b529af6d76c4845f6984fa0943a152f10587356"
+    }
+  ]
+}

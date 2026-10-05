@@ -4,6 +4,7 @@ import { CanvasArtboardSelectionHandle } from "@/wab/client/components/canvas/Ca
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader";
 import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegexp";
+import { CopilotActivityOverlay } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import {
   absorbLinkClick,
@@ -758,6 +759,7 @@ export const CanvasFrame = observer(function CanvasFrame({
             <CanvasCommentMarkers arena={arena} arenaFrame={arenaFrame} />
           )}
         <CanvasActions arena={arena} arenaFrame={arenaFrame} />
+        <CopilotActivityOverlay studioCtx={studioCtx} frame={arenaFrame} />
       </div>
     </div>
   );

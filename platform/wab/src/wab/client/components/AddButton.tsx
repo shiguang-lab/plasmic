@@ -38,7 +38,21 @@ function AddButton_(props: AddButtonProps, ref: HTMLElementRefOf<"button">) {
   // By default, we are just piping all AddButtonProps here, but feel free
   // to do whatever works for you.
 
-  return <PlasmicAddButton root={{ ref }} {...props} />;
+  return (
+    <PlasmicAddButton
+      {...props}
+      root={{
+        ref,
+        style: {
+          width: 32,
+          height: 32,
+          padding: 6,
+          alignSelf: "center",
+        },
+      }}
+      svg={{ style: { width: 20, height: 20 } }}
+    />
+  );
 }
 
 const AddButton = React.forwardRef(AddButton_);

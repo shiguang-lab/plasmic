@@ -1,41 +1,40 @@
 import { Rate } from "antd";
-import React, { ReactElement, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
 type AntdRateProps = Omit<React.ComponentProps<typeof Rate>, "tooltips"> & {
   tooltips?: { label: string }[];
   multiCharacter?: boolean;
-  symbols?: React.ReactElement;
+  symbols?: React.ReactNode;
 };
+
+function getSymbols(symbols: React.ReactNode) {
+  return React.Children.toArray(
+    React.isValidElement(symbols) && Array.isArray(symbols.props.children)
+      ? symbols.props.children
+      : symbols,
+  );
+}
 
 export function AntdRate(props: AntdRateProps) {
   const { character, count, tooltips, multiCharacter, symbols, ...rest } =
     props;
 
-  const symbolsProp: ReactElement[] = useMemo(
-    () =>
-      (Array.isArray(symbols?.props?.children)
-        ? symbols?.props?.children
-        : [symbols]
-      )
-        ?.filter((c: any) => React.isValidElement(c))
-        .map((c: ReactElement) => <>{c}</>) || [],
-    [symbols],
-  );
+  const symbolsProp = useMemo(() => getSymbols(symbols), [symbols]);
   const countProp = useMemo(() => {
     if (!multiCharacter) {
       return count;
     }
-    return symbolsProp?.length;
+    return symbolsProp.length || count;
   }, [count, multiCharacter, symbolsProp?.length]);
 
   const characterProp = useMemo(() => {
     if (!multiCharacter) {
-      return character || undefined;
+      return character;
     }
     return symbolsProp?.length
       ? ({ index }: any) => symbolsProp[index]
-      : character || undefined;
+      : character;
   }, [character, multiCharacter, symbolsProp]);
 
   return (
@@ -117,7 +116,7 @@ export function registerRate(loader?: Registerable) {
         description: "Rating labels",
         displayName: "Labels",
         advanced: true,
-        hidden: (ps: AntdRateProps) => !ps.count,
+        hidden: (ps: AntdRateProps) => ps.count === 0 && !ps.multiCharacter,
         itemType: {
           type: "object",
           fields: {
@@ -126,16 +125,16 @@ export function registerRate(loader?: Registerable) {
           nameFunc: (value: any) => value.label,
         },
         validator: (value: any, ps: any) => {
-          if (!ps.count) {
-            return true;
-          }
+          const count = ps.multiCharacter
+            ? getSymbols(ps.symbols).length || (ps.count ?? 5)
+            : (ps.count ?? 5);
           if (!Array.isArray(value) || value.length === 0) {
             return true;
           }
-          if (value.length < ps.count) {
-            return `You need ${ps.count - value.length} more labels`;
+          if (value.length < count) {
+            return `You need ${count - value.length} more labels`;
           }
-          if (value.length > ps.count) {
+          if (value.length > count) {
             return "You have too many labels. Some labels will not be used";
           }
           return true;
@@ -160,7 +159,7 @@ export function registerRate(loader?: Registerable) {
         type: "eventHandler",
         advanced: true,
         description: "Callback when an item is hovered",
-        argTypes: [],
+        argTypes: [{ name: "value", type: "number" }],
       },
       onKeyDown: {
         type: "eventHandler",

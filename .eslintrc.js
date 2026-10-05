@@ -49,7 +49,7 @@ function findOverlayTargets(root) {
           path
             .relative(__dirname, full)
             .replace(".external", "")
-            .replace(".public", "")
+            .replace(".public", ""),
         );
       }
     }
@@ -60,7 +60,7 @@ function findOverlayTargets(root) {
 
 const internalFiles = ["**/enterprise/**", "**/internal/**", "**/*.internal*"];
 const overlayTargets = findOverlayTargets(
-  path.join(__dirname, "platform/wab/src")
+  path.join(__dirname, "platform/wab/src"),
 );
 
 // Public synced files can't import enterprise/internal code.
@@ -149,6 +149,10 @@ module.exports = {
     "build",
     "node_modules",
     "storybook-static",
+    // Bundler output and the copied third-party runtime are not authored source.
+    "plasmicpkgs/antd6/skinny/",
+    "plasmicpkgs/react-ui/skinny/",
+    "vendor/react-ui/esm/",
 
     // Examples lint themselves via their own `next lint`; also skipped in
     // .lintstagedrc.js since eslint resolves `extends` before ignores.
@@ -283,6 +287,25 @@ module.exports = {
   },
   parser: "@typescript-eslint/parser",
   overrides: [
+    {
+      // These packages register Antd for user projects; they cannot use Studio's Modal.
+      files: [
+        "plasmicpkgs/antd6/src/**/*.{ts,tsx}",
+        "platform/sub/src/**/*.{ts,tsx}",
+      ],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: restrictedImportPaths.filter(
+              (entry) => entry.name !== "antd",
+            ),
+          },
+        ],
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": "error",
+      },
+    },
     {
       // Repo-wide guard. The wab overrides below replace this rule per-file
       // and re-add the pattern alongside their own.
@@ -458,7 +481,7 @@ module.exports = {
         "no-restricted-syntax": [
           "warn",
           ...restrictedSyntaxRules.filter(
-            (rule) => rule !== restrictedTestonlySyntaxRule
+            (rule) => rule !== restrictedTestonlySyntaxRule,
           ),
         ],
       },

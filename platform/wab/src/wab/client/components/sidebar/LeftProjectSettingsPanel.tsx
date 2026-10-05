@@ -48,6 +48,7 @@ import {
   TplComponent,
 } from "@/wab/shared/model/classes";
 import { isRenderFuncParam, isSlot } from "@/wab/shared/SlotUtils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, notification, Tooltip } from "antd";
 import L from "lodash";
 import { autorun } from "mobx";
@@ -117,14 +118,21 @@ const LeftProjectSettingsPanel = observer(function LeftProjectSettingsPanel_() {
           autoFocus: true,
         },
       }}
-      content={
-        <ContextsList
-          studioCtx={studioCtx}
-          contexts={orderedContexts}
-          tplComponents={tplComponents}
-          matcher={matcher}
-        />
-      }
+      content={{
+        as: Scrollbar,
+        props: {
+          scrollX: false,
+          style: { overflow: "hidden" },
+          children: (
+            <ContextsList
+              studioCtx={studioCtx}
+              contexts={orderedContexts}
+              tplComponents={tplComponents}
+              matcher={matcher}
+            />
+          ),
+        },
+      }}
     />
   );
 });

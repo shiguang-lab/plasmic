@@ -1,21 +1,23 @@
-import { runInAction } from "mobx";
-import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
-import { createSite } from "@/wab/shared/core/sites";
-import { ProjectDependency } from "@/wab/shared/model/classes";
-import { vi } from "vitest";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
+import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
-import { ensure } from "@/wab/shared/common";
 import { tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
+import { createSite } from "@/wab/shared/core/sites";
+import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
 import { flattenTpls } from "@/wab/shared/core/tpls";
-import { isKnownTplComponent } from "@/wab/shared/model/classes";
+import {
+  ProjectDependency,
+  isKnownTplComponent,
+} from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import { runInAction } from "mobx";
 import { ok } from "neverthrow";
+import { vi } from "vitest";
 
 function fixture() {
   const { studioCtx } = fakeStudioCtx();
@@ -41,28 +43,87 @@ function fixture() {
 }
 
 describe("AI prototype editor tools", () => {
+  it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage("Scan");
+    studioCtx.copilotActivity.dispose();
+    const change = vi.spyOn(studioCtx, "changeObserved");
+    const selected = studioCtx.focusedViewCtx();
+    await call("read", {
+      elements: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }],
+    });
+    expect(change).not.toHaveBeenCalled();
+    expect(studioCtx.focusedViewCtx()).toBe(selected);
+    expect(studioCtx.copilotActivity.requests[0]).toMatchObject({
+      mode: "read",
+      status: "success",
+      targets: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }],
+    });
+    await expect(
+      call("deleteElement", {
+        componentUuid: page.uuid,
+        elementUuid: "missing",
+      }),
+    ).rejects.toThrow("not found");
+    expect(studioCtx.copilotActivity.requests[1]).toMatchObject({
+      mode: "edit",
+      status: "error",
+    });
+    const count = studioCtx.copilotActivity.requests.length;
+    await expect(call("read", { unknown: true })).rejects.toThrow();
+    expect(studioCtx.copilotActivity.requests).toHaveLength(count);
+    studioCtx.copilotActivity.dispose();
+    change.mockRestore();
+  });
   it("organizes canvases and keeps pages while replacing device previews with Desktop", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage();
     await call("createCanvas", { name: "Draft" });
-    await call("createArtboard", { canvasName: "Draft", componentUuid: page.uuid, width: 1920, height: 1080 });
-    const arena = ensure(studioCtx.site.arenas.find(a => a.name === "Draft"), "Canvas missing");
+    await call("createArtboard", {
+      canvasName: "Draft",
+      componentUuid: page.uuid,
+      width: 1920,
+      height: 1080,
+    });
+    const arena = ensure(
+      studioCtx.site.arenas.find((a) => a.name === "Draft"),
+      "Canvas missing",
+    );
     const frame = arena.children[0];
-    await call("updateArtboard", { canvasName: "Draft", frameUuid: frame.uuid, width: 1440, height: 1024, x: 0, y: 0 });
+    await call("updateArtboard", {
+      canvasName: "Draft",
+      frameUuid: frame.uuid,
+      width: 1440,
+      height: 1024,
+      x: 0,
+      y: 0,
+    });
     expect(frame.width).toBe(1440);
     expect(frame.height).toBe(1024);
     await call("updateCanvas", { canvasName: "Draft", name: "Overview" });
     expect(arena.name).toBe("Overview");
     await call("setPageViewport", { preset: "Desktop" });
-    for (const a of studioCtx.site.pageArenas) for (const row of a.matrix.rows) {
-      expect(row.cols).toHaveLength(1);
-      expect(row.cols[0].frame.width).toBe(1440);
-      expect(row.cols[0].frame.height).toBe(1024);
+    for (const a of studioCtx.site.pageArenas) {
+      for (const row of a.matrix.rows) {
+        expect(row.cols).toHaveLength(1);
+        expect(row.cols[0].frame.width).toBe(1440);
+        expect(row.cols[0].frame.height).toBe(1024);
+      }
     }
-    const breakpoint = await call("createBreakpoint", { name: "Test mobile", maxWidth: 640 });
-    const variant = ensure(studioCtx.site.activeScreenVariantGroup?.variants.find(v => v.name === "Test mobile"), "Breakpoint missing");
+    const breakpoint = await call("createBreakpoint", {
+      name: "Test mobile",
+      maxWidth: 640,
+    });
+    const variant = ensure(
+      studioCtx.site.activeScreenVariantGroup?.variants.find(
+        (v) => v.name === "Test mobile",
+      ),
+      "Breakpoint missing",
+    );
     await call("deleteBreakpoint", { variantUuid: variant.uuid });
-    expect(studioCtx.site.activeScreenVariantGroup?.variants).not.toContain(variant);
+    expect(studioCtx.site.activeScreenVariantGroup?.variants).not.toContain(
+      variant,
+    );
     expect(breakpoint).toBeDefined();
     await call("deleteCanvas", { canvasName: "Overview" });
     expect(studioCtx.site.arenas).not.toContain(arena);
@@ -70,55 +131,130 @@ describe("AI prototype editor tools", () => {
     expect((await call("validate")).valid).toBe(true);
     await call("undo");
     expect(studioCtx.site.arenas).toContain(arena);
-    await expect(call("setPageViewport", { preset: "Unknown" })).rejects.toThrow("Unknown Studio device preset");
+    await expect(
+      call("setPageViewport", { preset: "Unknown" }),
+    ).rejects.toThrow("Unknown Studio device preset");
   });
   it("installs published libraries with the dependency manager and reloads registrations", async () => {
     const { studioCtx, call } = fixture();
-    const dependency = new ProjectDependency({ name: "overseas", pkgId: "pkg-overseas", projectId: "library-overseas", version: "1.0.0", uuid: "dep-overseas", site: createSite() });
-    const add = vi.spyOn(studioCtx.projectDependencyManager, "addByProjectId").mockImplementation(async () => {
-      runInAction(() => studioCtx.site.projectDependencies.push(dependency));
-      return dependency;
+    const dependency = new ProjectDependency({
+      name: "overseas",
+      pkgId: "pkg-overseas",
+      projectId: "library-overseas",
+      version: "1.0.0",
+      uuid: "dep-overseas",
+      site: createSite(),
     });
-    const registry = vi.spyOn(studioCtx, "updateCcRegistry").mockResolvedValue(undefined);
+    const add = vi
+      .spyOn(studioCtx.projectDependencyManager, "addByProjectId")
+      .mockImplementation(async () => {
+        runInAction(() => studioCtx.site.projectDependencies.push(dependency));
+        return dependency;
+      });
+    const registry = vi
+      .spyOn(studioCtx, "updateCcRegistry")
+      .mockResolvedValue(undefined);
     try {
-      expect(await call("installLibrary", { projectId: dependency.projectId })).toEqual({ projectId: dependency.projectId, version: "1.0.0", installed: true });
+      expect(
+        await call("installLibrary", { projectId: dependency.projectId }),
+      ).toEqual({
+        projectId: dependency.projectId,
+        version: "1.0.0",
+        installed: true,
+      });
       expect(add).toHaveBeenCalledWith(dependency.projectId);
       expect(registry).toHaveBeenCalledOnce();
-      expect((await call("installLibrary", { projectId: dependency.projectId })).installed).toBe(false);
+      expect(
+        (await call("installLibrary", { projectId: dependency.projectId }))
+          .installed,
+      ).toBe(false);
       expect(add).toHaveBeenCalledOnce();
-      const permission = vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
-      try { await expect(call("installLibrary", { projectId: "other" })).rejects.toThrow("read-only"); }
-      finally { permission.mockRestore(); }
-    } finally { add.mockRestore(); registry.mockRestore(); }
+      const permission = vi
+        .spyOn(studioCtx, "canEditProject")
+        .mockReturnValue(false);
+      try {
+        await expect(
+          call("installLibrary", { projectId: "other" }),
+        ).rejects.toThrow("read-only");
+      } finally {
+        permission.mockRestore();
+      }
+    } finally {
+      add.mockRestore();
+      registry.mockRestore();
+    }
   });
   it("upgrades installed library references through the dependency manager and skips unchanged versions", async () => {
     const { studioCtx, call } = fixture();
-    const dependency = new ProjectDependency({ name: "antd6", pkgId: "pkg-antd6", projectId: "library-antd6", version: "1.0.0", uuid: "dep-old", site: createSite() });
-    const published = new ProjectDependency({ name: "antd6", pkgId: dependency.pkgId, projectId: dependency.projectId, version: "1.1.0", uuid: "dep-new", site: createSite() });
+    const dependency = new ProjectDependency({
+      name: "antd6",
+      pkgId: "pkg-antd6",
+      projectId: "library-antd6",
+      version: "1.0.0",
+      uuid: "dep-old",
+      site: createSite(),
+    });
+    const published = new ProjectDependency({
+      name: "antd6",
+      pkgId: dependency.pkgId,
+      projectId: dependency.projectId,
+      version: "1.1.0",
+      uuid: "dep-new",
+      site: createSite(),
+    });
     runInAction(() => studioCtx.site.projectDependencies.push(dependency));
     const originalFetch = studioCtx.appCtx.api.getPkgVersion;
     const fetch = vi.fn().mockResolvedValue({ pkg: {}, depPkgs: [] });
     studioCtx.appCtx.api.getPkgVersion = fetch;
-    const unbundle = vi.spyOn(taggedUnbundle, "unbundleProjectDependency").mockReturnValue({ projectDependency: published } as any);
-    const upgrade = vi.spyOn(studioCtx.projectDependencyManager, "upgradeProjectDeps").mockResolvedValue(undefined);
+    const unbundle = vi
+      .spyOn(taggedUnbundle, "unbundleProjectDependency")
+      .mockReturnValue({ projectDependency: published } as any);
+    const upgrade = vi
+      .spyOn(studioCtx.projectDependencyManager, "upgradeProjectDeps")
+      .mockResolvedValue(undefined);
     try {
-      expect(await call("upgradeLibrary", { projectId: dependency.projectId })).toEqual({ projectId: dependency.projectId, previousVersion: "1.0.0", version: "1.1.0", upgraded: true });
+      expect(
+        await call("upgradeLibrary", { projectId: dependency.projectId }),
+      ).toEqual({
+        projectId: dependency.projectId,
+        previousVersion: "1.0.0",
+        version: "1.1.0",
+        upgraded: true,
+      });
       expect(fetch).toHaveBeenCalledWith(dependency.pkgId);
       expect(upgrade).toHaveBeenCalledWith([published]);
       published.version = "1.0.0";
       upgrade.mockClear();
-      expect((await call("upgradeLibrary", { projectId: dependency.projectId })).upgraded).toBe(false);
+      expect(
+        (await call("upgradeLibrary", { projectId: dependency.projectId }))
+          .upgraded,
+      ).toBe(false);
       expect(upgrade).not.toHaveBeenCalled();
       published.pkgId = "wrong-package";
-      await expect(call("upgradeLibrary", { projectId: dependency.projectId })).rejects.toThrow("does not match");
-    } finally { studioCtx.appCtx.api.getPkgVersion = originalFetch; unbundle.mockRestore(); upgrade.mockRestore(); }
+      await expect(
+        call("upgradeLibrary", { projectId: dependency.projectId }),
+      ).rejects.toThrow("does not match");
+    } finally {
+      studioCtx.appCtx.api.getPkgVersion = originalFetch;
+      unbundle.mockRestore();
+      upgrade.mockRestore();
+    }
   });
   it("rejects library upgrades on read-only projects and for uninstalled libraries", async () => {
     const { studioCtx, call } = fixture();
-    await expect(call("upgradeLibrary", { projectId: "missing" })).rejects.toThrow("not installed");
-    const permission = vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
-    try { await expect(call("upgradeLibrary", { projectId: "missing" })).rejects.toThrow("read-only"); }
-    finally { permission.mockRestore(); }
+    await expect(
+      call("upgradeLibrary", { projectId: "missing" }),
+    ).rejects.toThrow("not installed");
+    const permission = vi
+      .spyOn(studioCtx, "canEditProject")
+      .mockReturnValue(false);
+    try {
+      await expect(
+        call("upgradeLibrary", { projectId: "missing" }),
+      ).rejects.toThrow("read-only");
+    } finally {
+      permission.mockRestore();
+    }
   });
 
   it("imports captured block paragraphs without adding flex-only styles", async () => {
@@ -128,7 +264,9 @@ describe("AI prototype editor tools", () => {
       componentUuid: page.uuid,
       html: '<p style="display:block;width:416px;font-size:14px;line-height:22.4px">Captured paragraph</p>',
     });
-    expect(result.results[0].baseVariantTplTree).toContain("Captured paragraph");
+    expect(result.results[0].baseVariantTplTree).toContain(
+      "Captured paragraph",
+    );
     expect((await call("validate")).valid).toBe(true);
   });
   it("exposes introspectable schemas for every executable tool", () => {
@@ -219,10 +357,18 @@ describe("AI prototype editor tools", () => {
         padding: 80,
         frameUuid: arena.children[0].uuid,
       });
-      if (direction === "right") expect(pos.x).toBe(1446);
-      if (direction === "bottom") expect(pos.y).toBe(980);
-      if (direction === "left") expect(pos.x).toBe(-494);
-      if (direction === "top") expect(pos.y).toBe(-980);
+      if (direction === "right") {
+        expect(pos.x).toBe(1446);
+      }
+      if (direction === "bottom") {
+        expect(pos.y).toBe(980);
+      }
+      if (direction === "left") {
+        expect(pos.x).toBe(-494);
+      }
+      if (direction === "top") {
+        expect(pos.y).toBe(-980);
+      }
     }
     await call("createArtboard", {
       canvasName: arena.name,
@@ -237,20 +383,50 @@ describe("AI prototype editor tools", () => {
     expect(arena.children).toHaveLength(1);
   });
 
-  it("reads NAS SVG source and rejects raster responses", async()=>{
-    const {studioCtx,call,createPage}=fixture();const page=await createPage();const {xml}=svgData();
-    await call("insertHtml",{componentUuid:page.uuid,html:xml});
-    const tpl=ensure(flattenTpls(page.tplTree).find(t=>"tag" in t && t.tag === "svg"),"SVG missing");
-    const resource=await call("readVector",{componentUuid:page.uuid,elementUuid:tpl.uuid});
-    const asset=ensure(studioCtx.site.imageAssets.find(a=>a.uuid===resource.assetUuid),"Asset missing");
-    asset.dataUri="https://plasmic.studio.publib.cn/assets/fixture.svg";
-    const fetcher=vi.spyOn(globalThis,"fetch");
-    try {fetcher.mockResolvedValueOnce(new Response(xml,{headers:{"content-type":"image/svg+xml"}}));
-      expect((await call("readVector",{componentUuid:page.uuid,elementUuid:tpl.uuid})).svg).toBe(xml);
-      expect(fetcher).toHaveBeenCalledWith(asset.dataUri,expect.objectContaining({credentials:"include"}));
-      fetcher.mockResolvedValueOnce(new Response("raster",{headers:{"content-type":"image/png"}}));
-      await expect(call("readVector",{componentUuid:page.uuid,elementUuid:tpl.uuid})).rejects.toThrow("not SVG");
-    } finally {fetcher.mockRestore();}
+  it("reads NAS SVG source and rejects raster responses", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    const { xml } = svgData();
+    await call("insertHtml", { componentUuid: page.uuid, html: xml });
+    const tpl = ensure(
+      flattenTpls(page.tplTree).find((t) => "tag" in t && t.tag === "svg"),
+      "SVG missing",
+    );
+    const resource = await call("readVector", {
+      componentUuid: page.uuid,
+      elementUuid: tpl.uuid,
+    });
+    const asset = ensure(
+      studioCtx.site.imageAssets.find((a) => a.uuid === resource.assetUuid),
+      "Asset missing",
+    );
+    asset.dataUri = "https://plasmic.studio.publib.cn/assets/fixture.svg";
+    const fetcher = vi.spyOn(globalThis, "fetch");
+    try {
+      fetcher.mockResolvedValueOnce(
+        new Response(xml, { headers: { "content-type": "image/svg+xml" } }),
+      );
+      expect(
+        (
+          await call("readVector", {
+            componentUuid: page.uuid,
+            elementUuid: tpl.uuid,
+          })
+        ).svg,
+      ).toBe(xml);
+      expect(fetcher).toHaveBeenCalledWith(
+        asset.dataUri,
+        expect.objectContaining({ credentials: "include" }),
+      );
+      fetcher.mockResolvedValueOnce(
+        new Response("raster", { headers: { "content-type": "image/png" } }),
+      );
+      await expect(
+        call("readVector", { componentUuid: page.uuid, elementUuid: tpl.uuid }),
+      ).rejects.toThrow("not SVG");
+    } finally {
+      fetcher.mockRestore();
+    }
   });
 
   it("reads the project, creates and edits an actual editable page", async () => {

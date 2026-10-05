@@ -1,0 +1,129 @@
+.viewport {
+  position: absolute;
+  inset: 48px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.full {
+  inset: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 48px;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 12px;
+
+  button {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    color: #374151;
+    cursor: pointer;
+    &:hover {
+      background: #f3f4f6;
+    }
+    &:focus-visible {
+      outline: 2px solid #1677ff;
+      outline-offset: 2px;
+    }
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    &[aria-pressed="true"] {
+      background: #e6f4ff;
+      border-color: #91caff;
+      color: #0958d9;
+    }
+  }
+}
+
+.modes,
+.dimensions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dimensions input {
+  width: 76px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+.size {
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+.desktop {
+  background: #fff;
+}
+.resize {
+  position: absolute;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+  z-index: 1;
+  padding: 0;
+  &::after {
+    content: "";
+    display: block;
+    background: #9ca3af;
+    border-radius: 3px;
+  }
+  &:focus-visible {
+    outline: 2px solid #1677ff;
+  }
+}
+.left,
+.right {
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ew-resize;
+  &::after {
+    width: 3px;
+    height: 64px;
+  }
+}
+.left {
+  right: 100%;
+}
+.right {
+  left: 100%;
+}
+.bottom {
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  &::after {
+    width: 64px;
+    height: 3px;
+  }
+}

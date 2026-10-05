@@ -79,6 +79,42 @@ describe("ViewportCtx", () => {
     expect(ctx.canvasPadding()).toEqual(new Pt(190, 760));
     expect(dom.updateCanvasPadding).toHaveBeenCalledWith(new Pt(190, 760));
   });
+  test.each([0.19, 1, 2])(
+    "sidebar resizing keeps canvas points at the same screen position at scale %s",
+    (scale) => {
+      ctx = new ViewportCtx({
+        dom,
+        initialArena: pageArena,
+        initialClipperBox: Box.fromRect({
+          left: 56,
+          top: 80,
+          width: 1400,
+          height: 900,
+        }),
+        initialClipperScroll: Pt.zero(),
+      });
+      ctx.setArenaScalerSize(new Pt(5000, 3000));
+      ctx.scaleAtMidPt(scale);
+      ctx.scrollTo(ctx.canvasPadding().sub(new Pt(80, 100)));
+      vi.runAllTimers();
+
+      const point = new Pt(150, 200);
+      const clientPoint = ctx.scalerToClient(point);
+      for (let i = 0; i < 10; i++) {
+        for (const width of [1104, 1400]) {
+          ctx.setClipperBox(
+            Box.fromRect({ left: 56, top: 80, width, height: 900 }),
+          );
+          vi.runAllTimers();
+          expect(ctx.scalerToClient(point).x).toBeCloseTo(clientPoint.x);
+          expect(ctx.scalerToClient(point).y).toBeCloseTo(clientPoint.y);
+          expect(ctx.clientToScaler(clientPoint).x).toBeCloseTo(point.x);
+          expect(ctx.clientToScaler(clientPoint).y).toBeCloseTo(point.y);
+          expect(ctx.scale()).toBe(scale);
+        }
+      }
+    },
+  );
   test("arenaSize scales and updates DOM", () => {
     ctx = new ViewportCtx({
       dom,

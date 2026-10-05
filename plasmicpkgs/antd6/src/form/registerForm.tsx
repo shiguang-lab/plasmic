@@ -64,6 +64,7 @@ export function registerForm(loader?: Registerable) {
       alignItems: "flex-start",
     },
     props: {
+      disabled: { type: "boolean", defaultValueHint: false },
       mode: {
         type: "controlMode",
         defaultValue: "simplified",
@@ -226,11 +227,7 @@ export function registerForm(loader?: Registerable) {
         displayName: "On values change",
         argTypes: [
           {
-            name: "changedValues",
-            type: "object",
-          },
-          {
-            name: "allValues",
+            name: "values",
             type: "object",
           },
         ],

@@ -1,0 +1,299 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "five desktop pages, one overview, no breakpoints",
+      "passed": true
+    },
+    {
+      "name": "page and overview dimensions",
+      "passed": true
+    },
+    {
+      "name": "list Unicode integrity",
+      "passed": true
+    },
+    {
+      "name": "list viewport",
+      "passed": true
+    },
+    {
+      "name": "list one shell",
+      "passed": true
+    },
+    {
+      "name": "list no expression errors",
+      "passed": true
+    },
+    {
+      "name": "list cleaned defaults",
+      "passed": true
+    },
+    {
+      "name": "list role handler",
+      "passed": true
+    },
+    {
+      "name": "all max3",
+      "passed": true
+    },
+    {
+      "name": "all id width",
+      "passed": true
+    },
+    {
+      "name": "all key width",
+      "passed": true
+    },
+    {
+      "name": "all name width",
+      "passed": true
+    },
+    {
+      "name": "all type width",
+      "passed": true
+    },
+    {
+      "name": "all scenario width",
+      "passed": true
+    },
+    {
+      "name": "all status width",
+      "passed": true
+    },
+    {
+      "name": "all updated width",
+      "passed": true
+    },
+    {
+      "name": "all owner width",
+      "passed": true
+    },
+    {
+      "name": "all operations",
+      "passed": true
+    },
+    {
+      "name": "all horizontal scroll",
+      "passed": true
+    },
+    {
+      "name": "mine max3",
+      "passed": true
+    },
+    {
+      "name": "mine id width",
+      "passed": true
+    },
+    {
+      "name": "mine key width",
+      "passed": true
+    },
+    {
+      "name": "mine name width",
+      "passed": true
+    },
+    {
+      "name": "mine type width",
+      "passed": true
+    },
+    {
+      "name": "mine scenario width",
+      "passed": true
+    },
+    {
+      "name": "mine status width",
+      "passed": true
+    },
+    {
+      "name": "mine updated width",
+      "passed": true
+    },
+    {
+      "name": "mine owner width",
+      "passed": true
+    },
+    {
+      "name": "mine operations",
+      "passed": true
+    },
+    {
+      "name": "mine horizontal scroll",
+      "passed": true
+    },
+    {
+      "name": "measured table widths",
+      "passed": true
+    },
+    {
+      "name": "action width fits162 with padding32",
+      "passed": true
+    },
+    {
+      "name": "pagination inside page",
+      "passed": true
+    },
+    {
+      "name": "regular Unicode integrity",
+      "passed": true
+    },
+    {
+      "name": "regular viewport",
+      "passed": true
+    },
+    {
+      "name": "regular one shell",
+      "passed": true
+    },
+    {
+      "name": "regular no expression errors",
+      "passed": true
+    },
+    {
+      "name": "regular cleaned defaults",
+      "passed": true
+    },
+    {
+      "name": "regular role handler",
+      "passed": true
+    },
+    {
+      "name": "regular submitSQL readonly",
+      "passed": true
+    },
+    {
+      "name": "regular saveSQL readonly",
+      "passed": true
+    },
+    {
+      "name": "regular launchSQL readonly",
+      "passed": true
+    },
+    {
+      "name": "regular footer fits",
+      "passed": true
+    },
+    {
+      "name": "onetime Unicode integrity",
+      "passed": true
+    },
+    {
+      "name": "onetime viewport",
+      "passed": true
+    },
+    {
+      "name": "onetime one shell",
+      "passed": true
+    },
+    {
+      "name": "onetime no expression errors",
+      "passed": true
+    },
+    {
+      "name": "onetime cleaned defaults",
+      "passed": true
+    },
+    {
+      "name": "onetime role handler",
+      "passed": true
+    },
+    {
+      "name": "onetime submitSQL readonly",
+      "passed": true
+    },
+    {
+      "name": "onetime saveSQL readonly",
+      "passed": true
+    },
+    {
+      "name": "onetime launchSQL readonly",
+      "passed": true
+    },
+    {
+      "name": "onetime footer fits",
+      "passed": true
+    },
+    {
+      "name": "regularDetail Unicode integrity",
+      "passed": true
+    },
+    {
+      "name": "regularDetail viewport",
+      "passed": true
+    },
+    {
+      "name": "regularDetail one shell",
+      "passed": true
+    },
+    {
+      "name": "regularDetail no expression errors",
+      "passed": true
+    },
+    {
+      "name": "regularDetail cleaned defaults",
+      "passed": true
+    },
+    {
+      "name": "regularDetail role handler",
+      "passed": true
+    },
+    {
+      "name": "regularDetail tab count",
+      "passed": true
+    },
+    {
+      "name": "regularDetail basic info2cols",
+      "passed": true
+    },
+    {
+      "name": "regularDetail membersfull",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail Unicode integrity",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail viewport",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail one shell",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail no expression errors",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail cleaned defaults",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail role handler",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail tab count",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail basic info2cols",
+      "passed": true
+    },
+    {
+      "name": "onetimeDetail membersfull",
+      "passed": true
+    }
+  ],
+  "persistence": {
+    "passed": true,
+    "exactPublicModelsEqual": true,
+    "pages": 5,
+    "save": {
+      "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+      "revision": 107,
+      "saved": true
+    }
+  }
+}

@@ -1,5 +1,6 @@
-import React from "react";
 import { Tooltip } from "antd";
+import cls from "classnames";
+import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdTooltip(
@@ -8,12 +9,16 @@ export function AntdTooltip(
     popupRootClassName?: string;
   },
 ) {
-  const { popupRootClassName, titleText, ...rest } = props;
+  const { popupRootClassName, titleText, classNames, ...rest } = props;
   return (
     <Tooltip
       {...rest}
-      classNames={{ root: popupRootClassName }}
-      title={props.title || titleText}
+      classNames={(info) => {
+        const names =
+          typeof classNames === "function" ? classNames(info) : classNames;
+        return { ...names, root: cls(names?.root, popupRootClassName) };
+      }}
+      title={props.title === undefined ? titleText : props.title}
     />
   );
 }

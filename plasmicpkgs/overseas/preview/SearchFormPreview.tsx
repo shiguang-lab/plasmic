@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Input, Space } from "antd";
+import { Button, ConfigProvider, Input, InputNumber, Space } from "antd";
 import React, { useRef, useState } from "react";
 import { AntdCheckbox } from "../../antd6/src/registerCheckbox";
 import { AntdDatePicker } from "../../antd6/src/registerDatePicker";
@@ -43,13 +43,24 @@ export function SearchFormPreview() {
   const [includeRegion, setIncludeRegion] = useState(false);
   const [regionLabel, setRegionLabel] = useState("地区");
   const [required, setRequired] = useState(false);
+  const [labelWidth, setLabelWidth] = useState<number>();
   return (
     <ConfigProvider>
       <main style={{ padding: 32, maxWidth: 1280, margin: "auto" }}>
         <h1>SearchForm · 可编辑查询区</h1>
+        <label>
+          标签宽度（留空跟随内容）：
+          <InputNumber
+            aria-label="标签宽度"
+            min={0}
+            value={labelWidth}
+            onChange={(value) => setLabelWidth(value ?? undefined)}
+          />
+        </label>
         <SearchForm
           ref={ref}
           colSpan={6}
+          labelWidth={labelWidth}
           onValuesChange={setDraft}
           onSearch={setApplied}
           onReset={(values) => {
@@ -119,6 +130,9 @@ export function SearchFormPreview() {
             插入/删除地区
           </Button>
           <Button onClick={() => setRegionLabel("市场")}>修改字段标签</Button>
+          <Button onClick={() => setRegionLabel("客户所属市场")}>
+            使用长标签
+          </Button>
           <Button onClick={() => setRequired((value) => !value)}>
             切换必填
           </Button>

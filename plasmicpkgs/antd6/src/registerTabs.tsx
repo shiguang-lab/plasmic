@@ -1,8 +1,10 @@
 import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { Tabs } from "antd";
+import cls from "classnames";
 import React, { ReactElement, useMemo } from "react";
 import {
   Registerable,
+  asArray,
   registerComponentHelper,
   traverseReactEltTree,
 } from "./utils";
@@ -19,10 +21,17 @@ export const AntdTabItem: React.FC<TabItemType> = ({ children }) => {
 };
 
 function getTabItems(items: ReactElement): React.ReactElement<TabItemType>[] {
-  if (!React.isValidElement(items) && Array.isArray(items)) return [...items]; // indicates a single TabItem on repeat
+  if (!items) {
+    return [];
+  }
+  if (!React.isValidElement(items) && Array.isArray(items)) {
+    return [...items];
+  } // indicates a single TabItem on repeat
   return (items?.type as any)?.name == AntdTabItem.name
     ? [items]
-    : items?.props?.children?.flat(1);
+    : (asArray(items.props?.children)
+        .flat(1)
+        .filter(React.isValidElement) as React.ReactElement<TabItemType>[]);
 }
 
 function getTabItemKeys(items: ReactElement): string[] {
@@ -43,9 +52,9 @@ type TabsProps = Omit<
   "items" | "animated" | "tabBarExtraContent" | "renderTabBar"
 > & {
   items: ReactElement;
-  animated: boolean;
-  animateTabBar: boolean;
-  animateTabContent: boolean;
+  animated?: boolean;
+  animateTabBar?: boolean;
+  animateTabContent?: boolean;
   tabBarExtraContentLeft: React.ReactNode;
   tabBarExtraContentRight: React.ReactNode;
   sticky: boolean;
@@ -58,15 +67,16 @@ type TabsProps = Omit<
 export function AntdTabs(props: TabsProps) {
   const {
     items: itemsRaw,
-    animated,
-    animateTabBar,
-    animateTabContent,
+    animated = true,
+    animateTabBar = true,
+    animateTabContent = false,
     tabBarExtraContentLeft,
     tabBarExtraContentRight,
     sticky,
     stickyOffset,
     tabBarBackground,
     className,
+    classNames,
     tabPlacement,
     tabsScopeClassName,
     tabsDropdownScopeClassName,
@@ -97,8 +107,22 @@ export function AntdTabs(props: TabsProps) {
 
   return (
     <Tabs
-      className={`${className} ${tabsScopeClassName}`}
-      classNames={{ popup: { root: tabsDropdownScopeClassName } }}
+      className={cls(className, tabsScopeClassName)}
+      classNames={(info) => {
+        const names =
+          typeof classNames === "function" ? classNames(info) : classNames;
+        const popup =
+          typeof names?.popup === "string"
+            ? { root: names.popup }
+            : names?.popup;
+        return {
+          ...names,
+          popup: {
+            ...popup,
+            root: cls(popup?.root, tabsDropdownScopeClassName),
+          },
+        };
+      }}
       tabBarExtraContent={{
         left: <>{tabBarExtraContentLeft}</>,
         right: <>{tabBarExtraContentRight}</>,
@@ -201,6 +225,8 @@ export function registerTabs(loader?: Registerable) {
       overflow: "scroll",
     },
     props: {
+      addIcon: { type: "slot", hidePlaceholder: true },
+      removeIcon: { type: "slot", hidePlaceholder: true },
       activeKey: {
         editOnly: true,
         displayName: "Active tab key",
@@ -469,6 +495,8 @@ export function registerTabs(loader?: Registerable) {
     name: tabItemComponentName,
     displayName: "Tab Item",
     props: {
+      icon: { type: "slot", hidePlaceholder: true },
+      closeIcon: { type: "slot", hidePlaceholder: true },
       disabled: {
         type: "boolean",
         description: "Disable this tab",

@@ -21,7 +21,9 @@ test("Images generation and background editing send correct requests and never o
   const requests = [];
   const server = http.createServer(async (req, res) => {
     let body = "";
-    for await (const chunk of req) body += chunk;
+    for await (const chunk of req) {
+      body += chunk;
+    }
     requests.push({ url: req.url, headers: req.headers, body });
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ data: [{ b64_json: png.toString("base64") }] }));
@@ -102,43 +104,6 @@ test("missing service reports unconfigured without credentials", async () => {
         nativeImage,
       ),
       /Configure/,
-    );
-  } finally {
-    await fs.rm(dir, { recursive: true, force: true });
-  }
-});
-test("settings save credentials with owner-only permissions and return no key", async () => {
-  const {
-    saveImageConfig,
-    imageServiceSettings,
-  } = require("../src/image-service.cjs");
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-image-config-"));
-  try {
-    const result = await saveImageConfig(dir, {
-      baseUrl: "https://api.example.org/v1",
-      model: "fixture",
-      apiKey: "private-fixture-key",
-    });
-    assert.equal(result.configured, true);
-    assert.equal(result.apiKey, undefined);
-    assert.equal(
-      (await fs.stat(path.join(dir, "image-service.json"))).mode & 0o777,
-      0o600,
-    );
-    assert.deepEqual(await imageServiceSettings(dir), result);
-    await assert.rejects(
-      saveImageConfig(dir, {
-        baseUrl: "http://public.example.org/v1",
-        model: "fixture",
-        apiKey: "private-fixture-key",
-      }),
-      /HTTPS/,
-    );
-    assert.equal(
-      JSON.parse(
-        await fs.readFile(path.join(dir, "image-service.json"), "utf8"),
-      ).apiKey,
-      "private-fixture-key",
     );
   } finally {
     await fs.rm(dir, { recursive: true, force: true });

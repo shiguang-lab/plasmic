@@ -1,0 +1,27 @@
+{
+  "before": {
+    "missingComponents": [],
+    "wrongComponents": [],
+    "emptyCards": [],
+    "cardContentOutsideSlot": [],
+    "wrongCardPadding": [
+      {
+        "card": "listCard",
+        "property": "padding",
+        "expected": "0 20px",
+        "actual": "16px 20px"
+      }
+    ],
+    "unprovidedSlotChildren": [],
+    "passed": false
+  },
+  "reopened": {
+    "missingComponents": [],
+    "wrongComponents": [],
+    "emptyCards": [],
+    "cardContentOutsideSlot": [],
+    "wrongCardPadding": [],
+    "unprovidedSlotChildren": [],
+    "passed": true
+  }
+}

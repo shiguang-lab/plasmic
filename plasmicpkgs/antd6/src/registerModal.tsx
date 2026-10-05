@@ -1,5 +1,6 @@
 import type { StyleSection } from "@plasmicapp/host/registerComponent";
 import { Modal } from "antd";
+import classNames from "classnames";
 import React, { ReactElement, useMemo } from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
@@ -42,23 +43,10 @@ export function AntdModal(
     trigger,
     mask,
     closeOnOutsideClick,
+    defaultStylesClassName,
     ...rest
   } = props;
 
-  const memoOnOk = React.useMemo(() => {
-    if (onOpenChange || onOk) {
-      return (
-        e: Parameters<
-          NonNullable<React.ComponentProps<typeof Modal>["onOk"]>
-        >[0],
-      ) => {
-        onOpenChange?.(false);
-        onOk?.(e);
-      };
-    } else {
-      return undefined;
-    }
-  }, [onOpenChange, onOk]);
   const memoOnCancel = React.useMemo(() => {
     if (onOpenChange || onCancel) {
       return (
@@ -75,10 +63,7 @@ export function AntdModal(
   }, [onOpenChange, onCancel]);
 
   const widthProp = useMemo(() => {
-    if (!width) return undefined;
-    if (typeof width === "number") return width;
-    if (typeof width !== "string") return undefined;
-    if (/^\d+$/.test(width)) {
+    if (typeof width === "string" && /^\d+$/.test(width)) {
       return +width;
     }
     return width;
@@ -89,17 +74,24 @@ export function AntdModal(
       <Modal
         {...rest}
         mask={
-          typeof mask === "boolean"
+          closeOnOutsideClick === undefined || mask === false
             ? mask
-            : { ...mask, closable: closeOnOutsideClick ?? mask?.closable }
+            : {
+                ...(typeof mask === "object" ? mask : {}),
+                closable: closeOnOutsideClick,
+              }
         }
-        onOk={memoOnOk}
+        onOk={onOk}
         width={widthProp}
         onCancel={memoOnCancel}
         open={open}
-        footer={hideFooter ? null : (footer ?? undefined)}
+        footer={hideFooter ? null : footer}
         wrapClassName={wrapClassName}
-        className={`${props.className} ${props.defaultStylesClassName} ${modalScopeClassName}`}
+        className={classNames(
+          props.className,
+          defaultStylesClassName,
+          modalScopeClassName,
+        )}
       />
       {trigger ? (
         <div onClick={() => onOpenChange?.(true)}>{trigger}</div>
@@ -168,6 +160,8 @@ export function registerModal(loader?: Registerable) {
       onOk: {
         type: "eventHandler",
         argTypes: [],
+        description:
+          "Validate and save, then explicitly close the modal after success. Clicking OK does not change open automatically.",
       } as any,
       onCancel: {
         type: "eventHandler",

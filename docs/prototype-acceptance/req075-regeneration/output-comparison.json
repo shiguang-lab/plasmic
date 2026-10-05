@@ -1,0 +1,226 @@
+{
+  "sameInputs": true,
+  "geometryEqualExcludingLiveClock": true,
+  "geometry": [
+    {
+      "page": "list",
+      "stableGeometryEqual": true,
+      "dynamicClockDifferences": []
+    },
+    {
+      "page": "regular",
+      "stableGeometryEqual": true,
+      "dynamicClockDifferences": [
+        {
+          "index": 34,
+          "first": {
+            "tag": "div",
+            "x": 770.421875,
+            "y": 15,
+            "width": 645.578125,
+            "height": 33
+          },
+          "second": {
+            "tag": "div",
+            "x": 773.375,
+            "y": 15,
+            "width": 642.625,
+            "height": 33
+          },
+          "reason": "live clock text width"
+        },
+        {
+          "index": 35,
+          "first": {
+            "tag": "time",
+            "x": 770.421875,
+            "y": 21.5,
+            "width": 210.578125,
+            "height": 20
+          },
+          "second": {
+            "tag": "time",
+            "x": 773.375,
+            "y": 21.5,
+            "width": 207.625,
+            "height": 20
+          },
+          "reason": "live clock text width"
+        }
+      ]
+    },
+    {
+      "page": "onetime",
+      "stableGeometryEqual": true,
+      "dynamicClockDifferences": [
+        {
+          "index": 34,
+          "first": {
+            "tag": "div",
+            "x": 772.75,
+            "y": 15,
+            "width": 643.25,
+            "height": 33
+          },
+          "second": {
+            "tag": "div",
+            "x": 775.65625,
+            "y": 15,
+            "width": 640.34375,
+            "height": 33
+          },
+          "reason": "live clock text width"
+        },
+        {
+          "index": 35,
+          "first": {
+            "tag": "time",
+            "x": 772.75,
+            "y": 21.5,
+            "width": 208.25,
+            "height": 20
+          },
+          "second": {
+            "tag": "time",
+            "x": 775.65625,
+            "y": 21.5,
+            "width": 205.34375,
+            "height": 20
+          },
+          "reason": "live clock text width"
+        }
+      ]
+    },
+    {
+      "page": "regularDetail",
+      "stableGeometryEqual": true,
+      "dynamicClockDifferences": [
+        {
+          "index": 34,
+          "first": {
+            "tag": "div",
+            "x": 772.9765625,
+            "y": 15,
+            "width": 643.0234375,
+            "height": 33
+          },
+          "second": {
+            "tag": "div",
+            "x": 773.6796875,
+            "y": 15,
+            "width": 642.3203125,
+            "height": 33
+          },
+          "reason": "live clock text width"
+        },
+        {
+          "index": 35,
+          "first": {
+            "tag": "time",
+            "x": 772.9765625,
+            "y": 21.5,
+            "width": 208.0234375,
+            "height": 20
+          },
+          "second": {
+            "tag": "time",
+            "x": 773.6796875,
+            "y": 21.5,
+            "width": 207.3203125,
+            "height": 20
+          },
+          "reason": "live clock text width"
+        }
+      ]
+    },
+    {
+      "page": "onetimeDetail",
+      "stableGeometryEqual": true,
+      "dynamicClockDifferences": [
+        {
+          "index": 34,
+          "first": {
+            "tag": "div",
+            "x": 770.2578125,
+            "y": 15,
+            "width": 645.7421875,
+            "height": 33
+          },
+          "second": {
+            "tag": "div",
+            "x": 775.6015625,
+            "y": 15,
+            "width": 640.3984375,
+            "height": 33
+          },
+          "reason": "live clock text width"
+        },
+        {
+          "index": 35,
+          "first": {
+            "tag": "time",
+            "x": 770.2578125,
+            "y": 21.5,
+            "width": 210.7421875,
+            "height": 20
+          },
+          "second": {
+            "tag": "time",
+            "x": 775.6015625,
+            "y": 21.5,
+            "width": 205.3984375,
+            "height": 20
+          },
+          "reason": "live clock text width"
+        }
+      ]
+    }
+  ],
+  "staticBusinessPixelsEqual": true,
+  "businessPixelsEqual": false,
+  "images": [
+    {
+      "page": "list",
+      "comparedRegion": [0, 64, 1440, 1024],
+      "identical": false,
+      "differenceBounds": [1120, 422, 1135, 632],
+      "animatedBadgeMasks": [
+        [1120, 422, 1135, 437],
+        [1120, 617, 1135, 632]
+      ],
+      "staticPixelsEqual": true
+    },
+    {
+      "page": "regular",
+      "comparedRegion": [0, 64, 1440, 1024],
+      "identical": true,
+      "differenceBounds": null,
+      "animatedBadgeMasks": [],
+      "staticPixelsEqual": true
+    },
+    {
+      "page": "onetime",
+      "comparedRegion": [0, 64, 1440, 1024],
+      "identical": true,
+      "differenceBounds": null,
+      "animatedBadgeMasks": [],
+      "staticPixelsEqual": true
+    },
+    {
+      "page": "regularDetail",
+      "comparedRegion": [0, 64, 1440, 1024],
+      "identical": true,
+      "differenceBounds": null,
+      "animatedBadgeMasks": [],
+      "staticPixelsEqual": true
+    },
+    {
+      "page": "onetimeDetail",
+      "comparedRegion": [0, 64, 1440, 1024],
+      "identical": true,
+      "differenceBounds": null,
+      "animatedBadgeMasks": [],
+      "staticPixelsEqual": true
+    }
+  ]
+}

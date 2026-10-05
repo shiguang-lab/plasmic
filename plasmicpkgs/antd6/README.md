@@ -25,6 +25,32 @@ pages import the same wrappers from the package's `skinny` entry points.
   are not draggable components; Row and Col provide editable grid layouts.
 - Tour targets use `targetSelector` within the rendering document. Listy items
   use `{key, content}`; Masonry items use `{key, data: {content}}`.
+- Modal OK does not close automatically. Validate/save, then set `open=false`
+  after success. Cancel and close synchronize `onOpenChange(false)`.
+- Form validation rejects on failure. Submission disabling restores after success
+  or failure and preserves explicit/inherited disabled settings. Its
+  `extendedOnValuesChange(values)` event receives the complete form values.
+- Table selection supports controlled keys or internal selection. Pagination
+  initializes index states without firing `onChange` on mount.
+- Tabs animates the ink bar by default. Tree expansion, Popover delays and date
+  input behavior follow native defaults. Empty Tooltip titles suppress fallback.
+- Upload reads files locally into base64 `contents`. `status="done"` means the
+  local file is ready; no server upload occurs. Multiple files retain selection
+  order; `maxCount` keeps the newest files.
+- Semantic classes from native objects/functions combine with Studio scopes;
+  editor styling props do not become DOM attributes. Modal honors `footer=null`,
+  responsive/zero width and outside-click settings with boolean/object masks.
+- Select and TreeSelect states support scalar, array and labeled values; Menu
+  selection events receive native info objects. RangePicker preserves inherited
+  disabling and explicit whole-control overrides over endpoint flags.
+
+## Icons
+
+Install the independent **Ant Design Icons** library from **Component Store → Icons**.
+Each icon is an official `@ant-design/icons` component, with its own registration
+and import name. Ant Design 6 does not register an icon library globally. Put the
+installed icon components in icon slots using Studio's standard slot editing.
+The top-level Icons section continues to list the project's SVG assets.
 
 ## Version 6 APIs
 
@@ -41,5 +67,6 @@ Listy is registered separately.
 ```sh
 pnpm --filter @shiguang-lab/plasmic-antd6 typecheck
 pnpm --filter @shiguang-lab/plasmic-antd6 test
+pnpm --filter @shiguang-lab/plasmic-antd6 test:interactions
 pnpm --filter @shiguang-lab/plasmic-antd6... build
 ```

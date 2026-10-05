@@ -1261,6 +1261,22 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
 
+  plasmicpkgs/antd-icons:
+    dependencies:
+      '@ant-design/icons':
+        specifier: 6.3.4
+        version: 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@plasmicapp/host':
+        specifier: 2.0.19
+        version: link:../../packages/host
+      '@types/react':
+        specifier: 'catalog:'
+        version: 18.3.27
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+
   plasmicpkgs/antd5:
     dependencies:
       antd:
@@ -1357,9 +1373,12 @@ importers:
 
   plasmicpkgs/antd6:
     dependencies:
-      "@ant-design/icons":
+      '@ant-design/icons':
         specifier: ^6.0.0
         version: 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@shiguang-lab/plasmic-overseas':
+        specifier: workspace:*
+        version: link:../overseas
       antd:
         specifier: 6.6.5
         version: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1375,51 +1394,48 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.18.1
-      "@shiguang-lab/plasmic-overseas":
-        specifier: workspace:*
-        version: link:../overseas
     devDependencies:
-      "@babel/preset-env":
-        specifier: "catalog:"
+      '@babel/preset-env':
+        specifier: 'catalog:'
         version: 7.29.7(@babel/core@7.29.7)
-      "@babel/preset-react":
-        specifier: "catalog:"
+      '@babel/preset-react':
+        specifier: 'catalog:'
         version: 7.29.7(@babel/core@7.29.7)
-      "@babel/preset-typescript":
-        specifier: "catalog:"
+      '@babel/preset-typescript':
+        specifier: 'catalog:'
         version: 7.29.7(@babel/core@7.29.7)
-      "@plasmicapp/data-sources":
+      '@plasmicapp/data-sources':
         specifier: 1.0.29
         version: link:../../packages/data-sources
-      "@plasmicapp/host":
+      '@plasmicapp/host':
         specifier: 2.0.19
         version: link:../../packages/host
-      "@plasmicapp/query":
+      '@plasmicapp/query':
         specifier: 0.1.88
         version: link:../../packages/query
-      "@plasmicapp/react-web":
+      '@plasmicapp/react-web':
         specifier: 1.0.39
         version: link:../../packages/react-web
-      "@rollup/plugin-commonjs":
+      '@rollup/plugin-commonjs':
         specifier: ^28.0.0
         version: 28.0.9(rollup@4.62.2)
-      "@rollup/plugin-json":
+      '@rollup/plugin-json':
         specifier: ^6.0.0
         version: 6.1.0(rollup@4.62.2)
-      "@rollup/plugin-node-resolve":
+      '@rollup/plugin-node-resolve':
         specifier: ^16.0.0
         version: 16.0.3(rollup@4.62.2)
-      "@types/lodash":
-        specifier: "catalog:"
+      '@types/lodash':
+        specifier: 'catalog:'
         version: 4.17.25
-      "@types/node":
+      '@types/node':
         specifier: ^22.10.0
         version: 22.20.0
-      "@types/react":
-        specifier: "catalog:"
+      '@types/react':
+        specifier: 'catalog:'
         version: 18.3.27
-      "@types/react-dom":
-        specifier: "catalog:"
+      '@types/react-dom':
+        specifier: 'catalog:'
         version: 18.3.7(@types/react@18.3.27)
       glob:
         specifier: ^8.1.0
@@ -1434,65 +1450,16 @@ importers:
         specifier: ^4.0.0
         version: 4.62.2
       rollup-plugin-dts:
-        specifier: "catalog:"
+        specifier: 'catalog:'
         version: 5.3.1(rollup@4.62.2)(typescript@5.2.2)
       rollup-plugin-esbuild:
-        specifier: "catalog:"
+        specifier: 'catalog:'
         version: 5.0.0(esbuild@0.28.2)(rollup@4.62.2)
       rollup-plugin-replace-imports:
-        specifier: "catalog:"
+        specifier: 'catalog:'
         version: 1.0.0
       tsx:
-        specifier: "catalog:"
-        version: 4.23.15
-
-  plasmicpkgs/overseas:
-    dependencies:
-      antd:
-        specifier: 6.6.5
-        version: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      "@ant-design/icons":
-        specifier: ^6.0.0
-        version: 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-    devDependencies:
-      "@plasmicapp/host":
-        specifier: 2.0.19
-        version: link:../../packages/host
-      "@rollup/plugin-commonjs":
-        specifier: 28.0.9
-        version: 28.0.9(rollup@4.62.2)
-      "@rollup/plugin-json":
-        specifier: 6.1.0
-        version: 6.1.0(rollup@4.62.2)
-      "@rollup/plugin-node-resolve":
-        specifier: 16.0.3
-        version: 16.0.3(rollup@4.62.2)
-      "@types/node":
-        specifier: 22.20.0
-        version: 22.20.0
-      "@types/react":
-        specifier: 18.3.27
-        version: 18.3.27
-      "@types/react-dom":
-        specifier: 18.3.7
-        version: 18.3.7(@types/react@18.3.27)
-      glob:
-        specifier: 8.1.0
-        version: 8.1.0
-      react:
-        specifier: 18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: 18.3.1
-        version: 18.3.1(react@18.3.1)
-      rollup:
-        specifier: 4.62.2
-        version: 4.62.2
-      rollup-plugin-esbuild:
-        specifier: 5.0.0
-        version: 5.0.0(esbuild@0.28.2)(rollup@4.62.2)
-      tsx:
-        specifier: 4.23.15
+        specifier: 'catalog:'
         version: 4.23.15
 
   plasmicpkgs/chakra-ui:
@@ -2049,6 +2016,55 @@ importers:
       tslib:
         specifier: 'catalog:'
         version: 2.8.1
+
+  plasmicpkgs/overseas:
+    dependencies:
+      '@ant-design/icons':
+        specifier: ^6.0.0
+        version: 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd:
+        specifier: 6.6.5
+        version: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@plasmicapp/host':
+        specifier: 2.0.19
+        version: link:../../packages/host
+      '@rollup/plugin-commonjs':
+        specifier: 28.0.9
+        version: 28.0.9(rollup@4.62.2)
+      '@rollup/plugin-json':
+        specifier: 6.1.0
+        version: 6.1.0(rollup@4.62.2)
+      '@rollup/plugin-node-resolve':
+        specifier: 16.0.3
+        version: 16.0.3(rollup@4.62.2)
+      '@types/node':
+        specifier: 22.20.0
+        version: 22.20.0
+      '@types/react':
+        specifier: 18.3.27
+        version: 18.3.27
+      '@types/react-dom':
+        specifier: 18.3.7
+        version: 18.3.7(@types/react@18.3.27)
+      glob:
+        specifier: 8.1.0
+        version: 8.1.0
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
+      rollup:
+        specifier: 4.62.2
+        version: 4.62.2
+      rollup-plugin-esbuild:
+        specifier: 5.0.0
+        version: 5.0.0(esbuild@0.28.2)(rollup@4.62.2)
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
 
   plasmicpkgs/plasmic-basic-components:
     devDependencies:
@@ -3258,6 +3274,31 @@ importers:
       tslib:
         specifier: 'catalog:'
         version: 2.8.1
+
+  plasmicpkgs/react-ui:
+    dependencies:
+      '@react/ui':
+        specifier: file:../../vendor/react-ui
+        version: file:vendor/react-ui(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd:
+        specifier: 6.6.5
+        version: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@plasmicapp/host':
+        specifier: 2.0.19
+        version: link:../../packages/host
+      '@types/react':
+        specifier: 18.3.27
+        version: 18.3.27
+      '@types/react-dom':
+        specifier: 18.3.7
+        version: 18.3.7(@types/react@18.3.27)
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
 
   plasmicpkgs/react-youtube:
     dependencies:
@@ -8136,6 +8177,12 @@ packages:
     peerDependencies:
       react: 18.3.1
 
+  '@react/ui@file:vendor/react-ui':
+    resolution: {directory: vendor/react-ui, type: directory}
+    peerDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1
+
   '@remirror/core-constants@3.0.0':
     resolution: {integrity: sha512-42aWfPrimMfDKDi4YegyS7x+/0tlzaqwPQCULLanv3DMIlu96KTJR0fM5isWX2UViOqlGnX6YFgqWepcX+XMNg==}
 
@@ -10868,6 +10915,9 @@ packages:
 
   class-variance-authority@0.7.1:
     resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
+
+  classcat@5.0.5:
+    resolution: {integrity: sha512-JhZUT7JFcQy/EzW605k/ktHtncoo9vnyW/2GspNYwFlN1C/WmjuV/xtS04e9SOkL2sTdw0VAZ2UGCcQ9lR6p6w==}
 
   classnames@2.5.1:
     resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
@@ -24858,6 +24908,18 @@ snapshots:
     dependencies:
       react: 18.3.1
 
+  '@react/ui@file:vendor/react-ui(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@ant-design/icons': 6.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      antd: 6.6.5(date-fns@2.30.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classcat: 5.0.5
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+
   '@remirror/core-constants@3.0.0': {}
 
   '@repeaterjs/repeater@3.1.0': {}
@@ -26342,7 +26404,7 @@ snapshots:
 
   '@types/reach__router@1.3.15':
     dependencies:
-      '@types/react': 19.2.17
+      '@types/react': 18.3.27
 
   '@types/react-dom@18.3.7(@types/react@18.3.27)':
     dependencies:
@@ -26363,7 +26425,7 @@ snapshots:
 
   '@types/react-slick@0.23.13':
     dependencies:
-      '@types/react': 19.2.17
+      '@types/react': 18.3.27
 
   '@types/react@18.3.27':
     dependencies:
@@ -28229,6 +28291,8 @@ snapshots:
   class-variance-authority@0.7.1:
     dependencies:
       clsx: 2.1.1
+
+  classcat@5.0.5: {}
 
   classnames@2.5.1: {}
 

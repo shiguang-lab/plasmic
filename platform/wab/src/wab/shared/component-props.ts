@@ -1,5 +1,6 @@
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { isSlot } from "@/wab/shared/SlotUtils";
 import { getLinkedCodeProps } from "@/wab/shared/cached-selectors";
 import {
   StudioPropType,
@@ -52,7 +53,9 @@ export const inferPropTypeFromParam = (
   tpl: TplComponent,
   param: Param,
 ): StudioPropType<any> => {
-  let propType = wabTypeToPropType(param.type);
+  let propType: StudioPropType<any> = isSlot(param)
+    ? { type: "slot" }
+    : wabTypeToPropType(param.type);
   // code components can have more advanced prop types.
   if (viewCtx) {
     if (isCodeComponent(tpl.component) || isPlumeComponent(tpl.component)) {

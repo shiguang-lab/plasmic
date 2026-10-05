@@ -6,6 +6,7 @@ import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Pla
 import ChevronUpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronUpSvg";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { isEmptyReactNode } from "@/wab/commons/ViewUtil";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import cn from "classnames";
 import { observer, Observer } from "mobx-react";
 import React, {
@@ -282,6 +283,9 @@ export function SidebarSection_(
       ? children(renderMaybeCollapsibleRows)
       : children;
 
+  const scrollableBody = scrollable || maxHeight !== undefined;
+  const Body = scrollableBody ? Scrollbar : "div";
+
   return (
     <div
       className={cn(className, {
@@ -343,10 +347,12 @@ export function SidebarSection_(
         </MaybeWrap>
       )}
       {showBodyContent && (
-        <div
+        <Body
+          {...(scrollableBody ? { scrollX: false } : {})}
           className={cn({
             SidebarSection__Body: true,
             [styles.bodyScrollable]: scrollable,
+            "studio-scrollbar": scrollableBody,
             SidebarSection__Body__EmptyBody: emptyBody && !showEmptyDescription,
             SidebarSection__Body__ZeroBodyPadding:
               zeroBodyPadding && !showEmptyDescription,
@@ -356,7 +362,6 @@ export function SidebarSection_(
           })}
           style={{
             maxHeight,
-            overflowY: maxHeight === undefined ? undefined : "auto",
           }}
         >
           <SidebarSectionContext.Provider value={{ isExpanded: showMore }}>
@@ -382,7 +387,7 @@ export function SidebarSection_(
               />
             )}
           </SidebarSectionContext.Provider>
-        </div>
+        </Body>
       )}
     </div>
   );

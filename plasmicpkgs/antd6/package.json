@@ -78,6 +78,7 @@
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
     "test": "tsx --test src/*.test.tsx",
+    "test:interactions": "vitest run --config vitest.config.mts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

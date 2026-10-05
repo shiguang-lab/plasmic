@@ -3,38 +3,47 @@ import React from "react";
 import { buttonComponentName } from "./names";
 import { Registerable, registerComponentHelper } from "./utils";
 
-export const AntdButton = React.forwardRef<
-  React.ComponentRef<typeof Button>,
-  Omit<React.ComponentPropsWithoutRef<typeof Button>, "target"> & {
-    submitsForm?: boolean;
-    target?: React.ComponentProps<typeof Button>["target"] | boolean;
-  }
->(function AntdButton(props, ref) {
-  const { submitsForm = false, children, ...rest } = props;
-  const target =
-    props.target === true
-      ? "_blank"
-      : props.target === false
-        ? undefined
-        : props.target;
-  return (
-    <Button
-      {...rest}
-      ref={ref}
-      children={
-        <div
-          style={{
-            display: "inline-block",
-          }}
-        >
-          {children}
-        </div>
-      }
-      htmlType={submitsForm ? "submit" : "button"}
-      target={target}
-    />
-  );
-});
+export type AntdButtonProps = Omit<
+  React.ComponentPropsWithoutRef<typeof Button>,
+  "target"
+> & {
+  submitsForm?: boolean;
+  target?: React.ComponentProps<typeof Button>["target"] | boolean;
+};
+
+export const AntdButton: React.ForwardRefExoticComponent<
+  React.PropsWithoutRef<AntdButtonProps> &
+    React.RefAttributes<React.ComponentRef<typeof Button>>
+> = React.forwardRef<React.ComponentRef<typeof Button>, AntdButtonProps>(
+  function AntdButton(props, ref) {
+    const { submitsForm = false, children, ...rest } = props;
+    const target =
+      props.target === true
+        ? "_blank"
+        : props.target === false
+          ? undefined
+          : props.target;
+    return (
+      <Button
+        {...rest}
+        ref={ref}
+        children={
+          children != null && children !== "" ? (
+            <div
+              style={{
+                display: "inline-block",
+              }}
+            >
+              {children}
+            </div>
+          ) : undefined
+        }
+        htmlType={props.htmlType ?? (submitsForm ? "submit" : "button")}
+        target={target}
+      />
+    );
+  },
+);
 
 export function registerButton(loader?: Registerable) {
   registerComponentHelper(loader, AntdButton, {

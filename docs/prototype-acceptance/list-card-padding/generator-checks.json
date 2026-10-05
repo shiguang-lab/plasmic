@@ -1,0 +1,127 @@
+[
+  {
+    "page": "list",
+    "card": "listSection",
+    "padding": "0 20px"
+  },
+  {
+    "page": "regular",
+    "card": "basicInformation",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regular",
+    "card": "sqlSection",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regular",
+    "card": "workflowActions",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetime",
+    "card": "basicInformation",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetime",
+    "card": "sqlSection",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetime",
+    "card": "workflowActions",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "detailSummary",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "detailSection",
+    "padding": "0 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "statusMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "selectionMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "refreshMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "membersMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "conditionCard",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "snapshotCard",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "regularDetail",
+    "card": "applicationSummary",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "detailSummary",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "detailSection",
+    "padding": "0 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "statusMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "selectionMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "refreshMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "membersMetric",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "conditionCard",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "snapshotCard",
+    "padding": "16px 20px"
+  },
+  {
+    "page": "onetimeDetail",
+    "card": "applicationSummary",
+    "padding": "16px 20px"
+  }
+]

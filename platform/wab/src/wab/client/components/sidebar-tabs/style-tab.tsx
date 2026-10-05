@@ -67,6 +67,7 @@ import {
   isKnownVirtualRenderExpr,
 } from "@/wab/shared/model/classes";
 import { selectionControlsColor } from "@/wab/styles/css-variables";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Menu } from "antd";
 import * as mobx from "mobx";
 import { observer } from "mobx-react";
@@ -82,9 +83,7 @@ export const StyleTabContext = createContext<StyleTabFilter>("all");
  * - "selector": Animation on a private style variant with the given CSS selector
  */
 export type NewAnimation =
-  | { type: "base" }
-  | { type: "selector"; cssSelector: string }
-  | null;
+  { type: "base" } | { type: "selector"; cssSelector: string } | null;
 
 interface NewAnimationContextValue {
   newAnimation: NewAnimation;
@@ -436,8 +435,9 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
     <PopoverFrameProvider containerSelector=".style-tab">
       <SidebarModalProvider containerSelector=".style-tab">
         <div className="canvas-editor__right-pane__bottom style-tab">
-          <div
-            className="canvas-editor__right-pane__bottom__scroll"
+          <Scrollbar
+            scrollX={false}
+            className="canvas-editor__right-pane__bottom__scroll studio-scrollbar"
             style={
               focused
                 ? {
@@ -460,7 +460,7 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 <StyleTabForTpl viewCtx={viewCtx} tpl={tpl} />
               </>
             ) : null}
-          </div>
+          </Scrollbar>
         </div>
       </SidebarModalProvider>
     </PopoverFrameProvider>

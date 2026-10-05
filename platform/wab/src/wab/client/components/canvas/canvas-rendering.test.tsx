@@ -5,9 +5,11 @@ import {
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { interpolatedStringToTemplatedString } from "@/wab/shared/copilot/dynamic-value-input";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
-import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { mkParam } from "@/wab/shared/core/lang";
+import { mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
 import { mkDataSourceTemplate } from "@/wab/shared/data-sources-meta/data-sources";
 import {
+  CodeComponentMeta,
   Component,
   ComponentDataQuery,
   ComponentServerQuery,
@@ -16,6 +18,7 @@ import {
   CustomFunctionExpr,
   DataSourceOpExpr,
   FunctionArg,
+  RenderExpr,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { usePlasmicQueries } from "@plasmicapp/data-sources";
@@ -394,4 +397,62 @@ describe("useComponentLevelQueries", () => {
       }
     });
   });
+});
+
+describe("code component slot defaults on canvas", () => {
+  it.each([ComponentType.Code, ComponentType.Plain])(
+    "preserves empty-slot semantics for %s and explicit null",
+    (type) => {
+      const param = mkParam({
+        name: "suffixIcon",
+        type: typeFactory.renderable(),
+        paramType: "slot",
+      });
+      const component = mkComponent({
+        name: "Select",
+        type,
+        params: [param],
+        codeComponentMeta:
+          type === ComponentType.Code
+            ? ({
+                importPath: "antd",
+                importName: "Select",
+                defaultExport: false,
+              } as CodeComponentMeta)
+            : null,
+        tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }),
+      });
+      const tpl = mkTplComponentX({
+        component,
+        baseVariant: component.variants[0],
+        args: { suffixIcon: new RenderExpr({ tpl: [] }) },
+      });
+      const ctx = mkCtx(mkEnv(), new Map());
+      Object.assign(ctx.viewCtx, {
+        componentArgsContainer: () => undefined,
+        componentStackFrames: () => [],
+      });
+      Object.assign(ctx.viewCtx.canvasCtx, {
+        getRegisteredCodeComponentsAndContextsMap: () => new Map(),
+      });
+      const empty = _testOnlyUtils.computeTplComponentArgs(
+        tpl,
+        { args: tpl.vsettings[0].args, attrs: {} } as any,
+        ctx,
+      );
+      expect(empty.suffixIcon).toBe(
+        type === ComponentType.Code ? undefined : null,
+      );
+      tpl.vsettings[0].args[0].expr = new CustomCode({
+        code: "(null)",
+        fallback: null,
+      });
+      const explicit = _testOnlyUtils.computeTplComponentArgs(
+        tpl,
+        { args: tpl.vsettings[0].args, attrs: {} } as any,
+        ctx,
+      );
+      expect(explicit.suffixIcon).toBeNull();
+    },
+  );
 });

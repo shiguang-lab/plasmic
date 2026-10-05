@@ -2,11 +2,12 @@ import type { DataOp, TableSchema } from "@plasmicapp/data-sources";
 import { CodeComponentMode, ComponentHelpers } from "@plasmicapp/host";
 import { CanvasComponentProps } from "@plasmicapp/host/registerComponent";
 import { Form } from "antd";
-import type { FormInstance, FormProps } from "antd/es/form";
 import type { ColProps } from "antd/es/col";
+import type { FormInstance, FormProps } from "antd/es/form";
 import equal from "fast-deep-equal";
 import React from "react";
 import { setFieldsToUndefined, usePrevious } from "../utils";
+import { InternalFormItemProps } from "./FormItem";
 import {
   CommonFormControlContextData,
   FieldEntity,
@@ -15,7 +16,6 @@ import {
   InternalFieldCtx,
   InternalFormInstanceContext,
 } from "./contexts";
-import { InternalFormItemProps } from "./FormItem";
 
 export enum InputType {
   Text = "Text",
@@ -106,9 +106,10 @@ const Internal = React.forwardRef(
     ref: React.Ref<FormRefActions>,
   ) => {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const pendingSubmissions = React.useRef(0);
     const [form] = Form.useForm();
-    const values = form.getFieldsValue(true);
-    const lastValue = React.useRef(values);
+    const formValues = form.getFieldsValue(true);
+    const lastValue = React.useRef(formValues);
     const {
       extendedOnValuesChange,
       forceRemount,
@@ -116,12 +117,14 @@ const Internal = React.forwardRef(
       internalFieldCtx,
       setInternalFieldCtx,
       autoDisableWhileSubmitting = true,
+      onIsSubmittingChange,
+      disabled,
       ...rest
     } = props;
     // extracted from https://github.com/react-component/field-form/blob/master/src/Form.tsx#L120
     const childrenNode =
       typeof props.children === "function"
-        ? props.children(values, form)
+        ? props.children(formValues, form)
         : props.children;
 
     const fireOnValuesChange = React.useCallback(() => {
@@ -152,13 +155,7 @@ const Internal = React.forwardRef(
         form.resetFields();
         extendedOnValuesChange?.(form.getFieldsValue(true));
       },
-      validateFields: async (...args) => {
-        try {
-          return await form.validateFields(...(args as any));
-        } catch (err) {
-          return err as any;
-        }
-      },
+      validateFields: (...args) => form.validateFields(...(args as any)),
       clearFields: () => {
         const values = form.getFieldsValue(true);
         setFieldsToUndefined(values);
@@ -199,9 +196,9 @@ const Internal = React.forwardRef(
     const updateIsSubmitting = React.useCallback(
       (newValue: boolean) => {
         setIsSubmitting(newValue);
-        props.onIsSubmittingChange?.(newValue);
+        onIsSubmittingChange?.(newValue);
       },
-      [props.onIsSubmittingChange, setIsSubmitting],
+      [onIsSubmittingChange, setIsSubmitting],
     );
 
     return (
@@ -228,18 +225,19 @@ const Internal = React.forwardRef(
               extendedOnValuesChange?.(form.getFieldsValue(true));
             }}
             onFinish={async (values) => {
-              if (isSubmitting && autoDisableWhileSubmitting) {
+              if (pendingSubmissions.current && autoDisableWhileSubmitting) {
                 return;
               }
-              updateIsSubmitting(true);
-              const submission = props.onFinish?.(values);
-              if (
-                typeof submission === "object" &&
-                typeof submission.then === "function"
-              ) {
-                await submission;
+              if (++pendingSubmissions.current === 1) {
+                updateIsSubmitting(true);
               }
-              updateIsSubmitting(false);
+              try {
+                await props.onFinish?.(values);
+              } finally {
+                if (--pendingSubmissions.current === 0) {
+                  updateIsSubmitting(false);
+                }
+              }
             }}
             form={form}
             labelCol={
@@ -252,7 +250,9 @@ const Internal = React.forwardRef(
                 ? undefined
                 : props.wrapperCol
             }
-            disabled={isSubmitting && autoDisableWhileSubmitting}
+            disabled={
+              isSubmitting && autoDisableWhileSubmitting ? true : disabled
+            }
           >
             {/*Remove built-in spacing on form fields*/}
             <style>{`

@@ -49,7 +49,7 @@ export function registerSteps(loader?: Registerable) {
       current: {
         type: "number",
         displayName: "Current step",
-        defaultValue: 1,
+        defaultValueHint: 0,
       },
       size: {
         type: "choice",

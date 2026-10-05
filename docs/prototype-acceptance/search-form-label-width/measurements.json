@@ -1,0 +1,147 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "auto": [
+    {
+      "text": "关键词",
+      "width": 56.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 56,
+      "scrollWidth": 56
+    },
+    {
+      "text": "状态",
+      "width": 42.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "启用",
+      "width": 42.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "日期",
+      "width": 42.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "客户所属市场",
+      "width": 98.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 98,
+      "scrollWidth": 98
+    }
+  ],
+  "fixed": [
+    {
+      "text": "关键词",
+      "width": 112,
+      "flex": "0 0 112px",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 56,
+      "scrollWidth": 56
+    },
+    {
+      "text": "状态",
+      "width": 112,
+      "flex": "0 0 112px",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "启用",
+      "width": 112,
+      "flex": "0 0 112px",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "日期",
+      "width": 112,
+      "flex": "0 0 112px",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "客户所属市场",
+      "width": 112,
+      "flex": "0 0 112px",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 98,
+      "scrollWidth": 98
+    }
+  ],
+  "cleared": [
+    {
+      "text": "关键词",
+      "width": 56.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 56,
+      "scrollWidth": 56
+    },
+    {
+      "text": "状态",
+      "width": 42.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "启用",
+      "width": 42.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "日期",
+      "width": 42.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 42,
+      "scrollWidth": 42
+    },
+    {
+      "text": "客户所属市场",
+      "width": 98.015625,
+      "flex": "",
+      "whiteSpace": "nowrap",
+      "labelHeight": 32,
+      "clientWidth": 98,
+      "scrollWidth": 98
+    }
+  ]
+}

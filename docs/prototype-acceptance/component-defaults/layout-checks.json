@@ -1,0 +1,400 @@
+{
+  "defaults-invalid-layout": {
+    "width": 1600,
+    "height": 872,
+    "regions": [
+      {
+        "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+        "elementUuid": null,
+        "height": 2,
+        "index": 153,
+        "tag": "div",
+        "text": "",
+        "width": 64,
+        "x": 276,
+        "y": 209
+      },
+      {
+        "classes": "ant-table-content",
+        "elementUuid": null,
+        "height": 1357,
+        "index": 179,
+        "tag": "div",
+        "text": "客群 ID客群 Key名称类型场景状态更新时间负责人操作         1001GRP_REGULAR_MX_CREDIT_20261003_1001墨西哥授信用户促活常规客经启用2026-10-03 10:25:00经营 OS 管理员详",
+        "width": 1287,
+        "x": 276,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allId__gD8F ant-table-cell-fix ant-table-cell-fix-start ant-table-cell-fix-start-shadow",
+        "elementUuid": null,
+        "height": 57,
+        "index": 193,
+        "tag": "th",
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allKey__noc7P ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 195,
+        "tag": "th",
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allName___3F19M ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 197,
+        "tag": "th",
+        "text": "名称",
+        "width": 264,
+        "x": 652,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allType__iRfze",
+        "elementUuid": null,
+        "height": 57,
+        "index": 199,
+        "tag": "th",
+        "text": "类型",
+        "width": 96,
+        "x": 916,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allScenario__uB11N",
+        "elementUuid": null,
+        "height": 57,
+        "index": 201,
+        "tag": "th",
+        "text": "场景",
+        "width": 96,
+        "x": 1012,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allStatus__bliO",
+        "elementUuid": null,
+        "height": 57,
+        "index": 203,
+        "tag": "th",
+        "text": "状态",
+        "width": 176,
+        "x": 1108,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allUpdated___6KFof",
+        "elementUuid": null,
+        "height": 57,
+        "index": 205,
+        "tag": "th",
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allOwner__eWdIb ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 207,
+        "tag": "th",
+        "text": "负责人",
+        "width": 144,
+        "x": 1464,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__operationsAll__obILr ant-table-cell-fix ant-table-cell-fix-end ant-table-cell-fix-end-shadow ant-table-cell-fix-end-shadow-show",
+        "elementUuid": null,
+        "height": 57,
+        "index": 209,
+        "tag": "th",
+        "text": "操作",
+        "width": 162,
+        "x": 1401,
+        "y": 227
+      }
+    ]
+  },
+  "defaults-mine-layout": {
+    "width": 1600,
+    "height": 872,
+    "regions": [
+      {
+        "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+        "elementUuid": null,
+        "height": 2,
+        "index": 153,
+        "tag": "div",
+        "text": "",
+        "width": 64,
+        "x": 372,
+        "y": 209
+      },
+      {
+        "classes": "ant-table-content",
+        "elementUuid": null,
+        "height": 1357,
+        "index": 179,
+        "tag": "div",
+        "text": "客群 ID客群 Key名称类型场景状态更新时间负责人操作         1001GRP_REGULAR_MX_CREDIT_20261003_1001墨西哥授信用户促活常规客经启用2026-10-03 10:25:00经营 OS 管理员详",
+        "width": 1287,
+        "x": 276,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineId__tbOzw ant-table-cell-fix ant-table-cell-fix-start ant-table-cell-fix-start-shadow",
+        "elementUuid": null,
+        "height": 57,
+        "index": 193,
+        "tag": "th",
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineKey__kkz7K ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 195,
+        "tag": "th",
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineName__soe4 ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 197,
+        "tag": "th",
+        "text": "名称",
+        "width": 264,
+        "x": 652,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineType__qaJy",
+        "elementUuid": null,
+        "height": 57,
+        "index": 199,
+        "tag": "th",
+        "text": "类型",
+        "width": 96,
+        "x": 916,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineScenario__ymN84",
+        "elementUuid": null,
+        "height": 57,
+        "index": 201,
+        "tag": "th",
+        "text": "场景",
+        "width": 96,
+        "x": 1012,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineStatus___8Q76A",
+        "elementUuid": null,
+        "height": 57,
+        "index": 203,
+        "tag": "th",
+        "text": "状态",
+        "width": 176,
+        "x": 1108,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineUpdated__yCyw6",
+        "elementUuid": null,
+        "height": 57,
+        "index": 205,
+        "tag": "th",
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__mineOwner___5YmFv ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 207,
+        "tag": "th",
+        "text": "负责人",
+        "width": 144,
+        "x": 1464,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__operationsMine__g1Tjf ant-table-cell-fix ant-table-cell-fix-end ant-table-cell-fix-end-shadow ant-table-cell-fix-end-shadow-show",
+        "elementUuid": null,
+        "height": 57,
+        "index": 209,
+        "tag": "th",
+        "text": "操作",
+        "width": 162,
+        "x": 1401,
+        "y": 227
+      }
+    ]
+  },
+  "defaults-detail-layout": {
+    "width": 1600,
+    "height": 872,
+    "regions": [
+      {
+        "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+        "elementUuid": null,
+        "height": 2,
+        "index": 111,
+        "tag": "div",
+        "text": "",
+        "width": 32,
+        "x": 276,
+        "y": 305
+      }
+    ]
+  },
+  "defaults-final-list-layout": {
+    "width": 1600,
+    "height": 872,
+    "regions": [
+      {
+        "classes": "ant-tabs-ink-bar ant-tabs-ink-bar-animated",
+        "elementUuid": null,
+        "height": 2,
+        "index": 153,
+        "tag": "div",
+        "text": "",
+        "width": 64,
+        "x": 276,
+        "y": 209
+      },
+      {
+        "classes": "ant-table-content",
+        "elementUuid": null,
+        "height": 1357,
+        "index": 179,
+        "tag": "div",
+        "text": "客群 ID客群 Key名称类型场景状态更新时间负责人操作         1001GRP_REGULAR_MX_CREDIT_20261003_1001墨西哥授信用户促活常规客经启用2026-10-03 10:25:00经营 OS 管理员详",
+        "width": 1287,
+        "x": 276,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allId__gD8F ant-table-cell-fix ant-table-cell-fix-start ant-table-cell-fix-start-shadow",
+        "elementUuid": null,
+        "height": 57,
+        "index": 193,
+        "tag": "th",
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allKey__noc7P ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 195,
+        "tag": "th",
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allName___3F19M ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 197,
+        "tag": "th",
+        "text": "名称",
+        "width": 264,
+        "x": 652,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allType__iRfze",
+        "elementUuid": null,
+        "height": 57,
+        "index": 199,
+        "tag": "th",
+        "text": "类型",
+        "width": 96,
+        "x": 916,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allScenario__uB11N",
+        "elementUuid": null,
+        "height": 57,
+        "index": 201,
+        "tag": "th",
+        "text": "场景",
+        "width": 96,
+        "x": 1012,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allStatus__bliO",
+        "elementUuid": null,
+        "height": 57,
+        "index": 203,
+        "tag": "th",
+        "text": "状态",
+        "width": 176,
+        "x": 1108,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allUpdated___6KFof",
+        "elementUuid": null,
+        "height": 57,
+        "index": 205,
+        "tag": "th",
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__allOwner__eWdIb ant-table-cell-ellipsis",
+        "elementUuid": null,
+        "height": 57,
+        "index": 207,
+        "tag": "th",
+        "text": "负责人",
+        "width": 144,
+        "x": 1464,
+        "y": 227
+      },
+      {
+        "classes": "ant-table-cell __wab_instance Req075客群列表__operationsAll__obILr ant-table-cell-fix ant-table-cell-fix-end ant-table-cell-fix-end-shadow ant-table-cell-fix-end-shadow-show",
+        "elementUuid": null,
+        "height": 57,
+        "index": 209,
+        "tag": "th",
+        "text": "操作",
+        "width": 162,
+        "x": 1401,
+        "y": 227
+      }
+    ]
+  }
+}

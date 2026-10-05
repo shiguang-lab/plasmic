@@ -1,1 +1,18 @@
-<svg width="480px" height="270px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270"><g id="overseas"><rect width="480" height="270" rx="24" fill="rgb(240,245,255)"/><circle cx="240" cy="106" r="52" fill="none" stroke="rgb(22,119,255)" stroke-width="8"/><ellipse cx="240" cy="106" rx="24" ry="52" fill="none" stroke="rgb(22,119,255)" stroke-width="6"/><path d="M188 106h104" stroke="rgb(22,119,255)" stroke-width="6"/><text x="240" y="218" text-anchor="middle" font-family="sans-serif" font-size="36" fill="rgb(29,57,196)">Overseas</text></g></svg>
+<svg width="192px" height="112px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 112"><g id="overseas">
+<rect x="12" y="18" width="168" height="76" rx="6" fill="white" stroke="rgb(217,217,217)"/>
+<path d="M18 18h156a6 6 0 0 1 6 6v12H12V24a6 6 0 0 1 6-6Z" fill="rgb(230,244,255)"/>
+<circle cx="25" cy="27" r="5" fill="none" stroke="rgb(22,119,255)" stroke-width="1.4"/>
+<ellipse cx="25" cy="27" rx="2" ry="5" fill="none" stroke="rgb(22,119,255)" stroke-width="1.2"/>
+<path d="M20 27h10" stroke="rgb(22,119,255)" stroke-width="1.2"/>
+<rect x="36" y="25" width="35" height="4" rx="2" fill="rgb(145,202,255)"/>
+<circle cx="167" cy="27" r="4" fill="rgb(145,202,255)"/>
+<path d="M12 36h168M52 36v58" fill="none" stroke="rgb(217,217,217)"/>
+<rect x="18" y="44" width="28" height="10" rx="2" fill="rgb(230,244,255)"/>
+<path d="M23 49h18M23 62h18M23 75h13" stroke="rgb(145,202,255)" stroke-width="2" stroke-linecap="round"/>
+<rect x="61" y="44" width="70" height="9" rx="2" fill="rgb(250,250,250)" stroke="rgb(217,217,217)"/>
+<rect x="140" y="44" width="30" height="9" rx="2" fill="rgb(22,119,255)"/>
+<rect x="61" y="61" width="109" height="24" rx="2" fill="white" stroke="rgb(217,217,217)"/>
+<path d="M61 69h109" stroke="rgb(217,217,217)"/>
+<path d="M69 65h20M99 65h24M134 65h26M69 77h20M99 77h24" stroke="rgb(191,191,191)" stroke-width="2" stroke-linecap="round"/>
+<rect x="134" y="75" width="24" height="4" rx="2" fill="rgb(145,202,255)"/>
+</g></svg>

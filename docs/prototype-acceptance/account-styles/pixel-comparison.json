@@ -1,0 +1,35 @@
+{
+  "imageSize": [3200, 1936],
+  "regions": {
+    "admin-three-cycles-sidebar": {
+      "box": [168, 330, 628, 520],
+      "changedPixels": 0,
+      "pixels": 87400
+    },
+    "admin-three-cycles-tableHeader": {
+      "box": [712, 655, 2966, 765],
+      "changedPixels": 0,
+      "pixels": 247940
+    },
+    "admin-three-cycles-firstThreeRowActions": {
+      "box": [2664, 792, 2968, 1145],
+      "changedPixels": 0,
+      "pixels": 107312
+    },
+    "reentered-sidebar": {
+      "box": [168, 330, 628, 520],
+      "changedPixels": 0,
+      "pixels": 87400
+    },
+    "reentered-tableHeader": {
+      "box": [712, 655, 2966, 765],
+      "changedPixels": 0,
+      "pixels": 247940
+    },
+    "reentered-firstThreeRowActions": {
+      "box": [2664, 792, 2968, 1145],
+      "changedPixels": 0,
+      "pixels": 107312
+    }
+  }
+}

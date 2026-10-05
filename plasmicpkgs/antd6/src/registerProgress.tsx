@@ -10,7 +10,7 @@ export type AntdProgressProps = Omit<
   successStrokeColor?: string;
   infoFormat?: (percent?: number, percentSuccess?: number) => string;
   stepColors?: { color: string }[];
-  gradient: { color: string; percent: number }[];
+  gradient?: { color: string; percent: number }[];
 };
 
 export function AntdProgress(props: AntdProgressProps) {
@@ -25,7 +25,9 @@ export function AntdProgress(props: AntdProgressProps) {
   } = props;
 
   const success = useMemo(() => {
-    if (!successPercent && !successStrokeColor) return undefined;
+    if (successPercent === undefined && successStrokeColor === undefined) {
+      return undefined;
+    }
     const res: React.ComponentProps<typeof Progress>["success"] = {
       percent: successPercent,
       strokeColor: successStrokeColor,
@@ -34,7 +36,7 @@ export function AntdProgress(props: AntdProgressProps) {
   }, [successPercent, successStrokeColor]);
 
   const strokeColorProp = useMemo(() => {
-    if (props.type === "line" && !!props.steps) {
+    if ((props.type === undefined || props.type === "line") && !!props.steps) {
       const colors = stepColors?.map((c) => c.color).filter((c) => c);
       if (colors?.length) {
         return colors;
@@ -46,7 +48,9 @@ export function AntdProgress(props: AntdProgressProps) {
       .map((g) => {
         res[g.percent] = g.color;
       });
-    if (Object.keys(res).length) return res;
+    if (Object.keys(res).length) {
+      return res;
+    }
     return strokeColor;
   }, [gradient, props.steps, props.type, stepColors, strokeColor]);
 
@@ -116,7 +120,7 @@ export function registerProgress(loader?: Registerable) {
         type: "color",
         description: "Color of the progress path marked success",
         advanced: true,
-        hidden: (ps: any) => !ps.successPercent,
+        hidden: (ps: any) => ps.successPercent === undefined,
       },
       railColor: {
         type: "color",

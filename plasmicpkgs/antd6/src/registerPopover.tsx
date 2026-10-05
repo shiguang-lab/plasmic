@@ -1,4 +1,5 @@
 import { Popover } from "antd";
+import cls from "classnames";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
@@ -16,13 +17,24 @@ export function AntdPopover(
     defaultStylesClassName,
     contentText,
     content,
+    classNames,
     ...rest
   } = props;
   return (
     <Popover
-      content={content || contentText}
-      classNames={{
-        root: `${popupRootClassName ?? ""} ${popoverScopeClassName ?? ""} ${defaultStylesClassName ?? ""}`,
+      content={content === undefined ? contentText : content}
+      classNames={(info) => {
+        const names =
+          typeof classNames === "function" ? classNames(info) : classNames;
+        return {
+          ...names,
+          root: cls(
+            names?.root,
+            popupRootClassName,
+            popoverScopeClassName,
+            defaultStylesClassName,
+          ),
+        };
       }}
       {...rest}
     />
@@ -125,7 +137,7 @@ export function registerPopover(loader?: Registerable) {
       mouseEnterDelay: {
         type: "number",
         description: "Delay in seconds, before popover is shown on mouse enter",
-        defaultValue: 0,
+        defaultValueHint: 0.1,
         advanced: true,
         hidden: (ps: any) => (ps.trigger ? ps.trigger !== "hover" : false),
       },
@@ -133,7 +145,7 @@ export function registerPopover(loader?: Registerable) {
         type: "number",
         description:
           "Delay in seconds, before popover is hidden on mouse leave",
-        defaultValue: 0,
+        defaultValueHint: 0.1,
         advanced: true,
         hidden: (ps: any) => (ps.trigger ? ps.trigger !== "hover" : false),
       },

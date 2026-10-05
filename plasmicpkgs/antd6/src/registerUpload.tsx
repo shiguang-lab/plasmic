@@ -35,6 +35,10 @@ export function UploadWrapper(props: ExtendedUploadProps) {
   const filesRef = useRef<Array<UploadFile>>(); // if multiple = true, it facilitates adding multiple files
 
   filesRef.current = files;
+  const changeFiles = (next: UploadFile[]) => {
+    filesRef.current = next;
+    onFilesChange?.(next);
+  };
 
   const [previewFileId, setPreviewFileId] = useState<string>();
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -54,13 +58,15 @@ export function UploadWrapper(props: ExtendedUploadProps) {
       lastModified: file.lastModified,
     };
 
-    onFilesChange?.([
-      ...(filesRef.current ?? []).slice(0, (maxCount || Infinity) - 1),
-      {
-        ...metadata,
-        status: "uploading",
-      },
-    ]);
+    changeFiles(
+      [
+        ...(filesRef.current ?? []).filter((f) => f.uid !== file.uid),
+        {
+          ...metadata,
+          status: "uploading" as const,
+        },
+      ].slice(maxCount && maxCount > 0 ? -maxCount : 0),
+    );
 
     const reader = new FileReader();
 
@@ -68,37 +74,45 @@ export function UploadWrapper(props: ExtendedUploadProps) {
       if (!filesRef.current?.map((f: any) => f.uid).includes(metadata.uid)) {
         return;
       }
-      onFilesChange?.([
-        ...(filesRef.current ?? []).filter((f: any) => f.uid !== file.uid),
-        {
-          ...metadata,
-          contents: (reader.result as string).replace(
-            /^data:[^;]+;base64,/,
-            "",
-          ),
-          status: "done",
-        },
-      ]);
+      changeFiles(
+        (filesRef.current ?? []).map((f) =>
+          f.uid === metadata.uid
+            ? {
+                ...metadata,
+                contents: (reader.result as string).replace(
+                  /^data:[^;]+;base64,/,
+                  "",
+                ),
+                status: "done",
+              }
+            : f,
+        ),
+      );
     };
 
     reader.onerror = () => {
       if (!filesRef.current?.map((f: any) => f.uid).includes(metadata.uid)) {
         return;
       }
-      onFilesChange?.([
-        ...(filesRef.current ?? []).filter((f: any) => f.uid !== file.uid),
-        {
-          ...metadata,
-          status: "error",
-        },
-      ]);
+      changeFiles(
+        (filesRef.current ?? []).map((f) =>
+          f.uid === metadata.uid
+            ? {
+                ...metadata,
+                status: "error",
+              }
+            : f,
+        ),
+      );
     };
 
     reader.readAsDataURL(info.file as any);
   };
 
   const handleRemove = (file: UploadFile) => {
-    onFilesChange?.((files ?? []).filter((f: any) => f.uid !== file.uid));
+    changeFiles(
+      (filesRef.current ?? []).filter((f: any) => f.uid !== file.uid),
+    );
   };
 
   const handlePreview = async (file: AntdUploadFile) => {
@@ -163,6 +177,8 @@ export function registerUpload(loader?: Registerable) {
   registerComponentHelper(loader, UploadWrapper, {
     name: "plasmic-antd6-upload",
     displayName: "Upload",
+    description:
+      "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
     props: {
       accept: {
         type: "choice",
@@ -237,7 +253,7 @@ export function registerUpload(loader?: Registerable) {
       },
       onFilesChange: {
         type: "eventHandler",
-        displayName: "On file uploaded",
+        displayName: "On files change",
         argTypes: [
           {
             name: "files",

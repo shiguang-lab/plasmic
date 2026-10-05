@@ -1,5 +1,3 @@
-import { registerAppShell } from "./registerAppShell";
-import { registerAdditional } from "./registerAdditional";
 import { InputType } from "./form/Form";
 import { registerForm } from "./form/registerForm";
 import { registerFormGroup } from "./form/registerFormGroup";
@@ -17,6 +15,8 @@ import {
   selectComponentName,
   textAreaComponentName,
 } from "./names";
+import { registerAdditional } from "./registerAdditional";
+import { registerAppShell } from "./registerAppShell";
 import { registerAvatar, registerAvatarGroup } from "./registerAvatar";
 import {
   registerBreadcrumb,
@@ -61,6 +61,12 @@ import { registerTooltip } from "./registerTooltip";
 import { registerDirectoryTree, registerTree } from "./registerTree";
 import { registerUpload } from "./registerUpload";
 import { Registerable } from "./utils";
+
+// Canvas packages share this runtime so theme contexts and CSS caches stay
+// consistent across Antd registrations and business components.
+export * as nativeAntd6 from "antd";
+export { default as nativeAntd6EnUS } from "antd/es/locale/en_US";
+export { default as nativeAntd6ZhCN } from "antd/es/locale/zh_CN";
 
 export function registerAll(loader?: Registerable) {
   registerAppShell(loader);
@@ -109,8 +115,8 @@ export function registerAll(loader?: Registerable) {
 
 export { FormType, InputType, OPTIMIZED_FORM_IMPORT } from "./form/Form";
 export type { SimplifiedFormItemsProp } from "./form/Form";
-export { formTypeDescription, registerForm } from "./form/registerForm";
 export { deriveFormFieldConfigs } from "./form/SchemaForm";
+export { formTypeDescription, registerForm } from "./form/registerForm";
 export * from "./names";
 
 export const componentNameToInputType = {

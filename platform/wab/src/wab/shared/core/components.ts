@@ -2684,13 +2684,19 @@ export function hasLoginInteractions(component: Component) {
 }
 
 export function hasGlobalActions(component: Component) {
-  return flattenTpls(component.tplTree)
-    .flatMap((tpl) =>
-      getAllEventHandlersForTpl(component, tpl).flatMap(({ expr }) => {
-        return isKnownEventHandler(expr) ? expr.interactions : [];
-      }),
-    )
-    .some((interaction) => interaction.actionName.includes("."));
+  // Custom callbacks can invoke global actions without a named interaction.
+  return (
+    Tpls.findExprsInComponent(component).some(({ expr }) =>
+      parseExpr(expr).usedFreeVars.has("$globalActions"),
+    ) ||
+    flattenTpls(component.tplTree)
+      .flatMap((tpl) =>
+        getAllEventHandlersForTpl(component, tpl).flatMap(({ expr }) => {
+          return isKnownEventHandler(expr) ? expr.interactions : [];
+        }),
+      )
+      .some((interaction) => interaction.actionName.includes("."))
+  );
 }
 
 export function getParamNames(component: Component, params: Param[]) {

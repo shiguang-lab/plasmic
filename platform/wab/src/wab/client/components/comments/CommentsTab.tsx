@@ -14,6 +14,7 @@ import {
   getArenaFrames,
   isDedicatedArena,
 } from "@/wab/shared/Arenas";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown, Menu } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -74,11 +75,10 @@ export const CommentsTab = observer(function CommentsTab(
     DEFAULT_NOTIFICATION_LEVEL;
 
   return (
-    <div
-      className={"comments-tab flex-even"}
-      style={{
-        overflow: "scroll",
-      }}
+    <Scrollbar
+      className="comments-tab flex-even"
+      scrollX={false}
+      style={{ minHeight: 0 }}
     >
       <PlasmicCommentsTab
         {...props}
@@ -178,7 +178,7 @@ export const CommentsTab = observer(function CommentsTab(
           },
         }}
       />
-    </div>
+    </Scrollbar>
   );
 });
 

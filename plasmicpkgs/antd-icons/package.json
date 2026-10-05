@@ -1,0 +1,25 @@
+{
+  "name": "@shiguang-lab/plasmic-antd-icons",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Installable Ant Design Icons registrations for Plasmic",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs && tsc --emitDeclarationOnly --declaration src/index.ts --resolveJsonModule --skipLibCheck --esModuleInterop --strict --outDir dist",
+    "test": "tsx --test src/index.test.ts"
+  },
+  "dependencies": {
+    "@ant-design/icons": "6.3.4"
+  },
+  "devDependencies": {
+    "@plasmicapp/host": "2.0.19",
+    "@types/react": "catalog:",
+    "react": "catalog:"
+  },
+  "peerDependencies": {
+    "@plasmicapp/host": ">=1.0.0",
+    "react": ">=18.0.0"
+  }
+}

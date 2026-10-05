@@ -4,6 +4,7 @@ packages:
   - mini-cache
   - wab
   - ../plasmicpkgs/overseas
+  - ../plasmicpkgs/react-ui
   - canvas-packages
   - loader-bundle-env
   - loader-bundle-env/internal_pkgs/*

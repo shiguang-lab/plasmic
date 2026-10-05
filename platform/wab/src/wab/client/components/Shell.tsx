@@ -5,6 +5,7 @@ import {
 } from "@/wab/client/antd-theme";
 import { isProjectPath, isTopFrame } from "@/wab/client/cli-routes";
 import { initClientFlags } from "@/wab/client/client-dev-flags";
+import { McpSettingsModalHost } from "@/wab/client/components/modals/McpSettingsModal";
 import { Root } from "@/wab/client/components/root-view";
 import { ENV } from "@/wab/client/env";
 import { FrameMessage } from "@/wab/client/frame-ctx/frame-message-types";
@@ -177,6 +178,7 @@ export function Shell() {
       <AntdConfigProvider>
         <OverlayProvider style={{ width: "100%", height: "100%" }}>
           <Root />
+          {!hostFrameCtx && <McpSettingsModalHost />}
         </OverlayProvider>
       </AntdConfigProvider>
     </HistoryProvider>

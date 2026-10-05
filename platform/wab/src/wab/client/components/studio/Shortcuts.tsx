@@ -293,6 +293,11 @@ const SHORTCUT_SECTIONS: ShortcutSection[] = [
             description: "Zoom in and out",
           },
           {
+            combos: "alt+scroll",
+            context: "inside a scrollable container",
+            description: "Scroll content while editing",
+          },
+          {
             combos: "double-click",
             context: "on text layers",
             description: "Edit text",

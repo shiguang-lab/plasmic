@@ -1,4 +1,4 @@
-# Plasmic Desktop
+# Plasmic
 
 Electron desktop app with bundled Studio, canvas, Ant Design component bundles,
 fonts, CSS and Monaco workers. The NAS serves APIs, project data, user-uploaded
@@ -34,6 +34,10 @@ To bundle a production frontend built from this checkout instead:
 npm run assets -- --from ../platform/wab/build
 ```
 
+Use this command for local Studio changes. Running `npm run assets` without
+`--from` replaces the renderer with the pinned web release. After packaging,
+quit and reopen the app to load the updated frontend and desktop login code.
+
 That directory must be a complete self-hosted WAB production build, including
 canvas packages and generated CSS. The existing `deploy/Dockerfile` web target
 produces it at `/opt/plasmic-web`; a partial development build is insufficient.
@@ -43,6 +47,15 @@ inside `resources/app.asar`. It does not produce signed installers. macOS
 signing/notarization requires the appropriate Apple credentials and a macOS
 build environment. `package:mac` defaults to Apple Silicon; Intel builds use
 `npm run package -- darwin x64`. No backend or database is included.
+
+The application is named **Plasmic**. Its local data remains in
+`Plasmic Desktop` under the OS application-data directory, including login
+cookies, image-service settings and MCP preferences.
+
+Application icons live in `assets/`: `icon.png` is the 1024px master and Linux
+window icon, `icon.icns` is the macOS bundle icon, and `icon.ico` is the Windows
+executable/window icon. All macOS launches explicitly set the Dock icon.
+Packaging embeds the platform icon; see `assets/README.md` for the design source.
 
 ## Runtime
 
@@ -105,36 +118,40 @@ backend runs on the NAS. Test profiles are isolated from the normal app profile.
 
 ## MCP
 
-Choose **MCP → MCP 设置…** to open the local settings dialog. Enable a client
+Choose **AI → MCP** to open Studio's Ant Design Modal. The desktop menu and
+Studio sidebar use the same component; no separate settings window is created.
+On the desktop, enable a client
 to register Plasmic automatically; disable it to remove its Plasmic entry.
 Selections are saved and reapplied at startup. Restart or refresh the client
 after changing its configuration. Other servers are preserved, and conflicting
 entries are reported without being overwritten. Claude Code, Codex, Gemini,
 Antigravity 2.0, OpenCode, Kiro, and Claude Desktop are supported (Claude Desktop
 on macOS and Windows). The dialog also provides a copyable JSON configuration
-for other MCP clients. Start the desktop and sign in before using editor tools. The packaged
+for other MCP clients. The Web Studio sidebar also includes **AI → MCP**, with
+connection instructions; local client configuration is managed by the desktop app.
+Start the desktop and sign in before using editor tools. The packaged
 application itself runs with `--mcp` as a dedicated stdio process; the normal GUI
 process owns the editor. The configuration uses an absolute executable path, so
 copy it again after moving the application.
 
 The server provides these tools:
 
-| Tool | Function |
-| --- | --- |
-| `get_app_state` | Read readiness, active project and exact editor schemas |
-| `list_projects` / `open_design` | List accessible NAS projects and open a design |
-| `read_skill` / `get_style` | Editing workflow and local palette/spacing presets |
-| `execute` / `execute_batch` | Validated edits; a batch rolls back completely on failure and is one undo step |
-| `snapshot_layout` | Rendered desktop/mobile geometry and image load status |
-| `get_screenshot` | Clean static artboard PNG; `mode: "workspace"` captures the editor |
-| `import_image` / `read_image` | Import a local raster into NAS and read design image pixels |
-| `export_design` / `export_pages` | Static exports and ordered multi-page PDF |
-| `export_code` | Editable React/TypeScript/CSS from NAS codegen |
-| `capture_browser` / `browser` | Reference PNG/DOM and persistent isolated browser CDP |
-| `search_stock_images` | Commons images with license/source/attribution metadata |
-| `vectorize_image` | Local raster tracing to SVG paths |
-| `make_vector` | SVG paths and union/intersection/subtraction/xor geometry |
-| `generate_image` | Configured Images generation/edit/background service |
+| Tool                             | Function                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `get_app_state`                  | Read readiness, active project and exact editor schemas                        |
+| `list_projects` / `open_design`  | List accessible NAS projects and open a design                                 |
+| `read_skill` / `get_style`       | Editing workflow and local palette/spacing presets                             |
+| `execute` / `execute_batch`      | Validated edits; a batch rolls back completely on failure and is one undo step |
+| `snapshot_layout`                | Rendered desktop/mobile geometry and image load status                         |
+| `get_screenshot`                 | Clean static artboard PNG; `mode: "workspace"` captures the editor             |
+| `import_image` / `read_image`    | Import a local raster into NAS and read design image pixels                    |
+| `export_design` / `export_pages` | Static exports and ordered multi-page PDF                                      |
+| `export_code`                    | Editable React/TypeScript/CSS from NAS codegen                                 |
+| `capture_browser` / `browser`    | Reference PNG/DOM and persistent isolated browser CDP                          |
+| `search_stock_images`            | Commons images with license/source/attribution metadata                        |
+| `vectorize_image`                | Local raster tracing to SVG paths                                              |
+| `make_vector`                    | SVG paths and union/intersection/subtraction/xor geometry                      |
+| `generate_image`                 | Configured Images generation/edit/background service                           |
 
 `execute` supports `identify`, `read`, `createComponent`, `insertHtml`,
 `changeElement`, `deleteElement`, `createState`, `createInteraction`,
@@ -144,7 +161,7 @@ The server provides these tools:
 `createGlobalVariant`, `createBreakpoint`, `deleteComponent`,
 `readVector`, `updateVector`, `createCanvas`, `createArtboard`,
 `findEmptySpace`, `navigateCanvas`,
-`navigate`, `validate`, `save` and `undo`. Read the schemas in
+`navigate`, `scrollElementIntoView`, `validate`, `save` and `undo`. Read the schemas in
 `get_app_state` and component/slot contracts from `execute` → `read` before
 editing. New pages and component definitions are created with `createComponent`;
 new elements and registered Ant Design 6 instances are inserted with `insertHtml`.
@@ -175,7 +192,6 @@ captures a PNG, reloads it from the NAS, and checks rejection of arbitrary code.
 It adds a uniquely named page to the acceptance project. Reports and screenshots
 are written to `PLASMIC_REPORT_DIR` (default `/tmp/plasmic-desktop-mcp-report`).
 
-
 Screenshots and exports clone the rendered canvas into an isolated window with
 scripting disabled and empty slot placeholders removed. They wait for fonts and
 images with bounded timeouts. Use an existing artboard width for responsive
@@ -189,10 +205,14 @@ comparison. Full Pen MCP parity is not implemented.
 
 ## Image service
 
-Open **MCP → MCP 设置… → 图像服务** to enter the API base URL, supported image model and API key. The key is stored with owner-only permissions and is never returned through MCP. Alternatively, create `image-service.json` in the desktop user-data directory (`~/Library/Application Support/Plasmic Desktop` on macOS), with owner-only permissions:
+Create `image-service.json` in the desktop user-data directory (`~/Library/Application Support/Plasmic Desktop` on macOS), with owner-only permissions:
 
 ```json
-{"baseUrl":"https://api.openai.com/v1","model":"YOUR_IMAGE_MODEL","apiKey":"YOUR_KEY"}
+{
+  "baseUrl": "https://api.openai.com/v1",
+  "model": "YOUR_IMAGE_MODEL",
+  "apiKey": "YOUR_KEY"
+}
 ```
 
 The chosen service must implement JSON `/images/generations`, multipart `/images/edits`, and `data[0].b64_json` PNG output. Background removal requires transparency support. `get_app_state` reports whether it is configured, without returning credentials. No image service is enabled by default.

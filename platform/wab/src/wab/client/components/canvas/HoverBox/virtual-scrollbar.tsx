@@ -14,6 +14,11 @@ export function VirtualScrollBar(props: {
   const studioCtx = useStudioCtx();
   const trackRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
+  const [, forceUpdate] = React.useReducer((value) => value + 1, 0);
+  React.useEffect(() => {
+    element.addEventListener("scroll", forceUpdate);
+    return () => element.removeEventListener("scroll", forceUpdate);
+  }, [element]);
 
   const containerSizeProp =
     axis === "vertical" ? "clientHeight" : "clientWidth";
@@ -23,11 +28,13 @@ export function VirtualScrollBar(props: {
   const thumbPositionProp = axis === "vertical" ? "top" : "left";
   const thumbSizeProp = axis === "vertical" ? "height" : "width";
   const overflow =
-    getComputedStyle(element)[`overflow${axis === "vertical" ? "Y" : "X"}`];
+    element.ownerDocument.defaultView?.getComputedStyle(element)[
+      `overflow${axis === "vertical" ? "Y" : "X"}`
+    ];
 
   if (
     element[containerSizeProp] >= element[contentSizeProp] ||
-    overflow !== "auto"
+    (overflow !== "auto" && overflow !== "scroll")
   ) {
     return null;
   }
@@ -41,6 +48,7 @@ export function VirtualScrollBar(props: {
       )}
       onMouseDown={(e) => e.preventDefault()}
       onMouseUp={(e) => e.preventDefault()}
+      title="Drag to scroll content, or use Alt/Option + wheel inside the container"
       style={style}
       ref={trackRef}
     >

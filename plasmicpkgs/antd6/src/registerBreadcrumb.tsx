@@ -1,35 +1,38 @@
 import type { BreadcrumbItemProps, BreadcrumbProps } from "antd";
 import { Breadcrumb } from "antd";
 import React from "react";
-import { Registerable, registerComponentHelper } from "./utils";
+import { Registerable, asArray, registerComponentHelper } from "./utils";
 
 export function AntdBreadcrumbItem(props: BreadcrumbItemProps) {
   return props.children;
 }
 
 export function AntdBreadcrumb(
-  props: BreadcrumbProps & { itemsRaw: React.ReactNode },
+  props: BreadcrumbProps & { itemsRaw?: React.ReactNode },
 ) {
-  const { itemsRaw, ...rest } = props;
+  const { itemsRaw, items: configuredItems, ...rest } = props;
   const items = React.useMemo(() => {
-    if (!React.isValidElement(itemsRaw) && !Array.isArray(itemsRaw)) return [];
-    return (
-      Array.isArray(itemsRaw)
-        ? itemsRaw
-        : Array.isArray(itemsRaw.props.children)
-          ? itemsRaw.props.children
-          : [itemsRaw.props.children]
-    )
-      .map((currentItem: any) => {
+    const children =
+      React.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem
+        ? itemsRaw.props.children
+        : itemsRaw;
+    return asArray(children)
+      .flat(1)
+      .filter(React.isValidElement)
+      .map((currentItem: React.ReactElement) => {
         return {
           ...currentItem.props,
           title: React.cloneElement(<>{currentItem}</>),
         };
-      })
-      .filter((i: any) => i != null);
+      });
   }, [itemsRaw]);
 
-  return <Breadcrumb {...rest} items={items} />;
+  return (
+    <Breadcrumb
+      {...rest}
+      items={itemsRaw === undefined ? configuredItems : items}
+    />
+  );
 }
 
 const breadcrumbItemComponentName = "plasmic-antd6-breadcrumb-item";

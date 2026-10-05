@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>登录 Plasmic</title>
+    <title>Sign in to Plasmic</title>
     <style>
       :root { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#1d2536; background:#f7f8fa; }
       * { box-sizing:border-box; }
@@ -34,18 +34,18 @@
   <body>
     <main class="login-content">
       <svg class="logo" viewBox="0 0 80 48" aria-hidden="true"><defs><linearGradient id="brand"><stop stop-color="#f44ab4"/><stop offset="1" stop-color="#8956ff"/></linearGradient></defs><g fill="none" stroke="url(#brand)" stroke-width="7"><path d="M7 43a33 33 0 0 1 66 0"/><path d="M20 43a20 20 0 0 1 40 0"/><path d="M33 43a7 7 0 0 1 14 0"/></g></svg>
-      <p class="eyebrow">PLASMIC DESKTOP</p>
-      <h1 id="title">正在打开浏览器</h1>
-      <p id="message" role="status">请在系统浏览器中完成 Google 登录。</p>
-      <div class="status" id="status"><span id="spinner" class="spinner" aria-hidden="true"></span><span id="status-label">正在连接</span></div>
+      <p class="eyebrow">PLASMIC</p>
+      <h1 id="title">Opening browser</h1>
+      <p id="message" role="status">Complete Google sign-in in your browser.</p>
+      <div class="status" id="status"><span id="spinner" class="spinner" aria-hidden="true"></span><span id="status-label">Connecting</span></div>
       <div class="actions">
-        <button id="open" class="primary" disabled>打开浏览器</button
-        ><button id="retry" class="primary" hidden>重新登录</button
-        ><button id="copy">复制登录链接</button>
+        <button id="open" class="primary" disabled>Open browser</button
+        ><button id="retry" class="primary" hidden>Try again</button
+        ><button id="copy">Copy sign-in link</button>
       </div>
-      <input id="link" aria-label="登录链接" readonly hidden />
-      <p class="hint">授权完成后会自动返回应用；未打开时可点击网页上的打开按钮。</p>
-      <button id="cancel" class="back">返回登录</button>
+      <input id="link" aria-label="Sign-in link" readonly hidden />
+      <p class="hint">You will return to the app automatically after authorization. If it does not open, use the button on the authorization page.</p>
+      <button id="cancel" class="back">Back to sign-in</button>
     </main>
     <script>
       const api = window.desktopGoogleLogin;
@@ -53,21 +53,21 @@
         const failed = state.phase === "error",
           waiting = state.phase === "waiting";
         document.getElementById("title").textContent = failed
-          ? "登录未完成"
+          ? "Sign-in incomplete"
           : state.phase === "success"
-            ? "登录成功"
+            ? "Signed in"
             : waiting
-              ? "在浏览器中继续登录"
-              : "正在打开浏览器";
+              ? "Continue sign-in in your browser"
+              : "Opening browser";
         document.getElementById("message").textContent = failed
           ? state.message
           : waiting
-            ? state.message || "在系统浏览器中完成 Google 授权，随后会自动返回桌面应用。"
+            ? state.message || "Complete Google authorization in your browser to return to the desktop app."
             : state.phase === "success"
-              ? "正在返回工作区。"
-              : "请稍候，正在启动系统默认浏览器。";
+              ? "Returning to your workspace."
+              : "Please wait while your default browser opens.";
         document.getElementById("status").hidden = failed;
-        document.getElementById("status-label").textContent = state.phase === "success" ? "正在返回工作区" : waiting ? "等待浏览器授权" : "正在连接";
+        document.getElementById("status-label").textContent = state.phase === "success" ? "Returning to workspace" : waiting ? "Waiting for browser authorization" : "Connecting";
         if (!waiting || !state.copied) { document.getElementById("link").hidden = true; document.getElementById("link").value = ""; }
         document.getElementById("open").hidden = failed;
         document.getElementById("open").disabled = !waiting;
@@ -78,7 +78,7 @@
           link.hidden = false;
           link.value = state.authorizationUrl;
           document.getElementById("message").textContent =
-            "登录链接已复制，可粘贴到浏览器地址栏继续授权。";
+            "Sign-in link copied. Paste it into your browser to continue authorization.";
         }
       }
       api.onStatus(render);

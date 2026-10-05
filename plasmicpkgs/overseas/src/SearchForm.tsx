@@ -206,6 +206,7 @@ export interface SearchFormProps {
   onCollapsedChange?: (value: boolean) => void;
   minRows?: number;
   colSpan?: number;
+  labelWidth?: number;
   searchText?: string;
   resetText?: string;
   expandText?: string;
@@ -236,6 +237,7 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
       onCollapsedChange,
       minRows = 1,
       colSpan = 8,
+      labelWidth,
       searchText = "查询",
       resetText = "重置",
       expandText = "展开",
@@ -251,6 +253,7 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
     const editing = !!canvas && !canvas.interactive;
     const [localCollapsed, setCollapsed] = useState(defaultCollapsed);
     const isCollapsed = collapsed ?? localCollapsed;
+    const displayCollapsed = editing ? false : isCollapsed;
     const items = useMemo(() => collectSearchItems(children), [children]);
     const defaults = useMemo(
       () =>
@@ -290,7 +293,7 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
     const layout = searchLayout(
       items.map((item) => item.props.span ?? colSpan),
       minRows,
-      editing ? false : isCollapsed,
+      displayCollapsed,
     );
     const notify = () => onValuesChange?.(getValues());
     const changeCollapsed = (next: boolean) => {
@@ -332,6 +335,10 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
           disabled={disabled}
           preserve
           layout="horizontal"
+          labelCol={
+            labelWidth === undefined ? undefined : { flex: `${labelWidth}px` }
+          }
+          wrapperCol={{ flex: "1", style: { minWidth: 0 } }}
           onFinish={onSearch}
           onFinishFailed={({ errorFields }) => {
             if (
@@ -397,7 +404,7 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
                   {extraActions}
                   {layout.showExpand && (
                     <Typography.Link
-                      aria-expanded={!isCollapsed}
+                      aria-expanded={!displayCollapsed}
                       onClick={() => {
                         changeCollapsed(!isCollapsed);
                       }}
@@ -410,10 +417,10 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
                       }}
                     >
                       <DownOutlined
-                        rotate={isCollapsed ? 0 : 180}
+                        rotate={displayCollapsed ? 0 : 180}
                         style={{ transition: "transform 0.24s" }}
                       />
-                      {isCollapsed ? expandText : collapseText}
+                      {displayCollapsed ? expandText : collapseText}
                     </Typography.Link>
                   )}
                 </Space>

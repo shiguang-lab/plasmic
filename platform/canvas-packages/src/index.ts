@@ -5,6 +5,11 @@
 // evaluate the generated javascript when each frame loads (but we can fetch the
 // code only once when the project loads and store it as a string).
 
+import {
+  nativeAntd6,
+  nativeAntd6EnUS,
+  nativeAntd6ZhCN,
+} from "@shiguang-lab/plasmic-antd6";
 import type domAlign from "dom-align";
 import { toPng } from "html-to-image";
 import type React from "react";
@@ -19,6 +24,10 @@ import { createModal } from "./modals";
 // Types copied from subdeps.ts to verify compatibility
 // TODO: wab should depend on canvas-packages
 interface CanvasPkgs {
+  Antd6: typeof nativeAntd6 & {
+    localeZhCN: typeof nativeAntd6ZhCN;
+    localeEnUS: typeof nativeAntd6EnUS;
+  };
   ResizeObserver: typeof ResizeObserver;
   GenericErrorBoundary: React.ComponentType<{ className?: string }>;
   slate: typeof slate;
@@ -27,7 +36,7 @@ interface CanvasPkgs {
   slateReact: typeof slateReact;
   localElement?: typeof Element;
   createModal: (
-    props: Pick<ModalProps, InternalModalProps>
+    props: Pick<ModalProps, InternalModalProps>,
   ) => (restProps: Omit<ModalProps, InternalModalProps>) => JSX.Element;
   createThumbnail: (
     element: HTMLElement,
@@ -37,7 +46,7 @@ interface CanvasPkgs {
       quality?: number;
       filter?: (elem: HTMLElement) => boolean;
       includeQueryParams?: boolean;
-    }
+    },
   ) => Promise<string>;
 }
 
@@ -62,6 +71,11 @@ interface ModalProps {
 }
 
 const __CanvasPkgs: CanvasPkgs = {
+  Antd6: (window as any).__Sub.Antd6 ?? {
+    ...nativeAntd6,
+    localeZhCN: nativeAntd6ZhCN,
+    localeEnUS: nativeAntd6EnUS,
+  },
   ResizeObserver,
   GenericErrorBoundary,
   slate,

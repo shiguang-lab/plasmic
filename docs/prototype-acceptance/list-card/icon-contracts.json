@@ -1,0 +1,101 @@
+{
+  "__type": "OutputResult",
+  "results": [
+    {
+      "__type": "Component",
+      "name": "plasmic-antd-icon-ArrowLeftOutlined",
+      "uuid": "tHGDpm8uzgsY",
+      "type": "code",
+      "fromProject": "vuoraLeVbtw7rQTKJ6UKar",
+      "props": [
+        {
+          "__type": "Prop",
+          "name": "spin",
+          "uuid": "DR3vPC5MZgFE",
+          "type": "boolean"
+        },
+        {
+          "__type": "Prop",
+          "name": "rotate",
+          "uuid": "yKxMADRtE5C-",
+          "type": "number"
+        }
+      ],
+      "variants": [],
+      "variantGroups": [],
+      "baseVariantTplTree": "<div id=\"njZ2oacTU6qv\" style=\"display: flex; flex-direction: row\"></div>"
+    },
+    {
+      "__type": "Component",
+      "name": "plasmic-antd-icon-DownOutlined",
+      "uuid": "lTYbhxapzgpl",
+      "type": "code",
+      "fromProject": "vuoraLeVbtw7rQTKJ6UKar",
+      "props": [
+        {
+          "__type": "Prop",
+          "name": "spin",
+          "uuid": "FRhr3dD8LLmJ",
+          "type": "boolean"
+        },
+        {
+          "__type": "Prop",
+          "name": "rotate",
+          "uuid": "tSp0i4-qEsDy",
+          "type": "number"
+        }
+      ],
+      "variants": [],
+      "variantGroups": [],
+      "baseVariantTplTree": "<div id=\"5nJ6aA0ADRRx\" style=\"display: flex; flex-direction: row\"></div>"
+    },
+    {
+      "__type": "Component",
+      "name": "plasmic-antd-icon-PlusOutlined",
+      "uuid": "ss4wG7bVTt40",
+      "type": "code",
+      "fromProject": "vuoraLeVbtw7rQTKJ6UKar",
+      "props": [
+        {
+          "__type": "Prop",
+          "name": "spin",
+          "uuid": "YdYz3UBCkCMh",
+          "type": "boolean"
+        },
+        {
+          "__type": "Prop",
+          "name": "rotate",
+          "uuid": "pvl0Pi8-35Yl",
+          "type": "number"
+        }
+      ],
+      "variants": [],
+      "variantGroups": [],
+      "baseVariantTplTree": "<div id=\"Wd-ZbkGMnx-u\" style=\"display: flex; flex-direction: row\"></div>"
+    },
+    {
+      "__type": "Component",
+      "name": "plasmic-antd-icon-RightOutlined",
+      "uuid": "PogcCxOS5s9x",
+      "type": "code",
+      "fromProject": "vuoraLeVbtw7rQTKJ6UKar",
+      "props": [
+        {
+          "__type": "Prop",
+          "name": "spin",
+          "uuid": "l75XM3sOu9r9",
+          "type": "boolean"
+        },
+        {
+          "__type": "Prop",
+          "name": "rotate",
+          "uuid": "Dcm3hh5TEd2i",
+          "type": "number"
+        }
+      ],
+      "variants": [],
+      "variantGroups": [],
+      "baseVariantTplTree": "<div id=\"66PKhFfGxzPs\" style=\"display: flex; flex-direction: row\"></div>"
+    }
+  ]
+}

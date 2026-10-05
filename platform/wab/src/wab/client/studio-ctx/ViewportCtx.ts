@@ -52,9 +52,10 @@ export class ViewportCtx {
         (canvasPadding, prevCanvasPadding) => {
           this.dom.updateCanvasPadding(canvasPadding);
 
-          // Scroll by half the difference to maintain the midpoint of the viewport
+          // Offset the full padding change so canvas content stays at the same
+          // screen position when the viewport resizes (e.g. a sidebar toggles).
           if (prevCanvasPadding) {
-            const scrollBy = canvasPadding.sub(prevCanvasPadding).scale(0.5);
+            const scrollBy = canvasPadding.sub(prevCanvasPadding);
             this.dom.scrollBy(scrollBy, false);
           }
         },

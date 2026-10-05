@@ -14,17 +14,21 @@
 
 [Studio 项目](https://plasmic.studio.publib.cn/projects/b1VPmGnbGvyKc4rnA2xLVv)，唯一总览画布 `REQ075 · Desktop`，包含以上业务 Pages 的引用。
 
-| 页面 | 页面路径 | 组件 UUID |
-| --- | --- | --- |
-| 客群列表 | `/req-075/groups` | `Ne1KXZPJ2Up_` |
-| 常规 SQL 建群 | `/req-075/regular` | `weebeeZgziPR` |
-| 一次性 SQL 建群 | `/req-075/onetime` | `_m3gE-2H_x4K` |
-| 常规详情 | `/req-075/regular-detail` | `ayKXc8e7JTsP` |
-| 一次性详情 | `/req-075/onetime-detail` | `N5dvwSUWcJMa` |
+| 页面            | 页面路径                  | 组件 UUID      |
+| --------------- | ------------------------- | -------------- |
+| 客群列表        | `/req-075/groups`         | `Ne1KXZPJ2Up_` |
+| 常规 SQL 建群   | `/req-075/regular`        | `weebeeZgziPR` |
+| 一次性 SQL 建群 | `/req-075/onetime`        | `_m3gE-2H_x4K` |
+| 常规详情        | `/req-075/regular-detail` | `ayKXc8e7JTsP` |
+| 一次性详情      | `/req-075/onetime-detail` | `N5dvwSUWcJMa` |
 
 全部生成、修改、保存均通过桌面 MCP 的 SDK/stdIO 调用完成。浏览器操作仅用于实际预览验收，没有使用浏览器脚本修改设计模型。交付中已移除空 home、MCP 测试页面及重复的逐页 Arena；仅保留 5 个业务 Pages 和 1 个总览 Arena，不包含移动端断点。
 
 ## 验收结果
+
+客群列表的当前列宽与内容检查见 [列宽与内容验收](table-columns.md)：包含逐列样本、实际宽度、ActionGroup 内容宽度、短值与长值策略、固定列及横向滚动、保存重开证据。本地 App revision **168**，该更新未发布 NAS。
+
+两类详情的当前 Header 检查见 [详情 Header 验收](detail-header.md)：包含完整截图及分区分析、长名称与初始化状态、实际返回交互和保存重开证据。本地 App revision **170**，该更新未发布 NAS。
 
 当前使用独立 Overseas AppShell，MCP 保存 revision **139**。重新启动客户端并打开项目后读取五页：556 个业务节点、8 个覆盖层及 30 个业务交互 UUID 全部保留；每页复用一个 Overseas AppShell。`validate` 返回 `valid: true`，5 个业务页面，199 个代码组件实例（Ant Design 6 为 194、Overseas 为 5），错误 0、警告 0。
 

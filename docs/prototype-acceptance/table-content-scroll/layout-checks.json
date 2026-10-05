@@ -1,0 +1,747 @@
+[
+  {
+    "label": "scroll-list20-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 1357,
+        "y": -590
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 783,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-list50-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 3307,
+        "y": -2540
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 783,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-list100-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 4152,
+        "y": -3385
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 783,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-mine-expanded-top-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 1357,
+        "y": 275
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 1648,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-mine-page2-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 837,
+        "y": -70
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 783,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-members-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1127,
+        "height": 1197,
+        "y": -446
+      }
+    ],
+    "columns": [
+      {
+        "text": "UID",
+        "width": 230.515625,
+        "x": 276
+      },
+      {
+        "text": "手机号",
+        "width": 230.515625,
+        "x": 506.515625
+      },
+      {
+        "text": "证件号",
+        "width": 230.515625,
+        "x": 737.03125
+      },
+      {
+        "text": "App 来源",
+        "width": 204.90625,
+        "x": 967.546875
+      },
+      {
+        "text": "注册时间",
+        "width": 230.546875,
+        "x": 1172.453125
+      }
+    ],
+    "pagination": {
+      "y": 767,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-short-records-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1127,
+        "height": 171,
+        "y": 323
+      }
+    ],
+    "columns": [
+      {
+        "text": "圈选时间",
+        "width": 180,
+        "x": 276
+      },
+      {
+        "text": "触发方式",
+        "width": 180,
+        "x": 456
+      },
+      {
+        "text": "状态",
+        "width": 180,
+        "x": 636
+      },
+      {
+        "text": "命中成员数",
+        "width": 160,
+        "x": 816
+      },
+      {
+        "text": "失败原因",
+        "width": 427,
+        "x": 976
+      }
+    ],
+    "pagination": {
+      "y": 510,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-modal-top-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 912,
+        "height": 1197,
+        "y": 196
+      }
+    ],
+    "columns": [
+      {
+        "text": "UID",
+        "width": 182.3984375,
+        "x": 264
+      },
+      {
+        "text": "App 来源",
+        "width": 182.3984375,
+        "x": 446.3984375
+      },
+      {
+        "text": "注册时间",
+        "width": 182.3984375,
+        "x": 628.796875
+      },
+      {
+        "text": "授信状态",
+        "width": 182.3984375,
+        "x": 811.1953125
+      },
+      {
+        "text": "手机号",
+        "width": 182.40625,
+        "x": 993.59375
+      }
+    ],
+    "pagination": {
+      "y": 1409,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-modal-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 912,
+        "height": 1197,
+        "y": -499
+      }
+    ],
+    "columns": [
+      {
+        "text": "UID",
+        "width": 182.3984375,
+        "x": 264
+      },
+      {
+        "text": "App 来源",
+        "width": 182.3984375,
+        "x": 446.3984375
+      },
+      {
+        "text": "注册时间",
+        "width": 182.3984375,
+        "x": 628.796875
+      },
+      {
+        "text": "授信状态",
+        "width": 182.3984375,
+        "x": 811.1953125
+      },
+      {
+        "text": "手机号",
+        "width": 182.40625,
+        "x": 993.59375
+      }
+    ],
+    "pagination": {
+      "y": 714,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-reopened-top-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 1357,
+        "y": 227
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 1600,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  },
+  {
+    "label": "scroll-reopened-bottom-layout",
+    "viewport": {
+      "width": 1440,
+      "height": 848,
+      "contentHeight": 848
+    },
+    "header": {
+      "y": 0,
+      "height": 64
+    },
+    "content": {
+      "y": 64,
+      "height": 784
+    },
+    "tables": [
+      {
+        "width": 1494,
+        "height": 1357,
+        "y": -590
+      }
+    ],
+    "columns": [
+      {
+        "text": "客群 ID",
+        "width": 96,
+        "x": 276
+      },
+      {
+        "text": "客群 Key",
+        "width": 280,
+        "x": 372
+      },
+      {
+        "text": "名称",
+        "width": 264,
+        "x": 652
+      },
+      {
+        "text": "类型",
+        "width": 96,
+        "x": 916
+      },
+      {
+        "text": "场景",
+        "width": 96,
+        "x": 1012
+      },
+      {
+        "text": "状态",
+        "width": 176,
+        "x": 1108
+      },
+      {
+        "text": "更新时间",
+        "width": 180,
+        "x": 1284
+      },
+      {
+        "text": "负责人",
+        "width": 144,
+        "x": 1464
+      },
+      {
+        "text": "操作",
+        "width": 162,
+        "x": 1241
+      }
+    ],
+    "pagination": {
+      "y": 783,
+      "height": 32
+    },
+    "internalTableBodies": 0
+  }
+]

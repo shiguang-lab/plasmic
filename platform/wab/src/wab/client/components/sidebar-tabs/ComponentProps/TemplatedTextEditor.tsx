@@ -950,8 +950,9 @@ function CustomCaret({
     const listener = () => {
       setTick(tick + 1);
     };
-    elt?.addEventListener("scroll", listener, false);
-    return () => elt?.removeEventListener("scroll", listener, false);
+    // OverlayScrollbars scrolls a nested viewport; capture its scroll events.
+    elt?.addEventListener("scroll", listener, true);
+    return () => elt?.removeEventListener("scroll", listener, true);
   }, [tick, scrollerContainerClassName]);
 
   React.useEffect(() => {

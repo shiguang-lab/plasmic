@@ -33,6 +33,8 @@ test("Overseas registers an editable field tree, slots, events and actions", () 
     assert.equal(item.meta.props[slot].type, "slot");
   }
   assert.equal(form.meta.props.extraActions.type, "slot");
+  assert.equal(form.meta.props.labelWidth.type, "number");
+  assert.equal(form.meta.props.labelWidth.defaultValue, undefined);
   for (const prop of [
     "name",
     "label",

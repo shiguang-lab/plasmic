@@ -1,0 +1,63 @@
+{
+  "projectId": "2DdvqnozKTQgbqsQAu4c4X",
+  "revision": 116,
+  "savedAndReopenedListEqual": true,
+  "newGroupTrigger": "hover",
+  "iframeDimensions": {
+    "more-hover": [1600, 872],
+    "create-hover": [1600, 872],
+    "closed": [1600, 872]
+  },
+  "menuItems": {
+    "more-hover": [
+      {
+        "tag": "li",
+        "text": "复制",
+        "classes": "ant-dropdown-menu-item ant-dropdown-menu-item-only-child",
+        "x": 1469,
+        "y": 405,
+        "width": 88,
+        "height": 32
+      },
+      {
+        "tag": "li",
+        "text": "停用",
+        "classes": "ant-dropdown-menu-item ant-dropdown-menu-item-danger ant-dropdown-menu-item-only-child",
+        "x": 1469,
+        "y": 437,
+        "width": 88,
+        "height": 32
+      },
+      {
+        "tag": "li",
+        "text": "导出名单",
+        "classes": "ant-dropdown-menu-item ant-dropdown-menu-item-only-child",
+        "x": 1469,
+        "y": 469,
+        "width": 88,
+        "height": 32
+      }
+    ],
+    "create-hover": [
+      {
+        "tag": "li",
+        "text": "新建常规客群",
+        "classes": "ant-dropdown-menu-item ant-dropdown-menu-item-only-child __wab_instance Req075客群列表__newRegularMenu__n6NeY",
+        "x": 1423,
+        "y": 211,
+        "width": 136,
+        "height": 32
+      },
+      {
+        "tag": "li",
+        "text": "新建一次性客群",
+        "classes": "ant-dropdown-menu-item ant-dropdown-menu-item-only-child __wab_instance Req075客群列表__newOnetimeMenu___3ZoSi",
+        "x": 1423,
+        "y": 243,
+        "width": 136,
+        "height": 32
+      }
+    ],
+    "closed": []
+  }
+}

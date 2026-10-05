@@ -218,5 +218,5 @@ test("Google login intermediate page is bundled and never goes to the NAS or SPA
     new Request(config.studioOrigin + "/desktop/google-login"),
   );
   assert.equal(response.headers.get("Cache-Control"), "no-store");
-  assert.match(await response.text(), /打开浏览器/);
+  assert.match(await response.text(), /Open browser/);
 });

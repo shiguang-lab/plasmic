@@ -16,6 +16,7 @@ import {
   extractComponent,
   getCodeComponentImportName,
   getFolderComponentDisplayName,
+  hasGlobalActions,
   mkComponent,
 } from "@/wab/shared/core/components";
 import { customCode, tryExtractJson } from "@/wab/shared/core/exprs";
@@ -595,4 +596,37 @@ it("reports duplicate component names through the browser SDK", () => {
       message: "Cannot save project - Duplicated component name: Duplicate",
     }),
   );
+});
+
+describe("hasGlobalActions", () => {
+  const componentWithHandler = (code: string) => {
+    const component = new TplMgr({ site: createSite() }).addComponent({
+      name: "Feedback",
+      type: ComponentType.Plain,
+    });
+    const root = component.tplTree as TplTag;
+    root.vsettings[0].attrs.onClick = customCode(code);
+    return component;
+  };
+  test("includes custom callback global actions in preview generation", () => {
+    expect(
+      hasGlobalActions(
+        componentWithHandler(
+          "() => $globalActions['plasmic-antd6-config-provider.showMessage']('success', 'Copied')",
+        ),
+      ),
+    ).toBe(true);
+  });
+  test("does not confuse strings or local variables with a global action reference", () => {
+    expect(
+      hasGlobalActions(componentWithHandler("() => '$globalActions'")),
+    ).toBe(false);
+    expect(
+      hasGlobalActions(
+        componentWithHandler(
+          "($globalActions) => $globalActions.showMessage()",
+        ),
+      ),
+    ).toBe(false);
+  });
 });

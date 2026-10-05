@@ -1,17 +1,17 @@
 import { parseProjectLocation } from "@/wab/client/cli-routes";
 import { showCanvasPageNavigationNotification } from "@/wab/client/components/canvas/studio-canvas-util";
+import {
+  DEVICE_VIEWPORTS,
+  isViewportDimension,
+  parseViewportMode,
+  PreviewViewportMode,
+} from "@/wab/client/components/live/preview-viewport";
 import { ClientPinManager } from "@/wab/client/components/variants/ClientPinManager";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { withProvider } from "@/wab/commons/components/ContextUtil";
 import { MainBranchId, ProjectId } from "@/wab/shared/ApiSchema";
 import { getFrameHeight } from "@/wab/shared/Arenas";
-import { FramePinManager } from "@/wab/shared/PinManager";
-import {
-  VariantCombo,
-  getReferencedVariantGroups,
-  isGlobalVariant,
-} from "@/wab/shared/Variants";
 import { toVarName } from "@/wab/shared/codegen/util";
 import {
   ensure,
@@ -26,10 +26,11 @@ import {
 } from "@/wab/shared/core/components";
 import { allGlobalVariants } from "@/wab/shared/core/sites";
 import { Component, Variant } from "@/wab/shared/model/classes";
+import { FramePinManager } from "@/wab/shared/PinManager";
 import {
   APP_ROUTES,
-  SEARCH_PARAM_BRANCH,
   mkProjectLocation,
+  SEARCH_PARAM_BRANCH,
 } from "@/wab/shared/route/app-routes";
 import { Route } from "@/wab/shared/route/route";
 import {
@@ -37,6 +38,11 @@ import {
   joinDecodedSegments,
   substituteUrlParams,
 } from "@/wab/shared/utils/url-utils";
+import {
+  getReferencedVariantGroups,
+  isGlobalVariant,
+  VariantCombo,
+} from "@/wab/shared/Variants";
 import * as Sentry from "@sentry/browser";
 import { notification } from "antd";
 import { Location } from "history";
@@ -51,6 +57,7 @@ const DEFAULT_VIEWPORT_HEIGHT = 480;
 /** All the input data required to make a preview route. */
 interface PreviewInputData {
   full: boolean;
+  viewport: PreviewViewportMode;
   /**
    * Can be either:
    * 1) a valid component and page params, or
@@ -134,6 +141,9 @@ export class PreviewCtx {
   }
   get full() {
     return this.previewData?.full || false;
+  }
+  get viewport() {
+    return this.previewData?.viewport || "desktop";
   }
 
   /**
@@ -336,12 +346,19 @@ export class PreviewCtx {
 
     const hashParams = new URLSearchParams(_.trimStart(location.hash, "#"));
     const pageHash = hashParams.get("pageHash") || "";
-    const widthString = hashParams.get("width");
-    const width = widthString ? parseInt(widthString) : DEFAULT_VIEWPORT_WIDTH;
-    const heightString = hashParams.get("height");
-    const height = heightString
-      ? parseInt(heightString)
-      : DEFAULT_VIEWPORT_HEIGHT;
+    const viewport = parseViewportMode(hashParams.get("viewport"));
+    const defaults =
+      viewport === "phone" || viewport === "tablet"
+        ? DEVICE_VIEWPORTS[viewport]
+        : { width: DEFAULT_VIEWPORT_WIDTH, height: DEFAULT_VIEWPORT_HEIGHT };
+    const parsedWidth = Number(hashParams.get("width"));
+    const parsedHeight = Number(hashParams.get("height"));
+    const width = isViewportDimension(parsedWidth)
+      ? parsedWidth
+      : defaults.width;
+    const height = isViewportDimension(parsedHeight)
+      ? parsedHeight
+      : defaults.height;
     const branchName = hashParams.get(SEARCH_PARAM_BRANCH) || MainBranchId;
 
     let allVariants: VariantCombo = [];
@@ -376,6 +393,7 @@ export class PreviewCtx {
 
     this.previewData = {
       full,
+      viewport,
       previewPath,
       componentPath: componentPath || previewPath,
       pageQuery,
@@ -430,34 +448,21 @@ export class PreviewCtx {
 
   /** Update the preview viewport. */
   async pushViewport(
-    previewData: Partial<Pick<PreviewInputData, "width" | "height">>,
+    previewData: Pick<PreviewInputData, "viewport" | "width" | "height">,
   ) {
     return this.pushRoute(previewData);
   }
 
-  /**
-   * Update the preview viewport, but REPLACE the new location into history.
-   *
-   * Used for automatic resizing operations.
-   */
-  async replaceViewport(
-    previewData: Partial<Pick<PreviewInputData, "width" | "height">>,
-  ) {
-    return this.pushRoute(previewData, true);
-  }
-
-  private async pushRoute(
-    {
-      componentPath,
-      pageQuery,
-      pageHash,
-      width,
-      height,
-      allVariants,
-      branchName,
-    }: Partial<PreviewInputData>,
-    replace = false,
-  ) {
+  private async pushRoute({
+    componentPath,
+    pageQuery,
+    pageHash,
+    viewport,
+    width,
+    height,
+    allVariants,
+    branchName,
+  }: Partial<PreviewInputData>) {
     if (!this.previewData) {
       await this.parseRoute();
     }
@@ -465,6 +470,7 @@ export class PreviewCtx {
     const prev = ensure(this.previewData, "missing previous previewData");
     const location = mkPreviewRoute(this.studioCtx.siteInfo.id, {
       full: prev.full,
+      viewport: viewport ?? prev.viewport,
       componentPath: componentPath || prev.componentPath,
       pageQuery: pageQuery || prev.pageQuery,
       pageHash: pageHash !== undefined ? pageHash : prev.pageHash,
@@ -473,28 +479,23 @@ export class PreviewCtx {
       allVariants: allVariants || prev.allVariants,
       branchName: branchName === undefined ? prev.branchName : branchName,
     });
-    return this.pushRouteToHistoryOrPopup(location, replace);
+    return this.pushRouteToHistoryOrPopup(location);
   }
 
   private async pushRouteToHistoryOrPopup(
     location: Partial<Location>,
-    replace = false,
   ): Promise<void> {
     if (this.popup) {
       this.popup.postMessage(
         {
           source: "plasmic-studio",
-          type: replace ? "replaceHistory" : "pushHistory",
+          type: "pushHistory",
           url: (location.pathname ?? "") + location.search + location.hash,
         },
         "*",
       );
     } else {
-      if (replace) {
-        this.studioCtx.appCtx.history.replace(location);
-      } else {
-        this.studioCtx.appCtx.history.push(location);
-      }
+      this.studioCtx.appCtx.history.push(location);
     }
   }
 
@@ -634,6 +635,7 @@ function mkPreviewSearch(
 function mkPreviewHash({
   pageHash,
   full,
+  viewport,
   width,
   height,
   allVariants,
@@ -644,7 +646,8 @@ function mkPreviewHash({
   if (pageHash) {
     hashParams.set("pageHash", pageHash);
   }
-  if (!full) {
+  if (!full && viewport !== "desktop") {
+    hashParams.set("viewport", viewport);
     hashParams.set("width", `${width}`);
     hashParams.set("height", `${height}`);
   }
@@ -690,6 +693,7 @@ export async function getUrlsForLiveMode(
 
   return mkPreviewRoute(studioCtx.siteInfo.id, {
     full,
+    viewport: "desktop",
     componentPath: {
       component: viewCtx.component,
       pageParams: viewCtx.component.pageMeta?.params || {},

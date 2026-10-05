@@ -264,7 +264,6 @@ export function registerNumberInput(loader?: Registerable) {
         type: "choice",
         options: inputTypeOptions,
         displayName: "Input type",
-        defaultValue: "number",
         advanced: true,
       },
       ...COMMON_DECORATOR_PROPS,
@@ -285,10 +284,10 @@ export function registerNumberInput(loader?: Registerable) {
       },
     },
     states: {
-      ...COMMON_STATES,
+      value: { ...COMMON_STATES.value, variableType: "number" },
     },
     ...({ trapsSelection: true } as any),
-    // don't need component helpers
+    // InputNumber emits numeric values directly.
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput",
     importName: "AntdInputNumber",
   });

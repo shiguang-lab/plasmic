@@ -1,4 +1,5 @@
 import { Select } from "antd";
+import cls from "classnames";
 import React, { ComponentProps } from "react";
 import {
   optionComponentName,
@@ -30,6 +31,7 @@ export function AntdSelect(
     suffixIcon,
     mode,
     useChildren,
+    classNames,
     ...rest
   } = props;
   const curated = { ...rest };
@@ -40,21 +42,43 @@ export function AntdSelect(
     <Select
       {...curated}
       mode={!mode || (mode as any) === "single" ? undefined : mode}
-      classNames={{
-        popup: {
-          root: `${defaultStylesClassName ?? ""} ${popupScopeClassName ?? ""} ${popupRootClassName ?? ""}`,
-        },
+      classNames={(info) => {
+        const names =
+          typeof classNames === "function" ? classNames(info) : classNames;
+        const popup =
+          typeof names?.popup === "string"
+            ? { root: names.popup }
+            : names?.popup;
+        return {
+          ...names,
+          popup: {
+            ...popup,
+            root: cls(
+              popup?.root,
+              defaultStylesClassName,
+              popupScopeClassName,
+              popupRootClassName,
+            ),
+          },
+        };
       }}
-      optionFilterProp={curated.options ? "label" : undefined}
-      filterOption={(input, option) =>
-        (useChildren
-          ? reactNodeToString(option?.children)
-          : (option?.label ?? "")
-        )
-          .toLowerCase()
-          .includes(input.toLowerCase())
+      optionFilterProp={
+        curated.optionFilterProp ?? (curated.options ? "label" : undefined)
       }
-      {...(suffixIcon && { suffixIcon })}
+      filterOption={
+        curated.filterOption ??
+        (curated.optionFilterProp
+          ? undefined
+          : (input, option) =>
+              reactNodeToString(
+                useChildren
+                  ? option?.children
+                  : (option?.label ?? option?.value ?? ""),
+              )
+                .toLowerCase()
+                .includes(input.toLowerCase()))
+      }
+      suffixIcon={suffixIcon}
     />
   );
 }
@@ -149,7 +173,7 @@ export function registerSelect(loader?: Registerable) {
         editOnly: true,
         uncontrolledProp: "defaultValue",
         description: "Initial selected option",
-        multiSelect: (ps: any) => ps.mode === "multiple",
+        multiSelect: (ps: any) => ps.mode === "multiple" || ps.mode === "tags",
         options: (ps: any) => {
           const options = new Set<string>();
           if (!ps.useChildren) {
@@ -194,7 +218,8 @@ export function registerSelect(loader?: Registerable) {
       },
       showSearch: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: (ps: any) =>
+          ps.mode === "multiple" || ps.mode === "tags",
         advanced: true,
       },
       status: {
@@ -216,7 +241,7 @@ export function registerSelect(loader?: Registerable) {
       onChange: {
         type: "eventHandler",
         argTypes: [
-          { name: "value", type: "string" },
+          { name: "value", type: "object" },
           { name: "option", type: "object" },
         ],
       } as any,
@@ -300,7 +325,7 @@ export function registerSelect(loader?: Registerable) {
         type: "writable",
         valueProp: "value",
         onChangeProp: "onChange",
-        variableType: "text",
+        variableType: "object",
         hidden: (ps: any) => !!ps.__plasmicFormField,
       },
     },

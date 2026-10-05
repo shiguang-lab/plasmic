@@ -1,3 +1,4 @@
+import { revealCanvasElement } from "@/wab/client/components/canvas/canvas-scroll";
 import {
   getPreferredInsertLocs,
   InsertRelLoc,
@@ -16,6 +17,7 @@ import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import {
   EXPANDER_COLLAPSED_ICON,
   EXPANDER_EXPANDED_ICON,
@@ -831,6 +833,10 @@ const TplTreeNode = observer(function TplTreeNode(props: {
                 appendToMultiSelection: e.shiftKey,
               });
             }
+          }
+          const element = L.last(viewCtx.focusedDomElts())?.[0];
+          if (element) {
+            revealCanvasElement(element);
           }
         });
       }}
@@ -1800,6 +1806,7 @@ export const ArenaTree = observer(
           // To prevent this, don't render the FixedSizeList if height is 0.
           height > 0 && (
             <FixedSizeList
+              outerElementType={VirtualListScrollbar}
               className="tpltree-scroller"
               innerElementType={OutlineTreeInner}
               style={

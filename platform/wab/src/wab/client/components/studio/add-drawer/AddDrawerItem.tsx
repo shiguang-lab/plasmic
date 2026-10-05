@@ -36,6 +36,12 @@ interface AddDrawerItemProps {
   item: AddItem;
   matcher?: Matcher;
   isHighlighted?: boolean;
+  /** Card only: styling for the card layout. */
+  cardClassName?: string;
+  /** Card only: styling for the title area. */
+  cardTitleClassName?: string;
+  /** Card only: rendered title override. */
+  cardTitle?: React.ReactNode;
   /** Row only: called after the item is inserted via an insert action. */
   onInserted?: (tplNode: TplNode | null) => void;
   /** Row only: valid insert locations for the insert action buttons. */
@@ -56,7 +62,12 @@ function AddItemCard(props: AddDrawerItemProps) {
   const { item, matcher, isHighlighted } = props;
   return (
     <AddDrawerCardItem
-      title={matcher ? matcher.boldSnippets(item.label) : item.label}
+      className={props.cardClassName}
+      title={
+        props.cardTitle ??
+        (matcher ? matcher.boldSnippets(item.label) : item.label)
+      }
+      titleBox={{ className: props.cardTitleClassName }}
       hoverText={
         item["hostLessPackageInfo"]?.syntheticPackage
           ? "Show package"

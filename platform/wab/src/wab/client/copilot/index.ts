@@ -1,78 +1,89 @@
-import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
-import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
-import { getFrameHeight, normalizeMixedArenaFrames, ensureActivatedScreenVariantsForFrameByWidth } from "@/wab/shared/Arenas";
-import { frameSizeGroups } from "@/wab/shared/responsiveness";
-import { Pt } from "@/wab/shared/geom";
+import {
+  isCanvasElementVisible,
+  revealCanvasElement,
+} from "@/wab/client/components/canvas/canvas-scroll";
+import { activityTargets } from "@/wab/client/copilot/activity";
 import { readAndSanitizeSvgXmlAsImage } from "@/wab/client/dom-utils";
-import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
-import { parseDataUrlToSvgXml } from "@/wab/shared/data-urls";
-import { deleteComponent } from "@/wab/client/operations/delete-component";
-import { ScreenSizeSpec } from "@/wab/shared/css-size";
-import { isScreenVariantGroup } from "@/wab/shared/Variants";
-import { interpolatedStringToCodeExpr } from "@/wab/shared/copilot/dynamic-value-input";
-import { mkNormalizedRep } from "@/wab/shared/copilot/utils";
-import { createVariantGroup } from "@/wab/client/operations/create-variant-group";
-import { createVariant } from "@/wab/client/operations/create-variant";
-import { updateComponentState } from "@/wab/client/operations/update-component-state";
-import { deleteComponentState } from "@/wab/client/operations/delete-component-state";
-import { deleteStyleToken } from "@/wab/client/operations/delete-style-token";
-import { setStyleTokenVariantedValue } from "@/wab/client/operations/set-style-token-varianted-value";
-import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { createComponent } from "@/wab/client/operations/create-component";
 import { createComponentState } from "@/wab/client/operations/create-component-state";
 import { createInteraction } from "@/wab/client/operations/create-interaction";
 import { createStyleToken } from "@/wab/client/operations/create-style-token";
+import { createVariant } from "@/wab/client/operations/create-variant";
+import { createVariantGroup } from "@/wab/client/operations/create-variant-group";
+import { deleteComponent } from "@/wab/client/operations/delete-component";
+import { deleteComponentState } from "@/wab/client/operations/delete-component-state";
+import { deleteStyleToken } from "@/wab/client/operations/delete-style-token";
 import { deleteTpl } from "@/wab/client/operations/delete-tpl";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { insertTplAt, pasteTpls } from "@/wab/client/operations/insert-tpl";
 import { setComponentInstanceProp } from "@/wab/client/operations/set-component-instance-prop";
+import { setStyleTokenVariantedValue } from "@/wab/client/operations/set-style-token-varianted-value";
 import { setTplStyles } from "@/wab/client/operations/set-tpl-styles";
+import { updateComponentState } from "@/wab/client/operations/update-component-state";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { formatWIError } from "@/wab/client/web-importer/errors";
+import { ensureOk } from "@/wab/commons/neverthrow-utils";
+import {
+  ensureActivatedScreenVariantsForFrameByWidth,
+  getArenaFrames,
+  getFrameHeight,
+  normalizeMixedArenaFrames,
+} from "@/wab/shared/Arenas";
+import { VariantOptionsType } from "@/wab/shared/TplMgr";
+import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
+import { getBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
+import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
+import { assert, ensure } from "@/wab/shared/common";
 import { getComponentArenaBaseFrame } from "@/wab/shared/component-arenas";
 import {
   GlobalVariantFrame,
   RootComponentVariantFrame,
 } from "@/wab/shared/component-frame";
-import { assert, ensure } from "@/wab/shared/common";
 import {
   CopilotTool,
-  defineCopilotTool,
+  defineCopilotTool as defineTool,
 } from "@/wab/shared/copilot/copilot-tool-types";
+import { interpolatedStringToCodeExpr } from "@/wab/shared/copilot/dynamic-value-input";
 import {
   PROTOTYPE_TOOL_META as meta,
   type PrototypeMutation,
 } from "@/wab/shared/copilot/prototype-tools";
+import { mkNormalizedRep } from "@/wab/shared/copilot/utils";
 import {
-  allComponentVariants,
   ComponentType,
+  allComponentVariants,
   isCodeComponent,
   isPageComponent,
 } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
+import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
 import {
   allGlobalVariants,
   getComponentArena,
   getPageArena,
 } from "@/wab/shared/core/sites";
+import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import {
+  ancestorsUp,
   clone,
   flattenTpls,
-  tplChildren,
   isTplImage,
+  tplChildren,
 } from "@/wab/shared/core/tpls";
+import { ScreenSizeSpec } from "@/wab/shared/css-size";
+import { parseDataUrlToSvgXml } from "@/wab/shared/data-urls";
+import { Pt } from "@/wab/shared/geom";
 import {
   Component,
+  TplNode,
   isKnownTplComponent,
   isKnownTplTag,
-  TplNode,
 } from "@/wab/shared/model/classes";
+import { frameSizeGroups } from "@/wab/shared/responsiveness";
 import {
   assertSiteInvariants,
   genSiteErrors,
 } from "@/wab/shared/site-invariants";
-import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
-import { getBaseVariant } from "@/wab/shared/Variants";
 import {
   buildComponentResource,
   buildElementResource,
@@ -86,7 +97,61 @@ import {
   type ReadResultJson,
 } from "@/wab/shared/web-exporter/schema";
 import { ok } from "neverthrow";
-import { ensureOk } from "@/wab/commons/neverthrow-utils";
+
+const quietTools = new Set([
+  "identify",
+  "findEmptySpace",
+  "navigate",
+  "navigateCanvas",
+  "scrollElementIntoView",
+  "validate",
+  "save",
+  "undo",
+]);
+const readTools = new Set(["read", "readVector", "queryElements"]);
+
+// Keep input/output validation and serialization in the shared tool wrapper.
+const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
+  defineTool(toolMeta, async (studio, input) => {
+    if (quietTools.has(toolMeta.toolName)) {
+      return execute(studio, input);
+    }
+    const targets = activityTargets(toolMeta.toolName, input).map((target) => {
+      const component =
+        studio.site.components.find((c) => c.uuid === target.componentUuid) ??
+        studio.site.projectDependencies
+          .flatMap((dep) => dep.site.components)
+          .find((c) => c.uuid === target.componentUuid);
+      const tpl =
+        component && target.elementUuid
+          ? flattenTpls(component.tplTree).find(
+              (t) => t.uuid === target.elementUuid,
+            )
+          : undefined;
+      const elementName = tpl && "name" in tpl && tpl.name;
+      return {
+        ...target,
+        ancestorUuids: tpl
+          ? ancestorsUp(tpl, true).map((ancestor) => ancestor.uuid)
+          : undefined,
+        label: component
+          ? `${component.name}${target.elementUuid ? ` / ${elementName || target.elementUuid}` : ""}`
+          : (target.canvasName ?? "Project"),
+      };
+    });
+    const finish = studio.copilotActivity.begin(
+      readTools.has(toolMeta.toolName) ? "read" : "edit",
+      targets,
+    );
+    try {
+      const output = await execute(studio, input);
+      finish("success");
+      return output;
+    } catch (error) {
+      finish("error");
+      throw error;
+    }
+  });
 
 function findCanvas(studio: StudioCtx, name: string) {
   return ensure(
@@ -122,10 +187,15 @@ function emptyCanvasSpace(
   let x = anchor?.x ?? 0,
     y = anchor?.y ?? 0;
   if (anchor) {
-    if (input.direction === "right") x += anchor.width + input.padding;
-    else if (input.direction === "left") x -= input.width + input.padding;
-    else if (input.direction === "bottom") y += anchor.height + input.padding;
-    else y -= input.height + input.padding;
+    if (input.direction === "right") {
+      x += anchor.width + input.padding;
+    } else if (input.direction === "left") {
+      x -= input.width + input.padding;
+    } else if (input.direction === "bottom") {
+      y += anchor.height + input.padding;
+    } else {
+      y -= input.height + input.padding;
+    }
   }
   for (let step = 0; step <= rects.length; step++) {
     const hits = rects.filter(
@@ -135,14 +205,18 @@ function emptyCanvasSpace(
         y < r.y + r.height + input.padding &&
         y + input.height + input.padding > r.y,
     );
-    if (!hits.length) return { canvasName: arena.name, x, y };
-    if (input.direction === "right")
+    if (!hits.length) {
+      return { canvasName: arena.name, x, y };
+    }
+    if (input.direction === "right") {
       x = Math.max(...hits.map((r) => r.x + r.width + input.padding));
-    else if (input.direction === "left")
+    } else if (input.direction === "left") {
       x = Math.min(...hits.map((r) => r.x - input.width - input.padding));
-    else if (input.direction === "bottom")
+    } else if (input.direction === "bottom") {
       y = Math.max(...hits.map((r) => r.y + r.height + input.padding));
-    else y = Math.min(...hits.map((r) => r.y - input.height - input.padding));
+    } else {
+      y = Math.min(...hits.map((r) => r.y - input.height - input.padding));
+    }
   }
   throw new Error("Cannot find an empty artboard position");
 }
@@ -177,8 +251,9 @@ function vectorAsset(
 }
 
 async function readSvgSource(dataUri: string) {
-  if (dataUri.startsWith("data:image/svg+xml"))
+  if (dataUri.startsWith("data:image/svg+xml")) {
     return parseDataUrlToSvgXml(dataUri);
+  }
   const response = await fetch(dataUri, {
     credentials: "include",
     signal: AbortSignal.timeout(30000),
@@ -302,47 +377,99 @@ async function prepareMutation(
 ): Promise<MutationPlan> {
   if (operation.name === "deleteCanvas" || operation.name === "updateCanvas") {
     const arena = findCanvas(studio, operation.input.canvasName);
-    return { components: [], apply: () => {
-      assert(studio.site.arenas.includes(arena), "Canvas removed during batch");
-      if (operation.name === "deleteCanvas") {
-        studio.tplMgr().removeArena(arena);
-      } else {
-        assert(!studio.site.arenas.some(a => a !== arena && a.name === operation.input.name), "Canvas name already exists");
-        arena.name = operation.input.name;
-      }
-    }, result: () => canvasResult(studio) };
+    return {
+      components: [],
+      apply: () => {
+        assert(
+          studio.site.arenas.includes(arena),
+          "Canvas removed during batch",
+        );
+        if (operation.name === "deleteCanvas") {
+          studio.tplMgr().removeArena(arena);
+        } else {
+          assert(
+            !studio.site.arenas.some(
+              (a) => a !== arena && a.name === operation.input.name,
+            ),
+            "Canvas name already exists",
+          );
+          arena.name = operation.input.name;
+        }
+      },
+      result: () => canvasResult(studio),
+    };
   }
   if (operation.name === "updateArtboard") {
     const input = operation.input;
     const arena = findCanvas(studio, input.canvasName);
-    const frame = ensure(arena.children.find(f => f.uuid === input.frameUuid), "Artboard not found");
-    return { components: [frame.container.component], apply: () => {
-      assert(studio.site.arenas.includes(arena) && arena.children.includes(frame), "Artboard removed during batch");
-      frame.width = input.width; frame.height = input.height; frame.left = input.x; frame.top = input.y;
-      ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
-      normalizeMixedArenaFrames(arena);
-    }, result: () => canvasResult(studio) };
+    const frame = ensure(
+      arena.children.find((f) => f.uuid === input.frameUuid),
+      "Artboard not found",
+    );
+    return {
+      components: [frame.container.component],
+      apply: () => {
+        assert(
+          studio.site.arenas.includes(arena) && arena.children.includes(frame),
+          "Artboard removed during batch",
+        );
+        frame.width = input.width;
+        frame.height = input.height;
+        frame.left = input.x;
+        frame.top = input.y;
+        ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+        normalizeMixedArenaFrames(arena);
+      },
+      result: () => canvasResult(studio),
+    };
   }
   if (operation.name === "setPageViewport") {
-    const size = ensure(frameSizeGroups.flatMap(g => g.sizes).find(s => s.name === operation.input.preset), "Unknown Studio device preset");
-    return { components: studio.site.pageArenas.map(a => a.component), apply: () => {
-      for (const arena of studio.site.pageArenas) {
-        for (const row of arena.matrix.rows) row.cols.splice(1);
-        for (const row of [...arena.matrix.rows, ...arena.customMatrix.rows]) {
-          for (const { frame } of row.cols) {
-            frame.width = size.width; frame.height = size.height;
-            ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+    const size = ensure(
+      frameSizeGroups
+        .flatMap((g) => g.sizes)
+        .find((s) => s.name === operation.input.preset),
+      "Unknown Studio device preset",
+    );
+    return {
+      components: studio.site.pageArenas.map((a) => a.component),
+      apply: () => {
+        for (const arena of studio.site.pageArenas) {
+          for (const row of arena.matrix.rows) {
+            row.cols.splice(1);
+          }
+          for (const row of [
+            ...arena.matrix.rows,
+            ...arena.customMatrix.rows,
+          ]) {
+            for (const { frame } of row.cols) {
+              frame.width = size.width;
+              frame.height = size.height;
+              ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+            }
           }
         }
-      }
-    }, result: () => canvasResult(studio) };
+      },
+      result: () => canvasResult(studio),
+    };
   }
   if (operation.name === "deleteBreakpoint") {
-    const variant = ensure(studio.site.activeScreenVariantGroup?.variants.find(v => v.uuid === operation.input.variantUuid), "Active screen breakpoint not found");
-    return { components: studio.site.components.filter(c => !isCodeComponent(c)), apply: () => {
-      assert(studio.site.activeScreenVariantGroup?.variants.includes(variant), "Breakpoint removed during batch");
-      studio.tplMgr().tryRemoveVariant(variant, undefined);
-    }, result: () => canvasResult(studio) };
+    const variant = ensure(
+      studio.site.activeScreenVariantGroup?.variants.find(
+        (v) => v.uuid === operation.input.variantUuid,
+      ),
+      "Active screen breakpoint not found",
+    );
+    return {
+      components: studio.site.components.filter((c) => !isCodeComponent(c)),
+      apply: () => {
+        assert(
+          studio.site.activeScreenVariantGroup?.variants.includes(variant),
+          "Breakpoint removed during batch",
+        );
+        studio.tplMgr().tryRemoveVariant(variant, undefined);
+      },
+      result: () => canvasResult(studio),
+    };
   }
   if (operation.name === "createCanvas") {
     const input = operation.input;
@@ -527,10 +654,11 @@ async function prepareMutation(
           studio.site.styleTokens.includes(token),
           "Token was removed during batch",
         );
-        if (input.name !== undefined)
+        if (input.name !== undefined) {
           studio.tplMgr().renameStyleToken(token, input.name);
+        }
         if (input.value !== undefined) {
-          if (variants.length)
+          if (variants.length) {
             ensureOk(
               setStyleTokenVariantedValue({
                 site: studio.site,
@@ -539,7 +667,7 @@ async function prepareMutation(
                 value: input.value,
               }),
             );
-          else {
+          } else {
             assert(input.value !== null, "Base token value cannot be null");
             token.value = input.value;
           }
@@ -562,7 +690,7 @@ async function prepareMutation(
           screenBreakpoints: true,
         }),
       ]);
-    if (operation.name === "createGlobalVariantGroup")
+    if (operation.name === "createGlobalVariantGroup") {
       return {
         components: studio.site.components,
         apply: () => {
@@ -570,12 +698,14 @@ async function prepareMutation(
         },
         result,
       };
+    }
     if (operation.name === "createGlobalVariant") {
       const input = operation.input;
       const group = ensure(
         studio.site.globalVariantGroups.find(
-          (group) =>
-            group.uuid === input.groupUuid && !isScreenVariantGroup(group),
+          (candidate) =>
+            candidate.uuid === input.groupUuid &&
+            !isScreenVariantGroup(candidate),
         ),
         "Local theme group not found",
       );
@@ -614,7 +744,7 @@ async function prepareMutation(
     };
   }
   const component = findComponent(studio, operation.input.componentUuid, true);
-  if (operation.name === "deleteComponent")
+  if (operation.name === "deleteComponent") {
     return {
       components: studio.site.components,
       apply: () => {
@@ -634,6 +764,7 @@ async function prepareMutation(
           }),
         ]),
     };
+  }
   const vtm = variantManager(studio, component);
   const messages: string[] = [];
   let apply: () => void;
@@ -710,12 +841,13 @@ async function prepareMutation(
           "Element removed during batch",
         );
         const setting = vtm.ensureVariantSetting(tpl, combo);
-        if (input.visibleIf !== undefined)
+        if (input.visibleIf !== undefined) {
           setting.dataCond =
             input.visibleIf === null
               ? null
               : interpolatedStringToCodeExpr(input.visibleIf);
-        if (input.repeat !== undefined)
+        }
+        if (input.repeat !== undefined) {
           setting.dataRep =
             input.repeat === null
               ? null
@@ -724,21 +856,23 @@ async function prepareMutation(
                   input.repeat.itemName,
                   input.repeat.indexName,
                 );
+        }
         if (input.props) {
           assert(
             isKnownTplComponent(tpl),
             "props requires a component instance; use insertHtml to replace native text/markup",
           );
           const vs = vtm.ensureVariantSetting(tpl, combo);
-          for (const [name, value] of Object.entries(input.props))
+          for (const [name, value] of Object.entries(input.props)) {
             ensureOk(
               setComponentInstanceProp(tpl, name, value, {
                 vs,
                 tplMgr: studio.tplMgr(),
               }),
             );
+          }
         }
-        if (input.styles)
+        if (input.styles) {
           messages.push(
             ...ensureOk(
               setTplStyles(tpl, input.styles, {
@@ -748,6 +882,7 @@ async function prepareMutation(
               }),
             ),
           );
+        }
       };
       break;
     }
@@ -802,7 +937,9 @@ async function prepareMutation(
             (location === "append" || location === "prepend")
           ) {
             const siblings = tplChildren(target).filter((t) => t !== source);
-            if (!siblings.length) return;
+            if (!siblings.length) {
+              return;
+            }
             anchor =
               location === "prepend"
                 ? siblings[0]
@@ -849,11 +986,11 @@ async function prepareMutation(
       );
       apply = () => {
         assert(component.states.includes(state), "State removed during batch");
-        if (operation.name === "deleteState")
+        if (operation.name === "deleteState") {
           ensureOk(
             deleteComponentState(state, { site: studio.site, component }),
           );
-        else {
+        } else {
           const changes = operation.input;
           ensureOk(
             updateComponentState(
@@ -993,11 +1130,21 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       ),
     ]);
   }),
-  deleteCanvas: defineCopilotTool(meta.deleteCanvas, (studio, input) => runMutation(studio, { name: "deleteCanvas", input })),
-  updateCanvas: defineCopilotTool(meta.updateCanvas, (studio, input) => runMutation(studio, { name: "updateCanvas", input })),
-  updateArtboard: defineCopilotTool(meta.updateArtboard, (studio, input) => runMutation(studio, { name: "updateArtboard", input })),
-  setPageViewport: defineCopilotTool(meta.setPageViewport, (studio, input) => runMutation(studio, { name: "setPageViewport", input })),
-  deleteBreakpoint: defineCopilotTool(meta.deleteBreakpoint, (studio, input) => runMutation(studio, { name: "deleteBreakpoint", input })),
+  deleteCanvas: defineCopilotTool(meta.deleteCanvas, (studio, input) =>
+    runMutation(studio, { name: "deleteCanvas", input }),
+  ),
+  updateCanvas: defineCopilotTool(meta.updateCanvas, (studio, input) =>
+    runMutation(studio, { name: "updateCanvas", input }),
+  ),
+  updateArtboard: defineCopilotTool(meta.updateArtboard, (studio, input) =>
+    runMutation(studio, { name: "updateArtboard", input }),
+  ),
+  setPageViewport: defineCopilotTool(meta.setPageViewport, (studio, input) =>
+    runMutation(studio, { name: "setPageViewport", input }),
+  ),
+  deleteBreakpoint: defineCopilotTool(meta.deleteBreakpoint, (studio, input) =>
+    runMutation(studio, { name: "deleteBreakpoint", input }),
+  ),
   createCanvas: defineCopilotTool(meta.createCanvas, (studio, input) =>
     runMutation(studio, { name: "createCanvas", input }),
   ),
@@ -1023,7 +1170,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         "Canvas navigation requires full editor permission",
       );
       studio.switchToArena(arena);
-      if (frame) studio.setStudioFocusOnFrame({ frame, autoZoom: true });
+      if (frame) {
+        studio.setStudioFocusOnFrame({ frame, autoZoom: true });
+      }
       return canvasResult(studio);
     },
   ),
@@ -1044,26 +1193,70 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   updateVector: defineCopilotTool(meta.updateVector, (studio, input) =>
     runMutation(studio, { name: "updateVector", input }),
   ),
-  installLibrary: defineCopilotTool(meta.installLibrary, async (studio, input) => {
-    assertCanEditPrototype(studio);
-    assert(!studio.contentEditorMode, "Library installation requires full editor permission");
-    const existing = studio.site.projectDependencies.find(dep => dep.projectId === input.projectId);
-    const dependency = existing ?? await studio.projectDependencyManager.addByProjectId(input.projectId);
-    await studio.updateCcRegistry(usedHostLessPkgs(studio.site));
-    return { projectId: dependency.projectId, version: dependency.version, installed: !existing };
-  }),
-  upgradeLibrary: defineCopilotTool(meta.upgradeLibrary, async (studio, input) => {
-    assertCanEditPrototype(studio);
-    assert(!studio.contentEditorMode, "Library upgrades require full editor permission");
-    const dependency = ensure(studio.site.projectDependencies.find(dep => dep.projectId === input.projectId), "Library is not installed in this project");
-    const previousVersion = dependency.version;
-    const { pkg, depPkgs } = await studio.appCtx.api.getPkgVersion(dependency.pkgId);
-    const { projectDependency } = unbundleProjectDependency(studio.bundler(), pkg, depPkgs);
-    assert(projectDependency.projectId === input.projectId && projectDependency.pkgId === dependency.pkgId, "Published package does not match installed library");
-    const upgraded = projectDependency.version !== previousVersion;
-    if (upgraded) await studio.projectDependencyManager.upgradeProjectDeps([projectDependency]);
-    return { projectId: input.projectId, previousVersion, version: projectDependency.version, upgraded };
-  }),
+  installLibrary: defineCopilotTool(
+    meta.installLibrary,
+    async (studio, input) => {
+      assertCanEditPrototype(studio);
+      assert(
+        !studio.contentEditorMode,
+        "Library installation requires full editor permission",
+      );
+      const existing = studio.site.projectDependencies.find(
+        (dep) => dep.projectId === input.projectId,
+      );
+      const dependency =
+        existing ??
+        (await studio.projectDependencyManager.addByProjectId(input.projectId));
+      await studio.updateCcRegistry(usedHostLessPkgs(studio.site));
+      return {
+        projectId: dependency.projectId,
+        version: dependency.version,
+        installed: !existing,
+      };
+    },
+  ),
+  upgradeLibrary: defineCopilotTool(
+    meta.upgradeLibrary,
+    async (studio, input) => {
+      assertCanEditPrototype(studio);
+      assert(
+        !studio.contentEditorMode,
+        "Library upgrades require full editor permission",
+      );
+      const dependency = ensure(
+        studio.site.projectDependencies.find(
+          (dep) => dep.projectId === input.projectId,
+        ),
+        "Library is not installed in this project",
+      );
+      const previousVersion = dependency.version;
+      const { pkg, depPkgs } = await studio.appCtx.api.getPkgVersion(
+        dependency.pkgId,
+      );
+      const { projectDependency } = unbundleProjectDependency(
+        studio.bundler(),
+        pkg,
+        depPkgs,
+      );
+      assert(
+        projectDependency.projectId === input.projectId &&
+          projectDependency.pkgId === dependency.pkgId,
+        "Published package does not match installed library",
+      );
+      const upgraded = projectDependency.version !== previousVersion;
+      if (upgraded) {
+        await studio.projectDependencyManager.upgradeProjectDeps([
+          projectDependency,
+        ]);
+      }
+      return {
+        projectId: input.projectId,
+        previousVersion,
+        version: projectDependency.version,
+        upgraded,
+      };
+    },
+  ),
   queryElements: defineCopilotTool(
     meta.queryElements,
     async (studio, input) => {
@@ -1190,6 +1383,52 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     studio.switchToComponentArena(component);
     return componentResult(studio, component);
   }),
+  scrollElementIntoView: defineCopilotTool(
+    meta.scrollElementIntoView,
+    async (studio, input) => {
+      const component = findComponent(studio, input.componentUuid);
+      const tpl = findElement(component, input.elementUuid);
+      const frames = getArenaFrames(studio.currentArena);
+      const candidates = studio.viewCtxs.filter(
+        (vc) =>
+          frames.includes(vc.arenaFrame()) &&
+          (!input.frameUuid || vc.arenaFrame().uuid === input.frameUuid) &&
+          vc.renderState.tpl2fullKeys(tpl).length > 0,
+      );
+      const focused = studio.focusedViewCtx();
+      const vc =
+        candidates.find((candidate) => candidate === focused) ??
+        (candidates.length === 1 ? candidates[0] : undefined);
+      assert(
+        vc,
+        candidates.length > 1
+          ? "Multiple artboards render this element; specify frameUuid"
+          : "Element is not rendered in the current canvas; navigate to its page and wait for rendering",
+      );
+      const key = vc.renderState.tpl2fullKeys(tpl)[input.instanceIndex];
+      const val = key ? vc.renderState.fullKey2val(key) : undefined;
+      assert(val, "Rendered instance not found; check instanceIndex");
+      const node = vc.renderState
+        .val2dom(val, vc.canvasCtx)
+        ?.find((dom) => dom.isConnected && dom.getClientRects().length > 0);
+      assert(node, "Element is hidden or has no rendered layout box");
+      revealCanvasElement(node);
+      const rect = node.getBoundingClientRect();
+      return {
+        componentUuid: component.uuid,
+        elementUuid: tpl.uuid,
+        frameUuid: vc.arenaFrame().uuid,
+        instanceIndex: input.instanceIndex,
+        visible: isCanvasElementVisible(node),
+        bounds: {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+        },
+      };
+    },
+  ),
   validate: defineCopilotTool(meta.validate, async (studio, input) => {
     const components = input.componentUuids
       ? input.componentUuids.map((uuid) => findComponent(studio, uuid, true))

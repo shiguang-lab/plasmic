@@ -1,5 +1,6 @@
 import { Matcher } from "@/wab/client/components/view-common";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { mod } from "@/wab/shared/common";
 import {
   getFolderTrimmed,
@@ -107,6 +108,7 @@ export const VirtualTree = React.forwardRef(function <T>(
       {({ height }) =>
         height > 0 && (
           <VariableSizeList
+            outerElementType={VirtualListScrollbar}
             ref={listRef}
             width={"100%"}
             height={height}

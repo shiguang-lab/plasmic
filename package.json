@@ -27,7 +27,7 @@
     "local-publish": "./scripts/local-publish.sh",
     "make": "cd platform/wab && make",
     "release": "echo 'Use the jenkins job release_public_packages instead: https://jenkins.aws.plasmic.app/job/release_public_packages/'",
-    "setup": "pnpm install && pnpm --filter @shiguang-lab/plasmic-antd6... build && pnpm setup:wab && pnpm setup:sub && pnpm setup:react-web-bundle && pnpm setup:live-frame && pnpm setup:loader-bundle-env && pnpm setup:loader-html-hydrate && pnpm make",
+    "setup": "pnpm install && pnpm --filter @shiguang-lab/plasmic-antd6... build && pnpm --filter @shiguang-lab/plasmic-antd-icons build && pnpm --filter @shiguang-lab/plasmic-react-ui build && pnpm setup:wab && pnpm setup:sub && pnpm setup:react-web-bundle && pnpm setup:live-frame && pnpm setup:loader-bundle-env && pnpm setup:loader-html-hydrate && pnpm make",
     "setup-all": "pnpm setup && pnpm setup:canvas-packages && cd platform/wab && pnpm typeorm migration:run && pnpm migrate-dev-bundles && pnpm plume:dev update",
     "setup:canvas-packages": "cd platform && pnpm install && pnpm --filter canvas-packages build",
     "setup:live-frame": "cd platform/live-frame && pnpm install && pnpm build",

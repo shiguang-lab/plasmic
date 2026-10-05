@@ -134,7 +134,7 @@ export function registerCheckbox(loader?: Registerable) {
         type: "writable",
         valueProp: "value",
         onChangeProp: "onChange",
-        variableType: "boolean",
+        variableType: "array",
         hidden: (ps: any) => !!ps.__plasmicFormField,
       },
     },
