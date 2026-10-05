@@ -54,10 +54,14 @@ build environment. `package:mac` defaults to Apple Silicon; Intel builds use
 
 Updates use `desktop.config.json`'s HTTPS `updateUrl`, partitioned by platform and
 architecture. GitHub is not contacted when checking, downloading or installing.
-The application checks ten seconds after startup and every four hours. The sidebar
-shows the current version, download progress, release notes, retry and **重启并安装**.
-An update button remains accessible in the editor and login page; the native
-**更新 → 检查更新…** menu also starts a check. Development launches disable installation.
+The application checks immediately at startup and every ten minutes. The sidebar
+shows a blue update icon at the bottom when an update is available. Hover or keyboard
+focus expands the sidebar icon's action label; the editor's narrow left toolbar
+uses a circular icon and tooltip. Click to download, watch the progress, then click
+again to save the design and restart with the update. Failures show a retry action.
+The icon is embedded in the sidebar and never floats over the page. On the login
+page, use the native **更新 → 检查更新…** menu to check, download or install updates.
+Development launches disable installation.
 
 Configure the existing NAS web service once (SSH access via `nasHost` is required):
 

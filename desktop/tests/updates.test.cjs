@@ -111,22 +111,27 @@ test("development and unpacked launches keep updates disabled even after an upda
   updater.emit("error", new Error("Prior install failed"));
   for (const command of ["check", "download", "install"]) assert.equal((await updates.command(command)).phase, "disabled");
 });
-test("installed clients check at startup and every four hours", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout", "setInterval"] });
+test("installed clients check immediately at startup and every ten minutes until stopped", async (t) => {
+  t.mock.timers.enable({ apis: ["setInterval"] });
   const updater = new EventEmitter();
   let checks = 0;
   updater.checkForUpdates = async () => { checks++; updater.emit("update-not-available"); };
   const updates = manager(updater);
   t.after(() => updates.stop());
   updates.start();
-  t.mock.timers.tick(9999);
-  assert.equal(checks, 0);
+  assert.equal(checks, 1);
+  await updates.running;
+  t.mock.timers.tick(10 * 60 * 1000 - 1);
+  assert.equal(checks, 1);
   t.mock.timers.tick(1);
   await updates.running;
-  assert.equal(checks, 1);
-  t.mock.timers.tick(4 * 60 * 60 * 1000 - 10000);
-  await updates.running;
   assert.equal(checks, 2);
+  t.mock.timers.tick(10 * 60 * 1000);
+  await updates.running;
+  assert.equal(checks, 3);
+  updates.stop();
+  t.mock.timers.tick(10 * 60 * 1000);
+  assert.equal(checks, 3);
 });
 test("release validation refuses incomplete or modified artifacts before NAS upload", async (t) => {
   const { validateRelease } = await import("../scripts/release-artifacts.mjs");

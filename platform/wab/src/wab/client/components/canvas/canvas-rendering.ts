@@ -139,6 +139,7 @@ import {
   withDefaultFunc,
   withoutNils,
 } from "@/wab/shared/common";
+import { supportsCanvasOverlay } from "@/wab/shared/core/canvas-overlays";
 import {
   allComponentVariants,
   getComponentDisplayName,
@@ -1807,6 +1808,20 @@ function renderTplComponent(
   if (isCodeComponent(node.component)) {
     const codeComponentSelectionInfo = getAutoOpenSelectionInfo(ctx, node);
     props[INTERNAL_CC_CANVAS_SELECTION_PROP] = codeComponentSelectionInfo;
+    if (
+      supportsCanvasOverlay(node) &&
+      !ctx.viewCtx.studioCtx.isInteractiveMode
+    ) {
+      const autoOpen =
+        codeComponentSelectionInfo.isSelected &&
+        codeComponentSelectionInfo.selectedSlotName !==
+          meta?.meta.canvasOverlay?.triggerSlot;
+      props.previewOpen = ctx.viewCtx.syncCanvasOverlayState(
+        computeFullKey(ctx),
+        props.previewOpen ?? (autoOpen || !!props.open),
+        !!props.open,
+      );
+    }
     props["plasmicNotifyAutoOpenedContent"] = () => {
       ctx.viewCtx.autoOpenedUuid =
         node.component.params.find(

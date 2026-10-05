@@ -275,6 +275,17 @@ async function startDesktop() {
       { role: "windowMenu" },
       { label: "更新", submenu: [{ label: "检查更新…", click: async () => {
         const status = await updates.command("check");
+        if (["available", "downloaded"].includes(status.phase)) {
+          const ready = status.phase === "downloaded";
+          const { response } = await dialog.showMessageBox(mainWindow, {
+            title: "Plasmic 更新",
+            message: ready ? `${status.version} 已下载，安装前将保存当前设计。` : `新版本 ${status.version} 可用。`,
+            buttons: [ready ? "重启并安装" : "下载更新", "取消"],
+            defaultId: 0,
+            cancelId: 1,
+          });
+          if (response === 0) await updates.command(ready ? "install" : "download");
+        }
         if (["current", "disabled", "error"].includes(status.phase)) {
           void dialog.showMessageBox(mainWindow, { title: "Plasmic 更新", message: status.error || (status.phase === "disabled" ? "请使用已安装的应用检查更新。" : `当前已是最新版本 ${status.currentVersion}`) });
         }

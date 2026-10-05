@@ -8,6 +8,7 @@ import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import PageSettings from "@/wab/client/components/PageSettings";
 import { CanvasDndOverlay } from "@/wab/client/components/canvas/CanvasDndOverlay";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
+import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
 import { CopilotActivityStatus } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { FreestyleBox } from "@/wab/client/components/canvas/FreestyleBox";
 import { CloneBoxes } from "@/wab/client/components/canvas/HoverBox/CloneBoxes";
@@ -1786,10 +1787,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
     return (
       <div className="canvas-editor">
-        {viewCtx?.autoOpenedUuid && (
+        {viewCtx && <CanvasOverlayToolbar viewCtx={viewCtx} fallback />}
+        {!studioCtx.isInteractiveMode && viewCtx?.hasShownHiddenContent && (
           <AutoOpenBanner
             onHide={() => {
-              viewCtx.forceCloseAutoOpen();
+              viewCtx.hideShownHiddenContent();
             }}
             className="banner-bottom"
           />

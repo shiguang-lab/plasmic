@@ -1,15 +1,13 @@
-import "@plasmicapp/host";
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Drawer } from "antd";
-import cls from "classnames";
-import React from "react";
-import {
-  p as previewOpenProp,
-  u as useCanvasOverlay,
-} from "./canvas-overlay-BurdwRe9.esm.js";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { Drawer } from 'antd';
+import cls from 'classnames';
+import React from 'react';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-BurdwRe9.esm.js';
+import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import '@plasmicapp/host';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
+const canvasOverlay = {};
 function AntdDrawer(props) {
   const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
@@ -31,30 +29,32 @@ function AntdDrawer(props) {
       return void 0;
     }
   }, [onOpenChange, onClose]);
-  return /* @__PURE__ */ React.createElement(Drawer, {
-    ...rest,
-    onClose: isEditing ? void 0 : memoOnClose,
-    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
-    rootClassName: cls(rootClassName, drawerScopeClassName),
-    open,
-    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-    forceRender: isEditing ? false : props.forceRender,
-    autoFocus: isEditing ? false : props.autoFocus,
-    focusable: isEditing
-      ? { trap: false, focusTriggerAfterClose: false }
-      : props.focusable,
-    footer,
-    className: cls(props.className, defaultStylesClassName),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Drawer,
+    {
+      ...rest,
+      onClose: isEditing ? void 0 : memoOnClose,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      rootClassName: cls(rootClassName, drawerScopeClassName),
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      forceRender: isEditing ? false : props.forceRender,
+      autoFocus: isEditing ? false : props.autoFocus,
+      focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
+      footer,
+      className: cls(props.className, defaultStylesClassName)
+    }
+  );
 }
 function registerDrawer(loader) {
   registerComponentHelper(loader, AntdDrawer, {
     name: "plasmic-antd6-drawer",
+    canvasOverlay,
     displayName: "Drawer",
     props: {
       previewOpen: previewOpenProp,
       open: {
-        type: "boolean",
+        type: "boolean"
       },
       size: { type: "number", defaultValueHint: 378 },
       mask: { type: "object" },
@@ -62,34 +62,34 @@ function registerDrawer(loader) {
       placement: {
         type: "choice",
         options: ["top", "right", "bottom", "left"],
-        defaultValueHint: "right",
+        defaultValueHint: "right"
       },
       children: {
         type: "slot",
         defaultValue: {
           type: "vbox",
-          children: ["Drawer content"],
-        },
+          children: ["Drawer content"]
+        }
       },
       title: {
         type: "slot",
-        defaultValue: "Drawer title",
+        defaultValue: "Drawer title"
       },
       footer: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       closeIcon: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       onOpenChange: {
         type: "eventHandler",
-        argTypes: [{ name: "open", type: "boolean" }],
+        argTypes: [{ name: "open", type: "boolean" }]
       },
       drawerScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "drawer",
+        scopeName: "drawer"
       },
       drawerHeaderClassName: {
         type: "class",
@@ -98,9 +98,9 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-header",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       drawerBodyClassName: {
         type: "class",
@@ -109,9 +109,9 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-body",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       drawerFooterClassName: {
         type: "class",
@@ -120,9 +120,9 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-footer",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       drawerTitleClassName: {
         type: "class",
@@ -131,9 +131,9 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-title",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       drawerMaskClassName: {
         type: "class",
@@ -143,9 +143,9 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-mask",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       drawerContentWrapperClassName: {
         type: "class",
@@ -154,10 +154,10 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-content-wrapper",
-            label: "Base",
-          },
+            label: "Base"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       closeButtonClassName: {
         type: "class",
@@ -166,29 +166,29 @@ function registerDrawer(loader) {
         selectors: [
           {
             selector: ":drawer .ant-drawer-close",
-            label: "Base",
-          },
+            label: "Base"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       forceRender: {
         advanced: true,
-        type: "boolean",
+        type: "boolean"
       },
       defaultStylesClassName: {
-        type: "themeResetClass",
-      },
+        type: "themeResetClass"
+      }
     },
     states: {
       open: {
         type: "writable",
         valueProp: "open",
         onChangeProp: "onOpenChange",
-        variableType: "boolean",
-      },
+        variableType: "boolean"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDrawer",
-    importName: "AntdDrawer",
+    importName: "AntdDrawer"
   });
 }
 

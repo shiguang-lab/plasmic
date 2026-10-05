@@ -1,31 +1,26 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var cls = require("classnames");
-var React = require("react");
-var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
-var names = require("./names-DbJduus8.cjs.js");
-var reactUtils = require("./react-utils-CP3JYj1p.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var cls = require('classnames');
+var React = require('react');
+var canvasOverlay$1 = require('./canvas-overlay-S34meFm4.cjs.js');
+var names = require('./names-DbJduus8.cjs.js');
+var reactUtils = require('./react-utils-CP3JYj1p.cjs.js');
+var utils = require('./utils-CRCm44nj.cjs.js');
+require('@plasmicapp/host');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var cls__default = /*#__PURE__*/ _interopDefault(cls);
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var cls__default = /*#__PURE__*/_interopDefault(cls);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
+const canvasOverlay = {};
 const AntdOption = Ant.Select.Option;
 const AntdOptionGroup = Ant.Select.OptGroup;
 function AntdSelect(props) {
-  const {
-    props: canvasProps,
-    open,
-    isEditing,
-  } = canvasOverlay.useCanvasOverlay(props);
+  const { props: canvasProps, open, isEditing } = canvasOverlay$1.useCanvasOverlay(props);
   const {
     popupRootClassName,
     popupScopeClassName,
@@ -40,54 +35,45 @@ function AntdSelect(props) {
   if (useChildren) {
     curated.options = void 0;
   }
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Select, {
-    ...curated,
-    open,
-    onOpenChange: isEditing ? void 0 : props.onOpenChange,
-    onChange: isEditing ? void 0 : props.onChange,
-    mode: !mode || mode === "single" ? void 0 : mode,
-    classNames: (info) => {
-      const names =
-        typeof classNames === "function" ? classNames(info) : classNames;
-      const popup =
-        typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
-      return {
-        ...names,
-        popup: {
-          ...popup,
-          root: cls__default.default(
-            popup?.root,
-            defaultStylesClassName,
-            popupScopeClassName,
-            popupRootClassName,
-          ),
-        },
-      };
-    },
-    optionFilterProp:
-      curated.optionFilterProp ?? (curated.options ? "label" : void 0),
-    filterOption:
-      curated.filterOption ??
-      (curated.optionFilterProp
-        ? void 0
-        : (input, option) =>
-            reactUtils
-              .reactNodeToString(
-                useChildren
-                  ? option?.children
-                  : (option?.label ?? option?.value ?? ""),
-              )
-              .toLowerCase()
-              .includes(input.toLowerCase())),
-    suffixIcon,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant.Select,
+    {
+      ...curated,
+      open,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onChange: isEditing ? void 0 : props.onChange,
+      mode: !mode || mode === "single" ? void 0 : mode,
+      classNames: (info) => {
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        const popup = typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
+        return {
+          ...names,
+          popup: {
+            ...popup,
+            root: cls__default.default(
+              popup?.root,
+              defaultStylesClassName,
+              popupScopeClassName,
+              popupRootClassName
+            )
+          }
+        };
+      },
+      optionFilterProp: curated.optionFilterProp ?? (curated.options ? "label" : void 0),
+      filterOption: curated.filterOption ?? (curated.optionFilterProp ? void 0 : (input, option) => reactUtils.reactNodeToString(
+        useChildren ? option?.children : option?.label ?? option?.value ?? ""
+      ).toLowerCase().includes(input.toLowerCase())),
+      suffixIcon
+    }
+  );
 }
 function registerSelect(loader) {
   utils.registerComponentHelper(loader, AntdSelect, {
     name: names.selectComponentName,
+    canvasOverlay,
     displayName: "Select",
     props: {
-      previewOpen: canvasOverlay.previewOpenProp,
+      previewOpen: canvasOverlay$1.previewOpenProp,
       options: {
         type: "array",
         hidden: (ps) => !!ps.useChildren,
@@ -99,13 +85,13 @@ function registerSelect(loader) {
               type: "choice",
               options: [
                 { value: "option", label: "Option" },
-                { value: "option-group", label: "Option Group" },
+                { value: "option-group", label: "Option Group" }
               ],
-              defaultValue: "option",
+              defaultValue: "option"
             },
             value: {
               type: "string",
-              hidden: (_ps, _ctx, { item }) => item.type !== "option",
+              hidden: (_ps, _ctx, { item }) => item.type !== "option"
             },
             label: "string",
             options: {
@@ -118,53 +104,49 @@ function registerSelect(loader) {
                 nameFunc: (item) => item.label || item.value,
                 fields: {
                   value: "string",
-                  label: "string",
-                },
-              },
-            },
-          },
+                  label: "string"
+                }
+              }
+            }
+          }
         },
         defaultValue: [
           {
             value: "option1",
             label: "Option 1",
-            type: "option",
+            type: "option"
           },
           {
             value: "option2",
             label: "Option 2",
-            type: "option",
-          },
-        ],
+            type: "option"
+          }
+        ]
       },
       useChildren: {
         displayName: "Use slot",
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
-        description:
-          "Instead of configuring a list of options, customize the contents of the Select by dragging and dropping options in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Options, and also use Option Groups.",
+        description: "Instead of configuring a list of options, customize the contents of the Select by dragging and dropping options in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Options, and also use Option Groups."
       },
       children: {
         type: "slot",
-        allowedComponents: [
-          names.optionComponentName,
-          names.optionGroupComponentName,
-        ],
-        hidden: (ps) => !ps.useChildren,
+        allowedComponents: [names.optionComponentName, names.optionGroupComponentName],
+        hidden: (ps) => !ps.useChildren
       },
       placeholder: {
         type: "slot",
-        defaultValue: "Select...",
+        defaultValue: "Select..."
       },
       suffixIcon: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       open: {
         type: "boolean",
         editOnly: true,
-        uncontrolledProp: "defaultOpen",
+        uncontrolledProp: "defaultOpen"
       },
       value: {
         type: "choice",
@@ -188,72 +170,68 @@ function registerSelect(loader) {
             return (ps.options ?? []).flatMap((o) => rec(o));
           } else {
             utils.traverseReactEltTree(ps.children, (elt) => {
-              if (
-                elt?.type === Ant.Select.Option &&
-                typeof elt?.props?.value === "string"
-              ) {
+              if (elt?.type === Ant.Select.Option && typeof elt?.props?.value === "string") {
                 options.add(elt.props.value);
               }
             });
           }
           return Array.from(options.keys());
         },
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       mode: {
         type: "choice",
         options: ["single", "multiple", "tags"],
         defaultValueHint: "single",
-        description:
-          "Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options.",
+        description: "Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options."
       },
       size: {
         type: "choice",
-        options: ["small", "medium", "large"],
+        options: ["small", "medium", "large"]
       },
       disabled: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       showSearch: {
         type: "boolean",
         defaultValueHint: (ps) => ps.mode === "multiple" || ps.mode === "tags",
-        advanced: true,
+        advanced: true
       },
       status: {
         type: "choice",
         options: ["error", "warning"],
-        advanced: true,
+        advanced: true
       },
       variant: {
         type: "choice",
         options: ["outlined", "borderless", "filled", "underlined"],
-        defaultValueHint: "outlined",
+        defaultValueHint: "outlined"
       },
       autoFocus: {
         type: "boolean",
         displayName: "Focus automatically",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       onChange: {
         type: "eventHandler",
         argTypes: [
           { name: "value", type: "object" },
-          { name: "option", type: "object" },
-        ],
+          { name: "option", type: "object" }
+        ]
       },
       popupMatchSelectWidth: {
         type: "boolean",
         displayName: "Should dropdown match trigger button width?",
         defaultValueHint: true,
-        advanced: true,
+        advanced: true
       },
       allowClear: {
         type: "boolean",
         displayName: "Allow clearing the Select",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       triggerClassName: {
         type: "class",
@@ -262,24 +240,24 @@ function registerSelect(loader) {
         selectors: [
           {
             selector: ":component.ant-select",
-            label: "Base",
+            label: "Base"
           },
           {
             selector: ":component.ant-select:hover",
-            label: "Hovered",
-          },
+            label: "Hovered"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       popupScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "popup",
+        scopeName: "popup"
       },
       popupRootClassName: {
         type: "class",
         displayName: "Popup styles",
         selectors: [],
-        advanced: true,
+        advanced: true
       },
       optionClassName: {
         type: "class",
@@ -288,20 +266,18 @@ function registerSelect(loader) {
         selectors: [
           {
             selector: ":popup.ant-select-dropdown .ant-select-item-option",
-            label: "Base",
+            label: "Base"
           },
           {
-            selector:
-              ":popup.ant-select-dropdown .ant-select-item-option-active",
-            label: "Focused",
+            selector: ":popup.ant-select-dropdown .ant-select-item-option-active",
+            label: "Focused"
           },
           {
-            selector:
-              ":popup.ant-select-dropdown .ant-select-item-option-selected",
-            label: "Selected",
-          },
+            selector: ":popup.ant-select-dropdown .ant-select-item-option-selected",
+            label: "Selected"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       placeholderClassName: {
         type: "class",
@@ -309,14 +285,14 @@ function registerSelect(loader) {
         selectors: [
           {
             selector: ":component .ant-select-placeholder",
-            label: "Base",
-          },
+            label: "Base"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       defaultStylesClassName: {
-        type: "themeResetClass",
-      },
+        type: "themeResetClass"
+      }
     },
     states: {
       value: {
@@ -324,12 +300,12 @@ function registerSelect(loader) {
         valueProp: "value",
         onChangeProp: "onChange",
         variableType: "object",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     ...{ trapsSelection: true },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSelect",
-    importName: "AntdSelect",
+    importName: "AntdSelect"
   });
   utils.registerComponentHelper(loader, AntdOption, {
     name: names.optionComponentName,
@@ -339,14 +315,14 @@ function registerSelect(loader) {
       children: {
         type: "slot",
         defaultValue: "Option",
-        ...{ mergeWithParent: true },
+        ...{ mergeWithParent: true }
       },
       value: {
-        type: "string",
-      },
+        type: "string"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSelect",
-    importName: "AntdOption",
+    importName: "AntdOption"
   });
   utils.registerComponentHelper(loader, AntdOptionGroup, {
     name: names.optionGroupComponentName,
@@ -363,9 +339,9 @@ function registerSelect(loader) {
               value: "option1",
               children: {
                 type: "text",
-                value: "Option 1",
-              },
-            },
+                value: "Option 1"
+              }
+            }
           },
           {
             type: "component",
@@ -374,19 +350,19 @@ function registerSelect(loader) {
               value: "option2",
               children: {
                 type: "text",
-                value: "Option 1",
-              },
-            },
-          },
-        ],
+                value: "Option 1"
+              }
+            }
+          }
+        ]
       },
       label: {
         type: "slot",
-        defaultValue: "Group label",
-      },
+        defaultValue: "Group label"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSelect",
-    importName: "AntdOptionGroup",
+    importName: "AntdOptionGroup"
   });
 }
 

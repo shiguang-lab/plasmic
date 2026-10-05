@@ -3,6 +3,7 @@ import { pluginReact } from "@rsbuild/plugin-react";
 import { pluginSass } from "@rsbuild/plugin-sass";
 import { DefinePlugin, ProvidePlugin } from "@rspack/core";
 import { execSync } from "child_process";
+import { dirname } from "path";
 import {
   OPTIONAL_VAR,
   REQUIRED_VAR,
@@ -30,6 +31,10 @@ export function mkSharedRsbuildConfig(opts: {
   return {
     resolve: {
       alias: {
+        // Local host contracts share Studio's React instance when linked from
+        // the SDK workspace; hooks cannot use the SDK's separate peer copy.
+        react: dirname(require.resolve("react/package.json")),
+        "react-dom": dirname(require.resolve("react-dom/package.json")),
         // data-urls.ts only falls back to xmldom when there is no window.
         "@xmldom/xmldom": false,
         // site-invariants.ts uses the Node SDK only when there is no window.

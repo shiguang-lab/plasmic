@@ -1,21 +1,19 @@
-import "@plasmicapp/host";
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Popover } from "antd";
-import cls from "classnames";
-import React from "react";
-import {
-  p as previewOpenProp,
-  u as useCanvasOverlay,
-} from "./canvas-overlay-BurdwRe9.esm.js";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { Popover } from 'antd';
+import cls from 'classnames';
+import React from 'react';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-BurdwRe9.esm.js';
+import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import '@plasmicapp/host';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
+const canvasOverlay = { triggerSlot: "children" };
 function AntdPopover(props) {
   const {
     props: canvasProps,
     open,
-    isEditing,
-  } = useCanvasOverlay(props, "children");
+    isEditing
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     popupRootClassName,
     popoverScopeClassName,
@@ -25,31 +23,34 @@ function AntdPopover(props) {
     classNames,
     ...rest
   } = canvasProps;
-  return /* @__PURE__ */ React.createElement(Popover, {
-    content: content === void 0 ? contentText : content,
-    classNames: (info) => {
-      const names =
-        typeof classNames === "function" ? classNames(info) : classNames;
-      return {
-        ...names,
-        root: cls(
-          names?.root,
-          popupRootClassName,
-          popoverScopeClassName,
-          defaultStylesClassName,
-        ),
-      };
-    },
-    ...rest,
-    open,
-    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-    onOpenChange: isEditing ? void 0 : props.onOpenChange,
-    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
-  });
+  return /* @__PURE__ */ React.createElement(
+    Popover,
+    {
+      content: content === void 0 ? contentText : content,
+      classNames: (info) => {
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        return {
+          ...names,
+          root: cls(
+            names?.root,
+            popupRootClassName,
+            popoverScopeClassName,
+            defaultStylesClassName
+          )
+        };
+      },
+      ...rest,
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange
+    }
+  );
 }
 function registerPopover(loader) {
   registerComponentHelper(loader, AntdPopover, {
     name: "plasmic-antd6-popover",
+    canvasOverlay,
     displayName: "Popover",
     isAttachment: true,
     props: {
@@ -58,21 +59,21 @@ function registerPopover(loader) {
         type: "boolean",
         editOnly: true,
         uncontrolledProp: "defaultOpen",
-        description: "Default open state of the popover",
+        description: "Default open state of the popover"
       },
       arrow: {
         type: "boolean",
         defaultValue: true,
-        advanced: true,
+        advanced: true
       },
       children: {
         type: "slot",
         defaultValue: "This text element is wrapped in a Popover component",
-        mergeWithParent: true,
+        mergeWithParent: true
       },
       popoverScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "popover",
+        scopeName: "popover"
       },
       popoverContentClassName: {
         type: "class",
@@ -80,19 +81,19 @@ function registerPopover(loader) {
         selectors: [
           {
             selector: ":popover.ant-popover .ant-popover-container",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupRootClassName: {
         type: "class",
-        displayName: "Overlay",
+        displayName: "Overlay"
       },
       content: {
         type: "slot",
         displayName: "Popover contents",
         defaultValue: "Popover contents",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       /**
        *  NOTE: contentText ensures that the popover shows as a custom behaviour without modifications
@@ -104,23 +105,23 @@ function registerPopover(loader) {
         displayName: "Popover contents",
         description: "What gets shown inside the popover on hover",
         defaultValue: "Popover contents",
-        hidden: (ps) => !!ps.content,
+        hidden: (ps) => !!ps.content
       },
       title: {
         type: "slot",
         displayName: "Popover title",
         hidePlaceholder: true,
-        defaultValue: "Popover title",
+        defaultValue: "Popover title"
       },
       color: {
         type: "color",
-        description: "Popover fill color",
+        description: "Popover fill color"
       },
       trigger: {
         type: "choice",
         options: ["hover", "focus", "click"],
         defaultValueHint: "hover",
-        advanced: true,
+        advanced: true
       },
       placement: {
         type: "choice",
@@ -136,45 +137,44 @@ function registerPopover(loader) {
           "rightBottom",
           "bottomLeft",
           "bottom",
-          "bottomRight",
+          "bottomRight"
         ],
         description: "Default placement of popover",
-        defaultValueHint: "top",
+        defaultValueHint: "top"
       },
       mouseEnterDelay: {
         type: "number",
         description: "Delay in seconds, before popover is shown on mouse enter",
         defaultValueHint: 0.1,
         advanced: true,
-        hidden: (ps) => (ps.trigger ? ps.trigger !== "hover" : false),
+        hidden: (ps) => ps.trigger ? ps.trigger !== "hover" : false
       },
       mouseLeaveDelay: {
         type: "number",
-        description:
-          "Delay in seconds, before popover is hidden on mouse leave",
+        description: "Delay in seconds, before popover is hidden on mouse leave",
         defaultValueHint: 0.1,
         advanced: true,
-        hidden: (ps) => (ps.trigger ? ps.trigger !== "hover" : false),
+        hidden: (ps) => ps.trigger ? ps.trigger !== "hover" : false
       },
       onOpenChange: {
         type: "eventHandler",
         argTypes: [{ name: "open", type: "boolean" }],
-        advanced: true,
+        advanced: true
       },
       defaultStylesClassName: {
-        type: "themeResetClass",
-      },
+        type: "themeResetClass"
+      }
     },
     states: {
       open: {
         type: "writable",
         valueProp: "open",
         onChangeProp: "onOpenChange",
-        variableType: "boolean",
-      },
+        variableType: "boolean"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerPopover",
-    importName: "AntdPopover",
+    importName: "AntdPopover"
   });
 }
 

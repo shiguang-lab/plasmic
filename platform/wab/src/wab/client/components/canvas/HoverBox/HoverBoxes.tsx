@@ -1,3 +1,4 @@
+import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import {
   computeHoverBoxTargets,
@@ -903,11 +904,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     />
                   </>
                 )}
-                {state && shouldShowDimBadge && (
-                  <div ref={dimsBoxRef} className={"HoverBox__Dims"}>
-                    {Math.round(state.width)} × {Math.round(state.height)}
-                  </div>
-                )}
+                {state &&
+                  shouldShowDimBadge &&
+                  !viewCtx?.hasShownHiddenContent && (
+                    <div ref={dimsBoxRef} className={"HoverBox__Dims"}>
+                      {Math.round(state.width)} × {Math.round(state.height)}
+                    </div>
+                  )}
                 {resizePart && (
                   <div
                     className={cn({
@@ -927,6 +930,24 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   )}
               </>
             }
+            {viewCtx && state && !isMultiSelection && shouldShowHoverTag && (
+              <div
+                className={styles.elementActions}
+                style={{
+                  left: Math.max(
+                    -28,
+                    ((studioCtx.viewportCtx?.visibleScalerBox().left() ??
+                      state.left) -
+                      state.left) *
+                      studioCtx.zoom +
+                      studioCtx.leftPaneWidth +
+                      4,
+                  ),
+                }}
+              >
+                <CanvasOverlayToolbar viewCtx={viewCtx} />
+              </div>
+            )}
             <InlineAddButton
               elementWidth={state?.width}
               elementHeight={state?.height}

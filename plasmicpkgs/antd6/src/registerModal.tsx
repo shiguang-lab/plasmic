@@ -24,6 +24,8 @@ const styleSections: StyleSection[] = [
   "effects",
 ];
 
+const canvasOverlay = { triggerSlot: "trigger" };
+
 export function AntdModal(
   props: React.ComponentProps<typeof Modal> &
     CanvasOverlayProps & {
@@ -40,7 +42,7 @@ export function AntdModal(
     props: canvasProps,
     open,
     isEditing,
-  } = useCanvasOverlay(props, "trigger");
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     onOpenChange,
     onOk,
@@ -124,6 +126,7 @@ export function AntdModal(
 export function registerModal(loader?: Registerable) {
   registerComponentHelper(loader, AntdModal, {
     name: "plasmic-antd6-modal",
+    canvasOverlay,
     displayName: "Modal",
     styleSections,
     description:

@@ -467,6 +467,71 @@ export class ViewCtx extends WithDbCtx {
   private _autoOpenedUuid = observable.box<string | undefined>();
   private _autoOpenTransitioning = false;
 
+  // One editing state per rendered instance. The source records whether the
+  // next selection update may change it; business props are never modified.
+  private _canvasOverlayStates = observable.map<
+    string,
+    { open: boolean; source: "selection" | "toolbar"; nativeOpen: boolean }
+  >();
+
+  canvasOverlayOpen(fullKey: string) {
+    return this._canvasOverlayStates.get(fullKey)?.open ?? false;
+  }
+
+  syncCanvasOverlayState(
+    fullKey: string,
+    selectionOpen: boolean,
+    nativeOpen: boolean,
+  ) {
+    const current = this._canvasOverlayStates.get(fullKey);
+    const open = current?.source === "toolbar" ? current.open : selectionOpen;
+    if (
+      !current ||
+      current.open !== open ||
+      current.nativeOpen !== nativeOpen
+    ) {
+      this._canvasOverlayStates.set(fullKey, {
+        open,
+        source: current?.source ?? "selection",
+        nativeOpen,
+      });
+    }
+    return open;
+  }
+
+  get hasShownHiddenContent() {
+    return (
+      !!this.autoOpenedUuid ||
+      Array.from(this._canvasOverlayStates.values()).some(
+        (state) => state.open && !state.nativeOpen,
+      )
+    );
+  }
+
+  hideShownHiddenContent() {
+    for (const [key, state] of this._canvasOverlayStates) {
+      if (state.open && !state.nativeOpen) {
+        this._canvasOverlayStates.set(key, {
+          ...state,
+          open: false,
+          source: "toolbar",
+        });
+      }
+    }
+    this.forceCloseAutoOpen();
+    this.scheduleSync({ eval: true, styles: false, asap: true });
+  }
+
+  setCanvasOverlayOpen(fullKey: string, open: boolean) {
+    const current = this._canvasOverlayStates.get(fullKey);
+    this._canvasOverlayStates.set(fullKey, {
+      open,
+      source: "toolbar",
+      nativeOpen: current?.nativeOpen ?? false,
+    });
+    this.scheduleSync({ eval: true, styles: false, asap: true });
+  }
+
   get autoOpenedUuid() {
     return this._autoOpenedUuid.get();
   }

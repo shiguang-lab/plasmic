@@ -22,7 +22,72 @@ import {
   VarRef,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import { observable } from "mobx";
 import { vi } from "vitest";
+
+function overlayViewCtx() {
+  return Object.assign(Object.create(ViewCtx.prototype), {
+    _canvasOverlayStates: observable.map(),
+    _autoOpenedUuid: observable.box<string | undefined>(),
+    _disabledAutoOpenUuid: observable.box<string | undefined>(),
+    scheduleSync: vi.fn(),
+  }) as ViewCtx;
+}
+
+test("selection, toolbar and hidden-content status share one open state per instance", () => {
+  const viewCtx = overlayViewCtx();
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  expect(viewCtx.syncCanvasOverlayState("dropdown[0]", true, false)).toBe(true);
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(true);
+  expect(viewCtx.hasShownHiddenContent).toBe(true);
+  expect(viewCtx.scheduleSync).not.toHaveBeenCalled();
+
+  viewCtx.setCanvasOverlayOpen("dropdown[0]", false);
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(false);
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  // A render caused by the click must not let selection reopen the overlay.
+  expect(viewCtx.syncCanvasOverlayState("dropdown[0]", true, false)).toBe(
+    false,
+  );
+  expect(viewCtx.syncCanvasOverlayState("dropdown[1]", true, false)).toBe(true);
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(false);
+  viewCtx.setCanvasOverlayOpen("dropdown[0]", true);
+  expect(viewCtx.syncCanvasOverlayState("dropdown[1]", false, false)).toBe(
+    false,
+  );
+  expect(viewCtx.hasShownHiddenContent).toBe(true);
+
+  viewCtx.hideShownHiddenContent();
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(false);
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  expect(viewCtx.syncCanvasOverlayState("dropdown[0]", true, false)).toBe(
+    false,
+  );
+  expect(viewCtx.scheduleSync).toHaveBeenCalledTimes(3);
+  expect(viewCtx.scheduleSync).toHaveBeenLastCalledWith({
+    eval: true,
+    styles: false,
+    asap: true,
+  });
+});
+
+test("selection updates close auto-opened content and business-open content needs no hidden-content prompt", () => {
+  const viewCtx = overlayViewCtx();
+  viewCtx.syncCanvasOverlayState("dropdown[0]", true, false);
+  expect(viewCtx.hasShownHiddenContent).toBe(true);
+  viewCtx.syncCanvasOverlayState("dropdown[0]", false, false);
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(false);
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  viewCtx.syncCanvasOverlayState("dropdown[0]", true, true);
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(true);
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  viewCtx.autoOpenedUuid = "hidden-tag";
+  expect(viewCtx.hasShownHiddenContent).toBe(true);
+  viewCtx.hideShownHiddenContent();
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  expect(viewCtx.canvasOverlayOpen("dropdown[0]")).toBe(true);
+  expect(viewCtx.disabledAutoOpenUuid).toBe("hidden-tag");
+});
 
 function setup() {
   const enabled = mkParam({

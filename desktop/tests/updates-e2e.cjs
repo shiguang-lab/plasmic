@@ -24,6 +24,17 @@ async function until(predicate, timeout = 120000) {
   }
   throw new Error("Update acceptance timed out");
 }
+async function activateUpdate(page, command) {
+  for (const frame of page.frames()) {
+    const button = frame.locator(".update-action").first();
+    if (await button.isVisible()) {
+      await button.click();
+      return;
+    }
+  }
+  // Login has no sidebar; exercise the same main-frame update command.
+  await page.evaluate((action) => { void window.desktopUpdates.command(action); }, command);
+}
 (async () => {
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.mkdir(profile, { recursive: true });
@@ -39,27 +50,25 @@ async function until(predicate, timeout = 120000) {
   await until(async () => (await fetch(`http://127.0.0.1:${port}/json/version`)).ok);
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
   const page = await until(() => browser.contexts()[0].pages().find((page) => page.url().startsWith("https://plasmic.studio.publib.cn")));
-  await page.waitForSelector("#plasmic-desktop-update", { timeout: 120000 });
+  await page.waitForFunction(() => !!window.desktopUpdates, undefined, { timeout: 120000 });
   const before = await page.evaluate(() => window.desktopUpdates.command("status"));
   report.before = before.currentVersion;
   assert.notEqual(before.currentVersion, expectedVersion);
-  await page.waitForFunction(() => ["available", "error"].includes(document.querySelector("#plasmic-desktop-update")?.dataset.phase), undefined, { timeout: 45000 });
+  await page.waitForFunction(async () => ["available", "error"].includes((await window.desktopUpdates.command("status")).phase), undefined, { timeout: 45000, polling: 1000 });
   const available = await page.evaluate(() => window.desktopUpdates.command("status"));
   assert.equal(available.phase, "available", available.error);
   assert.equal(available.version, expectedVersion);
   report.nasDetection = true;
   report.startupDetection = true;
   console.log(`Detected NAS version ${available.version} from installed ${before.currentVersion}`);
-  if (await page.locator("#plasmic-desktop-update").getAttribute("data-collapsed") === "true") await page.locator(".update-toggle").click();
-  await page.locator(".update-action").click();
-  await page.waitForFunction(() => ["downloaded", "error"].includes(document.querySelector("#plasmic-desktop-update")?.dataset.phase), undefined, { timeout: 25 * 60 * 1000 });
+  await activateUpdate(page, "download");
+  await page.waitForFunction(async () => ["downloaded", "error"].includes((await window.desktopUpdates.command("status")).phase), undefined, { timeout: 25 * 60 * 1000, polling: 1000 });
   const downloaded = await page.evaluate(() => window.desktopUpdates.command("status"));
   assert.equal(downloaded.phase, "downloaded", downloaded.error);
   report.downloadVerified = true;
   console.log("NAS download completed and verified; installing");
   await page.screenshot({ path: path.join(reportDir, "downloaded.png") });
-  // Click the actual renderer control; the main process saves and installs.
-  await page.locator(".update-action").click();
+  await activateUpdate(page, "install");
   const after = await until(async () => {
     if (browser.isConnected() && !page.isClosed()) {
       const status = await page.evaluate(() => window.desktopUpdates.command("status"));

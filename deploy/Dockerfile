@@ -6,6 +6,7 @@ WORKDIR /plasmic
 COPY . .
 RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
 RUN pnpm setup
+RUN pnpm --filter @plasmicapp/host pack --out /tmp/plasmic-host.tgz && mkdir /opt/plasmic-host && tar -xzf /tmp/plasmic-host.tgz --strip-components=1 -C /opt/plasmic-host
 RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/react-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
@@ -18,6 +19,7 @@ RUN cd platform/canvas-packages && pnpm exec esbuild src/antd5.ts --bundle --pla
 FROM node:24.16.0-alpine AS server
 RUN apk add --no-cache bash git && corepack enable
 WORKDIR /plasmic/platform/wab
+COPY --from=builder --chown=node:node /opt/plasmic-host /plasmic/packages/host
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
 COPY --from=builder --chown=node:node /plasmic/platform/package.json /plasmic/platform/pnpm-lock.yaml /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/
 COPY --from=builder --chown=node:node /plasmic/platform/shared /plasmic/platform/shared
@@ -36,7 +38,7 @@ COPY --chown=node:node deploy/nas-react-ui.ts src/wab/server/nas-react-ui.ts
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node
-ENV NODE_ENV=development MAX_HEAP_SIZE=1536
+ENV NODE_ENV=development MAX_HEAP_SIZE=1536 NODE_PATH=/plasmic/platform/wab/node_modules
 EXPOSE 3004
 ENTRYPOINT ["plasmic-server"]
 CMD ["src/wab/server/main.ts"]

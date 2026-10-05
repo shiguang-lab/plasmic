@@ -1,24 +1,15 @@
-import "@plasmicapp/host";
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Select } from "antd";
-import cls from "classnames";
-import React from "react";
-import {
-  p as previewOpenProp,
-  u as useCanvasOverlay,
-} from "./canvas-overlay-BurdwRe9.esm.js";
-import {
-  o as optionComponentName,
-  h as optionGroupComponentName,
-  s as selectComponentName,
-} from "./names-DKofLcnC.esm.js";
-import { r as reactNodeToString } from "./react-utils-BpvCcwyE.esm.js";
-import {
-  r as registerComponentHelper,
-  t as traverseReactEltTree,
-} from "./utils-CSvRw6Za.esm.js";
+import { Select } from 'antd';
+import cls from 'classnames';
+import React from 'react';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-BurdwRe9.esm.js';
+import { o as optionComponentName, h as optionGroupComponentName, s as selectComponentName } from './names-DKofLcnC.esm.js';
+import { r as reactNodeToString } from './react-utils-BpvCcwyE.esm.js';
+import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-CSvRw6Za.esm.js';
+import '@plasmicapp/host';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
+const canvasOverlay = {};
 const AntdOption = Select.Option;
 const AntdOptionGroup = Select.OptGroup;
 function AntdSelect(props) {
@@ -37,50 +28,42 @@ function AntdSelect(props) {
   if (useChildren) {
     curated.options = void 0;
   }
-  return /* @__PURE__ */ React.createElement(Select, {
-    ...curated,
-    open,
-    onOpenChange: isEditing ? void 0 : props.onOpenChange,
-    onChange: isEditing ? void 0 : props.onChange,
-    mode: !mode || mode === "single" ? void 0 : mode,
-    classNames: (info) => {
-      const names =
-        typeof classNames === "function" ? classNames(info) : classNames;
-      const popup =
-        typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
-      return {
-        ...names,
-        popup: {
-          ...popup,
-          root: cls(
-            popup?.root,
-            defaultStylesClassName,
-            popupScopeClassName,
-            popupRootClassName,
-          ),
-        },
-      };
-    },
-    optionFilterProp:
-      curated.optionFilterProp ?? (curated.options ? "label" : void 0),
-    filterOption:
-      curated.filterOption ??
-      (curated.optionFilterProp
-        ? void 0
-        : (input, option) =>
-            reactNodeToString(
-              useChildren
-                ? option?.children
-                : (option?.label ?? option?.value ?? ""),
+  return /* @__PURE__ */ React.createElement(
+    Select,
+    {
+      ...curated,
+      open,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onChange: isEditing ? void 0 : props.onChange,
+      mode: !mode || mode === "single" ? void 0 : mode,
+      classNames: (info) => {
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        const popup = typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
+        return {
+          ...names,
+          popup: {
+            ...popup,
+            root: cls(
+              popup?.root,
+              defaultStylesClassName,
+              popupScopeClassName,
+              popupRootClassName
             )
-              .toLowerCase()
-              .includes(input.toLowerCase())),
-    suffixIcon,
-  });
+          }
+        };
+      },
+      optionFilterProp: curated.optionFilterProp ?? (curated.options ? "label" : void 0),
+      filterOption: curated.filterOption ?? (curated.optionFilterProp ? void 0 : (input, option) => reactNodeToString(
+        useChildren ? option?.children : option?.label ?? option?.value ?? ""
+      ).toLowerCase().includes(input.toLowerCase())),
+      suffixIcon
+    }
+  );
 }
 function registerSelect(loader) {
   registerComponentHelper(loader, AntdSelect, {
     name: selectComponentName,
+    canvasOverlay,
     displayName: "Select",
     props: {
       previewOpen: previewOpenProp,
@@ -95,13 +78,13 @@ function registerSelect(loader) {
               type: "choice",
               options: [
                 { value: "option", label: "Option" },
-                { value: "option-group", label: "Option Group" },
+                { value: "option-group", label: "Option Group" }
               ],
-              defaultValue: "option",
+              defaultValue: "option"
             },
             value: {
               type: "string",
-              hidden: (_ps, _ctx, { item }) => item.type !== "option",
+              hidden: (_ps, _ctx, { item }) => item.type !== "option"
             },
             label: "string",
             options: {
@@ -114,50 +97,49 @@ function registerSelect(loader) {
                 nameFunc: (item) => item.label || item.value,
                 fields: {
                   value: "string",
-                  label: "string",
-                },
-              },
-            },
-          },
+                  label: "string"
+                }
+              }
+            }
+          }
         },
         defaultValue: [
           {
             value: "option1",
             label: "Option 1",
-            type: "option",
+            type: "option"
           },
           {
             value: "option2",
             label: "Option 2",
-            type: "option",
-          },
-        ],
+            type: "option"
+          }
+        ]
       },
       useChildren: {
         displayName: "Use slot",
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
-        description:
-          "Instead of configuring a list of options, customize the contents of the Select by dragging and dropping options in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Options, and also use Option Groups.",
+        description: "Instead of configuring a list of options, customize the contents of the Select by dragging and dropping options in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Options, and also use Option Groups."
       },
       children: {
         type: "slot",
         allowedComponents: [optionComponentName, optionGroupComponentName],
-        hidden: (ps) => !ps.useChildren,
+        hidden: (ps) => !ps.useChildren
       },
       placeholder: {
         type: "slot",
-        defaultValue: "Select...",
+        defaultValue: "Select..."
       },
       suffixIcon: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       open: {
         type: "boolean",
         editOnly: true,
-        uncontrolledProp: "defaultOpen",
+        uncontrolledProp: "defaultOpen"
       },
       value: {
         type: "choice",
@@ -181,72 +163,68 @@ function registerSelect(loader) {
             return (ps.options ?? []).flatMap((o) => rec(o));
           } else {
             traverseReactEltTree(ps.children, (elt) => {
-              if (
-                elt?.type === Select.Option &&
-                typeof elt?.props?.value === "string"
-              ) {
+              if (elt?.type === Select.Option && typeof elt?.props?.value === "string") {
                 options.add(elt.props.value);
               }
             });
           }
           return Array.from(options.keys());
         },
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       mode: {
         type: "choice",
         options: ["single", "multiple", "tags"],
         defaultValueHint: "single",
-        description:
-          "Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options.",
+        description: "Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options."
       },
       size: {
         type: "choice",
-        options: ["small", "medium", "large"],
+        options: ["small", "medium", "large"]
       },
       disabled: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       showSearch: {
         type: "boolean",
         defaultValueHint: (ps) => ps.mode === "multiple" || ps.mode === "tags",
-        advanced: true,
+        advanced: true
       },
       status: {
         type: "choice",
         options: ["error", "warning"],
-        advanced: true,
+        advanced: true
       },
       variant: {
         type: "choice",
         options: ["outlined", "borderless", "filled", "underlined"],
-        defaultValueHint: "outlined",
+        defaultValueHint: "outlined"
       },
       autoFocus: {
         type: "boolean",
         displayName: "Focus automatically",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       onChange: {
         type: "eventHandler",
         argTypes: [
           { name: "value", type: "object" },
-          { name: "option", type: "object" },
-        ],
+          { name: "option", type: "object" }
+        ]
       },
       popupMatchSelectWidth: {
         type: "boolean",
         displayName: "Should dropdown match trigger button width?",
         defaultValueHint: true,
-        advanced: true,
+        advanced: true
       },
       allowClear: {
         type: "boolean",
         displayName: "Allow clearing the Select",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       triggerClassName: {
         type: "class",
@@ -255,24 +233,24 @@ function registerSelect(loader) {
         selectors: [
           {
             selector: ":component.ant-select",
-            label: "Base",
+            label: "Base"
           },
           {
             selector: ":component.ant-select:hover",
-            label: "Hovered",
-          },
+            label: "Hovered"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       popupScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "popup",
+        scopeName: "popup"
       },
       popupRootClassName: {
         type: "class",
         displayName: "Popup styles",
         selectors: [],
-        advanced: true,
+        advanced: true
       },
       optionClassName: {
         type: "class",
@@ -281,20 +259,18 @@ function registerSelect(loader) {
         selectors: [
           {
             selector: ":popup.ant-select-dropdown .ant-select-item-option",
-            label: "Base",
+            label: "Base"
           },
           {
-            selector:
-              ":popup.ant-select-dropdown .ant-select-item-option-active",
-            label: "Focused",
+            selector: ":popup.ant-select-dropdown .ant-select-item-option-active",
+            label: "Focused"
           },
           {
-            selector:
-              ":popup.ant-select-dropdown .ant-select-item-option-selected",
-            label: "Selected",
-          },
+            selector: ":popup.ant-select-dropdown .ant-select-item-option-selected",
+            label: "Selected"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       placeholderClassName: {
         type: "class",
@@ -302,14 +278,14 @@ function registerSelect(loader) {
         selectors: [
           {
             selector: ":component .ant-select-placeholder",
-            label: "Base",
-          },
+            label: "Base"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       defaultStylesClassName: {
-        type: "themeResetClass",
-      },
+        type: "themeResetClass"
+      }
     },
     states: {
       value: {
@@ -317,12 +293,12 @@ function registerSelect(loader) {
         valueProp: "value",
         onChangeProp: "onChange",
         variableType: "object",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     ...{ trapsSelection: true },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSelect",
-    importName: "AntdSelect",
+    importName: "AntdSelect"
   });
   registerComponentHelper(loader, AntdOption, {
     name: optionComponentName,
@@ -332,14 +308,14 @@ function registerSelect(loader) {
       children: {
         type: "slot",
         defaultValue: "Option",
-        ...{ mergeWithParent: true },
+        ...{ mergeWithParent: true }
       },
       value: {
-        type: "string",
-      },
+        type: "string"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSelect",
-    importName: "AntdOption",
+    importName: "AntdOption"
   });
   registerComponentHelper(loader, AntdOptionGroup, {
     name: optionGroupComponentName,
@@ -356,9 +332,9 @@ function registerSelect(loader) {
               value: "option1",
               children: {
                 type: "text",
-                value: "Option 1",
-              },
-            },
+                value: "Option 1"
+              }
+            }
           },
           {
             type: "component",
@@ -367,19 +343,19 @@ function registerSelect(loader) {
               value: "option2",
               children: {
                 type: "text",
-                value: "Option 1",
-              },
-            },
-          },
-        ],
+                value: "Option 1"
+              }
+            }
+          }
+        ]
       },
       label: {
         type: "slot",
-        defaultValue: "Group label",
-      },
+        defaultValue: "Group label"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSelect",
-    importName: "AntdOptionGroup",
+    importName: "AntdOptionGroup"
   });
 }
 

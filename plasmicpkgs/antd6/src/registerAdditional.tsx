@@ -10,6 +10,8 @@ import {
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
+const canvasOverlay = { triggerSlot: "children" };
+
 // Export the same implementations that generated pages import.
 export const AntdAffix: typeof Ant.Affix = Ant.Affix;
 export const AntdAlert: typeof Ant.Alert = Ant.Alert;
@@ -58,7 +60,7 @@ export const AntdMentions: typeof Ant.Mentions = Ant.Mentions;
 export function AntdPopconfirm(
   props: React.ComponentProps<typeof Ant.Popconfirm> & CanvasOverlayProps,
 ) {
-  const { props: rest, open, isEditing } = useCanvasOverlay(props, "children");
+  const { props: rest, open, isEditing } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   return (
     <Ant.Popconfirm
       {...rest}
@@ -733,7 +735,7 @@ export function registerAdditional(loader?: Registerable) {
     disabled: "boolean",
     onConfirm: event("event", "object"),
     onCancel: event("event", "object"),
-  });
+  }, { canvasOverlay });
   register(loader, AntdQRCode, "qr-code", "AntdQRCode", {
     value: { type: "string", defaultValue: "https://publib.cn" },
     size: "number",

@@ -55,13 +55,12 @@ class UpdateManager extends EventEmitter {
   }
   start() {
     if (this.state.phase === "disabled") return;
-    this.initial = setTimeout(() => void this.command("check"), 10000);
+    void this.command("check");
     this.interval = setInterval(() => {
       if (["idle", "current", "available"].includes(this.state.phase) || (this.state.phase === "error" && this.state.retry === "check")) void this.command("check");
-    }, 4 * 60 * 60 * 1000);
-    this.initial.unref();
+    }, 10 * 60 * 1000);
     this.interval.unref();
   }
-  stop() { clearTimeout(this.initial); clearInterval(this.interval); }
+  stop() { clearInterval(this.interval); }
 }
 module.exports = { UpdateManager };

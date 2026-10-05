@@ -1,14 +1,11 @@
-import "@plasmicapp/host";
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Modal } from "antd";
-import cls from "classnames";
-import React, { useMemo } from "react";
-import {
-  p as previewOpenProp,
-  u as useCanvasOverlay,
-} from "./canvas-overlay-BurdwRe9.esm.js";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { Modal } from 'antd';
+import cls from 'classnames';
+import React, { useMemo } from 'react';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-BurdwRe9.esm.js';
+import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import '@plasmicapp/host';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
 const styleSections = [
   "visibility",
@@ -21,14 +18,15 @@ const styleSections = [
   "overflow",
   "border",
   "shadows",
-  "effects",
+  "effects"
 ];
+const canvasOverlay = { triggerSlot: "trigger" };
 function AntdModal(props) {
   const {
     props: canvasProps,
     open,
-    isEditing,
-  } = useCanvasOverlay(props, "trigger");
+    isEditing
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     onOpenChange,
     onOk,
@@ -60,18 +58,14 @@ function AntdModal(props) {
     }
     return width;
   }, [width]);
-  return /* @__PURE__ */ React.createElement(
-    React.Fragment,
-    null,
-    /* @__PURE__ */ React.createElement(Modal, {
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+    Modal,
+    {
       ...rest,
-      mask:
-        closeOnOutsideClick === void 0 || mask === false
-          ? mask
-          : {
-              ...(typeof mask === "object" ? mask : {}),
-              closable: closeOnOutsideClick,
-            },
+      mask: closeOnOutsideClick === void 0 || mask === false ? mask : {
+        ...typeof mask === "object" ? mask : {},
+        closable: closeOnOutsideClick
+      },
       onOk: isEditing ? void 0 : onOk,
       width: widthProp,
       onCancel: isEditing ? void 0 : memoOnCancel,
@@ -80,37 +74,28 @@ function AntdModal(props) {
       open,
       destroyOnHidden: isEditing ? true : props.destroyOnHidden,
       forceRender: isEditing ? false : props.forceRender,
-      focusable: isEditing
-        ? { trap: false, focusTriggerAfterClose: false }
-        : props.focusable,
+      focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
       footer: hideFooter ? null : footer,
       wrapClassName,
       className: cls(
         props.className,
         defaultStylesClassName,
-        modalScopeClassName,
-      ),
-    }),
-    trigger
-      ? /* @__PURE__ */ React.createElement(
-          "div",
-          { onClick: isEditing ? void 0 : () => onOpenChange?.(true) },
-          trigger,
-        )
-      : null,
-  );
+        modalScopeClassName
+      )
+    }
+  ), trigger ? /* @__PURE__ */ React.createElement("div", { onClick: isEditing ? void 0 : () => onOpenChange?.(true) }, trigger) : null);
 }
 function registerModal(loader) {
   registerComponentHelper(loader, AntdModal, {
     name: "plasmic-antd6-modal",
+    canvasOverlay,
     displayName: "Modal",
     styleSections,
-    description:
-      "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
+    description: "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
       previewOpen: previewOpenProp,
       open: {
-        type: "boolean",
+        type: "boolean"
       },
       mask: { type: "object" },
       destroyOnHidden: { type: "boolean" },
@@ -118,24 +103,23 @@ function registerModal(loader) {
         type: "string",
         defaultValueHint: "520px",
         description: "Change the width of the modal",
-        helpText:
-          "Default unit is px. You can also use % or other units for width.",
+        helpText: "Default unit is px. You can also use % or other units for width."
       },
       children: {
         type: "slot",
         defaultValue: {
           type: "vbox",
-          children: ["Modal content"],
-        },
+          children: ["Modal content"]
+        }
       },
       title: {
         type: "slot",
-        defaultValue: "Modal title",
+        defaultValue: "Modal title"
       },
       footer: {
         type: "slot",
         hidePlaceholder: true,
-        hidden: (ps) => ps.hideFooter ?? false,
+        hidden: (ps) => ps.hideFooter ?? false
       },
       trigger: {
         type: "slot",
@@ -146,62 +130,60 @@ function registerModal(loader) {
           props: {
             children: {
               type: "text",
-              value: "Show modal",
-            },
-          },
+              value: "Show modal"
+            }
+          }
         },
         ...{
-          mergeWithParent: true,
-        },
+          mergeWithParent: true
+        }
       },
       closeIcon: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       onOk: {
         type: "eventHandler",
         argTypes: [],
-        description:
-          "Validate and save, then explicitly close the modal after success. Clicking OK does not change open automatically.",
+        description: "Validate and save, then explicitly close the modal after success. Clicking OK does not change open automatically."
       },
       onCancel: {
         type: "eventHandler",
-        argTypes: [],
+        argTypes: []
       },
       okText: {
         type: "string",
         hidden: (ps) => !!ps.footer,
-        advanced: true,
+        advanced: true
       },
       cancelText: {
         type: "string",
         hidden: (ps) => !!ps.footer,
-        advanced: true,
+        advanced: true
       },
       hideFooter: {
         type: "boolean",
         description: "Hide the modal footer slot",
-        advanced: true,
+        advanced: true
       },
       onOpenChange: {
         type: "eventHandler",
-        argTypes: [{ name: "open", type: "boolean" }],
+        argTypes: [{ name: "open", type: "boolean" }]
       },
       closeOnOutsideClick: {
         type: "boolean",
         displayName: "Close modal on outside click?",
-        description:
-          "Whether to close the modal when user clicks outside the modal",
-        defaultValueHint: true,
+        description: "Whether to close the modal when user clicks outside the modal",
+        defaultValueHint: true
       },
       wrapClassName: {
         type: "class",
         displayName: "Modal overlay",
-        styleSections: ["background"],
+        styleSections: ["background"]
       },
       modalScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "modal",
+        scopeName: "modal"
       },
       modalContentClassName: {
         type: "class",
@@ -211,9 +193,9 @@ function registerModal(loader) {
         selectors: [
           {
             selector: ":modal .ant-modal-container",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       closeButtonClassName: {
         type: "class",
@@ -222,37 +204,37 @@ function registerModal(loader) {
         selectors: [
           {
             selector: ":modal .ant-modal-close",
-            label: "Base",
-          },
+            label: "Base"
+          }
         ],
-        advanced: true,
+        advanced: true
       },
       defaultStylesClassName: {
-        type: "themeResetClass",
-      },
+        type: "themeResetClass"
+      }
     },
     states: {
       open: {
         type: "writable",
         valueProp: "open",
         onChangeProp: "onOpenChange",
-        variableType: "boolean",
-      },
+        variableType: "boolean"
+      }
     },
     templates: {
       "Modal Form": {
         props: {
           children: {
             type: "component",
-            name: "plasmic-antd6-form",
+            name: "plasmic-antd6-form"
           },
-          hideFooter: true,
-        },
+          hideFooter: true
+        }
       },
-      "Generic Modal": {},
+      "Generic Modal": {}
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerModal",
-    importName: "AntdModal",
+    importName: "AntdModal"
   });
 }
 

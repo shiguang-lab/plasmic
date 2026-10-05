@@ -56,11 +56,18 @@ test("update UI is injected and served locally without fetching NAS static asset
   const page = path.join(root, "updates-page");
   await fs.mkdir(page);
   await fs.writeFile(path.join(page, "index.html"), "<html><head></head><body></body></html>");
+  await fs.mkdir(path.join(page, "static"));
+  await fs.writeFile(path.join(page, "static/host.html"), "<html><head></head><body>canvas</body></html>");
   const updateUiPath = path.join(page, "update-ui.js");
   await fs.writeFile(updateUiPath, "window.updateUiLoaded = true;");
   const handler = createAssetHandler({ root: page, ...config, updateUiPath, remoteFetch: () => { throw new Error("Unexpected network request"); } });
   const response = await handler(new Request(config.studioOrigin + "/projects/123"));
   assert.match(await response.text(), /script defer src="https:\/\/plasmic.studio.publib.cn\/static\/desktop\/update-ui.js"/);
+  const canvas = await handler(new Request(config.canvasOrigin + "/static/host.html"));
+  const canvasHtml = await canvas.text();
+  assert.match(canvasHtml, /static\/desktop\/update-ui.js/);
+  assert.match(canvasHtml, /data-studio-origin="https:\/\/plasmic.studio.publib.cn"/);
+  assert.match(canvasHtml, /data-canvas-origin="https:\/\/plasmic.canvas.publib.cn"/);
   const script = await handler(new Request(config.studioOrigin + "/static/desktop/update-ui.js"));
   assert.match(script.headers.get("Content-Type"), /javascript/);
   assert.equal(await script.text(), "window.updateUiLoaded = true;");

@@ -224,6 +224,22 @@ export interface CodeComponentMeta<P> {
    */
   actions?: Action<P>[];
   /**
+   * Events delegated from slot descendants to this component. Studio uses
+   * these bindings to associate a selected action with its overlay without
+   * invoking business handlers. Each argument reads the nearest descendant
+   * prop with the specified name inside the slot.
+   */
+  canvasEventBindings?: {
+    slot: string;
+    event: string;
+    args: Record<string, { prop: string }>;
+  }[];
+  /**
+   * Editing-only overlay controls apply to the component itself and descendants
+   * of its trigger slot. Other slots are content, not overlay triggers.
+   */
+  canvasOverlay?: { triggerSlot?: string };
+  /**
    * Whether style sections should be shown in Studio. For styles to work, the
    * component must accept a `className` prop. If unset, defaults to all styles.
    * Set to `false` if this component cannot be styled (for example, if it doesn't

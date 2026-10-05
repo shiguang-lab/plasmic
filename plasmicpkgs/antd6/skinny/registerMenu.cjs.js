@@ -1,76 +1,72 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-CRCm44nj.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdMenuItem(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
-    React__default.default.Fragment,
-    null,
-    props.children,
-  );
+  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, props.children);
 }
 function AntdMenuDivider(_props) {
   return null;
 }
 function AntdMenuItemGroup(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
-    React__default.default.Fragment,
-    null,
-    props.children,
-  );
+  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, props.children);
 }
 function AntdSubMenu(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
-    React__default.default.Fragment,
-    null,
-    props.children,
-  );
+  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, props.children);
 }
 function menuChildrenToItems(children) {
   const result = [];
-  const visit = (nodes) =>
-    React__default.default.Children.forEach(nodes, (child) => {
-      if (!React__default.default.isValidElement(child)) return;
-      const { children: content, title, ...rest } = child.props;
-      const key = child.key ?? rest.eventKey ?? String(result.length);
-      if (child.type === AntdMenuItem)
-        result.push({ ...rest, key, label: content });
-      else if (child.type === AntdMenuDivider)
-        result.push({ type: "divider", key });
-      else if (child.type === AntdSubMenu || child.type === AntdMenuItemGroup) {
-        result.push({
-          ...rest,
-          key,
-          label: title,
-          ...(child.type === AntdMenuItemGroup ? { type: "group" } : {}),
-          children: menuChildrenToItems(content),
-        });
-      } else visit(content);
-    });
+  const visit = (nodes) => React__default.default.Children.forEach(nodes, (child) => {
+    if (!React__default.default.isValidElement(child)) {
+      return;
+    }
+    const { children: content, title, ...rest } = child.props;
+    const key = child.key ?? rest.eventKey ?? String(result.length);
+    if (child.type === AntdMenuItem) {
+      result.push({ ...rest, key, label: content });
+    } else if (child.type === AntdMenuDivider) {
+      result.push({ type: "divider", key });
+    } else if (child.type === AntdSubMenu || child.type === AntdMenuItemGroup) {
+      result.push({
+        ...rest,
+        key,
+        label: title,
+        ...child.type === AntdMenuItemGroup ? { type: "group" } : {},
+        children: menuChildrenToItems(content)
+      });
+    } else {
+      visit(content);
+    }
+  });
   visit(children);
   return result;
 }
-function AntdMenu({ children, items, ...rest }) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Menu, {
-    ...rest,
-    items: items ?? menuChildrenToItems(children),
-  });
+function AntdMenu({
+  children,
+  items,
+  ...rest
+}) {
+  if (items === void 0 && React__default.default.isValidElement(children) && typeof children.props.children === "function") {
+    const renderChildren = children.props.children;
+    return React__default.default.cloneElement(children, {
+      children: (...args) => /* @__PURE__ */ React__default.default.createElement(AntdMenu, { ...rest }, renderChildren(...args))
+    });
+  }
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Menu, { ...rest, items: items ?? menuChildrenToItems(children) });
 }
 const allowedMenuComponents = [
   "plasmic-antd6-menu-item",
   "plasmic-antd6-menu-divider",
   "plasmic-antd6-submenu",
-  "plasmic-antd6-menu-item-group",
+  "plasmic-antd6-menu-item-group"
 ];
 const MENU_ITEM_TYPE = {
   type: "object",
@@ -87,42 +83,40 @@ const MENU_ITEM_TYPE = {
         { value: "item", label: "Menu item" },
         { value: "group", label: "Menu item group" },
         { value: "submenu", label: "Sub-menu" },
-        { value: "divider", label: "Menu divider" },
+        { value: "divider", label: "Menu divider" }
       ],
-      defaultValue: "item",
+      defaultValue: "item"
     },
     key: {
       type: "string",
       displayName: "Menu item key",
-      description:
-        "Key of the menu item; the onClick will receive this as the value to indicate which item was clicked.",
-      hidden: (_ps, _ctx, { item }) => item.type === "divider",
+      description: "Key of the menu item; the onClick will receive this as the value to indicate which item was clicked.",
+      hidden: (_ps, _ctx, { item }) => item.type === "divider"
     },
     label: {
       type: "string",
       description: "Label of the menu item; will use the key if not specified.",
-      hidden: (_ps, _ctx, { item }) => item.type === "divider",
+      hidden: (_ps, _ctx, { item }) => item.type === "divider"
     },
     children: {
       type: "array",
       displayName: "Menu items",
-      hidden: (_ps, _ctx, { item }) =>
-        item.type !== "submenu" && item.type !== "group",
+      hidden: (_ps, _ctx, { item }) => item.type !== "submenu" && item.type !== "group"
     },
     onClick: {
       type: "eventHandler",
       displayName: "Action",
       description: "Action to perform when this item is selected",
       argTypes: [{ name: "info", type: "object" }],
-      hidden: (_ps, _ctx, { item }) => item.type !== "item",
-    },
-  },
+      hidden: (_ps, _ctx, { item }) => item.type !== "item"
+    }
+  }
 };
 const UNKEYED_MENU_ITEM_TYPE = {
   ...MENU_ITEM_TYPE,
   fields: Object.fromEntries(
-    Object.entries(MENU_ITEM_TYPE.fields).filter(([k]) => k !== "key"),
-  ),
+    Object.entries(MENU_ITEM_TYPE.fields).filter(([k]) => k !== "key")
+  )
 };
 MENU_ITEM_TYPE.fields.children.itemType = MENU_ITEM_TYPE;
 UNKEYED_MENU_ITEM_TYPE.fields.children.itemType = UNKEYED_MENU_ITEM_TYPE;
@@ -133,31 +127,30 @@ function registerMenu(loader) {
     props: {
       expandIcon: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       mode: {
         type: "choice",
         options: ["horizontal", "vertical", "inline"],
         description: "Type of menu",
-        defaultValueHint: "vertical",
+        defaultValueHint: "vertical"
       },
       multiple: {
         type: "boolean",
         description: "Allows selection of multiple items",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       triggerSubMenuAction: {
         type: "choice",
         options: ["hover", "click"],
         description: "Which action can trigger submenu open/close",
         defaultValueHint: "hover",
-        advanced: true,
+        advanced: true
       },
       defaultSelectedKeys: {
         type: "array",
-        description:
-          'An array of Menu Item/s that will be selected when this component first loads, eg ["home", "about"]. Each item in the array should be one of the unique keys set in nested Menu Item component props. Useful when using the Menu component to build a website navigation bar.',
-        advanced: true,
+        description: 'An array of Menu Item/s that will be selected when this component first loads, eg ["home", "about"]. Each item in the array should be one of the unique keys set in nested Menu Item component props. Useful when using the Menu component to build a website navigation bar.',
+        advanced: true
       },
       //   menuScopeClassName: {
       //     type: "styleScopeClass",
@@ -186,25 +179,25 @@ function registerMenu(loader) {
             type: "component",
             name: "plasmic-antd6-menu-item",
             props: {
-              key: "menuItemKey1",
-            },
+              key: "menuItemKey1"
+            }
           },
           {
             type: "component",
             name: "plasmic-antd6-menu-item",
             props: {
-              key: "menuItemKey2",
-            },
-          },
-        ],
+              key: "menuItemKey2"
+            }
+          }
+        ]
       },
       onSelect: {
         type: "eventHandler",
-        argTypes: [{ name: "info", type: "object" }],
-      },
+        argTypes: [{ name: "info", type: "object" }]
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerMenu",
-    importName: "AntdMenu",
+    importName: "AntdMenu"
   });
   utils.registerComponentHelper(loader, AntdMenuItem, {
     name: "plasmic-antd6-menu-item",
@@ -214,42 +207,41 @@ function registerMenu(loader) {
       danger: {
         type: "boolean",
         description: "Display the danger style",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       disabled: {
         type: "boolean",
         description: "Whether disabled select",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       key: {
         type: "string",
         displayName: "Unique key",
-        description:
-          "Unique ID of the menu item. Used to determine which item is selected.",
-        defaultValue: "menuItemKey",
+        description: "Unique ID of the menu item. Used to determine which item is selected.",
+        defaultValue: "menuItemKey"
       },
       title: {
         type: "string",
-        description: "Set display title for collapsed item",
+        description: "Set display title for collapsed item"
       },
       children: {
         type: "slot",
         defaultValue: [
           {
             type: "text",
-            value: "Menu item",
-          },
+            value: "Menu item"
+          }
         ],
-        ...{ mergeWithParent: true },
+        ...{ mergeWithParent: true }
       },
       onClick: {
         type: "eventHandler",
-        argTypes: [],
-      },
+        argTypes: []
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerMenu",
     importName: "AntdMenuItem",
-    parentComponentName: "plasmic-antd6-menu",
+    parentComponentName: "plasmic-antd6-menu"
   });
   utils.registerComponentHelper(loader, AntdMenuItemGroup, {
     name: "plasmic-antd6-menu-item-group",
@@ -260,9 +252,9 @@ function registerMenu(loader) {
         defaultValue: [
           {
             type: "text",
-            value: "Group",
-          },
-        ],
+            value: "Group"
+          }
+        ]
       },
       children: {
         type: "slot",
@@ -270,14 +262,14 @@ function registerMenu(loader) {
         defaultValue: [
           {
             type: "component",
-            name: "plasmic-antd6-menu-item",
-          },
-        ],
-      },
+            name: "plasmic-antd6-menu-item"
+          }
+        ]
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerMenu",
     importName: "AntdMenuItemGroup",
-    parentComponentName: "plasmic-antd6-menu",
+    parentComponentName: "plasmic-antd6-menu"
   });
   utils.registerComponentHelper(loader, AntdMenuDivider, {
     name: "plasmic-antd6-menu-divider",
@@ -286,12 +278,12 @@ function registerMenu(loader) {
       dashed: {
         type: "boolean",
         description: "Whether line is dashed",
-        defaultValueHint: false,
-      },
+        defaultValueHint: false
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerMenu",
     importName: "AntdMenuDivider",
-    parentComponentName: "plasmic-antd6-menu",
+    parentComponentName: "plasmic-antd6-menu"
   });
   utils.registerComponentHelper(loader, AntdSubMenu, {
     name: "plasmic-antd6-submenu",
@@ -301,27 +293,26 @@ function registerMenu(loader) {
       disabled: {
         type: "boolean",
         description: "Whether sub-menu is disabled",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       key: {
         type: "string",
         displayName: "Unique key",
-        description:
-          "Unique ID of the sub-menu. Used to determine which item is selected.",
-        advanced: true,
+        description: "Unique ID of the sub-menu. Used to determine which item is selected.",
+        advanced: true
       },
       title: {
         type: "slot",
         defaultValue: [
           {
             type: "text",
-            value: "Sub-menu",
-          },
-        ],
+            value: "Sub-menu"
+          }
+        ]
       },
       popupClassName: {
         type: "class",
-        displayName: "Sidemenu Popup",
+        displayName: "Sidemenu Popup"
       },
       children: {
         type: "slot",
@@ -334,16 +325,16 @@ function registerMenu(loader) {
             children: [
               {
                 type: "text",
-                value: `Sub-menu item ${i}`,
-              },
-            ],
-          },
-        })),
-      },
+                value: `Sub-menu item ${i}`
+              }
+            ]
+          }
+        }))
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerMenu",
     importName: "AntdSubMenu",
-    parentComponentName: "plasmic-antd6-menu",
+    parentComponentName: "plasmic-antd6-menu"
   });
 }
 

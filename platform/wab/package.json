@@ -187,7 +187,7 @@
     "@plasmic-shared/hosting": "workspace:*",
     "@plasmicapp/data-sources": "^1.0.29",
     "@plasmicapp/data-sources-context": "0.1.26",
-    "@plasmicapp/host": "^2.0.19",
+    "@plasmicapp/host": "link:../../packages/host",
     "@plasmicapp/loader-react": "^2.0.23",
     "@plasmicapp/query": "^0.1.88",
     "@plasmicapp/react-web": "^1.0.39",

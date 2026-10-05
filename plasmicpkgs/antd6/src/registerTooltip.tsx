@@ -8,6 +8,8 @@ import {
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
+const canvasOverlay = { triggerSlot: "children" };
+
 export function AntdTooltip(
   props: React.ComponentProps<typeof Tooltip> &
     CanvasOverlayProps & {
@@ -19,7 +21,7 @@ export function AntdTooltip(
     props: canvasProps,
     open,
     isEditing,
-  } = useCanvasOverlay(props, "children");
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const { popupRootClassName, titleText, classNames, ...rest } = canvasProps;
   return (
     <Tooltip
@@ -41,6 +43,7 @@ export function AntdTooltip(
 export function registerTooltip(loader?: Registerable) {
   registerComponentHelper(loader, AntdTooltip, {
     name: "plasmic-antd6-tooltip",
+    canvasOverlay,
     displayName: "Tooltip",
     isAttachment: true,
     props: {

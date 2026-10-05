@@ -64,6 +64,22 @@ export function AntdMenu({
   items,
   ...rest
 }: React.ComponentProps<typeof NativeMenu>) {
+  // Render-prop slots are wrapped in a canvas observer or data-context reader.
+  // Convert their children inside that wrapper, after React evaluates the slot.
+  if (
+    items === undefined &&
+    React.isValidElement<{
+      children: (...args: unknown[]) => React.ReactNode;
+    }>(children) &&
+    typeof children.props.children === "function"
+  ) {
+    const renderChildren = children.props.children;
+    return React.cloneElement(children, {
+      children: (...args: unknown[]) => (
+        <AntdMenu {...rest}>{renderChildren(...args)}</AntdMenu>
+      ),
+    });
+  }
   return (
     <NativeMenu {...rest} items={items ?? menuChildrenToItems(children)} />
   );

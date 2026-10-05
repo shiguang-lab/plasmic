@@ -1,78 +1,77 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var cls = require("classnames");
-var React = require("react");
-var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var cls = require('classnames');
+var React = require('react');
+var canvasOverlay$1 = require('./canvas-overlay-S34meFm4.cjs.js');
+var utils = require('./utils-CRCm44nj.cjs.js');
+require('@plasmicapp/host');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var cls__default = /*#__PURE__*/ _interopDefault(cls);
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var cls__default = /*#__PURE__*/_interopDefault(cls);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
+const canvasOverlay = { triggerSlot: "children" };
 function AntdTooltip(props) {
   const {
     props: canvasProps,
     open,
-    isEditing,
-  } = canvasOverlay.useCanvasOverlay(props, "children");
+    isEditing
+  } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const { popupRootClassName, titleText, classNames, ...rest } = canvasProps;
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Tooltip, {
-    ...rest,
-    open,
-    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-    onOpenChange: isEditing ? void 0 : props.onOpenChange,
-    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
-    classNames: (info) => {
-      const names =
-        typeof classNames === "function" ? classNames(info) : classNames;
-      return {
-        ...names,
-        root: cls__default.default(names?.root, popupRootClassName),
-      };
-    },
-    title: props.title === void 0 ? titleText : props.title,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant.Tooltip,
+    {
+      ...rest,
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      classNames: (info) => {
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        return { ...names, root: cls__default.default(names?.root, popupRootClassName) };
+      },
+      title: props.title === void 0 ? titleText : props.title
+    }
+  );
 }
 function registerTooltip(loader) {
   utils.registerComponentHelper(loader, AntdTooltip, {
     name: "plasmic-antd6-tooltip",
+    canvasOverlay,
     displayName: "Tooltip",
     isAttachment: true,
     props: {
-      previewOpen: canvasOverlay.previewOpenProp,
+      previewOpen: canvasOverlay$1.previewOpenProp,
       children: {
         type: "slot",
         defaultValue: {
           type: "text",
-          value: "This text element is wrapped in a Tooltip component",
+          value: "This text element is wrapped in a Tooltip component"
         },
-        mergeWithParent: true,
+        mergeWithParent: true
       },
       popupRootClassName: {
         type: "class",
-        displayName: "Overlay",
+        displayName: "Overlay"
       },
       titleText: {
         type: "string",
         displayName: "Tooltip contents",
         description: "What gets shown inside the tooltip on hover",
-        defaultValue: "Tooltip contents",
+        defaultValue: "Tooltip contents"
       },
       title: {
         type: "slot",
         displayName: "Tooltip contents",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       color: {
         type: "color",
-        description: "Tooltip fill color",
+        description: "Tooltip fill color"
       },
       placement: {
         type: "choice",
@@ -88,14 +87,14 @@ function registerTooltip(loader) {
           "rightBottom",
           "bottomLeft",
           "bottom",
-          "bottomRight",
+          "bottomRight"
         ],
         description: "Default placement of tooltip",
-        defaultValueHint: "top",
-      },
+        defaultValueHint: "top"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTooltip",
-    importName: "AntdTooltip",
+    importName: "AntdTooltip"
   });
 }
 

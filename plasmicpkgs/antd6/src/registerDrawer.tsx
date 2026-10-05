@@ -8,6 +8,8 @@ import {
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
+const canvasOverlay = {};
+
 export function AntdDrawer(
   props: React.ComponentProps<typeof Drawer> &
     CanvasOverlayProps & {
@@ -64,6 +66,7 @@ export function AntdDrawer(
 export function registerDrawer(loader?: Registerable) {
   registerComponentHelper(loader, AntdDrawer, {
     name: "plasmic-antd6-drawer",
+    canvasOverlay,
     displayName: "Drawer",
     props: {
       previewOpen: previewOpenProp,

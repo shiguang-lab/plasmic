@@ -1,93 +1,164 @@
 (() => {
-  if (window.top !== window || !window.desktopUpdates) return;
+  const { studioOrigin, canvasOrigin } = document.currentScript?.dataset || {};
+  const isMain = window.top === window;
+  if (isMain ? !window.desktopUpdates : window.parent !== window.top || location.origin !== canvasOrigin) return;
+
+  let latestStatus;
+  const editorFrame = () => document.querySelector("iframe.studio-frame");
+  const sendStatus = (status) => {
+    latestStatus = status;
+    editorFrame()?.contentWindow?.postMessage({ channel: "plasmic-desktop-update-status", status }, canvasOrigin);
+    render(status);
+  };
+  if (isMain) {
+    // Only the bundled editor's direct frame may invoke the main-frame bridge.
+    window.addEventListener("message", async (event) => {
+      if (event.origin !== canvasOrigin || event.source !== editorFrame()?.contentWindow || event.data?.channel !== "plasmic-desktop-update-command") return;
+      const command = event.data.command;
+      if (!["status", "download", "install", "check"].includes(command)) return;
+      if (command === "status" && latestStatus) {
+        sendStatus(latestStatus);
+        return;
+      }
+      await runCommand(command);
+    });
+  } else {
+    window.addEventListener("message", (event) => {
+      if (event.origin === studioOrigin && event.source === window.parent && event.data?.channel === "plasmic-desktop-update-status") render(event.data.status);
+    });
+  }
+
   const style = document.createElement("style");
   style.textContent = `
-    #plasmic-desktop-update { margin: 8px 0; padding: 12px; border: 1px solid #e4e4e7; border-radius: 12px; background: #fafafa; color: #27272a; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; -webkit-app-region: no-drag; }
-    #plasmic-desktop-update[data-floating=true] { position: fixed; left: 12px; bottom: 12px; width: 208px; z-index: 20000; box-shadow: 0 4px 18px #00000012; }
-    #plasmic-desktop-update[data-collapsed=true] { width: auto; padding: 8px 10px; }
-    #plasmic-desktop-update[data-collapsed=true] .update-body { display: none; }
-    #plasmic-desktop-update .update-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; }
-    #plasmic-desktop-update button { cursor: pointer; font: inherit; border: 0; border-radius: 7px; background: #27272a; color: white; padding: 7px 10px; }
-    #plasmic-desktop-update button:disabled { cursor: default; opacity: .55; }
-    #plasmic-desktop-update .update-toggle { background: none; color: inherit; padding: 0; font-weight: 600; }
-    #plasmic-desktop-update .update-description { margin: 7px 0; color: #71717a; overflow-wrap: anywhere; }
-    #plasmic-desktop-update .update-action { width: 100%; }
-    #plasmic-desktop-update progress { width: 100%; height: 5px; accent-color: #27272a; }
-    #plasmic-desktop-update .update-notes { max-height: 100px; overflow: auto; white-space: pre-wrap; color: #71717a; margin-top: 8px; }
-    #plasmic-desktop-update summary { cursor: pointer; color: #71717a; margin-top: 8px; }
+    #plasmic-desktop-update { display: inline-flex; position: relative; flex-shrink: 0; align-items: center; justify-content: center; width: 36px; height: 36px; margin: 4px 0; -webkit-app-region: no-drag; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
+    #plasmic-desktop-update[hidden] { display: none; }
+    #plasmic-desktop-update .update-action { box-sizing: border-box; display: inline-flex; position: relative; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer; font: inherit; }
+    #plasmic-desktop-update .update-action:hover { background: #0000000a; }
+    #plasmic-desktop-update .update-action:focus-visible { outline: 2px solid #0285ff; outline-offset: 2px; }
+    #plasmic-desktop-update .update-action:disabled { cursor: default; }
+    #plasmic-desktop-update .update-icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #0285ff; color: white; }
+    #plasmic-desktop-update svg { width: 16px; height: 16px; }
+    #plasmic-desktop-update .update-label { display: none; }
+    aside > footer:has(> #plasmic-desktop-update:not([hidden])) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; }
+    aside > footer:has(> #plasmic-desktop-update:not([hidden])) > :not(#plasmic-desktop-update):not([data-test-id=btn-dashboard-user]) { grid-column: 1 / -1; }
+    aside > footer:has(> #plasmic-desktop-update:not([hidden])) > [data-test-id=btn-dashboard-user] { grid-column: 1; min-width: 0; }
+    #plasmic-desktop-update[data-placement=footer] { grid-column: 2; width: auto; height: 28px; margin: 0 8px 0 0; justify-self: end; justify-content: flex-start; }
+    #plasmic-desktop-update[data-placement=footer] .update-action { display: grid; grid-template-columns: 0fr; width: auto; min-width: 20px; max-width: 144px; height: 20px; padding: 0 10px; overflow: hidden; border-radius: 999px; background: #0285ff; color: white; transition: grid-template-columns 220ms cubic-bezier(.25,.46,.45,.94), background-color 220ms; }
+    #plasmic-desktop-update[data-placement=footer] .update-action:hover { background: #027aeb; }
+    #plasmic-desktop-update[data-placement=footer] .update-icon { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; transition: opacity 80ms, transform 80ms; }
+    #plasmic-desktop-update[data-placement=footer] svg { width: 12px; height: 12px; }
+    #plasmic-desktop-update[data-placement=footer] .update-label { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-align: center; opacity: 0; transition: opacity 80ms 140ms; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    #plasmic-desktop-update[data-placement=footer] .update-action:is(:hover,:focus-visible), #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-action { grid-template-columns: 1fr; }
+    #plasmic-desktop-update[data-placement=footer] .update-action:is(:hover,:focus-visible) .update-icon, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-icon { opacity: 0; transform: scale(.9); }
+    #plasmic-desktop-update[data-placement=footer] .update-action:is(:hover,:focus-visible) .update-label, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-label { opacity: 1; }
+    #plasmic-desktop-update .update-spinner { animation: plasmic-update-spin 1s linear infinite; }
+    #plasmic-desktop-update .update-tooltip { position: fixed; inset: auto; margin: 0; transform: translateY(-50%); width: max-content; max-width: 280px; padding: 6px 10px; border: 0; border-radius: 8px; background: #27272a; color: white; pointer-events: none; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
+    @keyframes plasmic-update-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { #plasmic-desktop-update * { transition: none !important; animation: none !important; } }
   `;
   document.head.append(style);
-  const card = document.createElement("section");
-  card.id = "plasmic-desktop-update";
-  card.setAttribute("aria-label", "应用更新");
-  const heading = document.createElement("div");
-  heading.className = "update-heading";
-  const toggle = document.createElement("button");
-  toggle.className = "update-toggle";
-  toggle.type = "button";
-  toggle.onclick = () => { card.dataset.collapsed = String(card.dataset.collapsed !== "true"); };
-  heading.append(toggle);
-  const body = document.createElement("div");
-  body.className = "update-body";
-  const description = document.createElement("p");
-  description.className = "update-description";
-  description.setAttribute("role", "status");
-  const progress = document.createElement("progress");
-  progress.max = 100;
+  const control = document.createElement("span");
+  control.id = "plasmic-desktop-update";
+  control.hidden = true;
   const button = document.createElement("button");
   button.className = "update-action";
   button.type = "button";
-  const details = document.createElement("details");
-  const summary = document.createElement("summary");
-  summary.textContent = "更新说明";
-  const notes = document.createElement("div");
-  notes.className = "update-notes";
-  details.append(summary, notes);
-  body.append(description, progress, button, details);
-  card.append(heading, body);
+  const icon = document.createElement("span");
+  icon.className = "update-icon";
+  icon.setAttribute("aria-hidden", "true");
+  const label = document.createElement("span");
+  label.className = "update-label";
+  label.setAttribute("aria-hidden", "true");
+  const tooltip = document.createElement("span");
+  tooltip.className = "update-tooltip";
+  tooltip.setAttribute("role", "tooltip");
+  tooltip.setAttribute("popover", "manual");
+  const showTooltip = () => {
+    const rect = button.getBoundingClientRect();
+    tooltip.style.left = `${rect.right + 8}px`;
+    tooltip.style.top = `${rect.top + rect.height / 2}px`;
+    tooltip.showPopover();
+  };
+  control.addEventListener("mouseenter", showTooltip);
+  control.addEventListener("mouseleave", () => tooltip.hidePopover());
+  control.addEventListener("focusin", showTooltip);
+  control.addEventListener("focusout", () => tooltip.hidePopover());
+  button.append(icon, label);
+  control.append(button, tooltip);
   let command = "check";
   const render = (status) => {
-    const { phase, version, currentVersion, percent = 0, error } = status;
-    card.dataset.phase = phase;
-    toggle.textContent = ["available", "downloading", "downloaded"].includes(phase) ? "↑ Plasmic 更新" : "Plasmic 更新";
+    const { phase, version, percent = 0, error } = status;
+    const progress = Math.min(100, Math.max(0, Math.round(percent)));
+    control.dataset.phase = phase;
+    control.hidden = !["available", "downloading", "downloaded", "installing", "error"].includes(phase);
+    if (control.hidden) tooltip.hidePopover();
     const states = {
-      idle: [`当前版本 ${currentVersion}`, "检查更新", "check"],
-      checking: ["正在检查新版本…", "正在检查…", "check"],
-      current: [`已是最新版本 ${currentVersion}`, "检查更新", "check"],
-      available: [`新版本 ${version} 可用`, "下载更新", "download"],
-      downloading: [`正在下载 ${version} · ${percent}%`, "正在下载…", "download"],
-      downloaded: [`${version} 已下载，安装时将保存当前设计`, "重启并安装", "install"],
-      installing: ["正在保存设计并准备安装…", "正在安装…", "install"],
-      error: [error || "更新失败，请重试", "重试", status.retry || "check"],
-      disabled: ["开发环境不安装更新", "检查更新", "check"],
+      available: ["下载更新", `新版本 ${version} 可用，点击下载`, "download"],
+      downloading: [`${progress}%`, `正在下载 ${version} · ${progress}%`, "download"],
+      downloaded: ["更新", `更新可用 · ${version}，点击保存设计并重启安装`, "install"],
+      installing: ["正在安装", "正在保存设计并准备安装…", "install"],
+      error: ["重试", error || "更新失败，点击重试", status.retry || "check"],
     };
-    const state = states[phase] || states.idle;
-    description.textContent = state[0];
-    button.textContent = state[1];
+    const state = states[phase] || ["检查更新", "检查更新", "check"];
+    label.textContent = state[0];
+    tooltip.textContent = state[1];
+    button.setAttribute("aria-label", state[1]);
     command = state[2];
-    button.disabled = ["checking", "downloading", "installing", "disabled"].includes(phase);
-    progress.hidden = phase !== "downloading";
-    progress.value = percent;
-    const releaseNotes = status.releaseNotes;
-    notes.textContent = Array.isArray(releaseNotes) ? releaseNotes.map((note) => note.note).join("\n") : typeof releaseNotes === "string" ? releaseNotes : "";
-    details.hidden = !notes.textContent;
+    const busy = ["downloading", "installing"].includes(phase);
+    button.disabled = busy;
+    button.setAttribute("aria-busy", String(busy));
+    icon.innerHTML = busy
+      ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${progress * 37.7 / 100} 37.7" transform="rotate(-90 8 8)"/>` : `<path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/>`}</svg>`
+      : `<svg viewBox="64 64 896 896" fill="currentColor" focusable="false" data-icon="download"><path d="M505.7 661a8 8 0 0012.6 0l112-141.7c4.1-5.2.4-12.9-6.3-12.9h-74.1V168c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v338.3H400c-6.7 0-10.4 7.7-6.3 12.9l112 141.8zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"/></svg>`;
+    if (phase === "downloading") {
+      control.setAttribute("role", "progressbar");
+      control.setAttribute("tabindex", "0");
+      control.setAttribute("aria-label", state[1]);
+      control.setAttribute("aria-valuemin", "0");
+      control.setAttribute("aria-valuemax", "100");
+      control.setAttribute("aria-valuenow", String(progress));
+    } else {
+      for (const attr of ["role", "tabindex", "aria-label", "aria-valuemin", "aria-valuemax", "aria-valuenow"]) control.removeAttribute(attr);
+    }
   };
-  button.onclick = async () => {
-    button.disabled = true;
-    try { render(await window.desktopUpdates.command(command)); }
-    catch (error) { render({ phase: "error", error: error.message, retry: command }); }
-  };
-  function place() {
-    const footer = document.querySelector("aside > footer");
-    const parent = footer || document.body;
-    if (card.parentElement === parent) return;
-    card.dataset.floating = String(!footer);
-    card.dataset.collapsed = String(!footer);
-    if (footer) footer.prepend(card);
-    else parent.append(card);
+  async function runCommand(action) {
+    if (!isMain) {
+      window.parent.postMessage({ channel: "plasmic-desktop-update-command", command: action }, studioOrigin);
+      return;
+    }
+    try { sendStatus(await window.desktopUpdates.command(action)); }
+    catch (error) { sendStatus({ phase: "error", error: error.message, retry: action }); }
   }
+  button.onclick = () => {
+    button.disabled = true;
+    void runCommand(command);
+  };
+  let observedDocument;
+  function place() {
+    const uiDocument = isMain ? document : document.querySelector("iframe.__wab_studio-frame")?.contentDocument || document;
+    if (uiDocument !== observedDocument) {
+      observer.disconnect();
+      observer.observe(document, { childList: true, subtree: true });
+      if (uiDocument !== document) observer.observe(uiDocument, { childList: true, subtree: true });
+      observedDocument = uiDocument;
+    }
+    if (uiDocument.head && style.parentElement !== uiDocument.head) uiDocument.head.append(style);
+    const strip = uiDocument.getElementById("left-tab-strip");
+    const footer = uiDocument.querySelector("aside > footer");
+    const parent = strip?.lastElementChild || footer;
+    if (!parent) {
+      tooltip.hidePopover();
+      control.remove();
+      return;
+    }
+    if (control.parentElement === parent) return;
+    control.dataset.placement = strip ? "rail" : "footer";
+    if (strip) parent.insertBefore(control, parent.lastElementChild);
+    else parent.append(control);
+  }
+  const observer = new MutationObserver(place);
+  document.addEventListener("load", place, true);
   place();
-  new MutationObserver(place).observe(document.body, { childList: true, subtree: true });
-  window.desktopUpdates.onStatus(render);
-  window.desktopUpdates.command("status").then(render).catch(() => {});
+  if (isMain) window.desktopUpdates.onStatus(sendStatus);
+  void runCommand("status");
 })();

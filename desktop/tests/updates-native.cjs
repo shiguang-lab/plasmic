@@ -1,4 +1,4 @@
-// Regression for Electron's virtual ASAR filesystem during bundle cleanup.
+// Native sidebar/rail update UI and Electron's ASAR bundle cleanup.
 const { app, BrowserWindow } = require("electron");
 const fs = require("original-fs").promises;
 const path = require("node:path");
@@ -10,24 +10,107 @@ let root;
 let window;
 app.whenReady().then(async () => {
   window = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
-  await window.loadURL("data:text/html,<html><head></head><body><aside><nav>Projects</nav><footer>Settings</footer></aside></body></html>");
   const updateUi = await fs.readFile(path.join(__dirname, "../src/update-ui.js"), "utf8");
-  await window.webContents.executeJavaScript(`
-    window.desktopUpdates = {
-      onStatus: () => {},
-      command: async () => ({ phase: "available", version: "0.0.5", currentVersion: "0.0.4" }),
-    };
-    ${updateUi}
-  `);
-  assert.deepEqual(await window.webContents.executeJavaScript(`(() => {
-    const card = document.getElementById("plasmic-desktop-update");
-    return { parent: card.parentElement.tagName, floating: card.dataset.floating, collapsed: card.dataset.collapsed, button: card.querySelector(".update-action").textContent };
-  })()`), { parent: "FOOTER", floating: "false", collapsed: "false", button: "下载更新" });
-  await window.webContents.executeJavaScript(`document.querySelector("aside").remove()`);
-  assert.equal(await window.webContents.executeJavaScript(`document.getElementById("plasmic-desktop-update").dataset.floating`), "true");
-  await window.webContents.executeJavaScript(`document.body.insertAdjacentHTML("beforeend", "<aside><nav>Projects</nav><footer>Settings</footer></aside>")`);
-  assert.equal(await window.webContents.executeJavaScript(`document.getElementById("plasmic-desktop-update").parentElement.tagName`), "FOOTER");
-  console.log("PASS: Update prompt mounts in the rendered sidebar footer and follows page navigation");
+  const studioOrigin = "https://studio.update.test";
+  const canvasOrigin = "https://canvas.update.test";
+  window.webContents.session.protocol.handle("https", (request) => {
+    const url = new URL(request.url);
+    if (url.pathname === "/update-ui.js") return new Response(updateUi, { headers: { "Content-Type": "application/javascript; charset=utf-8" } });
+    const isStudio = url.origin === studioOrigin;
+    const content = isStudio
+      ? (url.pathname === "/delayed" ? "" : `<aside style="width:220px"><nav>Projects</nav><footer>Settings</footer></aside><main>Workspace</main>`)
+      : `<script>
+          setTimeout(() => {
+          const frame = document.createElement("iframe");
+          frame.className = "__wab_studio-frame";
+          frame.style = "border:0;width:100vw;height:100vh";
+          frame.addEventListener("load", () => {
+            const inner = frame.contentDocument;
+            inner.open();
+            inner.write('<html><head></head><body style="margin:0"><div id="left-tab-strip" style="display:flex;flex-direction:column;width:36px;height:calc(100vh - 16px);padding:8px;overflow:auto;justify-content:space-between"><div>Tools</div><div style="display:flex;flex-direction:column;align-items:center"><div class="Avatar" style="height:32px;width:32px;background:#e4e4e7;border-radius:50%">YL</div></div></div></body></html>');
+            inner.close();
+          });
+          document.body.append(frame);
+          }, 50);
+        </script>`;
+    return new Response(`<html><head><style>body{margin:0;font:14px sans-serif}aside{height:100vh;display:flex;flex-direction:column}footer{margin-top:auto;padding:8px}</style></head><body>${content}
+      ${isStudio ? `<script>
+        window.commands = [];
+        window.fixtureStatus = { phase: "available", version: "0.0.7", currentVersion: "0.0.6" };
+        window.desktopUpdates = {
+          onStatus: callback => { window.updateStatus = callback; },
+          command: async command => { window.commands.push(command); return window.fixtureStatus; },
+        };
+      </script>` : ""}
+      <script defer src="${studioOrigin}/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script>
+      </body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  });
+  const evaluate = (code) => window.webContents.executeJavaScript(code);
+  await window.loadURL(studioOrigin + "/delayed");
+  assert.equal(await evaluate(`typeof window.updateStatus`), "function", "Update listeners must initialize before the sidebar mounts");
+  await evaluate(`document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
+  assert.equal(await evaluate(`document.querySelector(".update-action")?.getAttribute("aria-label")`), "新版本 0.0.7 可用，点击下载");
+  await window.loadURL(studioOrigin);
+  assert.deepEqual(await evaluate(`(() => {
+    const control = document.getElementById("plasmic-desktop-update");
+    const button = control.querySelector("button");
+    return { parent: control.parentElement.tagName, placement: control.dataset.placement, position: getComputedStyle(control).position, icon: !!button.querySelector("svg"), width: button.getBoundingClientRect().width, label: button.getAttribute("aria-label"), visible: !control.hidden };
+  })()`), { parent: "FOOTER", placement: "footer", position: "relative", icon: true, width: 20, label: "新版本 0.0.7 可用，点击下载", visible: true });
+  window.show();
+  window.webContents.focus();
+  await evaluate(`document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`);
+  assert(await evaluate(`document.querySelector(".update-action").getBoundingClientRect().width > 20`), "Keyboard focus must expand the footer icon label");
+  assert.equal(await evaluate(`document.querySelector(".update-tooltip").matches(":popover-open")`), true);
+  await evaluate(`document.querySelector(".update-action").blur()`);
+  window.hide();
+  await evaluate(`document.querySelector(".update-action").click()`);
+  assert.equal(await evaluate(`window.commands.at(-1)`), "download");
+  await evaluate(`window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 42 }; window.updateStatus(window.fixtureStatus)`);
+  assert.deepEqual(await evaluate(`(() => {
+    const control = document.getElementById("plasmic-desktop-update");
+    return { role: control.getAttribute("role"), percent: control.getAttribute("aria-valuenow"), disabled: control.querySelector("button").disabled, label: control.querySelector(".update-label").textContent };
+  })()`), { role: "progressbar", percent: "42", disabled: true, label: "42%" });
+  await evaluate(`window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`);
+  assert.equal(await evaluate(`window.commands.at(-1)`), "install");
+  await evaluate(`window.fixtureStatus = { phase: "error", error: "下载失败", retry: "download" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`);
+  assert.equal(await evaluate(`window.commands.at(-1)`), "download");
+  for (const phase of ["idle", "current", "checking", "disabled"]) {
+    await evaluate(`window.updateStatus({ phase: ${JSON.stringify(phase)} })`);
+    assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update").hidden`), true);
+  }
+  await evaluate(`document.querySelector("aside").remove()`);
+  assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update")`), null);
+  await evaluate(`window.fixtureStatus = { phase: "available", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
+  assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update").parentElement.tagName`), "FOOTER");
+  console.log("PASS: Sidebar icon downloads, shows progress, retries and installs without a floating fallback");
+
+  await evaluate(`document.querySelector("aside").remove(); const frame = document.createElement("iframe"); frame.className = "studio-frame"; frame.src = ${JSON.stringify(canvasOrigin + "/static/host.html")}; frame.style = "border:0;width:100vw;height:100vh"; document.body.append(frame)`);
+  let editor;
+  for (let i = 0; i < 100; i++) {
+    const host = window.webContents.mainFrame.frames.find((frame) => frame.url.startsWith(canvasOrigin));
+    editor = host?.frames.find((frame) => frame.url === "about:blank");
+    if (editor && await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update")?.dataset.phase === "available"`)) break;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  assert(editor, "Bundled editor frame did not load");
+  assert.deepEqual(await editor.executeJavaScript(`(() => {
+    const control = document.getElementById("plasmic-desktop-update");
+    const button = control.querySelector("button");
+    return { placement: control.dataset.placement, inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector(".update-icon").getBoundingClientRect().width, position: getComputedStyle(control).position, beforeAvatar: control.nextElementSibling.className };
+  })()`), { placement: "rail", inStrip: true, width: 36, iconWidth: 24, position: "relative", beforeAvatar: "Avatar" });
+  await fs.writeFile(path.join(os.tmpdir(), "plasmic-update-rail.png"), (await window.webContents.capturePage()).toPNG());
+  await editor.executeJavaScript(`document.querySelector(".update-action").click()`);
+  assert.equal(await evaluate(`window.commands.at(-1)`), "download");
+  await evaluate(`window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 67 }; window.updateStatus(window.fixtureStatus)`);
+  assert.equal(await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update").getAttribute("aria-valuenow")`), "67");
+  const commandCount = await evaluate(`window.commands.length`);
+  await evaluate(`window.postMessage({channel:"plasmic-desktop-update-command",command:"install"},location.origin)`);
+  assert.equal(await evaluate(`window.commands.length`), commandCount, "Untrusted sender must not invoke updates");
+  await editor.executeJavaScript(`window.postMessage({channel:"plasmic-desktop-update-status",status:{phase:"error"}},"*")`);
+  assert.equal(await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update").dataset.phase`), "downloading", "Untrusted sender must not overwrite status");
+  await editor.executeJavaScript(`document.querySelector("#left-tab-strip").remove()`);
+  assert.equal(await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update")`), null);
+  console.log("PASS: Bundled editor embeds the 36px/24px rail icon and validates cross-frame update messages");
   root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-update-native-"));
   const cache = path.join(root, "updates");
   const source = path.join(root, "source");

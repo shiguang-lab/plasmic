@@ -41,6 +41,73 @@ const content = (
   </span>
 );
 const trigger = <button>Trigger</button>;
+
+test.each([false, true])(
+  "Dropdown renders wrapped menu slots (interactive=%s)",
+  async (interactive) => {
+    function CanvasObserver({ children }: { children: () => React.ReactNode }) {
+      return <>{children()}</>;
+    }
+    const action = vi.fn();
+    render(
+      <Canvas interactive={interactive}>
+        <AntdDropdown
+          open={interactive || undefined}
+          onAction={action}
+          __plasmic_selection_prop__={{
+            isSelected: true,
+            selectedSlotName: null,
+          }}
+          useMenuItemsSlot
+          menuItems={() => (
+            <CanvasObserver>
+              {() => (
+                <>
+                  <AntdMenuItem key="list">新建常规客群</AntdMenuItem>
+                  <AntdMenuItem key="sql">SQL 建群</AntdMenuItem>
+                </>
+              )}
+            </CanvasObserver>
+          )}
+        >
+          {trigger}
+        </AntdDropdown>
+      </Canvas>,
+    );
+    const item = await screen.findByRole("menuitem", { name: "新建常规客群" });
+    expect(screen.getByRole("menuitem", { name: "SQL 建群" })).toBeTruthy();
+    fireEvent.click(item);
+    if (interactive) {
+      expect(action).toHaveBeenCalledWith("list");
+    } else {
+      expect(action).not.toHaveBeenCalled();
+    }
+  },
+);
+
+test("selecting Dropdown itself auto-opens its menu and reports the hidden-content status", async () => {
+  const notify = vi.fn();
+  render(
+    <Canvas>
+      <AntdDropdown
+        open={false}
+        menuItemsJson={[{ key: "item", label: "Dropdown content" }]}
+        plasmicNotifyAutoOpenedContent={notify}
+        __plasmic_selection_prop__={{
+          isSelected: true,
+          selectedSlotName: null,
+        }}
+      >
+        {trigger}
+      </AntdDropdown>
+    </Canvas>,
+  );
+  expect(
+    await screen.findByRole("menuitem", { name: "Dropdown content" }),
+  ).toBeTruthy();
+  expect(notify).toHaveBeenCalledTimes(1);
+});
+
 const cases = [
   {
     name: "Tooltip",
@@ -419,5 +486,17 @@ test("all editing overrides are pruned from generated code rather than mapped to
     const prop = metas.get(`plasmic-antd6-${name}`).props.previewOpen;
     expect(prop.editOnly).toBe(true);
     expect(prop.uncontrolledProp).toBeUndefined();
+    const triggerSlot =
+      name === "modal"
+        ? "trigger"
+        : ["tooltip", "popover", "popconfirm", "dropdown"].includes(name)
+          ? "children"
+          : undefined;
+    expect(metas.get(`plasmic-antd6-${name}`).canvasOverlay).toEqual(
+      triggerSlot ? { triggerSlot } : {},
+    );
   }
+  expect(metas.get("plasmic-antd6-dropdown").canvasEventBindings).toEqual([
+    { slot: "menuItems", event: "onAction", args: { key: { prop: "key" } } },
+  ]);
 });

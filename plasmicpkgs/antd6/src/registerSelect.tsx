@@ -18,6 +18,8 @@ import {
   traverseReactEltTree,
 } from "./utils";
 
+const canvasOverlay = {};
+
 export const AntdOption: typeof Select.Option = Select.Option;
 export const AntdOptionGroup: typeof Select.OptGroup = Select.OptGroup;
 
@@ -96,6 +98,7 @@ export function AntdSelect(
 export function registerSelect(loader?: Registerable) {
   registerComponentHelper(loader, AntdSelect, {
     name: selectComponentName,
+    canvasOverlay,
     displayName: "Select",
     props: {
       previewOpen: previewOpenProp,

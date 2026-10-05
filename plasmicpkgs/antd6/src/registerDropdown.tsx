@@ -35,6 +35,8 @@ function addKeysToUnkeyedMenuItems(
   });
 }
 
+const canvasOverlay = { triggerSlot: "children" };
+
 export function AntdDropdown(
   props: Omit<React.ComponentProps<typeof Dropdown>, "menu" | "overlay"> &
     CanvasOverlayProps & {
@@ -50,7 +52,7 @@ export function AntdDropdown(
     props: canvasProps,
     open,
     isEditing,
-  } = useCanvasOverlay(props, "children");
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     children,
     onAction,
@@ -98,6 +100,10 @@ export function AntdDropdown(
 export function registerDropdown(loader?: Registerable) {
   registerComponentHelper(loader, AntdDropdown, {
     name: "plasmic-antd6-dropdown",
+    canvasOverlay,
+    canvasEventBindings: [
+      { slot: "menuItems", event: "onAction", args: { key: { prop: "key" } } },
+    ],
     displayName: "Dropdown",
     props: {
       previewOpen: previewOpenProp,

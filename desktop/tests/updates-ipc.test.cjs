@@ -33,6 +33,8 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
     return new Response(YAML.stringify({ version: "0.0.1" }));
   } } });
   t.after(() => manager.stop());
+  await manager.running;
+  assert.equal(requests, 1, "Startup must immediately check the remote feed");
   const handler = handlers["desktop:update"];
   for (const event of [
     { sender: {}, senderFrame: frame },
@@ -40,9 +42,9 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
   ]) assert.throws(() => handler(event, "install"), /Invalid update sender/);
   frame.url = "https://canvas.example/projects/test";
   assert.throws(() => handler({ sender: webContents, senderFrame: frame }, "check"), /Invalid update sender/);
-  assert.equal(requests, 0);
+  assert.equal(requests, 1);
   frame.url = config.studioOrigin + "/";
   assert.equal((await handler({ sender: webContents, senderFrame: frame }, "check")).phase, "current");
-  assert.equal(requests, 1);
+  assert.equal(requests, 2);
   assert.equal(sent.at(-1).channel, "desktop:update-status");
 });

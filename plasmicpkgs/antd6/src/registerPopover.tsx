@@ -8,6 +8,8 @@ import {
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
 
+const canvasOverlay = { triggerSlot: "children" };
+
 export function AntdPopover(
   props: React.ComponentProps<typeof Popover> &
     CanvasOverlayProps & {
@@ -21,7 +23,7 @@ export function AntdPopover(
     props: canvasProps,
     open,
     isEditing,
-  } = useCanvasOverlay(props, "children");
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     popupRootClassName,
     popoverScopeClassName,
@@ -59,6 +61,7 @@ export function AntdPopover(
 export function registerPopover(loader?: Registerable) {
   registerComponentHelper(loader, AntdPopover, {
     name: "plasmic-antd6-popover",
+    canvasOverlay,
     displayName: "Popover",
     isAttachment: true,
     props: {

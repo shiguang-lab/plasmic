@@ -127,8 +127,8 @@ function createAssetHandler({
             ),
         );
       }
-      if (updateUiPath && path.basename(file) === "index.html") {
-        data = Buffer.from(data.toString().replace("</head>", `<script defer src="${studioOrigin}/static/desktop/update-ui.js"></script></head>`));
+      if (updateUiPath && [path.join(root, "index.html"), path.join(root, "static/host.html")].includes(file)) {
+        data = Buffer.from(data.toString().replace("</head>", `<script defer src="${studioOrigin}/static/desktop/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script></head>`));
       }
       return new Response(request.method === "HEAD" ? null : data, {
         headers: {

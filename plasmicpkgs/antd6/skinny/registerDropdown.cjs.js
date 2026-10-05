@@ -1,29 +1,25 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var canvasOverlay = require("./canvas-overlay-S34meFm4.cjs.js");
-var registerMenu = require("./registerMenu.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var canvasOverlay$1 = require('./canvas-overlay-S34meFm4.cjs.js');
+var registerMenu = require('./registerMenu.cjs.js');
+var utils = require('./utils-CRCm44nj.cjs.js');
+require('@plasmicapp/host');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
-  const genKey =
-    maybeGenKey ??
-    /* @__PURE__ */ (() => {
-      let key = 0;
-      return () => {
-        return `${key++}`;
-      };
-    })();
+  const genKey = maybeGenKey ?? /* @__PURE__ */ (() => {
+    let key = 0;
+    return () => {
+      return `${key++}`;
+    };
+  })();
   return unkeyedMenuItems?.map((item) => {
     if (!item) {
       return null;
@@ -38,12 +34,13 @@ function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
     return newItem;
   });
 }
+const canvasOverlay = { triggerSlot: "children" };
 function AntdDropdown(props) {
   const {
     props: canvasProps,
     open,
-    isEditing,
-  } = canvasOverlay.useCanvasOverlay(props, "children");
+    isEditing
+  } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     children,
     onAction,
@@ -64,34 +61,32 @@ function AntdDropdown(props) {
       onOpenChange: isEditing ? void 0 : props.onOpenChange,
       trigger: [trigger],
       popupRender: () => {
-        const itemsChildren = useMenuItemsSlot ? (menuItems?.() ?? []) : void 0;
+        const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;
         const items = useMenuItemsSlot ? void 0 : keyedMenuItems;
         return /* @__PURE__ */ React__default.default.createElement(
           registerMenu.AntdMenu,
           {
             className: `${dropdownMenuScopeClassName}`,
             onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
-            items,
+            items
           },
-          itemsChildren,
+          itemsChildren
         );
-      },
+      }
     },
-    typeof children === "string"
-      ? /* @__PURE__ */ React__default.default.createElement(
-          "div",
-          null,
-          children,
-        )
-      : children,
+    typeof children === "string" ? /* @__PURE__ */ React__default.default.createElement("div", null, children) : children
   );
 }
 function registerDropdown(loader) {
   utils.registerComponentHelper(loader, AntdDropdown, {
     name: "plasmic-antd6-dropdown",
+    canvasOverlay,
+    canvasEventBindings: [
+      { slot: "menuItems", event: "onAction", args: { key: { prop: "key" } } }
+    ],
     displayName: "Dropdown",
     props: {
-      previewOpen: canvasOverlay.previewOpenProp,
+      previewOpen: canvasOverlay$1.previewOpenProp,
       menuItems: {
         type: "slot",
         displayName: "Menu items",
@@ -100,25 +95,25 @@ function registerDropdown(loader) {
           "plasmic-antd6-menu-item",
           "plasmic-antd6-menu-item-group",
           "plasmic-antd6-menu-divider",
-          "plasmic-antd6-submenu",
+          "plasmic-antd6-submenu"
         ],
         defaultValue: [
           {
             type: "component",
             name: "plasmic-antd6-menu-item",
             props: {
-              key: "menu-item-1",
-            },
+              key: "menu-item-1"
+            }
           },
           {
             type: "component",
             name: "plasmic-antd6-menu-item",
             props: {
-              key: "menu-item-2",
-            },
-          },
+              key: "menu-item-2"
+            }
+          }
         ],
-        renderPropParams: [],
+        renderPropParams: []
       },
       menuItemsJson: {
         type: "array",
@@ -129,18 +124,18 @@ function registerDropdown(loader) {
           {
             type: "item",
             value: "action1",
-            label: "Action 1",
+            label: "Action 1"
           },
           {
             type: "item",
             value: "action2",
-            label: "Action 2",
-          },
-        ],
+            label: "Action 2"
+          }
+        ]
       },
       dropdownMenuScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "dropdownMenu",
+        scopeName: "dropdownMenu"
       },
       menuClassName: {
         type: "class",
@@ -148,9 +143,9 @@ function registerDropdown(loader) {
         selectors: [
           {
             selector: ":dropdownMenu.ant-dropdown-menu",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       menuItemClassName: {
         type: "class",
@@ -158,26 +153,25 @@ function registerDropdown(loader) {
         selectors: [
           {
             selector: ":dropdownMenu.ant-dropdown-menu .ant-dropdown-menu-item",
-            label: "Base",
+            label: "Base"
           },
           {
-            selector:
-              ":dropdownMenu.ant-dropdown-menu .ant-dropdown-menu-item-active",
-            label: "Focused",
-          },
-        ],
+            selector: ":dropdownMenu.ant-dropdown-menu .ant-dropdown-menu-item-active",
+            label: "Focused"
+          }
+        ]
       },
       open: {
         type: "boolean",
         description: "Toggle visibility of dropdown menu in Plasmic Editor",
         editOnly: true,
         uncontrolledProp: "fakeOpen",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       disabled: {
         type: "boolean",
         description: "Whether the dropdown menu is disabled",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       placement: {
         type: "choice",
@@ -187,28 +181,27 @@ function registerDropdown(loader) {
           "bottomRight",
           "topLeft",
           "top",
-          "topRight",
+          "topRight"
         ],
         description: "Placement of popup menu",
         defaultValueHint: "bottomLeft",
-        advanced: true,
+        advanced: true
       },
       trigger: {
         type: "choice",
         options: [
           { value: "click", label: "Click" },
           { value: "hover", label: "Hover" },
-          { value: "contextMenu", label: "Right-click" },
+          { value: "contextMenu", label: "Right-click" }
         ],
         description: "The trigger mode which executes the dropdown action",
-        defaultValueHint: "hover",
+        defaultValueHint: "hover"
       },
       useMenuItemsSlot: {
         type: "boolean",
         displayName: "Use menu items slot",
         advanced: true,
-        description:
-          "Instead of configuring a list of menu items, build the menu items using MenuItem elements. This gives you greater control over item styling.",
+        description: "Instead of configuring a list of menu items, build the menu items using MenuItem elements. This gives you greater control over item styling."
       },
       children: {
         type: "slot",
@@ -219,20 +212,20 @@ function registerDropdown(loader) {
             props: {
               children: {
                 type: "text",
-                value: "Dropdown",
-              },
-            },
-          },
+                value: "Dropdown"
+              }
+            }
+          }
         ],
-        ...{ mergeWithParent: true },
+        ...{ mergeWithParent: true }
       },
       onAction: {
         type: "eventHandler",
-        argTypes: [{ name: "key", type: "string" }],
-      },
+        argTypes: [{ name: "key", type: "string" }]
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDropdown",
-    importName: "AntdDropdown",
+    importName: "AntdDropdown"
   });
 }
 

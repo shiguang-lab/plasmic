@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="robots" content="noindex" />
     <script>
+      if (navigator.userAgent.includes("PlasmicDesktop/darwin")) {
+        document.documentElement.classList.add("plasmic-desktop-mac");
+      }
       const maybeParams = !!window.__PlasmicStudioArgs
         ? new URLSearchParams(window.__PlasmicStudioArgs.replace(/^#/, "?"))
         : undefined;
@@ -97,6 +100,10 @@
         padding-left: 10px;
         display: flex;
         align-items: center;
+      }
+      .plasmic-desktop-mac .placeholder_topBar {
+        /* Match the top bar's 96px window-control inset plus 10px logo padding. */
+        padding-left: 106px;
       }
       .placeholder_icon {
         width: 40px;
