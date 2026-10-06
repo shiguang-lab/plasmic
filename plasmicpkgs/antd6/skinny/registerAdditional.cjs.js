@@ -66,7 +66,19 @@ const AntdFlex = Ant__namespace.Flex;
 const AntdFloatButton = Ant__namespace.FloatButton;
 const AntdFloatButtonGroup = Ant__namespace.FloatButton.Group;
 const AntdBackTop = Ant__namespace.FloatButton.BackTop;
-const AntdImage = Ant__namespace.Image;
+function AntdImage({
+  objectFit,
+  style,
+  ...props
+}) {
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant__namespace.Image,
+    {
+      ...props,
+      style: { ...style, ...objectFit ? { objectFit } : {} }
+    }
+  );
+}
 const AntdImagePreviewGroup = Ant__namespace.Image.PreviewGroup;
 const AntdLayout = Ant__namespace.Layout;
 const AntdLayoutHeader = Ant__namespace.Layout.Header;
@@ -550,7 +562,8 @@ function registerAdditional(loader) {
     width: "number",
     height: "number",
     preview: "boolean",
-    fallback: "imageUrl"
+    fallback: "imageUrl",
+    objectFit: choice(["fill", "contain", "cover", "none", "scale-down"])
   });
   register(
     loader,

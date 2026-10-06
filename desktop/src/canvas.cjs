@@ -37,6 +37,27 @@ async function inspectCanvas() {
     elements: visible.slice(0, 2000).map((el, index) => {
       const rect = el.getBoundingClientRect();
       const valKey = el.getAttribute("data-plasmic-valkey");
+      let left = rect.left;
+      let right = rect.right;
+      for (
+        let parent = el.parentElement;
+        parent;
+        parent = parent.parentElement
+      ) {
+        if (parent === document.scrollingElement) continue;
+        if (
+          ["auto", "scroll", "hidden", "clip"].includes(
+            getComputedStyle(parent).overflowX,
+          )
+        ) {
+          const bounds = parent.getBoundingClientRect();
+          left = Math.max(left, bounds.left + parent.clientLeft);
+          right = Math.min(
+            right,
+            bounds.left + parent.clientLeft + parent.clientWidth,
+          );
+        }
+      }
       return {
         index,
         elementUuid: valKey?.split(".").at(-1) || null,
@@ -47,6 +68,8 @@ async function inspectCanvas() {
         y: rect.y,
         width: rect.width,
         height: rect.height,
+        horizontalOverflow:
+          right > left && (left < -1 || right > innerWidth + 1),
       };
     }),
     images: [...document.images].map((el) => ({
@@ -65,6 +88,23 @@ function snapshotDocument() {
   const copies = clone.querySelectorAll("*");
   // Preserve inherited typography when canvas reset CSS is reloaded for export.
   originals.forEach((el, index) => {
+    const copy = copies[index];
+    if (el instanceof HTMLInputElement) {
+      // File values cannot be assigned; no selected file is included in an export.
+      if (el.type !== "file") copy.setAttribute("value", el.value);
+      copy.toggleAttribute("checked", el.checked);
+    } else if (el instanceof HTMLTextAreaElement) {
+      copy.textContent = el.value;
+    } else if (el instanceof HTMLOptionElement) {
+      copy.toggleAttribute("selected", el.selected);
+    }
+    if (el.scrollLeft || el.scrollTop) {
+      copy.setAttribute(
+        "data-plasmic-export-scroll-left",
+        String(el.scrollLeft),
+      );
+      copy.setAttribute("data-plasmic-export-scroll-top", String(el.scrollTop));
+    }
     const computed = getComputedStyle(el);
     for (const property of [
       "font-family",
@@ -116,15 +156,27 @@ function snapshotDocument() {
   base.href = location.href;
   head.prepend(base);
   const policy = document.createElement("meta");
+  const nonce = crypto.randomUUID();
   policy.httpEquiv = "Content-Security-Policy";
-  policy.content =
-    "script-src 'none'; object-src 'none'; frame-src 'none'; form-action 'none'";
+  policy.content = `script-src 'nonce-${nonce}'; object-src 'none'; frame-src 'none'; form-action 'none'`;
   head.prepend(policy);
   const style = document.createElement("style");
   style.textContent =
     css +
     "\nhtml,body{margin:0!important} [data-plasmic-slot-placeholder]{display:none!important}";
   head.append(style);
+  // Only this generated state restorer may run; authored scripts remain removed.
+  const restore = document.createElement("script");
+  restore.setAttribute("nonce", nonce);
+  restore.textContent = `window.addEventListener("load", () => {
+    const restore = () => document.querySelectorAll("[data-plasmic-export-scroll-left]").forEach(el => {
+      el.scrollLeft = Number(el.getAttribute("data-plasmic-export-scroll-left"));
+      el.scrollTop = Number(el.getAttribute("data-plasmic-export-scroll-top"));
+    });
+    restore();
+    document.fonts?.ready.then(restore);
+  });`;
+  head.append(restore);
   return "<!doctype html>\n" + clone.outerHTML;
 }
 async function readyDocument() {
@@ -149,13 +201,21 @@ async function readyDocument() {
     ),
     new Promise((resolve) => setTimeout(resolve, 100)),
   ]);
+  document
+    .querySelectorAll("[data-plasmic-export-scroll-left]")
+    .forEach((el) => {
+      el.scrollLeft = Number(
+        el.getAttribute("data-plasmic-export-scroll-left"),
+      );
+      el.scrollTop = Number(el.getAttribute("data-plasmic-export-scroll-top"));
+    });
   return Math.max(
     document.documentElement.scrollHeight,
     document.body.scrollHeight,
   );
 }
 const js = (fn) => `(${fn.toString()})()`;
-async function canvasFrames(win, origin, inspectionId) {
+async function canvasFrames(win, inspectionId) {
   const previewMode = new URL(win.webContents.getURL()).pathname.includes(
     "/preview/",
   );
@@ -167,7 +227,7 @@ async function canvasFrames(win, origin, inspectionId) {
         const url = new URL(frame.url);
         const flags = new URLSearchParams(url.hash.slice(1));
         return (
-          url.origin === origin &&
+          ["http:", "https:"].includes(url.protocol) &&
           flags.get(previewMode ? "live" : "canvas") === "true"
         );
       } catch {
@@ -197,8 +257,8 @@ async function canvasFrames(win, origin, inspectionId) {
     "No rendered canvas available; open a page or component first",
   );
 }
-async function renderCanvas(win, origin, input = {}) {
-  const available = await canvasFrames(win, origin, input.inspectionId);
+async function renderCanvas(win, input = {}) {
+  const available = await canvasFrames(win, input.inspectionId);
   const frames = input.artboardElementUuid
     ? available.filter(({ layout }) =>
         layout.elements.some(
@@ -333,12 +393,12 @@ async function renderCanvas(win, origin, input = {}) {
     preview.destroy();
   }
 }
-async function exportCanvas(win, origin, input) {
+async function exportCanvas(win, input) {
   if (!path.isAbsolute(input.outputPath))
     throw new Error("outputPath must be absolute");
   if (path.extname(input.outputPath).toLowerCase() !== "." + input.format)
     throw new Error("File extension must match export format");
-  const result = await renderCanvas(win, origin, input);
+  const result = await renderCanvas(win, input);
   const data =
     input.format === "html"
       ? result.html

@@ -2,7 +2,7 @@ import { build, Platform, Arch } from "electron-builder";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { desktopSources, hashFiles } from "./build-identity.mjs";
+import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-identity.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const metadata = JSON.parse(
@@ -14,6 +14,15 @@ const config = JSON.parse(
 const manifest = JSON.parse(
   await readFile(path.join(root, "renderer/desktop-assets.json"), "utf8"),
 );
+if (
+  manifest.build?.kind === "local" &&
+  manifest.build.sourceHash !==
+    (await sourceIdentity(path.dirname(root))).sourceHash
+) {
+  throw new Error(
+    "Studio sources changed; run package:local before packaging.",
+  );
+}
 for (const key of ["studioOrigin", "canvasOrigin", "webImage"]) {
   if (config[key] !== manifest[key]) {
     throw new Error("Run npm run assets before packaging.");

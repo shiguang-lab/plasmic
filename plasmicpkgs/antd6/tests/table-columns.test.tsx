@@ -2,6 +2,7 @@ import { PlasmicCanvasContext } from "@plasmicapp/host";
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { expect, test, vi } from "vitest";
+import { AntdImage } from "../src/registerAdditional";
 import {
   AntdColumn,
   AntdColumnGroup,
@@ -463,6 +464,90 @@ test("custom content keeps the column action after a button preset is converted 
   );
   fireEvent.click(screen.getByRole("button", { name: "Bob" }));
   expect(onCellClick).toHaveBeenCalledExactlyOnceWith("Bob", data.data[1], 1);
+});
+
+test("custom column actions keep empty cell space inert and respect disabled buttons", () => {
+  const action = vi.fn();
+  const nativeClick = vi.fn();
+  const onCell = vi.fn(() => ({ onClick: nativeClick }));
+  render(
+    <AntdTable data={data} rowKey="id" pagination={false}>
+      <AntdColumn
+        title="Actions"
+        dataIndex="name"
+        displayType="custom"
+        onCellClick={action}
+        onCell={onCell}
+        render={(cell) => (
+          <>
+            <button disabled={cell === "Bob"}>
+              <span>{cell}</span>
+            </button>
+          </>
+        )}
+      />
+    </AntdTable>,
+  );
+  onCell.mockClear();
+  fireEvent.click(screen.getByRole("cell", { name: "Alice" }));
+  expect(action).not.toHaveBeenCalled();
+  expect(nativeClick).toHaveBeenCalledOnce();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Bob" }).querySelector("span")!,
+  );
+  expect(action).not.toHaveBeenCalled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Alice" }).querySelector("span")!,
+  );
+  expect(action).toHaveBeenCalledExactlyOnceWith("Alice", data.data[0], 0);
+  expect(onCell).not.toHaveBeenCalled();
+});
+
+test("Image template conversion preserves the image crop and explicit style overrides", () => {
+  const html = document.createElement("div");
+  html.innerHTML = columnTemplateHtml({
+    displayType: "image",
+    contentSize: 48,
+  });
+  const props = JSON.parse(
+    html.querySelector("plasmic-component")!.getAttribute("data-props")!,
+  );
+  const { container, rerender } = render(
+    <AntdImage {...props} src="https://example.com/wide.png" alt="Photo" />,
+  );
+  const image = container.querySelector("img")!;
+  expect(image.style.objectFit).toBe("cover");
+  expect(image.getAttribute("width")).toBe("48");
+  expect(image.getAttribute("height")).toBe("48");
+  rerender(
+    <AntdImage
+      src="https://example.com/wide.png"
+      style={{ objectFit: "contain" }}
+    />,
+  );
+  expect(container.querySelector("img")!.style.objectFit).toBe("contain");
+});
+
+test("custom column actions work when canvas nodes belong to another iframe document", () => {
+  const frame = document.createElement("iframe");
+  document.body.append(frame);
+  const container = frame.contentDocument!.createElement("div");
+  frame.contentDocument!.body.append(container);
+  const action = vi.fn();
+  const view = render(
+    <Canvas interactive>
+      <AntdTable data={data} rowKey="id" pagination={false}>
+        <AntdColumn title="Action" dataIndex="name" displayType="custom"
+          onCellClick={action} render={cell => <button><span>{cell}</span></button>} />
+      </AntdTable>
+    </Canvas>, { container },
+  );
+  try {
+    const span = container.querySelector("button span")!;
+    expect(span instanceof Element).toBe(false);
+    fireEvent.click(span);
+    expect(action).toHaveBeenCalledExactlyOnceWith("Alice", data.data[0], 0);
+  } finally { view.unmount(); frame.remove(); }
 });
 
 test("explicit template conversion preserves Tag mappings and encodes authored content safely", () => {

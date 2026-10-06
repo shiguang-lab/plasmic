@@ -55,7 +55,13 @@ function columnTemplateHtml(props) {
     case "image":
       return component(
         "image",
-        { src: binding(value), alt: binding(label), width: size, height: size },
+        {
+          src: binding(value),
+          alt: binding(label),
+          width: size,
+          height: size,
+          objectFit: "cover",
+        },
         "",
         visible,
       );
@@ -250,23 +256,38 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
         ...column,
         key: child.key ?? column.key,
         onHeaderCell,
-        onCell: (row, index) => ({
-          ...column.onCell?.(row, index),
-          ...(displayType === "custom" && !isEditing && child.props.onCellClick
-            ? {
-                onClick: (event) => {
-                  column.onCell?.(row, index)?.onClick?.(event);
-                  const path = utils.asArray(column.dataIndex ?? []);
-                  child.props.onCellClick?.(
-                    path.reduce((value, field) => value?.[field], row),
-                    row,
-                    index ?? 0,
-                  );
-                },
-              }
-            : {}),
-          __plasmic_column__: { element: child, type: bodyCell },
-        }),
+        onCell: (row, index) => {
+          const cellProps = column.onCell?.(row, index);
+          return {
+            ...cellProps,
+            ...(displayType === "custom" &&
+            !isEditing &&
+            child.props.onCellClick
+              ? {
+                  onClick: (event) => {
+                    cellProps?.onClick?.(event);
+                    const action = event.target.closest?.(
+                      "button, a[href], .ant-avatar",
+                    );
+                    if (
+                      !action ||
+                      !event.currentTarget.contains(action) ||
+                      action.matches(":disabled, [aria-disabled=true]")
+                    ) {
+                      return;
+                    }
+                    const path = utils.asArray(column.dataIndex ?? []);
+                    child.props.onCellClick?.(
+                      path.reduce((value, field) => value?.[field], row),
+                      row,
+                      index ?? 0,
+                    );
+                  },
+                }
+              : {}),
+            __plasmic_column__: { element: child, type: bodyCell },
+          };
+        },
         render: (value, row, index) =>
           displayType === "custom" || (displayType === void 0 && render)
             ? render?.(value, row, index)
@@ -610,6 +631,8 @@ function registerTable(loader) {
       },
       onCellClick: {
         type: "eventHandler",
+        description:
+          "Runs when the column's button, link, or avatar is clicked, including in custom content.",
         argTypes: [
           { name: "cell", type: "object" },
           { name: "row", type: "object" },

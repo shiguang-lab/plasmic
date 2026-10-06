@@ -47,7 +47,6 @@ for (const directory of [
   "plasmicpkgs/overseas",
   "plasmicpkgs/antd6",
   "platform/canvas-packages",
-  "platform/wab",
 ]) {
   execFileSync(
     process.platform === "win32" ? "npm.cmd" : "npm",
@@ -59,6 +58,10 @@ for (const directory of [
     },
   );
 }
+execFileSync(process.execPath, [path.join(repo, "scripts/build-studio.mjs")], {
+  env,
+  stdio: "inherit",
+});
 execFileSync(
   process.execPath,
   [

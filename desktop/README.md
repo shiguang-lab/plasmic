@@ -42,10 +42,15 @@ Quit and reopen the packaged app after a successful build. About Plasmic and
 `get_app_state.build` show the source commit, local/release kind, dirty status,
 build time and renderer hash. Packaging verifies both renderer and desktop
 source hashes and rejects assets changed since preparation.
+Local Studio builds write `studio-build.json` with the source revision, source
+hash and compiled asset hash. Asset preparation and packaging validate this
+provenance; they preserve the compile-time revision and dirty status.
 
 To bundle an already completed production frontend instead:
 
 ```sh
+# Recompile Studio and record its provenance after building the local canvas packages:
+node ../scripts/build-studio.mjs
 npm run assets -- --from ../platform/wab/build
 ```
 
@@ -54,8 +59,7 @@ Use this command for local Studio changes. Running `npm run assets` without
 quit and reopen the app to load the updated frontend and desktop login code.
 
 That directory must be a complete self-hosted WAB production build, including
-canvas packages and generated CSS. The existing `deploy/Dockerfile` web target
-produces it at `/opt/plasmic-web`; a partial development build is insufficient.
+canvas packages, generated CSS and valid `studio-build.json` provenance.
 
 Packaging creates applications, installers and update manifests in
 `dist/<version>/<platform>-<arch>/`, with renderer files inside `resources/app.asar`.
@@ -80,6 +84,10 @@ limit truncates inspection. Neither checks interactions, content overlap or
 responsive breakpoints. Artboard exports are static; `sourceViewport` and
 `resized` distinguish the source canvas from a resized rendering. Verify
 interactions and responsive behavior in Preview at the actual viewport size.
+Current canvas reads support project hosts as well as the bundled host. Overflow
+checks account for ancestor clipping and internal scroll containers. Static
+exports preserve current form values and nested scroll positions; authored
+scripts are removed and only the generated scroll restorer is permitted to run.
 
 Projected code-component parts can mark DOM roots with
 `data-plasmic-canvas-part="part-name"` inside a

@@ -11,8 +11,12 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  desktopSources,
+  hashFiles,
+  readStudioBuild,
+} from "../../scripts/build-identity.mjs";
 import { bundleStudioFonts } from "../../scripts/bundle-studio-fonts.mjs";
-import { desktopSources, hashFiles } from "./build-identity.mjs";
 
 const desktop = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -28,18 +32,14 @@ try {
   let source;
   let revision = null;
   let dirty = false;
+  let studioBuild;
   if (fromIndex >= 0) {
     if (!process.argv[fromIndex + 1])
       throw new Error("--from requires the WAB production build directory");
     source = path.resolve(process.argv[fromIndex + 1]);
-    revision = execFileSync("git", ["rev-parse", "HEAD"], {
-      cwd: desktop,
-      encoding: "utf8",
-    }).trim();
-    dirty = !!execFileSync("git", ["status", "--porcelain"], {
-      cwd: desktop,
-      encoding: "utf8",
-    }).trim();
+    studioBuild = await readStudioBuild(source, path.dirname(desktop));
+    revision = studioBuild.revision;
+    dirty = studioBuild.dirty;
   } else {
     execFileSync("docker", ["pull", config.webImage], { stdio: "inherit" });
     revision = execFileSync(
@@ -106,7 +106,8 @@ try {
           kind: fromIndex >= 0 ? "local" : "release",
           revision,
           dirty,
-          builtAt: new Date().toISOString(),
+          builtAt: studioBuild?.builtAt ?? new Date().toISOString(),
+          sourceHash: studioBuild?.sourceHash,
           rendererHash: await hashFiles(target, ["."], ["desktop-assets.json"]),
           desktopHash: await hashFiles(desktop, desktopSources),
         },

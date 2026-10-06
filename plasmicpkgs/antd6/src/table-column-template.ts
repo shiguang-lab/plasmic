@@ -49,7 +49,13 @@ export function columnTemplateHtml(props: AntdColumnProps): string {
     case "image":
       return component(
         "image",
-        { src: binding(value), alt: binding(label), width: size, height: size },
+        {
+          src: binding(value),
+          alt: binding(label),
+          width: size,
+          height: size,
+          objectFit: "cover",
+        },
         "",
         visible,
       );

@@ -240,23 +240,38 @@ function getColumns(
         ...column,
         key: child.key ?? column.key,
         onHeaderCell,
-        onCell: (row: any, index?: number) => ({
-          ...column.onCell?.(row, index),
-          ...(displayType === "custom" && !isEditing && child.props.onCellClick
-            ? {
-                onClick: (event: React.MouseEvent<HTMLElement>) => {
-                  column.onCell?.(row, index)?.onClick?.(event);
-                  const path = asArray(column.dataIndex ?? []);
-                  child.props.onCellClick?.(
-                    path.reduce((value: any, field) => value?.[field], row),
-                    row,
-                    index ?? 0,
-                  );
-                },
-              }
-            : {}),
-          __plasmic_column__: { element: child, type: bodyCell },
-        }),
+        onCell: (row: any, index?: number) => {
+          const cellProps = column.onCell?.(row, index);
+          return {
+            ...cellProps,
+            ...(displayType === "custom" &&
+            !isEditing &&
+            child.props.onCellClick
+              ? {
+                  onClick: (event: React.MouseEvent<HTMLElement>) => {
+                    cellProps?.onClick?.(event);
+                    const action = (event.target as Element).closest?.(
+                      "button, a[href], .ant-avatar",
+                    );
+                    if (
+                      !action ||
+                      !event.currentTarget.contains(action) ||
+                      action.matches(":disabled, [aria-disabled=true]")
+                    ) {
+                      return;
+                    }
+                    const path = asArray(column.dataIndex ?? []);
+                    child.props.onCellClick?.(
+                      path.reduce((value: any, field) => value?.[field], row),
+                      row,
+                      index ?? 0,
+                    );
+                  },
+                }
+              : {}),
+            __plasmic_column__: { element: child, type: bodyCell },
+          };
+        },
         render: (value: any, row: any, index: number) =>
           displayType === "custom" || (displayType === undefined && render)
             ? render?.(value, row, index)
@@ -632,6 +647,8 @@ export function registerTable(loader?: Registerable) {
       },
       onCellClick: {
         type: "eventHandler",
+        description:
+          "Runs when the column's button, link, or avatar is clicked, including in custom content.",
         argTypes: [
           { name: "cell", type: "object" },
           { name: "row", type: "object" },

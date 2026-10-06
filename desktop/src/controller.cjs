@@ -421,7 +421,7 @@ class DesktopController {
     }
     if (method === "read_image") {
       await this.ready();
-      const frames = await canvasFrames(win, this.config.canvasOrigin);
+      const frames = await canvasFrames(win);
       const images = frames.flatMap(({ layout }) => layout.images);
       if (!images.some((image) => image.src === input.src)) {
         throw new Error(
@@ -467,7 +467,7 @@ class DesktopController {
       const merged = await PDFDocument.create();
       for (const page of input.pages) {
         const rendered = await this.inspectCanvas(page, (inspectionId) =>
-          renderCanvas(win, this.config.canvasOrigin, {
+          renderCanvas(win, {
             ...page,
             inspectionId,
             format: "pdf",
@@ -505,13 +505,13 @@ class DesktopController {
               "content-overlap",
             ],
             frames: (
-              await canvasFrames(win, this.config.canvasOrigin, inspectionId)
+              await canvasFrames(win, inspectionId)
             ).map(({ layout }) => ({
               ...layout,
               problems: [
                 ...layout.elements
                   .filter(
-                    (el) => el.x < -1 || el.x + el.width > layout.width + 1,
+                    (el) => el.horizontalOverflow,
                   )
                   .map((el) => ({
                     type: "horizontal-overflow",
@@ -528,7 +528,7 @@ class DesktopController {
           };
         }
         if (method === "export_design") {
-          return exportCanvas(win, this.config.canvasOrigin, {
+          return exportCanvas(win, {
             ...input,
             inspectionId,
           });
@@ -537,7 +537,7 @@ class DesktopController {
           if (input.rect) {
             throw new Error("rect requires mode workspace");
           }
-          const result = await renderCanvas(win, this.config.canvasOrigin, {
+          const result = await renderCanvas(win, {
             ...input,
             inspectionId,
           });

@@ -20,37 +20,37 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 test('render uses an isolated static window and destroys it after capture', async () => {
- const result = await renderCanvas(main,'https://canvas.example',{width:1366});
+ const result = await renderCanvas(main,{width:1366});
  assert.equal(result.image,image);assert.equal(result.height,1000);assert.equal(destroyed,1);
- assert.equal((await canvasFrames(main,'https://canvas.example'))[0].layout.width,1366);
+ assert.equal((await canvasFrames(main))[0].layout.width,1366);
 });
 test('export checks path and extension, writes PDF bytes, and never overwrites',async()=>{
  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'plasmic-export-test-'));
  try {
-  await assert.rejects(exportCanvas(main,'https://canvas.example',{format:'png',outputPath:'relative.png'}),/absolute/);
-  await assert.rejects(exportCanvas(main,'https://canvas.example',{format:'png',outputPath:path.join(dir,'wrong.html')}),/extension/);
+  await assert.rejects(exportCanvas(main,{format:'png',outputPath:'relative.png'}),/absolute/);
+  await assert.rejects(exportCanvas(main,{format:'png',outputPath:path.join(dir,'wrong.html')}),/extension/);
   const outputPath=path.join(dir,'design.pdf');
-  const result=await exportCanvas(main,'https://canvas.example',{format:'pdf',outputPath});
+  const result=await exportCanvas(main,{format:'pdf',outputPath});
   assert.equal(result.interactive,false);assert.equal(await fs.readFile(outputPath,'utf8'),'%PDF');
-  await assert.rejects(exportCanvas(main,'https://canvas.example',{format:'pdf',outputPath}),/EEXIST/);
+  await assert.rejects(exportCanvas(main,{format:'pdf',outputPath}),/EEXIST/);
  } finally {await fs.rm(dir,{recursive:true,force:true});}
 });
 test('live preview ignores retained editor canvases and reads only runtime state', async () => {
  const live = {url:'https://canvas.example/static/host.html#live=true',executeJavaScript:async()=>({ready:true,elements:[{text:'Count 13'}],images:[]})};
  const retained = {url:'https://canvas.example/static/host.html#canvas=true',executeJavaScript:async()=>{throw new Error('Read stale editor frame')}};
  const preview = {webContents:{getURL:()=> 'https://studio.example/projects/test/preview/workbench',mainFrame:{framesInSubtree:[retained,live]}}};
- const result=await canvasFrames(preview,'https://canvas.example');
+ const result=await canvasFrames(preview);
  assert.equal(result.length,1);assert.equal(result[0].layout.elements[0].text,'Count 13');
 });
 
 test('crops a requested model UUID while keeping the artboard layout context', async () => {
- const result = await renderCanvas(main, 'https://canvas.example', {width: 1366, elementUuid: 'node'});
+ const result = await renderCanvas(main, {width: 1366, elementUuid: 'node'});
  assert.deepEqual(capturedRect, {x: 20, y: 30, width: 200, height: 80});
  assert.equal(result.width, 200); assert.equal(result.height, 80);
 });
 test('empty ready artboards remain capturable', async () => {
  const empty = {webContents: {getURL: () => 'https://studio.example/projects/test', mainFrame: {framesInSubtree: [{url: 'https://canvas.example/static/host.html#canvas=true', executeJavaScript: async () => ({ready: true, elements: [], images: [], width: 1366, height: 900})}]}}};
- assert.equal((await canvasFrames(empty, 'https://canvas.example')).length, 1);
+ assert.equal((await canvasFrames(empty)).length, 1);
 });
 test('captures the requested artboard when multiple pages have the same viewport', async () => {
  let captured;
@@ -59,9 +59,9 @@ test('captures the requested artboard when multiple pages have the same viewport
   return {ready:true,width:1366,height:900,elements:[{elementUuid:id}],images:[]};
  }});
  const overview={webContents:{...main.webContents,mainFrame:{framesInSubtree:[frame('first'),frame('second')]}}};
- await renderCanvas(overview,'https://canvas.example',{width:1366,artboardElementUuid:'first'});
+ await renderCanvas(overview,{width:1366,artboardElementUuid:'first'});
  assert.equal(captured,'first');
- await assert.rejects(renderCanvas(overview,'https://canvas.example',{width:1366,artboardElementUuid:'missing'}),/not rendered/);
+ await assert.rejects(renderCanvas(overview,{width:1366,artboardElementUuid:'missing'}),/not rendered/);
 });
 
 
@@ -77,7 +77,7 @@ test('background reads use the marked document even when its iframe URL has no c
   return {ready:true,elements:[],images:[],width:1440,height:1024};
  }};
  const win={webContents:{getURL:()=> 'https://studio.example/projects/test',mainFrame:{framesInSubtree:[unrelated,background]}}};
- const frames=await canvasFrames(win,'https://canvas.example','lease');
+ const frames=await canvasFrames(win,'lease');
  assert.equal(inspected,true);assert.equal(frames.length,1);assert.equal(frames[0].frame,background);
 });
 
@@ -86,6 +86,35 @@ test('background reads skip a frame disposed while its document marker is read',
  const retiring = {isDestroyed:()=>destroyed,executeJavaScript:async()=>{destroyed=true;throw new Error('Render frame was disposed');}};
  const background = {executeJavaScript:async script=>script.includes('getAttribute("data-plasmic-canvas-inspection")')?'lease':{ready:true,elements:[],images:[],width:1440,height:1024}};
  const win={webContents:{getURL:()=> 'https://studio.example/projects/test',mainFrame:{framesInSubtree:[retiring,background]}}};
- const frames=await canvasFrames(win,'https://canvas.example','lease');
+ const frames=await canvasFrames(win,'lease');
  assert.equal(frames.length,1);assert.equal(frames[0].frame,background);
+});
+
+test("current custom-host canvases and previews can be read without a background lease", async () => {
+  for (const preview of [false, true]) {
+    const frame = {
+      url: `http://localhost:3017/plasmic-host#${preview ? "live" : "canvas"}=true`,
+      executeJavaScript: async () => ({
+        ready: true,
+        width: 390,
+        height: 844,
+        elements: [],
+        images: [],
+      }),
+    };
+    const unrelated = {
+      url: "https://example.com/embed",
+      executeJavaScript: async () => {
+        throw new Error("Unrelated iframe read");
+      },
+    };
+    const win = {
+      webContents: {
+        getURL: () =>
+          `https://studio.example/projects/test${preview ? "/preview/" : ""}`,
+        mainFrame: { framesInSubtree: [unrelated, frame] },
+      },
+    };
+    assert.equal((await canvasFrames(win))[0].frame, frame);
+  }
 });

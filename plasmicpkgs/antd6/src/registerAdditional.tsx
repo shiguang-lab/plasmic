@@ -48,7 +48,20 @@ export const AntdFloatButtonGroup: typeof Ant.FloatButton.Group =
   Ant.FloatButton.Group;
 export const AntdBackTop: typeof Ant.FloatButton.BackTop =
   Ant.FloatButton.BackTop;
-export const AntdImage: typeof Ant.Image = Ant.Image;
+export function AntdImage({
+  objectFit,
+  style,
+  ...props
+}: React.ComponentProps<typeof Ant.Image> & {
+  objectFit?: React.CSSProperties["objectFit"];
+}) {
+  return (
+    <Ant.Image
+      {...props}
+      style={{ ...style, ...(objectFit ? { objectFit } : {}) }}
+    />
+  );
+}
 export const AntdImagePreviewGroup: typeof Ant.Image.PreviewGroup =
   Ant.Image.PreviewGroup;
 export const AntdLayout: typeof Ant.Layout = Ant.Layout;
@@ -615,6 +628,7 @@ export function registerAdditional(loader?: Registerable) {
     height: "number",
     preview: "boolean",
     fallback: "imageUrl",
+    objectFit: choice(["fill", "contain", "cover", "none", "scale-down"]),
   });
   register(
     loader,
