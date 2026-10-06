@@ -320,7 +320,7 @@ function PlasmicNewVariable__RenderFunc(props: {
             "isImplicitState"
           ),
         })}
-        label={"Type"}
+        label={"类型"}
         layout={"vertical"}
         value={
           <StyleSelect
@@ -495,7 +495,7 @@ function PlasmicNewVariable__RenderFunc(props: {
             }
           }}
         >
-          {"Allow external access"}
+          {"允许外部访问"}
         </Switch>
         <LabeledItem
           className={classNames("__wab_instance", sty.labeledItem__r2Zs6, {
@@ -515,7 +515,7 @@ function PlasmicNewVariable__RenderFunc(props: {
               "isExternal"
             ),
           })}
-          label={"External access type"}
+          label={"外部访问方式"}
           layout={"vertical"}
           value={
             <StyleSelect

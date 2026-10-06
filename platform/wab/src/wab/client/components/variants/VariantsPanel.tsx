@@ -593,12 +593,13 @@ export const VariantsPanel = observer(
             </LabelWithDetailedTooltip>
           }
           controls={
-            <IconLinkButton tooltip={"Add group of variants"}>
+            <IconLinkButton
+              tooltip="添加全局变体组"
+              aria-label="添加全局变体组"
+              onClick={handleAddGlobalGroupOfVariants}
+            >
               <Icon
-                {...{
-                  onClick: handleAddGlobalGroupOfVariants,
-                  "data-test-id": "add-global-variant-group-button",
-                }}
+                data-test-id="add-global-variant-group-button"
                 icon={PlusIcon}
               />
             </IconLinkButton>

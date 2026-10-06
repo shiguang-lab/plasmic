@@ -3,9 +3,7 @@ import VariableEditingForm from "@/wab/client/components/sidebar-tabs/StateManag
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { VARIABLE_CAP } from "@/wab/shared/Labels";
 import { Component, State } from "@/wab/shared/model/classes";
-import startCase from "lodash/startCase";
 import React from "react";
 
 export function VariableEditingModal({
@@ -39,7 +37,7 @@ export function VariableEditingModal({
 
   return (
     <SidebarModal
-      title={startCase(`${mode} ${VARIABLE_CAP}`)}
+      title={mode === "new" ? "新增状态变量" : "编辑状态变量"}
       show={show}
       // For mode === "new", we block the modal from auto-closing (via
       // persitOnInteractOutside), and we handle the closing explicitly
