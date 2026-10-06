@@ -37,10 +37,10 @@ export interface CanvasOverlayProps {
 
 export const previewOpenProp = {
   type: "boolean" as const,
-  displayName: "编辑时展开",
+  displayName: "Preview open",
   editOnly: true,
   description:
-    "仅在编辑画布中展开或关闭浮层。未设置时跟随选择，不改变运行时的 open 状态。",
+    "Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.",
 };
 
 /** Selection controls only the design canvas; preview keeps the native open state. */

@@ -44,7 +44,7 @@ test("canvas observer slot callbacks execute within their observer", () => {
 test.each([undefined, "second"])("delete uses native default active key %s", (defaultActiveKey) => {
   const meta = metadata(registerTabs).get("plasmic-antd6-tabs");
   const remove = vi.fn(), update = vi.fn();
-  meta.actions.find((action: any) => action.label === "删除当前页签").onClick({
+  meta.actions.find((action: any) => action.label === "Delete current tab").onClick({
     componentProps: { items: tabs(false), defaultActiveKey }, studioOps: { removeFromSlotAt: remove, updateProps: update },
   });
   expect(remove).toHaveBeenCalledWith(defaultActiveKey ? 1 : 0, "items");
@@ -54,7 +54,7 @@ test.each([undefined, "second"])("delete uses native default active key %s", (de
 test("deleting final tab clears the active key", () => {
   const meta = metadata(registerTabs).get("plasmic-antd6-tabs");
   const update = vi.fn();
-  meta.actions.find((action: any) => action.label === "删除当前页签").onClick({
+  meta.actions.find((action: any) => action.label === "Delete current tab").onClick({
     componentProps: { items: <AntdTabItem key="last" label="Last" />, activeKey: "last" },
     studioOps: { removeFromSlotAt: vi.fn(), updateProps: update },
   });

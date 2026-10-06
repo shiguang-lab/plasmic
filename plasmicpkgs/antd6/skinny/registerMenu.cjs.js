@@ -2,9 +2,9 @@
 
 var Ant = require('antd');
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-x9v6z73H.cjs.js');
+var canvasOverlay = require('./canvas-overlay-BCQmyJjQ.cjs.js');
 var React = require('react');
-var utils = require('./utils-DDtpTQdQ.cjs.js');
+var utils = require('./utils-CRCm44nj.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 
@@ -164,8 +164,8 @@ function registerMenu(loader) {
         defaultValueHint: "hover",
         advanced: true
       },
-      defaultOpenKeys: { type: "array", displayName: "\u521D\u59CB\u5C55\u5F00\u5B50\u83DC\u5355", description: "\u521D\u59CB\u5C55\u5F00\u7684\u5B50\u83DC\u5355 key\uFF1B\u7F16\u8F91\u65F6\u4E34\u65F6\u663E\u73B0\u9009\u4E2D\u5185\u5BB9\u4E0D\u4F1A\u6539\u53D8\u6B64\u503C\u3002" },
-      openKeys: { type: "array", displayName: "\u5C55\u5F00\u5B50\u83DC\u5355", advanced: true },
+      defaultOpenKeys: { type: "array", displayName: "Default open keys", description: "Initially expanded submenu keys. Temporary canvas reveals do not change this value." },
+      openKeys: { type: "array", displayName: "Open keys", advanced: true },
       onOpenChange: { type: "eventHandler", argTypes: [{ name: "openKeys", type: "object" }] },
       defaultSelectedKeys: {
         type: "array",

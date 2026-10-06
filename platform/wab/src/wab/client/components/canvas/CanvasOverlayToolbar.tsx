@@ -76,7 +76,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
     <div
       className={fallback ? styles.fallback : styles.toolbar}
       role="toolbar"
-      aria-label="浮层编辑"
+      aria-label="Edit overlays"
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
       onMouseDown={(event) => {
@@ -88,7 +88,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
         const label =
           tpl.name || tpl.component.name.replace("plasmic-antd6-", "");
         const open = viewCtx.canvasOverlayOpen(fullKey);
-        const action = `${open ? "收起" : "展开"} ${label} 内容`;
+        const action = `${open ? "Hide" : "Show"} ${label} content`;
         return (
           <button
             className={styles.toggle}

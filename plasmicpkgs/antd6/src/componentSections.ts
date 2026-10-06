@@ -1,12 +1,12 @@
 // Categories follow https://ant.design/components/overview/.
 const sections: Record<string, string[]> = {
-  通用: ["button", "float-button", "typography", "back-top"],
-  布局: ["divider", "flex", "row", "col", "layout", "masonry", "space", "splitter"],
-  导航: ["anchor", "breadcrumb", "dropdown", "menu", "pagination", "steps", "tabs", "tab-item", "submenu"],
-  数据输入: ["auto-complete", "cascader", "checkbox", "color-picker", "date-picker", "date-range-picker", "form", "input", "textarea", "mentions", "radio", "rate", "select", "option", "slider", "switch", "time-picker", "time-range-picker", "transfer", "tree-select", "upload"],
-  数据展示: ["avatar", "badge", "calendar", "card", "carousel", "collapse", "descriptions", "empty", "image", "list", "listy", "popover", "qr-code", "segmented", "statistic", "table", "tag", "timeline", "tooltip", "tour", "tree", "directory-tree"],
-  反馈: ["alert", "drawer", "modal", "popconfirm", "progress", "result", "skeleton", "spin", "watermark"],
-  其他: ["affix", "border-beam"],
+  General: ["button", "float-button", "typography", "back-top"],
+  Layout: ["divider", "flex", "row", "col", "layout", "masonry", "space", "splitter"],
+  Navigation: ["anchor", "breadcrumb", "dropdown", "menu", "pagination", "steps", "tabs", "tab-item", "submenu"],
+  "Data Entry": ["auto-complete", "cascader", "checkbox", "color-picker", "date-picker", "date-range-picker", "form", "input", "textarea", "mentions", "radio", "rate", "select", "option", "slider", "switch", "time-picker", "time-range-picker", "transfer", "tree-select", "upload"],
+  "Data Display": ["avatar", "badge", "calendar", "card", "carousel", "collapse", "descriptions", "empty", "image", "list", "listy", "popover", "qr-code", "segmented", "statistic", "table", "tag", "timeline", "tooltip", "tour", "tree", "directory-tree"],
+  Feedback: ["alert", "drawer", "modal", "popconfirm", "progress", "result", "skeleton", "spin", "watermark"],
+  Other: ["affix", "border-beam"],
 };
 
 export function getComponentSection(name: string): string | undefined {

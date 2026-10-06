@@ -70,7 +70,7 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
         rowEndControls={(_row, _index) => {
           return (
             <GhostFrame
-              tooltip="添加屏幕尺寸"
+              tooltip="Add screen size"
               data-event="page-arena-add-screen-size"
               menu={() =>
                 makeFrameSizeMenu({

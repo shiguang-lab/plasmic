@@ -598,7 +598,7 @@ test("converted Tag templates keep live mapping bindings and meaningful node nam
     automaticColor: true,
   });
   expect(tag.getAttribute("data-repeat")).toBe("{{ column.values }}");
-  expect(tag.getAttribute("data-plasmic-name")).toBe('status"<& · tag模板');
+  expect(tag.getAttribute("data-plasmic-name")).toBe('status"<& · tag template');
   expect(root.querySelector("script")).toBeNull();
   const renderTemplate = (
     _cell: unknown,
@@ -646,7 +646,7 @@ test("preset conversion is an explicit component action and updates content and 
     (meta) => meta.name === "plasmic-antd6-table-column",
   );
   const action = column.actions.find(
-    (candidate: any) => candidate.label === "转为可编辑模板",
+    (candidate: any) => candidate.label === "Convert to editable template",
   );
   const componentProps = { displayType: "tag", tagColor: "green" };
   const replaceSlotContent = vi.fn().mockResolvedValue(undefined);

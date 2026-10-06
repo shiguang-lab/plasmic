@@ -7,7 +7,7 @@ import {
 } from "@/wab/shared/core/tpls";
 import { isKnownTplComponent, type TplNode } from "@/wab/shared/model/classes";
 
-/** One editing path for the property panel and public editor context. */
+/** Editing path and scope for the public editor context and slot labels. */
 export function selectionPath(viewCtx: ViewCtx, tpl: TplNode | SlotSelection) {
   return ancestorsUpWithSlotSelections(tpl)
     .reverse()

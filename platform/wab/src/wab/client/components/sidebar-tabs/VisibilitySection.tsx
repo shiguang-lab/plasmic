@@ -242,7 +242,7 @@ function VisibilitySection_(props: {
       : undefined;
   return (
     <SidebarSection
-      title="可见性"
+      title="Visibility"
       {...(!customCode && { emptyBody: true })}
       isHeaderActive={
         (targetVisibilityVs && hasVisibilitySetting(targetVisibilityVs)) ||
@@ -255,7 +255,7 @@ function VisibilitySection_(props: {
               className={S.opacityField}
               styleName="opacity"
               definedIndicator={opacityDefinedIndicator}
-              aria-label="不透明度"
+              aria-label="Opacity"
               autoWidth
               dimOpts={{
                 value: formattedOpacity,

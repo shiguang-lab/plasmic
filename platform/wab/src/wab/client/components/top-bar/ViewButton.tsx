@@ -225,8 +225,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
         root={{
           props: {
             ...props,
-            children: "视图",
-            "aria-label": "画布显示选项",
+            "aria-label": "View",
             id: "view-menu",
           },
         }}

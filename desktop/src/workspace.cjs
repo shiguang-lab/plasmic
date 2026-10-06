@@ -64,39 +64,39 @@ class DesktopWorkspace {
 function fileMenu({ controller, workspace, getWindow, dialog, refresh, state }) {
   const run = (action) => async () => {
     try { await action(); }
-    catch (error) { dialog.showErrorBox("操作未完成", error.message); }
+    catch (error) { dialog.showErrorBox("Operation Failed", error.message); }
   };
-  return { id: "desktop-file", label: "文件", submenu: [
-    { label: "打开项目…", accelerator: "CmdOrCtrl+O", click: run(async () => {
+  return { id: "desktop-file", label: "File", submenu: [
+    { label: "Open Project…", accelerator: "CmdOrCtrl+O", click: run(async () => {
       const state = await controller.state();
       if (state.ready && state.editorContext?.canEdit) await controller.dispatch("execute", { name: "save", input: {} });
       await getWindow().loadURL(workspace.origin + "/");
     }) },
-    { label: "最近项目", submenu: workspace.recent.length ? workspace.recent.map((entry) => ({
+    { label: "Recent Projects", submenu: workspace.recent.length ? workspace.recent.map((entry) => ({
       label: entry.name || workspace.projectId(entry.url),
       click: run(async () => {
         await controller.dispatch("open_design", { projectId: workspace.projectId(entry.url) });
         if (entry.editorView) await controller.dispatch("execute", { name: "restoreEditorView", input: entry.editorView });
       }),
-    })) : [{ label: "暂无最近项目", enabled: false }] },
+    })) : [{ label: "No Recent Projects", enabled: false }] },
     { type: "separator" },
-    { id: "desktop-save", label: "保存", enabled: !!(state?.ready && state.editorContext?.canEdit), accelerator: "CmdOrCtrl+S", click: run(async () => {
+    { id: "desktop-save", label: "Save", enabled: !!(state?.ready && state.editorContext?.canEdit), accelerator: "CmdOrCtrl+S", click: run(async () => {
       const state = await controller.state();
       if (!state.ready || !state.editorContext?.canEdit) { refresh(); return; }
       await controller.dispatch("execute", { name: "save", input: {} });
       await workspace.capture(controller);
       refresh();
     }) },
-    { id: "desktop-export", label: "导出当前画板…", enabled: !!(state?.ready && state.editorContext?.mode === "edit" && state.editorContext.frameUuid), click: run(async () => {
+    { id: "desktop-export", label: "Export Artboard…", enabled: !!(state?.ready && state.editorContext?.mode === "edit" && state.editorContext.frameUuid), click: run(async () => {
       const state = await controller.state();
       if (!state.ready || state.editorContext?.mode !== "edit" || !state.editorContext.frameUuid) { refresh(); return; }
       const output = await dialog.showSaveDialog(getWindow(), {
-        title: "导出当前画板", defaultPath: "画板.png",
-        filters: [{ name: "PNG", extensions: ["png"] }, { name: "PDF", extensions: ["pdf"] }, { name: "静态 HTML 快照", extensions: ["html"] }],
+        title: "Export Artboard", defaultPath: "Artboard.png",
+        filters: [{ name: "PNG", extensions: ["png"] }, { name: "PDF", extensions: ["pdf"] }, { name: "Static HTML Snapshot", extensions: ["html"] }],
       });
       if (output.canceled || !output.filePath) return;
       const format = path.extname(output.filePath).slice(1).toLowerCase();
-      if (!["png", "pdf", "html"].includes(format)) throw new Error("请选择 PNG、PDF 或 HTML 格式。");
+      if (!["png", "pdf", "html"].includes(format)) throw new Error("Choose PNG, PDF, or HTML format.");
       // The native dialog owns overwrite confirmation. The public exporter writes
       // a new sibling file; replace the destination only after a complete export.
       const temporary = path.join(path.dirname(output.filePath), `.${path.basename(output.filePath)}.${randomUUID()}.${format}`);
@@ -108,7 +108,7 @@ function fileMenu({ controller, workspace, getWindow, dialog, refresh, state }) 
       }
     }) },
     { type: "separator" },
-    { role: "close", label: "关闭窗口" },
+    { role: "close", label: "Close Window" },
   ] };
 }
 function updateFileMenuContext(menu, state) {

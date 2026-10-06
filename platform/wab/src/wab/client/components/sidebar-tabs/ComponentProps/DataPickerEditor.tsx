@@ -199,8 +199,8 @@ export const InternalDataPickerEditor = observer(
           role="button"
           aria-label={
             complexExpression
-              ? "动态绑定：点击查看或编辑表达式"
-              : "编辑数据绑定"
+              ? "Dynamic binding: click to view or edit the expression"
+              : "Edit data binding"
           }
           aria-disabled={isDisabled}
           onKeyDown={(event) => {
@@ -218,8 +218,8 @@ export const InternalDataPickerEditor = observer(
               })}
             >
               {complexExpression
-                ? "动态绑定 · 点击编辑"
-                : (codeExpr ?? "未设置")}
+                ? "Dynamic binding · click to edit"
+                : (codeExpr ?? "unset")}
             </span>
           </Tooltip>
         </div>

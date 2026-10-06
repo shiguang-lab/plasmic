@@ -413,7 +413,7 @@ export const HTMLAttributesSection = observer(
         <SidebarSection
           title={
             <LabelWithDetailedTooltip tooltip={AttributesTooltip}>
-              HTML 属性
+              HTML attributes
             </LabelWithDetailedTooltip>
           }
           hasExtraContent

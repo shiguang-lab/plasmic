@@ -36,17 +36,7 @@ function AutoOpenBanner(props: AutoOpenBannerProps) {
   // By default, we are just piping all AutoOpenBannerProps here, but feel free
   // to do whatever works for you.
 
-  return (
-    <PlasmicAutoOpenBanner
-      {...props}
-      root={{
-        props: {
-          message: "正在临时显示隐藏内容。",
-          actionLabel1: "隐藏",
-        },
-      }}
-    />
-  );
+  return <PlasmicAutoOpenBanner {...props} />;
 }
 
 export default AutoOpenBanner;

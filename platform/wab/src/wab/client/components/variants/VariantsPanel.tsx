@@ -350,8 +350,8 @@ export const VariantsPanel = observer(
           title={
             <LabelWithDetailedTooltip tooltip={<VariantsTooltip />}>
               {isPageComponent(component)
-                ? "页面变体"
-                : "组件变体"}
+                ? "Page Variants"
+                : "Component Variants"}
             </LabelWithDetailedTooltip>
           }
           controls={
@@ -361,7 +361,7 @@ export const VariantsPanel = observer(
               data-event="variantspanel-add-variant"
             >
               <IFrameAwareDropdownMenu menu={addVariantsMenu}>
-                <IconLinkButton aria-label="添加变体">
+                <IconLinkButton aria-label="Add variant">
                   <Icon icon={PlusIcon} />
                 </IconLinkButton>
               </IFrameAwareDropdownMenu>
@@ -384,7 +384,7 @@ export const VariantsPanel = observer(
                   return ok();
                 })
               }
-              label="基础状态"
+              label={"Base"}
             />
 
             <SimpleReorderableList
@@ -589,13 +589,13 @@ export const VariantsPanel = observer(
           ref={globalVariantsSectionRef}
           title={
             <LabelWithDetailedTooltip tooltip={<GlobalVariantsTooltip />}>
-              全局变体
+              Global Variants
             </LabelWithDetailedTooltip>
           }
           controls={
             <IconLinkButton
-              tooltip="添加全局变体组"
-              aria-label="添加全局变体组"
+              tooltip="Add group of variants"
+              aria-label="Add group of variants"
               onClick={handleAddGlobalGroupOfVariants}
             >
               <Icon
@@ -728,7 +728,7 @@ export const VariantsPanel = observer(
         <SidebarSection
           title={
             <LabelWithDetailedTooltip tooltip={<VariantCombosTooltip />}>
-              变体组合
+              Combinations
             </LabelWithDetailedTooltip>
           }
           zeroBodyPadding

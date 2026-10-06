@@ -1,8 +1,8 @@
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
-import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-Do3TWgdx.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
+import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
@@ -45,9 +45,9 @@ function registerCollapse(loader) {
       accordion: { type: "boolean", defaultValueHint: false },
       items: {
         type: "array",
-        displayName: "\u539F\u751F items \u6570\u636E",
+        displayName: "Items",
         advanced: true,
-        description: "\u8BBE\u7F6E items \u65F6\u6309 Ant Design \u539F\u751F\u89C4\u5219\u4F18\u5148\u4F7F\u7528\u8BE5\u6570\u636E\u3002\u6E05\u9664 items \u540E\u53EF\u5728\u5185\u5BB9\u63D2\u69FD\u4E2D\u7F16\u8F91\u5BCC\u5185\u5BB9\uFF1BReactNode \u5185\u5BB9\u4E5F\u53EF\u4EE5\u901A\u8FC7\u4EE3\u7801\u6216\u6570\u636E\u7ED1\u5B9A\u4F20\u5165\u3002",
+        description: "Items take precedence, as in Ant Design. Clear items to edit rich content in the children slot. ReactNode content can also be supplied through code or data binding.",
         itemType: {
           type: "object",
           fields: {
@@ -70,18 +70,18 @@ function registerCollapse(loader) {
       },
       children: {
         type: "slot",
-        displayName: "\u6298\u53E0\u9762\u677F",
+        displayName: "Panels",
         allowedComponents: [collapsePanelComponentName],
         hidePlaceholder: true,
         hidden: (ps) => ps.items != null,
-        description: "\u9762\u677F\u6807\u9898\u548C\u5185\u5BB9\u652F\u6301\u7EC4\u4EF6\u53CA\u5E03\u5C40\u3002\u8BBE\u7F6E\u539F\u751F items \u6570\u636E\u65F6\u8BE5\u63D2\u69FD\u4E0D\u53C2\u4E0E\u6E32\u67D3\u3002",
+        description: "Panel headers and content support components and layouts. This slot is not rendered when items are set.",
         defaultValue: ["1", "2"].map((key) => ({
           type: "component",
           name: collapsePanelComponentName,
           props: {
             key,
-            header: [{ type: "text", value: `\u9762\u677F ${key}` }],
-            children: [{ type: "text", value: `\u9762\u677F ${key} \u5185\u5BB9` }]
+            header: [{ type: "text", value: `Panel ${key}` }],
+            children: [{ type: "text", value: `Panel ${key} content` }]
           }
         }))
       },
@@ -102,12 +102,12 @@ function registerCollapse(loader) {
   registerComponentHelper(loader, AntdCollapsePanel, {
     name: collapsePanelComponentName,
     displayName: "Collapse.Panel",
-    description: "\u6298\u53E0\u9762\u677F\u7684\u6807\u9898\u3001\u5185\u5BB9\u548C\u9644\u52A0\u5185\u5BB9\u63D2\u69FD\u3002",
+    description: "Header, content, and extra slots for a collapse panel.",
     props: {
-      key: { type: "string", displayName: "\u9762\u677F\u6807\u8BC6", description: "\u540C\u4E00 Collapse \u4E2D\u552F\u4E00\u7684\u9762\u677F key\u3002" },
-      header: { type: "slot", displayName: "\u9762\u677F\u6807\u9898", defaultValue: "\u9762\u677F\u6807\u9898" },
-      children: { type: "slot", displayName: "\u9762\u677F\u5185\u5BB9", defaultValue: "\u9762\u677F\u5185\u5BB9" },
-      extra: { type: "slot", displayName: "\u9644\u52A0\u5185\u5BB9", hidePlaceholder: true },
+      key: { type: "string", displayName: "Key", description: "A unique panel key within this Collapse." },
+      header: { type: "slot", displayName: "Header", defaultValue: "Header" },
+      children: { type: "slot", displayName: "Content", defaultValue: "Content" },
+      extra: { type: "slot", displayName: "Extra", hidePlaceholder: true },
       showArrow: { type: "boolean", defaultValueHint: true },
       forceRender: "boolean",
       collapsible: { type: "choice", options: ["header", "icon", "disabled"] }

@@ -2,8 +2,8 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
-import { a as getSelectedCanvasItemKey } from './canvas-overlay-Do3TWgdx.esm.js';
-import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-AeETDTaH.esm.js';
+import { a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
+import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-CSvRw6Za.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
@@ -121,7 +121,7 @@ function TabsWithItems(props) {
   );
 }
 function OutlineMessage() {
-  return /* @__PURE__ */ React.createElement("div", null, "\u5728\u56FE\u5C42\u9762\u677F\u4E2D\u62D6\u52A8\u9875\u7B7E\u53EF\u8C03\u6574\u987A\u5E8F");
+  return /* @__PURE__ */ React.createElement("div", null, "Drag tabs in the outline to reorder them");
 }
 function registerTabs(loader) {
   registerComponentHelper(loader, AntdTabs, {
@@ -136,10 +136,10 @@ function registerTabs(loader) {
       removeIcon: { type: "slot", hidePlaceholder: true },
       activeKey: {
         editOnly: true,
-        displayName: "\u521D\u59CB\u6D3B\u52A8\u9875\u7B7E",
+        displayName: "Active tab key",
         uncontrolledProp: "defaultActiveKey",
         type: "choice",
-        description: "\u7EC4\u4EF6\u521D\u59CB\u663E\u793A\u7684\u9875\u7B7E key\uFF1B\u753B\u5E03\u4E34\u65F6\u5C55\u793A\u9009\u4E2D\u5185\u5BB9\u4E0D\u4F1A\u4FEE\u6539\u6B64\u503C\u3002",
+        description: "The initially active tab key. Temporary canvas reveals do not change this value.",
         options: (ps) => getTabItemKeys(ps.items)
       },
       animated: {
@@ -171,7 +171,7 @@ function registerTabs(loader) {
       },
       items: {
         type: "slot",
-        displayName: "\u9875\u7B7E",
+        displayName: "Tabs",
         hidePlaceholder: true,
         allowedComponents: [tabItemComponentName],
         ...{ mergeWithParent: true },
@@ -319,7 +319,7 @@ function registerTabs(loader) {
     actions: [
       {
         type: "button-action",
-        label: "\u6DFB\u52A0\u9875\u7B7E",
+        label: "Add tab",
         onClick: ({ componentProps, studioOps }) => {
           const generateNewKey = () => {
             const existingKeys = getTabItemKeys(componentProps.items);
@@ -358,7 +358,7 @@ function registerTabs(loader) {
       },
       {
         type: "button-action",
-        label: "\u5220\u9664\u5F53\u524D\u9875\u7B7E",
+        label: "Delete current tab",
         onClick: ({ componentProps, studioOps }) => {
           const tabPanes = getTabItemKeys(componentProps.items);
           const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find((item) => !item.props.disabled)?.key;
@@ -398,16 +398,16 @@ function registerTabs(loader) {
       key: {
         type: "string",
         description: `Unique identifier for this tab`,
-        displayName: "\u9875\u7B7E\u6807\u8BC6"
+        displayName: "Key"
       },
       label: {
         type: "slot",
-        displayName: "\u9875\u7B7E\u6807\u9898",
+        displayName: "Label",
         defaultValue: "Tab"
       },
       children: {
         type: "slot",
-        displayName: "\u9875\u7B7E\u5185\u5BB9",
+        displayName: "Content",
         hidePlaceholder: true
       }
     },

@@ -19,12 +19,12 @@ function SaveIndicator_(
   const studioCtx = useStudioCtx();
   const status = studioCtx.saveStatus;
   const labels = {
-    saved: "已保存",
-    pending: "等待保存",
-    saving: "正在保存…",
-    error: "保存失败，点击重试",
-    blocked: "无法保存，请处理上方提示",
-    unlogged: "临时修改尚未记录",
+    saved: "Saved",
+    pending: "Pending changes",
+    saving: "Saving…",
+    error: "Save failed. Click to retry.",
+    blocked: "Saving blocked. Resolve the issue above.",
+    unlogged: "Unlogged changes",
   };
   const canRetry = status === "error" && studioCtx.canSave();
   const retry = () => { if (canRetry) void studioCtx.save(); };

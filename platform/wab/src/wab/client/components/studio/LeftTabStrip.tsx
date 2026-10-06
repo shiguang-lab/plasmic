@@ -126,7 +126,7 @@ Help
     assets: {
       type: "group",
       icon: <ComponentssvgIcon />,
-      title: "资源",
+      title: "Assets",
       items: {
         tokens: {
           type: "item",
@@ -175,7 +175,7 @@ Help
     settingsGroup: {
       type: "group",
       icon: <GearIcon />,
-      title: "设置",
+      title: "Settings",
       items: {
         settings: {
           type: "item",
@@ -211,7 +211,7 @@ Help
     more: {
       type: "group",
       icon: <DotsHorizontalCirclesvgIcon />,
-      title: "更多",
+      title: "More",
       items: {
         splits: {
           type: "item",
@@ -265,13 +265,13 @@ Help
       type: "item",
       tabKey: "outline",
       icon: <TreeIcon />,
-      label: "图层",
+      label: "Outline",
     },
     lint: {
       type: "item",
       tabKey: "lint",
       icon: <WarningTrianglesvgIcon />,
-      label: "发现的问题",
+      label: "Issues detected",
       cond: canViewTab("lint"),
     },
     ...(contentEditorMode
@@ -291,7 +291,7 @@ Help
     helpGroup: {
       type: "group",
       icon: <HelpCirclesvgIcon />,
-      title: "帮助",
+      title: "Help",
       items: {
         keyboard: {
           type: "item",
@@ -324,7 +324,7 @@ Help
         help: {
           type: "item",
           icon: <HelpsvgIcon />,
-          label: "帮助",
+          label: "Help",
           href: studioCtx.siteInfo.teamId
             ? APP_ROUTES.orgSupport.fill({
                 teamId: studioCtx.siteInfo.teamId!,
@@ -438,7 +438,7 @@ Help
       showAvatar
       insert={{
         props: {
-          "aria-label": "插入组件",
+          "aria-label": "Insert",
           onClick: () => {
             studioCtx.tourActionEvents.dispatch({
               type: TutorialEventsType.AddButtonClicked,

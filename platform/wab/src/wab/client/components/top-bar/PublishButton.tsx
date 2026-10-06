@@ -69,7 +69,7 @@ export const PublishButton = observer(function PublishButton(
       <PlasmicPublishButton
         menuButton={
           !branchInfo
-            ? { children: "发布", "aria-label": "发布菜单" }
+            ? { "aria-label": "Publish menu" }
             : {
                 style: {
                   display: "flex",
@@ -153,8 +153,7 @@ export const PublishButton = observer(function PublishButton(
                       </Tooltip>
                     ),
                 props: {
-                  children: "发布",
-                  "aria-label": "发布项目",
+                  "aria-label": "Publish project",
                   id: "topbar-publish-btn",
                   onClick: spawnWrapper(() => {
                     studioCtx.tourActionEvents.dispatch({

@@ -368,71 +368,71 @@ const appShellThumbnail = `data:image/svg+xml;charset=utf-8,${encodeURIComponent
 const appShellMeta = {
   name: "plasmic-overseas-app-shell",
   displayName: "AppShell",
-  section: "\u5E94\u7528\u5E03\u5C40",
+  section: "Application layout",
   thumbnailUrl: appShellThumbnail,
-  description: "\u5171\u4EAB\u540E\u53F0\u6846\u67B6\uFF0C\u6839\u636E\u83DC\u5355\u8DEF\u7531\u540C\u6B65\u5BFC\u822A\u548C\u9762\u5305\u5C51\u3002\u53EF\u914D\u7F6E\u4EA7\u54C1\u3001\u7528\u6237\u3001\u8BED\u8A00\u548C App \u6765\u6E90\uFF0C\u5728\u9875\u9762\u5185\u5BB9\u63D2\u69FD\u4E2D\u7F16\u8F91\u9875\u9762\u3002",
+  description: "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
   importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell",
   importName: "AppShell",
   defaultStyles: { width: "1440px", height: "1024px" },
   props: {
-    direction: { displayName: "\u9605\u8BFB\u65B9\u5411", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
+    direction: { displayName: "Direction", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
     onDirectionChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "string" }]
     },
-    timeZone: { displayName: "\u65F6\u533A", type: "string", defaultValue: "Asia/Shanghai" },
+    timeZone: { displayName: "Time zone", type: "string", defaultValue: "Asia/Shanghai" },
     currentTime: {
-      displayName: "\u5F53\u524D\u65F6\u95F4",
+      displayName: "Current time",
       type: "string",
       description: "Host-supplied clock text; otherwise show the current time in timeZone."
     },
-    productName: { displayName: "\u4EA7\u54C1\u540D\u79F0", type: "string", defaultValue: "\u589E\u957F\u7BA1\u7406\u5E73\u53F0" },
-    logoUrl: { type: "imageUrl", displayName: "\u4EA7\u54C1\u6807\u5FD7" },
-    userName: { displayName: "\u7528\u6237\u540D", type: "string", defaultValue: "\u793A\u4F8B\u7528\u6237" },
+    productName: { displayName: "Product name", type: "string", defaultValue: "\u589E\u957F\u7BA1\u7406\u5E73\u53F0" },
+    logoUrl: { type: "imageUrl", displayName: "Logo" },
+    userName: { displayName: "User name", type: "string", defaultValue: "\u793A\u4F8B\u7528\u6237" },
     languages: {
-      displayName: "\u8BED\u8A00\u5217\u8868",
+      displayName: "Languages",
       type: "array",
       itemType: optionType,
       defaultValue: DEFAULT_LANGUAGES
     },
-    language: { type: "string", displayName: "\u5F53\u524D\u8BED\u8A00" },
+    language: { type: "string", displayName: "Language" },
     onLanguageChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "string" }]
     },
     appSources: {
-      displayName: "App \u6765\u6E90\u5217\u8868",
+      displayName: "App sources",
       type: "array",
       itemType: optionType,
       defaultValue: DEFAULT_APP_SOURCES
     },
-    appSource: { type: "string", displayName: "\u5F53\u524D App \u6765\u6E90" },
+    appSource: { type: "string", displayName: "App source" },
     onAppSourceChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "string" }]
     },
     menuItems: {
-      displayName: "\u5BFC\u822A\u83DC\u5355",
+      displayName: "Menu items",
       type: "array",
       itemType: menuItemType,
       defaultValue: DEFAULT_MENU_ITEMS
     },
-    selectedMenuKey: { type: "string", displayName: "\u5F53\u524D\u83DC\u5355\u6807\u8BC6" },
+    selectedMenuKey: { type: "string", displayName: "Selected menu key" },
     onMenuSelect: {
       type: "eventHandler",
       argTypes: [{ name: "key", type: "string" }]
     },
-    userMenuItems: { displayName: "\u7528\u6237\u83DC\u5355", type: "array", itemType: menuItemType },
+    userMenuItems: { displayName: "User menu items", type: "array", itemType: menuItemType },
     onUserAction: {
       type: "eventHandler",
       argTypes: [{ name: "key", type: "string" }]
     },
-    collapsed: { type: "boolean", displayName: "\u6298\u53E0\u4FA7\u680F" },
+    collapsed: { type: "boolean", displayName: "Collapsed" },
     onCollapsedChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "boolean" }]
     },
-    children: { type: "slot", displayName: "\u9875\u9762\u5185\u5BB9", hidePlaceholder: true }
+    children: { type: "slot", displayName: "Children", hidePlaceholder: true }
   },
   states: {
     direction: {

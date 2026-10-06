@@ -1,3 +1,4 @@
+import { VARIABLE_PLURAL_CAP } from "@/wab/shared/Labels";
 import ImplicitVariablesSection from "@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariablesSection";
 import { VariableEditingModal } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal";
 import VariableRow from "@/wab/client/components/sidebar-tabs/StateManagement/VariableRow";
@@ -69,13 +70,13 @@ function VariablesSection_(props: VariablesSectionProps) {
         ref={sectionRef}
         title={
           <LabelWithDetailedTooltip tooltip={StateVariablesTooltip}>
-            状态变量
+            {VARIABLE_PLURAL_CAP}
           </LabelWithDetailedTooltip>
         }
         controls={
           <>
             <IconLinkButton
-                aria-label="添加状态变量"
+                aria-label="Add state variable"
                 onClick={() => setNewVariable(true)}
 
             >
@@ -92,7 +93,7 @@ function VariablesSection_(props: VariablesSectionProps) {
           component.states.filter((state) => state.variableType !== "variant")
             .length === 0
         }
-        emptyDescription="保存会随交互变化的数据。"
+        emptyDescription="Store data that can change over time."
         noBottomPadding={!!implicitVariableGroups.length}
         data-test-id="variables-section"
       >

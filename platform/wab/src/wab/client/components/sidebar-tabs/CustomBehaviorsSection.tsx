@@ -1,3 +1,4 @@
+import { CUSTOM_BEHAVIORS_CAP } from "@/wab/shared/Labels";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { checkAndNotifyUnsupportedHostVersion } from "@/wab/client/components/modals/codeComponentModals";
 import S from "@/wab/client/components/sidebar-tabs/CustomBehaviorsSection.module.scss";
@@ -64,12 +65,12 @@ export const CustomBehaviorsSection = observer(function (props: {
     <SidebarSection
       title={
         <LabelWithDetailedTooltip tooltip={<ApplyCustomBehaviorsTooltip />}>
-          自定义行为
+          {CUSTOM_BEHAVIORS_CAP}
         </LabelWithDetailedTooltip>
       }
       controls={
         <Dropdown overlay={menu} trigger={["click"]}>
-          <IconLinkButton aria-label="添加自定义行为" onClick={(e) => e.preventDefault()}>
+          <IconLinkButton aria-label="Add custom behavior" onClick={(e) => e.preventDefault()}>
             <Icon icon={PlusIcon} />
           </IconLinkButton>
         </Dropdown>

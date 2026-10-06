@@ -41,7 +41,7 @@ export function CardPickerEditor(props: {
             {value
               ? (options.find((option) => option.value === value)?.label ??
                 value)
-              : "未设置"}
+              : "unset"}
           </span>
         </Chip>
       </div>

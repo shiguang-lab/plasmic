@@ -106,7 +106,7 @@ function BorderPanelSection_(props: {
   return (
     <StylePanelSection
       key={String(open || hasBorderProps)}
-      title="边框"
+      title="Border"
       expsProvider={expsProvider}
       styleProps={borderStyleProps}
       onHeaderClick={
@@ -412,7 +412,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
       </div>
       <div className="ml-lg flex-fill">
         <LabeledStyleDimItemRow
-          label="宽度"
+          label="Width"
           styleName={effectiveSides().map((s) => `border-${s}-width`)}
           labelSize="small"
           displayStyleName="border-width"

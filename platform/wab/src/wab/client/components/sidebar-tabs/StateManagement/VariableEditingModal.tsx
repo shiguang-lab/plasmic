@@ -6,6 +6,8 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { mkParamsForState } from "@/wab/shared/core/lang";
 import { DEFAULT_STATE_VARIABLE_NAME, genOnChangeParamName, mkState } from "@/wab/shared/core/states";
+import { VARIABLE_CAP } from "@/wab/shared/Labels";
+import startCase from "lodash/startCase";
 import { Component, State } from "@/wab/shared/model/classes";
 import { notification } from "antd";
 import React from "react";
@@ -46,7 +48,7 @@ export function VariableEditingModal({ component, onClose, show, viewCtx, studio
       site: studioCtx.site, component, tplMgr: studioCtx.tplMgr(), ...draft,
     }));
     if (result.isErr()) {
-      notification.error({ message: "无法创建状态变量", description: result.error.message });
+      notification.error({ message: "Cannot create state variable", description: result.error.message });
       return;
     }
     onClose();
@@ -55,7 +57,7 @@ export function VariableEditingModal({ component, onClose, show, viewCtx, studio
     }
   };
   return <SidebarModal
-    title={mode === "new" ? "新增状态变量" : "编辑状态变量（即时保存）"}
+    title={startCase(`${mode} ${VARIABLE_CAP}`)}
     show={show}
     onClose={onClose}
     persistOnInteractOutside={mode === "new"}

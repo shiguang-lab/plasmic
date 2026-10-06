@@ -741,11 +741,11 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("boolean", "collapsed", "onCollapse") },
   );
   register(loader, AntdList, "list", "AntdList", {
-    children: { type: "slot", displayName: "静态列表内容", hidePlaceholder: true },
-    dataSource: { type: "array", displayName: "列表数据" },
+    children: { type: "slot", displayName: "Static content", hidePlaceholder: true },
+    dataSource: { type: "array", displayName: "Data source" },
     renderItem: {
-      type: "slot", displayName: "行模板", renderPropParams: ["item", "index"], hidePlaceholder: true,
-      description: "为 dataSource 中每条数据渲染内容，使用 item 和 index 绑定字段。可放入 List.Item、标签、按钮和布局。",
+      type: "slot", displayName: "Render item", renderPropParams: ["item", "index"], hidePlaceholder: true,
+      description: "Render each dataSource item using item and index bindings. Supports List.Item, tags, buttons, and layouts.",
     },
     header: { type: "slot", hidePlaceholder: true },
     footer: { type: "slot", hidePlaceholder: true },
@@ -954,24 +954,24 @@ export function registerAdditional(loader?: Registerable) {
   register(loader, AntdTag, "tag", "AntdTag", {
     value: {
       type: "string",
-      displayName: "字段值",
-      description: "从数据绑定读取；通过下方映射设置显示文字与颜色。",
+      displayName: "Value",
+      description: "Read the bound value. Configure its label and color below.",
     },
     options: {
       type: "array",
-      displayName: "标签文字和颜色",
+      displayName: "Tag labels and colors",
       itemType: {
         type: "object",
         nameFunc: (item: TagValueOption) => item.label || item.value,
         fields: {
-          value: { type: "string", displayName: "字段值" },
-          label: { type: "string", displayName: "显示文字" },
-          color: { type: "color", displayName: "颜色" },
+          value: { type: "string", displayName: "Value" },
+          label: { type: "string", displayName: "Label" },
+          color: { type: "color", displayName: "Color" },
         },
       },
     },
-    defaultColor: { type: "color", displayName: "默认颜色" },
-    automaticColor: { type: "boolean", displayName: "按值自动分配颜色" },
+    defaultColor: { type: "color", displayName: "Default color" },
+    automaticColor: { type: "boolean", displayName: "Assign colors automatically" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },

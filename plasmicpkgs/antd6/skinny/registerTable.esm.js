@@ -2,65 +2,74 @@ import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmic
 import { Table, Button, Image, Avatar } from 'antd';
 import React from 'react';
 import { AntdTag } from './registerAdditional.esm.js';
-import { b as asArray, r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
+import { AntdTooltip } from './registerTooltip.esm.js';
+import { b as asArray, r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
 import 'dayjs';
-import './canvas-overlay-Do3TWgdx.esm.js';
+import './canvas-overlay-Dan70Oxr.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'classnames';
 
 const attr = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 const binding = (code) => `{{ ${code} }}`;
 function columnTemplateHtml(props) {
   const value = "column.text";
   const label = "column.label";
-  const text = (code = value) => `<span data-plasmic-name="\u663E\u793A\u6587\u5B57">${attr(binding(code))}</span>`;
-  const component = (name, values, children = "", attributes = "") => `<plasmic-component data-plasmic-component="plasmic-antd6-${name}" data-plasmic-name="${attr(`${String(props.dataIndex ?? "\u5355\u5143\u683C")} \xB7 ${name}\u6A21\u677F`)}" data-props="${attr(JSON.stringify(values))}" ${attributes}>${children}</plasmic-component>`;
+  const text = (code = value) => `<span data-plasmic-name="Label">${attr(binding(code))}</span>`;
+  const component = (name, values, children = "", attributes = "") => `<plasmic-component data-plasmic-component="plasmic-antd6-${name}" data-plasmic-name="${attr(`${String(props.dataIndex ?? "Cell")} \xB7 ${name} template`)}" data-props="${attr(JSON.stringify(values))}" ${attributes}>${children}</plasmic-component>`;
   const visible = `data-visible-if="${attr(binding('cell != null && String(cell) !== ""'))}"`;
   const size = binding("column.size");
-  switch (props.displayType) {
-    case "tag":
-      return component(
-        "tag",
-        {
-          value: binding("tagValue"),
-          options: binding("column.tagOptions"),
-          defaultColor: binding("column.tagColor"),
-          automaticColor: true
-        },
-        '<slot name="children"></slot>',
-        `data-repeat="${attr(binding("column.values"))}" data-repeat-item="tagValue"`
-      );
-    case "avatar":
-      return component(
-        "avatar",
-        { src: binding(value), alt: binding(label), size },
-        "",
-        visible
-      );
-    case "image":
-      return component(
-        "image",
-        {
-          src: binding(value),
-          alt: binding(label),
-          width: size,
-          height: size,
-          objectFit: "cover"
-        },
-        "",
-        visible
-      );
-    case "button":
-      return component(
-        "button",
-        { size: "small" },
-        `<slot name="children">${text(label)}</slot>`
-      );
-    case "link":
-      return `<a data-plasmic-name="\u94FE\u63A5\u6A21\u677F" href="${attr(binding(value))}" ${visible} ${`target="${attr(binding('column.openInNewTab ? "_blank" : "_self"'))}" rel="noopener noreferrer"`}>${text(label)}</a>`;
-    default:
-      return text();
-  }
+  const content = (() => {
+    switch (props.displayType) {
+      case "tag":
+        return component(
+          "tag",
+          {
+            value: binding("tagValue"),
+            options: binding("column.tagOptions"),
+            defaultColor: binding("column.tagColor"),
+            automaticColor: true
+          },
+          '<slot name="children"></slot>',
+          `data-repeat="${attr(binding("column.values"))}" data-repeat-item="tagValue"`
+        );
+      case "avatar":
+        return component(
+          "avatar",
+          { src: binding(value), alt: binding(label), size },
+          "",
+          visible
+        );
+      case "image":
+        return component(
+          "image",
+          {
+            src: binding(value),
+            alt: binding(label),
+            width: size,
+            height: size,
+            objectFit: "cover"
+          },
+          "",
+          visible
+        );
+      case "button":
+        return component(
+          "button",
+          { size: "small" },
+          `<slot name="children">${text(label)}</slot>`
+        );
+      case "link":
+        return `<a data-plasmic-name="Link template" href="${attr(binding(value))}" ${visible} ${`target="${attr(binding('column.openInNewTab ? "_blank" : "_self"'))}" rel="noopener noreferrer"`}>${text(label)}</a>`;
+      default:
+        return text();
+    }
+  })();
+  return props.ellipsis ? component(
+    "tooltip",
+    { onlyWhenOverflow: true },
+    `<slot name="children">${content}</slot><slot name="title">${text(["link", "button"].includes(props.displayType ?? "text") ? label : value)}</slot>`
+  ) : content;
 }
 
 const rowStyle = {
@@ -100,21 +109,21 @@ function TablePaginationControl({
     else result[key] = next;
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "\u663E\u793A\u5206\u9875", " ", /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Show pagination", " ", /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "checkbox",
       style: checkboxStyle,
-      "aria-label": "\u663E\u793A\u5206\u9875",
+      "aria-label": "Show pagination",
       checked: value !== false,
       onChange: (e) => updateValue(e.target.checked ? { ...options } : false)
     }
-  )), value !== false && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "\u6BCF\u9875\u6761\u6570", " ", /* @__PURE__ */ React.createElement(
+  )), value !== false && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Page size", " ", /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "number",
       style: inputStyle,
-      "aria-label": "\u6BCF\u9875\u6761\u6570",
+      "aria-label": "Page size",
       min: 1,
       step: 1,
       value: options.pageSize ?? options.defaultPageSize ?? "",
@@ -127,21 +136,21 @@ function TablePaginationControl({
         );
       }
     }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "\u53EF\u5207\u6362\u6BCF\u9875\u6761\u6570", " ", /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Show size changer", " ", /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "checkbox",
       style: checkboxStyle,
-      "aria-label": "\u53EF\u5207\u6362\u6BCF\u9875\u6761\u6570",
+      "aria-label": "Show size changer",
       checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
       onChange: (e) => update("showSizeChanger", e.target.checked)
     }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "\u5FEB\u901F\u8DF3\u9875", " ", /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Show quick jumper", " ", /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "checkbox",
       style: checkboxStyle,
-      "aria-label": "\u5FEB\u901F\u8DF3\u9875",
+      "aria-label": "Show quick jumper",
       checked: options.showQuickJumper ?? false,
       onChange: (e) => update("showQuickJumper", e.target.checked)
     }
@@ -158,14 +167,14 @@ function TableScrollControl({
     else result[key] = next;
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "\u6C34\u5E73\u6EDA\u52A8\u5BBD\u5EA6", " ", /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Horizontal scroll width", " ", /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "text",
       style: inputStyle,
-      "aria-label": "\u6C34\u5E73\u6EDA\u52A8\u5BBD\u5EA6",
+      "aria-label": "Horizontal scroll width",
       value: options.x ?? "",
-      placeholder: "\u81EA\u52A8\u9002\u5E94\u5185\u5BB9",
+      placeholder: "Fit content",
       onChange: (e) => {
         const text = e.target.value.trim();
         update(
@@ -174,15 +183,15 @@ function TableScrollControl({
         );
       }
     }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "\u8868\u4F53\u6700\u5927\u9AD8\u5EA6", " ", /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Table body height", " ", /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "number",
       style: inputStyle,
-      "aria-label": "\u8868\u4F53\u6700\u5927\u9AD8\u5EA6",
+      "aria-label": "Table body height",
       min: 1,
       value: options.y ?? "",
-      placeholder: "\u968F\u5185\u5BB9\u589E\u957F",
+      placeholder: "Grow with content",
       onChange: (e) => {
         if (!e.target.validity.valid) return;
         update("y", e.target.value === "" ? null : Number(e.target.value));
@@ -256,9 +265,10 @@ function AntdColumn(props) {
       onClick: isEditing ? (event) => event.preventDefault() : cell.props.onClick,
       "data-plasmic-canvas-part": isEditing ? "column" : void 0,
       "data-plasmic-table-column-selected": isSelected || void 0,
-      style: cell.props.style
+      style: cell.props.style,
+      title: props.ellipsis ? void 0 : cell.props.title
     },
-    props.children
+    props.ellipsis ? /* @__PURE__ */ React.createElement(AntdTooltip, { onlyWhenOverflow: true }, props.children) : props.children
   );
 }
 const AntdColumnGroup = Object.assign(
@@ -498,15 +508,15 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
 function registerTable(loader) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
-    displayName: "\u8868\u683C",
+    displayName: "Table",
     props: {
       data: {
         type: "dataSourceOpData",
-        displayName: "\u6570\u636E"
+        displayName: "Data"
       },
       children: {
         type: "slot",
-        displayName: "\u5217\u914D\u7F6E",
+        displayName: "Columns",
         allowedComponents: [
           "plasmic-antd6-table-column",
           "plasmic-antd6-table-column-group"
@@ -514,35 +524,35 @@ function registerTable(loader) {
       },
       bordered: {
         type: "boolean",
-        displayName: "\u663E\u793A\u8FB9\u6846",
+        displayName: "Bordered",
         defaultValueHint: false,
         advanced: true
       },
       size: {
         type: "choice",
-        displayName: "\u884C\u5BC6\u5EA6",
+        displayName: "Size",
         options: [
-          { value: "small", label: "\u7D27\u51D1" },
-          { value: "medium", label: "\u9002\u4E2D" },
-          { value: "large", label: "\u5BBD\u677E" }
+          { value: "small", label: "Small" },
+          { value: "medium", label: "Medium" },
+          { value: "large", label: "Large" }
         ],
         defaultValueHint: "large"
       },
       pagination: {
         type: "custom",
-        displayName: "\u5206\u9875",
+        displayName: "Pagination",
         control: TablePaginationControl,
-        description: "\u8BBE\u7F6E\u5206\u9875\u548C\u6BCF\u9875\u6761\u6570\uFF1B\u6570\u636E\u7ED1\u5B9A\u53EF\u63A7\u5236\u5B8C\u6574\u5206\u9875\u914D\u7F6E\u3002"
+        description: "Configure pagination and page size. Data binding supports the full pagination configuration."
       },
       scroll: {
         type: "custom",
-        displayName: "\u6EDA\u52A8\u533A\u57DF",
+        displayName: "Scroll",
         control: TableScrollControl,
-        description: "\u6C34\u5E73\u5BBD\u5EA6\u652F\u6301\u50CF\u7D20\u3001\u767E\u5206\u6BD4\u6216 max-content\uFF1B\u7559\u7A7A\u81EA\u52A8\u9002\u5E94\u5185\u5BB9\u3002\u8868\u4F53\u9AD8\u5EA6\u7559\u7A7A\u65F6\u968F\u5185\u5BB9\u589E\u957F\u3002"
+        description: "Horizontal width accepts pixels, percentages, or max-content. Leave it unset to fit content. The table body grows with content when height is unset."
       },
       onChange: {
         type: "eventHandler",
-        displayName: "\u5206\u9875\u3001\u7B5B\u9009\u6216\u6392\u5E8F\u53D8\u5316",
+        displayName: "On change",
         argTypes: [
           { name: "pagination", type: "object" },
           { name: "filters", type: "object" },
@@ -553,15 +563,15 @@ function registerTable(loader) {
       isSelectable: {
         type: "choice",
         options: [
-          { value: "single", label: "\u5355\u9009" },
-          { value: "multiple", label: "\u591A\u9009" }
+          { value: "single", label: "Single" },
+          { value: "multiple", label: "Multiple" }
         ],
-        displayName: "\u884C\u9009\u62E9\u65B9\u5F0F"
+        displayName: "Select rows?"
       },
       rowKey: {
         type: "choice",
-        displayName: "\u884C\u6807\u8BC6\u5B57\u6BB5",
-        description: "\u9009\u62E9\u6BCF\u884C\u552F\u4E00\u4E14\u7A33\u5B9A\u7684\u5B57\u6BB5\uFF0C\u7528\u4E8E\u8BB0\u5F55\u884C\u9009\u62E9\u3002",
+        displayName: "Row key",
+        description: "Choose a unique, stable field to identify selected rows.",
         options: (_ps, ctx) => {
           if (ctx?.schema) {
             return ctx.schema.fields.map((f) => ({
@@ -575,7 +585,7 @@ function registerTable(loader) {
       },
       selectedRowKeys: {
         type: "choice",
-        displayName: "\u5DF2\u9009\u884C\u6807\u8BC6",
+        displayName: "Selected row keys",
         multiSelect: (ps) => ps.isSelectable === "multiple",
         options: (ps, ctx) => {
           const key = ps.rowKey;
@@ -588,13 +598,13 @@ function registerTable(loader) {
       },
       onSelectedRowKeysChange: {
         type: "eventHandler",
-        displayName: "\u5DF2\u9009\u884C\u6807\u8BC6\u53D8\u5316",
+        displayName: "On selected row keys change",
         argTypes: [{ name: "keys", type: "object" }],
         hidden: (ps) => !ps.isSelectable
       },
       onSelectedRowsChange: {
         type: "eventHandler",
-        displayName: "\u5DF2\u9009\u884C\u6570\u636E\u53D8\u5316",
+        displayName: "On selected rows change",
         argTypes: [{ name: "rows", type: "object" }],
         hidden: (ps) => !ps.isSelectable
       }
@@ -615,21 +625,21 @@ function registerTable(loader) {
     },
     refActions: {
       selectRowByIndex: {
-        displayName: "\u6309\u5E8F\u53F7\u9009\u62E9\u884C",
+        displayName: "Select row by index",
         argTypes: [
           {
             name: "index",
-            displayName: "\u884C\u5E8F\u53F7",
+            displayName: "Index",
             type: "number"
           }
         ]
       },
       selectRowByKey: {
-        displayName: "\u6309\u6807\u8BC6\u9009\u62E9\u884C",
+        displayName: "Select row by key",
         argTypes: [
           {
             name: "key",
-            displayName: "\u884C\u6807\u8BC6",
+            displayName: "Row key",
             type: "string"
           }
         ]
@@ -638,13 +648,13 @@ function registerTable(loader) {
   });
   registerComponentHelper(loader, AntdColumn, {
     name: "plasmic-antd6-table-column",
-    displayName: "\u8868\u683C\u5217",
+    displayName: "Column",
     styleSections: false,
     parentComponentName: "plasmic-antd6-table",
     actions: [
       {
         type: "button-action",
-        label: "\u8F6C\u4E3A\u53EF\u7F16\u8F91\u6A21\u677F",
+        label: "Convert to editable template",
         hidden: (props) => props.displayType === "custom" || !!props.render,
         onClick: async ({ componentProps, studioOps }) => {
           if (componentProps.render) {
@@ -669,40 +679,40 @@ function registerTable(loader) {
       },
       title: {
         type: "slot",
-        displayName: "\u5217\u6807\u9898",
-        defaultValue: "\u5217\u6807\u9898"
+        displayName: "Title",
+        defaultValue: "Title"
       },
       dataIndex: {
         type: "string",
-        displayName: "\u6570\u636E\u5B57\u6BB5",
-        description: "\u672C\u5217\u8BFB\u53D6\u7684\u6570\u636E\u5B57\u6BB5\u3002\u4FEE\u6539\u4F1A\u4F5C\u7528\u4E8E\u6240\u6709\u884C\u3002"
+        displayName: "Data index",
+        description: "The data field used by this column. Changes apply to every row."
       },
       displayType: {
         type: "choice",
-        displayName: "\u663E\u793A\u65B9\u5F0F",
+        displayName: "Display type",
         options: [
-          { value: "text", label: "\u6587\u672C" },
-          { value: "tag", label: "\u6807\u7B7E" },
-          { value: "link", label: "\u94FE\u63A5" },
-          { value: "avatar", label: "\u5934\u50CF" },
-          { value: "image", label: "\u56FE\u7247" },
-          { value: "button", label: "\u6309\u94AE" },
-          { value: "custom", label: "\u81EA\u5B9A\u4E49\u5185\u5BB9" }
+          { value: "text", label: "Text" },
+          { value: "tag", label: "Tag" },
+          { value: "link", label: "Link" },
+          { value: "avatar", label: "Avatar" },
+          { value: "image", label: "Image" },
+          { value: "button", label: "Button" },
+          { value: "custom", label: "Custom render" }
         ],
         defaultValueHint: (ps) => ps.render ? "custom" : "text",
-        description: "\u4F5C\u7528\u4E8E\u6240\u6709\u884C\u3002\u8F6C\u4E3A\u6A21\u677F\u540E\u53EF\u76F4\u63A5\u9009\u62E9\u5185\u90E8\u5143\u7D20\u7F16\u8F91\uFF1B\u5DF2\u6709\u6A21\u677F\u4F1A\u4FDD\u7559\uFF0C\u5207\u56DE\u81EA\u5B9A\u4E49\u5185\u5BB9\u5373\u53EF\u6062\u590D\u3002"
+        description: "Applies to all rows. Convert to a template to select and edit its elements. Existing templates are preserved and can be restored by switching to Custom render."
       },
       displayLabel: {
         type: "string",
-        displayName: "\u663E\u793A\u6587\u5B57",
-        description: "\u7559\u7A7A\u65F6\u4F7F\u7528\u5B57\u6BB5\u503C\uFF0C\u4E5F\u7528\u4F5C\u56FE\u7247\u66FF\u4EE3\u6587\u5B57\u3002",
+        displayName: "Label",
+        description: "Uses the field value when unset. Also used as image alt text.",
         hidden: (ps) => !["link", "button", "avatar", "image"].includes(
           (ps.displayType === "custom" ? ps.templateType : ps.displayType) ?? "text"
         )
       },
       contentSize: {
         type: "number",
-        displayName: "\u56FE\u7247 / \u5934\u50CF\u5C3A\u5BF8",
+        displayName: "Image / avatar size",
         defaultValueHint: 32,
         min: 1,
         hidden: (ps) => !["avatar", "image"].includes(
@@ -711,13 +721,13 @@ function registerTable(loader) {
       },
       openInNewTab: {
         type: "boolean",
-        displayName: "\u5728\u65B0\u6807\u7B7E\u9875\u6253\u5F00",
+        displayName: "Open in new tab",
         hidden: (ps) => (ps.displayType === "custom" ? ps.templateType : ps.displayType) !== "link"
       },
       onCellClick: {
         type: "eventHandler",
-        displayName: "\u70B9\u51FB\u5355\u5143\u683C",
-        description: "\u70B9\u51FB\u672C\u5217\u7684\u6309\u94AE\u3001\u94FE\u63A5\u6216\u5934\u50CF\u65F6\u89E6\u53D1\uFF0C\u4E5F\u9002\u7528\u4E8E\u81EA\u5B9A\u4E49\u5185\u5BB9\u3002",
+        displayName: "On cell click",
+        description: "Triggered by clicking buttons, links, or avatars in this column. Also available to custom content.",
         argTypes: [
           { name: "cell", type: "object" },
           { name: "row", type: "object" },
@@ -729,65 +739,65 @@ function registerTable(loader) {
       },
       tagOptions: {
         type: "array",
-        displayName: "\u6807\u7B7E\u6587\u5B57\u548C\u989C\u8272",
+        displayName: "Tag labels and colors",
         hidden: (ps) => (ps.displayType === "custom" ? ps.templateType : ps.displayType) !== "tag",
-        description: "\u6309\u5B57\u6BB5\u503C\u914D\u7F6E\u663E\u793A\u6587\u5B57\u548C\u989C\u8272\uFF1B\u672A\u914D\u7F6E\u7684\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272\u3002",
+        description: "Map field values to labels and colors. Unmapped values are assigned colors automatically.",
         itemType: {
           type: "object",
           nameFunc: (item) => item.label || item.value,
           fields: {
-            value: { type: "string", displayName: "\u5B57\u6BB5\u503C" },
-            label: { type: "string", displayName: "\u663E\u793A\u6587\u5B57" },
-            color: { type: "color", displayName: "\u989C\u8272" }
+            value: { type: "string", displayName: "Value" },
+            label: { type: "string", displayName: "Label" },
+            color: { type: "color", displayName: "Color" }
           }
         }
       },
       tagColor: {
         type: "color",
-        displayName: "\u9ED8\u8BA4\u6807\u7B7E\u989C\u8272",
-        description: "\u7559\u7A7A\u65F6\u6309\u5B57\u6BB5\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272\uFF1B\u5355\u9879\u989C\u8272\u4F18\u5148\u3002",
+        displayName: "Default tag color",
+        description: "When unset, colors are assigned by value. Individual item colors take precedence.",
         hidden: (ps) => (ps.displayType === "custom" ? ps.templateType : ps.displayType) !== "tag"
       },
       render: {
         type: "slot",
         renderPropParams: ["cell", "row", "index", "column"],
         hidePlaceholder: true,
-        displayName: "\u5171\u4EAB\u5355\u5143\u683C\u6A21\u677F",
+        displayName: "Custom render",
         hidden: (ps) => (ps.displayType ?? (ps.render ? "custom" : "text")) !== "custom"
       },
       align: {
         type: "choice",
-        displayName: "\u5BF9\u9F50\u65B9\u5F0F",
+        displayName: "Align",
         options: [
-          { value: "left", label: "\u5DE6\u5BF9\u9F50" },
-          { value: "right", label: "\u53F3\u5BF9\u9F50" },
-          { value: "center", label: "\u5C45\u4E2D" }
+          { value: "left", label: "Left" },
+          { value: "right", label: "Right" },
+          { value: "center", label: "Center" }
         ],
         defaultValueHint: "left"
       },
       fixed: {
         type: "choice",
-        displayName: "\u56FA\u5B9A\u5217",
+        displayName: "Fixed",
         options: [
-          { value: "left", label: "\u5DE6\u4FA7" },
-          { value: "right", label: "\u53F3\u4FA7" }
+          { value: "left", label: "Left" },
+          { value: "right", label: "Right" }
         ],
         advanced: true
       },
       colSpan: {
         type: "number",
-        displayName: "\u5408\u5E76\u5217\u6570",
+        displayName: "Col span",
         advanced: true
       },
       width: {
         type: "number",
-        displayName: "\u5217\u5BBD",
-        description: "\u6574\u5217\u5BBD\u5EA6\uFF08\u50CF\u7D20\uFF09\uFF0C\u540C\u65F6\u4F5C\u7528\u4E8E\u8868\u5934\u548C\u6240\u6709\u884C\u3002"
+        displayName: "Width",
+        description: "Column width in pixels. Applies to the header and all rows."
       },
       ellipsis: {
         type: "boolean",
-        displayName: "\u8D85\u957F\u5185\u5BB9\u7701\u7565",
-        description: "\u8D85\u957F\u5185\u5BB9\u663E\u793A\u7701\u7565\u53F7\uFF0C\u60AC\u505C\u53EF\u67E5\u770B\u5B8C\u6574\u6587\u5B57\u3002"
+        displayName: "Ellipsis",
+        description: "Show ellipsis and a Tooltip only when content overflows. Convert to an editable template to customize the Tooltip content."
       }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",
@@ -795,7 +805,7 @@ function registerTable(loader) {
   });
   registerComponentHelper(loader, AntdColumnGroup, {
     name: "plasmic-antd6-table-column-group",
-    displayName: "\u5217\u5206\u7EC4",
+    displayName: "Column Group",
     styleSections: false,
     parentComponentName: "plasmic-antd6-table",
     props: {

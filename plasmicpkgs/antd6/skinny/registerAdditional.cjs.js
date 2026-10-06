@@ -4,8 +4,8 @@ var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var dayjs = require('dayjs');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-x9v6z73H.cjs.js');
-var utils = require('./utils-DDtpTQdQ.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
+var utils = require('./utils-CRCm44nj.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 
@@ -661,14 +661,14 @@ function registerAdditional(loader) {
     { states: valueState("boolean", "collapsed", "onCollapse") }
   );
   register(loader, AntdList, "list", "AntdList", {
-    children: { type: "slot", displayName: "\u9759\u6001\u5217\u8868\u5185\u5BB9", hidePlaceholder: true },
-    dataSource: { type: "array", displayName: "\u5217\u8868\u6570\u636E" },
+    children: { type: "slot", displayName: "Static content", hidePlaceholder: true },
+    dataSource: { type: "array", displayName: "Data source" },
     renderItem: {
       type: "slot",
-      displayName: "\u884C\u6A21\u677F",
+      displayName: "Render item",
       renderPropParams: ["item", "index"],
       hidePlaceholder: true,
-      description: "\u4E3A dataSource \u4E2D\u6BCF\u6761\u6570\u636E\u6E32\u67D3\u5185\u5BB9\uFF0C\u4F7F\u7528 item \u548C index \u7ED1\u5B9A\u5B57\u6BB5\u3002\u53EF\u653E\u5165 List.Item\u3001\u6807\u7B7E\u3001\u6309\u94AE\u548C\u5E03\u5C40\u3002"
+      description: "Render each dataSource item using item and index bindings. Supports List.Item, tags, buttons, and layouts."
     },
     header: { type: "slot", hidePlaceholder: true },
     footer: { type: "slot", hidePlaceholder: true },
@@ -877,24 +877,24 @@ function registerAdditional(loader) {
   register(loader, AntdTag, "tag", "AntdTag", {
     value: {
       type: "string",
-      displayName: "\u5B57\u6BB5\u503C",
-      description: "\u4ECE\u6570\u636E\u7ED1\u5B9A\u8BFB\u53D6\uFF1B\u901A\u8FC7\u4E0B\u65B9\u6620\u5C04\u8BBE\u7F6E\u663E\u793A\u6587\u5B57\u4E0E\u989C\u8272\u3002"
+      displayName: "Value",
+      description: "Read the bound value. Configure its label and color below."
     },
     options: {
       type: "array",
-      displayName: "\u6807\u7B7E\u6587\u5B57\u548C\u989C\u8272",
+      displayName: "Tag labels and colors",
       itemType: {
         type: "object",
         nameFunc: (item) => item.label || item.value,
         fields: {
-          value: { type: "string", displayName: "\u5B57\u6BB5\u503C" },
-          label: { type: "string", displayName: "\u663E\u793A\u6587\u5B57" },
-          color: { type: "color", displayName: "\u989C\u8272" }
+          value: { type: "string", displayName: "Value" },
+          label: { type: "string", displayName: "Label" },
+          color: { type: "color", displayName: "Color" }
         }
       }
     },
-    defaultColor: { type: "color", displayName: "\u9ED8\u8BA4\u989C\u8272" },
-    automaticColor: { type: "boolean", displayName: "\u6309\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272" },
+    defaultColor: { type: "color", displayName: "Default color" },
+    automaticColor: { type: "boolean", displayName: "Assign colors automatically" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },

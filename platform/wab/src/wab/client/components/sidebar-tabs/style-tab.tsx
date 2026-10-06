@@ -12,7 +12,6 @@ import {
   canRenderPrivateStyleVariants,
   getOrderedSectionRender,
 } from "@/wab/client/components/sidebar-tabs/Sections";
-import { SelectionPath } from "@/wab/client/components/sidebar-tabs/SelectionPath";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
@@ -451,16 +450,6 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 : undefined
             }
           >
-            {(focused || tpl) && (
-              <SelectionPath
-                tpl={
-                  focused instanceof SlotSelection
-                    ? focused
-                    : (tpl ?? component.tplTree)
-                }
-                viewCtx={viewCtx}
-              />
-            )}
             {focused instanceof SlotSelection ? (
               <SlotSelectionMessage node={focused} viewCtx={viewCtx} />
             ) : tpl === component.tplTree && isCodeComponent(component) ? (
@@ -541,7 +530,7 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
               {selectionPath(viewCtx, node).at(-1)?.label}
             </div>
             <div className="ml-sm">
-              所属组件：<code>{getComponentDisplayName(component)}</code>
+              Slot for <code>{getComponentDisplayName(component)}</code>
             </div>
           </div>
           <p className="text-m">{node.slotParam.about}</p>
@@ -563,7 +552,7 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
                 })
               }
             >
-              恢复此插槽的默认内容
+              Revert to default slot content
             </Button>
           </SidebarSection>
         )}

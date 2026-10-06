@@ -26,12 +26,12 @@ test("native save uses the same public operation and reports failures", async ()
   const calls = [], errors = [];
   const controller = { state: async () => ({ ready: true, editorContext: { canEdit: true } }), dispatch: async (...args) => calls.push(args) };
   const menu = fileMenu({ controller, workspace: { recent: [], capture: async () => {} }, getWindow: () => ({}), dialog: { showErrorBox: (...args) => errors.push(args) }, refresh: () => {} });
-  const save = menu.submenu.find((entry) => entry.label === "保存");
+  const save = menu.submenu.find((entry) => entry.label === "Save");
   await save.click();
   assert.deepEqual(calls, [["execute", { name: "save", input: {} }]]);
   controller.dispatch = async () => { throw new Error("保存失败"); };
   await save.click();
-  assert.deepEqual(errors, [["操作未完成", "保存失败"]]);
+  assert.deepEqual(errors, [["Operation Failed", "保存失败"]]);
 });
 test("native menu availability follows ready, preview, permission and frame context", async () => {
   const calls = [], errors = [];

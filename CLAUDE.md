@@ -40,6 +40,7 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 
 ## Studio property panel and component contracts
 
+- Keep Studio and Desktop editor UI in English. Preserve upstream Plasmic wording for existing UI; use English for custom editor features and component registration labels. Business page content retains its configured language. Do not inject translated prop names or force a Chinese locale in Studio controls.
 - Borrow Figma/Webflow patterns for panel organization, grouping, labels, and editing entry points. Do not introduce a separate designer-facing property model or a parallel persisted schema that translates into component props.
 - The component implementation's real props, slots, defaults, and event signatures define the contract. Build property controls from component registration metadata and keep that metadata consistent with the implementation. Display names and localization must not change persisted prop names, types, defaults, or behavior.
 - Declare necessary slot and edit-only/uncontrolled-prop mappings in the component registration or wrapper. Keep them explicit and verify the resulting runtime props; do not add another conversion layer in the property panel.

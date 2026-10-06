@@ -179,7 +179,7 @@ function TabsWithItems(props: TabsProps) {
 }
 
 function OutlineMessage() {
-  return <div>在图层面板中拖动页签可调整顺序</div>;
+  return <div>Drag tabs in the outline to reorder them</div>;
 }
 
 export function registerTabs(loader?: Registerable) {
@@ -195,10 +195,10 @@ export function registerTabs(loader?: Registerable) {
       removeIcon: { type: "slot", hidePlaceholder: true },
       activeKey: {
         editOnly: true,
-        displayName: "初始活动页签",
+        displayName: "Active tab key",
         uncontrolledProp: "defaultActiveKey",
         type: "choice",
-        description: "组件初始显示的页签 key；画布临时展示选中内容不会修改此值。",
+        description: "The initially active tab key. Temporary canvas reveals do not change this value.",
         options: (ps: any) => getTabItemKeys(ps.items),
       },
       animated: {
@@ -230,7 +230,7 @@ export function registerTabs(loader?: Registerable) {
       },
       items: {
         type: "slot",
-        displayName: "页签",
+        displayName: "Tabs",
         hidePlaceholder: true,
         allowedComponents: [tabItemComponentName],
         ...({ mergeWithParent: true } as any), // to make the tab items selectable from the components outline pane in Plasmic Studio.
@@ -378,7 +378,7 @@ export function registerTabs(loader?: Registerable) {
     actions: [
       {
         type: "button-action",
-        label: "添加页签",
+        label: "Add tab",
         onClick: ({ componentProps, studioOps }: ActionProps<any>) => {
           // Get the first positive integer that isn't already a key
           const generateNewKey = () => {
@@ -425,7 +425,7 @@ export function registerTabs(loader?: Registerable) {
       },
       {
         type: "button-action",
-        label: "删除当前页签",
+        label: "Delete current tab",
         onClick: ({ componentProps, studioOps }: ActionProps<any>) => {
             const tabPanes = getTabItemKeys(componentProps.items);
             const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find((item) => !item.props.disabled)?.key;
@@ -467,16 +467,16 @@ export function registerTabs(loader?: Registerable) {
       key: {
         type: "string",
         description: `Unique identifier for this tab`,
-        displayName: "页签标识",
+        displayName: "Key",
       },
       label: {
         type: "slot",
-        displayName: "页签标题",
+        displayName: "Label",
         defaultValue: "Tab",
       },
       children: {
         type: "slot",
-        displayName: "页签内容",
+        displayName: "Content",
         hidePlaceholder: true,
       },
     },

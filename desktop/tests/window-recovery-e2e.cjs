@@ -11,7 +11,7 @@ app.setPath("sessionData", path.join(directory, "profile"));
 const prompts = [];
 dialog.showMessageBox = async (_window, options) => {
   prompts.push({ message: options.message, buttons: options.buttons });
-  return { response: options.message.includes("加载失败") ? 2 : 0 };
+  return { response: options.message.includes("failed to load") ? 2 : 0 };
 };
 const timer = setTimeout(() => app.exit(1), 45000);
 app.whenReady().then(async () => {

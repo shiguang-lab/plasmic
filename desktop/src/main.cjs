@@ -301,7 +301,7 @@ async function startDesktop() {
       beforeInstall: async () => {
         const state = await controller.state();
         if (state.projectId) {
-          if (!state.ready) throw new Error("当前设计尚未就绪，请等待设计加载完成再安装更新。");
+          if (!state.ready) throw new Error("The current design is not ready. Wait for it to load before installing the update.");
           await controller.dispatch("execute", { name: "save", input: {} });
         }
       },
@@ -311,33 +311,33 @@ async function startDesktop() {
   const menu = Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
       fileMenu({ controller, workspace, getWindow: () => mainWindow, dialog, refresh: buildMenu, state: menuState }),
-      { label: "编辑", submenu: [
-        { role: "undo", label: "撤销" }, { role: "redo", label: "重做" }, { type: "separator" },
-        { role: "cut", label: "剪切" }, { role: "copy", label: "复制" }, { role: "paste", label: "粘贴" },
-        { role: "selectAll", label: "全选" },
+      { label: "Edit", submenu: [
+        { role: "undo", label: "Undo" }, { role: "redo", label: "Redo" }, { type: "separator" },
+        { role: "cut", label: "Cut" }, { role: "copy", label: "Copy" }, { role: "paste", label: "Paste" },
+        { role: "selectAll", label: "Select All" },
       ] },
-      { label: "视图", submenu: [
-        { role: "reload", label: "重新加载" }, { role: "forceReload", label: "强制重新加载" },
-        { role: "toggleDevTools", label: "开发者工具" }, { type: "separator" },
-        { role: "resetZoom", label: "实际大小" }, { role: "zoomIn", label: "放大" },
-        { role: "zoomOut", label: "缩小" }, { role: "togglefullscreen", label: "全屏" },
+      { label: "View", submenu: [
+        { role: "reload", label: "Reload" }, { role: "forceReload", label: "Force Reload" },
+        { role: "toggleDevTools", label: "Toggle Developer Tools" }, { type: "separator" },
+        { role: "resetZoom", label: "Actual Size" }, { role: "zoomIn", label: "Zoom In" },
+        { role: "zoomOut", label: "Zoom Out" }, { role: "togglefullscreen", label: "Toggle Full Screen" },
       ] },
-      { label: "窗口", role: "windowMenu" },
-      { label: "更新", submenu: [{ label: "检查更新…", click: async () => {
+      { label: "Window", role: "windowMenu" },
+      { label: "Updates", submenu: [{ label: "Check for Updates…", click: async () => {
         const status = await updates.command("check");
         if (["available", "downloaded"].includes(status.phase)) {
           const ready = status.phase === "downloaded";
           const { response } = await dialog.showMessageBox(mainWindow, {
-            title: "Plasmic 更新",
-            message: ready ? `${status.version} 已下载，安装前将保存当前设计。` : `新版本 ${status.version} 可用。`,
-            buttons: [ready ? "重启并安装" : "下载更新", "取消"],
+            title: "Plasmic Update",
+            message: ready ? `${status.version} has been downloaded. Your current design will be saved before installation.` : `Version ${status.version} is available.`,
+            buttons: [ready ? "Restart and Install" : "Download Update", "Cancel"],
             defaultId: 0,
             cancelId: 1,
           });
           if (response === 0) await updates.command(ready ? "install" : "download");
         }
         if (["current", "disabled", "error"].includes(status.phase)) {
-          void dialog.showMessageBox(mainWindow, { title: "Plasmic 更新", message: status.error || (status.phase === "disabled" ? "请使用已安装的应用检查更新。" : `当前已是最新版本 ${status.currentVersion}`) });
+          void dialog.showMessageBox(mainWindow, { title: "Plasmic Update", message: status.error || (status.phase === "disabled" ? "Use the installed application to check for updates." : `You are up to date (${status.currentVersion}).`) });
         }
       } }] },
       {

@@ -10,6 +10,7 @@ import type {
 } from "antd/es/table/interface";
 import React from "react";
 import { AntdTag } from "./registerAdditional";
+import { AntdTooltip } from "./registerTooltip";
 import { columnTemplateHtml } from "./table-column-template";
 import { TablePaginationControl, TableScrollControl } from "./table-controls";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
@@ -125,8 +126,13 @@ export function AntdColumn(props: AntdColumnProps) {
       "data-plasmic-canvas-part": isEditing ? "column" : undefined,
       "data-plasmic-table-column-selected": isSelected || undefined,
       style: cell.props.style,
+      title: props.ellipsis ? undefined : cell.props.title,
     },
-    props.children,
+    props.ellipsis ? (
+      <AntdTooltip onlyWhenOverflow>{props.children}</AntdTooltip>
+    ) : (
+      props.children
+    ),
   );
 }
 
@@ -473,15 +479,15 @@ export const AntdTable = React.forwardRef(function AntdTable(
 export function registerTable(loader?: Registerable) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
-    displayName: "表格",
+    displayName: "Table",
     props: {
       data: {
         type: "dataSourceOpData" as any,
-        displayName: "数据",
+        displayName: "Data",
       },
       children: {
         type: "slot",
-        displayName: "列配置",
+        displayName: "Columns",
         allowedComponents: [
           "plasmic-antd6-table-column",
           "plasmic-antd6-table-column-group",
@@ -489,36 +495,36 @@ export function registerTable(loader?: Registerable) {
       },
       bordered: {
         type: "boolean",
-        displayName: "显示边框",
+        displayName: "Bordered",
         defaultValueHint: false,
         advanced: true,
       },
       size: {
         type: "choice",
-        displayName: "行密度",
+        displayName: "Size",
         options: [
-          { value: "small", label: "紧凑" },
-          { value: "medium", label: "适中" },
-          { value: "large", label: "宽松" },
+          { value: "small", label: "Small" },
+          { value: "medium", label: "Medium" },
+          { value: "large", label: "Large" },
         ],
         defaultValueHint: "large",
       },
       pagination: {
         type: "custom",
-        displayName: "分页",
+        displayName: "Pagination",
         control: TablePaginationControl,
-        description: "设置分页和每页条数；数据绑定可控制完整分页配置。",
+        description: "Configure pagination and page size. Data binding supports the full pagination configuration.",
       },
       scroll: {
         type: "custom",
-        displayName: "滚动区域",
+        displayName: "Scroll",
         control: TableScrollControl,
         description:
-          "水平宽度支持像素、百分比或 max-content；留空自动适应内容。表体高度留空时随内容增长。",
+          "Horizontal width accepts pixels, percentages, or max-content. Leave it unset to fit content. The table body grows with content when height is unset.",
       },
       onChange: {
         type: "eventHandler",
-        displayName: "分页、筛选或排序变化",
+        displayName: "On change",
         argTypes: [
           { name: "pagination", type: "object" },
           { name: "filters", type: "object" },
@@ -529,15 +535,15 @@ export function registerTable(loader?: Registerable) {
       isSelectable: {
         type: "choice",
         options: [
-          { value: "single", label: "单选" },
-          { value: "multiple", label: "多选" },
+          { value: "single", label: "Single" },
+          { value: "multiple", label: "Multiple" },
         ],
-        displayName: "行选择方式",
+        displayName: "Select rows?",
       },
       rowKey: {
         type: "choice",
-        displayName: "行标识字段",
-        description: "选择每行唯一且稳定的字段，用于记录行选择。",
+        displayName: "Row key",
+        description: "Choose a unique, stable field to identify selected rows.",
         options: (_ps: any, ctx: any) => {
           if (ctx?.schema) {
             return ctx.schema.fields.map((f: any) => ({
@@ -551,7 +557,7 @@ export function registerTable(loader?: Registerable) {
       },
       selectedRowKeys: {
         type: "choice",
-        displayName: "已选行标识",
+        displayName: "Selected row keys",
         multiSelect: (ps: any) => ps.isSelectable === "multiple",
         options: (ps: any, ctx: any) => {
           const key = ps.rowKey;
@@ -564,13 +570,13 @@ export function registerTable(loader?: Registerable) {
       },
       onSelectedRowKeysChange: {
         type: "eventHandler",
-        displayName: "已选行标识变化",
+        displayName: "On selected row keys change",
         argTypes: [{ name: "keys", type: "object" }],
         hidden: (ps: any) => !ps.isSelectable,
       },
       onSelectedRowsChange: {
         type: "eventHandler",
-        displayName: "已选行数据变化",
+        displayName: "On selected rows change",
         argTypes: [{ name: "rows", type: "object" }],
         hidden: (ps: any) => !ps.isSelectable,
       },
@@ -591,21 +597,21 @@ export function registerTable(loader?: Registerable) {
     },
     refActions: {
       selectRowByIndex: {
-        displayName: "按序号选择行",
+        displayName: "Select row by index",
         argTypes: [
           {
             name: "index",
-            displayName: "行序号",
+            displayName: "Index",
             type: "number",
           },
         ],
       },
       selectRowByKey: {
-        displayName: "按标识选择行",
+        displayName: "Select row by key",
         argTypes: [
           {
             name: "key",
-            displayName: "行标识",
+            displayName: "Row key",
             type: "string",
           },
         ],
@@ -615,13 +621,13 @@ export function registerTable(loader?: Registerable) {
 
   registerComponentHelper(loader, AntdColumn, {
     name: "plasmic-antd6-table-column",
-    displayName: "表格列",
+    displayName: "Column",
     styleSections: false,
     parentComponentName: "plasmic-antd6-table",
     actions: [
       {
         type: "button-action",
-        label: "转为可编辑模板",
+        label: "Convert to editable template",
         hidden: (props: AntdColumnProps) =>
           props.displayType === "custom" || !!props.render,
         onClick: async ({ componentProps, studioOps }) => {
@@ -647,35 +653,35 @@ export function registerTable(loader?: Registerable) {
       },
       title: {
         type: "slot",
-        displayName: "列标题",
-        defaultValue: "列标题",
+        displayName: "Title",
+        defaultValue: "Title",
       },
       dataIndex: {
         type: "string",
-        displayName: "数据字段",
-        description: "本列读取的数据字段。修改会作用于所有行。",
+        displayName: "Data index",
+        description: "The data field used by this column. Changes apply to every row.",
       },
       displayType: {
         type: "choice",
-        displayName: "显示方式",
+        displayName: "Display type",
         options: [
-          { value: "text", label: "文本" },
-          { value: "tag", label: "标签" },
-          { value: "link", label: "链接" },
-          { value: "avatar", label: "头像" },
-          { value: "image", label: "图片" },
-          { value: "button", label: "按钮" },
-          { value: "custom", label: "自定义内容" },
+          { value: "text", label: "Text" },
+          { value: "tag", label: "Tag" },
+          { value: "link", label: "Link" },
+          { value: "avatar", label: "Avatar" },
+          { value: "image", label: "Image" },
+          { value: "button", label: "Button" },
+          { value: "custom", label: "Custom render" },
         ],
         defaultValueHint: (ps: AntdColumnProps) =>
           ps.render ? "custom" : "text",
         description:
-          "作用于所有行。转为模板后可直接选择内部元素编辑；已有模板会保留，切回自定义内容即可恢复。",
+          "Applies to all rows. Convert to a template to select and edit its elements. Existing templates are preserved and can be restored by switching to Custom render.",
       },
       displayLabel: {
         type: "string",
-        displayName: "显示文字",
-        description: "留空时使用字段值，也用作图片替代文字。",
+        displayName: "Label",
+        description: "Uses the field value when unset. Also used as image alt text.",
         hidden: (ps: AntdColumnProps) =>
           !["link", "button", "avatar", "image"].includes(
             (ps.displayType === "custom" ? ps.templateType : ps.displayType) ??
@@ -684,7 +690,7 @@ export function registerTable(loader?: Registerable) {
       },
       contentSize: {
         type: "number",
-        displayName: "图片 / 头像尺寸",
+        displayName: "Image / avatar size",
         defaultValueHint: 32,
         min: 1,
         hidden: (ps: AntdColumnProps) =>
@@ -695,15 +701,15 @@ export function registerTable(loader?: Registerable) {
       },
       openInNewTab: {
         type: "boolean",
-        displayName: "在新标签页打开",
+        displayName: "Open in new tab",
         hidden: (ps: AntdColumnProps) =>
           (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
           "link",
       },
       onCellClick: {
         type: "eventHandler",
-        displayName: "点击单元格",
-        description: "点击本列的按钮、链接或头像时触发，也适用于自定义内容。",
+        displayName: "On cell click",
+        description: "Triggered by clicking buttons, links, or avatars in this column. Also available to custom content.",
         argTypes: [
           { name: "cell", type: "object" },
           { name: "row", type: "object" },
@@ -716,25 +722,25 @@ export function registerTable(loader?: Registerable) {
       },
       tagOptions: {
         type: "array",
-        displayName: "标签文字和颜色",
+        displayName: "Tag labels and colors",
         hidden: (ps: AntdColumnProps) =>
           (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
           "tag",
-        description: "按字段值配置显示文字和颜色；未配置的值自动分配颜色。",
+        description: "Map field values to labels and colors. Unmapped values are assigned colors automatically.",
         itemType: {
           type: "object",
           nameFunc: (item: TagOption) => item.label || item.value,
           fields: {
-            value: { type: "string", displayName: "字段值" },
-            label: { type: "string", displayName: "显示文字" },
-            color: { type: "color", displayName: "颜色" },
+            value: { type: "string", displayName: "Value" },
+            label: { type: "string", displayName: "Label" },
+            color: { type: "color", displayName: "Color" },
           },
         },
       },
       tagColor: {
         type: "color",
-        displayName: "默认标签颜色",
-        description: "留空时按字段值自动分配颜色；单项颜色优先。",
+        displayName: "Default tag color",
+        description: "When unset, colors are assigned by value. Individual item colors take precedence.",
         hidden: (ps: AntdColumnProps) =>
           (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
           "tag",
@@ -743,43 +749,44 @@ export function registerTable(loader?: Registerable) {
         type: "slot",
         renderPropParams: ["cell", "row", "index", "column"],
         hidePlaceholder: true,
-        displayName: "共享单元格模板",
+        displayName: "Custom render",
         hidden: (ps: AntdColumnProps) =>
           (ps.displayType ?? (ps.render ? "custom" : "text")) !== "custom",
       },
       align: {
         type: "choice",
-        displayName: "对齐方式",
+        displayName: "Align",
         options: [
-          { value: "left", label: "左对齐" },
-          { value: "right", label: "右对齐" },
-          { value: "center", label: "居中" },
+          { value: "left", label: "Left" },
+          { value: "right", label: "Right" },
+          { value: "center", label: "Center" },
         ],
         defaultValueHint: "left",
       },
       fixed: {
         type: "choice",
-        displayName: "固定列",
+        displayName: "Fixed",
         options: [
-          { value: "left", label: "左侧" },
-          { value: "right", label: "右侧" },
+          { value: "left", label: "Left" },
+          { value: "right", label: "Right" },
         ],
         advanced: true,
       },
       colSpan: {
         type: "number",
-        displayName: "合并列数",
+        displayName: "Col span",
         advanced: true,
       },
       width: {
         type: "number",
-        displayName: "列宽",
-        description: "整列宽度（像素），同时作用于表头和所有行。",
+        displayName: "Width",
+        description: "Column width in pixels. Applies to the header and all rows.",
       },
       ellipsis: {
         type: "boolean",
-        displayName: "超长内容省略",
-        description: "超长内容显示省略号，悬停可查看完整文字。",
+        displayName: "Ellipsis",
+        description:
+          "Show ellipsis and a Tooltip only when content overflows. Convert to an editable template to customize the Tooltip content.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",
@@ -788,7 +795,7 @@ export function registerTable(loader?: Registerable) {
 
   registerComponentHelper(loader, AntdColumnGroup, {
     name: "plasmic-antd6-table-column-group",
-    displayName: "列分组",
+    displayName: "Column Group",
     styleSections: false,
     parentComponentName: "plasmic-antd6-table",
     props: {

@@ -53,7 +53,7 @@ export const GraphQLEditor = (props: {
       <div className="flex-fill flex-left text-ellipsis">
         <Chip onClick={() => setShow(true)}>
           <span className="line-clamp-3 text-align-left">
-            {value ? JSON.stringify(value) : "未设置"}
+            {value ? JSON.stringify(value) : "unset"}
           </span>
         </Chip>
       </div>

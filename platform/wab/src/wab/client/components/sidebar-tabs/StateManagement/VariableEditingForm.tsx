@@ -20,6 +20,7 @@ import {
   NORMAL_STATE_VARIABLE_TYPES,
   NormalStateVariableType,
   StateAccessType,
+  getAccessTypeDisplayName,
   isReadonlyState,
   getDefaultValueForStateVariableType,
 } from "@/wab/shared/core/states";
@@ -33,6 +34,7 @@ import {
 import { convertVariableTypeToWabType } from "@/wab/shared/model/model-util";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Alert, notification } from "antd";
+import L from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 
@@ -110,7 +112,7 @@ export const VariableValueEditor = observer(function VariableValueEditor({
         <PropEditorRow
           viewCtx={viewCtx}
           tpl={component.tplTree}
-          label={"初始值"}
+          label={"Initial Value"}
           attr="initial-value"
           expr={state.param.defaultExpr ?? undefined}
           definedIndicator={{ source: "none" }}
@@ -123,7 +125,7 @@ export const VariableValueEditor = observer(function VariableValueEditor({
             );
             if (invalidMessage) {
               notification.error({
-                message: "无法设置初始值",
+                message: "Cannot set initial value",
                 description: invalidMessage,
               });
               return;
@@ -149,18 +151,18 @@ export const VariableValueEditor = observer(function VariableValueEditor({
           className="mb-m"
           type="warning"
           showIcon
-          message="初始值应保持稳定。随机数或当前时间请通过副作用设置。"
+          message="Unstable state initializers are not recommended. Use Side Effects for random or time based inputs."
         />
       )}
       {!hidePreview && <PropEditorRow
         viewCtx={viewCtx}
         tpl={component.tplTree}
-        label="预览值"
+        label="Preview value"
         attr="preview-value"
         about={
           state.implicitState && isReadonlyState(state.implicitState)
             ? PREVIEW_DISABLED_TOOLTIP_MESSAGE[state.implicitState.accessType]
-            : "临时设置变量值，预览组件的外观和交互。"
+            : `Temporarily set a value for this variable to preview how your component would look or behave.`
         }
         disabled={
           state.implicitState ? isReadonlyState(state.implicitState) : false
@@ -249,7 +251,7 @@ const VariableEditingForm = observer(
         {...rest}
         variableName={
           <StringEditor
-            label={state.implicitState ? "对外名称" : "名称"}
+            label={state.implicitState ? "External name" : "Name"}
             onChange={(val) =>
               onDraftChange ? onDraftChange({ name: val }) : COMMANDS.component.changeStateVariableName.execute(
                 studioCtx,
@@ -282,15 +284,7 @@ const VariableEditingForm = observer(
               ),
             children: NORMAL_STATE_VARIABLE_TYPES.map((stateType) => (
               <StyleSelect.Option value={stateType} key={stateType}>
-                {{
-                  text: "文本",
-                  number: "数字",
-                  boolean: "布尔值",
-                  array: "数组",
-                  object: "对象",
-                  dateString: "日期字符串",
-                  dateRangeStrings: "日期范围字符串",
-                }[stateType]}
+                {L.startCase(stateType)}
               </StyleSelect.Option>
             )),
           },
@@ -338,7 +332,7 @@ const VariableEditingForm = observer(
               );
               if (invalidMessage) {
                 notification.error({
-                  message: "无法设置访问类型",
+                  message: "Cannot set access type",
                   description: invalidMessage,
                 });
                 return;
@@ -358,11 +352,11 @@ const VariableEditingForm = observer(
               [
                 {
                   value: "readonly",
-                  label: "只读",
+                  label: getAccessTypeDisplayName("readonly"),
                 },
                 {
                   value: "writable",
-                  label: "可读写",
+                  label: getAccessTypeDisplayName("writable"),
                 },
               ] as { value: StateAccessType; label: string }[]
             ).map(({ label, value }) => (
@@ -380,12 +374,12 @@ const VariableEditingForm = observer(
         isImplicitState={!!state.tplNode}
         withFormButtons={mode === "new"}
         cancelButton={{
-          children: "取消",
+          children: "Cancel",
           onClick: () => onCancel?.(),
         }}
         confirmButton={{
           props: {
-            children: "确认",
+            children: "Confirm",
             "data-test-id": "confirm",
             onClick: () => onConfirm?.(),
           },

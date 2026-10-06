@@ -7,10 +7,10 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl }) {
     const url = win.webContents.getURL();
     try {
       const { response } = await dialog.showMessageBox(win, {
-        type: "warning", title: "Plasmic 工作窗口需要恢复",
-        message: unresponsive ? "编辑器暂时没有响应。" : kind === "load" ? "编辑器页面加载失败。" : "编辑器渲染进程已退出。",
-        detail: "服务器上已保存的设计会保留。重新加载可能丢失尚未保存的修改。",
-        buttons: unresponsive ? ["继续等待", "重新加载", "打开项目列表"] : ["重新加载", "打开项目列表", "取消"],
+        type: "warning", title: "Plasmic window recovery",
+        message: unresponsive ? "The editor is not responding." : kind === "load" ? "The editor failed to load." : "The editor renderer has exited.",
+        detail: "Designs saved on the server are preserved. Reloading may discard unsaved changes.",
+        buttons: unresponsive ? ["Keep Waiting", "Reload", "Open Dashboard"] : ["Reload", "Open Dashboard", "Cancel"],
         defaultId: 0, cancelId: unresponsive ? 0 : 2,
       });
       if (win.isDestroyed()) return;
@@ -20,7 +20,7 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl }) {
         await win.loadURL(homeUrl);
       }
     } catch (error) {
-      dialog.showErrorBox("恢复未完成", error.message);
+      dialog.showErrorBox("Recovery Failed", error.message);
     } finally { prompting = false; }
   };
   win.webContents.on("render-process-gone", (_event, details) => {

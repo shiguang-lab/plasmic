@@ -1,3 +1,4 @@
+import { SERVER_QUERY_PLURAL_CAP } from "@/wab/shared/Labels";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import {
   CustomCodePreview,
@@ -285,18 +286,18 @@ function ServerQueriesSection_(props: {
       id="server-queries-section"
       title={
         <LabelWithDetailedTooltip tooltip={ServerQueriesTooltip}>
-          数据查询
+          {SERVER_QUERY_PLURAL_CAP}
         </LabelWithDetailedTooltip>
       }
       emptyBody={component.serverQueries.length === 0}
-      emptyDescription="从外部数据源获取数据。"
+      emptyDescription="Fetch data from external sources."
       zeroBodyPadding
       controls={
         otherComponentsWithQueries.length > 0 ? (
           <IFrameAwareDropdownMenu menu={addMenu}>
             <IconLinkButton
               id="server-queries-add-btn"
-              aria-label="添加数据查询"
+              aria-label="Add data query"
               tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
             >
               <Icon icon={PlusIcon} />
@@ -305,7 +306,7 @@ function ServerQueriesSection_(props: {
         ) : (
           <IconLinkButton
             id="server-queries-add-btn"
-              aria-label="添加数据查询"
+              aria-label="Add data query"
             tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
             onClick={handleAddBlankQuery}
           >

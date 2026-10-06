@@ -51,7 +51,7 @@ test("Collapse default panel Slots use editable text schemas that the hostless p
  const { registerCollapse } = await import("../src/registerCollapse");
  const metas = new Map<string,any>(); registerCollapse({registerComponent:(_c,m)=>metas.set(m.name,m)} as Registerable);
  for(const panel of metas.get("plasmic-antd6-collapse").props.children.defaultValue) {
-  expect(panel.props.header).toEqual([{type:"text",value:`\u9762\u677f ${panel.props.key}`}]);
-  expect(panel.props.children).toEqual([{type:"text",value:`\u9762\u677f ${panel.props.key} \u5185\u5bb9`}]);
+  expect(panel.props.header).toEqual([{type:"text",value:`Panel ${panel.props.key}`}]);
+  expect(panel.props.children).toEqual([{type:"text",value:`Panel ${panel.props.key} content`}]);
  }
 });

@@ -2,9 +2,9 @@
 
 var Ant = require('antd');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-x9v6z73H.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
 var registerMenu = require('./registerMenu.cjs.js');
-var utils = require('./utils-DDtpTQdQ.cjs.js');
+var utils = require('./utils-CRCm44nj.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');

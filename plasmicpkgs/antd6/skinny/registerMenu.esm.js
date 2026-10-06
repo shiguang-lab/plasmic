@@ -1,8 +1,8 @@
 import { Menu } from 'antd';
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
-import { r as renderCanvasSlot } from './canvas-overlay-Do3TWgdx.esm.js';
+import { r as renderCanvasSlot } from './canvas-overlay-Dan70Oxr.esm.js';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
+import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
@@ -158,8 +158,8 @@ function registerMenu(loader) {
         defaultValueHint: "hover",
         advanced: true
       },
-      defaultOpenKeys: { type: "array", displayName: "\u521D\u59CB\u5C55\u5F00\u5B50\u83DC\u5355", description: "\u521D\u59CB\u5C55\u5F00\u7684\u5B50\u83DC\u5355 key\uFF1B\u7F16\u8F91\u65F6\u4E34\u65F6\u663E\u73B0\u9009\u4E2D\u5185\u5BB9\u4E0D\u4F1A\u6539\u53D8\u6B64\u503C\u3002" },
-      openKeys: { type: "array", displayName: "\u5C55\u5F00\u5B50\u83DC\u5355", advanced: true },
+      defaultOpenKeys: { type: "array", displayName: "Default open keys", description: "Initially expanded submenu keys. Temporary canvas reveals do not change this value." },
+      openKeys: { type: "array", displayName: "Open keys", advanced: true },
       onOpenChange: { type: "eventHandler", argTypes: [{ name: "openKeys", type: "object" }] },
       defaultSelectedKeys: {
         type: "array",

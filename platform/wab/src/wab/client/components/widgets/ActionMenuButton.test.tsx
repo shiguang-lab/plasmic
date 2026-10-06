@@ -8,16 +8,16 @@ it("names both real buttons when the tooltip contains rich content", async () =>
   const onClick = vi.fn();
   render(
     <ActionMenuButton
-      aria-label="代码集成"
+      aria-label="Code"
       tooltip={
         <>
-          <strong>接入代码</strong>
-          <span>项目说明</span>
+          <strong>Code integration</strong>
+          <span>Project information</span>
         </>
       }
       menu={
         <Menu>
-          <Menu.Item key="docs">文档</Menu.Item>
+          <Menu.Item key="docs">Docs</Menu.Item>
         </Menu>
       }
       onClick={onClick}
@@ -25,8 +25,8 @@ it("names both real buttons when the tooltip contains rich content", async () =>
       Code
     </ActionMenuButton>,
   );
-  fireEvent.click(screen.getByRole("button", { name: "代码集成" }));
+  fireEvent.click(screen.getByRole("button", { name: "Code" }));
   expect(onClick).toHaveBeenCalledOnce();
-  fireEvent.click(screen.getByRole("button", { name: "代码集成菜单" }));
-  expect(await screen.findByRole("menuitem", { name: "文档" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Code menu" }));
+  expect(await screen.findByRole("menuitem", { name: "Docs" })).toBeTruthy();
 });

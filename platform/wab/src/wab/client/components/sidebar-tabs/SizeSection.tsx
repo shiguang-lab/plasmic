@@ -1,3 +1,4 @@
+import { capitalizeFirst } from "@/wab/shared/strs";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import S from "@/wab/client/components/sidebar-tabs/SizeSection.module.scss";
 import {
@@ -118,7 +119,7 @@ class SizeSection_ extends StyleComponent<
       <StylePanelSection
         expsProvider={this.props.expsProvider}
         styleProps={sizeSectionProps}
-        title={"尺寸"}
+        title={"Size"}
         hasMore
         data-test-id="size-section"
       >
@@ -167,7 +168,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="最小宽度"
+                      label="Min Width"
                       styleName={`min-width`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -187,7 +188,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="最大宽度"
+                      label="Max Width"
                       styleName={`max-width`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -222,7 +223,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="最小高度"
+                      label="Min Height"
                       styleName={`min-height`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -242,7 +243,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="最大高度"
+                      label="Max Height"
                       styleName={`max-height`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -262,7 +263,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="宽高比"
+                      label="Aspect Ratio"
                       styleName="aspect-ratio"
                       disabledDragging
                       dimOpts={{
@@ -322,7 +323,7 @@ class SizeSection_ extends StyleComponent<
                 ),
                 content: (
                   <LabeledStyleDimItemRow
-                    label="基础尺寸"
+                    label="Flex basis"
                     styleName="flex-basis"
                     dimOpts={{
                       ...dimOpts,
@@ -354,7 +355,7 @@ export const SizeWidthOnlySection = observer(function SizeWidthOnlySection(
     <StylePanelSection
       expsProvider={expsProvider}
       styleProps={["width"]}
-      title={"尺寸"}
+      title={"Size"}
       data-test-id="size-width-section"
     >
       <FullRow>
@@ -505,7 +506,7 @@ const SizeControl = observer(function SizeRow(props: {
 
   return (
     <LabeledStyleDimItem
-      label={prop === "width" ? "宽度" : "高度"}
+      label={capitalizeFirst(prop)}
       className={S.dimField}
       styleName={prop}
       initialMenuItems={() =>
@@ -766,7 +767,7 @@ export const PageSizePanelSection = observer(
     );
     const sizeType = getPageFrameSizeType(arenaFrame);
     return (
-      <SidebarSection title="尺寸">
+      <SidebarSection title="Size">
         {
           // Using LabeleditemRow instead of LabeledStyleCheckboxItem
           // because we are carefully managing the height style, unlike
@@ -845,7 +846,7 @@ export const StretchyComponentSizePanelSection = observer(
     );
 
     return (
-      <SidebarSection title="尺寸">
+      <SidebarSection title="Size">
         <div>Stretchy components take up the entire artboard.</div>
         <FullRow>
           <SizeControl

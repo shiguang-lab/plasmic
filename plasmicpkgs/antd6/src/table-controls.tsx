@@ -44,11 +44,11 @@ export function TablePaginationControl({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <label style={rowStyle}>
-        显示分页{" "}
+        Show pagination{" "}
         <input
           type="checkbox"
           style={checkboxStyle}
-          aria-label="显示分页"
+          aria-label="Show pagination"
           checked={value !== false}
           onChange={(e) =>
             updateValue(e.target.checked ? { ...options } : false)
@@ -58,11 +58,11 @@ export function TablePaginationControl({
       {value !== false && (
         <>
           <label style={rowStyle}>
-            每页条数{" "}
+            Page size{" "}
             <input
               type="number"
               style={inputStyle}
-              aria-label="每页条数"
+              aria-label="Page size"
               min={1}
               step={1}
               value={options.pageSize ?? options.defaultPageSize ?? ""}
@@ -79,11 +79,11 @@ export function TablePaginationControl({
             />
           </label>
           <label style={rowStyle}>
-            可切换每页条数{" "}
+            Show size changer{" "}
             <input
               type="checkbox"
               style={checkboxStyle}
-              aria-label="可切换每页条数"
+              aria-label="Show size changer"
               checked={
                 options.showSizeChanger ??
                 (options.total ?? componentProps?.data?.data?.length ?? 0) > 50
@@ -92,11 +92,11 @@ export function TablePaginationControl({
             />
           </label>
           <label style={rowStyle}>
-            快速跳页{" "}
+            Show quick jumper{" "}
             <input
               type="checkbox"
               style={checkboxStyle}
-              aria-label="快速跳页"
+              aria-label="Show quick jumper"
               checked={options.showQuickJumper ?? false}
               onChange={(e) => update("showQuickJumper", e.target.checked)}
             />
@@ -121,13 +121,13 @@ export function TableScrollControl({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <label style={rowStyle}>
-        水平滚动宽度{" "}
+        Horizontal scroll width{" "}
         <input
           type="text"
           style={inputStyle}
-          aria-label="水平滚动宽度"
+          aria-label="Horizontal scroll width"
           value={options.x ?? ""}
-          placeholder="自动适应内容"
+          placeholder="Fit content"
           onChange={(e) => {
             const text = e.target.value.trim();
             update(
@@ -138,14 +138,14 @@ export function TableScrollControl({
         />
       </label>
       <label style={rowStyle}>
-        表体最大高度{" "}
+        Table body height{" "}
         <input
           type="number"
           style={inputStyle}
-          aria-label="表体最大高度"
+          aria-label="Table body height"
           min={1}
           value={options.y ?? ""}
-          placeholder="随内容增长"
+          placeholder="Grow with content"
           onChange={(e) => {
             if (!e.target.validity.valid) return;
             update("y", e.target.value === "" ? null : Number(e.target.value));

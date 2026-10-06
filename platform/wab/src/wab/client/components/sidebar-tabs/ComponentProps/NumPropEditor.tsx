@@ -107,7 +107,7 @@ export function InputNumPropEditor(props: InputNumPropEditorProps) {
         type="number" // https://ant.design/components/input-number#notes
         className="code textboxlike fill-width"
         size="small"
-        placeholder={props.defaultValueHint?.toString() ?? "未设置"}
+        placeholder={props.defaultValueHint?.toString() ?? "unset"}
         value={draft}
         onChange={(val) => {
           setDraft(val ?? undefined);

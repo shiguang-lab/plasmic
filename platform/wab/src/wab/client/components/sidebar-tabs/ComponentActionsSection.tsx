@@ -7,6 +7,7 @@ import { reportError } from "@/wab/client/ErrorNotifications";
 import { ConnectToDBTableModal } from "@/wab/client/components/sidebar-tabs/DataSource/ConnectToDBTable";
 import { updateOrCreateExpr } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { htmlForComponentAction } from "./component-action-html";
 import Button from "@/wab/client/components/widgets/Button";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -251,10 +252,10 @@ export function useStudioOps(
         .args.find((arg) => arg.param === param)?.expr;
       assert(
         !isKnownRenderExpr(existing) || !existing.tpl.length,
-        "该插槽已有内容。请编辑现有模板，避免覆盖修改。",
+        "This slot already has content. Edit the existing template to preserve your changes.",
       );
       const parsed = ensureOk(
-        await htmlToTpl(html, {
+        await htmlToTpl(htmlForComponentAction(html, viewCtx.site, tplComp.component), {
           site: viewCtx.site,
           vtm,
           appCtx: viewCtx.studioCtx.appCtx,
@@ -271,7 +272,7 @@ export function useStudioOps(
           .args.find((arg) => arg.param === param)?.expr;
         assert(
           !isKnownRenderExpr(current) || !current.tpl.length,
-          "该插槽已有内容。请编辑现有模板，避免覆盖修改。",
+          "This slot already has content. Edit the existing template to preserve your changes.",
         );
         const errors = parsed.finalize({
           component: viewCtx.currentComponent(),

@@ -1,8 +1,8 @@
 import { Popover } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Do3TWgdx.esm.js';
-import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

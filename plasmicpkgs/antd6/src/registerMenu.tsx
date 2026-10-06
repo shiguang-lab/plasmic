@@ -175,8 +175,8 @@ export function registerMenu(loader?: Registerable) {
         defaultValueHint: "hover",
         advanced: true,
       },
-      defaultOpenKeys: { type: "array", displayName: "初始展开子菜单", description: "初始展开的子菜单 key；编辑时临时显现选中内容不会改变此值。" },
-      openKeys: { type: "array", displayName: "展开子菜单", advanced: true },
+      defaultOpenKeys: { type: "array", displayName: "Default open keys", description: "Initially expanded submenu keys. Temporary canvas reveals do not change this value." },
+      openKeys: { type: "array", displayName: "Open keys", advanced: true },
       onOpenChange: { type: "eventHandler", argTypes: [{ name: "openKeys", type: "object" }] },
       defaultSelectedKeys: {
         type: "array",

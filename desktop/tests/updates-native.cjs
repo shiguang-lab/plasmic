@@ -49,13 +49,13 @@ app.whenReady().then(async () => {
   await window.loadURL(studioOrigin + "/delayed");
   assert.equal(await evaluate(`typeof window.updateStatus`), "function", "Update listeners must initialize before the sidebar mounts");
   await evaluate(`document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
-  assert.equal(await evaluate(`document.querySelector(".update-action")?.getAttribute("aria-label")`), "新版本 0.0.7 可用，点击下载");
+  assert.equal(await evaluate(`document.querySelector(".update-action")?.getAttribute("aria-label")`), "Version 0.0.7 is available. Click to download.");
   await window.loadURL(studioOrigin);
   assert.deepEqual(await evaluate(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
     return { parent: control.parentElement.tagName, placement: control.dataset.placement, position: getComputedStyle(control).position, icon: !!button.querySelector("svg"), width: button.getBoundingClientRect().width, label: button.getAttribute("aria-label"), visible: !control.hidden };
-  })()`), { parent: "FOOTER", placement: "footer", position: "relative", icon: true, width: 20, label: "新版本 0.0.7 可用，点击下载", visible: true });
+  })()`), { parent: "FOOTER", placement: "footer", position: "relative", icon: true, width: 20, label: "Version 0.0.7 is available. Click to download.", visible: true });
   window.show();
   window.webContents.focus();
   await evaluate(`document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`);

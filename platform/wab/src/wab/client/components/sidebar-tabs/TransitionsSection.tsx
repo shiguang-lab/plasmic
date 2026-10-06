@@ -164,7 +164,7 @@ class _TransitionsPanelSection extends StyleComponent<
         key={String(transitions.length > 0)}
         ref={this.sectionRef}
         expsProvider={this.props.expsProvider}
-        title="过渡动画"
+        title="Transitions"
         styleProps={transitionProps}
         onHeaderClick={transitions.length === 0 ? addTransition : undefined}
         controls={
@@ -184,7 +184,7 @@ class _TransitionsPanelSection extends StyleComponent<
             {index !== undefined && (
               <SidebarModal
                 show
-                title="过渡动画"
+                title="Transition"
                 onClose={() =>
                   this.setState({
                     index: undefined,

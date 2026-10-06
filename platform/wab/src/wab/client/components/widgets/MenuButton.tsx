@@ -31,7 +31,7 @@ function MenuButton(props: MenuButtonProps) {
   }
   const button = (
     <PlasmicMenuButton
-      root={{ "aria-label": props["aria-label"] ?? "更多操作" }}
+      root={{ "aria-label": props["aria-label"] ?? "More actions" }}
       onClick={(e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();

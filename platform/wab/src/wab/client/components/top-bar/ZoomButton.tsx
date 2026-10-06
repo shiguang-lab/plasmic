@@ -80,7 +80,7 @@ export const ZoomButton = observer(function ZoomButton() {
   return (
     <IFrameAwareDropdownMenu menu={menu}>
       <PlasmicZoomButton
-        root={{ props: { "aria-label": "缩放画布" } }}
+        root={{ props: { "aria-label": "Zoom" } }}
         children={`${Math.round(studioCtx.zoom * 100)}%`}
         disabled={studioCtx.currentArenaEmpty}
       />

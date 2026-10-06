@@ -100,7 +100,7 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
             />
           )}
           <LabeledStyleDimItemRow
-            label="宽度"
+            label="Width"
             styleName={[OutlineProps.width]}
             tokenType={"Spacing"}
             dimOpts={{

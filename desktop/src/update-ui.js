@@ -93,13 +93,13 @@
     control.hidden = !["available", "downloading", "downloaded", "installing", "error"].includes(phase);
     if (control.hidden) tooltip.hidePopover();
     const states = {
-      available: ["下载更新", `新版本 ${version} 可用，点击下载`, "download"],
-      downloading: [`${progress}%`, `正在下载 ${version} · ${progress}%`, "download"],
-      downloaded: ["更新", `更新可用 · ${version}，点击保存设计并重启安装`, "install"],
-      installing: ["正在安装", "正在保存设计并准备安装…", "install"],
-      error: ["重试", error || "更新失败，点击重试", status.retry || "check"],
+      available: ["Download Update", `Version ${version} is available. Click to download.`, "download"],
+      downloading: [`${progress}%`, `Downloading ${version} · ${progress}%`, "download"],
+      downloaded: ["Update", `Update available · ${version}. Click to save your design and restart to install.`, "install"],
+      installing: ["Installing", "Saving your design and preparing to install…", "install"],
+      error: ["Retry", error || "Update failed. Click to retry.", status.retry || "check"],
     };
-    const state = states[phase] || ["检查更新", "检查更新", "check"];
+    const state = states[phase] || ["Check for Updates", "Check for Updates", "check"];
     label.textContent = state[0];
     tooltip.textContent = state[1];
     button.setAttribute("aria-label", state[1]);

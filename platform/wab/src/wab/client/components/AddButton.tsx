@@ -42,7 +42,7 @@ function AddButton_(props: AddButtonProps, ref: HTMLElementRefOf<"button">) {
     <PlasmicAddButton
       {...props}
       root={{
-        "aria-label": "插入组件",
+        "aria-label": "Insert",
         ref,
         style: {
           width: 32,

@@ -2052,7 +2052,7 @@ const RightPane = observer(function RightPane(props: {
   if (focusedViewCtx && !studioCtx.focusedFrame()) {
     tabs.push(
       new widgets.Tab({
-        name: "属性",
+        name: "Settings",
         key: RightTabKey.settings,
         contents: () => (
           <StyleTabContext.Provider value={"settings-only"}>
@@ -2063,7 +2063,7 @@ const RightPane = observer(function RightPane(props: {
     );
     tabs.push(
       new widgets.Tab({
-        name: "样式",
+        name: "Design",
         key: RightTabKey.style,
         contents: () => (
           <StyleTabContext.Provider value={"style-only"}>
@@ -2080,8 +2080,8 @@ const RightPane = observer(function RightPane(props: {
     tabs.push(
       new widgets.Tab({
         name: isPageComponent(focusedOrFirstViewCtx.component)
-          ? "页面数据"
-          : "组件数据",
+          ? "Page data"
+          : "Component data",
         key: RightTabKey.component,
         contents: () => (
           <ComponentOrPageTab

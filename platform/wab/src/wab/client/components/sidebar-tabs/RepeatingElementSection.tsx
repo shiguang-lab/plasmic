@@ -59,13 +59,13 @@ export const RepeatingElementSection = observer(function (props: {
 
   return (
     <SidebarSection
-      title="重复元素"
+      title="Repeat element"
       isHeaderActive={!!dataRep}
       controls={
         !dataRep && (
           <IconLinkButton
             onClick={resetDataRep}
-            aria-label="设置重复元素"
+            aria-label="Repeat element"
             data-test-id="btn-repeating-element-add"
           >
             <Icon icon={PlusIcon} />
@@ -83,7 +83,7 @@ export const RepeatingElementSection = observer(function (props: {
                     });
                   }}
                 >
-                  取消重复
+                  Remove repetition
                 </Menu.Item>
               </Menu>
             )
@@ -94,7 +94,7 @@ export const RepeatingElementSection = observer(function (props: {
       {!!dataRep && (
         <>
           <LabeledItemRow
-            label="数据集合"
+            label="Collection"
             data-test-id="repeating-element-collection"
           >
             <DataPickerEditor
@@ -126,7 +126,7 @@ export const RepeatingElementSection = observer(function (props: {
             />
           </LabeledItemRow>
           <LabeledItemRow
-            label="当前项变量"
+            label="Element name"
             data-test-id="repeating-element-name"
           >
             <StringPropEditor
@@ -151,7 +151,7 @@ export const RepeatingElementSection = observer(function (props: {
             />
           </LabeledItemRow>
           <LabeledItemRow
-            label="索引变量"
+            label="Index name"
             data-test-id="repeating-element-index-name"
           >
             <StringPropEditor

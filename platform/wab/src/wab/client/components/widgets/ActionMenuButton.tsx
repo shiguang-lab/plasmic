@@ -50,7 +50,7 @@ const ActionMenuButton = React.forwardRef(function ActionMenuButton(
       }}
       menuTrigger={{
         props: {
-          "aria-label": `${label ?? (typeof props.children === "string" ? props.children : "操作")}菜单`,
+          "aria-label": `${label ?? (typeof props.children === "string" ? props.children : "Actions")} menu`,
         },
         wrap: (x) => (
           <IFrameAwareDropdownMenu

@@ -39,9 +39,9 @@ export function registerCollapse(loader?: Registerable) {
       accordion: { type: "boolean", defaultValueHint: false },
       items: {
         type: "array",
-        displayName: "原生 items 数据",
+        displayName: "Items",
         advanced: true,
-        description: "设置 items 时按 Ant Design 原生规则优先使用该数据。清除 items 后可在内容插槽中编辑富内容；ReactNode 内容也可以通过代码或数据绑定传入。",
+        description: "Items take precedence, as in Ant Design. Clear items to edit rich content in the children slot. ReactNode content can also be supplied through code or data binding.",
         itemType: {
           type: "object",
           fields: {
@@ -64,18 +64,18 @@ export function registerCollapse(loader?: Registerable) {
       },
       children: {
         type: "slot",
-        displayName: "折叠面板",
+        displayName: "Panels",
         allowedComponents: [collapsePanelComponentName],
         hidePlaceholder: true,
         hidden: (ps: any) => ps.items != null,
-        description: "面板标题和内容支持组件及布局。设置原生 items 数据时该插槽不参与渲染。",
+        description: "Panel headers and content support components and layouts. This slot is not rendered when items are set.",
         defaultValue: ["1", "2"].map((key) => ({
           type: "component" as const,
           name: collapsePanelComponentName,
           props: {
             key,
-            header: [{ type: "text" as const, value: `面板 ${key}` }],
-            children: [{ type: "text" as const, value: `面板 ${key} 内容` }],
+            header: [{ type: "text" as const, value: `Panel ${key}` }],
+            children: [{ type: "text" as const, value: `Panel ${key} content` }],
           },
         })),
       },
@@ -96,12 +96,12 @@ export function registerCollapse(loader?: Registerable) {
   registerComponentHelper(loader, AntdCollapsePanel, {
     name: collapsePanelComponentName,
     displayName: "Collapse.Panel",
-    description: "折叠面板的标题、内容和附加内容插槽。",
+    description: "Header, content, and extra slots for a collapse panel.",
     props: {
-      key: { type: "string", displayName: "面板标识", description: "同一 Collapse 中唯一的面板 key。" },
-      header: { type: "slot", displayName: "面板标题", defaultValue: "面板标题" },
-      children: { type: "slot", displayName: "面板内容", defaultValue: "面板内容" },
-      extra: { type: "slot", displayName: "附加内容", hidePlaceholder: true },
+      key: { type: "string", displayName: "Key", description: "A unique panel key within this Collapse." },
+      header: { type: "slot", displayName: "Header", defaultValue: "Header" },
+      children: { type: "slot", displayName: "Content", defaultValue: "Content" },
+      extra: { type: "slot", displayName: "Extra", hidePlaceholder: true },
       showArrow: { type: "boolean", defaultValueHint: true },
       forceRender: "boolean",
       collapsible: { type: "choice", options: ["header", "icon", "disabled"] },

@@ -327,7 +327,7 @@ export const ComponentPropsSection = observer(
             title={
               props.customTitle ??
               `${getComponentDisplayName(tpl.component)} ${
-                tab === "settings" ? "属性" : "内部样式"
+                tab === "settings" ? "props" : "nested styles"
               }`
             }
             hasCollapsibleContent={advancedParams.length > 0}
@@ -367,7 +367,7 @@ export const ComponentPropsSection = observer(
                     className="flex-col gap-xsm mb-m"
                     data-test-id="slot-content-navigation"
                   >
-                    <div className="dimfg">{title}：内容</div>
+                    <div className="dimfg">{title}: content</div>
                     {expr.tpl.map((child) => (
                       <Button
                         key={child.uuid}
@@ -383,7 +383,7 @@ export const ComponentPropsSection = observer(
                         {("name" in child && child.name) ||
                           (isKnownTplComponent(child)
                             ? getComponentDisplayName(child.component)
-                            : "文本 / 布局")}
+                            : "Text / layout")}
                       </Button>
                     ))}
                   </div>

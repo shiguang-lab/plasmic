@@ -417,7 +417,7 @@ function _TopBar({ preview }: TopBarProps) {
         freeTrial={team ? { team } : { render: () => null }}
         logoLink={{
           render: (props) => (
-            <Tooltip title={brand.logoTooltip ?? "返回项目列表"}>
+            <Tooltip title={brand.logoTooltip ?? "Back to dashboard"}>
               <PublicLink
                 {...props}
                 href={brand.logoHref ?? APP_ROUTES.dashboard.fill({})}
@@ -442,7 +442,7 @@ function _TopBar({ preview }: TopBarProps) {
         projectMenu={{
           props: {
             ...contextMenuProps,
-            "aria-label": "项目菜单",
+            "aria-label": "Project menu",
             "data-test-id": "project-menu-btn",
           },
           wrap: (n) =>
@@ -470,7 +470,7 @@ function _TopBar({ preview }: TopBarProps) {
           ),
         }}
         play={{
-          "aria-label": "预览当前画板",
+          "aria-label": "Preview",
           onClick: () => {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
@@ -485,7 +485,7 @@ function _TopBar({ preview }: TopBarProps) {
           ...{ "data-test-id": "enter-live-mode-btn" },
         }}
         stop={{
-          "aria-label": "返回编辑",
+          "aria-label": "Back to editor",
           onClick: () => {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
@@ -516,7 +516,7 @@ function _TopBar({ preview }: TopBarProps) {
         commentButton={{
           wrap: studioCtx.showComments() ? undefined : () => null,
           props: {
-            "aria-label": "评论",
+            "aria-label": "Comments",
             active: studioCtx.showCommentsPanel,
             onClick: () => studioCtx.toggleCommentsPanel(),
             "data-test-id": "top-comment-icon",
@@ -525,7 +525,7 @@ function _TopBar({ preview }: TopBarProps) {
         aiButton={{
           wrap: studioCtx.chatCopilotEnabled() ? undefined : () => null,
           props: {
-            "aria-label": "AI 编辑助手",
+            "aria-label": "AI assistant",
             active: studioCtx.isCopilotChatOpen,
             onClick: () => spawn(topFrameApi.toggleCopilotChat()),
           },
@@ -538,11 +538,11 @@ function _TopBar({ preview }: TopBarProps) {
         previewSelect={
           preview
             ? {
-                "aria-label": "选择页面或组件",
+                "aria-label": "Select component",
                 children: (
                   <>
                     {previewPages.length > 0 && (
-                      <Select.OptionGroup title="页面">
+                      <Select.OptionGroup title="Pages">
                         {naturalSort(previewPages, (c) => c.name).map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
                             <Icon icon={PageIcon} style={{ marginRight: 4 }} />
@@ -562,7 +562,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Select.OptionGroup>
                     )}
                     {previewComponents.length > 0 && (
-                      <Select.OptionGroup title="组件">
+                      <Select.OptionGroup title="Components">
                         {naturalSort(previewComponents, (c) => c.name).map(
                           (c) => (
                             <Select.Option key={c.uuid} value={c.uuid}>
@@ -577,7 +577,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Select.OptionGroup>
                     )}
                     {previewArtboards.length > 0 && (
-                      <Select.OptionGroup title="画板">
+                      <Select.OptionGroup title="Artboards">
                         {previewArtboards.map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
                             {c.name || "Unnamed artboard"}

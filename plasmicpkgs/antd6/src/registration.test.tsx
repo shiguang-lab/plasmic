@@ -343,14 +343,14 @@ test("visual components have sections and related children retain their parents"
       `plasmic-antd6-${parent}`,
     );
   }
-  assert.equal(components.get("plasmic-antd6-button")?.meta.section, "通用");
+  assert.equal(components.get("plasmic-antd6-button")?.meta.section, "General");
   assert.equal(
     components.get("plasmic-antd6-form")?.meta.section,
-    "数据输入",
+    "Data Entry",
   );
   assert.equal(
     components.get("plasmic-antd6-table")?.meta.section,
-    "数据展示",
+    "Data Display",
   );
 });
 
