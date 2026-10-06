@@ -37,3 +37,12 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 - Do not worry about styling/formatting. All files will be formatted to the same style in git hooks, which husky manages via the generated, gitignored `.husky/_` directory. In a fresh worktree that directory doesn't exist and git silently skips all hooks, so run `pnpm install` at the worktree root before your first commit.
 - When searching files, you should almost never look through node_modules/ files and other gitignored files unless you have a explicit reason to.
 - When you review a pull request or a diff, these files are the conventions to review it against.
+
+## Studio property panel and component contracts
+
+- Borrow Figma/Webflow patterns for panel organization, grouping, labels, and editing entry points. Do not introduce a separate designer-facing property model or a parallel persisted schema that translates into component props.
+- The component implementation's real props, slots, defaults, and event signatures define the contract. Build property controls from component registration metadata and keep that metadata consistent with the implementation. Display names and localization must not change persisted prop names, types, defaults, or behavior.
+- Declare necessary slot and edit-only/uncontrolled-prop mappings in the component registration or wrapper. Keep them explicit and verify the resulting runtime props; do not add another conversion layer in the property panel.
+- Keep temporary canvas states, such as revealing an inactive tab or opening an overlay for editing, separate from business state. Selection and navigation must not rewrite initial/runtime props or leak temporary overrides into saved designs, previews, or exports. Explicit user edits to initial/runtime props still use the normal undo and save flow.
+- Correct existing component contracts before reorganizing the panel. Verify the full path from registration metadata through the property control and saved Studio model to actual runtime props and rendered behavior.
+- Use shared selection and editing-state contracts for content reveal. Do not add component-name special cases to global selection logic.
