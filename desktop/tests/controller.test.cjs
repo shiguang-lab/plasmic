@@ -98,6 +98,33 @@ test("background inspection releases its frame after a failed read without navig
   controller.close();
 });
 
+test("exports pin the exact requested frame and release business rendering after failure", async () => {
+  const controller = new DesktopController(() => null, {});
+  const calls = [];
+  controller.editor = async (method, input) => {
+    calls.push({ method, input });
+    return { inspectionId: "export-lease" };
+  };
+  await assert.rejects(
+    controller.inspectCanvas(
+      { frameUuid: "selected-frame" },
+      async () => {
+        throw new Error("Capture failed");
+      },
+      true,
+    ),
+    /Capture failed/,
+  );
+  assert.deepEqual(calls, [
+    {
+      method: "beginCanvasInspection",
+      input: { frameUuid: "selected-frame", forExport: true },
+    },
+    { method: "endCanvasInspection", input: { inspectionId: "export-lease" } },
+  ]);
+  controller.close();
+});
+
 test("workspace screenshots capture the editor when a project uses a custom host", async () => {
   const calls = [];
   const win = {

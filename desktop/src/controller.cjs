@@ -473,6 +473,7 @@ class DesktopController {
             inspectionId,
             format: "pdf",
           }),
+          true,
         );
         const document = await PDFDocument.load(rendered.pdf);
         for (const copied of await merged.copyPages(
@@ -581,22 +582,46 @@ class DesktopController {
           width: image.getSize().width,
           height: image.getSize().height,
         };
-      });
+      }, method === "export_design");
     }
     throw new Error("Unknown desktop command");
   }
-  async inspectCanvas(input, read) {
+  async inspectCanvas(input, read, forExport = false) {
     if (input.mode === "workspace" && input.componentUuid) {
       throw new Error(
         "Workspace captures use the current canvas; use artboard mode to inspect componentUuid without navigation",
       );
     }
-    if (!input.componentUuid) {
+    if (!input.componentUuid && !forExport) {
       return read(undefined);
     }
-    const inspection = await this.editor("beginCanvasInspection", {
-      componentUuid: input.componentUuid,
-    });
+    const inspectionInput = {};
+    if (input.componentUuid)
+      inspectionInput.componentUuid = input.componentUuid;
+    if (forExport) {
+      inspectionInput.forExport = true;
+      if (input.frameUuid) inspectionInput.frameUuid = input.frameUuid;
+      else if (!input.componentUuid) {
+        const frames = await canvasFrames(this.getWindow());
+        const matching = input.artboardElementUuid
+          ? frames.filter(({ layout }) =>
+              layout.elements.some(
+                (element) => element.elementUuid === input.artboardElementUuid,
+              ),
+            )
+          : frames;
+        inspectionInput.frameUuid =
+          matching.length === 1
+            ? matching[0].layout.frameUuid
+            : (await this.editor("getEditorContext", {})).frameUuid;
+        if (!inspectionInput.frameUuid)
+          throw new Error("Select an artboard or specify frameUuid");
+      }
+    }
+    const inspection = await this.editor(
+      "beginCanvasInspection",
+      inspectionInput,
+    );
     try {
       return await read(inspection.inspectionId);
     } finally {

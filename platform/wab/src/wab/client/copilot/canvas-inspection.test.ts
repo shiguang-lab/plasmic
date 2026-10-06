@@ -8,6 +8,7 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplTag } from "@/wab/shared/core/tpls";
 import { ArenaFrame } from "@/wab/shared/model/classes";
+import { observable } from "mobx";
 
 function fixture() {
   const { studioCtx } = fakeStudioCtx();
@@ -17,6 +18,9 @@ function fixture() {
     tplTree: mkTplTag("div"),
   });
   const viewCtx = mockDeepAuto<ViewCtx>();
+  Object.defineProperty(viewCtx, "canvasExporting", {
+    value: observable.box(false),
+  });
   const doc = document.implementation.createHTMLDocument();
   const iframe = doc.documentElement;
   iframe.setAttribute("data-plasmic-canvas-inspection", "original");
@@ -97,4 +101,26 @@ it("expires abandoned inspections and restores the frame marker", async () => {
   } finally {
     vi.useRealTimers();
   }
+});
+
+it("exports the requested frame without editing reveals and restores them on release", async () => {
+  const { studioCtx, component, viewCtx, background, navigate } = fixture();
+  const inspection = await beginCanvasInspection(studioCtx, component, {
+    frameUuid: "frame",
+    forExport: true,
+  });
+  expect(viewCtx.canvasExporting.get()).toBe(true);
+  expect(background.mock.calls[0][2]).toEqual({ frameUuid: "frame" });
+  expect(navigate).not.toHaveBeenCalled();
+  await endCanvasInspection(studioCtx, inspection.inspectionId);
+  expect(viewCtx.canvasExporting.get()).toBe(false);
+});
+
+it("restores editing reveals even when preparing an export fails", async () => {
+  const { studioCtx, component, viewCtx } = fixture();
+  viewCtx.awaitSync.mockRejectedValueOnce(new Error("Render failed"));
+  await expect(
+    beginCanvasInspection(studioCtx, component, { forExport: true }),
+  ).rejects.toThrow("Render failed");
+  expect(viewCtx.canvasExporting.get()).toBe(false);
 });

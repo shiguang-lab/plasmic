@@ -1532,7 +1532,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     (studio, input) =>
       beginCanvasInspection(
         studio,
-        findComponent(studio, input.componentUuid, true),
+        input.componentUuid
+          ? findComponent(studio, input.componentUuid, true)
+          : undefined,
+        input,
       ),
   ),
   endCanvasInspection: defineCopilotTool(

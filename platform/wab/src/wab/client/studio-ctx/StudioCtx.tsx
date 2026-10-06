@@ -2934,16 +2934,35 @@ export class StudioCtx extends WithDbCtx {
    */
   private async loadBackgroundViewCtxForComponent(
     component: Component,
-    opts?: { timeoutMs?: number },
+    opts?: { timeoutMs?: number; frameUuid?: string },
   ): Promise<{ viewCtx: ViewCtx; arena: AnyArena } | undefined> {
-    const existing = this.tryGetLiveViewCtxForComponent(component);
+    const existing = opts?.frameUuid
+      ? this.viewCtxs.find(
+          (vc) =>
+            vc.arenaFrame().uuid === opts.frameUuid &&
+            vc.component === component,
+        )
+      : this.tryGetLiveViewCtxForComponent(component);
     if (existing) {
       const arena = this.getArenaForViewCtx(existing);
       if (arena) {
         return { viewCtx: existing, arena };
       }
     }
-    const resolved = this.resolveArenaFrameForComponent(component);
+    const frameArena = opts?.frameUuid
+      ? getSiteArenas(this.site)
+          .flatMap((arena) =>
+            getArenaFrames(arena).map((frame) => ({ arena, frame })),
+          )
+          .find(
+            ({ frame }) =>
+              frame.uuid === opts.frameUuid &&
+              frame.container.component === component,
+          )
+      : undefined;
+    const resolved = opts?.frameUuid
+      ? frameArena
+      : this.resolveArenaFrameForComponent(component);
     if (!resolved) {
       return undefined;
     }
@@ -2968,7 +2987,7 @@ export class StudioCtx extends WithDbCtx {
   withBackgroundViewCtxForComponent<T>(
     component: Component,
     cb: (viewCtx: ViewCtx) => Promise<T>,
-    opts?: { timeoutMs?: number },
+    opts?: { timeoutMs?: number; frameUuid?: string },
   ): Promise<T | undefined> {
     return this.serializeBackgroundRead(async () => {
       const resolved = await this.loadBackgroundViewCtxForComponent(

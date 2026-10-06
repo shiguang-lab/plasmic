@@ -66,6 +66,7 @@ function computeHashFromStableFields(node: TplNode, ctx: RenderingCtx) {
     ctx.isDraggingObject,
     ctx.viewCtx.studioCtx.isAutoOpenMode,
     ctx.viewCtx.disabledAutoOpenUuid,
+    ctx.viewCtx.canvasExporting.get(),
   ];
 }
 

@@ -466,6 +466,8 @@ export class ViewCtx extends WithDbCtx {
   private _autoOpenedUuid = observable.box<string | undefined>();
   private _autoOpenTransitioning = false;
 
+  readonly canvasExporting = observable.box(false);
+
   // One editing state per rendered instance. The source records whether the
   // next selection update may change it; business props are never modified.
   private _canvasOverlayStates = observable.map<

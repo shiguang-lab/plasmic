@@ -569,8 +569,14 @@ const EDIT_TOOL_META = {
     toolName: "beginCanvasInspection",
     title: "Prepare a background canvas read",
     description:
-      "Pin a rendered component canvas for a desktop inspection without changing the visible arena, selection or viewport. Use the returned inspectionId to find the marked canvas DOM. Always call endCanvasInspection, including after failures; the lease expires after two minutes.",
-    inputSchema: z.object({ componentUuid: uuid }).strict(),
+      "Pin a rendered component or exact frame for a desktop inspection without changing the visible arena, selection or viewport. forExport temporarily suppresses editing-only content reveals. Use the returned inspectionId to find the marked canvas DOM. Always call endCanvasInspection, including after failures; the lease expires after two minutes.",
+    inputSchema: z
+      .object({
+        componentUuid: uuid.optional(),
+        frameUuid: uuid.optional(),
+        forExport: z.boolean().optional(),
+      })
+      .strict(),
     outputSchema: z.object({
       inspectionId: uuid,
       componentUuid: uuid,

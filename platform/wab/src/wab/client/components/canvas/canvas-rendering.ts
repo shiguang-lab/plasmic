@@ -1333,6 +1333,7 @@ function getAutoOpenSelectionInfo(ctx: RenderingCtx, node: TplNode) {
 
       if (
         isInteractive ||
+        ctx.viewCtx.canvasExporting.get() ||
         !isAutoOpenMode ||
         disabledAutoOpenUuid ||
         !path ||
@@ -1808,7 +1809,9 @@ function renderTplComponent(
   if (isCodeComponent(node.component)) {
     const codeComponentSelectionInfo = getAutoOpenSelectionInfo(ctx, node);
     props[INTERNAL_CC_CANVAS_SELECTION_PROP] = codeComponentSelectionInfo;
-    if (
+    if (supportsCanvasOverlay(node) && ctx.viewCtx.canvasExporting.get()) {
+      props.previewOpen = undefined;
+    } else if (
       supportsCanvasOverlay(node) &&
       !ctx.viewCtx.studioCtx.isInteractiveMode
     ) {
