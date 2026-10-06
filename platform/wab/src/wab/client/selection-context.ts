@@ -31,6 +31,8 @@ export function selectionPath(viewCtx: ViewCtx, tpl: TplNode | SlotSelection) {
           node,
           elementUuid: owner.uuid,
           label: label || node.slotParam.variable.name,
+          repeated: false,
+          slotName: node.slotParam.variable.name,
           scope: shared ? ("shared-template" as const) : ("slot" as const),
         };
       }
@@ -38,12 +40,12 @@ export function selectionPath(viewCtx: ViewCtx, tpl: TplNode | SlotSelection) {
         node,
         elementUuid: node.uuid,
         label: ("name" in node && node.name) || summarizeTpl(node),
+        repeated: !!viewCtx.effectiveCurrentVariantSetting(node).dataRep,
+        slotName: null,
         scope:
           isKnownTplComponent(node) && !node.component.codeComponentMeta
             ? ("component-instance" as const)
-            : node.vsettings.some((vs) => vs.dataRep)
-              ? ("repeated-template" as const)
-              : ("element" as const),
+            : ("element" as const),
       };
     });
 }

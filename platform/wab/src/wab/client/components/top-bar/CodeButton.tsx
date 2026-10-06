@@ -81,6 +81,7 @@ export const CodeButton = observer(function CodeButton() {
     },
     disabled: isPlasmicLevels,
     tooltip: quickstartTooltipContent,
+    "aria-label": "代码集成",
   };
 
   return (
@@ -89,6 +90,7 @@ export const CodeButton = observer(function CodeButton() {
         button={{ ...props }}
         menuButton={{
           ...props,
+          "aria-label": "代码集成菜单",
           menu: () => (
             <Menu>
               <Menu.Item

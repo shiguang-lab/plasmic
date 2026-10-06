@@ -108,6 +108,30 @@ describe("AI prototype editor tools", () => {
       studioCtx.copilotActivity.dispose();
     },
   );
+  it("reports the active preview route independently of the retained editor selection", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const sql = await createPage("SQL");
+    vi.spyOn(studioCtx, "isLiveMode", "get").mockReturnValue(true);
+    Object.assign(studioCtx, {
+      previewCtx: {
+        component: sql,
+        previewPath: "/sql",
+        width: 1440,
+        height: 1024,
+      },
+    });
+    expect(await call("getEditorContext")).toMatchObject({
+      mode: "preview",
+      canEdit: false,
+      previewContext: {
+        componentUuid: sql.uuid,
+        path: "/sql",
+        width: 1440,
+        height: 1024,
+      },
+    });
+    studioCtx.copilotActivity.dispose();
+  });
   it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");

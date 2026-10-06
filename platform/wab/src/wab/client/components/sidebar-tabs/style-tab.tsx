@@ -26,6 +26,7 @@ import { makeVariantsController } from "@/wab/client/components/variants/Variant
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
 import SlotIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Slot";
+import { selectionPath } from "@/wab/client/selection-context";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isDedicatedArena } from "@/wab/shared/Arenas";
@@ -283,7 +284,6 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
 
   return providesStyleComponent(sc)(
     <NewAnimationContext.Provider value={newAnimationContextValue}>
-      <SelectionPath tpl={tpl} viewCtx={viewCtx} />
       {isTplSlot(tpl) && <TplSlotMessage tpl={tpl} viewCtx={viewCtx} />}
       {ancestorSlot && !isBase && !isCodeComponentSlot(ancestorSlot) && (
         <NonBaseTplSlotDescendantMessage
@@ -451,6 +451,16 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 : undefined
             }
           >
+            {(focused || tpl) && (
+              <SelectionPath
+                tpl={
+                  focused instanceof SlotSelection
+                    ? focused
+                    : (tpl ?? component.tplTree)
+                }
+                viewCtx={viewCtx}
+              />
+            )}
             {focused instanceof SlotSelection ? (
               <SlotSelectionMessage node={focused} viewCtx={viewCtx} />
             ) : tpl === component.tplTree && isCodeComponent(component) ? (
@@ -528,10 +538,10 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
           <div className="flex flex-vcenter">
             <Icon icon={SlotIcon} className="component-fg mr-sm" />
             <div className="code text-xlg flex-fill">
-              {node.slotParam.variable.name}
+              {selectionPath(viewCtx, node).at(-1)?.label}
             </div>
             <div className="ml-sm">
-              Slot for <code>{getComponentDisplayName(component)}</code>
+              所属组件：<code>{getComponentDisplayName(component)}</code>
             </div>
           </div>
           <p className="text-m">{node.slotParam.about}</p>
@@ -553,7 +563,7 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
                 })
               }
             >
-              Revert to default slot content
+              恢复此插槽的默认内容
             </Button>
           </SidebarSection>
         )}

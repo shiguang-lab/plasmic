@@ -666,3 +666,51 @@ test("preset conversion is an explicit component action and updates content and 
   });
   expect(replaceSlotContent).not.toHaveBeenCalled();
 });
+
+test.each([1, true, [1, true, null], null])(
+  "Tag presets and raw-value editable templates match for %j",
+  (value) => {
+    const options = [
+      { value: "1", label: "数字标签", color: "orange" },
+      { value: "true", label: "布尔标签", color: "purple" },
+    ];
+    const props = {
+      data: { data: [{ id: 1, status: value }] },
+      rowKey: "id",
+      pagination: false as const,
+    };
+    const { container, rerender } = render(
+      <AntdTable {...props}>
+        <AntdColumn dataIndex="status" displayType="tag" tagOptions={options} />
+      </AntdTable>,
+    );
+    const tags = () =>
+      [...container.querySelectorAll(".ant-tag")].map((node) => ({
+        text: node.textContent,
+        color: node.className.match(/ant-tag-(orange|purple|blue|green)/)?.[0],
+      }));
+    const before = tags();
+    rerender(
+      <AntdTable {...props}>
+        <AntdColumn
+          dataIndex="status"
+          displayType="custom"
+          templateType="tag"
+          tagOptions={options}
+          render={(_value, _row, _index, column: any) =>
+            column.values.map((item: any, index: number) => (
+              <AntdTag
+                key={index}
+                value={item}
+                options={column.tagOptions}
+                automaticColor
+              />
+            ))
+          }
+        />
+      </AntdTable>,
+    );
+    expect(tags()).toEqual(before);
+    if (value !== null) expect(before.length).toBeGreaterThan(0);
+  },
+);

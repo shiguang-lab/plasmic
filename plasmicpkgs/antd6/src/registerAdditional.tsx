@@ -1,4 +1,4 @@
-import { PropType } from "@plasmicapp/host";
+import { PropType, usePlasmicCanvasContext } from "@plasmicapp/host";
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import * as Ant from "antd";
 import dayjs from "dayjs";
@@ -55,15 +55,26 @@ export function AntdImage({
 }: React.ComponentProps<typeof Ant.Image> & {
   objectFit?: React.CSSProperties["objectFit"];
 }) {
+  const canvas = usePlasmicCanvasContext();
   return (
     <Ant.Image
       {...props}
+      preview={canvas && !canvas.interactive ? false : props.preview}
       style={{ ...style, ...(objectFit ? { objectFit } : {}) }}
     />
   );
 }
-export const AntdImagePreviewGroup: typeof Ant.Image.PreviewGroup =
-  Ant.Image.PreviewGroup;
+export function AntdImagePreviewGroup(
+  props: React.ComponentProps<typeof Ant.Image.PreviewGroup>,
+) {
+  const canvas = usePlasmicCanvasContext();
+  return (
+    <Ant.Image.PreviewGroup
+      {...props}
+      preview={canvas && !canvas.interactive ? false : props.preview}
+    />
+  );
+}
 export const AntdLayout: typeof Ant.Layout = Ant.Layout;
 export const AntdLayoutHeader: typeof Ant.Layout.Header = Ant.Layout.Header;
 export const AntdLayoutFooter: typeof Ant.Layout.Footer = Ant.Layout.Footer;
@@ -123,12 +134,13 @@ export function AntdTag({
   color,
   ...props
 }: React.ComponentProps<typeof Ant.Tag> & {
-  value?: string;
+  value?: string | number | boolean;
   options?: TagValueOption[];
   defaultColor?: string;
   automaticColor?: boolean;
 }) {
-  const option = options?.find((item) => item.value === value);
+  const text = value == null ? "" : String(value);
+  const option = options?.find((item) => item.value === text);
   const colors = [
     "blue",
     "green",
@@ -139,7 +151,7 @@ export function AntdTag({
     "red",
     "gold",
   ];
-  const hash = Array.from(value ?? "").reduce(
+  const hash = Array.from(text).reduce(
     (current, char) => (current * 31 + char.charCodeAt(0)) >>> 0,
     0,
   );
@@ -153,7 +165,7 @@ export function AntdTag({
           (automaticColor ? colors[hash % colors.length] : undefined))
       }
     >
-      {children ?? option?.label ?? value}
+      {children ?? option?.label ?? text}
     </Ant.Tag>
   );
 }

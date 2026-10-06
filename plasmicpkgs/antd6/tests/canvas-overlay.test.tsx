@@ -500,3 +500,21 @@ test("all editing overrides are pruned from generated code rather than mapped to
     { slot: "menuItems", event: "onAction", args: { key: { prop: "key" } } },
   ]);
 });
+
+test.each([false, true])(
+  "Image preview follows canvas interaction mode (interactive=%s)",
+  async (interactive) => {
+    const { AntdImage, AntdImagePreviewGroup } =
+      await import("../src/registerAdditional");
+    const { container } = render(
+      <Canvas interactive={interactive}>
+        <AntdImagePreviewGroup>
+          <AntdImage src="/image.png" preview={{ open: true }} />
+        </AntdImagePreviewGroup>
+      </Canvas>,
+    );
+    fireEvent.click(container.querySelector("img")!);
+    if (interactive) expect(await screen.findByRole("dialog")).toBeTruthy();
+    else expect(screen.queryByRole("dialog")).toBeNull();
+  },
+);

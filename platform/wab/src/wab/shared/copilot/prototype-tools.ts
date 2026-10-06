@@ -482,7 +482,7 @@ const EDIT_TOOL_META = {
     toolName: "getEditorContext",
     title: "Read the current editing context",
     description:
-      "Read the focused artboard, selected elements and editing path, including shared/repeated templates. Does not change selection or the design.",
+      "Read the focused artboard, selected elements and editing path, including shared/repeated templates and selected slots. previewContext identifies the active preview page and viewport separately from the retained editing context. Does not change selection or the design.",
     inputSchema: z.object({}).strict(),
     outputSchema: z.object({
       componentUuid: uuid.nullable(),
@@ -491,15 +491,27 @@ const EDIT_TOOL_META = {
       instanceIndex: z.number().int().nullable(),
       mode: z.enum(["edit", "preview"]),
       canEdit: z.boolean(),
+      selectedSlot: z
+        .object({ elementUuid: uuid, slotName: z.string() })
+        .nullable(),
+      previewContext: z
+        .object({
+          componentUuid: uuid.nullable(),
+          path: z.string().nullable(),
+          width: z.number(),
+          height: z.number(),
+        })
+        .nullable(),
       path: z.array(
         z.object({
           elementUuid: uuid,
           label: z.string(),
+          repeated: z.boolean(),
+          slotName: z.string().nullable(),
           scope: z.enum([
             "element",
             "slot",
             "shared-template",
-            "repeated-template",
             "component-instance",
           ]),
         }),

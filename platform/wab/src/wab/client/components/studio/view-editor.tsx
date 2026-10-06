@@ -1756,10 +1756,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       const vc = studioCtx.createViewCtx(frame, canvasCtx);
       const doc = canvasCtx.$doc().get(0);
 
-      // We use pointer events instead of mouse events because they fire first, and we want to try to block events from firing in the user app.
-      // We may even eventually want to be more aggressively capturing pointer events. This would let us prevent more listeners from the user app from firing.
-      doc.addEventListener("pointerdown", (e) =>
-        spawn(this.handleMouseDown(e, vc)),
+      // Select before user components can respond to a pointer press.
+      doc.addEventListener(
+        "pointerdown",
+        (e) => spawn(this.handleMouseDown(e, vc)),
+        true,
       );
       doc.addEventListener("pointerup", (e) => this.handleMouseUp(e, vc));
       doc.addEventListener("pointermove", (e) =>

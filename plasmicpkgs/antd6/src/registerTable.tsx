@@ -11,6 +11,7 @@ import type {
 import React from "react";
 import { AntdTag } from "./registerAdditional";
 import { columnTemplateHtml } from "./table-column-template";
+import { TablePaginationControl, TableScrollControl } from "./table-controls";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
 
 export interface TagOption {
@@ -454,14 +455,15 @@ export const AntdTable = React.forwardRef(function AntdTable(
 export function registerTable(loader?: Registerable) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
-    displayName: "Table",
+    displayName: "表格",
     props: {
       data: {
         type: "dataSourceOpData" as any,
-        displayName: "Data",
+        displayName: "数据",
       },
       children: {
         type: "slot",
+        displayName: "列配置",
         allowedComponents: [
           "plasmic-antd6-table-column",
           "plasmic-antd6-table-column-group",
@@ -469,26 +471,36 @@ export function registerTable(loader?: Registerable) {
       },
       bordered: {
         type: "boolean",
+        displayName: "显示边框",
         defaultValueHint: false,
         advanced: true,
       },
       size: {
         type: "choice",
-        options: ["small", "medium", "large"],
+        displayName: "行密度",
+        options: [
+          { value: "small", label: "紧凑" },
+          { value: "medium", label: "适中" },
+          { value: "large", label: "宽松" },
+        ],
         defaultValueHint: "large",
       },
       pagination: {
-        type: "object",
-        description:
-          "Ant Design pagination options, or false to hide pagination.",
+        type: "custom",
+        displayName: "分页",
+        control: TablePaginationControl,
+        description: "设置分页和每页条数；数据绑定可控制完整分页配置。",
       },
       scroll: {
-        type: "object",
+        type: "custom",
+        displayName: "滚动区域",
+        control: TableScrollControl,
         description:
-          "Scrollable table viewport: x is the content width; y is the body height.",
+          "水平宽度支持像素、百分比或 max-content；留空自动适应内容。表体高度留空时随内容增长。",
       },
       onChange: {
         type: "eventHandler",
+        displayName: "分页、筛选或排序变化",
         argTypes: [
           { name: "pagination", type: "object" },
           { name: "filters", type: "object" },
@@ -498,28 +510,34 @@ export function registerTable(loader?: Registerable) {
       },
       isSelectable: {
         type: "choice",
-        options: ["single", "multiple"],
-        displayName: "Select rows?",
+        options: [
+          { value: "single", label: "单选" },
+          { value: "multiple", label: "多选" },
+        ],
+        displayName: "行选择方式",
       },
       rowKey: {
         type: "choice",
+        displayName: "行标识字段",
+        description: "选择每行唯一且稳定的字段，用于记录行选择。",
         options: (_ps: any, ctx: any) => {
-          if (ctx.schema) {
+          if (ctx?.schema) {
             return ctx.schema.fields.map((f: any) => ({
               value: f.id,
               label: f.label || f.id,
             }));
           }
-          return [];
+          return Object.keys(ctx?.data?.[0] ?? {});
         },
         hidden: (ps: any) => !ps.isSelectable,
       },
       selectedRowKeys: {
         type: "choice",
+        displayName: "已选行标识",
         multiSelect: (ps: any) => ps.isSelectable === "multiple",
         options: (ps: any, ctx: any) => {
           const key = ps.rowKey;
-          if (key && ctx.data) {
+          if (key && ctx?.data) {
             return ctx.data.map((r: any) => r[key]);
           }
           return [];
@@ -528,11 +546,13 @@ export function registerTable(loader?: Registerable) {
       },
       onSelectedRowKeysChange: {
         type: "eventHandler",
+        displayName: "已选行标识变化",
         argTypes: [{ name: "keys", type: "object" }],
         hidden: (ps: any) => !ps.isSelectable,
       },
       onSelectedRowsChange: {
         type: "eventHandler",
+        displayName: "已选行数据变化",
         argTypes: [{ name: "rows", type: "object" }],
         hidden: (ps: any) => !ps.isSelectable,
       },
@@ -553,21 +573,21 @@ export function registerTable(loader?: Registerable) {
     },
     refActions: {
       selectRowByIndex: {
-        displayName: "Select row by index",
+        displayName: "按序号选择行",
         argTypes: [
           {
             name: "index",
-            displayName: "Index",
+            displayName: "行序号",
             type: "number",
           },
         ],
       },
       selectRowByKey: {
-        displayName: "Select row by key",
+        displayName: "按标识选择行",
         argTypes: [
           {
             name: "key",
-            displayName: "Row key",
+            displayName: "行标识",
             type: "string",
           },
         ],
@@ -637,8 +657,7 @@ export function registerTable(loader?: Registerable) {
       displayLabel: {
         type: "string",
         displayName: "显示文字",
-        description:
-          "Leave empty to use the field value. Also used as image alternative text.",
+        description: "留空时使用字段值，也用作图片替代文字。",
         hidden: (ps: AntdColumnProps) =>
           !["link", "button", "avatar", "image"].includes(
             (ps.displayType === "custom" ? ps.templateType : ps.displayType) ??
@@ -665,8 +684,8 @@ export function registerTable(loader?: Registerable) {
       },
       onCellClick: {
         type: "eventHandler",
-        description:
-          "Runs when the column's button, link, or avatar is clicked, including in custom content.",
+        displayName: "点击单元格",
+        description: "点击本列的按钮、链接或头像时触发，也适用于自定义内容。",
         argTypes: [
           { name: "cell", type: "object" },
           { name: "row", type: "object" },
@@ -712,16 +731,26 @@ export function registerTable(loader?: Registerable) {
       },
       align: {
         type: "choice",
-        options: ["left", "right", "center"],
+        displayName: "对齐方式",
+        options: [
+          { value: "left", label: "左对齐" },
+          { value: "right", label: "右对齐" },
+          { value: "center", label: "居中" },
+        ],
         defaultValueHint: "left",
       },
       fixed: {
         type: "choice",
-        options: ["left", "right"],
+        displayName: "固定列",
+        options: [
+          { value: "left", label: "左侧" },
+          { value: "right", label: "右侧" },
+        ],
         advanced: true,
       },
       colSpan: {
         type: "number",
+        displayName: "合并列数",
         advanced: true,
       },
       width: {
@@ -731,8 +760,8 @@ export function registerTable(loader?: Registerable) {
       },
       ellipsis: {
         type: "boolean",
-        description:
-          "Ellipsize overflowing cells; Ant Design preserves the full value in the title.",
+        displayName: "超长内容省略",
+        description: "超长内容显示省略号，悬停可查看完整文字。",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",

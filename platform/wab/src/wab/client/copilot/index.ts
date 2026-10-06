@@ -1403,6 +1403,29 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         ? vc?.renderState.tpl2fullKeys(tpl).indexOf(val.fullKey)
         : undefined;
     return {
+      selectedSlot:
+        val instanceof SlotSelection
+          ? {
+              elementUuid: val.getTpl().uuid,
+              slotName: val.slotParam.variable.name,
+            }
+          : null,
+      previewContext:
+        studio.isLiveMode && studio.previewCtx
+          ? {
+              componentUuid: studio.previewCtx.component?.uuid ?? null,
+              path: studio.previewCtx.previewPath,
+              width: studio.previewCtx.width,
+              height: studio.previewCtx.height,
+            }
+          : studio.isInteractiveMode && vc
+            ? {
+                componentUuid: vc.currentComponent().uuid,
+                path: vc.currentComponent().pageMeta?.path ?? null,
+                width: vc.arenaFrame().width,
+                height: getFrameHeight(vc.arenaFrame()),
+              }
+            : null,
       componentUuid: vc?.currentComponent()?.uuid ?? null,
       frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
       selectedElementUuids:

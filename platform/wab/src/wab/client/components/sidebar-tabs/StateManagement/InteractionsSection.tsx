@@ -105,7 +105,7 @@ function InteractionsSection_(props: InteractionsSectionProps) {
   return (
     <SidebarSection
       id="component-interactions-section"
-      title="Interactions"
+      title="交互"
       controls={
         <AddHandlerFunctionButton
           tpl={tpl}

@@ -25,6 +25,33 @@ async function inspectCanvas() {
       getComputedStyle(el).visibility !== "hidden" &&
       getComputedStyle(el).opacity !== "0",
   );
+  // Clone only for semantic text extraction; retain the live DOM for geometry.
+  const textRoot = root.cloneNode(true);
+  const textElements = [...textRoot.querySelectorAll("*")];
+  const texts = new Map(elements.map((el) => [el, ""]));
+  const sourceElements = [...root.querySelectorAll("*")];
+  sourceElements.forEach((el, index) => {
+    const style = getComputedStyle(el);
+    if (
+      ["SCRIPT", "STYLE", "LINK", "TEMPLATE"].includes(el.tagName) ||
+      el.hidden ||
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      style.opacity === "0" ||
+      el.hasAttribute("data-plasmic-editor-only")
+    ) {
+      textElements[index].remove();
+    }
+  });
+  sourceElements.forEach((el, index) => {
+    if (texts.has(el))
+      texts.set(
+        el,
+        textRoot.contains(textElements[index])
+          ? (textElements[index].textContent || "").trim().slice(0, 120)
+          : "",
+      );
+  });
   return {
     ready:
       !!document.querySelector(".__wab_val_root") ||
@@ -63,7 +90,7 @@ async function inspectCanvas() {
         index,
         elementUuid: valKey?.split(".").at(-1) || null,
         tag: el.tagName.toLowerCase(),
-        text: (el.textContent || "").trim().slice(0, 120),
+        text: texts.get(el),
         classes: el.className?.baseVal ?? el.className,
         x: rect.x,
         y: rect.y,

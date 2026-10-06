@@ -6,6 +6,7 @@ import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasH
 import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegexp";
 import { CopilotActivityOverlay } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import { absorbEditingCanvasEvent } from "@/wab/client/components/canvas/canvas-interactions";
 import {
   absorbLinkClick,
   closestTaggedNonTextDomElt,
@@ -182,21 +183,26 @@ export const CanvasFrame = observer(function CanvasFrame({
         studioCtx.handleWheel(e, topClientX, topClientY);
       };
 
-      const handleDoubleClick = (e: JQuery.DoubleClickEvent) => {
+      const handleDoubleClick = (e: MouseEvent) => {
         if (
+          studioCtx.isLiveMode ||
           studioCtx.isInteractiveMode ||
-          viewCtx().viewOps.isEditing(e.target)
+          viewCtx().viewOps.isEditing(e.target as HTMLElement)
         ) {
           // If we're in interactive mode or currently editing the event target,
           // then let the browser handle the interaction
           return;
         }
 
-        const actualTarget: HTMLElement = isCanvasOverlay($(e.target))
-          ? canvasCtx().getActualTargetUnderCanvasOverlay(e.clientX, e.clientY)
-          : e.target;
+        const target = e.target as HTMLElement;
+        const actualTarget = isCanvasOverlay($(target))
+          ? (canvasCtx().getActualTargetUnderCanvasOverlay(
+              e.clientX,
+              e.clientY,
+            ) ?? target)
+          : target;
 
-        const $target = $(actualTarget);
+        const $target = $(actualTarget as HTMLElement);
         if (!(
           $target.is(canvasCtx().$userBody()) || $target.is(canvasCtx().$html())
         )) {
@@ -248,40 +254,27 @@ export const CanvasFrame = observer(function CanvasFrame({
           return;
         }
 
-        // When a user e.g. clicks a link in the canvas, we don't want to follow it,
-        // so we we always suppress default events.  The one exception is when a
-        // user starts editing a text span---we want them to be able to click to
-        // move the cursor around, so we have to enable mouseup events (but only for
-        // that specific edited element).  We're just lucky that mouseup is what
-        // moves the cursor while click is what triggers most default actions (like
-        // following links).
-        e.stopPropagation();
-        if (!(e.type === "mouseup" && viewCtx().viewOps.isEditing(e.target))) {
-          return e.preventDefault();
-        }
+        absorbEditingCanvasEvent(e, viewCtx());
       };
 
       // Prevent the frame from ever receiving focus.  We generally won't get
       // here
       // because the mousedown handler in the iframe also controls the focus.
       ctx.viewport().addEventListener("focus", onFocus);
-      // We need to prevent event defaults / stop propagations from reaching the
-      // actual components in the canvas - in editing mode, we don't want them
-      // responding to clicks/hovers/etc.  But we don't need to do this from
-      // *capture* events - we can just rely on normal event bindings here, so
-      // long as they are attached to something beneath the document (in this
-      // case, the $html).  This is because React's event listeners all
-      // attach to the document, and since document is at a higher level than
-      // $html, $html's events fire first.
-      ctx
-        .$html()
-        .on("keydown", handleKeyDown)
-        .on("keyup", handleKeyUp)
-        .on("dblclick", handleDoubleClick)
-        .on("mouseup", absorbEvent)
-        .on("mouseover", absorbEvent)
-        .on("mouseout", absorbEvent)
-        .on("click", absorbEvent);
+      // Capture before React's root listeners. Selection uses pointer events;
+      // text editing and runtime preview keep their native interaction.
+      const html = ctx.$html().get(0);
+      const absorbedEvents = [
+        "click",
+        "mouseup",
+        "mouseover",
+        "mouseout",
+      ] as const;
+      for (const event of absorbedEvents) {
+        html.addEventListener(event, absorbEvent, true);
+      }
+      html.addEventListener("dblclick", handleDoubleClick, true);
+      ctx.$html().on("keydown", handleKeyDown).on("keyup", handleKeyUp);
 
       const unbindShortcutHandlers = bindShortcutHandlers(
         ctx.$html().get(0),
@@ -321,15 +314,11 @@ export const CanvasFrame = observer(function CanvasFrame({
 
       disposeRef.current = () => {
         console.log("new dispose");
-        ctx
-          .$html()
-          .off("keydown", handleKeyDown)
-          .off("keyup", handleKeyUp)
-          .off("dblclick", handleDoubleClick)
-          .off("mouseup", absorbEvent)
-          .off("mouseover", absorbEvent)
-          .off("mouseout", absorbEvent)
-          .off("click", absorbEvent);
+        ctx.$html().off("keydown", handleKeyDown).off("keyup", handleKeyUp);
+        for (const event of absorbedEvents) {
+          html.removeEventListener(event, absorbEvent, true);
+        }
+        html.removeEventListener("dblclick", handleDoubleClick, true);
         unbindShortcutHandlers();
         ctx.$html().get(0).removeEventListener("wheel", onWheel);
         ctx.viewport().removeEventListener("focus", onFocus);

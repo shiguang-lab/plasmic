@@ -297,3 +297,21 @@ test("same-sized artboards use explicit frame identity or focused frame and reje
     second.window.close();
   }
 });
+
+test("layout text excludes descendant CSS, scripts and hidden content", async () => {
+  const source = domFor(
+    '<body><main class="__wab_val_root"><section><style data-plasmic-editor-style>.selected{outline:1px solid blue}</style><script type="application/json">{"secret":"noise"}</script><span style="display:none">Hidden data</span><span data-plasmic-editor-only>Editor hint</span><span>Visible status</span></section></main></body>',
+  );
+  const controller = new DesktopController(() => windowFor(source), {});
+  controller.ready = async () => {};
+  try {
+    const layout = await controller.dispatch("snapshot_layout", {});
+    const section = layout.frames[0].elements.find(
+      (el) => el.tag === "section",
+    );
+    assert.equal(section.text, "Visible status");
+  } finally {
+    controller.close();
+    source.window.close();
+  }
+});

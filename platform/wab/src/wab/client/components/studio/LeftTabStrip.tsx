@@ -438,6 +438,7 @@ Help
       showAvatar
       insert={{
         props: {
+          "aria-label": "插入组件",
           onClick: () => {
             studioCtx.tourActionEvents.dispatch({
               type: TutorialEventsType.AddButtonClicked,
