@@ -160,6 +160,10 @@ function snapshotDocument() {
   policy.httpEquiv = "Content-Security-Policy";
   policy.content = `script-src 'nonce-${nonce}'; object-src 'none'; frame-src 'none'; form-action 'none'`;
   head.prepend(policy);
+  clone.querySelectorAll('meta[charset], meta[http-equiv="Content-Type" i]').forEach((el) => el.remove());
+  const encoding = document.createElement("meta");
+  encoding.setAttribute("charset", "utf-8");
+  head.prepend(encoding);
   const style = document.createElement("style");
   style.textContent =
     css +

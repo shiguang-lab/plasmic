@@ -159,6 +159,8 @@ test("static export preserves live form values and both scroll axes while removi
     });
     // The standalone HTML has the same restoration path, independent of Electron.
     const html = domFor(result.html);
+    assert.ok(result.html.indexOf('<meta charset="utf-8">') < 1024);
+    assert.equal(html.window.document.querySelectorAll("meta[charset]").length, 1);
     await new Promise((resolve) =>
       html.window.addEventListener("load", resolve, { once: true }),
     );
