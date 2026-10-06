@@ -5,11 +5,11 @@ import { Box } from "@/wab/shared/geom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
-function setup(crowded: boolean) {
+function setup(crowded: boolean, frameWidth = 1000, clientWidth = 1000) {
   const vc = mockDeepAuto<ViewCtx>();
   const iframe = document.createElement("iframe");
-  Object.defineProperty(iframe, "clientWidth", { value: 1000 });
-  iframe.getBoundingClientRect = () => new DOMRect(0, 0, 1000, 700);
+  Object.defineProperty(iframe, "clientWidth", { value: clientWidth });
+  iframe.getBoundingClientRect = () => new DOMRect(0, 0, frameWidth, 700);
   vc.canvasCtx.viewport.mockReturnValue(iframe);
   vc.canvasCtx.doc.mockReturnValue(document);
   vc.viewportCtx.clipperBox.mockReturnValue(new Box(0, 0, 1000, 700));
@@ -62,4 +62,12 @@ it("hides a crowded label and lets input reach the canvas", () => {
   const style = screen.getByTestId("placement").style;
   expect(style.pointerEvents).toBe("none");
   expect(style.visibility).toBe("hidden");
+});
+
+it.each([[0, 1000], [0, 0]])("hides labels when an arena canvas is not laid out (%s / %s)", (frameWidth, clientWidth) => {
+  const vc = setup(false, frameWidth, clientWidth);
+  expect(vc.canvasCtx.getActualTargetUnderCanvasOverlay).not.toHaveBeenCalled();
+  const style = screen.getByTestId("placement").style;
+  expect(style.visibility).toBe("hidden");
+  expect(style.pointerEvents).toBe("none");
 });

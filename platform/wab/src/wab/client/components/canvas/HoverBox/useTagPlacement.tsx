@@ -19,6 +19,14 @@ export function useTagPlacement(
     const iframe = viewCtx.canvasCtx.viewport();
     const frameBounds = iframe.getBoundingClientRect();
     const scale = frameBounds.width / iframe.clientWidth;
+    if (!Number.isFinite(scale) || scale <= 0) {
+      setPlacement((current) =>
+        current.visibility === "hidden" && current.pointerEvents === "none"
+          ? current
+          : { visibility: "hidden", pointerEvents: "none" },
+      );
+      return;
+    }
     const doc = viewCtx.canvasCtx.doc();
     const canvasBounds = viewCtx.viewportCtx.clipperBox();
     const w = tag.offsetWidth;
