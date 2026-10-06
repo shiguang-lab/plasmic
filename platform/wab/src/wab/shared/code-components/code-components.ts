@@ -849,7 +849,7 @@ function typeCheckRegistrations(ctx: SiteCtx) {
       ];
       const checkReactComponent = (val: React.ComponentType<any>) => {
         // Check for React component
-        const hostWin = window.parent as typeof window;
+        const hostWin = typeof window === "undefined" ? globalThis : window.parent as typeof window;
         const res = canComponentTakeRef(val, ctx.getRootSubReact(), hostWin);
         return !res.isErr();
       };
@@ -5324,4 +5324,5 @@ export function appendCodeComponentMetaToModel(
 
 export const _testonly = {
   findDuplicateAriaParams,
+  typeCheckRegistrations,
 };
