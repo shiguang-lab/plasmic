@@ -90,7 +90,7 @@ export const CodeButton = observer(function CodeButton() {
         button={{ ...props }}
         menuButton={{
           ...props,
-          "aria-label": "代码集成菜单",
+          "aria-label": "代码集成",
           menu: () => (
             <Menu>
               <Menu.Item

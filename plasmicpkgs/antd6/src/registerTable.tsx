@@ -298,8 +298,25 @@ function TableWithColumns({
       ),
     });
   }
+  // Default page size initializes runtime pagination once. While authoring,
+  // reflect edits immediately without turning the published prop into controlled state.
+  const pagination =
+    props.pagination !== false && canvas && !canvas.interactive
+      ? {
+          ...props.pagination,
+          pageSize:
+            props.pagination?.pageSize ?? props.pagination?.defaultPageSize,
+        }
+      : props.pagination;
   if (columns !== undefined) {
-    return <Table {...props} columns={columns} components={components} />;
+    return (
+      <Table
+        {...props}
+        pagination={pagination}
+        columns={columns}
+        components={components}
+      />
+    );
   }
   const body =
     typeof components?.body === "object" ? components.body : undefined;
@@ -314,6 +331,7 @@ function TableWithColumns({
       )}
       <Table
         {...props}
+        pagination={pagination}
         data-plasmic-canvas-part-scope={
           canvas && !canvas.interactive ? "true" : undefined
         }

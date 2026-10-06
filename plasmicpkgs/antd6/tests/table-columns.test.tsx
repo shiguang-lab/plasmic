@@ -714,3 +714,21 @@ test.each([1, true, [1, true, null], null])(
     if (value !== null) expect(before.length).toBeGreaterThan(0);
   },
 );
+
+test("authoring immediately previews changes to the uncontrolled default page size", () => {
+  const table = (pageSize: number) => (
+    <Canvas>
+      <AntdTable
+        data={data}
+        rowKey="id"
+        pagination={{ defaultPageSize: pageSize }}
+      >
+        <AntdColumn title="Name" dataIndex="name" />
+      </AntdTable>
+    </Canvas>
+  );
+  const { container, rerender } = render(table(3));
+  expect(container.querySelectorAll("tr[data-row-key]")).toHaveLength(3);
+  rerender(table(2));
+  expect(container.querySelectorAll("tr[data-row-key]")).toHaveLength(2);
+});

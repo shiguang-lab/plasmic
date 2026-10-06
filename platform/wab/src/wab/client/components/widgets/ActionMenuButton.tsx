@@ -14,13 +14,24 @@ interface ActionMenuButtonProps extends DefaultActionMenuButtonProps {
   href?: string;
   target?: string;
   tooltip?: React.ReactNode;
+  "aria-label"?: string;
 }
 
 const ActionMenuButton = React.forwardRef(function ActionMenuButton(
   props: ActionMenuButtonProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const { menu, onClick, href, target, tooltip, ...rest } = props;
+  const {
+    menu,
+    onClick,
+    href,
+    target,
+    tooltip,
+    "aria-label": ariaLabel,
+    ...rest
+  } = props;
+  const label =
+    ariaLabel ?? (typeof tooltip === "string" ? tooltip : undefined);
   const [tooltipVisible, setTooltipVisible] = React.useState(false);
   const [menuVisible, setMenuVisible] = React.useState(false);
 
@@ -28,10 +39,19 @@ const ActionMenuButton = React.forwardRef(function ActionMenuButton(
     <PlasmicActionMenuButton
       {...rest}
       actionButton={{
-        props: { onClick, href, target, className: "btn-link" },
+        props: {
+          onClick,
+          href,
+          target,
+          className: "btn-link",
+          "aria-label": label,
+        },
         as: href ? "a" : "button",
       }}
       menuTrigger={{
+        props: {
+          "aria-label": `${label ?? (typeof props.children === "string" ? props.children : "操作")}菜单`,
+        },
         wrap: (x) => (
           <IFrameAwareDropdownMenu
             menu={menu}

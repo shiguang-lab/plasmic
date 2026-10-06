@@ -4,7 +4,7 @@ import {
 } from "@plasmicapp/host";
 import "@plasmicapp/host/registerComponent";
 import "@plasmicapp/host/registerGlobalContext";
-import { Avatar, Button, Image, Input, InputNumber, Switch, Table } from "antd";
+import { Avatar, Button, Image, Table } from "antd";
 import "dayjs";
 import React from "react";
 import "./canvas-overlay-BurdwRe9.esm.js";
@@ -76,6 +76,31 @@ function columnTemplateHtml(props) {
   }
 }
 
+const rowStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 8,
+};
+const inputStyle = {
+  appearance: "auto",
+  width: 120,
+  minWidth: 0,
+  height: 26,
+  border: "1px solid #ddd",
+  borderRadius: 4,
+  padding: "2px 6px",
+  boxSizing: "border-box",
+  background: "white",
+  color: "#333",
+  font: "inherit",
+};
+const checkboxStyle = {
+  appearance: "auto",
+  width: 16,
+  height: 16,
+  accentColor: "#1677ff",
+};
 function TablePaginationControl({ value, updateValue, componentProps }) {
   const options = value && typeof value === "object" ? value : {};
   const update = (key, next) => {
@@ -89,14 +114,15 @@ function TablePaginationControl({ value, updateValue, componentProps }) {
     { style: { display: "flex", flexDirection: "column", gap: 8 } },
     /* @__PURE__ */ React.createElement(
       "label",
-      null,
+      { style: rowStyle },
       "\u663E\u793A\u5206\u9875",
       " ",
-      /* @__PURE__ */ React.createElement(Switch, {
-        size: "small",
+      /* @__PURE__ */ React.createElement("input", {
+        type: "checkbox",
+        style: checkboxStyle,
         "aria-label": "\u663E\u793A\u5206\u9875",
         checked: value !== false,
-        onChange: (enabled) => updateValue(enabled ? { ...options } : false),
+        onChange: (e) => updateValue(e.target.checked ? { ...options } : false),
       }),
     ),
     value !== false &&
@@ -105,47 +131,52 @@ function TablePaginationControl({ value, updateValue, componentProps }) {
         null,
         /* @__PURE__ */ React.createElement(
           "label",
-          null,
+          { style: rowStyle },
           "\u6BCF\u9875\u6761\u6570",
           " ",
-          /* @__PURE__ */ React.createElement(InputNumber, {
+          /* @__PURE__ */ React.createElement("input", {
+            type: "number",
+            style: inputStyle,
             "aria-label": "\u6BCF\u9875\u6761\u6570",
-            size: "small",
             min: 1,
-            precision: 0,
-            value: options.pageSize ?? options.defaultPageSize,
+            step: 1,
+            value: options.pageSize ?? options.defaultPageSize ?? "",
             placeholder: "10",
-            onChange: (next) =>
+            onChange: (e) => {
+              if (!e.target.validity.valid) return;
               update(
                 options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
-                next,
-              ),
+                e.target.value === "" ? null : Number(e.target.value),
+              );
+            },
           }),
         ),
         /* @__PURE__ */ React.createElement(
           "label",
-          null,
+          { style: rowStyle },
           "\u53EF\u5207\u6362\u6BCF\u9875\u6761\u6570",
           " ",
-          /* @__PURE__ */ React.createElement(Switch, {
-            size: "small",
+          /* @__PURE__ */ React.createElement("input", {
+            type: "checkbox",
+            style: checkboxStyle,
             "aria-label": "\u53EF\u5207\u6362\u6BCF\u9875\u6761\u6570",
             checked:
               options.showSizeChanger ??
               (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
-            onChange: (next) => update("showSizeChanger", next),
+            onChange: (e) => update("showSizeChanger", e.target.checked),
           }),
         ),
         /* @__PURE__ */ React.createElement(
           "label",
-          null,
+          { style: rowStyle },
           "\u5FEB\u901F\u8DF3\u9875",
           " ",
-          /* @__PURE__ */ React.createElement(Switch, {
-            size: "small",
+          /* @__PURE__ */ React.createElement("input", {
+            type: "checkbox",
+            style: checkboxStyle,
             "aria-label": "\u5FEB\u901F\u8DF3\u9875",
             checked: options.showQuickJumper ?? false,
-            onChange: (next) => update("showQuickJumper", next),
+            onChange: (e) => update("showQuickJumper", e.target.checked),
           }),
         ),
       ),
@@ -164,11 +195,12 @@ function TableScrollControl({ value, updateValue }) {
     { style: { display: "flex", flexDirection: "column", gap: 8 } },
     /* @__PURE__ */ React.createElement(
       "label",
-      null,
+      { style: rowStyle },
       "\u6C34\u5E73\u6EDA\u52A8\u5BBD\u5EA6",
       " ",
-      /* @__PURE__ */ React.createElement(Input, {
-        size: "small",
+      /* @__PURE__ */ React.createElement("input", {
+        type: "text",
+        style: inputStyle,
         "aria-label": "\u6C34\u5E73\u6EDA\u52A8\u5BBD\u5EA6",
         value: options.x ?? "",
         placeholder: "\u81EA\u52A8\u9002\u5E94\u5185\u5BB9",
@@ -183,16 +215,20 @@ function TableScrollControl({ value, updateValue }) {
     ),
     /* @__PURE__ */ React.createElement(
       "label",
-      null,
+      { style: rowStyle },
       "\u8868\u4F53\u6700\u5927\u9AD8\u5EA6",
       " ",
-      /* @__PURE__ */ React.createElement(InputNumber, {
-        size: "small",
+      /* @__PURE__ */ React.createElement("input", {
+        type: "number",
+        style: inputStyle,
         "aria-label": "\u8868\u4F53\u6700\u5927\u9AD8\u5EA6",
         min: 1,
-        value: options.y,
+        value: options.y ?? "",
         placeholder: "\u968F\u5185\u5BB9\u589E\u957F",
-        onChange: (next) => update("y", next),
+        onChange: (e) => {
+          if (!e.target.validity.valid) return;
+          update("y", e.target.value === "" ? null : Number(e.target.value));
+        },
       }),
     ),
   );
@@ -414,9 +450,18 @@ function TableWithColumns({ children, columns, components, ...props }) {
         ),
     });
   }
+  const pagination =
+    props.pagination !== false && canvas && !canvas.interactive
+      ? {
+          ...props.pagination,
+          pageSize:
+            props.pagination?.pageSize ?? props.pagination?.defaultPageSize,
+        }
+      : props.pagination;
   if (columns !== void 0) {
     return /* @__PURE__ */ React.createElement(Table, {
       ...props,
+      pagination,
       columns,
       components,
     });
@@ -434,6 +479,7 @@ function TableWithColumns({ children, columns, components, ...props }) {
       ),
     /* @__PURE__ */ React.createElement(Table, {
       ...props,
+      pagination,
       "data-plasmic-canvas-part-scope":
         canvas && !canvas.interactive ? "true" : void 0,
       columns: getColumns(
