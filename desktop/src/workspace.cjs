@@ -87,9 +87,9 @@ function fileMenu({ controller, workspace, getWindow, dialog, refresh, state }) 
       await workspace.capture(controller);
       refresh();
     }) },
-    { id: "desktop-export", label: "导出当前画板…", enabled: !!(state?.ready && state.editorContext?.frameUuid), click: run(async () => {
+    { id: "desktop-export", label: "导出当前画板…", enabled: !!(state?.ready && state.editorContext?.mode === "edit" && state.editorContext.frameUuid), click: run(async () => {
       const state = await controller.state();
-      if (!state.ready || !state.editorContext?.frameUuid) { refresh(); return; }
+      if (!state.ready || state.editorContext?.mode !== "edit" || !state.editorContext.frameUuid) { refresh(); return; }
       const output = await dialog.showSaveDialog(getWindow(), {
         title: "导出当前画板", defaultPath: "画板.png",
         filters: [{ name: "PNG", extensions: ["png"] }, { name: "PDF", extensions: ["pdf"] }, { name: "静态 HTML 快照", extensions: ["html"] }],
@@ -113,6 +113,6 @@ function fileMenu({ controller, workspace, getWindow, dialog, refresh, state }) 
 }
 function updateFileMenuContext(menu, state) {
   menu.getMenuItemById("desktop-save").enabled = !!(state?.ready && state.editorContext?.canEdit);
-  menu.getMenuItemById("desktop-export").enabled = !!(state?.ready && state.editorContext?.frameUuid);
+  menu.getMenuItemById("desktop-export").enabled = !!(state?.ready && state.editorContext?.mode === "edit" && state.editorContext.frameUuid);
 }
 module.exports = { DesktopWorkspace, fileMenu, updateFileMenuContext };

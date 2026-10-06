@@ -40,8 +40,9 @@ test("native menu availability follows ready, preview, permission and frame cont
   const save = menu.submenu.find(entry => entry.id === "desktop-save");
   const exp = menu.submenu.find(entry => entry.id === "desktop-export");
   assert.equal(save.enabled, false);
-  assert.equal(exp.enabled, true);
+  assert.equal(exp.enabled, false);
   await save.click();
+  await exp.click();
   assert.deepEqual(calls, []);
   assert.deepEqual(errors, []);
   const { updateFileMenuContext } = require("../src/workspace.cjs");
@@ -50,6 +51,9 @@ test("native menu availability follows ready, preview, permission and frame cont
   updateFileMenuContext(native, state);
   assert.equal(save.enabled, true);
   assert.equal(exp.enabled, false);
+  updateFileMenuContext(native, { ready: true, editorContext: { mode: "edit", canEdit: false, frameUuid: "frame" } });
+  assert.equal(save.enabled, false);
+  assert.equal(exp.enabled, true);
   updateFileMenuContext(native, { ready: false });
   assert.equal(save.enabled, false);
 });
@@ -59,7 +63,7 @@ for (const fail of [false, true]) test(`native export ${fail ? "failure preserve
     const dest = path.join(dir, "existing.png");
     fs.writeFileSync(dest, "original");
     const errors = [];
-    const state = { ready: true, editorContext: { frameUuid: "frame" } };
+    const state = { ready: true, editorContext: { mode: "edit", frameUuid: "frame" } };
     const controller = { state: async () => state, dispatch: async (name,input) => {
       assert.equal(name, "export_design");
       assert.equal(input.format, "png");
