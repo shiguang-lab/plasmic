@@ -84,7 +84,11 @@ function registerCollapse(loader) {
         defaultValue: ["1", "2"].map((key) => ({
           type: "component",
           name: collapsePanelComponentName,
-          props: { key, header: `\u9762\u677F ${key}`, children: `\u9762\u677F ${key} \u5185\u5BB9` }
+          props: {
+            key,
+            header: [{ type: "text", value: `\u9762\u677F ${key}` }],
+            children: [{ type: "text", value: `\u9762\u677F ${key} \u5185\u5BB9` }]
+          }
         }))
       },
       bordered: { type: "boolean", defaultValueHint: true },

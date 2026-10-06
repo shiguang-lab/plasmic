@@ -72,7 +72,11 @@ export function registerCollapse(loader?: Registerable) {
         defaultValue: ["1", "2"].map((key) => ({
           type: "component" as const,
           name: collapsePanelComponentName,
-          props: { key, header: `面板 ${key}`, children: `面板 ${key} 内容` },
+          props: {
+            key,
+            header: [{ type: "text" as const, value: `面板 ${key}` }],
+            children: [{ type: "text" as const, value: `面板 ${key} 内容` }],
+          },
         })),
       },
       bordered: { type: "boolean", defaultValueHint: true },
