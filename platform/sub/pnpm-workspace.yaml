@@ -6,3 +6,5 @@ minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - "@plasmicapp/*"
   - "@plasmicpkgs/*"
+patchedDependencies:
+  '@rc-component/util@1.13.0': patches/@rc-component__util@1.13.0.patch

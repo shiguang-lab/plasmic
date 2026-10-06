@@ -1,0 +1,28 @@
+diff --git a/es/Dom/findDOMNode.js b/es/Dom/findDOMNode.js
+index 93d27d197bcf493f6944bfbf4f9c421b6b9c6ce2..3278cb3d6a5f285a3bd3828fa058d534aeb906db 100644
+--- a/es/Dom/findDOMNode.js
++++ b/es/Dom/findDOMNode.js
+@@ -1,7 +1,8 @@
+ export function isDOM(node) {
+   // https://developer.mozilla.org/en-US/docs/Web/API/Element
+   // Since XULElement is also subclass of Element, we only need HTMLElement and SVGElement
+-  return node instanceof HTMLElement || node instanceof SVGElement;
++  const view = node?.ownerDocument?.defaultView;
++  return !!view && (node instanceof view.HTMLElement || node instanceof view.SVGElement);
+ }
+ 
+ /**
+diff --git a/lib/Dom/findDOMNode.js b/lib/Dom/findDOMNode.js
+index 108bcca04eb2e7aea2d302bf43149e7599c46e23..c789051af2b1410b209d3ccbb12bf25e43cf5e8c 100644
+--- a/lib/Dom/findDOMNode.js
++++ b/lib/Dom/findDOMNode.js
+@@ -9,7 +9,8 @@ exports.isDOM = isDOM;
+ function isDOM(node) {
+   // https://developer.mozilla.org/en-US/docs/Web/API/Element
+   // Since XULElement is also subclass of Element, we only need HTMLElement and SVGElement
+-  return node instanceof HTMLElement || node instanceof SVGElement;
++  const view = node?.ownerDocument?.defaultView;
++  return !!view && (node instanceof view.HTMLElement || node instanceof view.SVGElement);
+ }
+ 
+ /**
