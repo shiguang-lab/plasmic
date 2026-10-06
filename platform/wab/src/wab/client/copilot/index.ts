@@ -1394,6 +1394,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   }),
   getEditorContext: defineCopilotTool(meta.getEditorContext, async (studio) => {
     const vc = studio.focusedViewCtx();
+    const previewFrame = studio.isLiveMode
+      ? document.querySelector<HTMLIFrameElement>('[data-test-id="live-frame"]')
+      : null;
     const val = vc?.focusedSelectable();
     const tpl =
       vc?.focusedTpl(false) ??
@@ -1414,9 +1417,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         studio.isLiveMode && studio.previewCtx
           ? {
               componentUuid: studio.previewCtx.component?.uuid ?? null,
-              path: studio.previewCtx.previewPath,
-              width: studio.previewCtx.width,
-              height: studio.previewCtx.height,
+              path: `/${studio.previewCtx.previewPath.replace(/^\/+/, "")}`,
+              width: previewFrame?.clientWidth || studio.previewCtx.width,
+              height: previewFrame?.clientHeight || studio.previewCtx.height,
             }
           : studio.isInteractiveMode && vc
             ? {

@@ -115,11 +115,18 @@ describe("AI prototype editor tools", () => {
     Object.assign(studioCtx, {
       previewCtx: {
         component: sql,
-        previewPath: "/sql",
-        width: 1440,
-        height: 1024,
+        previewPath: "sql",
+        width: 320,
+        height: 480,
       },
     });
+    const previewFrame = document.createElement("iframe");
+    previewFrame.dataset.testId = "live-frame";
+    Object.defineProperties(previewFrame, {
+      clientWidth: { value: 1440 },
+      clientHeight: { value: 1024 },
+    });
+    document.body.appendChild(previewFrame);
     expect(await call("getEditorContext")).toMatchObject({
       mode: "preview",
       canEdit: false,
@@ -130,6 +137,7 @@ describe("AI prototype editor tools", () => {
         height: 1024,
       },
     });
+    previewFrame.remove();
     studioCtx.copilotActivity.dispose();
   });
   it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
