@@ -47,9 +47,18 @@ function registerAvatar(loader) {
         type: "imageUrl",
         description: "Image to display",
       },
+      alt: {
+        type: "string",
+        description: "Alternative text for the avatar image",
+      },
       size: {
         type: "choice",
-        options: ["small", "medium", "large"],
+        options: (ps) => [
+          "small",
+          "medium",
+          "large",
+          ...(typeof ps.size === "number" ? [ps.size] : []),
+        ],
         description: "Set the size of avatar",
         defaultValueHint: "medium",
       },

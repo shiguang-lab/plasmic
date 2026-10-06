@@ -1,7 +1,319 @@
-import { Table } from "antd";
-import type { TableRowSelection } from "antd/es/table/interface";
+import {
+  usePlasmicCanvasComponentInfo,
+  usePlasmicCanvasContext,
+} from "@plasmicapp/host";
+import { Avatar, Button, Image, Table, Tag } from "antd";
+import type {
+  ColumnGroupType,
+  ColumnType,
+  TableRowSelection,
+} from "antd/es/table/interface";
 import React from "react";
-import { asArray, Registerable, registerComponentHelper } from "./utils";
+import { Registerable, asArray, registerComponentHelper } from "./utils";
+
+interface TagOption {
+  value: string;
+  label?: string;
+  color?: string;
+}
+
+export type AntdColumnProps = ColumnType<any> & {
+  displayType?:
+    "text" | "tag" | "link" | "avatar" | "image" | "button" | "custom";
+  tagOptions?: TagOption[];
+  tagColor?: string;
+  displayLabel?: string;
+  contentSize?: number;
+  openInNewTab?: boolean;
+  onCellClick?: (cell: unknown, row: any, index: number) => void;
+  children?: React.ReactNode;
+  className?: string;
+  __plasmic_selection_prop__?: unknown;
+  __plasmic_cell__?: {
+    type: React.ElementType;
+    props: React.HTMLAttributes<HTMLElement>;
+  };
+};
+
+const tagColors = [
+  "blue",
+  "green",
+  "orange",
+  "purple",
+  "cyan",
+  "magenta",
+  "red",
+  "gold",
+];
+
+function renderColumnValue(
+  value: unknown,
+  props: AntdColumnProps,
+  row: any,
+  rowIndex: number,
+  isEditing: boolean,
+) {
+  const text = value == null ? "" : String(value);
+  const label = props.displayLabel ?? text;
+  const size = props.contentSize ?? 32;
+  const onClick = isEditing
+    ? undefined
+    : () => props.onCellClick?.(value, row, rowIndex);
+  switch (props.displayType) {
+    case "link":
+      return text ? (
+        <a
+          href={text}
+          target={props.openInNewTab ? "_blank" : undefined}
+          rel={props.openInNewTab ? "noopener noreferrer" : undefined}
+          onClick={onClick}
+        >
+          {label}
+        </a>
+      ) : null;
+    case "avatar":
+      return text ? (
+        <Avatar src={text} size={size} alt={label} onClick={onClick} />
+      ) : null;
+    case "image":
+      return text ? (
+        <Image
+          src={text}
+          width={size}
+          height={size}
+          alt={label}
+          preview={!isEditing}
+          style={{ objectFit: "cover" }}
+        />
+      ) : null;
+    case "button":
+      return (
+        <Button size="small" onClick={onClick}>
+          {label}
+        </Button>
+      );
+  }
+  if (props.displayType !== "tag") {
+    return text;
+  }
+  return asArray(value)
+    .filter((item) => item != null)
+    .map((item, index) => {
+      const tagText = String(item);
+      const option = props.tagOptions?.find(
+        (candidate) => candidate.value === tagText,
+      );
+      // Color depends on the value, so sorting and pagination cannot change it.
+      const hash = Array.from(tagText).reduce(
+        (currentHash, char) => (currentHash * 31 + char.charCodeAt(0)) >>> 0,
+        0,
+      );
+      return (
+        <Tag
+          key={index}
+          color={
+            option?.color ||
+            props.tagColor ||
+            tagColors[hash % tagColors.length]
+          }
+        >
+          {option?.label ?? tagText}
+        </Tag>
+      );
+    });
+}
+
+/** Rendering the original column elements gives Studio a selectable Fiber for every cell. */
+export function AntdColumn(props: AntdColumnProps) {
+  const canvas = usePlasmicCanvasContext();
+  const selection = usePlasmicCanvasComponentInfo(props);
+  const cell = props.__plasmic_cell__;
+  if (!cell) {
+    return null;
+  }
+  const isEditing = !!canvas && !canvas.interactive;
+  const isSelected = isEditing && selection?.isSelected;
+  return React.createElement(
+    cell.type,
+    {
+      ...cell.props,
+      className:
+        [cell.props.className, props.className].filter(Boolean).join(" ") ||
+        undefined,
+      onClick: isEditing
+        ? (event: React.MouseEvent) => event.preventDefault()
+        : cell.props.onClick,
+      "data-plasmic-table-column": isEditing ? "true" : undefined,
+      "data-plasmic-table-column-selected": isSelected || undefined,
+      style: {
+        ...cell.props.style,
+        ...(isSelected
+          ? { outline: "1px solid #1677ff", background: "#e6f4ff" }
+          : {}),
+      },
+    },
+    props.children,
+  );
+}
+
+export const AntdColumnGroup = Object.assign(
+  function AntdColumnGroup(props: AntdColumnProps) {
+    return <AntdColumn {...props} />;
+  },
+  { __ANT_TABLE_COLUMN_GROUP: true },
+);
+
+interface TableColumnCellProps extends React.HTMLAttributes<HTMLElement> {
+  __plasmic_column__?: {
+    element: React.ReactElement<AntdColumnProps>;
+    type: React.ElementType;
+  };
+}
+
+function renderTableCell(
+  { __plasmic_column__: column, ...props }: TableColumnCellProps,
+  type: "td" | "th",
+) {
+  return column
+    ? React.cloneElement(column.element, {
+        children: props.children,
+        __plasmic_cell__: { type: column.type, props },
+      })
+    : React.createElement(type, props);
+}
+
+function TableBodyCell(props: TableColumnCellProps) {
+  return renderTableCell(props, "td");
+}
+
+function TableHeaderCell(props: TableColumnCellProps) {
+  return renderTableCell(props, "th");
+}
+
+function getColumns(
+  children: React.ReactNode,
+  bodyCell: React.ElementType,
+  headerCell: React.ElementType,
+  isEditing: boolean,
+): (ColumnType<any> | ColumnGroupType<any>)[] {
+  return React.Children.toArray(children).flatMap((child) => {
+    if (!React.isValidElement<AntdColumnProps>(child)) {
+      return [];
+    }
+    if (child.type === React.Fragment) {
+      return getColumns(child.props.children, bodyCell, headerCell, isEditing);
+    }
+    const {
+      displayType,
+      tagOptions: _options,
+      tagColor: _color,
+      displayLabel: _label,
+      contentSize: _size,
+      openInNewTab: _target,
+      onCellClick: _click,
+      children: nested,
+      render,
+      ...column
+    } = child.props;
+    const onHeaderCell: NonNullable<ColumnType<any>["onHeaderCell"]> = (
+      col,
+    ) => ({
+      ...column.onHeaderCell?.(col),
+      __plasmic_column__: { element: child, type: headerCell },
+    });
+    if (
+      (child.type as { __ANT_TABLE_COLUMN_GROUP?: boolean })
+        .__ANT_TABLE_COLUMN_GROUP
+    ) {
+      return [
+        {
+          ...column,
+          key: child.key ?? column.key,
+          onHeaderCell,
+          children: getColumns(nested, bodyCell, headerCell, isEditing),
+        },
+      ];
+    }
+    return [
+      {
+        ...column,
+        key: child.key ?? column.key,
+        onHeaderCell,
+        onCell: (row: any, index?: number) => ({
+          ...column.onCell?.(row, index),
+          ...(displayType === "custom" && !isEditing && child.props.onCellClick
+            ? {
+                onClick: (event: React.MouseEvent<HTMLElement>) => {
+                  column.onCell?.(row, index)?.onClick?.(event);
+                  const path = asArray(column.dataIndex ?? []);
+                  child.props.onCellClick?.(
+                    path.reduce((value: any, field) => value?.[field], row),
+                    row,
+                    index ?? 0,
+                  );
+                },
+              }
+            : {}),
+          __plasmic_column__: { element: child, type: bodyCell },
+        }),
+        render: (value: any, row: any, index: number) =>
+          displayType === "custom" || (displayType === undefined && render)
+            ? render?.(value, row, index)
+            : renderColumnValue(value, child.props, row, index, isEditing),
+      },
+    ];
+  });
+}
+
+function TableWithColumns({
+  children,
+  columns,
+  components,
+  ...props
+}: React.ComponentProps<typeof Table>) {
+  const canvas = usePlasmicCanvasContext();
+  // Evaluate a data-context reader's slot inside its observer, preserving bindings.
+  if (
+    columns === undefined &&
+    React.isValidElement<{ children: (...args: unknown[]) => React.ReactNode }>(
+      children,
+    ) &&
+    typeof children.props.children === "function"
+  ) {
+    const renderChildren = children.props.children;
+    return React.cloneElement(children, {
+      children: (...args: unknown[]) => (
+        <TableWithColumns {...props} components={components}>
+          {renderChildren(...args)}
+        </TableWithColumns>
+      ),
+    });
+  }
+  if (columns !== undefined) {
+    return <Table {...props} columns={columns} components={components} />;
+  }
+  const body =
+    typeof components?.body === "object" ? components.body : undefined;
+  return (
+    <Table
+      {...props}
+      columns={getColumns(
+        children,
+        body?.cell ?? "td",
+        components?.header?.cell ?? "th",
+        !!canvas && !canvas.interactive,
+      )}
+      components={{
+        ...components,
+        header: { ...components?.header, cell: TableHeaderCell },
+        body:
+          typeof components?.body === "function"
+            ? components.body
+            : { ...body, cell: TableBodyCell },
+      }}
+    />
+  );
+}
 
 export interface TableRef {
   selectRowByKey: (key: string) => void;
@@ -108,7 +420,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
     ],
   );
   return (
-    <Table
+    <TableWithColumns
       loading={data?.isLoading}
       dataSource={data?.data}
       rowSelection={selection}
@@ -117,9 +429,6 @@ export const AntdTable = React.forwardRef(function AntdTable(
     />
   );
 });
-
-export const AntdColumnGroup = Table.ColumnGroup;
-export const AntdColumn = Table.Column;
 
 export function registerTable(loader?: Registerable) {
   registerComponentHelper(loader, AntdTable, {
@@ -257,12 +566,91 @@ export function registerTable(loader?: Registerable) {
       dataIndex: {
         type: "string",
         displayName: "Column key",
+        description:
+          "The field displayed by this column. Changes apply to every row.",
+      },
+      displayType: {
+        type: "choice",
+        displayName: "Display as",
+        options: [
+          { value: "text", label: "Text" },
+          { value: "tag", label: "Tag" },
+          { value: "link", label: "Link" },
+          { value: "avatar", label: "Avatar" },
+          { value: "image", label: "Image" },
+          { value: "button", label: "Button" },
+          { value: "custom", label: "Custom content" },
+        ],
+        defaultValueHint: (ps: AntdColumnProps) =>
+          ps.render ? "custom" : "text",
+        description:
+          "Applies to every row. Double-click a cell to edit its shared content template.",
+      },
+      displayLabel: {
+        type: "string",
+        displayName: "Label",
+        description:
+          "Leave empty to use the field value. Also used as image alternative text.",
+        hidden: (ps: AntdColumnProps) =>
+          !["link", "button", "avatar", "image"].includes(
+            ps.displayType ?? "text",
+          ),
+      },
+      contentSize: {
+        type: "number",
+        displayName: "Image size",
+        defaultValueHint: 32,
+        min: 1,
+        hidden: (ps: AntdColumnProps) =>
+          !["avatar", "image"].includes(ps.displayType ?? "text"),
+      },
+      openInNewTab: {
+        type: "boolean",
+        displayName: "Open in new tab",
+        hidden: (ps: AntdColumnProps) => ps.displayType !== "link",
+      },
+      onCellClick: {
+        type: "eventHandler",
+        argTypes: [
+          { name: "cell", type: "object" },
+          { name: "row", type: "object" },
+          { name: "index", type: "number" },
+        ],
+        hidden: (ps: AntdColumnProps) =>
+          !["button", "link", "avatar", "custom"].includes(
+            ps.displayType ?? "text",
+          ),
+      },
+      tagOptions: {
+        type: "array",
+        displayName: "Tag labels and colors",
+        hidden: (ps: AntdColumnProps) => ps.displayType !== "tag",
+        description:
+          "Map field values to labels and colors. Unmapped values get an automatic color.",
+        itemType: {
+          type: "object",
+          nameFunc: (item: TagOption) => item.label || item.value,
+          fields: {
+            value: { type: "string", displayName: "Field value" },
+            label: { type: "string", displayName: "Label" },
+            color: { type: "color", displayName: "Color" },
+          },
+        },
+      },
+      tagColor: {
+        type: "color",
+        displayName: "Default tag color",
+        description:
+          "Leave empty to assign colors by value. Individual tag colors override this setting.",
+        hidden: (ps: AntdColumnProps) => ps.displayType !== "tag",
       },
       render: {
         type: "slot",
         renderPropParams: ["cell", "row", "index"],
         hidePlaceholder: true,
         displayName: "Custom render",
+        hidden: (ps: AntdColumnProps) =>
+          (ps.displayType ?? (ps.render ? "custom" : "text")) !== "custom",
       },
       align: {
         type: "choice",
@@ -290,7 +678,6 @@ export function registerTable(loader?: Registerable) {
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",
     importName: "AntdColumn",
-    ...({ isRenderless: true } as any),
   });
 
   registerComponentHelper(loader, AntdColumnGroup, {
@@ -309,6 +696,5 @@ export function registerTable(loader?: Registerable) {
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",
     importName: "AntdColumnGroup",
-    ...({ isRenderless: true } as any),
   });
 }

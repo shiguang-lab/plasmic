@@ -2,6 +2,7 @@ import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLa
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
 import { useTagLeftOffset } from "@/wab/client/components/canvas/HoverBox/useTagLeftOffset";
+import { isTableColumn } from "@/wab/client/components/canvas/table-column-editing";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import {
   BASE_VARIANT_COLOR,
@@ -92,7 +93,18 @@ function PreselectBox_(props: {
   const $element = maybe(
     viewCtx &&
       viewCtx.renderState.sel2dom(selectable, viewCtx.canvasCtx, cloneKey),
-    (dom) => $(dom),
+    (dom) => {
+      const $dom = $(dom);
+      if (isTableColumn(selectable.tpl)) {
+        return $dom
+          .closest("table")
+          .find("[data-plasmic-table-column]")
+          .filter(
+            (_, cell) => viewCtx?.dom2val($(cell))?.tpl === selectable.tpl,
+          );
+      }
+      return $dom;
+    },
   );
   const $focused =
     viewCtx === studioCtx.focusedViewCtx() && viewCtx?.focusedDomElt();
