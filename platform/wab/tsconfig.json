@@ -33,7 +33,7 @@
       // Legacy bare src/ imports (previously resolved via baseUrl)
       "src/*": ["./src/*"],
       // Studio and code component declarations share the local SDK contracts.
-      "@plasmicapp/host": ["../../packages/host/dist/index.d.ts"],
+      "@plasmicapp/host": ["../../packages/host"],
       "@plasmicapp/host/*": ["../../packages/host/*"],
       // socket.io only exports root; allow sub-path imports for module augmentations
       "socket.io/dist/*": ["./node_modules/socket.io/dist/*"],
