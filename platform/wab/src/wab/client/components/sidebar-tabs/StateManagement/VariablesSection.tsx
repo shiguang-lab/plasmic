@@ -16,7 +16,6 @@ import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
-import { VARIABLE_PLURAL_CAP } from "@/wab/shared/Labels";
 import { ensure } from "@/wab/shared/common";
 import { Component, State } from "@/wab/shared/model/classes";
 import cn from "classnames";
@@ -73,14 +72,13 @@ function VariablesSection_(props: VariablesSectionProps) {
         ref={sectionRef}
         title={
           <LabelWithDetailedTooltip tooltip={StateVariablesTooltip}>
-            {VARIABLE_PLURAL_CAP}
+            状态变量
           </LabelWithDetailedTooltip>
         }
         controls={
           <>
-            <IconLinkButton>
-              <Icon
-                icon={PlusIcon}
+            <IconLinkButton
+                aria-label="添加状态变量"
                 onClick={async () => {
                   const newState = unwrap(
                     await COMMANDS.component.addNewStateVariable.execute(
@@ -94,8 +92,8 @@ function VariablesSection_(props: VariablesSectionProps) {
 
                   setNewVariable(newState);
                 }}
-                data-test-id="add-state-btn"
-              />
+            >
+              <Icon icon={PlusIcon} data-test-id="add-state-btn" />
             </IconLinkButton>
           </>
         }

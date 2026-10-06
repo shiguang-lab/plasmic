@@ -33,6 +33,7 @@ test("host trigger resolves HTML and SVG nodes from the Studio document", () => 
   const subRequire = createRequire(path.resolve("../../platform/sub/package.json"));
   const antdRequire = createRequire(subRequire.resolve("antd/package.json"));
   const { getDOM, isDOM } = antdRequire("@rc-component/util/lib/Dom/findDOMNode");
+  const isVisible = antdRequire("@rc-component/util/lib/Dom/isVisible").default;
   const frame = document.createElement("iframe");
   document.body.appendChild(frame);
   const target = frame.contentDocument!;
@@ -41,6 +42,8 @@ test("host trigger resolves HTML and SVG nodes from the Studio document", () => 
   expect(button instanceof HTMLElement).toBe(false);
   expect(isDOM(button)).toBe(true);
   expect(isDOM(svg)).toBe(true);
+  button.getBoundingClientRect = () => ({ width: 120, height: 32 } as DOMRect);
+  expect(isVisible(button)).toBe(true);
   expect(getDOM({ nativeElement: button })).toBe(button);
   expect(getDOM({ current: button })).toBeNull();
   expect(isDOM(null)).toBe(false);

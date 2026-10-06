@@ -67,7 +67,7 @@ export const PageTab = observer(function PageTab(props: {
             studioCtx.siteOps().tryRenameComponent(page, name),
           )
         }
-        placeholder={`(unnamed page)`}
+        placeholder="（未命名页面）"
       />
     ),
     [page, page.name],
@@ -77,7 +77,7 @@ export const PageTab = observer(function PageTab(props: {
     () =>
       canEdit(PublicStyleSection.PageMeta) && (
         <IconButton
-          tooltip="Page settings"
+          tooltip="页面设置"
           data-test-id="page-settings-button"
           onClick={() => setShowSettings(true)}
         >
@@ -90,7 +90,7 @@ export const PageTab = observer(function PageTab(props: {
   return (
     <>
       {showSettings && (
-        <TopModal title="Page Settings" onClose={() => setShowSettings(false)}>
+        <TopModal title="页面设置" onClose={() => setShowSettings(false)}>
           <PageSettings page={page} viewCtx={viewCtx} exprCtx={exprCtx} />
         </TopModal>
       )}

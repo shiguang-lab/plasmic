@@ -44,7 +44,7 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
     <SidebarSection style={{ paddingTop: 12 }} id="sidebar-page-meta">
       <LabeledItemRow
         uiId={mkSectionUiId("PageMetaUrl")}
-        label="URL path"
+        label="URL 路径"
         data-test-id="page-path"
       >
         <StringPropEditor
@@ -56,7 +56,7 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
       </LabeledItemRow>
       <PropEditorRow
         attr="title"
-        label="Title"
+        label="页面标题"
         propType={{ type: "string", defaultValueHint: "Title" }}
         expr={titleExpr}
         onChange={(expr: Expr | undefined) => {

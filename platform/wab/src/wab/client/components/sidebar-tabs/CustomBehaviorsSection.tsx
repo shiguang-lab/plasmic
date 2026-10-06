@@ -22,7 +22,6 @@ import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { isTplComponent } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { CUSTOM_BEHAVIORS_CAP } from "@/wab/shared/Labels";
 import {
   Component,
   ProjectDependency,
@@ -65,7 +64,7 @@ export const CustomBehaviorsSection = observer(function (props: {
     <SidebarSection
       title={
         <LabelWithDetailedTooltip tooltip={<ApplyCustomBehaviorsTooltip />}>
-          {CUSTOM_BEHAVIORS_CAP}
+          自定义行为
         </LabelWithDetailedTooltip>
       }
       controls={

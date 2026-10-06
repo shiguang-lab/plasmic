@@ -249,7 +249,7 @@ export const PageURLParametersSection = observer(
         id="sidebar-page-url-parameters"
         title={
           <LabelWithDetailedTooltip tooltip={<PageQueryParamsTooltip />}>
-            URL parameters
+            URL 参数
           </LabelWithDetailedTooltip>
         }
         controls={
@@ -261,14 +261,14 @@ export const PageURLParametersSection = observer(
               })
             }
           >
-            <IconLinkButton>
+            <IconLinkButton aria-label="添加 URL 参数">
               <Icon icon={PlusIcon} />
             </IconLinkButton>
           </AddQueryParamButton>
         }
         zeroBodyPadding
         emptyBody={paramMetas.length === 0}
-        emptyDescription="Use values from the URL in this page."
+        emptyDescription="在页面中使用 URL 参数值。"
         isHeaderActive={true}
       >
         <div className="vlist-gap-m">

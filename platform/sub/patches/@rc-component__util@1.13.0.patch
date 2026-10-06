@@ -12,6 +12,20 @@ index 93d27d197bcf493f6944bfbf4f9c421b6b9c6ce2..3278cb3d6a5f285a3bd3828fa058d534
  }
  
  /**
+diff --git a/es/Dom/isVisible.js b/es/Dom/isVisible.js
+index c9194028197c271eece00cfb79b326186ad6e7a9..4b3da1486a6d1766634c4ec64f564754379c1c17 100644
+--- a/es/Dom/isVisible.js
++++ b/es/Dom/isVisible.js
+@@ -2,7 +2,8 @@ export default (element => {
+   if (!element) {
+     return false;
+   }
+-  if (element instanceof Element) {
++  const view = element.ownerDocument?.defaultView;
++  if (view && element instanceof view.Element) {
+     if (element.offsetParent) {
+       return true;
+     }
 diff --git a/lib/Dom/findDOMNode.js b/lib/Dom/findDOMNode.js
 index 108bcca04eb2e7aea2d302bf43149e7599c46e23..c789051af2b1410b209d3ccbb12bf25e43cf5e8c 100644
 --- a/lib/Dom/findDOMNode.js
@@ -26,3 +40,17 @@ index 108bcca04eb2e7aea2d302bf43149e7599c46e23..c789051af2b1410b209d3ccbb12bf25e
  }
  
  /**
+diff --git a/lib/Dom/isVisible.js b/lib/Dom/isVisible.js
+index b3539ce313110ca5b284d02c84e1cacb646e3017..b27ea82e5ac4c1dc5679842ad553dd185402a2b1 100644
+--- a/lib/Dom/isVisible.js
++++ b/lib/Dom/isVisible.js
+@@ -8,7 +8,8 @@ var _default = element => {
+   if (!element) {
+     return false;
+   }
+-  if (element instanceof Element) {
++  const view = element.ownerDocument?.defaultView;
++  if (view && element instanceof view.Element) {
+     if (element.offsetParent) {
+       return true;
+     }

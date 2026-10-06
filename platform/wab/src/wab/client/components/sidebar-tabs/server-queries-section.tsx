@@ -26,7 +26,6 @@ import {
   DELETE_ACTION,
   DUPLICATE_ACTION,
   SERVER_QUERY_LOWER,
-  SERVER_QUERY_PLURAL_CAP,
 } from "@/wab/shared/Labels";
 import {
   ServerQueryOp,
@@ -286,17 +285,18 @@ function ServerQueriesSection_(props: {
       id="server-queries-section"
       title={
         <LabelWithDetailedTooltip tooltip={ServerQueriesTooltip}>
-          {SERVER_QUERY_PLURAL_CAP}
+          数据查询
         </LabelWithDetailedTooltip>
       }
       emptyBody={component.serverQueries.length === 0}
-      emptyDescription="Fetch data from external sources."
+      emptyDescription="从外部数据源获取数据。"
       zeroBodyPadding
       controls={
         otherComponentsWithQueries.length > 0 ? (
           <IFrameAwareDropdownMenu menu={addMenu}>
             <IconLinkButton
               id="server-queries-add-btn"
+              aria-label="添加数据查询"
               tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
             >
               <Icon icon={PlusIcon} />
@@ -305,6 +305,7 @@ function ServerQueriesSection_(props: {
         ) : (
           <IconLinkButton
             id="server-queries-add-btn"
+              aria-label="添加数据查询"
             tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
             onClick={handleAddBlankQuery}
           >

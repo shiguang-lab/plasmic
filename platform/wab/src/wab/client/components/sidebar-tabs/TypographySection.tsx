@@ -337,7 +337,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
     <>
       <LabeledItemRow
         data-test-id="text-content"
-        label="Content"
+        label="内容"
         definedIndicator={indicator}
         menu={contextMenu}
         ref={contentRef}
