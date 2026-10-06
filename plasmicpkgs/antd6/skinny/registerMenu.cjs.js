@@ -1,8 +1,10 @@
 'use strict';
 
 var Ant = require('antd');
+var host = require('@plasmicapp/host');
+var canvasOverlay = require('./canvas-overlay-x9v6z73H.cjs.js');
 var React = require('react');
-var utils = require('./utils-DFFF-Zj5.cjs.js');
+var utils = require('./utils-DDtpTQdQ.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 
@@ -49,18 +51,33 @@ function menuChildrenToItems(children) {
   visit(children);
   return result;
 }
-function AntdMenu({
-  children,
-  items,
-  ...rest
-}) {
-  if (items === void 0 && React__default.default.isValidElement(children) && typeof children.props.children === "function") {
-    const renderChildren = children.props.children;
-    return React__default.default.cloneElement(children, {
-      children: (...args) => /* @__PURE__ */ React__default.default.createElement(AntdMenu, { ...rest }, renderChildren(...args))
-    });
-  }
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Menu, { ...rest, items: items ?? menuChildrenToItems(children) });
+function AntdMenu(props) {
+  return props.items !== void 0 ? /* @__PURE__ */ React__default.default.createElement(Ant.Menu, { ...props }) : canvasOverlay.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React__default.default.createElement(MenuWithChildren, { ...props, children }));
+}
+function MenuWithChildren({ children, openKeys, defaultOpenKeys, onOpenChange, ...rest }) {
+  const canvas = host.usePlasmicCanvasContext();
+  const items = menuChildrenToItems(children);
+  const selectedKeys = [];
+  const visit = (nodes, ancestors) => nodes.forEach((item) => {
+    if (!item) return;
+    const data = item;
+    const path = data.children && data.type !== "group" ? [...ancestors, String(data.key)] : ancestors;
+    if (data.__plasmic_selection_prop__?.isSelected) selectedKeys.push(...path);
+    if (data.children) visit(data.children, path);
+  });
+  if (canvas && !canvas.interactive) visit(items, []);
+  const reveal = selectedKeys.length > 0;
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant.Menu,
+    {
+      ...rest,
+      key: reveal ? "canvas-reveal" : "business",
+      items,
+      defaultOpenKeys,
+      openKeys: reveal ? Array.from(/* @__PURE__ */ new Set([...openKeys ?? defaultOpenKeys ?? [], ...selectedKeys])) : openKeys,
+      onOpenChange: reveal ? void 0 : onOpenChange
+    }
+  );
 }
 const allowedMenuComponents = [
   "plasmic-antd6-menu-item",
@@ -147,6 +164,9 @@ function registerMenu(loader) {
         defaultValueHint: "hover",
         advanced: true
       },
+      defaultOpenKeys: { type: "array", displayName: "\u521D\u59CB\u5C55\u5F00\u5B50\u83DC\u5355", description: "\u521D\u59CB\u5C55\u5F00\u7684\u5B50\u83DC\u5355 key\uFF1B\u7F16\u8F91\u65F6\u4E34\u65F6\u663E\u73B0\u9009\u4E2D\u5185\u5BB9\u4E0D\u4F1A\u6539\u53D8\u6B64\u503C\u3002" },
+      openKeys: { type: "array", displayName: "\u5C55\u5F00\u5B50\u83DC\u5355", advanced: true },
+      onOpenChange: { type: "eventHandler", argTypes: [{ name: "openKeys", type: "object" }] },
       defaultSelectedKeys: {
         type: "array",
         description: 'An array of Menu Item/s that will be selected when this component first loads, eg ["home", "about"]. Each item in the array should be one of the unique keys set in nested Menu Item component props. Useful when using the Menu component to build a website navigation bar.',

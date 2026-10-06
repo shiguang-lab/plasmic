@@ -1,15 +1,7 @@
-'use strict';
-
-var registerComponent = require('@plasmicapp/host/registerComponent');
-var registerGlobalContext = require('@plasmicapp/host/registerGlobalContext');
-var React = require('react');
-var Ant = require('antd');
-
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-var registerComponent__default = /*#__PURE__*/_interopDefault(registerComponent);
-var registerGlobalContext__default = /*#__PURE__*/_interopDefault(registerGlobalContext);
-var React__default = /*#__PURE__*/_interopDefault(React);
+import registerComponent from '@plasmicapp/host/registerComponent';
+import registerGlobalContext from '@plasmicapp/host/registerGlobalContext';
+import React from 'react';
+import { Result } from 'antd';
 
 const sections = {
   \u901A\u7528: ["button", "float-button", "typography", "back-top"],
@@ -89,6 +81,8 @@ const propDisplayNames = {
   closeIcon: "\u5173\u95ED\u56FE\u6807",
   addIcon: "\u6DFB\u52A0\u56FE\u6807",
   removeIcon: "\u5220\u9664\u56FE\u6807",
+  expandIcon: "\u5C55\u5F00\u56FE\u6807",
+  renderItem: "\u884C\u6A21\u677F",
   disabled: "\u7981\u7528",
   size: "\u5C3A\u5BF8",
   status: "\u6821\u9A8C\u72B6\u6001",
@@ -134,7 +128,7 @@ function makeRegisterGlobalContext(component, meta) {
     if (loader) {
       loader.registerGlobalContext(component, meta);
     } else {
-      registerGlobalContext__default.default(component, meta);
+      registerGlobalContext(component, meta);
     }
   };
 }
@@ -156,7 +150,7 @@ function registerComponentHelper(loader, component, meta) {
   if (loader) {
     loader.registerComponent(component, meta);
   } else {
-    registerComponent__default.default(component, meta);
+    registerComponent(component, meta);
   }
 }
 function traverseReactEltTree(children, callback) {
@@ -197,8 +191,8 @@ function omit(obj, ...keys) {
   return res;
 }
 function usePrevious(value) {
-  const prevValue = React__default.default.useRef(void 0);
-  React__default.default.useEffect(() => {
+  const prevValue = React.useRef(void 0);
+  React.useEffect(() => {
     prevValue.current = value;
     return () => {
       prevValue.current = void 0;
@@ -225,7 +219,7 @@ function setFieldsToUndefined(obj) {
 function arrayEq(xs, ys) {
   return xs.length === ys.length && xs.every((x, i) => x === ys[i]);
 }
-class ErrorBoundary extends React__default.default.Component {
+class ErrorBoundary extends React.Component {
   constructor() {
     super(...arguments);
     __publicField(this, "state", { hasError: false, errorInfo: "" });
@@ -243,8 +237,8 @@ class ErrorBoundary extends React__default.default.Component {
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ React__default.default.createElement(
-        Ant.Result,
+      return /* @__PURE__ */ React.createElement(
+        Result,
         {
           status: "error",
           title: this.props.message ?? "Something went wrong.",
@@ -272,16 +266,5 @@ function get(obj, path) {
   return obj;
 }
 
-exports.ErrorBoundary = ErrorBoundary;
-exports.arrayEq = arrayEq;
-exports.asArray = asArray;
-exports.capitalize = capitalize;
-exports.ensureArray = ensureArray;
-exports.get = get;
-exports.makeRegisterGlobalContext = makeRegisterGlobalContext;
-exports.omit = omit;
-exports.registerComponentHelper = registerComponentHelper;
-exports.setFieldsToUndefined = setFieldsToUndefined;
-exports.traverseReactEltTree = traverseReactEltTree;
-exports.usePrevious = usePrevious;
-//# sourceMappingURL=utils-DFFF-Zj5.cjs.js.map
+export { ErrorBoundary as E, arrayEq as a, asArray as b, capitalize as c, ensureArray as e, get as g, makeRegisterGlobalContext as m, omit as o, registerComponentHelper as r, setFieldsToUndefined as s, traverseReactEltTree as t, usePrevious as u };
+//# sourceMappingURL=utils-AeETDTaH.esm.js.map

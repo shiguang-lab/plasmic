@@ -4,9 +4,9 @@ var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var React = require('react');
 var registerAdditional = require('./registerAdditional.cjs.js');
-var utils = require('./utils-DFFF-Zj5.cjs.js');
+var utils = require('./utils-DDtpTQdQ.cjs.js');
 require('dayjs');
-require('./canvas-overlay-B42dlSLB.cjs.js');
+require('./canvas-overlay-x9v6z73H.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 

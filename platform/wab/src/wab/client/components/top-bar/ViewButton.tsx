@@ -223,6 +223,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
       <PlasmicViewButton
         mode={props.mode}
         root={{
+          children: "视图",
           props: {
             ...props,
             "aria-label": "画布显示选项",

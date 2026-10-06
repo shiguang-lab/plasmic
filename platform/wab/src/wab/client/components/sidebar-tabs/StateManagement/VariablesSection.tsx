@@ -1,4 +1,3 @@
-import { COMMANDS } from "@/wab/client/commands/command";
 import ImplicitVariablesSection from "@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariablesSection";
 import { VariableEditingModal } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal";
 import VariableRow from "@/wab/client/components/sidebar-tabs/StateManagement/VariableRow";
@@ -15,9 +14,8 @@ import { DefaultVariablesSectionProps } from "@/wab/client/plasmic/plasmic_kit_s
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { unwrap } from "@/wab/commons/neverthrow-utils";
 import { ensure } from "@/wab/shared/common";
-import { Component, State } from "@/wab/shared/model/classes";
+import { Component } from "@/wab/shared/model/classes";
 import cn from "classnames";
 import { groupBy } from "lodash";
 import { observer } from "mobx-react";
@@ -33,7 +31,7 @@ function VariablesSection_(props: VariablesSectionProps) {
   const studioCtx = useStudioCtx();
   const { component, viewCtx } = props;
 
-  const [newVariable, setNewVariable] = useState<State | null>(null);
+  const [newVariable, setNewVariable] = useState(false);
   const [isExpanded, setExpanded] = useState(false);
   const sectionRef = React.useRef<SidebarSectionHandle>(null);
 
@@ -62,8 +60,7 @@ function VariablesSection_(props: VariablesSectionProps) {
   const regularVariables = component.states.filter(
     (state) =>
       state.variableType !== "variant" &&
-      !state.tplNode &&
-      state !== newVariable,
+      !state.tplNode,
   );
 
   return (
@@ -79,19 +76,8 @@ function VariablesSection_(props: VariablesSectionProps) {
           <>
             <IconLinkButton
                 aria-label="添加状态变量"
-                onClick={async () => {
-                  const newState = unwrap(
-                    await COMMANDS.component.addNewStateVariable.execute(
-                      studioCtx,
-                      {},
-                      {
-                        component,
-                      },
-                    ),
-                  );
+                onClick={() => setNewVariable(true)}
 
-                  setNewVariable(newState);
-                }}
             >
               <Icon icon={PlusIcon} data-test-id="add-state-btn" />
             </IconLinkButton>
@@ -159,15 +145,14 @@ function VariablesSection_(props: VariablesSectionProps) {
           );
         }}
       </SidebarSection>
-      <VariableEditingModal
+      {newVariable && <VariableEditingModal
         show={!!newVariable}
         mode="new"
         studioCtx={studioCtx}
-        state={newVariable}
-        onClose={() => setNewVariable(null)}
+        onClose={() => setNewVariable(false)}
         component={component}
         viewCtx={viewCtx}
-      />
+      />}
     </>
   );
 }

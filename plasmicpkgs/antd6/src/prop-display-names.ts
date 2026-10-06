@@ -2,6 +2,7 @@
 export const propDisplayNames: Record<string, string> = {
   children: "内容", title: "标题", label: "标签", extra: "附加内容",
   icon: "图标", closeIcon: "关闭图标", addIcon: "添加图标", removeIcon: "删除图标",
+  expandIcon: "展开图标", renderItem: "行模板",
   disabled: "禁用", size: "尺寸", status: "校验状态", placeholder: "占位文字",
   value: "值", defaultValue: "默认值", open: "打开状态", previewOpen: "编辑时展开",
   allowClear: "允许清空", autoFocus: "自动聚焦", inputReadOnly: "输入框只读",

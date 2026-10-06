@@ -18,7 +18,8 @@ const ShareButton = observer((props: ShareButtonProps) => {
       <PlasmicShareButton
         {...props}
         onClick={() => openShareDialog()}
-        tooltip="Share project"
+        share={{ children: "分享", "aria-label": "分享项目" }}
+        tooltip="分享项目"
       />
     </>
   );

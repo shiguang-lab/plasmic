@@ -96,7 +96,7 @@ export const StringPropEditor = React.forwardRef<
       className={`form-control code`}
       value={`${curValue || ""}`}
       onChange={(e) => setDraft(e.currentTarget.value)}
-      placeholder={props.defaultValueHint ?? "unset"}
+      placeholder={props.defaultValueHint ?? "未设置"}
       onKeyDown={handleKeyDown}
       onPressEnter={submitDraft}
       onBlur={submitDraft}
@@ -212,7 +212,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
       data={props.data}
       schema={props.schema}
       component={props.component}
-      placeholder={props.defaultValueHint ?? "unset"}
+      placeholder={props.defaultValueHint ?? "未设置"}
       multiLine={multiLineMode}
       onKeyDown={(e) => {
         // On Shift+Enter let Slate insert a newline if allowed

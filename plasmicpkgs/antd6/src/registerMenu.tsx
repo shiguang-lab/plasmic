@@ -1,4 +1,6 @@
 import { Menu as NativeMenu } from "antd";
+import { usePlasmicCanvasContext } from "@plasmicapp/host";
+import { renderCanvasSlot } from "./canvas-overlay";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
@@ -59,30 +61,27 @@ export function menuChildrenToItems(
   visit(children);
   return result;
 }
-export function AntdMenu({
-  children,
-  items,
-  ...rest
-}: React.ComponentProps<typeof NativeMenu>) {
-  // Render-prop slots are wrapped in a canvas observer or data-context reader.
-  // Convert their children inside that wrapper, after React evaluates the slot.
-  if (
-    items === undefined &&
-    React.isValidElement<{
-      children: (...args: unknown[]) => React.ReactNode;
-    }>(children) &&
-    typeof children.props.children === "function"
-  ) {
-    const renderChildren = children.props.children;
-    return React.cloneElement(children, {
-      children: (...args: unknown[]) => (
-        <AntdMenu {...rest}>{renderChildren(...args)}</AntdMenu>
-      ),
-    });
-  }
-  return (
-    <NativeMenu {...rest} items={items ?? menuChildrenToItems(children)} />
-  );
+export function AntdMenu(props: React.ComponentProps<typeof NativeMenu>) {
+  return props.items !== undefined ? <NativeMenu {...props} /> : renderCanvasSlot(props.children, (children) => <MenuWithChildren {...props} children={children} />);
+}
+
+function MenuWithChildren({ children, openKeys, defaultOpenKeys, onOpenChange, ...rest }: React.ComponentProps<typeof NativeMenu>) {
+  const canvas = usePlasmicCanvasContext();
+  const items = menuChildrenToItems(children);
+  const selectedKeys: string[] = [];
+  const visit = (nodes: typeof items, ancestors: string[]) => nodes.forEach((item) => {
+    if (!item) return;
+    const data = item as typeof item & { __plasmic_selection_prop__?: { isSelected?: boolean }; children?: typeof items };
+    const path = data.children && data.type !== "group" ? [...ancestors, String(data.key)] : ancestors;
+    if (data.__plasmic_selection_prop__?.isSelected) selectedKeys.push(...path);
+    if (data.children) visit(data.children, path);
+  });
+  if (canvas && !canvas.interactive) visit(items, []);
+  const reveal = selectedKeys.length > 0;
+  return <NativeMenu {...rest} key={reveal ? "canvas-reveal" : "business"} items={items} defaultOpenKeys={defaultOpenKeys}
+    openKeys={reveal ? Array.from(new Set([...(openKeys ?? defaultOpenKeys ?? []), ...selectedKeys])) : openKeys}
+    onOpenChange={reveal ? undefined : onOpenChange}
+  />;
 }
 
 const allowedMenuComponents = [
@@ -176,6 +175,9 @@ export function registerMenu(loader?: Registerable) {
         defaultValueHint: "hover",
         advanced: true,
       },
+      defaultOpenKeys: { type: "array", displayName: "初始展开子菜单", description: "初始展开的子菜单 key；编辑时临时显现选中内容不会改变此值。" },
+      openKeys: { type: "array", displayName: "展开子菜单", advanced: true },
+      onOpenChange: { type: "eventHandler", argTypes: [{ name: "openKeys", type: "object" }] },
       defaultSelectedKeys: {
         type: "array",
         description:

@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { randomUUID } = require("node:crypto");
 
 // Local navigation and viewport state; no design data or component props.
 class DesktopWorkspace {
@@ -60,12 +61,12 @@ class DesktopWorkspace {
   }
 }
 
-function fileMenu({ controller, workspace, getWindow, dialog, refresh }) {
+function fileMenu({ controller, workspace, getWindow, dialog, refresh, state }) {
   const run = (action) => async () => {
     try { await action(); }
     catch (error) { dialog.showErrorBox("操作未完成", error.message); }
   };
-  return { label: "文件", submenu: [
+  return { id: "desktop-file", label: "文件", submenu: [
     { label: "打开项目…", accelerator: "CmdOrCtrl+O", click: run(async () => {
       const state = await controller.state();
       if (state.ready && state.editorContext?.canEdit) await controller.dispatch("execute", { name: "save", input: {} });
@@ -79,16 +80,16 @@ function fileMenu({ controller, workspace, getWindow, dialog, refresh }) {
       }),
     })) : [{ label: "暂无最近项目", enabled: false }] },
     { type: "separator" },
-    { label: "保存", accelerator: "CmdOrCtrl+S", click: run(async () => {
+    { id: "desktop-save", label: "保存", enabled: !!(state?.ready && state.editorContext?.canEdit), accelerator: "CmdOrCtrl+S", click: run(async () => {
       const state = await controller.state();
-      if (!state.ready || !state.editorContext?.canEdit) throw new Error("当前设计不可编辑，请等待加载完成或返回编辑模式。");
+      if (!state.ready || !state.editorContext?.canEdit) { refresh(); return; }
       await controller.dispatch("execute", { name: "save", input: {} });
       await workspace.capture(controller);
       refresh();
     }) },
-    { label: "导出当前画板…", click: run(async () => {
+    { id: "desktop-export", label: "导出当前画板…", enabled: !!(state?.ready && state.editorContext?.frameUuid), click: run(async () => {
       const state = await controller.state();
-      if (!state.ready || !state.editorContext?.frameUuid) throw new Error("请先选择要导出的画板。");
+      if (!state.ready || !state.editorContext?.frameUuid) { refresh(); return; }
       const output = await dialog.showSaveDialog(getWindow(), {
         title: "导出当前画板", defaultPath: "画板.png",
         filters: [{ name: "PNG", extensions: ["png"] }, { name: "PDF", extensions: ["pdf"] }, { name: "静态 HTML 快照", extensions: ["html"] }],
@@ -96,12 +97,22 @@ function fileMenu({ controller, workspace, getWindow, dialog, refresh }) {
       if (output.canceled || !output.filePath) return;
       const format = path.extname(output.filePath).slice(1).toLowerCase();
       if (!["png", "pdf", "html"].includes(format)) throw new Error("请选择 PNG、PDF 或 HTML 格式。");
-      // The public exporter deliberately refuses overwrites. Honor that contract.
-      if (fs.existsSync(output.filePath)) throw new Error("文件已存在，请选择新的文件名。");
-      await controller.dispatch("export_design", { frameUuid: state.editorContext.frameUuid, format, outputPath: output.filePath });
+      // The native dialog owns overwrite confirmation. The public exporter writes
+      // a new sibling file; replace the destination only after a complete export.
+      const temporary = path.join(path.dirname(output.filePath), `.${path.basename(output.filePath)}.${randomUUID()}.${format}`);
+      try {
+        await controller.dispatch("export_design", { frameUuid: state.editorContext.frameUuid, format, outputPath: temporary });
+        fs.renameSync(temporary, output.filePath);
+      } finally {
+        fs.rmSync(temporary, { force: true });
+      }
     }) },
     { type: "separator" },
     { role: "close", label: "关闭窗口" },
   ] };
 }
-module.exports = { DesktopWorkspace, fileMenu };
+function updateFileMenuContext(menu, state) {
+  menu.getMenuItemById("desktop-save").enabled = !!(state?.ready && state.editorContext?.canEdit);
+  menu.getMenuItemById("desktop-export").enabled = !!(state?.ready && state.editorContext?.frameUuid);
+}
+module.exports = { DesktopWorkspace, fileMenu, updateFileMenuContext };

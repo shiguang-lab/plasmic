@@ -1,13 +1,37 @@
+import { usePlasmicCanvasContext } from '@plasmicapp/host';
+import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-Do3TWgdx.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
 const collapseComponentName = "plasmic-antd6-collapse";
 const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 function AntdCollapse(props) {
-  return /* @__PURE__ */ React.createElement(Collapse, { ...props });
+  return props.items !== void 0 ? /* @__PURE__ */ React.createElement(Collapse, { ...props }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(CollapseWithChildren, { ...props, children }));
+}
+function CollapseWithChildren({ children, activeKey, defaultActiveKey, onChange, accordion, ...rest }) {
+  const canvas = usePlasmicCanvasContext();
+  const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel);
+  const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : void 0;
+  const businessKeys = activeKey ?? defaultActiveKey ?? [];
+  const openKeys = selectedKey == null ? activeKey : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
+  return /* @__PURE__ */ React.createElement(
+    Collapse,
+    {
+      ...rest,
+      key: selectedKey == null ? "business" : "canvas-reveal",
+      accordion,
+      activeKey: openKeys,
+      defaultActiveKey,
+      onChange: selectedKey == null ? onChange : void 0,
+      items: panels.map((panel, index) => {
+        const { header, __plasmic_selection_prop__: _selection, ...props } = panel.props;
+        return { ...props, key: panel.key ?? String(index), label: header };
+      })
+    }
+  );
 }
 function AntdCollapsePanel(props) {
   return /* @__PURE__ */ React.createElement(Collapse.Panel, { ...props });

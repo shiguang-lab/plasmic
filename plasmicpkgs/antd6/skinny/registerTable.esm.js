@@ -2,9 +2,9 @@ import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmic
 import { Table, Button, Image, Avatar } from 'antd';
 import React from 'react';
 import { AntdTag } from './registerAdditional.esm.js';
-import { b as asArray, r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import { b as asArray, r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
 import 'dayjs';
-import './canvas-overlay-CXR871_R.esm.js';
+import './canvas-overlay-Do3TWgdx.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

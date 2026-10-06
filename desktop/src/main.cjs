@@ -26,7 +26,7 @@ const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
-const { DesktopWorkspace, fileMenu } = require("./workspace.cjs");
+const { DesktopWorkspace, fileMenu, updateFileMenuContext } = require("./workspace.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
 let controller, stopRpc, openMcpSettings, updates, workspace;
 let quitting = false;
@@ -259,8 +259,14 @@ async function startDesktop() {
   workspace ??= new DesktopWorkspace(app.getPath("userData"), config.studioOrigin);
   const win = mainWindow;
   attachWindowRecovery(win, { controller, dialog, homeUrl: config.studioOrigin + "/" });
+  let menuState;
   let checkpoint;
-  const capture = () => checkpoint ??= workspace.capture(controller).catch((error) => {
+  const capture = () => checkpoint ??= controller.state().then((state) => {
+    menuState = state;
+    const menu = Menu.getApplicationMenu();
+    if (menu) updateFileMenuContext(menu, state);
+    return workspace.remember(state);
+  }).catch((error) => {
     console.warn("Cannot record desktop workspace:", error.message);
   }).finally(() => { checkpoint = undefined; });
   const workspaceTimer = setInterval(() => {
@@ -302,13 +308,21 @@ async function startDesktop() {
     });
   }
   function buildMenu() {
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
+  const menu = Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
-      fileMenu({ controller, workspace, getWindow: () => mainWindow, dialog, refresh: buildMenu }),
-      { role: "editMenu" },
-      { role: "viewMenu" },
-      { role: "windowMenu" },
+      fileMenu({ controller, workspace, getWindow: () => mainWindow, dialog, refresh: buildMenu, state: menuState }),
+      { label: "编辑", submenu: [
+        { role: "undo", label: "撤销" }, { role: "redo", label: "重做" }, { type: "separator" },
+        { role: "cut", label: "剪切" }, { role: "copy", label: "复制" }, { role: "paste", label: "粘贴" },
+        { role: "selectAll", label: "全选" },
+      ] },
+      { label: "视图", submenu: [
+        { role: "reload", label: "重新加载" }, { role: "forceReload", label: "强制重新加载" },
+        { role: "toggleDevTools", label: "开发者工具" }, { type: "separator" },
+        { role: "resetZoom", label: "实际大小" }, { role: "zoomIn", label: "放大" },
+        { role: "zoomOut", label: "缩小" }, { role: "togglefullscreen", label: "全屏" },
+      ] },
+      { label: "窗口", role: "windowMenu" },
       { label: "更新", submenu: [{ label: "检查更新…", click: async () => {
         const status = await updates.command("check");
         if (["available", "downloaded"].includes(status.phase)) {
@@ -330,8 +344,9 @@ async function startDesktop() {
         label: "AI",
         submenu: [{ label: "MCP", click: () => openMcpSettings() }],
       },
-    ]),
-  );
+    ]);
+  menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => { void capture(); });
+  Menu.setApplicationMenu(menu);
   }
   buildMenu();
   await mainWindow.loadURL(workspace.recent[0]?.url || config.studioOrigin + "/");

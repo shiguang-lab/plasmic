@@ -1,3 +1,5 @@
+import { usePlasmicCanvasContext } from "@plasmicapp/host";
+import { getCanvasItems, getSelectedCanvasItemKey, renderCanvasSlot } from "./canvas-overlay";
 import { Collapse } from "antd";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -6,7 +8,22 @@ export const collapseComponentName = "plasmic-antd6-collapse";
 export const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 
 export function AntdCollapse(props: React.ComponentProps<typeof Collapse>) {
-  return <Collapse {...props} />;
+  return props.items !== undefined ? <Collapse {...props} /> : renderCanvasSlot(props.children, (children) => <CollapseWithChildren {...props} children={children} />);
+}
+
+function CollapseWithChildren({ children, activeKey, defaultActiveKey, onChange, accordion, ...rest }: React.ComponentProps<typeof Collapse>) {
+  const canvas = usePlasmicCanvasContext();
+  const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel);
+  const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : undefined;
+  const businessKeys = activeKey ?? defaultActiveKey ?? [];
+  const openKeys = selectedKey == null ? activeKey : accordion ? String(selectedKey) : Array.from(new Set([...(Array.isArray(businessKeys) ? businessKeys : [businessKeys]), String(selectedKey)]));
+  return <Collapse {...rest} key={selectedKey == null ? "business" : "canvas-reveal"} accordion={accordion} activeKey={openKeys} defaultActiveKey={defaultActiveKey}
+    onChange={selectedKey == null ? onChange : undefined}
+    items={panels.map((panel, index) => {
+      const { header, __plasmic_selection_prop__: _selection, ...props } = panel.props;
+      return { ...props, key: panel.key ?? String(index), label: header };
+    })}
+  />;
 }
 
 export function AntdCollapsePanel(props: React.ComponentProps<typeof Collapse.Panel>) {

@@ -82,6 +82,7 @@ export const CodeButton = observer(function CodeButton() {
     disabled: isPlasmicLevels,
     tooltip: quickstartTooltipContent,
     "aria-label": "代码集成",
+    children: "代码",
   };
 
   return (
@@ -97,7 +98,7 @@ export const CodeButton = observer(function CodeButton() {
                 onClick={() => showQuickstarts()}
                 disabled={isPlasmicLevels}
               >
-                <Tooltip title={quickstartTooltipContent}>Quickstarts</Tooltip>
+                <Tooltip title={quickstartTooltipContent}>快速开始</Tooltip>
               </Menu.Item>
               <Menu.Item
                 onClick={() => window.open("https://docs.plasmic.app/learn")}

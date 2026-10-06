@@ -5,7 +5,7 @@ import { ConfigProvider, App, theme, message, notification } from 'antd';
 import enUS from 'antd/lib/locale/en_US.js';
 import React from 'react';
 import { u as useIsMounted } from './react-utils-BpvCcwyE.esm.js';
-import { m as makeRegisterGlobalContext } from './utils-z8_Paxbd.esm.js';
+import { m as makeRegisterGlobalContext } from './utils-AeETDTaH.esm.js';
 import 'classnames';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

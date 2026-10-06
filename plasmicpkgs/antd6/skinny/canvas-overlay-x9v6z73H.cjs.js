@@ -3,8 +3,29 @@
 var host = require('@plasmicapp/host');
 var React = require('react');
 
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var React__default = /*#__PURE__*/_interopDefault(React);
+
 function getSelectedCanvasItemKey(items) {
-  return items.find((item) => item.props.__plasmic_selection_prop__?.isSelected)?.key;
+  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  return index < 0 ? void 0 : items[index].key ?? String(index);
+}
+function renderCanvasSlot(children, render) {
+  if (React__default.default.isValidElement(children) && typeof children.props.children === "function") {
+    const renderChildren = children.props.children;
+    return React__default.default.cloneElement(children, { children: (...args) => renderCanvasSlot(renderChildren(...args), render) });
+  }
+  return render(children);
+}
+function getCanvasItems(children, isItem) {
+  const items = [];
+  React__default.default.Children.forEach(children, (child) => {
+    if (!React__default.default.isValidElement(child)) return;
+    if (isItem(child)) items.push(child);
+    else items.push(...getCanvasItems(child.props.children, isItem));
+  });
+  return items;
 }
 const previewOpenProp = {
   type: "boolean",
@@ -37,7 +58,9 @@ function useCanvasOverlay(props, triggerSlotName) {
   };
 }
 
+exports.getCanvasItems = getCanvasItems;
 exports.getSelectedCanvasItemKey = getSelectedCanvasItemKey;
 exports.previewOpenProp = previewOpenProp;
+exports.renderCanvasSlot = renderCanvasSlot;
 exports.useCanvasOverlay = useCanvasOverlay;
-//# sourceMappingURL=canvas-overlay-B42dlSLB.cjs.js.map
+//# sourceMappingURL=canvas-overlay-x9v6z73H.cjs.js.map

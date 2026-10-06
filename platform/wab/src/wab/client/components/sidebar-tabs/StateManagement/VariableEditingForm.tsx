@@ -21,6 +21,7 @@ import {
   NormalStateVariableType,
   StateAccessType,
   isReadonlyState,
+  getDefaultValueForStateVariableType,
 } from "@/wab/shared/core/states";
 import { evalCodeWithEnv } from "@/wab/shared/eval";
 import {
@@ -51,6 +52,15 @@ export interface VariableValueEditorProps {
   viewCtx: ViewCtx;
   disableInitialValue?: boolean;
   initialValueAbout?: string;
+  onChangeInitialValue?: (expr: Expr | undefined) => void;
+  hidePreview?: boolean;
+}
+
+export interface StateVariableDraft {
+  name: string;
+  variableType: NormalStateVariableType;
+  accessType: StateAccessType;
+  initialValue: Expr | null;
 }
 
 export interface NewVariableProps extends DefaultNewVariableProps {
@@ -61,6 +71,7 @@ export interface NewVariableProps extends DefaultNewVariableProps {
   mode?: "new" | "edit";
   onCancel?: () => void;
   onConfirm?: () => void;
+  onDraftChange?: (changes: Partial<StateVariableDraft>) => void;
 }
 
 export const VariableValueEditor = observer(function VariableValueEditor({
@@ -70,6 +81,8 @@ export const VariableValueEditor = observer(function VariableValueEditor({
   viewCtx,
   disableInitialValue = false,
   initialValueAbout,
+  onChangeInitialValue,
+  hidePreview = false,
 }: VariableValueEditorProps) {
   assert(
     !isKnownTplSlot(component.tplTree),
@@ -78,8 +91,8 @@ export const VariableValueEditor = observer(function VariableValueEditor({
   const [previewDraft, setPreviewDraft] = React.useState<Expr | undefined>(
     undefined,
   );
-  const initialValue = viewCtx.getStateCurrentInitialValue(state);
-  const currentValue = viewCtx.getCanvasStateValue(state);
+  const initialValue = hidePreview ? undefined : viewCtx.getStateCurrentInitialValue(state);
+  const currentValue = hidePreview ? undefined : viewCtx.getCanvasStateValue(state);
   const hasTempValue = initialValue !== currentValue;
   const previewExpr = previewDraft ?? codeLit(currentValue);
   const propType = wabTypeToPropType(
@@ -110,9 +123,13 @@ export const VariableValueEditor = observer(function VariableValueEditor({
             );
             if (invalidMessage) {
               notification.error({
-                message: "Cannot set initial value",
+                message: "无法设置初始值",
                 description: invalidMessage,
               });
+              return;
+            }
+            if (onChangeInitialValue) {
+              onChangeInitialValue(expr);
               return;
             }
             await COMMANDS.component.changeStateInitialValue.execute(
@@ -127,15 +144,15 @@ export const VariableValueEditor = observer(function VariableValueEditor({
           disabled={disableInitialValue}
         />
       </div>
-      {!disableInitialValue && viewCtx.hasUnstableStateInitializer(state) && (
+      {!hidePreview && !disableInitialValue && viewCtx.hasUnstableStateInitializer(state) && (
         <Alert
           className="mb-m"
           type="warning"
           showIcon
-          message="Unstable state initializers are not recommended. Use Side Effects for random or time based inputs."
+          message="初始值应保持稳定。随机数或当前时间请通过副作用设置。"
         />
       )}
-      <PropEditorRow
+      {!hidePreview && <PropEditorRow
         viewCtx={viewCtx}
         tpl={component.tplTree}
         label="预览值"
@@ -180,7 +197,7 @@ export const VariableValueEditor = observer(function VariableValueEditor({
         layout={"vertical"}
         disableLinkToProp={true}
         disableDynamicValue={true}
-      />
+      />}
     </div>
   );
 });
@@ -195,6 +212,7 @@ const VariableEditingForm = observer(
       mode = "edit",
       onCancel,
       onConfirm,
+      onDraftChange,
       ...rest
     }: NewVariableProps,
     ref: HTMLElementRefOf<"div">,
@@ -233,7 +251,7 @@ const VariableEditingForm = observer(
           <StringEditor
             label={state.implicitState ? "对外名称" : "名称"}
             onChange={(val) =>
-              COMMANDS.component.changeStateVariableName.execute(
+              onDraftChange ? onDraftChange({ name: val }) : COMMANDS.component.changeStateVariableName.execute(
                 studioCtx,
                 {
                   varName: val,
@@ -253,7 +271,7 @@ const VariableEditingForm = observer(
             value: state.variableType,
             "data-plasmic-prop": "variable-type",
             onChange: (val) =>
-              COMMANDS.component.changeStateVariableType.execute(
+              onDraftChange ? val && onDraftChange({ variableType: val as NormalStateVariableType, initialValue: codeLit(getDefaultValueForStateVariableType(val as NormalStateVariableType)) }) : COMMANDS.component.changeStateVariableType.execute(
                 studioCtx,
                 {
                   type: val as NormalStateVariableType | null,
@@ -284,12 +302,15 @@ const VariableEditingForm = observer(
             component={component}
             studioCtx={studioCtx}
             viewCtx={viewCtx}
+            hidePreview={mode === "new"}
+            onChangeInitialValue={onDraftChange ? (expr) => onDraftChange({ initialValue: expr ?? null }) : undefined}
           />
         }
         allowExternalAccess={{
           props: {
             isChecked: hasExternalAccess,
             onChange: (allow) => {
+              if (onDraftChange) { onDraftChange({ accessType: allow ? "readonly" : "private" }); return; }
               spawn(
                 COMMANDS.component.changeStateVariableAccessType.execute(
                   studioCtx,
@@ -317,11 +338,12 @@ const VariableEditingForm = observer(
               );
               if (invalidMessage) {
                 notification.error({
-                  message: "Cannot set access type",
+                  message: "无法设置访问类型",
                   description: invalidMessage,
                 });
                 return;
               }
+              if (onDraftChange) { onDraftChange({ accessType: val as StateAccessType }); return; }
               await COMMANDS.component.changeStateVariableAccessType.execute(
                 studioCtx,
                 {

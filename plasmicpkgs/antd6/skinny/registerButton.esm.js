@@ -1,7 +1,7 @@
 import { Button } from 'antd';
 import React from 'react';
 import { b as buttonComponentName } from './names-DKofLcnC.esm.js';
-import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

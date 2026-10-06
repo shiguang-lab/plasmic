@@ -19,7 +19,7 @@ const parse = function <T>(value: T): T {
 
 const UNSET_SELECT = {
   value: "plasmic.unset",
-  label: "(Unset)",
+  label: "未设置",
 } as LabeledValue;
 
 type EnumWithSearchPropEditor<T extends ChoiceValue> = {
@@ -187,7 +187,7 @@ export function EnumPropEditor<T extends ChoiceValue>(props: {
         .find((option) => option.value === props.defaultValueHint)?.label ??
       props.defaultValueHint ??
       value?.toString() ??
-      "unset"
+      "未设置"
     );
   }, [options, props.defaultValueHint, value]);
 

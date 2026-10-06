@@ -292,12 +292,12 @@ export function AntdTimeRangePicker({
 
 // Render callbacks cannot be serialized as ordinary JSON props in Studio.
 export function AntdList(
-  props: Omit<React.ComponentProps<typeof Ant.List>, "renderItem">,
+  props: React.ComponentProps<typeof Ant.List>,
 ) {
   return (
     <Ant.List
       {...props}
-      renderItem={(item) => <Ant.List.Item>{String(item)}</Ant.List.Item>}
+      renderItem={props.renderItem}
     />
   );
 }
@@ -741,8 +741,12 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("boolean", "collapsed", "onCollapse") },
   );
   register(loader, AntdList, "list", "AntdList", {
-    children: { type: "slot", hidePlaceholder: true },
-    dataSource: { type: "array", defaultValue: ["First item", "Second item"] },
+    children: { type: "slot", displayName: "静态列表内容", hidePlaceholder: true },
+    dataSource: { type: "array", displayName: "列表数据" },
+    renderItem: {
+      type: "slot", displayName: "行模板", renderPropParams: ["item", "index"], hidePlaceholder: true,
+      description: "为 dataSource 中每条数据渲染内容，使用 item 和 index 绑定字段。可放入 List.Item、标签、按钮和布局。",
+    },
     header: { type: "slot", hidePlaceholder: true },
     footer: { type: "slot", hidePlaceholder: true },
     size: choice(["small", "default", "large"], "default"),

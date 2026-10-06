@@ -33,3 +33,45 @@ test("native save uses the same public operation and reports failures", async ()
   await save.click();
   assert.deepEqual(errors, [["操作未完成", "保存失败"]]);
 });
+test("native menu availability follows ready, preview, permission and frame context", async () => {
+  const calls = [], errors = [];
+  let state = { ready: true, editorContext: { canEdit: false, mode: "preview", frameUuid: "frame" } };
+  const menu = fileMenu({ state, controller: { state: async () => state, dispatch: async (...args) => calls.push(args) }, workspace: { recent: [] }, dialog: { showErrorBox: (...args) => errors.push(args) }, refresh: () => {} });
+  const save = menu.submenu.find(entry => entry.id === "desktop-save");
+  const exp = menu.submenu.find(entry => entry.id === "desktop-export");
+  assert.equal(save.enabled, false);
+  assert.equal(exp.enabled, true);
+  await save.click();
+  assert.deepEqual(calls, []);
+  assert.deepEqual(errors, []);
+  const { updateFileMenuContext } = require("../src/workspace.cjs");
+  const native = { getMenuItemById: id => menu.submenu.find(entry => entry.id === id) };
+  state = { ready: true, editorContext: { canEdit: true } };
+  updateFileMenuContext(native, state);
+  assert.equal(save.enabled, true);
+  assert.equal(exp.enabled, false);
+  updateFileMenuContext(native, { ready: false });
+  assert.equal(save.enabled, false);
+});
+for (const fail of [false, true]) test(`native export ${fail ? "failure preserves" : "confirmed overwrite replaces"} an existing file`, async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-export-"));
+  try {
+    const dest = path.join(dir, "existing.png");
+    fs.writeFileSync(dest, "original");
+    const errors = [];
+    const state = { ready: true, editorContext: { frameUuid: "frame" } };
+    const controller = { state: async () => state, dispatch: async (name,input) => {
+      assert.equal(name, "export_design");
+      assert.equal(input.format, "png");
+      assert.notEqual(input.outputPath, dest);
+      assert.equal(fs.existsSync(input.outputPath), false);
+      fs.writeFileSync(input.outputPath, "new export");
+      if (fail) throw new Error("export failed");
+    } };
+    const menu = fileMenu({ state, controller, workspace: { recent: [] }, getWindow: () => ({}), dialog: { showSaveDialog: async () => ({filePath:dest,canceled:false}), showErrorBox: (...args) => errors.push(args) } });
+    await menu.submenu.find(entry => entry.id === "desktop-export").click();
+    assert.equal(fs.readFileSync(dest,"utf8"), fail ? "original" : "new export");
+    assert.deepEqual(fs.readdirSync(dir), ["existing.png"]);
+    assert.equal(errors.length, fail ? 1 : 0);
+  } finally { fs.rmSync(dir,{recursive:true,force:true}); }
+});

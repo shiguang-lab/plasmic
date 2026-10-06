@@ -1,8 +1,25 @@
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 function getSelectedCanvasItemKey(items) {
-  return items.find((item) => item.props.__plasmic_selection_prop__?.isSelected)?.key;
+  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  return index < 0 ? void 0 : items[index].key ?? String(index);
+}
+function renderCanvasSlot(children, render) {
+  if (React.isValidElement(children) && typeof children.props.children === "function") {
+    const renderChildren = children.props.children;
+    return React.cloneElement(children, { children: (...args) => renderCanvasSlot(renderChildren(...args), render) });
+  }
+  return render(children);
+}
+function getCanvasItems(children, isItem) {
+  const items = [];
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+    if (isItem(child)) items.push(child);
+    else items.push(...getCanvasItems(child.props.children, isItem));
+  });
+  return items;
 }
 const previewOpenProp = {
   type: "boolean",
@@ -35,5 +52,5 @@ function useCanvasOverlay(props, triggerSlotName) {
   };
 }
 
-export { getSelectedCanvasItemKey as g, previewOpenProp as p, useCanvasOverlay as u };
-//# sourceMappingURL=canvas-overlay-CXR871_R.esm.js.map
+export { getSelectedCanvasItemKey as a, getCanvasItems as g, previewOpenProp as p, renderCanvasSlot as r, useCanvasOverlay as u };
+//# sourceMappingURL=canvas-overlay-Do3TWgdx.esm.js.map

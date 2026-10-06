@@ -2,8 +2,8 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
-import { g as getSelectedCanvasItemKey } from './canvas-overlay-CXR871_R.esm.js';
-import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-z8_Paxbd.esm.js';
+import { a as getSelectedCanvasItemKey } from './canvas-overlay-Do3TWgdx.esm.js';
+import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-AeETDTaH.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

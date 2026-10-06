@@ -259,7 +259,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
               "text-unset": !(isCustomCode ? evaluatedValue : stringValue),
             })}
           >
-            {isCustomCode ? evaluatedValue : (stringValue ?? "unset")}
+            {isCustomCode ? evaluatedValue : (stringValue ?? "未设置")}
           </span>
         </Tooltip>
       </div>

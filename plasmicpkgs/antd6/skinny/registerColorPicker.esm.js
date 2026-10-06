@@ -1,6 +1,6 @@
 import { ColorPicker } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

@@ -66,6 +66,8 @@ function ChevronToggle(props: {
         })}
         onClick={onClick}
         data-test-id="collapse"
+        aria-label={expanded ? "收起更多内容" : "展开更多内容"}
+        aria-expanded={expanded}
       >
         <Icon icon={expanded ? ChevronUpsvgIcon : ChevronDownsvgIcon} />
       </button>

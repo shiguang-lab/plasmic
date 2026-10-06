@@ -1,20 +1,16 @@
-import { COMMANDS } from "@/wab/client/commands/command";
-import VariableEditingForm from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
+import VariableEditingForm, { StateVariableDraft } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
+import { createComponentState } from "@/wab/client/operations/create-component-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { codeLit } from "@/wab/shared/core/exprs";
+import { mkParamsForState } from "@/wab/shared/core/lang";
+import { DEFAULT_STATE_VARIABLE_NAME, genOnChangeParamName, mkState } from "@/wab/shared/core/states";
 import { Component, State } from "@/wab/shared/model/classes";
+import { notification } from "antd";
 import React from "react";
 
-export function VariableEditingModal({
-  component,
-  onClose,
-  show,
-  viewCtx,
-  studioCtx,
-  state,
-  mode = "edit",
-}: {
+export function VariableEditingModal({ component, onClose, show, viewCtx, studioCtx, state, mode = "edit" }: {
   state?: State | null;
   show: boolean;
   onClose: () => any;
@@ -23,42 +19,52 @@ export function VariableEditingModal({
   component: Component;
   mode?: "new" | "edit";
 }) {
-  const onCancel = async () => {
-    if (!state) {
+  // The draft stays outside the Site model, autosave and undo history.
+  const [draft, setDraft] = React.useState<StateVariableDraft>(() => ({
+    name: studioCtx.tplMgr().getUniqueParamName(component, DEFAULT_STATE_VARIABLE_NAME),
+    variableType: "text",
+    accessType: "private",
+    initialValue: codeLit(""),
+  }));
+  const draftState = React.useMemo(() => {
+    const { valueParam, onChangeParam } = mkParamsForState({
+      name: draft.name,
+      onChangeProp: genOnChangeParamName(draft.name),
+      variableType: draft.variableType,
+      accessType: draft.accessType,
+      defaultExpr: draft.initialValue ?? undefined,
+    });
+    return mkState({ param: valueParam, onChangeParam, variableType: draft.variableType, accessType: draft.accessType });
+  }, [draft]);
+  const formState = mode === "new" ? draftState : state;
+  const confirming = React.useRef(false);
+  const confirm = async () => {
+    if (confirming.current) return;
+    confirming.current = true;
+    try {
+    const result = await studioCtx.change(() => createComponentState({
+      site: studioCtx.site, component, tplMgr: studioCtx.tplMgr(), ...draft,
+    }));
+    if (result.isErr()) {
+      notification.error({ message: "无法创建状态变量", description: result.error.message });
       return;
     }
-    await COMMANDS.component.removeStateVariable.execute(
-      studioCtx,
-      {},
-      { state, component },
-    );
     onClose();
+    } finally {
+      confirming.current = false;
+    }
   };
-
-  return (
-    <SidebarModal
-      title={mode === "new" ? "新增状态变量" : "编辑状态变量"}
-      show={show}
-      // For mode === "new", we block the modal from auto-closing (via
-      // persitOnInteractOutside), and we handle the closing explicitly
-      // via onCancel
-      onClose={mode === "edit" ? onClose : undefined}
-      // If creating a new variable, it is only created upon clicking
-      // the confirm button, so we don't allow you to dismiss the
-      // modal so easily
-      persistOnInteractOutside={mode === "new"}
-    >
-      {state && (
-        <VariableEditingForm
-          state={state}
-          studioCtx={studioCtx}
-          viewCtx={viewCtx}
-          component={component}
-          mode={mode}
-          onConfirm={onClose}
-          onCancel={onCancel}
-        />
-      )}
-    </SidebarModal>
-  );
+  return <SidebarModal
+    title={mode === "new" ? "新增状态变量" : "编辑状态变量（即时保存）"}
+    show={show}
+    onClose={onClose}
+    persistOnInteractOutside={mode === "new"}
+  >
+    {formState && <VariableEditingForm
+      state={formState} studioCtx={studioCtx} viewCtx={viewCtx} component={component} mode={mode}
+      onDraftChange={mode === "new" ? (changes) => setDraft((value) => ({ ...value, ...changes })) : undefined}
+      onConfirm={mode === "new" ? confirm : onClose}
+      onCancel={onClose}
+    />}
+  </SidebarModal>;
 }

@@ -2,8 +2,8 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CXR871_R.esm.js';
-import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Do3TWgdx.esm.js';
+import { r as registerComponentHelper } from './utils-AeETDTaH.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
@@ -226,7 +226,7 @@ function AntdList(props) {
     Ant.List,
     {
       ...props,
-      renderItem: (item) => /* @__PURE__ */ React.createElement(Ant.List.Item, null, String(item))
+      renderItem: props.renderItem
     }
   );
 }
@@ -635,8 +635,15 @@ function registerAdditional(loader) {
     { states: valueState("boolean", "collapsed", "onCollapse") }
   );
   register(loader, AntdList, "list", "AntdList", {
-    children: { type: "slot", hidePlaceholder: true },
-    dataSource: { type: "array", defaultValue: ["First item", "Second item"] },
+    children: { type: "slot", displayName: "\u9759\u6001\u5217\u8868\u5185\u5BB9", hidePlaceholder: true },
+    dataSource: { type: "array", displayName: "\u5217\u8868\u6570\u636E" },
+    renderItem: {
+      type: "slot",
+      displayName: "\u884C\u6A21\u677F",
+      renderPropParams: ["item", "index"],
+      hidePlaceholder: true,
+      description: "\u4E3A dataSource \u4E2D\u6BCF\u6761\u6570\u636E\u6E32\u67D3\u5185\u5BB9\uFF0C\u4F7F\u7528 item \u548C index \u7ED1\u5B9A\u5B57\u6BB5\u3002\u53EF\u653E\u5165 List.Item\u3001\u6807\u7B7E\u3001\u6309\u94AE\u548C\u5E03\u5C40\u3002"
+    },
     header: { type: "slot", hidePlaceholder: true },
     footer: { type: "slot", hidePlaceholder: true },
     size: choice(["small", "default", "large"], "default"),
