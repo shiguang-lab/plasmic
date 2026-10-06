@@ -328,6 +328,8 @@ export function assertCanEditPrototype(studio: StudioCtx) {
   assert(
     studio.canEditProject() &&
       studio.editMode &&
+      !studio.isLiveMode &&
+      !studio.isInteractiveMode &&
       studio.isAtTip &&
       !studio.blockChanges,
     "Project is read-only, blocked, or not at its latest revision. Open an editable current revision.",
@@ -1108,6 +1110,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       canEdit:
         studio.canEditProject() &&
         studio.editMode &&
+        !studio.isLiveMode &&
+        !studio.isInteractiveMode &&
         studio.isAtTip &&
         !studio.blockChanges &&
         (!studio.siteInfo.isMainBranchProtected ||
@@ -1407,10 +1411,15 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         instanceIndex !== undefined && instanceIndex >= 0
           ? instanceIndex
           : null,
-      mode: studio.isInteractiveMode ? ("preview" as const) : ("edit" as const),
+      mode:
+        studio.isLiveMode || studio.isInteractiveMode
+          ? ("preview" as const)
+          : ("edit" as const),
       canEdit:
         studio.canEditProject() &&
         studio.editMode &&
+        !studio.isLiveMode &&
+        !studio.isInteractiveMode &&
         studio.isAtTip &&
         !studio.blockChanges &&
         (!studio.siteInfo.isMainBranchProtected ||
@@ -1427,7 +1436,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     meta.selectElement,
     async (studio, input) => {
       assert(
-        !studio.isInteractiveMode,
+        !studio.isLiveMode && !studio.isInteractiveMode,
         "Return to edit mode before selecting an element",
       );
       const component = findComponent(studio, input.componentUuid);

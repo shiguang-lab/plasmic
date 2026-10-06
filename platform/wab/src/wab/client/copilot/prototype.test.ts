@@ -82,6 +82,32 @@ describe("AI prototype editor tools", () => {
     expect(await call("getEditorContext")).toMatchObject({ canEdit: false });
     studioCtx.copilotActivity.dispose();
   });
+  it.each(["live", "interactive"])(
+    "reports %s preview and rejects edits and selection",
+    async (mode) => {
+      const { studioCtx, call } = fixture();
+      if (mode === "live") {
+        vi.spyOn(studioCtx, "isLiveMode", "get").mockReturnValue(true);
+      } else {
+        studioCtx.isInteractiveMode = true;
+      }
+      expect(await call("getEditorContext")).toMatchObject({
+        mode: "preview",
+        canEdit: false,
+      });
+      await expect(
+        call("createComponent", { name: "Preview edit" }),
+      ).rejects.toThrow();
+      await expect(
+        call("selectElement", {
+          componentUuid: "page",
+          elementUuid: "element",
+          instanceIndex: 0,
+        }),
+      ).rejects.toThrow("Return to edit mode");
+      studioCtx.copilotActivity.dispose();
+    },
+  );
   it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");
