@@ -2849,16 +2849,17 @@ export class DbMgr implements MigrationDbMgr {
     const project = await findExactlyOne(this.projects(), {
       id: projectId,
     });
-    if (project.createdById !== null || !this.checkUserIdIsSelf(userId)) {
+    if (
+      project.createdById !== null ||
+      project.workspaceId !== null ||
+      !this.checkUserIdIsSelf(userId)
+    ) {
       throw new ForbiddenError("Cannot update project createdBy");
     }
-    const personalTeam = await findExactlyOne(this.teams(), {
-      personalTeamOwnerId: userId,
-    });
-
-    const personalWorkspace = await findExactlyOne(this.workspaces(), {
-      teamId: personalTeam.id,
-    });
+    const personalWorkspace = ensure(
+      await this.getPersonalWorkspace(),
+      "User's personal workspace not found",
+    );
     Object.assign(project, this.stampUpdate(), {
       createdById: userId,
       workspaceId: personalWorkspace.id,

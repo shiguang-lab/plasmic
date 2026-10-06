@@ -55,7 +55,9 @@ async function fixture() {
   vi.spyOn(parent, "getBoundingClientRect").mockReturnValue(
     new DOMRect(0, 0, 200, 100),
   );
-  parent.scrollTo = vi.fn((opts: ScrollToOptions) => {
+  parent.scrollTo = vi.fn((options?: ScrollToOptions | number, y?: number) => {
+    const opts =
+      typeof options === "number" ? { left: options, top: y } : (options ?? {});
     parent.scrollTop = opts.top ?? parent.scrollTop;
   });
   const target = document.createElement("div");

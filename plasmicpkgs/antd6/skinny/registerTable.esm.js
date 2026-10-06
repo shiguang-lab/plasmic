@@ -403,6 +403,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
     rowSelection: selection,
     rowKey,
     ...rest,
+    scroll: { x: "max-content", ...rest.scroll },
   });
 });
 function registerTable(loader) {

@@ -1,13 +1,12 @@
+import { mockDeepAuto } from "@/wab/__testonly__/mock";
 import { MeasureTool } from "@/wab/client/components/canvas/MeasureTool";
+import { StudioCtx, StudioCtxContext } from "@/wab/client/studio-ctx/StudioCtx";
 import { Box } from "@/wab/shared/geom";
 import { act, render } from "@testing-library/react";
 import $ from "jquery";
 import { observable, runInAction } from "mobx";
 import React from "react";
 
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
-  withStudioCtx: (component: unknown) => component,
-}));
 vi.mock("@/wab/client/studio-ctx/view-ctx", async () => ({
   ViewComponentBase: (await import("react")).Component,
 }));
@@ -43,13 +42,16 @@ it("updates existing measurement lines on nested content scroll and cleans up wh
     studioCtx: { getArenaFrameScalerRect: () => ({ left: 0, top: 0 }) },
   });
   const focused = observable.box(makeView(doc), { deep: false });
-  const studioCtx = {
-    focusedViewCtx: () => focused.get(),
-    zoom: 1,
-    isResizeDragging: false,
-  };
+  const studioCtx = mockDeepAuto<StudioCtx>();
+  studioCtx.focusedViewCtx.mockImplementation(() => focused.get() as any);
+  Object.defineProperties(studioCtx, {
+    zoom: { value: 1 },
+    isResizeDragging: { value: false },
+  });
   const { container, unmount } = render(
-    <MeasureTool studioCtx={studioCtx as any} />,
+    <StudioCtxContext.Provider value={studioCtx}>
+      <MeasureTool />
+    </StudioCtxContext.Provider>,
   );
   const topLine = () =>
     Array.from(

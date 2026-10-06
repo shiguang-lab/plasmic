@@ -1,10 +1,14 @@
-import { type HostlessParamRemovals, updateHostlessPackage } from "@/wab/server/code-components/code-components";
+import {
+  updateHostlessPackage,
+  type HostlessParamRemovals,
+} from "@/wab/server/code-components/code-components";
 import { DEFAULT_DATABASE_URI } from "@/wab/server/config";
 import {
   getLastBundleVersion,
   getMigratedBundle,
 } from "@/wab/server/db/BundleMigrator";
 import {
+  closeDbConnections,
   ensureDbConnections,
   getDefaultConnection,
 } from "@/wab/server/db/DbCon";
@@ -23,7 +27,10 @@ import { EntityManager } from "typeorm";
 
 const { Command } = require("commander");
 
-async function publishHostlessProjects(em: EntityManager) {
+async function publishHostlessProjects(
+  em: EntityManager,
+  selectedProjectId?: ProjectId,
+) {
   const db = new DbMgr(em, SUPER_USER);
   await ensureDevFlags(db);
   const hostLessWorkspaceId = DEVFLAGS.hostLessWorkspaceId;
@@ -31,12 +38,16 @@ async function publishHostlessProjects(em: EntityManager) {
     logger().info("No hostless workspace ID");
     return;
   }
-  const hostlessProjects = await db.getProjectsByWorkspaces([
+  const workspaceProjects = await db.getProjectsByWorkspaces([
     hostLessWorkspaceId,
   ]);
-  assert(
-    hostlessProjects.length > 0,
-    () => "No projects found for workspace " + hostLessWorkspaceId,
+  const hostlessProjects = selectedProjectId
+    ? workspaceProjects.filter((project) => project.id === selectedProjectId)
+    : workspaceProjects;
+  assert(hostlessProjects.length > 0, () =>
+    selectedProjectId
+      ? `Hostless project ${selectedProjectId} not found in workspace ${hostLessWorkspaceId}`
+      : "No projects found for workspace " + hostLessWorkspaceId,
   );
   const plumeSite = await loadPlumeSite(db);
 
@@ -89,10 +100,17 @@ export async function publishHostlessProject(
     latestVersion,
   );
   const site = ensureKnownProjectDependency(siteOrProjectDep).site;
-  const hasBreakingParamRemoval = site.components.some(component =>
-    component.params.some(param => opts?.removedParams?.[component.name]?.includes(param.variable.name))
+  const hasBreakingParamRemoval = site.components.some((component) =>
+    component.params.some((param) =>
+      opts?.removedParams?.[component.name]?.includes(param.variable.name),
+    ),
   );
-  await updateHostlessPackage(site, project.name, plumeSite, opts?.removedParams);
+  await updateHostlessPackage(
+    site,
+    project.name,
+    plumeSite,
+    opts?.removedParams,
+  );
   const newBundle = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -107,7 +125,12 @@ export async function publishHostlessProject(
   assertSiteInvariants(site);
   logger().info("Saving new version and publishing...");
   // Make sure we're able to identify whether the project changed or not
-  await updateHostlessPackage(site, project.name, plumeSite, opts?.removedParams);
+  await updateHostlessPackage(
+    site,
+    project.name,
+    plumeSite,
+    opts?.removedParams,
+  );
   const newBundle2 = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -135,7 +158,10 @@ export async function publishHostlessProject(
 
   await db.publishProject(
     projectId,
-    semver.inc(latestVersion.version, hasBreakingParamRemoval ? "major" : "minor") ?? undefined,
+    semver.inc(
+      latestVersion.version,
+      hasBreakingParamRemoval ? "major" : "minor",
+    ) ?? undefined,
     [],
     "",
   );
@@ -161,6 +187,7 @@ async function main() {
   logger().info("Start script...");
   const opts = new Command("custom-script")
     .option("-db, --dburi <dburi>", "Database uri", DEFAULT_DATABASE_URI)
+    .option("--project-id <projectId>", "Publish only this hostless project")
     .parse(process.argv)
     .opts();
   await ensureDbConnections(opts.dburi, {
@@ -168,15 +195,22 @@ async function main() {
   });
   const con = await getDefaultConnection();
 
-  await con.transaction(async (em) => {
-    await publishHostlessProjects(em);
-  });
+  try {
+    await con.transaction(async (em) => {
+      await publishHostlessProjects(em, opts.projectId);
+    });
+  } finally {
+    await closeDbConnections();
+  }
 }
 
 if (require.main === module) {
   spawn(
     main().catch((err) => {
-      logger().error(err);
+      logger().error("Hostless publication failed", {
+        error: String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       process.exit(1);
     }),
   );

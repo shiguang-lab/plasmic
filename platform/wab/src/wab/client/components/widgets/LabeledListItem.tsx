@@ -4,6 +4,7 @@ import { MenuMaker } from "@/wab/client/components/widgets";
 import {
   DefaultLabeledListItemProps,
   PlasmicLabeledListItem,
+  PlasmicLabeledListItem__OverridesType,
 } from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicLabeledListItem";
 import { UiActionsWrapper } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { UiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -12,10 +13,16 @@ import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
 import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
 
-export interface LabeledListItemProps extends Omit<
-  DefaultLabeledListItemProps,
-  "clickable" | "withMenu" | "onClick" | "withIndicator"
-> {
+export interface LabeledListItemProps
+  extends
+    Omit<
+      DefaultLabeledListItemProps,
+      "clickable" | "withMenu" | "onClick" | "withIndicator"
+    >,
+    Pick<
+      PlasmicLabeledListItem__OverridesType,
+      "labelContainer" | "contentContainer"
+    > {
   uiId?: UiId;
   menu?: React.ReactNode | MenuMaker;
   noMenuButton?: boolean;

@@ -19,6 +19,30 @@ const data = {
   ],
 };
 
+test("wide tables own horizontal scrolling and respect an explicit scroll override", () => {
+  const { container, rerender } = render(
+    <AntdTable data={data} rowKey="id" pagination={false}>
+      <AntdColumn title="Name" dataIndex="name" width={400} />
+      <AntdColumn title="Status" dataIndex="status" width={400} />
+    </AntdTable>,
+  );
+  expect(
+    container.querySelector<HTMLElement>(".ant-table-content")?.style.overflowX,
+  ).toBe("auto");
+  expect(container.querySelector<HTMLElement>("table")?.style.minWidth).toBe(
+    "100%",
+  );
+  rerender(
+    <AntdTable data={data} rowKey="id" pagination={false} scroll={{ x: 640 }}>
+      <AntdColumn title="Name" dataIndex="name" width={400} />
+      <AntdColumn title="Status" dataIndex="status" width={400} />
+    </AntdTable>,
+  );
+  expect(container.querySelector<HTMLElement>("table")?.style.width).toBe(
+    "640px",
+  );
+});
+
 function Canvas({
   children,
   interactive = false,
@@ -114,7 +138,11 @@ test("headers, cell contents and empty cell space resolve to the original column
   );
   // The authored column renders the actual table cells, without invalid divs around them.
   expect(container.querySelector("tr > div")).toBeNull();
-  expect(screen.getByRole("columnheader", { name: "Status" }).closest("[data-plasmic-canvas-part-scope]")).not.toBeNull();
+  expect(
+    screen
+      .getByRole("columnheader", { name: "Status" })
+      .closest("[data-plasmic-canvas-part-scope]"),
+  ).not.toBeNull();
   expect(
     container.querySelectorAll("[data-plasmic-canvas-part=column]"),
   ).toHaveLength(8);
@@ -475,7 +503,7 @@ test("preset conversion is an explicit component action and updates content and 
     (meta) => meta.name === "plasmic-antd6-table-column",
   );
   const action = column.actions.find(
-    (action: any) => action.label === "Convert to custom template",
+    (candidate: any) => candidate.label === "Convert to custom template",
   );
   const componentProps = { displayType: "tag", tagColor: "green" };
   const replaceSlotContent = vi.fn().mockResolvedValue(undefined);

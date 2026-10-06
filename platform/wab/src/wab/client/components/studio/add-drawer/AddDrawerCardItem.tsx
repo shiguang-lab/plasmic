@@ -3,6 +3,7 @@
 import {
   DefaultAddDrawerCardItemProps,
   PlasmicAddDrawerCardItem,
+  PlasmicAddDrawerCardItem__OverridesType,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicAddDrawerCardItem";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
@@ -20,7 +21,8 @@ import * as React from "react";
 //
 // You can also stop extending from DefaultAddDrawerCardItemProps altogether and have
 // total control over the props for your component.
-export type AddDrawerCardItemProps = DefaultAddDrawerCardItemProps;
+export type AddDrawerCardItemProps = DefaultAddDrawerCardItemProps &
+  Pick<PlasmicAddDrawerCardItem__OverridesType, "titleBox">;
 
 function AddDrawerCardItem_(
   props: AddDrawerCardItemProps,

@@ -46,6 +46,7 @@ test("one icon toggles effective auto-open state per instance without writing co
     _autoOpenedUuid: observable.box<string | undefined>(),
     scheduleSync: vi.fn(),
     currentComponent: () => component,
+    componentStackFrames: () => [{ component }],
     getCodeComponentMeta: () => ({
       canvasOverlay: { triggerSlot: "children" },
     }),

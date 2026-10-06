@@ -26,12 +26,14 @@ function setup() {
   })) {
     Object.defineProperty(panel, key, { value });
   }
-  panel.scrollTo = vi.fn((opts: ScrollToOptions) => {
+  panel.scrollTo = vi.fn((options?: ScrollToOptions | number, y?: number) => {
+    const opts =
+      typeof options === "number" ? { left: options, top: y } : (options ?? {});
     panel.scrollTop = opts.top ?? panel.scrollTop;
     panel.scrollLeft = opts.left ?? panel.scrollLeft;
   });
   const vc = mockDeepAuto<ViewCtx>();
-  vc.studioCtx = studioCtx;
+  Object.defineProperty(vc, "studioCtx", { value: studioCtx });
   vc.canvasCtx.viewport.mockReturnValue(iframe);
   vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(panel);
   studioCtx.viewCtxs.push(vc);

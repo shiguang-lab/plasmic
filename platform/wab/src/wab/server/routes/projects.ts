@@ -1557,7 +1557,7 @@ export async function getProjectRev(req: Request, res: Response) {
   let owner: User | undefined;
   if (!project.createdById) {
     const actorId = mgr.tryGetNormalActorId();
-    if (actorId) {
+    if (actorId && !project.workspaceId) {
       await mgr.claimPublicProject(project.id, actorId);
     }
   } else {

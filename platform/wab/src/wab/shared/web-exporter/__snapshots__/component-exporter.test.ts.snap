@@ -167,6 +167,106 @@ exports[`Component Serialization > serializes all components 1`] = `
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="kyBwZDLobzZL" name="Color" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="sy5AokJJ7g7H" name="Neutral"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="gdLWnA57ufpt" name="Muted"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="4EM17LBKD7cA" name="Success"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="rS75iYmeFNPU" name="Warning"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="UZpDGjtFbbo-" name="Error/Destructive"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="GXBnRw2UgmJ_" name="Type" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="NzLhyUcNJ56l" name="Soft"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="CFlf6CAr5PRq" name="Bordered"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="a1bGF3vC1yAt" name="Size" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="RDlJE6wlLaV0" name="Extra small"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="1Wus14yXOz6z" name="Small"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="f0h7JomxhfMB" name="Large"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="IL042y6ZmTqU" name="Extra large"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="SXKoCEOeUIvF" name="Icon start" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="sHwmv6VTmYIE" name="Icon start"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="iC6ubpmkl2Fy" name="Icon end" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="WG_MUEe-AF5Z" name="Icon end"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="twR9qJQT992R" name="Rounded full" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="rnbD-4X93Vp0" name="Rounded full"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="eRHH6C72RAjF" name="Flat side" multi="true">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="LAvN7TnRtX1E" name="Top"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="F877AcVY27WU" name="Right"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="JG2Gsxo917WB" name="Bottom"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="ZDz-CWXMxtWT" name="Left"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -812,6 +912,9 @@ exports[`Component Serialization > serializes all components 1`] = `
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -869,6 +972,9 @@ exports[`Component Serialization > serializes all components 1`] = `
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -982,6 +1088,22 @@ exports[`Component Serialization > serializes all components 1`] = `
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="UAXxQrR3OEMH" name="Type" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="tPGQI9ximkgA" name="Soft"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="gcKc5e0uirg6" name="Plain"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1055,6 +1177,9 @@ exports[`Component Serialization > serializes all components 1`] = `
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<plasmic-component id="aADoiOmpOnFq" data-plasmic-component="plasmicReactAriaDescription" data-plasmic-project="vraRvHJQpWZ2nQbXtKvCmD" style="object-fit: cover; box-sizing: border-box; color: var(--token-O7HlhsyUcTLk); font-family: var(--token-VRn5eg_X38q7); font-size: var(--token-mdlFAaQL9cZT); line-height: var(--token-bFkpmJG5PZPn); position: relative">
   <slot name="children">
     <div id="dsiH1msrbJnZ" style="position: relative; display: flex">
@@ -1114,6 +1239,19 @@ exports[`Component Serialization > serializes all components 1`] = `
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="bG5ngoIC4vTR" name="No trigger" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="XcAK-UZkDgAi" name="No trigger"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1270,6 +1408,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1434,6 +1575,34 @@ Join our Slack community (icon in bottom left) for help any time.</div>
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="pNJZolAhY51b" name="Size" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="Mc-Oh4udbRX7" name="SM"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="VHb-pUA8lidW" name="LG"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="k7M0ZdEXwgyp" name="Requirement Indicator" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="-6wdZI4H74qM" name="Optional"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="Kfk1fRQ40Hgx" name="Required"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1542,6 +1711,9 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<plasmic-component id="b90U9w7UxwBC" data-plasmic-component="plasmicReactAriaListboxItem" data-plasmic-project="vraRvHJQpWZ2nQbXtKvCmD" data-props='{"id":"{{ $props.value }}","textValue":"{{ $props.label }}"}' style="position: relative; cursor: pointer; border-top-left-radius: var(--token--0yvAvGYfFhX); border-top-right-radius: var(--token--0yvAvGYfFhX); border-bottom-right-radius: var(--token--0yvAvGYfFhX); border-bottom-left-radius: var(--token--0yvAvGYfFhX); color: var(--token-ZX33JwqKe1KQ); font-family: var(--token-VRn5eg_X38q7); font-size: var(--token-mdlFAaQL9cZT); line-height: var(--token-bFkpmJG5PZPn); outline-style: none">
   <slot name="children">
     <div id="GLLHmVBCwP1U" style="display: flex; flex-direction: column; position: relative; width: stretch; height: wrap; max-width: 100%; padding-left: var(--token-yk7m7bwFJ02R); padding-right: var(--token-yk7m7bwFJ02R); padding-bottom: var(--token-J8bgk1cLaZ5G); padding-top: var(--token-J8bgk1cLaZ5G); justify-content: flex-start; align-items: flex-start; column-gap: 2px; row-gap: var(--token-aR8bR72wtSYZ)">
@@ -1584,6 +1756,9 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1629,6 +1804,9 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<plasmic-component id="br6BYtjASnDy" data-plasmic-component="plasmicReactAriaListboxSection" data-plasmic-project="vraRvHJQpWZ2nQbXtKvCmD" style="object-fit: cover; position: relative; color: var(--token-ZX33JwqKe1KQ); font-family: var(--token-VRn5eg_X38q7); font-size: var(--token-mdlFAaQL9cZT); line-height: var(--token-bFkpmJG5PZPn)">
   <slot name="header">
     <div id="LhYlVHsRQVjb" style="padding-top: var(--token-J8bgk1cLaZ5G); padding-bottom: var(--token-J8bgk1cLaZ5G); padding-right: var(--token-yk7m7bwFJ02R); padding-left: var(--token-yk7m7bwFJ02R); display: flex; flex-direction: row">
@@ -1692,6 +1870,19 @@ Join our Slack community (icon in bottom left) for help any time.</div>
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="S2QppZj-UJav" name="No trigger" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="phcL-adiLQWW" name="No trigger"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1822,6 +2013,19 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="uss4qvLOhMPV" name="Dark" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="8X2l3Su5Ev8K" name="Dark"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1898,6 +2102,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -1964,6 +2171,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<plasmic-component id="MlKoRbZwK2UG" data-plasmic-component="plasmicReactAriaRadioGroupRadio" data-plasmic-project="vraRvHJQpWZ2nQbXtKvCmD" data-plasmic-name="Aria Radio" data-props='{"value":"{{ $props.value }}","autoFocus":"{{ $props.autoFocus }}","aria-label":"{{ $props.ariaLabel }}","isDisabled":"{{ $props.disabled }}"}' style="position: relative; display: flex; flex-direction: row; justify-content: flex-start; align-items: center; cursor: pointer; box-sizing: border-box; color: var(--token-ZX33JwqKe1KQ); font-family: var(--token-VRn5eg_X38q7); font-size: var(--token-mdlFAaQL9cZT); line-height: var(--token-bFkpmJG5PZPn); width: stretch; column-gap: var(--token-J8bgk1cLaZ5G)">
   <slot name="children">
     <div id="WV-i1VxJMtKx" style="display: flex; position: relative; width: var(--token-41IdgVnm_uZQ); height: var(--token-41IdgVnm_uZQ); border-top-style: solid; border-top-width: 2px; border-right-style: solid; border-right-width: 2px; border-bottom-style: solid; border-bottom-width: 2px; border-left-style: solid; border-left-width: 2px; border-top-color: var(--token-6w7DbBUQGdRg); border-right-color: var(--token-6w7DbBUQGdRg); border-bottom-color: var(--token-6w7DbBUQGdRg); border-left-color: var(--token-6w7DbBUQGdRg); flex-direction: column; align-items: center; justify-content: center; border-top-left-radius: 99px; border-top-right-radius: 99px; border-bottom-right-radius: 99px; border-bottom-left-radius: 99px">
@@ -2010,6 +2220,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -2105,6 +2318,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -2209,6 +2425,22 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="c-2128YCJCzi" name="Type" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="0bSTNkoe1NSD" name="Soft"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="AUJGtdMM0Zz4" name="Plain"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -2322,6 +2554,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -2381,6 +2616,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<plasmic-component id="IeCipxoS434j" data-plasmic-component="plasmicReactAriaSliderSliderThumb" data-plasmic-project="vraRvHJQpWZ2nQbXtKvCmD" data-props='{"isDisabled":"{{ $props.disabled }}","autoFocus":"{{ $props.autoFocus }}","advanced":false}' style="position: relative; background: linear-gradient(var(--token-48p0Jlumb6Of), var(--token-48p0Jlumb6Of)); border-top-color: var(--token-6R_RCgXDnfCy); border-top-width: 1px; border-top-style: solid; border-right-color: var(--token-6R_RCgXDnfCy); border-right-width: 1px; border-right-style: solid; border-bottom-color: var(--token-6R_RCgXDnfCy); border-bottom-width: 1px; border-bottom-style: solid; border-left-color: var(--token-6R_RCgXDnfCy); border-left-width: 1px; border-left-style: solid; cursor: pointer; box-sizing: border-box; display: flex; height: var(--token-41IdgVnm_uZQ); width: var(--token-41IdgVnm_uZQ); border-top-left-radius: 99px; border-top-right-radius: 99px; border-bottom-right-radius: 99px; border-bottom-left-radius: 99px">
   <slot name="children"></slot>
 </plasmic-component>]]></baseVariantTplTree>
@@ -2420,6 +2658,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -2458,6 +2699,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<div id="6C57VBi91AmO" style="display: flex; flex-direction: column; position: relative; width: stretch; height: wrap; justify-content: flex-start; align-items: center">
   <h1 id="hZXoQzqO_1bN" style="width: stretch; height: wrap; max-width: 100%">Element with Dynamic style attribute</h1>
 </div>]]></baseVariantTplTree>
@@ -2628,6 +2872,37 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="z8E67z-VXRlY" name="Multi-line" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="ujPUz5-pNQo3" name="Multi-line"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="zxTb8Xtq4b3n" name="Icon start" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="Y1wfrLkCK3tp" name="Icon start"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="8QWfr5cB4yr9" name="Icon end" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="lZuHYDu-P997" name="Icon end"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -2923,6 +3198,52 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="hpnMoJ7gjfB-" name="Type" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="0cXa8u_Fd6-c" name="Soft"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="9cJ3z_ZYGZvt" name="Plain"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="kfDTPRwlVuMP" name="Flat" multi="true">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="pUxG-pkjbXcJ" name="Top"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="jFOHHIE_LIsW" name="Right"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="oRa7KNUAvba6" name="Bottom"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="f-jiC3pxjmB0" name="Left"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="KtNEZcT-fjAB" name="Padded" multi="true">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="aIRXAYdM6pXb" name="Left"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="t5DeV--6wj_c" name="Right"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -3175,6 +3496,52 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       </ITEM>
     </ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY>
+      <ITEM uuid="AIAlHK8xMaWc" name="Type" multi="false">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="BYaTSYRbp5k-" name="Soft"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="RVfUSn_4OlZE" name="Plain"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="zC_Pu5P2m4Gm" name="Flat" multi="true">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="uub7dYD9Ahd9" name="Top"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="YEvyTqML8ybV" name="Right"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="DoKOv7moJkW2" name="Bottom"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="EDke_10m8Cz5" name="Left"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+      <ITEM uuid="RxwazcdzVwDV" name="Padded" multi="true">
+        <variants>
+          <ARRAY>
+            <ITEM>
+              <Variant uuid="PscEmlQHZllk" name="Left"></Variant>
+            </ITEM>
+            <ITEM>
+              <Variant uuid="tbJOPfM389OI" name="Right"></Variant>
+            </ITEM>
+          </ARRAY>
+        </variants>
+      </ITEM>
+    </ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -3382,6 +3749,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <states>
     <ARRAY>
       <ITEM>
@@ -3426,6 +3796,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<div id="I5WSi3eZbGYU" style="display: flex; flex-direction: row"></div>]]></baseVariantTplTree>
 </Component>",
   "plasmic-data-source-fetcher": "<Component name="plasmic-data-source-fetcher" uuid="eG7R2DxKySYs" type="code">
@@ -3451,6 +3824,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <variants>
     <ARRAY></ARRAY>
   </variants>
+  <variantGroups>
+    <ARRAY></ARRAY>
+  </variantGroups>
   <baseVariantTplTree><![CDATA[<div id="nFqjKfbIuuRb" style="display: flex; flex-direction: row">
   <slot-target name="children" id="P9k7Vhn5ICRU"></slot-target>
 </div>]]></baseVariantTplTree>
@@ -3602,6 +3978,147 @@ exports[`Component Serialization > serializes all components 2`] = `
     ],
     "type": "plain",
     "uuid": "OD5_PLaXT_1t",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Color",
+        "uuid": "kyBwZDLobzZL",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Neutral",
+            "uuid": "sy5AokJJ7g7H",
+          },
+          {
+            "__type": "Variant",
+            "name": "Muted",
+            "uuid": "gdLWnA57ufpt",
+          },
+          {
+            "__type": "Variant",
+            "name": "Success",
+            "uuid": "4EM17LBKD7cA",
+          },
+          {
+            "__type": "Variant",
+            "name": "Warning",
+            "uuid": "rS75iYmeFNPU",
+          },
+          {
+            "__type": "Variant",
+            "name": "Error/Destructive",
+            "uuid": "UZpDGjtFbbo-",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Type",
+        "uuid": "GXBnRw2UgmJ_",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Soft",
+            "uuid": "NzLhyUcNJ56l",
+          },
+          {
+            "__type": "Variant",
+            "name": "Bordered",
+            "uuid": "CFlf6CAr5PRq",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Size",
+        "uuid": "a1bGF3vC1yAt",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Extra small",
+            "uuid": "RDlJE6wlLaV0",
+          },
+          {
+            "__type": "Variant",
+            "name": "Small",
+            "uuid": "1Wus14yXOz6z",
+          },
+          {
+            "__type": "Variant",
+            "name": "Large",
+            "uuid": "f0h7JomxhfMB",
+          },
+          {
+            "__type": "Variant",
+            "name": "Extra large",
+            "uuid": "IL042y6ZmTqU",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Icon start",
+        "uuid": "SXKoCEOeUIvF",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Icon start",
+            "uuid": "sHwmv6VTmYIE",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Icon end",
+        "uuid": "iC6ubpmkl2Fy",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Icon end",
+            "uuid": "WG_MUEe-AF5Z",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Rounded full",
+        "uuid": "twR9qJQT992R",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Rounded full",
+            "uuid": "rnbD-4X93Vp0",
+          },
+        ],
+      },
+      {
+        "multi": true,
+        "name": "Flat side",
+        "uuid": "eRHH6C72RAjF",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Top",
+            "uuid": "LAvN7TnRtX1E",
+          },
+          {
+            "__type": "Variant",
+            "name": "Right",
+            "uuid": "F877AcVY27WU",
+          },
+          {
+            "__type": "Variant",
+            "name": "Bottom",
+            "uuid": "JG2Gsxo917WB",
+          },
+          {
+            "__type": "Variant",
+            "name": "Left",
+            "uuid": "ZDz-CWXMxtWT",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -4615,6 +5132,7 @@ exports[`Component Serialization > serializes all components 2`] = `
     ],
     "type": "plain",
     "uuid": "eTjAMScYpz_5",
+    "variantGroups": [],
     "variants": [],
   },
   "Checkbox Group": {
@@ -4734,6 +5252,7 @@ exports[`Component Serialization > serializes all components 2`] = `
     ],
     "type": "plain",
     "uuid": "8weYhId3_t7B",
+    "variantGroups": [],
     "variants": [],
   },
   "Combobox": {
@@ -4916,6 +5435,25 @@ exports[`Component Serialization > serializes all components 2`] = `
     ],
     "type": "plain",
     "uuid": "m10qGbJjM9JU",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Type",
+        "uuid": "UAXxQrR3OEMH",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Soft",
+            "uuid": "tPGQI9ximkgA",
+          },
+          {
+            "__type": "Variant",
+            "name": "Plain",
+            "uuid": "gcKc5e0uirg6",
+          },
+        ],
+      },
+    ],
     "variants": [
       {
         "__type": "ComponentVariant",
@@ -4961,6 +5499,7 @@ exports[`Component Serialization > serializes all components 2`] = `
     ],
     "type": "plain",
     "uuid": "8ANP8VyLXTfo",
+    "variantGroups": [],
     "variants": [],
   },
   "Drawer": {
@@ -5152,6 +5691,20 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "66fbwz7FPx2e",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "No trigger",
+        "uuid": "bG5ngoIC4vTR",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "No trigger",
+            "uuid": "XcAK-UZkDgAi",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -5300,6 +5853,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     ],
     "type": "page",
     "uuid": "ypvAo6PBDTFP",
+    "variantGroups": [],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -5422,6 +5976,42 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     ],
     "type": "plain",
     "uuid": "JVCv_cilvEWB",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Size",
+        "uuid": "pNJZolAhY51b",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "SM",
+            "uuid": "Mc-Oh4udbRX7",
+          },
+          {
+            "__type": "Variant",
+            "name": "LG",
+            "uuid": "VHb-pUA8lidW",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Requirement Indicator",
+        "uuid": "k7M0ZdEXwgyp",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Optional",
+            "uuid": "-6wdZI4H74qM",
+          },
+          {
+            "__type": "Variant",
+            "name": "Required",
+            "uuid": "Kfk1fRQ40Hgx",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -5588,6 +6178,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     ],
     "type": "plain",
     "uuid": "pzmtbEh09pA0",
+    "variantGroups": [],
     "variants": [],
   },
   "Menu Popover": {
@@ -5655,6 +6246,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     ],
     "type": "plain",
     "uuid": "8w0OrLGU6fuW",
+    "variantGroups": [],
     "variants": [],
   },
   "Menu Section": {
@@ -5692,6 +6284,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     ],
     "type": "plain",
     "uuid": "Fx3lwSohpxtr",
+    "variantGroups": [],
     "variants": [],
   },
   "Modal": {
@@ -5872,6 +6465,20 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "JMMmDTbwlNba",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "No trigger",
+        "uuid": "S2QppZj-UJav",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "No trigger",
+            "uuid": "phcL-adiLQWW",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -5924,6 +6531,20 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "1tPqNrfR1BwC",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Dark",
+        "uuid": "uss4qvLOhMPV",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Dark",
+            "uuid": "8X2l3Su5Ev8K",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -6086,6 +6707,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "1QxpUBoAwkD7",
+    "variantGroups": [],
     "variants": [],
   },
   "Radio": {
@@ -6135,6 +6757,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "DhF49R8vE8x5",
+    "variantGroups": [],
     "variants": [],
   },
   "Radio Group": {
@@ -6248,6 +6871,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "tNAN12ZT21NW",
+    "variantGroups": [],
     "variants": [],
   },
   "Range Slider": {
@@ -6393,6 +7017,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "9TpJxmLV-WtC",
+    "variantGroups": [],
     "variants": [],
   },
   "Select": {
@@ -6553,6 +7178,25 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "XFH-QbD_Wj0E",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Type",
+        "uuid": "c-2128YCJCzi",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Soft",
+            "uuid": "0bSTNkoe1NSD",
+          },
+          {
+            "__type": "Variant",
+            "name": "Plain",
+            "uuid": "AUJGtdMM0Zz4",
+          },
+        ],
+      },
+    ],
     "variants": [
       {
         "__type": "ComponentVariant",
@@ -6719,6 +7363,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "O3lbnxqQd9_J",
+    "variantGroups": [],
     "variants": [],
   },
   "Slider Thumb": {
@@ -6743,6 +7388,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "bGKMrtyTL9ht",
+    "variantGroups": [],
     "variants": [],
   },
   "Switch": {
@@ -6838,6 +7484,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "bpAscHZX1liV",
+    "variantGroups": [],
     "variants": [],
   },
   "TestComponent": {
@@ -6859,6 +7506,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "JqzpTYaVCfc0",
+    "variantGroups": [],
     "variants": [],
   },
   "Text Field": {
@@ -7346,6 +7994,44 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "M0hmO976FWhA",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Multi-line",
+        "uuid": "z8E67z-VXRlY",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Multi-line",
+            "uuid": "ujPUz5-pNQo3",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Icon start",
+        "uuid": "zxTb8Xtq4b3n",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Icon start",
+            "uuid": "Y1wfrLkCK3tp",
+          },
+        ],
+      },
+      {
+        "multi": false,
+        "name": "Icon end",
+        "uuid": "8QWfr5cB4yr9",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Icon end",
+            "uuid": "lZuHYDu-P997",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -7837,6 +8523,69 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "EceIiqvGOOKH",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Type",
+        "uuid": "hpnMoJ7gjfB-",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Soft",
+            "uuid": "0cXa8u_Fd6-c",
+          },
+          {
+            "__type": "Variant",
+            "name": "Plain",
+            "uuid": "9cJ3z_ZYGZvt",
+          },
+        ],
+      },
+      {
+        "multi": true,
+        "name": "Flat",
+        "uuid": "kfDTPRwlVuMP",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Top",
+            "uuid": "pUxG-pkjbXcJ",
+          },
+          {
+            "__type": "Variant",
+            "name": "Right",
+            "uuid": "jFOHHIE_LIsW",
+          },
+          {
+            "__type": "Variant",
+            "name": "Bottom",
+            "uuid": "oRa7KNUAvba6",
+          },
+          {
+            "__type": "Variant",
+            "name": "Left",
+            "uuid": "f-jiC3pxjmB0",
+          },
+        ],
+      },
+      {
+        "multi": true,
+        "name": "Padded",
+        "uuid": "KtNEZcT-fjAB",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Left",
+            "uuid": "aIRXAYdM6pXb",
+          },
+          {
+            "__type": "Variant",
+            "name": "Right",
+            "uuid": "t5DeV--6wj_c",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -8185,6 +8934,69 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "WPRFFrib1Q9_",
+    "variantGroups": [
+      {
+        "multi": false,
+        "name": "Type",
+        "uuid": "AIAlHK8xMaWc",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Soft",
+            "uuid": "BYaTSYRbp5k-",
+          },
+          {
+            "__type": "Variant",
+            "name": "Plain",
+            "uuid": "RVfUSn_4OlZE",
+          },
+        ],
+      },
+      {
+        "multi": true,
+        "name": "Flat",
+        "uuid": "zC_Pu5P2m4Gm",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Top",
+            "uuid": "uub7dYD9Ahd9",
+          },
+          {
+            "__type": "Variant",
+            "name": "Right",
+            "uuid": "YEvyTqML8ybV",
+          },
+          {
+            "__type": "Variant",
+            "name": "Bottom",
+            "uuid": "DoKOv7moJkW2",
+          },
+          {
+            "__type": "Variant",
+            "name": "Left",
+            "uuid": "EDke_10m8Cz5",
+          },
+        ],
+      },
+      {
+        "multi": true,
+        "name": "Padded",
+        "uuid": "RxwazcdzVwDV",
+        "variants": [
+          {
+            "__type": "Variant",
+            "name": "Left",
+            "uuid": "PscEmlQHZllk",
+          },
+          {
+            "__type": "Variant",
+            "name": "Right",
+            "uuid": "tbJOPfM389OI",
+          },
+        ],
+      },
+    ],
     "variantSettings": [
       {
         "__type": "VariantOverride",
@@ -8544,6 +9356,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "plain",
     "uuid": "ASiSVqfHCthg",
+    "variantGroups": [],
     "variants": [],
   },
   "hostless-plasmic-head": {
@@ -8578,6 +9391,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "code",
     "uuid": "3Q5tZgoUcjgc",
+    "variantGroups": [],
     "variants": [],
   },
   "plasmic-data-source-fetcher": {
@@ -8620,6 +9434,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     ],
     "type": "code",
     "uuid": "eG7R2DxKySYs",
+    "variantGroups": [],
     "variants": [],
   },
 }

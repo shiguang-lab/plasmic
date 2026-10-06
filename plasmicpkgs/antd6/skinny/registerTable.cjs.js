@@ -411,6 +411,7 @@ const AntdTable = React__default.default.forwardRef(
         rowSelection: selection,
         rowKey,
         ...rest,
+        scroll: { x: "max-content", ...rest.scroll },
       },
     );
   },

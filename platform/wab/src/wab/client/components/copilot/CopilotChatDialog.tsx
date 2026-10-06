@@ -7,6 +7,7 @@ export interface CopilotChatDialogProps extends DefaultCopilotChatDialogProps {
   canStartNewChat: boolean;
   onClose: () => void;
   onPlanReady: () => void;
+  hiddenByModal: boolean;
 }
 
 /**

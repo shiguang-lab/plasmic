@@ -430,6 +430,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
       rowSelection={selection}
       rowKey={rowKey}
       {...rest}
+      scroll={{ x: "max-content", ...rest.scroll }}
     />
   );
 });

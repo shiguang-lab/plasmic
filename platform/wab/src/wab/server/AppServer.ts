@@ -1203,7 +1203,10 @@ export function addMainAppServerRoutes(
     sensitiveRateLimiter,
     withNext(authRoutes.googleLogin),
   );
-  app.get("/api/v1/auth/desktop/google/complete", authRoutes.desktopGoogleComplete);
+  app.get(
+    "/api/v1/auth/desktop/google/complete",
+    authRoutes.desktopGoogleComplete,
+  );
   app.post(
     "/api/v1/auth/desktop/google/exchange",
     sensitiveRateLimiter,
@@ -1850,9 +1853,12 @@ function addEndErrorHandlers(app: express.Application) {
         // at ERROR both buries real failures and dominates log volume; only an
         // unhandled error (no response, i.e. a 500) is ours to act on.
         if (!response || response.statusCode >= 500) {
-          logger().error("ERROR!", origErr);
+          logger().error("Request failed", {
+            error: origErr.message,
+            stack: origErr.stack,
+          });
         } else if (!(origErr instanceof AuthError)) {
-          logger().warn("Request failed", origErr);
+          logger().warn("Request failed", { error: origErr.message });
         }
         if (res.headersSent || res.writableEnded) {
           logError(origErr, "Tried to edit closed response");
