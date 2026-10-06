@@ -142,7 +142,7 @@ function _Typography({
       </FullRow>
       <FullRow>
         <LabeledStyleDimItem
-          label="Size"
+          label="尺寸"
           styleName="font-size"
           dimOpts={{
             ...tokenTypeDimOpts("FontSize"),

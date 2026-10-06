@@ -70,7 +70,7 @@ export const CustomBehaviorsSection = observer(function (props: {
       }
       controls={
         <Dropdown overlay={menu} trigger={["click"]}>
-          <IconLinkButton onClick={(e) => e.preventDefault()}>
+          <IconLinkButton aria-label="添加自定义行为" onClick={(e) => e.preventDefault()}>
             <Icon icon={PlusIcon} />
           </IconLinkButton>
         </Dropdown>

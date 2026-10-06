@@ -1,11 +1,8 @@
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Breadcrumb } from "antd";
-import React from "react";
-import {
-  b as asArray,
-  r as registerComponentHelper,
-} from "./utils-CSvRw6Za.esm.js";
+import { Breadcrumb } from 'antd';
+import React from 'react';
+import { b as asArray, r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
 function AntdBreadcrumbItem(props) {
   return props.children;
@@ -13,30 +10,21 @@ function AntdBreadcrumbItem(props) {
 function AntdBreadcrumb(props) {
   const { itemsRaw, items: configuredItems, ...rest } = props;
   const items = React.useMemo(() => {
-    const children =
-      React.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem
-        ? itemsRaw.props.children
-        : itemsRaw;
-    return asArray(children)
-      .flat(1)
-      .filter(React.isValidElement)
-      .map((currentItem) => {
-        return {
-          ...currentItem.props,
-          title: React.cloneElement(
-            /* @__PURE__ */ React.createElement(
-              React.Fragment,
-              null,
-              currentItem,
-            ),
-          ),
-        };
-      });
+    const children = React.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem ? itemsRaw.props.children : itemsRaw;
+    return asArray(children).flat(1).filter(React.isValidElement).map((currentItem) => {
+      return {
+        ...currentItem.props,
+        title: React.cloneElement(/* @__PURE__ */ React.createElement(React.Fragment, null, currentItem))
+      };
+    });
   }, [itemsRaw]);
-  return /* @__PURE__ */ React.createElement(Breadcrumb, {
-    ...rest,
-    items: itemsRaw === void 0 ? configuredItems : items,
-  });
+  return /* @__PURE__ */ React.createElement(
+    Breadcrumb,
+    {
+      ...rest,
+      items: itemsRaw === void 0 ? configuredItems : items
+    }
+  );
 }
 const breadcrumbItemComponentName = "plasmic-antd6-breadcrumb-item";
 const breadcrumbComponentName = "plasmic-antd6-breadcrumb";
@@ -55,9 +43,9 @@ function registerBreadcrumb(loader) {
             props: {
               children: {
                 type: "text",
-                value: "First",
-              },
-            },
+                value: "First"
+              }
+            }
           },
           {
             type: "component",
@@ -65,9 +53,9 @@ function registerBreadcrumb(loader) {
             props: {
               children: {
                 type: "text",
-                value: "Second",
-              },
-            },
+                value: "Second"
+              }
+            }
           },
           {
             type: "component",
@@ -75,23 +63,23 @@ function registerBreadcrumb(loader) {
             props: {
               children: {
                 type: "text",
-                value: "Third",
-              },
-            },
-          },
+                value: "Third"
+              }
+            }
+          }
         ],
-        allowedComponents: [breadcrumbItemComponentName],
+        allowedComponents: [breadcrumbItemComponentName]
       },
       separator: {
         type: "slot",
         defaultValue: {
           type: "text",
-          value: "/",
-        },
-      },
+          value: "/"
+        }
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerBreadcrumb",
-    importName: "AntdBreadcrumb",
+    importName: "AntdBreadcrumb"
   });
 }
 function registerBreadcrumbItem(loader) {
@@ -103,23 +91,18 @@ function registerBreadcrumbItem(loader) {
         type: "slot",
         defaultValue: {
           type: "text",
-          value: "Breadcrumb Item",
-        },
+          value: "Breadcrumb Item"
+        }
       },
       onClick: {
         type: "eventHandler",
-        argTypes: [{ type: "object", name: "event" }],
-      },
+        argTypes: [{ type: "object", name: "event" }]
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerBreadcrumb",
-    importName: "AntdBreadcrumbItem",
+    importName: "AntdBreadcrumbItem"
   });
 }
 
-export {
-  AntdBreadcrumb,
-  AntdBreadcrumbItem,
-  registerBreadcrumb,
-  registerBreadcrumbItem,
-};
+export { AntdBreadcrumb, AntdBreadcrumbItem, registerBreadcrumb, registerBreadcrumbItem };
 //# sourceMappingURL=registerBreadcrumb.esm.js.map

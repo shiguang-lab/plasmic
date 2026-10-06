@@ -1,0 +1,47 @@
+const { app, dialog } = require("electron");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { startDesktop } = require("../src/main.cjs");
+const directory = process.env.PLASMIC_RECOVERY_REPORT;
+assert(directory, "Use an isolated recovery report/profile directory");
+fs.mkdirSync(directory, { recursive: true });
+app.setPath("userData", path.join(directory, "profile"));
+app.setPath("sessionData", path.join(directory, "profile"));
+const prompts = [];
+dialog.showMessageBox = async (_window, options) => {
+  prompts.push({ message: options.message, buttons: options.buttons });
+  return { response: options.message.includes("加载失败") ? 2 : 0 };
+};
+const timer = setTimeout(() => app.exit(1), 45000);
+app.whenReady().then(async () => {
+  const win = await startDesktop();
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const before = win.webContents.getURL();
+  const registered = win.webContents.listenerCount("render-process-gone");
+  const gone = new Promise((resolve) => win.webContents.once("render-process-gone", (_event, details) => resolve(details.reason)));
+  win.webContents.forcefullyCrashRenderer();
+  const reason = await gone;
+  for (let attempt = 0; attempt < 40 && prompts.length === 0; attempt++) await new Promise((resolve) => setTimeout(resolve, 100));
+  const report = { reason, before, registered, prompts };
+  if (process.env.PLASMIC_EXPECT_RECOVERY) {
+    assert.equal(prompts.length, 1);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    assert.equal(win.webContents.getURL(), before);
+    assert.equal(win.webContents.isCrashed(), false);
+    win.emit("unresponsive");
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.equal(prompts.length, 2);
+    await win.webContents.session.protocol.unhandle("https");
+    await win.webContents.session.protocol.handle("https", () => Response.error());
+    await win.loadURL(before).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.equal(prompts.length, 3);
+    report.reloaded = true;
+    report.simulatedEvents = ["unresponsive"];
+  } else assert.equal(prompts.length, 0);
+  fs.writeFileSync(path.join(directory, "report.json"), JSON.stringify(report, null, 2));
+  console.log(JSON.stringify(report));
+  clearTimeout(timer);
+  app.exit(0);
+}).catch((error) => { console.error(error.message); clearTimeout(timer); app.exit(1); });

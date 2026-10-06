@@ -417,7 +417,7 @@ function _TopBar({ preview }: TopBarProps) {
         freeTrial={team ? { team } : { render: () => null }}
         logoLink={{
           render: (props) => (
-            <Tooltip title={brand.logoTooltip ?? "Back to dashboard"}>
+            <Tooltip title={brand.logoTooltip ?? "返回项目列表"}>
               <PublicLink
                 {...props}
                 href={brand.logoHref ?? APP_ROUTES.dashboard.fill({})}
@@ -538,11 +538,11 @@ function _TopBar({ preview }: TopBarProps) {
         previewSelect={
           preview
             ? {
-                "aria-label": "Select component",
+                "aria-label": "选择页面或组件",
                 children: (
                   <>
                     {previewPages.length > 0 && (
-                      <Select.OptionGroup title="Pages">
+                      <Select.OptionGroup title="页面">
                         {naturalSort(previewPages, (c) => c.name).map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
                             <Icon icon={PageIcon} style={{ marginRight: 4 }} />
@@ -562,7 +562,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Select.OptionGroup>
                     )}
                     {previewComponents.length > 0 && (
-                      <Select.OptionGroup title="Components">
+                      <Select.OptionGroup title="组件">
                         {naturalSort(previewComponents, (c) => c.name).map(
                           (c) => (
                             <Select.Option key={c.uuid} value={c.uuid}>
@@ -577,7 +577,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Select.OptionGroup>
                     )}
                     {previewArtboards.length > 0 && (
-                      <Select.OptionGroup title="Artboards">
+                      <Select.OptionGroup title="画板">
                         {previewArtboards.map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
                             {c.name || "Unnamed artboard"}

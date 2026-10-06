@@ -28,6 +28,7 @@ import $ from "jquery";
 import { observer } from "mobx-react";
 import React from "react";
 import { Root } from "react-dom/client";
+import { ok } from "neverthrow";
 import { useUnmount } from "react-use";
 
 export const ComponentActionsSection = observer(
@@ -135,7 +136,9 @@ export function useStudioOps(
       root.current = sub.ReactDOMClient.createRoot(node);
     }
     const renderElement = sub.React.createElement(
-      sub.GenericErrorBoundary,
+      sub.StudioControlsProvider,
+      { studioDocument: node.ownerDocument },
+      sub.React.createElement(sub.GenericErrorBoundary,
       {
         className: "error-boundary",
       },
@@ -146,7 +149,7 @@ export function useStudioOps(
           modalProps?.onClose?.();
           setModalProps(null);
         },
-      }),
+      })),
     );
     if (root.current) {
       root.current.render(renderElement);
@@ -418,15 +421,13 @@ function ButtonAction<P>({
       <Button
         onClick={() => {
           spawn(
-            Promise.resolve(
-              onClick({
+            viewCtx.studioCtx.change(() => ok(onClick({
                 componentProps: componentPropValues,
                 contextData: ccContextData,
                 studioOps: studioOps,
                 projectData: projectData,
                 studioDocument: document,
-              }),
-            ).catch((error) => {
+              }))).then(ensureOk).catch((error) => {
               notification.error({
                 message: "Component action failed",
                 description: error.message,
@@ -479,7 +480,9 @@ function CustomAction<P>({
       actionRoot.current = sub.ReactDOMClient.createRoot(node);
     }
     const renderElement = sub.React.createElement(
-      sub.GenericErrorBoundary,
+      sub.StudioControlsProvider,
+      { studioDocument: node.ownerDocument },
+      sub.React.createElement(sub.GenericErrorBoundary,
       {
         className: "error-boundary",
       },
@@ -489,7 +492,7 @@ function CustomAction<P>({
         studioOps: studioOps,
         projectData: projectData,
         studioDocument: window.document,
-      }),
+      })),
     );
     if (actionRoot.current) {
       actionRoot.current.render(renderElement);

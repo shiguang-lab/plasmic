@@ -727,7 +727,7 @@ function getRenderBySection(
         isTypographyValidForTpl(tpl) &&
         showSection(Section.Typography) && (
           <TypographySection
-            title={isContainerOrCodeComponentTpl ? "Typography" : "Text"}
+            title={isContainerOrCodeComponentTpl ? "文字样式" : "文本"}
             key={`${tpl.uuid}-typography`}
             expsProvider={sc.props.expsProvider}
             ancestorSlot={styleAncestorSlot}

@@ -90,7 +90,7 @@ export const LayoutSection = observer(function LayoutSection_(
   return (
     <StylePanelSection
       hasMore
-      title="Layout"
+      title="布局"
       expsProvider={props.expsProvider}
       extraMenuItems={makeMenu}
       controls={

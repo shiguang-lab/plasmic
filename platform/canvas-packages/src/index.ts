@@ -9,6 +9,7 @@ import {
   nativeAntd6,
   nativeAntd6EnUS,
   nativeAntd6ZhCN,
+  StudioControlsProvider,
 } from "@shiguang-lab/plasmic-antd6";
 import type domAlign from "dom-align";
 import { toPng } from "html-to-image";
@@ -24,6 +25,7 @@ import { createModal } from "./modals";
 // Types copied from subdeps.ts to verify compatibility
 // TODO: wab should depend on canvas-packages
 interface CanvasPkgs {
+  StudioControlsProvider: typeof StudioControlsProvider;
   Antd6: typeof nativeAntd6 & {
     localeZhCN: typeof nativeAntd6ZhCN;
     localeEnUS: typeof nativeAntd6EnUS;
@@ -71,6 +73,7 @@ interface ModalProps {
 }
 
 const __CanvasPkgs: CanvasPkgs = {
+  StudioControlsProvider,
   Antd6: (window as any).__Sub.Antd6 ?? {
     ...nativeAntd6,
     localeZhCN: nativeAntd6ZhCN,

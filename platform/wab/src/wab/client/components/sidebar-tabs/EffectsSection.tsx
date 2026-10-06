@@ -69,7 +69,7 @@ export const EffectsPanelSection = observer(
       <StylePanelSection
         fullyCollapsible
         expsProvider={expsProvider}
-        title={"Effects"}
+        title={"效果"}
         styleProps={effectsStyleProps}
         hasMore
       >

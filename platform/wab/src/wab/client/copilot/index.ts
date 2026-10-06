@@ -31,6 +31,8 @@ import { ensureOk } from "@/wab/commons/neverthrow-utils";
 import {
   ensureActivatedScreenVariantsForFrameByWidth,
   getArenaFrames,
+  getArenaType,
+  getArenaUuidOrName,
   getFrameHeight,
   normalizeMixedArenaFrames,
 } from "@/wab/shared/Arenas";
@@ -38,7 +40,7 @@ import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { getBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
-import { assert, ensure } from "@/wab/shared/common";
+import { assert, ensure, asyncTimeout } from "@/wab/shared/common";
 import { getComponentArenaBaseFrame } from "@/wab/shared/component-arenas";
 import {
   GlobalVariantFrame,
@@ -65,6 +67,7 @@ import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
 import {
   allGlobalVariants,
   getComponentArena,
+  getArenaByNameOrUuidOrPath,
   getPageArena,
 } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
@@ -107,6 +110,7 @@ import { ok } from "neverthrow";
 const quietTools = new Set([
   "identify",
   "getEditorContext",
+  "restoreEditorView",
   "selectElement",
   "findEmptySpace",
   "navigate",
@@ -1413,6 +1417,16 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               slotName: val.slotParam.variable.name,
             }
           : null,
+      projectName: studio.siteInfo.name,
+      editorView: studio.currentArena && studio.viewportCtx
+        ? {
+            arenaId: getArenaUuidOrName(studio.currentArena),
+            arenaType: getArenaType(studio.currentArena),
+            frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
+            scale: studio.viewportCtx.scale(),
+            scroll: { x: studio.viewportCtx.scroll().x, y: studio.viewportCtx.scroll().y },
+          }
+        : null,
       previewContext:
         studio.isLiveMode && studio.previewCtx
           ? {
@@ -1457,6 +1471,19 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             )
           : [],
     };
+  }),
+  restoreEditorView: defineCopilotTool(meta.restoreEditorView, async (studio, input) => {
+    assert(!studio.isLiveMode && !studio.isInteractiveMode, "Return to edit mode before restoring a view");
+    const arena = getArenaByNameOrUuidOrPath(studio.site, input.arenaId, input.arenaType);
+    assert(arena, "Saved arena no longer exists");
+    const frame = input.frameUuid
+      ? ensure(getArenaFrames(arena).find((candidate) => candidate.uuid === input.frameUuid), "Saved artboard no longer exists")
+      : undefined;
+    studio.switchToArena(arena);
+    await asyncTimeout(0);
+    await studio.awaitStudioReady();
+    studio.restoreStudioViewportSnapshot({ focusedArenaFrame: frame, scale: input.scale, scroll: new Pt(input.scroll.x, input.scroll.y) }, true);
+    return { restored: true };
   }),
   selectElement: defineCopilotTool(
     meta.selectElement,

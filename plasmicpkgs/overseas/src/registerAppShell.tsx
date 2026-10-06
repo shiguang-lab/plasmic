@@ -384,69 +384,73 @@ export const appShellThumbnail = `data:image/svg+xml;charset=utf-8,${encodeURICo
 export const appShellMeta: CodeComponentMeta<AppShellProps> = {
   name: "plasmic-overseas-app-shell",
   displayName: "AppShell",
-  section: "Application layouts",
+  section: "应用布局",
   thumbnailUrl: appShellThumbnail,
   description:
-    "Shared admin shell with menu-derived route selection and breadcrumbs, configurable product, user, languages and App Sources. Put page content in the children slot.",
+    "共享后台框架，根据菜单路由同步导航和面包屑。可配置产品、用户、语言和 App 来源，在页面内容插槽中编辑页面。",
   importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell",
   importName: "AppShell",
   defaultStyles: { width: "1440px", height: "1024px" },
   props: {
-    direction: { type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
+    direction: { displayName: "阅读方向", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
     onDirectionChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "string" }],
     },
-    timeZone: { type: "string", defaultValue: "Asia/Shanghai" },
+    timeZone: { displayName: "时区", type: "string", defaultValue: "Asia/Shanghai" },
     currentTime: {
+      displayName: "当前时间",
       type: "string",
       description:
         "Host-supplied clock text; otherwise show the current time in timeZone.",
     },
-    productName: { type: "string", defaultValue: "增长管理平台" },
-    logoUrl: "imageUrl",
-    userName: { type: "string", defaultValue: "示例用户" },
+    productName: { displayName: "产品名称", type: "string", defaultValue: "增长管理平台" },
+    logoUrl: { type: "imageUrl", displayName: "产品标志" },
+    userName: { displayName: "用户名", type: "string", defaultValue: "示例用户" },
     languages: {
+      displayName: "语言列表",
       type: "array",
       itemType: optionType,
       defaultValue: DEFAULT_LANGUAGES,
     },
-    language: "string",
+    language: { type: "string", displayName: "当前语言" },
     onLanguageChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "string" }],
     },
     appSources: {
+      displayName: "App 来源列表",
       type: "array",
       itemType: optionType,
       defaultValue: DEFAULT_APP_SOURCES,
     },
-    appSource: "string",
+    appSource: { type: "string", displayName: "当前 App 来源" },
     onAppSourceChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "string" }],
     },
     menuItems: {
+      displayName: "导航菜单",
       type: "array",
       itemType: menuItemType as any,
       defaultValue: DEFAULT_MENU_ITEMS,
     },
-    selectedMenuKey: "string",
+    selectedMenuKey: { type: "string", displayName: "当前菜单标识" },
     onMenuSelect: {
       type: "eventHandler",
       argTypes: [{ name: "key", type: "string" }],
     },
-    userMenuItems: { type: "array", itemType: menuItemType as any },
+    userMenuItems: { displayName: "用户菜单", type: "array", itemType: menuItemType as any },
     onUserAction: {
       type: "eventHandler",
       argTypes: [{ name: "key", type: "string" }],
     },
-    collapsed: "boolean",
+    collapsed: { type: "boolean", displayName: "折叠侧栏" },
     onCollapsedChange: {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "boolean" }],
     },
-    children: { type: "slot", displayName: "Page body", hidePlaceholder: true },
+    children: { type: "slot", displayName: "页面内容", hidePlaceholder: true },
   },
   states: {
     direction: {

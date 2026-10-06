@@ -1,6 +1,6 @@
-import "antd";
-import React from "react";
-import { P as PathContext } from "./contexts-DtHxvgts.esm.js";
+import React from 'react';
+import { P as PathContext } from './contexts-DtHxvgts.esm.js';
+import 'antd';
 
 function FormGroup(props) {
   const pathCtx = React.useContext(PathContext);
@@ -9,10 +9,10 @@ function FormGroup(props) {
     {
       value: {
         relativePath: [...pathCtx.relativePath, props.name],
-        fullPath: [...pathCtx.fullPath, props.name],
-      },
+        fullPath: [...pathCtx.fullPath, props.name]
+      }
     },
-    props.children,
+    props.children
   );
 }
 

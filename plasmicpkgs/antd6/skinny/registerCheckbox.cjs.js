@@ -1,17 +1,15 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var names = require("./names-DbJduus8.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var names = require('./names-DbJduus8.cjs.js');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdCheckbox(props) {
   const { onChange, ...rest } = props;
@@ -22,10 +20,7 @@ function AntdCheckbox(props) {
       return void 0;
     }
   }, [onChange]);
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Checkbox, {
-    ...rest,
-    onChange: wrappedOnChange,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Checkbox, { ...rest, onChange: wrappedOnChange });
 }
 AntdCheckbox.__plasmicFormFieldMeta = { valueProp: "checked" };
 const AntdCheckboxGroup = Ant.Checkbox.Group;
@@ -38,41 +33,40 @@ function registerCheckbox(loader) {
         type: "boolean",
         editOnly: true,
         uncontrolledProp: "defaultChecked",
-        description:
-          "Specifies the initial state: whether or not the checkbox is selected",
+        description: "Specifies the initial state: whether or not the checkbox is selected",
         defaultValueHint: false,
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       disabled: {
         type: "boolean",
         description: "If checkbox is disabled",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       indeterminate: {
         type: "boolean",
         description: "The indeterminate checked state of checkbox",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       autoFocus: {
         type: "boolean",
         description: "If get focus when component mounted",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       children: {
         type: "slot",
         defaultValue: [
           {
             type: "text",
-            value: "Checkbox",
-          },
+            value: "Checkbox"
+          }
         ],
-        ...{ mergeWithParent: true },
+        ...{ mergeWithParent: true }
       },
       onChange: {
         type: "eventHandler",
-        argTypes: [{ name: "checked", type: "boolean" }],
-      },
+        argTypes: [{ name: "checked", type: "boolean" }]
+      }
     },
     states: {
       checked: {
@@ -80,11 +74,11 @@ function registerCheckbox(loader) {
         valueProp: "checked",
         onChangeProp: "onChange",
         variableType: "boolean",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerCheckbox",
-    importName: "AntdCheckbox",
+    importName: "AntdCheckbox"
   });
   utils.registerComponentHelper(loader, AntdCheckboxGroup, {
     name: names.checkboxGroupComponentName,
@@ -99,24 +93,21 @@ function registerCheckbox(loader) {
         options: (ps) => {
           const options = /* @__PURE__ */ new Set();
           utils.traverseReactEltTree(ps.children, (elt) => {
-            if (
-              elt?.type === AntdCheckbox &&
-              typeof elt?.props?.value === "string"
-            ) {
+            if (elt?.type === AntdCheckbox && typeof elt?.props?.value === "string") {
               options.add(elt.props.value);
             }
           });
           return Array.from(options.keys());
-        },
+        }
       },
       disabled: {
         type: "boolean",
         description: "Disables all checkboxes",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       children: {
         type: "slot",
-        allowedComponents: [names.checkboxComponentName],
+        allowedComponents: [names.checkboxComponentName]
         // Error right now when using default slot content with stateful instances
         // defaultValue: [
         //   {
@@ -127,8 +118,8 @@ function registerCheckbox(loader) {
       },
       onChange: {
         type: "eventHandler",
-        argTypes: [{ name: "value", type: "object" }],
-      },
+        argTypes: [{ name: "value", type: "object" }]
+      }
     },
     states: {
       value: {
@@ -136,12 +127,12 @@ function registerCheckbox(loader) {
         valueProp: "value",
         onChangeProp: "onChange",
         variableType: "array",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerCheckbox",
     importName: "AntdCheckboxGroup",
-    parentComponentName: names.checkboxComponentName,
+    parentComponentName: names.checkboxComponentName
   });
 }
 

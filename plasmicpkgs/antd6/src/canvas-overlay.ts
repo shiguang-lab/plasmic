@@ -2,7 +2,12 @@ import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
 } from "@plasmicapp/host";
-import { useEffect } from "react";
+import { ReactElement, useEffect } from "react";
+
+/** Child selection uses the same SDK contract as editing-only overlays. */
+export function getSelectedCanvasItemKey(items: ReactElement[]) {
+  return items.find((item) => item.props.__plasmic_selection_prop__?.isSelected)?.key;
+}
 
 export interface CanvasOverlayProps {
   previewOpen?: boolean;
@@ -12,10 +17,10 @@ export interface CanvasOverlayProps {
 
 export const previewOpenProp = {
   type: "boolean" as const,
-  displayName: "Preview open",
+  displayName: "编辑时展开",
   editOnly: true,
   description:
-    "Open or close the overlay only while editing. Unset to follow selection. Does not change the published open state.",
+    "仅在编辑画布中展开或关闭浮层。未设置时跟随选择，不改变运行时的 open 状态。",
 };
 
 /** Selection controls only the design canvas; preview keeps the native open state. */

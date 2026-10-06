@@ -5,7 +5,6 @@ import {
   PlasmicSaveIndicator,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicSaveIndicator";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Tooltip } from "antd";
 import { observer } from "mobx-react";
@@ -18,24 +17,47 @@ function SaveIndicator_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const studioCtx = useStudioCtx();
+  const status = studioCtx.saveStatus;
+  const labels = {
+    saved: "已保存",
+    pending: "等待保存",
+    saving: "正在保存…",
+    error: "保存失败，点击重试",
+    blocked: "无法保存，请处理上方提示",
+    unlogged: "临时修改尚未记录",
+  };
+  const canRetry = status === "error" && studioCtx.canSave();
+  const retry = () => { if (canRetry) void studioCtx.save(); };
 
   return (
-    <MaybeWrap
-      cond={studioCtx.needsSaving() || studioCtx.isUnlogged()}
-      wrapper={(x) => <Tooltip title="Saving...">{x}</Tooltip>}
-    >
+    <Tooltip title={labels[status]}>
       <PlasmicSaveIndicator
-        root={{ ref }}
+        {...props}
+        root={{
+          ref,
+          role: canRetry ? "button" : "status",
+          "aria-label": labels[status],
+          "aria-live": "polite",
+          tabIndex: canRetry ? 0 : undefined,
+          onClick: retry,
+          onKeyDown: (event) => {
+            if (canRetry && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              retry();
+            }
+          },
+        }}
+        freeBox={{ style: status === "error" || status === "blocked"
+          ? { backgroundColor: "#d92d20" } : undefined }}
         saveState={
-          studioCtx.isUnlogged()
+          status === "unlogged"
             ? "unlogged"
-            : studioCtx.needsSaving()
+            : status !== "saved"
               ? "dirty"
               : undefined
         }
-        {...props}
       />
-    </MaybeWrap>
+    </Tooltip>
   );
 }
 

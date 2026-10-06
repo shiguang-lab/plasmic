@@ -1,14 +1,12 @@
-"use strict";
+'use strict';
 
-var React = require("react");
-var contexts = require("./contexts-DbLDJr3k.cjs.js");
-require("antd");
+var React = require('react');
+var contexts = require('./contexts-DbLDJr3k.cjs.js');
+require('antd');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function FormGroup(props) {
   const pathCtx = React__default.default.useContext(contexts.PathContext);
@@ -17,10 +15,10 @@ function FormGroup(props) {
     {
       value: {
         relativePath: [...pathCtx.relativePath, props.name],
-        fullPath: [...pathCtx.fullPath, props.name],
-      },
+        fullPath: [...pathCtx.fullPath, props.name]
+      }
     },
-    props.children,
+    props.children
   );
 }
 

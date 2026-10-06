@@ -892,6 +892,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       {!codeComponentRoot && !codeComponentSlot && (
         <MenuButton
           className={"tpltree__label__menu"}
+          aria-label="图层操作菜单"
           menu={
             isOutOfContext ? undefined : () => makeTreeNodeMenu(viewCtx, item)
           }

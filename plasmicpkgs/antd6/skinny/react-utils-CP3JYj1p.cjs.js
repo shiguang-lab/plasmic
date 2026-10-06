@@ -1,20 +1,16 @@
-"use strict";
+'use strict';
 
-var cls = require("classnames");
-var React = require("react");
+var cls = require('classnames');
+var React = require('react');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var cls__default = /*#__PURE__*/ _interopDefault(cls);
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var cls__default = /*#__PURE__*/_interopDefault(cls);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 const isBrowser = typeof window !== "undefined";
 const NONE = /* @__PURE__ */ Symbol("NONE");
-isBrowser
-  ? React__default.default.useLayoutEffect
-  : React__default.default.useEffect;
+isBrowser ? React__default.default.useLayoutEffect : React__default.default.useEffect;
 function mergeProps(props, ...restProps) {
   if (restProps.every((rest) => Object.keys(rest).length === 0)) {
     return props;
@@ -83,7 +79,7 @@ function reactNodeToString(reactNode) {
   } else if (typeof reactNode === "number") {
     string = reactNode.toString();
   } else if (reactNode instanceof Array) {
-    reactNode.forEach(function (child) {
+    reactNode.forEach(function(child) {
       string += reactNodeToString(child);
     });
   } else if (React.isValidElement(reactNode)) {

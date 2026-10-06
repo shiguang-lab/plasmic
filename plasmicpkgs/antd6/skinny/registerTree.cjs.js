@@ -1,64 +1,57 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdTree(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Tree, {
-    ...props,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Tree, { ...props });
 }
 function AntdDirectoryTree(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
-    Ant.Tree.DirectoryTree,
-    { ...props },
-  );
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Tree.DirectoryTree, { ...props });
 }
 const treeHelpers_ = {
   states: {
     selectedKeys: {
-      onChangeArgsToValue: (selectedKeys, _info) => {
+      onChangeArgsToValue: ((selectedKeys, _info) => {
         return selectedKeys;
-      },
+      })
     },
     selectedNodes: {
-      onChangeArgsToValue: (_selectedKeys, info) => {
+      onChangeArgsToValue: ((_selectedKeys, info) => {
         return info.selectedNodes;
-      },
+      })
     },
     expandedKeys: {
-      onChangeArgsToValue: (expandedKeys, _info) => {
+      onChangeArgsToValue: ((expandedKeys, _info) => {
         return expandedKeys;
-      },
+      })
     },
     checkedKeys: {
-      onChangeArgsToValue: (checkedKeys, _info) => {
+      onChangeArgsToValue: ((checkedKeys, _info) => {
         return checkedKeys;
-      },
+      })
     },
     checkedNodes: {
-      onChangeArgsToValue: (_checkedKeys, info) => {
+      onChangeArgsToValue: ((_checkedKeys, info) => {
         return info.checkedNodes;
-      },
+      })
     },
     checkedDetails: {
-      onChangeArgsToValue: (_checkedKeys, info) => {
+      onChangeArgsToValue: ((_checkedKeys, info) => {
         return {
           checkedNodesPositions: info.checkedNodesPositions,
-          halfCheckedKeys: info.halfCheckedKeys,
+          halfCheckedKeys: info.halfCheckedKeys
         };
-      },
-    },
-  },
+      })
+    }
+  }
 };
 const treeHelpers = treeHelpers_;
 const treeData = [
@@ -73,18 +66,18 @@ const treeData = [
           {
             title: "Node 0-0-0",
             key: "0-0-0",
-            disableCheckbox: true,
+            disableCheckbox: true
           },
           {
             title: "Node 0-0-1",
             key: "0-0-1",
-            disabled: true,
+            disabled: true
           },
           {
             title: "Node 0-0-2",
-            key: "0-0-2",
-          },
-        ],
+            key: "0-0-2"
+          }
+        ]
       },
       {
         title: "Node 0-1",
@@ -92,16 +85,16 @@ const treeData = [
         children: [
           {
             title: "Node 0-1-0",
-            key: "0-1-0",
+            key: "0-1-0"
           },
           {
             title: "Node 0-1-1",
-            key: "0-1-1",
-          },
-        ],
-      },
-    ],
-  },
+            key: "0-1-1"
+          }
+        ]
+      }
+    ]
+  }
 ];
 function registerTreeHelper({
   loader,
@@ -110,7 +103,7 @@ function registerTreeHelper({
   displayName,
   importName,
   checkableDefaultValue,
-  expandActionDefaultValue,
+  expandActionDefaultValue
 }) {
   utils.registerComponentHelper(loader, component, {
     name,
@@ -118,22 +111,22 @@ function registerTreeHelper({
     props: {
       treeData: {
         type: "array",
-        defaultValue: treeData,
+        defaultValue: treeData
       },
       checkable: {
         type: "boolean",
-        defaultValue: checkableDefaultValue,
+        defaultValue: checkableDefaultValue
       },
       selectable: {
         type: "boolean",
-        defaultValueHint: true,
+        defaultValueHint: true
       },
       checkedKeys: {
         type: "array",
         editOnly: true,
         uncontrolledProp: "defaultCheckedKeys",
         description: "List of checked keys.",
-        hidden: (ps) => !ps.checkable,
+        hidden: (ps) => !ps.checkable
       },
       selectedKeys: {
         type: "array",
@@ -141,7 +134,7 @@ function registerTreeHelper({
         uncontrolledProp: "defaultSelectedKeys",
         description: "List of selected keys.",
         hidden: (ps) => !(ps.selectable ?? true),
-        advanced: true,
+        advanced: true
       },
       expandedKeys: {
         type: "array",
@@ -149,58 +142,56 @@ function registerTreeHelper({
         uncontrolledProp: "defaultExpandedKeys",
         description: "List of expanded keys.",
         // hidden: (ps: any) => !ps.expa,
-        advanced: true,
+        advanced: true
       },
       disabled: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       showLine: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       defaultExpandAll: {
         type: "boolean",
-        description:
-          "Whether to automatically expand all nodes at initialization",
-        defaultValueHint: false,
+        description: "Whether to automatically expand all nodes at initialization",
+        defaultValueHint: false
       },
       autoExpandParent: {
         type: "boolean",
         description: "Whether to automatically expand a parent node",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       defaultExpandParent: {
         type: "boolean",
-        description:
-          "Whether to automatically expand a parent node at initialization",
+        description: "Whether to automatically expand a parent node at initialization",
         defaultValueHint: true,
-        advanced: true,
+        advanced: true
       },
       expandAction: {
         type: "choice",
         options: [
           {
             label: "None",
-            value: false,
+            value: false
           },
           {
             label: "Click",
-            value: "click",
+            value: "click"
           },
           {
             label: "Double click",
-            value: "doubleClick",
-          },
+            value: "doubleClick"
+          }
         ],
-        defaultValueHint: expandActionDefaultValue,
+        defaultValueHint: expandActionDefaultValue
       },
       multiple: {
         type: "boolean",
         defaultValueHint: false,
         description: "Whether to allow multiple selection",
-        advanced: true,
+        advanced: true
       },
       icon: { type: "slot", hidePlaceholder: true },
       switcherIcon: { type: "slot", hidePlaceholder: true },
@@ -208,7 +199,7 @@ function registerTreeHelper({
       titleRender: {
         type: "slot",
         hidePlaceholder: true,
-        renderPropParams: ["node"],
+        renderPropParams: ["node"]
       },
       // draggable: {
       //   type: "boolean",
@@ -226,10 +217,10 @@ function registerTreeHelper({
         argTypes: [
           { name: "selectedKeys", type: { type: "array" } },
           {
-            name: "selectedNodes",
-            type: { type: "array" },
-          },
-        ],
+            name: "info",
+            type: { type: "object" }
+          }
+        ]
       },
       onCheck: {
         type: "eventHandler",
@@ -237,9 +228,9 @@ function registerTreeHelper({
           { name: "checkedKeys", type: { type: "array" } },
           {
             name: "checkDetails",
-            type: { type: "object" },
-          },
-        ],
+            type: { type: "object" }
+          }
+        ]
       },
       onExpand: {
         type: "eventHandler",
@@ -247,10 +238,10 @@ function registerTreeHelper({
           { name: "expandedKeys", type: { type: "array" } },
           {
             name: "expandDetails",
-            type: { type: "object" },
-          },
-        ],
-      },
+            type: { type: "object" }
+          }
+        ]
+      }
     },
     states: {
       checkedKeys: {
@@ -258,14 +249,14 @@ function registerTreeHelper({
         valueProp: "checkedKeys",
         onChangeProp: "onCheck",
         variableType: "array",
-        ...treeHelpers_.states.checkedKeys,
+        ...treeHelpers_.states.checkedKeys
       },
       checkedNodes: {
         type: "readonly",
         onChangeProp: "onCheck",
         variableType: "array",
         initVal: [],
-        ...treeHelpers_.states.checkedNodes,
+        ...treeHelpers_.states.checkedNodes
       },
       checkedDetails: {
         type: "readonly",
@@ -273,39 +264,39 @@ function registerTreeHelper({
         variableType: "object",
         initVal: {
           checkedNodesPositions: [],
-          halfCheckedKeys: [],
+          halfCheckedKeys: []
         },
-        ...treeHelpers_.states.checkedDetails,
+        ...treeHelpers_.states.checkedDetails
       },
       selectedKeys: {
         type: "writable",
         valueProp: "selectedKeys",
         onChangeProp: "onSelect",
         variableType: "array",
-        ...treeHelpers_.states.selectedKeys,
+        ...treeHelpers_.states.selectedKeys
       },
       selectedNodes: {
         type: "readonly",
         onChangeProp: "onSelect",
         variableType: "array",
         initVal: [],
-        ...treeHelpers_.states.selectedNodes,
+        ...treeHelpers_.states.selectedNodes
       },
       expandedKeys: {
         type: "writable",
         valueProp: "expandedKeys",
         onChangeProp: "onExpand",
         variableType: "array",
-        ...treeHelpers_.states.expandedKeys,
-      },
+        ...treeHelpers_.states.expandedKeys
+      }
     },
     componentHelpers: {
       helpers: treeHelpers_,
       importName: "treeHelpers",
-      importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTree",
+      importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTree"
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTree",
-    importName,
+    importName
   });
 }
 function registerTree(loader) {
@@ -316,7 +307,7 @@ function registerTree(loader) {
     displayName: "Tree",
     importName: "AntdTree",
     checkableDefaultValue: true,
-    expandActionDefaultValue: false,
+    expandActionDefaultValue: false
   });
 }
 function registerDirectoryTree(loader) {
@@ -327,7 +318,7 @@ function registerDirectoryTree(loader) {
     displayName: "Directory Tree",
     importName: "AntdDirectoryTree",
     checkableDefaultValue: false,
-    expandActionDefaultValue: "click",
+    expandActionDefaultValue: "click"
   });
 }
 

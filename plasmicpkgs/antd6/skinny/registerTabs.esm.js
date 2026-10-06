@@ -1,13 +1,11 @@
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Tabs } from "antd";
-import cls from "classnames";
-import React, { useMemo } from "react";
-import {
-  b as asArray,
-  r as registerComponentHelper,
-  t as traverseReactEltTree,
-} from "./utils-CSvRw6Za.esm.js";
+import { usePlasmicCanvasContext } from '@plasmicapp/host';
+import { Tabs } from 'antd';
+import cls from 'classnames';
+import React, { useMemo } from 'react';
+import { g as getSelectedCanvasItemKey } from './canvas-overlay-CXR871_R.esm.js';
+import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-z8_Paxbd.esm.js';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
 const tabsComponentName = "plasmic-antd6-tabs";
 const tabItemComponentName = "plasmic-antd6-tab-item";
@@ -15,13 +13,10 @@ const AntdTabItem = ({ children }) => {
   return /* @__PURE__ */ React.createElement("div", null, children);
 };
 function getTabItems(items) {
-  if (!items) {
-    return [];
-  }
-  if (!React.isValidElement(items) && Array.isArray(items)) return [...items];
-  return items?.type?.name == AntdTabItem.name
-    ? [items]
-    : asArray(items.props?.children).flat(1).filter(React.isValidElement);
+  return asArray(items).flatMap((item) => {
+    if (!React.isValidElement(item)) return [];
+    return item.type?.name === AntdTabItem.name ? [item] : getTabItems(item.props.children);
+  });
 }
 function getTabItemKeys(items) {
   const keys = [];
@@ -33,6 +28,18 @@ function getTabItemKeys(items) {
   return keys;
 }
 function AntdTabs(props) {
+  if (React.isValidElement(props.items) && typeof props.items.props.children === "function") {
+    const observer = props.items;
+    const renderItems = observer.props.children;
+    return React.cloneElement(observer, {
+      children: (...args) => /* @__PURE__ */ React.createElement(TabsWithItems, { ...props, items: renderItems(...args) })
+    });
+  }
+  return /* @__PURE__ */ React.createElement(TabsWithItems, { ...props });
+}
+function TabsWithItems(props) {
+  const canvas = usePlasmicCanvasContext();
+  const isEditing = !!canvas && !canvas.interactive;
   const {
     items: itemsRaw,
     animated = true,
@@ -51,85 +58,70 @@ function AntdTabs(props) {
     ...rest
   } = props;
   const animationProp = useMemo(
-    () =>
-      animated
-        ? {
-            inkBar: animateTabBar,
-            tabPane: animateTabContent,
-          }
-        : false,
-    [animateTabBar, animateTabContent, animated],
+    () => animated ? {
+      inkBar: animateTabBar,
+      tabPane: animateTabContent
+    } : false,
+    [animateTabBar, animateTabContent, animated]
   );
-  const items = useMemo(() => {
-    const tabItems = getTabItems(itemsRaw);
-    return tabItems
-      .map((currentItem) => {
+  const tabItems = getTabItems(itemsRaw);
+  const selectedKey = isEditing ? getSelectedCanvasItemKey(tabItems) : void 0;
+  const items = tabItems.map((currentItem) => {
+    return {
+      ...currentItem.props,
+      key: currentItem.key,
+      children: /* @__PURE__ */ React.createElement(React.Fragment, null, currentItem.props?.children)
+    };
+  }).filter((i) => i != null);
+  return /* @__PURE__ */ React.createElement(
+    Tabs,
+    {
+      className: cls(className, tabsScopeClassName),
+      classNames: (info) => {
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        const popup = typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
         return {
-          ...currentItem.props,
-          key: currentItem.key,
-          children: /* @__PURE__ */ React.createElement(
-            React.Fragment,
-            null,
-            currentItem.props?.children,
-          ),
+          ...names,
+          popup: {
+            ...popup,
+            root: cls(popup?.root, tabsDropdownScopeClassName)
+          }
         };
-      })
-      .filter((i) => i != null);
-  }, [itemsRaw]);
-  return /* @__PURE__ */ React.createElement(Tabs, {
-    className: cls(className, tabsScopeClassName),
-    classNames: (info) => {
-      const names =
-        typeof classNames === "function" ? classNames(info) : classNames;
-      const popup =
-        typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
-      return {
-        ...names,
-        popup: { ...popup, root: cls(popup?.root, tabsDropdownScopeClassName) },
-      };
-    },
-    tabBarExtraContent: {
-      left: /* @__PURE__ */ React.createElement(
-        React.Fragment,
-        null,
-        tabBarExtraContentLeft,
-      ),
-      right: /* @__PURE__ */ React.createElement(
-        React.Fragment,
-        null,
-        tabBarExtraContentRight,
-      ),
-    },
-    tabPlacement,
-    renderTabBar:
-      sticky && tabPlacement === "top"
-        ? (tabBarProps, DefaultTabBar) =>
-            /* @__PURE__ */ React.createElement(
-              "div",
-              {
-                style: {
-                  zIndex: 1,
-                  position: "sticky",
-                  top: stickyOffset || 0,
-                },
-              },
-              /* @__PURE__ */ React.createElement(DefaultTabBar, {
-                ...tabBarProps,
-                style: { backgroundColor: tabBarBackground },
-              }),
-            )
-        : void 0,
-    animated: animationProp,
-    items,
-    ...rest,
-  });
+      },
+      tabBarExtraContent: {
+        left: /* @__PURE__ */ React.createElement(React.Fragment, null, tabBarExtraContentLeft),
+        right: /* @__PURE__ */ React.createElement(React.Fragment, null, tabBarExtraContentRight)
+      },
+      tabPlacement,
+      renderTabBar: sticky && tabPlacement === "top" ? (tabBarProps, DefaultTabBar) => /* @__PURE__ */ React.createElement(
+        "div",
+        {
+          style: {
+            zIndex: 1,
+            position: "sticky",
+            top: stickyOffset || 0
+          }
+        },
+        /* @__PURE__ */ React.createElement(
+          DefaultTabBar,
+          {
+            ...tabBarProps,
+            style: { backgroundColor: tabBarBackground }
+          }
+        )
+      ) : void 0,
+      animated: animationProp,
+      items,
+      ...rest,
+      activeKey: isEditing ? String(selectedKey ?? rest.activeKey ?? rest.defaultActiveKey ?? items.find((item) => !item.disabled)?.key ?? "") : rest.activeKey,
+      onChange: isEditing ? void 0 : rest.onChange,
+      onTabClick: isEditing ? void 0 : rest.onTabClick,
+      onTabScroll: isEditing ? void 0 : rest.onTabScroll
+    }
+  );
 }
 function OutlineMessage() {
-  return /* @__PURE__ */ React.createElement(
-    "div",
-    null,
-    "* To re-arrange tab panes, use the Outline panel",
-  );
+  return /* @__PURE__ */ React.createElement("div", null, "\u5728\u56FE\u5C42\u9762\u677F\u4E2D\u62D6\u52A8\u9875\u7B7E\u53EF\u8C03\u6574\u987A\u5E8F");
 }
 function registerTabs(loader) {
   registerComponentHelper(loader, AntdTabs, {
@@ -137,48 +129,49 @@ function registerTabs(loader) {
     displayName: "Tabs",
     defaultStyles: {
       width: "stretch",
-      overflow: "scroll",
+      overflow: "scroll"
     },
     props: {
       addIcon: { type: "slot", hidePlaceholder: true },
       removeIcon: { type: "slot", hidePlaceholder: true },
       activeKey: {
         editOnly: true,
-        displayName: "Active tab key",
+        displayName: "\u521D\u59CB\u6D3B\u52A8\u9875\u7B7E",
         uncontrolledProp: "defaultActiveKey",
         type: "choice",
-        description: `Initial active tab's key`,
-        options: (ps) => getTabItemKeys(ps.items),
+        description: "\u7EC4\u4EF6\u521D\u59CB\u663E\u793A\u7684\u9875\u7B7E key\uFF1B\u753B\u5E03\u4E34\u65F6\u5C55\u793A\u9009\u4E2D\u5185\u5BB9\u4E0D\u4F1A\u4FEE\u6539\u6B64\u503C\u3002",
+        options: (ps) => getTabItemKeys(ps.items)
       },
       animated: {
         type: "boolean",
         defaultValue: true,
-        description: "Change tabs with animation",
+        description: "Change tabs with animation"
       },
       animateTabBar: {
         type: "boolean",
         defaultValue: true,
         description: "Animate the tab bar when switching tabs",
-        hidden: (ps) => !ps.animated,
+        hidden: (ps) => !ps.animated
       },
       animateTabContent: {
         type: "boolean",
         defaultValue: false,
         description: "Fade-in tab content when switching tabs",
-        hidden: (ps) => !ps.animated,
+        hidden: (ps) => !ps.animated
       },
       centered: {
         type: "boolean",
-        description: "Center-align the tab bar",
+        description: "Center-align the tab bar"
       },
       type: {
         type: "choice",
         defaultValueHint: "line",
         options: ["line", "card"],
-        description: "Basic style of tabs",
+        description: "Basic style of tabs"
       },
       items: {
         type: "slot",
+        displayName: "\u9875\u7B7E",
         hidePlaceholder: true,
         allowedComponents: [tabItemComponentName],
         ...{ mergeWithParent: true },
@@ -191,13 +184,13 @@ function registerTabs(loader) {
               key: "1",
               label: {
                 type: "text",
-                value: "First Item",
+                value: "First Item"
               },
               children: {
                 type: "text",
-                value: "First Children",
-              },
-            },
+                value: "First Children"
+              }
+            }
           },
           {
             type: "component",
@@ -206,72 +199,71 @@ function registerTabs(loader) {
               key: "2",
               label: {
                 type: "text",
-                value: "Second Item",
+                value: "Second Item"
               },
               children: {
                 type: "text",
-                value: "Second Children",
-              },
-            },
-          },
-        ],
+                value: "Second Children"
+              }
+            }
+          }
+        ]
       },
       size: {
         type: "choice",
         defaultValueHint: "medium",
         options: ["large", "medium", "small"],
-        description: "Preset tab bar size",
+        description: "Preset tab bar size"
       },
       tabBarExtraContentLeft: {
         type: "slot",
         displayName: "Extra content on left side",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       tabBarExtraContentRight: {
         type: "slot",
         displayName: "Extra content on right side",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       tabBarGutter: {
         type: "number",
         displayName: "Tab gap",
         description: "Gap (in pixels) between tabs",
-        advanced: true,
+        advanced: true
       },
       tabPlacement: {
         type: "choice",
         defaultValueHint: "top",
         options: ["top", "right", "bottom", "left"],
-        description: "Position of tabs",
+        description: "Position of tabs"
       },
       destroyOnHidden: {
         type: "boolean",
         description: `Destroy/Unmount inactive tab pane when changing tab`,
-        advanced: true,
+        advanced: true
       },
       sticky: {
         type: "boolean",
         advanced: true,
         description: "Stick tab bar to the top of the page when scrolling.",
         defaultValue: false,
-        hidden: (ps) => ps.tabPlacement !== "top",
+        hidden: (ps) => ps.tabPlacement !== "top"
       },
       stickyOffset: {
         type: "number",
         advanced: true,
-        description:
-          "Distance (in pixels) between the sticky tab bar and the top of the page as you scroll.",
-        hidden: (ps) => ps.tabPlacement !== "top" || !ps.sticky,
+        description: "Distance (in pixels) between the sticky tab bar and the top of the page as you scroll.",
+        hidden: (ps) => ps.tabPlacement !== "top" || !ps.sticky
       },
       tabBarBackground: {
         type: "color",
         advanced: true,
         defaultValue: "#FFF",
-        hidden: (ps) => ps.tabPlacement !== "top" || !ps.sticky,
+        hidden: (ps) => ps.tabPlacement !== "top" || !ps.sticky
       },
       tabsScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "tabs",
+        scopeName: "tabs"
       },
       tabBarClassName: {
         type: "class",
@@ -279,13 +271,13 @@ function registerTabs(loader) {
         selectors: [
           {
             selector: ":tabs.ant-tabs .ant-tabs-nav",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       tabsDropdownScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "tabsDropdown",
+        scopeName: "tabsDropdown"
       },
       tabsDropdownClassName: {
         type: "class",
@@ -293,53 +285,45 @@ function registerTabs(loader) {
         selectors: [
           {
             selector: ":tabsDropdown.ant-tabs-dropdown .ant-tabs-dropdown-menu",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       onChange: {
         type: "eventHandler",
         advanced: true,
-        argTypes: [{ name: "activeKey", type: "string" }],
+        argTypes: [{ name: "activeKey", type: "string" }]
       },
       onTabClick: {
         type: "eventHandler",
         advanced: true,
         argTypes: [
           { name: "tabKey", type: "string" },
-          { name: "mouseEvent", type: "object" },
-        ],
+          { name: "mouseEvent", type: "object" }
+        ]
       },
       onTabScroll: {
         type: "eventHandler",
         advanced: true,
-        argTypes: [{ name: "scrollInfo", type: "object" }],
-      },
+        argTypes: [{ name: "scrollInfo", type: "object" }]
+      }
     },
     states: {
       activeKey: {
         type: "writable",
         valueProp: "activeKey",
         onChangeProp: "onChange",
-        variableType: "text",
-      },
+        variableType: "text"
+      }
     },
     actions: [
-      // {
-      //   type: "custom-action",
-      //   control: NavigateTabs,
-      // },
       {
         type: "button-action",
-        label: "Add new tab",
+        label: "\u6DFB\u52A0\u9875\u7B7E",
         onClick: ({ componentProps, studioOps }) => {
           const generateNewKey = () => {
             const existingKeys = getTabItemKeys(componentProps.items);
-            for (
-              let keyCandidate = 1;
-              keyCandidate <= existingKeys.length + 1;
-              keyCandidate++
-            ) {
+            for (let keyCandidate = 1; keyCandidate <= existingKeys.length + 1; keyCandidate++) {
               const strKey = keyCandidate.toString();
               const index = existingKeys.findIndex((k) => {
                 return strKey === k;
@@ -359,47 +343,42 @@ function registerTabs(loader) {
                 key: tabKey,
                 label: {
                   type: "text",
-                  value: `Tab Label ${tabKey}`,
+                  value: `Tab Label ${tabKey}`
                 },
                 children: {
                   type: "text",
-                  value: `Tab Children ${tabKey}`,
-                },
-              },
+                  value: `Tab Children ${tabKey}`
+                }
+              }
             },
-            "items",
+            "items"
           );
           studioOps.updateProps({ activeKey: tabKey });
-        },
+        }
       },
       {
         type: "button-action",
-        label: "Delete current tab",
+        label: "\u5220\u9664\u5F53\u524D\u9875\u7B7E",
         onClick: ({ componentProps, studioOps }) => {
-          if (componentProps.activeKey) {
-            const tabPanes = getTabItemKeys(componentProps.items);
-            const activeKey = componentProps.activeKey;
-            const currTabPos = tabPanes.findIndex((tabKey) => {
-              return tabKey === activeKey;
-            });
-            if (currTabPos !== -1) {
-              studioOps.removeFromSlotAt(currTabPos, "items");
-              if (tabPanes.length - 1 > 0) {
-                const prevTabPos =
-                  (currTabPos - 1 + tabPanes.length) % tabPanes.length;
-                studioOps.updateProps({ activeKey: tabPanes[prevTabPos] });
-              }
-            }
+          const tabPanes = getTabItemKeys(componentProps.items);
+          const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find((item) => !item.props.disabled)?.key;
+          const currTabPos = tabPanes.findIndex((tabKey) => {
+            return tabKey === activeKey;
+          });
+          if (currTabPos !== -1) {
+            studioOps.removeFromSlotAt(currTabPos, "items");
+            const remaining = tabPanes.filter((_, index) => index !== currTabPos);
+            studioOps.updateProps({ activeKey: remaining[Math.max(0, currTabPos - 1)] });
           }
-        },
+        }
       },
       {
         type: "custom-action",
-        control: OutlineMessage,
-      },
+        control: OutlineMessage
+      }
     ],
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTabs",
-    importName: "AntdTabs",
+    importName: "AntdTabs"
   });
   registerComponentHelper(loader, AntdTabItem, {
     name: tabItemComponentName,
@@ -409,39 +388,34 @@ function registerTabs(loader) {
       closeIcon: { type: "slot", hidePlaceholder: true },
       disabled: {
         type: "boolean",
-        description: "Disable this tab",
+        description: "Disable this tab"
       },
       forceRender: {
         type: "boolean",
         description: `Force render of content in the tab, not lazy render after clicking on the tab`,
-        advanced: true,
+        advanced: true
       },
       key: {
         type: "string",
         description: `Unique identifier for this tab`,
-        displayName: "Tab key",
+        displayName: "\u9875\u7B7E\u6807\u8BC6"
       },
       label: {
         type: "slot",
-        displayName: "Tab title",
-        defaultValue: "Tab",
+        displayName: "\u9875\u7B7E\u6807\u9898",
+        defaultValue: "Tab"
       },
       children: {
         type: "slot",
-        hidePlaceholder: true,
-      },
+        displayName: "\u9875\u7B7E\u5185\u5BB9",
+        hidePlaceholder: true
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTabs",
     importName: "AntdTabItem",
-    parentComponentName: tabsComponentName,
+    parentComponentName: tabsComponentName
   });
 }
 
-export {
-  AntdTabItem,
-  AntdTabs,
-  registerTabs,
-  tabItemComponentName,
-  tabsComponentName,
-};
+export { AntdTabItem, AntdTabs, registerTabs, tabItemComponentName, tabsComponentName };
 //# sourceMappingURL=registerTabs.esm.js.map

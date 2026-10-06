@@ -65,6 +65,7 @@ import { Registerable } from "./utils";
 // Canvas packages share this runtime so theme contexts and CSS caches stay
 // consistent across Antd registrations and business components.
 export * as nativeAntd6 from "antd";
+export { StudioControlsProvider } from "./studio-controls-provider";
 export { default as nativeAntd6EnUS } from "antd/es/locale/en_US";
 export { default as nativeAntd6ZhCN } from "antd/es/locale/zh_CN";
 

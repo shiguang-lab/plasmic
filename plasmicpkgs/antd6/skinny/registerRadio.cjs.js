@@ -1,17 +1,15 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var names = require("./names-DbJduus8.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var names = require('./names-DbJduus8.cjs.js');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 const RadioGroup = Ant.Radio.Group;
 const AntdRadio = Ant.Radio;
@@ -25,11 +23,14 @@ function AntdRadioGroup(props) {
       return void 0;
     }
   }, [onChange]);
-  return /* @__PURE__ */ React__default.default.createElement(RadioGroup, {
-    ...rest,
-    onChange: wrappedOnChange,
-    options: useChildren ? void 0 : rest.options,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(
+    RadioGroup,
+    {
+      ...rest,
+      onChange: wrappedOnChange,
+      options: useChildren ? void 0 : rest.options
+    }
+  );
 }
 function registerRadio(loader) {
   utils.registerComponentHelper(loader, AntdRadio, {
@@ -38,32 +39,32 @@ function registerRadio(loader) {
     props: {
       value: {
         type: "string",
-        description: "The radio option value",
+        description: "The radio option value"
       },
       disabled: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       autoFocus: {
         type: "boolean",
         description: "If focused when first shown",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       children: {
         type: "slot",
         defaultValue: [
           {
             type: "text",
-            value: "Radio",
-          },
+            value: "Radio"
+          }
         ],
-        ...{ mergeWithParent: true },
-      },
+        ...{ mergeWithParent: true }
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadio",
-    parentComponentName: names.radioGroupComponentName,
+    parentComponentName: names.radioGroupComponentName
   });
   utils.registerComponentHelper(loader, AntdRadioButton, {
     name: names.radioButtonComponentName,
@@ -71,32 +72,32 @@ function registerRadio(loader) {
     props: {
       value: {
         type: "string",
-        description: "The radio option value",
+        description: "The radio option value"
       },
       disabled: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       autoFocus: {
         type: "boolean",
         description: "If focused when first shown",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       children: {
         type: "slot",
         defaultValue: [
           {
             type: "text",
-            value: "Radio",
-          },
+            value: "Radio"
+          }
         ],
-        ...{ mergeWithParent: true },
-      },
+        ...{ mergeWithParent: true }
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadioButton",
-    parentComponentName: names.radioGroupComponentName,
+    parentComponentName: names.radioGroupComponentName
   });
   utils.registerComponentHelper(loader, AntdRadioGroup, {
     name: names.radioGroupComponentName,
@@ -110,28 +111,28 @@ function registerRadio(loader) {
           nameFunc: (item) => item.label || item.value,
           fields: {
             value: "string",
-            label: "string",
-          },
+            label: "string"
+          }
         },
         defaultValue: [
           {
             value: "option1",
-            label: "Option 1",
+            label: "Option 1"
           },
           {
             value: "option2",
-            label: "Option 2",
-          },
-        ],
+            label: "Option 2"
+          }
+        ]
       },
       optionType: {
         type: "choice",
         options: [
           { value: "default", label: "Radio" },
-          { value: "button", label: "Button" },
+          { value: "button", label: "Button" }
         ],
         hidden: (ps) => !!ps.useChildren,
-        defaultValueHint: "default",
+        defaultValueHint: "default"
       },
       value: {
         type: "choice",
@@ -151,26 +152,25 @@ function registerRadio(loader) {
             return ps.options ?? [];
           }
         },
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       disabled: {
         type: "boolean",
         description: "Disables all radios",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       useChildren: {
         displayName: "Use slot",
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
-        description:
-          "Instead of configuring a list of options, customize the contents of the RadioGroup by dragging and dropping Radio in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Radio and RadioButton.",
+        description: "Instead of configuring a list of options, customize the contents of the RadioGroup by dragging and dropping Radio in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Radio and RadioButton."
       },
       children: {
         type: "slot",
         allowedComponents: [
           "plasmic-antd6-radio",
-          "plasmic-antd6-radio-button",
+          "plasmic-antd6-radio-button"
         ],
         defaultValue: [
           {
@@ -180,9 +180,9 @@ function registerRadio(loader) {
               value: "op1",
               children: {
                 type: "text",
-                value: "Option 1",
-              },
-            },
+                value: "Option 1"
+              }
+            }
           },
           {
             type: "component",
@@ -191,16 +191,16 @@ function registerRadio(loader) {
               value: "op2",
               children: {
                 type: "text",
-                value: "Option 2",
-              },
-            },
-          },
-        ],
+                value: "Option 2"
+              }
+            }
+          }
+        ]
       },
       onChange: {
         type: "eventHandler",
-        argTypes: [{ name: "value", type: "string" }],
-      },
+        argTypes: [{ name: "value", type: "string" }]
+      }
     },
     states: {
       value: {
@@ -208,17 +208,17 @@ function registerRadio(loader) {
         valueProp: "value",
         onChangeProp: "onChange",
         variableType: "text",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadioGroup",
     defaultStyles: {
-      layout: "hbox",
+      layout: "hbox"
     },
     ...{
-      trapsSelection: true,
-    },
+      trapsSelection: true
+    }
   });
 }
 

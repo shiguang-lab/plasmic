@@ -1,5 +1,5 @@
-import cls from "classnames";
-import React, { isValidElement } from "react";
+import cls from 'classnames';
+import React, { isValidElement } from 'react';
 
 const isBrowser = typeof window !== "undefined";
 const NONE = /* @__PURE__ */ Symbol("NONE");
@@ -72,7 +72,7 @@ function reactNodeToString(reactNode) {
   } else if (typeof reactNode === "number") {
     string = reactNode.toString();
   } else if (reactNode instanceof Array) {
-    reactNode.forEach(function (child) {
+    reactNode.forEach(function(child) {
       string += reactNodeToString(child);
     });
   } else if (isValidElement(reactNode)) {

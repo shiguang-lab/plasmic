@@ -4,6 +4,7 @@ import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import kebabCase from "lodash/kebabCase";
 import React, { useMemo } from "react";
+import { CanvasOverlayProps, previewOpenProp, useCanvasOverlay } from "./canvas-overlay";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
 
 import localeData from "dayjs/plugin/localeData";
@@ -45,7 +46,7 @@ export function AntdDateRangePicker(
     | "renderExtraFooter"
     | "disabled"
     | "allowEmpty"
-  > & {
+  > & CanvasOverlayProps & {
     onChange: (value: [string | undefined, string | undefined]) => void;
     value?: [Dayjs | string | null, Dayjs | string | null] | null;
     // Not sure why this is missing from DatePicker props!
@@ -70,6 +71,7 @@ export function AntdDateRangePicker(
     endDate?: string;
   },
 ) {
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
     defaultStartDate,
     defaultEndDate,
@@ -92,7 +94,7 @@ export function AntdDateRangePicker(
     className,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
 
   const presetsDayjs = useMemo(
     () =>
@@ -104,7 +106,12 @@ export function AntdDateRangePicker(
   return (
     <>
       <RangePicker
+        key={isEditing ? "edit" : "runtime"}
         {...rest}
+        open={open}
+        onOpenChange={isEditing ? undefined : props.onOpenChange}
+        onCalendarChange={isEditing ? undefined : props.onCalendarChange}
+        onPanelChange={isEditing ? undefined : props.onPanelChange}
         picker={picker as any}
         presets={presetsDayjs}
         allowEmpty={
@@ -153,6 +160,7 @@ export function AntdDateRangePicker(
         }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(values, _dateStrings) => {
+          if (isEditing) return;
           onChange?.((getStrRange(values) as [string, string]) || [null, null]);
         }}
       />
@@ -178,8 +186,10 @@ export const dateRangePickerHelpers = {
 export function registerDateRangePicker(loader?: Registerable) {
   registerComponentHelper(loader, AntdDateRangePicker, {
     name: dateRangePickerComponentName,
+    canvasOverlay: {},
     displayName: "Date Range Picker",
     props: {
+      previewOpen: previewOpenProp,
       inputReadOnly: { type: "boolean", defaultValueHint: false },
       startDate: {
         type: "dateString",

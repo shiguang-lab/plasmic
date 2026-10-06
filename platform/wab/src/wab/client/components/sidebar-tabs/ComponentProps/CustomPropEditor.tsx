@@ -200,7 +200,9 @@ function useCustomPropEditor(
       root.current = sub.ReactDOMClient.createRoot(containerRef.current);
     }
     const renderElement = sub.React.createElement(
-      sub.GenericErrorBoundary,
+      sub.StudioControlsProvider,
+      { studioDocument: containerRef.current.ownerDocument },
+      sub.React.createElement(sub.GenericErrorBoundary,
       {
         className: "error-boundary",
       },
@@ -217,7 +219,7 @@ function useCustomPropEditor(
           projectData,
           studioDocument: window.document,
         },
-      }),
+      })),
     );
     if (root.current) {
       root.current.render(renderElement);

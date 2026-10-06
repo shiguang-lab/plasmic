@@ -1,97 +1,21 @@
-import registerComponent from "@plasmicapp/host/registerComponent";
-import registerGlobalContext from "@plasmicapp/host/registerGlobalContext";
-import { Result } from "antd";
-import React from "react";
+import registerComponent from '@plasmicapp/host/registerComponent';
+import registerGlobalContext from '@plasmicapp/host/registerGlobalContext';
+import React from 'react';
+import { Result } from 'antd';
 
 const sections = {
-  General: ["button", "float-button", "typography", "back-top"],
-  Layout: [
-    "divider",
-    "flex",
-    "row",
-    "col",
-    "layout",
-    "masonry",
-    "space",
-    "splitter",
-  ],
-  Navigation: [
-    "anchor",
-    "breadcrumb",
-    "dropdown",
-    "menu",
-    "pagination",
-    "steps",
-    "tabs",
-    "tab-item",
-    "submenu",
-  ],
-  "Data Entry": [
-    "auto-complete",
-    "cascader",
-    "checkbox",
-    "color-picker",
-    "date-picker",
-    "date-range-picker",
-    "form",
-    "input",
-    "textarea",
-    "mentions",
-    "radio",
-    "rate",
-    "select",
-    "option",
-    "slider",
-    "switch",
-    "time-picker",
-    "time-range-picker",
-    "transfer",
-    "tree-select",
-    "upload",
-  ],
-  "Data Display": [
-    "avatar",
-    "badge",
-    "calendar",
-    "card",
-    "carousel",
-    "collapse",
-    "descriptions",
-    "empty",
-    "image",
-    "list",
-    "listy",
-    "popover",
-    "qr-code",
-    "segmented",
-    "statistic",
-    "table",
-    "tag",
-    "timeline",
-    "tooltip",
-    "tour",
-    "tree",
-    "directory-tree",
-  ],
-  Feedback: [
-    "alert",
-    "drawer",
-    "modal",
-    "popconfirm",
-    "progress",
-    "result",
-    "skeleton",
-    "spin",
-    "watermark",
-  ],
-  Other: ["affix", "border-beam"],
+  \u901A\u7528: ["button", "float-button", "typography", "back-top"],
+  \u5E03\u5C40: ["divider", "flex", "row", "col", "layout", "masonry", "space", "splitter"],
+  \u5BFC\u822A: ["anchor", "breadcrumb", "dropdown", "menu", "pagination", "steps", "tabs", "tab-item", "submenu"],
+  \u6570\u636E\u8F93\u5165: ["auto-complete", "cascader", "checkbox", "color-picker", "date-picker", "date-range-picker", "form", "input", "textarea", "mentions", "radio", "rate", "select", "option", "slider", "switch", "time-picker", "time-range-picker", "transfer", "tree-select", "upload"],
+  \u6570\u636E\u5C55\u793A: ["avatar", "badge", "calendar", "card", "carousel", "collapse", "descriptions", "empty", "image", "list", "listy", "popover", "qr-code", "segmented", "statistic", "table", "tag", "timeline", "tooltip", "tour", "tree", "directory-tree"],
+  \u53CD\u9988: ["alert", "drawer", "modal", "popconfirm", "progress", "result", "skeleton", "spin", "watermark"],
+  \u5176\u4ED6: ["affix", "border-beam"]
 };
 function getComponentSection(name) {
   const suffix = name.replace(/^plasmic-antd6-/, "");
-  return Object.entries(sections).find(([, families]) =>
-    families.some(
-      (family) => suffix === family || suffix.startsWith(`${family}-`),
-    ),
+  return Object.entries(sections).find(
+    ([, families]) => families.some((family) => suffix === family || suffix.startsWith(`${family}-`))
   )?.[0];
 }
 const componentChildren = {
@@ -101,10 +25,7 @@ const componentChildren = {
   "card-grid": { displayName: "Card.Grid", parent: "card" },
   "card-meta": { displayName: "Card.Meta", parent: "card" },
   "cascader-panel": { displayName: "Cascader.Panel", parent: "cascader" },
-  "float-button-group": {
-    displayName: "FloatButton.Group",
-    parent: "float-button",
-  },
+  "float-button-group": { displayName: "FloatButton.Group", parent: "float-button" },
   "back-top": { displayName: "FloatButton.BackTop", parent: "float-button" },
   "image-preview-group": { displayName: "Image.PreviewGroup", parent: "image" },
   "list-item": { displayName: "List.Item", parent: "list" },
@@ -116,18 +37,12 @@ const componentChildren = {
   "input-otp": { displayName: "Input.OTP", parent: "input" },
   "input-search": { displayName: "Input.Search", parent: "input" },
   "input-password": { displayName: "Input.Password", parent: "input" },
-  textarea: { displayName: "Input.TextArea", parent: "input" },
+  "textarea": { displayName: "Input.TextArea", parent: "input" },
   "upload-dragger": { displayName: "Upload.Dragger", parent: "upload" },
-  "time-range-picker": {
-    displayName: "TimePicker.RangePicker",
-    parent: "time-picker",
-  },
-  "date-range-picker": {
-    displayName: "DatePicker.RangePicker",
-    parent: "date-picker",
-  },
+  "time-range-picker": { displayName: "TimePicker.RangePicker", parent: "time-picker" },
+  "date-range-picker": { displayName: "DatePicker.RangePicker", parent: "date-picker" },
   "directory-tree": { displayName: "Tree.DirectoryTree", parent: "tree" },
-  option: { displayName: "Select.Option", parent: "select" },
+  "option": { displayName: "Select.Option", parent: "select" },
   "option-group": { displayName: "Select.OptGroup", parent: "select" },
   "table-column": { displayName: "Table.Column", parent: "table" },
   "table-column-group": { displayName: "Table.ColumnGroup", parent: "table" },
@@ -137,7 +52,7 @@ const componentChildren = {
   "menu-item": { displayName: "Menu.Item", parent: "menu" },
   "menu-item-group": { displayName: "Menu.ItemGroup", parent: "menu" },
   "menu-divider": { displayName: "Menu.Divider", parent: "menu" },
-  submenu: { displayName: "Menu.SubMenu", parent: "menu" },
+  "submenu": { displayName: "Menu.SubMenu", parent: "menu" },
   "form-item": { displayName: "Form.Item", parent: "form" },
   "form-list": { displayName: "Form.List", parent: "form" },
   "collapse-item": { displayName: "Collapse.Panel", parent: "collapse" },
@@ -153,26 +68,61 @@ const componentChildren = {
   "skeleton-node": { displayName: "Skeleton.Node", parent: "skeleton" },
   "typography-text": { displayName: "Typography.Text", parent: "typography" },
   "typography-title": { displayName: "Typography.Title", parent: "typography" },
-  "typography-paragraph": {
-    displayName: "Typography.Paragraph",
-    parent: "typography",
-  },
-  "typography-link": { displayName: "Typography.Link", parent: "typography" },
+  "typography-paragraph": { displayName: "Typography.Paragraph", parent: "typography" },
+  "typography-link": { displayName: "Typography.Link", parent: "typography" }
+};
+
+const propDisplayNames = {
+  children: "\u5185\u5BB9",
+  title: "\u6807\u9898",
+  label: "\u6807\u7B7E",
+  extra: "\u9644\u52A0\u5185\u5BB9",
+  icon: "\u56FE\u6807",
+  closeIcon: "\u5173\u95ED\u56FE\u6807",
+  addIcon: "\u6DFB\u52A0\u56FE\u6807",
+  removeIcon: "\u5220\u9664\u56FE\u6807",
+  disabled: "\u7981\u7528",
+  size: "\u5C3A\u5BF8",
+  status: "\u6821\u9A8C\u72B6\u6001",
+  placeholder: "\u5360\u4F4D\u6587\u5B57",
+  value: "\u503C",
+  defaultValue: "\u9ED8\u8BA4\u503C",
+  open: "\u6253\u5F00\u72B6\u6001",
+  previewOpen: "\u7F16\u8F91\u65F6\u5C55\u5F00",
+  allowClear: "\u5141\u8BB8\u6E05\u7A7A",
+  autoFocus: "\u81EA\u52A8\u805A\u7126",
+  inputReadOnly: "\u8F93\u5165\u6846\u53EA\u8BFB",
+  forceRender: "\u9884\u5148\u6E32\u67D3\u5185\u5BB9",
+  destroyOnHidden: "\u9690\u85CF\u65F6\u5378\u8F7D\u5185\u5BB9",
+  renderExtraFooter: "\u5E95\u90E8\u9644\u52A0\u5185\u5BB9",
+  activeKey: "\u521D\u59CB\u6D3B\u52A8\u9879",
+  key: "\u6807\u8BC6",
+  showTime: "\u663E\u793A\u65F6\u95F4",
+  bordered: "\u663E\u793A\u8FB9\u6846",
+  accordion: "\u624B\u98CE\u7434\u6A21\u5F0F",
+  onChange: "\u503C\u53D8\u5316\u4E8B\u4EF6",
+  onSelect: "\u9009\u62E9\u4E8B\u4EF6",
+  onClick: "\u70B9\u51FB\u4E8B\u4EF6"
+};
+const displayNameTranslations = {
+  "Preview open": "\u7F16\u8F91\u65F6\u5C55\u5F00",
+  "Extra footer": "\u5E95\u90E8\u9644\u52A0\u5185\u5BB9",
+  "Popup container": "\u5F39\u5C42\u5BB9\u5668",
+  "Popup header": "\u5F39\u5C42\u6807\u9898",
+  "Popup body": "\u5F39\u5C42\u5185\u5BB9",
+  "Popup footer": "\u5F39\u5C42\u5E95\u90E8",
+  "Tab bar": "\u9875\u7B7E\u680F",
+  "Overflow tabs menu": "\u6EA2\u51FA\u9875\u7B7E\u83DC\u5355",
+  "Tab gap": "\u9875\u7B7E\u95F4\u8DDD",
+  "Extra content on left side": "\u5DE6\u4FA7\u9644\u52A0\u5185\u5BB9",
+  "Extra content on right side": "\u53F3\u4FA7\u9644\u52A0\u5185\u5BB9"
 };
 
 var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) =>
-  key in obj
-    ? __defProp(obj, key, {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value,
-      })
-    : (obj[key] = value);
-var __publicField = (obj, key, value) => __defNormalProp(obj, key + "", value);
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, key + "" , value);
 function makeRegisterGlobalContext(component, meta) {
-  return function (loader) {
+  return function(loader) {
     if (loader) {
       loader.registerGlobalContext(component, meta);
     } else {
@@ -186,13 +136,14 @@ function registerComponentHelper(loader, component, meta) {
   const isStandalone = suffix === "radio" || suffix === "input-number";
   meta = {
     ...meta,
+    props: Object.fromEntries(Object.entries(meta.props).map(([name, prop]) => {
+      const definition = typeof prop === "string" ? { type: prop, displayName: void 0 } : prop;
+      const displayName = definition.displayName ? displayNameTranslations[definition.displayName] ?? definition.displayName : propDisplayNames[name];
+      return [name, displayName ? { ...definition, displayName } : prop];
+    })),
     displayName: child?.displayName ?? meta.displayName,
     section: meta.section ?? getComponentSection(meta.name),
-    parentComponentName: child
-      ? `plasmic-antd6-${child.parent}`
-      : isStandalone
-        ? void 0
-        : meta.parentComponentName,
+    parentComponentName: child ? `plasmic-antd6-${child.parent}` : isStandalone ? void 0 : meta.parentComponentName
   };
   if (loader) {
     loader.registerComponent(component, meta);
@@ -278,31 +229,26 @@ class ErrorBoundary extends React.Component {
     console.log(error, errorInfo);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevProps.canvasEnvId !== this.props.canvasEnvId &&
-      prevState.hasError
-    ) {
+    if (prevProps.canvasEnvId !== this.props.canvasEnvId && prevState.hasError) {
       this.setState({ hasError: false });
     }
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ React.createElement(Result, {
-        status: "error",
-        title: this.props.message ?? "Something went wrong.",
-        extra: this.state.errorInfo,
-      });
+      return /* @__PURE__ */ React.createElement(
+        Result,
+        {
+          status: "error",
+          title: this.props.message ?? "Something went wrong.",
+          extra: this.state.errorInfo
+        }
+      );
     }
     return this.props.children;
   }
 }
 function isUnsafeKey(key) {
-  return (
-    (Array.isArray(key) && key[0] === "__proto__") ||
-    key === "__proto__" ||
-    key === "constructor" ||
-    key === "prototype"
-  );
+  return Array.isArray(key) && key[0] === "__proto__" || key === "__proto__" || key === "constructor" || key === "prototype";
 }
 function get(obj, path) {
   const keys = Array.isArray(path) ? path : path.split(".");
@@ -318,18 +264,5 @@ function get(obj, path) {
   return obj;
 }
 
-export {
-  ErrorBoundary as E,
-  arrayEq as a,
-  asArray as b,
-  capitalize as c,
-  ensureArray as e,
-  get as g,
-  makeRegisterGlobalContext as m,
-  omit as o,
-  registerComponentHelper as r,
-  setFieldsToUndefined as s,
-  traverseReactEltTree as t,
-  usePrevious as u,
-};
-//# sourceMappingURL=utils-CSvRw6Za.esm.js.map
+export { ErrorBoundary as E, arrayEq as a, asArray as b, capitalize as c, ensureArray as e, get as g, makeRegisterGlobalContext as m, omit as o, registerComponentHelper as r, setFieldsToUndefined as s, traverseReactEltTree as t, usePrevious as u };
+//# sourceMappingURL=utils-z8_Paxbd.esm.js.map

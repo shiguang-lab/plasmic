@@ -1,16 +1,14 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdBreadcrumbItem(props) {
   return props.children;
@@ -18,32 +16,21 @@ function AntdBreadcrumbItem(props) {
 function AntdBreadcrumb(props) {
   const { itemsRaw, items: configuredItems, ...rest } = props;
   const items = React__default.default.useMemo(() => {
-    const children =
-      React__default.default.isValidElement(itemsRaw) &&
-      itemsRaw.type !== AntdBreadcrumbItem
-        ? itemsRaw.props.children
-        : itemsRaw;
-    return utils
-      .asArray(children)
-      .flat(1)
-      .filter(React__default.default.isValidElement)
-      .map((currentItem) => {
-        return {
-          ...currentItem.props,
-          title: React__default.default.cloneElement(
-            /* @__PURE__ */ React__default.default.createElement(
-              React__default.default.Fragment,
-              null,
-              currentItem,
-            ),
-          ),
-        };
-      });
+    const children = React__default.default.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem ? itemsRaw.props.children : itemsRaw;
+    return utils.asArray(children).flat(1).filter(React__default.default.isValidElement).map((currentItem) => {
+      return {
+        ...currentItem.props,
+        title: React__default.default.cloneElement(/* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, currentItem))
+      };
+    });
   }, [itemsRaw]);
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Breadcrumb, {
-    ...rest,
-    items: itemsRaw === void 0 ? configuredItems : items,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant.Breadcrumb,
+    {
+      ...rest,
+      items: itemsRaw === void 0 ? configuredItems : items
+    }
+  );
 }
 const breadcrumbItemComponentName = "plasmic-antd6-breadcrumb-item";
 const breadcrumbComponentName = "plasmic-antd6-breadcrumb";
@@ -62,9 +49,9 @@ function registerBreadcrumb(loader) {
             props: {
               children: {
                 type: "text",
-                value: "First",
-              },
-            },
+                value: "First"
+              }
+            }
           },
           {
             type: "component",
@@ -72,9 +59,9 @@ function registerBreadcrumb(loader) {
             props: {
               children: {
                 type: "text",
-                value: "Second",
-              },
-            },
+                value: "Second"
+              }
+            }
           },
           {
             type: "component",
@@ -82,23 +69,23 @@ function registerBreadcrumb(loader) {
             props: {
               children: {
                 type: "text",
-                value: "Third",
-              },
-            },
-          },
+                value: "Third"
+              }
+            }
+          }
         ],
-        allowedComponents: [breadcrumbItemComponentName],
+        allowedComponents: [breadcrumbItemComponentName]
       },
       separator: {
         type: "slot",
         defaultValue: {
           type: "text",
-          value: "/",
-        },
-      },
+          value: "/"
+        }
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerBreadcrumb",
-    importName: "AntdBreadcrumb",
+    importName: "AntdBreadcrumb"
   });
 }
 function registerBreadcrumbItem(loader) {
@@ -110,16 +97,16 @@ function registerBreadcrumbItem(loader) {
         type: "slot",
         defaultValue: {
           type: "text",
-          value: "Breadcrumb Item",
-        },
+          value: "Breadcrumb Item"
+        }
       },
       onClick: {
         type: "eventHandler",
-        argTypes: [{ type: "object", name: "event" }],
-      },
+        argTypes: [{ type: "object", name: "event" }]
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerBreadcrumb",
-    importName: "AntdBreadcrumbItem",
+    importName: "AntdBreadcrumbItem"
   });
 }
 

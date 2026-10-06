@@ -1,17 +1,24 @@
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { ColorPicker } from "antd";
-import React from "react";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { ColorPicker } from 'antd';
+import React from 'react';
+import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
-function AntdColorPicker({ showTextSwitch, onChange, ...props }) {
-  return /* @__PURE__ */ React.createElement(ColorPicker, {
-    ...props,
-    showText: props.showText ?? showTextSwitch,
-    onChange: (value) => {
-      onChange?.(typeof value === "string" ? value : value.toHexString());
-    },
-  });
+function AntdColorPicker({
+  showTextSwitch,
+  onChange,
+  ...props
+}) {
+  return /* @__PURE__ */ React.createElement(
+    ColorPicker,
+    {
+      ...props,
+      showText: props.showText ?? showTextSwitch,
+      onChange: (value) => {
+        onChange?.(typeof value === "string" ? value : value.toHexString());
+      }
+    }
+  );
 }
 function registerColorPicker(loader) {
   registerComponentHelper(loader, AntdColorPicker, {
@@ -21,49 +28,49 @@ function registerColorPicker(loader) {
       children: {
         type: "slot",
         hidePlaceholder: true,
-        mergeWithParent: true,
+        mergeWithParent: true
       },
       value: {
         displayName: "Color value",
         type: "color",
         editOnly: true,
         uncontrolledProp: "defaultValue",
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       showTextSwitch: {
         type: "boolean",
-        displayName: "Show text",
+        displayName: "Show text"
       },
       showText: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       allowClear: "boolean",
       disabled: {
         type: "boolean",
-        advanced: true,
+        advanced: true
       },
       trigger: {
         advanced: true,
         type: "choice",
         options: ["click", "hover"],
-        defaultValueHint: "click",
+        defaultValueHint: "click"
       },
       format: {
         advanced: true,
         type: "choice",
         options: ["hex", "hsb", "rgb"],
-        defaultValueHint: "hex",
+        defaultValueHint: "hex"
       },
       onChange: {
         type: "eventHandler",
         argTypes: [
           {
             name: "color",
-            type: "string",
-          },
-        ],
-      },
+            type: "string"
+          }
+        ]
+      }
     },
     states: {
       value: {
@@ -71,11 +78,11 @@ function registerColorPicker(loader) {
         valueProp: "value",
         onChangeProp: "onChange",
         variableType: "text",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerColorPicker",
-    importName: "AntdColorPicker",
+    importName: "AntdColorPicker"
   });
 }
 

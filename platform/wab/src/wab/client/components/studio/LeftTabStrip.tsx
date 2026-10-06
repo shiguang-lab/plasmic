@@ -126,7 +126,7 @@ Help
     assets: {
       type: "group",
       icon: <ComponentssvgIcon />,
-      title: "Assets",
+      title: "资源",
       items: {
         tokens: {
           type: "item",
@@ -175,7 +175,7 @@ Help
     settingsGroup: {
       type: "group",
       icon: <GearIcon />,
-      title: "Settings",
+      title: "设置",
       items: {
         settings: {
           type: "item",
@@ -211,7 +211,7 @@ Help
     more: {
       type: "group",
       icon: <DotsHorizontalCirclesvgIcon />,
-      title: "More",
+      title: "更多",
       items: {
         splits: {
           type: "item",
@@ -265,13 +265,13 @@ Help
       type: "item",
       tabKey: "outline",
       icon: <TreeIcon />,
-      label: "Outline",
+      label: "图层",
     },
     lint: {
       type: "item",
       tabKey: "lint",
       icon: <WarningTrianglesvgIcon />,
-      label: "Issues detected",
+      label: "发现的问题",
       cond: canViewTab("lint"),
     },
     ...(contentEditorMode
@@ -291,7 +291,7 @@ Help
     helpGroup: {
       type: "group",
       icon: <HelpCirclesvgIcon />,
-      title: "Help",
+      title: "帮助",
       items: {
         keyboard: {
           type: "item",
@@ -324,7 +324,7 @@ Help
         help: {
           type: "item",
           icon: <HelpsvgIcon />,
-          label: "Help",
+          label: "帮助",
           href: studioCtx.siteInfo.teamId
             ? APP_ROUTES.orgSupport.fill({
                 teamId: studioCtx.siteInfo.teamId!,

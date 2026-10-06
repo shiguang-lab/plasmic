@@ -1,23 +1,25 @@
-import { usePlasmicLink } from "@plasmicapp/host";
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Avatar } from "antd";
-import React from "react";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { usePlasmicLink } from '@plasmicapp/host';
+import { Avatar } from 'antd';
+import React from 'react';
+import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
-function AntdAvatar({ letters, href, target, ...props }) {
-  const avatar = /* @__PURE__ */ React.createElement(Avatar, {
-    ...props,
-    children: props.children === void 0 ? letters : props.children,
-  });
+function AntdAvatar({
+  letters,
+  href,
+  target,
+  ...props
+}) {
+  const avatar = /* @__PURE__ */ React.createElement(
+    Avatar,
+    {
+      ...props,
+      children: props.children === void 0 ? letters : props.children
+    }
+  );
   const PlasmicLink = usePlasmicLink();
-  return href
-    ? /* @__PURE__ */ React.createElement(
-        PlasmicLink,
-        { href, target: target ? "_blank" : void 0 },
-        avatar,
-      )
-    : avatar;
+  return href ? /* @__PURE__ */ React.createElement(PlasmicLink, { href, target: target ? "_blank" : void 0 }, avatar) : avatar;
 }
 function AntdAvatarGroup(props) {
   return /* @__PURE__ */ React.createElement(Avatar.Group, { ...props });
@@ -31,25 +33,25 @@ function registerAvatar(loader) {
       href: {
         type: "href",
         displayName: "Link to",
-        description: "Destination to link to",
+        description: "Destination to link to"
       },
       target: {
         type: "boolean",
         displayName: "Open in new tab",
-        hidden: (ps) => !ps.href,
+        hidden: (ps) => !ps.href
       },
       letters: {
         type: "string",
         description: "Letters to show",
-        defaultValue: "AB",
+        defaultValue: "AB"
       },
       src: {
         type: "imageUrl",
-        description: "Image to display",
+        description: "Image to display"
       },
       alt: {
         type: "string",
-        description: "Alternative text for the avatar image",
+        description: "Alternative text for the avatar image"
       },
       size: {
         type: "choice",
@@ -57,20 +59,20 @@ function registerAvatar(loader) {
           "small",
           "medium",
           "large",
-          ...(typeof ps.size === "number" ? [ps.size] : []),
+          ...typeof ps.size === "number" ? [ps.size] : []
         ],
         description: "Set the size of avatar",
-        defaultValueHint: "medium",
+        defaultValueHint: "medium"
       },
       shape: {
         type: "choice",
         options: ["circle", "square"],
         description: "Set the avatar shape",
-        defaultValueHint: "circle",
-      },
+        defaultValueHint: "circle"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",
-    importName: "AntdAvatar",
+    importName: "AntdAvatar"
   });
 }
 function registerAvatarGroup(loader) {
@@ -89,22 +91,22 @@ function registerAvatarGroup(loader) {
               type: "component",
               name: "plasmic-antd6-avatar",
               props: {
-                letters: `U${user}`,
-              },
-            },
-          },
-        })),
+                letters: `U${user}`
+              }
+            }
+          }
+        }))
       },
       max: { type: "object" },
       size: {
         type: "choice",
         options: ["small", "medium", "large"],
         description: "Default size of avatars",
-        defaultValueHint: "medium",
-      },
+        defaultValueHint: "medium"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",
-    importName: "AntdAvatarGroup",
+    importName: "AntdAvatarGroup"
   });
 }
 

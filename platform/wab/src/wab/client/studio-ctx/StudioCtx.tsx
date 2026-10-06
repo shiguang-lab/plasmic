@@ -688,13 +688,15 @@ export class StudioCtx extends WithDbCtx {
   constructor(args: StudioCtxArgs) {
     super();
 
-    makeObservable(this, {
+    makeObservable<this, "saveErrorState" | "isSaving">(this, {
       studioIsVisible: observable,
       latestVariantCreated: observable,
       isAtTip: observable,
       _changeCounter: observable,
       _savedChangeCounter: observable,
       _isUnlogged: observable,
+      saveErrorState: observable,
+      isSaving: observable,
     });
 
     ({ dbCtx: this._dbCtx } = args);
@@ -5698,6 +5700,15 @@ export class StudioCtx extends WithDbCtx {
    * succeed again.
    */
   private saveErrorState: "normal" | "error" = "normal";
+  private isSaving = false;
+
+  get saveStatus() {
+    if (this.isUnlogged()) return "unlogged" as const;
+    if (this.isSaving) return "saving" as const;
+    if (this.saveErrorState === "error") return "error" as const;
+    if (this.hasUnsavedChanges() && !this.canSave()) return "blocked" as const;
+    return this.hasUnsavedChanges() ? "pending" as const : "saved" as const;
+  }
 
   blockChanges = false;
 
@@ -5739,6 +5750,7 @@ export class StudioCtx extends WithDbCtx {
       return SaveResult.StopSaving;
     }
 
+    runInAction(() => { this.isSaving = true; });
     try {
       const changeCounterBeingSaved = this._changeCounter;
 
@@ -5804,7 +5816,7 @@ export class StudioCtx extends WithDbCtx {
             this.alertBannerState.set(null);
           }
         }
-        this.saveErrorState = "normal";
+        runInAction(() => { this.saveErrorState = "normal"; });
         this._saveFailedCounter = 0;
         return SaveResult.Success;
       } catch (e) {
@@ -5837,7 +5849,7 @@ export class StudioCtx extends WithDbCtx {
           if (this.saveErrorState === "normal") {
             this.alertBannerState.set(AlertSpec.SaveFailed);
           }
-          this.saveErrorState = "error";
+          runInAction(() => { this.saveErrorState = "error"; });
           return SaveResult.GatewayError;
         } else if (incremental && e.name === "UnknownReferencesError") {
           reportError(e, "Unknown references found in project bundle");
@@ -5877,7 +5889,7 @@ export class StudioCtx extends WithDbCtx {
               type: "warning",
             });
           }
-          this.saveErrorState = "error";
+          runInAction(() => { this.saveErrorState = "error"; });
           this._saveFailedCounter += 1;
           return SaveResult.UnknownError;
         }
@@ -5893,9 +5905,11 @@ export class StudioCtx extends WithDbCtx {
           type: "warning",
         });
       }
-      this.saveErrorState = "error";
+      runInAction(() => { this.saveErrorState = "error"; });
       this._saveFailedCounter += 1;
       return SaveResult.UnknownError;
+    } finally {
+      runInAction(() => { this.isSaving = false; });
     }
   }
 

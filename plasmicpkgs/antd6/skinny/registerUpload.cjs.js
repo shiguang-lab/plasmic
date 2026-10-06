@@ -1,16 +1,14 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function getThumbUrl(file) {
   if (!file?.type?.startsWith("image")) {
@@ -38,16 +36,16 @@ function UploadWrapper(props) {
       name: file.name,
       size: file.size,
       type: file.type,
-      lastModified: file.lastModified,
+      lastModified: file.lastModified
     };
     changeFiles(
       [
         ...(filesRef.current ?? []).filter((f) => f.uid !== file.uid),
         {
           ...metadata,
-          status: "uploading",
-        },
-      ].slice(maxCount && maxCount > 0 ? -maxCount : 0),
+          status: "uploading"
+        }
+      ].slice(maxCount && maxCount > 0 ? -maxCount : 0)
     );
     const reader = new FileReader();
     reader.onload = () => {
@@ -55,15 +53,16 @@ function UploadWrapper(props) {
         return;
       }
       changeFiles(
-        (filesRef.current ?? []).map((f) =>
-          f.uid === metadata.uid
-            ? {
-                ...metadata,
-                contents: reader.result.replace(/^data:[^;]+;base64,/, ""),
-                status: "done",
-              }
-            : f,
-        ),
+        (filesRef.current ?? []).map(
+          (f) => f.uid === metadata.uid ? {
+            ...metadata,
+            contents: reader.result.replace(
+              /^data:[^;]+;base64,/,
+              ""
+            ),
+            status: "done"
+          } : f
+        )
       );
     };
     reader.onerror = () => {
@@ -71,20 +70,20 @@ function UploadWrapper(props) {
         return;
       }
       changeFiles(
-        (filesRef.current ?? []).map((f) =>
-          f.uid === metadata.uid
-            ? {
-                ...metadata,
-                status: "error",
-              }
-            : f,
-        ),
+        (filesRef.current ?? []).map(
+          (f) => f.uid === metadata.uid ? {
+            ...metadata,
+            status: "error"
+          } : f
+        )
       );
     };
     reader.readAsDataURL(info.file);
   };
   const handleRemove = (file) => {
-    changeFiles((filesRef.current ?? []).filter((f) => f.uid !== file.uid));
+    changeFiles(
+      (filesRef.current ?? []).filter((f) => f.uid !== file.uid)
+    );
   };
   const handlePreview = async (file) => {
     setPreviewFileId(files?.filter((f) => file.uid === f.uid)[0]?.uid);
@@ -93,20 +92,19 @@ function UploadWrapper(props) {
   const handleCancel = () => setPreviewFileId(void 0);
   const previewFile = React.useMemo(
     () => files?.filter((f) => previewFileId === f.uid)[0],
-    [files, previewFileId],
+    [files, previewFileId]
   );
   const UploadComponent = React.useMemo(
-    () => (dragAndDropFiles ? Ant.Upload.Dragger : Ant.Upload),
-    [dragAndDropFiles],
+    () => dragAndDropFiles ? Ant.Upload.Dragger : Ant.Upload,
+    [dragAndDropFiles]
   );
-  return /* @__PURE__ */ React__default.default.createElement(
-    React__default.default.Fragment,
-    null,
-    /* @__PURE__ */ React__default.default.createElement(UploadComponent, {
+  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement(
+    UploadComponent,
+    {
       ...rest,
       fileList: files?.map((f) => ({
         ...f,
-        thumbUrl: getThumbUrl(f),
+        thumbUrl: getThumbUrl(f)
       })),
       onPreview: handlePreview,
       beforeUpload: () => {
@@ -117,31 +115,31 @@ function UploadWrapper(props) {
       },
       onRemove: (file) => {
         handleRemove(file);
+      }
+    }
+  ), previewFile && /* @__PURE__ */ React__default.default.createElement(
+    Ant.Image,
+    {
+      wrapperStyle: { display: "none" },
+      preview: {
+        visible: previewOpen,
+        onVisibleChange: (visible) => setPreviewOpen(visible),
+        afterOpenChange: (visible) => !visible && handleCancel()
       },
-    }),
-    previewFile &&
-      /* @__PURE__ */ React__default.default.createElement(Ant.Image, {
-        wrapperStyle: { display: "none" },
-        preview: {
-          visible: previewOpen,
-          onVisibleChange: (visible) => setPreviewOpen(visible),
-          afterOpenChange: (visible) => !visible && handleCancel(),
-        },
-        alt: previewFile?.name,
-        src: getThumbUrl(previewFile),
-      }),
-  );
+      alt: previewFile?.name,
+      src: getThumbUrl(previewFile)
+    }
+  ));
 }
 UploadWrapper.__plasmicFormFieldMeta = {
   valueProp: "files",
-  onChangeProp: "onFilesChange",
+  onChangeProp: "onFilesChange"
 };
 function registerUpload(loader) {
   utils.registerComponentHelper(loader, UploadWrapper, {
     name: "plasmic-antd6-upload",
     displayName: "Upload",
-    description:
-      "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
+    description: "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
     props: {
       accept: {
         type: "choice",
@@ -149,50 +147,49 @@ function registerUpload(loader) {
         options: [
           {
             value: "",
-            label: "Any kind of file",
+            label: "Any kind of file"
           },
           {
             value: "image/*",
-            label: "Image",
+            label: "Image"
           },
           {
             value: "video/*",
-            label: "Video",
+            label: "Video"
           },
           {
             value: "audio/*",
-            label: "Audio",
+            label: "Audio"
           },
           {
             value: "application/pdf",
-            label: "PDF",
-          },
+            label: "PDF"
+          }
         ],
-        defaultValue: "",
+        defaultValue: ""
       },
       listType: {
         type: "choice",
         options: ["text", "picture", "picture-card", "picture-circle"],
-        defaultValueHint: "text",
+        defaultValueHint: "text"
       },
       dragAndDropFiles: {
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
-        description:
-          "You can drag files to a specific area, to upload. Alternatively, you can also upload by selecting.",
+        description: "You can drag files to a specific area, to upload. Alternatively, you can also upload by selecting."
       },
       multiple: {
         type: "boolean",
         advanced: true,
         defaultValueHint: false,
-        description: "Upload several files at once in modern browsers",
+        description: "Upload several files at once in modern browsers"
       },
       files: {
         type: "object",
         displayName: "Files",
         defaultValue: [],
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       children: {
         type: "slot",
@@ -203,16 +200,16 @@ function registerUpload(loader) {
             props: {
               children: {
                 type: "text",
-                value: "Upload",
-              },
-            },
-          },
-        ],
+                value: "Upload"
+              }
+            }
+          }
+        ]
       },
       maxCount: {
         type: "number",
         displayName: "Limit of files",
-        advanced: true,
+        advanced: true
       },
       onFilesChange: {
         type: "eventHandler",
@@ -220,15 +217,15 @@ function registerUpload(loader) {
         argTypes: [
           {
             name: "files",
-            type: "array",
-          },
-        ],
+            type: "array"
+          }
+        ]
       },
       showUploadList: {
         type: "boolean",
         displayName: "List files",
-        defaultValue: true,
-      },
+        defaultValue: true
+      }
     },
     states: {
       files: {
@@ -236,12 +233,12 @@ function registerUpload(loader) {
         valueProp: "files",
         variableType: "array",
         onChangeProp: "onFilesChange",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     ...{ trapsSelection: true },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerUpload",
-    importName: "UploadWrapper",
+    importName: "UploadWrapper"
   });
 }
 

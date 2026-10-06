@@ -485,12 +485,20 @@ const EDIT_TOOL_META = {
       "Read the focused artboard, selected elements and editing path, including shared/repeated templates and selected slots. previewContext identifies the active preview page and viewport separately from the retained editing context. Does not change selection or the design.",
     inputSchema: z.object({}).strict(),
     outputSchema: z.object({
+      projectName: z.string(),
       componentUuid: uuid.nullable(),
       frameUuid: uuid.nullable(),
       selectedElementUuids: z.array(uuid),
       instanceIndex: z.number().int().nullable(),
       mode: z.enum(["edit", "preview"]),
       canEdit: z.boolean(),
+      editorView: z.object({
+        arenaId: uuid,
+        arenaType: z.enum(["custom", "page", "component"]),
+        frameUuid: uuid.nullable(),
+        scale: z.number().positive().finite(),
+        scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
+      }).nullable(),
       selectedSlot: z
         .object({ elementUuid: uuid, slotName: z.string() })
         .nullable(),
@@ -517,6 +525,19 @@ const EDIT_TOOL_META = {
         }),
       ),
     }),
+  },
+  restoreEditorView: {
+    toolName: "restoreEditorView",
+    title: "Restore a local editor view",
+    description: "Restore the arena, focused artboard, zoom and pan from getEditorContext.editorView. Does not change the project or business props. Missing arenas or frames are rejected.",
+    inputSchema: z.object({
+      arenaId: uuid,
+        arenaType: z.enum(["custom", "page", "component"]),
+      frameUuid: uuid.nullable(),
+      scale: z.number().positive().finite(),
+      scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
+    }).strict(),
+    outputSchema: z.object({ restored: z.boolean() }),
   },
   selectElement: {
     toolName: "selectElement",

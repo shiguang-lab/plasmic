@@ -241,8 +241,8 @@ function registerTreeHelper({
         argTypes: [
           { name: "selectedKeys", type: { type: "array" } },
           {
-            name: "selectedNodes",
-            type: { type: "array" },
+            name: "info",
+            type: { type: "object" },
           },
         ],
       },

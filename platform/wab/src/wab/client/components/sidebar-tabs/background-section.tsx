@@ -172,7 +172,7 @@ export const BackgroundSection = observer(function BackgroundSection(
     <StylePanelSection
       key={String(isSet)}
       expsProvider={expsProvider}
-      title={"Backgrounds"}
+      title={"背景"}
       styleProps={["background"]}
       controls={
         <>
@@ -374,7 +374,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
     );
 
     return (
-      <SidebarSection title={"Image"}>
+      <SidebarSection title={"图片"}>
         <ImageAssetPreviewAndPicker
           className="flex-fill flex-col"
           value={tryParseImageAssetRef(img.url, imageAssets) || img.url}
@@ -393,7 +393,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
 
   const colorFillPanel = (col: ColorFill) => {
     return (
-      <SidebarSection title={"Fill color"}>
+      <SidebarSection title={"填充颜色"}>
         <ColorPicker
           autoFocus
           color={col.color}
@@ -413,7 +413,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
   // TODO does repeating actually have any effect if the color stops are always in %?
   const linearGradientPanel = (lin: LinearGradient) => {
     return (
-      <SidebarSection title={"Linear"} key="Linear">
+      <SidebarSection title={"线性渐变"} key="Linear">
         <LabeledItemRow label={"Angle"}>
           <DimTokenSpinner
             value={`${lin.angle}deg`}
@@ -478,7 +478,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       );
     };
     return (
-      <SidebarSection title={"Radial"} key="Radial">
+      <SidebarSection title={"径向渐变"} key="Radial">
         <FullRow>
           <div className={"vcenter flex-even"}>
             <UnloggedDragCatcher sc={studioCtx}>
@@ -516,14 +516,14 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
                   updateImg(rad, () => rad.cy.setValue(val || "center")),
               })}
             </LabeledItemRow>
-            <LabeledItemRow label="Width" labelSize="small">
+            <LabeledItemRow label="宽度" labelSize="small">
               {CustomDimSpinner({
                 value: rad.rx.showCss(),
                 onChange: (val) =>
                   updateImg(rad, () => rad.rx.setValue(val || "")),
               })}
             </LabeledItemRow>
-            <LabeledItemRow label="Height" labelSize="small">
+            <LabeledItemRow label="高度" labelSize="small">
               {CustomDimSpinner({
                 value: rad.ry.showCss(),
                 onChange: (val) =>
@@ -577,7 +577,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       <TabbedStylePanelSection
         key={String(isCustomSize)}
         expsProvider={expsProvider}
-        title={"Size"}
+        title={"尺寸"}
         styleProps={[]}
         emptyBody={!isCustomSize}
         onSwitch={(val) =>
@@ -636,7 +636,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
         {isCustomSize && (
           <div className="panel-block">
             <FullRow twinCols>
-              <LabeledItem label="Width" labelSize="small">
+              <LabeledItem label="宽度" labelSize="small">
                 <DimTokenSpinner
                   value={maybe(bgSize(), (x: string[]) => x[0]) || ""}
                   onChange={(val) =>
@@ -654,7 +654,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
                   allowFunctions
                 />
               </LabeledItem>
-              <LabeledItem label="Height" labelSize="small">
+              <LabeledItem label="高度" labelSize="small">
                 <DimTokenSpinner
                   value={maybe(bgSize(), (x: string[]) => x[1]) || ""}
                   onChange={(val) =>
@@ -684,7 +684,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       layer.position ?? css.getCssInitial("background-position", "div"),
     );
     return (
-      <SidebarSection title={"Position"}>
+      <SidebarSection title={"位置"}>
         <div className={"panel-block"}>
           <FullRow>
             <PosControls2
@@ -719,7 +719,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
     const bgRep = layer.repeat;
     return (
       <SidebarSection
-        title="Repeat"
+        title="重复"
         controls={
           <StyleToggleButtonGroup
             value={bgRep}

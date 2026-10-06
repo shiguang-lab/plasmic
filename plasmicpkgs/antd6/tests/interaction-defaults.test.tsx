@@ -69,6 +69,8 @@ test("controlled Modal can stay open during save and close only after success", 
         <output>{open ? "open" : "closed"}</output>
         <AntdModal
           open={open}
+          transitionName=""
+          maskTransitionName=""
           onOpenChange={setOpen}
           onOk={async () => {
             await saving;

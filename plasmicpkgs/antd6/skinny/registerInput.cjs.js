@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var names = require("./names-DbJduus8.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
-require("react");
+var Ant = require('antd');
+var names = require('./names-DbJduus8.cjs.js');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
+require('react');
 
 const AntdInput = Ant.Input;
 const AntdTextArea = Ant.Input.TextArea;
@@ -16,14 +16,14 @@ const inputHelpers = {
     value: {
       onChangeArgsToValue: (e) => {
         return e.target.value;
-      },
-    },
-  },
+      }
+    }
+  }
 };
 const COMMON_HELPERS_CONFIG = {
   helpers: inputHelpers,
   importName: "inputHelpers",
-  importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput",
+  importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput"
 };
 const COMMON_STATES = {
   value: {
@@ -31,41 +31,41 @@ const COMMON_STATES = {
     valueProp: "value",
     variableType: "text",
     onChangeProp: "onChange",
-    hidden: (ps) => !!ps.__plasmicFormField,
-  },
+    hidden: (ps) => !!ps.__plasmicFormField
+  }
 };
 const COMMON_DECORATOR_PROPS = {
   prefix: {
     type: "slot",
-    hidePlaceholder: true,
+    hidePlaceholder: true
   },
   suffix: {
     type: "slot",
-    hidePlaceholder: true,
-  },
+    hidePlaceholder: true
+  }
 };
 const COMMON_ADVANCED_PROPS = {
   maxLength: {
     type: "number",
-    advanced: true,
+    advanced: true
   },
   variant: {
     type: "choice",
     options: ["outlined", "borderless", "filled", "underlined"],
-    defaultValueHint: "outlined",
+    defaultValueHint: "outlined"
   },
   allowClear: {
     type: "boolean",
-    advanced: true,
+    advanced: true
   },
   autoFocus: {
     type: "boolean",
-    advanced: true,
+    advanced: true
   },
   readOnly: {
     type: "boolean",
-    advanced: true,
-  },
+    advanced: true
+  }
 };
 const COMMON_EVENT_HANDLERS = {
   onChange: {
@@ -73,19 +73,19 @@ const COMMON_EVENT_HANDLERS = {
     argTypes: [
       {
         name: "event",
-        type: "object",
-      },
-    ],
+        type: "object"
+      }
+    ]
   },
   onPressEnter: {
     type: "eventHandler",
     argTypes: [
       {
         name: "event",
-        type: "object",
-      },
-    ],
-  },
+        type: "object"
+      }
+    ]
+  }
 };
 const inputTypeOptions = [
   "text",
@@ -96,7 +96,7 @@ const inputTypeOptions = [
   "time",
   "email",
   "tel",
-  "hidden",
+  "hidden"
 ];
 function registerInput(loader) {
   utils.registerComponentHelper(loader, AntdInput, {
@@ -106,34 +106,34 @@ function registerInput(loader) {
     props: {
       value: {
         type: "string",
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       placeholder: {
-        type: "string",
+        type: "string"
       },
       size: {
         type: "choice",
-        options: ["large", "medium", "small"],
+        options: ["large", "medium", "small"]
       },
       disabled: {
-        type: "boolean",
+        type: "boolean"
       },
       type: {
         type: "choice",
         options: inputTypeOptions,
-        defaultValueHint: "text",
+        defaultValueHint: "text"
       },
       ...COMMON_ADVANCED_PROPS,
       ...COMMON_DECORATOR_PROPS,
-      ...COMMON_EVENT_HANDLERS,
+      ...COMMON_EVENT_HANDLERS
     },
     states: {
-      ...COMMON_STATES,
+      ...COMMON_STATES
     },
     ...{ trapsSelection: true },
     componentHelpers: COMMON_HELPERS_CONFIG,
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput",
-    importName: "AntdInput",
+    importName: "AntdInput"
   });
 }
 function registerTextArea(loader) {
@@ -145,35 +145,35 @@ function registerTextArea(loader) {
     props: {
       value: {
         type: "string",
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       placeholder: {
-        type: "string",
+        type: "string"
       },
       disabled: {
-        type: "boolean",
+        type: "boolean"
       },
       maxLength: {
         type: "number",
-        advanced: true,
+        advanced: true
       },
       variant: {
         type: "choice",
         options: ["outlined", "borderless", "filled", "underlined"],
-        defaultValueHint: "outlined",
+        defaultValueHint: "outlined"
       },
       autoSize: {
         type: "boolean",
-        displayName: "Auto grow height?",
+        displayName: "Auto grow height?"
       },
-      ...COMMON_EVENT_HANDLERS,
+      ...COMMON_EVENT_HANDLERS
     },
     states: {
-      ...COMMON_STATES,
+      ...COMMON_STATES
     },
     componentHelpers: COMMON_HELPERS_CONFIG,
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput",
-    importName: "AntdTextArea",
+    importName: "AntdTextArea"
   });
 }
 function registerPasswordInput(loader) {
@@ -185,31 +185,31 @@ function registerPasswordInput(loader) {
     props: {
       value: {
         type: "string",
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       placeholder: {
-        type: "string",
+        type: "string"
       },
       disabled: {
-        type: "boolean",
+        type: "boolean"
       },
       maxLength: {
         type: "number",
-        advanced: true,
+        advanced: true
       },
       variant: {
         type: "choice",
         options: ["outlined", "borderless", "filled", "underlined"],
-        defaultValueHint: "outlined",
+        defaultValueHint: "outlined"
       },
-      ...COMMON_EVENT_HANDLERS,
+      ...COMMON_EVENT_HANDLERS
     },
     states: {
-      ...COMMON_STATES,
+      ...COMMON_STATES
     },
     componentHelpers: COMMON_HELPERS_CONFIG,
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput",
-    importName: "AntdPassword",
+    importName: "AntdPassword"
   });
 }
 function registerNumberInput(loader) {
@@ -221,34 +221,34 @@ function registerNumberInput(loader) {
     props: {
       value: {
         type: "number",
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       placeholder: {
-        type: "string",
+        type: "string"
       },
       disabled: {
-        type: "boolean",
+        type: "boolean"
       },
       max: {
-        type: "number",
+        type: "number"
       },
       min: {
-        type: "number",
+        type: "number"
       },
       step: {
         type: "number",
-        helpText: "Increment or decrement step",
+        helpText: "Increment or decrement step"
       },
       controls: {
         type: "boolean",
         displayName: "Show add/minus controls?",
-        advanced: true,
+        advanced: true
       },
       type: {
         type: "choice",
         options: inputTypeOptions,
         displayName: "Input type",
-        advanced: true,
+        advanced: true
       },
       ...COMMON_DECORATOR_PROPS,
       maxLength: COMMON_ADVANCED_PROPS.maxLength,
@@ -262,18 +262,18 @@ function registerNumberInput(loader) {
         argTypes: [
           {
             name: "value",
-            type: "number",
-          },
-        ],
-      },
+            type: "number"
+          }
+        ]
+      }
     },
     states: {
-      value: { ...COMMON_STATES.value, variableType: "number" },
+      value: { ...COMMON_STATES.value, variableType: "number" }
     },
     ...{ trapsSelection: true },
     // InputNumber emits numeric values directly.
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerInput",
-    importName: "AntdInputNumber",
+    importName: "AntdInputNumber"
   });
 }
 

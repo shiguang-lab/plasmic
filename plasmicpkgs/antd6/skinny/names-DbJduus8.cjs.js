@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const inputComponentName = "plasmic-antd6-input";
 const passwordComponentName = "plasmic-antd6-input-password";

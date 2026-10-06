@@ -1,40 +1,32 @@
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { DatePicker } from "antd";
-import cls from "classnames";
-import dayjs from "dayjs";
-import localeData from "dayjs/plugin/localeData";
-import weekday from "dayjs/plugin/weekday";
-import kebabCase from "lodash/kebabCase";
-import React, { useMemo } from "react";
-import {
-  c as capitalize,
-  r as registerComponentHelper,
-} from "./utils-CSvRw6Za.esm.js";
+import { DatePicker } from 'antd';
+import cls from 'classnames';
+import dayjs from 'dayjs';
+import kebabCase from 'lodash/kebabCase';
+import React, { useMemo } from 'react';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CXR871_R.esm.js';
+import { r as registerComponentHelper, c as capitalize } from './utils-z8_Paxbd.esm.js';
+import localeData from 'dayjs/plugin/localeData';
+import weekday from 'dayjs/plugin/weekday';
+import '@plasmicapp/host';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
 const RangePicker = DatePicker.RangePicker;
 function getDayjsRange(dateRange) {
-  return Array.isArray(dateRange)
-    ? [
-        dateRange[0] ? dayjs(dateRange[0]) : null,
-        dateRange[1] ? dayjs(dateRange[1]) : null,
-      ]
-    : [null, null];
+  return Array.isArray(dateRange) ? [
+    dateRange[0] ? dayjs(dateRange[0]) : null,
+    dateRange[1] ? dayjs(dateRange[1]) : null
+  ] : [null, null];
 }
 function getStrRange(dateRange) {
-  return Array.isArray(dateRange)
-    ? dateRange.map((date) =>
-        date && !(typeof date === "string") && "toISOString" in date
-          ? date.toISOString()
-          : date === null
-            ? void 0
-            : date,
-      )
-    : void 0;
+  return Array.isArray(dateRange) ? dateRange.map(
+    (date) => date && !(typeof date === "string") && "toISOString" in date ? date.toISOString() : date === null ? void 0 : date
+  ) : void 0;
 }
 function AntdDateRangePicker(props) {
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const {
     defaultStartDate,
     defaultEndDate,
@@ -57,83 +49,64 @@ function AntdDateRangePicker(props) {
     className,
     classNames,
     ...rest
-  } = props;
+  } = canvasProps;
   const presetsDayjs = useMemo(
-    () =>
-      presets
-        ?.map((p) => ({ ...p, value: getDayjsRange([p.startDate, p.endDate]) }))
-        .filter((p) => p.value[0]?.isValid() && p.value[1]?.isValid()),
-    [presets],
+    () => presets?.map((p) => ({ ...p, value: getDayjsRange([p.startDate, p.endDate]) })).filter((p) => p.value[0]?.isValid() && p.value[1]?.isValid()),
+    [presets]
   );
-  return /* @__PURE__ */ React.createElement(
-    React.Fragment,
-    null,
-    /* @__PURE__ */ React.createElement(RangePicker, {
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+    RangePicker,
+    {
+      key: isEditing ? "edit" : "runtime",
       ...rest,
+      open,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
+      onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
       presets: presetsDayjs,
-      allowEmpty:
-        allowEmpty !== void 0
-          ? [allowEmpty, allowEmpty]
-          : [allowEmptyStartDate, allowEmptyEndDate],
-      value:
-        value !== void 0
-          ? value === null
-            ? null
-            : getDayjsRange(value)
-          : startDate !== void 0 || endDate !== void 0
-            ? getDayjsRange([startDate, endDate])
-            : void 0,
-      defaultValue:
-        defaultValue !== void 0
-          ? defaultValue
-          : defaultStartDate !== void 0 || defaultEndDate !== void 0
-            ? getDayjsRange([defaultStartDate, defaultEndDate])
-            : void 0,
+      allowEmpty: allowEmpty !== void 0 ? [allowEmpty, allowEmpty] : [allowEmptyStartDate, allowEmptyEndDate],
+      value: value !== void 0 ? value === null ? null : getDayjsRange(value) : startDate !== void 0 || endDate !== void 0 ? getDayjsRange([startDate, endDate]) : void 0,
+      defaultValue: defaultValue !== void 0 ? defaultValue : defaultStartDate !== void 0 || defaultEndDate !== void 0 ? getDayjsRange([defaultStartDate, defaultEndDate]) : void 0,
       renderExtraFooter: renderExtraFooter ? () => renderExtraFooter : void 0,
       className,
-      disabled:
-        disabled ??
-        (disableStartDate !== void 0 || disableEndDate !== void 0
-          ? [!!disableStartDate, !!disableEndDate]
-          : void 0),
+      disabled: disabled ?? (disableStartDate !== void 0 || disableEndDate !== void 0 ? [!!disableStartDate, !!disableEndDate] : void 0),
       placeholder: placeholder?.split(/,\s*/).slice(0, 2),
       classNames: (info) => {
-        const names =
-          typeof classNames === "function" ? classNames(info) : classNames;
-        const popup =
-          typeof names?.popup === "string"
-            ? { root: names.popup }
-            : names?.popup;
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        const popup = typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
         return {
           ...names,
-          popup: { ...popup, root: cls(popup?.root, popupScopeClassName) },
+          popup: { ...popup, root: cls(popup?.root, popupScopeClassName) }
         };
       },
       onChange: (values, _dateStrings) => {
+        if (isEditing) return;
         onChange?.(getStrRange(values) || [null, null]);
-      },
-    }),
-  );
+      }
+    }
+  ));
 }
 const dateRangePickerComponentName = "plasmic-antd6-date-range-picker";
 const dateRangePickerHelpers = {
   states: {
     startDate: {
       onChangeArgsToValue: (value) => value[0],
-      hidden: (ps) => !!ps.__plasmicFormField,
+      hidden: (ps) => !!ps.__plasmicFormField
     },
     endDate: {
       onChangeArgsToValue: (value) => value[1],
-      hidden: (ps) => !!ps.__plasmicFormField,
-    },
-  },
+      hidden: (ps) => !!ps.__plasmicFormField
+    }
+  }
 };
 function registerDateRangePicker(loader) {
   registerComponentHelper(loader, AntdDateRangePicker, {
     name: dateRangePickerComponentName,
+    canvasOverlay: {},
     displayName: "Date Range Picker",
     props: {
+      previewOpen: previewOpenProp,
       inputReadOnly: { type: "boolean", defaultValueHint: false },
       startDate: {
         type: "dateString",
@@ -141,7 +114,7 @@ function registerDateRangePicker(loader) {
         uncontrolledProp: "defaultStartDate",
         description: "The default start date as ISO strings",
         // TODO: Can there be a default validator attached to each prop type, so dynamic values can be checked?
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       endDate: {
         type: "dateString",
@@ -149,78 +122,76 @@ function registerDateRangePicker(loader) {
         uncontrolledProp: "defaultEndDate",
         description: "The default end date as ISO strings",
         // TODO: Can there be a default validator attached to each prop type, so dynamic values can be checked?
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       allowClear: {
         type: "boolean",
         advanced: true,
         defaultValueHint: true,
-        description: "Whether to show the clear button",
+        description: "Whether to show the clear button"
       },
       autoFocus: {
         type: "boolean",
         description: "Focus when component is rendered",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       variant: {
         type: "choice",
         options: ["outlined", "borderless", "filled", "underlined"],
-        defaultValueHint: "outlined",
+        defaultValueHint: "outlined"
       },
       changeOnBlur: {
         type: "boolean",
         advanced: true,
-        description:
-          "Trigger change when blur. e.g. datetime picker no need click confirm button",
+        description: "Trigger change when blur. e.g. datetime picker no need click confirm button",
         defaultValueHint: false,
-        hidden: (ps) => !ps.showTime,
+        hidden: (ps) => !ps.showTime
       },
       disabled: {
         type: "boolean",
         description: "Disable date range inputs",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       disableStartDate: {
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
         description: "Disable start date input only",
-        hidden: (ps) => ps.disabled,
+        hidden: (ps) => ps.disabled
       },
       disableEndDate: {
         type: "boolean",
         defaultValueHint: false,
         advanced: true,
         description: "Disable end date input only",
-        hidden: (ps) => ps.disabled,
+        hidden: (ps) => ps.disabled
       },
       picker: {
         type: "choice",
         options: ["date", "week", "month", "quarter", "year"].map((value) => ({
           value,
-          label: capitalize(value),
+          label: capitalize(value)
         })),
-        defaultValueHint: "date",
+        defaultValueHint: "date"
       },
       placeholder: {
         type: "string",
         advanced: true,
         defaultValueHint: "Start date, End date",
-        description:
-          "The placeholders of the start and end date inputs, separated by a comma",
+        description: "The placeholders of the start and end date inputs, separated by a comma"
       },
       placement: {
         type: "choice",
         options: ["bottomLeft", "bottomRight", "topLeft", "topRight"].map(
           (value) => ({
             value,
-            label: kebabCase(value),
-          }),
+            label: kebabCase(value)
+          })
         ),
         advanced: true,
         defaultValueHint: "bottom-left",
-        description: "The position where the selection box pops up",
+        description: "The position where the selection box pops up"
       },
       presets: {
         type: "array",
@@ -232,66 +203,66 @@ function registerDateRangePicker(loader) {
           fields: {
             label: "string",
             startDate: {
-              type: "dateString",
+              type: "dateString"
             },
             endDate: {
-              type: "dateString",
-            },
-          },
-        },
+              type: "dateString"
+            }
+          }
+        }
       },
       size: {
         type: "choice",
         advanced: true,
         options: ["small", "medium", "large"].map((value) => ({
           value,
-          label: capitalize(value),
+          label: capitalize(value)
         })),
-        defaultValueHint: "medium",
+        defaultValueHint: "medium"
       },
       status: {
         type: "choice",
         advanced: true,
         options: ["error", "warning"].map((value) => ({
           value,
-          label: capitalize(value),
+          label: capitalize(value)
         })),
-        description: "Set validation status",
+        description: "Set validation status"
       },
       allowEmpty: {
         type: "boolean",
         advanced: true,
         description: "Allow leaving start or end input empty",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       allowEmptyStartDate: {
         type: "boolean",
         advanced: true,
         description: "Allow leaving start input empty",
         defaultValueHint: false,
-        hidden: (ps) => ps.allowEmpty,
+        hidden: (ps) => ps.allowEmpty
       },
       allowEmptyEndDate: {
         type: "boolean",
         advanced: true,
         description: "Allow leaving end input empty",
         defaultValueHint: false,
-        hidden: (ps) => ps.allowEmpty,
+        hidden: (ps) => ps.allowEmpty
       },
       renderExtraFooter: {
         type: "slot",
         displayName: "Extra footer",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       showTime: {
         type: "boolean",
         description: "Enable time selection",
         defaultValueHint: false,
-        hidden: (ps) => ps.picker !== void 0 && ps.picker !== "date",
+        hidden: (ps) => ps.picker !== void 0 && ps.picker !== "date"
       },
       popupScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "dateRangePickerPopup",
+        scopeName: "dateRangePickerPopup"
       },
       popupRootClassName: {
         type: "class",
@@ -299,9 +270,9 @@ function registerDateRangePicker(loader) {
         selectors: [
           {
             selector: ":dateRangePickerPopup .ant-picker-panel-container",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupHeaderClassName: {
         type: "class",
@@ -309,9 +280,9 @@ function registerDateRangePicker(loader) {
         selectors: [
           {
             selector: ":dateRangePickerPopup .ant-picker-header",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupBodyClassName: {
         type: "class",
@@ -319,9 +290,9 @@ function registerDateRangePicker(loader) {
         selectors: [
           {
             selector: ":dateRangePickerPopup .ant-picker-body",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupFooterClassName: {
         type: "class",
@@ -329,15 +300,15 @@ function registerDateRangePicker(loader) {
         selectors: [
           {
             selector: ":dateRangePickerPopup .ant-picker-footer",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       onChange: {
         type: "eventHandler",
         advanced: true,
-        argTypes: [{ name: "value", type: "object" }],
-      },
+        argTypes: [{ name: "value", type: "object" }]
+      }
     },
     states: {
       startDate: {
@@ -345,30 +316,25 @@ function registerDateRangePicker(loader) {
         valueProp: "startDate",
         onChangeProp: "onChange",
         variableType: "text",
-        ...dateRangePickerHelpers.states.startDate,
+        ...dateRangePickerHelpers.states.startDate
       },
       endDate: {
         type: "writable",
         valueProp: "endDate",
         onChangeProp: "onChange",
         variableType: "text",
-        ...dateRangePickerHelpers.states.endDate,
-      },
+        ...dateRangePickerHelpers.states.endDate
+      }
     },
     componentHelpers: {
       helpers: dateRangePickerHelpers,
       importName: "dateRangePickerHelpers",
-      importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDateRangePicker",
+      importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDateRangePicker"
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDateRangePicker",
-    importName: "AntdDateRangePicker",
+    importName: "AntdDateRangePicker"
   });
 }
 
-export {
-  AntdDateRangePicker,
-  dateRangePickerComponentName,
-  dateRangePickerHelpers,
-  registerDateRangePicker,
-};
+export { AntdDateRangePicker, dateRangePickerComponentName, dateRangePickerHelpers, registerDateRangePicker };
 //# sourceMappingURL=registerDateRangePicker.esm.js.map

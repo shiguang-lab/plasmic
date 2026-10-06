@@ -1,25 +1,19 @@
-"use strict";
+'use strict';
 
-var plasmicOverseas = require("@shiguang-lab/plasmic-overseas");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
-require("react");
-require("antd");
+var plasmicOverseas = require('@shiguang-lab/plasmic-overseas');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
+require('react');
+require('antd');
 
 function registerAppShell(loader) {
-  utils.registerComponentHelper(loader, plasmicOverseas.AppShell, {
-    ...plasmicOverseas.appShellMeta,
-    name: "plasmic-antd6-app-shell",
-    importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAppShell",
-  });
+  utils.registerComponentHelper(loader, plasmicOverseas.AppShell, { ...plasmicOverseas.appShellMeta, name: "plasmic-antd6-app-shell", importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAppShell" });
 }
 
 Object.defineProperty(exports, "AppShell", {
   enumerable: true,
-  get: function () {
-    return plasmicOverseas.AppShell;
-  },
+  get: function () { return plasmicOverseas.AppShell; }
 });
 exports.registerAppShell = registerAppShell;
 //# sourceMappingURL=registerAppShell.cjs.js.map

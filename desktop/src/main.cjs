@@ -26,7 +26,10 @@ const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
-let controller, stopRpc, openMcpSettings, updates;
+const { DesktopWorkspace, fileMenu } = require("./workspace.cjs");
+const { attachWindowRecovery } = require("./window-recovery.cjs");
+let controller, stopRpc, openMcpSettings, updates, workspace;
+let quitting = false;
 
 let mainWindow;
 let desktopSession;
@@ -253,6 +256,33 @@ async function startDesktop() {
       void stopRpc();
     });
   }
+  workspace ??= new DesktopWorkspace(app.getPath("userData"), config.studioOrigin);
+  const win = mainWindow;
+  attachWindowRecovery(win, { controller, dialog, homeUrl: config.studioOrigin + "/" });
+  let checkpoint;
+  const capture = () => checkpoint ??= workspace.capture(controller).catch((error) => {
+    console.warn("Cannot record desktop workspace:", error.message);
+  }).finally(() => { checkpoint = undefined; });
+  const workspaceTimer = setInterval(() => {
+    if (win.webContents.isLoadingMainFrame() || win.webContents.isCrashed()) return;
+    void capture().then((changed) => { if (changed) buildMenu(); });
+  }, 5000);
+  let closing = false;
+  win.on("close", (event) => {
+    if (closing || quitting || win.webContents.isCrashed()) return;
+    event.preventDefault();
+    void capture().finally(() => { closing = true; win.close(); });
+  });
+  const beforeQuit = (event) => {
+    if (quitting) return;
+    event.preventDefault();
+    void capture().finally(() => { quitting = true; app.quit(); });
+  };
+  app.on("before-quit", beforeQuit);
+  win.once("closed", () => {
+    clearInterval(workspaceTimer);
+    app.removeListener("before-quit", beforeQuit);
+  });
   mainWindow.once("ready-to-show", () => mainWindow.show());
   mainWindow.on("closed", () => {
     mainWindow = undefined;
@@ -271,10 +301,11 @@ async function startDesktop() {
       },
     });
   }
+  function buildMenu() {
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
-      { role: "fileMenu" },
+      fileMenu({ controller, workspace, getWindow: () => mainWindow, dialog, refresh: buildMenu }),
       { role: "editMenu" },
       { role: "viewMenu" },
       { role: "windowMenu" },
@@ -301,7 +332,13 @@ async function startDesktop() {
       },
     ]),
   );
-  await mainWindow.loadURL(config.studioOrigin + "/");
+  }
+  buildMenu();
+  await mainWindow.loadURL(workspace.recent[0]?.url || config.studioOrigin + "/");
+  void workspace.restore(mainWindow, controller).catch(async (error) => {
+    console.warn("Cannot restore desktop workspace:", error.message);
+    if (!win.isDestroyed()) await win.loadURL(config.studioOrigin + "/");
+  });
   if (process.platform === "darwin") await acknowledgeMacUpdate(app);
   if (queuedOAuthUrl) {
     const url = queuedOAuthUrl;

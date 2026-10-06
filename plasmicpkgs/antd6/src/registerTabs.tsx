@@ -1,7 +1,9 @@
 import { ActionProps } from "@plasmicapp/host/registerComponent";
+import { usePlasmicCanvasContext } from "@plasmicapp/host";
 import { Tabs } from "antd";
 import cls from "classnames";
 import React, { ReactElement, useMemo } from "react";
+import { getSelectedCanvasItemKey } from "./canvas-overlay";
 import {
   Registerable,
   asArray,
@@ -20,18 +22,13 @@ export const AntdTabItem: React.FC<TabItemType> = ({ children }) => {
   return <div>{children}</div>;
 };
 
-function getTabItems(items: ReactElement): React.ReactElement<TabItemType>[] {
-  if (!items) {
-    return [];
-  }
-  if (!React.isValidElement(items) && Array.isArray(items)) {
-    return [...items];
-  } // indicates a single TabItem on repeat
-  return (items?.type as any)?.name == AntdTabItem.name
-    ? [items]
-    : (asArray(items.props?.children)
-        .flat(1)
-        .filter(React.isValidElement) as React.ReactElement<TabItemType>[]);
+function getTabItems(items: React.ReactNode): React.ReactElement<TabItemType>[] {
+  return asArray(items).flatMap((item) => {
+    if (!React.isValidElement(item)) return [];
+    return (item.type as any)?.name === AntdTabItem.name
+      ? [item as React.ReactElement<TabItemType>]
+      : getTabItems(item.props.children);
+  });
 }
 
 function getTabItemKeys(items: ReactElement): string[] {
@@ -65,6 +62,22 @@ type TabsProps = Omit<
 };
 
 export function AntdTabs(props: TabsProps) {
+  if (
+    React.isValidElement<{ children: (...args: unknown[]) => React.ReactNode }>(props.items) &&
+    typeof props.items.props.children === "function"
+  ) {
+    const observer = props.items;
+    const renderItems = observer.props.children;
+    return React.cloneElement(observer, {
+      children: (...args: unknown[]) => <TabsWithItems {...props} items={renderItems(...args) as ReactElement} />,
+    });
+  }
+  return <TabsWithItems {...props} />;
+}
+
+function TabsWithItems(props: TabsProps) {
+  const canvas = usePlasmicCanvasContext();
+  const isEditing = !!canvas && !canvas.interactive;
   const {
     items: itemsRaw,
     animated = true,
@@ -92,9 +105,9 @@ export function AntdTabs(props: TabsProps) {
         : false,
     [animateTabBar, animateTabContent, animated],
   );
-  const items: TabItemType[] = useMemo(() => {
-    const tabItems = getTabItems(itemsRaw);
-    return tabItems
+  const tabItems = getTabItems(itemsRaw);
+  const selectedKey = isEditing ? getSelectedCanvasItemKey(tabItems) : undefined;
+  const items: TabItemType[] = tabItems
       .map((currentItem) => {
         return {
           ...currentItem.props,
@@ -103,7 +116,6 @@ export function AntdTabs(props: TabsProps) {
         };
       })
       .filter((i) => i != null) as TabItemType[];
-  }, [itemsRaw]);
 
   return (
     <Tabs
@@ -156,64 +168,18 @@ export function AntdTabs(props: TabsProps) {
       animated={animationProp}
       items={items}
       {...rest}
+      activeKey={isEditing
+        ? String(selectedKey ?? rest.activeKey ?? rest.defaultActiveKey ?? items.find((item) => !item.disabled)?.key ?? "")
+        : rest.activeKey}
+      onChange={isEditing ? undefined : rest.onChange}
+      onTabClick={isEditing ? undefined : rest.onTabClick}
+      onTabScroll={isEditing ? undefined : rest.onTabScroll}
     />
   );
 }
 
-// function NavigateTabs({ componentProps, studioOps }: ActionProps<any>) {
-//   const tabPanes: string[] = getTabItemKeys(componentProps.items);
-//   const buttonStyle = {
-//     width: "100%",
-//     borderColor: "#f3f3f2",
-//     borderRadius: 6,
-//     fontSize: 12,
-//   };
-//   const activeKey = componentProps.activeKey;
-//   const currTabPos = activeKey
-//     ? tabPanes.findIndex((tabKey) => {
-//         return tabKey === activeKey;
-//       })
-//     : 0;
-
-//   return (
-//     <div
-//       style={{
-//         width: "100%",
-//         display: "flex",
-//         flexDirection: "row",
-//         gap: "4px",
-//         justifyContent: "space-between",
-//       }}
-//     >
-//       <Button
-//         style={buttonStyle}
-//         onClick={() => {
-//           if (tabPanes.length > 0) {
-//             const prevTabPos =
-//               (currTabPos - 1 + tabPanes.length) % tabPanes.length;
-//             studioOps.updateProps({ activeKey: tabPanes[prevTabPos] });
-//           }
-//         }}
-//       >
-//         Prev tab
-//       </Button>
-//       <Button
-//         style={buttonStyle}
-//         onClick={() => {
-//           if (tabPanes.length > 0) {
-//             const nextTabPos = (currTabPos + 1) % tabPanes.length;
-//             studioOps.updateProps({ activeKey: tabPanes[nextTabPos] });
-//           }
-//         }}
-//       >
-//         Next tab
-//       </Button>
-//     </div>
-//   );
-// }
-
 function OutlineMessage() {
-  return <div>* To re-arrange tab panes, use the Outline panel</div>;
+  return <div>在图层面板中拖动页签可调整顺序</div>;
 }
 
 export function registerTabs(loader?: Registerable) {
@@ -229,10 +195,10 @@ export function registerTabs(loader?: Registerable) {
       removeIcon: { type: "slot", hidePlaceholder: true },
       activeKey: {
         editOnly: true,
-        displayName: "Active tab key",
+        displayName: "初始活动页签",
         uncontrolledProp: "defaultActiveKey",
         type: "choice",
-        description: `Initial active tab's key`,
+        description: "组件初始显示的页签 key；画布临时展示选中内容不会修改此值。",
         options: (ps: any) => getTabItemKeys(ps.items),
       },
       animated: {
@@ -264,6 +230,7 @@ export function registerTabs(loader?: Registerable) {
       },
       items: {
         type: "slot",
+        displayName: "页签",
         hidePlaceholder: true,
         allowedComponents: [tabItemComponentName],
         ...({ mergeWithParent: true } as any), // to make the tab items selectable from the components outline pane in Plasmic Studio.
@@ -409,13 +376,9 @@ export function registerTabs(loader?: Registerable) {
       },
     },
     actions: [
-      // {
-      //   type: "custom-action",
-      //   control: NavigateTabs,
-      // },
       {
         type: "button-action",
-        label: "Add new tab",
+        label: "添加页签",
         onClick: ({ componentProps, studioOps }: ActionProps<any>) => {
           // Get the first positive integer that isn't already a key
           const generateNewKey = () => {
@@ -462,24 +425,19 @@ export function registerTabs(loader?: Registerable) {
       },
       {
         type: "button-action",
-        label: "Delete current tab",
+        label: "删除当前页签",
         onClick: ({ componentProps, studioOps }: ActionProps<any>) => {
-          if (componentProps.activeKey) {
             const tabPanes = getTabItemKeys(componentProps.items);
-            const activeKey = componentProps.activeKey;
+            const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find((item) => !item.props.disabled)?.key;
             const currTabPos = tabPanes.findIndex((tabKey) => {
               return tabKey === activeKey;
             });
 
             if (currTabPos !== -1) {
               studioOps.removeFromSlotAt(currTabPos, "items");
-              if (tabPanes.length - 1 > 0) {
-                const prevTabPos =
-                  (currTabPos - 1 + tabPanes.length) % tabPanes.length;
-                studioOps.updateProps({ activeKey: tabPanes[prevTabPos] });
-              }
+              const remaining = tabPanes.filter((_, index) => index !== currTabPos);
+              studioOps.updateProps({ activeKey: remaining[Math.max(0, currTabPos - 1)] });
             }
-          }
         },
       },
       {
@@ -509,15 +467,16 @@ export function registerTabs(loader?: Registerable) {
       key: {
         type: "string",
         description: `Unique identifier for this tab`,
-        displayName: "Tab key",
+        displayName: "页签标识",
       },
       label: {
         type: "slot",
-        displayName: "Tab title",
+        displayName: "页签标题",
         defaultValue: "Tab",
       },
       children: {
         type: "slot",
+        displayName: "页签内容",
         hidePlaceholder: true,
       },
     },

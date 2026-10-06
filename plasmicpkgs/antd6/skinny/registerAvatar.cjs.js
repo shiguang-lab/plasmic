@@ -1,40 +1,34 @@
-"use strict";
+'use strict';
 
-var host = require("@plasmicapp/host");
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var host = require('@plasmicapp/host');
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
-function AntdAvatar({ letters, href, target, ...props }) {
+function AntdAvatar({
+  letters,
+  href,
+  target,
+  ...props
+}) {
   const avatar = /* @__PURE__ */ React__default.default.createElement(
     Ant.Avatar,
     {
       ...props,
-      children: props.children === void 0 ? letters : props.children,
-    },
+      children: props.children === void 0 ? letters : props.children
+    }
   );
   const PlasmicLink = host.usePlasmicLink();
-  return href
-    ? /* @__PURE__ */ React__default.default.createElement(
-        PlasmicLink,
-        { href, target: target ? "_blank" : void 0 },
-        avatar,
-      )
-    : avatar;
+  return href ? /* @__PURE__ */ React__default.default.createElement(PlasmicLink, { href, target: target ? "_blank" : void 0 }, avatar) : avatar;
 }
 function AntdAvatarGroup(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
-    Ant.Avatar.Group,
-    { ...props },
-  );
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Avatar.Group, { ...props });
 }
 function registerAvatar(loader) {
   utils.registerComponentHelper(loader, AntdAvatar, {
@@ -45,25 +39,25 @@ function registerAvatar(loader) {
       href: {
         type: "href",
         displayName: "Link to",
-        description: "Destination to link to",
+        description: "Destination to link to"
       },
       target: {
         type: "boolean",
         displayName: "Open in new tab",
-        hidden: (ps) => !ps.href,
+        hidden: (ps) => !ps.href
       },
       letters: {
         type: "string",
         description: "Letters to show",
-        defaultValue: "AB",
+        defaultValue: "AB"
       },
       src: {
         type: "imageUrl",
-        description: "Image to display",
+        description: "Image to display"
       },
       alt: {
         type: "string",
-        description: "Alternative text for the avatar image",
+        description: "Alternative text for the avatar image"
       },
       size: {
         type: "choice",
@@ -71,20 +65,20 @@ function registerAvatar(loader) {
           "small",
           "medium",
           "large",
-          ...(typeof ps.size === "number" ? [ps.size] : []),
+          ...typeof ps.size === "number" ? [ps.size] : []
         ],
         description: "Set the size of avatar",
-        defaultValueHint: "medium",
+        defaultValueHint: "medium"
       },
       shape: {
         type: "choice",
         options: ["circle", "square"],
         description: "Set the avatar shape",
-        defaultValueHint: "circle",
-      },
+        defaultValueHint: "circle"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",
-    importName: "AntdAvatar",
+    importName: "AntdAvatar"
   });
 }
 function registerAvatarGroup(loader) {
@@ -103,22 +97,22 @@ function registerAvatarGroup(loader) {
               type: "component",
               name: "plasmic-antd6-avatar",
               props: {
-                letters: `U${user}`,
-              },
-            },
-          },
-        })),
+                letters: `U${user}`
+              }
+            }
+          }
+        }))
       },
       max: { type: "object" },
       size: {
         type: "choice",
         options: ["small", "medium", "large"],
         description: "Default size of avatars",
-        defaultValueHint: "medium",
-      },
+        defaultValueHint: "medium"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",
-    importName: "AntdAvatarGroup",
+    importName: "AntdAvatarGroup"
   });
 }
 

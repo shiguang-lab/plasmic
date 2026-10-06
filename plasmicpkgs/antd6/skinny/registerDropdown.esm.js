@@ -1,8 +1,8 @@
 import { Dropdown } from 'antd';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-BurdwRe9.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CXR871_R.esm.js';
 import { AntdMenu, UNKEYED_MENU_ITEM_TYPE } from './registerMenu.esm.js';
-import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

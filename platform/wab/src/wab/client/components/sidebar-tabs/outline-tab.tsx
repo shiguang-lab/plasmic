@@ -162,6 +162,8 @@ function OutlineTab_() {
             overrides={{
               searchInput: {
                 value: query,
+                placeholder: "搜索图层…",
+                "aria-label": "搜索图层",
                 onChange: (e) => outlineCtx.setQuery(e.target.value),
                 onKeyUp: (e) => {
                   if (e.key === "Escape") {
@@ -178,9 +180,13 @@ function OutlineTab_() {
         ),
       }}
       expandAllButton={{
+        "aria-label": "展开所有图层",
+        title: "展开所有图层",
         onClick: () => outlineCtx.expandAll(),
       }}
       collapseAllButton={{
+        "aria-label": "折叠所有图层",
+        title: "折叠所有图层",
         onClick: () => outlineCtx.collapseAll(),
       }}
     >

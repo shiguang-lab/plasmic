@@ -61,6 +61,7 @@ export type SubDeps = {
 
 // Make sure this matches the type in canvas-packages/src/index.ts
 interface CanvasPkgs {
+  StudioControlsProvider: React.ComponentType<{ studioDocument: Document; children?: React.ReactNode }>;
   ResizeObserver: typeof ResizeObserver;
   GenericErrorBoundary: React.ComponentType<{ className?: string }>;
   slate: typeof slate;

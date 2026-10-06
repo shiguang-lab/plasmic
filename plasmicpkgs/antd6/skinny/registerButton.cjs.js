@@ -1,46 +1,39 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var names = require("./names-DbJduus8.cjs.js");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var names = require('./names-DbJduus8.cjs.js');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 const AntdButton = React__default.default.forwardRef(
   function AntdButton2(props, ref) {
     const { submitsForm = false, children, ...rest } = props;
-    const target =
-      props.target === true
-        ? "_blank"
-        : props.target === false
-          ? void 0
-          : props.target;
-    return /* @__PURE__ */ React__default.default.createElement(Ant.Button, {
-      ...rest,
-      ref,
-      children:
-        children != null && children !== ""
-          ? /* @__PURE__ */ React__default.default.createElement(
-              "div",
-              {
-                style: {
-                  display: "inline-block",
-                },
-              },
-              children,
-            )
-          : void 0,
-      htmlType: props.htmlType ?? (submitsForm ? "submit" : "button"),
-      target,
-    });
-  },
+    const target = props.target === true ? "_blank" : props.target === false ? void 0 : props.target;
+    return /* @__PURE__ */ React__default.default.createElement(
+      Ant.Button,
+      {
+        ...rest,
+        ref,
+        children: children != null && children !== "" ? /* @__PURE__ */ React__default.default.createElement(
+          "div",
+          {
+            style: {
+              display: "inline-block"
+            }
+          },
+          children
+        ) : void 0,
+        htmlType: props.htmlType ?? (submitsForm ? "submit" : "button"),
+        target
+      }
+    );
+  }
 );
 function registerButton(loader) {
   utils.registerComponentHelper(loader, AntdButton, {
@@ -51,11 +44,11 @@ function registerButton(loader) {
         type: "choice",
         options: ["default", "primary", "dashed", "link", "text"],
         description: "Can be set to primary, dashed, link, text, default",
-        defaultValueHint: "default",
+        defaultValueHint: "default"
       },
       variant: {
         type: "choice",
-        options: ["outlined", "dashed", "solid", "filled", "text", "link"],
+        options: ["outlined", "dashed", "solid", "filled", "text", "link"]
       },
       color: {
         type: "choice",
@@ -75,91 +68,89 @@ function registerButton(loader) {
           "volcano",
           "geekblue",
           "lime",
-          "gold",
-        ],
+          "gold"
+        ]
       },
       iconPlacement: {
         type: "choice",
         options: ["start", "end"],
-        defaultValueHint: "start",
+        defaultValueHint: "start"
       },
       size: {
         type: "choice",
         options: ["small", "medium", "large"],
         description: "Set the size of button",
-        defaultValueHint: "medium",
+        defaultValueHint: "medium"
       },
       shape: {
         type: "choice",
         options: ["default", "circle", "round"],
         description: "Set the button shape",
-        defaultValueHint: "default",
+        defaultValueHint: "default"
       },
       disabled: {
         type: "boolean",
         description: "Whether the button is disabled",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       submitsForm: {
         type: "boolean",
         displayName: "Submits form?",
         defaultValueHint: false,
-        description:
-          "whether clicking this button should submit the enclosing form.",
-        advanced: true,
+        description: "whether clicking this button should submit the enclosing form.",
+        advanced: true
       },
       ghost: {
         type: "boolean",
-        description:
-          "Make background transparent and invert text and border colors",
+        description: "Make background transparent and invert text and border colors",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       danger: {
         type: "boolean",
         description: "Set the danger status of button",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       loading: {
         type: "boolean",
         description: "Set the loading status of button",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       href: {
         displayName: "Link to",
         type: "href",
-        description: "Use this button as a link to this url",
+        description: "Use this button as a link to this url"
       },
       target: {
         type: "boolean",
         displayName: "Open in new tab?",
         description: "Whether to open the link in a new window",
         hidden: (props) => !props.href,
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       children: {
         type: "slot",
         defaultValue: [
           {
             type: "text",
-            value: "Button",
-          },
+            value: "Button"
+          }
         ],
-        ...{ mergeWithParent: true },
+        ...{ mergeWithParent: true }
       },
       icon: {
         type: "slot",
-        hidePlaceholder: true,
+        hidePlaceholder: true
       },
       onClick: {
         type: "eventHandler",
-        argTypes: [],
-      },
+        argTypes: []
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerButton",
-    importName: "AntdButton",
+    importName: "AntdButton"
   });
 }
 

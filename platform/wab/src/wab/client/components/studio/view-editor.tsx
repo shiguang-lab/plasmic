@@ -2063,7 +2063,7 @@ const RightPane = observer(function RightPane(props: {
     );
     tabs.push(
       new widgets.Tab({
-        name: "Design",
+        name: "样式",
         key: RightTabKey.style,
         contents: () => (
           <StyleTabContext.Provider value={"style-only"}>
@@ -2080,8 +2080,8 @@ const RightPane = observer(function RightPane(props: {
     tabs.push(
       new widgets.Tab({
         name: isPageComponent(focusedOrFirstViewCtx.component)
-          ? "Page data"
-          : "Component data",
+          ? "页面数据"
+          : "组件数据",
         key: RightTabKey.component,
         contents: () => (
           <ComponentOrPageTab

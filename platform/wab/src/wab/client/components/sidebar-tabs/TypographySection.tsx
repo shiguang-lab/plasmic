@@ -102,7 +102,7 @@ function TypographySection_(props: {
   return (
     <StylePanelSection
       hasMore
-      title={title ?? "Text"}
+      title={title ?? "文本"}
       expsProvider={expsProvider}
       styleProps={
         props.inheritableOnly
@@ -195,7 +195,7 @@ export const TextOnlySection = observer(function TextOnlySection(props: {
     return null;
   }
   return (
-    <SidebarSection title={title ?? "Text"}>
+    <SidebarSection title={title ?? "文本"}>
       <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
     </SidebarSection>
   );

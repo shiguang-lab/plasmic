@@ -14,21 +14,5 @@ const radioGroupComponentName = "plasmic-antd6-radio-group";
 const formComponentName = "plasmic-antd6-form";
 const buttonComponentName = "plasmic-antd6-button";
 
-export {
-  checkboxGroupComponentName as a,
-  buttonComponentName as b,
-  checkboxComponentName as c,
-  inputNumberComponentName as d,
-  radioComponentName as e,
-  formComponentName as f,
-  radioButtonComponentName as g,
-  optionGroupComponentName as h,
-  inputComponentName as i,
-  switchComponentName as j,
-  optionComponentName as o,
-  passwordComponentName as p,
-  radioGroupComponentName as r,
-  selectComponentName as s,
-  textAreaComponentName as t,
-};
+export { checkboxGroupComponentName as a, buttonComponentName as b, checkboxComponentName as c, inputNumberComponentName as d, radioComponentName as e, formComponentName as f, radioButtonComponentName as g, optionGroupComponentName as h, inputComponentName as i, switchComponentName as j, optionComponentName as o, passwordComponentName as p, radioGroupComponentName as r, selectComponentName as s, textAreaComponentName as t };
 //# sourceMappingURL=names-DKofLcnC.esm.js.map

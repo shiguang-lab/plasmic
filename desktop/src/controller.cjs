@@ -605,13 +605,17 @@ class DesktopController {
       });
     }
   }
+  cancelPending(window, message) {
+    for (const [id, request] of this.pending) {
+      if (window && request.window !== window) continue;
+      clearTimeout(request.timer);
+      request.reject(new Error(message));
+      this.pending.delete(id);
+    }
+  }
   close() {
     ipcMain.removeListener("desktop:result", this.receive);
-    for (const request of this.pending.values()) {
-      clearTimeout(request.timer);
-      request.reject(new Error("Desktop closed"));
-    }
-    this.pending.clear();
+    this.cancelPending(undefined, "Desktop closed");
   }
 }
 module.exports = { DesktopController };

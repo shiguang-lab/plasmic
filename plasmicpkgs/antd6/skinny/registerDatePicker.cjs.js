@@ -1,116 +1,102 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var cls = require("classnames");
-var dayjs = require("dayjs");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var cls = require('classnames');
+var dayjs = require('dayjs');
+var React = require('react');
+var canvasOverlay = require('./canvas-overlay-B42dlSLB.cjs.js');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var cls__default = /*#__PURE__*/ _interopDefault(cls);
-var dayjs__default = /*#__PURE__*/ _interopDefault(dayjs);
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var cls__default = /*#__PURE__*/_interopDefault(cls);
+var dayjs__default = /*#__PURE__*/_interopDefault(dayjs);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdDatePicker(props) {
-  const { picker, popupScopeClassName, classNames, ...rest } = props;
-  return /* @__PURE__ */ React__default.default.createElement(
-    React__default.default.Fragment,
-    null,
-    /* @__PURE__ */ React__default.default.createElement(Ant.DatePicker, {
+  const { props: canvasProps, open, isEditing } = canvasOverlay.useCanvasOverlay(props);
+  const { picker, popupScopeClassName, classNames, ...rest } = canvasProps;
+  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement(
+    Ant.DatePicker,
+    {
+      key: isEditing ? "edit" : "runtime",
       ...rest,
+      open,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
+      onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
-      value:
-        props.value === void 0
-          ? void 0
-          : !props.value
-            ? null
-            : Array.isArray(props.value)
-              ? props.value.map((value) => dayjs__default.default(value))
-              : dayjs__default.default(props.value),
-      defaultValue:
-        props.defaultValue === void 0
-          ? void 0
-          : Array.isArray(props.defaultValue)
-            ? props.defaultValue.map((value) => dayjs__default.default(value))
-            : dayjs__default.default(props.defaultValue),
+      value: props.value === void 0 ? void 0 : !props.value ? null : Array.isArray(props.value) ? props.value.map((value) => dayjs__default.default(value)) : dayjs__default.default(props.value),
+      defaultValue: props.defaultValue === void 0 ? void 0 : Array.isArray(props.defaultValue) ? props.defaultValue.map((value) => dayjs__default.default(value)) : dayjs__default.default(props.defaultValue),
       classNames: (info) => {
-        const names =
-          typeof classNames === "function" ? classNames(info) : classNames;
-        const popup =
-          typeof names?.popup === "string"
-            ? { root: names.popup }
-            : names?.popup;
+        const names = typeof classNames === "function" ? classNames(info) : classNames;
+        const popup = typeof names?.popup === "string" ? { root: names.popup } : names?.popup;
         return {
           ...names,
-          popup: {
-            ...popup,
-            root: cls__default.default(popup?.root, popupScopeClassName),
-          },
+          popup: { ...popup, root: cls__default.default(popup?.root, popupScopeClassName) }
         };
       },
       onChange: (value, _dateString) => {
+        if (isEditing) return;
         props.onChange?.(
-          Array.isArray(value)
-            ? value.map((date) => date.toISOString())
-            : (value?.toISOString() ?? null),
+          Array.isArray(value) ? value.map((date) => date.toISOString()) : value?.toISOString() ?? null
         );
-      },
-    }),
-  );
+      }
+    }
+  ));
 }
 const datePickerComponentName = "plasmic-antd6-date-picker";
 const datePickerHelpers = {
   states: {
     value: {
       onChangeArgsToValue: (value) => value,
-      hidden: (ps) => !!ps.__plasmicFormField,
-    },
-  },
+      hidden: (ps) => !!ps.__plasmicFormField
+    }
+  }
 };
 function registerDatePicker(loader) {
   utils.registerComponentHelper(loader, AntdDatePicker, {
     name: datePickerComponentName,
+    canvasOverlay: {},
     displayName: "DatePicker",
     props: {
+      previewOpen: canvasOverlay.previewOpenProp,
       multiple: { type: "boolean", defaultValueHint: false },
       value: {
         type: "object",
         editOnly: true,
         uncontrolledProp: "defaultValue",
-        description:
-          "The current date/time as an ISO string, Date object, or dayjs object",
-        hidden: (ps) => !!ps.__plasmicFormField,
+        description: "The current date/time as an ISO string, Date object, or dayjs object",
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       disabled: {
         type: "boolean",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       autoFocus: {
         type: "boolean",
         description: "Focus when component is rendered",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       onChange: {
         type: "eventHandler",
-        argTypes: [{ name: "value", type: "object" }],
+        argTypes: [{ name: "value", type: "object" }]
       },
       picker: {
         type: "choice",
         options: ["date", "week", "month", "quarter", "year"].map((value) => ({
           value,
-          label: utils.capitalize(value),
+          label: utils.capitalize(value)
         })),
-        defaultValueHint: "date",
+        defaultValueHint: "date"
       },
       popupScopeClassName: {
         type: "styleScopeClass",
-        scopeName: "datePickerPopup",
+        scopeName: "datePickerPopup"
       },
       popupRootClassName: {
         type: "class",
@@ -118,9 +104,9 @@ function registerDatePicker(loader) {
         selectors: [
           {
             selector: ":datePickerPopup .ant-picker-panel-container",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupHeaderClassName: {
         type: "class",
@@ -128,9 +114,9 @@ function registerDatePicker(loader) {
         selectors: [
           {
             selector: ":datePickerPopup .ant-picker-header",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupBodyClassName: {
         type: "class",
@@ -138,9 +124,9 @@ function registerDatePicker(loader) {
         selectors: [
           {
             selector: ":datePickerPopup .ant-picker-body",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       popupFooterClassName: {
         type: "class",
@@ -148,18 +134,18 @@ function registerDatePicker(loader) {
         selectors: [
           {
             selector: ":datePickerPopup .ant-picker-footer",
-            label: "Base",
-          },
-        ],
+            label: "Base"
+          }
+        ]
       },
       showTime: {
         type: "boolean",
-        description: "Enable time selection",
+        description: "Enable time selection"
       },
       variant: {
         type: "choice",
         options: ["outlined", "borderless", "filled", "underlined"],
-        defaultValueHint: "outlined",
+        defaultValueHint: "outlined"
       },
       // TODO - see how it works with plasmic-rich-components
       // format: {
@@ -170,14 +156,14 @@ function registerDatePicker(loader) {
         advanced: true,
         description: 'Whether to show the "Now" button',
         defaultValueHint: true,
-        hidden: (ps) => !ps.showTime,
+        hidden: (ps) => !ps.showTime
       },
       showToday: {
         type: "boolean",
         advanced: true,
         description: 'Whether to show the "Today" button',
         defaultValueHint: true,
-        hidden: (ps) => ps.showTime,
+        hidden: (ps) => ps.showTime
       },
       // disabledDate: {
       //   type: "function",
@@ -192,8 +178,8 @@ function registerDatePicker(loader) {
       allowClear: {
         type: "boolean",
         advanced: true,
-        description: "Whether to show the clear button",
-      },
+        description: "Whether to show the clear button"
+      }
     },
     states: {
       value: {
@@ -201,16 +187,16 @@ function registerDatePicker(loader) {
         valueProp: "value",
         onChangeProp: "onChange",
         variableType: "object",
-        ...datePickerHelpers.states.value,
-      },
+        ...datePickerHelpers.states.value
+      }
     },
     componentHelpers: {
       helpers: datePickerHelpers,
       importName: "datePickerHelpers",
-      importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDatePicker",
+      importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDatePicker"
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerDatePicker",
-    importName: "AntdDatePicker",
+    importName: "AntdDatePicker"
   });
 }
 

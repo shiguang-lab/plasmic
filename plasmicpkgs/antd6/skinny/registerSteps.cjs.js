@@ -1,21 +1,17 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdSteps(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Steps, {
-    ...props,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Steps, { ...props });
 }
 function registerSteps(loader) {
   const statusOptions = ["wait", "process", "finish", "error"];
@@ -37,84 +33,84 @@ function registerSteps(loader) {
               displayName: "Status",
               type: "choice",
               options: statusOptions,
-              defaultValueHint: "wait",
-            },
+              defaultValueHint: "wait"
+            }
             // TODO icon: 'slot',
-          },
+          }
         },
         defaultValue: [
           {
             title: "Applied",
-            content: "Application has been submitted.",
+            content: "Application has been submitted."
           },
           {
             title: "In Review",
-            content: "Application is being reviewed.",
+            content: "Application is being reviewed."
           },
           {
             title: "Closed",
-            content: "Final decision on the application.",
-          },
-        ],
+            content: "Final decision on the application."
+          }
+        ]
       },
       current: {
         type: "number",
         displayName: "Current step",
-        defaultValueHint: 0,
+        defaultValueHint: 0
       },
       size: {
         type: "choice",
         options: ["small", "medium"],
         description: "Set the size of steps",
-        defaultValueHint: "medium",
+        defaultValueHint: "medium"
       },
       orientation: {
         type: "choice",
         options: ["horizontal", "vertical"],
         description: "Direction of steps",
-        defaultValueHint: "horizontal",
+        defaultValueHint: "horizontal"
       },
       status: {
         displayName: "Status of current step",
         type: "choice",
         options: statusOptions,
-        defaultValueHint: "process",
+        defaultValueHint: "process"
       },
       type: {
         type: "choice",
         options: ["default", "navigation", "inline", "dot"],
-        defaultValueHint: "default",
+        defaultValueHint: "default"
       },
       percent: {
         advanced: true,
         type: "number",
-        description: "Number between 0 to 100",
+        description: "Number between 0 to 100"
       },
       responsive: {
         advanced: true,
         type: "boolean",
-        description: "Change to vertical when screen narrower than 532px",
+        description: "Change to vertical when screen narrower than 532px"
       },
       onChange: {
         type: "eventHandler",
         argTypes: [
           {
             name: "step",
-            type: "number",
-          },
-        ],
-      },
+            type: "number"
+          }
+        ]
+      }
     },
     states: {
       current: {
         type: "writable",
         valueProp: "current",
         onChangeProp: "onChange",
-        variableType: "number",
-      },
+        variableType: "number"
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSteps",
-    importName: "AntdSteps",
+    importName: "AntdSteps"
   });
 }
 

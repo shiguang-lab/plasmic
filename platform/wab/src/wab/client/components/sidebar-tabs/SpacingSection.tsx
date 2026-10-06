@@ -46,7 +46,7 @@ export function SpacingSection({
 
   return (
     <StylePanelSection
-      title="Spacing"
+      title="间距"
       styleProps={spacingSectionProps}
       expsProvider={expsProvider}
       key={`${showPaddingControls} ${showMarginControls}`}

@@ -1,14 +1,11 @@
-import { usePlasmicCanvasContext } from "@plasmicapp/host";
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import * as Ant from "antd";
-import dayjs from "dayjs";
-import React from "react";
-import {
-  p as previewOpenProp,
-  u as useCanvasOverlay,
-} from "./canvas-overlay-BurdwRe9.esm.js";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { usePlasmicCanvasContext } from '@plasmicapp/host';
+import * as Ant from 'antd';
+import dayjs from 'dayjs';
+import React from 'react';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CXR871_R.esm.js';
+import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
 const canvasOverlay = { triggerSlot: "children" };
 const AntdAffix = Ant.Affix;
@@ -18,11 +15,17 @@ const AntdAutoComplete = Ant.AutoComplete;
 const AntdBadge = Ant.Badge;
 const AntdBadgeRibbon = Ant.Badge.Ribbon;
 const AntdBorderBeam = Ant.BorderBeam;
-function AntdCard({ actions, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.Card, {
-    ...rest,
-    actions: actions ? React.Children.toArray(actions) : void 0,
-  });
+function AntdCard({
+  actions,
+  ...rest
+}) {
+  return /* @__PURE__ */ React.createElement(
+    Ant.Card,
+    {
+      ...rest,
+      actions: actions ? React.Children.toArray(actions) : void 0
+    }
+  );
 }
 const AntdCardMeta = Ant.Card.Meta;
 const AntdCardGrid = Ant.Card.Grid;
@@ -37,20 +40,30 @@ const AntdFlex = Ant.Flex;
 const AntdFloatButton = Ant.FloatButton;
 const AntdFloatButtonGroup = Ant.FloatButton.Group;
 const AntdBackTop = Ant.FloatButton.BackTop;
-function AntdImage({ objectFit, style, ...props }) {
+function AntdImage({
+  objectFit,
+  style,
+  ...props
+}) {
   const canvas = usePlasmicCanvasContext();
-  return /* @__PURE__ */ React.createElement(Ant.Image, {
-    ...props,
-    preview: canvas && !canvas.interactive ? false : props.preview,
-    style: { ...style, ...(objectFit ? { objectFit } : {}) },
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Image,
+    {
+      ...props,
+      preview: canvas && !canvas.interactive ? false : props.preview,
+      style: { ...style, ...objectFit ? { objectFit } : {} }
+    }
+  );
 }
 function AntdImagePreviewGroup(props) {
   const canvas = usePlasmicCanvasContext();
-  return /* @__PURE__ */ React.createElement(Ant.Image.PreviewGroup, {
-    ...props,
-    preview: canvas && !canvas.interactive ? false : props.preview,
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Image.PreviewGroup,
+    {
+      ...props,
+      preview: canvas && !canvas.interactive ? false : props.preview
+    }
+  );
 }
 const AntdLayout = Ant.Layout;
 const AntdLayoutHeader = Ant.Layout.Header;
@@ -62,17 +75,20 @@ function AntdPopconfirm(props) {
   const {
     props: rest,
     open,
-    isEditing,
+    isEditing
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
-  return /* @__PURE__ */ React.createElement(Ant.Popconfirm, {
-    ...rest,
-    open,
-    destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-    onOpenChange: isEditing ? void 0 : props.onOpenChange,
-    afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
-    onConfirm: isEditing ? void 0 : props.onConfirm,
-    onCancel: isEditing ? void 0 : props.onCancel,
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Popconfirm,
+    {
+      ...rest,
+      open,
+      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      onConfirm: isEditing ? void 0 : props.onConfirm,
+      onCancel: isEditing ? void 0 : props.onCancel
+    }
+  );
 }
 const AntdQRCode = Ant.QRCode;
 const AntdResult = Ant.Result;
@@ -109,23 +125,19 @@ function AntdTag({
     "cyan",
     "magenta",
     "red",
-    "gold",
+    "gold"
   ];
   const hash = Array.from(text).reduce(
-    (current, char) => (current * 31 + char.charCodeAt(0)) >>> 0,
-    0,
+    (current, char) => current * 31 + char.charCodeAt(0) >>> 0,
+    0
   );
   return /* @__PURE__ */ React.createElement(
     Ant.Tag,
     {
       ...props,
-      color:
-        color ??
-        (option?.color ||
-          defaultColor ||
-          (automaticColor ? colors[hash % colors.length] : void 0)),
+      color: color ?? (option?.color || defaultColor || (automaticColor ? colors[hash % colors.length] : void 0))
     },
-    children ?? option?.label ?? text,
+    children ?? option?.label ?? text
   );
 }
 const AntdTagCheckable = Ant.Tag.CheckableTag;
@@ -137,141 +149,172 @@ const AntdTypographyText = Ant.Typography.Text;
 const AntdTypographyParagraph = Ant.Typography.Paragraph;
 const AntdTypographyLink = Ant.Typography.Link;
 const AntdWatermark = Ant.Watermark;
-function AntdInputOTP({ onChange, onComplete, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.Input.OTP, {
-    ...rest,
-    onInput: (values) => onChange?.(values.join("")),
-    onChange: onComplete,
-  });
+function AntdInputOTP({
+  onChange,
+  onComplete,
+  ...rest
+}) {
+  return /* @__PURE__ */ React.createElement(
+    Ant.Input.OTP,
+    {
+      ...rest,
+      onInput: (values) => onChange?.(values.join("")),
+      onChange: onComplete
+    }
+  );
 }
-function AntdInputSearch({ onChange, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.Input.Search, {
-    ...rest,
-    onChange: (event2) => onChange?.(event2.target.value),
-  });
+function AntdInputSearch({
+  onChange,
+  ...rest
+}) {
+  return /* @__PURE__ */ React.createElement(
+    Ant.Input.Search,
+    {
+      ...rest,
+      onChange: (event2) => onChange?.(event2.target.value)
+    }
+  );
 }
 const AntdUploadDragger = Ant.Upload.Dragger;
-function AntdCalendar({ value, onChange, onSelect, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.Calendar, {
-    ...rest,
-    value: value ? dayjs(value) : void 0,
-    onChange: (date) => onChange?.(date.toISOString()),
-    onSelect: (date) => onSelect?.(date.toISOString()),
-  });
+function AntdCalendar({
+  value,
+  onChange,
+  onSelect,
+  ...rest
+}) {
+  return /* @__PURE__ */ React.createElement(
+    Ant.Calendar,
+    {
+      ...rest,
+      value: value ? dayjs(value) : void 0,
+      onChange: (date) => onChange?.(date.toISOString()),
+      onSelect: (date) => onSelect?.(date.toISOString())
+    }
+  );
 }
 function AntdTimePicker({ value, onChange, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.TimePicker, {
-    ...rest,
-    value: value === void 0 ? void 0 : value ? dayjs(value) : null,
-    onChange: (date) => onChange?.(date ? date.toISOString() : null),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.TimePicker,
+    {
+      ...rest,
+      value: value === void 0 ? void 0 : value ? dayjs(value) : null,
+      onChange: (date) => onChange?.(date ? date.toISOString() : null)
+    }
+  );
 }
-function AntdTimeRangePicker({ value, onChange, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.TimePicker.RangePicker, {
-    ...rest,
-    value:
-      value === void 0
-        ? void 0
-        : value === null
-          ? null
-          : [
-              value[0] ? dayjs(value[0]) : null,
-              value[1] ? dayjs(value[1]) : null,
-            ],
-    onChange: (dates) =>
-      onChange?.(
-        dates
-          ? [dates[0]?.toISOString() ?? null, dates[1]?.toISOString() ?? null]
-          : null,
-      ),
-  });
+function AntdTimeRangePicker({
+  value,
+  onChange,
+  ...rest
+}) {
+  return /* @__PURE__ */ React.createElement(
+    Ant.TimePicker.RangePicker,
+    {
+      ...rest,
+      value: value === void 0 ? void 0 : value === null ? null : [
+        value[0] ? dayjs(value[0]) : null,
+        value[1] ? dayjs(value[1]) : null
+      ],
+      onChange: (dates) => onChange?.(
+        dates ? [dates[0]?.toISOString() ?? null, dates[1]?.toISOString() ?? null] : null
+      )
+    }
+  );
 }
 function AntdList(props) {
-  return /* @__PURE__ */ React.createElement(Ant.List, {
-    ...props,
-    renderItem: (item) =>
-      /* @__PURE__ */ React.createElement(Ant.List.Item, null, String(item)),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.List,
+    {
+      ...props,
+      renderItem: (item) => /* @__PURE__ */ React.createElement(Ant.List.Item, null, String(item))
+    }
+  );
 }
-function AntdListItem({ actions, ...rest }) {
-  return /* @__PURE__ */ React.createElement(Ant.List.Item, {
-    ...rest,
-    actions: actions ? React.Children.toArray(actions) : void 0,
-  });
+function AntdListItem({
+  actions,
+  ...rest
+}) {
+  return /* @__PURE__ */ React.createElement(
+    Ant.List.Item,
+    {
+      ...rest,
+      actions: actions ? React.Children.toArray(actions) : void 0
+    }
+  );
 }
 const AntdListItemMeta = Ant.List.Item.Meta;
 function AntdListy(props) {
-  return /* @__PURE__ */ React.createElement(Ant.Listy, {
-    ...props,
-    rowKey: "key",
-    itemRender: (item) =>
-      /* @__PURE__ */ React.createElement("div", null, item.content),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Listy,
+    {
+      ...props,
+      rowKey: "key",
+      itemRender: (item) => /* @__PURE__ */ React.createElement("div", null, item.content)
+    }
+  );
 }
 function AntdMasonry(props) {
-  return /* @__PURE__ */ React.createElement(Ant.Masonry, {
-    ...props,
-    itemRender: (item) =>
-      /* @__PURE__ */ React.createElement("div", null, item.data?.content),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Masonry,
+    {
+      ...props,
+      itemRender: (item) => /* @__PURE__ */ React.createElement("div", null, item.data?.content)
+    }
+  );
 }
 function AntdTransfer(props) {
-  return /* @__PURE__ */ React.createElement(Ant.Transfer, {
-    ...props,
-    render: (item) => String(item.title ?? item.key ?? ""),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Transfer,
+    {
+      ...props,
+      render: (item) => String(item.title ?? item.key ?? "")
+    }
+  );
 }
 function AntdTour(props) {
-  return /* @__PURE__ */ React.createElement(Ant.Tour, {
-    ...props,
-    steps: props.steps?.map(({ targetSelector, ...step }) => ({
-      ...step,
-      title: step.title ?? "",
-      target:
-        targetSelector && typeof document !== "undefined"
-          ? document.querySelector(targetSelector)
-          : null,
-    })),
-  });
+  return /* @__PURE__ */ React.createElement(
+    Ant.Tour,
+    {
+      ...props,
+      steps: props.steps?.map(({ targetSelector, ...step }) => ({
+        ...step,
+        title: step.title ?? "",
+        target: targetSelector && typeof document !== "undefined" ? document.querySelector(targetSelector) : null
+      }))
+    }
+  );
 }
 const slot = (text) => ({ type: "slot", defaultValue: text });
 const choice = (options, defaultValueHint) => ({
   type: "choice",
   options,
-  defaultValueHint,
+  defaultValueHint
 });
 const event = (name, type) => ({
   type: "eventHandler",
-  argTypes: [{ name, type }],
+  argTypes: [{ name, type }]
 });
 const sizes = choice(["small", "medium", "large"], "medium");
 const variant = choice(
   ["outlined", "borderless", "filled", "underlined"],
-  "outlined",
+  "outlined"
 );
-const valueState = (
-  variableType,
-  valueProp = "value",
-  onChangeProp = "onChange",
-) => ({
+const valueState = (variableType, valueProp = "value", onChangeProp = "onChange") => ({
   [valueProp]: {
     type: "writable",
     variableType,
     valueProp,
-    onChangeProp,
-  },
+    onChangeProp
+  }
 });
 function register(loader, component, suffix, importName, props, extra = {}) {
   registerComponentHelper(loader, component, {
     name: `plasmic-antd6-${suffix}`,
-    displayName: suffix
-      .split("-")
-      .map((s) => s[0].toUpperCase() + s.slice(1))
-      .join(" "),
+    displayName: suffix.split("-").map((s) => s[0].toUpperCase() + s.slice(1)).join(" "),
     props,
     importName,
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAdditional",
-    ...extra,
+    ...extra
   });
 }
 function registerAdditional(loader) {
@@ -279,7 +322,7 @@ function registerAdditional(loader) {
     children: slot("Affixed content"),
     offsetTop: "number",
     offsetBottom: "number",
-    onChange: event("affixed", "boolean"),
+    onChange: event("affixed", "boolean")
   });
   register(loader, AntdAlert, "alert", "AntdAlert", {
     icon: { type: "slot", hidePlaceholder: true },
@@ -289,17 +332,17 @@ function registerAdditional(loader) {
     showIcon: "boolean",
     banner: "boolean",
     closable: "object",
-    action: { type: "slot", hidePlaceholder: true },
+    action: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdAnchor, "anchor", "AntdAnchor", {
     items: {
       type: "array",
-      defaultValue: [{ key: "section", href: "#section", title: "Section" }],
+      defaultValue: [{ key: "section", href: "#section", title: "Section" }]
     },
     affix: "boolean",
     offsetTop: "number",
     direction: choice(["vertical", "horizontal"]),
-    onChange: event("href", "string"),
+    onChange: event("href", "string")
   });
   register(
     loader,
@@ -310,16 +353,16 @@ function registerAdditional(loader) {
       value: "string",
       options: {
         type: "array",
-        defaultValue: [{ value: "Option 1" }, { value: "Option 2" }],
+        defaultValue: [{ value: "Option 1" }, { value: "Option 2" }]
       },
       placeholder: "string",
       disabled: "boolean",
       allowClear: "boolean",
       variant,
       onChange: event("value", "string"),
-      onSearch: event("value", "string"),
+      onSearch: event("value", "string")
     },
-    { states: valueState("text") },
+    { states: valueState("text") }
   );
   register(loader, AntdBadge, "badge", "AntdBadge", {
     children: { type: "slot", hidePlaceholder: true },
@@ -330,17 +373,17 @@ function registerAdditional(loader) {
     color: { type: "color" },
     size: choice(["small", "medium"]),
     status: choice(["success", "processing", "default", "error", "warning"]),
-    text: "string",
+    text: "string"
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
     children: slot("Ribbon content"),
     text: { ...slot("Ribbon"), hidePlaceholder: true },
     color: { type: "color" },
-    placement: choice(["start", "end"]),
+    placement: choice(["start", "end"])
   });
   register(loader, AntdBorderBeam, "border-beam", "AntdBorderBeam", {
     children: slot("Border beam"),
-    color: { type: "color" },
+    color: { type: "color" }
   });
   register(loader, AntdCard, "card", "AntdCard", {
     children: slot("Card content"),
@@ -353,24 +396,24 @@ function registerAdditional(loader) {
     hoverable: "boolean",
     loading: "boolean",
     styles: "object",
-    classNames: "object",
+    classNames: "object"
   });
   register(loader, AntdCardMeta, "card-meta", "AntdCardMeta", {
     title: { ...slot("Title"), hidePlaceholder: true },
     description: { ...slot("Description"), hidePlaceholder: true },
-    avatar: { type: "slot", hidePlaceholder: true },
+    avatar: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdCardGrid, "card-grid", "AntdCardGrid", {
     children: slot("Grid cell"),
-    hoverable: "boolean",
+    hoverable: "boolean"
   });
   register(loader, AntdCarousel, "carousel", "AntdCarousel", {
     children: {
       type: "slot",
       defaultValue: [
         { type: "vbox", children: ["Slide 1"] },
-        { type: "vbox", children: ["Slide 2"] },
-      ],
+        { type: "vbox", children: ["Slide 2"] }
+      ]
     },
     autoplay: "boolean",
     arrows: "boolean",
@@ -378,7 +421,7 @@ function registerAdditional(loader) {
     infinite: "boolean",
     effect: choice(["scrollx", "fade"]),
     dotPlacement: choice(["top", "bottom", "start", "end"]),
-    afterChange: event("slide", "number"),
+    afterChange: event("slide", "number")
   });
   const cascaderProps = {
     options: {
@@ -387,14 +430,14 @@ function registerAdditional(loader) {
         {
           label: "Parent",
           value: "parent",
-          children: [{ label: "Child", value: "child" }],
-        },
-      ],
+          children: [{ label: "Child", value: "child" }]
+        }
+      ]
     },
     value: { type: "array" },
     multiple: "boolean",
     disabled: "boolean",
-    onChange: event("value", "object"),
+    onChange: event("value", "object")
   };
   register(
     loader,
@@ -406,9 +449,9 @@ function registerAdditional(loader) {
       placeholder: "string",
       allowClear: "boolean",
       showSearch: "boolean",
-      variant,
+      variant
     },
-    { states: valueState("array") },
+    { states: valueState("array") }
   );
   register(
     loader,
@@ -416,7 +459,7 @@ function registerAdditional(loader) {
     "cascader-panel",
     "AntdCascaderPanel",
     cascaderProps,
-    { states: valueState("array") },
+    { states: valueState("array") }
   );
   register(loader, AntdRow, "row", "AntdRow", {
     children: {
@@ -425,14 +468,14 @@ function registerAdditional(loader) {
         {
           type: "component",
           name: "plasmic-antd6-col",
-          props: { span: 12, children: "Column 1" },
+          props: { span: 12, children: "Column 1" }
         },
         {
           type: "component",
           name: "plasmic-antd6-col",
-          props: { span: 12, children: "Column 2" },
-        },
-      ],
+          props: { span: 12, children: "Column 2" }
+        }
+      ]
     },
     gutter: { type: "number", defaultValue: 16 },
     align: choice(["top", "middle", "bottom", "stretch"]),
@@ -442,9 +485,9 @@ function registerAdditional(loader) {
       "center",
       "space-around",
       "space-between",
-      "space-evenly",
+      "space-evenly"
     ]),
-    wrap: "boolean",
+    wrap: "boolean"
   });
   register(loader, AntdCol, "col", "AntdCol", {
     children: slot("Column"),
@@ -457,20 +500,20 @@ function registerAdditional(loader) {
     md: "object",
     lg: "object",
     xl: "object",
-    xxl: "object",
+    xxl: "object"
   });
   register(loader, AntdDescriptions, "descriptions", "AntdDescriptions", {
     title: { ...slot("Details"), hidePlaceholder: true },
     items: {
       type: "array",
-      defaultValue: [{ key: "name", label: "Name", children: "Example" }],
+      defaultValue: [{ key: "name", label: "Name", children: "Example" }]
     },
     column: "number",
     layout: choice(["horizontal", "vertical"]),
     bordered: "boolean",
     size: sizes,
     styles: "object",
-    classNames: "object",
+    classNames: "object"
   });
   register(loader, AntdDivider, "divider", "AntdDivider", {
     children: slot("Divider"),
@@ -478,12 +521,12 @@ function registerAdditional(loader) {
     titlePlacement: choice(["start", "center", "end"]),
     dashed: "boolean",
     plain: "boolean",
-    size: sizes,
+    size: sizes
   });
   register(loader, AntdEmpty, "empty", "AntdEmpty", {
     description: { ...slot("No data"), hidePlaceholder: true },
     children: { type: "slot", hidePlaceholder: true },
-    image: "imageUrl",
+    image: "imageUrl"
   });
   register(loader, AntdFlex, "flex", "AntdFlex", {
     children: slot("Flex content"),
@@ -497,8 +540,8 @@ function registerAdditional(loader) {
       "center",
       "space-between",
       "space-around",
-      "space-evenly",
-    ]),
+      "space-evenly"
+    ])
   });
   register(loader, AntdFloatButton, "float-button", "AntdFloatButton", {
     icon: { type: "slot", hidePlaceholder: true },
@@ -506,7 +549,7 @@ function registerAdditional(loader) {
     tooltip: "string",
     type: choice(["default", "primary"]),
     shape: choice(["circle", "square"]),
-    onClick: event("event", "object"),
+    onClick: event("event", "object")
   });
   register(
     loader,
@@ -518,22 +561,22 @@ function registerAdditional(loader) {
         type: "slot",
         allowedComponents: [
           "plasmic-antd6-float-button",
-          "plasmic-antd6-back-top",
+          "plasmic-antd6-back-top"
         ],
         defaultValue: [
-          { type: "component", name: "plasmic-antd6-float-button" },
-        ],
+          { type: "component", name: "plasmic-antd6-float-button" }
+        ]
       },
       trigger: choice(["click", "hover"]),
       shape: choice(["circle", "square"]),
       open: "boolean",
-      onOpenChange: event("open", "boolean"),
-    },
+      onOpenChange: event("open", "boolean")
+    }
   );
   register(loader, AntdBackTop, "back-top", "AntdBackTop", {
     visibilityHeight: "number",
     duration: "number",
-    icon: { type: "slot", hidePlaceholder: true },
+    icon: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdImage, "image", "AntdImage", {
     src: { type: "imageUrl", defaultValue: "https://placehold.co/320x200" },
@@ -542,7 +585,7 @@ function registerAdditional(loader) {
     height: "number",
     preview: "boolean",
     fallback: "imageUrl",
-    objectFit: choice(["fill", "contain", "cover", "none", "scale-down"]),
+    objectFit: choice(["fill", "contain", "cover", "none", "scale-down"])
   });
   register(
     loader,
@@ -551,8 +594,8 @@ function registerAdditional(loader) {
     "AntdImagePreviewGroup",
     {
       children: { type: "slot", allowedComponents: ["plasmic-antd6-image"] },
-      items: { type: "array" },
-    },
+      items: { type: "array" }
+    }
   );
   register(loader, AntdLayout, "layout", "AntdLayout", {
     children: {
@@ -560,18 +603,18 @@ function registerAdditional(loader) {
       defaultValue: [
         { type: "component", name: "plasmic-antd6-layout-header" },
         { type: "component", name: "plasmic-antd6-layout-content" },
-        { type: "component", name: "plasmic-antd6-layout-footer" },
-      ],
+        { type: "component", name: "plasmic-antd6-layout-footer" }
+      ]
     },
-    hasSider: "boolean",
+    hasSider: "boolean"
   });
   for (const [suffix, component, importName] of [
     ["header", AntdLayoutHeader, "AntdLayoutHeader"],
     ["footer", AntdLayoutFooter, "AntdLayoutFooter"],
-    ["content", AntdLayoutContent, "AntdLayoutContent"],
+    ["content", AntdLayoutContent, "AntdLayoutContent"]
   ]) {
     register(loader, component, `layout-${suffix}`, importName, {
-      children: slot(suffix),
+      children: slot(suffix)
     });
   }
   register(
@@ -587,9 +630,9 @@ function registerAdditional(loader) {
       collapsedWidth: "number",
       theme: choice(["light", "dark"]),
       breakpoint: choice(["xs", "sm", "md", "lg", "xl", "xxl"]),
-      onCollapse: event("collapsed", "boolean"),
+      onCollapse: event("collapsed", "boolean")
     },
-    { states: valueState("boolean", "collapsed", "onCollapse") },
+    { states: valueState("boolean", "collapsed", "onCollapse") }
   );
   register(loader, AntdList, "list", "AntdList", {
     children: { type: "slot", hidePlaceholder: true },
@@ -599,40 +642,40 @@ function registerAdditional(loader) {
     size: choice(["small", "default", "large"], "default"),
     split: "boolean",
     bordered: "boolean",
-    loading: "boolean",
+    loading: "boolean"
   });
   register(loader, AntdListItem, "list-item", "AntdListItem", {
     children: slot("Item"),
     extra: { type: "slot", hidePlaceholder: true },
-    actions: { type: "slot", hidePlaceholder: true },
+    actions: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdListItemMeta, "list-item-meta", "AntdListItemMeta", {
     title: { ...slot("Item title"), hidePlaceholder: true },
     description: { ...slot("Item description"), hidePlaceholder: true },
-    avatar: { type: "slot", hidePlaceholder: true },
+    avatar: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdListy, "listy", "AntdListy", {
     items: {
       type: "array",
       defaultValue: [
         { key: "1", content: "First item" },
-        { key: "2", content: "Second item" },
-      ],
+        { key: "2", content: "Second item" }
+      ]
     },
     height: { type: "number", defaultValue: 240 },
     virtual: "boolean",
-    sticky: "boolean",
+    sticky: "boolean"
   });
   register(loader, AntdMasonry, "masonry", "AntdMasonry", {
     items: {
       type: "array",
       defaultValue: [
         { key: "1", data: { content: "First tile" } },
-        { key: "2", data: { content: "Second tile" } },
-      ],
+        { key: "2", data: { content: "Second tile" } }
+      ]
     },
     columns: { type: "number", defaultValue: 2 },
-    gutter: { type: "number", defaultValue: 16 },
+    gutter: { type: "number", defaultValue: 16 }
   });
   register(
     loader,
@@ -643,14 +686,14 @@ function registerAdditional(loader) {
       value: "string",
       options: {
         type: "array",
-        defaultValue: [{ value: "alice", label: "Alice" }],
+        defaultValue: [{ value: "alice", label: "Alice" }]
       },
       prefix: "string",
       placeholder: "string",
       disabled: "boolean",
-      onChange: event("value", "string"),
+      onChange: event("value", "string")
     },
-    { states: valueState("text") },
+    { states: valueState("text") }
   );
   register(
     loader,
@@ -667,9 +710,9 @@ function registerAdditional(loader) {
       cancelText: "string",
       disabled: "boolean",
       onConfirm: event("event", "object"),
-      onCancel: event("event", "object"),
+      onCancel: event("event", "object")
     },
-    { canvasOverlay },
+    { canvasOverlay }
   );
   register(loader, AntdQRCode, "qr-code", "AntdQRCode", {
     value: { type: "string", defaultValue: "https://publib.cn" },
@@ -678,7 +721,7 @@ function registerAdditional(loader) {
     bgColor: { type: "color" },
     icon: "imageUrl",
     type: choice(["canvas", "svg"]),
-    status: choice(["active", "expired", "loading", "scanned"]),
+    status: choice(["active", "expired", "loading", "scanned"])
   });
   register(loader, AntdResult, "result", "AntdResult", {
     title: { ...slot("Success"), hidePlaceholder: true },
@@ -692,8 +735,8 @@ function registerAdditional(loader) {
       "warning",
       "404",
       "403",
-      "500",
-    ]),
+      "500"
+    ])
   });
   register(loader, AntdSkeleton, "skeleton", "AntdSkeleton", {
     children: { type: "slot", hidePlaceholder: true },
@@ -702,35 +745,35 @@ function registerAdditional(loader) {
     avatar: "boolean",
     title: "boolean",
     paragraph: "object",
-    round: "boolean",
+    round: "boolean"
   });
   for (const [suffix, component, importName] of [
     ["button", AntdSkeletonButton, "AntdSkeletonButton"],
     ["input", AntdSkeletonInput, "AntdSkeletonInput"],
     ["avatar", AntdSkeletonAvatar, "AntdSkeletonAvatar"],
     ["image", AntdSkeletonImage, "AntdSkeletonImage"],
-    ["node", AntdSkeletonNode, "AntdSkeletonNode"],
+    ["node", AntdSkeletonNode, "AntdSkeletonNode"]
   ]) {
     register(loader, component, `skeleton-${suffix}`, importName, {
-      active: "boolean",
+      active: "boolean"
     });
   }
   const spaceProps = {
     children: slot("Spaced content"),
     orientation: choice(["horizontal", "vertical"]),
-    size: { type: "number", defaultValue: 16 },
+    size: { type: "number", defaultValue: 16 }
   };
   register(loader, AntdSpace, "space", "AntdSpace", {
     ...spaceProps,
     wrap: "boolean",
     separator: { type: "slot", hidePlaceholder: true },
-    align: choice(["start", "end", "center", "baseline"]),
+    align: choice(["start", "end", "center", "baseline"])
   });
   register(loader, AntdSpaceCompact, "space-compact", "AntdSpaceCompact", {
     children: slot("Compact content"),
     orientation: choice(["horizontal", "vertical"]),
     size: sizes,
-    block: "boolean",
+    block: "boolean"
   });
   register(loader, AntdSpin, "spin", "AntdSpin", {
     indicator: { type: "slot", hidePlaceholder: true },
@@ -739,7 +782,7 @@ function registerAdditional(loader) {
     description: "string",
     size: sizes,
     delay: "number",
-    fullscreen: "boolean",
+    fullscreen: "boolean"
   });
   register(
     loader,
@@ -755,18 +798,18 @@ function registerAdditional(loader) {
           {
             type: "component",
             name: "plasmic-antd6-splitter-panel",
-            props: { children: "Left panel" },
+            props: { children: "Left panel" }
           },
           {
             type: "component",
             name: "plasmic-antd6-splitter-panel",
-            props: { children: "Right panel" },
-          },
-        ],
+            props: { children: "Right panel" }
+          }
+        ]
       },
-      onResize: event("sizes", "object"),
+      onResize: event("sizes", "object")
     },
-    { defaultStyles: { height: "240px", width: "100%" } },
+    { defaultStyles: { height: "240px", width: "100%" } }
   );
   register(loader, AntdSplitterPanel, "splitter-panel", "AntdSplitterPanel", {
     children: slot("Panel"),
@@ -774,7 +817,7 @@ function registerAdditional(loader) {
     min: "string",
     max: "string",
     resizable: "boolean",
-    collapsible: "object",
+    collapsible: "object"
   });
   register(loader, AntdStatistic, "statistic", "AntdStatistic", {
     title: { ...slot("Total"), hidePlaceholder: true },
@@ -783,7 +826,7 @@ function registerAdditional(loader) {
     prefix: { type: "slot", hidePlaceholder: true },
     suffix: { type: "slot", hidePlaceholder: true },
     loading: "boolean",
-    styles: "object",
+    styles: "object"
   });
   register(
     loader,
@@ -795,15 +838,14 @@ function registerAdditional(loader) {
       type: choice(["countdown", "countup"]),
       value: { type: "number", description: "Unix timestamp in milliseconds" },
       format: "string",
-      onFinish: { type: "eventHandler", argTypes: [] },
-    },
+      onFinish: { type: "eventHandler", argTypes: [] }
+    }
   );
   register(loader, AntdTag, "tag", "AntdTag", {
     value: {
       type: "string",
       displayName: "\u5B57\u6BB5\u503C",
-      description:
-        "\u4ECE\u6570\u636E\u7ED1\u5B9A\u8BFB\u53D6\uFF1B\u901A\u8FC7\u4E0B\u65B9\u6620\u5C04\u8BBE\u7F6E\u663E\u793A\u6587\u5B57\u4E0E\u989C\u8272\u3002",
+      description: "\u4ECE\u6570\u636E\u7ED1\u5B9A\u8BFB\u53D6\uFF1B\u901A\u8FC7\u4E0B\u65B9\u6620\u5C04\u8BBE\u7F6E\u663E\u793A\u6587\u5B57\u4E0E\u989C\u8272\u3002"
     },
     options: {
       type: "array",
@@ -814,22 +856,19 @@ function registerAdditional(loader) {
         fields: {
           value: { type: "string", displayName: "\u5B57\u6BB5\u503C" },
           label: { type: "string", displayName: "\u663E\u793A\u6587\u5B57" },
-          color: { type: "color", displayName: "\u989C\u8272" },
-        },
-      },
+          color: { type: "color", displayName: "\u989C\u8272" }
+        }
+      }
     },
     defaultColor: { type: "color", displayName: "\u9ED8\u8BA4\u989C\u8272" },
-    automaticColor: {
-      type: "boolean",
-      displayName: "\u6309\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272",
-    },
+    automaticColor: { type: "boolean", displayName: "\u6309\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },
     variant: choice(["outlined", "filled", "solid"]),
     closable: "boolean",
     icon: { type: "slot", hidePlaceholder: true },
-    onClose: event("event", "object"),
+    onClose: event("event", "object")
   });
   register(
     loader,
@@ -839,20 +878,20 @@ function registerAdditional(loader) {
     {
       children: slot("Choice"),
       checked: "boolean",
-      onChange: event("checked", "boolean"),
+      onChange: event("checked", "boolean")
     },
-    { states: valueState("boolean", "checked") },
+    { states: valueState("boolean", "checked") }
   );
   register(loader, AntdTimeline, "timeline", "AntdTimeline", {
     items: {
       type: "array",
       defaultValue: [
         { title: "First", content: "First event" },
-        { title: "Second", content: "Second event" },
-      ],
+        { title: "Second", content: "Second event" }
+      ]
     },
     mode: choice(["start", "end", "alternate"]),
-    reverse: "boolean",
+    reverse: "boolean"
   });
   register(
     loader,
@@ -864,16 +903,16 @@ function registerAdditional(loader) {
         type: "array",
         defaultValue: [
           { key: "1", title: "One" },
-          { key: "2", title: "Two" },
-        ],
+          { key: "2", title: "Two" }
+        ]
       },
       targetKeys: { type: "array" },
       showSearch: "boolean",
       disabled: "boolean",
       oneWay: "boolean",
-      onChange: event("targetKeys", "object"),
+      onChange: event("targetKeys", "object")
     },
-    { states: valueState("array", "targetKeys") },
+    { states: valueState("array", "targetKeys") }
   );
   register(
     loader,
@@ -887,14 +926,13 @@ function registerAdditional(loader) {
           {
             title: "Parent",
             value: "parent",
-            children: [{ title: "Child", value: "child" }],
-          },
-        ],
+            children: [{ title: "Child", value: "child" }]
+          }
+        ]
       },
       value: {
         type: "object",
-        description:
-          "Single value, array of values in multiple/checkable mode, or labelInValue objects.",
+        description: "Single value, array of values in multiple/checkable mode, or labelInValue objects."
       },
       multiple: "boolean",
       treeCheckable: "boolean",
@@ -903,12 +941,12 @@ function registerAdditional(loader) {
       disabled: "boolean",
       placeholder: "string",
       variant,
-      onChange: event("value", "object"),
+      onChange: event("value", "object")
     },
-    { states: valueState("object") },
+    { states: valueState("object") }
   );
   register(loader, AntdTypography, "typography", "AntdTypography", {
-    children: slot("Typography"),
+    children: slot("Typography")
   });
   const textProps = {
     children: slot("Text"),
@@ -921,14 +959,14 @@ function registerAdditional(loader) {
     mark: "boolean",
     copyable: "boolean",
     ellipsis: "boolean",
-    disabled: "boolean",
+    disabled: "boolean"
   };
   register(
     loader,
     AntdTypographyText,
     "typography-text",
     "AntdTypographyText",
-    textProps,
+    textProps
   );
   register(
     loader,
@@ -938,15 +976,15 @@ function registerAdditional(loader) {
     {
       ...textProps,
       children: slot("Heading"),
-      level: { type: "choice", options: [1, 2, 3, 4, 5], defaultValueHint: 2 },
-    },
+      level: { type: "choice", options: [1, 2, 3, 4, 5], defaultValueHint: 2 }
+    }
   );
   register(
     loader,
     AntdTypographyParagraph,
     "typography-paragraph",
     "AntdTypographyParagraph",
-    { ...textProps, children: slot("Paragraph") },
+    { ...textProps, children: slot("Paragraph") }
   );
   register(
     loader,
@@ -957,8 +995,8 @@ function registerAdditional(loader) {
       ...textProps,
       children: slot("Link"),
       href: "href",
-      target: choice(["_self", "_blank"]),
-    },
+      target: choice(["_self", "_blank"])
+    }
   );
   register(loader, AntdWatermark, "watermark", "AntdWatermark", {
     children: slot("Watermarked content"),
@@ -966,7 +1004,7 @@ function registerAdditional(loader) {
     image: "imageUrl",
     rotate: "number",
     font: "object",
-    gap: { type: "array" },
+    gap: { type: "array" }
   });
   register(
     loader,
@@ -981,9 +1019,9 @@ function registerAdditional(loader) {
       size: sizes,
       variant,
       onChange: event("value", "string"),
-      onComplete: event("value", "string"),
+      onComplete: event("value", "string")
     },
-    { states: valueState("text") },
+    { states: valueState("text") }
   );
   register(
     loader,
@@ -998,9 +1036,9 @@ function registerAdditional(loader) {
       disabled: "boolean",
       allowClear: "boolean",
       onChange: event("value", "string"),
-      onSearch: event("value", "string"),
+      onSearch: event("value", "string")
     },
-    { states: valueState("text") },
+    { states: valueState("text") }
   );
   register(loader, AntdUploadDragger, "upload-dragger", "AntdUploadDragger", {
     children: slot("Drop files here"),
@@ -1009,7 +1047,7 @@ function registerAdditional(loader) {
     multiple: "boolean",
     accept: "string",
     disabled: "boolean",
-    onChange: event("info", "object"),
+    onChange: event("info", "object")
   });
   register(
     loader,
@@ -1021,9 +1059,9 @@ function registerAdditional(loader) {
       fullscreen: "boolean",
       mode: choice(["month", "year"]),
       onChange: event("value", "string"),
-      onSelect: event("value", "string"),
+      onSelect: event("value", "string")
     },
-    { states: valueState("text") },
+    { states: valueState("text") }
   );
   register(
     loader,
@@ -1037,9 +1075,9 @@ function registerAdditional(loader) {
       disabled: "boolean",
       allowClear: "boolean",
       variant,
-      onChange: event("value", "string"),
+      onChange: event("value", "string")
     },
-    { states: valueState("text") },
+    { states: valueState("text") }
   );
   register(
     loader,
@@ -1052,93 +1090,22 @@ function registerAdditional(loader) {
       use12Hours: "boolean",
       disabled: "boolean",
       variant,
-      onChange: event("value", "object"),
+      onChange: event("value", "object")
     },
-    { states: valueState("array") },
+    { states: valueState("array") }
   );
   register(loader, AntdTour, "tour", "AntdTour", {
     open: "boolean",
     current: "number",
     steps: {
       type: "array",
-      defaultValue: [{ title: "Welcome", description: "Start your tour" }],
+      defaultValue: [{ title: "Welcome", description: "Start your tour" }]
     },
     type: choice(["default", "primary"]),
     onChange: event("current", "number"),
-    onClose: event("current", "number"),
+    onClose: event("current", "number")
   });
 }
 
-export {
-  AntdAffix,
-  AntdAlert,
-  AntdAnchor,
-  AntdAutoComplete,
-  AntdBackTop,
-  AntdBadge,
-  AntdBadgeRibbon,
-  AntdBorderBeam,
-  AntdCalendar,
-  AntdCard,
-  AntdCardGrid,
-  AntdCardMeta,
-  AntdCarousel,
-  AntdCascader,
-  AntdCascaderPanel,
-  AntdCol,
-  AntdDescriptions,
-  AntdDivider,
-  AntdEmpty,
-  AntdFlex,
-  AntdFloatButton,
-  AntdFloatButtonGroup,
-  AntdImage,
-  AntdImagePreviewGroup,
-  AntdInputOTP,
-  AntdInputSearch,
-  AntdLayout,
-  AntdLayoutContent,
-  AntdLayoutFooter,
-  AntdLayoutHeader,
-  AntdLayoutSider,
-  AntdList,
-  AntdListItem,
-  AntdListItemMeta,
-  AntdListy,
-  AntdMasonry,
-  AntdMentions,
-  AntdPopconfirm,
-  AntdQRCode,
-  AntdResult,
-  AntdRow,
-  AntdSkeleton,
-  AntdSkeletonAvatar,
-  AntdSkeletonButton,
-  AntdSkeletonImage,
-  AntdSkeletonInput,
-  AntdSkeletonNode,
-  AntdSpace,
-  AntdSpaceCompact,
-  AntdSpin,
-  AntdSplitter,
-  AntdSplitterPanel,
-  AntdStatistic,
-  AntdStatisticTimer,
-  AntdTag,
-  AntdTagCheckable,
-  AntdTimePicker,
-  AntdTimeRangePicker,
-  AntdTimeline,
-  AntdTour,
-  AntdTransfer,
-  AntdTreeSelect,
-  AntdTypography,
-  AntdTypographyLink,
-  AntdTypographyParagraph,
-  AntdTypographyText,
-  AntdTypographyTitle,
-  AntdUploadDragger,
-  AntdWatermark,
-  registerAdditional,
-};
+export { AntdAffix, AntdAlert, AntdAnchor, AntdAutoComplete, AntdBackTop, AntdBadge, AntdBadgeRibbon, AntdBorderBeam, AntdCalendar, AntdCard, AntdCardGrid, AntdCardMeta, AntdCarousel, AntdCascader, AntdCascaderPanel, AntdCol, AntdDescriptions, AntdDivider, AntdEmpty, AntdFlex, AntdFloatButton, AntdFloatButtonGroup, AntdImage, AntdImagePreviewGroup, AntdInputOTP, AntdInputSearch, AntdLayout, AntdLayoutContent, AntdLayoutFooter, AntdLayoutHeader, AntdLayoutSider, AntdList, AntdListItem, AntdListItemMeta, AntdListy, AntdMasonry, AntdMentions, AntdPopconfirm, AntdQRCode, AntdResult, AntdRow, AntdSkeleton, AntdSkeletonAvatar, AntdSkeletonButton, AntdSkeletonImage, AntdSkeletonInput, AntdSkeletonNode, AntdSpace, AntdSpaceCompact, AntdSpin, AntdSplitter, AntdSplitterPanel, AntdStatistic, AntdStatisticTimer, AntdTag, AntdTagCheckable, AntdTimePicker, AntdTimeRangePicker, AntdTimeline, AntdTour, AntdTransfer, AntdTreeSelect, AntdTypography, AntdTypographyLink, AntdTypographyParagraph, AntdTypographyText, AntdTypographyTitle, AntdUploadDragger, AntdWatermark, registerAdditional };
 //# sourceMappingURL=registerAdditional.esm.js.map

@@ -9,6 +9,7 @@ import {
 import { default as registerToken } from "@plasmicapp/host/registerToken";
 import React from "react";
 import { componentChildren, getComponentSection } from "./componentSections";
+import { propDisplayNames, displayNameTranslations } from "./prop-display-names";
 
 export type Registerable = {
   registerComponent: typeof registerComponent;
@@ -48,6 +49,13 @@ export function registerComponentHelper<P>(
   const isStandalone = suffix === "radio" || suffix === "input-number";
   meta = {
     ...meta,
+    props: Object.fromEntries(Object.entries(meta.props).map(([name, prop]) => {
+      const definition = typeof prop === "string" ? { type: prop, displayName: undefined } : prop;
+      const displayName = definition.displayName
+        ? displayNameTranslations[definition.displayName] ?? definition.displayName
+        : propDisplayNames[name];
+      return [name, displayName ? { ...definition, displayName } : prop];
+    })) as CodeComponentMeta<P>["props"],
     displayName: child?.displayName ?? meta.displayName,
     section: meta.section ?? getComponentSection(meta.name),
     parentComponentName: child ? `plasmic-antd6-${child.parent}` :

@@ -1,22 +1,18 @@
-"use strict";
+'use strict';
 
-var Ant = require("antd");
-var React = require("react");
-var utils = require("./utils-CRCm44nj.cjs.js");
-require("@plasmicapp/host/registerComponent");
-require("@plasmicapp/host/registerGlobalContext");
+var Ant = require('antd');
+var React = require('react');
+var utils = require('./utils-DFFF-Zj5.cjs.js');
+require('@plasmicapp/host/registerComponent');
+require('@plasmicapp/host/registerGlobalContext');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 const segmentedComponentName = "plasmic-antd6-segmented";
 function AntdSegmented(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Segmented, {
-    ...props,
-  });
+  return /* @__PURE__ */ React__default.default.createElement(Ant.Segmented, { ...props });
 }
 function registerSegmented(loader) {
   utils.registerComponentHelper(loader, AntdSegmented, {
@@ -25,35 +21,22 @@ function registerSegmented(loader) {
     props: {
       options: {
         type: "array",
-        description:
-          "Antd options: strings, numbers, or objects with label, value and disabled.",
-        defaultValue: ["Option 1", "Option 2", "Option 3"],
+        description: "Antd options: strings, numbers, or objects with label, value and disabled.",
+        defaultValue: ["Option 1", "Option 2", "Option 3"]
       },
-      value: {
-        type: "object",
-        editOnly: true,
-        uncontrolledProp: "defaultValue",
-      },
+      value: { type: "object", editOnly: true, uncontrolledProp: "defaultValue" },
       size: { type: "choice", options: ["small", "medium", "large"] },
       disabled: "boolean",
       block: "boolean",
       vertical: "boolean",
       name: "string",
-      onChange: {
-        type: "eventHandler",
-        argTypes: [{ name: "value", type: "object" }],
-      },
+      onChange: { type: "eventHandler", argTypes: [{ name: "value", type: "object" }] }
     },
     states: {
-      value: {
-        type: "writable",
-        valueProp: "value",
-        onChangeProp: "onChange",
-        variableType: "object",
-      },
+      value: { type: "writable", valueProp: "value", onChangeProp: "onChange", variableType: "object" }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSegmented",
-    importName: "AntdSegmented",
+    importName: "AntdSegmented"
   });
 }
 

@@ -2,6 +2,7 @@ import { DatePicker } from "antd";
 import cls from "classnames";
 import dayjs, { Dayjs } from "dayjs";
 import React from "react";
+import { CanvasOverlayProps, previewOpenProp, useCanvasOverlay } from "./canvas-overlay";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
 
 /**
@@ -12,7 +13,7 @@ export function AntdDatePicker(
   props: Omit<
     React.ComponentProps<typeof DatePicker>,
     "value" | "onChange" | "defaultValue"
-  > & {
+  > & CanvasOverlayProps & {
     onChange?: (value: string | string[] | null) => void;
     value?: Dayjs | string | (Dayjs | string)[] | null;
     defaultValue?: string | string[];
@@ -21,12 +22,18 @@ export function AntdDatePicker(
     popupScopeClassName?: string;
   },
 ) {
-  const { picker, popupScopeClassName, classNames, ...rest } = props;
+  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
+  const { picker, popupScopeClassName, classNames, ...rest } = canvasProps;
 
   return (
     <>
       <DatePicker
+        key={isEditing ? "edit" : "runtime"}
         {...rest}
+        open={open}
+        onOpenChange={isEditing ? undefined : props.onOpenChange}
+        onCalendarChange={isEditing ? undefined : props.onCalendarChange}
+        onPanelChange={isEditing ? undefined : props.onPanelChange}
         picker={picker as any}
         value={
           props.value === undefined
@@ -58,6 +65,7 @@ export function AntdDatePicker(
         }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(value, _dateString) => {
+          if (isEditing) return;
           props.onChange?.(
             Array.isArray(value)
               ? value.map((date) => date.toISOString())
@@ -83,8 +91,10 @@ export const datePickerHelpers = {
 export function registerDatePicker(loader?: Registerable) {
   registerComponentHelper(loader, AntdDatePicker, {
     name: datePickerComponentName,
+    canvasOverlay: {},
     displayName: "DatePicker",
     props: {
+      previewOpen: previewOpenProp,
       multiple: { type: "boolean", defaultValueHint: false },
       value: {
         type: "object",

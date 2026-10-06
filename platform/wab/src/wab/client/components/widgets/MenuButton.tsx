@@ -14,6 +14,7 @@ interface MenuButtonProps {
   onVisibleChange?: (visible: boolean) => void;
   onContextMenu?: (e: React.MouseEvent) => void;
   tabIndex?: number;
+  "aria-label"?: string;
 }
 
 function MenuButton(props: MenuButtonProps) {
@@ -30,6 +31,7 @@ function MenuButton(props: MenuButtonProps) {
   }
   const button = (
     <PlasmicMenuButton
+      root={{ "aria-label": props["aria-label"] ?? "更多操作" }}
       onClick={(e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();

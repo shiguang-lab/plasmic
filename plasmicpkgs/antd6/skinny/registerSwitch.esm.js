@@ -1,9 +1,9 @@
-import "@plasmicapp/host/registerComponent";
-import "@plasmicapp/host/registerGlobalContext";
-import { Switch } from "antd";
-import React from "react";
-import { j as switchComponentName } from "./names-DKofLcnC.esm.js";
-import { r as registerComponentHelper } from "./utils-CSvRw6Za.esm.js";
+import { Switch } from 'antd';
+import React from 'react';
+import { j as switchComponentName } from './names-DKofLcnC.esm.js';
+import { r as registerComponentHelper } from './utils-z8_Paxbd.esm.js';
+import '@plasmicapp/host/registerComponent';
+import '@plasmicapp/host/registerGlobalContext';
 
 function AntdSwitch(props) {
   return /* @__PURE__ */ React.createElement(Switch, { ...props });
@@ -20,23 +20,23 @@ function registerSwitch(loader) {
         uncontrolledProp: "defaultChecked",
         description: "Whether the switch is toggled on",
         defaultValueHint: false,
-        hidden: (ps) => !!ps.__plasmicFormField,
+        hidden: (ps) => !!ps.__plasmicFormField
       },
       disabled: {
         type: "boolean",
         description: "If switch is disabled",
-        defaultValueHint: false,
+        defaultValueHint: false
       },
       autoFocus: {
         type: "boolean",
         description: "If get focus when component mounted",
         defaultValueHint: false,
-        advanced: true,
+        advanced: true
       },
       onChange: {
         type: "eventHandler",
-        argTypes: [{ name: "checked", type: "boolean" }],
-      },
+        argTypes: [{ name: "checked", type: "boolean" }]
+      }
     },
     states: {
       checked: {
@@ -44,11 +44,11 @@ function registerSwitch(loader) {
         valueProp: "checked",
         onChangeProp: "onChange",
         variableType: "boolean",
-        hidden: (ps) => !!ps.__plasmicFormField,
-      },
+        hidden: (ps) => !!ps.__plasmicFormField
+      }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerSwitch",
-    importName: "AntdSwitch",
+    importName: "AntdSwitch"
   });
 }
 
