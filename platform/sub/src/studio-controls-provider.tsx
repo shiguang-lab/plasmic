@@ -1,6 +1,6 @@
 import { createCache, StyleProvider } from "@ant-design/cssinjs";
 import { ConfigProvider } from "antd";
-import zhCN from "antd/locale/zh_CN";
+import zhCN from "antd/es/locale/zh_CN";
 import React, { useMemo } from "react";
 
 /** Host React controls render into Studio's document, including CSS and portals. */

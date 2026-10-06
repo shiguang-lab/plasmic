@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react";
 import { Input, Select } from "antd";
 import React from "react";
 import { expect, test, vi } from "vitest";
-import { StudioControlsProvider } from "../src/studio-controls-provider";
+import { StudioControlsProvider } from "../../../platform/sub/src/studio-controls-provider";
 
 test("host controls inject styles and portals into the target document and emit native values", async () => {
   const frame = document.createElement("iframe");
