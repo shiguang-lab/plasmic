@@ -244,17 +244,16 @@ export const CanvasFrame = observer(function CanvasFrame({
           return;
         }
 
-        if (studioCtx.isLiveMode || studioCtx.isInteractiveMode) {
-          if (e.type === "click") {
-            absorbLinkClick(e, (href) =>
-              showCanvasPageNavigationNotification(viewCtx().studioCtx, href),
-            );
-          }
-
-          return;
-        }
-
         absorbEditingCanvasEvent(e, viewCtx());
+      };
+
+      // Runtime link notifications run after component handlers, in bubble phase.
+      const absorbPreviewLink = (event: MouseEvent) => {
+        if (studioCtx.isLiveMode || studioCtx.isInteractiveMode) {
+          absorbLinkClick(event, (href) =>
+            showCanvasPageNavigationNotification(studioCtx, href),
+          );
+        }
       };
 
       // Prevent the frame from ever receiving focus.  We generally won't get
@@ -274,6 +273,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         html.addEventListener(event, absorbEvent, true);
       }
       html.addEventListener("dblclick", handleDoubleClick, true);
+      html.addEventListener("click", absorbPreviewLink);
       ctx.$html().on("keydown", handleKeyDown).on("keyup", handleKeyUp);
 
       const unbindShortcutHandlers = bindShortcutHandlers(
@@ -319,6 +319,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           html.removeEventListener(event, absorbEvent, true);
         }
         html.removeEventListener("dblclick", handleDoubleClick, true);
+        html.removeEventListener("click", absorbPreviewLink);
         unbindShortcutHandlers();
         ctx.$html().get(0).removeEventListener("wheel", onWheel);
         ctx.viewport().removeEventListener("focus", onFocus);
