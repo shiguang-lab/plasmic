@@ -22,12 +22,6 @@ import {
 } from "@/wab/client/clipboard/local";
 import { toast } from "@/wab/client/components/Messages";
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
-import {
-  editTableColumnTemplate,
-  getTableColumnContaining,
-  getTableColumnSelectionTarget,
-  isTableColumn,
-} from "@/wab/client/components/canvas/table-column-editing";
 import { promptExtractComponent } from "@/wab/client/components/modals/ExtractComponentModal";
 import { promptWrapInComponent } from "@/wab/client/components/modals/WrapInComponentModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
@@ -337,35 +331,9 @@ export class ViewOps {
     const cloneKey = this.viewCtx().sel2cloneKey(selectable);
 
     this.viewCtx().change(() => {
-      const column = selectable && this.tableColumnContaining(selectable);
       const focusTarget =
         selectable &&
-        this.resolveFocusTarget(selectable, {
-          exact: false,
-        }).focusTarget;
-      if (
-        column &&
-        (focusTarget === column || column.tpl === this.editingTableColumn)
-      ) {
-        if (
-          target.closest("td").length &&
-          this.editingTableColumn !== column.tpl
-        ) {
-          const template = editTableColumnTemplate(
-            this.viewCtx().variantTplMgr(),
-            this.site(),
-            column.tpl,
-            column.codeComponentProps ?? {},
-          );
-          this.editingTableColumn = column.tpl;
-          this.viewCtx().setStudioFocusByTpl(template, cloneKey);
-        } else if (selectable) {
-          // Authored slot content remains editable without entering the code component.
-          this.viewCtx().setStudioFocusBySelectable(selectable, cloneKey);
-          this.tryEditText({ focusObj: selectable });
-        }
-        return;
-      }
+        this.resolveFocusTarget(selectable, { exact: false }).focusTarget;
       if (
         selectable &&
         focusTarget instanceof ValComponent &&
@@ -389,12 +357,6 @@ export class ViewOps {
       }
       this.tryEditText();
     });
-  }
-
-  private editingTableColumn?: TplComponent;
-
-  private tableColumnContaining(selectable: Selectable) {
-    return getTableColumnContaining(selectable, this.valState());
   }
 
   moveForward(tpl?: TplNode) {
@@ -1513,16 +1475,10 @@ export class ViewOps {
         );
       focusObj = boundary ?? focusObj;
     }
-    return this.focusHeuristics().bestFocusTarget(
-      opts.deepSelect
-        ? focusObj
-        : getTableColumnSelectionTarget(
-            focusObj,
-            this.valState(),
-            this.editingTableColumn,
-          ),
-      { ...opts, curFocused: this.viewCtx().focusedSelectable() },
-    );
+    return this.focusHeuristics().bestFocusTarget(focusObj, {
+      ...opts,
+      curFocused: this.viewCtx().focusedSelectable(),
+    });
   }
   // Focus on either the given valNode/focusObj or the most reasonable containing
   // component, according to bestFocusTarget.
@@ -1537,16 +1493,6 @@ export class ViewOps {
       exact: boolean;
     },
   ) {
-    const column = this.tableColumnContaining(focusObj);
-    if (opts.deepSelect && column && focusObj !== column) {
-      this.editingTableColumn = column.tpl;
-    } else if (
-      !column ||
-      focusObj === column ||
-      column.tpl !== this.editingTableColumn
-    ) {
-      this.editingTableColumn = undefined;
-    }
     // This focus request may have happened while the ViewCtx is still
     // evaluating.  We do our best to look up the corresponding ValNode
     // to try to select, but the ValNode may be obsolete / about to be
@@ -1770,20 +1716,6 @@ export class ViewOps {
     if (!(selected instanceof ValComponent)) {
       return false;
     }
-    if (isTableColumn(selected.tpl)) {
-      const template = editTableColumnTemplate(
-        this.viewCtx().variantTplMgr(),
-        this.site(),
-        selected.tpl,
-        selected.codeComponentProps ?? {},
-      );
-      this.editingTableColumn = selected.tpl;
-      this.viewCtx().setStudioFocusByTpl(
-        template,
-        this.viewCtx().focusedCloneKey(),
-      );
-      return true;
-    }
     if (
       !isCodeComponent(selected.tpl.component) &&
       this.tplMgr().isOwnedBySite(selected.tpl.component) &&
@@ -1820,13 +1752,23 @@ export class ViewOps {
 
     return this.isSelectableVisible(firstChild)
       ? firstChild
-      : this._tryMoveSelect((x) => x.next(), false, firstChild);
+      : this._tryMoveSelect(
+          (x) => x.wrap(this.focusHeuristics().selectionSibling(x.get(), 1)),
+          false,
+          firstChild,
+        );
   }
   tryNavPrev() {
-    return this._trySelect((x) => x.prev(), false);
+    return this._trySelect(
+      (x) => x.wrap(this.focusHeuristics().selectionSibling(x.get(), -1)),
+      false,
+    );
   }
   tryNavNext() {
-    return this._trySelect((x) => x.next(), false);
+    return this._trySelect(
+      (x) => x.wrap(this.focusHeuristics().selectionSibling(x.get(), 1)),
+      false,
+    );
   }
   async deleteFrame(arenaFrame: ArenaFrame) {
     return this.viewCtx().studioCtx.siteOps().removeArenaFrame(arenaFrame);

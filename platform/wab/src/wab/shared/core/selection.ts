@@ -11,7 +11,7 @@ import {
   makeSlotSelectionFullKey,
   makeSlotSelectionKey,
 } from "@/wab/shared/core/slots";
-import { getTagOrComponentName } from "@/wab/shared/core/tpls";
+import { ancestorsUp, getTagOrComponentName } from "@/wab/shared/core/tpls";
 import {
   ValComponent,
   ValNode,
@@ -432,83 +432,20 @@ export function SQ(
   );
 }
 
-export function getUnlockedAncestor(sel: Selectable, valState: ValState) {
-  const ancestors = SQ(sel, valState).ancestors().toArray();
-  for (const ancestor of ancestors) {
-    if (!isSelectableLocked(ancestor, valState)) {
-      return ancestor;
-    }
-  }
-  return undefined;
-}
-
-/**
- * Returns the highest focus-trapping ancestor under `cur`
- */
-export function getFocusTrappingAncestor(
-  sel: Selectable,
-  valState: ValState,
-  curFocused: Selectable | undefined | null,
-) {
-  let candidate = sel;
-
-  // We only try to use curAncestors if curFocused is specified, and it is
-  // either a ValNode or a val-SlotSelection. curFocused could be a
-  // tpl-SlotSelection because ViewCtx.focusedSelectable() could be a
-  // tpl-SlotSelection
-  const curAncestors =
-    curFocused && (curFocused instanceof ValNode || curFocused.val)
-      ? SQ(curFocused, valState).ancestors().toArray()
-      : undefined;
-  const ancestors = SQ(sel, valState).ancestors().toArray();
-  for (const ancestor of ancestors) {
-    if (curAncestors && curAncestors.includes(ancestor)) {
-      // We've crossed path with curFocused! That means either curFocused is an
-      // ancestor of `sel` or it is a sibling of some ancestor of `sel`.  In that
-      // case, we will just use the latest candidate, which should either be the
-      // highest focus-trapping ancestor (under `curFocused` or in a sibling tree),
-      // or the original `sel` itself
-      return candidate;
-    }
-
-    if (
-      ancestor instanceof SlotSelection &&
-      ancestor.slotParam.mergeWithParent &&
-      ancestor.val !== valState.valSysRoot()
-    ) {
-      if (curAncestors && curAncestors.includes(ancestor.val!)) {
-        return candidate;
-      }
-      // If `sel` is a descendant of a mergeWithParent slot, then select the
-      // ancestor ValComponent instead
-      candidate = ensure(
-        ancestor.val,
-        "Must be a Val SlotSelection from ValState",
-      );
-    } else if (
-      ancestor instanceof ValComponent &&
-      ancestor.tpl.component.trapsFocus &&
-      ancestor !== valState.valSysRoot()
-    ) {
-      // Otherwise, we update candidate if we've come across a focus-trapping
-      // ValComponent that is not the system root
-      candidate = ancestor;
-    }
-  }
-
-  // We've run out of options, so use the latest candidate
-  return candidate;
-}
-
 export function isSelectableLocked(sel: Selectable, valState: ValState) {
-  const ancestors = SQ(sel, valState).ancestors().toArray();
-  for (const ancestor of ancestors) {
-    if (ancestor instanceof ValNode) {
-      if (ancestor.tpl.locked === true) {
-        return true;
-      } else if (ancestor.tpl.locked === false) {
-        return false;
-      }
+  // Component projections can skip runtime ancestors. Locks belong to the
+  // authored tree, including ancestors without a rendered value.
+  const root = valState.maybeValUserRoot()?.tpl;
+  for (const tpl of ancestorsUp(
+    sel instanceof SlotSelection ? sel.getTpl() : sel.tpl,
+  )) {
+    if (tpl.locked === true) {
+      return true;
+    } else if (tpl.locked === false) {
+      return false;
+    }
+    if (tpl === root) {
+      break;
     }
   }
   return false;

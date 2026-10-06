@@ -308,6 +308,12 @@ export interface StudioOps {
   ) => void;
   refreshQueryData: () => void;
   appendToSlot: (element: PlasmicElement, slotName: string) => void;
+  /** Replace a slot with editable Plasmic HTML and update literal props in one undo step. */
+  replaceSlotContent: (input: {
+    slotName: string;
+    html: string;
+    props?: Record<string, string | number | boolean | null>;
+  }) => Promise<void>;
   removeFromSlotAt: (pos: number, slotName: string) => void;
   updateProps: (newValues: any) => void;
   updateStates: (newValues: any) => void;

@@ -3,6 +3,7 @@ import {
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
+import { beginCanvasInspection, endCanvasInspection } from "@/wab/client/copilot/canvas-inspection";
 import { readAndSanitizeSvgXmlAsImage } from "@/wab/client/dom-utils";
 import { createComponent } from "@/wab/client/operations/create-component";
 import { createComponentState } from "@/wab/client/operations/create-component-state";
@@ -102,6 +103,8 @@ const quietTools = new Set([
   "identify",
   "findEmptySpace",
   "navigate",
+  "beginCanvasInspection",
+  "endCanvasInspection",
   "navigateCanvas",
   "scrollElementIntoView",
   "validate",
@@ -1383,6 +1386,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     studio.switchToComponentArena(component);
     return componentResult(studio, component);
   }),
+  beginCanvasInspection: defineCopilotTool(meta.beginCanvasInspection, (studio, input) =>
+    beginCanvasInspection(studio, findComponent(studio, input.componentUuid, true))),
+  endCanvasInspection: defineCopilotTool(meta.endCanvasInspection, (studio, input) =>
+    endCanvasInspection(studio, input.inspectionId)),
   scrollElementIntoView: defineCopilotTool(
     meta.scrollElementIntoView,
     async (studio, input) => {
@@ -1452,6 +1459,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       }
     }
     return {
+      check: "model" as const,
+      notChecked: ["visual-layout", "interactions", "responsive-breakpoints"],
       valid: !errors.length,
       errors,
       warnings,

@@ -1,4 +1,7 @@
-import { buildValTree, TEST_GLOBAL_VARIANT } from "@/wab/__testonly__/tpls";
+import {
+  buildValTree,
+  TEST_GLOBAL_VARIANT,
+} from "@/wab/__testonly__/tpls";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -303,6 +306,7 @@ test("deep hover leaves the editing stack unchanged and direct selection creates
     componentStackFrames: () => frames,
     valState: () => valState,
   }) as ViewCtx;
+  Object.defineProperty(viewCtx, "renderState", { value: { tpl2bestVal: (tpl: TplNode) => flattenVals(root).find((val) => val.tpl === tpl) } });
   expect(() =>
     viewCtx.variantTplMgr().effectiveVariantSetting(leaf.tpl),
   ).toThrow("getComponentFrame did not return a valid frame");

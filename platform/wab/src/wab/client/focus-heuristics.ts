@@ -14,8 +14,6 @@ import {
   isContextCodeComponent,
 } from "@/wab/shared/core/components";
 import {
-  getFocusTrappingAncestor,
-  getUnlockedAncestor,
   isSelectableLocked,
   Selectable,
   SQ,
@@ -199,7 +197,7 @@ export class FocusHeuristics {
         owner = parent;
       }
       if (!opts.allowLocked) {
-        focusTarget = getUnlockedAncestor(focusTarget, this.valState) ?? null;
+        focusTarget = this.unlockedAncestor(focusTarget) ?? null;
       }
       if (
         focusTarget instanceof ValComponent &&
@@ -307,15 +305,7 @@ export class FocusHeuristics {
       }
 
       if (!opts.allowLocked) {
-        focusTarget = getUnlockedAncestor(focusTarget, this.valState) ?? null;
-      }
-
-      if (!opts.deepSelect && focusTarget) {
-        focusTarget = getFocusTrappingAncestor(
-          focusTarget,
-          this.valState,
-          opts.curFocused,
-        );
+        focusTarget = this.unlockedAncestor(focusTarget) ?? null;
       }
 
       if (
@@ -379,6 +369,22 @@ export class FocusHeuristics {
       .slice(0, -1)
       .reverse()
       .find((node): node is ValNode => node instanceof ValNode);
+  }
+
+  private unlockedAncestor(target: Selectable) {
+    return this.selectionPath(target)
+      .reverse()
+      .find((node) => !isSelectableLocked(node, this.valState));
+  }
+
+  selectionSibling(target: Selectable, offset: 1 | -1) {
+    const parent = this.selectionParent(target);
+    if (!parent || !(target instanceof ValNode)) {
+      return undefined;
+    }
+    const siblings = this.selectionChildren(parent);
+    const index = siblings.indexOf(target);
+    return index < 0 ? undefined : siblings[index + offset];
   }
 
   selectionChildren(target: Selectable): ValNode[] {

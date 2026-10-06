@@ -8,6 +8,7 @@ import {
   AntdTable,
   registerTable,
 } from "../src/registerTable";
+import { columnTemplateHtml } from "../src/table-column-template";
 import type { Registerable } from "../src/utils";
 
 const data = {
@@ -113,8 +114,9 @@ test("headers, cell contents and empty cell space resolve to the original column
   );
   // The authored column renders the actual table cells, without invalid divs around them.
   expect(container.querySelector("tr > div")).toBeNull();
+  expect(screen.getByRole("columnheader", { name: "Status" }).closest("[data-plasmic-canvas-part-scope]")).not.toBeNull();
   expect(
-    container.querySelectorAll("[data-plasmic-table-column]"),
+    container.querySelectorAll("[data-plasmic-canvas-part=column]"),
   ).toHaveLength(8);
 });
 
@@ -214,7 +216,7 @@ test("grouped columns and nested field paths keep cell selection and formatting"
   expect(screen.getByRole("columnheader", { name: "Status" })).toBeTruthy();
   expect(container.querySelectorAll(".ant-tag")).toHaveLength(1);
   expect(
-    container.querySelectorAll("[data-plasmic-table-column]"),
+    container.querySelectorAll("[data-plasmic-canvas-part=column]"),
   ).toHaveLength(5);
 });
 
@@ -433,4 +435,56 @@ test("custom content keeps the column action after a button preset is converted 
   );
   fireEvent.click(screen.getByRole("button", { name: "Bob" }));
   expect(onCellClick).toHaveBeenCalledExactlyOnceWith("Bob", data.data[1], 1);
+});
+
+test("explicit template conversion preserves Tag mappings and encodes authored content safely", () => {
+  const root = document.createElement("div");
+  root.innerHTML = columnTemplateHtml({
+    displayType: "tag",
+    tagOptions: [
+      { value: 'a"<&', label: "待处理", color: "orange" },
+      { value: "done", label: "已完成", color: "green" },
+    ],
+  });
+  const tag = root.querySelector("plasmic-component")!;
+  const props = JSON.parse(tag.getAttribute("data-props")!);
+  const evaluate = (expression: string, value: unknown) =>
+    new Function("tagValue", `return (${expression.slice(2, -2)})`)(value);
+  expect(evaluate(props.color, 'a"<&')).toBe("orange");
+  expect(evaluate(props.color, "done")).toBe("green");
+  expect(evaluate(tag.querySelector("span")!.textContent!, "done")).toBe(
+    "已完成",
+  );
+  expect(evaluate(tag.querySelector("span")!.textContent!, "other")).toBe(
+    "other",
+  );
+  const repeat = tag.getAttribute("data-repeat")!;
+  const rows = new Function("cell", `return (${repeat.slice(2, -2)})`);
+  expect(rows(["pending", null, "done"])).toEqual(["pending", "done"]);
+  expect(rows(null)).toEqual([]);
+  expect(root.querySelector("script")).toBeNull();
+});
+
+test("preset conversion is an explicit component action and updates content and props together", async () => {
+  const registrations: any[] = [];
+  registerTable({
+    registerComponent: (_component: unknown, meta: unknown) =>
+      registrations.push(meta),
+  } as Registerable);
+  const column = registrations.find(
+    (meta) => meta.name === "plasmic-antd6-table-column",
+  );
+  const action = column.actions.find(
+    (action: any) => action.label === "Convert to custom template",
+  );
+  const componentProps = { displayType: "tag", tagColor: "green" };
+  const replaceSlotContent = vi.fn().mockResolvedValue(undefined);
+  await action.onClick({ componentProps, studioOps: { replaceSlotContent } });
+  expect(componentProps).toEqual({ displayType: "tag", tagColor: "green" });
+  expect(replaceSlotContent).toHaveBeenCalledWith({
+    slotName: "render",
+    html: expect.stringContaining("plasmic-antd6-tag"),
+    props: { displayType: "custom" },
+  });
+  expect(action.hidden({ displayType: "custom" })).toBe(true);
 });

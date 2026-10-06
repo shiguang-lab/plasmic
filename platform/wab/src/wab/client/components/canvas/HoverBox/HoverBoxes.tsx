@@ -18,7 +18,7 @@ import { InlineAddButton } from "@/wab/client/components/canvas/HoverBox/InlineA
 import { ResponsiveColumnsCanvasControls } from "@/wab/client/components/canvas/HoverBox/ResponsiveColumnsCanvasControls";
 import { SpacingVisualizer } from "@/wab/client/components/canvas/HoverBox/SpacingVisualizer";
 import { StackOfParents } from "@/wab/client/components/canvas/HoverBox/StackOfParents";
-import { useTagLeftOffset } from "@/wab/client/components/canvas/HoverBox/useTagLeftOffset";
+import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { VirtualScrollBar } from "@/wab/client/components/canvas/HoverBox/virtual-scrollbar";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { toast } from "@/wab/client/components/Messages";
@@ -417,10 +417,11 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     interval: 100,
   });
 
-  const leftOffset = useTagLeftOffset(
+  const tagPlacement = useTagPlacement(
     hoverTagRef,
     state?.width || 0,
     studioCtx.zoom,
+    viewCtx,
   );
 
   useEffect(() => {
@@ -506,7 +507,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 {shouldShowHoverTag && (
                   <div
                     className={styles.hoverBoxTagContainer}
-                    style={{ left: `${leftOffset}px` }}
+                    style={tagPlacement}
                   >
                     <StackOfParents hoverTagRef={hoverTagRef} />
                     <XDraggable

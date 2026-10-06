@@ -8,15 +8,19 @@ import { ConnectToDBTableModal } from "@/wab/client/components/sidebar-tabs/Data
 import { updateOrCreateExpr } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import Button from "@/wab/client/components/widgets/Button";
+import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { formatWIError } from "@/wab/client/web-importer/errors";
+import { ensureOk } from "@/wab/commons/neverthrow-utils";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import { getSlotParams } from "@/wab/shared/SlotUtils";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { elementSchemaToTpl } from "@/wab/shared/code-components/code-components";
-import { ensure, hackyCast, maybe } from "@/wab/shared/common";
+import { assert, ensure, hackyCast, maybe, spawn } from "@/wab/shared/common";
 import { isCodeComponent } from "@/wab/shared/core/components";
+import { codeLit } from "@/wab/shared/core/exprs";
 import { SlotSelection } from "@/wab/shared/core/slots";
-import { TplComponent } from "@/wab/shared/model/classes";
+import { RenderExpr, TplComponent } from "@/wab/shared/model/classes";
 import { Action, ActionProps, PlasmicElement } from "@plasmicapp/host";
 import { notification } from "antd";
 import domAlign from "dom-align";
@@ -228,6 +232,53 @@ export function useStudioOps(
     [viewCtx],
   );
 
+  const replaceSlotContent = React.useCallback<
+    ActionProps<any>["studioOps"]["replaceSlotContent"]
+  >(
+    async ({ slotName, html, props = {} }) => {
+      const vtm = viewCtx.variantTplMgr();
+      const param = ensure(
+        getSlotParams(tplComp.component).find(
+          (p) => p.variable.name === slotName,
+        ),
+        `Component must have a slot named "${slotName}"`,
+      );
+      const parsed = ensureOk(
+        await htmlToTpl(html, {
+          site: viewCtx.site,
+          vtm,
+          appCtx: viewCtx.studioCtx.appCtx,
+          pageHrefs: true,
+        }),
+      );
+      assert(
+        !parsed.errors.length,
+        parsed.errors.map(formatWIError).join("; "),
+      );
+      await viewCtx.change(() => {
+        const errors = parsed.finalize({
+          component: viewCtx.currentComponent(),
+          tplMgr: viewCtx.tplMgr(),
+          ccRegistry: viewCtx.studioCtx.codeComponentsRegistry,
+        });
+        assert(!errors.length, errors.map(formatWIError).join("; "));
+        $$$(tplComp).setSlotArgForParam(
+          param,
+          new RenderExpr({ tpl: parsed.tpls }),
+        );
+        for (const [name, value] of Object.entries(props)) {
+          const prop = ensure(
+            tplComp.component.params.find((p) => p.variable.name === name),
+            `Unknown prop ${name}`,
+          );
+          vtm.setArg(tplComp, prop.variable, codeLit(value));
+        }
+        viewCtx.setStudioFocusByTpl(tplComp);
+      });
+    },
+    [viewCtx, tplComp],
+  );
+
   const updateStates = React.useCallback(
     (newValues: any) => {
       if (typeof newValues !== "object") {
@@ -304,6 +355,7 @@ export function useStudioOps(
       showModal,
       refreshQueryData,
       appendToSlot,
+      replaceSlotContent,
       removeFromSlotAt,
       updateProps,
       updateStates,
@@ -312,6 +364,7 @@ export function useStudioOps(
       showModal,
       refreshQueryData,
       appendToSlot,
+      replaceSlotContent,
       removeFromSlotAt,
       updateProps,
       updateStates,
@@ -350,13 +403,23 @@ function ButtonAction<P>({
     <>
       <Button
         onClick={() => {
-          onClick({
-            componentProps: componentPropValues,
-            contextData: ccContextData,
-            studioOps: studioOps,
-            projectData: projectData,
-            studioDocument: document,
-          });
+          spawn(
+            Promise.resolve(
+              onClick({
+                componentProps: componentPropValues,
+                contextData: ccContextData,
+                studioOps: studioOps,
+                projectData: projectData,
+                studioDocument: document,
+              }),
+            ).catch((error) => {
+              notification.error({
+                message: "Component action failed",
+                description: error.message,
+              });
+              reportError(error);
+            }),
+          );
         }}
       >
         {label}

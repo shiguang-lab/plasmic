@@ -513,6 +513,12 @@ describe("FocusHeuristics", function () {
       ValNodes.writeableValNode(leaf).parent = valTree;
       ValNodes.writeableValNode(leaf).slotInfo = undefined;
       const fh = getHeuristics();
+      instance.tpl.locked = true;
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, deepSelect: true })
+          .focusTarget,
+      ).toBe(group);
+      instance.tpl.locked = null;
       expect(fh.selectionParent(leaf)).toBe(instance);
       expect(fh.selectionChildren(instance)).toEqual([leaf]);
       expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
@@ -560,6 +566,41 @@ describe("FocusHeuristics", function () {
           drillDown: true,
         }).focusTarget,
       ).toBe(leaf);
+    });
+
+    it("navigates authored siblings when projected content has a different runtime parent", () => {
+      let first: TplNode;
+      let second: TplNode;
+      evalTpl({
+        tplTree: Tpls.mkTplTag("div", [
+          Tpls.mkTplComponentX({
+            component: slottedComponent,
+            baseVariant: TEST_GLOBAL_VARIANT,
+            children: [
+              (first = Tpls.mkTplTag("span")),
+              (second = Tpls.mkTplTag("button")),
+            ],
+          }),
+          Tpls.mkTplTag("footer"),
+        ]),
+      });
+      const vals = ValNodes.flattenVals(valTree);
+      const a = ensure(
+        vals.find((v) => v.tpl === first),
+        "First projected child",
+      );
+      const b = ensure(
+        vals.find((v) => v.tpl === second),
+        "Second projected child",
+      );
+      ValNodes.writeableValNode(a).parent = valTree;
+      ValNodes.writeableValNode(a).slotInfo = undefined;
+      ValNodes.writeableValNode(b).parent = valTree;
+      ValNodes.writeableValNode(b).slotInfo = undefined;
+      const fh = getHeuristics();
+      expect(fh.selectionSibling(a, 1)).toBe(b);
+      expect(fh.selectionSibling(b, -1)).toBe(a);
+      expect(fh.selectionSibling(b, 1)).toBeUndefined();
     });
   });
 

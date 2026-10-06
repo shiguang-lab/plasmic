@@ -21,7 +21,9 @@ async function inspectCanvas() {
   const visible = elements.filter(
     (el) =>
       el.getBoundingClientRect().width > 0 &&
-      el.getBoundingClientRect().height > 0,
+      el.getBoundingClientRect().height > 0 &&
+      getComputedStyle(el).visibility !== "hidden" &&
+      getComputedStyle(el).opacity !== "0",
   );
   return {
     ready:
@@ -31,6 +33,7 @@ async function inspectCanvas() {
     width: innerWidth,
     height: innerHeight,
     contentHeight: document.documentElement.scrollHeight,
+    truncated: visible.length > 2000,
     elements: visible.slice(0, 2000).map((el, index) => {
       const rect = el.getBoundingClientRect();
       const valKey = el.getAttribute("data-plasmic-valkey");
@@ -57,6 +60,7 @@ async function inspectCanvas() {
 }
 function snapshotDocument() {
   const clone = document.documentElement.cloneNode(true);
+  clone.removeAttribute("data-plasmic-canvas-inspection");
   const originals = document.documentElement.querySelectorAll("*");
   const copies = clone.querySelectorAll("*");
   // Preserve inherited typography when canvas reset CSS is reloaded for export.
@@ -151,13 +155,14 @@ async function readyDocument() {
   );
 }
 const js = (fn) => `(${fn.toString()})()`;
-async function canvasFrames(win, origin) {
+async function canvasFrames(win, origin, inspectionId) {
   const previewMode = new URL(win.webContents.getURL()).pathname.includes(
     "/preview/",
   );
   const end = Date.now() + 20000;
   while (Date.now() < end) {
     const frames = win.webContents.mainFrame.framesInSubtree.filter((frame) => {
+      if (inspectionId) return true;
       try {
         const url = new URL(frame.url);
         const flags = new URLSearchParams(url.hash.slice(1));
@@ -171,8 +176,19 @@ async function canvasFrames(win, origin) {
     });
     const results = [];
     for (const frame of frames) {
-      const layout = await frame.executeJavaScript(js(inspectCanvas));
-      if (layout.ready) results.push({ frame, layout });
+      if (frame.isDestroyed?.()) continue;
+      try {
+        if (inspectionId) {
+          const marker = await frame.executeJavaScript(
+            'document.documentElement.getAttribute("data-plasmic-canvas-inspection")',
+          );
+          if (marker !== inspectionId) continue;
+        }
+        const layout = await frame.executeJavaScript(js(inspectCanvas));
+        if (layout.ready) results.push({ frame, layout });
+      } catch (error) {
+        if (!frame.isDestroyed?.()) throw error;
+      }
     }
     if (results.length) return results;
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -182,11 +198,18 @@ async function canvasFrames(win, origin) {
   );
 }
 async function renderCanvas(win, origin, input = {}) {
-  const available = await canvasFrames(win, origin);
+  const available = await canvasFrames(win, origin, input.inspectionId);
   const frames = input.artboardElementUuid
-    ? available.filter(({layout}) => layout.elements.some(el => el.elementUuid === input.artboardElementUuid))
+    ? available.filter(({ layout }) =>
+        layout.elements.some(
+          (el) => el.elementUuid === input.artboardElementUuid,
+        ),
+      )
     : available;
-  if (!frames.length) throw new Error("Artboard containing the requested element is not rendered");
+  if (!frames.length)
+    throw new Error(
+      "Artboard containing the requested element is not rendered",
+    );
   const selected = input.width
     ? frames.reduce((a, b) =>
         Math.abs(a.layout.width - input.width) <
@@ -292,6 +315,11 @@ async function renderCanvas(win, origin, input = {}) {
       webp,
       width: rect?.width || width,
       height: rect?.height || height,
+      sourceViewport: {
+        width: selected.layout.width,
+        height: selected.layout.height,
+      },
+      resized: width !== selected.layout.width,
       pdf:
         input.format === "pdf"
           ? await preview.webContents.printToPDF({
@@ -329,6 +357,9 @@ async function exportCanvas(win, origin, input) {
     height: result.height,
     bytes: Buffer.byteLength(data),
     interactive: false,
+    rendering: "static",
+    sourceViewport: result.sourceViewport,
+    resized: result.resized,
   };
 }
 module.exports = { canvasFrames, renderCanvas, exportCanvas };

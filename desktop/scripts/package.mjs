@@ -2,6 +2,7 @@ import { build, Platform, Arch } from "electron-builder";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { desktopSources, hashFiles } from "./build-identity.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const metadata = JSON.parse(
@@ -18,6 +19,10 @@ for (const key of ["studioOrigin", "canvasOrigin", "webImage"]) {
     throw new Error("Run npm run assets before packaging.");
   }
 }
+if (manifest.build?.rendererHash !== await hashFiles(path.join(root, "renderer"), ["."], ["desktop-assets.json"]) ||
+    manifest.build?.desktopHash !== await hashFiles(root, desktopSources)) {
+  throw new Error("Bundled assets or desktop sources changed; run assets before packaging.");
+}
 const [platform = process.platform, arch = process.arch] =
   process.argv.slice(2);
 const platforms = { darwin: Platform.MAC, win32: Platform.WINDOWS, linux: Platform.LINUX };
@@ -33,7 +38,7 @@ const outputs = await build({
     productName: "Plasmic",
     electronVersion: metadata.devDependencies.electron,
     directories: { output: `dist/${metadata.version}/${platform}-${arch}`, buildResources: "assets" },
-    files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
+    files: ["src/**/*", "mcp-guide.md", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     npmRebuild: false,
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",

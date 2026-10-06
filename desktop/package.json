@@ -15,6 +15,7 @@
     "test:updates-e2e": "node tests/updates-e2e.cjs",
     "test:updates-native": "electron tests/updates-native.cjs",
     "package": "node scripts/package.mjs",
+    "package:local": "node scripts/package-local.mjs",
     "package:mac": "node scripts/package.mjs darwin arm64",
     "package:win": "node scripts/package.mjs win32 x64",
     "package:linux": "node scripts/package.mjs linux x64",

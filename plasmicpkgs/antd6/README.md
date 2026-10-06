@@ -81,7 +81,8 @@ with separate editing and runtime behavior as in
 
 ## Editing table columns
 
-Click a column header or cell in the design canvas to select its Column. The
+Enter the Table through the canvas selection hierarchy, then click a column
+header or cell to select its Column. The
 hover outline covers the same column that a click selects, including its header
 and visible cells. **Column key** binds
 the field, and **Display as** selects Text, Tag, Link, Avatar, Image, Button, or
@@ -92,13 +93,15 @@ Tag uses the field value automatically; array values display multiple tags.
 **Default tag color** or a stable automatic color based on the value. Null values
 display an empty cell. Switching back to Text displays the original field value.
 
-Double-click a body cell to edit its shared content template. Studio converts
-the current preset into ordinary editable nodes in **Custom render**, preserving
-field bindings and Tag mappings. Select the Tag, button, image, or text to change
+Choose **Convert to custom template** in the Column settings to turn the current
+preset into ordinary editable nodes in **Custom render**, preserving field
+bindings and Tag mappings. Conversion is one undoable edit; selecting a column
+or pressing Enter does not change its preset. Select the Tag, button, image, or text to change
 its properties; add or arrange nodes in the render slot to compose richer cells.
-Its `cell`, `row`, and `index` bindings refer to each rendered row. Clicking another
-column returns to column selection. Switching a custom column to a preset keeps
-the binding; entering that preset replaces the previous custom template.
+Its `cell`, `row`, and `index` bindings refer to each rendered row. The slot content
+buttons in Settings provide direct access to the template nodes. Switching a
+custom column to a preset keeps its existing template until an explicit conversion
+replaces it.
 
 Links use field values as URLs. Avatar and Image use them as image sources with
 a configurable pixel size. Link and Button labels can use a fixed label or the

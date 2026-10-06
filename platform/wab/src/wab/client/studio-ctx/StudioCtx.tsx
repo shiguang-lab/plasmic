@@ -1903,7 +1903,10 @@ export class StudioCtx extends WithDbCtx {
 
   // The arena of the active background read, kept alive so GC doesn't dispose the ViewCtx
   // being read. One background read occurs at a time (see withBackgroundViewCtxForComponent).
-  private pinnedBackgroundArena: AnyArena | undefined;
+  private pinnedBackgroundArena = observable.box<AnyArena | undefined>(
+    undefined,
+    { deep: false },
+  );
 
   // Runs background reads one at a time, so they don't thrash each other's arenas.
   private serializeBackgroundRead = asyncMaxAtATime(
@@ -2521,7 +2524,9 @@ export class StudioCtx extends WithDbCtx {
       if (!info?.isAlive) {
         return "dead";
       }
-      return info.isBackground ? "background" : "cached";
+      return info.isBackground || this.pinnedBackgroundArena.get() === arena
+        ? "background"
+        : "cached";
     },
     { name: "getArenaStatus" },
   );
@@ -2560,7 +2565,7 @@ export class StudioCtx extends WithDbCtx {
         ["asc", "asc"],
       )
         .slice(0, this.arenaViewStates.size - DEVFLAGS.liveArenas)
-        .filter(([arena, _info]) => arena !== this.pinnedBackgroundArena);
+        .filter(([arena, _info]) => arena !== this.pinnedBackgroundArena.get());
       for (const [arena, info] of arenasToFree) {
         console.log("Garbage collecting arena", getArenaName(arena));
         this.arenaViewStates.set(arena, {
@@ -2971,11 +2976,11 @@ export class StudioCtx extends WithDbCtx {
       if (!resolved) {
         return undefined;
       }
-      this.pinnedBackgroundArena = resolved.arena;
+      this.pinnedBackgroundArena.set(resolved.arena);
       try {
         return await cb(resolved.viewCtx);
       } finally {
-        this.pinnedBackgroundArena = undefined;
+        this.pinnedBackgroundArena.set(undefined);
         this.maybeGarbageCollectArenas();
       }
     }) as Promise<T | undefined>;

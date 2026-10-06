@@ -3,9 +3,11 @@ const { randomUUID } = require("node:crypto");
 const { EDITOR_METHODS } = require("./mcp.cjs");
 const { canvasFrames, renderCanvas, exportCanvas } = require("./canvas.cjs");
 class DesktopController {
-  constructor(getWindow, config) {
+  constructor(getWindow, config, waitForStartup = async () => {}) {
     this.getWindow = getWindow;
     this.config = config;
+    this.waitForStartup = waitForStartup;
+    this.operations = new Map();
     this.pending = new Map();
     this.queue = Promise.resolve();
     this.receive = (event, id, result) => {
@@ -64,13 +66,14 @@ class DesktopController {
       return { running: true, windowOpen: false, ready: false };
     }
     let metadata = { ready: false, tools: {} };
+    const url = new URL(win.webContents.getURL() || "about:blank");
     if (
       !win.webContents.isLoadingMainFrame() &&
-      new URL(win.webContents.getURL()).pathname !== "/desktop/google-login"
+      url.origin === this.config.studioOrigin &&
+      url.pathname !== "/desktop/google-login"
     ) {
       metadata = await this.invoke("metadata", {}, 3000);
     }
-    const url = new URL(win.webContents.getURL());
     return {
       imageService: await require("./image-service.cjs").imageServiceStatus(
         app.getPath("userData"),
@@ -78,10 +81,12 @@ class DesktopController {
       running: true,
       windowOpen: true,
       version: require("../package.json").version,
+      build: require("../renderer/desktop-assets.json").build,
       url: url.toString(),
       projectId: url.pathname.match(/^\/projects\/([^/]+)/)?.[1] || null,
       ready: metadata.ready,
       editorTools: metadata.tools,
+      operations: [...this.operations.values()],
     };
   }
   async ready() {
@@ -116,7 +121,37 @@ class DesktopController {
     throw new Error("Design did not become ready");
   }
   dispatch(method, input) {
-    const run = () => this.execute(method, input);
+    if (method === "get_app_state") {
+      return this.execute(method, input);
+    }
+    const id = randomUUID();
+    this.operations.set(id, { id, method, phase: "queued" });
+    const run = async () => {
+      this.operations.set(id, {
+        id,
+        method,
+        phase: "running",
+        startedAt: new Date().toISOString(),
+      });
+      try {
+        return await this.execute(method, input);
+      } finally {
+        this.operations.delete(id);
+      }
+    };
+    if (
+      [
+        "list_projects",
+        "search_stock_images",
+        "generate_image",
+        "browser",
+        "capture_browser",
+      ].includes(method) ||
+      (["make_vector", "vectorize_image"].includes(method) &&
+        !input?.componentUuid)
+    ) {
+      return run();
+    }
     const result = this.queue.then(run, run);
     this.queue = result.then(
       () => {},
@@ -134,6 +169,19 @@ class DesktopController {
     const win = this.getWindow();
     if (!win || win.isDestroyed()) {
       throw new Error("Open the desktop editor window");
+    }
+    if (
+      ![
+        "list_projects",
+        "search_stock_images",
+        "generate_image",
+        "browser",
+        "capture_browser",
+        "make_vector",
+        "vectorize_image",
+      ].includes(method)
+    ) {
+      await this.waitForStartup();
     }
     if (method === "list_projects") {
       const response = await win.webContents.session.fetch(
@@ -418,11 +466,13 @@ class DesktopController {
       const { PDFDocument } = require("pdf-lib");
       const merged = await PDFDocument.create();
       for (const page of input.pages) {
-        await this.editor("navigate", { componentUuid: page.componentUuid });
-        const rendered = await renderCanvas(win, this.config.canvasOrigin, {
-          ...page,
-          format: "pdf",
-        });
+        const rendered = await this.inspectCanvas(page, (inspectionId) =>
+          renderCanvas(win, this.config.canvasOrigin, {
+            ...page,
+            inspectionId,
+            format: "pdf",
+          }),
+        );
         const document = await PDFDocument.load(rendered.pdf);
         for (const copied of await merged.copyPages(
           document,
@@ -444,13 +494,19 @@ class DesktopController {
       ["snapshot_layout", "export_design", "get_screenshot"].includes(method)
     ) {
       await this.ready();
-      if (input.componentUuid) {
-        await this.editor("navigate", { componentUuid: input.componentUuid });
-      }
-      if (method === "snapshot_layout") {
-        return {
-          frames: (await canvasFrames(win, this.config.canvasOrigin)).map(
-            ({ layout }) => ({
+      return this.inspectCanvas(input, async (inspectionId) => {
+        if (method === "snapshot_layout") {
+          return {
+            check: "layout",
+            checked: ["horizontal-overflow", "image-load"],
+            notChecked: [
+              "interactions",
+              "responsive-breakpoints",
+              "content-overlap",
+            ],
+            frames: (
+              await canvasFrames(win, this.config.canvasOrigin, inspectionId)
+            ).map(({ layout }) => ({
               ...layout,
               problems: [
                 ...layout.elements
@@ -468,58 +524,84 @@ class DesktopController {
                   .filter((image) => !image.loaded)
                   .map((image) => ({ type: "image-unloaded", src: image.src })),
               ],
-            }),
-          ),
-        };
-      }
-      if (method === "export_design") {
-        return exportCanvas(win, this.config.canvasOrigin, input);
-      }
-      if (input.mode !== "workspace") {
+            })),
+          };
+        }
+        if (method === "export_design") {
+          return exportCanvas(win, this.config.canvasOrigin, {
+            ...input,
+            inspectionId,
+          });
+        }
+        if (input.mode !== "workspace") {
+          if (input.rect) {
+            throw new Error("rect requires mode workspace");
+          }
+          const result = await renderCanvas(win, this.config.canvasOrigin, {
+            ...input,
+            inspectionId,
+          });
+          return {
+            data: result.image.toPNG().toString("base64"),
+            width: result.width,
+            height: result.height,
+            rendering: "static",
+            sourceViewport: result.sourceViewport,
+            resized: result.resized,
+          };
+        }
+        if (input.elementUuid) {
+          throw new Error("elementUuid requires artboard mode");
+        }
+        await this.ready();
+        await this.invoke("renderReady");
         if (input.rect) {
-          throw new Error("rect requires mode workspace");
+          const bounds = win.getContentBounds();
+          if (
+            !["x", "y", "width", "height"].every((key) =>
+              Number.isInteger(input.rect[key]),
+            ) ||
+            input.rect.x < 0 ||
+            input.rect.y < 0 ||
+            input.rect.width <= 0 ||
+            input.rect.height <= 0 ||
+            input.rect.x + input.rect.width > bounds.width ||
+            input.rect.y + input.rect.height > bounds.height
+          ) {
+            throw new Error(
+              "Screenshot rectangle must fit within the viewport",
+            );
+          }
         }
-        const result = await renderCanvas(win, this.config.canvasOrigin, input);
+        const image = await win.webContents.capturePage(input.rect);
         return {
-          data: result.image.toPNG().toString("base64"),
-          width: result.width,
-          height: result.height,
+          data: image.toPNG().toString("base64"),
+          width: image.getSize().width,
+          height: image.getSize().height,
         };
-      }
-      if (input.elementUuid) {
-        throw new Error("elementUuid requires artboard mode");
-      }
-      await canvasFrames(win, this.config.canvasOrigin);
-
-      await this.ready();
-      if (input.componentUuid) {
-        await this.editor("navigate", { componentUuid: input.componentUuid });
-      }
-      await this.invoke("renderReady");
-      if (input.rect) {
-        const bounds = win.getContentBounds();
-        if (
-          !["x", "y", "width", "height"].every((key) =>
-            Number.isInteger(input.rect[key]),
-          ) ||
-          input.rect.x < 0 ||
-          input.rect.y < 0 ||
-          input.rect.width <= 0 ||
-          input.rect.height <= 0 ||
-          input.rect.x + input.rect.width > bounds.width ||
-          input.rect.y + input.rect.height > bounds.height
-        ) {
-          throw new Error("Screenshot rectangle must fit within the viewport");
-        }
-      }
-      const image = await win.webContents.capturePage(input.rect);
-      return {
-        data: image.toPNG().toString("base64"),
-        width: image.getSize().width,
-        height: image.getSize().height,
-      };
+      });
     }
     throw new Error("Unknown desktop command");
+  }
+  async inspectCanvas(input, read) {
+    if (input.mode === "workspace" && input.componentUuid) {
+      throw new Error(
+        "Workspace captures use the current canvas; use artboard mode to inspect componentUuid without navigation",
+      );
+    }
+    if (!input.componentUuid) {
+      return read(undefined);
+    }
+    const inspection = await this.editor("beginCanvasInspection", {
+      componentUuid: input.componentUuid,
+    });
+    try {
+      return await read(inspection.inspectionId);
+    } finally {
+      await this.editor("endCanvasInspection", {
+        inspectionId: inspection.inspectionId,
+      });
+    }
   }
   close() {
     ipcMain.removeListener("desktop:result", this.receive);

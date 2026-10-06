@@ -48,6 +48,8 @@ const EDITOR_METHODS = [
   "deleteComponent",
   "executeBatch",
   "navigate",
+  "beginCanvasInspection",
+  "endCanvasInspection",
   "scrollElementIntoView",
   "validate",
   "save",
@@ -62,7 +64,7 @@ const tools = [
   {
     name: "get_app_state",
     description:
-      "Read the desktop URL, active project, readiness and exact editor tool schemas. Read these contracts before execute.",
+      "Read the desktop URL, active project, readiness, build identity, running operations and exact editor tool schemas. Read these contracts before execute.",
     inputSchema: object({}),
   },
   {
@@ -98,7 +100,7 @@ const tools = [
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). width selects the closest existing artboard and resizes the static rendering. Use mode workspace for editor diagnostics; rect applies only to workspace. Not an interactive preview.",
+      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). width selects the closest existing artboard and resizes the static rendering. componentUuid renders in a background canvas without changing the active arena or selection. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid is not accepted. Not an interactive preview.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       elementUuid: { type: "string", minLength: 1 },
@@ -354,7 +356,7 @@ tools.push(
   {
     name: "snapshot_layout",
     description:
-      "Read rendered artboard geometry, visible DOM elements and image sources/load status. Includes desktop/mobile canvases, no private Studio model access. Use execute read for editable element UUIDs.",
+      "Read rendered artboard geometry, visible DOM elements and image sources/load status. componentUuid inspects a background canvas without changing the active arena or selection. Checks horizontal overflow and image loading only; interactions, responsive breakpoints and content overlap require preview testing. Use execute read for editable element UUIDs.",
     inputSchema: object({ componentUuid: { type: "string", minLength: 1 } }),
   },
   {

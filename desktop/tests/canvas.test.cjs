@@ -63,3 +63,29 @@ test('captures the requested artboard when multiple pages have the same viewport
  assert.equal(captured,'first');
  await assert.rejects(renderCanvas(overview,'https://canvas.example',{width:1366,artboardElementUuid:'missing'}),/not rendered/);
 });
+
+
+test('background reads use the marked document even when its iframe URL has no canvas flags', async () => {
+ let inspected = false;
+ const unrelated = {url:'https://canvas.example/static/host.html#canvas=true',executeJavaScript:async script=>{
+  assert.equal(script, 'document.documentElement.getAttribute("data-plasmic-canvas-inspection")');
+  return null;
+ }};
+ const background = {url:'about:blank',executeJavaScript:async script=>{
+  if (script === 'document.documentElement.getAttribute("data-plasmic-canvas-inspection")') return 'lease';
+  inspected=true;
+  return {ready:true,elements:[],images:[],width:1440,height:1024};
+ }};
+ const win={webContents:{getURL:()=> 'https://studio.example/projects/test',mainFrame:{framesInSubtree:[unrelated,background]}}};
+ const frames=await canvasFrames(win,'https://canvas.example','lease');
+ assert.equal(inspected,true);assert.equal(frames.length,1);assert.equal(frames[0].frame,background);
+});
+
+test('background reads skip a frame disposed while its document marker is read', async () => {
+ let destroyed = false;
+ const retiring = {isDestroyed:()=>destroyed,executeJavaScript:async()=>{destroyed=true;throw new Error('Render frame was disposed');}};
+ const background = {executeJavaScript:async script=>script.includes('getAttribute("data-plasmic-canvas-inspection")')?'lease':{ready:true,elements:[],images:[],width:1440,height:1024}};
+ const win={webContents:{getURL:()=> 'https://studio.example/projects/test',mainFrame:{framesInSubtree:[retiring,background]}}};
+ const frames=await canvasFrames(win,'https://canvas.example','lease');
+ assert.equal(frames.length,1);assert.equal(frames[0].frame,background);
+});

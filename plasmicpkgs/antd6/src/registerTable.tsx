@@ -9,6 +9,7 @@ import type {
   TableRowSelection,
 } from "antd/es/table/interface";
 import React from "react";
+import { columnTemplateHtml } from "./table-column-template";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
 
 interface TagOption {
@@ -143,7 +144,7 @@ export function AntdColumn(props: AntdColumnProps) {
       onClick: isEditing
         ? (event: React.MouseEvent) => event.preventDefault()
         : cell.props.onClick,
-      "data-plasmic-table-column": isEditing ? "true" : undefined,
+      "data-plasmic-canvas-part": isEditing ? "column" : undefined,
       "data-plasmic-table-column-selected": isSelected || undefined,
       style: {
         ...cell.props.style,
@@ -297,6 +298,9 @@ function TableWithColumns({
   return (
     <Table
       {...props}
+      data-plasmic-canvas-part-scope={
+        canvas && !canvas.interactive ? "true" : undefined
+      }
       columns={getColumns(
         children,
         body?.cell ?? "td",
@@ -558,6 +562,22 @@ export function registerTable(loader?: Registerable) {
     name: "plasmic-antd6-table-column",
     displayName: "Column",
     parentComponentName: "plasmic-antd6-table",
+    actions: [
+      {
+        type: "button-action",
+        label: "Convert to custom template",
+        hidden: (props: AntdColumnProps) =>
+          props.displayType === "custom" ||
+          (props.displayType === undefined && !!props.render),
+        onClick: async ({ componentProps, studioOps }) => {
+          await studioOps.replaceSlotContent({
+            slotName: "render",
+            html: columnTemplateHtml(componentProps),
+            props: { displayType: "custom" },
+          });
+        },
+      },
+    ],
     props: {
       title: {
         type: "slot",
@@ -584,7 +604,7 @@ export function registerTable(loader?: Registerable) {
         defaultValueHint: (ps: AntdColumnProps) =>
           ps.render ? "custom" : "text",
         description:
-          "Applies to every row. Double-click a cell to edit its shared content template.",
+          "Applies to every row. Use Convert to custom template to edit the preset as shared content.",
       },
       displayLabel: {
         type: "string",

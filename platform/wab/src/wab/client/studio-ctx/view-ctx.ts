@@ -48,7 +48,6 @@ import {
   ensureInstance,
   last,
   maybe,
-  maybes,
   spawn,
   swallow,
   switchType,
@@ -1105,6 +1104,35 @@ export class ViewCtx extends WithDbCtx {
     return [];
   }
 
+  selectionDom(selectable: Selectable, cloneKey?: string): JQuery | null {
+    const dom = this.renderState.sel2dom(selectable, this.canvasCtx, cloneKey);
+    if (!dom) {
+      return null;
+    }
+    const $dom = $(ensureArray(dom));
+    const part = $dom.attr("data-plasmic-canvas-part");
+    if (!part) {
+      return $dom;
+    }
+    // Projected parts can render in several places (for example column cells).
+    // The component declares the scope; every selection entry uses these bounds.
+    return $dom
+      .closest("[data-plasmic-canvas-part-scope]")
+      .find("[data-plasmic-canvas-part]")
+      .filter((_, element) => {
+        const val = this.dom2val($(element));
+        return (
+          $(element).attr("data-plasmic-canvas-part") === part &&
+          val instanceof ValNode &&
+          val.tpl === selectable.tpl &&
+          val.valOwner ===
+            (selectable instanceof ValNode
+              ? selectable.valOwner
+              : selectable.val?.valOwner)
+        );
+      });
+  }
+
   computeFocus(
     val: Selectable | null | undefined,
     anchorCloneKey: string | undefined = this.focusedCloneKey(),
@@ -1132,9 +1160,7 @@ export class ViewCtx extends WithDbCtx {
       .result();
     // It's possible for val to exist but to render as an empty React
     // component that has no real DOM element (e.g. Overlay).
-    const $focusedDom = maybes(val)((v) =>
-      this.renderState.sel2dom(v, this.canvasCtx, anchorCloneKey),
-    )((x) => $(ensureArray(x)) as JQuery)();
+    const $focusedDom = this.selectionDom(val, anchorCloneKey);
     const focusedCloneKey =
       val && isValSelectable(val) ? this.sel2cloneKey(val) : undefined;
     return { val, focusedTpl, focusedDom: $focusedDom, focusedCloneKey };

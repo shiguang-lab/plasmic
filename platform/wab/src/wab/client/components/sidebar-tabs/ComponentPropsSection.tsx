@@ -53,6 +53,7 @@ import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
 import { VARIABLE_LOWER } from "@/wab/shared/Labels";
+import { getSlotParams } from "@/wab/shared/SlotUtils";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { flattenComponent } from "@/wab/shared/cached-selectors";
 import {
@@ -114,6 +115,8 @@ import {
   isKnownClassNamePropType,
   isKnownEventHandler,
   isKnownFunctionType,
+  isKnownRenderExpr,
+  isKnownTplComponent,
 } from "@/wab/shared/model/classes";
 import { wabToTsType } from "@/wab/shared/model/model-util";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
@@ -288,7 +291,23 @@ export const ComponentPropsSection = observer(
     const actions = getComponentActions(viewCtx, component).filter((action) => {
       return !hackyCast(action).hidden?.(componentPropValues, ccContextData);
     });
-    if (params.length === 0 && actions.length === 0) {
+    const slotParams = getSlotParams(component).filter((param) => {
+      const propType = propTypes?.[param.variable.name];
+      if (typeof propType !== "object" || !("hidden" in propType)) {
+        return true;
+      }
+      const hidden = propType.hidden;
+      return !(typeof hidden === "function"
+        ? hidden(componentPropValues, ccContextData, {
+            path: [param.variable.name],
+          })
+        : hidden);
+    });
+    if (
+      params.length === 0 &&
+      actions.length === 0 &&
+      slotParams.length === 0
+    ) {
       return null;
     }
     const mainProps = params.filter(
@@ -329,6 +348,47 @@ export const ComponentPropsSection = observer(
                 ccContextData={ccContextData}
               />
             )}
+            {tab === "settings" &&
+              slotParams.map((param) => {
+                const expr = expsProvider
+                  .effectiveVs()
+                  .args.find((arg) => arg.param === param)?.expr;
+                if (!isKnownRenderExpr(expr) || !expr.tpl.length) {
+                  return null;
+                }
+                const slotType = propTypes?.[param.variable.name];
+                const title =
+                  typeof slotType === "object" && "displayName" in slotType
+                    ? slotType.displayName
+                    : param.variable.name;
+                return (
+                  <div
+                    key={`contents-${param.uuid}`}
+                    className="flex-col gap-xsm mb-m"
+                    data-test-id="slot-content-navigation"
+                  >
+                    <div className="dimfg">{title}: contents</div>
+                    {expr.tpl.map((child) => (
+                      <Button
+                        key={child.uuid}
+                        onClick={() =>
+                          viewCtx.change(() =>
+                            viewCtx.setStudioFocusByTpl(
+                              child,
+                              viewCtx.focusedCloneKey(),
+                            ),
+                          )
+                        }
+                      >
+                        {("name" in child && child.name) ||
+                          (isKnownTplComponent(child)
+                            ? getComponentDisplayName(child.component)
+                            : "Text / layout")}
+                      </Button>
+                    ))}
+                  </div>
+                );
+              })}
             {tree.map((node) => (
               <PropNode key={getPropNodeKey(node)} node={node} ctx={tplCtx} />
             ))}

@@ -232,6 +232,32 @@ describe("background arenas", () => {
     expect(studioCtx.getArenaStatus(userArena)).toBe("cached");
   });
 
+  it("renders a cached arena during a background read and restores its cached status", async () => {
+    const { studioCtx, arenas } = setup();
+    const arena = arenas[0];
+    const comp = site.components.find(
+      (c) => getDedicatedArena(site, c) === arena,
+    )!;
+    const fakeVc = new FakeViewCtx(
+      comp,
+      getArenaFrames(arena)[0],
+    ) as unknown as ViewCtx;
+    studioCtx.viewCtxs.push(fakeVc);
+    (studioCtx as any).arenaViewStates.set(arena, {
+      isAlive: true,
+      isBackground: false,
+      lastAccess: Date.now(),
+      lastViewSnapshot: undefined,
+    });
+    const currentArena = studioCtx.currentArena;
+    expect(studioCtx.getArenaStatus(arena)).toBe("cached");
+    await studioCtx.withBackgroundViewCtxForComponent(comp, async () => {
+      expect(studioCtx.getArenaStatus(arena)).toBe("background");
+      expect(studioCtx.currentArena).toBe(currentArena);
+    });
+    expect(studioCtx.getArenaStatus(arena)).toBe("cached");
+  });
+
   it("withBackgroundViewCtxForComponent keeps the arena alive until the callback resolves", async () => {
     const { studioCtx, arenas } = setup();
     const [userArena, bgArena] = arenas;

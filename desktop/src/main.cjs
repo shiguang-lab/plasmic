@@ -110,6 +110,11 @@ async function startDesktop() {
       "Bundled assets do not match desktop.config.json; run npm run assets.",
     );
   }
+  app.setAboutPanelOptions({
+    applicationName: "Plasmic",
+    applicationVersion: app.getVersion(),
+    version: `${manifest.build.kind} · ${manifest.build.revision?.slice(0, 10) || "unknown"}${manifest.build.dirty ? " + local changes" : ""}\nRenderer ${manifest.build.rendererHash.slice(0, 12)}\nBuilt ${manifest.build.builtAt}`,
+  });
   if (!desktopSession) {
     desktopSession = session.fromPartition("persist:plasmic-desktop");
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
@@ -239,7 +244,7 @@ async function startDesktop() {
       }
       return googleAuth.command(command);
     });
-    controller = new DesktopController(() => mainWindow, config);
+    controller = new DesktopController(() => mainWindow, config, () => startingDesktop);
     stopRpc = await startRpc(app.getPath("userData"), (method, input) =>
       controller.dispatch(method, input),
     );

@@ -1,8 +1,7 @@
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
-import { useTagLeftOffset } from "@/wab/client/components/canvas/HoverBox/useTagLeftOffset";
-import { isTableColumn } from "@/wab/client/components/canvas/table-column-editing";
+import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import {
   BASE_VARIANT_COLOR,
@@ -19,7 +18,6 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
 import { getArenaFrames } from "@/wab/shared/Arenas";
-import { maybe } from "@/wab/shared/common";
 import {
   SQ,
   Selectable,
@@ -27,7 +25,6 @@ import {
 } from "@/wab/shared/core/selection";
 import { isTplTagOrComponent, isTplVariantable } from "@/wab/shared/core/tpls";
 import cn from "classnames";
-import $ from "jquery";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -90,22 +87,7 @@ function PreselectBox_(props: {
 }) {
   const { selectable, cloneKey, studioCtx, viewCtx, isHoveredElt } = props;
 
-  const $element = maybe(
-    viewCtx &&
-      viewCtx.renderState.sel2dom(selectable, viewCtx.canvasCtx, cloneKey),
-    (dom) => {
-      const $dom = $(dom);
-      if (isTableColumn(selectable.tpl)) {
-        return $dom
-          .closest("table")
-          .find("[data-plasmic-table-column]")
-          .filter(
-            (_, cell) => viewCtx?.dom2val($(cell))?.tpl === selectable.tpl,
-          );
-      }
-      return $dom;
-    },
-  );
+  const $element = viewCtx?.selectionDom(selectable, cloneKey) ?? undefined;
   const $focused =
     viewCtx === studioCtx.focusedViewCtx() && viewCtx?.focusedDomElt();
 
@@ -161,10 +143,11 @@ function PreselectBoxInner(props: {
   const scalerRect = frameToScalerRect(frameRect, viewCtx);
   const cssProps = cssPropsForInvertTransform(studioCtx.zoom, scalerRect);
 
-  const leftOffset = useTagLeftOffset(
+  const tagPlacement = useTagPlacement(
     hoverTagRef,
     scalerRect.width,
     studioCtx.zoom,
+    viewCtx,
   );
 
   const hoverVtm = viewCtx.hoverVariantTplMgr(selectable);
@@ -207,10 +190,7 @@ function PreselectBoxInner(props: {
         }}
       />
       {shouldShowHoverTag && (
-        <div
-          className={styles.hoverBoxTagContainer}
-          style={{ left: `${leftOffset}px` }}
-        >
+        <div className={styles.hoverBoxTagContainer} style={tagPlacement}>
           <div ref={hoverTagRef} className="node-outline-tag">
             {tagName && (
               <EditableNodeLabel

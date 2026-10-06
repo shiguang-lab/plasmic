@@ -28,7 +28,22 @@ families still require the network. Docker and curl
 are build dependencies only. Custom project fonts and external project hosts
 remain project-managed resources.
 
-To bundle a production frontend built from this checkout instead:
+To build the local SDK, business components, canvas bundles and Studio, then
+prepare assets and package the app in one command:
+
+```sh
+npm run package:local
+```
+
+Both workspaces must already have their dependencies installed. This command
+links these local packages into the consumers' `node_modules` before building;
+reinstalling workspace dependencies restores normal dependency resolution.
+Quit and reopen the packaged app after a successful build. About Plasmic and
+`get_app_state.build` show the source commit, local/release kind, dirty status,
+build time and renderer hash. Packaging verifies both renderer and desktop
+source hashes and rejects assets changed since preparation.
+
+To bundle an already completed production frontend instead:
 
 ```sh
 npm run assets -- --from ../platform/wab/build
@@ -49,6 +64,28 @@ produces a per-user NSIS installer, and Linux produces an AppImage. macOS
 Developer ID signing/notarization requires Apple credentials and a macOS
 build environment. `package:mac` defaults to Apple Silicon; Intel builds use
 `npm run package -- darwin x64`. No backend or database is included.
+
+## Canvas reads and verification
+
+`get_screenshot`, `snapshot_layout` and exports with `componentUuid` pin a
+background canvas until the read completes. They keep the active arena,
+selection and viewport. Workspace screenshots capture the current editor view
+and reject `componentUuid`; use artboard mode for another component. Editor
+mutations serialize, while state queries and independent media jobs proceed
+without waiting for the editor queue. State reports queued/running operations.
+
+`validate` checks the authored model. `snapshot_layout` checks horizontal
+overflow and unloaded images in rendered DOM, and reports when its 2,000-node
+limit truncates inspection. Neither checks interactions, content overlap or
+responsive breakpoints. Artboard exports are static; `sourceViewport` and
+`resized` distinguish the source canvas from a resized rendering. Verify
+interactions and responsive behavior in Preview at the actual viewport size.
+
+Projected code-component parts can mark DOM roots with
+`data-plasmic-canvas-part="part-name"` inside a
+`data-plasmic-canvas-part-scope` ancestor. Studio unifies the bounds of matching
+parts belonging to the same authored node and owner within that scope. Table
+uses this contract for column cells; hierarchy selection stays component-neutral.
 
 ## NAS updates and releases
 

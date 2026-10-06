@@ -10,6 +10,9 @@ $parent-stack-hover-color: #f60;
   transform: translateY(-100%);
   display: flex;
   flex-direction: column;
+  :global(.node-outline-tag) {
+    pointer-events: inherit;
+  }
 
   & > * {
     position: relative !important;

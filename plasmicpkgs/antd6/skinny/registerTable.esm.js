@@ -11,6 +11,65 @@ import {
   r as registerComponentHelper,
 } from "./utils-CSvRw6Za.esm.js";
 
+const attr = (value) =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+const binding = (code) => `{{ ${code} }}`;
+function columnTemplateHtml(props) {
+  const value = 'cell == null ? "" : String(cell)';
+  const label =
+    props.displayLabel == null ? value : JSON.stringify(props.displayLabel);
+  const text = (code = value) => `<span>${attr(binding(code))}</span>`;
+  const component = (name, values, children = "", attributes = "") =>
+    `<plasmic-component data-plasmic-component="plasmic-antd6-${name}" data-props="${attr(JSON.stringify(values))}" ${attributes}>${children}</plasmic-component>`;
+  const visible = `data-visible-if="${attr(binding('cell != null && String(cell) !== ""'))}"`;
+  const size = props.contentSize ?? 32;
+  switch (props.displayType) {
+    case "tag": {
+      const option = `${JSON.stringify(props.tagOptions ?? [])}.find(option => option.value === String(tagValue))`;
+      const colors =
+        '["blue","green","orange","purple","cyan","magenta","red","gold"]';
+      return component(
+        "tag",
+        {
+          color: binding(
+            `(${option})?.color || ${JSON.stringify(props.tagColor ?? "")} || ${colors}[Array.from(String(tagValue)).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 0) % 8]`,
+          ),
+        },
+        `<slot name="children">${text(`(${option})?.label ?? String(tagValue)`)}</slot>`,
+        `data-repeat="${attr(binding("(Array.isArray(cell) ? cell : [cell]).filter(value => value != null)"))}" data-repeat-item="tagValue"`,
+      );
+    }
+    case "avatar":
+      return component(
+        "avatar",
+        { src: binding(value), alt: binding(label), size },
+        "",
+        visible,
+      );
+    case "image":
+      return component(
+        "image",
+        { src: binding(value), alt: binding(label), width: size, height: size },
+        "",
+        visible,
+      );
+    case "button":
+      return component(
+        "button",
+        { size: "small" },
+        `<slot name="children">${text(label)}</slot>`,
+      );
+    case "link":
+      return `<a href="${attr(binding(value))}" ${visible}${props.openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : ""}>${text(label)}</a>`;
+    default:
+      return text();
+  }
+}
+
 const tagColors = [
   "blue",
   "green",
@@ -115,7 +174,7 @@ function AntdColumn(props) {
       onClick: isEditing
         ? (event) => event.preventDefault()
         : cell.props.onClick,
-      "data-plasmic-table-column": isEditing ? "true" : void 0,
+      "data-plasmic-canvas-part": isEditing ? "column" : void 0,
       "data-plasmic-table-column-selected": isSelected || void 0,
       style: {
         ...cell.props.style,
@@ -238,6 +297,8 @@ function TableWithColumns({ children, columns, components, ...props }) {
   const body = typeof components?.body === "object" ? components.body : void 0;
   return /* @__PURE__ */ React.createElement(Table, {
     ...props,
+    "data-plasmic-canvas-part-scope":
+      canvas && !canvas.interactive ? "true" : void 0,
     columns: getColumns(
       children,
       body?.cell ?? "td",
@@ -471,6 +532,22 @@ function registerTable(loader) {
     name: "plasmic-antd6-table-column",
     displayName: "Column",
     parentComponentName: "plasmic-antd6-table",
+    actions: [
+      {
+        type: "button-action",
+        label: "Convert to custom template",
+        hidden: (props) =>
+          props.displayType === "custom" ||
+          (props.displayType === void 0 && !!props.render),
+        onClick: async ({ componentProps, studioOps }) => {
+          await studioOps.replaceSlotContent({
+            slotName: "render",
+            html: columnTemplateHtml(componentProps),
+            props: { displayType: "custom" },
+          });
+        },
+      },
+    ],
     props: {
       title: {
         type: "slot",
@@ -496,7 +573,7 @@ function registerTable(loader) {
         ],
         defaultValueHint: (ps) => (ps.render ? "custom" : "text"),
         description:
-          "Applies to every row. Double-click a cell to edit its shared content template.",
+          "Applies to every row. Use Convert to custom template to edit the preset as shared content.",
       },
       displayLabel: {
         type: "string",

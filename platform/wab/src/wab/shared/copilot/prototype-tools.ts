@@ -486,6 +486,26 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({ componentUuid: uuid }).strict(),
     outputSchema: resources,
   },
+  beginCanvasInspection: {
+    toolName: "beginCanvasInspection",
+    title: "Prepare a background canvas read",
+    description:
+      "Pin a rendered component canvas for a desktop inspection without changing the visible arena, selection or viewport. Use the returned inspectionId to find the marked canvas DOM. Always call endCanvasInspection, including after failures; the lease expires after two minutes.",
+    inputSchema: z.object({ componentUuid: uuid }).strict(),
+    outputSchema: z.object({
+      inspectionId: uuid,
+      componentUuid: uuid,
+      frameUuid: uuid,
+    }),
+  },
+  endCanvasInspection: {
+    toolName: "endCanvasInspection",
+    title: "Release a background canvas read",
+    description:
+      "Release the background canvas pinned by beginCanvasInspection. Leaves the user's editor context unchanged.",
+    inputSchema: z.object({ inspectionId: uuid }).strict(),
+    outputSchema: z.object({ released: z.boolean() }),
+  },
   scrollElementIntoView: {
     toolName: "scrollElementIntoView",
     title: "Scroll a rendered element into view",
@@ -520,6 +540,8 @@ const EDIT_TOOL_META = {
       .object({ componentUuids: z.array(uuid).optional() })
       .strict(),
     outputSchema: z.object({
+      check: z.literal("model"),
+      notChecked: z.array(z.string()),
       valid: z.boolean(),
       errors: z.array(z.string()),
       warnings: z.array(z.string()),
