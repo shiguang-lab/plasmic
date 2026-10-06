@@ -69,6 +69,10 @@ export function PlainLinkButton(props: PlainLinkButtonProps) {
     >
       <button
         {...forwardedProps}
+        aria-label={
+          props["aria-label"] ??
+          (typeof tooltip === "string" ? tooltip : undefined)
+        }
         className={cx(
           {
             "non-link-btn": true,

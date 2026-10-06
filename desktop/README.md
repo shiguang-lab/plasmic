@@ -261,7 +261,7 @@ The server provides these tools:
 
 | Tool                             | Function                                                                       |
 | -------------------------------- | ------------------------------------------------------------------------------ |
-| `get_app_state`                  | Read readiness, active project and exact editor schemas                        |
+| `get_app_state`                  | Read readiness, project, focused artboard, selection/editing scope and exact editor schemas                        |
 | `list_projects` / `open_design`  | List accessible NAS projects and open a design                                 |
 | `read_skill` / `get_style`       | Editing workflow and local palette/spacing presets                             |
 | `execute` / `execute_batch`      | Validated edits; a batch rolls back completely on failure and is one undo step |

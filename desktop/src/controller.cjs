@@ -86,6 +86,7 @@ class DesktopController {
       projectId: url.pathname.match(/^\/projects\/([^/]+)/)?.[1] || null,
       ready: metadata.ready,
       editorTools: metadata.tools,
+      editorContext: metadata.editorContext ?? null,
       operations: [...this.operations.values()],
     };
   }
@@ -504,27 +505,28 @@ class DesktopController {
               "responsive-breakpoints",
               "content-overlap",
             ],
-            frames: (
-              await canvasFrames(win, inspectionId)
-            ).map(({ layout }) => ({
-              ...layout,
-              problems: [
-                ...layout.elements
-                  .filter(
-                    (el) => el.horizontalOverflow,
-                  )
-                  .map((el) => ({
-                    type: "horizontal-overflow",
-                    elementUuid: el.elementUuid,
-                    index: el.index,
-                    bounds: { x: el.x, width: el.width },
-                    viewportWidth: layout.width,
-                  })),
-                ...layout.images
-                  .filter((image) => !image.loaded)
-                  .map((image) => ({ type: "image-unloaded", src: image.src })),
-              ],
-            })),
+            frames: (await canvasFrames(win, inspectionId)).map(
+              ({ layout }) => ({
+                ...layout,
+                problems: [
+                  ...layout.elements
+                    .filter((el) => el.horizontalOverflow)
+                    .map((el) => ({
+                      type: "horizontal-overflow",
+                      elementUuid: el.elementUuid,
+                      index: el.index,
+                      bounds: { x: el.x, width: el.width },
+                      viewportWidth: layout.width,
+                    })),
+                  ...layout.images
+                    .filter((image) => !image.loaded)
+                    .map((image) => ({
+                      type: "image-unloaded",
+                      src: image.src,
+                    })),
+                ],
+              }),
+            ),
           };
         }
         if (method === "export_design") {

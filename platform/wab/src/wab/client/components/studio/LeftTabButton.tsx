@@ -20,6 +20,16 @@ function LeftTabButton(props: LeftTabButtonProps) {
   let res = (
     <PlasmicLeftTabButton
       {...rest}
+      root={{
+        props: {
+          "aria-label":
+            typeof props.label === "string"
+              ? props.label
+              : typeof tooltip === "string"
+                ? tooltip
+                : undefined,
+        },
+      }}
       {...({
         "data-state-isselected": !!props.isSelected ? "true" : "false",
       } as any)}

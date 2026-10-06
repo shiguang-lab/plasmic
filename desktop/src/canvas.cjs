@@ -30,6 +30,7 @@ async function inspectCanvas() {
       !!document.querySelector(".__wab_val_root") ||
       (new URLSearchParams(location.hash.slice(1)).get("live") === "true" &&
         visible.length > 0),
+    frameUuid: document.documentElement.getAttribute("data-plasmic-frame-uuid"),
     width: innerWidth,
     height: innerHeight,
     contentHeight: document.documentElement.scrollHeight,
@@ -84,6 +85,7 @@ async function inspectCanvas() {
 function snapshotDocument() {
   const clone = document.documentElement.cloneNode(true);
   clone.removeAttribute("data-plasmic-canvas-inspection");
+  clone.removeAttribute("data-plasmic-frame-uuid");
   const originals = document.documentElement.querySelectorAll("*");
   const copies = clone.querySelectorAll("*");
   // Preserve inherited typography when canvas reset CSS is reloaded for export.
@@ -129,6 +131,7 @@ function snapshotDocument() {
     )
     .forEach((el) => el.remove());
   clone.querySelectorAll("*").forEach((el) => {
+    el.removeAttribute("data-plasmic-table-column-selected");
     [...el.attributes].forEach((attr) => {
       if (
         /^on/i.test(attr.name) ||
@@ -141,6 +144,8 @@ function snapshotDocument() {
   const css = [...document.styleSheets]
     .map((sheet) => {
       try {
+        if (sheet.ownerNode?.hasAttribute("data-plasmic-editor-style"))
+          return "";
         return [...sheet.cssRules].map((rule) => rule.cssText).join("\n");
       } catch {
         return "";
@@ -160,7 +165,9 @@ function snapshotDocument() {
   policy.httpEquiv = "Content-Security-Policy";
   policy.content = `script-src 'nonce-${nonce}'; object-src 'none'; frame-src 'none'; form-action 'none'`;
   head.prepend(policy);
-  clone.querySelectorAll('meta[charset], meta[http-equiv="Content-Type" i]').forEach((el) => el.remove());
+  clone
+    .querySelectorAll('meta[charset], meta[http-equiv="Content-Type" i]')
+    .forEach((el) => el.remove());
   const encoding = document.createElement("meta");
   encoding.setAttribute("charset", "utf-8");
   head.prepend(encoding);
@@ -263,25 +270,39 @@ async function canvasFrames(win, inspectionId) {
 }
 async function renderCanvas(win, input = {}) {
   const available = await canvasFrames(win, input.inspectionId);
+  const matchingFrames = input.frameUuid
+    ? available.filter(({ layout }) => layout.frameUuid === input.frameUuid)
+    : available;
   const frames = input.artboardElementUuid
-    ? available.filter(({ layout }) =>
+    ? matchingFrames.filter(({ layout }) =>
         layout.elements.some(
           (el) => el.elementUuid === input.artboardElementUuid,
         ),
       )
-    : available;
+    : matchingFrames;
   if (!frames.length)
     throw new Error(
       "Artboard containing the requested element is not rendered",
     );
-  const selected = input.width
-    ? frames.reduce((a, b) =>
-        Math.abs(a.layout.width - input.width) <
-        Math.abs(b.layout.width - input.width)
-          ? a
-          : b,
-      )
-    : frames[0];
+  let selected;
+  if (input.frameUuid || input.artboardElementUuid || frames.length === 1) {
+    if (frames.length !== 1)
+      throw new Error("Multiple artboards match; specify frameUuid");
+    selected = frames[0];
+  } else {
+    const context = await win.webContents.executeJavaScript(`(async () => {
+      const result = await window.PLASMIC_AI_TOOLS.getEditorContext({});
+      if (!result.success) throw new Error(result.error.message);
+      return JSON.parse(result.output);
+    })()`);
+    selected = frames.find(
+      ({ layout }) => layout.frameUuid === context.frameUuid,
+    );
+    if (!selected)
+      throw new Error(
+        "Multiple artboards available; select an artboard or specify frameUuid",
+      );
+  }
   const html = await selected.frame.executeJavaScript(js(snapshotDocument));
   const width = input.width || selected.layout.width;
   const preview = new BrowserWindow({
@@ -379,6 +400,7 @@ async function renderCanvas(win, input = {}) {
       webp,
       width: rect?.width || width,
       height: rect?.height || height,
+      frameUuid: selected.layout.frameUuid,
       sourceViewport: {
         width: selected.layout.width,
         height: selected.layout.height,

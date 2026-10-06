@@ -12,6 +12,7 @@ import {
   canRenderPrivateStyleVariants,
   getOrderedSectionRender,
 } from "@/wab/client/components/sidebar-tabs/Sections";
+import { SelectionPath } from "@/wab/client/components/sidebar-tabs/SelectionPath";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
@@ -282,6 +283,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
 
   return providesStyleComponent(sc)(
     <NewAnimationContext.Provider value={newAnimationContextValue}>
+      <SelectionPath tpl={tpl} viewCtx={viewCtx} />
       {isTplSlot(tpl) && <TplSlotMessage tpl={tpl} viewCtx={viewCtx} />}
       {ancestorSlot && !isBase && !isCodeComponentSlot(ancestorSlot) && (
         <NonBaseTplSlotDescendantMessage

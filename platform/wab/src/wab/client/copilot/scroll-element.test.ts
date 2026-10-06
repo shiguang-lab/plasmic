@@ -189,3 +189,29 @@ it("requires an artboard when the target has multiple unfocused renderings", asy
     ).frameUuid,
   ).toBe(frames[0].uuid);
 });
+
+it("selects an explicit rendered instance without mutating the design", async () => {
+  const f = await fixture();
+  f.vc.change.mockImplementation(async (fn) => {
+    fn();
+    return undefined as any;
+  });
+  f.vc.setStudioFocusBySelectable.mockClear();
+  const result = await f.call("selectElement", {
+    ...f.input,
+    frameUuid: f.frame.uuid,
+    instanceIndex: 1,
+  });
+  expect(result).toEqual({
+    ...f.input,
+    frameUuid: f.frame.uuid,
+    instanceIndex: 1,
+  });
+  expect(f.vc.setStudioFocusBySelectable).toHaveBeenCalledWith(
+    f.vc.renderState.fullKey2val.mock.results[0].value,
+  );
+  expect(f.change).not.toHaveBeenCalled();
+  await expect(
+    f.call("selectElement", { ...f.input, frameUuid: "missing" }),
+  ).rejects.toThrow("not rendered");
+});

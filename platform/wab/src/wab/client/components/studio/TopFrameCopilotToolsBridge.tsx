@@ -1,5 +1,5 @@
-import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { CopilotToolCallResult } from "@/wab/client/frame-ctx/host-frame-api";
+import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
@@ -33,31 +33,33 @@ export function TopFrameCopilotToolsBridge() {
       Object.keys(PROTOTYPE_TOOL_META).map((name) => [
         name,
         (input: Record<string, unknown>) => {
-          const call = pending.then(
-            async (): Promise<CopilotToolCallResult> => {
-              try {
-                if (!active) {
-                  throw new Error(
-                    "This project session has closed; reconnect to the open project.",
-                  );
-                }
-                await hostFrameApi.waitForStudioReady();
-                return await hostFrameApi.executeCopilotToolCall(name, input);
-              } catch (error) {
-                return {
-                  success: false,
-                  error: {
-                    type: "EXECUTION_FAILED",
-                    message: formatErrorMessage(error),
-                  },
-                };
+          const call = (
+            name === "getEditorContext" ? Promise.resolve() : pending
+          ).then(async (): Promise<CopilotToolCallResult> => {
+            try {
+              if (!active) {
+                throw new Error(
+                  "This project session has closed; reconnect to the open project.",
+                );
               }
-            },
-          );
-          pending = call.then(
-            () => undefined,
-            () => undefined,
-          );
+              await hostFrameApi.waitForStudioReady();
+              return await hostFrameApi.executeCopilotToolCall(name, input);
+            } catch (error) {
+              return {
+                success: false,
+                error: {
+                  type: "EXECUTION_FAILED",
+                  message: formatErrorMessage(error),
+                },
+              };
+            }
+          });
+          if (name !== "getEditorContext") {
+            pending = call.then(
+              () => undefined,
+              () => undefined,
+            );
+          }
           return call;
         },
       ]),

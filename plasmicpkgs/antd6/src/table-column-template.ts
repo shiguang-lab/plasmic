@@ -10,35 +10,32 @@ const binding = (code: string) => `{{ ${code} }}`;
 
 /** Preserve a column preset as editable nodes when the user explicitly converts it. */
 export function columnTemplateHtml(props: AntdColumnProps): string {
-  const value = 'cell == null ? "" : String(cell)';
-  const label =
-    props.displayLabel == null ? value : JSON.stringify(props.displayLabel);
-  const text = (code = value) => `<span>${attr(binding(code))}</span>`;
+  const value = "column.text";
+  const label = "column.label";
+  const text = (code = value) =>
+    `<span data-plasmic-name="显示文字">${attr(binding(code))}</span>`;
   const component = (
     name: string,
     values: Record<string, unknown>,
     children = "",
     attributes = "",
   ) =>
-    `<plasmic-component data-plasmic-component="plasmic-antd6-${name}" data-props="${attr(JSON.stringify(values))}" ${attributes}>${children}</plasmic-component>`;
+    `<plasmic-component data-plasmic-component="plasmic-antd6-${name}" data-plasmic-name="${attr(`${String(props.dataIndex ?? "单元格")} · ${name}模板`)}" data-props="${attr(JSON.stringify(values))}" ${attributes}>${children}</plasmic-component>`;
   const visible = `data-visible-if="${attr(binding('cell != null && String(cell) !== ""'))}"`;
-  const size = props.contentSize ?? 32;
+  const size = binding("column.size");
   switch (props.displayType) {
-    case "tag": {
-      const option = `${JSON.stringify(props.tagOptions ?? [])}.find(option => option.value === String(tagValue))`;
-      const colors =
-        '["blue","green","orange","purple","cyan","magenta","red","gold"]';
+    case "tag":
       return component(
         "tag",
         {
-          color: binding(
-            `(${option})?.color || ${JSON.stringify(props.tagColor ?? "")} || ${colors}[Array.from(String(tagValue)).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 0) % 8]`,
-          ),
+          value: binding("tagValue"),
+          options: binding("column.tagOptions"),
+          defaultColor: binding("column.tagColor"),
+          automaticColor: true,
         },
-        `<slot name="children">${text(`(${option})?.label ?? String(tagValue)`)}</slot>`,
-        `data-repeat="${attr(binding("(Array.isArray(cell) ? cell : [cell]).filter(value => value != null)"))}" data-repeat-item="tagValue"`,
+        '<slot name="children"></slot>',
+        `data-repeat="${attr(binding("column.values"))}" data-repeat-item="tagValue"`,
       );
-    }
     case "avatar":
       return component(
         "avatar",
@@ -66,7 +63,7 @@ export function columnTemplateHtml(props: AntdColumnProps): string {
         `<slot name="children">${text(label)}</slot>`,
       );
     case "link":
-      return `<a href="${attr(binding(value))}" ${visible}${props.openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : ""}>${text(label)}</a>`;
+      return `<a data-plasmic-name="链接模板" href="${attr(binding(value))}" ${visible} ${`target="${attr(binding('column.openInNewTab ? "_blank" : "_self"'))}" rel="noopener noreferrer"`}>${text(label)}</a>`;
     default:
       return text();
   }

@@ -2,13 +2,13 @@
 
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
 import { PublicLink } from "@/wab/client/components/PublicLink";
-import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import {
   MenuBuilder,
   TextAndShortcut,
 } from "@/wab/client/components/menu-builder";
 import { AvatarGallery } from "@/wab/client/components/studio/Avatar";
+import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
@@ -70,17 +70,27 @@ function _TopBar({ preview }: TopBarProps) {
     // header's empty space there instead of marking this host iframe draggable.
     const update = () => {
       const bounds = root.getBoundingClientRect();
-      const start = Math.max(
-        left.getBoundingClientRect().left,
-        ...Array.from(left.children, (child) => child.getBoundingClientRect().right),
-      ) + 8;
+      const start =
+        Math.max(
+          left.getBoundingClientRect().left,
+          ...Array.from(
+            left.children,
+            (child) => child.getBoundingClientRect().right,
+          ),
+        ) + 8;
       const end = right.getBoundingClientRect().left - 8;
-      spawn(topFrameApi.setDesktopTitleBarDragRegion(end > start ? {
-        left: start,
-        top: bounds.top,
-        width: end - start,
-        height: bounds.height,
-      } : null));
+      spawn(
+        topFrameApi.setDesktopTitleBarDragRegion(
+          end > start
+            ? {
+                left: start,
+                top: bounds.top,
+                width: end - start,
+                height: bounds.height,
+              }
+            : null,
+        ),
+      );
     };
     const resizeObserver = new ResizeObserver(update);
     const observe = () => {
@@ -395,7 +405,10 @@ function _TopBar({ preview }: TopBarProps) {
   return (
     <>
       <PlasmicTopBar
-        root={{ ref: topBarRef, className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isObserver ? "topbar--isObserver" : ""}` }}
+        root={{
+          ref: topBarRef,
+          className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isObserver ? "topbar--isObserver" : ""}`,
+        }}
         left={{ ref: leftRef }}
         right={{ ref: rightRef }}
         mode={preview ? "preview" : undefined}
@@ -427,7 +440,11 @@ function _TopBar({ preview }: TopBarProps) {
           children: studioCtx.siteInfo.name,
         }}
         projectMenu={{
-          props: { ...contextMenuProps, "data-test-id": "project-menu-btn" },
+          props: {
+            ...contextMenuProps,
+            "aria-label": "项目菜单",
+            "data-test-id": "project-menu-btn",
+          },
           wrap: (n) =>
             studioCtx.canEditProject() && canEditProjectConfig(uiConfig)
               ? n
@@ -453,6 +470,7 @@ function _TopBar({ preview }: TopBarProps) {
           ),
         }}
         play={{
+          "aria-label": "预览当前画板",
           onClick: () => {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
@@ -467,6 +485,7 @@ function _TopBar({ preview }: TopBarProps) {
           ...{ "data-test-id": "enter-live-mode-btn" },
         }}
         stop={{
+          "aria-label": "返回编辑",
           onClick: () => {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
@@ -497,6 +516,7 @@ function _TopBar({ preview }: TopBarProps) {
         commentButton={{
           wrap: studioCtx.showComments() ? undefined : () => null,
           props: {
+            "aria-label": "评论",
             active: studioCtx.showCommentsPanel,
             onClick: () => studioCtx.toggleCommentsPanel(),
             "data-test-id": "top-comment-icon",
@@ -505,6 +525,7 @@ function _TopBar({ preview }: TopBarProps) {
         aiButton={{
           wrap: studioCtx.chatCopilotEnabled() ? undefined : () => null,
           props: {
+            "aria-label": "AI 编辑助手",
             active: studioCtx.isCopilotChatOpen,
             onClick: () => spawn(topFrameApi.toggleCopilotChat()),
           },

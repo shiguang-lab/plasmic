@@ -73,7 +73,11 @@ export const AntdMentions: typeof Ant.Mentions = Ant.Mentions;
 export function AntdPopconfirm(
   props: React.ComponentProps<typeof Ant.Popconfirm> & CanvasOverlayProps,
 ) {
-  const { props: rest, open, isEditing } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
+  const {
+    props: rest,
+    open,
+    isEditing,
+  } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   return (
     <Ant.Popconfirm
       {...rest}
@@ -105,7 +109,54 @@ export const AntdSplitterPanel: typeof Ant.Splitter.Panel = Ant.Splitter.Panel;
 export const AntdStatistic: typeof Ant.Statistic = Ant.Statistic;
 export const AntdStatisticTimer: typeof Ant.Statistic.Timer =
   Ant.Statistic.Timer;
-export const AntdTag: typeof Ant.Tag = Ant.Tag;
+export interface TagValueOption {
+  value: string;
+  label?: string;
+  color?: string;
+}
+export function AntdTag({
+  value,
+  options,
+  defaultColor,
+  automaticColor,
+  children,
+  color,
+  ...props
+}: React.ComponentProps<typeof Ant.Tag> & {
+  value?: string;
+  options?: TagValueOption[];
+  defaultColor?: string;
+  automaticColor?: boolean;
+}) {
+  const option = options?.find((item) => item.value === value);
+  const colors = [
+    "blue",
+    "green",
+    "orange",
+    "purple",
+    "cyan",
+    "magenta",
+    "red",
+    "gold",
+  ];
+  const hash = Array.from(value ?? "").reduce(
+    (current, char) => (current * 31 + char.charCodeAt(0)) >>> 0,
+    0,
+  );
+  return (
+    <Ant.Tag
+      {...props}
+      color={
+        color ??
+        (option?.color ||
+          defaultColor ||
+          (automaticColor ? colors[hash % colors.length] : undefined))
+      }
+    >
+      {children ?? option?.label ?? value}
+    </Ant.Tag>
+  );
+}
 export const AntdTagCheckable: typeof Ant.Tag.CheckableTag =
   Ant.Tag.CheckableTag;
 export const AntdTimeline: typeof Ant.Timeline = Ant.Timeline;
@@ -738,18 +789,25 @@ export function registerAdditional(loader?: Registerable) {
     },
     { states: valueState("text") },
   );
-  register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
-    previewOpen: previewOpenProp,
-    icon: { type: "slot", hidePlaceholder: true },
-    children: slot("Delete"),
-    title: { ...slot("Delete this item?"), hidePlaceholder: true },
-    description: { type: "slot", hidePlaceholder: true },
-    okText: "string",
-    cancelText: "string",
-    disabled: "boolean",
-    onConfirm: event("event", "object"),
-    onCancel: event("event", "object"),
-  }, { canvasOverlay });
+  register(
+    loader,
+    AntdPopconfirm,
+    "popconfirm",
+    "AntdPopconfirm",
+    {
+      previewOpen: previewOpenProp,
+      icon: { type: "slot", hidePlaceholder: true },
+      children: slot("Delete"),
+      title: { ...slot("Delete this item?"), hidePlaceholder: true },
+      description: { type: "slot", hidePlaceholder: true },
+      okText: "string",
+      cancelText: "string",
+      disabled: "boolean",
+      onConfirm: event("event", "object"),
+      onCancel: event("event", "object"),
+    },
+    { canvasOverlay },
+  );
   register(loader, AntdQRCode, "qr-code", "AntdQRCode", {
     value: { type: "string", defaultValue: "https://publib.cn" },
     size: "number",
@@ -878,6 +936,26 @@ export function registerAdditional(loader?: Registerable) {
     },
   );
   register(loader, AntdTag, "tag", "AntdTag", {
+    value: {
+      type: "string",
+      displayName: "字段值",
+      description: "从数据绑定读取；通过下方映射设置显示文字与颜色。",
+    },
+    options: {
+      type: "array",
+      displayName: "标签文字和颜色",
+      itemType: {
+        type: "object",
+        nameFunc: (item: TagValueOption) => item.label || item.value,
+        fields: {
+          value: { type: "string", displayName: "字段值" },
+          label: { type: "string", displayName: "显示文字" },
+          color: { type: "color", displayName: "颜色" },
+        },
+      },
+    },
+    defaultColor: { type: "color", displayName: "默认颜色" },
+    automaticColor: { type: "boolean", displayName: "按值自动分配颜色" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: slot("Tag"),
     color: { type: "color" },

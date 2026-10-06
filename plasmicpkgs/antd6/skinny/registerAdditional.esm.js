@@ -91,7 +91,12 @@ const AntdSplitter = Ant.Splitter;
 const AntdSplitterPanel = Ant.Splitter.Panel;
 const AntdStatistic = Ant.Statistic;
 const AntdStatisticTimer = Ant.Statistic.Timer;
-const AntdTag = Ant.Tag;
+function AntdTag({ value, options, defaultColor, automaticColor, children, color, ...props }) {
+  const option = options?.find((item) => item.value === value);
+  const colors = ["blue", "green", "orange", "purple", "cyan", "magenta", "red", "gold"];
+  const hash = Array.from(value ?? "").reduce((current, char) => current * 31 + char.charCodeAt(0) >>> 0, 0);
+  return /* @__PURE__ */ React.createElement(Ant.Tag, { ...props, color: color ?? (option?.color || defaultColor || (automaticColor ? colors[hash % colors.length] : void 0)) }, children ?? option?.label ?? value);
+}
 const AntdTagCheckable = Ant.Tag.CheckableTag;
 const AntdTimeline = Ant.Timeline;
 const AntdTreeSelect = Ant.TreeSelect;
@@ -787,6 +792,14 @@ function registerAdditional(loader) {
     }
   );
   register(loader, AntdTag, "tag", "AntdTag", {
+    value: { type: "string", displayName: "\u5B57\u6BB5\u503C", description: "\u4ECE\u6570\u636E\u7ED1\u5B9A\u8BFB\u53D6\uFF1B\u901A\u8FC7\u4E0B\u65B9\u6620\u5C04\u8BBE\u7F6E\u663E\u793A\u6587\u5B57\u4E0E\u989C\u8272\u3002" },
+    options: { type: "array", displayName: "\u6807\u7B7E\u6587\u5B57\u548C\u989C\u8272", itemType: { type: "object", nameFunc: (item) => item.label || item.value, fields: {
+      value: { type: "string", displayName: "\u5B57\u6BB5\u503C" },
+      label: { type: "string", displayName: "\u663E\u793A\u6587\u5B57" },
+      color: { type: "color", displayName: "\u989C\u8272" }
+    } } },
+    defaultColor: { type: "color", displayName: "\u9ED8\u8BA4\u989C\u8272" },
+    automaticColor: { type: "boolean", displayName: "\u6309\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: slot("Tag"),
     color: { type: "color" },

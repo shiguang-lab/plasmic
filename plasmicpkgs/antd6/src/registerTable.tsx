@@ -2,17 +2,18 @@ import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
 } from "@plasmicapp/host";
-import { Avatar, Button, Image, Table, Tag } from "antd";
+import { Avatar, Button, Image, Table } from "antd";
 import type {
   ColumnGroupType,
   ColumnType,
   TableRowSelection,
 } from "antd/es/table/interface";
 import React from "react";
+import { AntdTag } from "./registerAdditional";
 import { columnTemplateHtml } from "./table-column-template";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
 
-interface TagOption {
+export interface TagOption {
   value: string;
   label?: string;
   color?: string;
@@ -23,6 +24,7 @@ export type AntdColumnProps = ColumnType<any> & {
     "text" | "tag" | "link" | "avatar" | "image" | "button" | "custom";
   tagOptions?: TagOption[];
   tagColor?: string;
+  templateType?: AntdColumnProps["displayType"];
   displayLabel?: string;
   contentSize?: number;
   openInNewTab?: boolean;
@@ -35,17 +37,6 @@ export type AntdColumnProps = ColumnType<any> & {
     props: React.HTMLAttributes<HTMLElement>;
   };
 };
-
-const tagColors = [
-  "blue",
-  "green",
-  "orange",
-  "purple",
-  "cyan",
-  "magenta",
-  "red",
-  "gold",
-];
 
 function renderColumnValue(
   value: unknown,
@@ -99,29 +90,15 @@ function renderColumnValue(
   }
   return asArray(value)
     .filter((item) => item != null)
-    .map((item, index) => {
-      const tagText = String(item);
-      const option = props.tagOptions?.find(
-        (candidate) => candidate.value === tagText,
-      );
-      // Color depends on the value, so sorting and pagination cannot change it.
-      const hash = Array.from(tagText).reduce(
-        (currentHash, char) => (currentHash * 31 + char.charCodeAt(0)) >>> 0,
-        0,
-      );
-      return (
-        <Tag
-          key={index}
-          color={
-            option?.color ||
-            props.tagColor ||
-            tagColors[hash % tagColors.length]
-          }
-        >
-          {option?.label ?? tagText}
-        </Tag>
-      );
-    });
+    .map((item, index) => (
+      <AntdTag
+        key={index}
+        value={String(item)}
+        options={props.tagOptions}
+        defaultColor={props.tagColor}
+        automaticColor
+      />
+    ));
 }
 
 /** Rendering the original column elements gives Studio a selectable Fiber for every cell. */
@@ -146,12 +123,7 @@ export function AntdColumn(props: AntdColumnProps) {
         : cell.props.onClick,
       "data-plasmic-canvas-part": isEditing ? "column" : undefined,
       "data-plasmic-table-column-selected": isSelected || undefined,
-      style: {
-        ...cell.props.style,
-        ...(isSelected
-          ? { outline: "1px solid #1677ff", background: "#e6f4ff" }
-          : {}),
-      },
+      style: cell.props.style,
     },
     props.children,
   );
@@ -206,6 +178,7 @@ function getColumns(
     }
     const {
       displayType,
+      templateType: _templateType,
       tagOptions: _options,
       tagColor: _color,
       displayLabel: _label,
@@ -274,7 +247,26 @@ function getColumns(
         },
         render: (value: any, row: any, index: number) =>
           displayType === "custom" || (displayType === undefined && render)
-            ? render?.(value, row, index)
+            ? (
+                render as
+                  | ((
+                      cell: unknown,
+                      row: any,
+                      index: number,
+                      column: unknown,
+                    ) => React.ReactNode)
+                  | undefined
+              )?.(value, row, index, {
+                text: value == null ? "" : String(value),
+                label:
+                  child.props.displayLabel ??
+                  (value == null ? "" : String(value)),
+                size: child.props.contentSize ?? 32,
+                openInNewTab: child.props.openInNewTab ?? false,
+                tagOptions: child.props.tagOptions ?? [],
+                tagColor: child.props.tagColor,
+                values: asArray(value).filter((item) => item != null),
+              })
             : renderColumnValue(value, child.props, row, index, isEditing),
       },
     ];
@@ -311,26 +303,35 @@ function TableWithColumns({
   const body =
     typeof components?.body === "object" ? components.body : undefined;
   return (
-    <Table
-      {...props}
-      data-plasmic-canvas-part-scope={
-        canvas && !canvas.interactive ? "true" : undefined
-      }
-      columns={getColumns(
-        children,
-        body?.cell ?? "td",
-        components?.header?.cell ?? "th",
-        !!canvas && !canvas.interactive,
+    <>
+      {canvas && !canvas.interactive && (
+        <style data-plasmic-editor-style>
+          {
+            "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }"
+          }
+        </style>
       )}
-      components={{
-        ...components,
-        header: { ...components?.header, cell: TableHeaderCell },
-        body:
-          typeof components?.body === "function"
-            ? components.body
-            : { ...body, cell: TableBodyCell },
-      }}
-    />
+      <Table
+        {...props}
+        data-plasmic-canvas-part-scope={
+          canvas && !canvas.interactive ? "true" : undefined
+        }
+        columns={getColumns(
+          children,
+          body?.cell ?? "td",
+          components?.header?.cell ?? "th",
+          !!canvas && !canvas.interactive,
+        )}
+        components={{
+          ...components,
+          header: { ...components?.header, cell: TableHeaderCell },
+          body:
+            typeof components?.body === "function"
+              ? components.body
+              : { ...body, cell: TableBodyCell },
+        }}
+      />
+    </>
   );
 }
 
@@ -576,74 +577,91 @@ export function registerTable(loader?: Registerable) {
 
   registerComponentHelper(loader, AntdColumn, {
     name: "plasmic-antd6-table-column",
-    displayName: "Column",
+    displayName: "表格列",
+    styleSections: false,
     parentComponentName: "plasmic-antd6-table",
     actions: [
       {
         type: "button-action",
-        label: "Convert to custom template",
+        label: "转为可编辑模板",
         hidden: (props: AntdColumnProps) =>
-          props.displayType === "custom" ||
-          (props.displayType === undefined && !!props.render),
+          props.displayType === "custom" || !!props.render,
         onClick: async ({ componentProps, studioOps }) => {
+          if (componentProps.render) {
+            return;
+          }
           await studioOps.replaceSlotContent({
             slotName: "render",
             html: columnTemplateHtml(componentProps),
-            props: { displayType: "custom" },
+            props: {
+              displayType: "custom",
+              templateType: componentProps.displayType ?? "text",
+            },
           });
         },
       },
     ],
     props: {
+      templateType: {
+        type: "choice",
+        options: ["text", "tag", "link", "avatar", "image", "button"],
+        hidden: () => true,
+      },
       title: {
         type: "slot",
-        defaultValue: "Column Name",
+        displayName: "列标题",
+        defaultValue: "列标题",
       },
       dataIndex: {
         type: "string",
-        displayName: "Column key",
-        description:
-          "The field displayed by this column. Changes apply to every row.",
+        displayName: "数据字段",
+        description: "本列读取的数据字段。修改会作用于所有行。",
       },
       displayType: {
         type: "choice",
-        displayName: "Display as",
+        displayName: "显示方式",
         options: [
-          { value: "text", label: "Text" },
-          { value: "tag", label: "Tag" },
-          { value: "link", label: "Link" },
-          { value: "avatar", label: "Avatar" },
-          { value: "image", label: "Image" },
-          { value: "button", label: "Button" },
-          { value: "custom", label: "Custom content" },
+          { value: "text", label: "文本" },
+          { value: "tag", label: "标签" },
+          { value: "link", label: "链接" },
+          { value: "avatar", label: "头像" },
+          { value: "image", label: "图片" },
+          { value: "button", label: "按钮" },
+          { value: "custom", label: "自定义内容" },
         ],
         defaultValueHint: (ps: AntdColumnProps) =>
           ps.render ? "custom" : "text",
         description:
-          "Applies to every row. Use Convert to custom template to edit the preset as shared content.",
+          "作用于所有行。转为模板后可直接选择内部元素编辑；已有模板会保留，切回自定义内容即可恢复。",
       },
       displayLabel: {
         type: "string",
-        displayName: "Label",
+        displayName: "显示文字",
         description:
           "Leave empty to use the field value. Also used as image alternative text.",
         hidden: (ps: AntdColumnProps) =>
           !["link", "button", "avatar", "image"].includes(
-            ps.displayType ?? "text",
+            (ps.displayType === "custom" ? ps.templateType : ps.displayType) ??
+              "text",
           ),
       },
       contentSize: {
         type: "number",
-        displayName: "Image size",
+        displayName: "图片 / 头像尺寸",
         defaultValueHint: 32,
         min: 1,
         hidden: (ps: AntdColumnProps) =>
-          !["avatar", "image"].includes(ps.displayType ?? "text"),
+          !["avatar", "image"].includes(
+            (ps.displayType === "custom" ? ps.templateType : ps.displayType) ??
+              "text",
+          ),
       },
       openInNewTab: {
         type: "boolean",
-        displayName: "Open in new tab",
-        hidden: (ps: AntdColumnProps) => ps.displayType !== "link",
+        displayName: "在新标签页打开",
+        hidden: (ps: AntdColumnProps) =>
+          (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
+          "link",
       },
       onCellClick: {
         type: "eventHandler",
@@ -661,32 +679,34 @@ export function registerTable(loader?: Registerable) {
       },
       tagOptions: {
         type: "array",
-        displayName: "Tag labels and colors",
-        hidden: (ps: AntdColumnProps) => ps.displayType !== "tag",
-        description:
-          "Map field values to labels and colors. Unmapped values get an automatic color.",
+        displayName: "标签文字和颜色",
+        hidden: (ps: AntdColumnProps) =>
+          (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
+          "tag",
+        description: "按字段值配置显示文字和颜色；未配置的值自动分配颜色。",
         itemType: {
           type: "object",
           nameFunc: (item: TagOption) => item.label || item.value,
           fields: {
-            value: { type: "string", displayName: "Field value" },
-            label: { type: "string", displayName: "Label" },
-            color: { type: "color", displayName: "Color" },
+            value: { type: "string", displayName: "字段值" },
+            label: { type: "string", displayName: "显示文字" },
+            color: { type: "color", displayName: "颜色" },
           },
         },
       },
       tagColor: {
         type: "color",
-        displayName: "Default tag color",
-        description:
-          "Leave empty to assign colors by value. Individual tag colors override this setting.",
-        hidden: (ps: AntdColumnProps) => ps.displayType !== "tag",
+        displayName: "默认标签颜色",
+        description: "留空时按字段值自动分配颜色；单项颜色优先。",
+        hidden: (ps: AntdColumnProps) =>
+          (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
+          "tag",
       },
       render: {
         type: "slot",
-        renderPropParams: ["cell", "row", "index"],
+        renderPropParams: ["cell", "row", "index", "column"],
         hidePlaceholder: true,
-        displayName: "Custom render",
+        displayName: "共享单元格模板",
         hidden: (ps: AntdColumnProps) =>
           (ps.displayType ?? (ps.render ? "custom" : "text")) !== "custom",
       },
@@ -706,7 +726,8 @@ export function registerTable(loader?: Registerable) {
       },
       width: {
         type: "number",
-        description: "Column width in pixels.",
+        displayName: "列宽",
+        description: "整列宽度（像素），同时作用于表头和所有行。",
       },
       ellipsis: {
         type: "boolean",
@@ -720,7 +741,8 @@ export function registerTable(loader?: Registerable) {
 
   registerComponentHelper(loader, AntdColumnGroup, {
     name: "plasmic-antd6-table-column-group",
-    displayName: "Column Group",
+    displayName: "列分组",
+    styleSections: false,
     parentComponentName: "plasmic-antd6-table",
     props: {
       title: {

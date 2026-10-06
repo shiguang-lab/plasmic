@@ -478,6 +478,52 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({ componentUuid: uuid }).strict(),
     outputSchema: resources,
   },
+  getEditorContext: {
+    toolName: "getEditorContext",
+    title: "Read the current editing context",
+    description:
+      "Read the focused artboard, selected elements and editing path, including shared/repeated templates. Does not change selection or the design.",
+    inputSchema: z.object({}).strict(),
+    outputSchema: z.object({
+      componentUuid: uuid.nullable(),
+      frameUuid: uuid.nullable(),
+      selectedElementUuids: z.array(uuid),
+      instanceIndex: z.number().int().nullable(),
+      mode: z.enum(["edit", "preview"]),
+      canEdit: z.boolean(),
+      path: z.array(
+        z.object({
+          elementUuid: uuid,
+          label: z.string(),
+          scope: z.enum([
+            "element",
+            "slot",
+            "shared-template",
+            "repeated-template",
+            "component-instance",
+          ]),
+        }),
+      ),
+    }),
+  },
+  selectElement: {
+    toolName: "selectElement",
+    title: "Select a rendered element",
+    description:
+      "Select an element in the current canvas without changing the design. frameUuid disambiguates artboards and instanceIndex selects a repeated instance. Navigate to the page first. Requires edit mode.",
+    inputSchema: z
+      .object({
+        ...element,
+        frameUuid: uuid.optional(),
+        instanceIndex: z.number().int().min(0).default(0),
+      })
+      .strict(),
+    outputSchema: z.object({
+      ...element,
+      frameUuid: uuid,
+      instanceIndex: z.number().int().min(0),
+    }),
+  },
   navigate: {
     toolName: "navigate",
     title: "Show a page/component on the canvas",

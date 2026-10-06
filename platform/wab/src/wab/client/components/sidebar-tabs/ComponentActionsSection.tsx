@@ -243,6 +243,13 @@ export function useStudioOps(
         ),
         `Component must have a slot named "${slotName}"`,
       );
+      const existing = expsProvider
+        .effectiveVs()
+        .args.find((arg) => arg.param === param)?.expr;
+      assert(
+        !isKnownRenderExpr(existing) || !existing.tpl.length,
+        "该插槽已有内容。请编辑现有模板，避免覆盖修改。",
+      );
       const parsed = ensureOk(
         await htmlToTpl(html, {
           site: viewCtx.site,
@@ -256,6 +263,13 @@ export function useStudioOps(
         parsed.errors.map(formatWIError).join("; "),
       );
       await viewCtx.change(() => {
+        const current = expsProvider
+          .effectiveVs()
+          .args.find((arg) => arg.param === param)?.expr;
+        assert(
+          !isKnownRenderExpr(current) || !current.tpl.length,
+          "该插槽已有内容。请编辑现有模板，避免覆盖修改。",
+        );
         const errors = parsed.finalize({
           component: viewCtx.currentComponent(),
           tplMgr: viewCtx.tplMgr(),
@@ -276,7 +290,7 @@ export function useStudioOps(
         viewCtx.setStudioFocusByTpl(tplComp);
       });
     },
-    [viewCtx, tplComp],
+    [viewCtx, tplComp, expsProvider],
   );
 
   const updateStates = React.useCallback(

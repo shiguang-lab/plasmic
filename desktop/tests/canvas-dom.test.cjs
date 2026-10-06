@@ -160,7 +160,10 @@ test("static export preserves live form values and both scroll axes while removi
     // The standalone HTML has the same restoration path, independent of Electron.
     const html = domFor(result.html);
     assert.ok(result.html.indexOf('<meta charset="utf-8">') < 1024);
-    assert.equal(html.window.document.querySelectorAll("meta[charset]").length, 1);
+    assert.equal(
+      html.window.document.querySelectorAll("meta[charset]").length,
+      1,
+    );
     await new Promise((resolve) =>
       html.window.addEventListener("load", resolve, { once: true }),
     );
@@ -216,7 +219,9 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
       "Actual overflow",
     );
     doc.documentElement.style.overflowX = "auto";
-    Object.defineProperty(doc, "scrollingElement", { value: doc.documentElement });
+    Object.defineProperty(doc, "scrollingElement", {
+      value: doc.documentElement,
+    });
     Object.defineProperty(doc.documentElement, "clientWidth", { value: 390 });
     const pageScroll = await controller.dispatch("snapshot_layout", {});
     assert.equal(pageScroll.frames[0].problems.length, 1);
@@ -234,5 +239,61 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
   } finally {
     controller.close();
     source.window.close();
+  }
+});
+
+test("exports valid rich text and strips selected column chrome without removing authored styles", async () => {
+  const source = domFor(
+    '<html data-plasmic-frame-uuid="first"><head><style data-plasmic-editor-style>[data-plasmic-table-column-selected]{background:#e6f4ff;outline:1px solid blue}</style></head><body><main class="__wab_val_root"><p><span class="__wab_rich_text" style="display:block">说明</span></p><p><span class="__wab_rich_text" style="display:block">第二段</span></p><table><tbody><tr><td data-plasmic-table-column-selected="true" style="background:yellow;color:red">待处理</td></tr></tbody></table></main></body></html>',
+  );
+  try {
+    const result = await renderCanvas(windowFor(source), {});
+    const standalone = domFor(result.html);
+    const doc = standalone.window.document;
+    assert.equal(doc.querySelectorAll("p").length, 2);
+    assert.equal(doc.querySelector("p").textContent, "说明");
+    assert.equal(
+      doc.querySelectorAll("[data-plasmic-table-column-selected]").length,
+      0,
+    );
+    assert.equal(doc.querySelector("td").style.background, "yellow");
+    assert.equal(doc.querySelector("td").style.color, "rgb(255, 0, 0)");
+    assert.equal(result.frameUuid, "first");
+    standalone.window.close();
+  } finally {
+    source.window.close();
+  }
+});
+
+test("same-sized artboards use explicit frame identity or focused frame and reject ambiguity", async () => {
+  const first = domFor(
+    '<html data-plasmic-frame-uuid="first"><body><main class="__wab_val_root">First</main></body></html>',
+  );
+  const second = domFor(
+    '<html data-plasmic-frame-uuid="second"><body><main class="__wab_val_root">Second</main></body></html>',
+  );
+  const win = windowFor(first);
+  win.webContents.mainFrame.framesInSubtree.push(
+    windowFor(second).webContents.mainFrame.framesInSubtree[0],
+  );
+  win.webContents.executeJavaScript = async () => ({ frameUuid: "first" });
+  try {
+    assert.equal((await renderCanvas(win, { width: 390 })).frameUuid, "first");
+    assert.equal(
+      (await renderCanvas(win, { frameUuid: "second", width: 390 })).frameUuid,
+      "second",
+    );
+    await assert.rejects(
+      renderCanvas(win, { frameUuid: "missing" }),
+      /not rendered/,
+    );
+    win.webContents.executeJavaScript = async () => ({ frameUuid: null });
+    await assert.rejects(
+      renderCanvas(win, { width: 390 }),
+      /specify frameUuid/,
+    );
+  } finally {
+    first.window.close();
+    second.window.close();
   }
 });

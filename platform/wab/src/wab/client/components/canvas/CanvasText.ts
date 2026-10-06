@@ -1027,9 +1027,9 @@ export const mkCanvasText = computedFn(
                     },
                     ...exprTextProps,
                   })
-                : react.createElement("div", {
+                : react.createElement("span", {
                     className,
-                    style: DEFAULT_TEXT_STYLE,
+                    style: { ...DEFAULT_TEXT_STYLE, display: "block" },
                     ...exprTextProps,
                   });
             },
@@ -1046,9 +1046,10 @@ export const mkCanvasText = computedFn(
           onChange: onSlateChange,
           onValueChange: onSlateValueChange,
           children: react.createElement(Editable, {
+            as: "span",
             renderElement: ({ attributes, children, element }) => {
               let inlineElement = true;
-              let tag = inline ? "span" : "div";
+              let tag = "span";
 
               // If the element has been written in the bundle,
               // we can render it exactly as expected in codegen.
@@ -1101,6 +1102,12 @@ export const mkCanvasText = computedFn(
                 tag as TagName,
                 {
                   ...attributes,
+                  style:
+                    element.type === "TplTag" ||
+                    element.type === "TplTagExprText" ||
+                    inline
+                      ? undefined
+                      : { display: "block" },
                   className: cx(
                     defaultStyleClassNames(studioDefaultStylesClassNameBase, {
                       tag,
@@ -1161,6 +1168,7 @@ export const mkCanvasText = computedFn(
             className: mkClassName(node, inline),
             style: {
               ...DEFAULT_TEXT_STYLE,
+              display: inline ? "inline" : "block",
               // Slate no longer removes the default style from the root.
               outline: 0,
             },
@@ -1390,7 +1398,7 @@ export const mkReadOnlyCanvasText = computedFn(
             node,
             () => {
               const className = mkClassName(node, inline);
-              const tag = inline ? "span" : "div";
+              const tag = "span";
 
               if (isExprText(effectiveVs.text)) {
                 const exprTextProps = mkExprTextProps(
@@ -1405,7 +1413,10 @@ export const mkReadOnlyCanvasText = computedFn(
                 );
                 return react.createElement(tag, {
                   className,
-                  style: DEFAULT_TEXT_STYLE,
+                  style: {
+                    ...DEFAULT_TEXT_STYLE,
+                    display: inline ? "inline" : "block",
+                  },
                   ...exprTextProps,
                 });
               }
@@ -1413,7 +1424,10 @@ export const mkReadOnlyCanvasText = computedFn(
               const rawText = ensureKnownRawText(effectiveVs.text);
               return react.createElement(tag, {
                 className,
-                style: DEFAULT_TEXT_STYLE,
+                style: {
+                  ...DEFAULT_TEXT_STYLE,
+                  display: inline ? "inline" : "block",
+                },
                 children: renderRawTextChildren(react, rawText, ctx),
               });
             },
@@ -1483,9 +1497,9 @@ export const mkSlateChildren = computedFn(
                       inlineCursorFix(2, sub),
                     ],
                   })
-                : react.createElement("div", {
+                : react.createElement("span", {
                     className,
-                    style: DEFAULT_TEXT_STYLE,
+                    style: { ...DEFAULT_TEXT_STYLE, display: "block" },
                     children: [slate.children, exprTextElement],
                   });
             },

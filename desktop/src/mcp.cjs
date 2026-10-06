@@ -47,6 +47,8 @@ const EDITOR_METHODS = [
   "createBreakpoint",
   "deleteComponent",
   "executeBatch",
+  "getEditorContext",
+  "selectElement",
   "navigate",
   "beginCanvasInspection",
   "endCanvasInspection",
@@ -64,7 +66,7 @@ const tools = [
   {
     name: "get_app_state",
     description:
-      "Read the desktop URL, active project, readiness, build identity, running operations and exact editor tool schemas. Read these contracts before execute.",
+      "Read the desktop URL, active project, focused artboard, selected elements and editing scope, readiness, build identity, running operations and exact editor tool schemas. Read these contracts before execute.",
     inputSchema: object({}),
   },
   {
@@ -100,11 +102,12 @@ const tools = [
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). width selects the closest existing artboard and resizes the static rendering. componentUuid renders in a background canvas without changing the active arena or selection. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid is not accepted. Not an interactive preview.",
+      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). frameUuid selects an exact artboard. Otherwise captures the focused artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. componentUuid renders in a background canvas without changing the active arena or selection. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid is not accepted. Not an interactive preview.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       elementUuid: { type: "string", minLength: 1 },
       artboardElementUuid: { type: "string", minLength: 1 },
+      frameUuid: { type: "string", minLength: 1 },
       mode: { type: "string", enum: ["artboard", "workspace"] },
       width: { type: "integer", minimum: 320, maximum: 4096 },
       height: { type: "integer", minimum: 1, maximum: 16384 },
@@ -328,6 +331,11 @@ tools.push(
                       "findEmptySpace",
                       "navigateCanvas",
                       "navigate",
+                      "getEditorContext",
+                      "selectElement",
+                      "beginCanvasInspection",
+                      "endCanvasInspection",
+                      "scrollElementIntoView",
                       "validate",
                       "save",
                       "undo",
@@ -366,6 +374,8 @@ tools.push(
     inputSchema: {
       ...object({
         componentUuid: { type: "string", minLength: 1 },
+        frameUuid: { type: "string", minLength: 1 },
+        artboardElementUuid: { type: "string", minLength: 1 },
         format: {
           type: "string",
           enum: ["png", "jpeg", "webp", "pdf", "html"],

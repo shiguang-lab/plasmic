@@ -95,6 +95,10 @@ export const InternalDataPickerEditor = observer(
         ? pathToDisplayString(displayValue, viewCtx.site, viewCtx.siteInfo.id)
         : displayValue;
 
+    const complexExpression =
+      typeof codeExpr === "string" &&
+      (codeExpr.length > 80 || codeExpr.includes("\n"));
+
     // if (codeExpr) {
     //   const evalExpr = data && tryEvalExpr(codeExpr as string, data);
     //   if (
@@ -191,7 +195,20 @@ export const InternalDataPickerEditor = observer(
           ref={autoFocus ? autoFocusCallback : undefined}
           className="code-editor-input"
           data-plasmic-prop={props["data-plasmic-prop"]}
-          tabIndex={0}
+          tabIndex={isDisabled ? -1 : 0}
+          role="button"
+          aria-label={
+            complexExpression
+              ? "动态绑定：点击查看或编辑表达式"
+              : "编辑数据绑定"
+          }
+          aria-disabled={isDisabled}
+          onKeyDown={(event) => {
+            if (!isDisabled && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              setVisible(!visible);
+            }
+          }}
         >
           <Tooltip title={isDisabled && disabledTooltip}>
             <span
@@ -200,7 +217,9 @@ export const InternalDataPickerEditor = observer(
                 "text-unset": !codeExpr,
               })}
             >
-              {codeExpr ?? "unset"}
+              {complexExpression
+                ? "动态绑定 · 点击编辑"
+                : (codeExpr ?? "未设置")}
             </span>
           </Tooltip>
         </div>

@@ -304,6 +304,12 @@ export const CanvasFrame = observer(function CanvasFrame({
       ctx.$html().get(0).addEventListener("wheel", onWheel, { passive: false });
 
       studioCtx.fontManager.installAllUsedFonts([ctx.$head()]);
+      ctx
+        .doc()
+        .documentElement.setAttribute(
+          "data-plasmic-frame-uuid",
+          arenaFrame.uuid,
+        );
       onFrameLoad(arenaFrame, ctx);
 
       setCreatedVc(true);

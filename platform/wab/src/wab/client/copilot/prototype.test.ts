@@ -43,6 +43,39 @@ function fixture() {
 }
 
 describe("AI prototype editor tools", () => {
+  it("undo skips selection/navigation records and preserves redo after changing the view", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage("History");
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      elementUuid: page.tplTree.uuid,
+      html: "<p>First</p>",
+      location: "append",
+    });
+    const before = flattenTpls(page.tplTree).length;
+    const records = studioCtx.undoLog._log.length;
+    await call("navigate", { componentUuid: page.uuid });
+    studioCtx.createViewStateUndoRecord();
+    expect(studioCtx.undoLog._log).toHaveLength(records);
+    await call("undo");
+    expect(flattenTpls(page.tplTree).length).toBeLessThan(before);
+    expect(studioCtx.canRedo()).toBe(true);
+    studioCtx.createViewStateUndoRecord();
+    expect(studioCtx.canRedo()).toBe(true);
+    await studioCtx.redo();
+    expect(flattenTpls(page.tplTree)).toHaveLength(before);
+    studioCtx.copilotActivity.dispose();
+  });
+  it("returns empty editor context before a canvas is focused", async () => {
+    const { studioCtx, call } = fixture();
+    expect(await call("getEditorContext")).toMatchObject({
+      frameUuid: null,
+      selectedElementUuids: [],
+      path: [],
+      mode: "edit",
+    });
+    studioCtx.copilotActivity.dispose();
+  });
   it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");

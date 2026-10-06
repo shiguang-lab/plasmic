@@ -263,32 +263,17 @@ export class UndoLog {
 
   record(record: UndoRecord) {
     const cur = this._log[this._nextInsertPos - 1];
-    if (
-      cur &&
-      record.changes.changes.length === 0 &&
-      this.isViewEquivalent(cur.view, record.view)
-    ) {
-      // The new snapshot has the same view as the current snapshot.  We save the new
-      // view and avoid creating a new record.  We save the new view because
-      // the current view may be waiting for a tpl to be focused (nextFocusedTpl is set),
-      // and the new view may have it focused (focusedSelectable is set).
+    if (cur && record.changes.changes.length === 0) {
+      // Keep the current focus snapshot for restoring a model change, without
+      // adding selection/navigation steps or discarding redo history.
       cur.view = record.view;
       return;
     }
-    console.log("UNDO: New record", record);
-    // Normally, when we record(), we "blow away" the undo log past the insertion pos.
-    // For example, if we [undo, undo, undo, perform-action], then we
-    // can no longer "redo". the things we undid.
-    //
-    // However, we make an exception here when we are recording view-only records
-    // (no site changes).  That's because if we do [undo, undo, undo, select], it's
-    // pretty harsh to blow away the redo log.  In that case, we just insert the
-    // select record without blowing away the rest of the redo log.
-    const recordsToDelete =
-      record.changes.changes.length > 0
-        ? this._log.length - this._nextInsertPos
-        : 0;
-    this._log.splice(this._nextInsertPos, recordsToDelete, record);
+    this._log.splice(
+      this._nextInsertPos,
+      this._log.length - this._nextInsertPos,
+      record,
+    );
     this._nextInsertPos += 1;
   }
   undo() {

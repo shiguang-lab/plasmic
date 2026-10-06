@@ -146,6 +146,7 @@ const LivePopOutButton = observer(function LivePopOutButton(
   return (
     <PlasmicLivePopOutButton
       {...props}
+      root={{ props: { "aria-label": "在新窗口预览画板" } }}
       tooltip={`Preview the artboard in new window`}
       disabled={studioCtx.currentArenaEmpty && !previewCtx}
       onClick={() => openLivePopup()}

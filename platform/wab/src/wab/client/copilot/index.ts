@@ -3,7 +3,10 @@ import {
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
-import { beginCanvasInspection, endCanvasInspection } from "@/wab/client/copilot/canvas-inspection";
+import {
+  beginCanvasInspection,
+  endCanvasInspection,
+} from "@/wab/client/copilot/canvas-inspection";
 import { readAndSanitizeSvgXmlAsImage } from "@/wab/client/dom-utils";
 import { createComponent } from "@/wab/client/operations/create-component";
 import { createComponentState } from "@/wab/client/operations/create-component-state";
@@ -21,6 +24,7 @@ import { setComponentInstanceProp } from "@/wab/client/operations/set-component-
 import { setStyleTokenVariantedValue } from "@/wab/client/operations/set-style-token-varianted-value";
 import { setTplStyles } from "@/wab/client/operations/set-tpl-styles";
 import { updateComponentState } from "@/wab/client/operations/update-component-state";
+import { selectionPath } from "@/wab/client/selection-context";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { formatWIError } from "@/wab/client/web-importer/errors";
 import { ensureOk } from "@/wab/commons/neverthrow-utils";
@@ -63,6 +67,7 @@ import {
   getComponentArena,
   getPageArena,
 } from "@/wab/shared/core/sites";
+import { SlotSelection } from "@/wab/shared/core/slots";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import {
   ancestorsUp,
@@ -101,6 +106,8 @@ import { ok } from "neverthrow";
 
 const quietTools = new Set([
   "identify",
+  "getEditorContext",
+  "selectElement",
   "findEmptySpace",
   "navigate",
   "beginCanvasInspection",
@@ -1381,15 +1388,89 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     );
     return { results: plans.map((plan) => plan.result()) };
   }),
+  getEditorContext: defineCopilotTool(meta.getEditorContext, async (studio) => {
+    const vc = studio.focusedViewCtx();
+    const val = vc?.focusedSelectable();
+    const tpl =
+      vc?.focusedTpl(false) ??
+      (val instanceof SlotSelection ? val.getTpl() : undefined);
+    const instanceIndex =
+      tpl && val && !(val instanceof SlotSelection)
+        ? vc?.renderState.tpl2fullKeys(tpl).indexOf(val.fullKey)
+        : undefined;
+    return {
+      componentUuid: vc?.currentComponent()?.uuid ?? null,
+      frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
+      selectedElementUuids:
+        vc?.focusedTpls().flatMap((node) => (node ? [node.uuid] : [])) ?? [],
+      instanceIndex:
+        instanceIndex !== undefined && instanceIndex >= 0
+          ? instanceIndex
+          : null,
+      mode: studio.isInteractiveMode ? ("preview" as const) : ("edit" as const),
+      canEdit: studio.canEditProject(),
+      path:
+        vc && tpl
+          ? selectionPath(vc, val instanceof SlotSelection ? val : tpl).map(
+              ({ node: _node, ...part }) => part,
+            )
+          : [],
+    };
+  }),
+  selectElement: defineCopilotTool(
+    meta.selectElement,
+    async (studio, input) => {
+      assert(
+        !studio.isInteractiveMode,
+        "Return to edit mode before selecting an element",
+      );
+      const component = findComponent(studio, input.componentUuid);
+      const tpl = findElement(component, input.elementUuid);
+      const frames = getArenaFrames(studio.currentArena);
+      const candidates = studio.viewCtxs.filter(
+        (vc) =>
+          frames.includes(vc.arenaFrame()) &&
+          (!input.frameUuid || vc.arenaFrame().uuid === input.frameUuid) &&
+          vc.renderState.tpl2fullKeys(tpl).length > 0,
+      );
+      const vc =
+        candidates.find((candidate) => candidate === studio.focusedViewCtx()) ??
+        (candidates.length === 1 ? candidates[0] : undefined);
+      assert(
+        vc,
+        candidates.length > 1
+          ? "Multiple artboards render this element; specify frameUuid"
+          : "Element is not rendered in the current canvas",
+      );
+      const key = vc.renderState.tpl2fullKeys(tpl)[input.instanceIndex];
+      const val = key ? vc.renderState.fullKey2val(key) : undefined;
+      assert(val, "Rendered instance not found; check instanceIndex");
+      await vc.change(() => vc.setStudioFocusBySelectable(val));
+      return {
+        componentUuid: component.uuid,
+        elementUuid: tpl.uuid,
+        frameUuid: vc.arenaFrame().uuid,
+        instanceIndex: input.instanceIndex,
+      };
+    },
+  ),
   navigate: defineCopilotTool(meta.navigate, async (studio, input) => {
     const component = findComponent(studio, input.componentUuid, true);
     studio.switchToComponentArena(component);
     return componentResult(studio, component);
   }),
-  beginCanvasInspection: defineCopilotTool(meta.beginCanvasInspection, (studio, input) =>
-    beginCanvasInspection(studio, findComponent(studio, input.componentUuid, true))),
-  endCanvasInspection: defineCopilotTool(meta.endCanvasInspection, (studio, input) =>
-    endCanvasInspection(studio, input.inspectionId)),
+  beginCanvasInspection: defineCopilotTool(
+    meta.beginCanvasInspection,
+    (studio, input) =>
+      beginCanvasInspection(
+        studio,
+        findComponent(studio, input.componentUuid, true),
+      ),
+  ),
+  endCanvasInspection: defineCopilotTool(
+    meta.endCanvasInspection,
+    (studio, input) => endCanvasInspection(studio, input.inspectionId),
+  ),
   scrollElementIntoView: defineCopilotTool(
     meta.scrollElementIntoView,
     async (studio, input) => {

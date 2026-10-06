@@ -65,8 +65,10 @@ export interface PropTypeBase<Ctx extends any[]> extends CommonTypeBase {
   hidden?: ContextDependentConfig<Ctx, boolean>;
 }
 
-interface ExtendedDefaultable<Ctx extends any[], T>
-  extends Defaultable<Ctx, T> {
+interface ExtendedDefaultable<Ctx extends any[], T> extends Defaultable<
+  Ctx,
+  T
+> {
   /**
    * Use a dynamic value expression as the default instead
    */
@@ -186,37 +188,45 @@ export type ExprEditorType<P> = "exprEditor" | RichExprEditorType<P>;
 export type ComponentChoiceType<
   P,
   Opt extends ChoiceValue = ChoiceValue,
-  Val = Opt | Opt[]
+  Val = Opt | Opt[],
 > = PropTypeBaseDefault<P, Val> & ChoiceCore<ComponentControlContext<P>, Opt>;
 
-export interface SingleChoiceType<P, Opt extends ChoiceValue = ChoiceValue>
-  extends ComponentChoiceType<P, Opt, Opt> {
+export interface SingleChoiceType<
+  P,
+  Opt extends ChoiceValue = ChoiceValue,
+> extends ComponentChoiceType<P, Opt, Opt> {
   multiSelect?: false;
 }
 
-export interface MultiChoiceType<P, Opt extends ChoiceValue = ChoiceValue>
-  extends ComponentChoiceType<P, Opt, Opt[]> {
+export interface MultiChoiceType<
+  P,
+  Opt extends ChoiceValue = ChoiceValue,
+> extends ComponentChoiceType<P, Opt, Opt[]> {
   multiSelect: true;
 }
 
-export interface CustomChoiceType<P>
-  extends ComponentChoiceType<P, ChoiceValue, ChoiceValue | ChoiceValue[]> {
+export interface CustomChoiceType<P> extends ComponentChoiceType<
+  P,
+  ChoiceValue,
+  ChoiceValue | ChoiceValue[]
+> {
   multiSelect: ComponentContextConfig<P, boolean>;
 }
 
 export type ChoiceType<P> =
-  | SingleChoiceType<P>
-  | MultiChoiceType<P>
-  | CustomChoiceType<P>;
+  SingleChoiceType<P> | MultiChoiceType<P> | CustomChoiceType<P>;
 
 // Other component-only types from prop-types.ts
-export interface FormValidationRulesType<P>
-  extends PropTypeBaseDefault<P, any> {
+export interface FormValidationRulesType<P> extends PropTypeBaseDefault<
+  P,
+  any
+> {
   type: "formValidationRules";
 }
 
-export interface EventHandlerType<P>
-  extends PropTypeBase<ComponentControlContext<P>> {
+export interface EventHandlerType<P> extends PropTypeBase<
+  ComponentControlContext<P>
+> {
   type: "eventHandler";
   argTypes: { name: string; type: ArgType<any> }[];
 }
@@ -304,11 +314,11 @@ export interface ModalProps {
 
 export interface StudioOps {
   showModal: (
-    modalProps: Omit<ModalProps, "onClose"> & { onClose?: () => void }
+    modalProps: Omit<ModalProps, "onClose"> & { onClose?: () => void },
   ) => void;
   refreshQueryData: () => void;
   appendToSlot: (element: PlasmicElement, slotName: string) => void;
-  /** Replace a slot with editable Plasmic HTML and update literal props in one undo step. */
+  /** Initialize an empty slot with editable HTML and literal props in one undo step. Rejects existing content. */
   replaceSlotContent: (input: {
     slotName: string;
     html: string;
@@ -372,7 +382,8 @@ export interface RichCustomType<P> extends PropTypeBaseDefault<P, any> {
 export type CustomType<P> = RichCustomType<P> | CustomControl<P>;
 
 export interface DynamicType<P>
-  extends PropTypeBase<ComponentControlContext<P>>,
+  extends
+    PropTypeBase<ComponentControlContext<P>>,
     DynamicCore<ComponentControlContext<P>, PropType<P>> {}
 
 export type PrimitiveType<P = any> = Extract<
@@ -413,18 +424,14 @@ export type StringCompatType<P> =
   | CustomType<P>
   | DataPickerType<P>;
 export type BoolCompatType<P> =
-  | BooleanType<P>
-  | CustomType<P>
-  | DataPickerType<P>;
+  BooleanType<P> | CustomType<P> | DataPickerType<P>;
 export type NumberCompatType<P> =
-  | NumberType<P>
-  | CustomType<P>
-  | DataPickerType<P>;
+  NumberType<P> | CustomType<P> | DataPickerType<P>;
 
 export type RestrictPropType<T, P> = T extends string
   ? StringCompatType<P>
   : T extends boolean
-  ? BoolCompatType<P>
-  : T extends number
-  ? NumberCompatType<P>
-  : PropType<P>;
+    ? BoolCompatType<P>
+    : T extends number
+      ? NumberCompatType<P>
+      : PropType<P>;

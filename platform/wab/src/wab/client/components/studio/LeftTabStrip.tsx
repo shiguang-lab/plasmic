@@ -413,6 +413,8 @@ Help
                   >
                     <LeftTabButton
                       icon={item.icon}
+                      label={item.title}
+                      tooltip={item.title}
                       data-test-tabkey={key}
                       onClick={() =>
                         studioCtx.changeUnsafe(() => {

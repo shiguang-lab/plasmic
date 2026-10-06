@@ -74,6 +74,7 @@ export const IconButton = React.forwardRef(function (
       root={{
         props: {
           type: htmlType ?? (href ? undefined : "button"),
+          "aria-label": typeof tooltip === "string" ? tooltip : hoverText,
           ref,
           onClick: onClick,
           ...(href ? { href, target, rel } : {}),

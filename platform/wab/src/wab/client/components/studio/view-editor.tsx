@@ -848,7 +848,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     }
 
     if (this.onClipperScrollListener) {
-      canvasClipper?.removeEventListener("scroll", this.onClipperScrollListener);
+      canvasClipper?.removeEventListener(
+        "scroll",
+        this.onClipperScrollListener,
+      );
       this.onClipperScrollListener = null;
     }
 
@@ -2048,7 +2051,7 @@ const RightPane = observer(function RightPane(props: {
   if (focusedViewCtx && !studioCtx.focusedFrame()) {
     tabs.push(
       new widgets.Tab({
-        name: "Settings",
+        name: "属性",
         key: RightTabKey.settings,
         contents: () => (
           <StyleTabContext.Provider value={"settings-only"}>

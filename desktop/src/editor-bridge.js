@@ -28,9 +28,15 @@
     let result;
     try {
       const tools = window.PLASMIC_AI_TOOLS;
-      if (method === "metadata")
-        result = { ready: !!tools, tools: tools?._meta || {} };
-      else if (method === "renderReady") {
+      if (method === "metadata") {
+        let editorContext = null;
+        if (tools) {
+          const context = await tools.getEditorContext({});
+          if (!context.success) throw new Error(context.error.message);
+          editorContext = JSON.parse(context.output);
+        }
+        result = { ready: !!tools, tools: tools?._meta || {}, editorContext };
+      } else if (method === "renderReady") {
         await document.fonts.ready;
         await new Promise((resolve) =>
           requestAnimationFrame(() => requestAnimationFrame(resolve)),

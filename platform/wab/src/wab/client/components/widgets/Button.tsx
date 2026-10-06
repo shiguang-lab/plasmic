@@ -68,6 +68,10 @@ const Button = React.forwardRef(function Button(
           ref,
           "data-test-id": dataTestId,
           target,
+          "aria-label":
+            props["aria-label"] ??
+            (typeof tooltip === "string" ? tooltip : undefined),
+          title: props.title,
         },
         wrap: (x) =>
           tooltip ? (
