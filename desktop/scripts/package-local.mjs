@@ -47,6 +47,7 @@ for (const directory of [
   "plasmicpkgs/overseas",
   "plasmicpkgs/antd6",
   "platform/canvas-packages",
+  "platform/sub",
 ]) {
   execFileSync(
     process.platform === "win32" ? "npm.cmd" : "npm",
