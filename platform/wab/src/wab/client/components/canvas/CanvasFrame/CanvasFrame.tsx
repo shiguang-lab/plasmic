@@ -12,6 +12,7 @@ import {
   showCanvasPageNavigationNotification,
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { CanvasCommentMarkers } from "@/wab/client/components/comments/CanvasCommentMarkers";
+import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -202,7 +203,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           const closest = closestTaggedNonTextDomElt($target, viewCtx(), {
             excludeNonSelectable: true,
           });
-          viewCtx().viewOps.deepFocusElement(closest, "dbl-click");
+          viewCtx().viewOps.deepFocusElement(closest);
         }
         e.preventDefault();
         e.stopPropagation();
@@ -214,6 +215,9 @@ export const CanvasFrame = observer(function CanvasFrame({
         }
         if (!viewCtx().editingTextContext()) {
           studioCtx.markKeyup(e.which);
+          viewCtx().viewOps.refreshHover(
+            (PLATFORM === "osx" ? !!e.metaKey : !!e.ctrlKey) && !e.altKey,
+          );
         }
       };
 
@@ -223,6 +227,9 @@ export const CanvasFrame = observer(function CanvasFrame({
         }
         if (!viewCtx().editingTextContext()) {
           studioCtx.markKeydown(e.which);
+          viewCtx().viewOps.refreshHover(
+            (PLATFORM === "osx" ? !!e.metaKey : !!e.ctrlKey) && !e.altKey,
+          );
         }
       };
 

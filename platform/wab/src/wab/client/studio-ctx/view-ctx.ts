@@ -2267,6 +2267,27 @@ export class ViewCtx extends WithDbCtx {
     );
   }
 
+  /** Resolve a hover's rendered variants without entering its component owners. */
+  hoverVariantTplMgr(selectable: Selectable) {
+    const currentFrames = this.componentStackFrames();
+    const owners = SQ(selectable, this.valState()).ownersArrayUp().reverse();
+    const frames = [
+      currentFrames[0],
+      ...owners.map(
+        (owner) =>
+          currentFrames.find((frame) => frame.tplComponent === owner.tpl) ??
+          new TransientComponentVariantFrame(owner.tpl),
+      ),
+    ];
+    return new VariantTplMgr(
+      frames,
+      this.site,
+      this.tplMgr(),
+      this.globalFrame,
+      this.getCanvasEnvForTpl,
+    );
+  }
+
   /**
    * After re-rendering, updates all references to ValNodes in ViewCtx with
    * updated ValNodes from ValState.  Also fixes up what should be in focus.

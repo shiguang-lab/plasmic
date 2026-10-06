@@ -1,17 +1,20 @@
+import { buildValTree, TEST_GLOBAL_VARIANT } from "@/wab/__testonly__/tpls";
+import { ViewOps } from "@/wab/client/components/canvas/view-ops";
+import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkStyleToken, mkTokenRef } from "@/wab/commons/StyleToken";
-import {
-  mkBaseVariant,
-  mkVariant,
-  mkVariantSetting,
-} from "@/wab/shared/Variants";
+import { createTplMgr } from "@/wab/shared/__testonly__/site-tests-utils";
+import { ensure, ensureInstance } from "@/wab/shared/common";
+import { TransientComponentVariantFrame } from "@/wab/shared/component-frame";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
+import { Selectable } from "@/wab/shared/core/selection";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
-import { ValComponent } from "@/wab/shared/core/val-nodes";
+import { flattenVals, ValComponent, ValTag } from "@/wab/shared/core/val-nodes";
 import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
+import { ValState } from "@/wab/shared/eval/val-state";
 import {
   Arg,
   CodeComponentMeta,
@@ -22,6 +25,11 @@ import {
   VarRef,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import {
+  mkBaseVariant,
+  mkVariant,
+  mkVariantSetting,
+} from "@/wab/shared/Variants";
 import { observable } from "mobx";
 import { vi } from "vitest";
 
@@ -247,4 +255,178 @@ describe("getComponentEvalContext", () => {
       viewCtx.getComponentEvalContext(outer, isOn).componentPropValues.enabled,
     ).toBe(true);
   });
+});
+
+test("deep hover leaves the editing stack unchanged and direct selection creates every owner frame", () => {
+  const site = createSite();
+  const tplMgr = createTplMgr(site);
+  const inner = mkComponent({
+    name: "Inner",
+    type: ComponentType.Plain,
+    tplTree: () => mkTplTagX("div", {}, [mkTplTagX("span")]),
+  });
+  const outer = mkComponent({
+    name: "Outer",
+    type: ComponentType.Plain,
+    tplTree: () =>
+      mkTplTagX("div", {}, [mkTplComponent(inner, TEST_GLOBAL_VARIANT)]),
+  });
+  const page = mkComponent({
+    name: "Page",
+    type: ComponentType.Plain,
+    tplTree: () =>
+      mkTplTagX("div", {}, [mkTplComponent(outer, TEST_GLOBAL_VARIANT)]),
+  });
+  site.components.push(page, outer, inner);
+  const root = buildValTree(mkTplComponent(page, TEST_GLOBAL_VARIANT));
+  const body = ensureInstance(
+    ensure(root.contents, "page contents")[0],
+    ValTag,
+  );
+  const valOuter = ensureInstance(body.children[0], ValComponent);
+  const outerBody = ensureInstance(
+    ensure(valOuter.contents, "outer contents")[0],
+    ValTag,
+  );
+  const valInner = ensureInstance(outerBody.children[0], ValComponent);
+  const innerBody = ensureInstance(
+    ensure(valInner.contents, "inner contents")[0],
+    ValTag,
+  );
+  const leaf = innerBody.children[0];
+  const frames = [new TransientComponentVariantFrame(root.tpl)];
+  const valState = new ValState({ sysRoot: root, globalRoot: root });
+  const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    _globalFrame: observable.box(new TransientComponentVariantFrame(root.tpl)),
+    studioCtx: { dbCtx: () => ({ site }), canEditComponent: vi.fn(() => true) },
+    tplMgr: () => tplMgr,
+    componentStackFrames: () => frames,
+    valState: () => valState,
+  }) as ViewCtx;
+  expect(() =>
+    viewCtx.variantTplMgr().effectiveVariantSetting(leaf.tpl),
+  ).toThrow("getComponentFrame did not return a valid frame");
+  expect(() =>
+    viewCtx.hoverVariantTplMgr(leaf).effectiveVariantSetting(leaf.tpl),
+  ).not.toThrow();
+  expect(viewCtx.componentStackFrames()).toEqual(frames);
+  expect(frames).toHaveLength(1);
+
+  let componentCtx: ComponentCtx | null = null;
+  const setFocus = vi.fn();
+  Object.assign(viewCtx, {
+    currentComponentCtx: () => componentCtx,
+    showDefaultSlotContents: () => false,
+    focusedSelectable: () => null,
+    focusedCloneKey: () => undefined,
+    isFocusedViewCtx: () => true,
+    setCurrentComponentCtx: (ctx: ComponentCtx | null) => {
+      componentCtx = ctx;
+      if (!ctx) {
+        frames.splice(1);
+      } else {
+        frames.push(new TransientComponentVariantFrame(ctx.tplComponent()));
+      }
+    },
+    setStudioFocusBySelectable: setFocus,
+  });
+  const viewOps = new ViewOps({ viewCtx });
+  viewOps.tryFocusObj(leaf, { exact: false, deepSelect: true });
+  expect(setFocus).toHaveBeenCalledWith(leaf, undefined, {
+    exact: false,
+    deepSelect: true,
+  });
+  expect(frames.map((frame) => frame.component.name)).toEqual([
+    "Page",
+    "Outer",
+    "Inner",
+  ]);
+  expect(() =>
+    viewCtx.variantTplMgr().effectiveVariantSetting(valInner.tpl),
+  ).not.toThrow();
+  expect(() =>
+    viewCtx.variantTplMgr().effectiveVariantSetting(leaf.tpl),
+  ).not.toThrow();
+
+  vi.mocked(viewCtx.studioCtx.canEditComponent).mockImplementation(
+    (component) => component !== outer,
+  );
+  viewOps.tryFocusObj(leaf, { exact: false, deepSelect: true });
+  expect(setFocus).toHaveBeenLastCalledWith(valOuter, undefined, {
+    exact: false,
+    deepSelect: true,
+  });
+  expect(frames.map((frame) => frame.component.name)).toEqual(["Page"]);
+});
+
+test("canvas hover and click share authored layout levels; Enter and parent navigation change that level", () => {
+  const site = createSite();
+  const tplMgr = createTplMgr(site);
+  const page = mkComponent({
+    name: "Layout page",
+    type: ComponentType.Plain,
+    tplTree: () =>
+      mkTplTagX("div", {}, [
+        mkTplTagX("main", {}, [
+          mkTplTagX("section", {}, [mkTplTagX("span"), mkTplTagX("button")]),
+        ]),
+      ]),
+  });
+  site.components.push(page);
+  const root = buildValTree(mkTplComponent(page, TEST_GLOBAL_VARIANT));
+  const body = ensureInstance(ensure(root.contents, "page root")[0], ValTag);
+  const group = ensureInstance(body.children[0], ValTag);
+  const nested = ensureInstance(group.children[0], ValTag);
+  const leaf = nested.children[0];
+  const valState = new ValState({ sysRoot: root, globalRoot: root });
+  let selected: Selectable | null = null;
+  const hover = vi.fn();
+  const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    studioCtx: {
+      dbCtx: () => ({ site }),
+      canEditComponent: () => true,
+      showStackOfParents: false,
+    },
+    tplMgr: () => tplMgr,
+    valState: () => valState,
+    currentComponentCtx: () => null,
+    setCurrentComponentCtx: vi.fn(),
+    showDefaultSlotContents: () => false,
+    focusedSelectable: () => selected,
+    focusedCloneKey: () => undefined,
+    isFocusedViewCtx: () => true,
+    setStudioFocusBySelectable: (val: Selectable | null) => {
+      selected = val;
+    },
+    setViewCtxHoverBySelectable: hover,
+  }) as ViewCtx;
+  Object.defineProperty(viewCtx, "renderState", {
+    value: {
+      tpl2bestVal: (tpl: TplNode) =>
+        flattenVals(root).find((val) => val.tpl === tpl),
+    },
+  });
+  const viewOps = new ViewOps({ viewCtx });
+  vi.spyOn(viewOps, "isSelectableVisible").mockReturnValue(true);
+  viewOps.tryHoverObj(leaf, { exact: false });
+  expect(hover).toHaveBeenLastCalledWith(group, undefined);
+  viewOps.tryFocusObj(leaf, { exact: false });
+  expect(selected).toBe(group);
+  viewOps.tryFocusObj(leaf, { exact: false });
+  expect(selected).toBe(group);
+  viewOps.tryFocusObj(leaf, { exact: false, drillDown: true });
+  expect(selected).toBe(nested);
+  viewOps.tryHoverObj(leaf, { exact: false });
+  expect(hover).toHaveBeenLastCalledWith(nested, undefined);
+  viewOps.tryNavChild();
+  expect(selected).toBe(leaf);
+  viewOps.tryFocusObj(nested.children[1], { exact: false });
+  expect(selected).toBe(nested.children[1]);
+  viewOps.tryNavParent();
+  expect(selected).toBe(nested);
+  viewOps.tryFocusObj(leaf, { exact: false });
+  expect(selected).toBe(nested);
+  selected = null;
+  viewOps.tryFocusObj(leaf, { exact: false });
+  expect(selected).toBe(group);
 });

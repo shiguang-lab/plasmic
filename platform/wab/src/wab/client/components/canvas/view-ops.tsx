@@ -26,6 +26,7 @@ import {
   editTableColumnTemplate,
   getTableColumnContaining,
   getTableColumnSelectionTarget,
+  isTableColumn,
 } from "@/wab/client/components/canvas/table-column-editing";
 import { promptExtractComponent } from "@/wab/client/components/modals/ExtractComponentModal";
 import { promptWrapInComponent } from "@/wab/client/components/modals/WrapInComponentModal";
@@ -327,10 +328,7 @@ export class ViewOps {
    * If the element is a component instance, enter in spotlight mode
    * @param target
    */
-  deepFocusElement(
-    target: JQuery | undefined | null,
-    trigger: "ctrl-click" | "dbl-click",
-  ) {
+  deepFocusElement(target: JQuery | undefined | null) {
     if (!target) {
       return;
     }
@@ -340,7 +338,15 @@ export class ViewOps {
 
     this.viewCtx().change(() => {
       const column = selectable && this.tableColumnContaining(selectable);
-      if (trigger === "dbl-click" && column) {
+      const focusTarget =
+        selectable &&
+        this.resolveFocusTarget(selectable, {
+          exact: false,
+        }).focusTarget;
+      if (
+        column &&
+        (focusTarget === column || column.tpl === this.editingTableColumn)
+      ) {
         if (
           target.closest("td").length &&
           this.editingTableColumn !== column.tpl
@@ -362,9 +368,24 @@ export class ViewOps {
       }
       if (
         selectable &&
-        this.tryEnterComponentContaining(selectable, trigger, cloneKey)
+        focusTarget instanceof ValComponent &&
+        this.focusHeuristics()
+          .parentComponents(
+            selectable instanceof ValNode
+              ? selectable
+              : ensure(selectable.val, "Slot instance"),
+          )
+          .includes(focusTarget) &&
+        this.tryEnterComponentContaining(selectable, "dbl-click", cloneKey)
       ) {
         return;
+      }
+      if (selectable) {
+        this.tryFocusObj(selectable, {
+          exact: false,
+          drillDown: true,
+          anchorCloneKey: cloneKey,
+        });
       }
       this.tryEditText();
     });
@@ -1154,6 +1175,8 @@ export class ViewOps {
       this.valState(),
       this.viewCtx().currentComponentCtx(),
       this.viewCtx().showDefaultSlotContents(),
+      (tpl, anchor) =>
+        this.viewCtx().renderState.tpl2bestVal(tpl, anchor.fullKey),
     );
   }
 
@@ -1420,7 +1443,7 @@ export class ViewOps {
   }
   tryEnterComponentContaining(
     focusObj: Selectable,
-    trigger: "dbl-click" | "ctrl-click",
+    trigger: "dbl-click" | "enter",
     cloneKey?: string,
   ) {
     const container =
@@ -1460,7 +1483,7 @@ export class ViewOps {
       }
       this.viewCtx().setCurrentComponentCtx(containerCtx);
       const subtarget = this.focusHeuristics().bestFocusTarget(focusObj, {
-        exact: true,
+        exact: false,
       });
       this.viewCtx().setStudioFocusBySelectable(
         subtarget.focusTarget,
@@ -1472,30 +1495,58 @@ export class ViewOps {
       return false;
     }
   }
+  private resolveFocusTarget(
+    focusObj: Selectable,
+    opts: {
+      allowLocked?: boolean;
+      deepSelect?: boolean;
+      drillDown?: boolean;
+      exact: boolean;
+    },
+  ) {
+    if (opts.deepSelect && focusObj instanceof ValNode) {
+      const boundary = this.focusHeuristics()
+        .parentComponents(focusObj)
+        .reverse()
+        .find(
+          (owner) => !this.studioCtx().canEditComponent(owner.tpl.component),
+        );
+      focusObj = boundary ?? focusObj;
+    }
+    return this.focusHeuristics().bestFocusTarget(
+      opts.deepSelect
+        ? focusObj
+        : getTableColumnSelectionTarget(
+            focusObj,
+            this.valState(),
+            this.editingTableColumn,
+          ),
+      { ...opts, curFocused: this.viewCtx().focusedSelectable() },
+    );
+  }
   // Focus on either the given valNode/focusObj or the most reasonable containing
   // component, according to bestFocusTarget.
   tryFocusObj(
     focusObj: Selectable,
     opts: {
       allowLocked?: boolean;
+      deepSelect?: boolean;
+      drillDown?: boolean;
       anchorCloneKey?: string;
       appendToMultiSelection?: boolean;
       exact: boolean;
     },
   ) {
     const column = this.tableColumnContaining(focusObj);
-    if (
+    if (opts.deepSelect && column && focusObj !== column) {
+      this.editingTableColumn = column.tpl;
+    } else if (
       !column ||
       focusObj === column ||
       column.tpl !== this.editingTableColumn
     ) {
       this.editingTableColumn = undefined;
     }
-    focusObj = getTableColumnSelectionTarget(
-      focusObj,
-      this.valState(),
-      this.editingTableColumn,
-    );
     // This focus request may have happened while the ViewCtx is still
     // evaluating.  We do our best to look up the corresponding ValNode
     // to try to select, but the ValNode may be obsolete / about to be
@@ -1513,12 +1564,12 @@ export class ViewOps {
       return;
     }
 
-    const { componentCtx, focusTarget } =
-      this.focusHeuristics().bestFocusTarget(focusObj, {
-        ...opts,
-        curFocused: this.viewCtx().focusedSelectable(),
-      });
+    const { componentCtx, focusTarget } = this.resolveFocusTarget(
+      focusObj,
+      opts,
+    );
     if (
+      !opts.appendToMultiSelection &&
       this.viewCtx().focusedSelectable() === focusTarget &&
       this.viewCtx().isFocusedViewCtx() &&
       this.viewCtx().focusedCloneKey() === opts?.anchorCloneKey
@@ -1526,6 +1577,20 @@ export class ViewOps {
       return;
     }
 
+    if (
+      opts.deepSelect &&
+      componentCtx &&
+      !this.viewCtx().currentComponentCtx()?.eq(componentCtx)
+    ) {
+      this.viewCtx().setCurrentComponentCtx(null);
+      for (const owner of this.focusHeuristics()
+        .parentComponents(componentCtx.valComponent())
+        .reverse()) {
+        this.viewCtx().setCurrentComponentCtx(
+          new ComponentCtx({ valComponent: owner }),
+        );
+      }
+    }
     this.viewCtx().setCurrentComponentCtx(componentCtx || null);
     return this.viewCtx().setStudioFocusBySelectable(
       focusTarget,
@@ -1537,6 +1602,7 @@ export class ViewOps {
     obj: Selectable | undefined,
     opts: {
       allowLocked?: boolean;
+      deepSelect?: boolean;
       anchorCloneKey?: string;
       exact: boolean;
     },
@@ -1545,26 +1611,37 @@ export class ViewOps {
       return;
     }
     if (!obj) {
+      this.lastHoverDom = undefined;
       this.viewCtx().setViewCtxHoverBySelectable(null);
       return;
     }
-    const { focusTarget } = this.focusHeuristics().bestFocusTarget(
-      getTableColumnSelectionTarget(
-        obj,
-        this.valState(),
-        this.editingTableColumn,
-      ),
-      { ...opts, curFocused: this.viewCtx().focusedSelectable() },
-    );
+    const { focusTarget } = this.resolveFocusTarget(obj, opts);
     this.viewCtx().setViewCtxHoverBySelectable(
       focusTarget,
       opts.anchorCloneKey,
     );
   }
 
+  private lastHoverDom?: JQuery;
+
+  refreshHover(deepSelect: boolean) {
+    if (this.lastHoverDom?.[0]?.isConnected) {
+      this.viewCtx().change(() =>
+        this.tryHoverDomElt(ensure(this.lastHoverDom, "Hover target"), {
+          deepSelect,
+          exact: false,
+        }),
+      );
+    }
+  }
+
   tryFocusDomElt(
     $elt: JQuery,
-    opts: { appendToMultiSelection?: boolean; exact: boolean },
+    opts: {
+      appendToMultiSelection?: boolean;
+      deepSelect?: boolean;
+      exact: boolean;
+    },
   ) {
     const focusable = this.viewCtx().dom2focusObj($elt);
     const cloneKey = this.viewCtx().sel2cloneKey(focusable);
@@ -1580,11 +1657,13 @@ export class ViewOps {
     return focusable;
   }
 
-  tryHoverDomElt($elt: JQuery, opts: { exact: boolean }) {
+  tryHoverDomElt($elt: JQuery, opts: { deepSelect?: boolean; exact: boolean }) {
+    this.lastHoverDom = $elt;
     const $closest = closestTaggedNonTextDomElt($elt, this.viewCtx(), {
       excludeNonSelectable: true,
     });
     if (!$closest) {
+      this.tryHoverObj(undefined, opts);
       return;
     }
 
@@ -1593,12 +1672,14 @@ export class ViewOps {
 
     if (focusable) {
       this.tryHoverObj(focusable, {
+        ...opts,
         anchorCloneKey: cloneKey,
-        exact: opts.exact,
       });
+    } else {
+      this.tryHoverObj(undefined, opts);
     }
   }
-  getFinalFocusable($elt: JQuery) {
+  getFinalFocusable($elt: JQuery, opts: { deepSelect?: boolean } = {}) {
     const $closest = closestTaggedNonTextDomElt($elt, this.viewCtx(), {
       excludeNonSelectable: true,
     });
@@ -1613,14 +1694,10 @@ export class ViewOps {
     if (!focusableSelectable) {
       return { val: null, focusedDom: null, focusedTpl: null };
     }
-    const { focusTarget } = this.focusHeuristics().bestFocusTarget(
-      getTableColumnSelectionTarget(
-        focusableSelectable,
-        this.valState(),
-        this.editingTableColumn,
-      ),
-      { exact: true },
-    );
+    const { focusTarget } = this.resolveFocusTarget(focusableSelectable, {
+      ...opts,
+      exact: false,
+    });
     return this.viewCtx().computeFocus(focusTarget, cloneKey);
   }
 
@@ -1680,17 +1757,63 @@ export class ViewOps {
     // Allow traversing full stack but only if we have hit the root element
     // of a component's tree.  When selecting parent of slot arg, should
     // stick to the same owner.
-    return this._trySelect(
-      (sq: /*TWZ*/ SelQuery) =>
-        sq.wrap(sq.parent().tryGet() || sq.parentFullstack().tryGet()),
-      false,
-    );
+    return this._trySelect((sq: /*TWZ*/ SelQuery) => {
+      const parent =
+        this.focusHeuristics().selectionParent(sq.get()) ||
+        sq.parent().tryGet() ||
+        sq.parentFullstack().tryGet();
+      return sq.wrap(parent instanceof SlotSelection ? parent.val : parent);
+    }, false);
+  }
+  tryEnterFocusedComponent() {
+    const selected = this.viewCtx().focusedSelectable();
+    if (!(selected instanceof ValComponent)) {
+      return false;
+    }
+    if (isTableColumn(selected.tpl)) {
+      const template = editTableColumnTemplate(
+        this.viewCtx().variantTplMgr(),
+        this.site(),
+        selected.tpl,
+        selected.codeComponentProps ?? {},
+      );
+      this.editingTableColumn = selected.tpl;
+      this.viewCtx().setStudioFocusByTpl(
+        template,
+        this.viewCtx().focusedCloneKey(),
+      );
+      return true;
+    }
+    if (
+      !isCodeComponent(selected.tpl.component) &&
+      this.tplMgr().isOwnedBySite(selected.tpl.component) &&
+      selected.contents?.[0]
+    ) {
+      return this.tryEnterComponentContaining(
+        selected.contents[0],
+        "enter",
+        this.viewCtx().focusedCloneKey(),
+      );
+    }
+    return false;
   }
   tryNavChild() {
-    const firstChild = this._trySelect(
-      (sq: /*TWZ*/ SelQuery) => sq.firstChild(),
-      true,
-    );
+    const firstChild = this._trySelect((sq: /*TWZ*/ SelQuery) => {
+      const authoredChild = this.focusHeuristics().selectionChildren(
+        sq.get(),
+      )[0];
+      if (authoredChild) {
+        return sq.wrap(authoredChild);
+      }
+      const children = sq.children().toArray();
+      return sq.wrap(
+        children.flatMap((child) =>
+          child instanceof SlotSelection
+            ? SQ(child, this.valState()).children().toArray()
+            : [child],
+        )[0] ?? children[0],
+      );
+    }, true);
     if (!firstChild) {
       return undefined;
     }

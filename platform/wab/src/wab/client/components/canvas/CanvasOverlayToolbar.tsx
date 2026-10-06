@@ -1,6 +1,7 @@
 import styles from "@/wab/client/components/canvas/CanvasOverlayToolbar.module.scss";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { $$$ } from "@/wab/shared/TplQuery";
 import { withoutNils } from "@/wab/shared/common";
 import { getCanvasOverlayTargets } from "@/wab/shared/core/canvas-overlays";
 import { isCodeComponent } from "@/wab/shared/core/components";
@@ -23,7 +24,17 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
   ) {
     return null;
   }
-  const path = viewCtx.focusedTplAncestorsThroughComponents();
+  const editableOwners = new Set(
+    viewCtx.componentStackFrames().map((frame) => frame.component),
+  );
+  const path = viewCtx
+    .focusedTplAncestorsThroughComponents()
+    .filter(({ node }) => {
+      const owner = $$$(
+        isSlotSelection(node) ? node.getTpl() : node,
+      ).tryGetOwningComponent();
+      return owner !== undefined && editableOwners.has(owner);
+    });
   const selected = path[0]?.node;
   const ancestors = withoutNils(
     path.map(({ node }) =>

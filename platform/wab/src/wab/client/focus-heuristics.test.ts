@@ -7,6 +7,7 @@ import {
 import { FocusHeuristics } from "@/wab/client/focus-heuristics";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { ensure, ensureInstance, maybe, tuple } from "@/wab/shared/common";
 import * as Components from "@/wab/shared/core/components";
 import { ComponentType } from "@/wab/shared/core/components";
@@ -150,6 +151,10 @@ describe("FocusHeuristics", function () {
             valState,
             currentComponentCtx,
             !!opts.showDefaultContentsFor,
+            (tpl, anchor) =>
+              ValNodes.flattenVals(valTree).find(
+                (val) => val.tpl === tpl && val.valOwner === anchor.valOwner,
+              ),
           );
         };
       };
@@ -181,6 +186,382 @@ describe("FocusHeuristics", function () {
         valTree.children[0],
       ]);
     }));
+
+  describe("direct selection", () => {
+    beforeEach(() => evalTpl());
+
+    it("direct selection reaches the deepest editable owner while normal selection stays outside", () => {
+      const outer = valTree.children[0];
+      const inner = outer.contents[0].children[0];
+      const leaf = inner.contents[0].children[0];
+      const fh = getHeuristics();
+      expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+        outer,
+      );
+      const direct = fh.bestFocusTarget(leaf, {
+        exact: false,
+        deepSelect: true,
+      });
+      expect(direct.focusTarget).toBe(leaf);
+      expect(direct.componentCtx?.valComponent()).toBe(inner);
+    });
+
+    it("direct selection crosses a substituted slot back to its authored owner", () => {
+      let target: TplNode;
+      evalTpl({
+        tplTree: Tpls.mkTplTag(
+          "div",
+          Tpls.mkTplComponentX({
+            component: slottedComponent,
+            children: (target = Tpls.mkTplTag("span")),
+            baseVariant: TEST_GLOBAL_VARIANT,
+          }),
+        ),
+      });
+      const leaf = ensure(
+        ValNodes.flattenVals(valTree).find((v) => v.tpl === target),
+        "Slot content",
+      );
+      const fh = getHeuristics(
+        new ComponentCtx({ valComponent: valTree.children[0] }),
+      );
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false }).focusTarget,
+      ).toBeInstanceOf(ValSlot);
+      const direct = fh.bestFocusTarget(leaf, {
+        exact: false,
+        deepSelect: true,
+      });
+      expect(direct.focusTarget).toBe(leaf);
+      expect(direct.componentCtx).toBeNull();
+    });
+
+    it.each(["imported", "code"])(
+      "direct selection respects the %s component boundary",
+      (kind) => {
+        const opaque =
+          kind === "code"
+            ? mkCodeComponent(
+                "Opaque",
+                { name: "Opaque", importPath: "./opaque", props: {} },
+                {},
+              )
+            : Components.mkComponent({
+                name: "Opaque",
+                type: ComponentType.Plain,
+                tplTree: () => Tpls.mkTplTag("div"),
+              });
+        opaque.tplTree = Tpls.mkTplTag("div", [Tpls.mkTplTag("span")]);
+        evalTpl({
+          tplTree: Tpls.mkTplTag("div", [
+            Tpls.mkTplComponent(opaque, TEST_GLOBAL_VARIANT),
+          ]),
+        });
+        const instance = valTree.children[0];
+        const leaf = instance.contents[0].children[0];
+        const direct = getHeuristics().bestFocusTarget(leaf, {
+          exact: false,
+          deepSelect: true,
+        });
+        expect(direct.focusTarget).toBe(instance);
+        expect(direct.componentCtx).toBeNull();
+      },
+    );
+
+    it("direct selection skips a locked child but stays in the editable owner", () => {
+      const inner = valTree.children[0].contents[0].children[0];
+      const root = inner.contents[0];
+      const leaf = root.children[0];
+      leaf.tpl.locked = true;
+      try {
+        const direct = getHeuristics().bestFocusTarget(leaf, {
+          exact: false,
+          deepSelect: true,
+        });
+        expect(direct.focusTarget).toBe(root);
+        expect(direct.componentCtx?.valComponent()).toBe(inner);
+      } finally {
+        leaf.tpl.locked = null;
+      }
+    });
+
+    it("direct selection cannot enter a locked component instance", () => {
+      const outer = valTree.children[0];
+      const root = outer.contents[0];
+      const inner = root.children[0];
+      const leaf = inner.contents[0].children[0];
+      inner.tpl.locked = true;
+      try {
+        const direct = getHeuristics().bestFocusTarget(leaf, {
+          exact: false,
+          deepSelect: true,
+        });
+        expect(direct.focusTarget).toBe(root);
+        expect(direct.componentCtx?.valComponent()).toBe(outer);
+      } finally {
+        inner.tpl.locked = null;
+      }
+    });
+
+    it("normal selection respects a trapping component while direct selection reaches authored slot content", () => {
+      let target: TplNode;
+      const wasTrapping = slottedComponent.trapsFocus;
+      slottedComponent.trapsFocus = true;
+      try {
+        evalTpl({
+          tplTree: Tpls.mkTplTag(
+            "div",
+            Tpls.mkTplComponentX({
+              component: slottedComponent,
+              children: (target = Tpls.mkTplTag("span")),
+              baseVariant: TEST_GLOBAL_VARIANT,
+            }),
+          ),
+        });
+        const leaf = ensure(
+          ValNodes.flattenVals(valTree).find((v) => v.tpl === target),
+          "Slot content",
+        );
+        const fh = getHeuristics();
+        expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+          valTree.children[0],
+        );
+        expect(
+          fh.bestFocusTarget(leaf, { exact: false, deepSelect: true })
+            .focusTarget,
+        ).toBe(leaf);
+      } finally {
+        slottedComponent.trapsFocus = wasTrapping;
+      }
+    });
+  });
+
+  describe("layout selection levels", () => {
+    beforeEach(() =>
+      evalTpl({
+        tplTree: Tpls.mkTplTag("div", [
+          Tpls.mkTplTag("main", [
+            Tpls.mkTplTag("section", [
+              Tpls.mkTplTag("span"),
+              Tpls.mkTplTag("button"),
+            ]),
+            Tpls.mkTplTag("aside", [Tpls.mkTplTag("span")]),
+          ]),
+          Tpls.mkTplTag("footer", [Tpls.mkTplTag("span")]),
+        ]),
+      }),
+    );
+
+    it("normal selection chooses the outer layout, and repeated single clicks stay there", () => {
+      const group = valTree.children[0];
+      const leaf = group.children[0].children[0];
+      const fh = getHeuristics();
+      expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+        group,
+      );
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, curFocused: group })
+          .focusTarget,
+      ).toBe(group);
+      expect(fh.bestFocusTarget(leaf, { exact: true }).focusTarget).toBe(leaf);
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, deepSelect: true })
+          .focusTarget,
+      ).toBe(leaf);
+    });
+
+    it("double click descends one layout level and single click stays in the entered level", () => {
+      const group = valTree.children[0];
+      const nested = group.children[0];
+      const leaf = nested.children[0];
+      const fh = getHeuristics();
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: group,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(nested);
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, curFocused: nested })
+          .focusTarget,
+      ).toBe(nested);
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: nested,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(leaf);
+      expect(
+        fh.bestFocusTarget(nested.children[1], {
+          exact: false,
+          curFocused: leaf,
+        }).focusTarget,
+      ).toBe(nested.children[1]);
+    });
+
+    it("clicking outside the entered layout selects the branch at the common parent", () => {
+      const group = valTree.children[0];
+      const leaf = group.children[0].children[0];
+      const fh = getHeuristics();
+      expect(
+        fh.bestFocusTarget(group.children[1].children[0], {
+          exact: false,
+          curFocused: leaf,
+        }).focusTarget,
+      ).toBe(group.children[1]);
+      expect(
+        fh.bestFocusTarget(valTree.children[1].children[0], {
+          exact: false,
+          curFocused: leaf,
+        }).focusTarget,
+      ).toBe(valTree.children[1]);
+    });
+
+    it("a nested component is selected through its enclosing authored layouts", () => {
+      evalTpl({
+        tplTree: Tpls.mkTplTag("div", [
+          Tpls.mkTplTag("section", [
+            Tpls.mkTplComponent(componentA, TEST_GLOBAL_VARIANT),
+          ]),
+        ]),
+      });
+      const group = valTree.children[0];
+      const instance = group.children[0];
+      const leaf = instance.contents[0].children[1];
+      const fh = getHeuristics();
+      expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+        group,
+      );
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: group,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(instance);
+    });
+
+    it("slot contents first select their containing instance, then its authored child", () => {
+      let target: TplNode;
+      evalTpl({
+        tplTree: Tpls.mkTplTag(
+          "div",
+          Tpls.mkTplComponentX({
+            component: slottedComponent,
+            children: Tpls.mkTplTag("section", [
+              (target = Tpls.mkTplTag("span")),
+            ]),
+            baseVariant: TEST_GLOBAL_VARIANT,
+          }),
+        ),
+      });
+      const instance = valTree.children[0];
+      const leaf = ensure(
+        ValNodes.flattenVals(valTree).find((v) => v.tpl === target),
+        "Slot leaf",
+      );
+      const group = ensure(
+        ValNodes.flattenVals(valTree).find((v) => v.tpl === target.parent),
+        "Slot layout",
+      );
+      const fh = getHeuristics();
+      expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+        instance,
+      );
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: instance,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(group);
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, curFocused: group })
+          .focusTarget,
+      ).toBe(group);
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: group,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(leaf);
+    });
+
+    it("uses authored ancestors when a code component renders slot content outside its original Fiber parent", () => {
+      let target: TplNode;
+      evalTpl({
+        tplTree: Tpls.mkTplTag("div", [
+          Tpls.mkTplTag(
+            "main",
+            Tpls.mkTplComponentX({
+              component: slottedComponent,
+              children: (target = Tpls.mkTplTag("span")),
+              baseVariant: TEST_GLOBAL_VARIANT,
+            }),
+          ),
+        ]),
+      });
+      const group = valTree.children[0];
+      const instance = group.children[0];
+      const leaf = ensure(
+        ValNodes.flattenVals(valTree).find((val) => val.tpl === target),
+        "Moved slot content",
+      );
+      ValNodes.writeableValNode(leaf).parent = valTree;
+      ValNodes.writeableValNode(leaf).slotInfo = undefined;
+      const fh = getHeuristics();
+      expect(fh.selectionParent(leaf)).toBe(instance);
+      expect(fh.selectionChildren(instance)).toEqual([leaf]);
+      expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+        group,
+      );
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: group,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(instance);
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: instance,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(leaf);
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, curFocused: instance })
+          .focusTarget,
+      ).toBe(instance);
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, deepSelect: true })
+          .focusTarget,
+      ).toBe(leaf);
+      // Renderless slot owners may not have a registered runtime value at all.
+      // Their surrounding authored groups must still bound mouse selection.
+      group.children = [];
+      valTree.children = [group, leaf];
+      expect(fh.selectionParent(leaf)).toBe(group);
+      expect(fh.selectionChildren(group)).toEqual([leaf]);
+      expect(fh.bestFocusTarget(leaf, { exact: false }).focusTarget).toBe(
+        group,
+      );
+      expect(
+        fh.bestFocusTarget(leaf, { exact: false, curFocused: group })
+          .focusTarget,
+      ).toBe(group);
+      expect(
+        fh.bestFocusTarget(leaf, {
+          exact: false,
+          curFocused: group,
+          drillDown: true,
+        }).focusTarget,
+      ).toBe(leaf);
+    });
+  });
 
   describe("containingComponentWithinCurrentComponentCtx", function () {
     it("should work with null currentComponentCtx", function () {

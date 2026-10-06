@@ -167,13 +167,13 @@ function PreselectBoxInner(props: {
     studioCtx.zoom,
   );
 
+  const hoverVtm = viewCtx.hoverVariantTplMgr(selectable);
   const isTargetingSomeNonBaseVariant =
-    isTplVariantable(tpl) &&
-    viewCtx.variantTplMgr().isTargetingNonBaseVariant(tpl);
+    isTplVariantable(tpl) && hoverVtm.isTargetingNonBaseVariant(tpl);
 
   const effectiveVariantSetting =
     shouldShowHoverTag && isTplTagOrComponent(tpl)
-      ? viewCtx.effectiveCurrentVariantSetting(tpl)
+      ? hoverVtm.effectiveVariantSetting(tpl)
       : undefined;
   const tagName = shouldShowHoverTag
     ? summarizeFocusObj(selectable, viewCtx, effectiveVariantSetting)

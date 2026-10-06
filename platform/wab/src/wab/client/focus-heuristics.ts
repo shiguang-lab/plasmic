@@ -7,15 +7,21 @@ import {
   maybe,
   switchType,
   tuple,
+  withoutNils,
 } from "@/wab/shared/common";
-import { isContextCodeComponent } from "@/wab/shared/core/components";
+import {
+  isCodeComponent,
+  isContextCodeComponent,
+} from "@/wab/shared/core/components";
 import {
   getFocusTrappingAncestor,
   getUnlockedAncestor,
+  isSelectableLocked,
   Selectable,
   SQ,
 } from "@/wab/shared/core/selection";
 import { SlotSelection } from "@/wab/shared/core/slots";
+import { ancestorsUpWithSlotSelections } from "@/wab/shared/core/tpls";
 import {
   slotHasDefaultContent,
   ValComponent,
@@ -24,12 +30,13 @@ import {
 } from "@/wab/shared/core/val-nodes";
 import { asVal } from "@/wab/shared/core/vals";
 import { ValState } from "@/wab/shared/eval/val-state";
-import { Site, TplComponent } from "@/wab/shared/model/classes";
+import { Site, TplComponent, TplNode } from "@/wab/shared/model/classes";
 import {
   isCodeComponentSlot,
   isPlainTextTplSlot,
 } from "@/wab/shared/SlotUtils";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { $$$ } from "@/wab/shared/TplQuery";
 import L from "lodash";
 
 export class FocusHeuristics {
@@ -39,6 +46,7 @@ export class FocusHeuristics {
     private valState: ValState,
     private currentComponentCtx: ComponentCtx | null,
     private showingDefaultSlotContents: boolean,
+    private valForTpl: (tpl: TplNode, anchor: ValNode) => ValNode | undefined,
   ) {}
 
   // Similar to containingComponentWithinCurrentComponentCtx.  This serves as
@@ -119,6 +127,7 @@ export class FocusHeuristics {
       allowLocked?: boolean;
       curFocused?: Selectable | null;
       deepSelect?: boolean;
+      drillDown?: boolean;
       exact: boolean;
     },
   ) {
@@ -152,6 +161,7 @@ export class FocusHeuristics {
     opts: {
       allowLocked?: boolean;
       deepSelect?: boolean;
+      drillDown?: boolean;
       curFocused?: Selectable | null;
       exact: boolean;
     },
@@ -170,6 +180,37 @@ export class FocusHeuristics {
       // When the val key starts with '.' it means that this node is a child
       // of a detached val node, meaning we won't be able to focus on it either.
       return { componentCtx: null, focusTarget: null };
+    }
+
+    if (opts.deepSelect) {
+      // Direct selection enters the deepest editable owner, without entering
+      // imported/code component implementations or crossing a locked instance.
+      let focusTarget: Selectable | null = valNode;
+      let owner: ValComponent | undefined;
+      for (const parent of this.parentComponents(valNode).reverse()) {
+        if (
+          isCodeComponent(parent.tpl.component) ||
+          !this.tplMgr.isOwnedBySite(parent.tpl.component) ||
+          (!opts.allowLocked && isSelectableLocked(parent, this.valState))
+        ) {
+          focusTarget = parent;
+          break;
+        }
+        owner = parent;
+      }
+      if (!opts.allowLocked) {
+        focusTarget = getUnlockedAncestor(focusTarget, this.valState) ?? null;
+      }
+      if (
+        focusTarget instanceof ValComponent &&
+        isContextCodeComponent(focusTarget.tpl.component)
+      ) {
+        focusTarget = null;
+      }
+      return {
+        componentCtx: owner ? new ComponentCtx({ valComponent: owner }) : null,
+        focusTarget,
+      };
     }
 
     const currentComponent = this.currentValComponent();
@@ -242,6 +283,14 @@ export class FocusHeuristics {
         return { componentCtx, focusTarget };
       }
 
+      if (focusTarget) {
+        focusTarget = this.focusWithinCurrentLevel(
+          focusTarget,
+          opts.curFocused,
+          opts.drillDown,
+        );
+      }
+
       // Otherwise, here comes some heuristics to pick the "nicest" thing to
       // select
       if (
@@ -278,6 +327,110 @@ export class FocusHeuristics {
 
       return { componentCtx, focusTarget };
     }
+  }
+
+  private focusWithinCurrentLevel(
+    target: Selectable,
+    current: Selectable | null | undefined,
+    drillDown = false,
+  ) {
+    const path = this.selectionPath(target);
+    // The frame's implementation root is the canvas, rather than a group
+    // that must be entered before selecting its children.
+    const root = path[0];
+    let start =
+      root instanceof ValNode &&
+      root.tpl === root.valOwner?.tpl.component.tplTree
+        ? 1
+        : 0;
+    if (current && (current instanceof ValNode || current.val)) {
+      const currentPath = this.selectionPath(current).slice(
+        0,
+        drillDown ? undefined : -1,
+      );
+      let common = 0;
+      while (
+        common < path.length &&
+        common < currentPath.length &&
+        SQ(path[common], this.valState).is(currentPath[common])
+      ) {
+        common++;
+      }
+      start = Math.max(start, common);
+    }
+    // Slots describe where authored children live; they do not add an
+    // extra mouse-selection level between an instance and those children.
+    return (
+      path
+        .slice(start)
+        .find(
+          (node) =>
+            !(node instanceof SlotSelection) &&
+            !(
+              node instanceof ValComponent &&
+              isContextCodeComponent(node.tpl.component)
+            ),
+        ) ?? target
+    );
+  }
+
+  selectionParent(target: Selectable): ValNode | undefined {
+    return this.selectionPath(target)
+      .slice(0, -1)
+      .reverse()
+      .find((node): node is ValNode => node instanceof ValNode);
+  }
+
+  selectionChildren(target: Selectable): ValNode[] {
+    const anchor = target instanceof SlotSelection ? target.val : target;
+    if (!anchor) {
+      return [];
+    }
+    const renderedChildren = (tpl: TplNode): ValNode[] => {
+      const val = this.valForTpl(tpl, anchor);
+      if (
+        val &&
+        val.valOwner === anchor.valOwner &&
+        !(
+          val instanceof ValComponent &&
+          isContextCodeComponent(val.tpl.component)
+        )
+      ) {
+        return [val];
+      }
+      return $$$(tpl).children().toArrayOfTplNodes().flatMap(renderedChildren);
+    };
+    return $$$(target instanceof SlotSelection ? target.valToTpl() : target.tpl)
+      .children()
+      .toArrayOfTplNodes()
+      .flatMap(renderedChildren);
+  }
+
+  private selectionPath(target: Selectable): Selectable[] {
+    const anchor = target instanceof SlotSelection ? target.val : target;
+    if (!anchor) {
+      return [];
+    }
+    // Code components may move slot content, or read props from a child
+    // without rendering that child. Fiber ancestry then skips authored groups.
+    // Use the editor tree for every component, and resolve each rendered
+    // ancestor in the hit node's owner and repeated instance.
+    return withoutNils(
+      ancestorsUpWithSlotSelections(
+        target instanceof SlotSelection ? target.valToTpl() : target.tpl,
+      ).map((node): Selectable | undefined => {
+        const tpl = node instanceof SlotSelection ? node.getTpl() : node;
+        const val = tpl === anchor.tpl ? anchor : this.valForTpl(tpl, anchor);
+        if (!val || val.valOwner !== anchor.valOwner) {
+          return undefined;
+        }
+        return node instanceof SlotSelection
+          ? val instanceof ValComponent
+            ? node.withVal(val)
+            : undefined
+          : val;
+      }),
+    ).reverse();
   }
 
   // Returns either the best ValComponent that is within the current component

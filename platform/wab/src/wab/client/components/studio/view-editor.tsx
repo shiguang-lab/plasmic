@@ -261,6 +261,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           e.preventDefault();
         }
         this.props.studioCtx.markKeydown(e.which);
+        this.viewCtx()
+          ?.getViewOps()
+          .refreshHover(
+            (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) && !e.altKey,
+          );
         if (isArrowKey(e.key)) {
           this.props.studioCtx.startUnlogged();
         }
@@ -277,6 +282,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       }
       if (this.props.studioCtx.isDevMode) {
         this.props.studioCtx.markKeyup(e.which);
+        this.viewCtx()
+          ?.getViewOps()
+          .refreshHover(
+            (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) && !e.altKey,
+          );
         if (isArrowKey(e.key)) {
           this.props.studioCtx.stopUnlogged();
         }
@@ -443,7 +453,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               viewCtx.setStudioFocusByTpl(viewCtx.tplRoot());
             } else {
               const tpl = viewCtx.focusedTpl();
-              if (tpl && isTplTextBlock(tpl)) {
+              if (this.viewOps().tryEnterFocusedComponent()) {
+                return;
+              } else if (tpl && isTplTextBlock(tpl)) {
                 // If tpl is a rich text block, just try to edit it - don't nav
                 // to its children.
                 this.viewOps().tryEditText();
@@ -1114,22 +1126,23 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
 
     const focusedSelectables = targetVc.focusedSelectables();
-    const focusable = targetVc.getViewOps().getFinalFocusable(closest).val;
+    const directSelect = PLATFORM === "osx" ? e.metaKey : e.ctrlKey;
+    const deepSelect = directSelect && !e.altKey;
+    const focusable = targetVc
+      .getViewOps()
+      .getFinalFocusable(closest, { deepSelect }).val;
 
-    if (!focusable || !focusedSelectables.includes(focusable)) {
+    if (e.shiftKey || !focusable || !focusedSelectables.includes(focusable)) {
       const focusedSelectable = targetVc.getViewOps().tryFocusDomElt(closest, {
         appendToMultiSelection: e.shiftKey,
+        deepSelect,
         exact: false,
       });
 
-      if (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) {
-        if (e.altKey) {
-          targetVc.change(() => {
-            targetVc.studioCtx.switchToComponentArena(focusedSelectable);
-          });
-        } else {
-          targetVc.getViewOps().deepFocusElement(closest, "ctrl-click");
-        }
+      if (directSelect && e.altKey) {
+        targetVc.change(() => {
+          targetVc.studioCtx.switchToComponentArena(focusedSelectable);
+        });
       }
     }
 
@@ -1369,17 +1382,19 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       }
       return;
     }
-    const $hovered = targetVc.$hoveredDomElt();
-    if (!$hovered || !$target.is($hovered)) {
-      targetVc.change(() => {
-        if ($target.is(".__wab_root")) {
-          targetVc.getViewOps().tryHoverObj(undefined, { exact: true });
-          targetVc.setMeasureToolDomElt(null);
-        } else {
-          targetVc.getViewOps().tryHoverDomElt($target, { exact: false });
-        }
-      });
-    }
+    // Resolve on every hover event: modifier changes can change the candidate
+    // even when the pointer stays over the same DOM element.
+    targetVc.change(() => {
+      if ($target.is(".__wab_root")) {
+        targetVc.getViewOps().tryHoverObj(undefined, { exact: true });
+        targetVc.setMeasureToolDomElt(null);
+      } else {
+        targetVc.getViewOps().tryHoverDomElt($target, {
+          deepSelect: (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) && !e.altKey,
+          exact: false,
+        });
+      }
+    });
 
     // Measure Tool computations
     const $focusedDomElt = maybe(focusedVc, (vc) => vc.focusedDomElt());
