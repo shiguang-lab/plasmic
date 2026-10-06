@@ -87,7 +87,11 @@ const AntdLayoutContent = Ant__namespace.Layout.Content;
 const AntdLayoutSider = Ant__namespace.Layout.Sider;
 const AntdMentions = Ant__namespace.Mentions;
 function AntdPopconfirm(props) {
-  const { props: rest, open, isEditing } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
+  const {
+    props: rest,
+    open,
+    isEditing
+  } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   return /* @__PURE__ */ React__default.default.createElement(
     Ant__namespace.Popconfirm,
     {
@@ -117,11 +121,38 @@ const AntdSplitter = Ant__namespace.Splitter;
 const AntdSplitterPanel = Ant__namespace.Splitter.Panel;
 const AntdStatistic = Ant__namespace.Statistic;
 const AntdStatisticTimer = Ant__namespace.Statistic.Timer;
-function AntdTag({ value, options, defaultColor, automaticColor, children, color, ...props }) {
+function AntdTag({
+  value,
+  options,
+  defaultColor,
+  automaticColor,
+  children,
+  color,
+  ...props
+}) {
   const option = options?.find((item) => item.value === value);
-  const colors = ["blue", "green", "orange", "purple", "cyan", "magenta", "red", "gold"];
-  const hash = Array.from(value ?? "").reduce((current, char) => current * 31 + char.charCodeAt(0) >>> 0, 0);
-  return /* @__PURE__ */ React__default.default.createElement(Ant__namespace.Tag, { ...props, color: color ?? (option?.color || defaultColor || (automaticColor ? colors[hash % colors.length] : void 0)) }, children ?? option?.label ?? value);
+  const colors = [
+    "blue",
+    "green",
+    "orange",
+    "purple",
+    "cyan",
+    "magenta",
+    "red",
+    "gold"
+  ];
+  const hash = Array.from(value ?? "").reduce(
+    (current, char) => current * 31 + char.charCodeAt(0) >>> 0,
+    0
+  );
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant__namespace.Tag,
+    {
+      ...props,
+      color: color ?? (option?.color || defaultColor || (automaticColor ? colors[hash % colors.length] : void 0))
+    },
+    children ?? option?.label ?? value
+  );
 }
 const AntdTagCheckable = Ant__namespace.Tag.CheckableTag;
 const AntdTimeline = Ant__namespace.Timeline;
@@ -678,18 +709,25 @@ function registerAdditional(loader) {
     },
     { states: valueState("text") }
   );
-  register(loader, AntdPopconfirm, "popconfirm", "AntdPopconfirm", {
-    previewOpen: canvasOverlay$1.previewOpenProp,
-    icon: { type: "slot", hidePlaceholder: true },
-    children: slot("Delete"),
-    title: { ...slot("Delete this item?"), hidePlaceholder: true },
-    description: { type: "slot", hidePlaceholder: true },
-    okText: "string",
-    cancelText: "string",
-    disabled: "boolean",
-    onConfirm: event("event", "object"),
-    onCancel: event("event", "object")
-  }, { canvasOverlay });
+  register(
+    loader,
+    AntdPopconfirm,
+    "popconfirm",
+    "AntdPopconfirm",
+    {
+      previewOpen: canvasOverlay$1.previewOpenProp,
+      icon: { type: "slot", hidePlaceholder: true },
+      children: slot("Delete"),
+      title: { ...slot("Delete this item?"), hidePlaceholder: true },
+      description: { type: "slot", hidePlaceholder: true },
+      okText: "string",
+      cancelText: "string",
+      disabled: "boolean",
+      onConfirm: event("event", "object"),
+      onCancel: event("event", "object")
+    },
+    { canvasOverlay }
+  );
   register(loader, AntdQRCode, "qr-code", "AntdQRCode", {
     value: { type: "string", defaultValue: "https://publib.cn" },
     size: "number",
@@ -818,16 +856,28 @@ function registerAdditional(loader) {
     }
   );
   register(loader, AntdTag, "tag", "AntdTag", {
-    value: { type: "string", displayName: "\u5B57\u6BB5\u503C", description: "\u4ECE\u6570\u636E\u7ED1\u5B9A\u8BFB\u53D6\uFF1B\u901A\u8FC7\u4E0B\u65B9\u6620\u5C04\u8BBE\u7F6E\u663E\u793A\u6587\u5B57\u4E0E\u989C\u8272\u3002" },
-    options: { type: "array", displayName: "\u6807\u7B7E\u6587\u5B57\u548C\u989C\u8272", itemType: { type: "object", nameFunc: (item) => item.label || item.value, fields: {
-      value: { type: "string", displayName: "\u5B57\u6BB5\u503C" },
-      label: { type: "string", displayName: "\u663E\u793A\u6587\u5B57" },
-      color: { type: "color", displayName: "\u989C\u8272" }
-    } } },
+    value: {
+      type: "string",
+      displayName: "\u5B57\u6BB5\u503C",
+      description: "\u4ECE\u6570\u636E\u7ED1\u5B9A\u8BFB\u53D6\uFF1B\u901A\u8FC7\u4E0B\u65B9\u6620\u5C04\u8BBE\u7F6E\u663E\u793A\u6587\u5B57\u4E0E\u989C\u8272\u3002"
+    },
+    options: {
+      type: "array",
+      displayName: "\u6807\u7B7E\u6587\u5B57\u548C\u989C\u8272",
+      itemType: {
+        type: "object",
+        nameFunc: (item) => item.label || item.value,
+        fields: {
+          value: { type: "string", displayName: "\u5B57\u6BB5\u503C" },
+          label: { type: "string", displayName: "\u663E\u793A\u6587\u5B57" },
+          color: { type: "color", displayName: "\u989C\u8272" }
+        }
+      }
+    },
     defaultColor: { type: "color", displayName: "\u9ED8\u8BA4\u989C\u8272" },
     automaticColor: { type: "boolean", displayName: "\u6309\u503C\u81EA\u52A8\u5206\u914D\u989C\u8272" },
     closeIcon: { type: "slot", hidePlaceholder: true },
-    children: slot("Tag"),
+    children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },
     variant: choice(["outlined", "filled", "solid"]),
     closable: "boolean",

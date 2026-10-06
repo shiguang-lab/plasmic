@@ -1408,7 +1408,13 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           ? instanceIndex
           : null,
       mode: studio.isInteractiveMode ? ("preview" as const) : ("edit" as const),
-      canEdit: studio.canEditProject(),
+      canEdit:
+        studio.canEditProject() &&
+        studio.editMode &&
+        studio.isAtTip &&
+        !studio.blockChanges &&
+        (!studio.siteInfo.isMainBranchProtected ||
+          !!studio.dbCtx().branchInfo?.id),
       path:
         vc && tpl
           ? selectionPath(vc, val instanceof SlotSelection ? val : tpl).map(

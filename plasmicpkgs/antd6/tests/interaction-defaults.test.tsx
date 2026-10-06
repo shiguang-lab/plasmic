@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { expect, test, vi } from "vitest";
@@ -83,12 +83,13 @@ test("controlled Modal can stay open during save and close only after success", 
   render(<Example />);
   fireEvent.click(screen.getByRole("button", { name: "OK" }));
   expect(screen.getByRole("dialog")).toBeTruthy();
+  expect(screen.getByText("open")).toBeTruthy();
   await act(async () => {
     finish();
     await saving;
   });
   expect(screen.getByText("closed")).toBeTruthy();
-  expect(document.querySelector(".ant-modal.ant-zoom-leave")).toBeTruthy();
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });
 
 test("Pagination mount emits no business change; clicking a new page emits one", () => {

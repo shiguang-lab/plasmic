@@ -957,7 +957,7 @@ export function registerAdditional(loader?: Registerable) {
     defaultColor: { type: "color", displayName: "默认颜色" },
     automaticColor: { type: "boolean", displayName: "按值自动分配颜色" },
     closeIcon: { type: "slot", hidePlaceholder: true },
-    children: slot("Tag"),
+    children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },
     variant: choice(["outlined", "filled", "solid"]),
     closable: "boolean",

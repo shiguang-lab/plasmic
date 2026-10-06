@@ -76,6 +76,12 @@ describe("AI prototype editor tools", () => {
     });
     studioCtx.copilotActivity.dispose();
   });
+  it("reports a blocked editor as non-editable", async () => {
+    const { studioCtx, call } = fixture();
+    studioCtx.blockChanges = true;
+    expect(await call("getEditorContext")).toMatchObject({ canEdit: false });
+    studioCtx.copilotActivity.dispose();
+  });
   it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");
