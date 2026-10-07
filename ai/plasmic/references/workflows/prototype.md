@@ -1,6 +1,6 @@
 # Product prototype workflow
 
-Studio: https://plasmic.studio.publib.cn. Use the logged-in desktop MCP and the user's project. Read `get_app_state`, then `execute` → `identify`; require `canEdit`. Do not use private Studio globals, database bundles, browser evaluation, or raw REST to generate/update a design. If MCP lacks a required capability, implement and test it before continuing through MCP.
+Studio: https://studio.plasmic.shiguanglab.com. Use the logged-in desktop MCP and the user's project. Read `get_app_state`, then `execute` → `identify`; require `canEdit`. Do not use private Studio globals, database bundles, browser evaluation, or raw REST to generate/update a design. If MCP lacks a required capability, implement and test it before continuing through MCP.
 
 Read [../admin-design.md](../admin-design.md) for admin prototypes. Derive business behavior from the original requirement and product design; previous generated prototypes are reference evidence, not authoritative requirements. Access `.pen` through its MCP. Record scope, conflicts, mock data, and source paths in a sidecar plan outside the UI. Respect explicitly requested viewport and platforms.
 

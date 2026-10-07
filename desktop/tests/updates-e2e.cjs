@@ -49,7 +49,7 @@ async function activateUpdate(page, command) {
   child.stderr.pipe(log);
   await until(async () => (await fetch(`http://127.0.0.1:${port}/json/version`)).ok);
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
-  const page = await until(() => browser.contexts()[0].pages().find((page) => page.url().startsWith("https://plasmic.studio.publib.cn")));
+  const page = await until(() => browser.contexts()[0].pages().find((page) => page.url().startsWith("https://studio.plasmic.shiguanglab.com")));
   await page.waitForFunction(() => !!window.desktopUpdates, undefined, { timeout: 120000 });
   const before = await page.evaluate(() => window.desktopUpdates.command("status"));
   report.before = before.currentVersion;

@@ -16,8 +16,8 @@ test("Desktop Google entry requests native login without creating a popup or tri
   };
   window.top = window;
   const location = {
-    origin: "https://plasmic.studio.publib.cn",
-    href: "https://plasmic.studio.publib.cn/login",
+    origin: "https://studio.plasmic.shiguanglab.com",
+    href: "https://studio.plasmic.shiguanglab.com/login",
   };
   vm.runInNewContext(
     fs.readFileSync(path.resolve(__dirname, "../src/editor-bridge.js"), "utf8"),

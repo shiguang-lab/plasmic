@@ -62,12 +62,12 @@ test("update UI is injected and served locally without fetching NAS static asset
   await fs.writeFile(updateUiPath, "window.updateUiLoaded = true;");
   const handler = createAssetHandler({ root: page, ...config, updateUiPath, remoteFetch: () => { throw new Error("Unexpected network request"); } });
   const response = await handler(new Request(config.studioOrigin + "/projects/123"));
-  assert.match(await response.text(), /script defer src="https:\/\/plasmic.studio.publib.cn\/static\/desktop\/update-ui.js"/);
+  assert.match(await response.text(), /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/);
   const canvas = await handler(new Request(config.canvasOrigin + "/static/host.html"));
   const canvasHtml = await canvas.text();
   assert.match(canvasHtml, /static\/desktop\/update-ui.js/);
-  assert.match(canvasHtml, /data-studio-origin="https:\/\/plasmic.studio.publib.cn"/);
-  assert.match(canvasHtml, /data-canvas-origin="https:\/\/plasmic.canvas.publib.cn"/);
+  assert.match(canvasHtml, /data-studio-origin="https:\/\/studio.plasmic.shiguanglab.com"/);
+  assert.match(canvasHtml, /data-canvas-origin="https:\/\/canvas.plasmic.shiguanglab.com"/);
   const script = await handler(new Request(config.studioOrigin + "/static/desktop/update-ui.js"));
   assert.match(script.headers.get("Content-Type"), /javascript/);
   assert.equal(await script.text(), "window.updateUiLoaded = true;");
@@ -180,7 +180,7 @@ test("The packaged editor bridge is injected and served locally, including HEAD 
     const html = await response.text();
     assert.match(
       html,
-      /<script defer src="https:\/\/plasmic.studio.publib.cn\/static\/desktop\/editor-bridge.js"><\/script><\/head>/,
+      /<script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/editor-bridge.js"><\/script><\/head>/,
     );
     const head = await bridged(
       new Request(config.studioOrigin + "/", { method: "HEAD" }),
@@ -203,7 +203,7 @@ test("The packaged editor bridge is injected and served locally, including HEAD 
 test("Project requests reuse bundled Google font faces; other families remain remote", async () => {
   let fetched = 0;
   const bundledFontCss =
-    "@font-face {font-family: 'Roboto'; font-weight: 400; src: url(https://plasmic.studio.publib.cn/static/desktop-fonts/roboto.ttf);} @font-face {font-family: 'Inter'; font-weight: 400; src: url(https://plasmic.studio.publib.cn/static/desktop-fonts/inter.ttf);}";
+    "@font-face {font-family: 'Roboto'; font-weight: 400; src: url(https://studio.plasmic.shiguanglab.com/static/desktop-fonts/roboto.ttf);} @font-face {font-family: 'Inter'; font-weight: 400; src: url(https://studio.plasmic.shiguanglab.com/static/desktop-fonts/inter.ttf);}";
   const fonts = createAssetHandler({
     root,
     ...config,

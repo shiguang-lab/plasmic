@@ -12,7 +12,7 @@
 
 ## 可编辑交付
 
-[Studio 项目](https://plasmic.studio.publib.cn/projects/b1VPmGnbGvyKc4rnA2xLVv)，唯一总览画布 `REQ075 · Desktop`，包含以上业务 Pages 的引用。
+[Studio 项目](https://studio.plasmic.shiguanglab.com/projects/b1VPmGnbGvyKc4rnA2xLVv)，唯一总览画布 `REQ075 · Desktop`，包含以上业务 Pages 的引用。
 
 | 页面            | 页面路径                  | 组件 UUID      |
 | --------------- | ------------------------- | -------------- |

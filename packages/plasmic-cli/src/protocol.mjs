@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { createRequire } from "node:module";
 
-export const DEFAULT_FEED = "https://plasmic.studio.publib.cn/desktop-updates/plasmic";
+export const DEFAULT_FEED = "https://studio.plasmic.shiguanglab.com/desktop-updates/plasmic";
 export const CLI_VERSION = createRequire(import.meta.url)("../package.json").version;
 export const MIN_CLI_VERSION = "0.0.34";
 export const CODEGEN_REFERENCES = [
