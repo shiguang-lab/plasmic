@@ -141,6 +141,13 @@ function registerTooltip(loader) {
         description: "What gets shown inside the tooltip on hover",
         defaultValue: "Tooltip contents"
       },
+      trigger: {
+        type: "choice",
+        options: ["hover", "focus", "click", "contextMenu"],
+        multiSelect: true,
+        description: "Interactions that reveal the Tooltip.",
+        defaultValueHint: ["hover"]
+      },
       title: {
         type: "slot",
         displayName: "Tooltip contents",

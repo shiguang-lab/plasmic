@@ -20,6 +20,7 @@ import { deleteStyleToken } from "@/wab/client/operations/delete-style-token";
 import { deleteTpl } from "@/wab/client/operations/delete-tpl";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { insertTplAt, pasteTpls } from "@/wab/client/operations/insert-tpl";
+import { renameTpl } from "@/wab/client/operations/rename-tpl";
 import { setComponentInstanceProp } from "@/wab/client/operations/set-component-instance-prop";
 import { setStyleTokenVariantedValue } from "@/wab/client/operations/set-style-token-varianted-value";
 import { setTplStyles } from "@/wab/client/operations/set-tpl-styles";
@@ -40,7 +41,8 @@ import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { getBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
-import { assert, ensure, asyncTimeout } from "@/wab/shared/common";
+import { paramToVarName } from "@/wab/shared/codegen/util";
+import { assert, asyncTimeout, ensure } from "@/wab/shared/common";
 import { getComponentArenaBaseFrame } from "@/wab/shared/component-arenas";
 import {
   GlobalVariantFrame,
@@ -66,8 +68,8 @@ import { codeLit } from "@/wab/shared/core/exprs";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
 import {
   allGlobalVariants,
-  getComponentArena,
   getArenaByNameOrUuidOrPath,
+  getComponentArena,
   getPageArena,
 } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
@@ -85,8 +87,10 @@ import { Pt } from "@/wab/shared/geom";
 import {
   Component,
   TplNode,
+  isKnownRenderExpr,
   isKnownTplComponent,
   isKnownTplTag,
+  isKnownVirtualRenderExpr,
 } from "@/wab/shared/model/classes";
 import { frameSizeGroups } from "@/wab/shared/responsiveness";
 import {
@@ -834,11 +838,13 @@ async function prepareMutation(
     case "changeElement": {
       const input = operation.input;
       assert(
-        input.props ||
+        input.name !== undefined ||
+          input.props ||
+          input.resetProps ||
           input.styles ||
           input.visibleIf !== undefined ||
           input.repeat !== undefined,
-        "Provide props, styles, visibleIf or repeat",
+        "Provide name, props, resetProps, styles, visibleIf or repeat",
       );
       const tpl = findElement(component, input.elementUuid);
       const variants = (input.variantUuids ?? []).map((uuid) =>
@@ -856,7 +862,45 @@ async function prepareMutation(
           findElement(component, tpl.uuid) === tpl,
           "Element removed during batch",
         );
+        if (input.name !== undefined) {
+          assert(
+            isKnownTplTag(tpl) || isKnownTplComponent(tpl),
+            "name requires a native element or component instance",
+          );
+          ensureOk(
+            renameTpl(tpl, input.name, { component, tplMgr: studio.tplMgr() }),
+          );
+        }
         const setting = vtm.ensureVariantSetting(tpl, combo);
+        if (input.resetProps) {
+          assert(
+            isKnownTplComponent(tpl),
+            "resetProps requires a component instance",
+          );
+          for (const name of input.resetProps) {
+            assert(
+              !(name in (input.props ?? {})),
+              `Cannot set and reset ${name} in one call`,
+            );
+            const param = ensure(
+              tpl.component.params.find(
+                (p) => paramToVarName(tpl.component, p) === name,
+              ),
+              `Unknown component prop ${name}`,
+            );
+            const arg = setting.args.find((a) => a.param === param);
+            assert(
+              !arg ||
+                !(
+                  isKnownRenderExpr(arg.expr) ||
+                  isKnownVirtualRenderExpr(arg.expr)
+                ) ||
+                arg.expr.tpl.length === 0,
+              `Remove nonempty slot content before resetting ${name}`,
+            );
+            studio.tplMgr().delArg(tpl, setting, param.variable);
+          }
+        }
         if (input.visibleIf !== undefined) {
           setting.dataCond =
             input.visibleIf === null
@@ -1418,15 +1462,20 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             }
           : null,
       projectName: studio.siteInfo.name,
-      editorView: studio.currentArena && studio.viewportCtx
-        ? {
-            arenaId: getArenaUuidOrName(studio.currentArena),
-            arenaType: getArenaType(studio.currentArena),
-            frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
-            scale: studio.viewportCtx.scale(),
-            scroll: { x: studio.viewportCtx.scroll().x, y: studio.viewportCtx.scroll().y },
-          }
-        : null,
+      editorView:
+        studio.currentArena && studio.viewportCtx
+          ? {
+              arenaId: getArenaUuidOrName(studio.currentArena),
+              arenaType: getArenaType(studio.currentArena),
+              frameUuid:
+                (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
+              scale: studio.viewportCtx.scale(),
+              scroll: {
+                x: studio.viewportCtx.scroll().x,
+                y: studio.viewportCtx.scroll().y,
+              },
+            }
+          : null,
       previewContext:
         studio.isLiveMode && studio.previewCtx
           ? {
@@ -1472,19 +1521,41 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           : [],
     };
   }),
-  restoreEditorView: defineCopilotTool(meta.restoreEditorView, async (studio, input) => {
-    assert(!studio.isLiveMode && !studio.isInteractiveMode, "Return to edit mode before restoring a view");
-    const arena = getArenaByNameOrUuidOrPath(studio.site, input.arenaId, input.arenaType);
-    assert(arena, "Saved arena no longer exists");
-    const frame = input.frameUuid
-      ? ensure(getArenaFrames(arena).find((candidate) => candidate.uuid === input.frameUuid), "Saved artboard no longer exists")
-      : undefined;
-    studio.switchToArena(arena);
-    await asyncTimeout(0);
-    await studio.awaitStudioReady();
-    studio.restoreStudioViewportSnapshot({ focusedArenaFrame: frame, scale: input.scale, scroll: new Pt(input.scroll.x, input.scroll.y) }, true);
-    return { restored: true };
-  }),
+  restoreEditorView: defineCopilotTool(
+    meta.restoreEditorView,
+    async (studio, input) => {
+      assert(
+        !studio.isLiveMode && !studio.isInteractiveMode,
+        "Return to edit mode before restoring a view",
+      );
+      const arena = getArenaByNameOrUuidOrPath(
+        studio.site,
+        input.arenaId,
+        input.arenaType,
+      );
+      assert(arena, "Saved arena no longer exists");
+      const frame = input.frameUuid
+        ? ensure(
+            getArenaFrames(arena).find(
+              (candidate) => candidate.uuid === input.frameUuid,
+            ),
+            "Saved artboard no longer exists",
+          )
+        : undefined;
+      studio.switchToArena(arena);
+      await asyncTimeout(0);
+      await studio.awaitStudioReady();
+      studio.restoreStudioViewportSnapshot(
+        {
+          focusedArenaFrame: frame,
+          scale: input.scale,
+          scroll: new Pt(input.scroll.x, input.scroll.y),
+        },
+        true,
+      );
+      return { restored: true };
+    },
+  ),
   selectElement: defineCopilotTool(
     meta.selectElement,
     async (studio, input) => {

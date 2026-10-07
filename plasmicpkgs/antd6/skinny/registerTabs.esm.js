@@ -1,7 +1,7 @@
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { Tabs } from 'antd';
 import cls from 'classnames';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
 import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-CSvRw6Za.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -28,11 +28,19 @@ function getTabItemKeys(items) {
   return keys;
 }
 function AntdTabs(props) {
-  if (React.isValidElement(props.items) && typeof props.items.props.children === "function") {
+  if (React.isValidElement(
+    props.items
+  ) && typeof props.items.props.children === "function") {
     const observer = props.items;
     const renderItems = observer.props.children;
     return React.cloneElement(observer, {
-      children: (...args) => /* @__PURE__ */ React.createElement(TabsWithItems, { ...props, items: renderItems(...args) })
+      children: (...args) => /* @__PURE__ */ React.createElement(
+        TabsWithItems,
+        {
+          ...props,
+          items: renderItems(...args)
+        }
+      )
     });
   }
   return /* @__PURE__ */ React.createElement(TabsWithItems, { ...props });
@@ -73,9 +81,24 @@ function TabsWithItems(props) {
       children: /* @__PURE__ */ React.createElement(React.Fragment, null, currentItem.props?.children)
     };
   }).filter((i) => i != null);
+  const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
+  const [canvasTab, setCanvasTab] = useState();
+  useEffect(() => {
+    if (!isEditing) {
+      setCanvasTab(void 0);
+    } else if (selectedKey !== void 0) {
+      setCanvasTab({ key: String(selectedKey), initialActiveKey });
+    } else {
+      setCanvasTab(
+        (tab) => tab?.initialActiveKey === initialActiveKey ? tab : void 0
+      );
+    }
+  }, [isEditing, selectedKey, initialActiveKey]);
+  const retainedKey = canvasTab?.initialActiveKey === initialActiveKey && items.some((item) => item.key === canvasTab?.key) ? canvasTab?.key : void 0;
   return /* @__PURE__ */ React.createElement(
     Tabs,
     {
+      key: isEditing ? "canvas" : "runtime",
       className: cls(className, tabsScopeClassName),
       classNames: (info) => {
         const names = typeof classNames === "function" ? classNames(info) : classNames;
@@ -113,8 +136,10 @@ function TabsWithItems(props) {
       animated: animationProp,
       items,
       ...rest,
-      activeKey: isEditing ? String(selectedKey ?? rest.activeKey ?? rest.defaultActiveKey ?? items.find((item) => !item.disabled)?.key ?? "") : rest.activeKey,
-      onChange: isEditing ? void 0 : rest.onChange,
+      activeKey: isEditing ? String(
+        selectedKey ?? retainedKey ?? initialActiveKey ?? items.find((item) => !item.disabled)?.key ?? ""
+      ) : rest.activeKey,
+      onChange: isEditing ? (key) => setCanvasTab({ key, initialActiveKey }) : rest.onChange,
       onTabClick: isEditing ? void 0 : rest.onTabClick,
       onTabScroll: isEditing ? void 0 : rest.onTabScroll
     }
@@ -361,14 +386,20 @@ function registerTabs(loader) {
         label: "Delete current tab",
         onClick: ({ componentProps, studioOps }) => {
           const tabPanes = getTabItemKeys(componentProps.items);
-          const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find((item) => !item.props.disabled)?.key;
+          const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find(
+            (item) => !item.props.disabled
+          )?.key;
           const currTabPos = tabPanes.findIndex((tabKey) => {
             return tabKey === activeKey;
           });
           if (currTabPos !== -1) {
             studioOps.removeFromSlotAt(currTabPos, "items");
-            const remaining = tabPanes.filter((_, index) => index !== currTabPos);
-            studioOps.updateProps({ activeKey: remaining[Math.max(0, currTabPos - 1)] });
+            const remaining = tabPanes.filter(
+              (_, index) => index !== currTabPos
+            );
+            studioOps.updateProps({
+              activeKey: remaining[Math.max(0, currTabPos - 1)]
+            });
           }
         }
       },

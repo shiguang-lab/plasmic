@@ -5,8 +5,20 @@ import { typeFactory } from "@/wab/shared/model/model-util";
 import { assert } from "@/wab/shared/common";
 import { tryExtractJson } from "@/wab/shared/core/exprs";
 import { ensureKnownVariantsRef } from "@/wab/shared/model/classes";
+import { ComponentType } from "@/wab/shared/core/components";
 
 describe("setComponentInstanceProp", () => {
+  it("keeps registered code-component prop names such as aria-label intact", () => {
+    const { button, instance, getArg, opts } = setupComponentWithInstance();
+    button.type = ComponentType.Code;
+    button.params.push(
+      mkParam({ name: "aria-label", type: typeFactory.text(), paramType: "prop" }),
+    );
+    expect(setComponentInstanceProp(instance, "aria-label", "Return to list", opts).isOk()).toBe(true);
+    const arg = getArg(instance, "aria-label");
+    assert(arg);
+    expect(tryExtractJson(arg.expr)).toBe("Return to list");
+  });
   it("sets props of different types", () => {
     const { instance, getArg, opts } = setupComponentWithInstance();
 

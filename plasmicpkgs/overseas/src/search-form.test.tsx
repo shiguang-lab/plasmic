@@ -33,6 +33,7 @@ test("Overseas registers an editable field tree, slots, events and actions", () 
     assert.equal(item.meta.props[slot].type, "slot");
   }
   assert.equal(form.meta.props.extraActions.type, "slot");
+  assert.equal(form.meta.props.colSpan.defaultValue, 6);
   assert.equal(form.meta.props.labelWidth.type, "number");
   assert.equal(form.meta.props.labelWidth.defaultValue, undefined);
   for (const prop of [
@@ -88,6 +89,21 @@ test("grid reserves actions, respects variable spans and keeps a full-width firs
   });
   assert.equal(searchGrid([12, 18, 6]).rows, 2);
   assert.equal(searchGrid([0, 30, -1]).rows, 3);
+});
+
+test("default four-column form keeps three fields and actions on one row; explicit three-column layout remains supported", () => {
+  const fields = ["触发方式", "状态", "时间范围"].map((label, i) => (
+    <SearchFormItem key={i} name={`field${i}`} label={label}>
+      <Input />
+    </SearchFormItem>
+  ));
+  const normal = renderToStaticMarkup(<SearchForm>{fields}</SearchForm>);
+  assert.equal((normal.match(/ant-col-md-6/g) ?? []).length, 4);
+  assert(!normal.includes('aria-expanded='));
+  const threeColumn = renderToStaticMarkup(<SearchForm colSpan={8} collapsed={false}>{fields}</SearchForm>);
+  assert.equal((threeColumn.match(/ant-col-md-8/g) ?? []).length, 3);
+  assert(threeColumn.includes('ant-col-md-24'));
+  assert(threeColumn.includes('aria-expanded="true"'));
 });
 
 test("defaults preserve falsy values and reset business clear values separately", () => {

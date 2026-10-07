@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ConfigProvider } from "antd";
 import React from "react";
 import { expect, test, vi } from "vitest";
@@ -7,7 +7,7 @@ import { AntdDatePicker } from "../src/registerDatePicker";
 import { AntdDateRangePicker } from "../src/registerDateRangePicker";
 import { AntdDrawer } from "../src/registerDrawer";
 import { AntdMenu, registerMenu } from "../src/registerMenu";
-import { AntdModal } from "../src/registerModal";
+import { AntdModal, registerModal } from "../src/registerModal";
 import { AntdPopover } from "../src/registerPopover";
 import { AntdProgress } from "../src/registerProgress";
 import { AntdRate, registerRate } from "../src/registerRate";
@@ -23,6 +23,33 @@ function metadata(register: (loader: Registerable) => void) {
   } as Registerable);
   return metas;
 }
+
+test("Modal default footer keeps native labels and loading/disabled button behavior", async () => {
+  let meta: any;
+  registerModal({ registerComponent: (_component: any, value: any) => { meta = value; } } as any);
+  expect(meta.props.confirmLoading.type).toBe("boolean");
+  expect(meta.props.okButtonProps.type).toBe("object");
+  expect(meta.props.cancelButtonProps.type).toBe("object");
+  const onOk = vi.fn(), onCancel = vi.fn();
+  const props = { open: true, modalScopeClassName: "", wrapClassName: "", onOk, onCancel };
+  const view = render(<AntdModal {...props} confirmLoading okButtonProps={{ disabled: true }} cancelButtonProps={{ disabled: true }} />);
+  const ok = screen.getByRole("button", { name: /OK/ }) as HTMLButtonElement;
+  const cancel = screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement;
+  expect(ok.disabled).toBe(true);
+  expect(ok.classList.contains("ant-btn-loading")).toBe(true);
+  expect(cancel.disabled).toBe(true);
+  fireEvent.click(ok);
+  fireEvent.click(cancel);
+  expect(onOk).not.toHaveBeenCalled();
+  expect(onCancel).not.toHaveBeenCalled();
+  view.rerender(<AntdModal {...props} confirmLoading={false} okButtonProps={{ disabled: false }} cancelButtonProps={{ disabled: false }} />);
+  await waitFor(() => expect(screen.getByRole("button", { name: /OK/ }).classList.contains("ant-btn-loading")).toBe(false));
+  fireEvent.click(screen.getByRole("button", { name: /OK/ }));
+  expect(onOk).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("button", { name: /OK/ })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(onCancel).toHaveBeenCalledTimes(1);
+});
 
 test("Modal preserves null footer and explicit zero width", () => {
   render(

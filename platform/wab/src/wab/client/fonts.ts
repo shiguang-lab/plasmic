@@ -4,6 +4,7 @@ import { extractUsedFontsFromComponents } from "@/wab/shared/codegen/fonts";
 import { assertNever, spawn } from "@/wab/shared/common";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
+import { isFontFamilyKeyword } from "@/wab/shared/css";
 import {
   FontInstallSpec,
   getFontSpec,
@@ -149,7 +150,11 @@ export class FontManager {
   }
 
   isUserManagedFontInstalled = (f: string) => {
-    return this._availLocalFonts.has(f) || this._availHostManagedFonts.has(f);
+    return (
+      isFontFamilyKeyword(f) ||
+      this._availLocalFonts.has(f) ||
+      this._availHostManagedFonts.has(f)
+    );
   };
 
   /** Track web fonts declared by the host app, which canvas frames also load. */
@@ -273,6 +278,9 @@ export class FontManager {
   };
 
   private tryWarnMissingPlasmicManagedFont = (fontFamily: string) => {
+    if (isFontFamilyKeyword(fontFamily)) {
+      return;
+    }
     const availableFontFamilies = this._availPlasmicManagedFonts.map(
       (s) => s.fontFamily,
     );
@@ -402,6 +410,11 @@ const asyncTestFonts = async (fontsToTest: string[]) => {
 };
 
 const isLocalFontAvailable = (localFont: string) => {
+  // Generic families are resolved by the browser, not installed by name.
+  // Quoting them in the width probe would turn them into named families.
+  if (isFontFamilyKeyword(localFont)) {
+    return true;
+  }
   const $fontTester = $(".fontTester");
   const initialWidth = $fontTester.width();
 

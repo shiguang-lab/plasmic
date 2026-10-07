@@ -94,6 +94,8 @@ function AppShell({
   onDirectionChange,
   timeZone = "Asia/Shanghai",
   currentTime,
+  initialContentScrollTop,
+  onContentScroll,
   children
 }) {
   const { token } = antd.theme.useToken();
@@ -103,6 +105,12 @@ function AppShell({
   const [localMenu, setMenu] = React.useState();
   const [localDirection, setDirection] = React.useState("ltr");
   const [now, setNow] = React.useState(() => /* @__PURE__ */ new Date());
+  const contentRef = React__default.default.useRef(null);
+  React.useEffect(() => {
+    if (contentRef.current && initialContentScrollTop !== void 0) {
+      contentRef.current.scrollTop = initialContentScrollTop;
+    }
+  }, [initialContentScrollTop]);
   React.useEffect(() => {
     if (currentTime !== void 0) {
       return;
@@ -352,6 +360,8 @@ function AppShell({
     ), /* @__PURE__ */ React__default.default.createElement(
       antd.Layout.Content,
       {
+        ref: contentRef,
+        onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
         style: { padding: 16, minHeight: 0, overflow: "auto" }
       },
       /* @__PURE__ */ React__default.default.createElement("div", { style: { minHeight: "100%" } }, children)
@@ -432,7 +442,16 @@ const appShellMeta = {
       type: "eventHandler",
       argTypes: [{ name: "value", type: "boolean" }]
     },
-    children: { type: "slot", displayName: "Children", hidePlaceholder: true }
+    children: { type: "slot", displayName: "Children", hidePlaceholder: true },
+    initialContentScrollTop: {
+      type: "number",
+      displayName: "Initial content scroll position",
+      description: "Restore the content region's vertical scroll position when returning to a page."
+    },
+    onContentScroll: {
+      type: "eventHandler",
+      argTypes: [{ name: "scrollTop", type: "number" }]
+    }
   },
   states: {
     direction: {

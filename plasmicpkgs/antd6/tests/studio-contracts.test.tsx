@@ -1,5 +1,5 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { expect, test, vi } from "vitest";
 import { AntdTabItem, AntdTabs, registerTabs } from "../src/registerTabs";
@@ -29,6 +29,9 @@ test("inactive tab selection reveals content only in editing, without business e
   expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
   expect(onChange).not.toHaveBeenCalled();
   expect(props.activeKey).toBe("first");
+  view.rerender(<Canvas><AntdTabs {...props as any} items={tabs(false)} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
+  expect(onChange).not.toHaveBeenCalled();
   view.rerender(<Canvas interactive><AntdTabs {...props as any} /></Canvas>);
   expect(screen.getByRole("tabpanel").textContent).toBe("First content");
   view.rerender(<Canvas><AntdTabs {...props as any} items={tabs(false)} /></Canvas>);
@@ -39,6 +42,50 @@ test("canvas observer slot callbacks execute within their observer", () => {
   function Observer({ children }: { children: () => React.ReactNode }) { return <>{children()}</>; }
   render(<Canvas><AntdTabs {...{ items: <Observer>{() => tabs(true)}</Observer> } as any} /></Canvas>);
   expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
+});
+
+test("editing tab clicks survive observer updates without invoking business callbacks", () => {
+  function Observer({ children }: { children: () => React.ReactNode }) { return <>{children()}</>; }
+  const onChange = vi.fn(), onTabClick = vi.fn();
+  const props = { defaultActiveKey: "first", onChange, onTabClick };
+  const items = () => <Observer>{() => tabs(false)}</Observer>;
+  const view = render(<Canvas><AntdTabs {...{ ...props, items: items() } as any} /></Canvas>);
+  fireEvent.click(screen.getByRole("tab", { name: "Second" }));
+  view.rerender(<Canvas><AntdTabs {...{ ...props, items: items() } as any} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
+  expect(onChange).not.toHaveBeenCalled();
+  expect(onTabClick).not.toHaveBeenCalled();
+  expect(props.defaultActiveKey).toBe("first");
+  view.rerender(<Canvas interactive><AntdTabs {...{ ...props, items: items() } as any} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("First content");
+  fireEvent.click(screen.getByRole("tab", { name: "Second" }));
+  expect(onChange).toHaveBeenCalledWith("second");
+  expect(onTabClick).toHaveBeenCalledTimes(1);
+});
+
+test("retained editing tab yields to configured key changes and removal", () => {
+  const third = <AntdTabItem key="third" label="Third">Third content</AntdTabItem>;
+  const view = render(<Canvas><AntdTabs {...{ defaultActiveKey: "first", items: <>{tabs(true)}{third}</> } as any} /></Canvas>);
+  view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "first", items: <>{tabs(false)}{third}</> } as any} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
+  view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "third", items: <>{tabs(false)}{third}</> } as any} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("Third content");
+  view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "first", items: <>{tabs(false)}{third}</> } as any} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("First content");
+  view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "third", items: <>{tabs(true)}{third}</> } as any} /></Canvas>);
+  view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "third", items: third } as any} /></Canvas>);
+  expect(screen.getByRole("tabpanel").textContent).toBe("Third content");
+});
+
+test("each Tabs instance retains its own editing tab", () => {
+  const instances = (selected: boolean) => <Canvas>
+    <section data-testid="selected-tabs"><AntdTabs {...{ defaultActiveKey: "first", items: tabs(selected) } as any} /></section>
+    <section data-testid="other-tabs"><AntdTabs {...{ defaultActiveKey: "first", items: tabs(false) } as any} /></section>
+  </Canvas>;
+  const view = render(instances(true));
+  view.rerender(instances(false));
+  expect(within(screen.getByTestId("selected-tabs")).getByRole("tabpanel").textContent).toBe("Second content");
+  expect(within(screen.getByTestId("other-tabs")).getByRole("tabpanel").textContent).toBe("First content");
 });
 
 test.each([undefined, "second"])("delete uses native default active key %s", (defaultActiveKey) => {

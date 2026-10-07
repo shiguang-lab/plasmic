@@ -1126,6 +1126,8 @@ export function getComponentArgFromHtmlProp(
     });
   const name = toVarName(propName);
   const param = component.params.find(
+    (p) => paramToVarName(component, p) === propName,
+  ) ?? component.params.find(
     (p) => paramToVarName(component, p) === name,
   );
 

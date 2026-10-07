@@ -74,7 +74,7 @@ export const searchFormMeta: CodeComponentMeta<SearchFormProps> = {
       type: "number",
       min: 1,
       max: 24,
-      defaultValue: 8,
+      defaultValue: 6,
       description:
         "24-column grid. Use 6 for four columns or 8 for three columns.",
     },

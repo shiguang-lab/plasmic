@@ -1,8 +1,8 @@
-import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { usePlasmicCanvasContext } from "@plasmicapp/host";
+import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { Tabs } from "antd";
 import cls from "classnames";
-import React, { ReactElement, useMemo } from "react";
+import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import { getSelectedCanvasItemKey } from "./canvas-overlay";
 import {
   Registerable,
@@ -22,7 +22,9 @@ export const AntdTabItem: React.FC<TabItemType> = ({ children }) => {
   return <div>{children}</div>;
 };
 
-function getTabItems(items: React.ReactNode): React.ReactElement<TabItemType>[] {
+function getTabItems(
+  items: React.ReactNode,
+): React.ReactElement<TabItemType>[] {
   return asArray(items).flatMap((item) => {
     if (!React.isValidElement(item)) return [];
     return (item.type as any)?.name === AntdTabItem.name
@@ -63,13 +65,20 @@ type TabsProps = Omit<
 
 export function AntdTabs(props: TabsProps) {
   if (
-    React.isValidElement<{ children: (...args: unknown[]) => React.ReactNode }>(props.items) &&
+    React.isValidElement<{ children: (...args: unknown[]) => React.ReactNode }>(
+      props.items,
+    ) &&
     typeof props.items.props.children === "function"
   ) {
     const observer = props.items;
     const renderItems = observer.props.children;
     return React.cloneElement(observer, {
-      children: (...args: unknown[]) => <TabsWithItems {...props} items={renderItems(...args) as ReactElement} />,
+      children: (...args: unknown[]) => (
+        <TabsWithItems
+          {...props}
+          items={renderItems(...args) as ReactElement}
+        />
+      ),
     });
   }
   return <TabsWithItems {...props} />;
@@ -106,19 +115,46 @@ function TabsWithItems(props: TabsProps) {
     [animateTabBar, animateTabContent, animated],
   );
   const tabItems = getTabItems(itemsRaw);
-  const selectedKey = isEditing ? getSelectedCanvasItemKey(tabItems) : undefined;
+  const selectedKey = isEditing
+    ? getSelectedCanvasItemKey(tabItems)
+    : undefined;
   const items: TabItemType[] = tabItems
-      .map((currentItem) => {
-        return {
-          ...currentItem.props,
-          key: currentItem.key,
-          children: <>{currentItem.props?.children}</>,
-        };
-      })
-      .filter((i) => i != null) as TabItemType[];
+    .map((currentItem) => {
+      return {
+        ...currentItem.props,
+        key: currentItem.key,
+        children: <>{currentItem.props?.children}</>,
+      };
+    })
+    .filter((i) => i != null) as TabItemType[];
+  const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
+  const [canvasTab, setCanvasTab] = useState<{
+    key: string;
+    initialActiveKey: string | undefined;
+  }>();
+
+  useEffect(() => {
+    if (!isEditing) {
+      setCanvasTab(undefined);
+    } else if (selectedKey !== undefined) {
+      setCanvasTab({ key: String(selectedKey), initialActiveKey });
+    } else {
+      setCanvasTab((tab) =>
+        tab?.initialActiveKey === initialActiveKey ? tab : undefined,
+      );
+    }
+  }, [isEditing, selectedKey, initialActiveKey]);
+
+  // Keep the revealed tab when selection moves elsewhere, only for this canvas.
+  const retainedKey =
+    canvasTab?.initialActiveKey === initialActiveKey &&
+    items.some((item) => item.key === canvasTab?.key)
+      ? canvasTab?.key
+      : undefined;
 
   return (
     <Tabs
+      key={isEditing ? "canvas" : "runtime"}
       className={cls(className, tabsScopeClassName)}
       classNames={(info) => {
         const names =
@@ -168,10 +204,22 @@ function TabsWithItems(props: TabsProps) {
       animated={animationProp}
       items={items}
       {...rest}
-      activeKey={isEditing
-        ? String(selectedKey ?? rest.activeKey ?? rest.defaultActiveKey ?? items.find((item) => !item.disabled)?.key ?? "")
-        : rest.activeKey}
-      onChange={isEditing ? undefined : rest.onChange}
+      activeKey={
+        isEditing
+          ? String(
+              selectedKey ??
+                retainedKey ??
+                initialActiveKey ??
+                items.find((item) => !item.disabled)?.key ??
+                "",
+            )
+          : rest.activeKey
+      }
+      onChange={
+        isEditing
+          ? (key) => setCanvasTab({ key, initialActiveKey })
+          : rest.onChange
+      }
       onTabClick={isEditing ? undefined : rest.onTabClick}
       onTabScroll={isEditing ? undefined : rest.onTabScroll}
     />
@@ -198,7 +246,8 @@ export function registerTabs(loader?: Registerable) {
         displayName: "Active tab key",
         uncontrolledProp: "defaultActiveKey",
         type: "choice",
-        description: "The initially active tab key. Temporary canvas reveals do not change this value.",
+        description:
+          "The initially active tab key. Temporary canvas reveals do not change this value.",
         options: (ps: any) => getTabItemKeys(ps.items),
       },
       animated: {
@@ -427,17 +476,26 @@ export function registerTabs(loader?: Registerable) {
         type: "button-action",
         label: "Delete current tab",
         onClick: ({ componentProps, studioOps }: ActionProps<any>) => {
-            const tabPanes = getTabItemKeys(componentProps.items);
-            const activeKey = componentProps.activeKey ?? componentProps.defaultActiveKey ?? getTabItems(componentProps.items).find((item) => !item.props.disabled)?.key;
-            const currTabPos = tabPanes.findIndex((tabKey) => {
-              return tabKey === activeKey;
-            });
+          const tabPanes = getTabItemKeys(componentProps.items);
+          const activeKey =
+            componentProps.activeKey ??
+            componentProps.defaultActiveKey ??
+            getTabItems(componentProps.items).find(
+              (item) => !item.props.disabled,
+            )?.key;
+          const currTabPos = tabPanes.findIndex((tabKey) => {
+            return tabKey === activeKey;
+          });
 
-            if (currTabPos !== -1) {
-              studioOps.removeFromSlotAt(currTabPos, "items");
-              const remaining = tabPanes.filter((_, index) => index !== currTabPos);
-              studioOps.updateProps({ activeKey: remaining[Math.max(0, currTabPos - 1)] });
-            }
+          if (currTabPos !== -1) {
+            studioOps.removeFromSlotAt(currTabPos, "items");
+            const remaining = tabPanes.filter(
+              (_, index) => index !== currTabPos,
+            );
+            studioOps.updateProps({
+              activeKey: remaining[Math.max(0, currTabPos - 1)],
+            });
+          }
         },
       },
       {

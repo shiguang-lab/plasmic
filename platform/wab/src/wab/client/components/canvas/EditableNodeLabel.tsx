@@ -40,23 +40,30 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
   } = props;
 
   const isRenamingFocused = studioCtx.renamingFocused();
+  const textRef = React.useRef<HTMLSpanElement>(null);
+  const [editWidth, setEditWidth] = React.useState(75);
 
   return (
     <InlineEdit
       render={({ editing, onStart, onDone }) => {
+        const startEditing = () => {
+          setEditWidth(Math.max(75, (textRef.current?.offsetWidth ?? 0) + 2));
+          onStart();
+        };
         useEffect(() => props.onChangeEditing?.(editing), [editing]);
 
         useEffect(() => {
           if (isRenamingFocused && !editing) {
             if (nameable) {
-              onStart();
+              startEditing();
             }
             studioCtx.endRenamingFocused();
           }
         }, [isRenamingFocused]);
 
         return editing ? (
-          <div className={className}>
+          <div className={cx(className, styles.container)}>
+            {icon && <div className="InlineIcon mr-sm">{icon}</div>}
             {nameable && (
               <OnClickAway onDone={onDone}>
                 <div>
@@ -66,6 +73,8 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
                     // onEdit handler will fire, and the current node is renamed.
                     key={nameable.uid}
                     styleType={["seamless", "inverted", "autoheight"]}
+                    noOutline
+                    style={{ font: "inherit" }}
                     defaultValue={
                       isTplSlot(nameable)
                         ? nameable.param.variable.name
@@ -75,10 +84,11 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
                     }
                     wrapperProps={{
                       style: {
-                        minWidth: 75,
+                        width: editWidth,
+                        minHeight: 0,
                       },
                     }}
-                    selectAllOnAutoFocus
+                    selectAllOnFocus
                     autoFocus
                     onBlur={onDone}
                     onEnter={onDone}
@@ -112,11 +122,11 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
         ) : (
           <div
             className={cx(className, styles.container)}
-            onDoubleClick={nameable ? onStart : undefined}
+            onDoubleClick={nameable ? startEditing : undefined}
           >
             <>
               {icon && <div className="InlineIcon mr-sm">{icon}</div>}
-              {displayName}
+              <span ref={textRef}>{displayName}</span>
               {isRepeated && (
                 <Tooltip title="Repeated element" mouseEnterDelay={0.5}>
                   <Icon

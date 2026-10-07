@@ -50,6 +50,11 @@ export function registerButton(loader?: Registerable) {
     name: buttonComponentName,
     displayName: "Button",
     props: {
+      "aria-label": {
+        type: "string",
+        displayName: "Accessible name",
+        description: "Describe the action of an icon-only button for assistive technology.",
+      },
       type: {
         type: "choice",
         options: ["default", "primary", "dashed", "link", "text"],
@@ -144,6 +149,7 @@ export function registerButton(loader?: Registerable) {
       },
       children: {
         type: "slot",
+        hidePlaceholder: true,
         defaultValue: [
           {
             type: "text",

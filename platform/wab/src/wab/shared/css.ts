@@ -355,12 +355,16 @@ const FONT_FAMILY_KEYWORDS = [
   "ui-rounded",
 ];
 
+export function isFontFamilyKeyword(fontFamily: string) {
+  return FONT_FAMILY_KEYWORDS.includes(fontFamily.trim().toLowerCase());
+}
+
 export const showCssValues = (name: string, vals: /*TWZ*/ string[]) => {
   if (name === "font-family") {
     // Font-family need to be quoted, in case it has special character like '.
     return vals
       .map((val) => {
-        if (FONT_FAMILY_KEYWORDS.includes(val)) {
+        if (isFontFamilyKeyword(val)) {
           return val;
         }
         return val.startsWith("var(") ? val : `"${val}"`;

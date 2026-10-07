@@ -47,3 +47,9 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 - Keep temporary canvas states, such as revealing an inactive tab or opening an overlay for editing, separate from business state. Selection and navigation must not rewrite initial/runtime props or leak temporary overrides into saved designs, previews, or exports. Explicit user edits to initial/runtime props still use the normal undo and save flow.
 - Correct existing component contracts before reorganizing the panel. Verify the full path from registration metadata through the property control and saved Studio model to actual runtime props and rendered behavior.
 - Use shared selection and editing-state contracts for content reveal. Do not add component-name special cases to global selection logic.
+
+## Prototype editor node names
+
+- Use English PascalCase for editable node names, independently of the business page language.
+- Prefer the actual component display name for unique page-level structural components: a standalone page's single shell is `AppShell`. Add stable business scope when repeated components need distinction, such as `AllGroupsTable` and `MyGroupsTable`; business controls retain meaningful action/field names such as `CreateGroup` and `StatusFilter`.
+- Rename instances through Studio's rename operation so state and expression references stay valid. Preserve component identities, node UUIDs, props, slots, routes and interactions. Check the editor label and persisted readback after save/reopen.

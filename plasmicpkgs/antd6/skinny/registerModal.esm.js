@@ -166,6 +166,20 @@ function registerModal(loader) {
         description: "Hide the modal footer slot",
         advanced: true
       },
+      confirmLoading: {
+        type: "boolean",
+        description: "Show loading on the default OK button while saving."
+      },
+      okButtonProps: {
+        type: "object",
+        advanced: true,
+        description: "Native Button props for the default OK button."
+      },
+      cancelButtonProps: {
+        type: "object",
+        advanced: true,
+        description: "Native Button props for the default Cancel button."
+      },
       onOpenChange: {
         type: "eventHandler",
         argTypes: [{ name: "open", type: "boolean" }]

@@ -268,13 +268,15 @@ const EDIT_TOOL_META = {
   },
   changeElement: {
     toolName: "changeElement",
-    title: "Change component props or layout",
+    title: "Change element name, props or layout",
     description:
-      "Modify an existing element in a local page/component. Props are validated against its registered contract. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Rejected props roll back the entire call. For text or slot content use insertHtml replace on that text element or its slot child.",
+      "Modify an existing element in a local page/component. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Rejected props roll back the entire call. For text or slot content use insertHtml replace on that text element or its slot child.",
     inputSchema: z
       .object({
         ...element,
+        name: z.string().trim().min(1).optional(),
         props: z.record(jsonValue).optional(),
+        resetProps: z.array(uuid).min(1).optional(),
         styles: z.record(z.string().nullable()).optional(),
         variantUuids: z.array(uuid).optional(),
         visibleIf: z.string().min(1).nullable().optional(),
@@ -492,13 +494,15 @@ const EDIT_TOOL_META = {
       instanceIndex: z.number().int().nullable(),
       mode: z.enum(["edit", "preview"]),
       canEdit: z.boolean(),
-      editorView: z.object({
-        arenaId: uuid,
-        arenaType: z.enum(["custom", "page", "component"]),
-        frameUuid: uuid.nullable(),
-        scale: z.number().positive().finite(),
-        scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
-      }).nullable(),
+      editorView: z
+        .object({
+          arenaId: uuid,
+          arenaType: z.enum(["custom", "page", "component"]),
+          frameUuid: uuid.nullable(),
+          scale: z.number().positive().finite(),
+          scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
+        })
+        .nullable(),
       selectedSlot: z
         .object({ elementUuid: uuid, slotName: z.string() })
         .nullable(),
@@ -529,14 +533,17 @@ const EDIT_TOOL_META = {
   restoreEditorView: {
     toolName: "restoreEditorView",
     title: "Restore a local editor view",
-    description: "Restore the arena, focused artboard, zoom and pan from getEditorContext.editorView. Does not change the project or business props. Missing arenas or frames are rejected.",
-    inputSchema: z.object({
-      arenaId: uuid,
+    description:
+      "Restore the arena, focused artboard, zoom and pan from getEditorContext.editorView. Does not change the project or business props. Missing arenas or frames are rejected.",
+    inputSchema: z
+      .object({
+        arenaId: uuid,
         arenaType: z.enum(["custom", "page", "component"]),
-      frameUuid: uuid.nullable(),
-      scale: z.number().positive().finite(),
-      scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
-    }).strict(),
+        frameUuid: uuid.nullable(),
+        scale: z.number().positive().finite(),
+        scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
+      })
+      .strict(),
     outputSchema: z.object({ restored: z.boolean() }),
   },
   selectElement: {

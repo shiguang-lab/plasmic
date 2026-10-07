@@ -3,7 +3,14 @@ import {
   parseCss,
   parseCssShorthand,
   showCssShorthand,
+  showCssValues,
 } from "@/wab/shared/css";
+
+it("keeps generic font families unquoted while quoting named fonts", () => {
+  expect(showCssValues("font-family", ["Courier New", "MONOSPACE"])).toBe(
+    '"Courier New", MONOSPACE',
+  );
+});
 
 describe("parseCss", () => {
   it("parse box-shadow string properly into the 4 lengths + color format", () => {

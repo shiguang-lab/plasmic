@@ -55,6 +55,8 @@ export interface AppShellProps {
   onUserAction?: (key: string) => void;
   collapsed?: boolean;
   onCollapsedChange?: (value: boolean) => void;
+  initialContentScrollTop?: number;
+  onContentScroll?: (scrollTop: number) => void;
   children?: React.ReactNode;
 }
 export const DEFAULT_LANGUAGES: ShellOption[] = [
@@ -96,6 +98,8 @@ export function AppShell({
   onDirectionChange,
   timeZone = "Asia/Shanghai",
   currentTime,
+  initialContentScrollTop,
+  onContentScroll,
   children,
 }: AppShellProps) {
   const { token } = theme.useToken();
@@ -105,6 +109,12 @@ export function AppShell({
   const [localMenu, setMenu] = useState<string>();
   const [localDirection, setDirection] = useState<"ltr" | "rtl">("ltr");
   const [now, setNow] = useState(() => new Date());
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (contentRef.current && initialContentScrollTop !== undefined) {
+      contentRef.current.scrollTop = initialContentScrollTop;
+    }
+  }, [initialContentScrollTop]);
   useEffect(() => {
     if (currentTime !== undefined) {
       return;
@@ -363,6 +373,8 @@ export function AppShell({
               </div>
             </Layout.Header>
             <Layout.Content
+              ref={contentRef}
+              onScroll={(event) => onContentScroll?.(event.currentTarget.scrollTop)}
               style={{ padding: 16, minHeight: 0, overflow: "auto" }}
             >
               <div style={{ minHeight: "100%" }}>{children}</div>
@@ -451,6 +463,15 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
       argTypes: [{ name: "value", type: "boolean" }],
     },
     children: { type: "slot", displayName: "Children", hidePlaceholder: true },
+    initialContentScrollTop: {
+      type: "number",
+      displayName: "Initial content scroll position",
+      description: "Restore the content region's vertical scroll position when returning to a page.",
+    },
+    onContentScroll: {
+      type: "eventHandler",
+      argTypes: [{ name: "scrollTop", type: "number" }],
+    },
   },
   states: {
     direction: {

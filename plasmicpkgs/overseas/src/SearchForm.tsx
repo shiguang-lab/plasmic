@@ -119,7 +119,7 @@ export function collectSearchItems(
 }
 
 function normalizedSpan(span: number) {
-  return Math.min(24, Math.max(1, Math.round(span) || 8));
+  return Math.min(24, Math.max(1, Math.round(span) || 6));
 }
 export function searchGrid(spans: number[]) {
   let rows = 1,
@@ -236,7 +236,7 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
       defaultCollapsed = true,
       onCollapsedChange,
       minRows = 1,
-      colSpan = 8,
+      colSpan = 6,
       labelWidth,
       searchText = "查询",
       resetText = "重置",

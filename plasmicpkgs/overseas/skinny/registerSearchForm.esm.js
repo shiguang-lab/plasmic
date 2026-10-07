@@ -80,7 +80,7 @@ function collectSearchItems(children) {
   return items;
 }
 function normalizedSpan(span) {
-  return Math.min(24, Math.max(1, Math.round(span) || 8));
+  return Math.min(24, Math.max(1, Math.round(span) || 6));
 }
 function searchGrid(spans) {
   let rows = 1, lastRowSpan = 0;
@@ -152,7 +152,7 @@ const SearchForm = React.forwardRef(
     defaultCollapsed = true,
     onCollapsedChange,
     minRows = 1,
-    colSpan = 8,
+    colSpan = 6,
     labelWidth,
     searchText = "\u67E5\u8BE2",
     resetText = "\u91CD\u7F6E",
@@ -394,7 +394,7 @@ const searchFormMeta = {
       type: "number",
       min: 1,
       max: 24,
-      defaultValue: 8,
+      defaultValue: 6,
       description: "24-column grid. Use 6 for four columns or 8 for three columns."
     },
     labelWidth: {

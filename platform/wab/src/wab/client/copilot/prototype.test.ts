@@ -5,22 +5,28 @@ import { getTplComponentArg } from "@/wab/shared/TplMgr";
 import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import { createSite } from "@/wab/shared/core/sites";
+import {
+  addComponentState,
+  mkValueStateForTextInput,
+} from "@/wab/shared/core/states";
 import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
-import { flattenTpls } from "@/wab/shared/core/tpls";
+import { flattenTpls, mkSlot, mkTplTagX } from "@/wab/shared/core/tpls";
 import {
   ProjectDependency,
   isKnownTplComponent,
+  isKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { runInAction } from "mobx";
 import { ok } from "neverthrow";
 import { vi } from "vitest";
 
-function fixture() {
-  const { studioCtx } = fakeStudioCtx();
+function fixture(site = createSite()) {
+  const { studioCtx } = fakeStudioCtx({ site });
   const call = async (name: string, input: Record<string, unknown> = {}) =>
     JSON.parse(
       await ensure(COPILOT_TOOLS[name], "Tool not found").execute(
@@ -43,6 +49,96 @@ function fixture() {
 }
 
 describe("AI prototype editor tools", () => {
+  it("restores prop and empty-slot defaults without treating null as unset, and rejects destructive resets atomically", async () => {
+    const site = createSite();
+    const footer = mkParam({
+      name: "footer",
+      type: typeFactory.renderable(),
+      paramType: "slot",
+    });
+    const slot = mkSlot(footer);
+    const dialog = mkComponent({
+      name: "Dialog",
+      type: ComponentType.Plain,
+      params: [
+        mkParam({
+          name: "configuration",
+          type: typeFactory.any(),
+          paramType: "prop",
+        }),
+        footer,
+      ],
+      tplTree: mkTplTagX("div", {}, [slot]),
+    });
+    site.components.push(dialog);
+    const { studioCtx, call, createPage } = fixture(site);
+    flattenTpls(dialog.tplTree).forEach((tpl) =>
+      studioCtx.tplMgr().ensureBaseVariantSetting(tpl),
+    );
+    const page = await createPage("DefaultFooter");
+    expect((await call("validate")).errors, "after setup").toEqual([]);
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<plasmic-component data-plasmic-component="Dialog" data-props=\'{"configuration":null}\'><slot name="footer"></slot></plasmic-component><plasmic-component data-plasmic-component="Dialog"><slot name="footer"><button>Custom action</button></slot></plasmic-component>',
+    });
+    expect((await call("validate")).errors, "after insertion").toEqual([]);
+    let instance = ensure(
+      flattenTpls(page.tplTree).find(isKnownTplComponent),
+      "Missing instance",
+    );
+    const arg = (name: string) =>
+      instance.vsettings[0].args.find((a) => a.param.variable.name === name);
+    expect(
+      tryExtractJson(ensure(arg("configuration"), "Missing text").expr),
+    ).toBeNull();
+    expect(arg("footer")).toBeTruthy();
+    await expect(
+      call("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: instance.uuid,
+        resetProps: ["configuration", "missing"],
+      }),
+    ).rejects.toThrow("Unknown component prop");
+    expect(arg("configuration")).toBeTruthy();
+    await call("changeElement", {
+      componentUuid: page.uuid,
+      elementUuid: instance.uuid,
+      resetProps: ["configuration", "footer"],
+    });
+    expect(arg("configuration")).toBeUndefined();
+    expect(arg("footer")).toBeUndefined();
+    instance = ensure(
+      flattenTpls(page.tplTree).filter(isKnownTplComponent)[1],
+      "Missing custom-footer instance",
+    );
+    await call("changeElement", {
+      componentUuid: page.uuid,
+      elementUuid: instance.uuid,
+      props: { configuration: "Continue" },
+    });
+    await expect(
+      call("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: instance.uuid,
+        resetProps: ["configuration", "footer"],
+      }),
+    ).rejects.toThrow("Remove nonempty slot content");
+    expect(
+      tryExtractJson(ensure(arg("configuration"), "Missing text").expr),
+    ).toBe("Continue");
+    expect(arg("footer")).toBeTruthy();
+    await expect(
+      call("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: instance.uuid,
+        resetProps: ["configuration"],
+        props: { configuration: "Set" },
+      }),
+    ).rejects.toThrow("Cannot set and reset");
+    const validation = await call("validate");
+    expect(validation.valid, JSON.stringify(validation)).toBe(true);
+    studioCtx.copilotActivity.dispose();
+  });
   it("undo skips selection/navigation records and preserves redo after changing the view", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("History");
@@ -563,6 +659,65 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx.hasUnsavedChanges()).toBe(true);
   });
 
+  it("updates implicit state bindings and interaction code when a node is renamed", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<button data-plasmic-name="submit">Submit</button>',
+    });
+    const input = mkTplTagX("input", { name: "queryInput" });
+    await studioCtx.change(() => {
+      const root = ensure(
+        isKnownTplTag(page.tplTree) ? page.tplTree : undefined,
+        "Root missing",
+      );
+      root.children.push(input);
+      input.parent = root;
+      addComponentState(
+        studioCtx.site,
+        page,
+        mkValueStateForTextInput(input, page, studioCtx.tplMgr()),
+      );
+      return ok();
+    });
+    const button = ensure(
+      flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "submit"),
+      "Button missing",
+    );
+    const stateIds = page.states.map((s) => s.uuid);
+    expect(stateIds.length).toBeGreaterThan(0);
+    await call("changeElement", {
+      componentUuid: page.uuid,
+      elementUuid: button.uuid,
+      visibleIf: "{{ !!$state.queryInput.value }}",
+    });
+    await call("createInteraction", {
+      componentUuid: page.uuid,
+      elementUuid: button.uuid,
+      eventName: "onClick",
+      name: "Clear query",
+      action: {
+        actionName: "customFunction",
+        code: "$state.queryInput.value = ''",
+      },
+    });
+    await call("changeElement", {
+      componentUuid: page.uuid,
+      elementUuid: input.uuid,
+      name: "GroupName",
+    });
+    const resource = (await call("read", { componentUuids: [page.uuid] }))
+      .results[0];
+    expect(resource.baseVariantTplTree).toContain("$state.groupName.value");
+    expect(resource.baseVariantTplTree).not.toContain(
+      "$state.queryInput.value",
+    );
+    expect(resource.interactions[0].code).toContain("$state.groupName.value");
+    expect(page.states.map((s) => s.uuid)).toEqual(stateIds);
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("reports slot and controlled-value contracts for the AI", async () => {
     const { studioCtx, call } = fixture();
     const created = (
@@ -580,6 +735,62 @@ describe("AI prototype editor tools", () => {
       ]),
     );
     expect(studioCtx.site.components).toHaveLength(1);
+  });
+
+  it("renames existing nodes through an undoable batch without replacing them", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<section data-plasmic-name="detailSummary"><button data-plasmic-name="backToList">Back</button></section>',
+    });
+    const section = ensure(
+      flattenTpls(page.tplTree).find(
+        (t) => "name" in t && t.name === "detailSummary",
+      ),
+      "Section missing",
+    );
+    const button = ensure(
+      flattenTpls(page.tplTree).find(
+        (t) => "name" in t && t.name === "backToList",
+      ),
+      "Button missing",
+    );
+    const before = (await call("read", { componentUuids: [page.uuid] }))
+      .results[0].baseVariantTplTree;
+    await call("executeBatch", {
+      operations: [
+        {
+          name: "changeElement",
+          input: {
+            componentUuid: page.uuid,
+            elementUuid: section.uuid,
+            name: "DetailSummary",
+          },
+        },
+        {
+          name: "changeElement",
+          input: {
+            componentUuid: page.uuid,
+            elementUuid: button.uuid,
+            name: "BackToList",
+          },
+        },
+      ],
+    });
+    const after = (await call("read", { componentUuids: [page.uuid] }))
+      .results[0].baseVariantTplTree;
+    expect(after).toBe(
+      before
+        .replace('label="detailSummary"', 'label="DetailSummary"')
+        .replace('label="backToList"', 'label="BackToList"'),
+    );
+    await call("undo");
+    expect(
+      (await call("read", { componentUuids: [page.uuid] })).results[0]
+        .baseVariantTplTree,
+    ).toBe(before);
+    studioCtx.copilotActivity.dispose();
   });
 
   it("rejects malformed schemas, duplicate pages, and destructive replacement without a target", async () => {
@@ -683,13 +894,16 @@ describe("AI prototype editor tools", () => {
       flattenTpls(page.tplTree).find(isKnownTplComponent),
       "Instance not found",
     );
+    const originalName = instance.name;
     await expect(
       call("changeElement", {
         componentUuid: page.uuid,
         elementUuid: instance.uuid,
+        name: "RenamedButton",
         props: { disabled: true, tone: "invalid" },
       }),
     ).rejects.toThrow("must be one of");
+    expect(instance.name).toBe(originalName);
     expect(
       tryExtractJson(
         ensure(
