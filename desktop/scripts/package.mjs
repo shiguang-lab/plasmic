@@ -74,7 +74,7 @@ const outputs = await build({
     mac: { target: ["dmg", "zip"], mergeASARs: true, icon: "assets/icon.icns", identity: "-", hardenedRuntime: false },
     win: { target: ["nsis"], icon: "assets/icon.ico" },
     nsis: { oneClick: true, perMachine: false, deleteAppDataOnUninstall: false },
-    linux: { target: ["AppImage"], icon: "assets/icon.png", category: "Development" },
+    linux: { target: ["AppImage"], executableName: "plasmic", icon: "assets/icon.png", category: "Development" },
   },
 });
 console.log(outputs.join("\n"));
