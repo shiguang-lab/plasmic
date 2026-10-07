@@ -2,9 +2,9 @@ import { readFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { nasConfig } from "./nas-config.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const config = JSON.parse(await readFile(path.join(root, "desktop.config.json"), "utf8"));
-if (!/^[a-zA-Z0-9@._-]+$/.test(config.nasHost) || !/^\/[a-zA-Z0-9/._-]+$/.test(config.nasDeployDir)) throw new Error("Invalid NAS SSH host or deployment directory");
+const config = await nasConfig();
 const nginx = await readFile(path.join(root, "../deploy/nginx.conf"), "utf8");
 const block = nginx.slice(nginx.indexOf("  # Update manifests"), nginx.indexOf("  location /api/"));
 if (!block.includes("/desktop-updates/")) throw new Error("Missing update server configuration");
@@ -35,6 +35,6 @@ for name in ['compose.yml','nginx.conf']:
  p.write_text(text)
 `;
 const quote = (value) => "'" + value.replaceAll("'", "'\\''") + "'";
-execFileSync("ssh", ["-o", "BatchMode=yes", config.nasHost, `python3 -c ${quote(setup)} ${quote(config.nasDeployDir)} ${quote(Buffer.from(block).toString("base64"))}`], { stdio: "inherit" });
-execFileSync("ssh", ["-o", "BatchMode=yes", config.nasHost, `cd '${config.nasDeployDir}' && docker compose exec -T web nginx -t && docker compose up -d --no-deps --wait --wait-timeout 60 web && docker compose exec -T web nginx -t && docker compose exec -T web nginx -s reload`], { stdio: "inherit" });
+execFileSync("ssh", [...config.sshArgs, `python3 -c ${quote(setup)} ${quote(config.nasDeployDir)} ${quote(Buffer.from(block).toString("base64"))}`], { stdio: "inherit" });
+execFileSync("ssh", [...config.sshArgs, `cd '${config.nasDeployDir}' && docker compose exec -T web nginx -t && docker compose up -d --no-deps --wait --wait-timeout 60 web && docker compose exec -T web nginx -t && docker compose exec -T web nginx -s reload`], { stdio: "inherit" });
 console.log("NAS desktop update hosting configured; existing server and data are preserved.");

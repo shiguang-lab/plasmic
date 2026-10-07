@@ -14,10 +14,10 @@
 
 ## 已固化到 Skill 的规则
 
-- [Skill](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/SKILL.md) 与用户已安装副本同步。生成必须读取实时组件契约，用原生可编辑节点、真实 Slot、State 和 Interaction；页面跳转使用组件 `href`。
-- [布局规范](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/references/admin-design.md) 明确表格列宽、操作列及详情 Header 验收。ActionGroup `max=3` 包含“更多”，多余操作进入菜单；有权限差异时不填充无效按钮。详情返回独占一行、16px SVG，标题 20/600/28，可换行，类型与状态独立，元数据两列。
-- [重生成规范](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/references/reproducibility.md) 要求页面创建后设置视口、清理组件示例 Slot、核查 Unicode、分别记录模型/布局/截图/真实交互/持久化证据。失败须补规则、修生成源后清空重跑；稳定性要求第二轮相同输入生成。
-- [Slot 校验](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/scripts/verify_slots.py) 检测缺失组件和意外示例内容；[模型比较](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/scripts/compare_models.py) 归一化生成 ID，保留业务 props、状态和交互进行比较。
+- [Skill](/Users/yanxianliang/shiguang/plasmic/packages/plasmic-cli/skill/plasmic/SKILL.md) 与用户已安装副本同步。生成必须读取实时组件契约，用原生可编辑节点、真实 Slot、State 和 Interaction；页面跳转使用组件 `href`。
+- [布局规范](/Users/yanxianliang/shiguang/plasmic/ai/plasmic/references/admin-design.md) 明确表格列宽、操作列及详情 Header 验收。ActionGroup `max=3` 包含“更多”，多余操作进入菜单；有权限差异时不填充无效按钮。详情返回独占一行、16px SVG，标题 20/600/28，可换行，类型与状态独立，元数据两列。
+- [重生成规范](/Users/yanxianliang/shiguang/plasmic/ai/plasmic/references/reproducibility.md) 要求页面创建后设置视口、清理组件示例 Slot、核查 Unicode、分别记录模型/布局/截图/真实交互/持久化证据。失败须补规则、修生成源后清空重跑；稳定性要求第二轮相同输入生成。
+- [Slot 校验](/Users/yanxianliang/shiguang/plasmic/ai/plasmic/scripts/verify_slots.py) 检测缺失组件和意外示例内容；[模型比较](/Users/yanxianliang/shiguang/plasmic/ai/plasmic/scripts/compare_models.py) 归一化生成 ID，保留业务 props、状态和交互进行比较。
 
 同时修复 [Desktop RPC](/Users/yanxianliang/shiguang/plasmic/desktop/src/local-rpc.cjs) 的 UTF-8 分片解码根因：socket 使用流式 UTF-8 解码，避免中文恰好跨包时损坏。新增请求、响应两方向分片回归测试；App 已重新打包并实际重启验证。
 

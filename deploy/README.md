@@ -4,6 +4,9 @@ Release tags use version numbers starting at `0.0.1` (without a `v` prefix).
 Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
 `ghcr.io/shiguang-lab/plasmic-server:<tag>` and
 `ghcr.io/shiguang-lab/plasmic-web:<tag>` for Linux amd64.
+The same stable numeric tag also runs `.github/workflows/publish-plasmic-cli.yml`,
+publishing a matching CLI version to npm and references/CLI artifacts to NAS.
+See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布).
 The workflow publishes server/web through one matrix step, with separate mode=min
 GHA caches. The server target skips frontend/canvas bundling and copies the
 platform runtime workspaces plus the locally built SDK host package. The host
@@ -119,8 +122,8 @@ npm install https://plasmic.studio.publib.cn/static/packages/shiguang-lab-plasmi
 ## AI prototype editing
 
 Studio exposes `window.PLASMIC_AI_TOOLS` on an open, authorized project after its
-host frame connects. Connect an AI client through Chrome DevTools MCP and use
-[`plasmic-prototype`](../ai/skills/plasmic-prototype/README.md). The AI client's
+host frame connects. Connect an AI client through the Desktop MCP and install
+the thin [`plasmic` skill](../ai/plasmic/README.md). The AI client's
 model generates designs; this does not enable the official cloud Copilot chat.
 No model key is stored in the NAS deployment.
 

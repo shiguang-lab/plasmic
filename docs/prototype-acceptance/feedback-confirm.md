@@ -6,7 +6,7 @@
 
 [原始需求](/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md) 要求复制为初始化客群，没有要求页面顶部展示成功 Alert。[pen-antd-kit 浮层规范](/Users/yanxianliang/overseas/pen-antd-kit/pen-prototype-platform/standards/patterns/forms-overlays.md) 已规定简单单行删除、启停使用 Popconfirm；生成 skill 原先措辞不强制，验收缺少反馈类型和真实取消/确认检查。
 
-已在 [admin-design.md](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/references/admin-design.md#feedback-and-row-confirmation) 和 [reproducibility.md](/Users/yanxianliang/shiguang/plasmic/skills/plasmic-prototype/references/reproducibility.md) 固化：普通完成反馈使用自动消失的 Message；单行确认锚定操作列 Popconfirm；取消/点击区域外不修改数据；检查实际行、总数、提示消失及布局不偏移。与已安装 skill 三个修改文件逐字节一致，skill 校验通过。
+已在 [admin-design.md](/Users/yanxianliang/shiguang/plasmic/ai/plasmic/references/admin-design.md#feedback-and-row-confirmation) 和 [reproducibility.md](/Users/yanxianliang/shiguang/plasmic/ai/plasmic/references/reproducibility.md) 固化：普通完成反馈使用自动消失的 Message；单行确认锚定操作列 Popconfirm；取消/点击区域外不修改数据；检查实际行、总数、提示消失及布局不偏移。与已安装 skill 三个修改文件逐字节一致，skill 校验通过。
 
 SQL 预跑 Modal 由需求 §2.4/2.5/5.8 明确要求，保持。编辑表单和导出格式/审计表单仍是 Modal；简单行确认不再使用 Modal。
 

@@ -8,7 +8,7 @@
 
 来源 [Tabs 规范](/Users/yanxianliang/overseas/pen-antd-kit/pen-prototype-platform/standards/patterns/tabs.md:18) 要求顶部只保留组件自身间距，并在 Card、包装层和 Tabs 各层检查位置；[Table 规范](/Users/yanxianliang/overseas/pen-antd-kit/pen-prototype-platform/standards/patterns/table-data.md:27) 要求分页底部留白由 Table 单独承担，外层不再叠加。问题是迁移时忽略组合规则，随后补写的通用 Card 默认值又没有明确组合规则优先级。
 
-[Card 规范](../../skills/plasmic-prototype/references/admin-design.md#card-ownership)、两个 Skill 入口及重生成规范现在明确：Tabs-first / Table-last 卡片在组件已承担对应间距时使用 body padding `0 20px`，所有中间包装层不加垂直 padding、margin 或位置偏移；普通信息、表单、指标卡片保留自身的 `16px 20px`。不能通过修改 Tabs 内部标签 padding 或分页 margin 抵消外层错误。
+[Card 规范](../../ai/plasmic/references/admin-design.md#card-ownership)、两个 Skill 入口及重生成规范现在明确：Tabs-first / Table-last 卡片在组件已承担对应间距时使用 body padding `0 20px`，所有中间包装层不加垂直 padding、margin 或位置偏移；普通信息、表单、指标卡片保留自身的 `16px 20px`。不能通过修改 Tabs 内部标签 padding 或分页 margin 抵消外层错误。
 
 任务生成器已给列表和详情 Tabs 卡片显式配置 `0 20px`，其余信息卡片保持 `16px 20px`。Slot 校验增加 planned Card body padding 的比对；保存后仍必须做实际几何检查。相关规范及校验脚本已同步到已安装的 plasmic-prototype 技能。
 

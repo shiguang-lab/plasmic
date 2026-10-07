@@ -28,6 +28,11 @@ families still require the network. Docker and curl
 are build dependencies only. Custom project fonts and external project hosts
 remain project-managed resources.
 
+If the pinned image is already present on a Docker daemon, `npm run assets --
+--cached-image` extracts that image without contacting the registry. The image
+must match `webImage`; a missing image fails instead of falling back. A remote
+NAS daemon can be used through `DOCKER_HOST=ssh://<configured-nas-host>`.
+
 To build the local SDK, business components, canvas bundles and Studio, then
 prepare assets and package the app in one command:
 
@@ -322,7 +327,12 @@ validation: resizing a static snapshot does not re-evaluate Studio variants.
 HTML exports retain asset links and do not include live interactions or React
 source. Imports convert raster images to PNG and do not preserve animation.
 
-See [MCP guide](mcp-guide.md) for exact sequencing and current limitations, and
+Install the unified [Plasmic skill and CLI](../ai/plasmic/README.md) for product
+prototyping and development code generation. Each task resolves current NAS resources;
+`read_skill` supplies this bootstrap entry point. Repository release tags automatically
+publish the CLI to npm and the resource bundle to NAS; Desktop App publishing is separate.
+
+See [MCP guide](../ai/plasmic/references/desktop-mcp.md) for exact sequencing and current limitations, and
 [MCP capability status](MCP-CAPABILITIES.md) for acceptance evidence and the Pen
 comparison. Full Pen MCP parity is not implemented.
 

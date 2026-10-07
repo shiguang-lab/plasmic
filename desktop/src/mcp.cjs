@@ -303,7 +303,7 @@ tools.push(
   {
     name: "read_skill",
     description:
-      "Read the Plasmic MCP editing workflow, component contracts, image and export guidance. Read before designing.",
+      "Read the bootstrap instructions for the current NAS-hosted Plasmic prototype and codegen workflows.",
     inputSchema: object({}),
   },
   {
@@ -421,10 +421,8 @@ async function serveMcp(profile) {
             )
           : request.params.name === "read_skill"
             ? {
-                instructions: require("node:fs").readFileSync(
-                  require("node:path").join(__dirname, "../mcp-guide.md"),
-                  "utf8",
-                ),
+                instructions: "Run npx -y @plasmickit/cli@latest context resolve --mode prototype for product design, or --mode codegen for development code. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with the same npx runner and skill install --target <client-skills-root>. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
+                resourceManifestUrl: require("../desktop.config.json").updateUrl + "/plasmic/latest.json",
               }
             : await requestRpc(
                 profile,

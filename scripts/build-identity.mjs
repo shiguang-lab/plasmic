@@ -81,5 +81,4 @@ export const desktopSources = [
   "src",
   "package.json",
   "desktop.config.json",
-  "mcp-guide.md",
 ];

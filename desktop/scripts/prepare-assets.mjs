@@ -41,7 +41,9 @@ try {
     revision = studioBuild.revision;
     dirty = studioBuild.dirty;
   } else {
-    execFileSync("docker", ["pull", config.webImage], { stdio: "inherit" });
+    if (!process.argv.includes("--cached-image")) {
+      execFileSync("docker", ["pull", config.webImage], { stdio: "inherit" });
+    }
     revision = execFileSync(
       "docker",
       [

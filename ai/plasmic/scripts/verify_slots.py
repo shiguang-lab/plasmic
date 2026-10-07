@@ -80,8 +80,9 @@ def check(intent, actual):
             actual_content = next((n for n in found[name]["children"] if n["tag"] == "slot" and n["attrs"].get("name") == "children"), None)
             if not actual_content or not actual_content["children"]:
                 empty_cards.append(name)
-            intended_names = {n["attrs"]["data-plasmic-name"] for n in walk(expected_content) if "data-plasmic-name" in n["attrs"]} if expected_content else set()
-            actual_names = {n["attrs"]["data-plasmic-name"] for n in walk(actual_content) if "data-plasmic-name" in n["attrs"]} if actual_content else set()
+            node_name = lambda n: n["attrs"].get("data-plasmic-name") or n["attrs"].get("label")
+            intended_names = {node_name(n) for n in walk(expected_content) if node_name(n)} if expected_content else set()
+            actual_names = {node_name(n) for n in walk(actual_content) if node_name(n)} if actual_content else set()
             for child_name in sorted(intended_names - actual_names):
                 misplaced_card_content.append({"card": name, "component": child_name})
     return {"missingComponents": missing, "wrongComponents": wrong_components, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "unprovidedSlotChildren": defaults, "passed": not any([missing, wrong_components, empty_cards, misplaced_card_content, wrong_card_padding, defaults])}

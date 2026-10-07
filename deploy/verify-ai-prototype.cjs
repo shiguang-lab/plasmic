@@ -36,7 +36,7 @@ let browser;
     return JSON.parse(result.output);
   }
   await open();
-  const identity = await call("identify", { model: "acceptance-fixture", client: "nas-playwright", skill: "plasmic-prototype", outputFormat: "json" });
+  const identity = await call("identify", { model: "acceptance-fixture", client: "nas-playwright", skill: "plasmic", outputFormat: "json" });
   assert(identity.canEdit, "Acceptance user cannot edit this project");
   const overview = (await call("read")).results[0];
   const library = overview.importedProjects.find(dep => dep.components?.some(c => c.name === "plasmic-antd6-button"));
@@ -131,7 +131,7 @@ let browser;
   await preview.screenshot({ path: path.join(reportDir, "interaction.png") });
   await preview.close();
   await open();
-  await call("identify", { model: "acceptance-fixture", client: "nas-playwright", skill: "plasmic-prototype", outputFormat: "json" });
+  await call("identify", { model: "acceptance-fixture", client: "nas-playwright", skill: "plasmic", outputFormat: "json" });
   const reopened = (await call("read", { componentUuids: [dashboard.uuid, form.uuid] })).results;
   assert(reopened[0].baseVariantTplTree.includes("项目概览"), "Dashboard did not persist");
   assert(reopened[1].interactions?.length && reopened[1].states?.length, "Interactions/state did not persist");

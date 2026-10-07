@@ -44,6 +44,17 @@ class CardOwnershipTests(unittest.TestCase):
         expected = CARD.replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"body":{"padding":"16px 20px"}}}' ''')
         self.assertTrue(check(expected, expected)["passed"])
 
+    def test_native_names_use_public_readback_labels(self):
+        expected = CARD.replace(TABS, '<div data-plasmic-name="listBody">' + TABS + '</div>')
+        actual = expected.replace('data-plasmic-name="listBody"', 'label="listBody"')
+        self.assertTrue(check(expected, actual)["passed"])
+
+    def test_labeled_native_content_outside_card_still_fails(self):
+        native = '<div data-plasmic-name="listBody">' + TABS + '</div>'
+        expected = CARD.replace(TABS, native)
+        actual = expected.replace(native, '') + native.replace('data-plasmic-name="listBody"', 'label="listBody"')
+        self.assertIn({"card": "listCard", "component": "listBody"}, check(expected, actual)["cardContentOutsideSlot"])
+
 
 if __name__ == "__main__":
     unittest.main()

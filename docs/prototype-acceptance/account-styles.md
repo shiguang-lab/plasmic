@@ -9,7 +9,7 @@
 - 宿主保留 ActionGroup 注册，导出共享的 Antd6 运行时；Webpack 将 Antd barrel 和 ESM 深层入口解析到同一模块图。
 - Canvas 包优先复用宿主运行时；没有原生 Antd 的宿主由 Canvas 提供运行时。Antd6、Overseas 和 `@react/ui` 的实际 Antd 导入统一引用它，主题和样式缓存一致。
 - 加载 Antd6/Overseas 时先在目标窗口初始化 Canvas 运行时，已有运行时则复用。该步骤同时覆盖组件元数据隐藏窗口、编辑画布和预览窗口。
-- [skill 验收规则](../../skills/plasmic-prototype/references/reproducibility.md) 增加三轮完整账号切换、返回原账号后的截图比较及重新进入预览检查；已同步安装版本，校验通过。
+- [skill 验收规则](../../ai/plasmic/references/reproducibility.md) 增加三轮完整账号切换、返回原账号后的截图比较及重新进入预览检查；已同步安装版本，校验通过。
 
 ## 实际 App 验收
 

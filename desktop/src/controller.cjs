@@ -211,7 +211,7 @@ class DesktopController {
           const identity = await this.editor("identify", {
             model: "unknown",
             client: "plasmic-desktop-mcp",
-            skill: "plasmic-prototype",
+            skill: "plasmic",
           });
           if (identity.canEdit) {
             await this.editor("save");
@@ -225,7 +225,7 @@ class DesktopController {
       const identity = await this.editor("identify", {
         model: "unknown",
         client: "plasmic-desktop-mcp",
-        skill: "plasmic-prototype",
+        skill: "plasmic",
       });
       if (identity.projectId !== input.projectId) {
         throw new Error("A different design was opened");
@@ -310,7 +310,7 @@ class DesktopController {
       const identity = await this.editor("identify", {
         model: "unknown",
         client: "plasmic-desktop-mcp",
-        skill: "plasmic-prototype",
+        skill: "plasmic",
       });
       await this.editor("save");
       const options = {

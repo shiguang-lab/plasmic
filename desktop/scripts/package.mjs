@@ -47,7 +47,7 @@ const outputs = await build({
     productName: "Plasmic",
     electronVersion: metadata.devDependencies.electron,
     directories: { output: `dist/${metadata.version}/${platform}-${arch}`, buildResources: "assets" },
-    files: ["src/**/*", "mcp-guide.md", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
+    files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     npmRebuild: false,
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",

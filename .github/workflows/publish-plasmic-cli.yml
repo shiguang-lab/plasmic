@@ -1,0 +1,78 @@
+name: Publish Plasmic CLI and NAS resources
+
+on:
+  push:
+    tags: ['[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: plasmic-cli-release
+  cancel-in-progress: false
+
+jobs:
+  publish-cli:
+    if: github.repository == 'shiguang-lab/plasmic'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+      - name: Validate release tag and verify CLI
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module -e 'import {releaseVersion} from "./packages/plasmic-cli/scripts/publish.mjs"; releaseVersion(process.env.RELEASE_TAG)'
+          npm install -g npm@latest
+          npm --prefix packages/plasmic-cli test
+          node --test desktop/tests/plasmic-resources.test.cjs
+      - name: Publish versioned CLI to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node packages/plasmic-cli/scripts/publish.mjs --tag "$RELEASE_TAG" --execute
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plasmic-resources-${{ github.ref_name }}
+          path: dist/plasmic-resources/
+          if-no-files-found: error
+
+  publish-nas:
+    needs: publish-cli
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLASMIC_NAS_HOST: ${{ secrets.NAS_SSH_HOST }}
+      PLASMIC_NAS_SSH_PORT: ${{ vars.NAS_SSH_PORT }}
+      PLASMIC_NAS_DEPLOY_DIR: ${{ vars.NAS_DEPLOY_DIR }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          name: plasmic-resources-${{ github.ref_name }}
+          path: dist/plasmic-resources/
+      - name: Configure NAS SSH
+        env:
+          NAS_SSH_KEY: ${{ secrets.NAS_SSH_KEY }}
+          NAS_SSH_KNOWN_HOSTS: ${{ secrets.NAS_SSH_KNOWN_HOSTS }}
+        run: |
+          test -n "$PLASMIC_NAS_HOST" || { echo 'Missing NAS_SSH_HOST secret'; exit 1; }
+          test -n "$NAS_SSH_KEY" || { echo 'Missing NAS_SSH_KEY secret'; exit 1; }
+          test -n "$NAS_SSH_KNOWN_HOSTS" || { echo 'Missing NAS_SSH_KNOWN_HOSTS secret'; exit 1; }
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$NAS_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$NAS_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          node desktop/scripts/setup-nas-updates.mjs
+      - name: Publish the same artifacts to NAS
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node desktop/scripts/publish-plasmic-resources.mjs --from dist/plasmic-resources --version "$RELEASE_TAG"

@@ -892,6 +892,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
 
+  packages/plasmic-cli: {}
+
   packages/prepass:
     dependencies:
       '@plasmicapp/query':
