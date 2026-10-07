@@ -14,11 +14,7 @@ test.describe("data-binding", () => {
   });
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("can access $props in data picker, bind text content to them, evaluate given value, rename prop", async ({

@@ -61,9 +61,6 @@ export function getUser(
   if (!req.user) {
     throw new UnauthorizedError();
   }
-  if (!opts?.allowUnverifiedEmail && req.user.waitingEmailVerification) {
-    throw new UnauthorizedError();
-  }
   return req.user;
 }
 
@@ -75,7 +72,11 @@ export function userDbMgr(
   let dbMgr = new DbMgr(
     req,
     req.user
-      ? normalActor(getUser(req, opts).id, isSpy)
+      ? normalActor(
+          getUser(req, opts).id,
+          isSpy,
+          req.shiguangIdentity?.roles.includes("system-admin"),
+        )
       : req.apiTeam
         ? teamActor(req.apiTeam.id)
         : ANON_USER,
@@ -158,13 +159,8 @@ export function superDbMgr(req: CompatRequest) {
 export function makeUserTraits(user: User) {
   return omitNils({
     email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    role: user.role,
+    displayName: user.displayName,
     domain: user.email.split("@")[1],
-    source: user.source,
-    createdAt: user.createdAt.toISOString(),
-    ...user.surveyResponse,
   });
 }
 
@@ -219,11 +215,7 @@ function timingDbMgr(dbMgr: DbMgr) {
 }
 
 export function adminOnly(req: Request, _res: Response, next: NextFunction) {
-  const user = req.user as User | undefined;
-  if (
-    user?.email &&
-    req.config.adminEmails.includes(user.email.toLowerCase())
-  ) {
+  if (req.shiguangIdentity?.roles.includes("system-admin")) {
     next();
   } else {
     next(new ForbiddenError());
@@ -261,8 +253,7 @@ function isTransactionRollback<T>(x: unknown): x is TransactionRollback<T> {
 }
 
 export type TransactionEnd<TCommit, TRollback> =
-  | TransactionCommit<TCommit>
-  | TransactionRollback<TRollback>;
+  TransactionCommit<TCommit> | TransactionRollback<TRollback>;
 
 export function commitTransaction(): TransactionCommit<undefined>;
 export function commitTransaction<T>(data: T): TransactionCommit<T>;

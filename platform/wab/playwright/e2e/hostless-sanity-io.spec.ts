@@ -81,11 +81,7 @@ test.describe("hostless-sanity-io", () => {
   });
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("can put sanity fetcher with sanity field, fetch and show data", async ({

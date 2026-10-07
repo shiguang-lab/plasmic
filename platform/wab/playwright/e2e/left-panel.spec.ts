@@ -11,11 +11,7 @@ test.describe("left-panel", () => {
   });
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("shows a blue indicator and popover to the left of an element if any non-default property", async ({

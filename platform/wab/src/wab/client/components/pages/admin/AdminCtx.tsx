@@ -1,7 +1,7 @@
 import { useNonAuthCtx } from "@/wab/client/app-ctx";
 import { AsyncState, useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
-import { ApiFeatureTier, ApiUser, TeamId } from "@/wab/shared/ApiSchema";
+import { ApiFeatureTier, TeamId } from "@/wab/shared/ApiSchema";
 import { ensure, unexpected } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import React, { useCallback, useContext, useMemo } from "react";
@@ -11,8 +11,6 @@ interface AdminState {
   tab: string | undefined;
   /** Selected team ID. */
   teamId: TeamId | undefined;
-  /** State for listing all users. */
-  listUsers: AsyncState<ApiUser[]>;
   /** State for listing all feature tiers. */
   listFeatureTiers: AsyncState<ApiFeatureTier[]>;
 }
@@ -68,10 +66,6 @@ export function AdminCtxProvider({ children }: React.PropsWithChildren) {
     [history, pathState],
   );
 
-  const listUsers = useAsyncStrict(async () => {
-    const res = await nonAuthCtx.api.listUsers();
-    return res.users;
-  }, [nonAuthCtx]);
   const listFeatureTiers = useAsyncStrict(async () => {
     const res = await nonAuthCtx.api.listAllFeatureTiers();
     return res.tiers;
@@ -82,7 +76,6 @@ export function AdminCtxProvider({ children }: React.PropsWithChildren) {
       value={{
         ...pathState,
         navigate,
-        listUsers,
         listFeatureTiers,
       }}
     >

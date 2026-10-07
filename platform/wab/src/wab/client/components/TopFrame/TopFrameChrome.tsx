@@ -244,7 +244,8 @@ export function TopFrameChrome({
 
   return (
     <>
-      {!fullPreview && rest.desktopTitleBarDragRegion &&
+      {!fullPreview &&
+        rest.desktopTitleBarDragRegion &&
         navigator.userAgent.includes("PlasmicDesktop/darwin") && (
           <div
             className="desktop-titlebar-drag-region"
@@ -523,12 +524,10 @@ export function useTopFrameState({
   appCtx,
   project,
   forceUpdate,
-  toggleAdminMode,
 }: {
   appCtx: AppCtx;
   project: ApiProject | undefined;
   forceUpdate: () => void;
-  toggleAdminMode: (val: boolean) => Promise<void>;
 }) {
   const history = useHistory();
   const currentLocation = useLocation();
@@ -709,7 +708,6 @@ export function useTopFrameState({
           setDataSourcePicker(undefined),
         ) as TopFrameApiReturnType<"pickDataSource">;
       },
-      toggleAdminMode,
       getCurrentTeam: async () => {
         if (!project) {
           return undefined;

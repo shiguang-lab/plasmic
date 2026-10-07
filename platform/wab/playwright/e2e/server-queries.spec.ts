@@ -162,11 +162,7 @@ test.describe("server queries", () => {
   let projectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("create custom code server queries with data tokens and data context", async ({
@@ -887,11 +883,7 @@ test.describe("server queries – advanced", () => {
   let projectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("component server queries within data-repeat", async ({

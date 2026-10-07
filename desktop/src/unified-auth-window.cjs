@@ -1,6 +1,5 @@
-
-const AUTH_PATH = "/desktop/google-login";
-class GoogleAuthWindow {
+const AUTH_PATH = "/desktop/unified-login";
+class UnifiedAuthWindow {
   constructor(window, studioOrigin, openBrowser, login) {
     this.window = window;
     this.login = login;
@@ -13,16 +12,22 @@ class GoogleAuthWindow {
   }
   publish(status) {
     this.status = status;
-    if (!this.window.isDestroyed())
-      this.window.webContents.send("desktop:google-status", status);
+    if (!this.window.isDestroyed()) {
+      this.window.webContents.send("desktop:auth-status", status);
+    }
   }
-  async begin() {
-    if (this.abort) return;
-    const current = new URL(this.window.webContents.getURL());
+  async begin(loginUrl) {
+    if (this.abort) {
+      return;
+    }
+    const current = new URL(loginUrl || this.window.webContents.getURL());
     if (current.pathname !== AUTH_PATH) {
       this.loginUrl = current.toString();
       const next = new URL(
-        current.searchParams.get("continueTo") || "/",
+        (current.origin === "https://shiguanglab.com" &&
+        current.pathname === "/login"
+          ? current.searchParams.get("return_to")
+          : current.searchParams.get("continueTo")) || "/",
         this.studioOrigin,
       );
       this.returnUrl =
@@ -45,7 +50,9 @@ class GoogleAuthWindow {
         },
         openBrowser: async (url) => {
           await this.openBrowser(url);
-          if (this.status.phase !== "success") this.publish({ phase: "waiting" });
+          if (this.status.phase !== "success") {
+            this.publish({ phase: "waiting" });
+          }
         },
       });
       this.publish({ phase: "success" });
@@ -53,38 +60,28 @@ class GoogleAuthWindow {
       this.window.show();
       this.window.focus();
     } catch (error) {
-      if (!abort.signal.aborted)
+      if (!abort.signal.aborted) {
         this.publish({ phase: "error", message: error.message });
+      }
     } finally {
-      if (this.abort === abort) this.abort = undefined;
-    }
-  }
-  async receiveCallback(url) {
-    const waiting = !!this.abort;
-    try {
-      if (!waiting) {
-        await this.window.loadURL(this.studioOrigin + AUTH_PATH);
-        this.publish({ phase: "opening" });
+      if (this.abort === abort) {
+        this.abort = undefined;
       }
-      const destination = await this.login.handle(url);
-      if (!waiting && destination) {
-        this.publish({ phase: "success" });
-        await this.window.loadURL(destination);
-      }
-    } catch (error) {
-      this.publish({ phase: waiting && this.login.pending ? "waiting" : "error", message: error.message });
     }
-    if (!this.window.isDestroyed()) { this.window.show(); this.window.focus(); }
   }
   async command(command) {
-    if (command === "status") return this.status;
+    if (command === "status") {
+      return this.status;
+    }
     if (command === "cancel") {
       this.abort?.abort();
-      this.login.clear();
-      await this.window.loadURL(this.loginUrl || this.studioOrigin + "/login");
-      return { phase: "idle" };
+      this.publish({ phase: "cancelled", message: "Sign-in cancelled." });
+      return this.status;
     }
-    if (command === "retry" && this.status.phase === "error") {
+    if (
+      command === "retry" &&
+      ["error", "cancelled"].includes(this.status.phase)
+    ) {
       void this.begin();
       return this.status;
     }
@@ -94,12 +91,11 @@ class GoogleAuthWindow {
         this.publish({ phase: "waiting" });
       } catch (error) {
         this.abort?.abort();
-      this.login.clear();
         this.publish({ phase: "error", message: error.message });
       }
       return this.status;
     }
-    throw new Error("Google login action is unavailable");
+    throw new Error("Shiguang login action is unavailable");
   }
 }
-module.exports = { GoogleAuthWindow, AUTH_PATH };
+module.exports = { UnifiedAuthWindow, AUTH_PATH };

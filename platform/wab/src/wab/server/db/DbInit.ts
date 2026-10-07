@@ -4,12 +4,7 @@ import { loadConfig } from "@/wab/server/config";
 import { getLastBundleVersion } from "@/wab/server/db/BundleMigrator";
 import { ensureDbConnection } from "@/wab/server/db/DbCon";
 import { initDb } from "@/wab/server/db/DbInitUtil";
-import {
-  DbMgr,
-  DEFAULT_DEV_PASSWORD,
-  normalActor,
-  SUPER_USER,
-} from "@/wab/server/db/DbMgr";
+import { DbMgr, normalActor, SUPER_USER } from "@/wab/server/db/DbMgr";
 import { seedTestFeatureTiers } from "@/wab/server/db/seed/feature-tier";
 import { FeatureTier, Team, User } from "@/wab/server/entities/Entities";
 import { logger } from "@/wab/server/observability";
@@ -51,25 +46,16 @@ async function main() {
 export async function seedTestDb(em: EntityManager) {
   const db = new DbMgr(em, SUPER_USER);
 
-  // admin@admin.example.com is an admin user because of its admin.com domain name
-  // (see `isCoreTeamEmail`), meaning it will receive elevated privileges and
-  // doesn't behave like normal accounts.
-  // AVOID TESTING WITH THIS ACCOUNT.
+  // Account identities must already exist in the configured IAM directory.
   const { user: adminUser } = await seedTestUserAndProjects(em, {
     email: "admin@admin.example.com",
-    firstName: "Plasmic",
-    lastName: "Admin",
   });
   // user@example.com and user2@example.com behave like normal accounts.
   const { user: user1 } = await seedTestUserAndProjects(em, {
     email: "user@example.com",
-    firstName: "Plasmic",
-    lastName: "User",
   });
   const { user: user2 } = await seedTestUserAndProjects(em, {
     email: "user2@example.com",
-    firstName: "Plasmic",
-    lastName: "User 2",
   });
 
   const { enterpriseFt, teamFt, proFt, starterFt } =
@@ -104,7 +90,9 @@ export async function seedTestDb(em: EntityManager) {
   // Seed the special pkgs, which must be done after some users have been created
   const sysnames: InsertableId[] = [PLUME_INSERTABLE_ID, PLEXUS_INSERTABLE_ID];
   await Promise.all(
-    sysnames.map(async (sysname) => await new PkgMgr(db, sysname).seedPkg()),
+    sysnames.map(
+      async (sysname) => await new PkgMgr(db, sysname).seedPkg(adminUser.id),
+    ),
   );
 
   const plexusBundleInfo = getBundleInfo(PLEXUS_INSERTABLE_ID);
@@ -205,24 +193,13 @@ export async function seedTestUserAndProjects(
   em: EntityManager,
   userInfo: {
     email: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
   },
   numProjects = 2,
 ) {
   const db0 = new DbMgr(em, SUPER_USER);
 
-  const user = await db0.createUser({
-    email: userInfo.email,
-    password: userInfo.password || DEFAULT_DEV_PASSWORD,
-    firstName: userInfo.firstName || "Plasmic",
-    lastName: userInfo.lastName || "User",
-    needsIntroSplash: false,
-    needsSurvey: false,
-    needsTeamCreationPrompt: false,
-  });
-  await db0.markEmailAsVerified(user);
+  const user = await db0.getUserByEmail(userInfo.email);
+  await db0.ensurePersonalWorkspace(user);
   const db = new DbMgr(em, normalActor(user.id));
   for (let projectNum = 1; projectNum <= numProjects; ++projectNum) {
     const { project } = await db.createProject({

@@ -4,6 +4,7 @@
 import { getEncryptionKey } from "@/wab/server/secrets";
 import { makeStableEncryptor } from "@/wab/server/util/crypt";
 import type {
+  ApiUser,
   AppAuthProvider,
   BillingFrequency,
   BranchId,
@@ -26,14 +27,12 @@ import type {
   GitSyncScheme,
   ProjectExtraData,
   ProjectId,
-  SsoConfigId,
   StripeCustomerId,
   StripePriceId,
   StripeSubscriptionId,
   TeamId,
   TeamWhiteLabelInfo,
   UserId,
-  UserWhiteLabelInfo,
   WorkspaceId,
 } from "@/wab/shared/ApiSchema";
 import { Dict } from "@/wab/shared/collections";
@@ -81,7 +80,7 @@ function normalizeJson(x, mapping = { model: "json" }) {
 }
 
 @Entity()
-export class ExpressSession implements ISession {
+export class IntegrationAuthSession implements ISession {
   @Index()
   @Column("bigint")
   expiredAt = Date.now();
@@ -102,11 +101,8 @@ export abstract class Base<IdTag> {
   @Column("timestamptz", { nullable: true })
   deletedAt: Date | null;
 
-  @ManyToOne(() => User)
   createdBy: User | null;
-  @ManyToOne(() => User)
   updatedBy: User | null;
-  @ManyToOne(() => User)
   deletedBy: User | null;
 
   @Column("text", { nullable: true })
@@ -152,8 +148,6 @@ export class Team extends Base<"TeamId"> {
   @Column("text", { nullable: true })
   personalTeamOwnerId: UserId | null;
 
-  @OneToOne((_type) => User)
-  @JoinColumn()
   personalTeamOwner: User | null;
 
   @OneToMany(() => Permission, (perm) => perm.team)
@@ -230,67 +224,7 @@ export class Workspace extends Base<"WorkspaceId"> {
   @OneToMany(() => Permission, (perm) => perm.workspace)
   permissions: Permission[];
 }
-
-@Entity()
-@Index(["owningTeamId", "whiteLabelId"])
-export class User extends OrgChild<"UserId"> {
-  @Column("text", { nullable: true }) firstName: string | null;
-  @Column("text", { nullable: true }) lastName: string | null;
-  @Column("text", { nullable: true }) role: string | null;
-  @Column("text", { nullable: true }) source: string | null;
-  @Column("jsonb", { nullable: true }) surveyResponse: {
-    projectOption?: string;
-  } | null;
-  @Column("boolean") needsSurvey: boolean;
-  @Column("boolean", { nullable: true }) waitingEmailVerification: boolean;
-  @Column("boolean", { nullable: true }) adminModeDisabled: boolean;
-  @Column("boolean", { nullable: true }) needsTeamCreationPrompt: boolean;
-  @Index({ unique: true })
-  @Column("text", { unique: true })
-  @IsEmail({ ignore_max_length: true })
-  email: string;
-  @Column("text", { select: false }) bcrypt: string | undefined;
-  @Column("timestamptz", { nullable: true })
-  permanentlyDeletedAt: Date | null;
-
-  @Column("timestamptz", { nullable: true, select: false })
-  freeTrialStartedAt: Date | null;
-
-  /**
-   * For now, we can only reference URLs from elsewhere, and not
-   * host the image blob ourselves.
-   */
-  @Column("text", { nullable: true })
-  avatarUrl: string | null;
-
-  @Column("boolean")
-  needsIntroSplash: boolean;
-
-  @Column("text", { nullable: true })
-  @IsOptional()
-  @IsJSON()
-  extraData: string | null;
-
-  @Index()
-  @Column("text", { nullable: true })
-  owningTeamId: TeamId | null;
-
-  @Column("boolean", { nullable: true })
-  isWhiteLabel: boolean | null;
-
-  @Column("text", { nullable: true })
-  whiteLabelId: string | null;
-
-  @Column("jsonb", { nullable: true })
-  whiteLabelInfo: UserWhiteLabelInfo | null;
-
-  @ManyToOne(() => PromotionCode, { nullable: true })
-  signUpPromotionCode: PromotionCode | null;
-
-  toJSON() {
-    return normalizeJson(_.omit(this, "bcrypt"));
-  }
-}
+export type User = ApiUser;
 
 @Entity()
 export class Project extends Base<"ProjectId"> {
@@ -492,7 +426,6 @@ export class ProjectRepository extends Base<"ProjectRepositoryId"> {
   projectId: ProjectId;
 
   // This is the user who set the repository.
-  @ManyToOne(() => User, { nullable: false })
   user: User | null;
 
   @Column("text")
@@ -535,7 +468,6 @@ export class ProjectRepository extends Base<"ProjectRepositoryId"> {
 
 @Entity()
 export class TrustedHost extends Base<"TrustedHostId"> {
-  @ManyToOne(() => User, { nullable: false })
   user: User | null;
 
   @Index()
@@ -544,32 +476,6 @@ export class TrustedHost extends Base<"TrustedHostId"> {
 
   @Column("text", { nullable: false })
   hostUrl: string;
-}
-
-@Entity()
-export class ResetPassword extends Base<"ResetPasswordId"> {
-  @Index()
-  @ManyToOne(() => User)
-  forUser: User | null;
-
-  @Column("text", { nullable: true })
-  forUserId: UserId | null;
-
-  @Column("text") secret: string;
-  @Column("boolean") used: boolean;
-}
-
-@Entity()
-export class EmailVerification extends Base<"EmailVerificationid"> {
-  @Index()
-  @ManyToOne(() => User)
-  forUser: User | null;
-
-  @Column("text", { nullable: true })
-  forUserId: UserId | null;
-
-  @Column("text") secret: string;
-  @Column("boolean") used: boolean;
 }
 
 @Entity()
@@ -679,12 +585,7 @@ export class LoaderPublishment extends Base<"LoaderPublishmentId"> {
   appDir: boolean | null;
 }
 
-export type OauthTokenProvider =
-  | "google"
-  | "okta"
-  | "ping"
-  | "airtable"
-  | "google-sheets";
+export type OauthTokenProvider = "airtable" | "google-sheets";
 
 const cryptr = new Cryptr(getEncryptionKey());
 const encryptTransformer = {
@@ -707,18 +608,11 @@ export abstract class OauthTokenBase extends Base<"OauthTokenBaseId"> {
     transformer: [jsonTransformer, encryptTransformer],
   })
   token: TokenData;
-
-  @Column("text", { nullable: true })
-  ssoConfigId: SsoConfigId | null;
-
-  @ManyToOne(() => SsoConfig, { nullable: true })
-  ssoConfig: SsoConfig | null;
 }
 
 @Entity()
-@Unique(["user", "provider"])
+@Unique(["userId", "provider"])
 export class OauthToken extends OauthTokenBase {
-  @ManyToOne(() => User, { nullable: false })
   user: User;
 
   @Column("text")
@@ -727,7 +621,6 @@ export class OauthToken extends OauthTokenBase {
 
 @Entity()
 export class PersonalApiToken extends Base<"PersonalApiTokenId"> {
-  @ManyToOne(() => User, { nullable: false })
   user: User;
 
   @Index()
@@ -803,7 +696,6 @@ export class Permission extends Base<"PermissionId"> {
   @Column("text", { nullable: true })
   teamId: TeamId | null;
 
-  @ManyToOne(() => User)
   user: User | null;
 
   @Index()
@@ -819,15 +711,6 @@ export class Permission extends Base<"PermissionId"> {
 
   @Column("text")
   accessLevel: AccessLevel;
-}
-
-/**
- * This is just a log of sign-up attempts.
- */
-@Entity()
-export class SignUpAttempt extends Base<"SignUpAttempt"> {
-  @Column("text")
-  email: string;
 }
 
 @Entity()
@@ -991,41 +874,8 @@ export class DataSourceOperation extends Base<"DataSourceOperationId"> {
   operationInfo: OperationTemplate;
 }
 
-@Entity()
-export class SsoConfig extends Base<"SsoConfigId"> {
-  @Index()
-  @Column("text")
-  teamId: TeamId;
-
-  @OneToOne(() => Team)
-  @JoinColumn()
-  team: Team;
-
-  @Index()
-  @Column("text", { array: true })
-  domains: string[];
-
-  @Column("text")
-  ssoType: "oidc";
-
-  @Column("text")
-  provider: "okta";
-
-  @Index({ unique: true })
-  @Column("text")
-  tenantId: string;
-
-  @Column("jsonb")
-  config: Record<string, any>;
-
-  @Column("jsonb", { nullable: true })
-  whitelabelConfig: Record<string, any> | null;
-}
-
 export type KeyValueNamespace =
-  | "hosting-hit"
-  | "copilot-cache"
-  | "notification-settings";
+  "hosting-hit" | "copilot-cache" | "notification-settings";
 
 export interface HostingHit {
   path: string;
@@ -1427,7 +1277,6 @@ export class EndUser extends Base<"EndUserId"> {
   @Column("text", { nullable: true })
   externalId?: string;
 
-  @ManyToOne(() => User)
   user: User | null;
 
   @Index()
@@ -1687,4 +1536,18 @@ export class TeamDiscourseInfo extends Base<"TeamDiscourseInfo"> {
 
   @Column({ nullable: false, type: "integer" })
   groupId: number;
+}
+
+/** Editor preferences keyed by IAM subject, without local account data. */
+@Entity()
+export class UserPreferences {
+  @PrimaryColumn("text") userId: UserId;
+  @Column("text", { nullable: true }) extraData: string | null;
+}
+
+/** Per-subject trial consumption is Plasmic business state, independent of accounts. */
+@Entity()
+export class UserTrialClaim {
+  @PrimaryColumn("text") userId: UserId;
+  @Column("timestamptz") claimedAt: Date;
 }

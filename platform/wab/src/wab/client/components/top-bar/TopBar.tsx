@@ -121,7 +121,6 @@ function _TopBar({ preview }: TopBarProps) {
   });
   const team = data?.team;
   const canEditUiConfig = data?.canEditUiConfig;
-  const isWhiteLabelUser = appCtx.isWhiteLabelUser();
   const isObserver = appCtx.selfInfo?.isObserver;
 
   const uiConfig = studioCtx.getCurrentUiConfig();
@@ -145,7 +144,7 @@ function _TopBar({ preview }: TopBarProps) {
               );
             }
 
-            if (!isWhiteLabelUser) {
+            {
               push2(
                 <Menu.Item
                   key="duplicate"
@@ -171,8 +170,7 @@ function _TopBar({ preview }: TopBarProps) {
                 </Menu.Item>,
               );
               // Only show auth config if the app already uses it
-              const showAuth =
-                studioCtx.siteInfo.hasAppAuth && !isWhiteLabelUser;
+              const showAuth = studioCtx.siteInfo.hasAppAuth;
               if (showAuth) {
                 push2(
                   <Menu.Item
@@ -309,26 +307,6 @@ function _TopBar({ preview }: TopBarProps) {
                   );
                 });
                 if (isAdmin) {
-                  push2(
-                    <Menu.Item
-                      key="admin-mode"
-                      onClick={() => {
-                        spawn(
-                          topFrameApi.toggleAdminMode(
-                            !appCtx.selfInfo?.adminModeDisabled,
-                          ),
-                        );
-                      }}
-                    >
-                      <strong>
-                        {appCtx.selfInfo!.adminModeDisabled
-                          ? "Enable"
-                          : "Disable"}
-                      </strong>{" "}
-                      admin mode
-                    </Menu.Item>,
-                  );
-
                   push2(
                     <Menu.SubMenu
                       title={
@@ -498,7 +476,7 @@ function _TopBar({ preview }: TopBarProps) {
           ...{ "data-test-id": "exit-live-mode-btn" },
         }}
         codeButton={
-          studioCtx.contentEditorMode || isWhiteLabelUser
+          studioCtx.contentEditorMode
             ? {
                 render: () => null,
               }
@@ -506,13 +484,7 @@ function _TopBar({ preview }: TopBarProps) {
         }
         zoomButton={{}}
         viewButton={{}}
-        shareButton={
-          isWhiteLabelUser
-            ? {
-                render: () => null,
-              }
-            : {}
-        }
+        shareButton={{}}
         commentButton={{
           wrap: studioCtx.showComments() ? undefined : () => null,
           props: {
@@ -601,10 +573,7 @@ function _TopBar({ preview }: TopBarProps) {
             : null
         }
         variantsComboSelect={{}}
-        plasmicAdminMode={
-          isAdminTeamEmail(appCtx.selfInfo?.email, appCtx.appConfig) &&
-          appCtx.selfInfo?.adminModeDisabled
-        }
+        plasmicAdminMode={appCtx.selfInfo?.isAdmin}
       />
     </>
   );

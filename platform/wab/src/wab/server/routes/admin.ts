@@ -1,4 +1,3 @@
-import { doLogin } from "@/wab/server/auth/util";
 import {
   PkgVersion,
   ProjectRevision,
@@ -19,7 +18,6 @@ import {
 } from "@/wab/server/routes/projects";
 import {
   commitTransaction,
-  getUser,
   startTransaction,
   superDbMgr,
   userDbMgr,
@@ -31,13 +29,10 @@ import {
   BranchId,
   FeatureTierId,
   ListFeatureTiersResponse,
-  ListUsersResponse,
-  LoginResponse,
   PkgVersionId,
   ProjectId,
   SendEmailsResponse,
   TeamId,
-  UpdateSelfAdminModeRequest,
   UserId,
 } from "@/wab/shared/ApiSchema";
 import { Bundle } from "@/wab/shared/bundler";
@@ -56,19 +51,6 @@ import { syncTeamDiscourseInfo as doSyncTeamDiscourseInfo } from "@/wab/server/d
 import { checkAndResetTeamTrial } from "@/wab/server/routes/team-plans";
 import { mkApiWorkspace } from "@/wab/server/routes/workspaces";
 import { broadcastProjectsMessage } from "@/wab/server/socket-util";
-
-export async function createUser(req: Request, res: Response) {
-  throw new Error("NOT IMPLEMENTED");
-  // const mgr = superDbMgr(req);
-  // const user = await mgr.createUser(req.body);
-  // res.json({ user });
-}
-
-export async function listUsers(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const users = await mgr.listAllUsers();
-  res.json(ensureType<ListUsersResponse>({ users }));
-}
 
 export async function listAllFeatureTiers(req: Request, res: Response) {
   const mgr = superDbMgr(req);
@@ -192,52 +174,6 @@ export async function restoreProject(req: Request, res: Response) {
   res.json({});
 }
 
-export async function resetPassword(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const email = req.body.email;
-  const user = await mgr.tryGetUserByEmail(email);
-  if (user) {
-    const resetSecret = await mgr.createResetPasswordForUser(user);
-    res.json({ secret: resetSecret });
-  } else {
-    throw new NotFoundError("No user found.");
-  }
-}
-
-export async function setPassword(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const email = req.body.email;
-  const newPassword = req.body.newPassword;
-  const user = await mgr.tryGetUserByEmail(email);
-  if (user) {
-    await mgr.updateUserPassword(user, newPassword, true);
-    res.json({});
-  } else {
-    throw new NotFoundError("No user found.");
-  }
-}
-
-export async function adminLoginAs(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const email = req.body.email;
-  const user = ensure(
-    await mgr.tryGetUserByEmail(email),
-    () => `User not found`,
-  );
-  await new Promise<void>((resolve, reject) => {
-    doLogin(req, user, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-  logger().info(`admin logged in as ${getUser(req).email}`);
-  res.cookie("plasmic-observer", "true");
-  res.json(ensureType<LoginResponse>({ status: true, user }));
-}
-
 export async function getDevFlagOverrides(req: Request, res: Response) {
   const data = (await superDbMgr(req).tryGetDevFlagOverrides())?.data ?? "";
   res.json({ data });
@@ -358,17 +294,6 @@ export async function savePkgVersion(req: Request, res: Response) {
   });
 }
 
-export async function deactivateUser(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const email = req.body.email;
-  const user = await mgr.tryGetUserByEmail(email);
-  if (!user) {
-    throw new Error("User not found");
-  }
-  await mgr.deleteUser(user, false);
-  res.json({});
-}
-
 export async function upgradeTeam(req: Request, res: Response) {
   const mgr = superDbMgr(req);
   const {
@@ -390,27 +315,6 @@ export async function upgradeTeam(req: Request, res: Response) {
     stripeSubscriptionId,
   });
   res.json({});
-}
-
-export async function upsertSsoConfig(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const { teamId, domain, provider, config, whitelabelConfig } = req.body;
-  const sso = await mgr.upsertSsoConfig({
-    teamId,
-    domains: [domain],
-    ssoType: "oidc",
-    config,
-    whitelabelConfig,
-    provider,
-  });
-  res.json(sso);
-}
-
-export async function getSsoByTeam(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const teamId = req.query.teamId as TeamId;
-  const sso = await mgr.getSsoConfigByTeam(teamId);
-  res.json(sso ?? null);
 }
 
 export async function getTeamByWhiteLabelName(req: Request, res: Response) {
@@ -437,18 +341,6 @@ export async function updateTeamWhiteLabelName(req: Request, res: Response) {
     req.body.whiteLabelName,
   );
   res.json({ team: team });
-}
-
-export async function updateSelfAdminMode(req: Request, res: Response) {
-  const mgr = superDbMgr(req);
-  const disabled = uncheckedCast<UpdateSelfAdminModeRequest>(
-    req.body,
-  ).adminModeDisabled;
-  await mgr.updateAdminMode({
-    id: getUser(req).id,
-    disabled,
-  });
-  res.json({});
 }
 
 export async function createPromotionCode(req: Request, res: Response) {

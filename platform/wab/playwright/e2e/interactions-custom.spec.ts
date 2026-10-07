@@ -15,11 +15,7 @@ test.describe("state-management-custom-interactions", () => {
   });
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("can create page navigation and custom function interactions", async ({

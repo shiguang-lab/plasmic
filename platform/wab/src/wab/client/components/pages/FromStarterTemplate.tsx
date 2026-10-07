@@ -37,7 +37,7 @@ export function FromStarterTemplate(props: {
       }
       return undefined;
     };
-    if (appCtx.selfInfo && !appCtx.selfInfo.waitingEmailVerification) {
+    if (appCtx.selfInfo) {
       spawn(
         createProject().then((newProjectId) => {
           if (newProjectId) {
@@ -47,12 +47,8 @@ export function FromStarterTemplate(props: {
           }
         }),
       );
-    } else if (!appCtx.selfInfo) {
-      appCtx.router.routeTo(APP_ROUTES.login.fill({}, { continueTo: path }));
     } else {
-      appCtx.router.routeTo(
-        APP_ROUTES.emailVerification.fill({}, { continueTo: path }),
-      );
+      appCtx.router.routeTo(APP_ROUTES.login.fill({}, { continueTo: path }));
     }
   }, [projectId, baseProjectId, appCtx, name]);
 

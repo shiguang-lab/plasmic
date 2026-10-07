@@ -194,28 +194,19 @@ External navigation opens the system browser. Internal preview popups share the
 same asset handler and authenticated session. Remote custom project hosts are
 still remote, because their code is not part of this application bundle.
 
-Email/password login uses the NAS's existing authentication. Google login uses an intermediate page in the main window and opens
-the system browser and uses the Google redirect URI on the configured NAS Studio origin.
-After authorization, the browser stays on the Studio domain at
-`/api/v1/auth/desktop/google/complete`. It immediately attempts to open
-`plasmic-desktop://oauth/google/callback` to bring the app back. The **Open Plasmic Desktop**
-button remains available when the browser requires a manual click. The five-minute,
-single-use handoff stays in the URL fragment, out of server request logs.
-Electron verifies the original state and redeems it using S256 PKCE and CSRF
-protection, establishing its own HttpOnly session. Google credentials remain on
-the NAS. A pending login is stored with owner-only permissions for ten minutes,
-so opening the app after a restart can still finish it. Canceling clears that
-pending login. The packaged app registers its URL scheme; macOS requires a
-packaged application for browser-to-app login. Successful login returns to the
-requested workspace in the main window.
+Sign-in uses the Shiguang account system. The main window displays an intermediate
+page while the system browser opens `https://shiguanglab.com/oauth/authorize` for
+`plasmicapp`. S256 PKCE and random state bind authorization to a listener on
+an ephemeral `127.0.0.1` port. After the callback, Electron exchanges the authorization
+code and consumes a one-use `/oauth/web-session` ticket. IAM sets its shared HttpOnly
+cookie in the desktop session, and the main window returns to the requested design.
+Closing or cancelling ends the pending listener; retry starts a fresh authorization.
+OAuth credentials remain in memory during the exchange. Account management opens
+the central `/account` page. Sign-out revokes the shared IAM session.
 
-The NAS must use the matching published server release, built by
-`deploy/Dockerfile` through the tag-triggered image workflow. Its handoff-code store
-belongs to one app-server process; restarting it invalidates outstanding codes.
-Google OAuth state is verified using the browser session. The Google OAuth client
-must authorize `https://studio.plasmic.shiguanglab.com/api/v1/oauth2/google/callback`.
-When changing the Studio domain, update that URI in Google Console and sign in
-again on the new domain.
+The NAS gateway and auth-service must use the corresponding unified-authentication
+release. Register the Desktop OAuth client, `plasmic:access` entitlement and Studio
+return origin as described in [deployment configuration](../deploy/README.md#shiguang-unified-authentication).
 
 The desktop honors the OS proxy by default. When launched from a terminal,
 `HTTPS_PROXY` / `HTTP_PROXY` and `NO_PROXY` can explicitly configure its proxy. The desktop exposes a native stdio MCP server backed by the active editor. No
@@ -229,7 +220,7 @@ initialization work. This is not an offline editor.
 
 ```sh
 npm test
-# On the current computer; the env file contains only acceptance-account credentials:
+# On the current computer; the private env file contains an IAM-issued SG_SESSION:
 PLASMIC_ENV_FILE=/absolute/path/to/acceptance.env \
 PLASMIC_REPORT_DIR=/tmp/plasmic-desktop-report \
 npm run test:smoke
@@ -270,22 +261,22 @@ copy it again after moving the application.
 
 The server provides these tools:
 
-| Tool                             | Function                                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------ |
-| `get_app_state`                  | Read readiness, project, focused artboard, selection/editing scope and exact editor schemas                        |
-| `list_projects` / `open_design`  | List accessible NAS projects and open a design                                 |
-| `read_skill` / `get_style`       | Editing workflow and local palette/spacing presets                             |
-| `execute` / `execute_batch`      | Validated edits; a batch rolls back completely on failure and is one undo step |
-| `snapshot_layout`                | Rendered desktop/mobile geometry and image load status                         |
-| `get_screenshot`                 | Clean static artboard PNG; `mode: "workspace"` captures the editor             |
-| `import_image` / `read_image`    | Import a local raster into NAS and read design image pixels                    |
-| `export_design` / `export_pages` | Static exports and ordered multi-page PDF                                      |
-| `export_code`                    | Editable React/TypeScript/CSS from NAS codegen                                 |
-| `capture_browser` / `browser`    | Reference PNG/DOM and persistent isolated browser CDP                          |
-| `search_stock_images`            | Commons images with license/source/attribution metadata                        |
-| `vectorize_image`                | Local raster tracing to SVG paths                                              |
-| `make_vector`                    | SVG paths and union/intersection/subtraction/xor geometry                      |
-| `generate_image`                 | Configured Images generation/edit/background service                           |
+| Tool                             | Function                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------- |
+| `get_app_state`                  | Read readiness, project, focused artboard, selection/editing scope and exact editor schemas |
+| `list_projects` / `open_design`  | List accessible NAS projects and open a design                                              |
+| `read_skill` / `get_style`       | Editing workflow and local palette/spacing presets                                          |
+| `execute` / `execute_batch`      | Validated edits; a batch rolls back completely on failure and is one undo step              |
+| `snapshot_layout`                | Rendered desktop/mobile geometry and image load status                                      |
+| `get_screenshot`                 | Clean static artboard PNG; `mode: "workspace"` captures the editor                          |
+| `import_image` / `read_image`    | Import a local raster into NAS and read design image pixels                                 |
+| `export_design` / `export_pages` | Static exports and ordered multi-page PDF                                                   |
+| `export_code`                    | Editable React/TypeScript/CSS from NAS codegen                                              |
+| `capture_browser` / `browser`    | Reference PNG/DOM and persistent isolated browser CDP                                       |
+| `search_stock_images`            | Commons images with license/source/attribution metadata                                     |
+| `vectorize_image`                | Local raster tracing to SVG paths                                                           |
+| `make_vector`                    | SVG paths and union/intersection/subtraction/xor geometry                                   |
+| `generate_image`                 | Configured Images generation/edit/background service                                        |
 
 `execute` supports `identify`, `read`, `createComponent`, `insertHtml`,
 `changeElement`, `deleteElement`, `createState`, `createInteraction`,

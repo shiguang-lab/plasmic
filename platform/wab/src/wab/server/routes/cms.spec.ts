@@ -405,11 +405,7 @@ describe("CMS public routes", () => {
 
   beforeEach(async () => {
     api = new SharedApiTester(`${baseURL}/api/v1`);
-    await api.refreshCsrfToken();
-    await api.login({
-      email: "user@example.com",
-      password: "!53kr3tz!",
-    });
+    api.authenticateIdentity("user@example.com");
 
     publicApi = new PublicApiTester(baseURL, {
       "x-plasmic-api-cms-tokens": `${database.id}:${database.publicToken}`,

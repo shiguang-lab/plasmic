@@ -14,7 +14,6 @@ import {
 } from "@/wab/client/components/pages/admin/AdminCtx";
 import { AdminImportProjectsFromProd } from "@/wab/client/components/pages/admin/AdminImportProjectsFromProd";
 import { AdminTeamsView } from "@/wab/client/components/pages/admin/AdminTeamsView";
-import { AdminUsersView } from "@/wab/client/components/pages/admin/AdminUsersView";
 import {
   LinkButton,
   SearchBox,
@@ -69,15 +68,6 @@ function AdminPageTabs() {
       activeKey={tab}
       onChange={(newTab) => navigate({ tab: newTab })}
       items={[
-        {
-          key: "users",
-          label: "Users",
-          children: (
-            <div className="flex-col gap-xxxlg">
-              <AdminUsersView />
-            </div>
-          ),
-        },
         {
           key: "teams",
           label: "Teams",

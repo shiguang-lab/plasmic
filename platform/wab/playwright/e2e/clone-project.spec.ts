@@ -7,15 +7,10 @@ test.describe("clone project", () => {
   let clonedProjectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
     await apiClient.removeProjectAfterTest(
       clonedProjectId,
       "user2@example.com",
-      "!53kr3tz!",
     );
   });
 

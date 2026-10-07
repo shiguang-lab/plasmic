@@ -21,11 +21,7 @@ test.describe("Auto Open", () => {
   let projectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test.describe("Auto Open (Code components)", () => {

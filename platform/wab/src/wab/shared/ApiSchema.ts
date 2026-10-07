@@ -57,7 +57,6 @@ export type CmsRowRevisionId = Opaque<string, "CmsRowRevisionId">;
 export type CommentId = Opaque<string, "CommentId">;
 export type CommentReactionId = Opaque<string, "CommentReactionId">;
 export type ThreadHistoryId = Opaque<string, "ThreadHistoryId">;
-export type SsoConfigId = Opaque<string, "SsoConfigId">;
 export type DataSourceId = Opaque<string, "DataSourceId">;
 export type CopilotInteractionId = Opaque<string, "CopilotInteractionId">;
 export type CommentThreadId = Opaque<string, "CommentThreadId">;
@@ -116,26 +115,15 @@ export interface ApiEntityBase<IdType extends string = string> {
   deletedById: string | null;
 }
 
-export interface ApiUser extends ApiEntityBase {
+/** Read-only Shiguang directory profile. IDs are IAM subjects. */
+export interface ApiUser {
   id: UserId;
   email: string;
-  firstName: string | null;
-  lastName: string | null;
-  avatarUrl: string | null;
-  needsIntroSplash: boolean;
-  extraData: string | null;
-  needsSurvey: boolean;
-  waitingEmailVerification?: boolean;
-  adminModeDisabled?: boolean;
-  needsTeamCreationPrompt?: boolean;
-  isFake?: boolean;
-  isWhiteLabel?: boolean | null;
-  whiteLabelInfo?: UserWhiteLabelInfo | null;
-  whiteLabelId?: string | null;
-}
-
-export interface UserWhiteLabelInfo {
-  email?: string;
+  displayName: string;
+  emailVerified: boolean;
+  extraData?: string | null;
+  loginName: string;
+  state: string;
 }
 
 export interface ApiTeamMeta {
@@ -251,10 +239,7 @@ export type MayTriggerPaywall<T> = MakeADT<
 >;
 
 export type PaywallDescription =
-  | "moreSeats"
-  | "moreWorkspaces"
-  | "splitContentAccess"
-  | "monthlyViewLimit";
+  "moreSeats" | "moreWorkspaces" | "splitContentAccess" | "monthlyViewLimit";
 
 /**
  * This is a superset of sections exposed in registerComponent(), as it also supports
@@ -318,124 +303,18 @@ export interface ApiWorkspace extends ApiEntityBase {
 /** Header used to send the captcha token on captcha-protected routes. */
 export const CAPTCHA_TOKEN_HEADER = "x-plasmic-captcha-token";
 
-export interface SignUpRequest {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  nextPath?: string;
-  appInfo?: {
-    appName: string;
-    authorizationPath: string;
-  };
-}
-
-export type SignUpResponse =
-  | {
-      status: true;
-      user: ApiUser;
-    }
-  | {
-      status: false;
-      reason: string;
-    };
-
-export type UpdatePasswordResponse =
-  | {
-      status: true;
-    }
-  | {
-      status: false;
-      reason: string;
-    };
-
 export interface JoinTeamRequest {
   teamId: TeamId;
   inviteId: string;
 }
 
 export type JoinTeamResponse =
-  | { status: true }
-  | { status: false; reason: string };
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-  appInfo?: {
-    appName: string;
-    authorizationPath: string;
-  };
-}
-export type LoginResponse =
-  | {
-      status: true;
-      user: ApiUser;
-    }
-  | {
-      status: false;
-      reason: string;
-    };
-
-export interface ForgotPasswordRequest {
-  email: string;
-  appName?: string;
-  nextPath?: string;
-}
-
-export type ForgotPasswordResponse = { status: true };
-
-export interface GetEmailVerificationTokenRequest {
-  email: string;
-}
-
-export type GetEmailVerificationTokenResponse = { status: true; token: string };
-
-export interface SendEmailVerificationRequest {
-  email: string;
-  nextPath?: string;
-  appName?: string;
-}
-
-export type SendEmailVerificationResponse = { status: true };
-
-export interface ConfirmEmailRequest {
-  email: string;
-  token: string;
-}
-
-export type ConfirmEmailResponse =
-  | { status: true }
-  | { status: false; reason: string };
-
-export interface ResetPasswordRequest {
-  email: string;
-  resetPasswordToken: string;
-  newPassword: string;
-}
-
-export type ResetPasswordResponse =
-  | { status: true }
-  | { status: false; reason: string };
+  { status: true } | { status: false; reason: string };
 
 export interface SelfResponse {
   user: ApiUser;
-  usesOauth?: boolean;
+  isAdmin: boolean;
   observer?: boolean;
-}
-
-export interface UpdateSelfRequest {
-  needsIntroSplash?: boolean;
-  needsSurvey?: boolean;
-  needsTeamCreationPrompt?: boolean;
-  role?: string;
-  source?: string;
-  surveyResponse?: { projectOption?: string };
-  extraData?: string | null;
-  waitingEmailVerification?: boolean;
-}
-
-export interface UpdateSelfAdminModeRequest {
-  adminModeDisabled: boolean;
 }
 
 export type ProjectsRequest = MakeADT<
@@ -520,14 +399,6 @@ export interface ApiProjectMeta extends Pick<
     "version" | "description" | "tags"
   > & { createdAt: string; createdBy?: string })[];
   branches: Pick<ApiBranch, "id" | "name" | "hostUrl" | "status">[];
-}
-
-export interface ApiWhiteLabelUser {
-  id: string; // Plasmic user id
-  firstName: string;
-  lastName: string;
-  email: string;
-  externalId: string;
 }
 
 export interface CreateProjectRequest {
@@ -736,10 +607,6 @@ export interface UpdatePlayerViewRequest {
   selection: PlayerSelectionInfo | null;
   cursor: PlayerCursorInfo | null;
   position: PlayerPositionInfo | null;
-}
-
-export interface ListUsersResponse {
-  users: ApiUser[];
 }
 
 export interface CreateTeamRequest {
@@ -1728,9 +1595,7 @@ export type ApiAnalyticsConversionRateResult = {
 };
 
 export type ApiAnalyticsQueryType =
-  | "impressions"
-  | "conversions"
-  | "conversion_rate";
+  "impressions" | "conversions" | "conversion_rate";
 
 export type ApiAnalyticsImpressionResponse = {
   type: "impressions";

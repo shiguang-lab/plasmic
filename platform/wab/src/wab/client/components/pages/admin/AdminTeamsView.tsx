@@ -641,7 +641,6 @@ function Misc(props: TeamProps) {
   return (
     <div className="flex-row gap-m">
       <UpgradePersonalTeam {...props} />
-      <ConfigureSso {...props} />
       <GenerateTeamApiToken {...props} />
     </div>
   );
@@ -715,112 +714,6 @@ function UpgradePersonalTeam({ team, refetch }: TeamProps) {
       }}
     >
       Promote to real team
-    </Button>
-  );
-}
-
-const DEFAULT_SSO_CONFIG_TEMPLATES = {
-  okta: `
-{
-  "audience": "",
-  "authorizationId": "",
-  "clientID": "",
-  "clientSecret": ""
-}
-  `.trim(),
-};
-
-function ConfigureSso({ team, refetch }: TeamProps) {
-  const nonAuthCtx = useNonAuthCtx();
-  const [form] = Form.useForm();
-  return (
-    <Button
-      onClick={async () => {
-        let initialValues = {
-          teamId: team.id,
-          provider: "okta",
-          config: DEFAULT_SSO_CONFIG_TEMPLATES["okta"],
-        };
-
-        const existing = await nonAuthCtx.api.getSsoConfigByTeamId(team.id);
-        if (existing) {
-          initialValues = {
-            ...initialValues,
-            ...existing,
-            domain: existing.domains[0],
-            config: JSON.stringify(existing.config, undefined, 2),
-            whitelabelConfig: existing.whitelabelConfig
-              ? JSON.stringify(existing.whitelabelConfig, undefined, 2)
-              : null,
-          };
-        }
-
-        Modal.confirm({
-          title: "Configure SSO",
-          width: "30%",
-          okButtonProps: { style: { display: "none" } },
-          content: (
-            <Form
-              form={form}
-              initialValues={initialValues}
-              onFinish={async (event) => {
-                console.log("FORM", event);
-
-                try {
-                  const data = {
-                    ...event,
-                    config: JSON.parse(event.config),
-                    whitelabelConfig: event.whitelabelConfig
-                      ? JSON.parse(event.whitelabelConfig)
-                      : null,
-                  };
-                  console.log("Submitting", data);
-                  const sso = await nonAuthCtx.api.upsertSsoConfig(data);
-                  refetch();
-                  Modal.destroyAll();
-                  console.log("Created", sso);
-                  notification.success({
-                    message: `SSO Config updated!  Tenant ID is ${sso.tenantId}`,
-                  });
-                } catch (e) {
-                  notification.error({ message: `${e}` });
-                }
-              }}
-            >
-              <Form.Item hidden name="teamId">
-                <Input />
-              </Form.Item>
-              <Form.Item name="domain" label="Domain">
-                <Input />
-              </Form.Item>
-              <Form.Item name="provider" label="Provider">
-                <Select
-                  onChange={(e) =>
-                    form.setFieldsValue({
-                      config: DEFAULT_SSO_CONFIG_TEMPLATES[e],
-                    })
-                  }
-                >
-                  <Select.Option value="okta">Okta</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item name="config" label="Config">
-                <Input.TextArea autoSize={{ minRows: 4 }} className="code" />
-              </Form.Item>
-              <Form.Item name="whitelabelConfig" label="Whitelabel Config">
-                <Input.TextArea autoSize={{ minRows: 4 }} className="code" />
-              </Form.Item>
-              <Form.Item>
-                <Button htmlType="submit" type="primary">
-                  Update
-                </Button>
-              </Form.Item>
-            </Form>
-          ),
-        });
-      }}
-    >
-      Configure SSO
     </Button>
   );
 }

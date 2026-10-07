@@ -450,7 +450,7 @@ export function canEditUiConfig(
   user: ApiUser | null,
   perms: ApiPermission[],
 ) {
-  if (!team || !isEnterprise(team.featureTier) || user?.isWhiteLabel) {
+  if (!team || !isEnterprise(team.featureTier)) {
     return false;
   }
   const accessLevel = getAccessLevelToResource(resource, user, perms);

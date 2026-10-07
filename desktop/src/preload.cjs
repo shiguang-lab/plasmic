@@ -5,7 +5,8 @@ if (window.top === window) {
     onStatus: (callback) => {
       const listener = (_event, status) => callback(status);
       ipcRenderer.on("desktop:update-status", listener);
-      return () => ipcRenderer.removeListener("desktop:update-status", listener);
+      return () =>
+        ipcRenderer.removeListener("desktop:update-status", listener);
     },
   });
 }
@@ -29,20 +30,11 @@ window.addEventListener("message", (event) => {
   ipcRenderer.send("desktop:result", event.data.id, event.data.result);
 });
 
-window.addEventListener("message", (event) => {
-  if (
-    event.source === window &&
-    event.origin === location.origin &&
-    event.data?.channel === "plasmic-desktop-google-start"
-  ) {
-    ipcRenderer.send("desktop:google-start");
-  }
-});
-if (location.pathname === "/desktop/google-login") {
-  contextBridge.exposeInMainWorld("desktopGoogleLogin", {
-    command: (command) => ipcRenderer.invoke("desktop:google-command", command),
+if (location.pathname === "/desktop/unified-login") {
+  contextBridge.exposeInMainWorld("desktopUnifiedLogin", {
+    command: (command) => ipcRenderer.invoke("desktop:auth-command", command),
     onStatus: (callback) =>
-      ipcRenderer.on("desktop:google-status", (_event, status) =>
+      ipcRenderer.on("desktop:auth-status", (_event, status) =>
         callback(status),
       ),
   });

@@ -19,24 +19,27 @@ const appIcon = path.join(
 );
 const { createAssetHandler } = require("./asset-handler.cjs");
 const { openBrowser } = require("./open-browser.cjs");
-const { GoogleAuthWindow, AUTH_PATH } = require("./google-auth-window.cjs");
+const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
-const { DesktopWorkspace, fileMenu, updateFileMenuContext } = require("./workspace.cjs");
+const {
+  DesktopWorkspace,
+  fileMenu,
+  updateFileMenuContext,
+} = require("./workspace.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
 let controller, stopRpc, openMcpSettings, updates, workspace;
 let quitting = false;
 
 let mainWindow;
 let desktopSession;
-let googleAuth;
-let queuedOAuthUrl;
+let unifiedAuth;
 let startingDesktop;
-const { DesktopGoogleLogin, SCHEME } = require("./google-login.cjs");
+const { DesktopUnifiedLogin, AUTH_ORIGIN } = require("./unified-login.cjs");
 const trustedOrigins = new Set([config.studioOrigin, config.canvasOrigin]);
 function isInternal(url) {
   try {
@@ -50,25 +53,25 @@ function openExternal(url) {
     void shell.openExternal(url);
   }
 }
-function isGoogleLogin(url) {
+function isUnifiedLogin(url) {
   const parsed = new URL(url);
-  return (
-    parsed.origin === config.studioOrigin &&
-    parsed.pathname === "/api/v1/auth/google"
-  );
+  return parsed.origin === AUTH_ORIGIN && parsed.pathname === "/login";
 }
 function protectWindow(win) {
   for (const eventName of ["will-navigate", "will-redirect"]) {
     win.webContents.on(eventName, (event, url) => {
-      if (!isInternal(url)) {
+      if (win === mainWindow && isUnifiedLogin(url)) {
+        event.preventDefault();
+        void unifiedAuth.begin(url);
+      } else if (!isInternal(url)) {
         event.preventDefault();
         openExternal(url);
       }
     });
   }
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (win === mainWindow && isGoogleLogin(url)) {
-      void googleAuth.begin();
+    if (win === mainWindow && isUnifiedLogin(url)) {
+      void unifiedAuth.begin(url);
       return { action: "deny" };
     }
     if (!isInternal(url)) {
@@ -95,7 +98,9 @@ function protectWindow(win) {
 }
 
 async function startDesktop() {
-  if (process.platform === "darwin") await acknowledgeMacUpdate(app, false);
+  if (process.platform === "darwin") {
+    await acknowledgeMacUpdate(app, false);
+  }
   if (process.platform === "darwin") {
     app.dock.setIcon(appIcon);
   }
@@ -145,7 +150,7 @@ async function startDesktop() {
         root,
         ...config,
         bridgePath: path.join(__dirname, "editor-bridge.js"),
-        authPagePath: path.join(__dirname, "google-login.html"),
+        authPagePath: path.join(__dirname, "unified-login.html"),
         updateUiPath: path.join(__dirname, "update-ui.js"),
         bundledFontCss: fs
           .readdirSync(path.join(root, "static/desktop-fonts"))
@@ -191,12 +196,11 @@ async function startDesktop() {
   mainWindow.webContents.setUserAgent(
     `${mainWindow.webContents.getUserAgent()} PlasmicDesktop/${process.platform}`,
   );
-  googleAuth = new GoogleAuthWindow(
+  unifiedAuth = new UnifiedAuthWindow(
     mainWindow,
     config.studioOrigin,
     openBrowser,
-    new DesktopGoogleLogin({
-      userData: app.getPath("userData"),
+    new DesktopUnifiedLogin({
       session: desktopSession,
       studioOrigin: config.studioOrigin,
     }),
@@ -209,10 +213,7 @@ async function startDesktop() {
       args: app.isPackaged ? ["--mcp"] : [app.getAppPath(), "--mcp"],
     });
     integrations.restore();
-    openMcpSettings = createMcpSettings(
-      integrations,
-      () => mainWindow,
-    );
+    openMcpSettings = createMcpSettings(integrations, () => mainWindow);
     const trustedAuthSender = (event) => {
       return (
         mainWindow &&
@@ -221,12 +222,7 @@ async function startDesktop() {
         new URL(event.senderFrame.url).origin === config.studioOrigin
       );
     };
-    ipcMain.on("desktop:google-start", (event) => {
-      if (trustedAuthSender(event)) {
-        void googleAuth.begin();
-      }
-    });
-    ipcMain.handle("desktop:google-command", (event, command) => {
+    ipcMain.handle("desktop:auth-command", (event, command) => {
       if (
         !trustedAuthSender(event) ||
         new URL(event.senderFrame.url).pathname !== AUTH_PATH
@@ -235,19 +231,23 @@ async function startDesktop() {
       }
       if (
         command === "copy-link" &&
-        googleAuth.authorizationUrl &&
-        googleAuth.status.phase === "waiting"
+        unifiedAuth.authorizationUrl &&
+        unifiedAuth.status.phase === "waiting"
       ) {
-        clipboard.writeText(googleAuth.authorizationUrl);
+        clipboard.writeText(unifiedAuth.authorizationUrl);
         return {
-          ...googleAuth.status,
+          ...unifiedAuth.status,
           copied: true,
-          authorizationUrl: googleAuth.authorizationUrl,
+          authorizationUrl: unifiedAuth.authorizationUrl,
         };
       }
-      return googleAuth.command(command);
+      return unifiedAuth.command(command);
     });
-    controller = new DesktopController(() => mainWindow, config, () => startingDesktop);
+    controller = new DesktopController(
+      () => mainWindow,
+      config,
+      () => startingDesktop,
+    );
     stopRpc = await startRpc(app.getPath("userData"), (method, input) =>
       controller.dispatch(method, input),
     );
@@ -256,33 +256,65 @@ async function startDesktop() {
       void stopRpc();
     });
   }
-  workspace ??= new DesktopWorkspace(app.getPath("userData"), config.studioOrigin);
+  workspace ??= new DesktopWorkspace(
+    app.getPath("userData"),
+    config.studioOrigin,
+  );
   const win = mainWindow;
-  attachWindowRecovery(win, { controller, dialog, homeUrl: config.studioOrigin + "/" });
+  attachWindowRecovery(win, {
+    controller,
+    dialog,
+    homeUrl: config.studioOrigin + "/",
+  });
   let menuState;
   let checkpoint;
-  const capture = () => checkpoint ??= controller.state().then((state) => {
-    menuState = state;
-    const menu = Menu.getApplicationMenu();
-    if (menu) updateFileMenuContext(menu, state);
-    return workspace.remember(state);
-  }).catch((error) => {
-    console.warn("Cannot record desktop workspace:", error.message);
-  }).finally(() => { checkpoint = undefined; });
+  const capture = () =>
+    (checkpoint ??= controller
+      .state()
+      .then((state) => {
+        menuState = state;
+        const menu = Menu.getApplicationMenu();
+        if (menu) {
+          updateFileMenuContext(menu, state);
+        }
+        return workspace.remember(state);
+      })
+      .catch((error) => {
+        console.warn("Cannot record desktop workspace:", error.message);
+      })
+      .finally(() => {
+        checkpoint = undefined;
+      }));
   const workspaceTimer = setInterval(() => {
-    if (win.webContents.isLoadingMainFrame() || win.webContents.isCrashed()) return;
-    void capture().then((changed) => { if (changed) buildMenu(); });
+    if (win.webContents.isLoadingMainFrame() || win.webContents.isCrashed()) {
+      return;
+    }
+    void capture().then((changed) => {
+      if (changed) {
+        buildMenu();
+      }
+    });
   }, 5000);
   let closing = false;
   win.on("close", (event) => {
-    if (closing || quitting || win.webContents.isCrashed()) return;
+    if (closing || quitting || win.webContents.isCrashed()) {
+      return;
+    }
     event.preventDefault();
-    void capture().finally(() => { closing = true; win.close(); });
+    void capture().finally(() => {
+      closing = true;
+      win.close();
+    });
   });
   const beforeQuit = (event) => {
-    if (quitting) return;
+    if (quitting) {
+      return;
+    }
     event.preventDefault();
-    void capture().finally(() => { quitting = true; app.quit(); });
+    void capture().finally(() => {
+      quitting = true;
+      app.quit();
+    });
   };
   app.on("before-quit", beforeQuit);
   win.once("closed", () => {
@@ -301,64 +333,114 @@ async function startDesktop() {
       beforeInstall: async () => {
         const state = await controller.state();
         if (state.projectId) {
-          if (!state.ready) throw new Error("The current design is not ready. Wait for it to load before installing the update.");
+          if (!state.ready) {
+            throw new Error(
+              "The current design is not ready. Wait for it to load before installing the update.",
+            );
+          }
           await controller.dispatch("execute", { name: "save", input: {} });
         }
       },
     });
   }
   function buildMenu() {
-  const menu = Menu.buildFromTemplate([
+    const menu = Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
-      fileMenu({ controller, workspace, getWindow: () => mainWindow, dialog, refresh: buildMenu, state: menuState }),
-      { label: "Edit", submenu: [
-        { role: "undo", label: "Undo" }, { role: "redo", label: "Redo" }, { type: "separator" },
-        { role: "cut", label: "Cut" }, { role: "copy", label: "Copy" }, { role: "paste", label: "Paste" },
-        { role: "selectAll", label: "Select All" },
-      ] },
-      { label: "View", submenu: [
-        { role: "reload", label: "Reload" }, { role: "forceReload", label: "Force Reload" },
-        { role: "toggleDevTools", label: "Toggle Developer Tools" }, { type: "separator" },
-        { role: "resetZoom", label: "Actual Size" }, { role: "zoomIn", label: "Zoom In" },
-        { role: "zoomOut", label: "Zoom Out" }, { role: "togglefullscreen", label: "Toggle Full Screen" },
-      ] },
+      fileMenu({
+        controller,
+        workspace,
+        getWindow: () => mainWindow,
+        dialog,
+        refresh: buildMenu,
+        state: menuState,
+      }),
+      {
+        label: "Edit",
+        submenu: [
+          { role: "undo", label: "Undo" },
+          { role: "redo", label: "Redo" },
+          { type: "separator" },
+          { role: "cut", label: "Cut" },
+          { role: "copy", label: "Copy" },
+          { role: "paste", label: "Paste" },
+          { role: "selectAll", label: "Select All" },
+        ],
+      },
+      {
+        label: "View",
+        submenu: [
+          { role: "reload", label: "Reload" },
+          { role: "forceReload", label: "Force Reload" },
+          { role: "toggleDevTools", label: "Toggle Developer Tools" },
+          { type: "separator" },
+          { role: "resetZoom", label: "Actual Size" },
+          { role: "zoomIn", label: "Zoom In" },
+          { role: "zoomOut", label: "Zoom Out" },
+          { role: "togglefullscreen", label: "Toggle Full Screen" },
+        ],
+      },
       { label: "Window", role: "windowMenu" },
-      { label: "Updates", submenu: [{ label: "Check for Updates…", click: async () => {
-        const status = await updates.command("check");
-        if (["available", "downloaded"].includes(status.phase)) {
-          const ready = status.phase === "downloaded";
-          const { response } = await dialog.showMessageBox(mainWindow, {
-            title: "Plasmic Update",
-            message: ready ? `${status.version} has been downloaded. Your current design will be saved before installation.` : `Version ${status.version} is available.`,
-            buttons: [ready ? "Restart and Install" : "Download Update", "Cancel"],
-            defaultId: 0,
-            cancelId: 1,
-          });
-          if (response === 0) await updates.command(ready ? "install" : "download");
-        }
-        if (["current", "disabled", "error"].includes(status.phase)) {
-          void dialog.showMessageBox(mainWindow, { title: "Plasmic Update", message: status.error || (status.phase === "disabled" ? "Use the installed application to check for updates." : `You are up to date (${status.currentVersion}).`) });
-        }
-      } }] },
+      {
+        label: "Updates",
+        submenu: [
+          {
+            label: "Check for Updates…",
+            click: async () => {
+              const status = await updates.command("check");
+              if (["available", "downloaded"].includes(status.phase)) {
+                const ready = status.phase === "downloaded";
+                const { response } = await dialog.showMessageBox(mainWindow, {
+                  title: "Plasmic Update",
+                  message: ready
+                    ? `${status.version} has been downloaded. Your current design will be saved before installation.`
+                    : `Version ${status.version} is available.`,
+                  buttons: [
+                    ready ? "Restart and Install" : "Download Update",
+                    "Cancel",
+                  ],
+                  defaultId: 0,
+                  cancelId: 1,
+                });
+                if (response === 0) {
+                  await updates.command(ready ? "install" : "download");
+                }
+              }
+              if (["current", "disabled", "error"].includes(status.phase)) {
+                void dialog.showMessageBox(mainWindow, {
+                  title: "Plasmic Update",
+                  message:
+                    status.error ||
+                    (status.phase === "disabled"
+                      ? "Use the installed application to check for updates."
+                      : `You are up to date (${status.currentVersion}).`),
+                });
+              }
+            },
+          },
+        ],
+      },
       {
         label: "AI",
         submenu: [{ label: "MCP", click: () => openMcpSettings() }],
       },
     ]);
-  menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => { void capture(); });
-  Menu.setApplicationMenu(menu);
+    menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => {
+      void capture();
+    });
+    Menu.setApplicationMenu(menu);
   }
   buildMenu();
-  await mainWindow.loadURL(workspace.recent[0]?.url || config.studioOrigin + "/");
+  await mainWindow.loadURL(
+    workspace.recent[0]?.url || config.studioOrigin + "/",
+  );
   void workspace.restore(mainWindow, controller).catch(async (error) => {
     console.warn("Cannot restore desktop workspace:", error.message);
-    if (!win.isDestroyed()) await win.loadURL(config.studioOrigin + "/");
+    if (!win.isDestroyed()) {
+      await win.loadURL(config.studioOrigin + "/");
+    }
   });
-  if (process.platform === "darwin") await acknowledgeMacUpdate(app);
-  if (queuedOAuthUrl) {
-    const url = queuedOAuthUrl;
-    queuedOAuthUrl = undefined;
-    await googleAuth.receiveCallback(url);
+  if (process.platform === "darwin") {
+    await acknowledgeMacUpdate(app);
   }
   return mainWindow;
 }
@@ -373,7 +455,9 @@ function ensureDesktop() {
 }
 
 function bootstrap() {
-  const userData = process.env.PLASMIC_DESKTOP_PROFILE || path.join(app.getPath("appData"), "Plasmic Desktop");
+  const userData =
+    process.env.PLASMIC_DESKTOP_PROFILE ||
+    path.join(app.getPath("appData"), "Plasmic Desktop");
   fs.mkdirSync(userData, { recursive: true });
   app.setPath("userData", userData);
   app.setPath("sessionData", userData);
@@ -395,35 +479,7 @@ function bootstrap() {
   } else if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {
-    const receiveOAuth = async (url) => {
-      if (!url?.startsWith(SCHEME + "://")) {
-        return;
-      }
-      queuedOAuthUrl = url;
-      if (startingDesktop || !app.isReady()) {
-        return;
-      }
-      if (!mainWindow) {
-        await ensureDesktop();
-      } else {
-        queuedOAuthUrl = undefined;
-        await googleAuth.receiveCallback(url);
-      }
-    };
-    app.on("open-url", (event, url) => {
-      event.preventDefault();
-      void receiveOAuth(url);
-    });
-    queuedOAuthUrl = process.argv.find((arg) => arg.startsWith(SCHEME + "://"));
-    if (app.isPackaged) {
-      app.setAsDefaultProtocolClient(SCHEME);
-    } else if (process.platform === "win32") {
-      app.setAsDefaultProtocolClient(SCHEME, process.execPath, [
-        app.getAppPath(),
-      ]);
-    }
-    app.on("second-instance", (_event, argv) => {
-      void receiveOAuth(argv.find((arg) => arg.startsWith(SCHEME + "://")));
+    app.on("second-instance", () => {
       if (mainWindow) {
         mainWindow.restore();
         mainWindow.focus();

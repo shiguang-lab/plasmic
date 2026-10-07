@@ -1,3 +1,4 @@
+import { createTestUser } from "@/wab/server/__testonly__/shiguang-fixture";
 import { runAppServer } from "@/wab/server/app-backend-real";
 import { closeDbConnections, ensureDbConnection } from "@/wab/server/db/DbCon";
 import { initDb } from "@/wab/server/db/DbInitUtil";
@@ -28,18 +29,13 @@ export async function withDb(
       const sudo = new DbMgr(em, SUPER_USER);
       const users = await Promise.all(
         range(1, opts?.numUsers ?? 3, true).map(async (num) => {
-          const user = await sudo.createUser({
+          const user = await createTestUser(sudo, {
             email: `yang${num}@test.com`,
-            firstName: `Yang${
+            displayName: `Yang${
               num === 1 ? "one" : num === 2 ? "two" : num === 3 ? "three" : num
             }`,
-            lastName: "Zhang",
-            password: "!53kr3tz!",
-            needsIntroSplash: false,
-            needsSurvey: false,
-            needsTeamCreationPrompt: false,
+            createTeam: true,
           });
-          await sudo.markEmailAsVerified(user);
           return user;
         }),
       );
@@ -92,7 +88,8 @@ export async function createDatabase(name = "test") {
     ? dbNameGen(name)
     : `wab_dev_${name}${process.env.VITEST_POOL_ID ?? ""}`;
   const sucon = await ensureDbConnection(
-    "postgresql://superwab@localhost/postgres",
+    process.env.WAB_TEST_SUPER_DATABASE_URI ||
+      "postgresql://superwab@localhost/postgres",
     "super",
   );
   await sucon.query("select 1");
@@ -107,7 +104,11 @@ export async function createDatabase(name = "test") {
       throw e;
     }
   }
-  const dburi = `postgresql://wab@localhost/${dbname}`;
+  const base = new URL(
+    process.env.WAB_TEST_DATABASE_URI || "postgresql://wab@localhost/postgres",
+  );
+  base.pathname = `/${dbname}`;
+  const dburi = base.href;
   const con = await ensureDbConnection(dburi, dbname);
   await con.synchronize();
   await con.transaction(async (em) => {
@@ -151,9 +152,8 @@ export async function createBackend(
         databaseUri: dburi,
         port: port,
         host: `http://localhost:${port}`,
-        adminEmails: [],
         production: false,
-        sessionSecret: "secret",
+        integrationSessionSecret: "secret",
         mailFrom: "",
         mailUserOps: "",
         mailBcc: "",

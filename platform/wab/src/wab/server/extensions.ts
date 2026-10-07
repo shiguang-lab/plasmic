@@ -1,3 +1,4 @@
+import type { ShiguangIdentity } from "@/wab/server/auth/shiguang";
 import { Config } from "@/wab/server/config";
 import { Actor } from "@/wab/server/db/DbMgr";
 import { Mailer } from "@/wab/server/emails/Mailer";
@@ -33,6 +34,7 @@ declare global {
        */
       txRollback?: () => void;
       user?: User;
+      shiguangIdentity?: ShiguangIdentity;
       bundler: Bundler;
       mailer: Mailer;
       apiTeam?: Team; // For when acting with team api token

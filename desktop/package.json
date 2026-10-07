@@ -23,7 +23,8 @@
     "publish:resources": "node scripts/publish-plasmic-resources.mjs",
     "setup:nas-updates": "node scripts/setup-nas-updates.mjs",
     "release": "node scripts/release.mjs",
-    "test:mcp": "electron tests/mcp-smoke.cjs"
+    "test:mcp": "electron tests/mcp-smoke.cjs",
+    "test:auth-startup": "electron tests/unified-startup.cjs"
   },
   "devDependencies": {
     "canvas": "3.2.3",

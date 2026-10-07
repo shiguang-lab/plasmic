@@ -84,7 +84,6 @@ export interface TopFrameApi {
   setShowAppAuthModal(val: boolean): Promise<void>;
   setStudioModalOpen(val: boolean): Promise<void>;
   setOnboardingTour(val: TopFrameTourState): Promise<void>;
-  toggleAdminMode(val: boolean): Promise<void>;
   toggleCopilotChat(): Promise<void>;
   openCopilotChat(opts: CopilotChatOpenOpts): Promise<void>;
   onFileDragEventInHost(event: RemoteFileDragEvent): Promise<void>;

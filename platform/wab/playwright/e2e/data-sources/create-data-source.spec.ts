@@ -5,12 +5,7 @@ test.describe("create-data-source", () => {
   let dataSourceName: string;
 
   test.beforeEach(async ({ apiClient, page, context, request }) => {
-    await apiClient.makeApiClient(
-      request,
-      context,
-      "user@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.makeApiClient(request, context, "user@example.com");
     await page.goto("/projects/", { timeout: 120000 });
   });
 

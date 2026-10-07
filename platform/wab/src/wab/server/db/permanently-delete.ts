@@ -5,7 +5,6 @@ import {
   DataSource,
   Project,
   Team,
-  User,
   Workspace,
 } from "@/wab/server/entities/Entities";
 import { logger } from "@/wab/server/observability";
@@ -146,20 +145,6 @@ async function main() {
       );
       for (const team of teams) {
         await dbMgr.permanentlyDeleteTeam(team.id, { force: opts.force });
-      }
-    }
-
-    const users = maybeFiltered(
-      await dbMgr.getObsoleteDeletedEntities(User, days),
-    );
-    if (users.length > 0) {
-      await ensureYes(
-        `PERMANENTLY DELETING users:\n${users
-          .map((u) => `${u.email} (${u.id})`)
-          .join("\n")}`,
-      );
-      for (const user of users) {
-        await dbMgr.permanentlyDeleteUser(user.id, { force: opts.force });
       }
     }
 

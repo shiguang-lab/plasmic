@@ -33,7 +33,7 @@ function UserMentionsPopoverContent_(
             label={user.email}
             key={user.email}
             userEmail={user.email}
-            username={`${user.firstName} ${user.lastName}`}
+            username={`${user.displayName}`}
             isHighlighted={index === highlightIndex}
             avatar={<Avatar user={user} size={"small"} />}
             root={{

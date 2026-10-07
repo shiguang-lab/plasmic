@@ -70,7 +70,7 @@ class DesktopController {
     if (
       !win.webContents.isLoadingMainFrame() &&
       url.origin === this.config.studioOrigin &&
-      url.pathname !== "/desktop/google-login"
+      url.pathname !== "/desktop/unified-login"
     ) {
       metadata = await this.invoke("metadata", {}, 3000);
     }
@@ -103,7 +103,7 @@ class DesktopController {
       }
       if (
         win.webContents.getURL().includes("/login") ||
-        new URL(win.webContents.getURL()).pathname === "/desktop/google-login"
+        new URL(win.webContents.getURL()).pathname === "/desktop/unified-login"
       ) {
         throw new Error("Sign in to Plasmic first");
       }
@@ -317,14 +317,6 @@ class DesktopController {
         bypassCustomProtocolHandlers: true,
         credentials: "include",
       };
-      const csrfResponse = await win.webContents.session.fetch(
-        this.config.studioOrigin + "/api/v1/auth/csrf",
-        options,
-      );
-      if (!csrfResponse.ok) {
-        throw new Error("Cannot obtain NAS CSRF token");
-      }
-      const { csrf } = await csrfResponse.json();
       const response = await win.webContents.session.fetch(
         this.config.studioOrigin +
           "/api/v1/projects/" +
@@ -335,7 +327,6 @@ class DesktopController {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRF-Token": csrf,
             Origin: this.config.studioOrigin,
           },
           body: JSON.stringify({
@@ -383,14 +374,6 @@ class DesktopController {
         bypassCustomProtocolHandlers: true,
         credentials: "include",
       };
-      const csrfResponse = await win.webContents.session.fetch(
-        this.config.studioOrigin + "/api/v1/auth/csrf",
-        options,
-      );
-      if (!csrfResponse.ok) {
-        throw new Error("Cannot obtain NAS CSRF token");
-      }
-      const { csrf } = await csrfResponse.json();
       const body = new FormData();
       body.append(
         "file",
@@ -403,7 +386,7 @@ class DesktopController {
           ...options,
           method: "POST",
           body,
-          headers: { "X-CSRF-Token": csrf, Origin: this.config.studioOrigin },
+          headers: { Origin: this.config.studioOrigin },
         },
       );
       if (!response.ok) {
@@ -467,12 +450,14 @@ class DesktopController {
       const { PDFDocument } = require("pdf-lib");
       const merged = await PDFDocument.create();
       for (const page of input.pages) {
-        const rendered = await this.inspectCanvas(page, (inspectionId) =>
-          renderCanvas(win, {
-            ...page,
-            inspectionId,
-            format: "pdf",
-          }),
+        const rendered = await this.inspectCanvas(
+          page,
+          (inspectionId) =>
+            renderCanvas(win, {
+              ...page,
+              inspectionId,
+              format: "pdf",
+            }),
           true,
         );
         const document = await PDFDocument.load(rendered.pdf);
@@ -496,93 +481,97 @@ class DesktopController {
       ["snapshot_layout", "export_design", "get_screenshot"].includes(method)
     ) {
       await this.ready();
-      return this.inspectCanvas(input, async (inspectionId) => {
-        if (method === "snapshot_layout") {
-          return {
-            check: "layout",
-            checked: ["horizontal-overflow", "image-load"],
-            notChecked: [
-              "interactions",
-              "responsive-breakpoints",
-              "content-overlap",
-            ],
-            frames: (await canvasFrames(win, inspectionId)).map(
-              ({ layout }) => ({
-                ...layout,
-                problems: [
-                  ...layout.elements
-                    .filter((el) => el.horizontalOverflow)
-                    .map((el) => ({
-                      type: "horizontal-overflow",
-                      elementUuid: el.elementUuid,
-                      index: el.index,
-                      bounds: { x: el.x, width: el.width },
-                      viewportWidth: layout.width,
-                    })),
-                  ...layout.images
-                    .filter((image) => !image.loaded)
-                    .map((image) => ({
-                      type: "image-unloaded",
-                      src: image.src,
-                    })),
-                ],
-              }),
-            ),
-          };
-        }
-        if (method === "export_design") {
-          return exportCanvas(win, {
-            ...input,
-            inspectionId,
-          });
-        }
-        if (input.mode !== "workspace") {
+      return this.inspectCanvas(
+        input,
+        async (inspectionId) => {
+          if (method === "snapshot_layout") {
+            return {
+              check: "layout",
+              checked: ["horizontal-overflow", "image-load"],
+              notChecked: [
+                "interactions",
+                "responsive-breakpoints",
+                "content-overlap",
+              ],
+              frames: (await canvasFrames(win, inspectionId)).map(
+                ({ layout }) => ({
+                  ...layout,
+                  problems: [
+                    ...layout.elements
+                      .filter((el) => el.horizontalOverflow)
+                      .map((el) => ({
+                        type: "horizontal-overflow",
+                        elementUuid: el.elementUuid,
+                        index: el.index,
+                        bounds: { x: el.x, width: el.width },
+                        viewportWidth: layout.width,
+                      })),
+                    ...layout.images
+                      .filter((image) => !image.loaded)
+                      .map((image) => ({
+                        type: "image-unloaded",
+                        src: image.src,
+                      })),
+                  ],
+                }),
+              ),
+            };
+          }
+          if (method === "export_design") {
+            return exportCanvas(win, {
+              ...input,
+              inspectionId,
+            });
+          }
+          if (input.mode !== "workspace") {
+            if (input.rect) {
+              throw new Error("rect requires mode workspace");
+            }
+            const result = await renderCanvas(win, {
+              ...input,
+              inspectionId,
+            });
+            return {
+              data: result.image.toPNG().toString("base64"),
+              width: result.width,
+              height: result.height,
+              rendering: "static",
+              sourceViewport: result.sourceViewport,
+              resized: result.resized,
+            };
+          }
+          if (input.elementUuid) {
+            throw new Error("elementUuid requires artboard mode");
+          }
+          await this.ready();
+          await this.invoke("renderReady");
           if (input.rect) {
-            throw new Error("rect requires mode workspace");
+            const bounds = win.getContentBounds();
+            if (
+              !["x", "y", "width", "height"].every((key) =>
+                Number.isInteger(input.rect[key]),
+              ) ||
+              input.rect.x < 0 ||
+              input.rect.y < 0 ||
+              input.rect.width <= 0 ||
+              input.rect.height <= 0 ||
+              input.rect.x + input.rect.width > bounds.width ||
+              input.rect.y + input.rect.height > bounds.height
+            ) {
+              throw new Error(
+                "Screenshot rectangle must fit within the viewport",
+              );
+            }
           }
-          const result = await renderCanvas(win, {
-            ...input,
-            inspectionId,
-          });
+          const image = await win.webContents.capturePage(input.rect);
           return {
-            data: result.image.toPNG().toString("base64"),
-            width: result.width,
-            height: result.height,
-            rendering: "static",
-            sourceViewport: result.sourceViewport,
-            resized: result.resized,
+            data: image.toPNG().toString("base64"),
+            width: image.getSize().width,
+            height: image.getSize().height,
           };
-        }
-        if (input.elementUuid) {
-          throw new Error("elementUuid requires artboard mode");
-        }
-        await this.ready();
-        await this.invoke("renderReady");
-        if (input.rect) {
-          const bounds = win.getContentBounds();
-          if (
-            !["x", "y", "width", "height"].every((key) =>
-              Number.isInteger(input.rect[key]),
-            ) ||
-            input.rect.x < 0 ||
-            input.rect.y < 0 ||
-            input.rect.width <= 0 ||
-            input.rect.height <= 0 ||
-            input.rect.x + input.rect.width > bounds.width ||
-            input.rect.y + input.rect.height > bounds.height
-          ) {
-            throw new Error(
-              "Screenshot rectangle must fit within the viewport",
-            );
-          }
-        }
-        const image = await win.webContents.capturePage(input.rect);
-        return {
-          data: image.toPNG().toString("base64"),
-          width: image.getSize().width,
-          height: image.getSize().height,
-        };
-      }, method === "export_design");
+        },
+        method === "export_design",
+      );
     }
     throw new Error("Unknown desktop command");
   }
@@ -596,12 +585,14 @@ class DesktopController {
       return read(undefined);
     }
     const inspectionInput = {};
-    if (input.componentUuid)
+    if (input.componentUuid) {
       inspectionInput.componentUuid = input.componentUuid;
+    }
     if (forExport) {
       inspectionInput.forExport = true;
-      if (input.frameUuid) inspectionInput.frameUuid = input.frameUuid;
-      else if (!input.componentUuid) {
+      if (input.frameUuid) {
+        inspectionInput.frameUuid = input.frameUuid;
+      } else if (!input.componentUuid) {
         const frames = await canvasFrames(this.getWindow());
         const matching = input.artboardElementUuid
           ? frames.filter(({ layout }) =>
@@ -614,8 +605,9 @@ class DesktopController {
           matching.length === 1
             ? matching[0].layout.frameUuid
             : (await this.editor("getEditorContext", {})).frameUuid;
-        if (!inspectionInput.frameUuid)
+        if (!inspectionInput.frameUuid) {
           throw new Error("Select an artboard or specify frameUuid");
+        }
       }
     }
     const inspection = await this.editor(
@@ -632,7 +624,9 @@ class DesktopController {
   }
   cancelPending(window, message) {
     for (const [id, request] of this.pending) {
-      if (window && request.window !== window) continue;
+      if (window && request.window !== window) {
+        continue;
+      }
       clearTimeout(request.timer);
       request.reject(new Error(message));
       this.pending.delete(id);

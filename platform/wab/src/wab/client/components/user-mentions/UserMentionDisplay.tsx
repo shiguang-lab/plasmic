@@ -35,7 +35,7 @@ function UserMentionDisplay_(
         ref,
       }}
       {...plasmicProps}
-      children={`${mentionedUser.firstName} ${mentionedUser.lastName}`}
+      children={`${mentionedUser.displayName}`}
     />
   );
 }

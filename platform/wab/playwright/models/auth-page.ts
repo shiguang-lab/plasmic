@@ -1,10 +1,8 @@
 import { Locator, Page } from "@playwright/test";
+import { shiguangSession } from "../utils/shiguang-session";
 import { BaseModel } from "./BaseModel";
 
 export class AuthPage extends BaseModel {
-  readonly emailInput: Locator = this.page.locator('input[name="email"]');
-  readonly passwordInput: Locator = this.page.locator('input[name="password"]');
-  readonly submitButton: Locator = this.page.locator('button[type="submit"]');
   readonly signOutDropdownItem: Locator = this.page.getByRole("menuitem", {
     name: "Sign Out",
     exact: true,
@@ -14,11 +12,11 @@ export class AuthPage extends BaseModel {
     super(page);
   }
 
-  async login(email: string, password: string) {
-    await this.emailInput.waitFor({ timeout: 120000 });
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-    await this.submitButton.click();
+  async authenticate(email: string) {
+    const baseURL =
+      process.env.WAB_HOST || "https://studio.plasmic.shiguanglab.com";
+    await this.page.context().addCookies([shiguangSession(email, baseURL)]);
+    await this.page.goto(baseURL);
   }
 
   async logout() {

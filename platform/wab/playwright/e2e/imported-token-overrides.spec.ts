@@ -984,17 +984,14 @@ test.describe("Imported token overrides", () => {
       await apiClient.removeProjectAfterTest(
         mainProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
       await apiClient.removeProjectAfterTest(
         dep2ProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
       await apiClient.removeProjectAfterTest(
         dep1ProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
     });
 
@@ -1244,17 +1241,14 @@ test.describe("Imported token overrides", () => {
       await apiClient.removeProjectAfterTest(
         mainProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
       await apiClient.removeProjectAfterTest(
         dep2ProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
       await apiClient.removeProjectAfterTest(
         dep1ProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
     });
   });
@@ -1411,21 +1405,9 @@ test.describe("Imported token overrides", () => {
       "Website",
     );
 
-    await apiClient.removeProjectAfterTest(
-      aProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
-    await apiClient.removeProjectAfterTest(
-      bDepProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
-    await apiClient.removeProjectAfterTest(
-      cDepProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(aProjectId, "user2@example.com");
+    await apiClient.removeProjectAfterTest(bDepProjectId, "user2@example.com");
+    await apiClient.removeProjectAfterTest(cDepProjectId, "user2@example.com");
   });
 
   test("Should work (A <- B <- C) - only root project (A) overrides are used", async ({
@@ -1599,21 +1581,9 @@ test.describe("Imported token overrides", () => {
       );
     });
 
-    await apiClient.removeProjectAfterTest(
-      aProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
-    await apiClient.removeProjectAfterTest(
-      bDepProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
-    await apiClient.removeProjectAfterTest(
-      cDepProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(aProjectId, "user2@example.com");
+    await apiClient.removeProjectAfterTest(bDepProjectId, "user2@example.com");
+    await apiClient.removeProjectAfterTest(cDepProjectId, "user2@example.com");
   });
 
   test("Should override registered imported tokens", async ({
@@ -1697,11 +1667,7 @@ test.describe("Imported token overrides", () => {
       );
     });
 
-    await apiClient.removeProjectAfterTest(
-      mainProjectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(mainProjectId, "user2@example.com");
   });
 });
 

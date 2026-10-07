@@ -1,6 +1,6 @@
 import { checkFreeTrialDuration } from "@/wab/server/routes/team-plans";
 import { mkApiTeam } from "@/wab/server/routes/teams";
-import { userDbMgr } from "@/wab/server/routes/util";
+import { superDbMgr, userDbMgr } from "@/wab/server/routes/util";
 import { mkApiWorkspace } from "@/wab/server/routes/workspaces";
 import { ApiTeam, ApiWorkspace, AppCtxResponse } from "@/wab/shared/ApiSchema";
 import { ensureType } from "@/wab/shared/common";
@@ -9,13 +9,17 @@ import { Request, Response } from "express-serve-static-core";
 export async function getAppCtx(req: Request, res: Response) {
   const userMgr = userDbMgr(req, { allowUnverifiedEmail: true });
 
-  if (!userMgr.tryGetNormalActorId() || req.user?.waitingEmailVerification) {
+  if (!userMgr.tryGetNormalActorId()) {
     // Return empty response if called by a non-normal user or user waiting
     // email verification.
     res.json(
       ensureType<AppCtxResponse>({ teams: [], workspaces: [], perms: [] }),
     );
     return;
+  }
+
+  if (req.user) {
+    await superDbMgr(req).ensurePersonalWorkspace(req.user);
   }
 
   const teams: ApiTeam[] = await Promise.all(

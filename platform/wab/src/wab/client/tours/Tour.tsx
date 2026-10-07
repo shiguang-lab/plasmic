@@ -5,7 +5,6 @@ import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { zIndex } from "@/wab/client/z-index";
 import { spawn } from "@/wab/shared/common";
 import { observer } from "mobx-react";
-import moment from "moment/moment";
 import React from "react";
 import { StoreHelpers } from "react-joyride";
 import { useMountedState } from "react-use";
@@ -43,12 +42,7 @@ export const Tour = observer(function Tour<T>({
     spawn(
       (async () => {
         const seen = await api.getStorageItem(seenStateKey);
-        const shouldRender =
-          !seen &&
-          !!studioCtx.appCtx.selfInfo &&
-          moment(studioCtx.appCtx.selfInfo.createdAt).isBefore(
-            moment(onlyUsersCreatedBefore),
-          );
+        const shouldRender = !seen && !!studioCtx.appCtx.selfInfo;
         if (shouldRender && isMounted()) {
           setTourState((x) => ({ ...x, run: true }));
         }

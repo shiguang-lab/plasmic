@@ -67,7 +67,7 @@ function createAssetHandler({
       }
     }
     const studio = url.origin === studioOrigin;
-    if (studio && authPagePath && url.pathname === "/desktop/google-login") {
+    if (studio && authPagePath && url.pathname === "/desktop/unified-login") {
       return new Response(
         request.method === "HEAD" ? null : await fs.readFile(authPagePath),
         {
@@ -127,8 +127,21 @@ function createAssetHandler({
             ),
         );
       }
-      if (updateUiPath && [path.join(root, "index.html"), path.join(root, "static/host.html")].includes(file)) {
-        data = Buffer.from(data.toString().replace("</head>", `<script defer src="${studioOrigin}/static/desktop/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script></head>`));
+      if (
+        updateUiPath &&
+        [
+          path.join(root, "index.html"),
+          path.join(root, "static/host.html"),
+        ].includes(file)
+      ) {
+        data = Buffer.from(
+          data
+            .toString()
+            .replace(
+              "</head>",
+              `<script defer src="${studioOrigin}/static/desktop/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script></head>`,
+            ),
+        );
       }
       return new Response(request.method === "HEAD" ? null : data, {
         headers: {
@@ -144,7 +157,9 @@ function createAssetHandler({
     try {
       return await fileResponse(target);
     } catch (error) {
-      if (!["ENOENT", "EISDIR", "ENOTDIR"].includes(error.code)) throw error;
+      if (!["ENOENT", "EISDIR", "ENOTDIR"].includes(error.code)) {
+        throw error;
+      }
       // Missing assets must never fall back to the network or to index.html.
       if (
         !studio ||

@@ -1456,9 +1456,6 @@ importers:
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
-      lusca:
-        specifier: 1.6.1
-        version: 1.6.1
       memoize-one:
         specifier: ^6.0.0
         version: 6.0.0
@@ -1531,9 +1528,6 @@ importers:
       passport-google-oauth20:
         specifier: ^2.0.0
         version: 2.0.0
-      passport-local:
-        specifier: ^1.0.0
-        version: 1.0.0
       passport-oauth2:
         specifier: 1.8.0
         version: 1.8.0(patch_hash=7a6de4606c35740d97d4f12a17f854a16bc58f21d634a1aabf3f9089be7e501d)
@@ -1883,9 +1877,6 @@ importers:
       '@types/lodash':
         specifier: ^4.17.24
         version: 4.17.24
-      '@types/lusca':
-        specifier: ^1.7.5
-        version: 1.7.5
       '@types/mime-types':
         specifier: ^2.1.4
         version: 2.1.4
@@ -1907,9 +1898,6 @@ importers:
       '@types/passport-google-oauth20':
         specifier: ^2.0.17
         version: 2.0.17
-      '@types/passport-local':
-        specifier: ^1.0.38
-        version: 1.0.38
       '@types/passport-oauth2':
         specifier: ^1.8.0
         version: 1.8.0
@@ -8677,9 +8665,6 @@ packages:
   '@types/lru-cache@4.1.1':
     resolution: {integrity: sha512-8mNEUG6diOrI6pMqOHrHPDBB1JsrpedeMK9AWGzVCQ7StRRribiT9BRvUmF8aUws9iBbVlgVekOT5Sgzc1MTKw==}
 
-  '@types/lusca@1.7.5':
-    resolution: {integrity: sha512-l49gAf8pu2iMzbKejLcz6Pqj+51H2na6BgORv1ElnE8ByPFcBdh/eZ0WNR1Va/6ZuNSZa01Hoy1DTZ3IZ+y+kA==}
-
   '@types/md5@2.3.6':
     resolution: {integrity: sha512-WD69gNXtRBnpknfZcb4TRQ0XJQbUPZcai/Qdhmka3sxUR3Et8NrXoeAoknG/LghYHTf4ve795rInVYHBTQdNVA==}
 
@@ -8752,9 +8737,6 @@ packages:
 
   '@types/passport-google-oauth20@2.0.17':
     resolution: {integrity: sha512-MHNOd2l7gOTCn3iS+wInPQMiukliAUvMpODO3VlXxOiwNEMSyzV7UNvAdqxSN872o8OXx1SqPDVT6tLW74AtqQ==}
-
-  '@types/passport-local@1.0.38':
-    resolution: {integrity: sha512-nsrW4A963lYE7lNTv9cr5WmiUD1ibYJvWrpE13oxApFsRt77b0RdtZvKbCdNIY4v/QZ6TRQWaDDEwV1kCTmcXg==}
 
   '@types/passport-oauth2@1.8.0':
     resolution: {integrity: sha512-6//z+4orIOy/g3zx17HyQ71GSRK4bs7Sb+zFasRoc2xzlv7ZCJ+vkDBYFci8U6HY+or6Zy7ajf4mz4rK7nsWJQ==}
@@ -13212,10 +13194,6 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0
 
-  lusca@1.6.1:
-    resolution: {integrity: sha512-+JzvUMH/rsE/4XfHdDOl70bip0beRcHSviYATQM0vtls59uVtdn1JMu4iD7ZShBpAmFG8EnaA+PrYG9sECMIOQ==}
-    engines: {node: '>=0.8.x'}
-
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
@@ -14260,10 +14238,6 @@ packages:
 
   passport-google-oauth20@2.0.0:
     resolution: {integrity: sha512-KSk6IJ15RoxuGq7D1UKK/8qKhNfzbLeLrG3gkLZ7p4A6DBCcv7xpyQwuXtWdpyR0+E0mwkpjY1VfPOhxQrKzdQ==}
-    engines: {node: '>= 0.4.0'}
-
-  passport-local@1.0.0:
-    resolution: {integrity: sha512-9wCE6qKznvf9mQYYbgJ3sVOHmCWoUNMVFoZzNoznmISbhnNNPhN9xfY3sLmScHMetEJeoY7CXwfhCe7argfQow==}
     engines: {node: '>= 0.4.0'}
 
   passport-oauth2-refresh@2.2.0:
@@ -17293,10 +17267,6 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-
-  tsscmp@1.0.6:
-    resolution: {integrity: sha512-LxhtAkPDTkVCMQjt2h6eBVY28KCjikZqZfMcC15YBeNjkgUpdCfBu5HoiOTDu86v6smE8yOjyEktJ8hlbANHQA==}
-    engines: {node: '>=0.6.x'}
 
   tsx@4.23.15:
     resolution: {integrity: sha512-Yiex1Ovn8z2xPpOWckIiysV1SSyRMY9BkLF++q0yKiDxCqRhosKfMg3janKkiLBwZ5c/YryloKwGZcrEmtwxKw==}
@@ -26740,10 +26710,6 @@ snapshots:
 
   '@types/lru-cache@4.1.1': {}
 
-  '@types/lusca@1.7.5':
-    dependencies:
-      '@types/express': 4.17.25
-
   '@types/md5@2.3.6': {}
 
   '@types/mdast@3.0.15':
@@ -26819,12 +26785,6 @@ snapshots:
       '@types/express': 4.17.25
       '@types/passport': 1.0.17
       '@types/passport-oauth2': 1.8.0
-
-  '@types/passport-local@1.0.38':
-    dependencies:
-      '@types/express': 4.17.25
-      '@types/passport': 1.0.17
-      '@types/passport-strategy': 0.2.38
 
   '@types/passport-oauth2@1.8.0':
     dependencies:
@@ -32045,10 +32005,6 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  lusca@1.6.1:
-    dependencies:
-      tsscmp: 1.0.6
-
   lz-string@1.5.0: {}
 
   magic-string@0.25.9:
@@ -33413,10 +33369,6 @@ snapshots:
   passport-google-oauth20@2.0.0:
     dependencies:
       passport-oauth2: 1.8.0(patch_hash=7a6de4606c35740d97d4f12a17f854a16bc58f21d634a1aabf3f9089be7e501d)
-
-  passport-local@1.0.0:
-    dependencies:
-      passport-strategy: 1.0.0
 
   passport-oauth2-refresh@2.2.0: {}
 
@@ -37110,8 +37062,6 @@ snapshots:
   tslib@2.4.0: {}
 
   tslib@2.8.1: {}
-
-  tsscmp@1.0.6: {}
 
   tsx@4.23.15:
     dependencies:

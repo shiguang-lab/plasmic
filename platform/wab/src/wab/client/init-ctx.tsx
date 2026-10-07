@@ -1,7 +1,6 @@
 import * as Api from "@/wab/client/api";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
-  getEmaiLVerificationRouteWithContinuation,
   getLoginRouteWithContinuation,
   parseProjectLocation,
 } from "@/wab/client/cli-routes";
@@ -60,12 +59,6 @@ export async function loadSiteDbCtx(
       if (!appCtx.selfInfo) {
         // User is not logged and project is not public.
         await appCtx.history.replace(getLoginRouteWithContinuation());
-        return asyncNever();
-      } else if (appCtx.selfInfo.waitingEmailVerification) {
-        // User is not verified
-        await appCtx.history.replace(
-          getEmaiLVerificationRouteWithContinuation(),
-        );
         return asyncNever();
       }
 
