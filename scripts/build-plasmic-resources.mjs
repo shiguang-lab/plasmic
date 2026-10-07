@@ -38,10 +38,10 @@ export async function buildResources(output = path.join(repo, "dist/plasmic-reso
     delete metadata.scripts;
     await writeFile(path.join(packageRoot, "package.json"), JSON.stringify(metadata, null, 2) + "\n");
     const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-    const packed = JSON.parse(execFileSync(npm, ["pack", "--ignore-scripts", "--json", "--pack-destination", temporary], {
+    const packedFile = execFileSync(npm, ["pack", "--ignore-scripts", "--json=false", "--silent", "--pack-destination", temporary], {
       cwd: packageRoot, encoding: "utf8",
-    }));
-    const cli = await readFile(path.join(temporary, packed[0].filename));
+    }).trim();
+    const cli = await readFile(path.join(temporary, packedFile));
     const manifest = {
       schemaVersion: 1,
       version,
@@ -59,7 +59,7 @@ export async function buildResources(output = path.join(repo, "dist/plasmic-reso
     const directory = path.join(path.resolve(output), "releases", manifest.releaseId);
     await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, "resources.json.gz"), resources);
-    await cp(path.join(temporary, packed[0].filename), path.join(directory, "plasmic-cli.tgz"));
+    await cp(path.join(temporary, packedFile), path.join(directory, "plasmic-cli.tgz"));
     await writeFile(path.join(directory, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
     await writeFile(path.join(path.resolve(output), "latest.json"), JSON.stringify(manifest, null, 2) + "\n");
     return { directory, output: path.resolve(output), manifest };
