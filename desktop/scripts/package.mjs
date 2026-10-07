@@ -1,4 +1,5 @@
 import { build, Platform, Arch } from "electron-builder";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -50,6 +51,21 @@ const outputs = await build({
     files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     npmRebuild: false,
+    afterPack: async (context) => {
+      if (platform !== "darwin" || process.platform !== "darwin" || arch !== process.arch) return;
+      const bundle = path.join(context.appOutDir, "Plasmic.app/Contents");
+      const resources = path.join(bundle, "Resources/app.asar");
+      execFileSync(path.join(bundle, "MacOS/Plasmic"), ["-e", `
+        const { createRequire } = require("node:module");
+        const packaged = createRequire(process.argv[1] + "/package.json");
+        packaged("./src/mcp.cjs");
+        const metadata = packaged("./package.json");
+        for (const name of Object.keys(metadata.dependencies)) {
+          if (name !== "@modelcontextprotocol/sdk") packaged(name);
+        }
+        console.log("Packaged MCP and runtime dependencies verified");
+      `, resources], { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, stdio: "inherit" });
+    },
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
     publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
