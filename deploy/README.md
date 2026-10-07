@@ -89,7 +89,7 @@ support ranged downloads. Missing files return 404; directory listing and writes
 are disabled. Desktop updates do not require changing the NAS backend image tag.
 
 Run `npm run setup:nas-updates` from `desktop` to configure an existing NAS deployment,
-then `npm run release -- darwin arm64` to build and publish a new desktop version.
+then `npm run release -- darwin universal` to build and publish a new desktop version.
 See [desktop release instructions](../desktop/README.md#nas-updates-and-releases)
 for versioning, other platforms and installation behavior.
 
