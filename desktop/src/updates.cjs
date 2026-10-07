@@ -5,7 +5,7 @@ const { UpdateManager } = require("./update-manager.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./mac-updater.cjs");
 
 async function createUpdates({ config, getWindow, session, beforeInstall }) {
-  const feedUrl = `${config.updateUrl}/${process.platform}/${process.arch}/`;
+  const feedUrl = `${config.updateUrl}/${process.platform}/${process.platform === "darwin" ? "universal" : process.arch}/`;
   if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
   const updater = process.platform === "darwin"
     ? new MacUpdater({ app, feedUrl, fetch: (url, options) => session.fetch(url, { ...options, bypassCustomProtocolHandlers: true }) })

@@ -421,7 +421,7 @@ async function serveMcp(profile) {
             )
           : request.params.name === "read_skill"
             ? {
-                instructions: "Run npx -y @plasmickit/cli@latest context resolve --mode prototype for product design, or --mode codegen for development code. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with the same npx runner and skill install --target <client-skills-root>. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
+                instructions: "Run npx -y @plasmickit/cli@latest context resolve --mode prototype for product design, or --mode codegen for development code. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with npx -y @plasmickit/cli@latest skill install; it detects supported local Agent CLIs and apps and installs for all detected clients without asking for paths. Use skill install --dry-run to inspect detection and destinations. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
                 resourceManifestUrl: require("../desktop.config.json").updateUrl + "/plasmic/latest.json",
               }
             : await requestRpc(

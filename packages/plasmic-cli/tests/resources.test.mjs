@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { access, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
@@ -144,11 +144,15 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   await run(npm, ["install", "--global", "--prefix", prefix, "--ignore-scripts", "--no-audit", "--no-fund", path.join(built.directory, "plasmic-cli.tgz")]);
   const binary = path.join(prefix, process.platform === "win32" ? "plasmickit.cmd" : "bin/plasmickit");
   assert.equal((await run(binary, ["--version"])).stdout.trim(), "0.0.35");
-  const skills = path.join(temporary, "skills");
-  const installed = JSON.parse((await run(binary, ["skill", "install", "--target", skills])).stdout);
+  const agentHome = path.join(temporary, "agent-home");
+  await mkdir(path.join(agentHome, ".codex"), { recursive: true });
+  const installEnv = { ...process.env, HOME: agentHome, USERPROFILE: agentHome, CODEX_HOME: path.join(agentHome, ".codex"), CLAUDE_CONFIG_DIR: path.join(agentHome, ".claude"), XDG_CONFIG_HOME: path.join(agentHome, ".config"), XDG_DATA_HOME: path.join(agentHome, ".local/share"), APPDATA: path.join(agentHome, "AppData/Roaming"), ProgramData: path.join(agentHome, "ProgramData") };
+  const installed = JSON.parse((await run(binary, ["skill", "install"], { env: installEnv })).stdout);
+  assert.equal(installed.ok, true);
   assert.equal(installed.mode, "bootstrap");
-  assert.deepEqual(await readdir(path.join(skills, "plasmic")), ["SKILL.md"]);
-  assert.equal(await readFile(installed.skillPath, "utf8"), await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8"));
+  const codexSkill = installed.installations.find((result) => result.agents.includes("codex"));
+  assert.deepEqual(await readdir(codexSkill.target), ["SKILL.md"]);
+  assert.equal(await readFile(codexSkill.skillPath, "utf8"), await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8"));
   assert.ok(built.manifest.files.some((f) => f.path === "scripts/verify_structure.py"));
   assert.ok(built.manifest.files.every((f) => !f.path.includes("test_") && !f.path.includes("SKILL.md")));
   // Read every linked local Markdown reference in the real release, not fixture wording.

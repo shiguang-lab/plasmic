@@ -10,9 +10,9 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const { UpdateManager } = require("../src/update-manager.cjs");
 const { MacUpdater, parseManifest, acknowledgeMacUpdate } = require("../src/mac-updater.cjs");
-const feed = "https://updates.example/desktop-updates/darwin/arm64/";
+const feed = "https://updates.example/desktop-updates/darwin/universal/";
 const bytes = Buffer.from("a complete update archive");
-const manifest = { version: "0.0.2", files: [{ url: "Plasmic-0.0.2-mac-arm64.zip", size: bytes.length, sha512: createHash("sha512").update(bytes).digest("base64") }] };
+const manifest = { version: "0.0.2", files: [{ url: "Plasmic-0.0.2-mac-universal.zip", size: bytes.length, sha512: createHash("sha512").update(bytes).digest("base64") }] };
 function manager(updater, beforeInstall = async () => {}) {
   return new UpdateManager({ updater, version: "0.0.1", enabled: true, beforeInstall });
 }

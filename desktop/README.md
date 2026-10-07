@@ -68,11 +68,14 @@ canvas packages, generated CSS and valid `studio-build.json` provenance.
 
 Packaging creates applications, installers and update manifests in
 `dist/<version>/<platform>-<arch>/`, with renderer files inside `resources/app.asar`.
+macOS uses `darwin-universal`: one DMG and one update ZIP contain both Apple Silicon
+and Intel binaries. `package:mac` and macOS defaults build Universal packages;
+packaging verifies both executable architectures and the signed bundle's runtime
+dependencies. Windows and Linux retain their architecture-specific packages.
 macOS produces an ad-hoc signed DMG and ZIP for internal distribution, Windows
 produces a per-user NSIS installer, and Linux produces an AppImage. macOS
 Developer ID signing/notarization requires Apple credentials and a macOS
-build environment. `package:mac` defaults to Apple Silicon; Intel builds use
-`npm run package -- darwin x64`. No backend or database is included.
+build environment. No backend or database is included.
 
 ## Canvas reads and verification
 
@@ -102,8 +105,9 @@ uses this contract for column cells; hierarchy selection stays component-neutral
 
 ## NAS updates and releases
 
-Updates use `desktop.config.json`'s HTTPS `updateUrl`, partitioned by platform and
-architecture. GitHub is not contacted when checking, downloading or installing.
+Updates use `desktop.config.json`'s HTTPS `updateUrl`. macOS uses the shared
+`darwin/universal/` feed on both CPU architectures; Windows and Linux use feeds
+partitioned by platform and architecture. GitHub is not contacted when checking, downloading or installing.
 The application checks immediately at startup and every ten minutes. The sidebar
 shows a blue update icon at the bottom when an update is available. Hover or keyboard
 focus expands the sidebar icon's action label; the editor's narrow left toolbar
@@ -137,12 +141,12 @@ npm run assets
 # npm run assets -- --from ../platform/wab/build
 npm test
 npm run test:updates-native
-npm run release -- darwin arm64 --notes /absolute/path/to/release-notes.txt
+npm run release -- darwin universal --notes /absolute/path/to/release-notes.txt
 # Build Windows on Windows and Linux on Linux:
 # npm run release -- win32 x64
 # npm run release -- linux x64
 # Upload an already built release:
-# npm run publish:nas -- darwin arm64
+# npm run publish:nas -- darwin universal
 ```
 
 Publishing verifies sizes and SHA-512 locally and on the NAS, uploads artifacts

@@ -24,17 +24,48 @@ scripts/build-plasmic-resources.mjs        构建资源与同版本 CLI 安装�
 需要 Node.js 22.12 或更高版本。npm 发布完成后：
 
 ```sh
-npx -y @plasmickit/cli@latest skill install --target ~/.codex/skills
+npx -y @plasmickit/cli@latest skill install
 npx -y @plasmickit/cli@latest context resolve --mode prototype
 npx -y @plasmickit/cli@latest context resolve --mode codegen
 ```
 
-其他客户端将 `--target` 换成其 skills 根目录。移走旧 `plasmic-prototype` 安装目录，避免两个入口同时匹配。安装只更新 `plasmic/SKILL.md`，不删除其他 skills 或用户文件。
+`skill install` 非交互地检测本机受支持的 Agent CLI、桌面应用、IDE 扩展和用户配置目录，为所有检测到的客户端安装包内同一份 `plasmic/SKILL.md`，无需选择客户端或输入安装路径。CLI 检测检查 PATH 中的可执行文件，不启动客户端。应用检测使用 macOS 系统/用户 Applications、Windows 开始菜单快捷方式、Linux XDG 桌面入口；IDE 扩展检测包含 VS Code、VS Code Insiders、Cursor 和 Windsurf 的扩展目录。配置目录是安装线索，可能属于尚未卸载干净的客户端；检测依据随结果返回。
+
+默认使用用户级 Skill 目录，不修改当前项目。共用目录或已存在的 Skill 目录符号链接会合并为一次安装。内容相同返回 `unchanged`；更新通过临时文件原子替换 `SKILL.md`，保留其他 Skill 与用户附加文件。未发现受支持客户端时不写入并返回非零退出码；某个安装位置失败时继续其他位置，结果逐项报告错误并返回非零退出码。
+
+只检查检测结果和安装位置，不写文件：
+
+```sh
+npx -y @plasmickit/cli@latest skill install --dry-run
+```
+
+### 受支持的本地客户端
+
+| 客户端 | 用户级 Skill 位置 |
+| --- | --- |
+| Codex、Cursor、Gemini CLI、OpenCode、GitHub Copilot、Cline、Droid、Pi、Zed | `~/.agents/skills` |
+| Claude Code（CLI / Desktop Code 本地会话） | `${CLAUDE_CONFIG_DIR:-~/.claude}/skills` |
+| DeepSeek Harness（`dsh` CLI） | `${DSH_AGENTS_HOME:-~/.agents}/skills` |
+| Antigravity / Antigravity IDE | `~/.gemini/config/skills` |
+| Antigravity CLI | `~/.gemini/antigravity-cli/skills` |
+| Windsurf | `~/.codeium/windsurf/skills` |
+| Roo Code、Continue、Kilo Code、Kiro、Trae、Qwen Code、OpenClaw、ZCode | 各自的 `~/.roo/skills`、`~/.continue/skills`、`~/.kilo/skills`、`~/.kiro/skills`、`~/.trae/skills`、`~/.qwen/skills`、`~/.openclaw/skills`、`~/.zcode/skills` |
+| Trae CN | `~/.trae-cn/skills` |
+| Amp、Goose | `${XDG_CONFIG_HOME:-~/.config}/agents/skills`、`${XDG_CONFIG_HOME:-~/.config}/goose/skills` |
+
+`agy`、`codex`、`claude`、`dsh` 等 CLI 可单独通过 PATH 检测，无需安装桌面 App 或先生成配置。`dsh` 是官方 `@deepseek-ai/dsh` 包提供的命令；DeepSeek Harness 与 Codex 默认共用 `~/.agents/skills`，安装器只写一次。
+
+`CODEX_HOME` 用于发现 Codex 配置，Codex 用户 Skill 使用官方的 `~/.agents/skills`。`DSH_HOME` 用于发现 Harness 配置，`DSH_AGENTS_HOME` 决定其共享 Skill 目录。`CLAUDE_CONFIG_DIR`、`XDG_CONFIG_HOME` 等现有客户端环境变量按其规则解析。桌面应用和对应 CLI 共用同一份用户 Skill，不重复安装。不支持本地目录发现的网页/云端会话不计入安装成功；Claude Cowork 与云端会话需要其账号/插件安装机制，不读取本地 `~/.claude/skills`。
+
+DeepSeek Harness 的 CLI 和目录契约依据：[CLI 包定义](https://github.com/deepseek-ai/deepseek-harness/blob/master/apps/cli/package.json)、[Skill 文件系统发现规则](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md)。
+
+目录规则依据：[Agent Skills 发现约定](https://agentskills.io/client-implementation/adding-skills-support)、[Codex](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)、[Claude Code](https://code.claude.com/docs/en/skills)、[Cursor](https://cursor.com/docs/skills)、[Gemini CLI](https://geminicli.com/docs/cli/using-agent-skills/)、[OpenCode](https://opencode.ai/docs/skills/)、[Copilot](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)、[Antigravity](https://antigravity.google/docs/skills)、[其他客户端的 Skills 安装器注册表](https://github.com/vercel-labs/skills/blob/main/src/agents.ts)。检测注册表在 `packages/plasmic-cli/src/agents.mjs`；增加客户端时同时核对目录契约并添加检测用例。
 
 也可以全局安装；每个任务先检查版本：
 
 ```sh
 npm install -g @plasmickit/cli@latest
+plasmickit skill install
 plasmickit version check
 plasmickit references check
 plasmickit references update
@@ -95,7 +126,7 @@ npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-r
 ## 本地构建与发布检查
 
 ```sh
-node packages/plasmic-cli/src/index.mjs skill install --target /absolute/test-skills
+node packages/plasmic-cli/src/index.mjs skill install --dry-run
 node scripts/build-plasmic-resources.mjs --version 0.0.35
 # 默认只对 npm 做 dry-run（会查询真实 registry，不上传）：
 node packages/plasmic-cli/scripts/publish.mjs --tag 0.0.35
