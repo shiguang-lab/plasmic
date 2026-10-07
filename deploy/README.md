@@ -71,8 +71,8 @@ contract; it does not implement the cloud hosting API.
 
 ## Public domains
 
-Studio uses https://plasmic.studio.publib.cn and its canvas uses the separate origin
-https://plasmic.canvas.publib.cn. Both DNS A records point to Seoul (43.128.155.40).
+Studio uses https://studio.plasmic.shiguanglab.com and its canvas uses the separate origin
+https://canvas.plasmic.shiguanglab.com. Configure both DNS A records to point to Seoul (43.128.155.40).
 The shared relay config is maintained in `shiguang/deploy/umami`: HAProxy routes
 SNI to Caddy on loopback ports 8454/8455, and Caddy forwards over Tailscale to
 NAS ports 3900/3901. Caddy terminates HTTPS and supports WebSocket upgrades.
@@ -92,9 +92,22 @@ then `npm run release -- darwin arm64` to build and publish a new desktop versio
 See [desktop release instructions](../desktop/README.md#nas-updates-and-releases)
 for versioning, other platforms and installation behavior.
 
-For an existing database, changing .env alone does not change the stored
-`defaultHostUrl` and `codegenOriginHost` dev flag overrides. Update those values
-along with STUDIO_ORIGIN and CANVAS_ORIGIN before restarting server/web.
+For an existing deployment, set `STUDIO_ORIGIN=https://studio.plasmic.shiguanglab.com`
+and `CANVAS_ORIGIN=https://canvas.plasmic.shiguanglab.com` in the NAS `.env`.
+Changing `.env` alone does not change persisted database URLs. Update
+`defaultHostUrl` to `https://canvas.plasmic.shiguanglab.com/static/host.html` and
+`codegenOriginHost` to `https://studio.plasmic.shiguanglab.com` in the dev flag
+overrides, along with component catalog image URLs, project host URLs and asset
+URLs that use these origins. Preserve external project hosts and unrelated URLs.
+Apply the shared HAProxy/Caddy configuration and recreate server/web so their
+environment and generated web assets use the new origins.
+
+For Google login, authorize
+`https://studio.plasmic.shiguanglab.com/api/v1/oauth2/google/callback` in the
+Google OAuth client's redirect URIs. Other configured OAuth providers must also
+authorize their callback paths on the new Studio origin. Cookies belong to the
+new domain, so users sign in again. Rebuild the Desktop app and publish the CLI
+and workflow resources with these origins before distributing them.
 
 ## Ant Design 5 and 6
 
@@ -116,7 +129,7 @@ The registration package is distributed with the web image. For a separate
 Codegen or Loader application, install it before syncing/rendering components:
 
 ```sh
-npm install https://plasmic.studio.publib.cn/static/packages/shiguang-lab-plasmic-antd6-0.0.1.tgz
+npm install https://studio.plasmic.shiguanglab.com/static/packages/shiguang-lab-plasmic-antd6-0.0.1.tgz
 ```
 
 ## AI prototype editing

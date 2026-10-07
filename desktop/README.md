@@ -191,7 +191,7 @@ same asset handler and authenticated session. Remote custom project hosts are
 still remote, because their code is not part of this application bundle.
 
 Email/password login uses the NAS's existing authentication. Google login uses an intermediate page in the main window and opens
-the system browser and keeps the existing Google redirect URI on the NAS.
+the system browser and uses the Google redirect URI on the configured NAS Studio origin.
 After authorization, the browser stays on the Studio domain at
 `/api/v1/auth/desktop/google/complete`. It immediately attempts to open
 `plasmic-desktop://oauth/google/callback` to bring the app back. The **Open Plasmic Desktop**
@@ -208,8 +208,10 @@ requested workspace in the main window.
 The NAS must use the matching published server release, built by
 `deploy/Dockerfile` through the tag-triggered image workflow. Its handoff-code store
 belongs to one app-server process; restarting it invalidates outstanding codes.
-Google OAuth state is verified using the browser session. No Google Console
-redirect changes are needed.
+Google OAuth state is verified using the browser session. The Google OAuth client
+must authorize `https://studio.plasmic.shiguanglab.com/api/v1/oauth2/google/callback`.
+When changing the Studio domain, update that URI in Google Console and sign in
+again on the new domain.
 
 The desktop honors the OS proxy by default. When launched from a terminal,
 `HTTPS_PROXY` / `HTTP_PROXY` and `NO_PROXY` can explicitly configure its proxy. The desktop exposes a native stdio MCP server backed by the active editor. No

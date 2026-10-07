@@ -1,6 +1,6 @@
 # REQ075 Desktop 正式交付验收
 
-2026-10-04。[Studio 项目](https://plasmic.studio.publib.cn/projects/b1VPmGnbGvyKc4rnA2xLVv)。业务需求、页面路径及演示数据范围见 [REQ075 PC 原型验收](req075-pc.md)。
+2026-10-04。[Studio 项目](https://studio.plasmic.shiguanglab.com/projects/b1VPmGnbGvyKc4rnA2xLVv)。业务需求、页面路径及演示数据范围见 [REQ075 PC 原型验收](req075-pc.md)。
 
 客群列表当前的逐列配置、实际尺寸及保存重开检查见 [列宽与内容验收](table-columns.md)，本地 App revision **168**。该列宽更新尚未发布 NAS。
 

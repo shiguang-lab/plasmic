@@ -52,7 +52,7 @@ async function main() {
               cssImport: [], deps: [], registerCalls: [], minimumReactVersion: "18.0.0",
             }), bundler);
         await db.updateProject({ id: dependency.projectId, readableByPublic: true });
-        const imageUrl = `https://plasmic.studio.publib.cn/static/img/${library.image}`;
+        const imageUrl = `https://studio.plasmic.shiguanglab.com/static/img/${library.image}`;
         const shared = {
           type: "hostless-package" as const, name: library.name, codeName,
           codeLink: `https://github.com/shiguang-lab/plasmic/tree/master/plasmicpkgs/${codeName}`,

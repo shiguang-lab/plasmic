@@ -10,7 +10,7 @@ const {
   GoogleAuthWindow,
   AUTH_PATH,
 } = require("../src/google-auth-window.cjs");
-const origin = "https://plasmic.studio.publib.cn";
+const origin = "https://studio.plasmic.shiguanglab.com";
 function window(t) {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-auth-window-"));
   t.after(() => fs.rmSync(userData, { recursive: true, force: true }));

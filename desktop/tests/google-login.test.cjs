@@ -5,7 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { randomBytes, createHash } = require("node:crypto");
 const { DesktopGoogleLogin, CALLBACK } = require("../src/google-login.cjs");
-const studioOrigin = "https://plasmic.studio.publib.cn";
+const studioOrigin = "https://studio.plasmic.shiguanglab.com";
 function fixture(t) {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-oauth-"));
   t.after(() => fs.rmSync(userData, { recursive: true, force: true }));

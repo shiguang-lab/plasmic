@@ -18,7 +18,7 @@ afterEach(() => vi.useRealTimers());
 describe("desktop OAuth handoff", () => {
   it("always returns to the Studio completion page with credentials in the fragment", () => {
     const { flow } = setup();
-    const url = new URL(desktopOAuthRedirect(flow, "user"), "https://plasmic.studio.publib.cn");
+    const url = new URL(desktopOAuthRedirect(flow, "user"), "https://studio.plasmic.shiguanglab.com");
     expect(url.pathname).toBe("/api/v1/auth/desktop/google/complete");
     expect(url.search).toBe("");
     expect(new URLSearchParams(url.hash.slice(1)).has("code")).toBe(true);
