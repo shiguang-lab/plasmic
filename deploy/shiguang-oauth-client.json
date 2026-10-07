@@ -1,9 +1,9 @@
 {
-  "clientId": "plasmic-desktop",
+  "clientId": "plasmicapp",
   "name": "Plasmic Desktop",
   "redirectUris": ["http://127.0.0.1/callback"],
   "scopes": ["web:session"],
-  "audience": "plasmic-desktop",
+  "audience": "plasmicapp",
   "webAppUrl": "https://studio.plasmic.shiguanglab.com/",
   "requiredEntitlements": ["plasmic:access"]
 }

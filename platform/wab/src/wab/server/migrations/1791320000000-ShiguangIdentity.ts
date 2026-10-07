@@ -8,10 +8,11 @@ export class ShiguangIdentity1791320000000 implements MigrationInterface {
   async up(runner: QueryRunner) {
     const users: {
       id: string;
+      email: string;
       extraData: string | null;
       freeTrialStartedAt: Date | null;
     }[] = await runner.query(
-      `SELECT "id", "extraData", "freeTrialStartedAt" FROM "user"`,
+      `SELECT "id", "email", "extraData", "freeTrialStartedAt" FROM "user"`,
     );
     const mapping: Record<string, string> = JSON.parse(
       process.env.SG_LEGACY_USER_MAPPING || "{}",
@@ -23,16 +24,18 @@ export class ShiguangIdentity1791320000000 implements MigrationInterface {
       users.some(
         (user) =>
           typeof mapping[user.id] !== "string" || !mapping[user.id].trim(),
-      ) ||
-      new Set(users.map((user) => mapping[user.id])).size !== users.length
+      )
     ) {
       throw new Error(
-        "SG_LEGACY_USER_MAPPING must map each local user ID to a distinct Shiguang subject before migration",
+        "SG_LEGACY_USER_MAPPING must map each local user ID to an existing Shiguang subject before migration",
       );
     }
     const subjects = users.map((user) => mapping[user.id]);
-    const profiles = new Set(
-      (await getShiguangUsers(subjects)).map((user) => user.id as string),
+    const profiles = new Map(
+      (await getShiguangUsers(subjects)).map((user) => [
+        user.id as string,
+        user,
+      ]),
     );
     if (subjects.some((sub) => !profiles.has(sub))) {
       throw new Error(
@@ -53,6 +56,45 @@ export class ShiguangIdentity1791320000000 implements MigrationInterface {
       }
     }
     const quote = (name: string) => `"${name.replace(/"/g, '""')}"`;
+    await runner.query(
+      `DELETE FROM "oauth_token" WHERE "provider" NOT IN ('airtable', 'google-sheets')`,
+    );
+    // Keep the matching email account's personal team, settings and integrations.
+    // Other personal teams remain ordinary teams with their existing permissions.
+    users.sort((a, b) => {
+      const matches = (user: (typeof users)[number]) =>
+        user.email.toLowerCase() ===
+        profiles.get(mapping[user.id])?.email.toLowerCase();
+      return (
+        Number(matches(b)) - Number(matches(a)) || a.id.localeCompare(b.id)
+      );
+    });
+    for (const sub of new Set(subjects)) {
+      const ids = users
+        .filter((user) => mapping[user.id] === sub)
+        .map((user) => user.id);
+      if (ids.length < 2) {
+        continue;
+      }
+      await runner.query(
+        `UPDATE "team" SET "personalTeamOwnerId" = NULL
+         WHERE "personalTeamOwnerId" = ANY($1::text[]) AND id <> (
+           SELECT id FROM "team" WHERE "personalTeamOwnerId" = ANY($1::text[])
+           ORDER BY array_position($1::text[], "personalTeamOwnerId"), id LIMIT 1
+         )`,
+        [ids],
+      );
+      await runner.query(
+        `DELETE FROM "oauth_token" WHERE id IN (
+           SELECT id FROM (
+             SELECT id, row_number() OVER (
+               PARTITION BY provider ORDER BY array_position($1::text[], "userId"), id
+             ) AS position FROM "oauth_token" WHERE "userId" = ANY($1::text[])
+           ) duplicates WHERE position > 1
+         )`,
+        [ids],
+      );
+    }
     // One CASE update per column also handles IDs which happen to overlap with old IDs.
     if (users.length) {
       const params = users.flatMap((user) => [user.id, mapping[user.id]]);
@@ -77,21 +119,18 @@ export class ShiguangIdentity1791320000000 implements MigrationInterface {
     );
     for (const user of users) {
       if (user.extraData !== null) {
-        await runner.query(`INSERT INTO "user_preferences" VALUES ($1, $2)`, [
-          mapping[user.id],
-          user.extraData,
-        ]);
+        await runner.query(
+          `INSERT INTO "user_preferences" VALUES ($1, $2) ON CONFLICT ("userId") DO NOTHING`,
+          [mapping[user.id], user.extraData],
+        );
       }
       if (user.freeTrialStartedAt) {
-        await runner.query(`INSERT INTO "user_trial_claim" VALUES ($1, $2)`, [
-          mapping[user.id],
-          user.freeTrialStartedAt,
-        ]);
+        await runner.query(
+          `INSERT INTO "user_trial_claim" VALUES ($1, $2) ON CONFLICT ("userId") DO UPDATE SET "claimedAt" = LEAST(user_trial_claim."claimedAt", EXCLUDED."claimedAt")`,
+          [mapping[user.id], user.freeTrialStartedAt],
+        );
       }
     }
-    await runner.query(
-      `DELETE FROM "oauth_token" WHERE "provider" NOT IN ('airtable', 'google-sheets')`,
-    );
     await runner.query(
       `ALTER TABLE "oauth_token" DROP COLUMN IF EXISTS "ssoConfigId"`,
     );

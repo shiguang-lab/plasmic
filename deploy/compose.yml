@@ -2,6 +2,7 @@ name: shiguang-plasmic-images
 x-server: &server
   image: ghcr.io/shiguang-lab/plasmic-server:${IMAGE_TAG:?set IMAGE_TAG}
   init: true
+  networks: [default, auth-edge]
   command: [src/wab/server/main.ts]
   environment: &env
     NODE_ENV: development
@@ -126,6 +127,11 @@ services:
       retries: 20
     depends_on:
       server: { condition: service_healthy }
+networks:
+  auth-edge:
+    external: true
+    name: shiguang-auth-edge
+
 volumes:
   desktop-updates:
     name: plasmic-desktop-updates

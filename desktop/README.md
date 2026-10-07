@@ -192,7 +192,7 @@ still remote, because their code is not part of this application bundle.
 
 Sign-in uses the Shiguang account system. The main window displays an intermediate
 page while the system browser opens `https://shiguanglab.com/oauth/authorize` for
-`plasmic-desktop`. S256 PKCE and random state bind authorization to a listener on
+`plasmicapp`. S256 PKCE and random state bind authorization to a listener on
 an ephemeral `127.0.0.1` port. After the callback, Electron exchanges the authorization
 code and consumes a one-use `/oauth/web-session` ticket. IAM sets its shared HttpOnly
 cookie in the desktop session, and the main window returns to the requested design.

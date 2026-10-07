@@ -135,7 +135,9 @@ values must be updated even though the service defaults now include Plasmic.
 
 Set `SG_IDENTITY_API_URL` to the private auth-service address reachable from the
 Plasmic container, and `SG_IDENTITY_API_TOKEN` to its `IDENTITY_API_TOKEN` service
-credential. Directory APIs are POST `/v1/identity/users/batch-get` (`ids`, max 200),
+credential. Server and bootstrap containers join the existing `shiguang-auth-edge`
+network; on the NAS use `http://shiguang-auth-auth-service-1:8081`.
+Directory APIs are POST `/v1/identity/users/batch-get` (`ids`, max 200),
 `/v1/identity/users/by-email` (`email`, exact verified active account), and
 `/v1/identity/users/query` (`query`, bounded admin search). The batch profile contains
 `id`, `loginName`, `displayName`, `email`, `emailVerified` and `state`.
@@ -145,8 +147,15 @@ for ten-minute external data-source OAuth state. Browser sign-out is POST
 
 Before migrating an existing database, back it up and explicitly set
 `SG_LEGACY_USER_MAPPING` to a JSON object mapping **every local user ID** to a
-**distinct existing IAM sub**, for example `{"local-id":"iam-sub"}`. Inspect this
+**existing IAM sub**, for example `{"local-id":"iam-sub"}`. Inspect this
 mapping as an ownership decision; migration never infers it from email addresses.
+Multiple old IDs may map to one IAM subject. The account with the matching IAM email
+provides personal-team designation, editor preferences and a conflicting data-source
+connection; other teams and projects keep their IDs and ownership permissions.
+Trial claims retain the earliest date.
+The NAS [user mapping](shiguang-user-mapping.json) assigns its two existing accounts
+to the verified IAM account `yanxianliang` (`382914060758286339`). Set
+`SG_BOOTSTRAP_SUB` to that subject and `SG_LEGACY_USER_MAPPING` to this JSON object.
 The migration stops before deleting accounts if the mapping is missing, incomplete
 or refers to unknown subjects. It updates business foreign-key values, retains editor
 preferences and trial claims, removes local account/password/email-verification/SSO/

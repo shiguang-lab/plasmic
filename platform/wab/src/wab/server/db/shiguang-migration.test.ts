@@ -98,7 +98,7 @@ it("refuses missing mappings before deleting accounts, then transfers business r
       `CREATE SCHEMA legacy_identity; SET LOCAL search_path TO legacy_identity`,
     );
     await runner.query(
-      `CREATE TABLE "user" (id text PRIMARY KEY, "extraData" text, "freeTrialStartedAt" timestamptz)`,
+      `CREATE TABLE "user" (id text PRIMARY KEY, email text, "extraData" text, "freeTrialStartedAt" timestamptz)`,
     );
     await runner.query(
       `CREATE TABLE project (id text PRIMARY KEY, "createdById" text REFERENCES "user"(id))`,
@@ -116,7 +116,7 @@ it("refuses missing mappings before deleting accounts, then transfers business r
       `CREATE TABLE oauth_token (id text PRIMARY KEY,provider text NOT NULL,"ssoConfigId" text,"userId" text REFERENCES "user"(id))`,
     );
     await runner.query(
-      `INSERT INTO "user" VALUES ('old-user','{"seenTutorials":["basic"]}',now())`,
+      `INSERT INTO "user" VALUES ('old-user','legacy@example.com','{"seenTutorials":["basic"]}',now())`,
     );
     await runner.query(
       `INSERT INTO project VALUES ('retained-project','old-user')`,
@@ -132,8 +132,45 @@ it("refuses missing mappings before deleting accounts, then transfers business r
     process.env.SG_LEGACY_USER_MAPPING = JSON.stringify({
       "old-user": profile.id,
     });
+    await runner.query(
+      `CREATE TABLE team (id text PRIMARY KEY, "personalTeamOwnerId" text UNIQUE REFERENCES "user"(id))`,
+    );
+    await runner.query(
+      `ALTER TABLE oauth_token ADD UNIQUE ("userId", provider)`,
+    );
+    await runner.query(
+      `INSERT INTO "user" VALUES ('old-admin','admin@example.com','{"admin":true}','2020-01-01')`,
+    );
+    await runner.query(
+      `INSERT INTO team VALUES ('admin-team','old-admin'),('personal-team','old-user')`,
+    );
+    await runner.query(
+      `INSERT INTO project VALUES ('admin-project','old-admin')`,
+    );
+    await runner.query(
+      `INSERT INTO oauth_token VALUES ('admin-oauth','airtable',null,'old-admin'),('user-oauth','airtable',null,'old-user')`,
+    );
+    process.env.SG_LEGACY_USER_MAPPING = JSON.stringify({
+      "old-user": profile.id,
+      "old-admin": profile.id,
+    });
     await migration.up(runner);
+    expect(
+      await runner.query(
+        `SELECT id,"personalTeamOwnerId" FROM team ORDER BY id`,
+      ),
+    ).toEqual([
+      { id: "admin-team", personalTeamOwnerId: null },
+      { id: "personal-team", personalTeamOwnerId: profile.id },
+    ]);
+    expect(await runner.query(`SELECT id,"userId" FROM oauth_token`)).toEqual([
+      { id: "user-oauth", userId: profile.id },
+    ]);
+    expect(
+      await runner.query(`SELECT "claimedAt" FROM user_trial_claim`),
+    ).toEqual([{ claimedAt: new Date("2020-01-01") }]);
     expect(await runner.query(`SELECT "createdById" FROM project`)).toEqual([
+      { createdById: profile.id },
       { createdById: profile.id },
     ]);
     expect(

@@ -1,7 +1,7 @@
 const { randomBytes, createHash, timingSafeEqual } = require("node:crypto");
 const { createServer } = require("node:http");
 const AUTH_ORIGIN = "https://shiguanglab.com";
-const CLIENT_ID = "plasmic-desktop";
+const CLIENT_ID = "plasmicapp";
 
 class DesktopUnifiedLogin {
   constructor({ session, studioOrigin }) {

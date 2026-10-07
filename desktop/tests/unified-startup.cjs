@@ -62,7 +62,7 @@ app
     }
     assert(opened, "System-browser authorization was not requested");
     assert.equal(opened.origin, "https://shiguanglab.com");
-    assert.equal(opened.searchParams.get("client_id"), "plasmic-desktop");
+    assert.equal(opened.searchParams.get("client_id"), "plasmicapp");
     assert.equal(opened.searchParams.get("code_challenge_method"), "S256");
     const cancelled = await win.webContents.executeJavaScript(
       "window.desktopUnifiedLogin.command('cancel')",

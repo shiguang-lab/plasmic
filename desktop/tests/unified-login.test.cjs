@@ -52,7 +52,7 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
       assert.equal(authorization.pathname, "/oauth/authorize");
       assert.equal(
         authorization.searchParams.get("client_id"),
-        "plasmic-desktop",
+        "plasmicapp",
       );
       assert.equal(authorization.searchParams.get("scope"), "web:session");
       assert.equal(
