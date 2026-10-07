@@ -1,12 +1,13 @@
 import AnonymousIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UserSvg";
 import { ApiUser } from "@/wab/shared/ApiSchema";
-import { fullNameAndEmail, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
-import { nullToUndefined, simpleHash } from "@/wab/shared/common";
+import { fullNameAndEmail } from "@/wab/shared/ApiSchemaUtil";
+import { simpleHash } from "@/wab/shared/common";
 import { Side } from "@/wab/shared/geom";
 import { Chroma } from "@/wab/shared/utils/color-utils";
 import { Tooltip } from "antd";
 import classNames from "classnames";
-import React, { CSSProperties, ReactNode } from "react";
+import * as React from "react";
+import { CSSProperties, ReactNode } from "react";
 
 type AvatarSize = "small";
 
@@ -22,12 +23,6 @@ interface RawAvatarProps {
   size?: AvatarSize;
   onClick?: () => void;
   showToolTip?: boolean;
-}
-
-function getInitials(firstName: string, lastName: string, email: string) {
-  return firstName || lastName
-    ? `${firstName[0]}${lastName[0]}`.toUpperCase()
-    : email.slice(0, 2).toUpperCase();
 }
 
 export function RawAvatar({
@@ -99,12 +94,7 @@ export function Avatar({
     <RawAvatar
       className={className}
       name={fullNameAndEmail(user)}
-      initials={getInitials(
-        user.firstName || "",
-        user.lastName || "",
-        getUserEmail(user),
-      )}
-      imgUrl={nullToUndefined(user.avatarUrl)}
+      initials={(user.displayName || user.email).slice(0, 2).toUpperCase()}
       size={size}
       style={style}
       tooltipPlacement={tooltipPlacement}

@@ -1,0 +1,144 @@
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
+const { createHash } = require("node:crypto");
+const {
+  DesktopUnifiedLogin,
+  AUTH_ORIGIN,
+} = require("../src/unified-login.cjs");
+const studioOrigin = "https://studio.plasmic.shiguanglab.com";
+function fixture(options = {}) {
+  const calls = [];
+  const session = {
+    fetch: async (url, init) => {
+      calls.push({ url, init });
+      if (url.endsWith("/oauth/token")) {
+        return Response.json({
+          access_token: "ephemeral-access-token",
+          token_type: "Bearer",
+        });
+      }
+      if (url.endsWith("/oauth/web-session-ticket")) {
+        return Response.json({
+          url:
+            options.ticketUrl ||
+            AUTH_ORIGIN + "/oauth/web-session?ticket=one-use",
+        });
+      }
+      return new Response(null, {
+        status: options.ticketStatus || 302,
+        headers: {
+          location: options.location || studioOrigin + "/projects/example",
+        },
+      });
+    },
+  };
+  return { login: new DesktopUnifiedLogin({ session, studioOrigin }), calls };
+}
+async function callback(url, state, code = "single-use-code") {
+  const auth = new URL(url);
+  const target = new URL(auth.searchParams.get("redirect_uri"));
+  target.searchParams.set("state", state ?? auth.searchParams.get("state"));
+  target.searchParams.set("code", code);
+  return fetch(target);
+}
+test("PKCE loopback exchange uses IAM-issued session tickets and preserves the design URL", async () => {
+  const { login, calls } = fixture();
+  let authorization;
+  const result = await login.start({
+    returnUrl: studioOrigin + "/projects/example",
+    openBrowser: async (url) => {
+      authorization = new URL(url);
+      assert.equal(authorization.origin, AUTH_ORIGIN);
+      assert.equal(authorization.pathname, "/oauth/authorize");
+      assert.equal(
+        authorization.searchParams.get("client_id"),
+        "plasmic-desktop",
+      );
+      assert.equal(authorization.searchParams.get("scope"), "web:session");
+      assert.equal(
+        authorization.searchParams.get("code_challenge_method"),
+        "S256",
+      );
+      assert.equal((await callback(url)).status, 200);
+    },
+  });
+  assert.equal(result, studioOrigin + "/projects/example");
+  const tokenForm = new URLSearchParams(calls[0].init.body);
+  assert.equal(
+    createHash("sha256")
+      .update(tokenForm.get("code_verifier"))
+      .digest("base64url"),
+    authorization.searchParams.get("code_challenge"),
+  );
+  assert.equal(
+    tokenForm.get("redirect_uri"),
+    authorization.searchParams.get("redirect_uri"),
+  );
+  assert.equal(
+    calls[1].init.headers.Authorization,
+    "Bearer ephemeral-access-token",
+  );
+  assert.equal(calls[2].init.redirect, "manual");
+  assert.equal(calls[2].init.credentials, "include");
+  await assert.rejects(fetch(authorization.searchParams.get("redirect_uri")));
+});
+test("forged and Unicode callback states are rejected without consuming the real callback", async () => {
+  const { login } = fixture();
+  await login.start({
+    returnUrl: studioOrigin + "/projects/example",
+    openBrowser: async (url) => {
+      assert.equal((await callback(url, "x".repeat(43))).status, 400);
+      assert.equal((await callback(url, "界".repeat(43))).status, 400);
+      assert.equal((await callback(url)).status, 200);
+    },
+  });
+});
+test("cancel closes the listener and performs no credential exchange", async () => {
+  const { login, calls } = fixture();
+  const abort = new AbortController();
+  let redirect;
+  await assert.rejects(
+    login.start({
+      returnUrl: studioOrigin + "/",
+      signal: abort.signal,
+      openBrowser: async (url) => {
+        redirect = new URL(url).searchParams.get("redirect_uri");
+        abort.abort();
+      },
+    }),
+    /cancelled/,
+  );
+  assert.equal(calls.length, 0);
+  await assert.rejects(fetch(redirect));
+});
+for (const options of [
+  { ticketUrl: "https://evil.example/oauth/web-session?ticket=x" },
+  { ticketStatus: 400 },
+  { location: "https://evil.example" },
+]) {
+  test(
+    "rejects invalid ticket or destination: " + JSON.stringify(options),
+    async () => {
+      const { login } = fixture(options);
+      await assert.rejects(
+        login.start({
+          returnUrl: studioOrigin + "/projects/example",
+          openBrowser: async (url) => {
+            await callback(url);
+          },
+        }),
+        /session ticket/,
+      );
+    },
+  );
+}
+test("rejects cross-origin return destinations before opening the browser", async () => {
+  const { login } = fixture();
+  await assert.rejects(
+    login.start({
+      returnUrl: "https://evil.example",
+      openBrowser: () => assert.fail(),
+    }),
+    /destination/,
+  );
+});

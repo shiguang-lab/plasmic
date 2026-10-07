@@ -82,9 +82,7 @@ export function useUserMentions({
     items: users,
     getMatchScore: (user, query) =>
       matchScore(
-        [user.firstName, user.lastName, user.email].filter(
-          (word) => word !== null,
-        ),
+        [user.displayName, user.email].filter((word) => word !== null),
         query,
       ),
     renderPopoverContent: ({ suggestions, highlightIndex, onSelect }) =>

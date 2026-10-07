@@ -83,7 +83,6 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const missingUsedFonts = studioCtx.fontManager.missingUsedFonts();
   const shortcutModalButtonClassName = "shortcut-modal-button";
 
-  const isWhiteLabelUser = studioCtx.appCtx.isWhiteLabelUser();
   const uiConfig = studioCtx.getCurrentUiConfig();
 
   const canViewTab = (tab: LeftTabUiKey) => {
@@ -218,7 +217,7 @@ Help
           tabKey: "splits",
           icon: <SplitSvgIcon />,
           label: "Split content",
-          cond: isLoggedIn && canViewTab("splits") && !isWhiteLabelUser,
+          cond: isLoggedIn && canViewTab("splits"),
         },
         imports: {
           type: "item",
@@ -305,21 +304,21 @@ Help
           icon: <SlackIcon style={{ margin: 4 }} height={16} width={16} />,
           label: "Slack community",
           href: "https://www.plasmic.app/slack",
-          cond: !isWhiteLabelUser,
+          cond: true,
         },
         forum: {
           type: "item",
           icon: <MessagesvgIcon />,
           label: "Forum",
           href: BASE_URL,
-          cond: !isWhiteLabelUser,
+          cond: true,
         },
         docs: {
           type: "item",
           icon: <BooksvgIcon />,
           label: "Documentation",
           href: "https://docs.plasmic.app/",
-          cond: !isWhiteLabelUser,
+          cond: true,
         },
         help: {
           type: "item",
@@ -330,7 +329,7 @@ Help
                 teamId: studioCtx.siteInfo.teamId!,
               })
             : undefined,
-          cond: Boolean(studioCtx.siteInfo.teamId) && !isWhiteLabelUser,
+          cond: Boolean(studioCtx.siteInfo.teamId),
         },
       },
     },

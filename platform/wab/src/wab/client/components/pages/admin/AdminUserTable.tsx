@@ -1,12 +1,11 @@
-import { useNonAuthCtx } from "@/wab/client/app-ctx";
 import { smartRender } from "@/wab/client/components/pages/admin/admin-util";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
-import { LinkButton, SearchBox } from "@/wab/client/components/widgets";
+import { SearchBox } from "@/wab/client/components/widgets";
 import { ApiUser } from "@/wab/shared/ApiSchema";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Table, TableProps } from "antd";
 import L from "lodash";
-import React, { useMemo, useState } from "react";
+import * as React from "react";
+import { useMemo, useState } from "react";
 
 interface Item {
   user: ApiUser;
@@ -21,8 +20,6 @@ export function AdminUserTable<T extends Item = Item>({
   items,
   extraColumns = [],
 }: AdminUserTableProps<T>) {
-  const nonAuthCtx = useNonAuthCtx();
-
   const [filter, setFilter] = useState<string>("");
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -32,16 +29,10 @@ export function AdminUserTable<T extends Item = Item>({
       const q = filter.toLowerCase();
       return (
         item.user.email?.toLowerCase().includes(q) ||
-        item.user.firstName?.toLowerCase().includes(q) ||
-        item.user.lastName?.toLowerCase().includes(q)
+        item.user.displayName?.toLowerCase().includes(q)
       );
     });
   }, [items, filter]);
-
-  async function handleLogin(email: string) {
-    await nonAuthCtx.api.adminLoginAs({ email });
-    document.location.href = APP_ROUTES.dashboard.fill({});
-  }
 
   return (
     <div>
@@ -55,29 +46,14 @@ export function AdminUserTable<T extends Item = Item>({
             key: "avatar",
             render: (_value, item) => <Avatar user={item.user} />,
           },
-          ...["email", "firstName", "lastName", "createdAt", "deletedAt"].map(
-            (key) => ({
-              key,
-              dataIndex: ["user", key],
-              title: L.startCase(key),
-              render: smartRender,
-              sorter: (a, b) => (a.user[key] < b.user[key] ? -1 : 1),
-              ...(key === "email"
-                ? { defaultSortOrder: "ascend" as const }
-                : {}),
-            }),
-          ),
-          {
-            title: "Action",
-            key: "action",
-            render: (_value, item) => (
-              <span>
-                <LinkButton onClick={() => handleLogin(item.user.email)}>
-                  Login
-                </LinkButton>
-              </span>
-            ),
-          },
+          ...["email", "displayName", "state"].map((key) => ({
+            key,
+            dataIndex: ["user", key],
+            title: L.startCase(key),
+            render: smartRender,
+            sorter: (a, b) => (a.user[key] < b.user[key] ? -1 : 1),
+            ...(key === "email" ? { defaultSortOrder: "ascend" as const } : {}),
+          })),
           ...extraColumns,
         ]}
       />

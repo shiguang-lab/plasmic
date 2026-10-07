@@ -7,11 +7,7 @@ test.describe("data token suggestions popover", () => {
   let projectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test.beforeEach(async ({ apiClient, page }) => {

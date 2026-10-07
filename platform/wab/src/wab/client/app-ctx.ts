@@ -110,12 +110,8 @@ export class NonAuthComponent<
 }
 
 interface SelfInfo extends ApiUser {
-  usesOauth?: boolean;
   isObserver?: boolean;
-}
-
-export function isWhiteLabelUser(user: SelfInfo) {
-  return !!user.isWhiteLabel;
+  isAdmin?: boolean;
 }
 
 interface AppCtxArgs {
@@ -192,7 +188,7 @@ export class AppCtx {
   }
 
   async logout() {
-    if (this.selfInfo && !this.selfInfo.isFake) {
+    if (this.selfInfo) {
       await this.api.logout();
     }
     this.selfInfo = null;
@@ -200,10 +196,6 @@ export class AppCtx {
     // using router, to make sure we completely clear in-page
     // js state
     window.location.href = APP_ROUTES.login.fill({});
-  }
-
-  isWhiteLabelUser() {
-    return this.selfInfo && isWhiteLabelUser(this.selfInfo);
   }
 }
 
@@ -461,7 +453,6 @@ export async function loadAppCtx(
     ]);
 
     const user = selfInfo?.user || null;
-    const usesOauth = selfInfo?.usesOauth || false;
     if (isHostFrame() && user) {
       setUser(user);
     }
@@ -469,10 +460,7 @@ export async function loadAppCtx(
     const appConfigOverrides = dbConfigOverrides;
 
     // First apply default Plasmic overrides
-    if (
-      isAdminTeamEmail(user?.email, dbConfigOverrides) &&
-      !user?.adminModeDisabled
-    ) {
+    if (selfInfo?.isAdmin) {
       applyPlasmicUserDevFlagOverrides(appConfigOverrides);
     }
 
@@ -488,7 +476,11 @@ export async function loadAppCtx(
 
     return {
       selfInfo: user
-        ? { ...user, usesOauth, isObserver: selfInfo?.observer }
+        ? {
+            ...user,
+            isObserver: selfInfo?.observer,
+            isAdmin: selfInfo?.isAdmin,
+          }
         : null,
       appConfig: DEVFLAGS,
       appConfigOverrides,

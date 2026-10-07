@@ -466,7 +466,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
           onSecondary={async () => step.onSecondary?.(stepCtx)}
           onQuit={quitTour}
           tourInfo={{
-            userFirstName: studioCtx.appCtx.selfInfo?.firstName || "",
+            userFirstName: studioCtx.appCtx.selfInfo?.displayName || "",
             storeName: "Your Store",
           }}
         />
@@ -683,7 +683,7 @@ export function TopFrameTours(props: {
           onSecondary={async () => step.onSecondary?.(onNextCtx)}
           onQuit={quitTour}
           tourInfo={{
-            userFirstName: appCtx.selfInfo?.firstName || "",
+            userFirstName: appCtx.selfInfo?.displayName || "",
             storeName: "Your Store",
             domain,
           }}

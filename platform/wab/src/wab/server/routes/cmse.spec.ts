@@ -142,11 +142,7 @@ describe("CMS tests", () => {
 
   beforeEach(async () => {
     api = new SharedApiTester(baseURL);
-    await api.refreshCsrfToken();
-    await api.login({
-      email: "user@example.com",
-      password: "!53kr3tz!",
-    });
+    api.authenticateIdentity("user@example.com");
   });
 
   afterEach(async () => {

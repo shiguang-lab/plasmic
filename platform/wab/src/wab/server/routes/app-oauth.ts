@@ -51,10 +51,9 @@ function isValidRedirectUri(redirectUri: string): boolean {
 
 export async function issueOauthCode(req: Request, res: Response) {
   const userId = req.user?.id,
-    userEmail = req.user?.email,
-    waitingEmailVerification = req.user?.waitingEmailVerification;
-  if (!userId || !userEmail || waitingEmailVerification) {
-    throw new Error("User not authenticated");
+    userEmail = req.user?.email;
+  if (!userId || !userEmail || !req.user?.emailVerified) {
+    throw new ForbiddenError("A verified Shiguang email is required");
   }
 
   const {
@@ -243,9 +242,7 @@ export async function grantOauthToken(req: Request, res: Response) {
     // when we need to create a currentUser, so that we don't allow apps to see data about users that
     // not necessarily logged to that app.
     {
-      firstName: plasmicUser?.firstName,
-      lastName: plasmicUser?.lastName,
-      avatarUrl: plasmicUser?.avatarUrl,
+      displayName: plasmicUser?.displayName,
     },
   );
 

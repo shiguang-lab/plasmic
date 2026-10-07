@@ -39,7 +39,7 @@ test.describe("Postgres Data Source", () => {
   let dataSourceName: string;
   let testDatabase: PostgresTestDatabase | undefined;
 
-  test.beforeEach(async ({ apiClient, page, context, request }) => {
+  test.beforeEach(async ({ apiClient, page, context }) => {
     dataSourceName = `Postgres ${v4()}`;
 
     testDatabase = await createPostgresTestDatabase();
@@ -48,8 +48,8 @@ test.describe("Postgres Data Source", () => {
       testDatabase.connection,
     );
 
-    await apiClient.login("user2@example.com", "!53kr3tz!");
-    const storageState = await request.storageState();
+    await apiClient.authenticate("user2@example.com");
+    const storageState = await apiClient.request.storageState();
     await context.addCookies(storageState.cookies);
 
     projectId = await apiClient.setupNewProject({

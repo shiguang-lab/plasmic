@@ -30,7 +30,6 @@ test.describe("Table and form tutorial", () => {
       await apiClient.removeProjectAfterTest(
         clonedProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
     }
 

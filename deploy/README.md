@@ -31,8 +31,8 @@ docker compose --profile init run --rm bootstrap
 docker compose up -d server web
 ```
 
-Bootstrap runs migrations and creates the initial administrator, workspace and
-component packages. It refuses a populated database. Container restarts never seed
+Bootstrap runs migrations and creates business workspaces and component packages
+for the existing IAM subject in `SG_BOOTSTRAP_SUB`. It refuses a populated database. Container restarts never seed
 or truncate the database. Keep the canvas origin separate from the Studio origin. The S3 service uses
 virtual-host bucket addresses; its storage domain and Docker network aliases must
 match the endpoint hostname. The web health check waits for address injection and
@@ -75,7 +75,8 @@ Studio uses https://studio.plasmic.shiguanglab.com and its canvas uses the separ
 https://canvas.plasmic.shiguanglab.com. Configure both DNS A records to point to Seoul (43.128.155.40).
 The shared relay config is maintained in `shiguang/deploy/umami`: HAProxy routes
 SNI to Caddy on loopback ports 8454/8455, and Caddy forwards over Tailscale to
-NAS ports 3900/3901. Caddy terminates HTTPS and supports WebSocket upgrades.
+the access gateway on NAS port 3600. Its Plasmic routes forward to NAS ports
+3900/3901. Caddy terminates HTTPS and supports WebSocket upgrades.
 Nginx preserves the forwarded HTTPS protocol.
 
 ## Desktop update hosting
@@ -102,12 +103,61 @@ URLs that use these origins. Preserve external project hosts and unrelated URLs.
 Apply the shared HAProxy/Caddy configuration and recreate server/web so their
 environment and generated web assets use the new origins.
 
-For Google login, authorize
-`https://studio.plasmic.shiguanglab.com/api/v1/oauth2/google/callback` in the
-Google OAuth client's redirect URIs. Other configured OAuth providers must also
-authorize their callback paths on the new Studio origin. Cookies belong to the
-new domain, so users sign in again. Rebuild the Desktop app and publish the CLI
-and workflow resources with these origins before distributing them.
+## Shiguang unified authentication
+
+Studio redirects `/login?continueTo=...` to `https://shiguanglab.com/login?return_to=...`.
+Account creation, passwords, email verification and profile editing belong to the
+central website. The account link opens `https://shiguanglab.com/account`.
+Plasmic stores project/team permissions against IAM `sub`, plus editor preferences
+and business trial claims; it stores no account profile, password or login session.
+Published applications' end-user directories and data-source OAuth connections are
+separate business features and retain their own tables.
+
+Deploy the matching `shiguang/auth-service` and `shiguang/access-gateway` changes.
+Merge [gateway routes](shiguang-gateway-routes.json) into the gateway configuration;
+do not replace other products' routes. The public `/api/v1/` route uses
+`authenticate_public: true`: a shared cookie yields an RS256 assertion with
+`typ=sg-identity+jwt`, issuer `https://shiguanglab.com`, audience `plasmic-api` and
+entitlement `plasmic:access`. Anonymous loader/project-token requests remain public
+and use Plasmic resource authorization. Static Studio and canvas files are public.
+The gateway strips client-supplied identity headers and the shared session cookie.
+BFF and WebSocket handshakes verify the JWT; browser writes check the Studio/canvas
+origin. All external traffic must enter through the gateway.
+
+Merge [Desktop OAuth registration](shiguang-oauth-client.json) into auth-service
+`OAUTH_CLIENTS_JSON`. Keep existing clients. The loopback redirect URI is
+`http://127.0.0.1/callback`; IAM accepts the ephemeral loopback port. Desktop uses
+S256 PKCE, scope `web:session`, and a one-use IAM web-session ticket to establish
+its Electron session. It does not persist OAuth access or refresh tokens.
+Add both Studio and canvas to auth-service `ALLOWED_RETURN_ORIGINS`, and grant
+`plasmic:access` through the central entitlement policy. Existing explicit environment
+values must be updated even though the service defaults now include Plasmic.
+
+Set `SG_IDENTITY_API_URL` to the private auth-service address reachable from the
+Plasmic container, and `SG_IDENTITY_API_TOKEN` to its `IDENTITY_API_TOKEN` service
+credential. Directory APIs are POST `/v1/identity/users/batch-get` (`ids`, max 200),
+`/v1/identity/users/by-email` (`email`, exact verified active account), and
+`/v1/identity/users/query` (`query`, bounded admin search). The batch profile contains
+`id`, `loginName`, `displayName`, `email`, `emailVerified` and `state`.
+Use `SG_IDENTITY_JWKS_URL` for signing keys and `INTEGRATION_SESSION_SECRET` solely
+for ten-minute external data-source OAuth state. Browser sign-out is POST
+`/api/auth/logout` on Studio, routed directly to IAM; it signs out the shared session.
+
+Before migrating an existing database, back it up and explicitly set
+`SG_LEGACY_USER_MAPPING` to a JSON object mapping **every local user ID** to a
+**distinct existing IAM sub**, for example `{"local-id":"iam-sub"}`. Inspect this
+mapping as an ownership decision; migration never infers it from email addresses.
+The migration stops before deleting accounts if the mapping is missing, incomplete
+or refers to unknown subjects. It updates business foreign-key values, retains editor
+preferences and trial claims, removes local account/password/email-verification/SSO/
+sign-up/session tables and obsolete login OAuth tokens. Only Airtable and Google Sheets
+OAuth connections remain. Account deletion cannot be reversed by a down migration;
+rollback requires restoring the backup. Do not run ORM schema synchronization on an
+existing deployment. Empty databases need no legacy mapping.
+
+Rebuild Desktop and the web/server images together before distributing this release.
+External Google Sheets and Airtable integrations continue to use their callback URLs
+on the Studio origin; configure those integration clients accordingly.
 
 ## Ant Design 5 and 6
 
@@ -158,8 +208,8 @@ PLASMIC_REPORT_DIR=/verify/ai-prototype-report \
 node /verify/verify-ai-prototype.cjs
 ```
 
-Mount the private deployment `.env` read-only. Use an acceptance project owned by
-the configured admin and with Ant Design 6 already installed. The scenario adds
+Use a private acceptance env file containing `STUDIO_ORIGIN` and an IAM-issued
+`SG_SESSION`. Mount it read-only. Use an acceptance project owned by that IAM user and with Ant Design 6 already installed. The scenario adds
 uniquely named pages, never replaces existing pages, and leaves them saved for
 review. Its transcript and screenshots are stored in the report directory. It
 checks the browser/editor tool chain; evaluate model generation quality separately

@@ -12,6 +12,7 @@ import {
   withBranch,
   withTokens,
 } from "@/wab/server/__testonly__/branching-utils";
+import { createTestUser } from "@/wab/server/__testonly__/shiguang-fixture";
 import {
   DbMgr,
   NotFoundError,
@@ -839,16 +840,11 @@ describe("updateCommitGraphForProject concurrency (PLA-13087)", () => {
     // Commit the fixtures before the concurrent transactions read them.
     await con.transaction(async (em) => {
       const setupDb = new DbMgr(em, SUPER_USER);
-      const user = await setupDb.createUser({
+      const user = await createTestUser(setupDb, {
         email: "commitgraph-race@test.com",
-        firstName: "Race",
-        lastName: "Test",
-        password: "!53kr3tz!",
-        needsIntroSplash: false,
-        needsSurvey: false,
-        needsTeamCreationPrompt: false,
+        displayName: "Race",
+        createTeam: true,
       });
-      await setupDb.markEmailAsVerified(user);
       const userDb = new DbMgr(em, normalActor(user.id));
       const { workspace } = await getTeamAndWorkspace(userDb);
       const { project } = await userDb.createProject({

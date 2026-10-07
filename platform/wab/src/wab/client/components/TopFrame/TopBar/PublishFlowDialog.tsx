@@ -75,8 +75,7 @@ export interface SubsectionMeta {
 
 interface PublishFlowDialogProps extends DefaultPublishFlowDialogProps {
   latestPublishedVersionData:
-    | { revisionId: string; version: string }
-    | undefined;
+    { revisionId: string; version: string } | undefined;
   appCtx: AppCtx;
   project: ApiProject;
   refreshProjectAndPerms: () => void;
@@ -109,7 +108,6 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
   } = props;
   const { hostFrameApi } = useTopFrameCtx();
   const projectId = project.id;
-  const isWhiteLabelUser = appCtx.isWhiteLabelUser();
 
   // Versions
   const [loadingVersion, setLoadingVersion] = React.useState(true);
@@ -328,8 +326,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
             subsectionMeta.pushDeploy.setVisibleEnableBlock(true, false, true),
         }}
         addGithubPanel={{
-          wrap: (node) =>
-            !subsectionMeta.pushDeploy.visible && !isWhiteLabelUser && node,
+          wrap: (node) => !subsectionMeta.pushDeploy.visible && node,
         }}
         addWebsiteButton={{
           id: "publish-flow-dialog-add-website-btn",
@@ -349,7 +346,6 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           wrap: (node) =>
             appCtx.appConfig.enablePlasmicHosting &&
             !subsectionMeta.plasmicHosting.visible &&
-            !isWhiteLabelUser &&
             node,
           props: {
             id: "publish-flow-dialog-add-website-panel",

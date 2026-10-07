@@ -15,11 +15,7 @@ test.describe("data-rep", () => {
 
   test.afterEach(async ({ apiClient }) => {
     if (projectId) {
-      await apiClient.removeProjectAfterTest(
-        projectId,
-        "user2@example.com",
-        "!53kr3tz!",
-      );
+      await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
     }
   });
 

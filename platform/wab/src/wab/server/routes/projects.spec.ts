@@ -1,3 +1,7 @@
+import {
+  createTestUser,
+  testIdentityAssertion,
+} from "@/wab/server/__testonly__/shiguang-fixture";
 /** @vitest-environment node */
 import { ApiTester } from "@/wab/server/__testonly__/api-tester";
 import {
@@ -6,12 +10,7 @@ import {
 } from "@/wab/server/__testonly__/backend-util";
 import { ensureDbConnection } from "@/wab/server/db/DbCon";
 import { seedTestUserAndProjects } from "@/wab/server/db/DbInit";
-import {
-  DEFAULT_DEV_PASSWORD,
-  DbMgr,
-  SUPER_USER,
-  normalActor,
-} from "@/wab/server/db/DbMgr";
+import { DbMgr, SUPER_USER, normalActor } from "@/wab/server/db/DbMgr";
 import { Project, User } from "@/wab/server/entities/Entities";
 import { ensure } from "@/wab/shared/common";
 
@@ -56,16 +55,11 @@ describe("project routes", () => {
       expect(secretToken).not.toEqual(publicToken);
 
       const sudo = new DbMgr(em, SUPER_USER);
-      contentUser = await sudo.createUser({
+      contentUser = await createTestUser(sudo, {
         email: "content@example.com",
-        password: DEFAULT_DEV_PASSWORD,
-        firstName: "Content",
-        lastName: "Creator",
-        needsIntroSplash: false,
-        needsSurvey: false,
-        needsTeamCreationPrompt: false,
+        displayName: "Content",
+        createTeam: true,
       });
-      await sudo.markEmailAsVerified(contentUser);
       await db.grantProjectPermissionByEmail(
         project.id,
         contentUser.email,
@@ -104,12 +98,12 @@ describe("project routes", () => {
     };
   }
 
-  /** Authenticates as `u`; only accepted outside production. */
+  /** Simulates the signed assertion injected by the identity gateway. */
   function asUser(u: User) {
     return {
       headers: {
-        "x-plasmic-api-user": u.email,
-        "x-plasmic-api-password": DEFAULT_DEV_PASSWORD,
+        "x-sg-identity": testIdentityAssertion(u.email),
+        Origin: new URL(baseURL).origin,
       },
     };
   }

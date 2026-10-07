@@ -76,14 +76,15 @@ const PlayerCursor = observer(function PlayerCursor({
     .scalerToClient(new Pt(cursorData.left, cursorData.top))
     .sub(viewportCtx.clipperBox().topLeft());
 
-  const firstName = playerData.user?.firstName ?? "Anon";
-  const lastName = playerData.user?.lastName ?? "Last";
-  const dataTestId = `${firstName}-${lastName}`.replace(/[^a-zA-Z0-9-]/g, "");
+  const dataTestId = (playerData?.user?.displayName ?? "Anonymous").replace(
+    /[^a-zA-Z0-9-]/g,
+    "",
+  );
 
   return (
     <AnimatedCursor
       point={pt}
-      userName={firstName}
+      userName={playerData?.user?.displayName ?? "Anonymous"}
       data-test-id={dataTestId}
       color={color}
     />

@@ -8,25 +8,26 @@ import "express-async-errors";
 import promMetrics from "express-prom-bundle";
 import { NextFunction, Request, Response } from "express-serve-static-core";
 import session from "express-session";
-import * as lusca from "lusca";
-import { nanoid } from "nanoid";
 import cron from "node-cron";
 import passport from "passport";
 import * as path from "path";
 import { getConnection } from "typeorm";
 import v8 from "v8";
 // API keys and Passport configuration
-import { setupPassport } from "@/wab/server/auth/passport-cfg";
+import { setupDataSourceOAuth } from "@/wab/server/auth/passport-cfg";
 import * as authRoutes from "@/wab/server/auth/routes";
 import { apiAuth } from "@/wab/server/auth/routes";
-import { doLogout } from "@/wab/server/auth/util";
+import {
+  checkShiguangOrigin,
+  shiguangIdentityMiddleware,
+} from "@/wab/server/auth/shiguang";
 import { checkCaptchaToken } from "@/wab/server/captcha";
 import { Config } from "@/wab/server/config";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
 import { getDevFlagsMergedWithOverrides } from "@/wab/server/db/appconfig";
 import { getE2eDevFlags } from "@/wab/server/e2e-devflags";
 import { createMailer } from "@/wab/server/emails/Mailer";
-import { ExpressSession } from "@/wab/server/entities/Entities";
+import { IntegrationAuthSession } from "@/wab/server/entities/Entities";
 import "@/wab/server/extensions";
 import { initAnalyticsFactory, logger } from "@/wab/server/observability";
 import {
@@ -257,7 +258,7 @@ import {
 } from "@/wab/server/routes/server-data";
 import { processSvgRoute } from "@/wab/server/routes/svg";
 import * as teamRoutes from "@/wab/server/routes/teams";
-import { getUsersById } from "@/wab/server/routes/users";
+import { getUsersById, searchIdentities } from "@/wab/server/routes/users";
 import {
   adminOnly,
   adminOrDevelopmentEnvOnly,
@@ -265,12 +266,6 @@ import {
   superDbMgr,
   withNext,
 } from "@/wab/server/routes/util";
-import {
-  createWhiteLabelUser,
-  deleteWhiteLabelUser,
-  getWhiteLabelUser,
-  openJwt,
-} from "@/wab/server/routes/whitelabel";
 import {
   createWorkspace,
   deleteWorkspace,
@@ -297,6 +292,7 @@ import { ApiError } from "@/wab/shared/ApiErrors/ApiError";
 import {
   AuthError,
   NotFoundError,
+  UnauthorizedError,
   transformErrors,
 } from "@/wab/shared/ApiErrors/errors";
 import { CAPTCHA_TOKEN_HEADER } from "@/wab/shared/ApiSchema";
@@ -308,52 +304,6 @@ import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS, applyDevFlagOverridesToTarget } from "@/wab/shared/devflags";
 import { isStampedIgnoreError } from "@/wab/shared/error-handling";
 import fileUpload from "express-fileupload";
-
-const csrfFreeStaticRoutes = [
-  "/api/v1/admin/user",
-  "/api/v1/admin/resetPassword",
-  "/api/v1/admin/delete-project",
-  "/api/v1/admin/restore-project",
-  "/api/v1/admin/login-as",
-  "/api/v1/admin/devflags",
-  "/api/v1/admin/clone",
-  "/api/v1/admin/deactivate-user",
-  "/api/v1/admin/revert-project-revision",
-  "/api/v1/plume-pkg/versions",
-  "/api/v1/localization/gen-texts",
-  "/api/v1/hosting-hit",
-  "/api/v1/socket",
-  "/api/v1/init-token",
-
-  // csrf-free routes to the socket server routes, if socket server
-  // is not running and the routes are mounted on this server
-  "/api/v1/disconnect",
-  "/api/v1/projects/broadcast",
-  "/api/v1/cli/emit-token",
-];
-
-const isCsrfFreeRoute = (pathname: string, config: Config) => {
-  return (
-    csrfFreeStaticRoutes.includes(pathname) ||
-    pathname.startsWith("/static/js/loader-hydrate") ||
-    pathname.includes("/api/v1/clip/") ||
-    pathname.includes("/api/v1/code/") ||
-    pathname.includes("/api/v1/loader/") ||
-    pathname.includes("/api/v1/promo-code/") ||
-    pathname.includes("/api/v1/server-data/") ||
-    pathname.includes("/api/v1/wl/") ||
-    pathname.includes("/api/v1/cms/") ||
-    pathname.match("/api/v1/projects/[^/]+$") ||
-    pathname.match("/api/v1/projects/[^/]+/code/") ||
-    pathname.match("/api/v1/auth/sso/.*/consume") ||
-    pathname.includes("/api/v1/app-auth/user") ||
-    pathname.includes("/api/v1/app-auth/userinfo") ||
-    pathname.includes("/api/v1/app-auth/token") ||
-    (!config.production &&
-      (pathname === "/api/v1/projects/import" ||
-        pathname.includes("/api/v1/cmse/")))
-  );
-};
 
 function addSentry(app: express.Application) {
   if (!process.env.SENTRY_DSN) {
@@ -504,13 +454,34 @@ function addMiddlewares(
   // middleware, so handle them before session middleware and others.
   addOptionsRoutes(app);
 
-  if (!opts?.skipSession) {
-    app.use(makeExpressSessionMiddleware(config));
-    app.use(passport.initialize());
-    app.use(passport.session());
-  } else {
-    logger().debug("Skipping session store setup...");
-  }
+  app.use(shiguangIdentityMiddleware);
+  app.use(passport.initialize());
+  // This ten-minute session stores only external data-source OAuth state.
+  app.use(
+    [
+      "/api/v1/auth/airtable",
+      "/api/v1/oauth2/airtable/callback",
+      "/api/v1/auth/google-sheets",
+      "/api/v1/oauth2/google-sheets/callback",
+    ],
+    makeIntegrationSessionMiddleware(config),
+    (req, _res, next) => {
+      if (!req.user) {
+        return next(new UnauthorizedError());
+      }
+      const state = req.session as typeof req.session & {
+        oauthSubject?: string;
+      };
+      if (req.path.endsWith("/callback")) {
+        if (state.oauthSubject !== req.user.id) {
+          return next(new UnauthorizedError("OAuth identity changed"));
+        }
+      } else {
+        state.oauthSubject = req.user.id;
+      }
+      next();
+    },
+  );
 
   const analyticsFactory = initAnalyticsFactory({
     production: config.production,
@@ -582,36 +553,8 @@ function addMiddlewares(
       next();
     }),
   );
-  app.use(
-    safeCast<ErrorRequestHandler>(
-      async (err: Error, req: Request, res: Response, next: NextFunction) => {
-        if (err) {
-          // Gracefully logout/reset session if bad session
-          await doLogout(req, res);
-          next(err);
-        } else {
-          next();
-        }
-      },
-    ),
-  );
   app.use(safeCast<RequestHandler>(authRoutes.authApiTokenMiddleware));
-  if (!opts?.skipSession) {
-    const csrf = lusca.csrf();
-    app.use((req, res, next) => {
-      if (
-        isCsrfFreeRoute(req.path, config) ||
-        authRoutes.isPublicApiRequest(req)
-      ) {
-        // API requests also don't need csrf
-        return next();
-      } else {
-        return csrf(req, res, next);
-      }
-    });
-  } else {
-    logger().debug("Skipping CSRF setup...");
-  }
+  app.use(checkShiguangOrigin);
 
   app.use((req, _res, next) => {
     if (req.readableAborted) {
@@ -739,24 +682,7 @@ export function addCmsEditorRoutes(app: express.Application) {
   );
 }
 
-export function addWhiteLabelRoutes(app: express.Application) {
-  app.post(
-    "/api/v1/wl/:whiteLabelName/users",
-    safeCast<RequestHandler>(authRoutes.teamApiAuth),
-    withNext(createWhiteLabelUser),
-  );
-  app.get(
-    "/api/v1/wl/:whiteLabelName/users/:externalUserId",
-    safeCast<RequestHandler>(authRoutes.teamApiAuth),
-    getWhiteLabelUser,
-  );
-  app.delete(
-    "/api/v1/wl/:whiteLabelName/users/:externalUserId",
-    safeCast<RequestHandler>(authRoutes.teamApiAuth),
-    withNext(deleteWhiteLabelUser),
-  );
-  app.get("/api/v1/wl/:whiteLabelName/open", openJwt);
-}
+export function addWhiteLabelRoutes(app: express.Application) {}
 
 export function addIntegrationsRoutes(app: express.Application) {
   app.post(
@@ -1152,75 +1078,11 @@ export function addMainAppServerRoutes(
   /**
    * Auth Routes
    */
-  app.get("/api/v1/auth/csrf", authRoutes.csrf);
+  app.get("/api/v1/admin/identities", adminOnly, withNext(searchIdentities));
+  app.get("/api/v1/auth/self", withNext(authRoutes.self));
   app.post(
-    "/api/v1/auth/login",
-    sensitiveRateLimiter,
-    withNext(authRoutes.login),
-  );
-  app.post(
-    "/api/v1/auth/sign-up",
-    sensitiveRateLimiter,
-    captcha("sign_up"),
-    withNext(authRoutes.signUp),
-  );
-  app.get("/api/v1/auth/self", authRoutes.self);
-  app.post("/api/v1/auth/self", withNext(authRoutes.updateSelf));
-  app.delete("/api/v1/auth/self", withNext(authRoutes.deleteSelf));
-  app.post(
-    "/api/v1/auth/self/password",
-    sensitiveRateLimiter,
-    withNext(authRoutes.updateSelfPassword),
-  );
-  app.post("/api/v1/auth/logout", withNext(authRoutes.logout));
-  app.post(
-    "/api/v1/auth/forgotPassword",
-    sensitiveRateLimiter,
-    captcha("forgot_password"),
-    withNext(authRoutes.forgotPassword),
-  );
-  app.post(
-    "/api/v1/auth/resetPassword",
-    sensitiveRateLimiter,
-    withNext(authRoutes.resetPassword),
-  );
-  app.post(
-    "/api/v1/auth/confirmEmail",
-    sensitiveRateLimiter,
-    withNext(authRoutes.confirmEmail),
-  );
-  app.post(
-    "/api/v1/auth/sendEmailVerification",
-    sensitiveRateLimiter,
-    withNext(authRoutes.sendEmailVerification),
-  );
-  app.get(
-    "/api/v1/auth/getEmailVerificationToken",
-    authRoutes.getEmailVerificationToken,
-  );
-  app.get(
-    "/api/v1/auth/google",
-    sensitiveRateLimiter,
-    withNext(authRoutes.googleLogin),
-  );
-  app.get(
-    "/api/v1/auth/desktop/google/complete",
-    authRoutes.desktopGoogleComplete,
-  );
-  app.post(
-    "/api/v1/auth/desktop/google/exchange",
-    sensitiveRateLimiter,
-    withNext(authRoutes.desktopGoogleExchange),
-  );
-  app.get(
-    "/api/v1/oauth2/google/callback",
-    withNext(authRoutes.googleCallback),
-  );
-  app.get("/api/v1/auth/sso/test", authRoutes.isValidSsoEmail);
-  app.get("/api/v1/auth/sso/:tenantId/login", authRoutes.ssoLogin);
-  app.get(
-    "/api/v1/auth/sso/:tenantId/consume",
-    withNext(authRoutes.ssoCallback),
+    "/api/v1/settings/preferences",
+    withNext(authRoutes.updatePreferences),
   );
   app.get("/api/v1/auth/airtable", authRoutes.airtableLogin);
   app.get("/api/v1/auth/google-sheets", authRoutes.googleSheetsLogin);
@@ -1234,7 +1096,6 @@ export function addMainAppServerRoutes(
   /**
    * Admin Routes
    */
-  app.post("/api/v1/admin/user", adminOnly, withNext(adminRoutes.createUser));
   app.post(
     "/api/v1/admin/clone",
     adminOnly,
@@ -1245,23 +1106,7 @@ export function addMainAppServerRoutes(
     adminOnly,
     withNext(adminRoutes.revertProjectRevision),
   );
-  app.post(
-    "/api/v1/admin/resetPassword",
-    adminOnly,
-    withNext(adminRoutes.resetPassword),
-  );
 
-  app.post(
-    "/api/v1/admin/setPassword",
-    adminOnly,
-    withNext(adminRoutes.setPassword),
-  );
-  app.post(
-    "/api/v1/admin/updateMode",
-    adminOnly,
-    withNext(adminRoutes.updateSelfAdminMode),
-  );
-  app.get("/api/v1/admin/users", adminOnly, adminRoutes.listUsers);
   app.get(
     "/api/v1/admin/feature-tiers",
     adminOnly,
@@ -1319,16 +1164,6 @@ export function addMainAppServerRoutes(
     withNext(adminRoutes.updateProjectOwner),
   );
   app.post(
-    "/api/v1/admin/login-as",
-    adminOnly,
-    withNext(adminRoutes.adminLoginAs),
-  );
-  app.post(
-    "/api/v1/admin/deactivate-user",
-    adminOnly,
-    withNext(adminRoutes.deactivateUser),
-  );
-  app.post(
     "/api/v1/admin/upgrade-team",
     adminOnly,
     withNext(adminRoutes.upgradeTeam),
@@ -1344,12 +1179,6 @@ export function addMainAppServerRoutes(
     adminOnly,
     withNext(adminRoutes.setDevFlagOverrides),
   );
-  app.post(
-    "/api/v1/admin/upsert-sso",
-    adminOnly,
-    withNext(adminRoutes.upsertSsoConfig),
-  );
-  app.get("/api/v1/admin/get-sso", adminOnly, adminRoutes.getSsoByTeam);
   app.get(
     "/api/v1/admin/get-team-by-white-label-name",
     adminOnly,
@@ -1922,7 +1751,7 @@ export async function createApp(
   await getConnection().transaction(async (entMgr) => {
     const dbMgr = new DbMgr(entMgr, SUPER_USER);
     await ensureDevFlags(dbMgr);
-    await setupPassport(dbMgr, config, DEVFLAGS);
+    await setupDataSourceOAuth(config);
   });
 
   // Sentry setup needs to be first
@@ -2027,54 +1856,22 @@ function corsPreflight() {
   return handler;
 }
 
-export function makeExpressSessionMiddleware(config: Config) {
+function makeIntegrationSessionMiddleware(config: Config) {
   return session({
     cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30-day sessions
-      ...(config.production && {
-        // Allow to be embedded into an iframe in prod.
-        // It's also possible to do this in dev, but it's
-        // a huge pain because secure:true must accompany
-        // sameSite:none, which means you'd have to run
-        // all the dev servers in https mode.
-        sameSite: "none",
-        secure: true,
-      }),
+      maxAge: 10 * 60 * 1000,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: config.host.startsWith("https:"),
     },
-    genid: function (req: any) {
-      const userId = req.user?.id ?? "";
-      return `${userId}-${nanoid(24)}`;
-    },
-    // Trust the proxy in deciding whether we are in an https
-    // connection. Because app server sits behind nginx, which
-    // handles the https and holds just a plain http connection
-    // to the app server, we need to trust that nginx is passing
-    // along the right header to let us know that this is indeed
-    // https, so that we can set secure cookies above.
     proxy: true,
     resave: false,
-    // saveUninitialized (true by default) forces new session
-    // creation and sends Set-Cookie response header, even if the
-    // session was not modified.
-    // We set saveUninitialized: false to avoid:
-    //  1) creating unnecessary sessions
-    //  2) sending Set-Cookie response header, which makes responses
-    //     uncacheable for some CDNs
-    // The above is mainly relevant for API endpoints that originate
-    // from our CLI or SDKs, where CSRF protection is disabled.
-    // Normal web app usage is unaffected (a new session will be
-    // created on the first visit), since lusca.csrf will immediately
-    // set a CSRF token in the session.
     saveUninitialized: false,
-    secret: config.sessionSecret,
+    secret: config.integrationSessionSecret,
+    name: "plasmic-integration",
     store: new TypeormStore({
-      // Don't clean up expired sessions for now till we figure out
-      // why there's a spike here
-      cleanupLimit: 0,
-      // By not using a subquery, maybe less likely for deadlock
+      cleanupLimit: 100,
       limitSubquery: false,
-      onError: () => {},
-      //ttl: 86400,
-    }).connect(getConnection().getRepository(ExpressSession)),
+    }).connect(getConnection().getRepository(IntegrationAuthSession)),
   });
 }

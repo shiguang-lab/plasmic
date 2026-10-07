@@ -58,8 +58,8 @@ export function makeApiClient(
 export const test = testModels.extend<TestFixtures>({
   apiClient: async ({ request, context, baseURL }, use) => {
     const client = makeApiClient(request, baseURL);
-    await client.login("user2@example.com", "!53kr3tz!");
-    const cookies = await request.storageState();
+    await client.authenticate("user2@example.com");
+    const cookies = await client.request.storageState();
 
     await context.addCookies(cookies.cookies);
     await use(client);

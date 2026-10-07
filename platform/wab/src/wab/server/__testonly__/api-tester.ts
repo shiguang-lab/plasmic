@@ -1,4 +1,5 @@
 import { UnknownApiError } from "@/wab/client/api";
+import { testIdentityAssertion } from "@/wab/server/__testonly__/shiguang-fixture";
 import { Project } from "@/wab/server/entities/Entities";
 import { publicCmsReadsContract } from "@/wab/shared/api/cms";
 import { transformErrors } from "@/wab/shared/ApiErrors/errors";
@@ -114,7 +115,12 @@ export class SharedApiTester extends SharedApi {
 
   constructor(baseURL: string, baseHeaders: { [name: string]: string } = {}) {
     super();
+    baseHeaders = { ...baseHeaders, Origin: new URL(baseURL).origin };
     this.apiTester = new ApiTester(baseURL, baseHeaders);
+  }
+
+  authenticateIdentity(email: string) {
+    this.apiTester.setBaseHeader("X-SG-Identity", testIdentityAssertion(email));
   }
 
   user(): ApiUser | undefined {

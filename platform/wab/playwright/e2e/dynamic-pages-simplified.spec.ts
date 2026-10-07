@@ -17,12 +17,7 @@ test.describe("dynamic-pages-simplified", () => {
     testDatabase = await createPostgresTestDatabase();
     await apiClient.createPostgresDataSource(dsname, testDatabase.connection);
 
-    await apiClient.makeApiClient(
-      request,
-      context,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.makeApiClient(request, context, "user2@example.com");
 
     projectId = await apiClient.setupNewProject({ name: "dynamic-pages" });
     await goToProject(page, `/projects/${projectId}`);
@@ -39,7 +34,6 @@ test.describe("dynamic-pages-simplified", () => {
           await apiClient.removeProjectAfterTest(
             projectId,
             "user2@example.com",
-            "!53kr3tz!",
           );
         }
       }

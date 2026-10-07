@@ -133,7 +133,7 @@ export async function createTeam(req: Request, res: Response) {
   const { name: rawName } = uncheckedCast<CreateTeamRequest>(req.body);
   const teamName = rawName
     ? rawName
-    : `${ensure(req.user, "User must be authenticated").firstName}'s Team`;
+    : `${ensure(req.user, "User must be authenticated").displayName}'s Team`;
   const promotionCode = getPromotionCodeCookie(req);
   const extendedFreeTrial = promotionCode
     ? (await superMgr.getPromotionCodeById(promotionCode.id))?.trialDays
@@ -147,10 +147,6 @@ export async function createTeam(req: Request, res: Response) {
   }
   await userMgr.checkCanCreateTeam();
   let team = await userMgr.createTeam(teamName, { extendedFreeTrial });
-  await userMgr.updateUser({
-    id: getUser(req).id,
-    needsTeamCreationPrompt: false,
-  });
 
   if (req.devflags.freeTrial && (await userMgr.canStartFreeTrial(team.id))) {
     await userMgr.startFreeTrial({

@@ -92,11 +92,7 @@ test.describe("hostless-strapi", () => {
   });
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test.describe("can put strapi fetcher with strapi field, fetch and show data", () => {

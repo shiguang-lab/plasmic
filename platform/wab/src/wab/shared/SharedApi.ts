@@ -1,6 +1,5 @@
 import { toOpaque } from "@/wab/commons/types";
 import type { ProjectRevision } from "@/wab/server/entities/Entities";
-import { AuthError } from "@/wab/shared/ApiErrors/errors";
 import {
   AddCommentReactionRequest,
   AddCommentReactionResponse,
@@ -71,8 +70,6 @@ import {
   CommentReactionId,
   CommentThreadId,
   CommitGraph,
-  ConfirmEmailRequest,
-  ConfirmEmailResponse,
   CreateBranchRequest,
   CreateBranchResponse,
   CreateProjectRequest,
@@ -85,8 +82,6 @@ import {
   EditCommentRequest,
   ExistingGithubRepoRequest,
   FeatureTierId,
-  ForgotPasswordRequest,
-  ForgotPasswordResponse,
   GetClipResponse,
   GetCommentsResponse,
   GetDevFlagOverridesResponse,
@@ -117,9 +112,6 @@ import {
   ListProjectsResponse,
   ListTeamProjectsResponse,
   ListTeamsResponse,
-  ListUsersResponse,
-  LoginRequest,
-  LoginResponse,
   MayTriggerPaywall,
   NewGithubRepoRequest,
   NewGithubRepoResponse,
@@ -142,8 +134,6 @@ import {
   QueryCopilotFeedbackResponse,
   QueryCopilotRequest,
   QueryCopilotResponse,
-  ResetPasswordRequest,
-  ResetPasswordResponse,
   ResolveThreadRequest,
   RevalidatePlasmicHostingRequest,
   RevalidatePlasmicHostingResponse,
@@ -151,8 +141,6 @@ import {
   SelfResponse,
   SendCopilotFeedbackRequest,
   SendEmailsResponse,
-  SendEmailVerificationRequest,
-  SendEmailVerificationResponse,
   SetCustomDomainForProjectRequest,
   SetCustomDomainForProjectResponse,
   SetDevFlagOverridesResponse,
@@ -160,8 +148,6 @@ import {
   SetSubdomainForProjectRequest,
   SetSubdomainForProjectResponse,
   SetupIntent,
-  SignUpRequest,
-  SignUpResponse,
   StartFreeTrialResponse,
   StripeCustomerId,
   StripeSubscriptionId,
@@ -179,11 +165,8 @@ import {
   UpdateHostUrlRequest,
   UpdateHostUrlResponse,
   UpdateNotificationSettingsRequest,
-  UpdatePasswordResponse,
   UpdateProjectMetaRequest,
   UpdateProjectResponse,
-  UpdateSelfAdminModeRequest,
-  UpdateSelfRequest,
   UpdateTeamRequest,
   UpdateWorkspaceRequest,
   UsersResponse,
@@ -379,12 +362,8 @@ export abstract class SharedApi {
     return res;
   }
 
-  async updateSelfInfo(data: UpdateSelfRequest) {
-    await this.post("/auth/self", data);
-  }
-
-  async updateSelfAdminMode(data: UpdateSelfAdminModeRequest) {
-    await this.post("/admin/updateMode", data);
+  async updateUserPreferences(data: { extraData: string }) {
+    await this.post("/settings/preferences", data);
   }
 
   getProjects(
@@ -564,89 +543,15 @@ export abstract class SharedApi {
     return this.post("/register", data);
   }
 
-  async login(data: LoginRequest): Promise<LoginResponse> {
-    const res: LoginResponse = await this.post("/auth/login", data, true);
-    if (res.status) {
-      await this.refreshCsrfToken();
-      this.setUser(res.user);
-    }
-    return res;
-  }
-
-  async forgotPassword(
-    data: ForgotPasswordRequest,
-  ): Promise<ForgotPasswordResponse> {
-    const res: ForgotPasswordResponse = await this.post(
-      "/auth/forgotPassword",
-      data,
-      true,
-      await this.captchaToken("forgot_password"),
-    );
-    return res;
-  }
-
-  async isValidSsoEmail(
-    email: string,
-  ): Promise<{ valid: boolean; tenantId?: string }> {
-    const res = await this.get(
-      `/auth/sso/test?${new URLSearchParams({ email }).toString()}`,
-    );
-    return res;
-  }
-
-  async signUp(data: SignUpRequest): Promise<SignUpResponse> {
-    const res: LoginResponse = await this.post(
-      "/auth/sign-up",
-      data,
-      true,
-      await this.captchaToken("sign_up"),
-    );
-    if (res.status) {
-      await this.refreshCsrfToken();
-      this.setUser(res.user);
-    }
-    return res;
-  }
-
   async logout() {
-    const res = await this.post("/auth/logout");
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Shiguang sign-out failed");
+    }
     this.clearUser();
-    await this.refreshCsrfToken();
-    return res;
-  }
-
-  async deleteSelf() {
-    const res = await this.delete("/auth/self");
-    this.clearUser();
-    await this.refreshCsrfToken();
-    return res;
-  }
-
-  async changePassword(
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<UpdatePasswordResponse> {
-    return this.post("/auth/self/password", { oldPassword, newPassword }, true);
-  }
-
-  async resetPassword(
-    data: ResetPasswordRequest,
-  ): Promise<ResetPasswordResponse> {
-    return this.post("/auth/resetPassword", data, true);
-  }
-
-  setPassword(data) {
-    return this.post("/admin/setPassword", data, true);
-  }
-
-  confirmEmail(data: ConfirmEmailRequest): Promise<ConfirmEmailResponse> {
-    return this.post("/auth/confirmEmail", data, true);
-  }
-
-  sendEmailVerification(
-    data: SendEmailVerificationRequest,
-  ): Promise<SendEmailVerificationResponse> {
-    return this.post("/auth/sendEmailVerification", data);
   }
 
   fmtCode({ code, parser }: /*TWZ*/ { code: string; parser: string }) {
@@ -834,32 +739,8 @@ export abstract class SharedApi {
     );
   }
 
-  protected _csrf?: string;
-
   headers(): { [key: string]: string } {
-    if (this.expectFailure) {
-      return {
-        "x-expect-failure": "true",
-      };
-    } else if (this._csrf) {
-      return { "X-CSRF-Token": this._csrf };
-    } else {
-      return {};
-    }
-  }
-
-  async refreshCsrfToken() {
-    try {
-      const { csrf } = await this.get("/auth/csrf");
-      this._csrf = csrf;
-    } catch (err) {
-      if (err instanceof AuthError) {
-        // Reload the page and force user to try logging in again
-        window.top?.location.reload();
-      } else {
-        throw err;
-      }
-    }
+    return this.expectFailure ? { "x-expect-failure": "true" } : {};
   }
 
   async getLastBundleVersion(): Promise<{ latestBundleVersion: string }> {
@@ -921,14 +802,14 @@ export abstract class SharedApi {
     return this.get(url.substring((window.origin + "/api/v1/").length));
   }
 
+  async searchIdentities(query: string): Promise<UsersResponse> {
+    return this.get(`/admin/identities?${new URLSearchParams({ query })}`);
+  }
+
   async getUsersById(ids: string[]): Promise<UsersResponse> {
     assert(ids.length > 0, "Expected at least one user");
     ids = uniq(ids);
     return this.get(`/users/${ids.join(",")}`);
-  }
-
-  async listUsers(): Promise<ListUsersResponse> {
-    return this.get(`/admin/users`);
   }
 
   async createTeam(name: string): Promise<CreateTeamResponse> {
@@ -1195,16 +1076,6 @@ export abstract class SharedApi {
     return this.post(`/admin/change-project-owner`, { projectId, ownerEmail });
   }
 
-  async upsertSsoConfig(args: any): Promise<any> {
-    return await this.post(`/admin/upsert-sso`, args, true);
-  }
-
-  async getSsoConfigByTeamId(teamId: TeamId): Promise<any> {
-    return await this.get(
-      `/admin/get-sso?${new URLSearchParams({ teamId }).toString()}`,
-    );
-  }
-
   async getTeamByWhiteLabelName(name: string): Promise<ApiTeam> {
     const res = await this.get(
       `/admin/get-team-by-white-label-name?${new URLSearchParams({
@@ -1252,10 +1123,6 @@ export abstract class SharedApi {
       expirationDate,
       trialDays,
     });
-  }
-
-  async adminLoginAs(args: { email: string }): Promise<LoginResponse> {
-    return this.post("/admin/login-as", args);
   }
 
   async getDevFlagOverrides(): Promise<GetDevFlagOverridesResponse> {
@@ -1342,10 +1209,6 @@ export abstract class SharedApi {
       branchId,
     });
     return res.rev;
-  }
-
-  async deactivateUserAsAdmin(email: string): Promise<{}> {
-    return this.post("/admin/deactivate-user", { email });
   }
 
   async upgradeTeamAsAdmin(args: {

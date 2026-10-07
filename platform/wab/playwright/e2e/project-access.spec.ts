@@ -7,9 +7,8 @@ test.describe("project-access", () => {
     page,
     apiClient,
     context,
-    request,
   }) => {
-    await apiClient.login("user@example.com", "!53kr3tz!");
+    await apiClient.authenticate("user@example.com");
     const projectId = await apiClient.setupNewProject({
       name: "project-access",
       email: "user@example.com",
@@ -25,8 +24,8 @@ test.describe("project-access", () => {
     );
 
     await page.context().clearCookies();
-    await apiClient.login("user2@example.com", "!53kr3tz!");
-    const cookies = await request.storageState();
+    await apiClient.authenticate("user2@example.com");
+    const cookies = await apiClient.request.storageState();
     await context.addCookies(cookies.cookies);
     await page.goto(`/projects/${projectId}`);
 
@@ -34,20 +33,15 @@ test.describe("project-access", () => {
       timeout: 15_000,
     });
 
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user@example.com");
   });
 
   test("allows other users to view project if inviteOnly: false", async ({
     page,
     apiClient,
     context,
-    request,
   }) => {
-    await apiClient.login("user@example.com", "!53kr3tz!");
+    await apiClient.authenticate("user@example.com");
     const projectId = await apiClient.setupNewProject({
       name: "project-access",
       email: "user@example.com",
@@ -63,8 +57,8 @@ test.describe("project-access", () => {
     );
 
     await page.context().clearCookies();
-    await apiClient.login("user2@example.com", "!53kr3tz!");
-    const cookies = await request.storageState();
+    await apiClient.authenticate("user2@example.com");
+    const cookies = await apiClient.request.storageState();
     await context.addCookies(cookies.cookies);
     await goToProject(page, `/projects/${projectId}`);
 
@@ -80,10 +74,6 @@ test.describe("project-access", () => {
         .getByText("You only have read permission to this project"),
     ).toBeVisible({ timeout: 10000 });
 
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user@example.com");
   });
 });

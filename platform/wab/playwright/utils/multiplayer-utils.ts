@@ -12,28 +12,24 @@ export interface TestUserCredentials {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
 }
 
 export const ADMIN = {
   firstName: "Plasmic",
   lastName: "Admin",
   email: "admin@admin.example.com",
-  password: "!53kr3tz!",
 };
 
 export const USER1 = {
   firstName: "Plasmic",
   lastName: "User",
   email: "user@example.com",
-  password: "!53kr3tz!",
 };
 
 export const USER2 = {
   firstName: "Plasmic",
   lastName: "User 2",
   email: "user2@example.com",
-  password: "!53kr3tz!",
 };
 
 export interface TestUserFixture extends TestFixtures {
@@ -115,8 +111,9 @@ export async function setupMultiplayerProject(
   const sessions = [admin, user1, user2];
 
   await forEachAsync(sessions, async (session) => {
-    await session.apiClient.login(session.user.email, session.user.password);
-    const cookies = await session.request.storageState();
+    await session.apiClient.authenticate(session.user.email);
+    session.request = session.apiClient.request;
+    const cookies = await session.apiClient.request.storageState();
     await session.context.addCookies(cookies.cookies);
   });
 

@@ -96,9 +96,6 @@ export function TeamCreation() {
   async function onSkip() {
     setSubmitting(true);
     try {
-      await appCtx.api.updateSelfInfo({
-        needsTeamCreationPrompt: false,
-      });
       await appCtx.reloadAll();
       appCtx.router.routeTo(nextPath.toString());
     } finally {

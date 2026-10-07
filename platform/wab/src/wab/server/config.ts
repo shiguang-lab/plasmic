@@ -6,8 +6,7 @@ export interface Config {
   host: string;
   production: boolean;
   databaseUri: string;
-  adminEmails: string[];
-  sessionSecret: string;
+  integrationSessionSecret: string;
   mailFrom: string;
   mailUserOps: string;
   mailBcc?: string;
@@ -24,12 +23,10 @@ export const DEFAULT_DATABASE_URI =
 const DEFAULT_CONFIG: Config = {
   host: getPublicUrl(),
   databaseUri: DEFAULT_DATABASE_URI,
-  sessionSecret: "x",
+  integrationSessionSecret: "x",
   mailFrom: "Plasmic <team@example.com>",
   mailUserOps: "ops@example.com",
   production: process.env.NODE_ENV === "production",
-  adminEmails:
-    process.env.NODE_ENV !== "production" ? ["admin@admin.example.com"] : [],
   terminationGracePeriodMs: 5500,
   keepAliveTimeoutMs: 60000,
   genericWorkerPoolSize: 1,
@@ -41,7 +38,10 @@ export const loadConfig = memoizeOne((): Config => {
 
   // Validity checks on config
   if (config.production) {
-    assert(process.env["SESSION_SECRET"], "Production missing Session Secret");
+    assert(
+      process.env["INTEGRATION_SESSION_SECRET"],
+      "Production missing Session Secret",
+    );
     assert(process.env["DATABASE_URI"], "Production missing DB Uri");
     assert(process.env["HOST"], "Production missing Host");
   }
@@ -69,15 +69,10 @@ function parseConfigFromEnv(): Config {
   const envConfig = {
     host: process.env["HOST"],
     databaseUri: process.env["DATABASE_URI"],
-    sessionSecret: process.env["SESSION_SECRET"],
+    integrationSessionSecret: process.env["INTEGRATION_SESSION_SECRET"],
     mailFrom: mailConfig?.mailFrom,
     mailUserOps: mailConfig?.mailUserOps,
     mailBcc: mailConfig?.mailBcc,
-    adminEmails: process.env["ADMIN_EMAILS"]
-      ? (JSON.parse(process.env["ADMIN_EMAILS"]) as string[]).map((email) =>
-          email.toLowerCase(),
-        )
-      : undefined,
     terminationGracePeriodMs: terminationGracePeriodMs,
     keepAliveTimeoutMs: keepAliveTimeoutMs,
     genericWorkerPoolSize: process.env["GENERIC_WORKER_POOL_SIZE"]

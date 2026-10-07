@@ -92,7 +92,7 @@ export async function runProjectUpsellAction(
     }
     case "createOrg": {
       const { team } = await appCtx.api.createTeam(
-        `${appCtx.selfInfo?.firstName ?? "My"}'s ${ORGANIZATION_LOWER}`,
+        `${appCtx.selfInfo?.displayName ?? "My"}'s ${ORGANIZATION_LOWER}`,
       );
       await appCtx.reloadAppCtx();
       if (!(await promptTeamUpgrade(appCtx, team, opts))) {

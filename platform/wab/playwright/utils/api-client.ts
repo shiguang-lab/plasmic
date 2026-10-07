@@ -4,9 +4,9 @@ import {
   Page,
   request as playwrightRequest,
 } from "@playwright/test";
+import { shiguangSession } from "./shiguang-session";
 
 export class ApiClient {
-  private token: string | undefined = undefined;
   private dataSourceId: string | undefined = undefined;
 
   constructor(
@@ -14,73 +14,43 @@ export class ApiClient {
     public baseUrl: string,
   ) {}
 
-  async getCsrf() {
-    const csrfRes = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-
-    if (!csrfRes.ok()) {
-      const errorText = await csrfRes.text();
-      throw new Error(
-        `Failed to get CSRF token: ${csrfRes.status()} ${errorText}`,
-      );
-    }
-    return (await csrfRes.json()).csrf;
-  }
-
   private async withAdminContext<T>(
-    operation: (context: APIRequestContext, token: string) => Promise<T>,
+    operation: (context: APIRequestContext) => Promise<T>,
   ): Promise<T> {
-    const adminContext = await playwrightRequest.newContext({
+    const context = await playwrightRequest.newContext({
       baseURL: this.baseUrl,
+      storageState: {
+        cookies: [shiguangSession("admin@admin.example.com", this.baseUrl)],
+        origins: [],
+      },
+      extraHTTPHeaders: { Origin: new URL(this.baseUrl).origin },
     });
-
     try {
-      const csrfRes = await adminContext.get(
-        `${this.baseUrl}/api/v1/auth/csrf`,
-      );
-      const adminToken = (await csrfRes.json()).csrf;
-
-      await adminContext.post(`${this.baseUrl}/api/v1/auth/login`, {
-        data: { email: "admin@admin.example.com", password: "!53kr3tz!" },
-        headers: { "X-CSRF-Token": adminToken },
-      });
-
-      const csrfRes2 = await adminContext.get(
-        `${this.baseUrl}/api/v1/auth/csrf`,
-      );
-      const adminToken2 = (await csrfRes2.json()).csrf;
-
-      return await operation(adminContext, adminToken2);
+      return await operation(context);
     } finally {
-      await adminContext.dispose();
+      await context.dispose();
     }
   }
 
-  async login(email: string, password: string) {
-    this.token = await this.getCsrf();
-
-    if (!this.token) {
-      throw Error("X-CSRF-Token is not set");
-    }
-
-    await this.request.post(`${this.baseUrl}/api/v1/auth/login`, {
-      data: { email, password },
-      headers: { "X-CSRF-Token": this.token },
+  async authenticate(email: string) {
+    this.request = await playwrightRequest.newContext({
+      baseURL: this.baseUrl,
+      storageState: {
+        cookies: [shiguangSession(email, this.baseUrl)],
+        origins: [],
+      },
+      extraHTTPHeaders: { Origin: new URL(this.baseUrl).origin },
     });
-
-    const csrfRes2 = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-
-    if (!csrfRes2.ok()) {
-      const errorText = await csrfRes2.text();
-      throw new Error(
-        `Failed to refresh CSRF token after login: ${csrfRes2.status()} ${errorText}`,
-      );
+    const response = await this.request.get(`${this.baseUrl}/api/v1/auth/self`);
+    if (!response.ok() || (await response.json()).user?.email !== email) {
+      throw new Error("IAM test session was rejected");
     }
-
-    this.token = (await csrfRes2.json()).csrf;
   }
 
   async logout() {
-    await this.request.post(`${this.baseUrl}/api/v1/auth/logout`);
+    await this.request.post(`${this.baseUrl}/api/auth/logout`, {
+      headers: { Origin: new URL(this.baseUrl).origin },
+    });
   }
 
   async removeProject(projectId: string) {
@@ -88,7 +58,6 @@ export class ApiClient {
   }
 
   async setupPaidWorkspace(): Promise<string> {
-    const csrf = await this.getCsrf();
     const teamsRes = await this.request.get(`${this.baseUrl}/api/v1/teams`);
     const team = (await teamsRes.json()).teams.find(
       (t) => t.name === "Test Pro Org",
@@ -109,7 +78,7 @@ export class ApiClient {
       `${this.baseUrl}/api/v1/workspaces`,
       {
         data: { name: "Paid workspace", teamId: team.id },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
     if (!createRes.ok()) {
@@ -125,9 +94,6 @@ export class ApiClient {
   }
 
   async importProjectFromTemplate(bundle: any) {
-    if (!this.token) {
-      throw Error("X-CSRF-Token is not set");
-    }
     const res = await this.request.post(
       `${this.baseUrl}/api/v1/projects/import`,
       {
@@ -136,7 +102,7 @@ export class ApiClient {
           keepProjectIdsAndNames: false,
           migrationsStrict: true,
         },
-        headers: { "X-CSRF-Token": this.token },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
     return (await res.json()).projectId;
@@ -159,15 +125,13 @@ export class ApiClient {
     skipTours?: boolean;
     workspaceId?: string;
   }): Promise<string> {
-    const csrf = await this.getCsrf();
-
     const res = await this.request.post(`${this.baseUrl}/api/v1/projects`, {
       data: {
         name: name ? `[playwright] ${name}` : undefined,
         devFlags,
         workspaceId,
       },
-      headers: { "X-CSRF-Token": csrf },
+      headers: { Origin: new URL(this.baseUrl).origin },
     });
 
     const projectId = (await res.json()).project.id;
@@ -175,7 +139,7 @@ export class ApiClient {
     if (inviteOnly !== undefined) {
       await this.request.put(`${this.baseUrl}/api/v1/projects/${projectId}`, {
         data: { inviteOnly },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       });
     }
     return projectId;
@@ -232,9 +196,6 @@ export class ApiClient {
     project: { id: string };
     hostLessProjectIds: string[];
   }> {
-    const csrfRes = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-    const csrf = (await csrfRes.json()).csrf;
-
     const res = await this.request.post(
       `${this.baseUrl}/api/v1/projects/create-project-with-hostless-packages`,
       {
@@ -262,7 +223,7 @@ export class ApiClient {
               ],
           devFlags,
         },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
         timeout: 30000,
       },
     );
@@ -296,9 +257,8 @@ export class ApiClient {
       return tokens.tokens[0].token;
     }
 
-    const csrf = await this.getCsrf();
     const tokenResponse = await this.request.put("/api/v1/settings/apitokens", {
-      headers: { "X-CSRF-Token": csrf },
+      headers: { Origin: new URL(this.baseUrl).origin },
     });
     const tokenData = await tokenResponse.json();
     return tokenData.token.token;
@@ -314,12 +274,9 @@ export class ApiClient {
       password: string;
     },
   ) {
-    const csrfRes = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-    const csrf = (await csrfRes.json()).csrf;
-
     const workspaceRes = await this.request.get(
       `${this.baseUrl}/api/v1/personal-workspace`,
-      { headers: { "X-CSRF-Token": csrf } },
+      { headers: { Origin: new URL(this.baseUrl).origin } },
     );
     const workspaceId = (await workspaceRes.json()).workspace.id;
 
@@ -340,7 +297,7 @@ export class ApiClient {
             user: connection.user,
           },
         },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
     const result = await response.json();
@@ -348,26 +305,20 @@ export class ApiClient {
     return result.id;
   }
 
-  async removeProjectAfterTest(
-    projectId: string | undefined,
-    email: string,
-    password: string,
-  ) {
+  async removeProjectAfterTest(projectId: string | undefined, email: string) {
     if (!projectId) {
       throw new Error("Project ID is required for project removal");
     }
-    await this.login(email, password);
+    await this.authenticate(email);
     await this.removeProject(projectId);
   }
 
   async updateProjectMeta(projectId: string, meta: Record<string, any>) {
-    const csrf = await this.getCsrf();
-
     const res = await this.request.put(
       `${this.baseUrl}/api/v1/projects/${projectId}/meta`,
       {
         data: meta,
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
 
@@ -390,9 +341,6 @@ export class ApiClient {
       initialValue: string;
     },
   ) {
-    const csrfRes = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-    const csrf = (await csrfRes.json()).csrf;
-
     const response = await this.request.post(
       `${this.baseUrl}/api/v1/projects/${projectId}/components/${componentId}/states`,
       {
@@ -402,7 +350,7 @@ export class ApiClient {
           accessType: state.accessType,
           initialValue: state.initialValue,
         },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
 
@@ -410,11 +358,9 @@ export class ApiClient {
   }
 
   async createFakeDataSource(options?: any) {
-    const csrf = await this.getCsrf();
-
     const workspaceRes = await this.request.get(
       `${this.baseUrl}/api/v1/personal-workspace`,
-      { headers: { "X-CSRF-Token": csrf } },
+      { headers: { Origin: new URL(this.baseUrl).origin } },
     );
     const workspaceId = (await workspaceRes.json()).workspace.id;
 
@@ -428,7 +374,7 @@ export class ApiClient {
     const response = await this.request.post(
       `${this.baseUrl}/api/v1/data-source/sources`,
       {
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
         data: createDataSourceOptions,
       },
     );
@@ -440,12 +386,10 @@ export class ApiClient {
 
   async deleteDataSourceOfCurrentTest() {
     if (this.dataSourceId) {
-      const csrf = await this.getCsrf();
-
       await this.request.delete(
         `${this.baseUrl}/api/v1/data-source/sources/${this.dataSourceId}`,
         {
-          headers: { "X-CSRF-Token": csrf },
+          headers: { Origin: new URL(this.baseUrl).origin },
         },
       );
 
@@ -458,8 +402,6 @@ export class ApiClient {
     userEmail: string,
     accessLevel: string = "editor",
   ) {
-    const csrf = await this.getCsrf();
-
     const res = await this.request.post(`${this.baseUrl}/api/v1/grant-revoke`, {
       data: {
         grants: [
@@ -471,7 +413,7 @@ export class ApiClient {
         ],
         revokes: [],
       },
-      headers: { "X-CSRF-Token": csrf },
+      headers: { Origin: new URL(this.baseUrl).origin },
     });
     return await res.json();
   }
@@ -498,15 +440,11 @@ export class ApiClient {
       bundle = templateNameOrBundle;
     }
 
-    if (!this.token) {
-      throw Error("X-CSRF-Token is not set");
-    }
-
     const importResponse = await this.request.post(
       `${this.baseUrl}/api/v1/projects/import`,
       {
         headers: {
-          "X-CSRF-Token": this.token,
+          Origin: new URL(this.baseUrl).origin,
         },
         data: {
           data: JSON.stringify(bundle),
@@ -528,28 +466,25 @@ export class ApiClient {
   }
 
   async deleteProjectAndRevisions(projectId: string) {
-    return this.withAdminContext(async (context, token) => {
+    return this.withAdminContext(async (context) => {
       await context.delete(
         `${this.baseUrl}/api/v1/admin/delete-project-and-revisions`,
         {
           data: {
             projectId,
           },
-          headers: { "X-CSRF-Token": token },
+          headers: { Origin: new URL(this.baseUrl).origin },
         },
       );
     });
   }
 
   async getUserEmailVerificationToken(email: string): Promise<string> {
-    const csrfRes = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-    const csrf = (await csrfRes.json()).csrf;
-
     const response = await this.request.get(
       `${this.baseUrl}/api/v1/auth/getEmailVerificationToken`,
       {
         data: { email },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
 
@@ -563,14 +498,12 @@ export class ApiClient {
     workspaceId?: string;
   }): Promise<{ projectId: string; workspaceId: string }> {
     const { projectId, name, workspaceId } = opts;
-    const csrfRes = await this.request.get(`${this.baseUrl}/api/v1/auth/csrf`);
-    const csrf = (await csrfRes.json()).csrf;
 
     const response = await this.request.post(
       `${this.baseUrl}/api/v1/projects/${projectId}/clone`,
       {
         data: { name, workspaceId },
-        headers: { "X-CSRF-Token": csrf },
+        headers: { Origin: new URL(this.baseUrl).origin },
       },
     );
 
@@ -589,11 +522,10 @@ export class ApiClient {
     request: APIRequestContext,
     context: BrowserContext,
     email = "user2@example.com",
-    password = "!53kr3tz!",
   ) {
-    const client = new ApiClient(request, "http://localhost:3003");
-    await client.login(email, password);
-    const cookies = await request.storageState();
+    const client = new ApiClient(request, this.baseUrl);
+    await client.authenticate(email);
+    const cookies = await client.request.storageState();
 
     await context.addCookies(cookies.cookies);
     return client;

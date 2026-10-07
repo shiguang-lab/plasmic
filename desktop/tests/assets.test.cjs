@@ -55,20 +55,48 @@ test("Studio navigation and refresh use local index without a network fallback",
 test("update UI is injected and served locally without fetching NAS static assets", async () => {
   const page = path.join(root, "updates-page");
   await fs.mkdir(page);
-  await fs.writeFile(path.join(page, "index.html"), "<html><head></head><body></body></html>");
+  await fs.writeFile(
+    path.join(page, "index.html"),
+    "<html><head></head><body></body></html>",
+  );
   await fs.mkdir(path.join(page, "static"));
-  await fs.writeFile(path.join(page, "static/host.html"), "<html><head></head><body>canvas</body></html>");
+  await fs.writeFile(
+    path.join(page, "static/host.html"),
+    "<html><head></head><body>canvas</body></html>",
+  );
   const updateUiPath = path.join(page, "update-ui.js");
   await fs.writeFile(updateUiPath, "window.updateUiLoaded = true;");
-  const handler = createAssetHandler({ root: page, ...config, updateUiPath, remoteFetch: () => { throw new Error("Unexpected network request"); } });
-  const response = await handler(new Request(config.studioOrigin + "/projects/123"));
-  assert.match(await response.text(), /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/);
-  const canvas = await handler(new Request(config.canvasOrigin + "/static/host.html"));
+  const pageHandler = createAssetHandler({
+    root: page,
+    ...config,
+    updateUiPath,
+    remoteFetch: () => {
+      throw new Error("Unexpected network request");
+    },
+  });
+  const response = await pageHandler(
+    new Request(config.studioOrigin + "/projects/123"),
+  );
+  assert.match(
+    await response.text(),
+    /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/,
+  );
+  const canvas = await pageHandler(
+    new Request(config.canvasOrigin + "/static/host.html"),
+  );
   const canvasHtml = await canvas.text();
   assert.match(canvasHtml, /static\/desktop\/update-ui.js/);
-  assert.match(canvasHtml, /data-studio-origin="https:\/\/studio.plasmic.shiguanglab.com"/);
-  assert.match(canvasHtml, /data-canvas-origin="https:\/\/canvas.plasmic.shiguanglab.com"/);
-  const script = await handler(new Request(config.studioOrigin + "/static/desktop/update-ui.js"));
+  assert.match(
+    canvasHtml,
+    /data-studio-origin="https:\/\/studio.plasmic.shiguanglab.com"/,
+  );
+  assert.match(
+    canvasHtml,
+    /data-canvas-origin="https:\/\/canvas.plasmic.shiguanglab.com"/,
+  );
+  const script = await pageHandler(
+    new Request(config.studioOrigin + "/static/desktop/update-ui.js"),
+  );
   assert.match(script.headers.get("Content-Type"), /javascript/);
   assert.equal(await script.text(), "window.updateUiLoaded = true;");
 });
@@ -97,24 +125,24 @@ test("Missing assets return 404 and never fetch remotely", async () => {
   );
   assert.equal(remote.length, count);
 });
-test("API requests preserve POST body, CSRF and cookie headers", async () => {
+test("API requests preserve POST body, origin and shared-cookie headers", async () => {
   const response = await handler(
-    new Request(config.studioOrigin + "/api/v1/auth/login", {
+    new Request(config.studioOrigin + "/api/v1/settings/preferences", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRF-Token": "test-csrf",
-        Cookie: "session=test",
+        Origin: config.studioOrigin,
+        Cookie: "__Secure-sg_session=test",
       },
-      body: '{"email":"test@example.com","password":"test-password"}',
+      body: '{"extraData":"{}"}',
     }),
   );
   assert.equal(response.status, 200);
   const request = remote.at(-1);
   assert.equal(request.method, "POST");
-  assert.equal(request.headers.get("X-CSRF-Token"), "test-csrf");
-  assert.equal(request.headers.get("Cookie"), "session=test");
-  assert.equal(JSON.parse(request.body).email, "test@example.com");
+  assert.equal(request.headers.get("Origin"), config.studioOrigin);
+  assert.equal(request.headers.get("Cookie"), "__Secure-sg_session=test");
+  assert.equal(JSON.parse(request.body).extraData, "{}");
 });
 test("User uploads, health and external resources remain remote", async () => {
   for (const url of [
@@ -227,15 +255,15 @@ test("Project requests reuse bundled Google font faces; other families remain re
   assert.equal(fetched, 1);
 });
 
-test("Google login intermediate page is bundled and never goes to the NAS or SPA", async () => {
+test("Unified login intermediate page is bundled and never goes to the NAS or SPA", async () => {
   const auth = createAssetHandler({
     root,
     ...config,
-    authPagePath: path.resolve(__dirname, "../src/google-login.html"),
+    authPagePath: path.resolve(__dirname, "../src/unified-login.html"),
     remoteFetch: () => assert.fail("Login UI must be local"),
   });
   const response = await auth(
-    new Request(config.studioOrigin + "/desktop/google-login"),
+    new Request(config.studioOrigin + "/desktop/unified-login"),
   );
   assert.equal(response.headers.get("Cache-Control"), "no-store");
   assert.match(await response.text(), /Open browser/);

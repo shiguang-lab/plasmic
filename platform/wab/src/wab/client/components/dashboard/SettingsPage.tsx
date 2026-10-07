@@ -61,12 +61,10 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
                 />
               )}
               <SettingsContainer
-                name={`${user.firstName} ${user.lastName}`}
+                name={user.displayName}
                 email={user.email}
-                avatarImgUrl={user.avatarUrl || undefined}
                 tokensState={tokensState}
                 hostsState={hostsState}
-                hideChangePassword={appCtx.selfInfo?.usesOauth}
                 onNewToken={() => ops.createPersonalApiToken()}
                 onDeleteToken={(token: string) =>
                   ops.revokePersonalApiToken(token)

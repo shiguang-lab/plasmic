@@ -220,7 +220,14 @@ export async function doGenCode(
   );
 
   // Just using the default DEVFLAGS here
-  if (isAdminTeamEmail(project.createdBy?.email, DEVFLAGS)) {
+  if (
+    isAdminTeamEmail(
+      project.createdById
+        ? (await mgr.tryGetUserById(project.createdById))?.email
+        : undefined,
+      DEVFLAGS,
+    )
+  ) {
     exportOpts.isPlasmicTeamUser = true;
   }
   // List of checksums as [image id, checksum]

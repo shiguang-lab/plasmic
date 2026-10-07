@@ -1,6 +1,9 @@
-import { makeExpressSessionMiddleware } from "@/wab/server/AppServer";
 import { getApiTokenUser } from "@/wab/server/auth/routes";
-import { Config } from "@/wab/server/config";
+import {
+  isShiguangOrigin,
+  verifyShiguangIdentity,
+} from "@/wab/server/auth/shiguang";
+import { Config, loadConfig } from "@/wab/server/config";
 import { getLastBundleVersion } from "@/wab/server/db/BundleMigrator";
 import {
   ANON_USER,
@@ -28,9 +31,9 @@ import { ensure, maybe, spawnWrapper, withoutNils } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { modelSchemaHash } from "@/wab/shared/model/classes-metas";
-import { Request, Response } from "express";
+import { Request } from "express";
 import { Server } from "http";
-import { get } from "lodash";
+import { randomUUID } from "node:crypto";
 import { Gauge } from "prom-client";
 import { Server as SocketIoServer, Socket as UntypedSocket } from "socket.io";
 import { getConnection } from "typeorm";
@@ -61,14 +64,6 @@ export class ProjectsSocket {
       path: "/api/v1/socket",
     });
 
-    const expressSessionMiddleware = makeExpressSessionMiddleware(config);
-    this.io.use((socket, next) => {
-      expressSessionMiddleware(
-        socket.request as Request,
-        {} as Response,
-        next as any,
-      );
-    });
     this.io.use(spawnWrapper(socketAuthMiddleware));
 
     this.io.on("connection", async (socket) => {
@@ -337,18 +332,32 @@ async function extractAuthUser(
   const request = socket.request as Request;
 
   return await withDbMgr({ actor: SUPER_USER }, async (mgr) => {
-    if (get(socket, "request.session.passport.user")) {
-      // This is a user logged in with a passport cookie
-      logger().info(
-        "Socket logged in via passport",
-        // @ts-ignore
-        request.session?.passport.user,
+    const assertion = socket.handshake.headers["x-sg-identity"];
+    if (assertion !== undefined) {
+      if (typeof assertion !== "string") {
+        throw new Error("Invalid Shiguang identity");
+      }
+      if (
+        !isShiguangOrigin(socket.handshake.headers.origin, loadConfig().host)
+      ) {
+        throw new Error("Invalid socket origin");
+      }
+      const identity = await verifyShiguangIdentity(assertion);
+      request.sessionID = identity.sid;
+      const timer = setTimeout(
+        () => socket.client.conn.close(),
+        Math.max(0, identity.exp * 1000 - Date.now()),
       );
+      socket.once("disconnect", () => clearTimeout(timer));
       return {
-        // @ts-ignore
-        actor: normalActor(request.session?.passport.user),
+        actor: normalActor(
+          identity.sub as import("@/wab/shared/ApiSchema").UserId,
+          false,
+          identity.roles.includes("system-admin"),
+        ),
       };
     }
+    request.sessionID = randomUUID();
 
     const projectTokensStr =
       socket.handshake.headers["x-plasmic-api-project-tokens"];

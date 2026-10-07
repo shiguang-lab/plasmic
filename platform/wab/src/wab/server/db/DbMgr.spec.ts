@@ -3,6 +3,7 @@ import {
   withDb,
 } from "@/wab/server/__testonly__/backend-util";
 import { withBranch } from "@/wab/server/__testonly__/branching-utils";
+import { createTestUser } from "@/wab/server/__testonly__/shiguang-fixture";
 import { seedTestDb } from "@/wab/server/db/DbInit";
 import {
   ANON_USER,
@@ -18,6 +19,7 @@ import {
   Permission,
   Team,
   User,
+  UserTrialClaim,
 } from "@/wab/server/entities/Entities";
 import { createTeam as createTeamRoute } from "@/wab/server/routes/teams";
 import {
@@ -1933,20 +1935,18 @@ describe("DbMgr.user", () => {
       ).not.toContain(project.id);
     }));
 
-  it("creates user with 2 teams/workspaces if needsTeamCreationPrompt: false", async () => {
+  it("keeps explicit organization resources separate from the personal workspace", async () => {
     await withDb(async (sudo, _users, _dbs, _project, em) => {
-      const user = await sudo.createUser({
+      const user = await createTestUser(sudo, {
         email: "user@domain.com",
-        password: "!53kr3tz!",
-        firstName: "Firstname",
-        lastName: "Lastname",
-        needsTeamCreationPrompt: false,
+        displayName: "Firstname",
+        createTeam: true,
       });
 
       // matches getUserById
       const userDbMgr = new DbMgr(em, normalActor(user.id));
       const getUser = await userDbMgr.getUserById(user.id);
-      expect(getUser).toEqual(L.omit(user, "freeTrialStartedAt"));
+      expect(getUser).toEqual(user);
 
       // creates 2 teams: personal team and organization
       const teams = await userDbMgr.getAffiliatedTeams();
@@ -1956,7 +1956,7 @@ describe("DbMgr.user", () => {
       )!;
       expect(personalTeam.name).toEqual("Personal team");
       const orgTeam = teams.find((t) => t.personalTeamOwnerId === null)!;
-      expect(orgTeam.name).toEqual("Firstname's First Organization");
+      expect(orgTeam.name).toEqual("Firstname's team");
 
       // team permissions should match
       const teamPermissions = await userDbMgr.getAffiliatedTeamPermissions();
@@ -1986,7 +1986,7 @@ describe("DbMgr.user", () => {
             teamId: personalTeam.id,
           }),
           expect.objectContaining({
-            name: "Firstname's First Workspace",
+            name: "Workspace",
             teamId: orgTeam.id,
           }),
         ]),
@@ -1999,9 +1999,8 @@ describe("DbMgr organization entitlements", () => {
   it("limits users to one unpaid organization", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       const { teamFt } = await seedTestFeatureTiers(em);
-      const limitedUser = await sudo.createUser({
+      const limitedUser = await createTestUser(sudo, {
         email: "limited-orgs@example.com",
-        needsTeamCreationPrompt: true,
       });
       const limitedMgr = new DbMgr(em, normalActor(limitedUser.id));
       const firstTeam = await limitedMgr.createTeam("First org");
@@ -2030,9 +2029,8 @@ describe("DbMgr organization entitlements", () => {
   it("blocks canceling a subscription next to an unpaid organization", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       const { teamFt } = await seedTestFeatureTiers(em);
-      const user = await sudo.createUser({
+      const user = await createTestUser(sudo, {
         email: "cancel-orgs@example.com",
-        needsTeamCreationPrompt: true,
       });
       const mgr = new DbMgr(em, normalActor(user.id));
       const paidTeam = await mgr.createTeam("Paid org");
@@ -2059,9 +2057,8 @@ describe("DbMgr organization entitlements", () => {
   it("treats provisioned tiers and children of paid organizations as paid", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       const { enterpriseFt } = await seedTestFeatureTiers(em);
-      const user = await sudo.createUser({
+      const user = await createTestUser(sudo, {
         email: "provisioned-orgs@example.com",
-        needsTeamCreationPrompt: true,
       });
       const mgr = new DbMgr(em, normalActor(user.id));
       const parent = await mgr.createTeam("Enterprise");
@@ -2083,9 +2080,8 @@ describe("DbMgr organization entitlements", () => {
   it("blocks restoring an unpaid organization next to another unpaid organization", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       const { teamFt } = await seedTestFeatureTiers(em);
-      const user = await sudo.createUser({
+      const user = await createTestUser(sudo, {
         email: "restore-orgs@example.com",
-        needsTeamCreationPrompt: true,
       });
       const mgr = new DbMgr(em, normalActor(user.id));
       const firstTeam = await mgr.createTeam("First org");
@@ -2107,13 +2103,12 @@ describe("DbMgr organization entitlements", () => {
   it("returns a complete feature tier when creating a team with an automatic trial", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       await seedTestFeatureTiers(em);
-      const owner = await sudo.createUser({
+      const owner = await createTestUser(sudo, {
         email: "automatic-trial@example.com",
-        needsTeamCreationPrompt: true,
       });
-      await sudo.markEmailAsVerified(owner);
       const req = Object.assign(mock<Request>(), {
         user: owner,
+        shiguangIdentity: undefined,
         txMgr: em,
         timingStore: undefined,
         body: { name: "Automatic trial org" },
@@ -2143,9 +2138,8 @@ describe("DbMgr organization entitlements", () => {
   it("allows one free trial per owner", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       await seedTestFeatureTiers(em);
-      const trialUser = await sudo.createUser({
+      const trialUser = await createTestUser(sudo, {
         email: "trial-user@example.com",
-        needsTeamCreationPrompt: true,
       });
       const trialMgr = new DbMgr(em, normalActor(trialUser.id));
       const firstTeam = await trialMgr.createTeam("Trial org");
@@ -2169,13 +2163,11 @@ describe("DbMgr organization entitlements", () => {
   it("keys free-trial eligibility to the organization owner", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       await seedTestFeatureTiers(em);
-      const owner = await sudo.createUser({
+      const owner = await createTestUser(sudo, {
         email: "trial-owner@example.com",
-        needsTeamCreationPrompt: true,
       });
-      const editor = await sudo.createUser({
+      const editor = await createTestUser(sudo, {
         email: "trial-editor@example.com",
-        needsTeamCreationPrompt: true,
       });
       const ownerMgr = new DbMgr(em, normalActor(owner.id));
       const editorMgr = new DbMgr(em, normalActor(editor.id));
@@ -2211,9 +2203,8 @@ describe("DbMgr organization entitlements", () => {
   it("allows a superuser to reset a team trial without clearing the owner's claim", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
       await seedTestFeatureTiers(em);
-      const owner = await sudo.createUser({
+      const owner = await createTestUser(sudo, {
         email: "trial-reset@example.com",
-        needsTeamCreationPrompt: true,
       });
       const ownerMgr = new DbMgr(em, normalActor(owner.id));
       const team = await ownerMgr.createTeam("Trial org");
@@ -2223,12 +2214,11 @@ describe("DbMgr organization entitlements", () => {
       });
       const getTrialClaim = async () =>
         ensure(
-          await em.getRepository(User).findOne({
-            select: ["id", "freeTrialStartedAt"],
-            where: { id: owner.id },
+          await em.getRepository(UserTrialClaim).findOne({
+            where: { userId: owner.id },
           }),
           "Trial owner must exist",
-        ).freeTrialStartedAt;
+        ).claimedAt;
       const firstTrialClaim = await getTrialClaim();
       expect(firstTrialClaim).toBeInstanceOf(Date);
 
@@ -2244,13 +2234,11 @@ describe("DbMgr organization entitlements", () => {
 
   it("blocks unpaid organization transfers without a superuser override", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
-      const owner = await sudo.createUser({
+      const owner = await createTestUser(sudo, {
         email: "unpaid-org-owner@example.com",
-        needsTeamCreationPrompt: true,
       });
-      const newOwner = await sudo.createUser({
+      const newOwner = await createTestUser(sudo, {
         email: "unpaid-org-new-owner@example.com",
-        needsTeamCreationPrompt: true,
       });
       const ownerMgr = new DbMgr(em, normalActor(owner.id));
       const team = await ownerMgr.createTeam("Unpaid org");
@@ -2291,13 +2279,11 @@ describe("DbMgr organization entitlements", () => {
 
   it("allows paid organization transfers without an override", () =>
     withDb(async (sudo, _users, _dbs, _project, em) => {
-      const owner = await sudo.createUser({
+      const owner = await createTestUser(sudo, {
         email: "paid-org-owner@example.com",
-        needsTeamCreationPrompt: true,
       });
-      const newOwner = await sudo.createUser({
+      const newOwner = await createTestUser(sudo, {
         email: "paid-org-new-owner@example.com",
-        needsTeamCreationPrompt: true,
       });
       const ownerMgr = new DbMgr(em, normalActor(owner.id));
       const { teamFt } = await seedTestFeatureTiers(em);
@@ -2405,9 +2391,8 @@ describe("DbMgr project transfers", () => {
   it("allows transfers into a child of a paid organization", () =>
     withDb(async (sudo, _users, [db1], project, em) => {
       const { enterpriseFt } = await seedTestFeatureTiers(em);
-      const newOwner = await sudo.createUser({
+      const newOwner = await createTestUser(sudo, {
         email: "child-org-new-owner@example.com",
-        needsTeamCreationPrompt: true,
       });
       const parent = await db1().createTeam("Enterprise");
       await sudo.sudoUpdateTeam({

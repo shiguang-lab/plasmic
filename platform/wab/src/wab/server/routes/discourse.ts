@@ -71,12 +71,8 @@ export async function discourseConnect(req: Request, res: Response) {
     nonce,
     email: user.email,
     external_id: user.id,
-    username: L.kebabCase(`${user.firstName} ${user.lastName}`).replace(
-      "-",
-      "_",
-    ),
-    name: `${user.firstName} ${user.lastName}`,
-    avatar_url: user.avatarUrl,
+    username: L.kebabCase(`${user.displayName}`).replace("-", "_"),
+    name: `${user.displayName}`,
     add_groups: groupsCommaDelimited,
   });
   const responsePayloadEncoded = new Buffer(

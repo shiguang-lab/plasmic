@@ -27,11 +27,7 @@ test.describe("schema", () => {
 
   test.afterEach(async ({ apiClient }) => {
     await apiClient.deleteDataSourceOfCurrentTest();
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("can use schema forms for new entry", async ({ models, page }) => {

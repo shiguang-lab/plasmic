@@ -1,9 +1,6 @@
 import { useNonAuthCtx } from "@/wab/client/app-ctx";
-import styles from "@/wab/client/components/auth/ConnectOAuth.module.scss";
 import Button from "@/wab/client/components/widgets/Button";
 import { PlasmicButton__VariantsArgs } from "@/wab/client/plasmic/PlasmicButton";
-import GLogo from "@/wab/commons/images/g-logo.png";
-import OktaLogo from "@/wab/commons/images/okta-logo.png";
 import { WrappedStorageEvent } from "@/wab/shared/SharedApi";
 import { mkUuid, spawn } from "@/wab/shared/common";
 import { proxy } from "comlink";
@@ -108,56 +105,5 @@ export function ConnectOAuthButton(props: ConnectOAuthButtonProps) {
     >
       {isWaiting ? props.waitingChildren || props.children : props.children}
     </Button>
-  );
-}
-
-export function GoogleSignInButton(props: {
-  googleAuthUrl: string;
-  size?: PlasmicButton__VariantsArgs["size"];
-  children?: React.ReactNode;
-  onStart: () => void;
-  onSuccess: () => void;
-  onFailure: (reason: string) => void;
-}) {
-  // Must adhere to Google branding guidelines
-  return (
-    <ConnectOAuthButton
-      onStart={props.onStart}
-      onSuccess={props.onSuccess}
-      onFailure={props.onFailure}
-      url={props.googleAuthUrl}
-      size={props.size}
-      style={{
-        background: "white",
-        border: "1px solid #eee",
-        borderBottom: "1px solid #ccc",
-      }}
-      icon={<img alt={"Google"} className={styles.Icon} src={GLogo} />}
-    >
-      {props.children || "Sign in with Google"}
-    </ConnectOAuthButton>
-  );
-}
-
-export function OktaSignInButton(props: {
-  oktaAuthUrl: string;
-  size?: PlasmicButton__VariantsArgs["size"];
-  children?: React.ReactNode;
-  onStart: () => void;
-  onSuccess: () => void;
-  onFailure: (reason: string) => void;
-}) {
-  return (
-    <ConnectOAuthButton
-      onStart={props.onStart}
-      onSuccess={props.onSuccess}
-      onFailure={props.onFailure}
-      url={props.oktaAuthUrl}
-      size={props.size}
-      waitingChildren={"Signing in via Okta..."}
-      icon={<img alt={"Okta"} className={styles.Icon} src={OktaLogo} />}
-    >
-      {props.children || "Log in with Okta"}
-    </ConnectOAuthButton>
   );
 }

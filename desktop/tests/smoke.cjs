@@ -25,7 +25,9 @@ const env = Object.fromEntries(
 );
 async function until(win, expression) {
   for (let i = 0; i < 180; i++) {
-    if (await win.webContents.executeJavaScript(expression)) return;
+    if (await win.webContents.executeJavaScript(expression)) {
+      return;
+    }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   throw new Error("Studio did not become ready");
@@ -44,23 +46,26 @@ app
         report.editorErrors.push(details.message);
       }
     });
-    // Main-process fetch intentionally bypasses our local handler. Renderer login
-    // below exercises forwarding, CSRF, request body and session cookie persistence.
-    const source = await win.webContents.executeJavaScript(
-      "document.documentElement.outerHTML",
+    assert(
+      env.SG_SESSION,
+      "Set SG_SESSION to an IAM-issued acceptance session",
     );
-    assert(source.includes("<html"), "No local document");
-    await until(win, "document.readyState === 'complete'");
-    const login = await win.webContents.executeJavaScript(`(async () => {
-    const csrf = (await (await fetch('/api/v1/auth/csrf')).json()).csrf;
-    const response = await fetch('/api/v1/auth/login', {method:'POST',
-      headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
-      body:JSON.stringify(${JSON.stringify({ email: env.ADMIN_EMAIL, password: env.ADMIN_PASSWORD })})});
-    return {status:response.status, authenticated:(await response.json()).status};
-  })()`);
+    await ses.cookies.set({
+      url: config.studioOrigin,
+      name: "__Secure-sg_session",
+      value: env.SG_SESSION,
+      domain: ".shiguanglab.com",
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+    });
+    const login = await ses.fetch(config.studioOrigin + "/api/v1/auth/self", {
+      credentials: "include",
+      bypassCustomProtocolHandlers: true,
+    });
     assert.equal(login.status, 200);
-    assert(login.authenticated, "NAS login failed");
-    report.nasLogin = true;
+    report.shiguangLogin = true;
     const projectId = "qTizhC3kqg4Y2ovU7xiLhG",
       componentUuid = "-HvnDCEDMZha";
     await win.loadURL(config.studioOrigin + "/projects/" + projectId);
@@ -91,8 +96,9 @@ app
         if (
           [config.studioOrigin, config.canvasOrigin].includes(parsed.origin) &&
           parsed.pathname.startsWith("/static/")
-        )
+        ) {
           loaded.add(url);
+        }
       }
     }
     for (const url of loaded) {

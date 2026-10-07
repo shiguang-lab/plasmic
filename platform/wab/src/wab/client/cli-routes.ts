@@ -134,11 +134,6 @@ export function getLoginRouteWithContinuation() {
   return APP_ROUTES.login.fill({}, { continueTo });
 }
 
-export function getEmaiLVerificationRouteWithContinuation() {
-  const continueTo = getRouteContinuation();
-  return APP_ROUTES.emailVerification.fill({}, { continueTo });
-}
-
 export function isPlasmicPath(pathname: string) {
   if (!pathname.startsWith("/")) {
     const _url = new URL(pathname);

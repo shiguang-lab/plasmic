@@ -32,11 +32,7 @@ test.describe("conversion-between-modes", () => {
 
   test.afterEach(async ({ apiClient }) => {
     await apiClient.deleteDataSourceOfCurrentTest();
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("simplified <-> advanced mode", async ({ models }) => {

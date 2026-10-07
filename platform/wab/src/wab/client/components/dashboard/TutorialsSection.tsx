@@ -38,7 +38,7 @@ export function TutorialsSection({ ...props }: TutorialsSectionProps) {
         isInitiallyCollapsed={getExtraData(selfInfo).collapseStarters}
         onIsCollapsedChange={(value) =>
           spawn(
-            appCtx.api.updateSelfInfo(
+            appCtx.api.updateUserPreferences(
               updateExtraDataJson(selfInfo, { collapseStarters: !!value }),
             ),
           )

@@ -13,11 +13,7 @@ test.describe("ui-config-hostless", () => {
   });
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   async function searchInsertPanel(models: PageModels, query: string) {

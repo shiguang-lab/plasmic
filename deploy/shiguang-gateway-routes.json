@@ -1,0 +1,63 @@
+{
+  "routes": [
+    {
+      "host": "studio.plasmic.shiguanglab.com",
+      "path_prefix": "/api/auth/session",
+      "exact_path": true,
+      "product_id": "plasmic-auth",
+      "audience": "auth-service",
+      "upstream": "http://auth-service:8081",
+      "allowed_methods": ["GET"],
+      "public": true,
+      "required_entitlements": [],
+      "forward_authorization": false,
+      "forward_gateway_token": true,
+      "forward_session_cookie": true
+    },
+    {
+      "host": "studio.plasmic.shiguanglab.com",
+      "path_prefix": "/api/auth/logout",
+      "exact_path": true,
+      "product_id": "plasmic-auth",
+      "audience": "auth-service",
+      "upstream": "http://auth-service:8081",
+      "allowed_methods": ["POST"],
+      "public": true,
+      "required_entitlements": [],
+      "forward_authorization": false,
+      "forward_gateway_token": true,
+      "forward_session_cookie": true
+    },
+    {
+      "product_id": "plasmic",
+      "audience": "plasmic-api",
+      "required_entitlements": ["plasmic:access"],
+      "forward_authorization": false,
+      "host": "studio.plasmic.shiguanglab.com",
+      "path_prefix": "/api/v1/",
+      "upstream": "http://100.87.115.78:3900",
+      "public": true,
+      "authenticate_public": true
+    },
+    {
+      "product_id": "plasmic",
+      "audience": "plasmic-api",
+      "required_entitlements": [],
+      "forward_authorization": false,
+      "host": "studio.plasmic.shiguanglab.com",
+      "path_prefix": "/",
+      "upstream": "http://100.87.115.78:3900",
+      "public": true
+    },
+    {
+      "product_id": "plasmic",
+      "audience": "plasmic-api",
+      "required_entitlements": [],
+      "forward_authorization": false,
+      "host": "canvas.plasmic.shiguanglab.com",
+      "path_prefix": "/",
+      "upstream": "http://100.87.115.78:3901",
+      "public": true
+    }
+  ]
+}

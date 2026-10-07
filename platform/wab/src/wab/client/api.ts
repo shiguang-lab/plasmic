@@ -36,7 +36,6 @@ import { Bundler } from "@/wab/shared/bundler";
 import {
   assert,
   ensure,
-  hackyCast,
   maybe,
   omitNils,
   swallow,
@@ -491,7 +490,6 @@ export function filteredApi(
     "listUnpublishedProjectRevisions",
     "revertProjectToRevision",
     "getPkgVersionMeta",
-    "refreshCsrfToken",
     "getLastBundleVersion",
     "getAppConfig",
     "getClip",
@@ -670,12 +668,10 @@ export function filteredApi(
 }
 
 export function setUser(user: ApiUser) {
-  const { id, email, firstName, lastName } = user;
+  const { id, email, displayName } = user;
   const traits = omitNils({
     email,
-    firstName,
-    lastName,
-    createdAt: hackyCast<string>(user.createdAt),
+    displayName,
     fullName: fullName(user),
     domain: email.split("@")[1],
   });
@@ -691,9 +687,9 @@ export function invalidationKey(method: string, ...args: any[]) {
 
 export function apiKey<
   Method extends keyof Api,
-  Args extends Api[Method] extends (..._args: any[]) => any
+  Args extends (Api[Method] extends (..._args: any[]) => any
     ? Parameters<Api[Method]>
-    : never,
+    : never),
 >(method: Method, ...args: Args) {
   return invalidationKey(method, ...args);
 }

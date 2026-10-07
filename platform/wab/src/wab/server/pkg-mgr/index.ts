@@ -4,7 +4,7 @@ import { DbMgr } from "@/wab/server/db/DbMgr";
 import { Pkg, PkgVersion, User } from "@/wab/server/entities/Entities";
 import { logger } from "@/wab/server/observability";
 import { Bundle, Bundler } from "@/wab/shared/bundler";
-import { assert } from "@/wab/shared/common";
+import { assert, ensure } from "@/wab/shared/common";
 import { InsertableId } from "@/wab/shared/insertables";
 import { ProjectDependency } from "@/wab/shared/model/classes";
 import fs from "fs";
@@ -55,22 +55,18 @@ export class PkgMgr {
   /**
    * Seeds a fresh database with an initial pkg
    */
-  async seedPkg() {
+  async seedPkg(
+    ownerId = ensure(
+      process.env.SG_BOOTSTRAP_SUB,
+      "SG_BOOTSTRAP_SUB is required",
+    ),
+  ) {
     assert(
       !(await this.tryGetPkg(this.sysname)),
       `Not expecting a ${this.sysname} pkg to already exist`,
     );
 
-    // Create a new project, owned by the "oldest" user
-    const user = await this.db
-      .getEntMgr()
-      .getRepository(User)
-      .createQueryBuilder()
-      .orderBy({
-        '"createdAt"': "ASC",
-      })
-      .limit(1)
-      .getOneOrFail();
+    const user = await this.db.getUserById(ownerId);
 
     const {
       master: [masterPkgVersionId, masterBundle],

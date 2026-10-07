@@ -7,11 +7,7 @@ test.describe("hostless-cms", () => {
   let projectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test("can create cms with data, fetch using hostless package, change model", async ({

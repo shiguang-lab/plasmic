@@ -76,11 +76,7 @@ test.describe("data token usages", () => {
   let projectId: string;
 
   test.afterEach(async ({ apiClient }) => {
-    await apiClient.removeProjectAfterTest(
-      projectId,
-      "user2@example.com",
-      "!53kr3tz!",
-    );
+    await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
   });
 
   test.describe("from empty project", () => {
@@ -286,12 +282,10 @@ test.describe("data token usages", () => {
       await apiClient.removeProjectAfterTest(
         bDepProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
       await apiClient.removeProjectAfterTest(
         cDepProjectId,
         "user2@example.com",
-        "!53kr3tz!",
       );
     });
 

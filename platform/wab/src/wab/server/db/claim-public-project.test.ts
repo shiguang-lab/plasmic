@@ -1,10 +1,5 @@
 import { DbMgr, normalActor } from "@/wab/server/db/DbMgr";
-import {
-  Permission,
-  Project,
-  User,
-  Workspace,
-} from "@/wab/server/entities/Entities";
+import { Permission, Project, Workspace } from "@/wab/server/entities/Entities";
 import { ProjectId, UserId } from "@/wab/shared/ApiSchema";
 import { Connection, EntityManager, Repository } from "typeorm";
 import { mockDeep } from "vitest-mock-extended";
@@ -27,9 +22,14 @@ function fixture(workspaceId: string | null) {
   const personalWorkspace = vi
     .spyOn(db, "getPersonalWorkspace")
     .mockResolvedValue(workspace);
-  vi.spyOn(db, "getUserById").mockResolvedValue(
-    Object.assign(new User(), { id: userId }),
-  );
+  vi.spyOn(db, "getUserById").mockResolvedValue({
+    id: userId,
+    email: "user@example.com",
+    displayName: "User",
+    loginName: "user",
+    state: "STATE_ACTIVE",
+    emailVerified: true,
+  });
   const permissions = mockDeep<Repository<any>>();
   permissions.create.mockReturnValue(new Permission());
   getRepository.mockImplementation((entity) =>

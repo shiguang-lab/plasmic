@@ -1,27 +1,20 @@
 import { expect } from "@playwright/test";
-import { test } from "../fixtures/test";
+import { testModels as test } from "../fixtures/test";
 
-test.describe("Authentication", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.context().clearCookies();
+test("sign-in redirects to the central account page and preserves the destination", async ({
+  page,
+}) => {
+  await page.context().clearCookies();
+  let destination = "";
+  await page.route("https://shiguanglab.com/login**", async (route) => {
+    destination = route.request().url();
+    await route.fulfill({ body: "Central sign-in" });
   });
-
-  test("login and logout", async ({ page, models }) => {
-    await page.goto("/");
-
-    await models.auth.login("user2@example.com", "!53kr3tz!");
-
-    // Login can complete before the dashboard loads on a cold dev server.
-    await expect(
-      page.locator('a[href="/playground"]', {
-        hasText: "My Playground",
-      }),
-    ).toBeVisible({ timeout: 60_000 });
-
-    await models.auth.logout();
-
-    const signInWithGoogleText = page.locator("text=Sign in with Google");
-    await signInWithGoogleText.waitFor({ state: "visible" });
-    await expect(signInWithGoogleText).toBeVisible();
-  });
+  await page.goto("/login?continueTo=%2Fprojects%2Fexample");
+  await expect.poll(() => destination).not.toBe("");
+  const url = new URL(destination);
+  expect(url.origin).toBe("https://shiguanglab.com");
+  expect(new URL(url.searchParams.get("return_to")!).pathname).toBe(
+    "/projects/example",
+  );
 });

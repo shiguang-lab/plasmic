@@ -1884,7 +1884,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               {watchedPlayer && (
                 <MultiplayerFollowingBorder
                   className="canvas-editor__watch-mode"
-                  name={watchedPlayer.user?.firstName ?? "Anon"}
+                  name={watchedPlayer.user?.displayName ?? "Anon"}
                   hexColor={watchedPlayer.color}
                 />
               )}

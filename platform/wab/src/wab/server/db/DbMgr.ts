@@ -1,8 +1,11 @@
 import { sequentially } from "@/wab/commons/asyncutil";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
+import {
+  getShiguangUserByEmail,
+  getShiguangUsers,
+} from "@/wab/server/auth/shiguang-directory";
 import { createSiteForHostlessProject } from "@/wab/server/code-components/code-components";
-import { loadConfig } from "@/wab/server/config";
 import {
   normalizeOperationTemplate,
   reevaluateAppAuthUserPropsOpId,
@@ -44,11 +47,9 @@ import {
   DataSourceOperation,
   DevFlagOverrides,
   DirectoryEndUserGroup,
-  EmailVerification,
   EndUser,
   EndUserDirectory,
   EndUserIdentifier,
-  ExpressSession,
   FeatureTier,
   GenericKeyValue,
   GenericKeyValueId,
@@ -75,9 +76,6 @@ import {
   ProjectWebhook,
   ProjectWebhookEvent,
   PromotionCode,
-  ResetPassword,
-  SignUpAttempt,
-  SsoConfig,
   Team,
   TeamApiToken,
   TeamDiscourseInfo,
@@ -85,6 +83,7 @@ import {
   TokenData,
   TrustedHost,
   User,
+  UserTrialClaim,
   Workspace,
   WorkspaceApiToken,
   WorkspaceAuthConfig,
@@ -103,7 +102,6 @@ import {
   traverseSchemaFields,
 } from "@/wab/server/util/cms-util";
 import { stringToPair } from "@/wab/server/util/hash";
-import { KnownProvider } from "@/wab/server/util/passport-multi-oauth2";
 import { UniqueViolationError } from "@/wab/shared/ApiErrors/cms-errors";
 import {
   BadRequestError,
@@ -149,7 +147,6 @@ import {
   ProjectId,
   ProjectIdAndToken,
   QueryCopilotFeedbackResponse,
-  SsoConfigId,
   TeamId,
   TeamMember,
   TeamWhiteLabelInfo,
@@ -172,7 +169,6 @@ import {
   ORGANIZATION_CAP,
   ORGANIZATION_LOWER,
   PERSONAL_WORKSPACE,
-  WORKSPACE_CAP,
 } from "@/wab/shared/Labels";
 import { ApiCmsQuery } from "@/wab/shared/api/cms";
 import { Bundler } from "@/wab/shared/bundler";
@@ -224,18 +220,12 @@ import { WebhookHeader } from "@/wab/shared/db-json-blobs";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { MIN_ACCESS_LEVEL_FOR_SUPPORT } from "@/wab/shared/discourse/config";
-import {
-  ParsedEmailAddress,
-  parseEmailAddress,
-} from "@/wab/shared/email-address";
 import { LocalizationKeyScheme } from "@/wab/shared/localization";
 import {
   HostLessPackageInfo,
   ProjectDependency,
   Site,
 } from "@/wab/shared/model/classes";
-import { MAX_PASSWORD_LENGTH } from "@/wab/shared/password-policy";
-import { ratePasswordStrength } from "@/wab/shared/password-strength";
 import {
   ResourceId,
   ResourceType,
@@ -264,7 +254,6 @@ import { LanguageModelRequestMetadata } from "ai";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import fs from "fs";
-import { pwnedPassword } from "hibp";
 import { Draft, createDraft, finishDraft } from "immer";
 import * as _ from "lodash";
 import L, { fromPairs, omit, pick, uniq } from "lodash";
@@ -286,25 +275,6 @@ import {
   Repository,
   SelectQueryBuilder,
 } from "typeorm";
-
-export const updatableUserFields = [
-  "firstName",
-  "lastName",
-  "role",
-  "source",
-  "surveyResponse",
-  "avatarUrl",
-  "needsIntroSplash",
-  "needsSurvey",
-  "needsTeamCreationPrompt",
-  "extraData",
-  "whiteLabelInfo",
-] as const;
-
-export type UpdatableUserFields = Pick<
-  User,
-  (typeof updatableUserFields)[number]
->;
 
 export const updatableCmsDatabaseFields = [
   "name",
@@ -499,6 +469,7 @@ export interface NormalUser {
   type: "NormalUser";
   userId: UserId;
   isSpy: boolean;
+  isAdmin: boolean;
 }
 
 export interface TeamApiUser {
@@ -516,11 +487,16 @@ export function isNormalUser(actor: Actor): actor is NormalUser {
   return actor.type === "NormalUser";
 }
 
-export function normalActor(userId: UserId, isSpy?: boolean): NormalUser {
+export function normalActor(
+  userId: UserId,
+  isSpy?: boolean,
+  isAdmin = false,
+): NormalUser {
   return {
     type: "NormalUser",
     userId,
     isSpy: isSpy ?? false,
+    isAdmin,
   };
 }
 
@@ -579,36 +555,6 @@ export function generateId() {
 }
 
 /** Only used for development users in non-prod environments. */
-export const DEFAULT_DEV_PASSWORD = "!53kr3tz!";
-
-export async function checkWeakPassword(password: string | undefined) {
-  if (
-    process.env.NODE_ENV !== "production" &&
-    password === DEFAULT_DEV_PASSWORD
-  ) {
-    return;
-  }
-
-  if (password === undefined) {
-    return;
-  }
-
-  if (password.length > MAX_PASSWORD_LENGTH) {
-    throw new PasswordTooLongError();
-  }
-
-  const passwordStrength = await ratePasswordStrength(password);
-  if (password.length < 6 || passwordStrength < 2) {
-    throw new WeakPasswordError();
-  }
-
-  // There should be no rate limit on the Pwned Passwords API.
-  // https://haveibeenpwned.com/API/v3#RateLimiting
-  const numPwns = await pwnedPassword(password);
-  if (numPwns > 0) {
-    throw new PwnedPasswordError();
-  }
-}
 
 function pickKnownFieldsByLocale(table: CmsTable, x: CmsRowData) {
   return L.mapValues(x, (values) =>
@@ -816,11 +762,10 @@ export class DbMgr implements MigrationDbMgr {
 
   // Serializes the unpaid-organization check with the write that follows it.
   private async lockUserRow(userId: UserId): Promise<void> {
-    await this.users()
-      .createQueryBuilder("user")
-      .setLock("pessimistic_write")
-      .where("user.id = :userId", { userId })
-      .getOne();
+    await this.entMgr.query(
+      "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+      [userId],
+    );
   }
 
   private checkTeamApiUser() {
@@ -837,13 +782,6 @@ export class DbMgr implements MigrationDbMgr {
   //
   // Entity types.
   //
-  private sessions() {
-    return this.entMgr.getRepository(ExpressSession);
-  }
-
-  private users() {
-    return this.entMgr.getRepository(User);
-  }
 
   private featureTiers() {
     return this.entMgr.getRepository(FeatureTier);
@@ -889,18 +827,6 @@ export class DbMgr implements MigrationDbMgr {
     return this.entMgr.getRepository(OauthToken);
   }
 
-  private ssoConfigs() {
-    return this.entMgr.getRepository(SsoConfig);
-  }
-
-  private emailVerifications() {
-    return this.entMgr.getRepository(EmailVerification);
-  }
-
-  private resetPasswords() {
-    return this.entMgr.getRepository(ResetPassword);
-  }
-
   protected permissions() {
     return this.entMgr.getRepository(Permission);
   }
@@ -919,10 +845,6 @@ export class DbMgr implements MigrationDbMgr {
 
   private trustedHosts() {
     return this.entMgr.getRepository(TrustedHost);
-  }
-
-  private signUpAttempts() {
-    return this.entMgr.getRepository(SignUpAttempt);
   }
 
   private devFlagOverrides() {
@@ -1406,14 +1328,9 @@ export class DbMgr implements MigrationDbMgr {
       return false;
     }
     await this.checkUserPerms(team.createdById, "read", "get");
-    const owner = ensureFound<User>(
-      await this.users().findOne({
-        select: ["id", "freeTrialStartedAt"],
-        where: { id: team.createdById, ...excludeDeleted() },
-      }),
-      `User with ID ${team.createdById}`,
-    );
-    return !owner.freeTrialStartedAt;
+    return !(await this.entMgr.findOne(UserTrialClaim, {
+      userId: team.createdById,
+    }));
   }
 
   async checkFreeTrialEligibility(teamId: TeamId): Promise<void> {
@@ -1446,13 +1363,12 @@ export class DbMgr implements MigrationDbMgr {
         team.createdById,
         "A team must have an owner to start a free trial",
       );
-      const claim = await this.users()
-        .createQueryBuilder()
-        .update()
-        .set({ ...this.stampUpdate(), freeTrialStartedAt: trialStartDate })
-        .where('id = :ownerId and "freeTrialStartedAt" is null', { ownerId })
-        .execute();
-      checkPermissions(claim.affected === 1, FREE_TRIAL_ONCE_MESSAGE);
+      await this.lockUserRow(ownerId);
+      const claim = await this.entMgr.query(
+        'INSERT INTO user_trial_claim ("userId", "claimedAt") VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING "userId"',
+        [ownerId, trialStartDate],
+      );
+      checkPermissions(claim.length === 1, FREE_TRIAL_ONCE_MESSAGE);
     }
     return await this.sudo().sudoUpdateTeam({
       id: teamId,
@@ -1792,8 +1708,7 @@ export class DbMgr implements MigrationDbMgr {
             } else if (this.actor.type === "NormalUser") {
               return this.actor.userId === userId;
             } else if (this.actor.type === "TeamApiUser") {
-              const user = await this.sudo().getUserById(userId);
-              return user.owningTeamId === this.actor.teamId;
+              return false;
             } else {
               unreachable(this.actor);
             }
@@ -1816,9 +1731,7 @@ export class DbMgr implements MigrationDbMgr {
 
   async tryGetUserById(id: string) {
     await this.checkUserPerms(id, "read", "get");
-    return await this.users().findOne({
-      where: { id, ...excludeDeleted() },
-    });
+    return (await getShiguangUsers([id]))[0];
   }
 
   async getUserById(id: string) {
@@ -1830,50 +1743,26 @@ export class DbMgr implements MigrationDbMgr {
 
   async getUserByEmail(email: string) {
     this.checkSuperUser();
-    email = email.toLowerCase();
-    return ensureFound<User>(
-      await this.users().findOne({
-        where: { email, ...excludeDeleted() },
-      }),
+    return ensureFound(
+      await getShiguangUserByEmail(email),
       `User with email ${email}`,
     );
   }
 
-  async tryGetUserByWhiteLabelId(teamId: TeamId, id: string) {
-    const user = await this.users().findOne({
-      where: { whiteLabelId: id, owningTeamId: teamId, ...excludeDeleted() },
-    });
-
-    if (user) {
-      await this.checkUsersPerms([user.id], "read", "get");
-    }
-    return user;
-  }
-
-  async getUserByWhiteLabelId(teamId: TeamId, id: string) {
-    const user = await this.tryGetUserByWhiteLabelId(teamId, id);
-    return ensureFound<User>(user, `User with external ID ${id}`);
-  }
-
   async tryGetUsersById(ids: string[]) {
     await this.checkUsersPerms(ids, "read", "get");
-    const users = await sequentially(ids.map((id) => this.tryGetUserById(id)));
-    return withoutNils(users);
+    return getShiguangUsers(ids);
   }
 
   async getUsersById(ids: string[]) {
     await this.checkUsersPerms(ids, "read", "get");
-    return sequentially(ids.map((id) => this.getUserById(id)));
-  }
-
-  async listAllUsers() {
-    this.checkSuperUser();
-    return await this.users().find();
-  }
-
-  async isOauthUser(id: string) {
-    const password = await this._getUserBcrypt(id);
-    return password === "";
+    const users = await getShiguangUsers(ids);
+    return ids.map((id) =>
+      ensureFound(
+        users.find((u) => u.id === id),
+        `User with ID ${id}`,
+      ),
+    );
   }
 
   async appendTeamMembersMeta(
@@ -1980,408 +1869,93 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   async tryGetUserByEmail(email: string) {
-    const user = await getOneOrFailIfTooMany(
-      this.users()
-        .createQueryBuilder("users")
-        .where(`lower(users.email) = lower(:email)`, { email })
-        .andWhere("users.deletedAt is null"),
-    );
-    if (!user) {
-      return user;
+    const user = await getShiguangUserByEmail(email);
+    if (user) {
+      await this.checkUserPerms(user.id, "read", "get");
     }
-    await this.checkUserPerms(user.id, "read", "get");
     return user;
   }
 
-  /**
-   * Creates a new user and clones the starter project into their env.
-   *
-   * @param bundler Used for cloning the starter project - only done if bundler
-   *   is set and starter project ID exists.
-   */
-  async createUser({
-    orgId,
-    email: maybeUnparsedEmail,
-    password,
-    id,
-    needsTeamCreationPrompt,
-    isWhiteLabel,
-    whiteLabelId,
-    whiteLabelInfo,
-    owningTeamId,
-    signUpPromotionCode,
-    ...fields
-  }: {
-    orgId?: string;
-    email: string | ParsedEmailAddress;
-    password?: string;
-    id?: UserId;
-    needsTeamCreationPrompt: boolean;
-    isWhiteLabel?: boolean;
-    whiteLabelId?: string;
-    whiteLabelInfo?: User["whiteLabelInfo"];
-    owningTeamId?: string;
-    signUpPromotionCode?: PromotionCode;
-  } & Partial<UpdatableUserFields>) {
-    this.allowAnyone();
-    fields = _.pick(fields, updatableUserFields);
-    await checkWeakPassword(password);
-    const parsedEmail =
-      typeof maybeUnparsedEmail === "string"
-        ? ensure(
-            parseEmailAddress(maybeUnparsedEmail),
-            `invalid email: ${maybeUnparsedEmail}`,
-          )
-        : maybeUnparsedEmail;
-    const email = parsedEmail.normalized;
-    const user = this.users().create({
-      ...this.stampNew(),
-      email,
-      bcrypt: password ? bcrypt.hashSync(password, bcrypt.genSaltSync()) : "",
-      org: orgId ? { id: orgId } : null,
-      needsIntroSplash: true,
-      needsSurvey: true,
-      waitingEmailVerification: password ? true : false,
-      needsTeamCreationPrompt,
-      isWhiteLabel,
-      whiteLabelId,
-      whiteLabelInfo,
-      owningTeamId,
-      signUpPromotionCode,
-      ...fields,
-    });
-
-    if (id) {
-      user.id = id;
-    }
-    const personalTeam = this.teams().create({
-      ...this.stampNew(),
-      name: "Personal team",
-      billingEmail: user.email,
-      personalTeamOwnerId: user.id,
-    });
-
-    const personalWorkspace = this.workspaces().create({
-      ...this.stampNew(),
-      name: PERSONAL_WORKSPACE,
-      description: PERSONAL_WORKSPACE,
-      teamId: personalTeam.id,
-    });
-
-    const personalTeamPermission = this.permissions().create({
-      ...this.stampNew(),
-      teamId: personalTeam.id,
-      userId: user.id,
-      accessLevel: "owner",
-    });
-
-    await this.entMgr.save(user);
-    await this.entMgr.save(personalTeam);
-    await this.entMgr.save(personalWorkspace);
-    await this.entMgr.save(personalTeamPermission);
-
-    const perms = await this._changeUserEmail(user, email);
-    if (perms.some((val) => val.workspaceId || val.teamId)) {
-      return await this.updateUser({
-        id: user.id,
-        needsTeamCreationPrompt: false,
-      });
-    }
-
-    if (!needsTeamCreationPrompt) {
-      // Create initial team and workspace.
-      const asUser = this.asUser(user.id);
-      const team = await asUser.createTeam(
-        `${user.firstName}'s First ${ORGANIZATION_CAP}`,
+  /** Creates business resources only; IAM owns the user and account lifecycle. */
+  async ensurePersonalWorkspace(user: User) {
+    this.checkSuperUser();
+    if (!this.entMgr.queryRunner?.isTransactionActive) {
+      return this.entMgr.transaction((em) =>
+        new DbMgr(em, SUPER_USER).ensurePersonalWorkspace(user),
       );
-      await asUser.createWorkspace({
-        name: `${user.firstName}'s First ${WORKSPACE_CAP}`,
-        description: "",
+    }
+    await this.lockUserRow(user.id);
+    const existing = await this.teams().findOne({
+      personalTeamOwnerId: user.id,
+      ...excludeDeleted(),
+    });
+    if (!existing) {
+      const team = this.teams().create({
+        ...this.stampNew(),
+        name: "Personal team",
+        billingEmail: user.email,
+        personalTeamOwnerId: user.id,
+        createdById: user.id,
+      });
+      const workspace = this.workspaces().create({
+        ...this.stampNew(),
+        name: PERSONAL_WORKSPACE,
+        description: PERSONAL_WORKSPACE,
         teamId: team.id,
+        createdById: user.id,
+      });
+      const permission = this.permissions().create({
+        ...this.stampNew(),
+        teamId: team.id,
+        userId: user.id,
+        accessLevel: "owner",
+      });
+      await this.entMgr.save(team);
+      await this.entMgr.save(workspace);
+      await this.entMgr.save(permission);
+    }
+    if (!user.emailVerified) {
+      return;
+    }
+    // Invitations are email addresses until the canonical IAM subject claims them.
+    const invitations = await this._getPermissionsForRawEmail(user.email);
+    for (const invitation of invitations) {
+      Object.assign(invitation, this.stampUpdate(), {
+        userId: user.id,
+        email: null,
       });
     }
-
-    // This column is marked as select: false, but TypeORM's create() call
-    // doesn't respect it. Manually remove it here.
-    user.bcrypt = undefined;
-    return user;
+    await this.entMgr.save(invitations);
   }
 
-  async updateUser({
-    id,
-    ...fields
-  }: { id: UserId } & Partial<UpdatableUserFields>) {
-    this.checkUserIdIsSelf(id);
-    fields = _.pick(fields, ...updatableUserFields);
-    const user = await this.getUserById(id);
-    mergeSane(user, this.stampUpdate(), fields);
-    return await this.entMgr.save(user);
-  }
-
-  async updateAdminMode({ id, disabled }: { id: UserId; disabled: boolean }) {
-    this.checkUserIdIsSelf(id);
-    const user = await this.getUserById(id);
-    if (!loadConfig().adminEmails.includes(user.email)) {
-      return user;
-    }
-    mergeSane(user, this.stampUpdate(), { adminModeDisabled: disabled });
-    return await this.entMgr.save(user);
-  }
-
-  private async _changeUserEmail(user: User, email: string) {
-    email = email.toLowerCase();
-    user.email = email;
-
-    // Eagerly adopt all the permissions associated with this email.
-    const perms = await this._getPermissionsForRawEmail(email);
-    for (const perm of perms) {
-      mergeSane(perm, this.stampUpdate(), { user, email: null });
-    }
-
-    await this.entMgr.save([user, ...perms]);
-
-    return perms;
-  }
-
-  async deleteUser(user: User, keepPasswordHash: boolean) {
-    await this.checkUserPerms(user.id, "delete", "delete");
-    Object.assign(user, this.stampDelete());
-    if (!keepPasswordHash) {
-      user.bcrypt = "";
-    }
-    await this.entMgr.save(user);
-  }
-
-  async createWhiteLabelUser(fields: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    teamId: TeamId;
-    whiteLabelId: string;
-  }) {
-    const user = await this.createUser({
-      email: `${fields.whiteLabelId}-${new Date().getTime()}@${
-        fields.teamId
-      }.whitelabeled`,
-      firstName: fields.firstName,
-      lastName: fields.lastName,
-      needsTeamCreationPrompt: false,
-      needsIntroSplash: false,
-      needsSurvey: false,
-      source: "whitelabel",
-      owningTeamId: fields.teamId,
-      isWhiteLabel: true,
-      whiteLabelId: fields.whiteLabelId,
-      whiteLabelInfo: {
-        email: fields.email,
-      },
-    });
-    const team = await this.getTeamById(fields.teamId);
-    await this.grantTeamPermissionToUser(team, user.id, "editor");
-    return user;
-  }
-
-  async deleteSessionsForUser(currentSessionId: string, userId: string) {
-    // We use a range query to make sure postgres uses the PK index.
-    // We use "." as the end of the range since it is the next character after "-" in the ASCII table.
-    return this.sessions()
-      .createQueryBuilder()
-      .where('"id" != :currentSessionId', { currentSessionId })
-      .andWhere('"id" >= :userId', { userId: `${userId}-` })
-      .andWhere('"id" < :userIdEnd', {
-        userIdEnd: `${userId}.`,
-      })
-      .delete()
-      .execute();
-  }
-
-  //
-  // Password methods.
-  //
-
-  async updateSelfPassword(oldPassword: string, password: string) {
-    const userId = this.checkNormalUser();
-    await checkWeakPassword(password);
-    const user = await this.getUserById(userId);
-    const isOldPasswordCorrect = await this.comparePassword(
-      user.id,
-      oldPassword,
+  private async hydrateUsers<
+    T extends {
+      userId?: string | null;
+      createdById?: string | null;
+      updatedById?: string | null;
+      deletedById?: string | null;
+    },
+  >(rows: T[]): Promise<T[]> {
+    const ids = rows.flatMap((row) =>
+      withoutNils([
+        row.userId,
+        row.createdById,
+        row.updatedById,
+        row.deletedById,
+      ]),
     );
-    if (!isOldPasswordCorrect) {
-      throw new MismatchPasswordError();
-    }
-    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
-    user.bcrypt = hashedPassword;
-    Object.assign(user, this.stampUpdate());
-    await this.entMgr.save(user);
-  }
-
-  async updateUserPassword(
-    user: User,
-    password: string,
-    allowWeakPassword = false,
-  ) {
-    await this.checkUserPerms(user.id, "write", "change password for");
-    if (!allowWeakPassword) {
-      await checkWeakPassword(password);
-    }
-    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync());
-    user.bcrypt = hashedPassword;
-    Object.assign(user, this.stampUpdate());
-    await this.entMgr.save(user);
-  }
-
-  async clearUserPassword(userId: string) {
-    await this.checkSuperUser();
-    const user = await this.getUserById(userId);
-    user.bcrypt = "";
-    Object.assign(user, this.stampUpdate());
-    await this.entMgr.save(user);
-  }
-
-  private async _getUserBcrypt(id: string) {
-    const user = ensureFound<User>(
-      await this.users().findOne({
-        where: { id, ...excludeDeleted() },
-        select: ["bcrypt", "id"],
-      }),
-      `User with ID ${id}`,
+    const users = new Map(
+      (await getShiguangUsers(ids)).map((u) => [u.id as string, u]),
     );
-
-    // `User.bcrypt` normally has type `string | undefined`,
-    // because it is marked `select: false`.
-    // Use `!` since we explicitly selected it and the column is not nullable.
-    return user.bcrypt!;
-  }
-
-  async comparePassword(
-    userId: string,
-    candidatePassword: string,
-  ): Promise<boolean> {
-    this.allowAnyone();
-    const _bcrypt = await this._getUserBcrypt(userId);
-    return new Promise<boolean>((resolve, reject) => {
-      bcrypt.compare(candidatePassword, _bcrypt, (err, isMatch) => {
-        err ? reject(err) : resolve(isMatch);
-      });
-    });
-  }
-
-  async createResetPasswordForUser(user: User) {
-    this.allowAnyone();
-    const { secret, hashSecret } = generateSecretToken();
-    const newPasswordReset = this.resetPasswords().create({
-      id: mkUuid(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      forUser: user,
-      secret: hashSecret,
-      used: false,
-    });
-    await this.entMgr.insert(ResetPassword, newPasswordReset);
-    return secret;
-  }
-
-  async deleteResetPasswordForUser(user: User) {
-    this.checkSuperUser();
-    const existingPasswordReset = await this.entMgr.find(ResetPassword, {
-      forUser: user,
-      used: false,
-      ...excludeDeleted(),
-    });
-    if (existingPasswordReset.length > 0) {
-      const deletedAt = new Date();
-      existingPasswordReset.forEach((p) => (p.deletedAt = deletedAt));
-      await this.entMgr.save(existingPasswordReset);
-    }
-    return existingPasswordReset.length;
-  }
-
-  async getResetPassword(
-    user: User,
-    token: string,
-  ): Promise<ResetPassword | null> {
-    this.checkSuperUser();
-    const resets = await this.entMgr.find(ResetPassword, {
-      forUser: user,
-      used: false,
-      ...excludeDeleted(),
-    });
-
-    for (const r of resets) {
-      if (bcrypt.compareSync(token, r.secret)) {
-        return r;
+    for (const row of rows) {
+      for (const name of ["user", "createdBy", "updatedBy", "deletedBy"]) {
+        const id = row[`${name}Id`];
+        if (id) {
+          row[name] = users.get(id) ?? null;
+        }
       }
     }
-    return null;
-  }
-
-  async markResetPasswordUsed(reset: ResetPassword) {
-    await this.checkSuperUser();
-    reset.used = true;
-    await this.entMgr.save(reset);
-  }
-
-  //
-  // Email Verification Methods
-  //
-
-  async createEmailVerificationForUser(user: User) {
-    this.allowAnyone();
-    const { secret, hashSecret } = generateSecretToken();
-    const newEmailVerification = this.emailVerifications().create({
-      id: mkUuid(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      forUser: user,
-      secret: hashSecret,
-      used: false,
-    });
-    await this.entMgr.insert(EmailVerification, newEmailVerification);
-    return secret;
-  }
-
-  async compareEmailVerificationToken(
-    user: User,
-    token: string,
-  ): Promise<EmailVerification | null> {
-    this.checkNormalUser();
-    const emailVerification = await this.entMgr.find(EmailVerification, {
-      used: false,
-      forUser: user,
-      ...excludeDeleted(),
-    });
-
-    for (const r of emailVerification) {
-      if (bcrypt.compareSync(token, r.secret)) {
-        return r;
-      }
-    }
-    return null;
-  }
-
-  async markEmailAsVerified(user: User) {
-    user.waitingEmailVerification = false;
-    Object.assign(user, this.stampUpdate());
-    await this.entMgr.save(user);
-  }
-
-  async deleteEmailVerificationRequestForUser(user: User) {
-    this.checkNormalUser();
-    const existingEmailVerification = await this.entMgr.find(
-      EmailVerification,
-      {
-        forUser: user,
-        used: false,
-        ...excludeDeleted(),
-      },
-    );
-    if (existingEmailVerification.length > 0) {
-      const deletedAt = new Date();
-      existingEmailVerification.forEach((p) => (p.deletedAt = deletedAt));
-      await this.entMgr.save(existingEmailVerification);
-    }
-    return existingEmailVerification.length;
+    return rows;
   }
 
   //
@@ -2829,7 +2403,7 @@ export class DbMgr implements MigrationDbMgr {
       hostUrl: hostUrl ?? null,
       projectApiToken: generateSomeApiToken(),
       clonedFromProjectId,
-      ...(ownerId ? { createdBy: { id: ownerId } } : {}),
+      ...(ownerId ? { createdById: ownerId } : {}),
       ...(projectId ? { id: projectId } : {}),
     });
 
@@ -3509,7 +3083,7 @@ export class DbMgr implements MigrationDbMgr {
     const qb = this.projectRevs()
       .createQueryBuilder("rev")
       .select(columns)
-      .leftJoinAndSelect("rev.createdBy", "createdBy")
+
       .where(
         `"projectId" = :projectId AND (:branchId::text is null AND "branchId" is null OR "branchId" = :branchId::text)`,
         {
@@ -3531,7 +3105,7 @@ export class DbMgr implements MigrationDbMgr {
     if (limit !== undefined) {
       qb.limit(limit);
     }
-    return await qb.getMany();
+    return this.hydrateUsers(await qb.getMany());
   }
 
   async deleteRevision(rev: ProjectRevision) {
@@ -5132,12 +4706,7 @@ export class DbMgr implements MigrationDbMgr {
     const repository = this.entMgr.create(ProjectRepository, {
       ...this.stampNew(),
       project: { id: fields.projectId },
-      user: {
-        id: ensure(
-          this.tryGetNormalActorId(),
-          "All normal users should have an actor id",
-        ),
-      },
+      userId: this.checkNormalUser(),
       ..._.pick(
         fields,
         "installationId",
@@ -5431,7 +5000,7 @@ export class DbMgr implements MigrationDbMgr {
   async tryGetOauthToken(userId: string, provider: OauthTokenProvider) {
     this.checkSuperUser();
     return this.oauthTokens().findOne({
-      where: { user: { id: userId }, provider },
+      where: { userId: userId as UserId, provider },
     });
   }
 
@@ -5452,7 +5021,7 @@ export class DbMgr implements MigrationDbMgr {
     const userId = this.checkNormalUser();
     return this.oauthTokens().find({
       select: ["id", "provider"],
-      where: { user: { id: userId } },
+      where: { userId: userId as UserId },
     });
   }
 
@@ -5461,17 +5030,15 @@ export class DbMgr implements MigrationDbMgr {
     provider: OauthTokenProvider,
     token: TokenData,
     userInfo: {},
-    ssoConfigId?: SsoConfigId,
   ) {
     this.checkSuperUser();
     return await this.upsertOauthTokenBase(
       this.tryGetOauthToken(userId, provider),
       this.oauthTokens(),
-      { user: { id: userId } },
+      { userId: userId as UserId },
       provider,
       userInfo,
       token,
-      ssoConfigId,
     );
   }
 
@@ -5482,7 +5049,6 @@ export class DbMgr implements MigrationDbMgr {
     provider: OauthTokenProvider,
     userInfo: {},
     token: TokenData,
-    ssoConfigId?: SsoConfigId,
   ) {
     const oauthToken =
       (await tryGetTokenPromise) ||
@@ -5492,75 +5058,11 @@ export class DbMgr implements MigrationDbMgr {
         provider,
         userInfo,
         token,
-        ssoConfigId,
       });
     oauthToken.token = token;
     oauthToken.userInfo = userInfo;
-    oauthToken.ssoConfigId = ssoConfigId ?? null;
     await this.entMgr.save(oauthToken);
     return oauthToken;
-  }
-
-  //
-  // SSO
-  //
-  async getSsoConfigByDomain(domain: string) {
-    // Explicitly not checking permission, as this is used in login flow
-    return await this.ssoConfigs().findOne({
-      where: {
-        domains: Includes(domain),
-      },
-    });
-  }
-
-  async getSsoConfigByTenantId(tenantId: string) {
-    // Explicitly not checking permission, as this is used in login flow
-    return await this.ssoConfigs().findOne({
-      where: {
-        tenantId,
-      },
-    });
-  }
-
-  async getSsoConfigByTeam(teamId: TeamId) {
-    await this.checkTeamPerms(teamId, "viewer", "read");
-    return await this.ssoConfigs().findOne({
-      where: { teamId },
-    });
-  }
-
-  async upsertSsoConfig(opts: {
-    teamId: TeamId;
-    domains: string[];
-    ssoType: "oidc";
-    provider: KnownProvider;
-    config: any;
-    whitelabelConfig: any;
-  }) {
-    await this.checkTeamPerms(opts.teamId, "owner", "write");
-    let sso = await this.getSsoConfigByTeam(opts.teamId);
-    if (sso) {
-      assignAllowEmpty(sso, this.stampUpdate(), {
-        domains: opts.domains,
-        ssoType: opts.ssoType,
-        provider: opts.provider,
-        config: opts.config,
-        whitelabelConfig: opts.whitelabelConfig,
-      });
-    } else {
-      sso = this.ssoConfigs().create({
-        ...this.stampNew(),
-        teamId: opts.teamId,
-        domains: opts.domains,
-        ssoType: opts.ssoType,
-        provider: opts.provider,
-        tenantId: generateId(),
-        config: opts.config,
-        whitelabelConfig: opts.whitelabelConfig,
-      });
-    }
-    await this.entMgr.save(sso);
-    return sso;
   }
 
   //
@@ -5587,15 +5089,17 @@ export class DbMgr implements MigrationDbMgr {
     }
 
     if (this.actor.type === "AnonUser") {
-      return this.permissions()
-        .createQueryBuilder("perm")
-        .leftJoinAndSelect("perm.user", "u")
-        .where({
-          [taggedResourceIds.type]: { id: In(resourceIds) },
-          ...excludeDeleted(),
-          ...(whereClause ? whereClause : {}),
-        })
-        .getMany();
+      return this.hydrateUsers(
+        await this.permissions()
+          .createQueryBuilder("perm")
+
+          .where({
+            [taggedResourceIds.type]: { id: In(resourceIds) },
+            ...excludeDeleted(),
+            ...(whereClause ? whereClause : {}),
+          })
+          .getMany(),
+      );
     }
 
     const userId =
@@ -5609,7 +5113,7 @@ export class DbMgr implements MigrationDbMgr {
 
     let qb = this.permissions()
       .createQueryBuilder("perm")
-      .leftJoinAndSelect("perm.user", "u")
+
       .where({
         [taggedResourceIds.type]: { id: In(resourceIds) },
         ...excludeDeleted(),
@@ -5726,7 +5230,7 @@ export class DbMgr implements MigrationDbMgr {
         }
       }
     }
-    return qb.getMany();
+    return this.hydrateUsers(await qb.getMany());
   }
 
   private async _assignResourceOwner(
@@ -5852,8 +5356,7 @@ export class DbMgr implements MigrationDbMgr {
 
     if (this.actor.type === "NormalUser") {
       const userId = this.checkNormalUser();
-      const user = await this.getUserById(userId);
-      const isAdmin = isAdminTeamEmail(user.email, DEVFLAGS);
+      const isAdmin = this.actor.isAdmin;
 
       const allPerms = (
         await this.sudo().getPermissionsForResources(taggedResourceIds, false)
@@ -6093,10 +5596,7 @@ export class DbMgr implements MigrationDbMgr {
       );
     } else if (this.actor.type === "TeamApiUser") {
       const user_ = await this.sudo().getUserById(userId);
-      checkPermissions(
-        user_.owningTeamId === team.id,
-        `Can only add users owned by team to team`,
-      );
+      checkPermissions(false, `Can only add users owned by team to team`);
     } else if (this.actor.type === "SuperUser") {
       // All good
     } else {
@@ -6107,7 +5607,7 @@ export class DbMgr implements MigrationDbMgr {
     const existingPerm = await this.permissions().findOne({
       where: {
         team,
-        user,
+        userId: user.id,
         ...excludeDeleted(),
       },
     });
@@ -6119,7 +5619,7 @@ export class DbMgr implements MigrationDbMgr {
         existingPerm ||
         this.permissions().create({
           ...this.stampNew(),
-          user,
+          userId: user.id,
           team,
         });
       perm.accessLevel = levelToGrant;
@@ -6194,7 +5694,7 @@ export class DbMgr implements MigrationDbMgr {
         this.getPermissionsForResources(
           taggedResourceIds,
           true,
-          user ? { user } : { email },
+          user ? { userId: user.id } : { email },
         ),
         this.getPermissionsForResources(taggedResourceIds, true, {
           accessLevel: "owner",
@@ -6242,7 +5742,7 @@ export class DbMgr implements MigrationDbMgr {
       .map((id) => {
         return this.permissions().create({
           ...this.stampNew(),
-          ...(user ? { user } : { email }),
+          ...(user ? { userId: user.id } : { email }),
           [taggedResourceIds.type]: { id: id },
           accessLevel: levelToGrant,
         });
@@ -6449,26 +5949,24 @@ export class DbMgr implements MigrationDbMgr {
     query?: string;
   }): Promise<QueryCopilotFeedbackResponse> {
     this.checkSuperUser();
-    const data = await this.getEntMgr().query(`
+    const queryUser = query?.includes("@")
+      ? await getShiguangUserByEmail(query)
+      : undefined;
+    const data = await this.getEntMgr().query(
+      `
       WITH all_data AS (
-        SELECT c.*, u.email as "createdByEmail"
+        SELECT c.*
         FROM copilot_interaction c
-        INNER JOIN public.user u
-        ON c."createdById" = u.id
         WHERE
           c.feedback IS NOT NULL
-          ${
-            query
-              ? `AND (u.email = '${query}' OR c."projectId" = '${query}')`
-              : ``
-          }
+          AND ($1::text IS NULL OR c."createdById" = $2 OR c."projectId" = $1)
       )
       SELECT *
       FROM (
         TABLE all_data
         ORDER BY "createdAt" DESC
-        LIMIT ${pageSize}
-        OFFSET ${pageIndex * pageSize}
+        LIMIT $3
+        OFFSET $4
       ) sub
       RIGHT JOIN (
         SELECT
@@ -6477,7 +5975,17 @@ export class DbMgr implements MigrationDbMgr {
           COUNT(*) FILTER (WHERE NOT feedback) AS "totalDislikes"
         FROM all_data
       ) r ON TRUE
-    `);
+    `,
+      [query ?? null, queryUser?.id ?? null, pageSize, pageIndex * pageSize],
+    );
+    const profiles = new Map(
+      (
+        await getShiguangUsers(withoutNils(data.map((row) => row.createdById)))
+      ).map((user) => [user.id, user]),
+    );
+    for (const row of data) {
+      row.createdByEmail = profiles.get(row.createdById)?.email ?? "";
+    }
     return {
       feedback: data[0].id ? data : [],
       total: data[0].total,
@@ -6715,20 +6223,6 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   //
-  // SignUpAttempt
-  //
-
-  async logSignUpAttempt(email: string) {
-    this.checkSuperUser();
-    email = email.toLowerCase();
-    const attempt = this.signUpAttempts().create({
-      ...this.stampNew(),
-      email,
-    });
-    await this.entMgr.save(attempt);
-  }
-
-  //
   // DevFlagOverrides
   //
 
@@ -6752,13 +6246,14 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   async getDevFlagVersions() {
-    return await this.devFlagOverrides().find({
-      order: {
-        createdAt: "DESC",
-      },
-      take: 10,
-      relations: ["createdBy"],
-    });
+    return this.hydrateUsers(
+      await this.devFlagOverrides().find({
+        order: {
+          createdAt: "DESC",
+        },
+        take: 10,
+      }),
+    );
   }
 
   async validateOrGetProjectApiToken(
@@ -10273,16 +9768,17 @@ export class DbMgr implements MigrationDbMgr {
   async getCommentsForThread(
     commentThreadId: CommentThreadId,
   ): Promise<Comment[]> {
-    return await this.comments().find({
-      where: {
-        commentThreadId,
-        ...excludeDeleted(),
-      },
-      order: {
-        createdAt: "ASC",
-      },
-      relations: ["createdBy"],
-    });
+    return this.hydrateUsers(
+      await this.comments().find({
+        where: {
+          commentThreadId,
+          ...excludeDeleted(),
+        },
+        order: {
+          createdAt: "ASC",
+        },
+      }),
+    );
   }
 
   async getUnnotifiedCommentThreads(before: Date): Promise<CommentThread[]> {
@@ -10308,18 +9804,20 @@ export class DbMgr implements MigrationDbMgr {
       return [];
     }
 
-    return await this.comments()
-      .createQueryBuilder("comment")
-      .leftJoinAndSelect("comment.commentThread", "thread")
-      .leftJoinAndSelect("comment.createdBy", "createdBy")
-      .where("thread.id IN (:...threadIds)", { threadIds })
-      .andWhere(
-        "(thread.lastEmailedAt is NULL OR (comment.createdAt > thread.lastEmailedAt AND comment.createdAt <= :before))",
-        { before },
-      )
-      .andWhere("comment.deletedAt IS NULL")
-      .orderBy("comment.createdAt", "ASC")
-      .getMany();
+    return this.hydrateUsers(
+      await this.comments()
+        .createQueryBuilder("comment")
+        .leftJoinAndSelect("comment.commentThread", "thread")
+
+        .where("thread.id IN (:...threadIds)", { threadIds })
+        .andWhere(
+          "(thread.lastEmailedAt is NULL OR (comment.createdAt > thread.lastEmailedAt AND comment.createdAt <= :before))",
+          { before },
+        )
+        .andWhere("comment.deletedAt IS NULL")
+        .orderBy("comment.createdAt", "ASC")
+        .getMany(),
+    );
   }
 
   async getUnnotifiedCommentsThreadHistoriesByThreadIds(
@@ -10331,19 +9829,21 @@ export class DbMgr implements MigrationDbMgr {
       return [];
     }
 
-    return await this.commentThreadHistory()
-      .createQueryBuilder("threadHistory")
-      .leftJoinAndSelect("threadHistory.commentThread", "thread")
-      .leftJoinAndSelect("thread.branch", "branch")
-      .leftJoinAndSelect("threadHistory.createdBy", "createdBy")
-      .where("thread.id IN (:...threadIds)", { threadIds })
-      .andWhere(
-        "(thread.lastEmailedAt is NULL OR (threadHistory.createdAt > thread.lastEmailedAt AND threadHistory.createdAt <= :before))",
-        { before },
-      )
-      .andWhere("threadHistory.deletedAt IS NULL")
-      .orderBy("threadHistory.createdAt", "ASC")
-      .getMany();
+    return this.hydrateUsers(
+      await this.commentThreadHistory()
+        .createQueryBuilder("threadHistory")
+        .leftJoinAndSelect("threadHistory.commentThread", "thread")
+        .leftJoinAndSelect("thread.branch", "branch")
+
+        .where("thread.id IN (:...threadIds)", { threadIds })
+        .andWhere(
+          "(thread.lastEmailedAt is NULL OR (threadHistory.createdAt > thread.lastEmailedAt AND threadHistory.createdAt <= :before))",
+          { before },
+        )
+        .andWhere("threadHistory.deletedAt IS NULL")
+        .orderBy("threadHistory.createdAt", "ASC")
+        .getMany(),
+    );
   }
 
   async getUnnotifiedCommentsReactionsByThreadIds(
@@ -10355,13 +9855,12 @@ export class DbMgr implements MigrationDbMgr {
       return [];
     }
 
-    return await this.commentReactions()
+    const rows = await this.commentReactions()
       .createQueryBuilder("commentReaction")
       .leftJoinAndSelect("commentReaction.comment", "comment")
       .leftJoinAndSelect("comment.commentThread", "thread")
       .leftJoinAndSelect("thread.branch", "branch")
-      .leftJoinAndSelect("commentReaction.createdBy", "reactionCreator")
-      .leftJoinAndSelect("comment.createdBy", "commentCreator")
+
       .where("thread.id IN (:...threadIds)", { threadIds })
       .andWhere(
         "(thread.lastEmailedAt is NULL OR (commentReaction.createdAt > thread.lastEmailedAt AND commentReaction.createdAt <= :before))",
@@ -10370,6 +9869,8 @@ export class DbMgr implements MigrationDbMgr {
       .andWhere("commentReaction.deletedAt IS NULL")
       .orderBy("commentReaction.createdAt", "ASC")
       .getMany();
+    await this.hydrateUsers(withoutNils(rows.map((row) => row.comment)));
+    return this.hydrateUsers(rows);
   }
 
   async markCommentThreadsAsNotified(
@@ -11012,7 +10513,6 @@ export class DbMgr implements MigrationDbMgr {
     await this.teamApiTokens().delete({ teamId: id });
     await this.temporaryTeamApiTokens().delete({ teamId: id });
     await this.permissions().delete({ teamId: id });
-    await this.ssoConfigs().delete({ teamId: id });
 
     // delete end user directories
     const directories = await this.endUserDirectories().find({ teamId: id });
@@ -11023,56 +10523,6 @@ export class DbMgr implements MigrationDbMgr {
     }
 
     await this.teams().delete({ id });
-  }
-
-  async permanentlyDeleteUser(id: UserId, opts?: { force?: boolean }) {
-    const user = await findExactlyOne(this.users(), { id });
-    assert(
-      opts?.force || !!user.deletedAt,
-      `Can only permanently delete a user that has been soft-deleted`,
-    );
-
-    if (!user.deletedAt) {
-      logger().info(`Forced to delete "${user.email}" (${user.id})`);
-    }
-
-    assert(
-      !user.whiteLabelInfo,
-      `Cannot permanently delete whitelabeled users`,
-    );
-    assert(
-      !user.owningTeamId,
-      `Cannot permanently delete users owned by an org`,
-    );
-
-    await this.projectRepositories().delete({ userId: id });
-    await this.trustedHosts().delete({ userId: id });
-    await this.resetPasswords().delete({ forUserId: id });
-    await this.emailVerifications().delete({ forUserId: id });
-    await this.oauthTokens().delete({ userId: id });
-    await this.personalApiTokens().delete({ userId: id });
-    await this.permissions().delete({ userId: id });
-
-    await this.copilotUsages().delete({ createdById: id });
-    await this.copilotInteractions().delete({ createdById: id });
-
-    // We do not permanently delete a user row, as we may still
-    // have foreign key references to it.  Instead, we blank out
-    // all information we have about the user.
-    user.permanentlyDeletedAt = new Date();
-    user.firstName = null;
-    user.lastName = null;
-    user.role = null;
-    user.source = null;
-    user.surveyResponse = null;
-    user.email = `deleted-${user.id}@plasmic-deleted.app`;
-    user.bcrypt = "";
-    user.createdById = null;
-    user.updatedById = null;
-    user.deletedById = null;
-    user.avatarUrl = null;
-    user.extraData = null;
-    await this.entMgr.save(user);
   }
 
   async getObsoleteDeletedEntities<T extends Base<any>>(
@@ -11094,17 +10544,10 @@ export class DbMgr implements MigrationDbMgr {
       recency: `${days} days`,
     });
 
-    if (Ent === User || Ent === Project) {
+    if (Ent === Project) {
       query = query.andWhere('x."permanentlyDeletedAt" IS NULL');
     }
 
-    if (Ent === User) {
-      // We exclude org-owned users or white-labeled users
-      query = query.andWhere(
-        'x."isWhiteLabel" IS NULL OR x."isWhiteLabel" IS FALSE',
-      );
-      query = query.andWhere('x."owningTeamId" IS NULL');
-    }
     return await query.getMany();
   }
 

@@ -8,8 +8,11 @@ describe("sendAppEndUserInviteEmail", () => {
     await sendAppEndUserInviteEmail(req, {
       sharer: {
         email: "sharer@example.com",
-        firstName: "Sherry",
-        lastName: "Sender",
+        displayName: "Sherry Sender",
+        id: "fixture",
+        loginName: "fixture",
+        state: "STATE_ACTIVE",
+        emailVerified: true,
       } as User,
       email: "recipient@example.com",
       appName: "My App",

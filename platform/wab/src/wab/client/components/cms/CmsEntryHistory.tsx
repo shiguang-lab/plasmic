@@ -82,7 +82,7 @@ export function CmsEntryHistory(props: {
                               <span>
                                 {" "}
                                 <span style={{ color: "#999" }}>by</span>{" "}
-                                {user.firstName} {user.lastName}
+                                {user.displayName}
                               </span>
                             ))(userById[revision.createdById])}
                         </div>
