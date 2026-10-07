@@ -14,7 +14,7 @@ ai/plasmic/references/codegen/             页面读取、项目工程、交互�
 ai/plasmic/references/                     设计规范与 MCP 契约
 ai/plasmic/scripts/                        结构、Slot、模型比较检查
 scripts/build-plasmic-resources.mjs        构建资源与同版本 CLI 安装包
-.github/workflows/publish-plasmic-cli.yml  新 tag 自动发布 npm + NAS
+.github/workflows/publish-plasmic-cli.yml  新 tag 自动发布 npm 并打包资源
 ```
 
 根目录不再放置 `skills/`。CLI 直接读取包内 `skill/plasmic/SKILL.md` 安装，无生成副本或复制构建步骤。`docs/search-form.md` 是组件契约的源文件，构建时进入 `references/search-form.md`；测试脚本不进入资源 bundle。
@@ -70,20 +70,27 @@ plasmickit references path
 2. 在临时包目录把 CLI `package.json.version` 设置为 tag，再构建 CLI 和资源清单。仓库文件不被改写。
 3. 查询 npm 包版本、`latest` 和 `dist.integrity`；拒绝回退、tag 与产物版本不一致，以及同版本不同内容。相同版本、相同完整性且已为 latest 时幂等跳过。
 4. 发布同版本 public npm 包，等待 registry 同步并核对版本和完整性，再保存同一份 CLI/资源到 Actions artifact。
-5. 后续 NAS job 下载该 artifact，配置 SSH 并更新 nginx/只读更新卷，保证 `latest.json` 使用 `no-store`。
-6. 上传并校验产物，发布不可变目录，最后原子切换清单。NAS 同样拒绝回退或同版本不同内容。npm 成功、NAS 失败时可以重跑：npm 跳过相同已发布产物，继续 NAS 发布。
 
 CLI 和资源清单的 `version` 都等于 release tag；源码 package.json 的版本用于本地开发，不要求每次 tag 手工修改。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，只在资源协议或运行能力需要新 CLI 时提高，避免纯 reference 更新强迫升级。资源目录仍使用内容哈希 `releaseId`，记录所有文件/安装包的 SHA-256 和大小。
 
 ### CI 必要配置
 
-- npm：首次发布需要有 `@plasmickit` scope 发布权限的 `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、workflow `publish-plasmic-cli.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
-- `NAS_SSH_HOST` secret：GitHub runner 可访问的 `user@hostname`，不能使用本机 SSH 别名 `ugreen-nas`。
-- `NAS_SSH_KEY` secret：对应私钥。
-- `NAS_SSH_KNOWN_HOSTS` secret：已核对的目标主机指纹；自定义端口需包含 `[host]:port`。
-- 可选变量 `NAS_SSH_PORT`（默认 22）、`NAS_DEPLOY_DIR`（默认 desktop 配置的 NAS 目录）。目标 SSH 账号需要现有 Docker/Compose 部署权限。GitHub runner 必须可以连接该 SSH 地址。
+- npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、workflow `publish-plasmic-cli.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
 
-npm 和 NAS 分别运行；缺少 NAS secrets 会使 NAS job 失败，不阻止 npm job，也不静默跳过 NAS。首次 npm 身份和 NAS 配置必须在实际推送发布 tag 前完成；本地测试不证明这些外部权限已经配置。
+Actions 负责发布 npm、构建 server/web 镜像并打包资源。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
+
+## 单独部署 NAS 资源
+
+从成功的 CLI workflow 下载 `plasmic-resources-<tag>` artifact，解压到一个目录。该目录包含 `latest.json` 和 `releases/<releaseId>/`。部署直接使用这份产物，使 NAS CLI 安装包与 npm 发布包保持相同字节；不要重新打包已经发布的版本。
+
+```sh
+# 首次配置 nginx 和只读更新卷：
+npm --prefix desktop run setup:nas-updates
+# 发布下载并解压的同版本产物：
+npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-resources --version 0.0.38
+```
+
+`desktop.config.json` 的 `nasHost` 和 `nasDeployDir` 使用本机现有 SSH 别名与部署目录；也可通过 `PLASMIC_NAS_HOST`、`PLASMIC_NAS_DEPLOY_DIR`、`PLASMIC_NAS_SSH_PORT` 指定。部署账号需要现有 Docker/Compose 权限。脚本验证产物版本、哈希、公开 HTTPS 访问与清单 `no-store`，先上传不可变目录，最后原子切换清单；拒绝回退和同版本不同内容。发布失败时保留当前清单，重新执行同一产物部署即可。
 
 ## 本地构建与发布检查
 
@@ -92,8 +99,6 @@ node packages/plasmic-cli/src/index.mjs skill install --target /absolute/test-sk
 node scripts/build-plasmic-resources.mjs --version 0.0.35
 # 默认只对 npm 做 dry-run（会查询真实 registry，不上传）：
 node packages/plasmic-cli/scripts/publish.mjs --tag 0.0.35
-# 手动发布 NAS 时必须显式指定同一 release 版本：
-npm --prefix desktop run publish:resources -- --version 0.0.35
 ```
 
 实际发布 npm 需要显式加 `--execute`；推送 tag 的 CI 会自动传入。Desktop App 使用自己的发布流程；CLI/resources 现在由仓库 release tag 发布，Desktop `publish:nas` 不再另外覆盖该清单。
