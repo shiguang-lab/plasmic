@@ -1,13 +1,15 @@
 const { randomBytes, createHash, timingSafeEqual } = require("node:crypto");
 const { createServer } = require("node:http");
 const { sendLoginResult } = require("./login-result.cjs");
+const { consumeSessionTicket } = require("./session-ticket.cjs");
 const AUTH_ORIGIN = "https://shiguanglab.com";
 const CLIENT_ID = "plasmicapp";
 
 class DesktopUnifiedLogin {
-  constructor({ session, studioOrigin }) {
+  constructor({ session, studioOrigin, request }) {
     this.session = session;
     this.studioOrigin = studioOrigin;
+    this.request = request;
   }
   async start({ returnUrl, openBrowser, signal, onAuthorizationUrl }) {
     const target = new URL(returnUrl);
@@ -126,23 +128,15 @@ class DesktopUnifiedLogin {
       ) {
         throw new Error("Invalid Shiguang session ticket");
       }
-      const response = await this.session.fetch(ticketUrl.href, {
-        redirect: "manual",
-        credentials: "include",
-        bypassCustomProtocolHandlers: true,
-        signal: signal
-          ? AbortSignal.any([signal, AbortSignal.timeout(30_000)])
-          : AbortSignal.timeout(30_000),
+      await consumeSessionTicket({
+        session: this.session,
+        url: ticketUrl.href,
+        returnUrl: target.href,
+        signal,
+        request: this.request,
       });
-      const destination = response.headers.get("location");
-      if (
-        response.status !== 302 ||
-        !destination ||
-        new URL(destination).href !== target.href
-      ) {
-        throw new Error("Shiguang session ticket was rejected");
-      }
-      if (!browserResponse.destroyed) await sendLoginResult(browserResponse, true);
+      if (!browserResponse.destroyed)
+        await sendLoginResult(browserResponse, true);
       browserResponse = undefined;
       return target.href;
     } catch (error) {

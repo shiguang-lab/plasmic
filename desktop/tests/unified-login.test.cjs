@@ -1,5 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
+const { EventEmitter } = require("node:events");
 const { createHash } = require("node:crypto");
 const {
   DesktopUnifiedLogin,
@@ -9,6 +10,7 @@ const studioOrigin = "https://studio.plasmic.shiguanglab.com";
 function fixture(options = {}) {
   const calls = [];
   const session = {
+    cookies: { flushStore: async () => {} },
     fetch: async (url, init) => {
       calls.push({ url, init });
       if (url.endsWith("/oauth/token")) {
@@ -25,16 +27,35 @@ function fixture(options = {}) {
             AUTH_ORIGIN + "/oauth/web-session?ticket=one-use",
         });
       }
-      return new Response(null, {
-        status: options.ticketStatus || 302,
-        headers: {
-          location: options.location || studioOrigin + "/projects/example",
-        },
-      });
+      throw new Error("Unexpected fetch");
     },
   };
-  return { login: new DesktopUnifiedLogin({ session, studioOrigin }), calls };
+  const request = (init) => {
+    calls.push({ url: init.url, init });
+    const client = new EventEmitter();
+    client.abort = () =>
+      client.emit("error", new Error("Redirect was cancelled"));
+    client.end = () =>
+      queueMicrotask(() => {
+        if (options.ticketStatus && options.ticketStatus !== 302) {
+          client.emit("response", { resume() {} });
+        } else {
+          client.emit(
+            "redirect",
+            302,
+            "GET",
+            options.location || studioOrigin + "/projects/example",
+          );
+        }
+      });
+    return client;
+  };
+  return {
+    login: new DesktopUnifiedLogin({ session, studioOrigin, request }),
+    calls,
+  };
 }
+
 async function callback(url, state, code = "single-use-code") {
   const auth = new URL(url);
   const target = new URL(auth.searchParams.get("redirect_uri"));
@@ -52,10 +73,7 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
       authorization = new URL(url);
       assert.equal(authorization.origin, AUTH_ORIGIN);
       assert.equal(authorization.pathname, "/oauth/authorize");
-      assert.equal(
-        authorization.searchParams.get("client_id"),
-        "plasmicapp",
-      );
+      assert.equal(authorization.searchParams.get("client_id"), "plasmicapp");
       assert.equal(authorization.searchParams.get("scope"), "web:session");
       assert.equal(
         authorization.searchParams.get("code_challenge_method"),
@@ -70,12 +88,21 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
   assert.match(response.headers.get("content-type"), /text\/html/);
   const html = await response.text();
   assert.match(html, /You're signed in/);
-  assert.match(html, /<script>window.location.assign\("plasmic-desktop:\/\/login-complete"\);<\/script>/);
+  assert.match(
+    html,
+    /<script>window.location.assign\("plasmic-desktop:\/\/login-complete"\);<\/script>/,
+  );
   assert.match(html, /href="plasmic-desktop:\/\/login-complete"/);
   assert.ok(!html.includes("ephemeral-access-token"));
   assert.ok(!html.includes("single-use-code"));
   const script = html.match(/<script>(.*?)<\/script>/)[1];
-  assert.ok(response.headers.get("content-security-policy").includes(`'sha256-${createHash("sha256").update(script).digest("base64")}'`));
+  assert.ok(
+    response.headers
+      .get("content-security-policy")
+      .includes(
+        `'sha256-${createHash("sha256").update(script).digest("base64")}'`,
+      ),
+  );
   const tokenForm = new URLSearchParams(calls[0].init.body);
   assert.equal(
     createHash("sha256")
@@ -110,20 +137,38 @@ test("forged and Unicode callback states are rejected without consuming the real
 });
 test("browser success and automatic app launch wait for the desktop session exchange", async () => {
   let releaseToken, tokenStarted;
-  const started = new Promise(resolve => { tokenStarted = resolve; });
-  const token = new Promise(resolve => { releaseToken = resolve; });
-  const { login } = fixture({ tokenResponse: () => { tokenStarted(); return token; } });
-  let browserResponse, responded = false;
+  const started = new Promise((resolve) => {
+    tokenStarted = resolve;
+  });
+  const token = new Promise((resolve) => {
+    releaseToken = resolve;
+  });
+  const { login } = fixture({
+    tokenResponse: () => {
+      tokenStarted();
+      return token;
+    },
+  });
+  let browserResponse,
+    responded = false;
   const result = login.start({
     returnUrl: studioOrigin + "/projects/example",
-    openBrowser: async url => {
-      browserResponse = callback(url).then(response => { responded = true; return response; });
+    openBrowser: async (url) => {
+      browserResponse = callback(url).then((response) => {
+        responded = true;
+        return response;
+      });
     },
   });
   await started;
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(responded, false);
-  releaseToken(Response.json({ access_token: "ephemeral-access-token", token_type: "Bearer" }));
+  releaseToken(
+    Response.json({
+      access_token: "ephemeral-access-token",
+      token_type: "Bearer",
+    }),
+  );
   await result;
   assert.equal((await browserResponse).status, 200);
 });
@@ -168,7 +213,10 @@ for (const options of [
       assert.equal(response.status, 502);
       const html = await response.text();
       assert.match(html, /Sign-in could not be completed/);
-      assert.ok(!html.includes("<script>"), "failed login must not automatically open the app");
+      assert.ok(
+        !html.includes("<script>"),
+        "failed login must not automatically open the app",
+      );
     },
   );
 }

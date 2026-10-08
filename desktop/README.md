@@ -140,6 +140,7 @@ npm run assets
 # Or, for frontend changes from this checkout:
 # npm run assets -- --from ../platform/wab/build
 npm test
+npm run test:auth-session
 npm run test:updates-native
 npm run release -- darwin universal --notes /absolute/path/to/release-notes.txt
 # Build Windows on Windows and Linux on Linux:
