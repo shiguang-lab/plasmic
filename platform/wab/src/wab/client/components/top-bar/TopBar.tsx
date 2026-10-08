@@ -573,7 +573,6 @@ function _TopBar({ preview }: TopBarProps) {
             : null
         }
         variantsComboSelect={{}}
-        plasmicAdminMode={appCtx.selfInfo?.isAdmin}
       />
     </>
   );
