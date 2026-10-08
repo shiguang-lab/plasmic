@@ -8,15 +8,6 @@
   row-gap: 16px;
   min-width: 0;
 }
-.freeBox__hv1F {
-  display: block;
-  position: absolute;
-  width: 1px;
-  height: 115%;
-  left: 15.5px;
-  top: 0px;
-  background: var(--token-hoA5qaM-91G);
-}
 .freeBox__tZuGq {
   display: flex;
   flex-direction: row;

@@ -1,0 +1,118 @@
+@import "../../../../styles/tokens";
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  width: 100%;
+  font-size: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  h3 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: $sand3;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.live,
+.offline {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.live {
+  color: $green11;
+  background: $green3;
+}
+
+.offline {
+  color: $sand11;
+  background: $sand3;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid $sand4;
+  border-radius: 4px;
+
+  :global(.ant-checkbox-wrapper),
+  :global(.ant-btn),
+  :global(.ant-input),
+  :global(.ant-select) {
+    font-size: 12px;
+  }
+}
+
+.description {
+  margin: 0;
+  color: $sand11;
+  line-height: 1.5;
+}
+
+.field,
+.publication {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  a {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button {
+    flex-shrink: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

@@ -28,7 +28,6 @@ function props(
     entryPath: "/groups",
     setEntryPath: vi.fn(),
     busy: false,
-    hasPublishedVersion: true,
     canEdit: true,
     publish: vi.fn(),
     unpublish: vi.fn(),
@@ -47,11 +46,10 @@ describe("published website controls", () => {
     expect(actions.publish).toHaveBeenCalledOnce();
     expect(actions.unpublish).toHaveBeenCalledOnce();
   });
-  it("allows first-time website publishing with the next version", () => {
+  it("allows first-time website publishing without a separate version action", () => {
     const actions = props({
       publication: null,
       enabled: false,
-      hasPublishedVersion: false,
     });
     render(<PreviewPublishSection {...actions} />);
     fireEvent.click(screen.getByRole("checkbox"));
@@ -60,7 +58,31 @@ describe("published website controls", () => {
       screen
         .getByRole("button", { name: "Publish website" })
         .hasAttribute("disabled"),
-    ).toBe(true);
+    ).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Publish website" }));
+    expect(actions.publish).toHaveBeenCalledOnce();
+  });
+  it("allows opting out of website updates without unpublishing the live site", () => {
+    const actions = props();
+    render(<PreviewPublishSection {...actions} />);
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(actions.setEnabled).toHaveBeenCalledWith(false);
+    expect(actions.unpublish).not.toHaveBeenCalled();
+    expect(screen.getByRole("link").getAttribute("href")).toBe(publication.url);
+  });
+  it("disables mutations while publishing and keeps the live link available", () => {
+    const actions = props({ busy: true });
+    render(<PreviewPublishSection {...actions} />);
+    for (const name of ["Update website", "Unpublish website"]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.hasAttribute("disabled")).toBe(true);
+      fireEvent.click(button);
+    }
+    expect(screen.getByRole("checkbox").hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("combobox").hasAttribute("disabled")).toBe(true);
+    expect(actions.publish).not.toHaveBeenCalled();
+    expect(actions.unpublish).not.toHaveBeenCalled();
+    expect(screen.getByRole("link").getAttribute("href")).toBe(publication.url);
   });
   it("prevents viewer changes and keeps the previous link visible on failure", () => {
     render(

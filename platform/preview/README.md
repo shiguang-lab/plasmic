@@ -6,17 +6,21 @@ NAS `.env`. Run the database migration and deploy matching server, web and previ
 images. The server advertises the configured origin to Studio on existing databases;
 bootstrap is not needed for an upgrade.
 
-In Studio or Desktop, open **Publish → Published website** from any arena. Select
-**Publish website when saving a version** and publish, or use **Publish website**
-for an existing published version. Choose an entry page and use **Copy link**.
+In Studio or Desktop, open **Publish → Published website** from any arena. Choose
+an entry page and click **Publish website** or **Update website**. This saves current
+changes and creates a project version when needed before building the website;
+it also works for projects that have never published a version. Use **Copy link**
+to share the result. Select **Update website when publishing a version** to include
+the website in the dialog's main **Publish** action.
 The link has the form `https://preview.plasmic.shiguanglab.com/s/<code>` and redirects
 to `/p/<code>/<page-path>`. Updating the website keeps that link. **Unpublish website**
 disables the public routes and removes the stored bundle; republishing reuses the link.
 
-Studio's publishing pipeline saves the project version, then updates an enabled
+Studio's publishing pipeline saves the project version, then updates a selected
 website. Draft saves never update it. If website generation fails, the previous
 website remains available and the dialog displays the error; **Update website**
-retries using the latest published version. Branch versions are not published here.
+retries with current editor changes. Saving or version publication failures stop
+website publication. Branch versions are not published here.
 Publishing through the API requires an editor role and a separate POST to
 `/api/v1/projects/<projectId>/preview-publication`, with optional `entryPath`.
 GET returns metadata to viewers and DELETE unpublishes for editors.

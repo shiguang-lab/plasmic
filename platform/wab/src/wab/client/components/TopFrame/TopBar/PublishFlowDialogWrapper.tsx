@@ -1,4 +1,8 @@
 import PreviewPublishSection from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
+import {
+  ensureWebsiteVersionSaved,
+  publishCurrentWebsite,
+} from "@/wab/client/components/TopFrame/TopBar/publish-website";
 /** @format */
 
 import { apiKey } from "@/wab/client/api";
@@ -169,14 +173,34 @@ export const PublishFlowDialogWrapper = observer(
         setPreviewEntryPath(previewResult.publication.entryPath);
       }
     }, [previewResult]);
-    const publishWebsite = async () => {
+    const publishWebsite = async (saveCurrentVersion: boolean) => {
       setPreviewBusy(true);
       setPreviewError(undefined);
+      if (saveCurrentVersion) {
+        setStatusSaveVersion(undefined);
+      }
       try {
-        const result = await appCtx.api.publishPreviewPublication(
-          projectId,
-          previewEntryPath || undefined,
-        );
+        const buildWebsite = () =>
+          appCtx.api.publishPreviewPublication(
+            projectId,
+            previewEntryPath || undefined,
+          );
+        const result = saveCurrentVersion
+          ? await publishCurrentWebsite(
+              () =>
+                hostFrameApi.publishVersion(
+                  versionTags,
+                  versionDescription,
+                  undefined,
+                ),
+              buildWebsite,
+            )
+          : await buildWebsite();
+        if (saveCurrentVersion) {
+          setVersionTags([]);
+          setVersionDescription("");
+          setStatusSaveVersion({ enabled: true, result: "Success" });
+        }
         await refreshPreview(result, false);
         refreshProjectAndPerms();
       } catch (error) {
@@ -523,12 +547,19 @@ export const PublishFlowDialogWrapper = observer(
             setVersionDescription("");
             setStatusSaveVersion({ ..._statusSaveVersion });
 
-            if (publishResult === "PaywallError") {
+            try {
+              ensureWebsiteVersionSaved(publishResult);
+            } catch (error) {
+              if (previewAvailable && previewEnabled) {
+                setPreviewError(
+                  error instanceof Error ? error.message : String(error),
+                );
+              }
               return;
             }
 
             const versionId = await hostFrameApi.getLatestPublishedVersionId();
-            if (versionId) {
+            if (versionId && !(previewAvailable && previewEnabled)) {
               await waitUntil(
                 async () => {
                   const { status } =
@@ -544,8 +575,12 @@ export const PublishFlowDialogWrapper = observer(
 
             if (previewAvailable) {
               if (previewEnabled) {
+                setStatusSaveVersion({
+                  ..._statusSaveVersion,
+                  result: "Success",
+                });
                 try {
-                  await publishWebsite();
+                  await publishWebsite(false);
                 } catch {
                   return;
                 }
@@ -697,18 +732,18 @@ export const PublishFlowDialogWrapper = observer(
                     setEnabled={setPreviewEnabled}
                     entryPath={previewEntryPath}
                     setEntryPath={setPreviewEntryPath}
-                    busy={previewBusy || previewLoading}
+                    busy={
+                      previewBusy ||
+                      previewLoading ||
+                      publishState === "publishing"
+                    }
                     error={
                       previewError ||
                       (previewLoadError ? String(previewLoadError) : undefined)
                     }
                     canEdit={editorPerm && !previewLoadError}
-                    hasPublishedVersion={
-                      !!latestPublishedVersionData ||
-                      statusSaveVersion?.result === "Success"
-                    }
                     publish={() =>
-                      spawn(publishWebsite().catch(() => undefined))
+                      spawn(publishWebsite(true).catch(() => undefined))
                     }
                     unpublish={() => spawn(unpublishWebsite())}
                   />

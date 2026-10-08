@@ -189,8 +189,6 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
         { [sty.rootcollapse]: hasVariant($state, "collapse", "collapse") }
       )}
     >
-      <div className={classNames("all", sty.freeBox___9QCvn)} />
-
       <div
         className={classNames("all", sty.freeBox___9MQmz, {
           [sty.freeBoxview_status___9MQmz2JIHl]: hasVariant(

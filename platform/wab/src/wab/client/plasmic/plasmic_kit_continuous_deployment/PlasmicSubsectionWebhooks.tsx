@@ -170,14 +170,6 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
       )}
     >
       <div
-        className={classNames("all", sty.freeBox__qQdPq, {
-          [sty.freeBoxcollapse_view_status__qQdPqJe1PNVFkKr]:
-            hasVariant($state, "view", "status") &&
-            hasVariant($state, "collapse", "collapse"),
-        })}
-      />
-
-      <div
         className={classNames("all", sty.freeBox__xOmFn, {
           [sty.freeBoxcollapse_view_status__xOmFnJe1PNVFkKr]:
             hasVariant($state, "view", "status") &&

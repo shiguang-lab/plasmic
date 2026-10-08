@@ -214,6 +214,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           id: "publish-flow-dialog-root",
           style: {
             maxHeight: `calc(100vh - 100px)`,
+            maxWidth: `calc(100vw - 32px)`,
           },
         }}
         cancelButton={{
@@ -245,16 +246,24 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           },
         }}
         subsectionSaveVersion={{
-          project,
-          closeDialog: closeDialog,
-          changesSummary: (
-            <SplitStatusUpdateSummarySection diffs={diffs ?? []} />
+          wrap: (node) => (
+            <>
+              {websiteSection}
+              {node}
+            </>
           ),
-          gotoReviewChanges: () => setView("reviewChanges"),
-          loading: loadingVersion,
-          version: nextVersion?.version,
-          releaseType: nextVersion?.releaseType,
-          ...subsectionMeta.saveVersion,
+          props: {
+            project,
+            closeDialog: closeDialog,
+            changesSummary: (
+              <SplitStatusUpdateSummarySection diffs={diffs ?? []} />
+            ),
+            gotoReviewChanges: () => setView("reviewChanges"),
+            loading: loadingVersion,
+            version: nextVersion?.version,
+            releaseType: nextVersion?.releaseType,
+            ...subsectionMeta.saveVersion,
+          },
         }}
         subsectionPushDeploy={{
           props: {
@@ -267,7 +276,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           },
         }}
         subsectionPlasmicHosting={{
-          ...(websiteSection ? { render: () => websiteSection } : {}),
+          ...(websiteSection ? { render: () => null } : {}),
           props: {
             // Important to render the component, since the component is what
             // kicks off the load.

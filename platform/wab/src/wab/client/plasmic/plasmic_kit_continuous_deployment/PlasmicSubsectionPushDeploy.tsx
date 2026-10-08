@@ -234,8 +234,6 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
         }
       )}
     >
-      <div className={classNames("all", sty.freeBox___3XSbn)} />
-
       <div
         className={classNames("all", sty.freeBox__lnWi5, {
           [sty.freeBoxview_setup__lnWi5SMuCj]: hasVariant(

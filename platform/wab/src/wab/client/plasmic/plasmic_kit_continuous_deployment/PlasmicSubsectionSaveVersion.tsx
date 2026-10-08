@@ -206,8 +206,6 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
         }
       )}
     >
-      <div className={classNames("all", sty.freeBox__hv1F)} />
-
       <div
         className={classNames("all", sty.freeBox__tZuGq, {
           [sty.freeBoxchangesState_none__tZuGqerDWt]: hasVariant(
