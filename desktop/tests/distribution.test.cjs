@@ -19,13 +19,13 @@ test("release JSON and image files publish complete, verified native installers"
   const output = path.join(root, "public/desktop-updates");
   const bytes = Buffer.from("installer fixture");
   const sha512 = createHash("sha512").update(bytes).digest("base64");
-  for (const target of [...releaseTargets, { platform: "darwin", arch: "universal", extension: ".zip" }]) {
+  for (const target of releaseTargets) {
     const dir = path.join(input, `${target.platform}-${target.arch}`);
     await fs.mkdir(dir, { recursive: true });
     const filename = `Plasmic-${version}-${target.platform === "darwin" ? "mac" : target.platform}-${target.arch}${target.extension}`;
     await fs.writeFile(path.join(dir, filename), bytes);
     const files = [{ url: filename, size: bytes.length, sha512 }];
-    if (target.platform === "darwin" && target.arch !== "universal") {
+    if (target.platform === "darwin") {
       const archive = filename.replace(/\.dmg$/, ".zip");
       await fs.writeFile(path.join(dir, archive), bytes);
       files.push({ url: archive, size: bytes.length, sha512 });
@@ -46,11 +46,7 @@ test("release JSON and image files publish complete, verified native installers"
   );
   assert.equal(manifest.installers.length, 4);
   assert.deepEqual(manifest.installers.map((file) => file.id), ["mac-arm64", "mac-x64", "windows", "linux"]);
-  const legacy = YAML.parse(await fs.readFile(path.join(output, "darwin/universal/latest-mac.yml"), "utf8"));
-  assert.equal(legacy.version, version);
-  assert.equal(legacy.files[0].url, `Plasmic-${version}-mac-universal.zip`);
-  assert.deepEqual(await fs.readFile(path.join(output, "darwin/universal", legacy.files[0].url)), bytes);
-  assert(!manifest.installers.some((file) => file.arch === "universal"));
+  assert.deepEqual((await fs.readdir(path.join(output, "darwin"))).sort(), ["arm64", "x64"]);
   for (const arch of ["arm64", "x64"]) {
     const native = YAML.parse(await fs.readFile(path.join(output, `darwin/${arch}/latest-mac.yml`), "utf8"));
     assert(native.files.some((file) => file.url === `Plasmic-${version}-mac-${arch}.zip`));

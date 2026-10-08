@@ -74,7 +74,7 @@ for (const installer of candidate.installers) {
   )
     throw new Error("Public installer is unavailable or has wrong size");
 }
-for (const arch of ["arm64", "x64", "universal"]) {
+for (const arch of ["arm64", "x64"]) {
   const url = `${config.updateUrl}/darwin/${arch}/`;
   const response = await fetch(url + "latest-mac.yml", { cache: "no-store", signal: AbortSignal.timeout(30000) });
   if (!response.ok || !response.headers.get("cache-control")?.includes("no-store")) throw new Error(`macOS ${arch} update feed unavailable or cacheable`);

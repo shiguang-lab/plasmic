@@ -57,13 +57,6 @@ export async function buildDistribution(input, output, version, updateUrl) {
       url: new URL(`${partition}/${file.url}`, base).href,
     });
   }
-  // Installed Universal clients have this feed URL hard-coded. The ZIP updates
-  // them to this updater, which selects the native architecture on next launch.
-  const legacy = await validateRelease(path.join(input, "darwin-universal"), "darwin", version, "universal");
-  if (!legacy.manifest.files.some((entry) => entry.url.endsWith(".zip"))) throw new Error("Missing Universal update bridge");
-  const legacyOutput = path.join(output, "darwin/universal");
-  await mkdir(legacyOutput, { recursive: true });
-  for (const name of [...legacy.files, legacy.name]) await cp(path.join(input, "darwin-universal", name), path.join(legacyOutput, name));
   const manifest = { schemaVersion: 1, version, installers };
   await writeFile(
     path.join(output, "latest.json"),

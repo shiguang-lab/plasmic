@@ -130,10 +130,8 @@ git push origin master desktop-v0.0.23
 
 `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
 builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
-and Linux x64 on Linux. A Universal ZIP-only job provides the update bridge for
-installed clients whose update URL is fixed to `darwin/universal/`. It is not
-listed as a website installer. After this bridge launches, the app selects
-`darwin/arm64/` or `darwin/x64/` automatically; Rosetta launches select arm64.
+and Linux x64 on Linux. macOS installers and updates use only
+`darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.
 Each native runner tests the desktop and packages its installer. The final job verifies
 all installer sizes and SHA-512 hashes, copies installers and Electron update YAML
 into `desktop/public/desktop-updates/`, and generates `latest.json` for the website.
@@ -160,7 +158,7 @@ YAML have `no-store` caching; versioned files are immutable and support HTTP ran
 CORS allows the Shiguang website to fetch public metadata and HEAD installer sizes
 without account credentials. Website builds do not embed release versions.
 
-NAS deployment verifies the live JSON and all four installers and the three macOS ZIP update feeds. `DESKTOP_RELEASE_TAG`
+NAS deployment verifies the live JSON and all four installers and the two macOS ZIP update feeds. `DESKTOP_RELEASE_TAG`
 selects the desktop image independently of the Studio/server `IMAGE_TAG`. The existing
 `plasmic-desktop-updates` volume retains only the separate CLI/Skill resource route.
 App releases do not rebuild or redeploy the Shiguang website or Studio backend.

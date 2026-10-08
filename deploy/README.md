@@ -104,8 +104,8 @@ are disabled. Desktop updates do not require changing the NAS backend image tag.
 Run `npm run setup:nas-updates` from `desktop` to configure an existing NAS deployment,
 then publish a new `desktop-v<version>` tag through GitHub Actions and deploy the
 resulting image with `node desktop/scripts/publish.mjs desktop-v<version>`.
-The website offers independent Apple Silicon and Intel DMGs. The legacy Universal
-feed retains a ZIP bridge so already-installed clients can adopt native update feeds.
+The website offers independent Apple Silicon and Intel DMGs, with matching
+architecture-specific ZIP archives for in-app updates.
 See [desktop release instructions](../desktop/README.md#nas-updates-and-releases)
 for versioning, other platforms and installation behavior.
 

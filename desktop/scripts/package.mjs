@@ -36,7 +36,7 @@ if (manifest.build?.rendererHash !== await hashFiles(path.join(root, "renderer")
 const [platform = process.platform, arch = process.arch] =
   process.argv.slice(2);
 const platforms = { darwin: Platform.MAC, win32: Platform.WINDOWS, linux: Platform.LINUX };
-if (!platforms[platform] || !(platform === "darwin" ? ["arm64", "x64", "universal"].includes(arch) : ["arm64", "x64"].includes(arch))) throw new Error("Unsupported platform or architecture");
+if (!platforms[platform] || !["arm64", "x64"].includes(arch)) throw new Error("Unsupported platform or architecture");
 const notesIndex = process.argv.indexOf("--notes");
 const releaseNotes = notesIndex < 0 ? undefined : await readFile(process.argv[notesIndex + 1], "utf8");
 const outputs = await build({
@@ -54,7 +54,7 @@ const outputs = await build({
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       const bundle = path.join(context.appOutDir, "Plasmic.app/Contents");
-      const architectures = arch === "universal" ? ["arm64", "x86_64"] : [arch === "arm64" ? "arm64" : "x86_64"];
+      const architectures = [arch === "arm64" ? "arm64" : "x86_64"];
       const actual = execFileSync("/usr/bin/lipo", ["-archs", path.join(bundle, "MacOS/Plasmic")], { encoding: "utf8" }).trim().split(/\s+/);
       if (actual.length !== architectures.length || !architectures.every((name) => actual.includes(name))) throw new Error("Packaged macOS architecture mismatch");
       const resources = path.join(bundle, "Resources/app.asar");
@@ -73,7 +73,7 @@ const outputs = await build({
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
     publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
     releaseInfo: releaseNotes ? { releaseNotes } : undefined,
-    mac: { target: arch === "universal" ? ["zip"] : ["dmg", "zip"], mergeASARs: true, icon: "assets/icon.icns", identity: "-", hardenedRuntime: false },
+    mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: "-", hardenedRuntime: false },
     win: { target: ["nsis"], icon: "assets/icon.ico" },
     nsis: { oneClick: true, perMachine: false, deleteAppDataOnUninstall: false },
     linux: { target: ["AppImage"], executableName: "plasmic", icon: "assets/icon.png", category: "Development" },

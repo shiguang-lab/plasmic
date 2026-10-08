@@ -40,9 +40,6 @@ jobs:
           - runner: macos-15-intel
             platform: darwin
             arch: x64
-          - runner: macos-latest
-            platform: darwin
-            arch: universal
           - runner: windows-latest
             platform: win32
             arch: x64
@@ -101,10 +98,6 @@ jobs:
         with:
           name: darwin-x64
           path: installers/darwin-x64
-      - uses: actions/download-artifact@v4
-        with:
-          name: darwin-universal
-          path: installers/darwin-universal
       - uses: actions/download-artifact@v4
         with:
           name: win32-x64
