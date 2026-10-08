@@ -9,6 +9,7 @@ import { Bundle } from "@/wab/shared/bundler";
 import {
   codeToDynExpr,
   interpolatedStringToTemplatedString,
+  objectLiteralToExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { codeLit, customCode } from "@/wab/shared/core/exprs";
@@ -274,6 +275,19 @@ describe("Component Serialization", () => {
       const output = tplToHtml(instance, site);
       expect(output).toContain(`data-props=`);
       expect(output).toContain(`{{ currentItem.name }}`);
+    });
+
+    it("preserves nested dynamic rules and initial values in editable prop readbacks", () => {
+      const inner = mkComponent({name: "Form", type: ComponentType.Plain, tplTree: baseVariant => mkTplTagX("div", {baseVariant})});
+      const param = mkParam({name: "initialValues", type: typeFactory.any(), paramType: "prop"});
+      inner.params.push(param);
+      const host = mkComponent({name: "Host", type: ComponentType.Plain, tplTree: baseVariant => mkTplTagX("div", {baseVariant})});
+      const instance = mkTplComponentX({component: inner, baseVariant: getBaseVariant(host), args: {initialValues: objectLiteralToExpr(JSON.stringify({expiry: "{{ Number($ctx.query?.expiry||14) }}", rules: [{ruleType: "advanced", custom: "{{ (_rule,value)=>Number.isInteger(value) }}"}]}))!}});
+      const output = tplToHtml(instance, site);
+      expect(output).toContain("initialValues");
+      expect(output).toContain("{{ Number($ctx.query?.expiry||14) }}");
+      expect(output).toContain("advanced");
+      expect(output).toContain("Number.isInteger(value)");
     });
 
     it("serializes prop defaults referencing project resources", () => {

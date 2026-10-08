@@ -154,6 +154,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   assert.deepEqual(await readdir(codexSkill.target), ["SKILL.md"]);
   assert.equal(await readFile(codexSkill.skillPath, "utf8"), await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8"));
   assert.ok(built.manifest.files.some((f) => f.path === "scripts/verify_structure.py"));
+  assert.ok(built.manifest.files.some((f) => f.path === "scripts/verify_forms.py"));
   assert.ok(built.manifest.files.every((f) => !f.path.includes("test_") && !f.path.includes("SKILL.md")));
   // Read every linked local Markdown reference in the real release, not fixture wording.
   const server = createServer(async (req, res) => {

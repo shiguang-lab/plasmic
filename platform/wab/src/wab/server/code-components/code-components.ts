@@ -41,6 +41,7 @@ import { type GlobalContextMeta } from "@plasmicapp/host/registerGlobalContext";
 import { ok } from "neverthrow";
 import path from "path";
 import React from "react";
+import { librarySources } from "@/wab/server/loader/library-artifacts";
 
 let componentsUpdatingSlotContents = new WeakSet<CodeComponent>();
 
@@ -460,7 +461,7 @@ async function withFreshRegistries(func: () => Promise<void>) {
 }
 
 function loadServerPackage(pkg: string) {
-  const pkgPath = path.resolve(
+  const pkgPath = librarySources.getStore()?.serverModules[pkg] ?? path.resolve(
     path.join(
       __dirname,
       `../../../../../canvas-packages/build-server/${pkg}.js`,

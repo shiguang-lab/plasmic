@@ -23,6 +23,18 @@ registerAll({
   registerToken() {},
 } as Registerable);
 
+test("Form.Item label tooltip is editable and simplified fields expose tooltip text", () => {
+  const item = components.get("plasmic-antd6-form-item")!;
+  const form = components.get("plasmic-antd6-form")!;
+  assert.equal(item.meta.props.tooltip.type, "slot");
+  assert.equal(form.meta.props.formItems.itemType.fields.tooltip.type, "string");
+  assert.equal(form.meta.props.dataFormItems.itemType.fields.tooltip.type, "string");
+  assert.deepEqual(form.meta.refActions.submit.argTypes, []);
+  assert.equal(item.meta.props.tooltip.hidden({ noLabel: true }, null), true);
+  assert.equal(item.meta.props.tooltip.hidden({}, null), false);
+  assert.equal(form.meta.props.formItems.itemType.fields.tooltip.hidden({}, null, { item: { noLabel: true } }), true);
+});
+
 test("table supports a paginated, bounded viewport with fixed columns", () => {
   const table = components.get("plasmic-antd6-table")!;
   const column = components.get("plasmic-antd6-table-column")!;

@@ -98,7 +98,7 @@ function getDefaultValueHint(field) {
   };
 }
 function commonFormItemProps(usage) {
-  const getFormItemProps = (ps, _ctx, { item }) => {
+  const getFormItemProps = (ps, _ctx, { item } = {}) => {
     {
       return item;
     }
@@ -171,6 +171,12 @@ function commonFormItemProps(usage) {
     rules: {
       displayName: "Validation rules",
       type: "formValidationRules"
+    },
+    tooltip: {
+      type: usage === "advanced-form-item" ? "slot" : "string",
+      displayName: "Tooltip",
+      description: "Help shown beside the field label by Form.Item.",
+      hidden: (ps, ctx, extras) => !!getFormItemProps(ps, ctx, extras)?.noLabel
     },
     valuePropName: {
       type: "string",
@@ -361,7 +367,7 @@ const commonSimplifiedFormArrayItemType = (propName) => ({
       description: "To provide an additional time selection",
       hidden: (_ps, _ctx, { item }) => ![Form.InputType.DatePicker].includes(item.inputType)
     },
-    ...commonFormItemProps()
+    ...commonFormItemProps("simplified-form-item")
   },
   nameFunc: (item) => item.fieldId ?? item.label ?? item.name
 });
@@ -659,6 +665,10 @@ function registerForm(loader) {
       importPath: "@shiguang-lab/plasmic-antd6/skinny/Form"
     },
     refActions: {
+      submit: {
+        displayName: "Submit form",
+        argTypes: []
+      },
       setFieldsValue: {
         displayName: "Set multiple fields",
         argTypes: [

@@ -10,6 +10,8 @@ import { resolveProjectDeps } from "@/wab/server/loader/resolve-projects";
 import { loaderBundleCacheCounter } from "@/wab/server/promstats";
 import type { PlasmicWorkerPool } from "@/wab/server/workers/pool";
 import { ensureDevFlags } from "@/wab/server/workers/worker-utils";
+import { getPublishedProjectLibraryArtifacts } from "@/wab/server/loader/project-library-artifacts";
+import type { LibraryArtifact } from "@/wab/server/loader/library-artifacts";
 
 const s3 = vi.hoisted(() => {
   const objects = new Map<string, string>();
@@ -63,6 +65,9 @@ vi.mock("@/wab/server/loader/resolve-projects", async (importOriginal) => ({
 }));
 vi.mock("@/wab/server/workers/worker-utils", () => ({
   ensureDevFlags: vi.fn(),
+}));
+vi.mock("@/wab/server/loader/project-library-artifacts", () => ({
+  getPublishedProjectLibraryArtifacts: vi.fn(),
 }));
 
 const BASE_OPTS = {
@@ -138,7 +143,12 @@ describe("genPublishedLoaderCodeBundle", () => {
   let pool: PlasmicWorkerPool;
 
   beforeEach(() => {
+    vi.stubEnv("PREVIEW_ORIGIN", "");
+    vi.mocked(getPublishedProjectLibraryArtifacts).mockReset();
     s3.objects.clear();
+    for (const mock of [s3.getObject, s3.putObject, s3.GetObjectCommand, s3.PutObjectCommand, s3.S3Client]) {
+      mock.mockClear();
+    }
     // `restoreMocks` wipes the implementations set at creation time.
     s3.getObject.mockImplementation(({ Key }) => async () => {
       const body = s3.objects.get(Key);
@@ -177,9 +187,32 @@ describe("genPublishedLoaderCodeBundle", () => {
     } as unknown as PlasmicWorkerPool;
   });
 
+  afterEach(() => vi.unstubAllEnvs());
+
   function s3GetKeys() {
     return s3.getObject.mock.calls.map(([{ Key }]) => Key);
   }
+
+  it("resolves Project library artifacts for prefill and separates caches by code digest", async () => {
+    vi.stubEnv("PREVIEW_ORIGIN", "https://preview.plasmic.shiguanglab.com");
+    const artifact = { digest: "fixed-v1" } as LibraryArtifact;
+    vi.mocked(getPublishedProjectLibraryArtifacts).mockResolvedValue([artifact]);
+    try {
+      await genPublishedLoaderCodeBundle(dbMgr, pool, { ...CALL_OPTS, source: "prefill" });
+      expect(getPublishedProjectLibraryArtifacts).toHaveBeenCalledWith(dbMgr, CALL_OPTS.projectVersions);
+      const builds = () => (vi.mocked(pool.exec).mock.calls as unknown as [string, unknown[]][])
+        .filter(([method]) => method === "loader-assets");
+      expect(builds()[0][1]?.[4]).toMatchObject({ libraryArtifacts: [artifact] });
+      await genPublishedLoaderCodeBundle(dbMgr, pool, { ...CALL_OPTS, source: "prefill" });
+      expect(builds()).toHaveLength(1);
+      vi.mocked(getPublishedProjectLibraryArtifacts).mockResolvedValue([{ ...artifact, digest: "fixed-v2" }]);
+      await genPublishedLoaderCodeBundle(dbMgr, pool, { ...CALL_OPTS, source: "prefill" });
+      expect(builds()).toHaveLength(2);
+      expect(s3GetKeys().some((key) => key.includes("-libraries-"))).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 
   it("probes the same bundle key that the full path ends up writing", async () => {
     await genPublishedLoaderCodeBundle(dbMgr, pool, CALL_OPTS);

@@ -27,6 +27,7 @@ import { promises as fs } from "fs";
 import { glob } from "glob";
 import { flatMap, kebabCase, sortBy } from "lodash";
 import path from "path";
+import { libraryAssetLoaders } from "@/wab/server/loader/library-artifacts";
 
 export interface ComponentMeta {
   id: string;
@@ -109,6 +110,8 @@ type BundleOpts = {
   mode: "production" | "development";
   loaderVersion: number;
   browserOnly: boolean;
+  libraryAliases?: Record<string, string>;
+  libraryResolutions?: Record<string, Record<string, string>>;
 };
 
 function componentEntrypoint(c: ComponentExportOutput) {
@@ -121,6 +124,15 @@ async function bundleModulesEsbuild(
   componentDeps: Record<string, string[]>,
   opts: BundleOpts,
 ) {
+  const libraryPlugin: EsbuildPlugin | undefined = opts.libraryAliases ? {
+    name: "project-library-artifacts",
+    setup(build) {
+      build.onResolve({ filter: /.*/ }, (args) => {
+        const destination = opts.libraryResolutions?.[args.importer]?.[args.path] ?? opts.libraryAliases?.[args.path];
+        return destination ? { path: destination } : undefined;
+      });
+    },
+  } : undefined;
   // First we build the javascript, which we need to build separately for browser
   // and for node (if so requested).
   const targets = opts.browserOnly
@@ -171,6 +183,7 @@ async function bundleModulesEsbuild(
         ),
       ],
       bundle: true,
+      loader: opts.libraryAliases ? libraryAssetLoaders : undefined,
       format: "esm",
       platform: target,
       external: deriveExternals(opts),
@@ -208,6 +221,7 @@ async function bundleModulesEsbuild(
       // observable difference.
       preserveSymlinks: false,
       plugins: withoutNils([
+        libraryPlugin,
         externalizeCssUrlsPlugin,
         fixAntdPathPlugin,
         // Handle newer antd4 whose transpiled code triggers this limitation (so we don't have to somehow pin antd4 version in our monorepo)
@@ -364,6 +378,13 @@ async function bundleModulesEsbuild(
       define: deriveEsbuildDefines({ mode: opts.mode, target }),
       target: target === "node" ? "node12" : "es6",
     });
+    if (opts.libraryAliases && target === "browser") {
+      for (const filename of await fs.readdir(outDirEsm)) {
+        if (filename.endsWith(".css")) {
+          await fs.copyFile(path.join(outDirEsm, filename), path.join(outDir, filename));
+        }
+      }
+    }
 
     metafiles[target] = outRes.metafile;
   }
@@ -395,7 +416,9 @@ async function bundleModulesEsbuild(
     minify: true,
     outdir: browserOutDir,
     bundle: true,
-    plugins: [
+    loader: opts.libraryAliases ? libraryAssetLoaders : undefined,
+    plugins: withoutNils([
+      libraryPlugin,
       externalizeCssUrlsPlugin,
       {
         name: "fix-slick-carousel",
@@ -420,7 +443,7 @@ async function bundleModulesEsbuild(
           );
         },
       },
-    ],
+    ]),
   });
   // We rename the output css file from the last step to entrypoint.css, which is what
   // loader expects
@@ -485,9 +508,9 @@ Object.assign(exports,module.exports);
           ...fileMeta.imports.map((x) => path.basename(x.path)),
           // css that was used in this chunk will be marked in fileMeta.inputs,
           // so we can record that dependency here.
-          ...Object.keys(fileMeta.inputs)
-            .filter((x) => x.endsWith(".css"))
-            .map((x) => path.basename(x)),
+          ...(opts.libraryAliases
+            ? (fileMeta.cssBundle ? [path.basename(fileMeta.cssBundle)] : [])
+            : Object.keys(fileMeta.inputs).filter((x) => x.endsWith(".css")).map((x) => path.basename(x))),
         ],
       };
       return mod;

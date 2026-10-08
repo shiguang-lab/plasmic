@@ -2,18 +2,19 @@
 
 Release tags use version numbers starting at `0.0.1` (without a `v` prefix).
 Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
-`ghcr.io/shiguang-lab/plasmic-server:<tag>` and
-`ghcr.io/shiguang-lab/plasmic-web:<tag>` for Linux amd64.
+`ghcr.io/shiguang-lab/plasmic-server:<tag>`,
+`ghcr.io/shiguang-lab/plasmic-web:<tag>` and
+`ghcr.io/shiguang-lab/plasmic-preview:<tag>` for Linux amd64.
 The same stable numeric tag also runs `.github/workflows/publish-plasmic-cli.yml`,
 publishing a matching CLI version to npm and references/CLI artifacts to NAS.
 See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布).
-The workflow publishes server/web through one matrix step, with separate mode=min
-GHA caches. The server target skips frontend/canvas bundling and copies the
-platform runtime workspaces plus the locally built SDK host package. The host
+The workflow publishes server/web/preview through one matrix step, with separate mode=min
+GHA caches. The server target skips frontend bundling and copies the platform runtime
+workspaces and built-in library sources plus the locally built SDK host package. The host
 shares the server's React dependencies through NODE_PATH. The workflow uses the
 built-in GITHUB_TOKEN with packages:write.
 For a newly forked repository, enable Actions in the GitHub Actions tab first.
-New GHCR packages are private by default. Make both packages public for anonymous
+New GHCR packages are private by default. Make all three packages public for anonymous
 NAS pulls, or log in on the NAS with a token that has read:packages.
 
 Copy `compose.yml`, `nginx.conf`, `postgres-init.sql`, and `.env.example` to a NAS directory.
@@ -28,7 +29,7 @@ For a new database only:
 docker compose pull
 docker compose up -d db storage
 docker compose --profile init run --rm bootstrap
-docker compose up -d server web
+docker compose up -d server preview web
 ```
 
 Bootstrap runs migrations and creates business workspaces and component packages
@@ -42,15 +43,21 @@ For an existing deployment, back up the database and assets first. Change IMAGE_
 then run migrations before starting the new server:
 
 Remove any local-image or source-file overrides from `compose.override.yml`
-before upgrading. Both services must resolve to the published GHCR tag;
+before upgrading. All three services must resolve to the published GHCR tag;
 runtime source and component bundles are supplied by the release images.
 
 ```sh
 docker compose pull
-docker compose stop server web
+docker compose stop server preview web
 docker compose run --rm server node_modules/typeorm/cli.js migration:run
-docker compose up -d server web
+docker compose up -d server preview web
 ```
+
+Component library versions also require immutable code artifacts before website
+publication. Register new libraries with the generic `publish-library.ts` command;
+for existing Project dependencies, attach matching historical artifacts once or
+publish new library versions and upgrade those dependencies. See the
+[component library publication instructions](../platform/preview/README.md#component-library-publication).
 
 The server runs in development mode to retain the public-source self-hosting
 behavior. The frontend uses a production build; `PLASMIC_SELF_HOSTED=1` allows
@@ -81,6 +88,13 @@ settings type out of ApiSchema.ts but omitted the new workspace package from the
 public tree. `platform/shared/hosting` preserves the earlier favicon contract
 (including optional mimeType) and adds that commit's textFiles map. This is a type
 contract; it does not implement the cloud hosting API.
+
+## Published websites
+
+The preview service serves interactive published pages at
+`preview.plasmic.shiguanglab.com`. See the [runtime and deployment instructions](../platform/preview/README.md)
+for publishing, gateway routing, DNS/TLS and verification. Deploy all three images
+and run migrations before starting preview.
 
 ## Public domains
 

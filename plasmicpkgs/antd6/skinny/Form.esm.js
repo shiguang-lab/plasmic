@@ -58,6 +58,7 @@ const Internal = React.forwardRef(
     }, []);
     React.useImperativeHandle(ref, () => ({
       formInstance: form,
+      submit: () => form.submit(),
       setFieldsValue: (newValues) => {
         form.setFieldsValue(newValues);
         extendedOnValuesChange?.(form.getFieldsValue(true));
@@ -173,7 +174,6 @@ const FormWrapper = React.forwardRef(
       [setRemountKey]
     );
     const previousInitialValues = usePrevious(props.initialValues);
-    const wrapperRef = React.useRef(null);
     React.useEffect(() => {
       if (previousInitialValues !== props.initialValues && JSON.stringify(previousInitialValues) !== JSON.stringify(props.initialValues)) {
         forceRemount();
@@ -183,10 +183,6 @@ const FormWrapper = React.forwardRef(
       registeredFields: [],
       preservedRegisteredFields: []
     });
-    React.useImperativeHandle(
-      ref,
-      () => wrapperRef.current ? { ...wrapperRef.current } : {}
-    );
     const formLayout = React.useMemo(
       () => ({
         layout: props.layout,
@@ -202,7 +198,7 @@ const FormWrapper = React.forwardRef(
         formLayout,
         internalFieldCtx,
         setInternalFieldCtx,
-        ref: wrapperRef,
+        ref,
         ...props
       }
     );

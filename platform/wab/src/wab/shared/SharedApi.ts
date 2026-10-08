@@ -1,3 +1,4 @@
+import type { PreviewPublication } from "@plasmic-shared/preview";
 import { toOpaque } from "@/wab/commons/types";
 import type { ProjectRevision } from "@/wab/server/entities/Entities";
 import {
@@ -1700,6 +1701,18 @@ export abstract class SharedApi {
       }),
     );
   }
+  getPreviewPublication(projectId: ProjectId): Promise<{ publication: PreviewPublication | null }> {
+    return this.get(`/projects/${projectId}/preview-publication`);
+  }
+
+  publishPreviewPublication(projectId: ProjectId, entryPath?: string): Promise<{ publication: PreviewPublication }> {
+    return this.post(`/projects/${projectId}/preview-publication`, { entryPath });
+  }
+
+  unpublishPreviewPublication(projectId: ProjectId): Promise<{}> {
+    return this.delete(`/projects/${projectId}/preview-publication`);
+  }
+
   async getDomainsForProject(
     projectId: string,
   ): Promise<DomainsForProjectResponse> {

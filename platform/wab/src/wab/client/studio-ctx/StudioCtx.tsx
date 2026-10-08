@@ -58,6 +58,7 @@ import { TraitRegistry } from "@/wab/client/components/splits/TraitRegistry";
 import gridFramesLayoutStyles from "@/wab/client/components/studio/arenas/GridFramesLayout.module.sass";
 import {
   getSortedHostLessPkgs,
+  getHostLessPkgIdentity,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { adjustGridStyleForCurZoom } from "@/wab/client/components/style-controls/GridEditor";
@@ -1059,6 +1060,7 @@ export class StudioCtx extends WithDbCtx {
         const pkgsData = await getSortedHostLessPkgs(
           pkgs,
           getVersionForCanvasPackages(this.hostLessPkgsFrame.contentWindow),
+          this.site,
         );
         runInAction(() => {
           // We run in action because `installedHostLessPkgs` is observable
@@ -1084,7 +1086,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private updatePkgsList(pkgs: string[]) {
-    if (pkgs.some((pkg) => !this.installedHostLessPkgs.has(pkg))) {
+    if (pkgs.some((pkg) => !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, this.site)))) {
       spawn(this.updateCcRegistry(pkgs));
     }
   }

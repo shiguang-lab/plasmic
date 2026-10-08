@@ -23,6 +23,11 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify structural and Form gates before release
+        run: python3 -m unittest discover -s ai/plasmic/scripts -p 'test_*.py'
       - name: Validate release tag and verify CLI
         env:
           RELEASE_TAG: ${{ github.ref_name }}

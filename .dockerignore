@@ -4,6 +4,7 @@
 **/build
 **/dev-build
 **/dist
+**/.next
 .env
 **/secrets
 **/__pycache__

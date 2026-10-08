@@ -1375,6 +1375,10 @@ export function interactionActionSchema() {
     runCodeActionSchema(),
     updateVariableActionSchema(),
     updateVariantActionSchema(),
+    z.object({
+      actionName: z.literal("navigation"),
+      destination: z.string().min(1).describe(interpolatedStringFormatDescription),
+    }),
   ]);
 }
 
@@ -1481,6 +1485,7 @@ export function isInteractionActionName(
  * The opts each kind of interaction action needs.
  */
 interface BuildInteractionArgsOptsByAction {
+  navigation: {};
   customFunction: {
     /** Event-arg names to keep in scope for the code body. */
     codeArgNames?: string[];
@@ -1507,6 +1512,12 @@ export function buildInteractionArgs(
   opts: BuildInteractionArgsOpts,
 ): Result<Record<string, Expr>, string> {
   switch (action.actionName) {
+    case "navigation":
+      try {
+        return ok({ destination: interpolatedStringToExpr(action.destination) });
+      } catch (e) {
+        return err(e instanceof Error ? e.message : String(e));
+      }
     case "customFunction":
       return buildRunCodeArgs(action, opts);
     case "updateVariable":

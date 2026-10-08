@@ -311,6 +311,10 @@ export function registerForm(loader?: Registerable) {
       importPath: "@shiguang-lab/plasmic-antd6/skinny/Form",
     },
     refActions: {
+      submit: {
+        displayName: "Submit form",
+        argTypes: [],
+      },
       setFieldsValue: {
         displayName: "Set multiple fields",
         argTypes: [

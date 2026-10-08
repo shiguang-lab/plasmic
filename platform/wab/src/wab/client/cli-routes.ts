@@ -70,9 +70,9 @@ export function parseProjectLocation(
     };
   }
 
-  const matchProjectPreview = APP_ROUTES.projectPreview.parse(
-    location.pathname,
-  );
+  const matchProjectPreview =
+    APP_ROUTES.projectPreview.parse(location.pathname) ||
+    APP_ROUTES.projectFullPreview.parse(location.pathname);
   if (matchProjectPreview) {
     const previewHashParams = new URLSearchParams(
       trimStart(location.hash, "#"),

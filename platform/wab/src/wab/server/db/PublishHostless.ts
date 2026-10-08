@@ -20,10 +20,12 @@ import { ProjectId } from "@/wab/shared/ApiSchema";
 import { Bundler } from "@/wab/shared/bundler";
 import { assert, ensure, spawn } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { Site, ensureKnownProjectDependency } from "@/wab/shared/model/classes";
+import { Site, HostLessPackageInfo, ensureKnownProjectDependency } from "@/wab/shared/model/classes";
 import { assertSiteInvariants } from "@/wab/shared/site-invariants";
 import semver from "semver";
 import { EntityManager } from "typeorm";
+import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
+import { captureLibraryArtifact } from "@/wab/server/loader/library-artifacts";
 
 const { Command } = require("commander");
 
@@ -80,6 +82,7 @@ export async function publishHostlessProject(
   opts?: {
     plumeSite?: Site;
     removedParams?: HostlessParamRemovals;
+    hostLessPackageInfo?: HostLessPackageInfo;
   },
 ) {
   const project = await db.getProjectById(projectId);
@@ -100,6 +103,12 @@ export async function publishHostlessProject(
     latestVersion,
   );
   const site = ensureKnownProjectDependency(siteOrProjectDep).site;
+  if (opts?.hostLessPackageInfo) {
+    const { name, npmPkg, cssImport, deps, registerCalls, minimumReactVersion } = opts.hostLessPackageInfo;
+    Object.assign(ensure(site.hostLessPackageInfo, "Expected component library"), {
+      name, npmPkg, cssImport, deps, registerCalls, minimumReactVersion,
+    });
+  }
   const hasBreakingParamRemoval = site.components.some((component) =>
     component.params.some((param) =>
       opts?.removedParams?.[component.name]?.includes(param.variable.name),
@@ -117,7 +126,12 @@ export async function publishHostlessProject(
     await getLastBundleVersion(),
   );
 
-  if (JSON.stringify(bundle) === JSON.stringify(newBundle)) {
+  const previousArtifact = process.env.PREVIEW_ORIGIN
+    ? await db.getEntMgr().findOne(HostlessLibraryVersion, { pkgVersionId: latestVersion.id })
+    : undefined;
+  const currentArtifact = process.env.PREVIEW_ORIGIN ? await captureLibraryArtifact(site) : undefined;
+  if (JSON.stringify(bundle) === JSON.stringify(newBundle) &&
+      (!currentArtifact || previousArtifact?.artifact.digest === currentArtifact.digest)) {
     return false;
   }
 

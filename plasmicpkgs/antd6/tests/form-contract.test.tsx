@@ -5,6 +5,7 @@ import { expect, test, vi } from "vitest";
 import { FormRefActions, FormWrapper } from "../src/form/Form";
 
 import { FormItemWrapper } from "../src/form/FormItem";
+import { FormWrapper as SchemaForm } from "../src/form/SchemaForm";
 
 const capture = vi.hoisted(() => ({ props: null as any }));
 vi.mock("antd", async (importOriginal) => {
@@ -256,4 +257,78 @@ test("exact-length FormItem rule blocks invalid values", async () => {
       code: "ABC",
     });
   });
+});
+
+test("FormItem owns required marks, whitespace errors and the label tooltip", async () => {
+  const onFinish = vi.fn();
+  const view = render(
+    <FormWrapper onFinish={onFinish} initialValues={{ name: "   " }}>
+      <FormItemWrapper
+        name="name"
+        label="Audience"
+        tooltip={<span>Use the business audience name</span>}
+        rules={[
+          { ruleType: "required", message: "Enter a name" },
+          { ruleType: "whitespace", message: "Enter a name" },
+        ]}
+      >
+        <Input />
+      </FormItemWrapper>
+      <Button htmlType="submit">Save</Button>
+    </FormWrapper>,
+  );
+  const label = view.container.querySelector("label")!;
+  expect(label.classList.contains("ant-form-item-required")).toBe(true);
+  expect(label.textContent).toBe("Audience");
+  const help = label.querySelector(".ant-form-item-tooltip")!;
+  expect(help).toBeTruthy();
+  fireEvent.mouseEnter(help);
+  expect((await screen.findByRole("tooltip")).textContent).toBe(
+    "Use the business audience name",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect(await screen.findByText("Enter a name")).toBeTruthy();
+  expect(onFinish).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Audience A" } });
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await vi.waitFor(() => expect(onFinish).toHaveBeenCalledWith({ name: "Audience A" }));
+  view.rerender(
+    <FormWrapper>
+      <FormItemWrapper name="name" label="Audience" tooltip="">
+        <Input />
+      </FormItemWrapper>
+    </FormWrapper>,
+  );
+  expect(view.container.querySelector(".ant-form-item-tooltip")).toBeNull();
+});
+
+test("simplified SchemaForm forwards field tooltip to the native label", async () => {
+  const view = render(
+    <SchemaForm
+      mode="simplified"
+      formItems={[{ name: "name", label: "Audience", tooltip: "Audience help" }]}
+    />,
+  );
+  const help = view.container.querySelector("label .ant-form-item-tooltip")!;
+  expect(help).toBeTruthy();
+  fireEvent.mouseEnter(help);
+  expect((await screen.findByRole("tooltip")).textContent).toBe("Audience help");
+});
+
+test("external footer submits through the Form ref and native validation", async () => {
+  const ref = React.createRef<FormRefActions>();
+  const onFinish = vi.fn();
+  render(
+    <SchemaForm ref={ref} mode="advanced" onFinish={onFinish} initialValues={{ name: "" }}>
+      <FormItemWrapper name="name" label="Audience" rules={[{ ruleType: "required", message: "Enter a name" }]}>
+        <Input />
+      </FormItemWrapper>
+    </SchemaForm>,
+  );
+  act(() => ref.current!.submit());
+  expect(await screen.findByText("Enter a name")).toBeTruthy();
+  expect(onFinish).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Audience A" } });
+  act(() => ref.current!.submit());
+  await vi.waitFor(() => expect(onFinish).toHaveBeenCalledExactlyOnceWith({ name: "Audience A" }));
 });

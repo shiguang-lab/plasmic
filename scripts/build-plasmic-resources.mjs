@@ -10,6 +10,10 @@ import { CLI_VERSION, MIN_CLI_VERSION, compareVersions, releaseId, resourcePath,
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export async function buildResources(output = path.join(repo, "dist/plasmic-resources"), version = CLI_VERSION) {
   if (compareVersions(version, MIN_CLI_VERSION) < 0) throw new Error(`Release version must be at least ${MIN_CLI_VERSION}`);
+  // Every resource publication goes through this builder, including local NAS releases.
+  execFileSync("python3", ["-m", "unittest", "discover", "-s", "ai/plasmic/scripts", "-p", "test_*.py"], {
+    cwd: repo, stdio: "inherit",
+  });
   const files = [];
   async function visit(relative) {
     const entries = await readdir(path.join(repo, "ai/plasmic", relative), { withFileTypes: true });

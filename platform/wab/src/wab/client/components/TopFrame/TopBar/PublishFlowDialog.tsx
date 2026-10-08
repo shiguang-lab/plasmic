@@ -74,6 +74,8 @@ export interface SubsectionMeta {
 }
 
 interface PublishFlowDialogProps extends DefaultPublishFlowDialogProps {
+  websiteSection?: React.ReactNode;
+  websiteBusy?: boolean;
   latestPublishedVersionData:
     { revisionId: string; version: string } | undefined;
   appCtx: AppCtx;
@@ -104,6 +106,8 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     publish,
     resetStatus,
     setShowCodeModal,
+    websiteSection,
+    websiteBusy,
     ...rest
   } = props;
   const { hostFrameApi } = useTopFrameCtx();
@@ -223,6 +227,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
         }}
         publishButton={{
           disabled:
+            websiteBusy ||
             loadingVersion ||
             (!subsectionMeta.saveVersion.enable &&
               !subsectionMeta.pushDeploy.enable &&
@@ -262,6 +267,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           },
         }}
         subsectionPlasmicHosting={{
+          ...(websiteSection ? { render: () => websiteSection } : {}),
           props: {
             // Important to render the component, since the component is what
             // kicks off the load.

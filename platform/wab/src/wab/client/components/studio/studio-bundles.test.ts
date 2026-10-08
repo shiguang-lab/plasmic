@@ -13,10 +13,15 @@ vi.mock("@/wab/shared/common", () => ({
 vi.mock("@/wab/shared/core/hostless-components", () => ({
   fstPartyHostLessComponents: [],
 }));
+const flags = vi.hoisted(() => ({ hostLessComponents: [] as any[] }));
+vi.mock("@/wab/shared/devflags", () => ({ DEVFLAGS: flags }));
+vi.mock("@/wab/shared/core/project-deps", () => ({
+  walkDependencyTree: (site: any) => site.projectDependencies,
+}));
 
 import { getSortedHostLessPkgs } from "@/wab/client/components/studio/studio-bundles";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); flags.hostLessComponents = []; });
 
 test.each([["antd6", "overseas", "react-ui"], ["react-ui"]])(
   "metadata and preview windows initialize the runtime before %j, once per window",
@@ -50,3 +55,14 @@ test.each([["antd6", "overseas", "react-ui"], ["react-ui"]])(
     }
   },
 );
+
+test("loads a new library registration at the Project dependency version", async () => {
+  flags.hostLessComponents = [{ codeName: "new-library", hasCodeArtifacts: true }];
+  const fetchMock = vi.fn(async () => ({ ok: true, text: async () => "registration" }));
+  vi.stubGlobal("fetch", fetchMock);
+  const site = { projectDependencies: [{ version: "2.3.4", site: { hostLessPackageInfo: { name: "new-library" } } }] } as any;
+  const loaded = await getSortedHostLessPkgs(["new-library"], "-v2", site);
+  expect(loaded[0][0]).toBe("new-library@2.3.4");
+  expect(loaded[0][1]).toContain("registration");
+  expect(fetchMock).toHaveBeenCalledWith("/api/v1/hostless-libraries/new-library/canvas?version=2.3.4");
+});

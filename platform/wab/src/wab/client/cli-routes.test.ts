@@ -198,10 +198,10 @@ describe("mkProjectLocation/parseProjectLocation", () => {
       },
     );
   });
-  it("parses preview locations", () => {
+  it.each(["preview", "preview-full"])("parses %s locations", (mode) => {
     expect(
       parseProjectLocation({
-        pathname: "/projects/PROJECT_ID/preview/ARENA NAME",
+        pathname: `/projects/PROJECT_ID/${mode}/ARENA NAME`,
       }),
     ).toEqual({
       arenaType: undefined,
@@ -214,7 +214,7 @@ describe("mkProjectLocation/parseProjectLocation", () => {
     });
     expect(
       parseProjectLocation({
-        pathname: "/projects/PROJECT_ID/preview/ARENA%20NAME",
+        pathname: `/projects/PROJECT_ID/${mode}/ARENA%20NAME`,
       }),
     ).toEqual({
       arenaType: undefined,
@@ -227,7 +227,7 @@ describe("mkProjectLocation/parseProjectLocation", () => {
     });
     expect(
       parseProjectLocation({
-        pathname: "/projects/PROJECT_ID/preview/ARENA_UUID",
+        pathname: `/projects/PROJECT_ID/${mode}/ARENA_UUID`,
         hash: "#width=1180&height=540&branch=test",
       }),
     ).toEqual({
@@ -241,7 +241,7 @@ describe("mkProjectLocation/parseProjectLocation", () => {
     });
     expect(
       parseProjectLocation({
-        pathname: "/projects/PROJECT_ID/preview/ARENA_UUID",
+        pathname: `/projects/PROJECT_ID/${mode}/ARENA_UUID`,
         search: "?copilot_chat=true",
       }),
     ).toMatchObject({

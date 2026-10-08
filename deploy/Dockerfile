@@ -23,13 +23,10 @@ COPY --from=builder --chown=node:node /opt/plasmic-host /plasmic/packages/host
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
 COPY --from=builder --chown=node:node /plasmic/platform/package.json /plasmic/platform/pnpm-lock.yaml /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/
 COPY --from=builder --chown=node:node /plasmic/platform/shared /plasmic/platform/shared
-COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/overseas.js /plasmic/platform/canvas-packages/build-server/overseas.js
-COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd6.js /plasmic/platform/canvas-packages/build-server/antd6.js
-COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd-icons.js /plasmic/platform/canvas-packages/build-server/antd-icons.js
-COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/react-ui.js /plasmic/platform/canvas-packages/build-server/react-ui.js
-COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages/build-server/antd5.js /plasmic/platform/canvas-packages/build-server/antd5.js
+COPY --from=builder --chown=node:node /plasmic/platform/canvas-packages /plasmic/platform/canvas-packages
 COPY --from=builder --chown=node:node /plasmic/platform/wab /plasmic/platform/wab
 COPY --from=builder --chown=node:node /plasmic/platform/loader-bundle-env /plasmic/platform/loader-bundle-env
+COPY --from=builder --chown=node:node /plasmic/plasmicpkgs /plasmic/plasmicpkgs
 COPY --from=builder --chown=node:node /plasmic/platform/loader-html-hydrate /plasmic/platform/loader-html-hydrate
 COPY --chown=node:node deploy/nas-init.ts src/wab/server/nas-init.ts
 COPY --chown=node:node deploy/nas-antd6.ts src/wab/server/nas-antd6.ts
@@ -59,4 +56,18 @@ COPY --from=web-build /plasmic/platform/wab/build /opt/plasmic-web
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/configure-web.py /opt/configure-web.py
 RUN printf '#!/bin/sh\nset -eu\npython3 /opt/configure-web.py\n' > /docker-entrypoint.d/40-plasmic.sh && chmod +x /docker-entrypoint.d/40-plasmic.sh
-EXPOSE 8080 8081
+EXPOSE 8080 8081 8082
+
+FROM builder AS preview-build
+WORKDIR /plasmic/platform/preview
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
+
+FROM node:24.16.0-alpine AS preview
+WORKDIR /app
+COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/standalone ./
+COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/static ./preview/.next/static
+USER node
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3011 HOSTNAME=0.0.0.0
+EXPOSE 3011
+CMD ["node", "preview/server.js"]

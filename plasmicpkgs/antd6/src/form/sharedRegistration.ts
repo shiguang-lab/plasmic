@@ -112,7 +112,7 @@ export function commonFormItemProps(
   const getFormItemProps = (
     ps: FormWrapperProps | InternalFormItemProps,
     _ctx: any,
-    { item }: { item?: SimplifiedFormItemsProp },
+    { item }: { item?: SimplifiedFormItemsProp } = {},
   ): InternalFormItemProps | undefined => {
     if (usage === "simplified-form-item") {
       return item;
@@ -226,6 +226,13 @@ export function commonFormItemProps(
       displayName: "Validation rules",
       type: "formValidationRules" as const,
     } as any,
+    tooltip: {
+      type: usage === "advanced-form-item" ? "slot" : "string",
+      displayName: "Tooltip",
+      description: "Help shown beside the field label by Form.Item.",
+      hidden: (ps: any, ctx: any, extras: any) =>
+        !!getFormItemProps(ps, ctx, extras)?.noLabel,
+    },
     valuePropName: {
       type: "string" as const,
       advanced: true,

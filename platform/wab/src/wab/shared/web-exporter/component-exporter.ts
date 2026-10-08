@@ -7,12 +7,12 @@ import {
 } from "@/wab/shared/Variants";
 import { paramToVarName, toVarName } from "@/wab/shared/codegen/util";
 import { assert, switchType } from "@/wab/shared/common";
-import { exprToInterpolatedString } from "@/wab/shared/copilot/dynamic-value-input";
+import { exprLeavesToInterpolations, exprToInterpolatedString } from "@/wab/shared/copilot/dynamic-value-input";
 import {
   isPageComponent,
   tryGetVariantGroupValueFromArg,
 } from "@/wab/shared/core/components";
-import { stripParens, tryExtractJson } from "@/wab/shared/core/exprs";
+import { deserCompositeExpr, stripParens, tryExtractJson } from "@/wab/shared/core/exprs";
 import { JsonValue } from "@/wab/shared/core/lang";
 import { renderRichTextChildren } from "@/wab/shared/core/rich-text-util";
 import {
@@ -141,7 +141,7 @@ function serializeExprValue(expr: Expr): JsonValue | undefined {
   return switchType(expr)
     .when(ImageAssetRef, (imageAssetRef) => imageAssetRef.asset.dataUri || "")
     .when(StyleTokenRef, (styleTokenRef) => styleTokenRef.token.uuid)
-    .when(CompositeExpr, (compositeExpr) => tryExtractJson(compositeExpr))
+    .when(CompositeExpr, (compositeExpr) => exprLeavesToInterpolations(deserCompositeExpr(compositeExpr)))
     .when([CustomCode, ObjectPath, TemplatedString], (valueExpr) => {
       // Static values keep their typed JSON value, dynamic bindings render as `{{ jsExpr }}`.
       const jsonValue = tryExtractJson(valueExpr);

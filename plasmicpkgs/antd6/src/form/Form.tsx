@@ -140,6 +140,7 @@ const Internal = React.forwardRef(
     }, []);
     React.useImperativeHandle(ref, () => ({
       formInstance: form,
+      submit: () => form.submit(),
       setFieldsValue: (newValues: Record<string, any>) => {
         form.setFieldsValue(newValues);
         extendedOnValuesChange?.(form.getFieldsValue(true));
@@ -270,7 +271,7 @@ const Internal = React.forwardRef(
 
 export interface FormRefActions extends Pick<
   FormInstance<any>,
-  "setFieldsValue" | "resetFields" | "setFieldValue" | "validateFields"
+  "submit" | "setFieldsValue" | "resetFields" | "setFieldValue" | "validateFields"
 > {
   clearFields: () => void;
   formInstance: FormInstance<any>;
@@ -285,7 +286,6 @@ export const FormWrapper = React.forwardRef(
     );
     const previousInitialValues = usePrevious(props.initialValues);
 
-    const wrapperRef = React.useRef<FormRefActions>(null);
     React.useEffect(() => {
       if (
         previousInitialValues !== props.initialValues &&
@@ -301,9 +301,6 @@ export const FormWrapper = React.forwardRef(
         preservedRegisteredFields: [],
       });
 
-    React.useImperativeHandle(ref, () =>
-      wrapperRef.current ? { ...wrapperRef.current } : ({} as FormRefActions),
-    );
 
     const formLayout = React.useMemo(
       () => ({
@@ -320,7 +317,7 @@ export const FormWrapper = React.forwardRef(
         formLayout={formLayout}
         internalFieldCtx={internalFieldCtx}
         setInternalFieldCtx={setInternalFieldCtx}
-        ref={wrapperRef}
+        ref={ref}
         {...props}
       />
     );

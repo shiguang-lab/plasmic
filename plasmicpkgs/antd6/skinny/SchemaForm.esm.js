@@ -60,11 +60,6 @@ const SchemaForm = React.forwardRef(
       () => setRemountKey((k) => k + 1),
       [setRemountKey]
     );
-    const wrapperRef = React.useRef(null);
-    React.useImperativeHandle(
-      ref,
-      () => wrapperRef.current ? { ...wrapperRef.current } : {}
-    );
     const rawData = useRawData(props);
     const formItemDefinitions = useFormItemDefinitions(rawData, props);
     React.useEffect(() => {
@@ -131,7 +126,7 @@ const SchemaForm = React.forwardRef(
           ...rest,
           children: childrenNode,
           formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
-          ref: wrapperRef,
+          ref,
           style: isSchemaForm && isLoadingData ? {
             opacity: 0.5,
             transitionDelay: "250ms",

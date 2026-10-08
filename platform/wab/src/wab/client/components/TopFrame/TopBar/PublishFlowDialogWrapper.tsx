@@ -1,3 +1,4 @@
+import PreviewPublishSection from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
 /** @format */
 
 import { apiKey } from "@/wab/client/api";
@@ -116,8 +117,7 @@ interface PublishFlowDialogWrapperProps {
   activatedBranch: ApiBranch | undefined;
   editorPerm: boolean;
   latestPublishedVersionData:
-    | { revisionId: string; version: string }
-    | undefined;
+    { revisionId: string; version: string } | undefined;
   revisionNum: number;
   showPublishModal: boolean;
   keepPublishModalOpen: boolean;
@@ -141,6 +141,65 @@ export const PublishFlowDialogWrapper = observer(
     const appCtx = useAppCtx();
     const { hostFrameApi } = useTopFrameCtx();
     const projectId = project.id;
+
+    const [previewEnabled, setPreviewEnabled] = React.useState(false);
+    const [previewEntryPath, setPreviewEntryPath] = React.useState("");
+    const [previewBusy, setPreviewBusy] = React.useState(false);
+    const [previewError, setPreviewError] = React.useState<string>();
+    const previewAvailable =
+      !!appCtx.appConfig.previewOrigin && !activatedBranch;
+    const {
+      data: previewResult,
+      error: previewLoadError,
+      mutate: refreshPreview,
+    } = useSWR(
+      previewAvailable && showPublishModal
+        ? apiKey("getPreviewPublication", projectId)
+        : null,
+      () => appCtx.api.getPreviewPublication(projectId),
+    );
+    const previewLoading =
+      previewAvailable &&
+      showPublishModal &&
+      !previewResult &&
+      !previewLoadError;
+    React.useEffect(() => {
+      if (previewResult?.publication) {
+        setPreviewEnabled(previewResult.publication.enabled);
+        setPreviewEntryPath(previewResult.publication.entryPath);
+      }
+    }, [previewResult]);
+    const publishWebsite = async () => {
+      setPreviewBusy(true);
+      setPreviewError(undefined);
+      try {
+        const result = await appCtx.api.publishPreviewPublication(
+          projectId,
+          previewEntryPath || undefined,
+        );
+        await refreshPreview(result, false);
+        refreshProjectAndPerms();
+      } catch (error) {
+        setPreviewError(error instanceof Error ? error.message : String(error));
+        throw error;
+      } finally {
+        setPreviewBusy(false);
+      }
+    };
+    const unpublishWebsite = async () => {
+      setPreviewBusy(true);
+      setPreviewError(undefined);
+      try {
+        await appCtx.api.unpublishPreviewPublication(projectId);
+        setPreviewEnabled(false);
+        await refreshPreview();
+        refreshProjectAndPerms();
+      } catch (error) {
+        setPreviewError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setPreviewBusy(false);
+      }
+    };
 
     const [view, setView] = React.useState<
       PlasmicPublishFlowDialog__VariantMembers["view"] | undefined
@@ -440,11 +499,25 @@ export const PublishFlowDialogWrapper = observer(
           setStatusWebhooks({ ..._statusWebhooks });
 
           if (_statusSaveVersion.enabled) {
-            const publishResult = await hostFrameApi.publishVersion(
-              versionTags,
-              versionDescription,
-              activatedBranch?.id,
-            );
+            let publishResult: Awaited<
+              ReturnType<typeof hostFrameApi.publishVersion>
+            >;
+            try {
+              publishResult = await hostFrameApi.publishVersion(
+                versionTags,
+                versionDescription,
+                activatedBranch?.id,
+              );
+            } catch (error) {
+              if (!previewAvailable) {
+                throw error;
+              }
+              setPreviewError(
+                error instanceof Error ? error.message : String(error),
+              );
+              await refreshPreview();
+              return;
+            }
             _statusSaveVersion.result = publishResult;
             setVersionTags([] as string[]);
             setVersionDescription("");
@@ -469,6 +542,17 @@ export const PublishFlowDialogWrapper = observer(
               );
             }
 
+            if (previewAvailable) {
+              if (previewEnabled) {
+                try {
+                  await publishWebsite();
+                } catch {
+                  return;
+                }
+              } else {
+                await refreshPreview();
+              }
+            }
             setStatusSaveVersion({
               ..._statusSaveVersion,
               result: "Success",
@@ -539,13 +623,28 @@ export const PublishFlowDialogWrapper = observer(
       setStatusSaveVersion(undefined);
       setStatusPushDeploy(undefined);
       setStatusWebhooks(undefined);
+      setPreviewError(undefined);
     };
 
     React.useEffect(() => {
       setPublishState(
-        mkPublishState(statusSaveVersion, statusPushDeploy, statusWebhooks),
+        previewError
+          ? "failure"
+          : previewBusy
+            ? "publishing"
+            : mkPublishState(
+                statusSaveVersion,
+                statusPushDeploy,
+                statusWebhooks,
+              ),
       );
-    }, [statusSaveVersion, statusPushDeploy, statusWebhooks]);
+    }, [
+      statusSaveVersion,
+      statusPushDeploy,
+      statusWebhooks,
+      previewError,
+      previewBusy,
+    ]);
 
     React.useEffect(() => {
       if (publishState === "failure") {
@@ -586,6 +685,35 @@ export const PublishFlowDialogWrapper = observer(
           <TopBarModal onClose={() => setShowPublishModal(false)}>
             <PublishFlowDialog
               appCtx={appCtx}
+              websiteBusy={
+                previewAvailable &&
+                (previewBusy || previewLoading || !!previewLoadError)
+              }
+              websiteSection={
+                previewAvailable && (
+                  <PreviewPublishSection
+                    publication={previewResult?.publication}
+                    enabled={previewEnabled}
+                    setEnabled={setPreviewEnabled}
+                    entryPath={previewEntryPath}
+                    setEntryPath={setPreviewEntryPath}
+                    busy={previewBusy || previewLoading}
+                    error={
+                      previewError ||
+                      (previewLoadError ? String(previewLoadError) : undefined)
+                    }
+                    canEdit={editorPerm && !previewLoadError}
+                    hasPublishedVersion={
+                      !!latestPublishedVersionData ||
+                      statusSaveVersion?.result === "Success"
+                    }
+                    publish={() =>
+                      spawn(publishWebsite().catch(() => undefined))
+                    }
+                    unpublish={() => spawn(unpublishWebsite())}
+                  />
+                )
+              }
               latestPublishedVersionData={latestPublishedVersionData}
               project={project}
               refreshProjectAndPerms={refreshProjectAndPerms}

@@ -1,6 +1,8 @@
 import { sequentially } from "@/wab/commons/asyncutil";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
+import { captureLibraryArtifact } from "@/wab/server/loader/library-artifacts";
+import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
 import {
   getShiguangUserByEmail,
   getShiguangUsers,
@@ -3378,6 +3380,9 @@ export class DbMgr implements MigrationDbMgr {
 
     const bundler = new Bundler();
     const publishedSite = await unbundleProjectFromData(this, bundler, rev);
+    const libraryArtifact = publishedSite.hostLessPackageInfo && process.env.PREVIEW_ORIGIN
+      ? await captureLibraryArtifact(publishedSite)
+      : undefined;
     const usedSiteFeatures: SiteFeature[] = [];
 
     if (
@@ -3461,6 +3466,12 @@ export class DbMgr implements MigrationDbMgr {
     );
 
     await this.entMgr.save(pkgVersion);
+    if (libraryArtifact) {
+      await this.entMgr.insert(HostlessLibraryVersion, {
+        pkgVersionId: pkgVersion.id,
+        artifact: libraryArtifact,
+      });
+    }
 
     const devflags = mergeSane(
       {},

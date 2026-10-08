@@ -12,6 +12,7 @@ import {
 import { spawnWrapper } from "@/wab/shared/common";
 import { context, propagation } from "@opentelemetry/api";
 import tmp from "tmp";
+import { materializeLibraryArtifacts, type LibraryArtifact } from "@/wab/server/loader/library-artifacts";
 
 export async function workerBuildAssets(
   codegenOutputs: CachedCodegenOutputBundle[],
@@ -22,6 +23,7 @@ export async function workerBuildAssets(
     mode: "production" | "development";
     loaderVersion: number;
     browserOnly: boolean;
+    libraryArtifacts?: LibraryArtifact[];
   },
   traceCarrier?: TraceCarrier,
 ) {
@@ -44,6 +46,9 @@ export async function workerBuildAssets(
               try {
                 logger().info(`Building worker assets in ${dir}`);
                 await writeCodeBundlesToDisk(dir, codegenOutputs);
+                const libraryModules = opts.libraryArtifacts
+                  ? await materializeLibraryArtifacts(dir, opts.libraryArtifacts)
+                  : undefined;
                 const result = await bundleModules(
                   dir,
                   codegenOutputs,
@@ -54,6 +59,7 @@ export async function workerBuildAssets(
                     mode: opts.mode,
                     loaderVersion: opts.loaderVersion,
                     browserOnly: opts.browserOnly,
+                    ...libraryModules,
                   },
                 );
                 resolve(result);

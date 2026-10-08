@@ -68,6 +68,7 @@ async function main() {
           defaultHostUrl: process.env.REACT_APP_DEFAULT_HOST_URL,
           codegenOriginHost: process.env.CODEGEN_HOST,
           enablePlasmicHosting: false,
+          previewOrigin: process.env.PREVIEW_ORIGIN ?? "https://preview.plasmic.shiguanglab.com",
           enableChatCopilot: false,
           freeTier: { ...DEVFLAGS.freeTier, maxUsers: null },
           plexus: true,

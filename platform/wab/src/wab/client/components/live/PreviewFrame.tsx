@@ -9,6 +9,7 @@ import {
 import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
 import {
   getSortedHostLessPkgs,
+  getHostLessPkgIdentity,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { scriptExec } from "@/wab/client/dom-utils";
@@ -139,7 +140,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       return;
     }
     const win = frameRef.current;
-    if (usedPkgs.some((pkg) => !installedPkgsSet.has(pkg))) {
+    if (usedPkgs.some((pkg) => !installedPkgsSet.has(getHostLessPkgIdentity(pkg, previewCtx.studioCtx.site)))) {
       setIsInstalling(true);
       spawn(
         (async () => {
@@ -147,6 +148,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           for (const [pkg, pkgModule] of await getSortedHostLessPkgs(
             usedPkgs,
             getVersionForCanvasPackages(win),
+            previewCtx.studioCtx.site,
           )) {
             if (!installedPkgsSet.has(pkg)) {
               if (!isMounted()) {
@@ -179,7 +181,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       !frameLoaded ||
       !frameRef.current ||
       isInstalling ||
-      usedPkgs.some((pkg) => !installedPkgsSet.has(pkg))
+      usedPkgs.some((pkg) => !installedPkgsSet.has(getHostLessPkgIdentity(pkg, previewCtx.studioCtx.site)))
     ) {
       return;
     }

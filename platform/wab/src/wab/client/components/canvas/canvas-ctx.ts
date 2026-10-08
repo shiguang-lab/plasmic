@@ -1,3 +1,4 @@
+import type { Site } from "@/wab/shared/model/classes";
 /// <reference types="@types/resize-observer-browser" />
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
@@ -10,6 +11,7 @@ import {
   getCanvasPkgs,
   getReactWebBundle,
   getSortedHostLessPkgs,
+  getHostLessPkgIdentity,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import * as domMod from "@/wab/client/dom";
@@ -111,7 +113,7 @@ export class CanvasCtx {
     return this._updatingCcRegistryCount.get();
   }
 
-  private async updateCcRegistry(pkgs: string[]) {
+  private async updateCcRegistry(pkgs: string[], site: Site) {
     const previousFetch = this._hostLessPkgsLock;
     this.updatingCcRegistryCount++;
     this._hostLessPkgsLock = new Promise(
@@ -120,6 +122,7 @@ export class CanvasCtx {
         const pkgsData = await getSortedHostLessPkgs(
           pkgs,
           getVersionForCanvasPackages(this._win),
+          site,
         );
         runInAction(() => {
           // We run in action because `installedHostLessPkgs` is observable
@@ -145,9 +148,9 @@ export class CanvasCtx {
     return this.updatingCcRegistryCount !== 0;
   }
 
-  private updatePkgsList(pkgs: string[]) {
-    if (pkgs.some((pkg) => !this.installedHostLessPkgs.has(pkg))) {
-      spawn(this.updateCcRegistry(pkgs));
+  private updatePkgsList(pkgs: string[], site: Site) {
+    if (pkgs.some((pkg) => !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)))) {
+      spawn(this.updateCcRegistry(pkgs, site));
     }
   }
 
@@ -324,7 +327,7 @@ export class CanvasCtx {
       this.usedPkgsDispose();
     }
     this.usedPkgsDispose = autorun(() =>
-      this.updatePkgsList(usedHostLessPkgs(sc.site)),
+      this.updatePkgsList(usedHostLessPkgs(sc.site), sc.site),
     );
     yield "hostless-wait";
     await withTimeout(

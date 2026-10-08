@@ -1,3 +1,5 @@
+import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
+import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
 import * as Sentry from "@sentry/node";
 import * as bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -1071,6 +1073,11 @@ export function addMainAppServerRoutes(
   /**
    * Primary app routes.
    */
+  app.get("/api/v1/projects/:projectId/preview-publication", withNext(getPreviewPublication));
+  app.get("/api/v1/hostless-libraries/:name/canvas", withNext(getHostlessLibraryCanvas));
+  app.post("/api/v1/projects/:projectId/preview-publication", withNext(publishPreviewPublication));
+  app.delete("/api/v1/projects/:projectId/preview-publication", withNext(unpublishPreviewPublication));
+
   app.get("/api/v1/error", () => {
     throw new Error("Raw test error");
   });

@@ -3,6 +3,7 @@ packages:
   - analytics-rproxy
   - mini-cache
   - wab
+  - preview
   - ../plasmicpkgs/overseas
   - ../plasmicpkgs/react-ui
   - canvas-packages

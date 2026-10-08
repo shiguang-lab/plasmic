@@ -31,6 +31,7 @@ import {
   interpolatedStringToExpr,
   interpolatedStringToHrefExpr,
   interpolatedStringToRichText,
+  objectLiteralToExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
 import { mkNormalizedRep } from "@/wab/shared/copilot/utils";
 import {
@@ -1280,12 +1281,13 @@ export function getComponentArgFromHtmlProp(
     return ok([param, codeLit(value as JsonValue)]);
   }
 
-  // Untyped ('any') props accept arbitrary JSON (objects, arrays, null, and
-  // scalars). Stored as an unparenthesized code literal (codeLit), the same
-  // form the studio prop editor stores, so tryExtractJson can read it back
-  // when serializing the instance.
+  // Structured props use the same composite expressions as Studio's property
+  // editor so nested bindings (e.g. initialValues or rule validators) execute.
   if (isAnyType(param.type)) {
-    return ok([param, codeLit(value as JsonValue)]);
+    return ok([
+      param,
+      objectLiteralToExpr(JSON.stringify(value)) ?? codeLit(value as JsonValue),
+    ]);
   }
 
   return fail(`prop type "${param.type.name}" is not supported yet`);

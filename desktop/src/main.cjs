@@ -81,6 +81,14 @@ function protectWindow(win) {
       void unifiedAuth.show(url);
       return { action: "deny" };
     }
+    const parsed = new URL(url);
+    if (
+      parsed.origin === config.studioOrigin &&
+      /^\/projects\/[^/]+\/preview-full(?:\/|$)/.test(parsed.pathname)
+    ) {
+      void openBrowser(url);
+      return { action: "deny" };
+    }
     if (!isInternal(url)) {
       openExternal(url);
       return { action: "deny" };

@@ -320,7 +320,7 @@ const EDIT_TOOL_META = {
     toolName: "createInteraction",
     title: "Add a prototype interaction",
     description:
-      "Append an action to a DOM/component event using validated event names and state references. Supports updateVariable, updateVariant and customFunction. For navigation prefer the registered href prop. Read the element and component contract first.",
+      "Append an action to a DOM/component event using validated event names and state references. Supports updateVariable, updateVariant, customFunction and navigation. Prefer href for direct links; use navigation on a Form's validated onFinish event when submission must pass validation first. Read the element and component contract first.",
     inputSchema: z
       .object({
         ...element,

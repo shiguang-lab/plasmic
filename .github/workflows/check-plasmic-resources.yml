@@ -1,0 +1,42 @@
+name: Check Plasmic resource gates
+
+on:
+  pull_request:
+    paths:
+      - 'ai/plasmic/**'
+      - 'docs/search-form.md'
+      - 'scripts/build-plasmic-resources.mjs'
+      - 'packages/plasmic-cli/**'
+      - 'desktop/tests/plasmic-resources.test.cjs'
+      - '.github/workflows/*plasmic*.yml'
+  push:
+    branches: [master, main]
+    paths:
+      - 'ai/plasmic/**'
+      - 'docs/search-form.md'
+      - 'scripts/build-plasmic-resources.mjs'
+      - 'packages/plasmic-cli/**'
+      - 'desktop/tests/plasmic-resources.test.cjs'
+      - '.github/workflows/*plasmic*.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify structural and Form gates
+        run: python3 -m unittest discover -s ai/plasmic/scripts -p 'test_*.py'
+      - name: Verify resource packaging and publication
+        run: |
+          npm --prefix packages/plasmic-cli test
+          node --test desktop/tests/plasmic-resources.test.cjs

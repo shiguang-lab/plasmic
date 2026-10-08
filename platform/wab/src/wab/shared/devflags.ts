@@ -149,6 +149,8 @@ export type InsertableTemplatesSelectable =
   | InsertableTemplatesComponent;
 
 export interface HostLessPackageInfo {
+  /** Registration code is served from the immutable library release artifact. */
+  hasCodeArtifacts?: boolean;
   syntheticPackage?: boolean;
   type: "hostless-package";
   name: string;
@@ -320,6 +322,7 @@ const DEFAULT_DEVFLAGS = {
     process.env.REACT_APP_DEFAULT_HOST_URL ||
     "https://host.plasmicdev.com/static/host.html",
   enablePlasmicHosting: true,
+  previewOrigin: process.env.PREVIEW_ORIGIN || "",
   // Used to invalidate etag cacheing mechanism altogether
   disableETagCaching: false,
   // Used to invalidate etags that use it

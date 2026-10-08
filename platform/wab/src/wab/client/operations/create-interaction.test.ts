@@ -7,7 +7,7 @@ import {
 } from "@/wab/shared/Variants";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { assert } from "@/wab/shared/common";
-import { customCode } from "@/wab/shared/core/exprs";
+import { asCode, customCode } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import * as expressionParser from "@/wab/shared/eval/expression-parser";
 import {
@@ -16,6 +16,7 @@ import {
   isKnownFunctionExpr,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import { DEVFLAGS } from "@/wab/shared/devflags";
 import { err } from "neverthrow";
 
 describe("createInteraction", () => {
@@ -31,6 +32,30 @@ describe("createInteraction", () => {
     assert(isKnownEventHandler(expr), "expected an EventHandler");
     return expr;
   }
+
+  it("stores validated-event navigation as a native navigation action", () => {
+    const { page, root } = setup();
+    const result = createInteraction({
+      component: page,
+      tpl: root,
+      eventName: "onClick",
+      name: "Continue",
+      action: {
+        actionName: "navigation",
+        destination: "{{ '/next?name=' + encodeURIComponent(values.name) }}",
+      },
+    });
+    expect(result.isOk()).toBe(true);
+    const step = getHandler(root, "onClick").interactions[0];
+    expect(step.actionName).toBe("navigation");
+    const destination = step.args.find((arg) => arg.name === "destination");
+    assert(destination, "expected navigation destination");
+    expect(asCode(destination.expr, {
+      component: page,
+      inStudio: true,
+      projectFlags: DEVFLAGS,
+    }).code).toContain("encodeURIComponent(values.name)");
+  });
 
   it("creates a run-code interaction on a tag event", () => {
     const { page, root } = setup();

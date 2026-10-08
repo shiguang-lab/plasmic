@@ -183,6 +183,7 @@
     "@opentelemetry/api": "^1.9.1",
     "@pankod/refine-core": "3.58.1",
     "@plasmic-shared/hosting": "workspace:*",
+    "@plasmic-shared/preview": "workspace:*",
     "@plasmicapp/data-sources": "^1.0.29",
     "@plasmicapp/data-sources-context": "0.1.26",
     "@plasmicapp/host": "link:../../packages/host",

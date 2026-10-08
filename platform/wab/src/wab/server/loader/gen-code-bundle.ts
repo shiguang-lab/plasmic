@@ -29,6 +29,8 @@ import { unzip3 } from "@/wab/shared/collections";
 import { tuple } from "@/wab/shared/common";
 import { LocalizationKeyScheme } from "@/wab/shared/localization";
 import { createHash } from "crypto";
+import type { LibraryArtifact } from "@/wab/server/loader/library-artifacts";
+import { getPublishedProjectLibraryArtifacts } from "@/wab/server/loader/project-library-artifacts";
 
 /**
  * This is used for busting codegen caches.  You should increment this number if
@@ -79,11 +81,18 @@ export async function genPublishedLoaderCodeBundle(
     i18nKeyScheme: LocalizationKeyScheme | undefined;
     i18nTagPrefix: string | undefined;
     skipHead?: boolean;
+    libraryArtifacts?: LibraryArtifact[];
   },
 ) {
   const { projectVersions } = opts;
+  if (process.env.PREVIEW_ORIGIN && !opts.libraryArtifacts) {
+    opts = {
+      ...opts,
+      libraryArtifacts: await getPublishedProjectLibraryArtifacts(dbMgr, projectVersions),
+    };
+  }
 
-  const cachedBundle = await tryGetCachedPublishedBundle(opts);
+  const cachedBundle = opts.libraryArtifacts ? null : await tryGetCachedPublishedBundle(opts);
   if (cachedBundle) {
     return cachedBundle;
   }
@@ -113,6 +122,7 @@ export async function genPublishedLoaderCodeBundle(
       i18nKeyScheme: opts.i18nKeyScheme,
       i18nTagPrefix: opts.i18nTagPrefix,
       skipHead: opts.skipHead,
+      libraryArtifacts: opts.libraryArtifacts,
     },
   );
 }
@@ -183,6 +193,7 @@ async function genLoaderCodeBundleForProjectVersions(
     i18nKeyScheme?: LocalizationKeyScheme;
     i18nTagPrefix: string | undefined;
     skipHead?: boolean;
+    libraryArtifacts?: LibraryArtifact[];
   },
 ) {
   const exportOpts = makeExportOpts(opts);
@@ -281,6 +292,7 @@ async function genLoaderCodeBundleForProjectVersions(
         mode: opts.mode,
         loaderVersion: opts.loaderVersion,
         browserOnly: opts.browserOnly,
+        libraryArtifacts: opts.libraryArtifacts,
       },
     ]);
   };
@@ -304,13 +316,16 @@ async function genLoaderCodeBundleForProjectVersions(
           )
         ).every((x) => x)
       ) {
-        const bundleKey = makeBundleBucketPath({
+        const baseBundleKey = makeBundleBucketPath({
           projectVersions,
           platform: exportOpts.platform,
           loaderVersion: opts.loaderVersion,
           browserOnly: opts.browserOnly,
           exportOpts,
         });
+        const bundleKey = opts.libraryArtifacts
+          ? `${baseBundleKey}-libraries-${createHash("sha256").update(JSON.stringify(opts.libraryArtifacts.map((a) => a.digest).sort())).digest("hex")}`
+          : baseBundleKey;
         const { data: bundle, cacheHit: bundleCacheHit } =
           await upsertS3CacheEntry({
             bucket: LOADER_ASSETS_BUCKET,

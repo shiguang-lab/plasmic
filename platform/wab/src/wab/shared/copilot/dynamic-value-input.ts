@@ -368,7 +368,7 @@ export function exprToDataQueryArg(
 }
 
 /** Recursively replaces `Expr` leaves of a deserialized object with `{{ }}`. */
-function exprLeavesToInterpolations(value: ValueOrExpr): JsonValue {
+export function exprLeavesToInterpolations(value: ValueOrExpr): JsonValue {
   if (isKnownExpr(value)) {
     return exprToInterpolatedString(value) ?? null;
   }

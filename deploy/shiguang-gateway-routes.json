@@ -58,6 +58,18 @@
       "path_prefix": "/",
       "upstream": "http://100.87.115.78:3901",
       "public": true
+    },
+    {
+      "product_id": "plasmic-preview",
+      "audience": "plasmic-preview",
+      "required_entitlements": [],
+      "forward_authorization": false,
+      "forward_session_cookie": false,
+      "forward_gateway_token": false,
+      "host": "preview.plasmic.shiguanglab.com",
+      "path_prefix": "/",
+      "upstream": "http://100.87.115.78:3902",
+      "public": true
     }
   ]
 }

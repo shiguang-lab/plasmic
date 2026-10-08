@@ -94,10 +94,6 @@ export const SchemaForm = React.forwardRef(
       () => setRemountKey((k) => k + 1),
       [setRemountKey],
     );
-    const wrapperRef = React.useRef<FormRefActions>(null);
-    React.useImperativeHandle(ref, () =>
-      wrapperRef.current ? { ...wrapperRef.current } : ({} as FormRefActions),
-    );
 
     const rawData = useRawData(props);
     const formItemDefinitions = useFormItemDefinitions(rawData, props);
@@ -202,7 +198,7 @@ export const SchemaForm = React.forwardRef(
               ? previousFormItems.current
               : actualFormItems
           }
-          ref={wrapperRef}
+          ref={ref}
           style={
             isSchemaForm && isLoadingData
               ? {

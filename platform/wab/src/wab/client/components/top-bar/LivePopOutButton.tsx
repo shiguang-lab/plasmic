@@ -18,6 +18,8 @@ import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getFrameHeight } from "@/wab/shared/Arenas";
 import { spawn } from "@/wab/shared/common";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
+import { notification } from "antd";
+import { createPath } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 
@@ -29,6 +31,7 @@ const LivePopOutButton = observer(function LivePopOutButton(
   const history = useHistory();
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
+  const isDesktop = navigator.userAgent.includes("PlasmicDesktop/");
   const curPopup = previewCtx.popup;
   const forceUpdate = useForceUpdate();
   const { frameRef, onLoad, reset } = useLivePreview(previewCtx);
@@ -80,6 +83,36 @@ const LivePopOutButton = observer(function LivePopOutButton(
   }, [curPopup]);
 
   const openLivePopup = () => {
+    if (isDesktop) {
+      spawn(
+        (async () => {
+          await studioCtx.save();
+          if (studioCtx.hasUnsavedChanges()) {
+            notification.error({
+              message: "Save changes before opening browser preview.",
+            });
+            return;
+          }
+          const location = previewCtx.isLive
+            ? {
+                ...history.location,
+                pathname: history.location.pathname.replace(
+                  "/preview",
+                  "/preview-full",
+                ),
+              }
+            : await getUrlsForLiveMode(studioCtx, true);
+          const studioUrl = await studioCtx.appCtx.api.getStudioUrl();
+          window.open(
+            new URL(createPath(location), studioUrl).href,
+            "_blank",
+            "noopener,noreferrer",
+          );
+        })(),
+      );
+      return;
+    }
+
     if (curPopup) {
       curPopup.focus();
       return;
@@ -146,8 +179,18 @@ const LivePopOutButton = observer(function LivePopOutButton(
   return (
     <PlasmicLivePopOutButton
       {...props}
-      root={{ props: { "aria-label": "Open preview in new tab" } }}
-      tooltip={`Preview the artboard in new window`}
+      root={{
+        props: {
+          "aria-label": isDesktop
+            ? "Open preview in browser"
+            : "Open preview in new tab",
+        },
+      }}
+      tooltip={
+        isDesktop
+          ? "Preview in default browser"
+          : "Preview the artboard in new window"
+      }
       disabled={studioCtx.currentArenaEmpty && !previewCtx}
       onClick={() => openLivePopup()}
     />
