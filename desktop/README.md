@@ -122,8 +122,8 @@ Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
 `desktop.config.json`, and add `release-notes/<version>.md`. Push the commit and tag:
 
 ```sh
-git tag desktop-v0.0.22
-git push origin master desktop-v0.0.22
+git tag desktop-v0.0.23
+git push origin master desktop-v0.0.23
 ```
 
 `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
@@ -135,15 +135,14 @@ The JSON contains the version, platform, architecture, size, SHA-512 and public 
 download URL. Installers and manifests ship together in
 `ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v<version>`.
 
-The release image extends the previously published release image, retaining old
-versioned files for in-progress downloads. The first image imports and verifies the
-current public installers. Existing version tags cannot be overwritten. Make this
-GHCR package public so NAS deployments can pull it without GitHub credentials.
+The release image contains the installers and manifests built for that release.
+Existing version tags cannot be overwritten. Make this GHCR package public so NAS
+deployments can pull it without GitHub credentials.
 
 After Actions succeeds, deploy the image from the repository root:
 
 ```sh
-node desktop/scripts/publish.mjs desktop-v0.0.22
+node desktop/scripts/publish.mjs desktop-v0.0.23
 ```
 
 This pulls the image on the NAS and recreates only `desktop-releases`. The initial

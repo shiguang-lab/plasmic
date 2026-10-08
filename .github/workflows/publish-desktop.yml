@@ -105,19 +105,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Retain published installers
-        id: base
+      - name: Validate unpublished release
         run: |
           if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo 'Release image already exists; publish a new version.' >&2
             exit 1
-          fi
-          image=ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
-          if docker manifest inspect "$image" >/dev/null 2>&1; then
-            echo "image=$image" >> "$GITHUB_OUTPUT"
-          else
-            node desktop/scripts/import-current-releases.mjs
-            echo 'image=nginx:1.29-alpine' >> "$GITHUB_OUTPUT"
           fi
       - name: Validate installers and generate public JSON
         run: node desktop/scripts/build-distribution.mjs --from installers
@@ -134,7 +126,6 @@ jobs:
           platforms: linux/amd64
           push: true
           provenance: false
-          build-args: BASE_IMAGE=${{ steps.base.outputs.image }}
           tags: |
             ghcr.io/shiguang-lab/plasmic-desktop-releases:${{ github.ref_name }}
             ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
