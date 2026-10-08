@@ -65,8 +65,6 @@ class UnifiedAuthWindow {
       }
       this.publish({ phase: "success" });
       await this.window.loadURL(this.returnUrl);
-      this.window.show();
-      this.window.focus();
     } catch (error) {
       if (!abort.signal.aborted) {
         this.publish({ phase: "error", message: error.message });

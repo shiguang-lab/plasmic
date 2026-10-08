@@ -21,6 +21,10 @@ function window() {
 }
 test("central return_to reaches the original project in the same window", async () => {
   const win = window();
+  win.show = win.focus = () =>
+    assert.fail(
+      "Keep the browser active until its Open Plasmic prompt is accepted",
+    );
   const destination = origin + "/projects/example?branch=main";
   let starts = 0;
   const auth = new UnifiedAuthWindow(win, origin, () => {}, {
