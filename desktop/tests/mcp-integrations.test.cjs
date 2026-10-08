@@ -142,11 +142,17 @@ test("platform-specific paths and documented environment overrides", (t) => {
       XDG_CONFIG_HOME: "/xdg",
     },
   });
-  assert.equal(manager.clients[1].file, "/codex-home/config.toml");
-  assert.equal(manager.clients[4].file, "/xdg/opencode/opencode.json");
+  assert.equal(
+    manager.clients[1].file,
+    path.join("/codex-home", "config.toml"),
+  );
+  assert.equal(
+    manager.clients[4].file,
+    path.join("/xdg", "opencode", "opencode.json"),
+  );
   assert.equal(
     manager.clients[6].file,
-    "/roaming/Claude/claude_desktop_config.json",
+    path.join("/roaming", "Claude", "claude_desktop_config.json"),
   );
   const linux = fixture(t, { platform: "linux" }).manager;
   assert.throws(() => linux.set("claude-desktop", true), /Linux/);

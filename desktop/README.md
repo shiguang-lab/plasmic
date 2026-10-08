@@ -122,8 +122,8 @@ Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
 `desktop.config.json`, and add `release-notes/<version>.md`. Push the commit and tag:
 
 ```sh
-git tag desktop-v0.0.21
-git push origin master desktop-v0.0.21
+git tag desktop-v0.0.22
+git push origin master desktop-v0.0.22
 ```
 
 `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
@@ -143,7 +143,7 @@ GHCR package public so NAS deployments can pull it without GitHub credentials.
 After Actions succeeds, deploy the image from the repository root:
 
 ```sh
-node desktop/scripts/publish.mjs desktop-v0.0.21
+node desktop/scripts/publish.mjs desktop-v0.0.22
 ```
 
 This pulls the image on the NAS and recreates only `desktop-releases`. The initial

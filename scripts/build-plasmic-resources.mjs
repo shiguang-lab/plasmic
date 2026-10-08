@@ -37,8 +37,13 @@ export async function buildResources(output = path.join(repo, "dist/plasmic-reso
     metadata.version = version;
     delete metadata.scripts;
     await writeFile(path.join(packageRoot, "package.json"), JSON.stringify(metadata, null, 2) + "\n");
-    const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-    const packedFile = execFileSync(npm, ["pack", "--ignore-scripts", "--json=false", "--silent", "--pack-destination", temporary], {
+    // Windows .cmd wrappers cannot be launched by execFileSync. Run npm's
+    // JavaScript entry point directly, preserving argument boundaries.
+    const npm = process.platform === "win32" ? process.execPath : "npm";
+    const npmArgs = process.platform === "win32"
+      ? [process.env.npm_execpath || path.join(path.dirname(process.execPath), "node_modules/npm/bin/npm-cli.js")]
+      : [];
+    const packedFile = execFileSync(npm, [...npmArgs, "pack", "--ignore-scripts", "--json=false", "--silent", "--pack-destination", temporary], {
       cwd: packageRoot, encoding: "utf8",
     }).trim();
     const cli = await readFile(path.join(temporary, packedFile));
