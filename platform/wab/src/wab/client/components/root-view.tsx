@@ -12,6 +12,7 @@ import {
   isProjectPath,
   Router,
 } from "@/wab/client/cli-routes";
+import { DashboardLayout } from "@/wab/client/components/dashboard/DashboardLayout";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { shouldUpsellRedirect } from "@/wab/client/components/dashboard/useUpsellQueryParam";
 import {
@@ -230,20 +231,30 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                           switchCase({
                             exact: true,
                             route: APP_ROUTES.allProjects,
-                            render: () => <LoggedInPages.AllProjectsPage />,
+                            render: () => (
+                              <DashboardLayout>
+                                <LoggedInPages.AllProjectsPage />
+                              </DashboardLayout>
+                            ),
                           }),
                           switchCase({
                             exact: true,
                             route: APP_ROUTES.playground,
-                            render: () => <LoggedInPages.MyPlayground />,
+                            render: () => (
+                              <DashboardLayout>
+                                <LoggedInPages.MyPlayground />
+                              </DashboardLayout>
+                            ),
                           }),
                           switchCase({
                             route: APP_ROUTES.workspace,
                             render: ({ workspaceId }) => (
-                              <LoggedInPages.WorkspacePage
-                                key={workspaceId}
-                                workspaceId={workspaceId}
-                              />
+                              <DashboardLayout>
+                                <LoggedInPages.WorkspacePage
+                                  key={workspaceId}
+                                  workspaceId={workspaceId}
+                                />
+                              </DashboardLayout>
                             ),
                           }),
                           switchCase({
@@ -264,10 +275,12 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                             exact: true,
                             route: APP_ROUTES.org,
                             render: ({ teamId }) => (
-                              <LoggedInPages.TeamPage
-                                key={teamId}
-                                teamId={teamId}
-                              />
+                              <DashboardLayout>
+                                <LoggedInPages.TeamPage
+                                  key={teamId}
+                                  teamId={teamId}
+                                />
+                              </DashboardLayout>
                             ),
                           }),
                           switchCase({

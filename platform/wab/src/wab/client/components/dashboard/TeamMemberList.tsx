@@ -7,12 +7,7 @@ import {
   DefaultTeamMemberListProps,
   PlasmicTeamMemberList,
 } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberList";
-import {
-  ApiFeatureTier,
-  ApiPermission,
-  ApiTeam,
-  TeamMember,
-} from "@/wab/shared/ApiSchema";
+import { ApiPermission, ApiTeam, TeamMember } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
@@ -23,7 +18,6 @@ interface TeamMemberListProps extends DefaultTeamMemberListProps {
   team: ApiTeam;
   members: TeamMember[];
   perms: ApiPermission[];
-  tier: ApiFeatureTier;
   onChangeRole: (email: string, role?: GrantableAccessLevel) => Promise<void>;
   onRemoveUser: (email: string) => Promise<void>;
   onReload: () => Promise<void>;
@@ -42,7 +36,6 @@ function TeamMemberList_(
     onReload,
     disabled,
     team,
-    tier,
     ...rest
   } = props;
 
@@ -125,7 +118,6 @@ function TeamMemberList_(
             perm={perms.find(
               (p) => p.user?.email === user.email || p.email === user.email,
             )}
-            tier={tier}
             changeRole={onChangeRole}
             removeUser={onRemoveUser}
             disabled={disabled}

@@ -45,10 +45,10 @@ function AllProjectsPage_(
     <>
       {documentTitle("All projects")}
       <PlasmicAllProjectsPage
-        root={{ ref }}
+        root={{ ref, className: styles.dashboardContent }}
         {...props}
         projects={{ className: styles.projects }}
-        defaultLayout={{ props: { helpButton: { render: () => null } } }}
+        defaultLayout={{ render: ({ children }) => <>{children}</> }}
         newProjectButton={{ onClick: () => setShowNewProjectModal(true) }}
         filter={{ props: filterProps }}
         mainList={{

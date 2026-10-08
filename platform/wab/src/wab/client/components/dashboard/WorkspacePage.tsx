@@ -1,4 +1,4 @@
-import DefaultTeamLayout from "@/wab/client/components/dashboard/DefaultTeamLayout";
+import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -77,11 +77,8 @@ function WorkspacePage_(
     <>
       {documentTitle(workspace.name)}
       <PlasmicWorkspacePage
-        root={{ ref }}
-        defaultLayout={{
-          as: DefaultTeamLayout,
-          props: { team: workspace.team, workspace },
-        }}
+        root={{ ref, className: styles.dashboardContent }}
+        defaultLayout={{ render: ({ children }) => <>{children}</> }}
         workspaceSection={{
           props: {
             workspace,

@@ -1,10 +1,7 @@
-import TextWithInfo from "@/wab/client/components/TextWithInfo";
 import { Matcher } from "@/wab/client/components/view-common";
 import {
   commenterTooltip,
   contentCreatorTooltip,
-  contentRoleHelp,
-  designerRoleHelp,
   designerTooltip,
   developerTooltip,
   viewerTooltip,
@@ -15,11 +12,7 @@ import {
   DefaultTeamMemberListItemProps,
   PlasmicTeamMemberListItem,
 } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberListItem";
-import {
-  ApiFeatureTier,
-  ApiPermission,
-  TeamMember,
-} from "@/wab/shared/ApiSchema";
+import { ApiPermission, TeamMember } from "@/wab/shared/ApiSchema";
 import { fullName, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
 import { ensure } from "@/wab/shared/common";
 import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
@@ -32,7 +25,6 @@ interface TeamMemberListItemProps extends DefaultTeamMemberListItemProps {
   user: TeamMember;
   matcher: Matcher;
   perm?: ApiPermission;
-  tier: ApiFeatureTier;
   changeRole: (email: string, role?: GrantableAccessLevel) => Promise<void>;
   removeUser: (email: string) => Promise<void>;
   disabled?: boolean;
@@ -47,7 +39,6 @@ function TeamMemberListItem_(
     user,
     matcher,
     perm,
-    tier,
     changeRole,
     removeUser,
     disabled,
@@ -124,24 +115,10 @@ function TeamMemberListItem_(
             Owner
           </Select.Option>,
           <Select.Option value="editor">{developerTooltip}</Select.Option>,
-          <Select.Option value="content" isDisabled={!tier.contentRole}>
-            {tier.contentRole ? (
-              contentCreatorTooltip
-            ) : (
-              <TextWithInfo tooltip={contentRoleHelp}>
-                {contentCreatorTooltip}
-              </TextWithInfo>
-            )}
+          <Select.Option value="content">
+            {contentCreatorTooltip}
           </Select.Option>,
-          <Select.Option value="designer" isDisabled={!tier.designerRole}>
-            {tier.designerRole ? (
-              designerTooltip
-            ) : (
-              <TextWithInfo tooltip={designerRoleHelp}>
-                {designerTooltip}
-              </TextWithInfo>
-            )}
-          </Select.Option>,
+          <Select.Option value="designer">{designerTooltip}</Select.Option>,
           <Select.Option value="commenter">{commenterTooltip}</Select.Option>,
           <Select.Option value="viewer">{viewerTooltip}</Select.Option>,
           <Select.Option

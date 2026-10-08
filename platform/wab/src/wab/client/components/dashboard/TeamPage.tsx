@@ -1,7 +1,7 @@
 import { freeTrialKey } from "@/wab/client/LocalStorageKey";
-import DefaultTeamLayout from "@/wab/client/components/dashboard/DefaultTeamLayout";
 import FreeTrialModal from "@/wab/client/components/dashboard/FreeTrialModal";
 import WorkspaceSection from "@/wab/client/components/dashboard/WorkspaceSection";
+import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -147,12 +147,10 @@ function TeamPageContent_(
         />
       )}
       <PlasmicTeamPage
-        root={{ ref }}
-        defaultLayout={{
-          as: DefaultTeamLayout,
-          props: { team },
-        }}
+        root={{ ref, className: styles.dashboardContent }}
+        defaultLayout={{ render: ({ children }) => <>{children}</> }}
         header={{
+          className: styles.teamHeader,
           team,
           perms,
           numMembers,

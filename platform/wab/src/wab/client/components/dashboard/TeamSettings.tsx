@@ -13,7 +13,6 @@ import {
 import { GrantRevokeRequest, TeamId } from "@/wab/shared/ApiSchema";
 import { checkIsTeamOnFreeTierOrTrial } from "@/wab/shared/billing/billing-util";
 import { ensure } from "@/wab/shared/common";
-import { DEVFLAGS } from "@/wab/shared/devflags";
 import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
@@ -61,7 +60,6 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
   const members = data.members ?? [];
   const availFeatureTiers = data.tiers ?? [];
   const subscription = data?.subscription;
-  const tier = team.featureTier ?? DEVFLAGS.freeTier;
 
   const userAccessLevel = getAccessLevelToResource(
     { type: "team", resource: team },
@@ -102,7 +100,6 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
         team,
         members,
         perms,
-        tier,
         onChangeRole: async (email: string, role?: GrantableAccessLevel) => {
           async function grantRevoke(req: GrantRevokeRequest) {
             try {

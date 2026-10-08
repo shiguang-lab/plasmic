@@ -1,8 +1,6 @@
-import TextWithInfo from "@/wab/client/components/TextWithInfo";
 import PublishSpinner from "@/wab/client/components/widgets/PublishSpinner";
 import Select from "@/wab/client/components/widgets/Select";
 import PP__PermissionItem from "@/wab/client/components/widgets/plasmic/PlasmicPermissionItem";
-import { ApiFeatureTier } from "@/wab/shared/ApiSchema";
 import { AccessLevel, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { Tooltip } from "antd";
 import React, { ReactNode } from "react";
@@ -10,15 +8,11 @@ import React, { ReactNode } from "react";
 interface PermissionItemProps {
   email?: ReactNode;
   canEdit?: boolean;
-  tier: ApiFeatureTier;
   onGrant: (value: GrantableAccessLevel) => Promise<void>;
   onRevoke: () => Promise<void>;
   accessLevel: AccessLevel;
   showOwnerOption?: boolean;
 }
-
-export const designerRoleHelp = `Only organizations with at least the Scale plan can invite collaborators as designers.`;
-export const contentRoleHelp = `Only organizations with at least the Scale plan can invite collaborators as content creators.`;
 
 export const contentCreatorTooltip = (
   <Tooltip
@@ -53,7 +47,7 @@ export const viewerTooltip = (
 );
 
 function PermissionItem(props: PermissionItemProps) {
-  const { accessLevel, onGrant, onRevoke, canEdit, tier } = props;
+  const { accessLevel, onGrant, onRevoke, canEdit } = props;
   const [loading, setLoading] = React.useState(false);
   const [temporary, setTemporary] = React.useState("");
   return (
@@ -79,24 +73,10 @@ function PermissionItem(props: PermissionItemProps) {
         children: [
           <Select.Option value="viewer">{viewerTooltip}</Select.Option>,
           <Select.Option value="commenter">{commenterTooltip}</Select.Option>,
-          <Select.Option value="content" isDisabled={!tier.contentRole}>
-            {tier.contentRole ? (
-              contentCreatorTooltip
-            ) : (
-              <TextWithInfo tooltip={contentRoleHelp}>
-                {contentCreatorTooltip}
-              </TextWithInfo>
-            )}
+          <Select.Option value="content">
+            {contentCreatorTooltip}
           </Select.Option>,
-          <Select.Option value="designer" isDisabled={!tier.designerRole}>
-            {tier.designerRole ? (
-              designerTooltip
-            ) : (
-              <TextWithInfo tooltip={designerRoleHelp}>
-                {designerTooltip}
-              </TextWithInfo>
-            )}
-          </Select.Option>,
+          <Select.Option value="designer">{designerTooltip}</Select.Option>,
           <Select.Option value="editor">{developerTooltip}</Select.Option>,
           <Select.Option
             value="owner"

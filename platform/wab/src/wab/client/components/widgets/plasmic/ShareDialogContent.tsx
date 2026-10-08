@@ -1,4 +1,3 @@
-import TextWithInfo from "@/wab/client/components/TextWithInfo";
 import PermissionsTab from "@/wab/client/components/app-auth/PermissionsTab";
 import { useAppAuthConfig } from "@/wab/client/components/app-auth/app-auth-contexts";
 import {
@@ -16,8 +15,6 @@ import Select from "@/wab/client/components/widgets/Select";
 import PermissionItem, {
   commenterTooltip,
   contentCreatorTooltip,
-  contentRoleHelp,
-  designerRoleHelp,
   designerTooltip,
   developerTooltip,
   viewerTooltip,
@@ -38,13 +35,7 @@ import {
 import { getUserEmail } from "@/wab/shared/ApiSchemaUtil";
 import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
-import {
-  assert,
-  ensure,
-  spawn,
-  unexpected,
-  withoutFalsy,
-} from "@/wab/shared/common";
+import { assert, ensure, spawn, withoutFalsy } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { parseEmailAddress } from "@/wab/shared/email-address";
 import {
@@ -78,7 +69,7 @@ export function getTeamInviteLink(team: ApiTeam) {
     APP_ROUTES.org.fill({
       teamId: team.id,
     }),
-    getPublicUrl()
+    getPublicUrl(),
   );
   url.searchParams.set("inviteId", team.inviteId);
   return url.toString();
@@ -93,18 +84,6 @@ interface ShareDialogContentProps {
   updateResourceCallback?: (data: any) => Promise<void>;
 }
 
-function getTierFromResource(r: ApiResource) {
-  switch (r.type) {
-    case "project":
-    case "team":
-      return r.resource.featureTier;
-    case "workspace":
-      return r.resource.team.featureTier;
-    default:
-      throw unexpected();
-  }
-}
-
 function ShareDialogContent(props: ShareDialogContentProps) {
   const {
     className,
@@ -117,11 +96,10 @@ function ShareDialogContent(props: ShareDialogContentProps) {
   const appCtx = useAppCtx();
   const hasTopFrameCtx = !!useTopFrameCtxMaybe();
 
-  const tier = getTierFromResource(resource) ?? DEVFLAGS.freeTier;
   const ownAccessLevel = getAccessLevelToResource(
     resource,
     appCtx.selfInfo,
-    perms
+    perms,
   );
 
   const ownAccessLevelRank = accessLevelRank(ownAccessLevel);
@@ -148,7 +126,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
   }
 
   async function doGrantRevoke(
-    data: GrantRevokeRequest
+    data: GrantRevokeRequest,
   ): Promise<{ enqueued?: boolean }> {
     data.grants = withResourceId(data.grants);
     data.revokes = withResourceId(data.revokes);
@@ -159,7 +137,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         {
           title: "Upgrade to grant new permissions",
           description: `This ${ORGANIZATION_LOWER} does not have enough seats to grant permissions to new users. Please increase the number of seats to be able to perform this action.`,
-        }
+        },
       );
       await reloadPerms(newPerms);
       return { enqueued };
@@ -226,13 +204,13 @@ function ShareDialogContent(props: ShareDialogContentProps) {
       async () =>
         await appCtx.api.setSiteInfo(resource.resource.id, {
           inviteOnly,
-        })
+        }),
     );
     await updateResourceCallback?.(data);
   };
 
   const updateTeam = async (
-    defaultAccessLevel: GrantableAccessLevel | null
+    defaultAccessLevel: GrantableAccessLevel | null,
   ) => {
     assert(resource.type === "team", 'Resource type must be "team"');
     const data = await appCtx.api.updateTeam(resource.resource.id, {
@@ -251,7 +229,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
           `${p.accessLevel === "owner" ? 0 : 1}_${
             p.email ||
             ensure(p.user, "Permission with no email must have an user").email
-          }`
+          }`,
       ).map((perm) => {
         const permEmail =
           perm.email ||
@@ -259,14 +237,13 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         const displayEmail =
           perm.email ||
           getUserEmail(
-            ensure(perm.user, "Permission with no email must have an user")
+            ensure(perm.user, "Permission with no email must have an user"),
           );
         return (
           <PermissionItem
             key={permEmail}
             email={displayEmail}
             accessLevel={perm.accessLevel}
-            tier={tier}
             canEdit={canEdit}
             showOwnerOption={
               resource.type === "project" && ownAccessLevel === "owner"
@@ -275,7 +252,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
               if (accessLevel === "owner") {
                 const selfEmail = ensure(
                   appCtx.selfInfo?.email,
-                  "Must be logged in to transfer ownership"
+                  "Must be logged in to transfer ownership",
                 );
                 const confirmed = await reactConfirm({
                   title: "Transfer ownership",
@@ -321,12 +298,12 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         !isLoggedIn
           ? "unlogged"
           : submitting
-          ? "submitting"
-          : isEmailInvalid
-          ? "invalidEmail"
-          : !canInvite
-          ? "noPermToShare"
-          : undefined
+            ? "submitting"
+            : isEmailInvalid
+              ? "invalidEmail"
+              : !canInvite
+                ? "noPermToShare"
+                : undefined
       }
       shareByLinkAllowed={shareByLinkAllowed ? "yes" : "no"}
       newUserRoleDropdown={{
@@ -338,33 +315,15 @@ function ShareDialogContent(props: ShareDialogContentProps) {
           <Select.Option value="commenter">{commenterTooltip}</Select.Option>,
           <Select.Option
             value="content"
-            isDisabled={
-              !tier.contentRole ||
-              ownAccessLevelRank < accessLevelRank("content")
-            }
+            isDisabled={ownAccessLevelRank < accessLevelRank("content")}
           >
-            {tier.contentRole ? (
-              contentCreatorTooltip
-            ) : (
-              <TextWithInfo tooltip={contentRoleHelp}>
-                {contentCreatorTooltip}
-              </TextWithInfo>
-            )}
+            {contentCreatorTooltip}
           </Select.Option>,
           <Select.Option
             value="designer"
-            isDisabled={
-              !tier.designerRole ||
-              ownAccessLevelRank < accessLevelRank("designer")
-            }
+            isDisabled={ownAccessLevelRank < accessLevelRank("designer")}
           >
-            {tier.designerRole ? (
-              designerTooltip
-            ) : (
-              <TextWithInfo tooltip={designerRoleHelp}>
-                {designerTooltip}
-              </TextWithInfo>
-            )}
+            {designerTooltip}
           </Select.Option>,
           <Select.Option
             value="editor"
@@ -386,23 +345,11 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                 <Select.Option value="commenter">
                   {commenterTooltip}
                 </Select.Option>,
-                <Select.Option value="content" isDisabled={!tier.contentRole}>
-                  {tier.contentRole ? (
-                    contentCreatorTooltip
-                  ) : (
-                    <TextWithInfo tooltip={contentRoleHelp}>
-                      {contentCreatorTooltip}
-                    </TextWithInfo>
-                  )}
+                <Select.Option value="content">
+                  {contentCreatorTooltip}
                 </Select.Option>,
-                <Select.Option value="designer" isDisabled={!tier.designerRole}>
-                  {tier.designerRole ? (
-                    designerTooltip
-                  ) : (
-                    <TextWithInfo tooltip={designerRoleHelp}>
-                      {designerTooltip}
-                    </TextWithInfo>
-                  )}
+                <Select.Option value="designer">
+                  {designerTooltip}
                 </Select.Option>,
                 <Select.Option value="editor">
                   {developerTooltip}
@@ -512,8 +459,8 @@ function ShareDialogContent(props: ShareDialogContentProps) {
             resource.type === "project" && resource.resource.teamId
               ? APP_ROUTES.org.fill({ teamId: resource.resource.teamId })
               : resource.type === "workspace"
-              ? APP_ROUTES.org.fill({ teamId: resource.resource.team.id })
-              : undefined,
+                ? APP_ROUTES.org.fill({ teamId: resource.resource.team.id })
+                : undefined,
           target: "_blank",
         },
         wrap: (node) => <ClickStopper>{node}</ClickStopper>,
@@ -524,8 +471,8 @@ function ShareDialogContent(props: ShareDialogContentProps) {
             resource.type === "project" && resource.resource.teamName
               ? resource.resource.teamName
               : resource.type === "workspace"
-              ? resource.resource.team.name
-              : undefined,
+                ? resource.resource.team.name
+                : undefined,
         },
       }}
       projectActionMenu={{
@@ -538,8 +485,8 @@ function ShareDialogContent(props: ShareDialogContentProps) {
               APP_ROUTES.project.fill({
                 projectId: resource.resource.id as ProjectId,
               }),
-              getPublicUrl()
-            ).toString()
+              getPublicUrl(),
+            ).toString(),
           );
         },
         menu: () => (
@@ -554,8 +501,8 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                     APP_ROUTES.project.fill({
                       projectId: resource.resource.id as ProjectId,
                     }),
-                    getPublicUrl()
-                  ).toString()
+                    getPublicUrl(),
+                  ).toString(),
                 );
               }}
             >
@@ -583,8 +530,8 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                         projectId: resource.resource.id as ProjectId,
                         previewPath: [arenaId],
                       }),
-                      getPublicUrl()
-                    ).toString()
+                      getPublicUrl(),
+                    ).toString(),
                   );
                 }}
               >
@@ -605,7 +552,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     hasTopFrameCtx && resource.type === "project" && config;
 
   const [currentTab, setCurrentTab] = useState<"end-users" | "collaborators">(
-    showEndUsersTab ? "end-users" : "collaborators"
+    showEndUsersTab ? "end-users" : "collaborators",
   );
 
   useEffect(() => {
