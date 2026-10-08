@@ -17,6 +17,7 @@ import { ApiTeam, ApiWorkspace } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown, Menu } from "antd";
 import * as _ from "lodash";
 import { observer } from "mobx-react";
@@ -77,7 +78,23 @@ function DefaultLayout_(
       headerWrapper={{ className: styles.headerWrapper }}
       wrapper={{ className: styles.layoutWrapper }}
       sidebar={{ className: styles.sidebar }}
-      main={{ className: styles.main }}
+      nav={{
+        as: Scrollbar,
+        props: {
+          element: "nav",
+          scrollX: false,
+          className: styles.navigation,
+        },
+      }}
+      navFooter={{ className: styles.navigationFooter }}
+      main={{
+        as: Scrollbar,
+        props: {
+          element: "main",
+          scrollX: false,
+          className: styles.main,
+        },
+      }}
       headerLogoLink={{
         as: PublicLink,
         props: brand.logoHref

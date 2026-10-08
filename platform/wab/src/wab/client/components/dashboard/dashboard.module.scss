@@ -38,19 +38,44 @@
     width: 220px;
     height: 100%;
     padding: 12px;
+    overflow: hidden;
+  }
+
+  .navigation {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+
+    > :global([data-overlayscrollbars-viewport]) {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+    }
+  }
+
+  .navigationFooter {
+    flex-shrink: 0;
+    padding-top: 12px;
   }
 
   .main {
     flex: 1;
     margin-left: 0;
-    overflow: auto;
+    overflow: hidden;
 
-    > * {
-      max-width: 1200px;
-    }
+    > :global([data-overlayscrollbars-viewport]) {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
 
-    > .projects {
-      max-width: none;
+      > * {
+        max-width: 1200px;
+      }
+
+      > .projects {
+        max-width: none;
+      }
     }
   }
 }
@@ -86,8 +111,8 @@
       height: auto;
     }
 
-    .main {
-      overflow: visible;
+    .navigation {
+      flex: none;
     }
   }
 }
