@@ -155,6 +155,8 @@ Downgrades, prereleases and overwriting a published version are rejected. Keep o
 versioned files available for clients that have already started a download.
 Failed uploads leave the existing manifest intact. Credentials remain in the
 local SSH configuration; they are not included in the app.
+Desktop source releases use `desktop-v<version>` tags. They do not publish the
+NAS server/web images; desktop installers are built and published separately.
 
 Clicking **重启并安装** saves an open design before quitting; a failed save blocks
 installation. Downloaded updates do not install on an ordinary quit. macOS verifies
@@ -201,6 +203,10 @@ opens `https://shiguanglab.com/oauth/authorize` in the system browser for
 an ephemeral `127.0.0.1` port. After the callback, Electron exchanges the authorization
 code and consumes a one-use `/oauth/web-session` ticket. IAM sets its shared HttpOnly
 cookie in the desktop session, and the main window returns to the requested design.
+The browser displays success only after the session ticket is accepted, then
+requests `plasmic-desktop://login-complete` to bring the app forward. The page
+keeps an **Open Plasmic** button for browsers that require another click. The
+protocol only activates the app; it carries no authorization code or token.
 Closing or cancelling ends the pending listener; cancelling returns to the sign-in
 page. Signing in again or retrying an error starts a fresh authorization.
 OAuth credentials remain in memory during the exchange. Account management opens

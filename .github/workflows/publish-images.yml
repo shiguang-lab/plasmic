@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: github.repository == 'shiguang-lab/plasmic'
+    if: github.repository == 'shiguang-lab/plasmic' && !startsWith(github.ref, 'refs/tags/desktop-v')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:

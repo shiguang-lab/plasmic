@@ -12,6 +12,7 @@ function fixture(options = {}) {
     fetch: async (url, init) => {
       calls.push({ url, init });
       if (url.endsWith("/oauth/token")) {
+        if (options.tokenResponse) return options.tokenResponse();
         return Response.json({
           access_token: "ephemeral-access-token",
           token_type: "Bearer",
@@ -44,6 +45,7 @@ async function callback(url, state, code = "single-use-code") {
 test("PKCE loopback exchange uses IAM-issued session tickets and preserves the design URL", async () => {
   const { login, calls } = fixture();
   let authorization;
+  let browserResponse;
   const result = await login.start({
     returnUrl: studioOrigin + "/projects/example",
     openBrowser: async (url) => {
@@ -59,10 +61,21 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
         authorization.searchParams.get("code_challenge_method"),
         "S256",
       );
-      assert.equal((await callback(url)).status, 200);
+      browserResponse = callback(url);
     },
   });
   assert.equal(result, studioOrigin + "/projects/example");
+  const response = await browserResponse;
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type"), /text\/html/);
+  const html = await response.text();
+  assert.match(html, /You're signed in/);
+  assert.match(html, /<script>window.location.assign\("plasmic-desktop:\/\/login-complete"\);<\/script>/);
+  assert.match(html, /href="plasmic-desktop:\/\/login-complete"/);
+  assert.ok(!html.includes("ephemeral-access-token"));
+  assert.ok(!html.includes("single-use-code"));
+  const script = html.match(/<script>(.*?)<\/script>/)[1];
+  assert.ok(response.headers.get("content-security-policy").includes(`'sha256-${createHash("sha256").update(script).digest("base64")}'`));
   const tokenForm = new URLSearchParams(calls[0].init.body);
   assert.equal(
     createHash("sha256")
@@ -84,14 +97,35 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
 });
 test("forged and Unicode callback states are rejected without consuming the real callback", async () => {
   const { login } = fixture();
+  let browserResponse;
   await login.start({
     returnUrl: studioOrigin + "/projects/example",
     openBrowser: async (url) => {
       assert.equal((await callback(url, "x".repeat(43))).status, 400);
       assert.equal((await callback(url, "界".repeat(43))).status, 400);
-      assert.equal((await callback(url)).status, 200);
+      browserResponse = callback(url);
     },
   });
+  assert.equal((await browserResponse).status, 200);
+});
+test("browser success and automatic app launch wait for the desktop session exchange", async () => {
+  let releaseToken, tokenStarted;
+  const started = new Promise(resolve => { tokenStarted = resolve; });
+  const token = new Promise(resolve => { releaseToken = resolve; });
+  const { login } = fixture({ tokenResponse: () => { tokenStarted(); return token; } });
+  let browserResponse, responded = false;
+  const result = login.start({
+    returnUrl: studioOrigin + "/projects/example",
+    openBrowser: async url => {
+      browserResponse = callback(url).then(response => { responded = true; return response; });
+    },
+  });
+  await started;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(responded, false);
+  releaseToken(Response.json({ access_token: "ephemeral-access-token", token_type: "Bearer" }));
+  await result;
+  assert.equal((await browserResponse).status, 200);
 });
 test("cancel closes the listener and performs no credential exchange", async () => {
   const { login, calls } = fixture();
@@ -120,15 +154,21 @@ for (const options of [
     "rejects invalid ticket or destination: " + JSON.stringify(options),
     async () => {
       const { login } = fixture(options);
+      let browserResponse;
       await assert.rejects(
         login.start({
           returnUrl: studioOrigin + "/projects/example",
           openBrowser: async (url) => {
-            await callback(url);
+            browserResponse = callback(url);
           },
         }),
         /session ticket/,
       );
+      const response = await browserResponse;
+      assert.equal(response.status, 502);
+      const html = await response.text();
+      assert.match(html, /Sign-in could not be completed/);
+      assert.ok(!html.includes("<script>"), "failed login must not automatically open the app");
     },
   );
 }

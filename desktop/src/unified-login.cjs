@@ -1,5 +1,6 @@
 const { randomBytes, createHash, timingSafeEqual } = require("node:crypto");
 const { createServer } = require("node:http");
+const { sendLoginResult } = require("./login-result.cjs");
 const AUTH_ORIGIN = "https://shiguanglab.com";
 const CLIENT_ID = "plasmicapp";
 
@@ -28,6 +29,7 @@ class DesktopUnifiedLogin {
     });
     callback.catch(() => {});
     let consumed = false;
+    let browserResponse;
     const server = createServer((req, res) => {
       let url;
       try {
@@ -51,12 +53,7 @@ class DesktopUnifiedLogin {
         return;
       }
       consumed = true;
-      res.writeHead(200, {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store",
-        "Content-Security-Policy": "default-src 'none'",
-      });
-      res.end("You can return to Plasmic Desktop.");
+      browserResponse = res;
       const code = url.searchParams.get("code");
       if (url.searchParams.has("error") || !code) {
         fail(new Error("Shiguang sign-in was not completed"));
@@ -145,7 +142,14 @@ class DesktopUnifiedLogin {
       ) {
         throw new Error("Shiguang session ticket was rejected");
       }
+      if (!browserResponse.destroyed) await sendLoginResult(browserResponse, true);
+      browserResponse = undefined;
       return target.href;
+    } catch (error) {
+      if (browserResponse && !browserResponse.destroyed) {
+        await sendLoginResult(browserResponse, false);
+      }
+      throw error;
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);

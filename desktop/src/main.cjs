@@ -479,15 +479,27 @@ function bootstrap() {
   } else if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {
+    const showDesktop = async () => {
+      await app.whenReady();
+      const win = mainWindow || await ensureDesktop();
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    };
     app.on("second-instance", () => {
-      if (mainWindow) {
-        mainWindow.restore();
-        mainWindow.focus();
-      }
+      void showDesktop();
+    });
+    app.on("open-url", (event, url) => {
+      if (url !== "plasmic-desktop://login-complete") return;
+      event.preventDefault();
+      void showDesktop();
     });
     app
       .whenReady()
-      .then(ensureDesktop)
+      .then(() => {
+        if (app.isPackaged) app.setAsDefaultProtocolClient("plasmic-desktop");
+        return ensureDesktop();
+      })
       .catch((error) => {
         dialog.showErrorBox("Plasmic could not start", error.message);
         app.quit();
