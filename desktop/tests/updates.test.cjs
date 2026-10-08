@@ -16,18 +16,20 @@ const manifest = { version: "0.0.2", files: [{ url: "Plasmic-0.0.2-mac-universal
 function manager(updater, beforeInstall = async () => {}) {
   return new UpdateManager({ updater, version: "0.0.1", enabled: true, beforeInstall });
 }
-test("manual download and install preserve the save-before-quit ordering, without automatic install on quit", async () => {
+test("checks download automatically but installation waits for confirmation and saves before quitting", async () => {
   const updater = new EventEmitter();
   const order = [];
   updater.checkForUpdates = async () => { updater.emit("checking-for-update"); updater.emit("update-available", manifest); };
   updater.downloadUpdate = async () => { updater.emit("download-progress", { percent: 45.3 }); updater.emit("update-downloaded", manifest); };
   updater.quitAndInstall = async () => order.push("install");
   const updates = manager(updater, async () => order.push("save"));
+  const phases = [];
+  updates.on("status", ({ phase }) => phases.push(phase));
   assert.equal(updater.autoDownload, false);
   assert.equal(updater.autoInstallOnAppQuit, false);
   assert.equal((await updates.command("install")).phase, "idle");
-  assert.equal((await updates.command("check")).phase, "available");
-  assert.equal((await updates.command("download")).phase, "downloaded");
+  assert.equal((await updates.command("check")).phase, "downloaded");
+  assert.deepEqual(phases, ["checking", "available", "downloading", "downloading", "downloaded"]);
   assert.equal((await updates.command("check")).phase, "downloaded");
   assert.deepEqual(order, []);
   await updates.command("install");
@@ -54,9 +56,31 @@ test("overlapping checks share one request; failed downloads retry the same vers
   assert.equal(checks, 1);
   updater.emit("update-available", manifest);
   resolve();
-  await Promise.all([first, second]);
-  assert.equal((await updates.command("download")).retry, "download");
+  const results = await Promise.all([first, second]);
+  assert.equal(results[0].retry, "download");
+  assert.equal(results[1].retry, "download");
+  assert.equal(downloads, 1);
   assert.equal((await updates.command("download")).phase, "downloaded");
+});
+test("startup downloads in the background and periodic checks cannot interrupt the download or ready state", async (t) => {
+  t.mock.timers.enable({ apis: ["setInterval"] });
+  const updater = new EventEmitter();
+  let checks = 0, downloads = 0, finish;
+  updater.checkForUpdates = async () => { checks++; updater.emit("update-available", manifest); };
+  updater.downloadUpdate = () => { downloads++; return new Promise((resolve) => { finish = () => { updater.emit("update-downloaded", manifest); resolve(); }; }); };
+  const updates = manager(updater);
+  t.after(() => updates.stop());
+  updates.start();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(updates.state.phase, "downloading");
+  t.mock.timers.tick(10 * 60 * 1000);
+  assert.equal(checks, 1);
+  assert.equal(downloads, 1);
+  finish();
+  await updates.running;
+  t.mock.timers.tick(10 * 60 * 1000);
+  assert.equal(updates.state.phase, "downloaded");
+  assert.equal(checks, 1);
 });
 test("stable version comparison rejects downgrade, prerelease, traversal and cross-origin artifacts", () => {
   assert.equal(parseManifest(YAML.stringify(manifest), "0.0.2", feed), null);

@@ -26,7 +26,8 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
   const webContents = { mainFrame: frame, send: (channel, status) => sent.push({ channel, status }) };
   const window = { webContents, isDestroyed: () => false };
   let requests = 0;
-  const manager = await createUpdates({ config, getWindow: () => window, beforeInstall: async () => {}, session: { fetch: async (url, options) => {
+  let opened = 0;
+  const manager = await createUpdates({ config, getWindow: () => window, showUpdateWindow: () => opened++, beforeInstall: async () => {}, session: { fetch: async (url, options) => {
     requests++;
     assert.equal(url, "https://updates.example/desktop-updates/darwin/universal/latest-mac.yml");
     assert.equal(options.bypassCustomProtocolHandlers, true);
@@ -39,12 +40,15 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
   for (const event of [
     { sender: {}, senderFrame: frame },
     { sender: webContents, senderFrame: { url: frame.url } },
-  ]) assert.throws(() => handler(event, "install"), /Invalid update sender/);
+  ]) for (const command of ["install", "open"]) assert.throws(() => handler(event, command), /Invalid update sender/);
   frame.url = "https://canvas.example/projects/test";
   assert.throws(() => handler({ sender: webContents, senderFrame: frame }, "check"), /Invalid update sender/);
   assert.equal(requests, 1);
   frame.url = config.studioOrigin + "/";
   assert.equal((await handler({ sender: webContents, senderFrame: frame }, "check")).phase, "current");
   assert.equal(requests, 2);
+  assert.equal(handler({ sender: webContents, senderFrame: frame }, "open").phase, "current");
+  assert.equal(opened, 1);
+  assert.equal(requests, 2, "Opening the update window must not directly download or install");
   assert.equal(sent.at(-1).channel, "desktop:update-status");
 });

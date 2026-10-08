@@ -7,6 +7,7 @@ class UpdateManager extends EventEmitter {
     this.enabled = enabled;
     this.beforeInstall = beforeInstall;
     this.state = { phase: enabled ? "idle" : "disabled", currentVersion: version };
+    // This manager starts downloads on every platform, including the custom macOS updater.
     updater.autoDownload = false;
     updater.autoInstallOnAppQuit = false;
     updater.allowDowngrade = false;
@@ -38,7 +39,8 @@ class UpdateManager extends EventEmitter {
     this.running = (async () => {
       try {
         if (command === "check") await this.updater.checkForUpdates();
-        if (command === "download") {
+        if (command === "download" || (command === "check" && this.state.phase === "available")) {
+          this.action = this.lastAction = "download";
           this.set({ phase: "downloading", percent: 0, error: undefined });
           await this.updater.downloadUpdate();
         }

@@ -24,17 +24,6 @@ async function until(predicate, timeout = 120000) {
   }
   throw new Error("Update acceptance timed out");
 }
-async function activateUpdate(page, command) {
-  for (const frame of page.frames()) {
-    const button = frame.locator(".update-action").first();
-    if (await button.isVisible()) {
-      await button.click();
-      return;
-    }
-  }
-  // Login has no sidebar; exercise the same main-frame update command.
-  await page.evaluate((action) => { void window.desktopUpdates.command(action); }, command);
-}
 (async () => {
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.mkdir(profile, { recursive: true });
@@ -56,23 +45,28 @@ async function activateUpdate(page, command) {
   assert.notEqual(before.currentVersion, expectedVersion);
   const available = await until(async () => {
     const status = await page.evaluate(() => window.desktopUpdates.command("status"));
-    return ["available", "error"].includes(status.phase) && status;
+    return ["available", "downloading", "downloaded", "error"].includes(status.phase) && status;
   }, 45000);
-  assert.equal(available.phase, "available", available.error);
+  assert.notEqual(available.phase, "error", available.error);
   assert.equal(available.version, expectedVersion);
   report.nasDetection = true;
   report.startupDetection = true;
   console.log(`Detected NAS version ${available.version} from installed ${before.currentVersion}`);
-  await activateUpdate(page, "download");
   const downloaded = await until(async () => {
     const status = await page.evaluate(() => window.desktopUpdates.command("status"));
     return ["downloaded", "error"].includes(status.phase) && status;
   }, 25 * 60 * 1000);
   assert.equal(downloaded.phase, "downloaded", downloaded.error);
   report.downloadVerified = true;
+  report.automaticDownload = true;
   console.log("NAS download completed and verified; installing");
-  await page.screenshot({ path: path.join(reportDir, "downloaded.png") });
-  await activateUpdate(page, "install");
+  const prompt = await until(() => browser.contexts()[0].pages().find((page) => page.url().endsWith("/update-window.html")));
+  const install = prompt.getByRole("button", { name: "Restart and Install", exact: true });
+  await install.waitFor({ state: "visible" });
+  assert(await install.isEnabled());
+  report.automaticPrompt = true;
+  await prompt.screenshot({ path: path.join(reportDir, "downloaded.png") });
+  await install.click();
   const after = await until(async () => {
     if (browser.isConnected() && !page.isClosed()) {
       const status = await page.evaluate(() => window.desktopUpdates.command("status"));

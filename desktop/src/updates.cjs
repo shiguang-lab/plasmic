@@ -4,7 +4,7 @@ const fs = require("node:fs/promises");
 const { UpdateManager } = require("./update-manager.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./mac-updater.cjs");
 
-async function createUpdates({ config, getWindow, session, beforeInstall }) {
+async function createUpdates({ config, getWindow, session, beforeInstall, showUpdateWindow }) {
   const feedUrl = `${config.updateUrl}/${process.platform}/${process.platform === "darwin" ? "universal" : process.arch}/`;
   if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
   const updater = process.platform === "darwin"
@@ -21,6 +21,7 @@ async function createUpdates({ config, getWindow, session, beforeInstall }) {
   ipcMain.handle("desktop:update", (event, command) => {
     const window = getWindow();
     if (!window || event.sender !== window.webContents || event.senderFrame !== event.sender.mainFrame || new URL(event.senderFrame.url).origin !== config.studioOrigin) throw new Error("Invalid update sender");
+    if (command === "open") { showUpdateWindow(); return manager.state; }
     return manager.command(command);
   });
   manager.on("status", (status) => {

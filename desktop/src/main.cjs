@@ -3,6 +3,7 @@ const {
   BrowserWindow,
   dialog,
   Menu,
+  MenuItem,
   session,
   shell,
   clipboard,
@@ -27,13 +28,14 @@ const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
+const { createUpdateWindow } = require("./update-window.cjs");
 const {
   DesktopWorkspace,
   fileMenu,
   updateFileMenuContext,
 } = require("./workspace.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
-let controller, stopRpc, openMcpSettings, updates, workspace;
+let controller, stopRpc, openMcpSettings, updates, openUpdates, workspace;
 let quitting = false;
 
 let mainWindow;
@@ -329,6 +331,7 @@ async function startDesktop() {
       config,
       getWindow: () => mainWindow,
       session: desktopSession,
+      showUpdateWindow: () => openUpdates(),
       beforeInstall: async () => {
         const state = await controller.state();
         if (state.projectId) {
@@ -341,8 +344,13 @@ async function startDesktop() {
         }
       },
     });
+    openUpdates = createUpdateWindow(updates, () => mainWindow);
   }
   function buildMenu() {
+    const checkForUpdatesItem = {
+      label: "Check for Updates…",
+      click: () => openUpdates(),
+    };
     const menu = Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
       fileMenu({
@@ -379,50 +387,17 @@ async function startDesktop() {
         ],
       },
       { label: "Window", role: "windowMenu" },
-      {
-        label: "Updates",
-        submenu: [
-          {
-            label: "Check for Updates…",
-            click: async () => {
-              const status = await updates.command("check");
-              if (["available", "downloaded"].includes(status.phase)) {
-                const ready = status.phase === "downloaded";
-                const { response } = await dialog.showMessageBox(mainWindow, {
-                  title: "Plasmic Update",
-                  message: ready
-                    ? `${status.version} has been downloaded. Your current design will be saved before installation.`
-                    : `Version ${status.version} is available.`,
-                  buttons: [
-                    ready ? "Restart and Install" : "Download Update",
-                    "Cancel",
-                  ],
-                  defaultId: 0,
-                  cancelId: 1,
-                });
-                if (response === 0) {
-                  await updates.command(ready ? "install" : "download");
-                }
-              }
-              if (["current", "disabled", "error"].includes(status.phase)) {
-                void dialog.showMessageBox(mainWindow, {
-                  title: "Plasmic Update",
-                  message:
-                    status.error ||
-                    (status.phase === "disabled"
-                      ? "Use the installed application to check for updates."
-                      : `You are up to date (${status.currentVersion}).`),
-                });
-              }
-            },
-          },
-        ],
-      },
+      ...(process.platform !== "darwin"
+        ? [{ label: "Updates", submenu: [checkForUpdatesItem] }]
+        : []),
       {
         label: "AI",
         submenu: [{ label: "MCP", click: () => openMcpSettings() }],
       },
     ]);
+    if (process.platform === "darwin") {
+      menu.items[0].submenu.insert(1, new MenuItem(checkForUpdatesItem));
+    }
     menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => {
       void capture();
     });

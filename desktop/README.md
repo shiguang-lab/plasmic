@@ -108,13 +108,15 @@ uses this contract for column cells; hierarchy selection stays component-neutral
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. macOS uses the shared
 `darwin/universal/` feed on both CPU architectures; Windows and Linux use feeds
 partitioned by platform and architecture. GitHub is not contacted when checking, downloading or installing.
-The application checks immediately at startup and every ten minutes. The sidebar
-shows a blue update icon at the bottom when an update is available. Hover or keyboard
-focus expands the sidebar icon's action label; the editor's narrow left toolbar
-uses a circular icon and tooltip. Click to download, watch the progress, then click
-again to save the design and restart with the update. Failures show a retry action.
-The icon is embedded in the sidebar and never floats over the page. On the login
-page, use the native **更新 → 检查更新…** menu to check, download or install updates.
+The application checks immediately at startup and every ten minutes, then downloads
+new versions automatically in the background. The sidebar shows download progress.
+When the verified download finishes, the Software Update window opens with
+**Restart and Install** and **Later**. Choosing Later leaves a blue restart icon;
+hover or keyboard focus expands it into an **Update** button. Clicking the sidebar
+button reopens the update window; it does not restart the app directly. Failures
+remain available in the update window for retry. On macOS, **Check for Updates…**
+is in the Plasmic menu immediately below **About Plasmic**. Other platforms use
+the **Updates** menu. These menus also work on the login page.
 Development launches disable installation.
 
 Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
@@ -160,7 +162,7 @@ selects the desktop image independently of the Studio/server `IMAGE_TAG`. The ex
 App releases do not rebuild or redeploy the Shiguang website or Studio backend.
 Local packaging remains available for development; production installers come from Actions.
 
-Clicking **重启并安装** saves an open design before quitting; a failed save blocks
+Clicking **Restart and Install** saves an open design before quitting; a failed save blocks
 installation. Downloaded updates do not install on an ordinary quit. macOS verifies
 SHA-512, bundle identity, version, CPU architecture and code signature, stages the
 new bundle alongside the installed app, then uses a detached helper to replace it.

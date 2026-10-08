@@ -36,7 +36,7 @@ app.whenReady().then(async () => {
     return new Response(`<html><head><style>body{margin:0;font:14px sans-serif}aside{height:100vh;display:flex;flex-direction:column}footer{margin-top:auto;padding:8px}</style></head><body>${content}
       ${isStudio ? `<script>
         window.commands = [];
-        window.fixtureStatus = { phase: "available", version: "0.0.7", currentVersion: "0.0.6" };
+        window.fixtureStatus = { phase: "downloaded", version: "0.0.7", currentVersion: "0.0.6" };
         window.desktopUpdates = {
           onStatus: callback => { window.updateStatus = callback; },
           command: async command => { window.commands.push(command); return window.fixtureStatus; },
@@ -49,13 +49,13 @@ app.whenReady().then(async () => {
   await window.loadURL(studioOrigin + "/delayed");
   assert.equal(await evaluate(`typeof window.updateStatus`), "function", "Update listeners must initialize before the sidebar mounts");
   await evaluate(`document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
-  assert.equal(await evaluate(`document.querySelector(".update-action")?.getAttribute("aria-label")`), "Version 0.0.7 is available. Click to download.");
+  assert.equal(await evaluate(`document.querySelector(".update-action")?.getAttribute("aria-label")`), "Update 0.0.7 is ready. Restart Plasmic to install.");
   await window.loadURL(studioOrigin);
   assert.deepEqual(await evaluate(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
     return { parent: control.parentElement.tagName, placement: control.dataset.placement, position: getComputedStyle(control).position, icon: !!button.querySelector("svg"), width: button.getBoundingClientRect().width, label: button.getAttribute("aria-label"), visible: !control.hidden };
-  })()`), { parent: "FOOTER", placement: "footer", position: "relative", icon: true, width: 20, label: "Version 0.0.7 is available. Click to download.", visible: true });
+  })()`), { parent: "FOOTER", placement: "footer", position: "relative", icon: true, width: 20, label: "Update 0.0.7 is ready. Restart Plasmic to install.", visible: true });
   window.show();
   window.webContents.focus();
   await evaluate(`document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`);
@@ -64,53 +64,64 @@ app.whenReady().then(async () => {
   await evaluate(`document.querySelector(".update-action").blur()`);
   window.hide();
   await evaluate(`document.querySelector(".update-action").click()`);
-  assert.equal(await evaluate(`window.commands.at(-1)`), "download");
+  assert.equal(await evaluate(`window.commands.at(-1)`), "open");
   await evaluate(`window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 42 }; window.updateStatus(window.fixtureStatus)`);
   assert.deepEqual(await evaluate(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     return { role: control.getAttribute("role"), percent: control.getAttribute("aria-valuenow"), disabled: control.querySelector("button").disabled, label: control.querySelector(".update-label").textContent };
   })()`), { role: "progressbar", percent: "42", disabled: true, label: "42%" });
   await evaluate(`window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`);
-  assert.equal(await evaluate(`window.commands.at(-1)`), "install");
+  assert.equal(await evaluate(`window.commands.at(-1)`), "open");
   await evaluate(`window.fixtureStatus = { phase: "error", error: "下载失败", retry: "download" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`);
-  assert.equal(await evaluate(`window.commands.at(-1)`), "download");
+  assert.equal(await evaluate(`window.commands.at(-1)`), "open");
   for (const phase of ["idle", "current", "checking", "disabled"]) {
     await evaluate(`window.updateStatus({ phase: ${JSON.stringify(phase)} })`);
     assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update").hidden`), true);
   }
   await evaluate(`document.querySelector("aside").remove()`);
   assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update")`), null);
-  await evaluate(`window.fixtureStatus = { phase: "available", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
+  await evaluate(`window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
   assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update").parentElement.tagName`), "FOOTER");
-  console.log("PASS: Sidebar icon downloads, shows progress, retries and installs without a floating fallback");
+  console.log("PASS: Sidebar shows download progress, then opens the ready/retry window instead of restarting directly");
 
   await evaluate(`document.querySelector("aside").remove(); const frame = document.createElement("iframe"); frame.className = "studio-frame"; frame.src = ${JSON.stringify(canvasOrigin + "/static/host.html")}; frame.style = "border:0;width:100vw;height:100vh"; document.body.append(frame)`);
   let editor;
   for (let i = 0; i < 100; i++) {
     const host = window.webContents.mainFrame.frames.find((frame) => frame.url.startsWith(canvasOrigin));
     editor = host?.frames.find((frame) => frame.url === "about:blank");
-    if (editor && await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update")?.dataset.phase === "available"`)) break;
+    if (editor && await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update")?.dataset.phase === "downloaded"`)) break;
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   assert(editor, "Bundled editor frame did not load");
   assert.deepEqual(await editor.executeJavaScript(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
-    return { placement: control.dataset.placement, inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector(".update-icon").getBoundingClientRect().width, position: getComputedStyle(control).position, beforeAvatar: control.nextElementSibling.className };
-  })()`), { placement: "rail", inStrip: true, width: 36, iconWidth: 24, position: "relative", beforeAvatar: "Avatar" });
+    return { placement: control.dataset.placement, inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, beforeAvatar: control.nextElementSibling.className };
+  })()`), { placement: "rail", inStrip: true, width: 20, iconWidth: 12, position: "relative", beforeAvatar: "Avatar" });
   await fs.writeFile(path.join(os.tmpdir(), "plasmic-update-rail.png"), (await window.webContents.capturePage()).toPNG());
+  assert.equal(await editor.executeJavaScript(`document.querySelector(".update-action svg").dataset.icon`), "restart");
+  window.show();
+  window.webContents.focus();
+  await editor.executeJavaScript(`document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`);
+  assert.equal(await editor.executeJavaScript(`document.querySelector(".update-action").matches(":popover-open")`), true, "The expanded rail button must escape toolbar overflow");
+  assert(await editor.executeJavaScript(`document.querySelector(".update-action").getBoundingClientRect().width > 20`));
+  await editor.executeJavaScript(`document.querySelector(".update-action").blur()`);
+  assert.equal(await editor.executeJavaScript(`document.querySelector(".update-action").hasAttribute("popover")`), false);
+  window.hide();
   await editor.executeJavaScript(`document.querySelector(".update-action").click()`);
-  assert.equal(await evaluate(`window.commands.at(-1)`), "download");
+  assert.equal(await evaluate(`window.commands.at(-1)`), "open");
   await evaluate(`window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 67 }; window.updateStatus(window.fixtureStatus)`);
   assert.equal(await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update").getAttribute("aria-valuenow")`), "67");
   const commandCount = await evaluate(`window.commands.length`);
+  await editor.executeJavaScript(`window.parent.postMessage({channel:"plasmic-desktop-update-command",command:"install"},${JSON.stringify(studioOrigin)})`);
+  assert.equal(await evaluate(`window.commands.length`), commandCount, "The sidebar bridge must not directly install");
   await evaluate(`window.postMessage({channel:"plasmic-desktop-update-command",command:"install"},location.origin)`);
   assert.equal(await evaluate(`window.commands.length`), commandCount, "Untrusted sender must not invoke updates");
   await editor.executeJavaScript(`window.postMessage({channel:"plasmic-desktop-update-status",status:{phase:"error"}},"*")`);
   assert.equal(await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update").dataset.phase`), "downloading", "Untrusted sender must not overwrite status");
   await editor.executeJavaScript(`document.querySelector("#left-tab-strip").remove()`);
   assert.equal(await editor.executeJavaScript(`document.querySelector("#plasmic-desktop-update")`), null);
-  console.log("PASS: Bundled editor embeds the 36px/24px rail icon and validates cross-frame update messages");
+  console.log("PASS: Bundled editor embeds the compact expanding update button and validates cross-frame messages");
   root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-update-native-"));
   const cache = path.join(root, "updates");
   const source = path.join(root, "source");
