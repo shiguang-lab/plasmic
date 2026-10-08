@@ -53,27 +53,50 @@ app
     );
     for (let i = 0; i < 150; i++) {
       if (
-        opened &&
         new URL(win.webContents.getURL()).pathname === "/desktop/unified-login"
       ) {
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    assert(opened, "System-browser authorization was not requested");
+    await win.webContents
+      .executeJavaScript("window.desktopUnifiedLogin.command('status')")
+      .then((status) => assert.equal(status.phase, "idle"));
+    assert.equal(opened, undefined, "Startup must not open the system browser");
+    assert.equal(
+      await win.webContents.executeJavaScript(
+        "document.getElementById('sign-in').hidden",
+      ),
+      false,
+    );
+    assert.equal(
+      await win.webContents.executeJavaScript(
+        "document.getElementById('status').hidden",
+      ),
+      true,
+    );
+    await win.webContents.executeJavaScript(
+      "document.getElementById('sign-in').click()",
+    );
+    for (let i = 0; i < 100 && !opened; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    assert(opened, "Clicking Sign in with Shiguang must start authorization");
     assert.equal(opened.origin, "https://shiguanglab.com");
     assert.equal(opened.searchParams.get("client_id"), "plasmicapp");
     assert.equal(opened.searchParams.get("code_challenge_method"), "S256");
     const cancelled = await win.webContents.executeJavaScript(
       "window.desktopUnifiedLogin.command('cancel')",
     );
-    assert.equal(cancelled.phase, "cancelled");
+    assert.equal(cancelled.phase, "idle");
     assert.equal(
       new URL(win.webContents.getURL()).pathname,
       "/desktop/unified-login",
     );
     clearTimeout(timeout);
-    console.log("Native unified sign-in startup and cancellation passed");
+    console.log(
+      "Native sign-in prompt, explicit browser authorization and cancellation passed",
+    );
     app.exit(0);
   })
   .catch((error) => {

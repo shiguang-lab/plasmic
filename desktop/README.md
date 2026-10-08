@@ -194,13 +194,15 @@ External navigation opens the system browser. Internal preview popups share the
 same asset handler and authenticated session. Remote custom project hosts are
 still remote, because their code is not part of this application bundle.
 
-Sign-in uses the Shiguang account system. The main window displays an intermediate
-page while the system browser opens `https://shiguanglab.com/oauth/authorize` for
+Sign-in uses the Shiguang account system. An unauthenticated window first displays
+a sign-in page. Only clicking **Sign in with Shiguang** starts authorization and
+opens `https://shiguanglab.com/oauth/authorize` in the system browser for
 `plasmicapp`. S256 PKCE and random state bind authorization to a listener on
 an ephemeral `127.0.0.1` port. After the callback, Electron exchanges the authorization
 code and consumes a one-use `/oauth/web-session` ticket. IAM sets its shared HttpOnly
 cookie in the desktop session, and the main window returns to the requested design.
-Closing or cancelling ends the pending listener; retry starts a fresh authorization.
+Closing or cancelling ends the pending listener; cancelling returns to the sign-in
+page. Signing in again or retrying an error starts a fresh authorization.
 OAuth credentials remain in memory during the exchange. Account management opens
 the central `/account` page. Sign-out revokes the shared IAM session.
 

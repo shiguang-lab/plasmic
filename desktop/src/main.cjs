@@ -62,7 +62,7 @@ function protectWindow(win) {
     win.webContents.on(eventName, (event, url) => {
       if (win === mainWindow && isUnifiedLogin(url)) {
         event.preventDefault();
-        void unifiedAuth.begin(url);
+        void unifiedAuth.show(url);
       } else if (!isInternal(url)) {
         event.preventDefault();
         openExternal(url);
@@ -71,7 +71,7 @@ function protectWindow(win) {
   }
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (win === mainWindow && isUnifiedLogin(url)) {
-      void unifiedAuth.begin(url);
+      void unifiedAuth.show(url);
       return { action: "deny" };
     }
     if (!isInternal(url)) {

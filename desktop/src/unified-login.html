@@ -106,6 +106,7 @@
         flex-wrap: wrap;
         gap: 8px;
         justify-content: center;
+        margin-top: 24px;
       }
       .hint {
         margin: 24px 0 16px;
@@ -167,47 +168,59 @@
         </g>
       </svg>
       <p class="eyebrow">PLASMIC</p>
-      <h1 id="title">Opening browser</h1>
+      <h1 id="title">Sign in to Plasmic</h1>
       <p id="message" role="status">
-        Complete Shiguang sign-in in your browser.
+        Use your Shiguang account to access your projects and workspace.
       </p>
-      <div class="status" id="status">
+      <div class="status" id="status" hidden>
         <span id="spinner" class="spinner" aria-hidden="true"></span
         ><span id="status-label">Connecting</span>
       </div>
       <div class="actions">
-        <button id="open" class="primary" disabled>Open browser</button
+        <button id="sign-in" class="primary">Sign in with Shiguang</button
+        ><button id="open" class="primary" hidden disabled>Open browser</button
         ><button id="retry" class="primary" hidden>Try again</button
-        ><button id="copy">Copy sign-in link</button>
+        ><button id="copy" hidden>Copy sign-in link</button>
       </div>
       <input id="link" aria-label="Sign-in link" readonly hidden />
-      <p class="hint">
+      <p class="hint" id="hint">Your browser will open when you sign in.</p>
+      <p class="hint" id="waiting-hint" hidden>
         You will return to the app automatically after authorization. Keep this
         window open until sign-in completes.
       </p>
-      <button id="cancel" class="back">Cancel sign-in</button>
+      <button id="cancel" class="back" hidden>Cancel sign-in</button>
     </main>
     <script>
       const api = window.desktopUnifiedLogin;
       function render(state) {
-        const failed = ["error", "cancelled"].includes(state.phase),
+        const idle = state.phase === "idle",
+          failed = state.phase === "error",
           waiting = state.phase === "waiting";
-        document.getElementById("title").textContent = failed
-          ? "Sign-in incomplete"
-          : state.phase === "success"
-            ? "Signed in"
-            : waiting
-              ? "Continue sign-in in your browser"
-              : "Opening browser";
-        document.getElementById("message").textContent = failed
-          ? state.message
-          : waiting
-            ? state.message ||
-              "Complete Shiguang authorization in your browser to return to the desktop app."
+        document.getElementById("title").textContent = idle
+          ? "Sign in to Plasmic"
+          : failed
+            ? "Sign-in incomplete"
             : state.phase === "success"
-              ? "Returning to your workspace."
-              : "Please wait while your default browser opens.";
-        document.getElementById("status").hidden = failed;
+              ? "Signed in"
+              : waiting
+                ? "Continue sign-in in your browser"
+                : "Opening browser";
+        document.getElementById("message").textContent = idle
+          ? "Use your Shiguang account to access your projects and workspace."
+          : failed
+            ? state.message
+            : waiting
+              ? state.message ||
+                "Complete Shiguang authorization in your browser to return to the desktop app."
+              : state.phase === "success"
+                ? "Returning to your workspace."
+                : "Please wait while your default browser opens.";
+        document.getElementById("status").hidden = idle || failed;
+        document.getElementById("sign-in").hidden = !idle;
+        document.getElementById("hint").hidden = !idle;
+        document.getElementById("waiting-hint").hidden = idle || failed;
+        document.getElementById("cancel").hidden =
+          idle || state.phase === "success";
         document.getElementById("status-label").textContent =
           state.phase === "success"
             ? "Returning to workspace"
@@ -218,7 +231,8 @@
           document.getElementById("link").hidden = true;
           document.getElementById("link").value = "";
         }
-        document.getElementById("open").hidden = failed;
+        document.getElementById("open").hidden =
+          idle || failed || state.phase === "success";
         document.getElementById("open").disabled = !waiting;
         document.getElementById("retry").hidden = !failed;
         document.getElementById("copy").hidden = !waiting;
@@ -233,6 +247,7 @@
       api.onStatus(render);
       api.command("status").then(render);
       for (const [id, command] of [
+        ["sign-in", "sign-in"],
         ["open", "open-browser"],
         ["retry", "retry"],
         ["cancel", "cancel"],

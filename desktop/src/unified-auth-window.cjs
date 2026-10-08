@@ -4,7 +4,6 @@ class UnifiedAuthWindow {
     this.window = window;
     this.login = login;
     this.studioOrigin = studioOrigin;
-    this.loginUrl = studioOrigin + "/login";
     this.returnUrl = studioOrigin + "/";
     this.openBrowser = openBrowser;
     this.status = { phase: "idle" };
@@ -16,13 +15,9 @@ class UnifiedAuthWindow {
       this.window.webContents.send("desktop:auth-status", status);
     }
   }
-  async begin(loginUrl) {
-    if (this.abort) {
-      return;
-    }
+  async show(loginUrl) {
     const current = new URL(loginUrl || this.window.webContents.getURL());
     if (current.pathname !== AUTH_PATH) {
-      this.loginUrl = current.toString();
       const next = new URL(
         (current.origin === "https://shiguanglab.com" &&
         current.pathname === "/login"
@@ -36,25 +31,38 @@ class UnifiedAuthWindow {
           ? next.toString()
           : this.studioOrigin + "/";
     }
+    if (!this.abort) {
+      this.publish({ phase: "idle" });
+    }
+    await this.window.loadURL(this.studioOrigin + AUTH_PATH);
+  }
+  async begin() {
+    if (this.abort) {
+      return;
+    }
     const abort = new AbortController();
     this.abort = abort;
     this.authorizationUrl = undefined;
     this.publish({ phase: "opening" });
     try {
-      await this.window.loadURL(this.studioOrigin + AUTH_PATH);
       await this.login.start({
         returnUrl: this.returnUrl,
         signal: abort.signal,
         onAuthorizationUrl: (url) => {
-          this.authorizationUrl = url;
+          if (!abort.signal.aborted) {
+            this.authorizationUrl = url;
+          }
         },
         openBrowser: async (url) => {
           await this.openBrowser(url);
-          if (this.status.phase !== "success") {
+          if (!abort.signal.aborted) {
             this.publish({ phase: "waiting" });
           }
         },
       });
+      if (abort.signal.aborted) {
+        return;
+      }
       this.publish({ phase: "success" });
       await this.window.loadURL(this.returnUrl);
       this.window.show();
@@ -73,25 +81,37 @@ class UnifiedAuthWindow {
     if (command === "status") {
       return this.status;
     }
+    if (command === "sign-in" && this.abort) {
+      return this.status;
+    }
     if (command === "cancel") {
       this.abort?.abort();
-      this.publish({ phase: "cancelled", message: "Sign-in cancelled." });
+      this.abort = undefined;
+      this.authorizationUrl = undefined;
+      this.publish({ phase: "idle" });
       return this.status;
     }
     if (
-      command === "retry" &&
-      ["error", "cancelled"].includes(this.status.phase)
+      (command === "sign-in" && this.status.phase === "idle") ||
+      (command === "retry" && this.status.phase === "error")
     ) {
       void this.begin();
       return this.status;
     }
     if (command === "open-browser" && this.authorizationUrl && this.abort) {
+      const abort = this.abort;
       try {
         await this.openBrowser(this.authorizationUrl);
-        this.publish({ phase: "waiting" });
+        if (!abort.signal.aborted) {
+          this.publish({ phase: "waiting" });
+        }
       } catch (error) {
-        this.abort?.abort();
-        this.publish({ phase: "error", message: error.message });
+        if (!abort.signal.aborted) {
+          abort.abort();
+          this.abort = undefined;
+          this.authorizationUrl = undefined;
+          this.publish({ phase: "error", message: error.message });
+        }
       }
       return this.status;
     }
