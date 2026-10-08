@@ -18,6 +18,7 @@ const appIcon = path.join(
   process.platform === "win32" ? "icon.ico" : "icon.png",
 );
 const { createAssetHandler } = require("./asset-handler.cjs");
+const { forwardRemoteRequest } = require("./remote-fetch.cjs");
 const { openBrowser } = require("./open-browser.cjs");
 const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
 const { DesktopController } = require("./controller.cjs");
@@ -162,13 +163,7 @@ async function startDesktop() {
             ),
           )
           .join("\n"),
-        remoteFetch: (request) => {
-          return desktopSession.fetch(request, {
-            bypassCustomProtocolHandlers: true,
-            redirect: "manual",
-            credentials: "include",
-          });
-        },
+        remoteFetch: (request) => forwardRemoteRequest(desktopSession, request),
       }),
     );
   }
@@ -481,7 +476,7 @@ function bootstrap() {
   } else {
     const showDesktop = async () => {
       await app.whenReady();
-      const win = mainWindow || await ensureDesktop();
+      const win = mainWindow || (await ensureDesktop());
       if (win.isMinimized()) win.restore();
       win.show();
       win.focus();

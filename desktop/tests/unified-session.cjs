@@ -1,16 +1,23 @@
-const { app, net, session } = require("electron");
+const { app, net, session, BrowserWindow } = require("electron");
 const { createServer } = require("node:http");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { consumeSessionTicket } = require("../src/session-ticket.cjs");
+const { forwardRemoteRequest } = require("../src/remote-fetch.cjs");
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-session-test-"));
 app.setPath("userData", profile);
 let destinationRequests = 0;
 let origin;
 const server = createServer((req, res) => {
-  if (req.url === "/ticket") {
+  if (req.url === "/origin-check") {
+    res.writeHead(req.headers.origin === origin ? 200 : 403);
+  } else if (req.url === "/page") {
+    res.setHeader("Content-Type", "text/html");
+    res.end("<html><body>Owned session fixture</body></html>");
+    return;
+  } else if (req.url === "/ticket") {
     res.writeHead(302, {
       "Set-Cookie":
         "fixture_session=issued-by-iam; Path=/; HttpOnly; SameSite=Lax",
@@ -83,10 +90,25 @@ app
       0,
       "Neither accepted nor untrusted destinations should be requested",
     );
+    ses.protocol.handle("http", (request) =>
+      forwardRemoteRequest(ses, request),
+    );
+    const win = new BrowserWindow({
+      show: false,
+      webPreferences: { session: ses },
+    });
+    await win.loadURL(origin + "/page");
+    assert.equal(
+      await win.webContents.executeJavaScript(
+        "fetch('/origin-check', {method: 'POST', credentials: 'include'}).then(r => r.status)",
+      ),
+      200,
+    );
+    win.destroy();
     clearTimeout(timeout);
     server.close();
     console.log(
-      "Native Electron session redirect, IAM cookie retention, destination validation and cancellation passed",
+      "Native Electron session redirect, IAM cookie retention, destination validation, cancellation and browser request Origin passed",
     );
     app.exit(0);
   })
