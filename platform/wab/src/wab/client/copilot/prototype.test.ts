@@ -685,7 +685,7 @@ describe("AI prototype editor tools", () => {
       flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "submit"),
       "Button missing",
     );
-    const stateIds = page.states.map((s) => s.uuid);
+    const stateIds = page.states.map((s) => s.param.uuid);
     expect(stateIds.length).toBeGreaterThan(0);
     await call("changeElement", {
       componentUuid: page.uuid,
@@ -714,7 +714,7 @@ describe("AI prototype editor tools", () => {
       "$state.queryInput.value",
     );
     expect(resource.interactions[0].code).toContain("$state.groupName.value");
-    expect(page.states.map((s) => s.uuid)).toEqual(stateIds);
+    expect(page.states.map((s) => s.param.uuid)).toEqual(stateIds);
     studioCtx.copilotActivity.dispose();
   });
 

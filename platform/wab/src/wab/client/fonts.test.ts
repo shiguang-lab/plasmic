@@ -1,9 +1,11 @@
 import { FontManager } from "@/wab/client/fonts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure } from "@/wab/shared/common";
 import { createSite } from "@/wab/shared/core/sites";
 import { notification } from "antd";
 import $ from "jquery";
+import { observable } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 beforeEach(() => {
@@ -51,7 +53,8 @@ it("does not warn when switching to a generic family after opening", async () =>
   const manager = new FontManager(site);
   await Promise.resolve();
   const warn = vi.spyOn(notification, "warning");
-  const studioCtx = mock<StudioCtx>({ site, viewCtxs: [] });
+  const studioCtx = mock<StudioCtx>({ site });
+  studioCtx.viewCtxs = observable.array<ViewCtx>();
 
   manager.useFont(studioCtx, "ui-monospace");
   manager.installAllUsedFonts([]);
