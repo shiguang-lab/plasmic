@@ -125,8 +125,10 @@ BFF and WebSocket handshakes verify the JWT; browser writes check the Studio/can
 origin. All external traffic must enter through the gateway.
 
 Merge [Desktop OAuth registration](shiguang-oauth-client.json) into auth-service
-`OAUTH_CLIENTS_JSON`. Keep existing clients. The loopback redirect URI is
-`http://127.0.0.1/callback`; IAM accepts the ephemeral loopback port. Desktop uses
+`OAUTH_CLIENTS_JSON`. Keep existing clients. Register the exact HTTPS callback
+`https://shiguanglab.com/auth/apps/plasmicapp/callback`, `logoUrl` and `appCallbackUrl`
+from that policy. Website owns app authorization and callback pages; auth-service
+owns registered app metadata, consent validation and token exchange. Desktop uses
 S256 PKCE, scope `web:session`, and a one-use IAM web-session ticket to establish
 its Electron session. It does not persist OAuth access or refresh tokens.
 Add both Studio and canvas to auth-service `ALLOWED_RETURN_ORIGINS`, and grant

@@ -1,9 +1,17 @@
 {
   "clientId": "plasmicapp",
   "name": "Plasmic Desktop",
-  "redirectUris": ["http://127.0.0.1/callback"],
-  "scopes": ["web:session"],
+  "redirectUris": [
+    "https://shiguanglab.com/auth/apps/plasmicapp/callback"
+  ],
+  "scopes": [
+    "web:session"
+  ],
   "audience": "plasmicapp",
   "webAppUrl": "https://studio.plasmic.shiguanglab.com/",
-  "requiredEntitlements": ["plasmic:access"]
+  "requiredEntitlements": [
+    "plasmic:access"
+  ],
+  "logoUrl": "/assets/plasmic-app.png",
+  "appCallbackUrl": "plasmic-desktop://oauth/callback"
 }

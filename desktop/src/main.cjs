@@ -40,7 +40,11 @@ let mainWindow;
 let desktopSession;
 let unifiedAuth;
 let startingDesktop;
-const { DesktopUnifiedLogin, AUTH_ORIGIN } = require("./unified-login.cjs");
+const {
+  DesktopUnifiedLogin,
+  AUTH_ORIGIN,
+  APP_CALLBACK_URL,
+} = require("./unified-login.cjs");
 const trustedOrigins = new Set([config.studioOrigin, config.canvasOrigin]);
 function isInternal(url) {
   try {
@@ -481,19 +485,34 @@ function bootstrap() {
       win.show();
       win.focus();
     };
-    app.on("second-instance", () => {
-      void showDesktop();
+    const handleAppCallback = async (url) => {
+      if (!url.startsWith(APP_CALLBACK_URL + "?")) return;
+      await showDesktop();
+      unifiedAuth?.login.acceptCallback(url);
+    };
+    app.on("second-instance", (_event, argv) => {
+      const callback = argv.find((value) =>
+        value.startsWith("plasmic-desktop:"),
+      );
+      if (callback) void handleAppCallback(callback);
+      else void showDesktop();
     });
     app.on("open-url", (event, url) => {
-      if (url !== "plasmic-desktop://login-complete") return;
+      if (!url.startsWith("plasmic-desktop:")) return;
       event.preventDefault();
-      void showDesktop();
+      void handleAppCallback(url);
     });
     app
       .whenReady()
       .then(() => {
         if (app.isPackaged) app.setAsDefaultProtocolClient("plasmic-desktop");
-        return ensureDesktop();
+        return ensureDesktop().then((win) => {
+          const callback = process.argv.find((value) =>
+            value.startsWith("plasmic-desktop:"),
+          );
+          if (callback) void handleAppCallback(callback);
+          return win;
+        });
       })
       .catch((error) => {
         dialog.showErrorBox("Plasmic could not start", error.message);

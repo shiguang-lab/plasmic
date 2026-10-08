@@ -56,17 +56,21 @@ function fixture(options = {}) {
   };
 }
 
-async function callback(url, state, code = "single-use-code") {
-  const auth = new URL(url);
-  const target = new URL(auth.searchParams.get("redirect_uri"));
-  target.searchParams.set("state", state ?? auth.searchParams.get("state"));
-  target.searchParams.set("code", code);
-  return fetch(target);
+const code = "c".repeat(43);
+function callback(login, authorization, options = {}) {
+  const auth = new URL(authorization);
+  const target = new URL("plasmic-desktop://oauth/callback");
+  target.searchParams.set(
+    "state",
+    options.state ?? auth.searchParams.get("state"),
+  );
+  if (options.error) target.searchParams.set("error", options.error);
+  else target.searchParams.set("code", code);
+  return login.acceptCallback(target.href);
 }
-test("PKCE loopback exchange uses IAM-issued session tickets and preserves the design URL", async () => {
+test("HTTPS callback delivers a PKCE-bound code and establishes the IAM desktop session", async () => {
   const { login, calls } = fixture();
   let authorization;
-  let browserResponse;
   const result = await login.start({
     returnUrl: studioOrigin + "/projects/example",
     openBrowser: async (url) => {
@@ -76,42 +80,26 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
       assert.equal(authorization.searchParams.get("client_id"), "plasmicapp");
       assert.equal(authorization.searchParams.get("scope"), "web:session");
       assert.equal(
+        authorization.searchParams.get("redirect_uri"),
+        AUTH_ORIGIN + "/auth/apps/plasmicapp/callback",
+      );
+      assert.equal(
         authorization.searchParams.get("code_challenge_method"),
         "S256",
       );
-      browserResponse = callback(url);
+      assert.equal(callback(login, url), true);
+      assert.equal(callback(login, url), false);
     },
   });
   assert.equal(result, studioOrigin + "/projects/example");
-  const response = await browserResponse;
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type"), /text\/html/);
-  const html = await response.text();
-  assert.match(html, /You're signed in/);
-  assert.match(
-    html,
-    /<script>window.location.assign\("plasmic-desktop:\/\/login-complete"\);<\/script>/,
-  );
-  assert.match(html, /href="plasmic-desktop:\/\/login-complete"/);
-  assert.ok(!html.includes("ephemeral-access-token"));
-  assert.ok(!html.includes("single-use-code"));
-  const script = html.match(/<script>(.*?)<\/script>/)[1];
-  assert.ok(
-    response.headers
-      .get("content-security-policy")
-      .includes(
-        `'sha256-${createHash("sha256").update(script).digest("base64")}'`,
-      ),
-  );
-  const tokenForm = new URLSearchParams(calls[0].init.body);
+  const form = new URLSearchParams(calls[0].init.body);
+  assert.equal(form.get("code"), code);
   assert.equal(
-    createHash("sha256")
-      .update(tokenForm.get("code_verifier"))
-      .digest("base64url"),
+    createHash("sha256").update(form.get("code_verifier")).digest("base64url"),
     authorization.searchParams.get("code_challenge"),
   );
   assert.equal(
-    tokenForm.get("redirect_uri"),
+    form.get("redirect_uri"),
     authorization.searchParams.get("redirect_uri"),
   );
   assert.equal(
@@ -120,75 +108,86 @@ test("PKCE loopback exchange uses IAM-issued session tickets and preserves the d
   );
   assert.equal(calls[2].init.redirect, "manual");
   assert.equal(calls[2].init.credentials, "include");
-  await assert.rejects(fetch(authorization.searchParams.get("redirect_uri")));
 });
-test("forged and Unicode callback states are rejected without consuming the real callback", async () => {
+test("forged states, unrelated protocols and callbacks without pending login cannot authenticate", async () => {
   const { login } = fixture();
-  let browserResponse;
+  assert.equal(
+    login.acceptCallback(
+      "plasmic-desktop://oauth/callback?code=" +
+        code +
+        "&state=" +
+        "x".repeat(43),
+    ),
+    false,
+  );
   await login.start({
     returnUrl: studioOrigin + "/projects/example",
     openBrowser: async (url) => {
-      assert.equal((await callback(url, "x".repeat(43))).status, 400);
-      assert.equal((await callback(url, "界".repeat(43))).status, 400);
-      browserResponse = callback(url);
+      assert.equal(callback(login, url, { state: "x".repeat(43) }), false);
+      assert.equal(callback(login, url, { state: "界".repeat(43) }), false);
+      const state = new URL(url).searchParams.get("state");
+      for (const prefix of [
+        "https://oauth/callback",
+        "plasmic-desktop://evil/callback",
+        "plasmic-desktop://oauth/other",
+        "plasmic-desktop://user@oauth/callback",
+      ]) {
+        assert.equal(
+          login.acceptCallback(prefix + "?state=" + state + "&code=" + code),
+          false,
+        );
+      }
+      for (const extra of [
+        "&state=" + state,
+        "&code=" + code,
+        "&error=access_denied",
+        "&error=access_denied&error=access_denied",
+      ]) {
+        assert.equal(
+          login.acceptCallback(
+            "plasmic-desktop://oauth/callback?state=" +
+              state +
+              "&code=" +
+              code +
+              extra,
+          ),
+          false,
+        );
+      }
+      assert.equal(callback(login, url), true);
     },
   });
-  assert.equal((await browserResponse).status, 200);
 });
-test("browser success and automatic app launch wait for the desktop session exchange", async () => {
-  let releaseToken, tokenStarted;
-  const started = new Promise((resolve) => {
-    tokenStarted = resolve;
-  });
-  const token = new Promise((resolve) => {
-    releaseToken = resolve;
-  });
-  const { login } = fixture({
-    tokenResponse: () => {
-      tokenStarted();
-      return token;
-    },
-  });
-  let browserResponse,
-    responded = false;
-  const result = login.start({
-    returnUrl: studioOrigin + "/projects/example",
-    openBrowser: async (url) => {
-      browserResponse = callback(url).then((response) => {
-        responded = true;
-        return response;
-      });
-    },
-  });
-  await started;
-  await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(responded, false);
-  releaseToken(
-    Response.json({
-      access_token: "ephemeral-access-token",
-      token_type: "Bearer",
-    }),
-  );
-  await result;
-  assert.equal((await browserResponse).status, 200);
-});
-test("cancel closes the listener and performs no credential exchange", async () => {
+test("cancelling clears the pending login and ignores late native callbacks", async () => {
   const { login, calls } = fixture();
   const abort = new AbortController();
-  let redirect;
+  let auth;
   await assert.rejects(
     login.start({
       returnUrl: studioOrigin + "/",
       signal: abort.signal,
       openBrowser: async (url) => {
-        redirect = new URL(url).searchParams.get("redirect_uri");
+        auth = url;
         abort.abort();
       },
     }),
     /cancelled/,
   );
   assert.equal(calls.length, 0);
-  await assert.rejects(fetch(redirect));
+  assert.equal(callback(login, auth), false);
+});
+test("denied authorization reports an app error without exchanging credentials", async () => {
+  const { login, calls } = fixture();
+  await assert.rejects(
+    login.start({
+      returnUrl: studioOrigin + "/",
+      openBrowser: async (url) => {
+        assert.equal(callback(login, url, { error: "access_denied" }), true);
+      },
+    }),
+    /cancelled/,
+  );
+  assert.equal(calls.length, 0);
 });
 for (const options of [
   { ticketUrl: "https://evil.example/oauth/web-session?ticket=x" },
@@ -196,30 +195,36 @@ for (const options of [
   { location: "https://evil.example" },
 ]) {
   test(
-    "rejects invalid ticket or destination: " + JSON.stringify(options),
+    "rejects invalid session ticket: " + JSON.stringify(options),
     async () => {
       const { login } = fixture(options);
-      let browserResponse;
       await assert.rejects(
         login.start({
           returnUrl: studioOrigin + "/projects/example",
           openBrowser: async (url) => {
-            browserResponse = callback(url);
+            callback(login, url);
           },
         }),
         /session ticket/,
       );
-      const response = await browserResponse;
-      assert.equal(response.status, 502);
-      const html = await response.text();
-      assert.match(html, /Sign-in could not be completed/);
-      assert.ok(
-        !html.includes("<script>"),
-        "failed login must not automatically open the app",
-      );
     },
   );
 }
+test("token exchange failures are surfaced to the app", async () => {
+  const { login } = fixture({
+    tokenResponse: () =>
+      Response.json({ error: "invalid_grant" }, { status: 400 }),
+  });
+  await assert.rejects(
+    login.start({
+      returnUrl: studioOrigin + "/",
+      openBrowser: async (url) => {
+        callback(login, url);
+      },
+    }),
+    /authorization returned 400/,
+  );
+});
 test("rejects cross-origin return destinations before opening the browser", async () => {
   const { login } = fixture();
   await assert.rejects(

@@ -1,9 +1,9 @@
 const { randomBytes, createHash, timingSafeEqual } = require("node:crypto");
-const { createServer } = require("node:http");
-const { sendLoginResult } = require("./login-result.cjs");
 const { consumeSessionTicket } = require("./session-ticket.cjs");
 const AUTH_ORIGIN = "https://shiguanglab.com";
 const CLIENT_ID = "plasmicapp";
+const REDIRECT_URI = AUTH_ORIGIN + "/auth/apps/" + CLIENT_ID + "/callback";
+const APP_CALLBACK_URL = "plasmic-desktop://oauth/callback";
 
 class DesktopUnifiedLogin {
   constructor({ session, studioOrigin, request }) {
@@ -30,39 +30,8 @@ class DesktopUnifiedLogin {
       fail = reject;
     });
     callback.catch(() => {});
-    let consumed = false;
-    let browserResponse;
-    const server = createServer((req, res) => {
-      let url;
-      try {
-        url = new URL(req.url, "http://127.0.0.1");
-      } catch {
-        res.writeHead(400);
-        res.end("Invalid authorization callback");
-        return;
-      }
-      const supplied = url.searchParams.get("state") || "";
-      if (
-        req.method !== "GET" ||
-        url.pathname !== "/callback" ||
-        req.headers.host !== `127.0.0.1:${server.address().port}` ||
-        !/^[A-Za-z0-9_-]{43}$/.test(supplied) ||
-        !timingSafeEqual(Buffer.from(supplied), Buffer.from(state)) ||
-        consumed
-      ) {
-        res.writeHead(400);
-        res.end("Invalid authorization callback");
-        return;
-      }
-      consumed = true;
-      browserResponse = res;
-      const code = url.searchParams.get("code");
-      if (url.searchParams.has("error") || !code) {
-        fail(new Error("Shiguang sign-in was not completed"));
-      } else {
-        finish(code);
-      }
-    });
+    if (this.pending) throw new Error("Sign-in already in progress");
+    this.pending = { state, finish, fail };
     const abort = () => fail(new Error("Sign-in cancelled"));
     signal?.addEventListener("abort", abort, { once: true });
     const timer = setTimeout(
@@ -70,11 +39,7 @@ class DesktopUnifiedLogin {
       10 * 60_000,
     );
     try {
-      await new Promise((resolve, reject) => {
-        server.once("error", reject);
-        server.listen(0, "127.0.0.1", resolve);
-      });
-      const redirectUri = `http://127.0.0.1:${server.address().port}/callback`;
+      const redirectUri = REDIRECT_URI;
       const url = new URL("/oauth/authorize", AUTH_ORIGIN);
       for (const [key, value] of Object.entries({
         client_id: CLIENT_ID,
@@ -135,21 +100,55 @@ class DesktopUnifiedLogin {
         signal,
         request: this.request,
       });
-      if (!browserResponse.destroyed)
-        await sendLoginResult(browserResponse, true);
-      browserResponse = undefined;
       return target.href;
-    } catch (error) {
-      if (browserResponse && !browserResponse.destroyed) {
-        await sendLoginResult(browserResponse, false);
-      }
-      throw error;
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
-      server.close();
-      server.closeAllConnections();
+      if (this.pending?.state === state) this.pending = undefined;
     }
+  }
+  acceptCallback(raw) {
+    let url;
+    try {
+      url = new URL(raw);
+    } catch {
+      return false;
+    }
+    const supplied = url.searchParams.get("state") || "";
+    const pending = this.pending;
+    if (
+      !pending ||
+      url.searchParams.getAll("state").length !== 1 ||
+      url.searchParams.getAll("code").length > 1 ||
+      url.searchParams.getAll("error").length > 1 ||
+      (url.searchParams.has("error") && url.searchParams.has("code")) ||
+      url.protocol !== "plasmic-desktop:" ||
+      url.host !== "oauth" ||
+      url.pathname !== "/callback" ||
+      url.username ||
+      url.password ||
+      url.hash ||
+      !/^[A-Za-z0-9_-]{43}$/.test(supplied) ||
+      !timingSafeEqual(Buffer.from(supplied), Buffer.from(pending.state))
+    )
+      return false;
+    const code = url.searchParams.get("code");
+    if (
+      !url.searchParams.has("error") &&
+      !/^[A-Za-z0-9_-]{43}$/.test(code || "")
+    )
+      return false;
+    this.pending = undefined;
+    if (url.searchParams.has("error")) {
+      pending.fail(
+        new Error(
+          url.searchParams.get("error") === "access_denied"
+            ? "Shiguang sign-in was cancelled"
+            : "Shiguang sign-in was not completed",
+        ),
+      );
+    } else pending.finish(code);
+    return true;
   }
   async post(path, form, signal, accessToken) {
     const response = await this.session.fetch(AUTH_ORIGIN + path, {
@@ -170,4 +169,10 @@ class DesktopUnifiedLogin {
     return response.json();
   }
 }
-module.exports = { DesktopUnifiedLogin, AUTH_ORIGIN, CLIENT_ID };
+module.exports = {
+  DesktopUnifiedLogin,
+  AUTH_ORIGIN,
+  CLIENT_ID,
+  REDIRECT_URI,
+  APP_CALLBACK_URL,
+};

@@ -200,16 +200,16 @@ still remote, because their code is not part of this application bundle.
 Sign-in uses the Shiguang account system. An unauthenticated window first displays
 a sign-in page. Only clicking **Sign in with Shiguang** starts authorization and
 opens `https://shiguanglab.com/oauth/authorize` in the system browser for
-`plasmicapp`. S256 PKCE and random state bind authorization to a listener on
-an ephemeral `127.0.0.1` port. After the callback, Electron exchanges the authorization
-code and consumes a one-use `/oauth/web-session` ticket. IAM sets its shared HttpOnly
-cookie in the desktop session, and the main window returns to the requested design.
-The browser displays success only after the session ticket is accepted, then
-requests `plasmic-desktop://login-complete` to bring the app forward. The page
-keeps an **Open Plasmic** button for browsers that require another click. The
-protocol only activates the app; it carries no authorization code or token.
-Closing or cancelling ends the pending listener; cancelling returns to the sign-in
-page. Signing in again or retrying an error starts a fresh authorization.
+`plasmicapp`. S256 PKCE and random state bind authorization to the running app.
+The registered HTTPS callback is `https://shiguanglab.com/auth/apps/plasmicapp/callback`.
+Website displays the registered app's logo and automatically requests
+`plasmic-desktop://oauth/callback`, with an **Open Plasmic Desktop** button as a fallback.
+That link carries only the single-use code and state. The main process accepts a
+callback only for its matching pending login, exchanges the code with its in-memory
+PKCE verifier and consumes a one-use IAM web-session ticket. IAM sets its shared
+HttpOnly cookie in Electron, then the app returns to the requested design.
+The public page confirms browser authorization; the app reports whether session
+establishment succeeded. Cancelling ends the pending request; retrying starts a new one.
 OAuth credentials remain in memory during the exchange. Account management opens
 the central `/account` page. Sign-out revokes the shared IAM session.
 
