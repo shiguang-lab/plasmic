@@ -11,14 +11,16 @@ const { Readable, Transform } = require("node:stream");
 const { createWriteStream } = require("node:fs");
 const semver = require("semver");
 const YAML = require("yaml");
+const { macUpdateArch } = require("./update-architecture.cjs");
 const run = promisify(execFile);
 
-function parseManifest(text, currentVersion, feedUrl) {
+function parseManifest(text, currentVersion, feedUrl, arch) {
   const info = YAML.parse(text);
   if (!semver.valid(info?.version) || semver.prerelease(info.version)) throw new Error("Invalid stable update version");
   if (!semver.gt(info.version, currentVersion)) return null;
   const file = info.files?.find((file) => typeof file.url === "string" && file.url.endsWith(".zip"));
   if (!file || !/^[a-zA-Z0-9._-]+\.zip$/.test(file.url) || !Number.isSafeInteger(file.size) || file.size <= 0 || !/^[A-Za-z0-9+/]{86}==$/.test(file.sha512)) throw new Error("Invalid macOS update artifact");
+  if (arch && file.url !== `Plasmic-${info.version}-mac-${arch}.zip`) throw new Error("Update artifact architecture or version mismatch");
   return { ...info, file: { ...file, url: new URL(file.url, feedUrl).href } };
 }
 
@@ -27,6 +29,7 @@ class MacUpdater extends EventEmitter {
     super();
     if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
     this.app = app;
+    this.arch = macUpdateArch(app);
     this.feedUrl = feedUrl;
     this.fetch = fetch;
     this.cache = path.join(app.getPath("userData"), "updates");
@@ -35,7 +38,7 @@ class MacUpdater extends EventEmitter {
     this.emit("checking-for-update");
     const response = await this.fetch(this.feedUrl + "latest-mac.yml", { cache: "no-store", signal: AbortSignal.timeout(30000), redirect: "error" });
     if (!response.ok) throw new Error(`NAS update check failed (HTTP ${response.status})`);
-    this.info = parseManifest(await response.text(), this.app.getVersion(), this.feedUrl);
+    this.info = parseManifest(await response.text(), this.app.getVersion(), this.feedUrl, this.arch);
     this.emit(this.info ? "update-available" : "update-not-available", this.info || {});
   }
   async downloadUpdate() {
@@ -83,7 +86,7 @@ class MacUpdater extends EventEmitter {
         const { stdout } = await run("/usr/bin/plutil", ["-extract", key, "raw", "-o", "-", plist]);
         if (stdout.trim() !== expected) throw new Error("Update application identity or version mismatch");
       }
-      await run("/usr/bin/lipo", [path.join(source, "Contents/MacOS/Plasmic"), "-verify_arch", process.arch === "arm64" ? "arm64" : "x86_64"]);
+      await run("/usr/bin/lipo", [path.join(source, "Contents/MacOS/Plasmic"), "-verify_arch", this.arch === "arm64" ? "arm64" : "x86_64"]);
       await run("/usr/bin/codesign", ["--verify", "--deep", "--strict", source]);
       await run("/usr/bin/ditto", [source, staged]);
       // Finish extraction cleanup before Electron exits the current process.

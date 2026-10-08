@@ -68,9 +68,9 @@ canvas packages, generated CSS and valid `studio-build.json` provenance.
 
 Packaging creates applications, installers and update manifests in
 `dist/<version>/<platform>-<arch>/`, with renderer files inside `resources/app.asar`.
-macOS uses `darwin-universal`: one DMG and one update ZIP contain both Apple Silicon
-and Intel binaries. `package:mac` and macOS defaults build Universal packages;
-packaging verifies both executable architectures and the signed bundle's runtime
+macOS uses separate `darwin-arm64` and `darwin-x64` DMG/ZIP pairs for Apple Silicon
+and Intel. `package:mac` and macOS defaults build for the current CPU architecture.
+Packaging verifies the executable architecture and signed bundle runtime
 dependencies. Windows and Linux retain their architecture-specific packages.
 macOS produces an ad-hoc signed DMG and ZIP for internal distribution, Windows
 produces a per-user NSIS installer, and Linux produces an AppImage. macOS
@@ -105,9 +105,9 @@ uses this contract for column cells; hierarchy selection stays component-neutral
 
 ## NAS updates and releases
 
-Updates use `desktop.config.json`'s HTTPS `updateUrl`. macOS uses the shared
-`darwin/universal/` feed on both CPU architectures; Windows and Linux use feeds
-partitioned by platform and architecture. GitHub is not contacted when checking, downloading or installing.
+Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by
+platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an Intel
+process running under Rosetta selects the native arm64 feed. GitHub is not contacted when checking, downloading or installing.
 The application checks immediately at startup and every ten minutes, then downloads
 new versions automatically in the background. The sidebar shows download progress.
 When the verified download finishes, the Software Update window opens with
@@ -129,7 +129,11 @@ git push origin master desktop-v0.0.23
 ```
 
 `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
-builds macOS Universal on macOS, Windows x64 on Windows, and Linux x64 on Linux.
+builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
+and Linux x64 on Linux. A Universal ZIP-only job provides the update bridge for
+installed clients whose update URL is fixed to `darwin/universal/`. It is not
+listed as a website installer. After this bridge launches, the app selects
+`darwin/arm64/` or `darwin/x64/` automatically; Rosetta launches select arm64.
 Each native runner tests the desktop and packages its installer. The final job verifies
 all installer sizes and SHA-512 hashes, copies installers and Electron update YAML
 into `desktop/public/desktop-updates/`, and generates `latest.json` for the website.
@@ -156,11 +160,15 @@ YAML have `no-store` caching; versioned files are immutable and support HTTP ran
 CORS allows the Shiguang website to fetch public metadata and HEAD installer sizes
 without account credentials. Website builds do not embed release versions.
 
-NAS deployment verifies the live JSON and all three installers. `DESKTOP_RELEASE_TAG`
+NAS deployment verifies the live JSON and all four installers and the three macOS ZIP update feeds. `DESKTOP_RELEASE_TAG`
 selects the desktop image independently of the Studio/server `IMAGE_TAG`. The existing
 `plasmic-desktop-updates` volume retains only the separate CLI/Skill resource route.
 App releases do not rebuild or redeploy the Shiguang website or Studio backend.
 Local packaging remains available for development; production installers come from Actions.
+`npm run package:mac` builds for the current Mac architecture; `package:mac:arm64`
+and `package:mac:x64` select an explicit architecture. Both independent builds
+include a DMG for installation and a ZIP for automatic updates. Website release
+JSON lists `mac-arm64`, `mac-x64`, `windows` and `linux` separately.
 
 Clicking **Restart and Install** saves an open design before quitting; a failed save blocks
 installation. Downloaded updates do not install on an ordinary quit. macOS verifies

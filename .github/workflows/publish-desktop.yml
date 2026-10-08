@@ -36,6 +36,12 @@ jobs:
         include:
           - runner: macos-latest
             platform: darwin
+            arch: arm64
+          - runner: macos-15-intel
+            platform: darwin
+            arch: x64
+          - runner: macos-latest
+            platform: darwin
             arch: universal
           - runner: windows-latest
             platform: win32
@@ -87,6 +93,14 @@ jobs:
         with:
           node-version: 24
       - run: npm ci --prefix desktop
+      - uses: actions/download-artifact@v4
+        with:
+          name: darwin-arm64
+          path: installers/darwin-arm64
+      - uses: actions/download-artifact@v4
+        with:
+          name: darwin-x64
+          path: installers/darwin-x64
       - uses: actions/download-artifact@v4
         with:
           name: darwin-universal

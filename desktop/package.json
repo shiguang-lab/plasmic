@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -16,7 +16,7 @@
     "test:updates-native": "electron tests/updates-native.cjs",
     "package": "node scripts/package.mjs",
     "package:local": "node scripts/package-local.mjs",
-    "package:mac": "node scripts/package.mjs darwin universal",
+    "package:mac": "node scripts/package.mjs darwin",
     "package:win": "node scripts/package.mjs win32 x64",
     "package:linux": "node scripts/package.mjs linux x64",
     "publish:nas": "node scripts/publish.mjs",
@@ -25,7 +25,9 @@
     "test:mcp": "electron tests/mcp-smoke.cjs",
     "test:auth-startup": "electron tests/unified-startup.cjs",
     "test:auth-session": "electron tests/unified-session.cjs",
-    "distribution": "node scripts/build-distribution.mjs"
+    "distribution": "node scripts/build-distribution.mjs",
+    "package:mac:arm64": "node scripts/package.mjs darwin arm64",
+    "package:mac:x64": "node scripts/package.mjs darwin x64"
   },
   "devDependencies": {
     "canvas": "3.2.3",

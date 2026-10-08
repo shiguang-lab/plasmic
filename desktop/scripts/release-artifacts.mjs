@@ -19,6 +19,7 @@ export async function validateRelease(directory, platform, version, arch) {
   const files = [];
   for (const file of manifest.files) {
     if (!/^[a-zA-Z0-9._-]+$/.test(file.url) || !file.url.includes(`-${version}-`)) throw new Error("Artifacts require immutable versioned filenames");
+    if (platform === "darwin" && arch && !file.url.startsWith(`Plasmic-${version}-mac-${arch}.`)) throw new Error("Artifact architecture does not match release directory");
     const local = path.join(directory, file.url);
     if ((await stat(local)).size !== file.size || await digest(local) !== file.sha512) throw new Error(`Artifact checksum or size mismatch: ${file.url}`);
     files.push(file.url);

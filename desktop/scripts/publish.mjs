@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import semver from "semver";
 import { nasConfig } from "./nas-config.mjs";
+import { parseManifest } from "../src/mac-updater.cjs";
 const config = await nasConfig();
 const metadata = JSON.parse(
   await readFile(new URL("../package.json", import.meta.url), "utf8"),
@@ -37,7 +38,8 @@ const candidate = JSON.parse(
     { encoding: "utf8" },
   ),
 );
-if (candidate.version !== version || candidate.installers?.length !== 3)
+if (candidate.version !== version || candidate.installers?.length !== 4 ||
+    !["mac-arm64", "mac-x64", "windows", "linux"].every((id) => candidate.installers.some((file) => file.id === id)))
   throw new Error("Release image metadata does not match requested version");
 execFileSync(
   process.execPath,
@@ -71,5 +73,14 @@ for (const installer of candidate.installers) {
     Number(response.headers.get("content-length")) !== installer.size
   )
     throw new Error("Public installer is unavailable or has wrong size");
+}
+for (const arch of ["arm64", "x64", "universal"]) {
+  const url = `${config.updateUrl}/darwin/${arch}/`;
+  const response = await fetch(url + "latest-mac.yml", { cache: "no-store", signal: AbortSignal.timeout(30000) });
+  if (!response.ok || !response.headers.get("cache-control")?.includes("no-store")) throw new Error(`macOS ${arch} update feed unavailable or cacheable`);
+  const update = parseManifest(await response.text(), "0.0.0", url, arch);
+  if (update.version !== version) throw new Error(`macOS ${arch} update version mismatch`);
+  const archive = await fetch(update.file.url, { method: "HEAD", signal: AbortSignal.timeout(30000) });
+  if (!archive.ok || Number(archive.headers.get("content-length")) !== update.file.size) throw new Error(`macOS ${arch} update archive unavailable or incomplete`);
 }
 console.log(`Deployed ${image}; JSON and all installers verified at ${feed}`);

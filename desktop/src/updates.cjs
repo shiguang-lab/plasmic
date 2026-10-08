@@ -3,9 +3,10 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 const { UpdateManager } = require("./update-manager.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./mac-updater.cjs");
+const { macUpdateArch } = require("./update-architecture.cjs");
 
 async function createUpdates({ config, getWindow, session, beforeInstall, showUpdateWindow }) {
-  const feedUrl = `${config.updateUrl}/${process.platform}/${process.platform === "darwin" ? "universal" : process.arch}/`;
+  const feedUrl = `${config.updateUrl}/${process.platform}/${process.platform === "darwin" ? macUpdateArch(app) : process.arch}/`;
   if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
   const updater = process.platform === "darwin"
     ? new MacUpdater({ app, feedUrl, fetch: (url, options) => session.fetch(url, { ...options, bypassCustomProtocolHandlers: true }) })
