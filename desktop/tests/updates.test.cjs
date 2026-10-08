@@ -156,28 +156,3 @@ test("macOS helper restores the previous bundle if the replacement cannot launch
   assert.match(await fs.readFile(path.join(root, "failure"), "utf8"), /previous version restored/);
   await assert.rejects(fs.stat(backup), { code: "ENOENT" });
 });
-test("NAS promotion keeps the existing manifest on corrupted uploads and rejects stale concurrent releases", async (t) => {
-  const { promoteRelease } = require("../scripts/promote-release.cjs");
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-promote-"));
-  t.after(() => fs.rm(root, { recursive: true, force: true }));
-  const incoming = path.join(root, "incoming"), releases = path.join(root, "releases");
-  await fs.mkdir(incoming);
-  await fs.mkdir(releases);
-  const live = path.join(releases, "latest-mac.yml");
-  await fs.writeFile(live, "version: 0.0.1\n");
-  await fs.writeFile(path.join(incoming, "latest-mac.yml"), YAML.stringify(manifest));
-  await fs.writeFile(path.join(incoming, "._latest-mac.yml"), "macOS archive metadata");
-  await fs.writeFile(path.join(incoming, manifest.files[0].url), "corrupt");
-  await assert.rejects(promoteRelease(releases, incoming, "latest-mac.yml", manifest), /size mismatch/);
-  assert.equal(await fs.readFile(live, "utf8"), "version: 0.0.1\n");
-  await fs.writeFile(path.join(incoming, manifest.files[0].url), bytes);
-  const results = await Promise.allSettled([
-    promoteRelease(releases, incoming, "latest-mac.yml", manifest),
-    promoteRelease(releases, incoming, "latest-mac.yml", manifest),
-  ]);
-  assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
-  assert.equal(YAML.parse(await fs.readFile(live, "utf8")).version, "0.0.2");
-  assert.deepEqual(await fs.readFile(path.join(releases, manifest.files[0].url)), bytes);
-  await assert.rejects(promoteRelease(releases, incoming, "latest-mac.yml", manifest), /must be newer/);
-  assert.deepEqual((await fs.readdir(releases)).sort(), [manifest.files[0].url, "latest-mac.yml"].sort());
-});

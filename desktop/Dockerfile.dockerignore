@@ -1,0 +1,6 @@
+*
+!desktop/
+desktop/*
+!desktop/public/
+!desktop/public/**
+!desktop/nginx.conf

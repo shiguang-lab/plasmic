@@ -1,0 +1,144 @@
+name: Publish Desktop installers and release image
+on:
+  push:
+    tags: ["desktop-v*"]
+permissions:
+  contents: read
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+jobs:
+  renderer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --prefix desktop
+      - name: Validate release tag
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if(process.env.GITHUB_REF_NAME!==`desktop-v${p.version}` || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
+      - name: Extract the pinned Studio image
+        run: node desktop/scripts/prepare-assets.mjs
+      - run: tar -czf renderer.tar.gz -C desktop renderer
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-renderer
+          path: renderer.tar.gz
+          if-no-files-found: error
+  installers:
+    needs: renderer
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            platform: darwin
+            arch: universal
+          - runner: windows-latest
+            platform: win32
+            arch: x64
+          - runner: ubuntu-latest
+            platform: linux
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --prefix desktop
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-renderer
+      - run: tar -xzf renderer.tar.gz -C desktop
+      - run: npm test --prefix desktop
+      - name: Package native installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          version=$(node -p 'require("./desktop/package.json").version')
+          echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
+          node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --notes "desktop/release-notes/$version.md"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/Plasmic-*
+            desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/latest*.yml
+          if-no-files-found: error
+  publish:
+    needs: installers
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --prefix desktop
+      - uses: actions/download-artifact@v4
+        with:
+          name: darwin-universal
+          path: installers/darwin-universal
+      - uses: actions/download-artifact@v4
+        with:
+          name: win32-x64
+          path: installers/win32-x64
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-x64
+          path: installers/linux-x64
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Retain published installers
+        id: base
+        run: |
+          if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo 'Release image already exists; publish a new version.' >&2
+            exit 1
+          fi
+          image=ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
+          if docker manifest inspect "$image" >/dev/null 2>&1; then
+            echo "image=$image" >> "$GITHUB_OUTPUT"
+          else
+            node desktop/scripts/import-current-releases.mjs
+            echo 'image=nginx:1.29-alpine' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate installers and generate public JSON
+        run: node desktop/scripts/build-distribution.mjs --from installers
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-distribution
+          path: desktop/public/desktop-updates/latest.json
+          if-no-files-found: error
+      - name: Publish static release image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: desktop/Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          build-args: BASE_IMAGE=${{ steps.base.outputs.image }}
+          tags: |
+            ghcr.io/shiguang-lab/plasmic-desktop-releases:${{ github.ref_name }}
+            ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}

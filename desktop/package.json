@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -22,10 +22,10 @@
     "publish:nas": "node scripts/publish.mjs",
     "publish:resources": "node scripts/publish-plasmic-resources.mjs",
     "setup:nas-updates": "node scripts/setup-nas-updates.mjs",
-    "release": "node scripts/release.mjs",
     "test:mcp": "electron tests/mcp-smoke.cjs",
     "test:auth-startup": "electron tests/unified-startup.cjs",
-    "test:auth-session": "electron tests/unified-session.cjs"
+    "test:auth-session": "electron tests/unified-session.cjs",
+    "distribution": "node scripts/build-distribution.mjs"
   },
   "devDependencies": {
     "canvas": "3.2.3",

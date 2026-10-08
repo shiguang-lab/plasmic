@@ -108,6 +108,14 @@ services:
       timeout: 5s
       start_period: 90s
       retries: 20
+  desktop-releases:
+    image: ghcr.io/shiguang-lab/plasmic-desktop-releases:${DESKTOP_RELEASE_TAG:?set DESKTOP_RELEASE_TAG}
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/healthcheck]
+      interval: 5s
+      timeout: 3s
+      retries: 10
   web:
     image: ghcr.io/shiguang-lab/plasmic-web:${IMAGE_TAG:?set IMAGE_TAG}
     restart: unless-stopped

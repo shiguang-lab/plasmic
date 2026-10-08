@@ -61,6 +61,19 @@ Copy the current `nginx.conf` when upgrading; Compose mounts this deployment
 configuration over the image default. Cloud hosting is separate and is not
 provided by these images.
 
+## Desktop download image
+
+`desktop-releases` serves installers, Electron update YAML and `latest.json` from
+an immutable GHCR release image. `DESKTOP_RELEASE_TAG=desktop-v<version>` is
+independent of the server/web `IMAGE_TAG`. Studio's Nginx proxies its public
+`/desktop-updates/` route to that service; no host port is exposed. The existing
+update volume serves only `/desktop-updates/plasmic/` CLI/Skill resources.
+
+Desktop tags build all native installers and the static image in GitHub Actions.
+After the workflow succeeds, run `node desktop/scripts/publish.mjs desktop-v<version>`
+to pull and deploy it on NAS. This also configures the route and service on an existing
+deployment. See [desktop releases](../desktop/README.md#nas-updates-and-releases).
+
 ## Shared hosting package
 
 Upstream commit cfd0a4c76d8669f191c27eebb7c78626b48b7532 moved the hosting

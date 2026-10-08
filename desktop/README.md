@@ -117,47 +117,49 @@ The icon is embedded in the sidebar and never floats over the page. On the login
 page, use the native **更新 → 检查更新…** menu to check, download or install updates.
 Development launches disable installation.
 
-Configure the existing NAS web service once (SSH access via `nasHost` is required):
+Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
+`package.json` and `package-lock.json`, pin the compatible Studio `webImage` in
+`desktop.config.json`, and add `release-notes/<version>.md`. Push the commit and tag:
 
 ```sh
-npm run setup:nas-updates
+git tag desktop-v0.0.21
+git push origin master desktop-v0.0.21
 ```
 
-This backs up the deployed Compose/Nginx files, adds the read-only Docker update volume
-and recreates only the web container. Manifests have `no-store` caching; versioned
-installers are immutable and support HTTP ranges. The directory has no listing or
-write endpoint. This setup preserves the deployed image tag and backend settings.
-The `plasmic-desktop-updates` Docker volume stores releases on the NAS; a temporary
-release container writes it, avoiding shared-folder ACL restrictions on Nginx.
+`.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
+builds macOS Universal on macOS, Windows x64 on Windows, and Linux x64 on Linux.
+Each native runner tests the desktop and packages its installer. The final job verifies
+all installer sizes and SHA-512 hashes, copies installers and Electron update YAML
+into `desktop/public/desktop-updates/`, and generates `latest.json` for the website.
+The JSON contains the version, platform, architecture, size, SHA-512 and public HTTPS
+download URL. Installers and manifests ship together in
+`ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v<version>`.
 
-For each release, set a higher stable version in `package.json` (and regenerate
-`package-lock.json` with `npm install --package-lock-only --package-lock=true`). Pin the matching web
-image in `desktop.config.json`, then prepare complete renderer assets. Desktop
-version numbers are independent of NAS backend image tags.
+The release image extends the previously published release image, retaining old
+versioned files for in-progress downloads. The first image imports and verifies the
+current public installers. Existing version tags cannot be overwritten. Make this
+GHCR package public so NAS deployments can pull it without GitHub credentials.
+
+After Actions succeeds, deploy the image from the repository root:
 
 ```sh
-npm run assets
-# Or, for frontend changes from this checkout:
-# npm run assets -- --from ../platform/wab/build
-npm test
-npm run test:auth-session
-npm run test:updates-native
-npm run release -- darwin universal --notes /absolute/path/to/release-notes.txt
-# Build Windows on Windows and Linux on Linux:
-# npm run release -- win32 x64
-# npm run release -- linux x64
-# Upload an already built release:
-# npm run publish:nas -- darwin universal
+node desktop/scripts/publish.mjs desktop-v0.0.21
 ```
 
-Publishing verifies sizes and SHA-512 locally and on the NAS, uploads artifacts
-first, and atomically promotes the manifest last under a publication lock.
-Downgrades, prereleases and overwriting a published version are rejected. Keep old
-versioned files available for clients that have already started a download.
-Failed uploads leave the existing manifest intact. Credentials remain in the
-local SSH configuration; they are not included in the app.
-Desktop source releases use `desktop-v<version>` tags. They do not publish the
-NAS server/web images; desktop installers are built and published separately.
+This pulls the image on the NAS and recreates only `desktop-releases`. The initial
+setup adds that service to the deployed Compose configuration and reloads Studio's
+Nginx route. The existing web service proxies `/desktop-updates/` to this static
+service; no separate public port or binary-upload directory is needed. Downloads and
+`latest.json` use `https://studio.plasmic.shiguanglab.com/desktop-updates/`. JSON and
+YAML have `no-store` caching; versioned files are immutable and support HTTP ranges.
+CORS allows the Shiguang website to fetch public metadata and HEAD installer sizes
+without account credentials. Website builds do not embed release versions.
+
+NAS deployment verifies the live JSON and all three installers. `DESKTOP_RELEASE_TAG`
+selects the desktop image independently of the Studio/server `IMAGE_TAG`. The existing
+`plasmic-desktop-updates` volume retains only the separate CLI/Skill resource route.
+App releases do not rebuild or redeploy the Shiguang website or Studio backend.
+Local packaging remains available for development; production installers come from Actions.
 
 Clicking **重启并安装** saves an open design before quitting; a failed save blocks
 installation. Downloaded updates do not install on an ordinary quit. macOS verifies
@@ -335,8 +337,8 @@ source. Imports convert raster images to PNG and do not preserve animation.
 
 Install the unified [Plasmic skill and CLI](../ai/plasmic/README.md) for product
 prototyping and development code generation. Each task resolves current NAS resources;
-`read_skill` supplies this bootstrap entry point. Repository release tags automatically
-publish the CLI to npm and the resource bundle to NAS; Desktop App publishing is separate.
+`read_skill` supplies this bootstrap entry point. Repository numeric tags publish the CLI to npm; deploy its matching resource bundle to NAS.
+Desktop tags publish native installers and the static release image through Actions.
 
 See [MCP guide](../ai/plasmic/references/desktop-mcp.md) for exact sequencing and current limitations, and
 [MCP capability status](MCP-CAPABILITIES.md) for acceptance evidence and the Pen
