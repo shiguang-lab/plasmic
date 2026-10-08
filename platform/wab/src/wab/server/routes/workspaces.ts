@@ -52,9 +52,9 @@ export function mkApiWorkspace(workspace: Workspace): ApiWorkspace {
 
 export async function getWorkspaces(req: Request, res: Response) {
   const userMgr = userDbMgr(req);
-  const workspaces: ApiWorkspace[] = (
-    await userMgr.getAffiliatedWorkspaces()
-  ).map(mkApiWorkspace);
+  const workspaces: ApiWorkspace[] = (await userMgr.getAffiliatedWorkspaces())
+    .filter((workspace) => workspace.id !== req.devflags.hostLessWorkspaceId)
+    .map(mkApiWorkspace);
   const teams: ApiTeam[] = (await userMgr.getAffiliatedTeams()).map(mkApiTeam);
   res.json({ teams, workspaces });
 }

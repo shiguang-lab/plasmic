@@ -28,9 +28,9 @@ export async function getAppCtx(req: Request, res: Response) {
       return mkApiTeam(t);
     }),
   );
-  const workspaces: ApiWorkspace[] = (
-    await userMgr.getAffiliatedWorkspaces()
-  ).map(mkApiWorkspace);
+  const workspaces: ApiWorkspace[] = (await userMgr.getAffiliatedWorkspaces())
+    .filter((workspace) => workspace.id !== req.devflags.hostLessWorkspaceId)
+    .map(mkApiWorkspace);
   const { perms } = await userMgr.getSelfPerms();
   res.json(ensureType<AppCtxResponse>({ teams, workspaces, perms }));
 }

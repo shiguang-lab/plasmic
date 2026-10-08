@@ -509,7 +509,9 @@ export async function getTeamProjects(req: Request, res: Response) {
     workspaces.map((workspace) => workspace.id),
     true,
   );
-  const apiWorkspaces = workspaces.map((w) => mkApiWorkspace(w));
+  const apiWorkspaces = workspaces
+    .filter((workspace) => workspace.id !== req.devflags.hostLessWorkspaceId)
+    .map((w) => mkApiWorkspace(w));
 
   checkPermissions(
     teamPerms.length > 0 || workspaces.length > 0,
@@ -561,7 +563,9 @@ export async function getTeamWorkspaces(req: Request, res: Response) {
     workspaces.map((workspace) => workspace.id),
     true,
   );
-  const apiWorkspaces = workspaces.map((w) => mkApiWorkspace(w));
+  const apiWorkspaces = workspaces
+    .filter((workspace) => workspace.id !== req.devflags.hostLessWorkspaceId)
+    .map((w) => mkApiWorkspace(w));
 
   checkPermissions(
     teamPerms.length > 0 || workspaces.length > 0,
