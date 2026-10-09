@@ -7,6 +7,8 @@ Expect {"pages": [{"componentUuid": "...", "forms": [{"name": "Form", "fields":
 Rules are matched by their specified keys. Omit tooltip when none is expected.
 Optional formLayout checks native Form layout. Optional field validateFirst and
 description check ordered validation and persistent Form.Item instructions.
+Optional descriptionPlacement=afterControl plus descriptionNode checks inline secondary
+Typography after the direct control, without duplicated native extra.
 Optional form layout specifies container, columns, columnGap and paired rows
 [{container, fields: [nodeName, ...]}]; fields specify full-row or single-column span.
 All project Pages and business Forms must be inventoried, including empty-form Pages.
@@ -256,11 +258,32 @@ def check(expectations, overview, readback):
                     if "validateFirst" in field and values.get("validateFirst") is not field["validateFirst"]:
                         failures.append("Wrong Form.Item validation short-circuit setting")
                     if "description" in field:
+                        placement = field.get("descriptionPlacement", "below")
                         description_slot = slot(item, "description")
-                        description = content(description_slot) or values.get("description", "")
-                        if description != field["description"]:
-                            failures.append("Persistent instructions must match Form.Item description")
-                        owned_text = {id(n) for n in walk(description_slot or {"children": []})}
+                        extra_text = content(description_slot) or values.get("description", "")
+                        instruction = description_slot
+                        if placement == "afterControl":
+                            direct = [n for n in (slot(item, "children") or {}).get("children", []) if n["tag"] != "text"]
+                            candidates = [n for n in direct if node_name(n) == field.get("descriptionNode")]
+                            if not field.get("descriptionNode") or len(candidates) != 1:
+                                failures.append("Expected one inline instruction in Item children")
+                                instruction = None
+                            else:
+                                instruction = candidates[0]
+                                if identity(instruction) != "plasmicantd6typographytext" or props(instruction).get("type") != "secondary":
+                                    failures.append("Inline instructions must use secondary Typography.Text")
+                                if not direct or node_name(direct[0]) != field["control"] or direct.index(instruction) != 1:
+                                    failures.append("Inline instruction must immediately follow the direct control")
+                                if content(slot(instruction, "children")) != field["description"]:
+                                    failures.append("Wrong inline instruction text")
+                            if extra_text:
+                                failures.append("Remove bottom extra when instructions are inline")
+                        elif placement == "below":
+                            if extra_text != field["description"]:
+                                failures.append("Persistent instructions must match Form.Item description")
+                        else:
+                            failures.append("Unknown field instruction placement")
+                        owned_text = {id(n) for n in walk(instruction or {"children": []})}
                         if field["description"] and any(
                             n["tag"] == "text" and n.get("text", "").strip() == field["description"]
                             and id(n) not in owned_text

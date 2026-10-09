@@ -172,6 +172,13 @@ export function registerForm(loader?: Registerable) {
         options: ["horizontal", "vertical", "inline"],
         defaultValue: "vertical",
       },
+      styles: {
+        displayName: "Semantic styles",
+        type: "object",
+        advanced: true,
+        description:
+          "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles.",
+      },
       labelAlign: {
         type: "choice",
         options: ["left", "right"],

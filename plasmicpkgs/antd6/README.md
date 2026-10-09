@@ -30,6 +30,11 @@ pages import the same wrappers from the package's `skinny` entry points.
 - Form validation rejects on failure. Submission disabling restores after success
   or failure and preserves explicit/inherited disabled settings. Its
   `extendedOnValuesChange(values)` event receives the complete form values.
+- Form exposes native semantic `styles`. For inline instructions, keep the bound
+  control first in Form Field children and follow it with secondary Typography.Text;
+  `styles.content` can align them using flex, center and a 12px gap. These styles
+  apply across the Form, so inspect all fields. Long instructions use `description`
+  below the control; native `extra` has no placement switch.
 - Form Field defaults to ordered validation with `validateFirst=true`, showing
   one error per field. Place required checks before format/range and business
   rules. Its `description` renders persistent instructions through native

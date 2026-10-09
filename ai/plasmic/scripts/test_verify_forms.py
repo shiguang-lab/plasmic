@@ -42,6 +42,30 @@ class FormCheckTests(unittest.TestCase):
         duplicate = html.replace('</slot></plasmic-component>', '<span>Default 14 days</span></slot></plasmic-component>')
         self.assertFalse(self.result(duplicate)["passed"])
 
+    def inline_fixture(self):
+        field = self.expected["pages"][0]["forms"][0]["fields"][0]
+        field.update(description="Short instructions", descriptionPlacement="afterControl", descriptionNode="Instructions")
+        text = '''<plasmic-component data-plasmic-component="plasmic-antd6-typography-text" data-plasmic-name="Instructions" data-props='{"type":"secondary"}'><slot name="children"><span>Short instructions</span></slot></plasmic-component>'''
+        return self.html.replace('</plasmic-component></slot></plasmic-component>', '</plasmic-component>' + text + '</slot></plasmic-component>', 1)
+
+    def test_inline_secondary_instructions_after_control_pass(self):
+        self.assertTrue(self.result(self.inline_fixture())["passed"])
+
+    def test_inline_instructions_reject_wrong_type_color_text_and_ownership(self):
+        html = self.inline_fixture()
+        for old, new in [('plasmic-antd6-typography-text', 'native-text'), ('"secondary"', '"success"'), ('Short instructions</span>', 'Wrong text</span>'), ('data-plasmic-name="Instructions"', 'data-plasmic-name="Elsewhere"')]:
+            with self.subTest(old=old):
+                self.assertFalse(self.result(html.replace(old, new))["passed"])
+        self.expected["pages"][0]["forms"][0]["fields"][0].pop("descriptionNode")
+        self.assertFalse(self.result(html)["passed"])
+
+    def test_inline_instructions_reject_duplicate_extra_and_invalid_placement(self):
+        html = self.inline_fixture()
+        duplicate = html.replace('<slot name="label">', '<slot name="description"><span>Short instructions</span></slot><slot name="label">')
+        self.assertFalse(self.result(duplicate)["passed"])
+        self.expected["pages"][0]["forms"][0]["fields"][0]["descriptionPlacement"] = "label"
+        self.assertFalse(self.result(html)["passed"])
+
     def test_native_wrappers_and_label_stars_fail(self):
         self.assertFalse(self.result(self.html.replace("plasmic-antd6-form-item", "native-field"))["passed"])
         self.assertFalse(self.result(self.html.replace(">Name</span>", ">Name *</span>"))["passed"])

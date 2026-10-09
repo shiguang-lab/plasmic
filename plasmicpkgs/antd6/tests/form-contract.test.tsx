@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { Button, ConfigProvider, Form, Input } from "antd";
+import { Button, ConfigProvider, Form, Input, InputNumber, Typography } from "antd";
 import React from "react";
 import { expect, test, vi } from "vitest";
 import { FormRefActions, FormWrapper } from "../src/form/Form";
@@ -65,6 +65,39 @@ test("FormItem honors explicit validateFirst=false", async () => {
       errorFields: [{ errors: ["Enter expiry", "Invalid expiry"] }],
     });
   });
+});
+
+test("inline instructions keep native field binding, semantic styles and ordered validation", async () => {
+  const ref = React.createRef<FormRefActions>();
+  const view = render(
+    <FormWrapper ref={ref} initialValues={{ expiry: 14 }} styles={{ content: { display: "flex", alignItems: "center", gap: 12 } }}>
+      <FormItemWrapper name="expiry" label="Expiry" rules={[
+        { ruleType: "required", message: "Enter expiry" },
+        { ruleType: "advanced", custom: (_rule, value) => Number.isInteger(value) && value >= 1 && value <= 365, message: "Use an integer from 1 to 365" },
+      ]}>
+        <InputNumber />
+        <Typography.Text type="secondary">Default 14 days; maximum 365 days.</Typography.Text>
+      </FormItemWrapper>
+    </FormWrapper>,
+  );
+  const content = view.container.querySelector<HTMLElement>(".ant-form-item-control-input-content")!;
+  expect(content.style.display).toBe("flex");
+  expect(content.style.alignItems).toBe("center");
+  expect(content.style.gap).toBe("12px");
+  const input = screen.getByRole("spinbutton");
+  for (const [value, message] of [["", "Enter expiry"], ["1.5", "Use an integer from 1 to 365"], ["14", null]] as const) {
+    fireEvent.change(input, { target: { value } });
+    await act(async () => {
+      if (message) {
+        await expect(ref.current!.validateFields()).rejects.toMatchObject({ errorFields: [{ errors: [message] }] });
+      } else {
+        await expect(ref.current!.validateFields()).resolves.toEqual({ expiry: 14 });
+      }
+    });
+    expect(screen.getByText("Default 14 days; maximum 365 days.").className).toContain("ant-typography-secondary");
+    expect(view.container.querySelector(".ant-form-item-extra")).toBeNull();
+  }
+  await vi.waitFor(() => expect(view.container.querySelectorAll(".ant-form-item-explain-error")).toHaveLength(0));
 });
 
 const capture = vi.hoisted(() => ({ props: null as any }));
