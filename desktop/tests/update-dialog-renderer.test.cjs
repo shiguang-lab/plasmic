@@ -27,6 +27,16 @@ async function fixture(t, initial) {
   };
 }
 
+test("current release notes show the dialog's What's new heading once", async (t) => {
+  const { version } = require("../package.json");
+  const releaseNotes = fs.readFileSync(path.join(__dirname, `../release-notes/${version}.md`), "utf8");
+  const ui = await fixture(t, { phase: "available", version, releaseNotes });
+  const headings = ui.element("notes-section").querySelectorAll("h2, h3");
+  assert.equal([...headings].filter((heading) => heading.textContent.toLowerCase() === "what's new").length, 1);
+  assert.equal(ui.element("notes-section").hidden, false);
+  assert.ok(ui.element("notes").querySelectorAll("li").length > 0);
+});
+
 test("update UI follows download and install events without installing automatically", async (t) => {
   const ui = await fixture(t, { phase: "available", version: "0.0.24", releaseNotes: "## Improvements\n- Faster navigation\n- <img src=x onerror=alert(1)>" });
   assert.equal(ui.element("current-version").textContent, "0.0.23");

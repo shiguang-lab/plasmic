@@ -126,7 +126,12 @@ Development launches disable installation.
 
 Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
 `package.json` and `package-lock.json`, pin the compatible Studio `webImage` in
-`desktop.config.json`, and add `release-notes/<version>.md`. Push the commit and tag:
+`desktop.config.json`, and add `release-notes/<version>.md`.
+
+Release notes contain the update body only. The dialog supplies the "What's new"
+heading; do not repeat it in the Markdown file. Use `##` headings for subsections.
+
+Push the commit and tag:
 
 ```sh
 git tag desktop-v0.0.23
