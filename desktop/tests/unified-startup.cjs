@@ -9,6 +9,11 @@ const profile = fs.mkdtempSync(
   path.join(os.tmpdir(), "plasmic-unified-startup-"),
 );
 app.setPath("userData", profile);
+const projectUrl = config.studioOrigin + "/projects/fixture?branch=main#page";
+fs.writeFileSync(
+  path.join(profile, "workspace.json"),
+  JSON.stringify([{ url: projectUrl, name: "Session expiry fixture" }]),
+);
 let opened;
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
@@ -35,8 +40,12 @@ app
   .then(async () => {
     const ses = session.fromPartition("persist:plasmic-desktop");
     // No production API calls or credentials are involved in this native UI test.
-    ses.fetch = async () =>
-      Response.json(
+    ses.fetch = async (request) => {
+      const url = new URL(typeof request === "string" ? request : request.url);
+      if (url.pathname === "/api/auth/session") {
+        return Response.json({ authenticated: false }, { status: 401 });
+      }
+      return Response.json(
         {
           error: {
             name: "UnauthorizedError",
@@ -46,14 +55,13 @@ app
         },
         { status: 401 },
       );
+    };
     const win = await startDesktop();
     assert.equal(win.webContents.getLastWebPreferences().sandbox, true);
-    await win.webContents.executeJavaScript(
-      `window.location.href = ${JSON.stringify("https://shiguanglab.com/login?return_to=" + encodeURIComponent(config.studioOrigin + "/projects/fixture"))}`,
-    );
     for (let i = 0; i < 150; i++) {
       if (
-        new URL(win.webContents.getURL()).pathname === "/desktop/unified-login"
+        new URL(win.webContents.getURL()).pathname === "/desktop/unified-login" &&
+        !win.webContents.isLoadingMainFrame()
       ) {
         break;
       }

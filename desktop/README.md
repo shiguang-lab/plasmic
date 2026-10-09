@@ -210,6 +210,11 @@ Sign-in uses the Shiguang account system. An unauthenticated window first displa
 a sign-in page. Only clicking **Sign in with Shiguang** starts authorization and
 opens `https://shiguanglab.com/oauth/authorize` in the system browser for
 `plasmicapp`. S256 PKCE and random state bind authorization to the running app.
+When a Studio API returns 401, Desktop checks IAM's `/api/auth/session`.
+Only a confirmed unauthenticated session opens the bundled sign-in page, preserving
+the current route, query and hash for return after login. Concurrent failures share
+one check. Resource permission errors and failed session checks retain their normal
+error behavior. The sign-in page does not start browser authorization automatically.
 The registered HTTPS callback is `https://shiguanglab.com/auth/apps/plasmicapp/callback`.
 Website displays the registered app's logo and automatically requests
 `plasmic-desktop://oauth/callback`, with an **Open Plasmic Desktop** button as a fallback.

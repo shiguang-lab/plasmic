@@ -22,6 +22,7 @@ const { createAssetHandler } = require("./asset-handler.cjs");
 const { forwardRemoteRequest } = require("./remote-fetch.cjs");
 const { openBrowser } = require("./open-browser.cjs");
 const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
+const { createSessionRecovery } = require("./session-recovery.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { serveMcp } = require("./mcp.cjs");
@@ -41,6 +42,7 @@ let quitting = false;
 let mainWindow;
 let desktopSession;
 let unifiedAuth;
+let recoverSession;
 let startingDesktop;
 const {
   DesktopUnifiedLogin,
@@ -177,7 +179,11 @@ async function startDesktop() {
             ),
           )
           .join("\n"),
-        remoteFetch: (request) => forwardRemoteRequest(desktopSession, request),
+        remoteFetch: async (request) => {
+          const response = await forwardRemoteRequest(desktopSession, request);
+          await recoverSession(response, request.url);
+          return response;
+        },
       }),
     );
   }
@@ -214,6 +220,11 @@ async function startDesktop() {
       studioOrigin: config.studioOrigin,
     }),
   );
+  recoverSession = createSessionRecovery({
+    session: desktopSession,
+    studioOrigin: config.studioOrigin,
+    auth: unifiedAuth,
+  });
   protectWindow(mainWindow);
   if (!controller) {
     const integrations = new McpIntegrations({
