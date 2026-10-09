@@ -6,41 +6,43 @@
   root.innerHTML = `<style>
 dialog { color-scheme: light; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #242428; background: #fff; --muted: #73737b; --surface: #f6f6f8; --border: #e5e5e9; }
 * { box-sizing: border-box; }
-dialog { border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 560px; max-width: calc(100vw - 48px); max-height: calc(100vh - 48px); box-shadow: 0 24px 80px #0003; }
-dialog[open] { display: flex; flex-direction: column; gap: 20px; }
+dialog { border: 1px solid var(--border); border-radius: 12px; padding: 0; width: 480px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: hidden; box-shadow: 0 12px 40px #0002; }
+dialog[open] { display: flex; flex-direction: column; }
 dialog::backdrop { background: #18233b4d; }
-header > div { flex: 1; }
-#dismiss { font-size: 20px; line-height: 1; padding: 4px 8px; }
 [hidden] { display: none !important; }
-header { display: flex; align-items: center; gap: 16px; flex: none; }
-.eyebrow { color: var(--muted); font-size: 11px; font-weight: 600; margin-bottom: 3px; }
-h1 { font-size: 20px; line-height: 1.3; font-weight: 600; margin: 0; letter-spacing: -.3px; }
-#description { margin: 8px 0 0; color: var(--muted); }
-main { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 18px; }
-.versions { display: flex; gap: 24px; margin: 0; padding: 12px 16px; border-radius: 10px; background: var(--surface); }
-dt { font-size: 11px; color: var(--muted); }
-dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; }
+header { position: relative; padding: 20px 56px 12px 24px; flex: none; }
+h1 { font-size: 18px; line-height: 1.4; font-weight: 600; margin: 0; letter-spacing: -.2px; }
+#description { margin: 0; color: var(--muted); }
+main { min-height: 0; flex: 0 1 auto; overflow-y: auto; padding: 0 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-wrap: anywhere; }
+main > * { flex: none; }
+.versions { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 6px; background: var(--surface); }
+.versions > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+dt { flex: none; font-size: 12px; color: var(--muted); }
+dd { min-width: 0; margin: 0; font-size: 13px; font-weight: 600; text-align: right; }
 #latest-version { color: #0285ff; }
-#notes-section { min-height: 0; flex: 1; display: flex; flex-direction: column; }
 h2 { font-size: 12px; font-weight: 600; margin: 0 0 8px; }
-#notes { min-height: 0; max-height: 240px; overflow-y: auto; padding-right: 8px; color: var(--muted); }
+#notes { color: var(--muted); }
 #notes h3 { font-size: 12px; color: inherit; margin: 0 0 8px; }
 #notes p { margin: 0 0 8px; }
 #notes ul { margin: 0 0 8px; padding-left: 18px; }
 #notes li { margin: 0 0 6px; }
+#notes > :last-child { margin-bottom: 0; }
 .progress-heading { display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
 progress { display: block; width: 100%; height: 6px; border: 0; border-radius: 6px; overflow: hidden; accent-color: #0285ff; background: var(--surface); }
 progress::-webkit-progress-bar { background: var(--surface); }
 progress::-webkit-progress-value { background: #0285ff; border-radius: 6px; }
-footer { flex: none; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 16px; }
-button { border: 1px solid var(--border); border-radius: 7px; padding: 7px 14px; color: inherit; background: transparent; font: inherit; font-weight: 500; cursor: pointer; }
-button:hover { background: var(--surface); }
+footer { flex: none; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding: 12px 24px; }
+button { min-height: 32px; min-width: 72px; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; color: inherit; background: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+button:hover:enabled { background: var(--surface); }
 button:focus-visible { outline: 2px solid #0285ff; outline-offset: 3px; }
-#primary { background: #0285ff; color: #fff; border-color: #0285ff; }
-#primary:hover { background: #0076e6; }
+#primary[data-emphasis=primary] { background: #0285ff; color: #fff; border-color: #0285ff; }
+#primary[data-emphasis=primary]:hover:enabled { background: #0076e6; }
+#dismiss { position: absolute; top: 16px; right: 16px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-width: 0; min-height: 0; padding: 0; border: 0; color: var(--muted); background: transparent; }
+#dismiss:hover:enabled { color: #242428; background: var(--surface); }
+#dismiss svg { width: 16px; height: 16px; }
 button:disabled { opacity: .55; cursor: default; }
 </style><dialog aria-label="Software Update">
-<header><div><div class="eyebrow">PLASMIC</div><h1 id="status" role="status" aria-live="polite">Checking for updates…</h1></div><button id="dismiss" type="button" aria-label="Close software update">×</button></header>
+<header><h1 id="status" role="status" aria-live="polite">Checking for updates…</h1><button id="dismiss" type="button" aria-label="Close software update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
 <main>
 <p id="description">Looking for the latest version of Plasmic.</p>
 <dl class="versions"><div><dt>Installed version</dt><dd id="current-version">—</dd></div><div id="latest" hidden><dt>New version</dt><dd id="latest-version"></dd></div></dl>
@@ -107,6 +109,7 @@ function render(status) {
   byId("progress").value = percent;
   byId("percent").textContent = `${percent}%`;
   byId("primary").textContent = label;
+  byId("primary").dataset.emphasis = ["downloaded", "error"].includes(phase) ? "primary" : "neutral";
   byId("primary").disabled = ["idle", "checking", "available", "downloading", "installing"].includes(phase);
   byId("secondary").hidden = ["current", "disabled", "installing"].includes(phase);
   byId("secondary").textContent = ["available", "downloaded"].includes(phase) ? "Later" : "Close";
