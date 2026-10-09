@@ -1495,5 +1495,6 @@
   "Remove {name} {type}": "移除 {name} {type}",
   "Prop value not allowed": "屬性值無效",
   "Type mismatch with linked prop \"{name}\". Click to update.": "與關聯屬性「{name}」的類型不符，點選更新。",
-  "Type mismatch with linked prop \"{name}\"": "與關聯屬性「{name}」的類型不符"
+  "Type mismatch with linked prop \"{name}\"": "與關聯屬性「{name}」的類型不符",
+  "(unnamed page)": "（未命名頁面）"
 }

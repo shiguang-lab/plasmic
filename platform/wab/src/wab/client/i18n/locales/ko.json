@@ -1495,5 +1495,6 @@
   "Remove {name} {type}": "{name} {type} 제거",
   "Prop value not allowed": "허용되지 않는 속성 값",
   "Type mismatch with linked prop \"{name}\". Click to update.": "연결된 속성 ‘{name}’과 유형이 일치하지 않습니다. 클릭하여 업데이트하세요.",
-  "Type mismatch with linked prop \"{name}\"": "연결된 속성 ‘{name}’과 유형이 일치하지 않습니다"
+  "Type mismatch with linked prop \"{name}\"": "연결된 속성 ‘{name}’과 유형이 일치하지 않습니다",
+  "(unnamed page)": "(이름 없는 페이지)"
 }

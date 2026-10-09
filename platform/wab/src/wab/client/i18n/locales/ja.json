@@ -1495,5 +1495,6 @@
   "Remove {name} {type}": "{name} の{type}を削除",
   "Prop value not allowed": "許可されていないプロパティ値",
   "Type mismatch with linked prop \"{name}\". Click to update.": "リンクしたプロパティ「{name}」と型が一致しません。クリックして更新してください。",
-  "Type mismatch with linked prop \"{name}\"": "リンクしたプロパティ「{name}」と型が一致しません"
+  "Type mismatch with linked prop \"{name}\"": "リンクしたプロパティ「{name}」と型が一致しません",
+  "(unnamed page)": "（名前のないページ）"
 }

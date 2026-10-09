@@ -1495,5 +1495,6 @@
   "Remove {name} {type}": "Remove {name} {type}",
   "Prop value not allowed": "Prop value not allowed",
   "Type mismatch with linked prop \"{name}\". Click to update.": "Type mismatch with linked prop \"{name}\". Click to update.",
-  "Type mismatch with linked prop \"{name}\"": "Type mismatch with linked prop \"{name}\""
+  "Type mismatch with linked prop \"{name}\"": "Type mismatch with linked prop \"{name}\"",
+  "(unnamed page)": "(unnamed page)"
 }

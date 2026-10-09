@@ -69,10 +69,10 @@ export const PageTab = observer(function PageTab(props: {
             studioCtx.siteOps().tryRenameComponent(page, name),
           )
         }
-        placeholder={`(unnamed page)`}
+        placeholder={uiT("(unnamed page)")}
       />
     ),
-    [page, page.name],
+    [page, page.name, uiT],
   );
 
   const headerControls = React.useMemo(
@@ -86,7 +86,7 @@ export const PageTab = observer(function PageTab(props: {
           <Icon icon={GearIcon} />
         </IconButton>
       ),
-    [],
+    [uiT],
   );
 
   return (
