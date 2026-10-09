@@ -9,6 +9,7 @@ import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
@@ -33,6 +34,7 @@ export const EnableLocalizationModal = observer(
     project,
     onDone,
   }: EnableLocalizationModalProps) {
+    const { t: uiT } = useI18n();
     const appCtx = useAppCtx();
     const { hostFrameApi } = useTopFrameCtx();
 
@@ -47,16 +49,25 @@ export const EnableLocalizationModal = observer(
       >
         <FocusScope contain>
           <div className="mb-xlg">
-            This lets you integrate with localization frameworks like Lingui,
-            react-intl, and react-i18next by generating code that applies the
-            localization framework to all localizable strings in the project.{" "}
-            <br /> <br />
-            <a
-              href="https://docs.plasmic.app/learn/localization-frameworks/"
-              target="_blank"
-            >
-              Learn about use with localization frameworks.
-            </a>
+            <UiText
+              message={
+                "This lets you integrate with localization frameworks like Lingui, react-intl, and react-i18next by generating code that applies the localization framework to all localizable strings in the project. {part1} {part2}{part3}"
+              }
+              values={{
+                part1: <br />,
+                part2: <br />,
+                part3: (
+                  <a
+                    href="https://docs.plasmic.app/learn/localization-frameworks/"
+                    target="_blank"
+                  >
+                    <UiText
+                      message={"Learn about use with localization frameworks."}
+                    />
+                  </a>
+                ),
+              }}
+            />
           </div>
           <Form
             onFinish={async (e) => {
@@ -75,23 +86,31 @@ export const EnableLocalizationModal = observer(
           >
             {!isLocalizationEnabled && (
               <>
-                <Form.Item label="Key scheme" name="keyScheme">
+                <Form.Item label={uiT("Key scheme")} name="keyScheme">
                   <Select
                     defaultValue={localizationScheme?.keyScheme}
-                    placeholder="Set the key scheme to be used in preview"
+                    placeholder={uiT(
+                      "Set the key scheme to be used in preview",
+                    )}
                     type="bordered"
                   >
-                    <Select.Option value="path">Path</Select.Option>
+                    <Select.Option value="path">
+                      <UiText message={"Path"} />
+                    </Select.Option>
                     <Select.Option value="content">
                       <UiText message={"Content"} />
                     </Select.Option>
-                    <Select.Option value="hash">Hash</Select.Option>
+                    <Select.Option value="hash">
+                      <UiText message={"Hash"} />
+                    </Select.Option>
                   </Select>
                 </Form.Item>
-                <Form.Item label="Tag prefix" name="tagPrefix">
+                <Form.Item label={uiT("Tag prefix")} name="tagPrefix">
                   <Textbox
                     defaultValue={localizationScheme?.tagPrefix}
-                    placeholder="Set the tag prefix to be used in preview"
+                    placeholder={uiT(
+                      "Set the tag prefix to be used in preview",
+                    )}
                     styleType={["bordered"]}
                   />
                 </Form.Item>

@@ -17,6 +17,7 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { createComponentProp } from "@/wab/client/operations/create-component-prop";
 import { updateComponentProp } from "@/wab/client/operations/update-component-prop";
@@ -98,6 +99,7 @@ export interface ComponentPropModalProps {
 }
 
 export function ComponentPropModal(props: ComponentPropModalProps) {
+  const { t: uiT } = useI18n();
   const {
     studioCtx,
     component,
@@ -249,18 +251,24 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
           <>
             <p>{`There ${issuesPlural} with existing ${newParamName} props on ${componentsPlural}: ${componentNames}.`}</p>
             <p>
-              To review all issues, go to the
-              <a
-                onClick={async () => {
-                  await studioCtx.change(() => {
-                    studioCtx.switchLeftTab("lint", { highlight: true });
-                    notification.destroy(key);
-                    return ok();
-                  });
+              <UiText
+                message={"To review all issues, go to the{part1}"}
+                values={{
+                  part1: (
+                    <a
+                      onClick={async () => {
+                        await studioCtx.change(() => {
+                          studioCtx.switchLeftTab("lint", { highlight: true });
+                          notification.destroy(key);
+                          return ok();
+                        });
+                      }}
+                    >
+                      {<UiText message={" [Issues tab]."} />}
+                    </a>
+                  ),
                 }}
-              >
-                {" [Issues tab]."}
-              </a>
+              />
             </p>
           </>
         ),
@@ -360,7 +368,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
                 defaultValue={arg.name}
                 onEdit={(val) => updateDefaultArg(arg.key, { name: val })}
                 styleType={["bordered"]}
-                placeholder="arg name"
+                placeholder={uiT("arg name")}
                 data-test-id="arg-name"
               />
             }
@@ -416,7 +424,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
         choiceSettings={
           isChoiceType ? (
             <ArrayPrimitiveEditor
-              label={"Allowed Values"}
+              label={uiT("Allowed Values")}
               options={choices}
               onChange={onChangeChoices}
               data-test-id={"component-prop-choices"}
@@ -430,8 +438,20 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
                 <LabelWithDetailedTooltip
                   tooltip={
                     <div>
-                      <UiText message={"Use"} /> <code>/</code> to organize
-                      props into folders, e.g. <code>Header / title</code>.
+                      <UiText
+                        message={
+                          "{part1} {part2} to organize props into folders, e.g. {part3}."
+                        }
+                        values={{
+                          part1: <UiText message={"Use"} />,
+                          part2: <code>/</code>,
+                          part3: (
+                            <code>
+                              <UiText message={"Header / title"} />
+                            </code>
+                          ),
+                        }}
+                      />
                     </div>
                   }
                 >
@@ -601,7 +621,13 @@ const AdvancedToggle: React.FC<{
     <LabeledItemRow
       label={
         <LabelWithDetailedTooltip
-          tooltip={<div>If set, the prop is hidden in the UI by default.</div>}
+          tooltip={
+            <div>
+              <UiText
+                message={"If set, the prop is hidden in the UI by default."}
+              />
+            </div>
+          }
         >
           <UiText message={"Advanced"} />
         </LabelWithDetailedTooltip>

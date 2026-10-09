@@ -121,39 +121,54 @@ function TypographySection_(props: {
               className="mb-sm"
               message={
                 <div>
-                  This is default content for slot{" "}
-                  <code>{ancestorSlot!.param.variable.name}</code>. If you want
-                  to style any content in the slot, and not just this default
-                  text, then you should{" "}
-                  <a
-                    onClick={() =>
-                      vc!.change(() => vc!.setStudioFocusByTpl(ancestorSlot!))
+                  <UiText
+                    message={
+                      "This is default content for slot {part1}. If you want to style any content in the slot, and not just this default text, then you should {part2}.{part3}"
                     }
-                  >
-                    <strong>style the slot instead</strong>
-                  </a>
-                  .
-                  {hasStyles && (
-                    <>
-                      {" "}
-                      You can also transfer text styles here{" "}
-                      <a
-                        onClick={() =>
-                          vc!.change(() =>
-                            vc!
-                              .getViewOps()
-                              .transferTextStyleToSlot(
-                                tpl as TplTag,
-                                ancestorSlot!,
+                    values={{
+                      part1: <code>{ancestorSlot!.param.variable.name}</code>,
+                      part2: (
+                        <a
+                          onClick={() =>
+                            vc!.change(() =>
+                              vc!.setStudioFocusByTpl(ancestorSlot!),
+                            )
+                          }
+                        >
+                          <strong>
+                            <UiText message={"style the slot instead"} />
+                          </strong>
+                        </a>
+                      ),
+                      part3: hasStyles && (
+                        <>
+                          <UiText
+                            message={
+                              "You can also transfer text styles here {part1}."
+                            }
+                            values={{
+                              part1: (
+                                <a
+                                  onClick={() =>
+                                    vc!.change(() =>
+                                      vc!
+                                        .getViewOps()
+                                        .transferTextStyleToSlot(
+                                          tpl as TplTag,
+                                          ancestorSlot!,
+                                        ),
+                                    )
+                                  }
+                                >
+                                  <UiText message={"to the slot"} />
+                                </a>
                               ),
-                          )
-                        }
-                      >
-                        to the slot
-                      </a>
-                      .
-                    </>
-                  )}
+                            }}
+                          />
+                        </>
+                      ),
+                    }}
+                  />
                 </div>
               }
             />
@@ -507,7 +522,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                 </div>
               }
             >
-              HTML?
+              <UiText message={"HTML?"} />
             </LabelWithDetailedTooltip>
           }
         >

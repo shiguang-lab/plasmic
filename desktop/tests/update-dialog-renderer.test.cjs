@@ -6,45 +6,90 @@ const { JSDOM } = require("jsdom");
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 async function fixture(t, initial) {
-  const dom = new JSDOM("<html><body><button id=workspace>Workspace</button></body></html>", { runScripts: "outside-only" });
+  const dom = new JSDOM(
+    "<html><body><button id=workspace>Workspace</button></body></html>",
+    { runScripts: "outside-only" },
+  );
   t.after(() => dom.window.close());
   let status = { currentVersion: "0.0.23", ...initial };
   let listener, open;
-  dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-  dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
+  dom.window.HTMLDialogElement.prototype.showModal = function () {
+    this.open = true;
+  };
+  dom.window.HTMLDialogElement.prototype.close = function () {
+    this.open = false;
+  };
   const commands = [];
   dom.window.desktopUpdates = {
-    onOpen: (callback) => { open = callback; },
-    onStatus: (callback) => { listener = callback; },
-    command: async (command) => { commands.push(command); return status; },
+    onOpen: (callback) => {
+      open = callback;
+    },
+    onStatus: (callback) => {
+      listener = callback;
+    },
+    command: async (command) => {
+      commands.push(command);
+      return status;
+    },
   };
-  dom.window.eval(fs.readFileSync(path.join(__dirname, "../src/update-dialog.js"), "utf8"));
+  dom.window.eval(
+    fs.readFileSync(path.join(__dirname, "../src/renderer-i18n.js"), "utf8"),
+  );
+  dom.window.eval(
+    fs.readFileSync(path.join(__dirname, "../src/update-dialog.js"), "utf8"),
+  );
   await flush();
-  const root = dom.window.document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
+  const root = dom.window.document.getElementById(
+    "plasmic-desktop-update-dialog",
+  ).shadowRoot;
   return {
-    window: dom.window, commands, dialog: root.querySelector("dialog"), open: () => open(status), element: (id) => root.getElementById(id),
-    send: (next) => { status = { currentVersion: "0.0.23", ...next }; listener(status); },
+    window: dom.window,
+    commands,
+    dialog: root.querySelector("dialog"),
+    open: () => open(status),
+    element: (id) => root.getElementById(id),
+    send: (next) => {
+      status = { currentVersion: "0.0.23", ...next };
+      listener(status);
+    },
   };
 }
 
 test("current release notes show the dialog's What's new heading once", async (t) => {
   const { version } = require("../package.json");
-  const releaseNotes = fs.readFileSync(path.join(__dirname, `../release-notes/${version}.md`), "utf8");
+  const releaseNotes = fs.readFileSync(
+    path.join(__dirname, `../release-notes/${version}.md`),
+    "utf8",
+  );
   const ui = await fixture(t, { phase: "available", version, releaseNotes });
   const headings = ui.element("notes-section").querySelectorAll("h2, h3");
-  assert.equal([...headings].filter((heading) => heading.textContent.toLowerCase() === "what's new").length, 1);
+  assert.equal(
+    [...headings].filter(
+      (heading) => heading.textContent.toLowerCase() === "what's new",
+    ).length,
+    1,
+  );
   assert.equal(ui.element("notes-section").hidden, false);
   assert.ok(ui.element("notes").querySelectorAll("li").length > 0);
 });
 
 test("update UI follows download and install events without installing automatically", async (t) => {
-  const ui = await fixture(t, { phase: "available", version: "0.0.24", releaseNotes: "## Improvements\n- Faster navigation\n- <img src=x onerror=alert(1)>" });
+  const ui = await fixture(t, {
+    phase: "available",
+    version: "0.0.24",
+    releaseNotes:
+      "## Improvements\n- Faster navigation\n- <img src=x onerror=alert(1)>",
+  });
   assert.equal(ui.element("current-version").textContent, "0.0.23");
   assert.equal(ui.element("latest-version").textContent, "0.0.24");
   assert.equal(ui.element("notes").querySelectorAll("li").length, 2);
   assert.equal(ui.element("notes").querySelector("img"), null);
   assert.match(ui.element("notes").textContent, /<img/);
-  assert.equal(ui.element("primary").disabled, true, "Downloads start in the manager without another click");
+  assert.equal(
+    ui.element("primary").disabled,
+    true,
+    "Downloads start in the manager without another click",
+  );
   assert.deepEqual(ui.commands, ["status"]);
   ui.send({ phase: "downloading", version: "0.0.24", percent: 45.8 });
   assert.equal(ui.element("download").hidden, false);
@@ -66,12 +111,20 @@ test("update UI follows download and install events without installing automatic
 });
 
 test("retry uses the failed operation and Later closes only the dialog", async (t) => {
-  const ui = await fixture(t, { phase: "error", error: "Network unavailable", retry: "download" });
+  const ui = await fixture(t, {
+    phase: "error",
+    error: "Network unavailable",
+    retry: "download",
+  });
   assert.equal(ui.element("description").textContent, "Network unavailable");
   ui.element("primary").click();
   await flush();
   assert.equal(ui.commands.at(-1), "download");
-  ui.send({ phase: "available", version: "0.0.24", releaseNotes: [{ note: "- Improvement" }] });
+  ui.send({
+    phase: "available",
+    version: "0.0.24",
+    releaseNotes: [{ note: "- Improvement" }],
+  });
   assert.equal(ui.element("notes-section").hidden, false);
   ui.open();
   assert.equal(ui.dialog.open, true);
@@ -85,7 +138,11 @@ test("retry uses the failed operation and Later closes only the dialog", async (
 test("a completed check removes stale release information and provides Done", async (t) => {
   const ui = await fixture(t, { phase: "checking" });
   assert.equal(ui.element("primary").disabled, true);
-  ui.send({ phase: "available", version: "0.0.24", releaseNotes: "- Improvement" });
+  ui.send({
+    phase: "available",
+    version: "0.0.24",
+    releaseNotes: "- Improvement",
+  });
   ui.send({ phase: "current" });
   assert.equal(ui.element("latest").hidden, true);
   assert.equal(ui.element("notes-section").hidden, true);
@@ -95,7 +152,6 @@ test("a completed check removes stale release information and provides Done", as
   assert.equal(ui.dialog.open, false);
   assert.equal(ui.commands.includes("close"), false);
 });
-
 
 test("update dialog stays in the main document with isolated light styles", async (t) => {
   const ui = await fixture(t, { phase: "downloaded", version: "0.0.31" });

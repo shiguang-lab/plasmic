@@ -2,6 +2,7 @@ import { CanvasTransformedBox } from "@/wab/client/components/canvas/CanvasTrans
 import { useRerenderOnUserBodyChange } from "@/wab/client/components/canvas/UserBodyObserver";
 import { InvalidArgsList } from "@/wab/client/components/widgets/InvalidArgs";
 import { hasLayoutBox } from "@/wab/client/dom";
+import { UiText } from "@/wab/client/i18n/UiText";
 import WarningIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { RightTabKey, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -37,8 +38,10 @@ const TooltipMessage = ({
   invalidArgs: InvalidArgMeta[];
 }) => (
   <>
-    The component {getComponentDisplayName(component)} may not work properly
-    because some props have an invalid value:
+    <UiText
+      message="The component {name} may not work properly because some props have an invalid value:"
+      values={{ name: getComponentDisplayName(component) }}
+    />
     <InvalidArgsList invalidArgs={invalidArgs} />
   </>
 );

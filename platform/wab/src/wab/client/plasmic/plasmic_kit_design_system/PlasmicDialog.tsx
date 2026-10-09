@@ -217,7 +217,7 @@ function PlasmicDialog__RenderFunc(props: {
         ? renderPlasmicSlot({
             defaultContents: (
               <div className={classNames("all", "__wab_text", sty.text__uLxOp)}>
-                {"Footer"}
+                {<UiText message={"Footer"} />}
               </div>
             ),
             value: args.footer,

@@ -3,6 +3,7 @@ import { ReactionsByEmoji } from "@/wab/client/components/comments/ReactionsByEm
 import { TplCommentThread } from "@/wab/client/components/comments/utils";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultCommentPostProps,
   PlasmicCommentPost,
@@ -126,7 +127,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
                   copy(comment.body);
                 }}
               >
-                Copy text
+                <UiText message={"Copy text"} />
               </Menu.Item>
               {appCtx.selfInfo?.id === comment.createdById && (
                 <>
@@ -136,7 +137,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
                       setIsEditing(true);
                     }}
                   >
-                    Edit comment
+                    <UiText message={"Edit comment"} />
                   </Menu.Item>
                   <Menu.Item
                     key="remove"
@@ -144,7 +145,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
                       commentsCtx.deleteComment(comment.id);
                     }}
                   >
-                    Delete comment
+                    <UiText message={"Delete comment"} />
                   </Menu.Item>
                 </>
               )}

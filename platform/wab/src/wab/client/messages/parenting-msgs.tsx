@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import type { CantInsertTplReason } from "@/wab/client/operations/insert-tpl";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { TplSlot } from "@/wab/shared/model/classes";
@@ -39,7 +40,10 @@ export function renderCantAddMsg(
         "Element content already defined by attribute children"
       ) : (
         <>
-          Element content already defined by attribute <code>children</code>
+          Element content already defined by attribute{" "}
+          <code>
+            <UiText message={"children"} />
+          </code>
         </>
       );
     case "CantAddToImg":

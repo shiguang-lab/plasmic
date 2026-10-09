@@ -2,7 +2,7 @@ import VariantBadge from "@/wab/client/components/canvas/VariantsBar/VariantBadg
 import VariantsDrawer from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer";
 import styles from "@/wab/client/components/variants/VariantComboPicker.module.scss";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
-import { UiLabel } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { VARIANTS_LOWER } from "@/wab/shared/Labels";
 import { PinStateManager } from "@/wab/shared/PinManager";
 import { VariantCombo, isBaseVariant } from "@/wab/shared/Variants";
@@ -111,7 +111,10 @@ function VariantComboPicker_({
         <div className={styles.valueContainer}>
           {displayVariants.length === 0 && (
             <div className={styles.placeholder}>
-              Select a combination of {<UiLabel text={VARIANTS_LOWER} />}
+              <UiText
+                message={"Select a combination of {part1}"}
+                values={{ part1: <UiLabel text={VARIANTS_LOWER} /> }}
+              />
             </div>
           )}
           {displayVariants.map((variant) => (

@@ -8,6 +8,7 @@ import {
   getChartHeaders,
 } from "@/wab/client/components/analytics/utils";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultDataFiltersProps,
   PlasmicDataFilters,
@@ -32,6 +33,7 @@ export interface DataFiltersProps extends DefaultDataFiltersProps {
 }
 
 function DataFilters_(props: DataFiltersProps, ref: HTMLElementRefOf<"div">) {
+  const { t: uiT } = useI18n();
   const {
     timeRange,
     setTimeRange,
@@ -63,7 +65,7 @@ function DataFilters_(props: DataFiltersProps, ref: HTMLElementRefOf<"div">) {
                 root={{ ref: _ref as any }}
                 key={`time-range-${key}`}
                 {..._rest}
-                label="Time Range"
+                label={uiT("Time Range")}
                 select={{
                   render: () => {
                     return (

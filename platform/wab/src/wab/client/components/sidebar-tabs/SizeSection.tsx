@@ -134,8 +134,11 @@ class SizeSection_ extends StyleComponent<
                 showIcon={true}
                 message={
                   <div>
-                    SVGs have no default size, so setting width to hug or auto
-                    will cause it to stretch to fill the parent container.
+                    <UiText
+                      message={
+                        "SVGs have no default size, so setting width to hug or auto will cause it to stretch to fill the parent container."
+                      }
+                    />
                   </div>
                 }
               />

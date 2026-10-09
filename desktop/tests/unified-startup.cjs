@@ -1,4 +1,4 @@
-const { app, session, BrowserWindow, nativeTheme } = require("electron");
+const { app, session, BrowserWindow, nativeTheme, Menu } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -18,23 +18,35 @@ let opened;
 let slowRequests = 0;
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
-  if (request === "./asset-handler.cjs" && parent.filename.endsWith("/src/main.cjs")) {
-    const { createAssetHandler } = originalLoad.call(this, request, parent, isMain);
-    return { createAssetHandler: (options) => {
-      const handle = createAssetHandler(options);
-      return async (request) => {
-        const response = await handle(request);
-        if (new URL(request.url).pathname !== "/projects/fixture") return response;
-        const headers = new Headers(response.headers);
-        headers.delete("Content-Length");
-        // Hold the initial document load open while its bootstrap API detects
-        // expiry. Login navigation must be allowed to supersede this load.
-        const html = (await response.text()).replace(
-          "</body>", '<img src="https://startup-fixture.invalid/slow.svg"></body>',
-        );
-        return new Response(html, { headers });
-      };
-    } };
+  if (
+    request === "./asset-handler.cjs" &&
+    parent.filename.endsWith("/src/main.cjs")
+  ) {
+    const { createAssetHandler } = originalLoad.call(
+      this,
+      request,
+      parent,
+      isMain,
+    );
+    return {
+      createAssetHandler: (options) => {
+        const handle = createAssetHandler(options);
+        return async (request) => {
+          const response = await handle(request);
+          if (new URL(request.url).pathname !== "/projects/fixture")
+            return response;
+          const headers = new Headers(response.headers);
+          headers.delete("Content-Length");
+          // Hold the initial document load open while its bootstrap API detects
+          // expiry. Login navigation must be allowed to supersede this load.
+          const html = (await response.text()).replace(
+            "</body>",
+            '<img src="https://startup-fixture.invalid/slow.svg"></body>',
+          );
+          return new Response(html, { headers });
+        };
+      },
+    };
   }
   if (
     request === "./open-browser.cjs" &&
@@ -84,11 +96,15 @@ app
     };
     nativeTheme.themeSource = "dark";
     const win = await startDesktop();
-    assert(slowRequests > 0, "The first navigation must still have a loading resource");
+    assert(
+      slowRequests > 0,
+      "The first navigation must still have a loading resource",
+    );
     assert.equal(win.webContents.getLastWebPreferences().sandbox, true);
     for (let i = 0; i < 150; i++) {
       if (
-        new URL(win.webContents.getURL()).pathname === "/desktop/unified-login" &&
+        new URL(win.webContents.getURL()).pathname ===
+          "/desktop/unified-login" &&
         !win.webContents.isLoadingMainFrame()
       ) {
         break;
@@ -111,15 +127,73 @@ app
       ),
       true,
     );
-    await win.webContents.executeJavaScript("window.desktopUpdates.command('open')");
-    assert.deepEqual(await win.webContents.executeJavaScript(`(() => {
+    for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+      await win.webContents.executeJavaScript(
+        `window.desktopEnvironment.setUiLocale(${JSON.stringify(language)})`,
+      );
+      const pack = JSON.parse(
+        fs.readFileSync(
+          path.join(
+            __dirname,
+            "../../platform/wab/src/wab/client/i18n/locales",
+            language + ".json",
+          ),
+          "utf8",
+        ),
+      );
+      const menu = Menu.getApplicationMenu();
+      assert.equal(menu.getMenuItemById("desktop-file").label, pack.File);
+      const edit = menu.items.find((item) =>
+        item.submenu?.items.some((child) => child.role === "undo"),
+      );
+      assert.equal(edit.label, pack.Edit);
+      for (const [role, key] of [
+        ["undo", "Undo"],
+        ["redo", "Redo"],
+        ["cut", "Cut"],
+        ["copy", "Copy"],
+        ["paste", "Paste"],
+        ["selectall", "Select All"],
+      ]) {
+        assert.equal(
+          edit.submenu.items.find((item) => item.role?.toLowerCase() === role)
+            ?.label,
+          pack[key],
+        );
+      }
+    }
+    await win.webContents.executeJavaScript(
+      'window.desktopEnvironment.setUiLocale("en")',
+    );
+    console.log(
+      "PASS: Actual native menus follow five UI language changes through the trusted preload bridge",
+    );
+    await win.webContents.executeJavaScript(
+      "window.desktopUpdates.command('open')",
+    );
+    assert.deepEqual(
+      await win.webContents.executeJavaScript(`(() => {
       const root = document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
       const dialog = root.querySelector("dialog");
       return { open: dialog.open, modal: dialog.matches(":modal"), background: getComputedStyle(dialog).backgroundColor, title: root.getElementById("status").textContent };
-    })()`), { open: true, modal: true, background: "rgb(255, 255, 255)", title: "Updates unavailable" });
+    })()`),
+      {
+        open: true,
+        modal: true,
+        background: "rgb(255, 255, 255)",
+        title: "Updates unavailable",
+      },
+    );
     assert.equal(BrowserWindow.getAllWindows().length, 1);
-    await win.webContents.executeJavaScript('document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("primary").click()');
-    assert.equal(await win.webContents.executeJavaScript('document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").open'), false);
+    await win.webContents.executeJavaScript(
+      'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("primary").click()',
+    );
+    assert.equal(
+      await win.webContents.executeJavaScript(
+        'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").open',
+      ),
+      false,
+    );
     await win.webContents.executeJavaScript(
       "document.getElementById('sign-in').click()",
     );

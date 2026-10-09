@@ -3,6 +3,7 @@ import DataPicker, {
   DataPickerTypesSchema,
   InitialMode,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { zIndex } from "@/wab/client/z-index";
@@ -219,7 +220,7 @@ export const InternalDataPickerEditor = observer(
             >
               {complexExpression
                 ? "Dynamic binding · click to edit"
-                : (codeExpr ?? "unset")}
+                : (codeExpr ?? <UiText message="unset" />)}
             </span>
           </Tooltip>
         </div>

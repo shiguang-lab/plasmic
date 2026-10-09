@@ -3,6 +3,7 @@ import { PublishState } from "@/wab/client/components/TopFrame/TopBar/PublishFlo
 import GitJobStep from "@/wab/client/components/widgets/GitJobStep";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultSubsectionSaveVersionProps,
   PlasmicSubsectionSaveVersion,
@@ -181,11 +182,16 @@ function SubsectionSaveVersion(props: SubsectionSaveVersionProps) {
                   "Saving a new version..."
                 ) : (
                   <>
-                    Successfully saved{" "}
-                    <strong>
-                      {project.name} v{version}
-                    </strong>
-                    !
+                    <UiText
+                      message={"Successfully saved {part1}!"}
+                      values={{
+                        part1: (
+                          <strong>
+                            {project.name} v{version}
+                          </strong>
+                        ),
+                      }}
+                    />
                   </>
                 )
               }

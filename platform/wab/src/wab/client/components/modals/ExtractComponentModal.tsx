@@ -2,6 +2,7 @@ import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import {
@@ -56,6 +57,7 @@ export function ExtractComponentForm(props: {
   onSubmit: (resp: ExtractComponentResponse) => void;
   onCancel: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const {
     containingComponent,
     linkedParams,
@@ -91,7 +93,7 @@ export function ExtractComponentForm(props: {
       data-test-id="extract-component-form"
     >
       <Form.Item
-        label="Component name"
+        label={uiT("Component name")}
         validateStatus={errors.get().name ? "error" : undefined}
         help={errors.get().name}
       >
@@ -99,7 +101,7 @@ export function ExtractComponentForm(props: {
           onChange={(e) => (resp.name = e.target.value)}
           value={resp.name}
           autoFocus={true}
-          placeholder={"Enter the name of your new component"}
+          placeholder={uiT("Enter the name of your new component")}
           data-test-id="extract-component-name"
           styleType={["bordered"]}
         />
@@ -109,22 +111,25 @@ export function ExtractComponentForm(props: {
         serverQueriesToCreateProps.length > 0) &&
         !!containingComponent.name && (
           <div className="mb-xlg">
-            Your new component will also have props for{" "}
-            {joinReactNodes(
-              [
-                ...linkedParams.map((s) => (
-                  <code key={s.variable.name}>{s.variable.name}</code>
-                )),
-                ...queriesToCreateProps.map((q) => (
-                  <code key={q.name}>{q.name}</code>
-                )),
-                ...serverQueriesToCreateProps.map((q) => (
-                  <code key={q.name}>{q.name}</code>
-                )),
-              ],
-              ", ",
-            )}
-            .
+            <UiText
+              message={"Your new component will also have props for {part1}."}
+              values={{
+                part1: joinReactNodes(
+                  [
+                    ...linkedParams.map((s) => (
+                      <code key={s.variable.name}>{s.variable.name}</code>
+                    )),
+                    ...queriesToCreateProps.map((q) => (
+                      <code key={q.name}>{q.name}</code>
+                    )),
+                    ...serverQueriesToCreateProps.map((q) => (
+                      <code key={q.name}>{q.name}</code>
+                    )),
+                  ],
+                  ", ",
+                ),
+              }}
+            />
           </div>
         )}
       <Form.Item>

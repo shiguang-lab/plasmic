@@ -124,7 +124,7 @@ const ImageAssetPickerWithDynamicValue = observer(
               updateOpenGraphImage(null);
             }}
           >
-            Clear image
+            <UiText message={"Clear image"} />
           </Menu.Item>
         )}
         {!isDynamic && (

@@ -1,5 +1,6 @@
 (() => {
   if (window.top !== window || !window.desktopUpdates) return;
+  const { t, apply, subscribe } = window.desktopUiI18n;
   const host = document.createElement("div");
   host.id = "plasmic-desktop-update-dialog";
   const root = host.attachShadow({ mode: "open" });
@@ -41,102 +42,175 @@ button:focus-visible { outline: 2px solid #0285ff; outline-offset: 3px; }
 #dismiss:hover:enabled { color: #242428; background: var(--surface); }
 #dismiss svg { width: 16px; height: 16px; }
 button:disabled { opacity: .55; cursor: default; }
-</style><dialog aria-label="Software Update">
-<header><h1 id="status" role="status" aria-live="polite">Checking for updates…</h1><button id="dismiss" type="button" aria-label="Close software update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+</style><dialog data-ui-message="Software Update" data-ui-attribute="aria-label" aria-label="Software Update">
+<header><h1 id="status" role="status" aria-live="polite">Checking for updates…</h1><button id="dismiss" type="button" data-ui-message="Close software update" data-ui-attribute="aria-label" aria-label="Close software update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
 <main>
 <p id="description">Looking for the latest version of Plasmic.</p>
-<dl class="versions"><div><dt>Installed version</dt><dd id="current-version">—</dd></div><div id="latest" hidden><dt>New version</dt><dd id="latest-version"></dd></div></dl>
-<section id="notes-section" hidden aria-labelledby="notes-heading"><h2 id="notes-heading">What's new</h2><div id="notes"></div></section>
-<section id="download" hidden><div class="progress-heading"><span>Downloading update</span><span id="percent">0%</span></div><progress id="progress" max="100" value="0" aria-label="Download progress"></progress></section>
+<dl class="versions"><div><dt data-ui-message="Installed version">Installed version</dt><dd id="current-version">—</dd></div><div id="latest" hidden><dt data-ui-message="New version">New version</dt><dd id="latest-version"></dd></div></dl>
+<section id="notes-section" hidden aria-labelledby="notes-heading"><h2 id="notes-heading" data-ui-message="What's new">What's new</h2><div id="notes"></div></section>
+<section id="download" hidden><div class="progress-heading"><span data-ui-message="Downloading update">Downloading update</span><span id="percent">0%</span></div><progress id="progress" max="100" value="0" data-ui-message="Download progress" data-ui-attribute="aria-label" aria-label="Download progress"></progress></section>
 </main>
 <footer><button id="secondary">Close</button><button id="primary" disabled>Checking…</button></footer>
 </dialog>`;
   document.body.append(host);
   const dialog = root.querySelector("dialog");
-const byId = (id) => root.getElementById(id);
-let state = {};
-let action = "check";
-let previousNotes;
-function renderNotes(value) {
-  if (value === previousNotes) return;
-  previousNotes = value;
-  const notes = byId("notes");
-  notes.replaceChildren();
-  const text = Array.isArray(value) ? value.map((entry) => entry.note || "").join("\n\n") : value || "";
-  let list;
-  for (const raw of text.split("\n")) {
-    const line = raw.trim();
-    if (!line) { list = undefined; continue; }
-    if (/^[-*]\s+/.test(line)) {
-      if (!list) { list = document.createElement("ul"); notes.append(list); }
-      const item = document.createElement("li");
-      item.textContent = line.replace(/^[-*]\s+/, "");
-      list.append(item);
-    } else {
-      list = undefined;
-      const heading = /^#{1,6}\s+/.test(line);
-      const element = document.createElement(heading ? "h3" : "p");
-      element.textContent = heading ? line.replace(/^#{1,6}\s+/, "") : line;
-      notes.append(element);
+  const byId = (id) => root.getElementById(id);
+  let state = {};
+  let action = "check";
+  let previousNotes;
+  function renderNotes(value) {
+    if (value === previousNotes) return;
+    previousNotes = value;
+    const notes = byId("notes");
+    notes.replaceChildren();
+    const text = Array.isArray(value)
+      ? value.map((entry) => entry.note || "").join("\n\n")
+      : value || "";
+    let list;
+    for (const raw of text.split("\n")) {
+      const line = raw.trim();
+      if (!line) {
+        list = undefined;
+        continue;
+      }
+      if (/^[-*]\s+/.test(line)) {
+        if (!list) {
+          list = document.createElement("ul");
+          notes.append(list);
+        }
+        const item = document.createElement("li");
+        item.textContent = line.replace(/^[-*]\s+/, "");
+        list.append(item);
+      } else {
+        list = undefined;
+        const heading = /^#{1,6}\s+/.test(line);
+        const element = document.createElement(heading ? "h3" : "p");
+        element.textContent = heading ? line.replace(/^#{1,6}\s+/, "") : line;
+        notes.append(element);
+      }
+    }
+    byId("notes-section").hidden = !text.trim();
+  }
+  function render(status) {
+    state = status;
+    const { phase, version, currentVersion, error, retry } = status;
+    const states = {
+      idle: [
+        "Checking for updates…",
+        "Looking for the latest version of Plasmic.",
+        "Checking…",
+        "check",
+      ],
+      checking: [
+        "Checking for updates…",
+        "Looking for the latest version of Plasmic.",
+        "Checking…",
+        "check",
+      ],
+      available: [
+        "Preparing update…",
+        "The update will download automatically in the background.",
+        "Preparing…",
+        "check",
+      ],
+      downloading: [
+        "Downloading update…",
+        "You can close this dialog and keep working while the download continues.",
+        "Downloading…",
+        "download",
+      ],
+      downloaded: [
+        "Ready to install",
+        "Your current design will be saved before Plasmic restarts.",
+        "Restart and Install",
+        "install",
+      ],
+      installing: [
+        "Installing update…",
+        "Saving your design and preparing to restart Plasmic.",
+        "Installing…",
+        "install",
+      ],
+      current: [
+        "You're up to date",
+        "You're running the latest version of Plasmic.",
+        "Done",
+        "close",
+      ],
+      disabled: [
+        "Updates unavailable",
+        "Open the installed Plasmic app to check for updates.",
+        "Done",
+        "close",
+      ],
+      error: [
+        "Update couldn't complete",
+        error || "Please try again.",
+        "Retry",
+        retry || "check",
+      ],
+    };
+    const [title, description, label, command] = states[phase] || states.idle;
+    byId("dismiss").disabled = phase === "installing";
+    apply(root);
+    byId("status").textContent = t(title);
+    byId("description").textContent = t(description);
+    byId("current-version").textContent = currentVersion || "—";
+    byId("latest-version").textContent = version || "";
+    byId("latest").hidden = !version;
+    renderNotes(status.releaseNotes);
+    byId("download").hidden = phase !== "downloading";
+    const percent = Math.min(100, Math.max(0, Math.floor(status.percent || 0)));
+    byId("progress").value = percent;
+    byId("percent").textContent = `${percent}%`;
+    byId("primary").textContent = t(label);
+    byId("primary").dataset.emphasis = ["downloaded", "error"].includes(phase)
+      ? "primary"
+      : "neutral";
+    byId("primary").disabled = [
+      "idle",
+      "checking",
+      "available",
+      "downloading",
+      "installing",
+    ].includes(phase);
+    byId("secondary").hidden = ["current", "disabled", "installing"].includes(
+      phase,
+    );
+    byId("secondary").textContent = t(
+      ["available", "downloaded"].includes(phase) ? "Later" : "Close",
+    );
+    action = command;
+  }
+  async function run(command) {
+    if (command === "close") {
+      if (state.phase !== "installing") dialog.close();
+      return;
+    }
+    byId("primary").disabled = true;
+    try {
+      const result = await window.desktopUpdates.command(command);
+      if (command !== "close") render(result);
+    } catch (error) {
+      render({
+        ...state,
+        phase: "error",
+        error: error.message,
+        retry: command,
+      });
     }
   }
-  byId("notes-section").hidden = !text.trim();
-}
-function render(status) {
-  state = status;
-  const { phase, version, currentVersion, error, retry } = status;
-  const states = {
-    idle: ["Checking for updates…", "Looking for the latest version of Plasmic.", "Checking…", "check"],
-    checking: ["Checking for updates…", "Looking for the latest version of Plasmic.", "Checking…", "check"],
-    available: ["Preparing update…", "The update will download automatically in the background.", "Preparing…", "check"],
-    downloading: ["Downloading update…", "You can close this dialog and keep working while the download continues.", "Downloading…", "download"],
-    downloaded: ["Ready to install", "Your current design will be saved before Plasmic restarts.", "Restart and Install", "install"],
-    installing: ["Installing update…", "Saving your design and preparing to restart Plasmic.", "Installing…", "install"],
-    current: ["You're up to date", "You're running the latest version of Plasmic.", "Done", "close"],
-    disabled: ["Updates unavailable", "Open the installed Plasmic app to check for updates.", "Done", "close"],
-    error: ["Update couldn't complete", error || "Please try again.", "Retry", retry || "check"],
-  };
-  const [title, description, label, command] = states[phase] || states.idle;
-  byId("dismiss").disabled = phase === "installing";
-  byId("status").textContent = title;
-  byId("description").textContent = description;
-  byId("current-version").textContent = currentVersion || "—";
-  byId("latest-version").textContent = version || "";
-  byId("latest").hidden = !version;
-  renderNotes(status.releaseNotes);
-  byId("download").hidden = phase !== "downloading";
-  const percent = Math.min(100, Math.max(0, Math.floor(status.percent || 0)));
-  byId("progress").value = percent;
-  byId("percent").textContent = `${percent}%`;
-  byId("primary").textContent = label;
-  byId("primary").dataset.emphasis = ["downloaded", "error"].includes(phase) ? "primary" : "neutral";
-  byId("primary").disabled = ["idle", "checking", "available", "downloading", "installing"].includes(phase);
-  byId("secondary").hidden = ["current", "disabled", "installing"].includes(phase);
-  byId("secondary").textContent = ["available", "downloaded"].includes(phase) ? "Later" : "Close";
-  action = command;
-}
-async function run(command) {
-  if (command === "close") {
-    if (state.phase !== "installing") dialog.close();
-    return;
-  }
-  byId("primary").disabled = true;
-  try {
-    const result = await window.desktopUpdates.command(command);
-    if (command !== "close") render(result);
-  } catch (error) { render({ ...state, phase: "error", error: error.message, retry: command }); }
-}
-byId("primary").onclick = () => run(action);
-byId("secondary").onclick = () => run("close");
-byId("dismiss").onclick = () => run("close");
-dialog.addEventListener("cancel", (event) => {
-  if (state.phase === "installing") event.preventDefault();
-});
-window.desktopUpdates.onStatus(render);
-window.desktopUpdates.onOpen((status) => {
-  render(status);
-  if (!dialog.open) dialog.showModal();
-});
-void run("status");
-
+  byId("primary").onclick = () => run(action);
+  byId("secondary").onclick = () => run("close");
+  byId("dismiss").onclick = () => run("close");
+  dialog.addEventListener("cancel", (event) => {
+    if (state.phase === "installing") event.preventDefault();
+  });
+  window.desktopUpdates.onStatus(render);
+  window.desktopUpdates.onOpen((status) => {
+    render(status);
+    if (!dialog.open) dialog.showModal();
+  });
+  subscribe(() => render(state));
+  void run("status");
 })();

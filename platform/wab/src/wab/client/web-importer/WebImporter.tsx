@@ -3,6 +3,7 @@ import {
   PasteArgs,
   PasteResult,
 } from "@/wab/client/clipboard/common";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { formatWIErrors, WIError } from "@/wab/client/web-importer/errors";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
@@ -80,8 +81,9 @@ export async function pasteFromWebImporter(
           </ul>
           {wiErrors.length > MAX_SHOWN_IMPORT_ISSUES && (
             <div>
-              and {wiErrors.length - MAX_SHOWN_IMPORT_ISSUES} more. See the
-              browser console for the full list.
+              <UiText message={"and"} />{" "}
+              {wiErrors.length - MAX_SHOWN_IMPORT_ISSUES} more. See the browser
+              console for the full list.
             </div>
           )}
         </>

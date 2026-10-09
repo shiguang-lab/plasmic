@@ -856,7 +856,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                   {node}
                   {!items.length && (
                     <div className={S.iconLibraryEmpty} role="status">
-                      No matching icons found
+                      <UiText message={"No matching icons found"} />
                     </div>
                   )}
                 </div>

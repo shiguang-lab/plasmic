@@ -14,6 +14,7 @@ import { Spinner, Tab, Tabs } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { trackEvent } from "@/wab/client/tracking";
 import { ApiEndUserDirectory, ApiProject } from "@/wab/shared/ApiSchema";
@@ -30,6 +31,7 @@ interface AppAuthSettingsModalProps {
 }
 
 function AppAuthSettings(props: AppAuthSettingsModalProps) {
+  const { t: uiT } = useI18n();
   const { appCtx, project, defaultPageRoleId, setDefaultPageRoleId, onCancel } =
     props;
   const teamId = project.teamId;
@@ -54,7 +56,7 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
   if (isLoadingAuthConfig) {
     return (
       <Modal
-        title="Enable auth for this app?"
+        title={uiT("Enable auth for this app?")}
         open
         onCancel={onCancel}
         footer={null}
@@ -67,16 +69,21 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
   if (!teamId) {
     return (
       <Modal
-        title="Enable auth for this app?"
+        title={uiT("Enable auth for this app?")}
         open
         onCancel={onCancel}
         footer={null}
       >
         <p>
-          The current project is not associated with a team. Please move it to a
-          team.
+          <UiText
+            message={
+              "The current project is not associated with a team. Please move it to a team."
+            }
+          />
         </p>
-        <a href={APP_ROUTES.dashboard.fill({})}>Go to dashboard</a>
+        <a href={APP_ROUTES.dashboard.fill({})}>
+          <UiText message={"Go to dashboard"} />
+        </a>
       </Modal>
     );
   }
@@ -84,15 +91,16 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
   if (!config) {
     return (
       <Modal
-        title="Enable auth for this app?"
+        title={uiT("Enable auth for this app?")}
         open
         onCancel={onCancel}
         footer={null}
       >
-        With auth you can control who can access your app and manage their
-        permissions. Using role-based access control, you can build apps that
-        are secure and easy to manage. Apps with auth enabled can't be imported
-        into other apps.
+        <UiText
+          message={
+            "With auth you can control who can access your app and manage their permissions. Using role-based access control, you can build apps that are secure and easy to manage. Apps with auth enabled can't be imported into other apps."
+          }
+        />
         <div className="mt-xlg">
           <Button
             type="primary"

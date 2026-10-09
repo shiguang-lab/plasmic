@@ -3,6 +3,7 @@ import { ColorSidebarPopup } from "@/wab/client/components/style-controls/ColorB
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { useI18n } from "@/wab/client/i18n";
 import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isTokenRef } from "@/wab/commons/StyleToken";
@@ -22,6 +23,7 @@ export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
   autoFocusName?: boolean;
   vsh?: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   const {
     token,
     studioCtx,
@@ -68,7 +70,7 @@ export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
               })
             }
             readOnly={!(token instanceof MutableToken)}
-            placeholder={"(unnamed token)"}
+            placeholder={uiT("(unnamed token)")}
             autoFocus={autoFocusName}
             selectAllOnFocus={true}
             fontSize="xlarge"

@@ -17,6 +17,7 @@ import {
 import { ColorTokenSelector } from "@/wab/client/components/widgets/ColorTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
 import { ensureNumber, nudgeIntoRange } from "@/wab/client/number-utils";
 import { CloseIcon } from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
@@ -104,6 +105,7 @@ function ColorPicker_({
   colorTokens: maybeColorTokens,
   vsh = new VariantedStylesHelper(),
 }: ColorPickerProps) {
+  const { t: uiT } = useI18n();
   const sc = useStudioCtx();
   const uiConfig = sc.getCurrentUiConfig();
   const canCreateToken = canCreateAlias(uiConfig, "token");
@@ -496,7 +498,7 @@ function ColorPicker_({
               <MaybeWrap
                 cond={!!isEditable}
                 wrapper={(x) => (
-                  <Tooltip title="Edit color token">
+                  <Tooltip title={uiT("Edit color token")}>
                     {x as React.ReactElement}
                   </Tooltip>
                 )}
@@ -521,7 +523,7 @@ function ColorPicker_({
                         resetAlphaInputValue(getColorAlpha(realColor));
                         onChange(realColor);
                       }}
-                      tooltip="Remove token"
+                      tooltip={uiT("Remove token")}
                     >
                       <Icon icon={CloseIcon} />
                     </IconButton>

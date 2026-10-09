@@ -1,6 +1,7 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { adjustSpotLightDueToZoom } from "@/wab/client/studio-ctx/StudioCtx";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -119,7 +120,7 @@ function Spotlight_(props: { viewCtx: ViewCtx }) {
               viewCtx.setShowDefaultSlotContents(!showDefaultSlotContents)
             }
           />{" "}
-          Show default slot contents
+          <UiText message={"Show default slot contents"} />
         </div>
       )}
       {/* Show slot shadows if we are not showing default contents, as we cannot actually

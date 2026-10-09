@@ -34,7 +34,9 @@ export default function DirectoryUsers(props: {
   return (
     <div>
       <div className="b-dashed-lightener2">
-        <h3>Directory Users</h3>
+        <h3>
+          <UiText message={"Directory Users"} />
+        </h3>
         <Button
           onClick={async () => {
             await mutateUsers();
@@ -66,7 +68,7 @@ export default function DirectoryUsers(props: {
               },
             },
             {
-              title: "Actions",
+              title: uiT("Actions"),
               render: (user) => {
                 return (
                   <>
@@ -76,7 +78,7 @@ export default function DirectoryUsers(props: {
                         setSelectedUserGroups(user.groups.map((g) => g.id));
                       }}
                     >
-                      Manage groups
+                      <UiText message={"Manage groups"} />
                     </Button>
                   </>
                 );

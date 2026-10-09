@@ -113,7 +113,7 @@ export const EffectsPanelSection = observer(
                                   label: (
                                     <span className="flex-vcenter">
                                       <FaHandPointer className="mr-ch" />{" "}
-                                      Pointer
+                                      <UiText message={"Pointer"} />
                                     </span>
                                   ),
                                 },

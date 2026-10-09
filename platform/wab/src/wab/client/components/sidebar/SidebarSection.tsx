@@ -3,6 +3,7 @@ import styles from "@/wab/client/components/sidebar/SidebarSection.module.scss";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
 import { useI18n } from "@/wab/client/i18n";
+import { UiLabel } from "@/wab/client/i18n/UiText";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import ChevronUpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronUpSvg";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -335,7 +336,7 @@ export function SidebarSection_(
                     [styles.headerTitleActive]: isHeaderActive,
                   })}
                 >
-                  {title}
+                  {typeof title === "string" ? <UiLabel text={title} /> : title}
                 </div>
               }
               contentAlignment="right"

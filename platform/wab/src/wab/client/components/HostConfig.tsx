@@ -101,19 +101,24 @@ export function HostConfig({
       onCancel={() => onCancel()}
       footer={null}
     >
-      Plasmic projects can be hosted by your own app! <br />
-      It allows you to bring your own components to Plasmic. Learn more about
-      Plasmic app-hosting and how to setup your app{" "}
+      <UiText message={"Plasmic projects can be hosted by your own app!"} />{" "}
+      <br />
+      <UiText
+        message={
+          "It allows you to bring your own components to Plasmic. Learn more about Plasmic app-hosting and how to setup your app"
+        }
+      />{" "}
       <a href="https://www.plasmic.app/learn/app-hosting/" target="_blank">
-        here
+        <UiText message={"here"} />
       </a>
       .
       <br />
       {!branchData.value ? (
         branchData.error ? (
           <div className="text-center mt-xxlg">
-            Oops! Unexpected error loading the request. <br /> <br />
-            Please try again later
+            <UiText message={"Oops! Unexpected error loading the request."} />{" "}
+            <br /> <br />
+            <UiText message={"Please try again later"} />
           </div>
         ) : (
           <Spinner />
@@ -123,7 +128,7 @@ export function HostConfig({
           <>
             {showBranching && (
               <div className="flex-row gap-m fill-width flex-vcenter mt-lg">
-                Project branch:{" "}
+                <UiText message={"Project branch:"} />{" "}
                 <Select
                   className="flex-fill"
                   value={branchName}
@@ -155,7 +160,9 @@ export function HostConfig({
               }}
               clearDisabled={!currentUrl || isLoading}
             />
-            Remember to only use trusted hosts for your projects.
+            <UiText
+              message={"Remember to only use trusted hosts for your projects."}
+            />
           </>
         ))(branchData.value)
       )}

@@ -9,6 +9,7 @@ import {
 } from "@/wab/client/components/live/PreviewFrame";
 import { untilClosed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultLivePopOutButtonProps,
   PlasmicLivePopOutButton,
@@ -91,7 +92,9 @@ const LivePopOutButton = observer(function LivePopOutButton(
           await studioCtx.save();
           if (studioCtx.hasUnsavedChanges()) {
             notification.error({
-              message: "Save changes before opening browser preview.",
+              message: (
+                <UiText message="Save changes before opening browser preview." />
+              ),
             });
             return;
           }

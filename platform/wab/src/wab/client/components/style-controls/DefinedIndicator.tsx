@@ -707,8 +707,15 @@ const PopoverContent = observer(function PopoverContent(props: {
       type="info"
       message={
         <>
-          Your settings in target {<UiLabel text={VARIANT_LOWER} />} are
-          overwritten by other visible {<UiLabel text={VARIANTS_LOWER} />}.
+          <UiText
+            message={
+              "Your settings in target {part1} are overwritten by other visible {part2}."
+            }
+            values={{
+              part1: <UiLabel text={VARIANT_LOWER} />,
+              part2: <UiLabel text={VARIANTS_LOWER} />,
+            }}
+          />
         </>
       }
     />

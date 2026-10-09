@@ -3,6 +3,7 @@ import { TemplatedTextEditor } from "@/wab/client/components/sidebar-tabs/Compon
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { PropEditorRef } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { useI18n } from "@/wab/client/i18n";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -40,6 +41,7 @@ export const StringPropEditor = React.forwardRef<
   PropEditorRef,
   StringPropEditorProps
 >((props, outerRef) => {
+  const { t: uiT } = useI18n();
   const ref = React.useRef<InputRef | null>(null);
   React.useImperativeHandle(
     outerRef,
@@ -96,7 +98,7 @@ export const StringPropEditor = React.forwardRef<
       className={`form-control code`}
       value={`${curValue || ""}`}
       onChange={(e) => setDraft(e.currentTarget.value)}
-      placeholder={props.defaultValueHint ?? "unset"}
+      placeholder={props.defaultValueHint ?? uiT("unset")}
       onKeyDown={handleKeyDown}
       onPressEnter={submitDraft}
       onBlur={submitDraft}
@@ -134,6 +136,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
   PropEditorRef,
   TemplatedStringPropEditorProps
 >((props, outerRef) => {
+  const { t: uiT } = useI18n();
   const ref = React.useRef<PropEditorRef | null>(null);
   React.useImperativeHandle(
     outerRef,
@@ -212,7 +215,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
       data={props.data}
       schema={props.schema}
       component={props.component}
-      placeholder={props.defaultValueHint ?? "unset"}
+      placeholder={props.defaultValueHint ?? uiT("unset")}
       multiLine={multiLineMode}
       onKeyDown={(e) => {
         // On Shift+Enter let Slate insert a newline if allowed

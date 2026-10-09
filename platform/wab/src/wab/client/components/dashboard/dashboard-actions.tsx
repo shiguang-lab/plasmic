@@ -105,7 +105,10 @@ export function TeamMenu(props: TeamMenuProps) {
             }
           }}
         >
-          Configure Studio UI for {<UiLabel text={ORGANIZATION_CAP} />}
+          <UiText
+            message={"Configure Studio UI for {part1}"}
+            values={{ part1: <UiLabel text={ORGANIZATION_CAP} /> }}
+          />
         </Menu.Item>,
       );
     });
@@ -125,25 +128,44 @@ export function TeamMenu(props: TeamMenuProps) {
               message: (
                 <>
                   <p>
-                    Are you sure you want to delete the{" "}
-                    {<UiLabel text={ORGANIZATION_LOWER} />}{" "}
-                    <strong>{team.name}</strong>?
+                    <UiText
+                      message={
+                        "Are you sure you want to delete the {part1} {part2}?"
+                      }
+                      values={{
+                        part1: <UiLabel text={ORGANIZATION_LOWER} />,
+                        part2: <strong>{team.name}</strong>,
+                      }}
+                    />
                   </p>
                   {meta.workspaceCount ? (
                     <p>
-                      If you delete it, you will also lose its{" "}
-                      <strong>{meta.workspaceCount} workspaces</strong>
-                      {meta.projectCount ? (
-                        <>
-                          {" "}
-                          and <strong>{meta.projectCount} projects</strong>
-                        </>
-                      ) : (
-                        ``
-                      )}
-                      . If you want to keep those workspaces and projects,
-                      please move them to a different{" "}
-                      {<UiLabel text={ORGANIZATION_LOWER} />} first.
+                      <UiText
+                        message={
+                          "If you delete it, you will also lose its {part1}{part2}. If you want to keep those workspaces and projects, please move them to a different {part3} first."
+                        }
+                        values={{
+                          part1: (
+                            <strong>
+                              {meta.workspaceCount}{" "}
+                              <UiText message={"workspaces"} />
+                            </strong>
+                          ),
+                          part2: meta.projectCount ? (
+                            <>
+                              {" "}
+                              <UiText message={"and"} />{" "}
+                              <strong>
+                                {meta.projectCount}{" "}
+                                <UiText message={"projects"} />
+                              </strong>
+                            </>
+                          ) : (
+                            ``
+                          ),
+                          part3: <UiLabel text={ORGANIZATION_LOWER} />,
+                        }}
+                      />
                     </p>
                   ) : (
                     ``
@@ -236,7 +258,7 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
             <strong>
               <UiText message={"Edit"} />
             </strong>{" "}
-            content creator mode
+            <UiText message={"content creator mode"} />
           </Menu.Item>
         )}
       {accessLevelRank(teamAccessLevel) >= accessLevelRank("editor") && (
@@ -259,10 +281,17 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
             await onUpdate();
           }}
         >
-          <strong>
-            <UiText message={"Move"} />
-          </strong>{" "}
-          to another {<UiLabel text={ORGANIZATION_LOWER} />}
+          <UiText
+            message={"{part1} to another {part2}"}
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Move"} />
+                </strong>
+              ),
+              part2: <UiLabel text={ORGANIZATION_LOWER} />,
+            }}
+          />
         </Menu.Item>
       )}
       {accessLevelRank(workspaceAccessLevel) >= accessLevelRank("owner") && (
@@ -273,17 +302,28 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
               message: (
                 <>
                   <p>
-                    Are you sure you want to delete the workspace{" "}
-                    <strong>{workspace.name}</strong>?
+                    <UiText
+                      message={
+                        "Are you sure you want to delete the workspace {part1}?"
+                      }
+                      values={{ part1: <strong>{workspace.name}</strong> }}
+                    />
                   </p>
                   {projectCount ? (
                     <p>
-                      If you delete it, you will also lose its{" "}
-                      <strong>
-                        {projectCount} project{projectCount > 1 ? "s" : ""}
-                      </strong>
-                      . If you want to keep those projects, please move them to
-                      a different workspace first.
+                      <UiText
+                        message={
+                          "If you delete it, you will also lose its {part1}. If you want to keep those projects, please move them to a different workspace first."
+                        }
+                        values={{
+                          part1: (
+                            <strong>
+                              {projectCount} <UiText message={"project"} />
+                              {projectCount > 1 ? "s" : ""}
+                            </strong>
+                          ),
+                        }}
+                      />
                     </p>
                   ) : (
                     ``
@@ -307,7 +347,7 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
           <strong>
             <UiText message={"Delete"} />
           </strong>{" "}
-          workspace
+          <UiText message={"workspace"} />
         </Menu.Item>
       )}
     </Menu>
@@ -360,16 +400,20 @@ async function promptTeam(
             ))}
             {teams.length === 0 && (
               <Select.Option value={null} isDisabled={true}>
-                <UiText message={"No"} />{" "}
-                {<UiLabel text={ORGANIZATION_PLURAL_LOWER} />} to move workspace
-                into.
+                <UiText
+                  message={"{part1} {part2} to move workspace into."}
+                  values={{
+                    part1: <UiText message={"No"} />,
+                    part2: <UiLabel text={ORGANIZATION_PLURAL_LOWER} />,
+                  }}
+                />
               </Select.Option>
             )}
           </Select>
         </Form.Item>
         <Form.Item style={{ margin: 0 }}>
           <Button className="mr-sm" type="primary" htmlType="submit">
-            Move workspace
+            <UiText message={"Move workspace"} />
           </Button>
           <Button onClick={() => onCancel()}>
             <UiText message={"Cancel"} />

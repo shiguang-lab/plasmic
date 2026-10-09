@@ -154,6 +154,7 @@ export const DimTokenSpinner = observer(
     } & DimValueOpts,
     ref: React.Ref<DimTokenSpinnerRef>,
   ) {
+    const { label: localizeLabel } = useI18n();
     const {
       value,
       tokenType,
@@ -230,7 +231,8 @@ export const DimTokenSpinner = observer(
     } = useUndo<string | undefined>(undefined);
     const [focused, setFocused] = React.useState(false);
     const inputValue =
-      typedInputValue ?? (hasParsedToken ? "" : focused ? value : displayValue);
+      typedInputValue ??
+      (hasParsedToken ? "" : focused ? value : localizeLabel(displayValue));
 
     const [editToken, setEditToken] = React.useState<
       MutableToken<StyleToken> | OverrideableToken<StyleToken> | undefined
@@ -284,13 +286,15 @@ export const DimTokenSpinner = observer(
 
       if (!isNumberMode) {
         // If we're typing in words, then also filter this down by words
-        options = options.filter((op) =>
-          matcher.matches(
+        options = options.filter((op) => {
+          const caption =
             typeof op.value.label === "string"
               ? op.value.label
-              : op.value.cleanLabel || op.value.value,
-          ),
-        );
+              : op.value.cleanLabel || op.value.value;
+          return (
+            matcher.matches(caption) || matcher.matches(localizeLabel(caption))
+          );
+        });
       }
       return options.map((it) => ({
         ...it,
@@ -670,7 +674,9 @@ export const DimTokenSpinner = observer(
                 ref: inputRef,
                 autoFocus,
                 disabled,
-                placeholder,
+                placeholder: placeholder
+                  ? localizeLabel(placeholder)
+                  : undefined,
               }),
 
               style: showCurrentToken ? { width: 0, padding: 0 } : undefined,
@@ -687,7 +693,7 @@ export const DimTokenSpinner = observer(
             existingTokens={parsedValues.map((val) =>
               typeof val === "string" ? (
                 <div key={val} className="text-ellipsis">
-                  {val}
+                  {localizeLabel(val)}
                 </div>
               ) : (
                 <Chip
@@ -891,7 +897,7 @@ const Row = React.memo(function Row(props: {
   index: number;
   style: React.CSSProperties;
 }) {
-  const { t: uiT } = useI18n();
+  const { t: uiT, label: localizeLabel } = useI18n();
   const { data, index, style } = props;
   const item = data[index];
   const context = ensure(
@@ -955,7 +961,10 @@ const Row = React.memo(function Row(props: {
       return (
         <li {...itemProps} aria-label={action.value}>
           <ListItem isFocused={isFocused} hideIcon>
-            {(action as any).label || matcher.boldSnippets(action.value)}
+            {typeof (action as any).label === "string"
+              ? localizeLabel((action as any).label)
+              : (action as any).label ||
+                matcher.boldSnippets(localizeLabel(action.value))}
           </ListItem>
         </li>
       );
@@ -979,24 +988,33 @@ const Row = React.memo(function Row(props: {
             hideIcon
           >
             <span>
-              Convert to <strong>{action.value}</strong>
+              <UiText
+                message={"Convert to {part1}"}
+                values={{ part1: <strong>{action.value}</strong> }}
+              />
             </span>
           </ListItem>
         </li>
       );
     } else if (action.type === "add-token") {
       return (
-        <li {...itemProps} aria-label={"Add new token"}>
+        <li {...itemProps} aria-label={uiT("Add new token")}>
           <ListItem isFocused={isFocused} icon={<Icon icon={PlusCircleIcon} />}>
-            Create new token...
+            <UiText message={"Create new token..."} />
           </ListItem>
         </li>
       );
     } else if (action.type === "edit-token") {
       return (
-        <li {...itemProps} aria-label={`Edit token "${action.token.name}"`}>
+        <li
+          {...itemProps}
+          aria-label={uiT('Edit token "{name}"', { name: action.token.name })}
+        >
           <ListItem isFocused={isFocused} icon={<Icon icon={PencilIcon} />}>
-            Edit "{action.token.name}"
+            <UiText
+              message={'Edit token "{name}"'}
+              values={{ name: action.token.name }}
+            />
           </ListItem>
         </li>
       );

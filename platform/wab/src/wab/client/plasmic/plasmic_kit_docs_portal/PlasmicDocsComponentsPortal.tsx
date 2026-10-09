@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: MQIZtdluUpm
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -84,6 +85,7 @@ function PlasmicDocsComponentsPortal__RenderFunc(props: {
   overrides: PlasmicDocsComponentsPortal__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -299,7 +301,7 @@ function PlasmicDocsComponentsPortal__RenderFunc(props: {
                         role={"img"}
                       />
                     }
-                    label={"value"}
+                    label={uiT("value")}
                   >
                     <Textbox
                       className={classNames(

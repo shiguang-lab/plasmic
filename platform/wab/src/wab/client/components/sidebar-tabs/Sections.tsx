@@ -1228,14 +1228,27 @@ const MissingPositionClassSection = observer(
             message="Not able to style code component"
             description={
               <p>
-                <strong>
-                  <UiText message={"Component"} /> {currentComponentName} does
-                  not support styling
-                </strong>
-                <br />
-                It looks like the{isNestedStructure ? " root " : " "}code
-                component {codeComponentName} does not make use of a "className"
-                prop, so you cannot set styles on the component.
+                <UiText
+                  message={
+                    '{part1}{part2}It looks like the{part3}code component {part4} does not make use of a "className" prop, so you cannot set styles on the component.'
+                  }
+                  values={{
+                    part1: (
+                      <strong>
+                        <UiText
+                          message={"{part1} {part2} does not support styling"}
+                          values={{
+                            part1: <UiText message={"Component"} />,
+                            part2: currentComponentName,
+                          }}
+                        />
+                      </strong>
+                    ),
+                    part2: <br />,
+                    part3: isNestedStructure ? " root " : " ",
+                    part4: codeComponentName,
+                  }}
+                />
               </p>
             }
           />

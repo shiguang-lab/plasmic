@@ -104,7 +104,9 @@ function TeamMemberList_(
             <Select.Option value="owner">
               <UiText message={"Owners"} />
             </Select.Option>,
-            <Select.Option value="editor">Developers</Select.Option>,
+            <Select.Option value="editor">
+              <UiText message={"Developers"} />
+            </Select.Option>,
             <Select.Option value="designer">
               <UiText message={"Designers"} />
             </Select.Option>,
@@ -112,7 +114,11 @@ function TeamMemberList_(
               <UiText message={"Content Creators"} />
             </Select.Option>,
             ...(perms.some((perm) => perm.accessLevel === "commenter")
-              ? [<Select.Option value="commenter">Commenters</Select.Option>]
+              ? [
+                  <Select.Option value="commenter">
+                    <UiText message={"Commenters"} />
+                  </Select.Option>,
+                ]
               : []),
             <Select.Option value="viewer">
               <UiText message={"Viewers"} />

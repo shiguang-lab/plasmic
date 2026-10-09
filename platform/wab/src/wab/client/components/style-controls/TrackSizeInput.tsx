@@ -33,7 +33,7 @@ function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
     const proposedSize = tryParseAtomicSize(val);
     if (proposedSize === undefined) {
       notification.error({
-        message: "Invalid value",
+        message: <UiText message="Invalid value" />,
         description:
           "Must be 'auto', or a numeric value with units of fr, px or %.",
       });
@@ -45,7 +45,7 @@ function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
       proposedSize.unit === "fr"
     ) {
       notification.error({
-        message: "Invalid value",
+        message: <UiText message="Invalid value" />,
         description: "Minimal size can not be specified in fr.",
       });
       return;

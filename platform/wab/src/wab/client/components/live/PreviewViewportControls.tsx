@@ -5,6 +5,7 @@ import {
   PreviewViewportMode,
   isViewportDimension,
 } from "@/wab/client/components/live/preview-viewport";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import React from "react";
 
@@ -17,6 +18,7 @@ export function PreviewViewportControls({
   scale: number;
   onChange: (value: PreviewViewport) => void;
 }) {
+  const { t: uiT } = useI18n();
   const [width, setWidth] = React.useState(`${value.width}`);
   const [height, setHeight] = React.useState(`${value.height}`);
   React.useEffect(() => {
@@ -36,8 +38,12 @@ export function PreviewViewportControls({
   const valid =
     isViewportDimension(Number(width)) && isViewportDimension(Number(height));
   return (
-    <div className={styles.controls} aria-label="Preview viewport">
-      <div className={styles.modes} role="group" aria-label="Preview device">
+    <div className={styles.controls} aria-label={uiT("Preview viewport")}>
+      <div
+        className={styles.modes}
+        role="group"
+        aria-label={uiT("Preview device")}
+      >
         {(
           [
             ["desktop", "Desktop"],
@@ -71,7 +77,7 @@ export function PreviewViewportControls({
           }}
         >
           <input
-            aria-label="Preview width"
+            aria-label={uiT("Preview width")}
             type="number"
             min={240}
             max={7680}
@@ -81,7 +87,7 @@ export function PreviewViewportControls({
           />
           <span>×</span>
           <input
-            aria-label="Preview height"
+            aria-label={uiT("Preview height")}
             type="number"
             min={240}
             max={7680}

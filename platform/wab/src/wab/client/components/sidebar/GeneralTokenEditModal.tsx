@@ -4,6 +4,7 @@ import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPic
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { useI18n } from "@/wab/client/i18n";
 import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isTokenRef, tokenTypeDimOpts } from "@/wab/commons/StyleToken";
@@ -22,6 +23,7 @@ export const GeneralTokenEditModal = observer(
     onClose: () => void;
     vsh?: VariantedStylesHelper;
   }) {
+    const { t: uiT } = useI18n();
     const {
       token,
       studioCtx,
@@ -62,7 +64,7 @@ export const GeneralTokenEditModal = observer(
                 })
               }
               readOnly={!(token instanceof MutableToken)}
-              placeholder={"(unnamed token)"}
+              placeholder={uiT("(unnamed token)")}
               autoFocus={defaultEditingName}
               selectAllOnFocus={true}
               fontSize="xlarge"

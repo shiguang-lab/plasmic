@@ -17,6 +17,7 @@ import {
 import { Spinner } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import Chip from "@/wab/client/components/widgets/Chip";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultPermissionsTabProps,
@@ -45,10 +46,17 @@ export interface PermissionsTabProps extends DefaultPermissionsTabProps {
 
 const GENERAL_ACCESS_TOOLTIP = (
   <>
-    <p>If "Denied", then only the above users/groups can sign in.</p>
     <p>
-      Otherwise, anyone can sign in, and they'll be assigned the selected role
-      (unless they match another role further up in the list).
+      <UiText
+        message={'If "Denied", then only the above users/groups can sign in.'}
+      />
+    </p>
+    <p>
+      <UiText
+        message={
+          "Otherwise, anyone can sign in, and they'll be assigned the selected role (unless they match another role further up in the list)."
+        }
+      />
     </p>
   </>
 );
@@ -57,6 +65,7 @@ function PermissionsTab_(
   props: PermissionsTabProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const { directoryId, project, appCtx, ...rest } = props;
 
   const mutateHostAppAuthData = useMutateHostAppAuthData(project.id);
@@ -294,7 +303,7 @@ function PermissionsTab_(
       ...groups.map((group) => ({
         label: (
           <div>
-            Add group <strong>{group.name}</strong>
+            <UiText message={"Add group"} /> <strong>{group.name}</strong>
           </div>
         ),
         value: group.name,
@@ -435,7 +444,11 @@ function PermissionsTab_(
                       color: "rgba(0, 0, 0, 0.5)",
                     }}
                   >
-                    Enter a valid email, a @domain.com, or a group name
+                    <UiText
+                      message={
+                        "Enter a valid email, a @domain.com, or a group name"
+                      }
+                    />
                   </div>
                 }
                 tokenSeparators={[","]}
@@ -450,7 +463,7 @@ function PermissionsTab_(
                   );
                 }}
                 style={{ width: "100%", fontSize: 12 }}
-                placeholder="Add people or groups"
+                placeholder={uiT("Add people or groups")}
                 onChange={handleChange}
                 onSearch={handleSearch}
                 value={invites}
@@ -470,7 +483,8 @@ function PermissionsTab_(
                   isFake={access.isFake}
                   ruleName={
                     <>
-                      Anyone from <Chip>{access.domain}</Chip>
+                      <UiText message={"Anyone from"} />{" "}
+                      <Chip>{access.domain}</Chip>
                     </>
                   }
                   roles={roles}
@@ -500,7 +514,7 @@ function PermissionsTab_(
                   isFake={access.isFake}
                   ruleName={
                     <>
-                      Group <Chip>{group.name}</Chip>
+                      <UiText message={"Group"} /> <Chip>{group.name}</Chip>
                     </>
                   }
                   roles={roles}

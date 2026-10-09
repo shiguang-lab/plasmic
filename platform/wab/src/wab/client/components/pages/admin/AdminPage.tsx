@@ -415,6 +415,7 @@ function DownloadPkgForPkgMgr() {
 }
 
 function DevFlagControls() {
+  const { t: uiT } = useI18n();
   const nonAuthCtx = useNonAuthCtx();
   const { data, error, mutate, isLoading } = useSWR(
     "/admin/devflags",
@@ -498,7 +499,7 @@ function DevFlagControls() {
             render: (val) => `${moment.utc(val).fromNow()} - ${val}`,
           },
           {
-            title: "Actions",
+            title: uiT("Actions"),
             render: (record) => {
               return (
                 <>

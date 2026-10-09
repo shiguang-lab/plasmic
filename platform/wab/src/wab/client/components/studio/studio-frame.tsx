@@ -18,6 +18,7 @@ import {
   handleIframeLoad,
 } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { usePreventDefaultBrowserPinchToZoomBehavior } from "@/wab/client/hooks/usePreventDefaultBrowserPinchToZoomBehavior";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
@@ -55,6 +56,7 @@ export function StudioFrame({
   projectId: ProjectId;
   refreshStudio: () => Promise<void>;
 }) {
+  const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
   const forceUpdate = useForceUpdate();
   const [project, setProject] = React.useState<ApiProject>();
@@ -217,23 +219,34 @@ export function StudioFrame({
   if (untrustedHost) {
     const hostOrigin = src.origin;
     return (
-      <Modal open footer={null} title="Project is hosted by another app">
-        The project {project.name} is <i>app-hosted</i>. This means it's running
-        a third-party app that can show anything on screen, including the
-        Plasmic login screen. Only open projects that are hosted by domains you
-        trust! [
-        <a href="https://www.plasmic.app/learn/app-hosting/" target="_blank">
-          <UiText message={"Learn more about app hosting"} />
-        </a>
-        ].
+      <Modal open footer={null} title={uiT("Project is hosted by another app")}>
+        <UiText
+          message="The project {name} is hosted by a third-party app. It can show anything on screen, including the Plasmic login screen. Only open projects hosted by domains you trust! {learn}"
+          values={{
+            name: project.name,
+            learn: (
+              <a
+                href="https://www.plasmic.app/learn/app-hosting/"
+                target="_blank"
+              >
+                <UiText message="Learn more about app hosting" />
+              </a>
+            ),
+          }}
+        />
         <br />
         <br />
-        <UiText message={"Enter the domain"} /> <code>{hostOrigin}</code> to add
-        it to your{" "}
-        <PublicLink href={APP_ROUTES.settings.fill({})}>
-          trusted list
-        </PublicLink>
-        .
+        <UiText
+          message="Enter the domain {domain} to add it to your {trusted}."
+          values={{
+            domain: <code>{hostOrigin}</code>,
+            trusted: (
+              <PublicLink href={APP_ROUTES.settings.fill({})}>
+                <UiText message="trusted list" />
+              </PublicLink>
+            ),
+          }}
+        />
         <HostUrlInput
           className="mv-xlg"
           originOnly

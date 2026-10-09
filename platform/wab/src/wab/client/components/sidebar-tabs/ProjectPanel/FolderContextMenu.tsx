@@ -45,7 +45,7 @@ export function FolderContextMenu({
           <strong>
             <UiText message={"Rename"} />
           </strong>{" "}
-          folder
+          <UiText message={"folder"} />
         </Menu.Item>,
       )}
       {menuSection(
@@ -54,7 +54,7 @@ export function FolderContextMenu({
           <strong>
             <UiText message={"Delete"} />
           </strong>{" "}
-          folder
+          <UiText message={"folder"} />
         </Menu.Item>,
       )}
     </Menu>

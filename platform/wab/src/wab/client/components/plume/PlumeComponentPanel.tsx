@@ -1,5 +1,6 @@
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { HoverableDisclosure } from "@/wab/client/components/widgets/HoverableDisclosure";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { flattenComponent } from "@/wab/shared/cached-selectors";
 import { withoutNils } from "@/wab/shared/common";
@@ -67,7 +68,9 @@ export const PlumeMissingIngredientsPanel = observer(
             <>
               {missingVariantDefs.length > 0 && (
                 <div>
-                  <strong>Missing variants: </strong>
+                  <strong>
+                    <UiText message={"Missing variants:"} />{" "}
+                  </strong>
                   {joinReactNodes(
                     missingVariantDefs.map((d) => (
                       <HoverableDisclosure title={d.info}>
@@ -80,7 +83,9 @@ export const PlumeMissingIngredientsPanel = observer(
               )}
               {missingSlotDefs.length > 0 && (
                 <div>
-                  <strong>Missing slots: </strong>
+                  <strong>
+                    <UiText message={"Missing slots:"} />{" "}
+                  </strong>
                   {joinReactNodes(
                     missingSlotDefs.map((d) => (
                       <HoverableDisclosure title={d.info}>
@@ -93,7 +98,9 @@ export const PlumeMissingIngredientsPanel = observer(
               )}
               {missingElementDefs.length > 0 && (
                 <div>
-                  <strong>Missing elements: </strong>
+                  <strong>
+                    <UiText message={"Missing elements:"} />{" "}
+                  </strong>
                   {joinReactNodes(
                     missingElementDefs.map((d) => (
                       <HoverableDisclosure title={d.info}>

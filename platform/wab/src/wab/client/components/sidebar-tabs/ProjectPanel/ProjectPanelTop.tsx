@@ -235,23 +235,13 @@ function BranchPanelTop_(
         description: (
           <>
             <p>
-              We are debugging some issues with the branching functionality
-              that's in early access, and out of an abundance of caution, we're
-              disabling creation of new branches at the moment. We are taking
-              the feature into maintenance to iron things out, and currently
-              estimate it will take several weeks before we are comfortable
-              re-enabling the functionality.
+              <UiText message="We are debugging some issues with the branching functionality that's in early access, and out of an abundance of caution, we're disabling creation of new branches at the moment. We are taking the feature into maintenance to iron things out, and currently estimate it will take several weeks before we are comfortable re-enabling the functionality." />
             </p>
             <p>
-              If necessary, you can continue accessing and merging the branches
-              you currently have open, but we generally recommend avoiding
-              unnecessary merges if possible.
+              <UiText message="If necessary, you can continue accessing and merging the branches you currently have open, but we generally recommend avoiding unnecessary merges if possible." />
             </p>
             <p>
-              Sorry for the inconvenience - we know branching is an important
-              part of the workflow, and we wouldn't disrupt things unless we
-              felt it was needed to guarantee reliability. We're working on it.
-              Thank you for bearing with us!
+              <UiText message="Sorry for the inconvenience - we know branching is an important part of the workflow, and we wouldn't disrupt things unless we felt it was needed to guarantee reliability. We're working on it. Thank you for bearing with us!" />
             </p>
           </>
         ),
@@ -510,10 +500,16 @@ function getBranchMenuRenderer({
                   />
                 }
               >
-                <strong>
-                  {isMainBranchProtected ? "Unprotect" : "Protect"}
-                </strong>{" "}
-                main branch
+                <UiText
+                  message={"{part1} main branch"}
+                  values={{
+                    part1: (
+                      <strong>
+                        {isMainBranchProtected ? "Unprotect" : "Protect"}
+                      </strong>
+                    ),
+                  }}
+                />
               </Tooltip>
             </Menu.Item>
           ),
@@ -521,10 +517,16 @@ function getBranchMenuRenderer({
         {menuSection(
           "branch-switch",
           <Menu.Item key="switch" onClick={onSwitch}>
-            <strong>
-              <UiText message={"Switch"} />
-            </strong>{" "}
-            to branch
+            <UiText
+              message="{part1} to branch"
+              values={{
+                part1: (
+                  <strong>
+                    <UiText message={"Switch"} />
+                  </strong>
+                ),
+              }}
+            />
           </Menu.Item>,
         )}
         {menuSection(
@@ -540,14 +542,14 @@ function getBranchMenuRenderer({
               <strong>
                 <UiText message={"Rename"} />
               </strong>{" "}
-              branch
+              <UiText message={"branch"} />
             </Menu.Item>
           ),
           <Menu.Item key="duplicate" onClick={onDuplicate}>
             <strong>
               <UiText message={"Duplicate"} />
             </strong>{" "}
-            branch
+            <UiText message={"branch"} />
           </Menu.Item>,
         )}
         {branch &&
@@ -565,7 +567,7 @@ function getBranchMenuRenderer({
               <strong>
                 {branch.status === "active" ? "Archive" : "Unarchive"}
               </strong>{" "}
-              branch
+              <UiText message={"branch"} />
             </Menu.Item>,
             <Menu.Item
               key="delete"
@@ -576,8 +578,10 @@ function getBranchMenuRenderer({
                     message: (
                       <>
                         <p>
-                          Are you sure you want to delete the branch{" "}
-                          <strong>{branch.name}</strong>?
+                          <UiText
+                            message="Are you sure you want to delete the branch {part1}?"
+                            values={{ part1: <strong>{branch.name}</strong> }}
+                          />
                         </p>
                         <p>
                           <UiText message={"This action cannot be undone."} />
@@ -607,7 +611,7 @@ function getBranchMenuRenderer({
               <strong>
                 <UiText message={"Delete"} />
               </strong>{" "}
-              branch
+              <UiText message={"branch"} />
             </Menu.Item>,
           )}
       </Menu>

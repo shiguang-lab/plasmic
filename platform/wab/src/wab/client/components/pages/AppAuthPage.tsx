@@ -2,6 +2,7 @@ import { useAppAuthPubConfig } from "@/wab/client/components/app-auth/app-auth-c
 import { IntakeFlowForm } from "@/wab/client/components/pages/IntakeFlowForm";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { getShiguangSignInUrl } from "@/wab/shared/shiguang-auth";
 import { getPublicUrl } from "@/wab/shared/urls";
@@ -32,8 +33,11 @@ export function AppAuthPage() {
   if (!config || required.some((key) => !params.get(key))) {
     return (
       <IntakeFlowForm>
-        This app is not configured correctly for authentication. Please contact
-        the app owner.
+        <UiText
+          message={
+            "This app is not configured correctly for authentication. Please contact the app owner."
+          }
+        />
       </IntakeFlowForm>
     );
   }
@@ -44,7 +48,7 @@ export function AppAuthPage() {
           type="primary"
           href={getShiguangSignInUrl(window.location.href)}
         >
-          Sign in with Shiguang
+          <UiText message={"Sign in with Shiguang"} />
         </Button>
       </IntakeFlowForm>
     );
@@ -52,26 +56,39 @@ export function AppAuthPage() {
   if (!appCtx.selfInfo.emailVerified) {
     return (
       <IntakeFlowForm>
-        <a href="https://shiguanglab.com/account">
-          Verify your email in your Shiguang account
-        </a>{" "}
-        before signing in to this app.
+        <UiText
+          message="Verify your email before signing in to this app. {link}"
+          values={{
+            link: (
+              <a href="https://shiguanglab.com/account">
+                <UiText message="Verify your email in your Shiguang account" />
+              </a>
+            ),
+          }}
+        />
       </IntakeFlowForm>
     );
   }
   if (!config.allowed) {
     return (
       <IntakeFlowForm>
-        You ({appCtx.selfInfo.email}) are not authorized to access{" "}
-        {config.appName}. Please contact the app owner.
+        <UiText
+          message="You ({email}) are not authorized to access {app}. Please contact the app owner."
+          values={{ email: appCtx.selfInfo.email, app: config.appName }}
+        />
       </IntakeFlowForm>
     );
   }
   return (
     <IntakeFlowForm>
       <p>
-        You are signing in to <b>{config.appName}</b> as{" "}
-        {appCtx.selfInfo.displayName}.
+        <UiText
+          message={"You are signing in to {part1} as {part2}."}
+          values={{
+            part1: <b>{config.appName}</b>,
+            part2: appCtx.selfInfo.displayName,
+          }}
+        />
       </p>
       <Button
         type="primary"
@@ -81,7 +98,7 @@ export function AppAuthPage() {
           )
         }
       >
-        Sign in
+        <UiText message={"Sign in"} />
       </Button>
     </IntakeFlowForm>
   );

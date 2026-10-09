@@ -251,7 +251,7 @@ function VariantPropsTooltip() {
       Each variant is exposed as a React prop. For toggle variants, pass a
       boolean; for single-choice variants, pass an option string; for
       multi-choice variants, pass an array of options or an object mapping
-      option to <code>true</code> or <code>false</code>.{" "}
+      option to <code>true</code> <UiText message={"or"} /> <code>false</code>.{" "}
       <a
         href="https://www.plasmic.app/learn/codegen-guide/#variant-props"
         target="_blank"

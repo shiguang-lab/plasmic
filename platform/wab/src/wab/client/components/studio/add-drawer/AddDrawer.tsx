@@ -33,6 +33,7 @@ import {
   INSERTABLE_TEMPLATE_COMPONENT_KEY_PREFIX,
   isTplAddItem,
 } from "@/wab/client/definitions/insertables";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   COMBINATION_ICON,
   COMPONENT_ICON,
@@ -417,8 +418,9 @@ export function createAddTplComponent(
           assert(
             info,
             () =>
-              `Template component with id ${component.templateInfo!
-                .componentId!} not found`,
+              `Template component with id ${
+                component.templateInfo!.componentId!
+              } not found`,
           );
           return {
             type: "clone",
@@ -1212,14 +1214,18 @@ export function maybeShowGlobalContextNotification(
           }
         }
         notification.info({
-          message: "Project Settings",
+          message: <UiText message="Project Settings" />,
           description: (
             <>
               <p>
-                The {projectDependency.name} package can be configured in
-                settings.
+                <UiText
+                  message={"The {part1} package can be configured in settings."}
+                  values={{ part1: projectDependency.name }}
+                />
               </p>
-              <a onClick={goToSettings}>Go to settings.</a>
+              <a onClick={goToSettings}>
+                <UiText message={"Go to settings."} />
+              </a>
             </>
           ),
           duration: 30,

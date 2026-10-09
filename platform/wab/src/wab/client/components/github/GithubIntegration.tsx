@@ -446,8 +446,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
             key="react"
             textValue="None (plain React—advanced)"
           >
-            <img className={styles.icon} src={ReactIcon} alt="" /> None (plain
-            React)
+            <img className={styles.icon} src={ReactIcon} alt="" />{" "}
+            <UiText message={"None (plain React)"} />
           </Select.Option>,
         ],
         isDisabled: existingRepo,
@@ -482,7 +482,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
         },
         children: [
           <Select.Option value="loader" key="loader">
-            Loader (recommended)
+            <UiText message={"Loader (recommended)"} />
           </Select.Option>,
           <Select.Option value="codegen" key="codegen">
             Codegen

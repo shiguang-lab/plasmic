@@ -30,6 +30,7 @@ import {
   downloadImageAsset,
   maybeUploadImage,
 } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
 import PlasmicLeftImagesPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftImagesPanel";
@@ -444,6 +445,7 @@ export const ImageAssetSidebarPopup = observer(
     onClose: () => void;
     autoFocusTitle?: boolean;
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, asset, editable, onClose, autoFocusTitle } = props;
 
     const handleUploaded = async (image: ResizableImage, file?: File) => {
@@ -489,7 +491,7 @@ export const ImageAssetSidebarPopup = observer(
                   studioCtx.tplMgr().renameImageAsset(asset, name),
                 )
               }
-              placeholder={"(unnamed asset)"}
+              placeholder={uiT("(unnamed asset)")}
               autoFocus={autoFocusTitle}
               selectAllOnFocus={true}
               onKeyDown={(e) => {
@@ -529,7 +531,9 @@ export const ImageAssetSidebarPopup = observer(
                 onUploaded={handleUploaded}
               />
 
-              <div className="mv-sm">or paste a new image from clipboard</div>
+              <div className="mv-sm">
+                <UiText message={"or paste a new image from clipboard"} />
+              </div>
               <ImagePaster onPasted={handleUploaded} />
             </div>
           )}

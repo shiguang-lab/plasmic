@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UserError } from "@/wab/shared/UserError";
@@ -221,7 +222,7 @@ export function notifyReferencingNode(
               notification.destroy(key);
             }}
           >
-            [Go to reference]
+            <UiText message={"[Go to reference]"} />
           </a>
         ) : null}
       </>

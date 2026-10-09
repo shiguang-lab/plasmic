@@ -13,6 +13,7 @@ import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Spinner } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { Redirect } from "@/wab/client/route/Redirect";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
@@ -81,7 +82,9 @@ export function CmsEntryHistory(props: {
                             ((user) => (
                               <span>
                                 {" "}
-                                <span style={{ color: "#999" }}>by</span>{" "}
+                                <span style={{ color: "#999" }}>
+                                  <UiText message={"by"} />
+                                </span>{" "}
                                 {user.displayName}
                               </span>
                             ))(userById[revision.createdById])}

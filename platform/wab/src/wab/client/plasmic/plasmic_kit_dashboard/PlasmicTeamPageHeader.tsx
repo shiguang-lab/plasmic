@@ -262,7 +262,7 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
                   }
                   style={{ color: "#706F6C" }}
                 >
-                  {"projects"}
+                  {<UiText message={"projects"} />}
                 </span>
               </React.Fragment>
             </div>

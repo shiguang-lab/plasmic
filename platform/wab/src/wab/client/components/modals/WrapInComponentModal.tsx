@@ -31,9 +31,13 @@ export async function promptWrapInComponent(props: {
       onCancel={() => onCancel()}
     >
       <p>
-        Choose the component to wrap the selected items
+        <UiText message={"Choose the component to wrap the selected items"} />
         <br />
-        <small>Only components with a children slot can be used</small>
+        <small>
+          <UiText
+            message={"Only components with a children slot can be used"}
+          />
+        </small>
       </p>
       <div className="flex flex-col">
         {naturalSort(

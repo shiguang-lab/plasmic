@@ -325,8 +325,8 @@ export async function deleteStudioElementConfirm(
       <>
         {usages.map(({ element, summary }) => (
           <p>
-            {element.name ? <strong>{element.name}</strong> : "It"} is still
-            being used in:
+            {element.name ? <strong>{element.name}</strong> : "It"}{" "}
+            <UiText message={"is still being used in:"} />
             <ul>
               {makeUsageControl(
                 "Components",

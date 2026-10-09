@@ -72,7 +72,9 @@ export function ValuePreview(props: ValuePreviewProps) {
         <UiText message={"Loading..."} />
       ) : props.err ? (
         <Tooltip title={props.err.message ?? `${props.err}`}>
-          <span>Error: {props.err.message ?? `${props.err}`}</span>
+          <span>
+            <UiText message={"Error:"} /> {props.err.message ?? `${props.err}`}
+          </span>
         </Tooltip>
       ) : (
         <MaybeWrap

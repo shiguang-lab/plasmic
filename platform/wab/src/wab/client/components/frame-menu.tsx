@@ -111,7 +111,9 @@ export function makeFrameMenu({
               viewCtx.getViewOps().convertFrameToComponent(undefined, "page")
             }
           >
-            <MenuItemContent>Convert to a Page</MenuItemContent>
+            <MenuItemContent>
+              <UiText message={"Convert to a Page"} />
+            </MenuItemContent>
           </Menu.Item>,
         );
       }
@@ -123,7 +125,9 @@ export function makeFrameMenu({
             viewCtx.getViewOps().convertFrameToComponent(undefined, "component")
           }
         >
-          <MenuItemContent>Convert to a reusable Component</MenuItemContent>
+          <MenuItemContent>
+            <UiText message={"Convert to a reusable Component"} />
+          </MenuItemContent>
         </Menu.Item>,
       );
     });
@@ -156,8 +160,11 @@ export function makeFrameMenu({
               title: "Delete " + FRAME_LOWER,
               message: (
                 <>
-                  This will clear all overrides for this variant in the current
-                  page. Would you like to proceed?
+                  <UiText
+                    message={
+                      "This will clear all overrides for this variant in the current page. Would you like to proceed?"
+                    }
+                  />
                 </>
               ),
             });
@@ -196,7 +203,9 @@ export function makeFrameMenu({
           }
           key={`clear-${FRAME_LOWER}`}
         >
-          <MenuItemContent>Clear settings for this combo</MenuItemContent>
+          <MenuItemContent>
+            <UiText message={"Clear settings for this combo"} />
+          </MenuItemContent>
         </Menu.Item>,
       );
     });

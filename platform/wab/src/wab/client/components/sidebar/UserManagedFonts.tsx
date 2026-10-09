@@ -3,6 +3,7 @@ import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftFontsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftFontsPanel";
@@ -22,6 +23,7 @@ const helpSuffix = `
 `;
 
 function _UserManagedFontsPanel(props: {}) {
+  const { t: uiT } = useI18n();
   const sc = useStudioCtx();
   const missingUsedFonts = sc.fontManager.missingUsedFonts();
   const [query, setQuery] = React.useState("");
@@ -65,7 +67,9 @@ function _UserManagedFontsPanel(props: {}) {
         <div className={"flex-fill"}>
           <label style={{ marginRight: 3 }}>{font}</label>
           {!sc.fontManager.isUserManagedFontInstalled(font) && (
-            <Tooltip title="This font is not available on this computer.">
+            <Tooltip
+              title={uiT("This font is not available on this computer.")}
+            >
               <Icon icon={AlertIcon} />
             </Tooltip>
           )}
@@ -81,7 +85,9 @@ function _UserManagedFontsPanel(props: {}) {
             </div>
           </IFrameAwareDropdownMenu>
         ) : (
-          <span style={{ fontSize: "85%", opacity: 0.5 }}>(imported)</span>
+          <span style={{ fontSize: "85%", opacity: 0.5 }}>
+            <UiText message={"(imported)"} />
+          </span>
         )}
       </div>
     );

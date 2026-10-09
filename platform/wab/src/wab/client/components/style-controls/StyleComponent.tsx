@@ -392,9 +392,13 @@ export function createStyleContextMenu(
             key={`extract-variant-${styleName}`}
             title={
               <>
-                <UiText message={"Extract"} />{" "}
-                <strong>{getLabelForStyleName(styleName)}</strong> style to
-                variant
+                <UiText
+                  message={"{part1} {part2} style to variant"}
+                  values={{
+                    part1: <UiText message={"Extract"} />,
+                    part2: <strong>{getLabelForStyleName(styleName)}</strong>,
+                  }}
+                />
               </>
             }
           >
@@ -436,7 +440,13 @@ export function createStyleContextMenu(
           key={opts.displayStyleName}
           onClick={() => resetStyle(opts.displayStyleName!)}
         >
-          {<UiLabel text={RESET_CAP} />} <strong>{label}</strong> style
+          <UiText
+            message={"{part1} {part2} style"}
+            values={{
+              part1: <UiLabel text={RESET_CAP} />,
+              part2: <strong>{label}</strong>,
+            }}
+          />
         </Menu.Item>,
       );
     } else {
@@ -444,7 +454,13 @@ export function createStyleContextMenu(
         const label = getLabelForStyleName(styleName);
         push(
           <Menu.Item key={styleName} onClick={() => resetStyle(styleName)}>
-            {<UiLabel text={RESET_CAP} />} <strong>{label}</strong> style
+            <UiText
+              message={"{part1} {part2} style"}
+              values={{
+                part1: <UiLabel text={RESET_CAP} />,
+                part2: <strong>{label}</strong>,
+              }}
+            />
           </Menu.Item>,
         );
       }
@@ -452,7 +468,10 @@ export function createStyleContextMenu(
 
     push(
       <Menu.Item key={"reset-all"} onClick={() => resetAllStyles()}>
-        {<UiLabel text={RESET_CAP} />} all styles
+        <UiText
+          message={"{part1} all styles"}
+          values={{ part1: <UiLabel text={RESET_CAP} /> }}
+        />
       </Menu.Item>,
     );
   });
@@ -525,11 +544,18 @@ function buildExtractToMixins(
   const buildExtractToMixin = (styleName?: string) => {
     builder.genSub(
       <>
-        <UiText message={"Extract"} />{" "}
-        <strong>
-          {styleName ? getLabelForStyleName(styleName) : "all styles"}
-        </strong>{" "}
-        to {<UiLabel text={MIXIN_LOWER} />}
+        <UiText
+          message={"{part1} {part2} to {part3}"}
+          values={{
+            part1: <UiText message={"Extract"} />,
+            part2: (
+              <strong>
+                {styleName ? getLabelForStyleName(styleName) : "all styles"}
+              </strong>
+            ),
+            part3: <UiLabel text={MIXIN_LOWER} />,
+          }}
+        />
       </>,
       (push) => {
         buildMixinPicker(builder, sc, async (mixinOrName) => {
@@ -619,9 +645,15 @@ function buildExtractToTokens(
 
     builder.genSub(
       <>
-        <UiText message={"Extract"} />{" "}
-        <strong>{getLabelForStyleName(styleName)}</strong> as{" "}
-        {tokenTypeLabel(tokenType).toLowerCase()} <UiText message={"token"} />
+        <UiText
+          message={"{part1} {part2} as {part3} {part4}"}
+          values={{
+            part1: <UiText message={"Extract"} />,
+            part2: <strong>{getLabelForStyleName(styleName)}</strong>,
+            part3: tokenTypeLabel(tokenType).toLowerCase(),
+            part4: <UiText message={"token"} />,
+          }}
+        />
       </>,
       (push) => {
         builder.genSection(undefined, (_push) => {

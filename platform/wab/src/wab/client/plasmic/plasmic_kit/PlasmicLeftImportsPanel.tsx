@@ -235,7 +235,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
               withIcons={["startIcon"]}
             >
               {hasVariant($state, "state", "refreshing")
-                ? "Checking\u2026"
+                ? <UiText message={"Checking…"} />
                 : "Check for updates"}
             </Button>
             {(
@@ -279,7 +279,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
                 withIcons={["startIcon"]}
               >
                 {hasVariant($state, "state", "refreshing")
-                  ? "Checking\u2026"
+                  ? <UiText message={"Checking…"} />
                   : "Update all"}
               </Button>
             ) : null}

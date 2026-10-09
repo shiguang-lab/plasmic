@@ -120,8 +120,13 @@ export const ComponentMetaDataPropsSection = observer(
                 message: "Key changed to be valid",
                 description: (
                   <>
-                    <code>{metaKeyAndValue.key}</code> is not a valid key name;
-                    renamed to <code>{validKey}</code> instead.
+                    <UiText
+                      message="{part1} is not a valid key name; renamed to {part2} instead."
+                      values={{
+                        part1: <code>{metaKeyAndValue.key}</code>,
+                        part2: <code>{validKey}</code>,
+                      }}
+                    />
                   </>
                 ),
               });
@@ -133,8 +138,10 @@ export const ComponentMetaDataPropsSection = observer(
                   message: "Existing key",
                   description: (
                     <>
-                      <code>{metaKeyAndValue.key}</code> is already a metadata
-                      key.
+                      <UiText
+                        message="{part1} is already a metadata key."
+                        values={{ part1: <code>{metaKeyAndValue.key}</code> }}
+                      />
                     </>
                   ),
                 });
@@ -210,8 +217,13 @@ const MetadataRow = observer(function MetadataRow(props: {
                 message: "Key changed to be valid",
                 description: (
                   <>
-                    <code>{newKey}</code> is not a valid key name; renamed to{" "}
-                    <code>{validKey}</code> instead.
+                    <UiText
+                      message="{part1} is not a valid key name; renamed to {part2} instead."
+                      values={{
+                        part1: <code>{newKey}</code>,
+                        part2: <code>{validKey}</code>,
+                      }}
+                    />
                   </>
                 ),
               });
@@ -225,7 +237,10 @@ const MetadataRow = observer(function MetadataRow(props: {
                       message: "Existing key",
                       description: (
                         <>
-                          <code>{newKey}</code> is already a metadata key.
+                          <UiText
+                            message="{part1} is already a metadata key."
+                            values={{ part1: <code>{newKey}</code> }}
+                          />
                         </>
                       ),
                     });

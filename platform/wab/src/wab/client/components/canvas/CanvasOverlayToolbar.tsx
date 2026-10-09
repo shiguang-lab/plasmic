@@ -1,4 +1,5 @@
 import styles from "@/wab/client/components/canvas/CanvasOverlayToolbar.module.scss";
+import { useI18n } from "@/wab/client/i18n";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { $$$ } from "@/wab/shared/TplQuery";
@@ -17,6 +18,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
   viewCtx: ViewCtx;
   fallback?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   if (
     viewCtx.studioCtx.isInteractiveMode ||
     viewCtx.focusedTpls().filter(Boolean).length !== 1 ||
@@ -76,7 +78,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
     <div
       className={fallback ? styles.fallback : styles.toolbar}
       role="toolbar"
-      aria-label="Edit overlays"
+      aria-label={uiT("Edit overlays")}
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
       onMouseDown={(event) => {

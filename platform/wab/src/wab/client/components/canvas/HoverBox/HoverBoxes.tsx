@@ -39,6 +39,7 @@ import {
   mkFreestyleManipForFocusedDomElt,
   mkFreestyleManipForFocusedFrame,
 } from "@/wab/client/FreestyleManipulator";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
 import {
   cssPropsForInvertTransform,
@@ -713,10 +714,17 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                                       showedToast = true;
                                       toast(
                                         <div>
-                                          Hold down{" "}
-                                          <OneShortcutCombo combo="alt" /> or{" "}
-                                          <OneShortcutCombo combo="shift" /> to
-                                          update more than one side at a time
+                                          <UiText
+                                            message="Hold down {alt} or {shift} to update more than one side at a time"
+                                            values={{
+                                              alt: (
+                                                <OneShortcutCombo combo="alt" />
+                                              ),
+                                              shift: (
+                                                <OneShortcutCombo combo="shift" />
+                                              ),
+                                            }}
+                                          />
                                           <br />(
                                           <LinkButton
                                             onClick={() => {
@@ -724,7 +732,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                                               notification.destroy("spacing");
                                             }}
                                           >
-                                            never show again
+                                            <UiText
+                                              message={"never show again"}
+                                            />
                                           </LinkButton>
                                           )
                                         </div>,

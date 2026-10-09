@@ -217,7 +217,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
           return <Spinner />;
         } else {
           return (
-            <LabeledItemRow label={"Table"}>
+            <LabeledItemRow label={uiT("Table")}>
               <EnumPropEditor
                 name={"dataTablePickerTable"}
                 valueSetState={tableId ? "isSet" : undefined}

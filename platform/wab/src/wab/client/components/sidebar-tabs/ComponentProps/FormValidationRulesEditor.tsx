@@ -197,7 +197,8 @@ export function FormValidationRulesEditor(
       <div className="flex-fill flex-left text-ellipsis">
         <Chip onClick={() => setShowModal(true)}>
           <span className="line-clamp-12">
-            {rules.length} rule{rules.length !== 1 ? "s" : ""}
+            {rules.length} <UiText message={"rule"} />
+            {rules.length !== 1 ? "s" : ""}
           </span>
         </Chip>
       </div>

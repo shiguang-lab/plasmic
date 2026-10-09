@@ -85,19 +85,37 @@ const DATA_SOURCE_MESSAGE = {
   supabase: (
     <>
       <p>
-        Connect to a Supabase Storage bucket and upload images, videos,
-        documents, or any other file type.
+        <UiText
+          message={
+            "Connect to a Supabase Storage bucket and upload images, videos, documents, or any other file type."
+          }
+        />
       </p>
       <p>
-        If you are looking to connect to Supabase database / tables, please use
-        the <b>Supabase Database</b> integration instead.
+        <UiText
+          message={
+            "If you are looking to connect to Supabase database / tables, please use the {part1} integration instead."
+          }
+          values={{
+            part1: (
+              <b>
+                <UiText message={"Supabase Database"} />
+              </b>
+            ),
+          }}
+        />
       </p>
       <p>
-        See{" "}
-        <a href="https://docs.plasmic.app/learn/supabase" target="_blank">
-          our Supabase docs
-        </a>{" "}
-        for more details.
+        <UiText
+          message={"See {part1} for more details."}
+          values={{
+            part1: (
+              <a href="https://docs.plasmic.app/learn/supabase" target="_blank">
+                <UiText message={"our Supabase docs"} />
+              </a>
+            ),
+          }}
+        />
       </p>
     </>
   ),
@@ -111,21 +129,36 @@ const DATA_SOURCE_ALIASES: DataSourceAlias[] = [
     message: (
       <>
         <p>
-          To connect to your Supabase database, Plasmic makes a{" "}
-          <a
-            href="https://supabase.com/docs/guides/database/connecting-to-postgres#direct-connections"
-            target="_blank"
-          >
-            direct connection
-          </a>{" "}
-          to the underlying Postgres database.
+          <UiText
+            message={
+              "To connect to your Supabase database, Plasmic makes a {part1} to the underlying Postgres database."
+            }
+            values={{
+              part1: (
+                <a
+                  href="https://supabase.com/docs/guides/database/connecting-to-postgres#direct-connections"
+                  target="_blank"
+                >
+                  <UiText message={"direct connection"} />
+                </a>
+              ),
+            }}
+          />
         </p>
         <p>
-          See{" "}
-          <a href="https://docs.plasmic.app/learn/supabase" target="_blank">
-            our Supabase docs
-          </a>{" "}
-          for more details.
+          <UiText
+            message={"See {part1} for more details."}
+            values={{
+              part1: (
+                <a
+                  href="https://docs.plasmic.app/learn/supabase"
+                  target="_blank"
+                >
+                  <UiText message={"our Supabase docs"} />
+                </a>
+              ),
+            }}
+          />
         </p>
       </>
     ),
@@ -328,7 +361,11 @@ export function DataSourceModal({
           showIcon={true}
           message={
             <div>
-              Only the owner of the integration or a workspace owner can edit it
+              <UiText
+                message={
+                  "Only the owner of the integration or a workspace owner can edit it"
+                }
+              />
             </div>
           }
         />
@@ -404,7 +441,7 @@ export function DataSourceModal({
           }
         }}
       >
-        <Form.Item name="source" label="Source" key="source" required>
+        <Form.Item name="source" label={uiT("Source")} key="source" required>
           <Select
             type="bordered"
             {...(dataSourceType || editingDataSource !== "new"
@@ -430,7 +467,7 @@ export function DataSourceModal({
               }
             }}
             isDisabled={isDisabled}
-            aria-label="Source"
+            aria-label={uiT("Source")}
             data-test-id={"data-source-picker"}
           >
             {dataSourceMetasOrAliases
@@ -465,7 +502,7 @@ export function DataSourceModal({
             required
           >
             <Textbox
-              placeholder="Name this integration"
+              placeholder={uiT("Name this integration")}
               styleType={["bordered"]}
               autoFocus
               aria-label={uiT("Name")}
@@ -480,10 +517,18 @@ export function DataSourceModal({
             <Alert
               message={
                 <>
-                  Airtable is <strong>not recommended</strong> due to its low
-                  rate limits and slow performance. It is sufficient for
-                  prototypes, but not for production. Consider migrating the
-                  data to a database like Postgres.
+                  <UiText
+                    message={
+                      "Airtable is {part1} due to its low rate limits and slow performance. It is sufficient for prototypes, but not for production. Consider migrating the data to a database like Postgres."
+                    }
+                    values={{
+                      part1: (
+                        <strong>
+                          <UiText message={"not recommended"} />
+                        </strong>
+                      ),
+                    }}
+                  />
                 </>
               }
               type="warning"
@@ -594,8 +639,10 @@ function CredentialsAndSettingsSection(props: {
 
     if (val[0] !== "{") {
       notification.warning({
-        message: "Invalid JSON object",
-        description: "Only JSON objects (wrapped in {}) are supported.",
+        message: <UiText message="Invalid JSON object" />,
+        description: (
+          <UiText message="Only JSON objects (wrapped in {}) are supported." />
+        ),
       });
       return;
     }
@@ -607,7 +654,7 @@ function CredentialsAndSettingsSection(props: {
       });
     } catch (err) {
       notification.warning({
-        message: "Invalid JSON",
+        message: <UiText message="Invalid JSON" />,
         description: `${err}`,
       });
     }
@@ -812,7 +859,7 @@ function GoogleSheetsSignInButton(props: {
       }}
       icon={<img alt={"Google"} className={styles.Icon} src={GLogo} />}
     >
-      Connect to Google
+      <UiText message={"Connect to Google"} />
     </ConnectOAuthButton>
   );
 }
@@ -933,7 +980,7 @@ function PostgresConnectionStringImportButton(props: {
         }}
         data-test-id={`postgres-connection-string`}
       >
-        Import from connection string
+        <UiText message={"Import from connection string"} />
       </Button>
     </div>
   );
@@ -994,7 +1041,11 @@ function StringDictEditor(props: {
   return (
     <ListBox
       appendPrepend="append"
-      addNode={<Button type="link">+ Add New</Button>}
+      addNode={
+        <Button type="link">
+          <UiText message={"+ Add New"} />
+        </Button>
+      }
       onAdd={() => {
         setCurrentValues([...currentValues, { key: "", value: "" }]);
       }}

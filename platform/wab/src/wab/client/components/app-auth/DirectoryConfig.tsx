@@ -18,6 +18,7 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultDirectoryConfigProps,
@@ -60,6 +61,7 @@ function DirectoryConfig_(
   props: DirectoryConfigProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
   const { goBack, onCancel, directoryId, project, ...rest } = props;
 
@@ -309,7 +311,9 @@ function DirectoryConfig_(
                   );
                 })
             ) : (
-              <ListItem hideIcon>You have no groups yet</ListItem>
+              <ListItem hideIcon>
+                <UiText message={"You have no groups yet"} />
+              </ListItem>
             ),
         }}
         directoryUsers={{
@@ -403,7 +407,7 @@ function DirectoryConfig_(
                   );
 
                   const confirmed = await confirm({
-                    title: "Delete directory",
+                    title: uiT("Delete directory"),
                     message: `Are you sure you want to delete "${directory?.name}"? The app auth will be pointing to "${substituteDirectory?.name}".`,
                   });
 
@@ -430,7 +434,7 @@ function DirectoryConfig_(
                   }
                 }}
               >
-                Delete directory
+                <UiText message={"Delete directory"} />
               </Menu.Item>
             </Menu>
           }
@@ -446,6 +450,7 @@ function AddUserToDirectoryModal(props: {
   mutateUsers: KeyedMutator<ApiEndUser[]>;
   onCancel: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
   const { directory, users, mutateUsers, onCancel } = props;
   const [userEmail, setUserEmail] = React.useState("");
@@ -484,7 +489,7 @@ function AddUserToDirectoryModal(props: {
       <FocusScope contain>
         <div>
           <Textbox
-            placeholder="Enter user email"
+            placeholder={uiT("Enter user email")}
             autoFocus
             value={userEmail}
             onChange={(e) => {
@@ -502,7 +507,7 @@ function AddUserToDirectoryModal(props: {
                 await addUserToDirectory();
               }}
             >
-              Add user
+              <UiText message={"Add user"} />
             </Button>
             <Button
               onClick={() => {

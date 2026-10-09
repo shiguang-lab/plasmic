@@ -654,6 +654,7 @@ function Misc(props: TeamProps) {
 }
 
 function Members({ team, perms, refetch }: TeamProps) {
+  const { t: uiT } = useI18n();
   const nonAuthCtx = useNonAuthCtx();
 
   // Each permission should already have a user,
@@ -681,7 +682,7 @@ function Members({ team, perms, refetch }: TeamProps) {
           defaultSortOrder: "descend",
         },
         {
-          title: "Actions",
+          title: uiT("Actions"),
           dataIndex: "actions",
           render: (_value, perm) => {
             const userId = perm.user?.id;
@@ -962,7 +963,7 @@ function TeamDiscourseInfo(props: TeamProps) {
           >
             category
           </PublicLink>{" "}
-          and{" "}
+          <UiText message={"and"} />{" "}
           <PublicLink
             href={`${BASE_URL}/g/${props.discourseInfo.slug}`}
             target="_blank"

@@ -496,11 +496,12 @@ const ContextPropEditor = observer(function ContextPropEditor_(props: {
                       {makeGlobalContextPropName(tpl.component)}
                     </h4>
                     <p>
-                      This is the name you would use in{" "}
-                      <code>PlasmicRootProvider</code> to override the global
-                      context props from your code. This is useful for
-                      overriding the context for (say) different
-                      staging/production environment deployments.
+                      <UiText
+                        message={
+                          "This is the name you would use in {part1} to override the global context props from your code. This is useful for overriding the context for (say) different staging/production environment deployments."
+                        }
+                        values={{ part1: <code>PlasmicRootProvider</code> }}
+                      />
                     </p>
                     <pre>
                       <code>
@@ -525,7 +526,7 @@ ${tpl.component.params
                         "https://docs.plasmic.app/learn/global-contexts/#prop-override"
                       }
                     >
-                      Read the full docs
+                      <UiText message={"Read the full docs"} />
                     </a>
                   </div>
                 </div>

@@ -14,6 +14,7 @@ import {
 } from "@/wab/client/components/widgets";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultViewAsButtonProps,
@@ -54,6 +55,7 @@ export type ViewAsButtonProps = DefaultViewAsButtonProps;
 const maxListedUsers = 30;
 
 function _ViewAsButton(props: ViewAsButtonProps) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
   const currentAppUserCtx = studioCtx.currentAppUserCtx;
@@ -123,7 +125,7 @@ function _ViewAsButton(props: ViewAsButtonProps) {
             <Menu.Item className="ant-dropdown-menu-item--not-selectable">
               <ClickStopper>
                 <Textbox
-                  placeholder="Search emails"
+                  placeholder={uiT("Search emails")}
                   className={"mb-sm"}
                   style={{ border: "none", boxShadow: "none" }}
                   autoFocus
@@ -135,12 +137,14 @@ function _ViewAsButton(props: ViewAsButtonProps) {
             </Menu.Item>
           )}
           {appUsers.appUsers.length === 0 && (
-            <Menu.ItemGroup title="View as user">
-              <Menu.Item disabled>(No users defined!)</Menu.Item>
+            <Menu.ItemGroup title={uiT("View as user")}>
+              <Menu.Item disabled>
+                <UiText message={"(No users defined!)"} />
+              </Menu.Item>
             </Menu.ItemGroup>
           )}
           {appUsers.appUsers.length > 0 && (
-            <Menu.ItemGroup title="View as user">
+            <Menu.ItemGroup title={uiT("View as user")}>
               {ifEmpty(
                 appUsers.appUsers
                   .filter((u) =>
@@ -163,7 +167,9 @@ function _ViewAsButton(props: ViewAsButtonProps) {
                     );
                   }),
                 () => (
-                  <Menu.Item disabled>User not found</Menu.Item>
+                  <Menu.Item disabled>
+                    <UiText message={"User not found"} />
+                  </Menu.Item>
                 ),
               )}
             </Menu.ItemGroup>
@@ -175,7 +181,7 @@ function _ViewAsButton(props: ViewAsButtonProps) {
               await logoutAppUser();
             }}
           >
-            View as anonymous user
+            <UiText message={"View as anonymous user"} />
           </Menu.Item>
           {isEditor && (
             <>
@@ -185,7 +191,7 @@ function _ViewAsButton(props: ViewAsButtonProps) {
                   await topFrameApi.setShowAppAuthModal(true);
                 }}
               >
-                Manage users & settings
+                <UiText message={"Manage users & settings"} />
               </Menu.Item>
               <Menu.Divider />
               {!studioCtx.isLiveMode && <AdvancedAppAuthMenuItems />}
@@ -200,6 +206,7 @@ function _ViewAsButton(props: ViewAsButtonProps) {
 }
 
 export function AdvancedAppAuthMenuItems() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const appCtx = studioCtx.appCtx;
   const appId = studioCtx.siteInfo.id;
@@ -250,7 +257,7 @@ export function AdvancedAppAuthMenuItems() {
 
   return (
     <>
-      <Menu.ItemGroup title="User properties">
+      <Menu.ItemGroup title={uiT("User properties")}>
         {appCurrentUserOpConfig && roles.length > 0 && (
           <Menu.Item
             key="configure-up"

@@ -44,6 +44,8 @@ let desktopSession;
 let unifiedAuth;
 let recoverSession;
 let startingDesktop;
+let desktopI18n;
+const { createDesktopI18n } = require("./i18n.cjs");
 const {
   DesktopUnifiedLogin,
   AUTH_ORIGIN,
@@ -122,6 +124,11 @@ async function startDesktop() {
     app.dock.setIcon(appIcon);
   }
   const root = path.join(__dirname, "..", "renderer");
+  desktopI18n ??= createDesktopI18n(
+    path.join(root, "ui-locales"),
+    app.getPreferredSystemLanguages(),
+  );
+  const { t } = desktopI18n;
   const manifest = JSON.parse(
     fs.readFileSync(path.join(root, "desktop-assets.json"), "utf8"),
   );
@@ -170,6 +177,7 @@ async function startDesktop() {
         authPagePath: path.join(__dirname, "unified-login.html"),
         updateUiPath: path.join(__dirname, "update-ui.js"),
         updateDialogPath: path.join(__dirname, "update-dialog.js"),
+        rendererI18nPath: path.join(__dirname, "renderer-i18n.js"),
         bundledFontCss: fs
           .readdirSync(path.join(root, "static/desktop-fonts"))
           .filter((file) => file.endsWith(".css"))
@@ -237,7 +245,11 @@ async function startDesktop() {
       args: app.isPackaged ? ["--mcp"] : [app.getAppPath(), "--mcp"],
     });
     integrations.restore();
-    openMcpSettings = createMcpSettings(integrations, () => mainWindow);
+    openMcpSettings = createMcpSettings(
+      integrations,
+      () => mainWindow,
+      desktopI18n,
+    );
     const trustedAuthSender = (event) => {
       return (
         mainWindow &&
@@ -246,6 +258,11 @@ async function startDesktop() {
         new URL(event.senderFrame.url).origin === config.studioOrigin
       );
     };
+    ipcMain.handle("desktop:ui-locale", (event, value) => {
+      if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
+      if (value !== undefined) desktopI18n.setLocale(value);
+      return desktopI18n.snapshot();
+    });
     ipcMain.handle("desktop:auth-command", (event, command) => {
       if (
         !trustedAuthSender(event) ||
@@ -289,6 +306,7 @@ async function startDesktop() {
     controller,
     dialog,
     homeUrl: config.studioOrigin + "/",
+    t,
   });
   let menuState;
   let checkpoint;
@@ -371,11 +389,28 @@ async function startDesktop() {
   openUpdates = createUpdateDialog(updates, win);
   function buildMenu() {
     const checkForUpdatesItem = {
-      label: "Check for Updates…",
+      label: t("Check for Updates…"),
       click: () => openUpdates(),
     };
     const menu = Menu.buildFromTemplate([
-      ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
+      ...(process.platform === "darwin"
+        ? [
+            {
+              label: "Plasmic",
+              submenu: [
+                { role: "about", label: t("About Plasmic") },
+                { type: "separator" },
+                { role: "services", label: t("Services") },
+                { type: "separator" },
+                { role: "hide", label: t("Hide Plasmic") },
+                { role: "hideOthers", label: t("Hide Others") },
+                { role: "unhide", label: t("Show All") },
+                { type: "separator" },
+                { role: "quit", label: t("Quit Plasmic") },
+              ],
+            },
+          ]
+        : []),
       fileMenu({
         controller,
         workspace,
@@ -383,39 +418,52 @@ async function startDesktop() {
         dialog,
         refresh: buildMenu,
         state: menuState,
+        t,
       }),
       {
-        label: "Edit",
+        label: t("Edit"),
         submenu: [
-          { role: "undo", label: "Undo" },
-          { role: "redo", label: "Redo" },
+          { role: "undo", label: t("Undo") },
+          { role: "redo", label: t("Redo") },
           { type: "separator" },
-          { role: "cut", label: "Cut" },
-          { role: "copy", label: "Copy" },
-          { role: "paste", label: "Paste" },
-          { role: "selectAll", label: "Select All" },
+          { role: "cut", label: t("Cut") },
+          { role: "copy", label: t("Copy") },
+          { role: "paste", label: t("Paste") },
+          { role: "selectAll", label: t("Select All") },
         ],
       },
       {
-        label: "View",
+        label: t("View"),
         submenu: [
-          { role: "reload", label: "Reload" },
-          { role: "forceReload", label: "Force Reload" },
-          { role: "toggleDevTools", label: "Toggle Developer Tools" },
+          { role: "reload", label: t("Reload") },
+          { role: "forceReload", label: t("Force Reload") },
+          { role: "toggleDevTools", label: t("Toggle Developer Tools") },
           { type: "separator" },
-          { role: "resetZoom", label: "Actual Size" },
-          { role: "zoomIn", label: "Zoom In" },
-          { role: "zoomOut", label: "Zoom Out" },
-          { role: "togglefullscreen", label: "Toggle Full Screen" },
+          { role: "resetZoom", label: t("Actual Size") },
+          { role: "zoomIn", label: t("Zoom In") },
+          { role: "zoomOut", label: t("Zoom Out") },
+          { role: "togglefullscreen", label: t("Toggle Full Screen") },
         ],
       },
-      { label: "Window", role: "windowMenu" },
+      {
+        label: t("Window"),
+        submenu: [
+          { role: "minimize", label: t("Minimize") },
+          { role: "zoom", label: t("Zoom") },
+          ...(process.platform === "darwin"
+            ? [
+                { type: "separator" },
+                { role: "front", label: t("Bring All to Front") },
+              ]
+            : []),
+        ],
+      },
       ...(process.platform !== "darwin"
-        ? [{ label: "Updates", submenu: [checkForUpdatesItem] }]
+        ? [{ label: t("Updates"), submenu: [checkForUpdatesItem] }]
         : []),
       {
-        label: "AI",
-        submenu: [{ label: "MCP", click: () => openMcpSettings() }],
+        label: t("AI"),
+        submenu: [{ label: t("MCP"), click: () => openMcpSettings() }],
       },
     ]);
     if (process.platform === "darwin") {
@@ -428,6 +476,12 @@ async function startDesktop() {
   }
   const startupUrl = await workspace.startupUrl(desktopSession);
   buildMenu();
+  const stopLocale = desktopI18n.subscribe(() => {
+    buildMenu();
+    if (!win.isDestroyed())
+      win.webContents.send("desktop:ui-locale", desktopI18n.snapshot());
+  });
+  win.once("closed", stopLocale);
   try {
     await mainWindow.loadURL(startupUrl);
   } catch (error) {

@@ -55,16 +55,9 @@ import L from "lodash";
 import React, { useEffect, useState } from "react";
 
 export const personalProjectPaywallMessage = (
-  <>
-    This project is a personal project that is not in any {<UiLabel text={ORGANIZATION_LOWER} />}{" "}
-    workspace, so it is limited to {DEVFLAGS.freeTier.maxUsers} editors and no
-    A/B testing or custom targeting. Please move the project into a{" "}
-    {<UiLabel text={ORGANIZATION_LOWER} />} whose plan supports a larger number of seats, or{" "}
-    <a href="https://www.plasmic.app/pricing" target="_blank">
-      create such a {<UiLabel text={ORGANIZATION_LOWER} />}
-    </a>
-    .
-  </>
+  <><UiText message={"This project is a personal project that is not in any {part1} workspace, so it is limited to {part2} editors and no A/B testing or custom targeting. Please move the project into a {part3} whose plan supports a larger number of seats, or {part4}."} values={{part1: (<UiLabel text={ORGANIZATION_LOWER} />),part2: (DEVFLAGS.freeTier.maxUsers),part3: (<UiLabel text={ORGANIZATION_LOWER} />),part4: (<a href="https://www.plasmic.app/pricing" target="_blank">
+      <UiText message="create such a {kind}" values={{kind: <UiLabel text={ORGANIZATION_LOWER} />}} />
+    </a>)}} /></>
 );
 
 export function getTeamInviteLink(team: ApiTeam) {
@@ -261,11 +254,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                 const confirmed = await reactConfirm({
                   title: uiT("Transfer ownership"),
                   message: (
-                    <>
-                      You will lose owner status and become an editor. Transfer
-                      ownership of <strong>{resource.resource.name}</strong> to{" "}
-                      {permEmail}?
-                    </>
+                    <><UiText message={"You will lose owner status and become an editor. Transfer ownership of {part1} to {part2}?"} values={{part1: (<strong>{resource.resource.name}</strong>),part2: (permEmail)}} /></>
                   ),
                 });
                 if (!confirmed) {

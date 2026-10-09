@@ -253,7 +253,7 @@ function PlasmicComponentView__RenderFunc(props: {
                 ),
               })}
             >
-              {"Dark"}
+              {<UiText message={"Dark"} />}
             </TemplateRow>
           ) : null}
           {(hasVariant($state, "componentType", "code") ? true : false) ? (

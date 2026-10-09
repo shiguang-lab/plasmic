@@ -184,7 +184,9 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
             <Select.Option value="running">
               <UiText message={"Running"} />
             </Select.Option>,
-            <Select.Option value="stopped">Stopped</Select.Option>,
+            <Select.Option value="stopped">
+              <UiText message={"Stopped"} />
+            </Select.Option>,
           ],
         },
       }}

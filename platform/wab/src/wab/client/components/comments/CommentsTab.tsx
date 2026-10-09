@@ -4,6 +4,7 @@ import {
   FilterValueToLabel,
   partitionThreadsForFrames,
 } from "@/wab/client/components/comments/utils";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCommentsTabProps,
   PlasmicCommentsTab,
@@ -48,6 +49,7 @@ function getArenaDetails(currentArena: AnyArena) {
 export const CommentsTab = observer(function CommentsTab(
   props: CommentsTabProps,
 ) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
 
   const currentArena = studioCtx.currentArena;
@@ -87,7 +89,7 @@ export const CommentsTab = observer(function CommentsTab(
             <Dropdown
               overlay={
                 <Menu selectedKeys={[currentNotificationLevel]}>
-                  <Menu.ItemGroup title={"Notify me about"}>
+                  <Menu.ItemGroup title={uiT("Notify me about")}>
                     {Object.entries(notifyAboutKeyToLabel).map(
                       ([key, label]) => (
                         <Menu.Item

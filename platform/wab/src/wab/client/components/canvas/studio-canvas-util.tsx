@@ -176,13 +176,16 @@ export function showCanvasPageNavigationNotification(
     description: (
       <div>
         <p>
-          The application tried to go to a different page
-          {href ? (
-            <>
-              , <u>{href}</u>
-            </>
-          ) : null}
-          .
+          <UiText
+            message={"The application tried to go to a different page{part1}."}
+            values={{
+              part1: href ? (
+                <>
+                  , <u>{href}</u>
+                </>
+              ) : null,
+            }}
+          />
         </p>
         {maybeFound ? (
           <p>
@@ -210,7 +213,7 @@ export function showCanvasPageNavigationNotification(
                 notification.destroy("navigation-notification");
               }}
             >
-              Switch to editing that page
+              <UiText message={"Switch to editing that page"} />
             </LinkButton>
           </p>
         ) : null}
@@ -223,7 +226,8 @@ export function showCanvasPageNavigationNotification(
                 notification.destroy("navigation-notification");
               }}
             >
-              <UiText message={"Open"} /> {href} in a new tab
+              <UiText message={"Open"} /> {href}{" "}
+              <UiText message={"in a new tab"} />
             </PublicLink>
           </p>
         )}
@@ -239,9 +243,11 @@ export function showCanvasAuthNotification(
     message: `Login and logout not supported in ${mode}`,
     description: (
       <p>
-        Plasmic Studio detected and ignored a login or logout event. To view
-        this artboard as a different user, click the "View as..." dropdown in
-        the top bar.
+        <UiText
+          message={
+            'Plasmic Studio detected and ignored a login or logout event. To view this artboard as a different user, click the "View as..." dropdown in the top bar.'
+          }
+        />
       </p>
     ),
   });
@@ -254,7 +260,11 @@ export function trapInteractionError(
 ) {
   const previewCtx = studioCtx.previewCtx;
   const found = studioCtx.tplMgr().findInteractionByUuid(loc.interactionUuid);
-  let title = <>Error in interaction</>;
+  let title = (
+    <>
+      <UiText message={"Error in interaction"} />
+    </>
+  );
   let details = <></>;
   if (found) {
     const { component, tpl, eventHandlerKey, eventHandler, interaction } =
@@ -283,11 +293,16 @@ export function trapInteractionError(
     }
     title = (
       <>
-        Error in{" "}
-        <strong>
-          {getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl })}
-        </strong>{" "}
-        interaction
+        <UiText
+          message={"Error in {part1} interaction"}
+          values={{
+            part1: (
+              <strong>
+                {getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl })}
+              </strong>
+            ),
+          }}
+        />
       </>
     );
     details = (() => {
@@ -299,9 +314,18 @@ export function trapInteractionError(
           return (
             <>
               <p>
-                Error in <strong>{propLabel}</strong> of step "
-                <strong>{stepName}</strong>".{" "}
-                <LinkButton onClick={goToStep}>Edit step</LinkButton>.
+                <UiText
+                  message={'Error in {property} of step "{step}". {edit}'}
+                  values={{
+                    property: <strong>{propLabel}</strong>,
+                    step: <strong>{stepName}</strong>,
+                    edit: (
+                      <LinkButton onClick={goToStep}>
+                        <UiText message="Edit step" />
+                      </LinkButton>
+                    ),
+                  }}
+                />
               </p>
 
               <pre style={{ whiteSpace: "pre-wrap" }}>
@@ -314,8 +338,17 @@ export function trapInteractionError(
           return (
             <>
               <p>
-                Error in step "<strong>{stepName}</strong>".{" "}
-                <LinkButton onClick={goToStep}>Edit step</LinkButton>.
+                <UiText
+                  message={'Error in step "{step}". {edit}'}
+                  values={{
+                    step: <strong>{stepName}</strong>,
+                    edit: (
+                      <LinkButton onClick={goToStep}>
+                        <UiText message="Edit step" />
+                      </LinkButton>
+                    ),
+                  }}
+                />
               </p>
               <pre style={{ whiteSpace: "pre-wrap" }}>
                 <code>{error.message}</code>

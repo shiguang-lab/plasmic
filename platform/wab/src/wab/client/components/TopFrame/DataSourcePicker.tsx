@@ -87,8 +87,11 @@ export function DataSourcePicker({
         >
           {!thisProjectsWorkspace ? (
             <Form.Item wrapperCol={{ span: 24 }}>
-              Your project doesn't belong in a workspace. You can only use data
-              sources from a project in a workspace.
+              <UiText
+                message={
+                  "Your project doesn't belong in a workspace. You can only use data sources from a project in a workspace."
+                }
+              />
             </Form.Item>
           ) : !data ? (
             <Form.Item wrapperCol={{ span: 24 }}>
@@ -125,7 +128,12 @@ export function DataSourcePicker({
                         textValue={`Create new ${DATA_SOURCE_LOWER}`}
                         value="create"
                       >
-                        Create a new {<UiLabel text={DATA_SOURCE_LOWER} />}...
+                        <UiText
+                          message={"Create a new {part1}..."}
+                          values={{
+                            part1: <UiLabel text={DATA_SOURCE_LOWER} />,
+                          }}
+                        />
                       </Select.Option>
                       {sources
                         .filter(

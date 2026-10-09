@@ -143,10 +143,16 @@ function DatabaseListItem_(
                       onUpdate();
                     }}
                   >
-                    <strong>
-                      <UiText message={"Move"} />
-                    </strong>{" "}
-                    to workspace
+                    <UiText
+                      message={"{part1} to workspace"}
+                      values={{
+                        part1: (
+                          <strong>
+                            <UiText message={"Move"} />
+                          </strong>
+                        ),
+                      }}
+                    />
                   </Menu.Item>
                   <Menu.Item
                     key="duplicate"
@@ -158,10 +164,16 @@ function DatabaseListItem_(
                       onUpdate();
                     }}
                   >
-                    <strong>
-                      <UiText message={"Duplicate"} />
-                    </strong>{" "}
-                    CMS Schema
+                    <UiText
+                      message={"{part1} CMS Schema"}
+                      values={{
+                        part1: (
+                          <strong>
+                            <UiText message={"Duplicate"} />
+                          </strong>
+                        ),
+                      }}
+                    />
                   </Menu.Item>
                   <Menu.Item
                     key="delete"
@@ -170,8 +182,14 @@ function DatabaseListItem_(
                         title: `Delete CMS Database`,
                         message: (
                           <>
-                            Are you sure you want to delete the database{" "}
-                            <strong>{database.name}</strong>?
+                            <UiText
+                              message={
+                                "Are you sure you want to delete the database {part1}?"
+                              }
+                              values={{
+                                part1: <strong>{database.name}</strong>,
+                              }}
+                            />
                           </>
                         ),
                       });

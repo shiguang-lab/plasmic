@@ -194,7 +194,7 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "showControls", "showControls")
-            ? "Controls"
+            ? <UiText message={"Controls"} />
             : <UiText message={"Enter some text"} />}
         </div>
       </div>

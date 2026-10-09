@@ -401,7 +401,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "state", "welcomeGuest")
-              ? "Welcome to Plasmic!"
+              ? <UiText message={"Welcome to Plasmic!"} />
               : hasVariant($state, "state", "protectedMainBranch")
               ? "The main branch is currently protected."
               : hasVariant($state, "state", "invariantError")

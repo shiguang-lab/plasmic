@@ -3,6 +3,7 @@ import { PropValueEditor } from "@/wab/client/components/sidebar-tabs/PropValueE
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import {
@@ -90,6 +91,7 @@ export const ArrayPrimitiveEditor = observer(function ArrayPrimitiveEditor({
   onChange,
   "data-test-id": dataTestId,
 }: ArrayPrimitiveEditorProps) {
+  const { t: uiT } = useI18n();
   const rows = toChoiceRows(options ?? []);
   const change = (newRows: ChoiceRow[]) => onChange(toChoiceOptions(newRows));
 
@@ -143,7 +145,7 @@ export const ArrayPrimitiveEditor = observer(function ArrayPrimitiveEditor({
                 mainContent={
                   <div className={"flex-fill flex-row gap-sm"}>
                     <PropValueEditor
-                      label={"value"}
+                      label={uiT("value")}
                       attr={"value"}
                       propType={"string"}
                       value={String(row.value)}
@@ -157,7 +159,7 @@ export const ArrayPrimitiveEditor = observer(function ArrayPrimitiveEditor({
                       }
                     />
                     <PropValueEditor
-                      label={"label"}
+                      label={uiT("label")}
                       attr={"label"}
                       propType={{
                         type: "string",

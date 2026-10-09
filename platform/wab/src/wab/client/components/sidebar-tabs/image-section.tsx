@@ -199,9 +199,18 @@ export const ImageSection = observer(function ImageSection(props: {
                         </code>
                       </p>
                       <p>
-                        With a <b>image slot</b> you can override this image in
-                        the component props section, you can also set a default
-                        image for components that don't set it.
+                        <UiText
+                          message={
+                            "With a {part1} you can override this image in the component props section, you can also set a default image for components that don't set it."
+                          }
+                          values={{
+                            part1: (
+                              <b>
+                                <UiText message={"image slot"} />
+                              </b>
+                            ),
+                          }}
+                        />
                       </p>
                     </>
                   }
@@ -399,41 +408,59 @@ export const ImageSection = observer(function ImageSection(props: {
               showIcon={true}
               message={
                 <div>
-                  This icon is default content for slot{" "}
-                  <code>{ancestorSlot.param.variable.name}</code>. If you want
-                  to change the color of any content in the slot, and not just
-                  <em>this</em> default icon, then you should{" "}
-                  <a
-                    onClick={() =>
-                      viewCtx.change(() =>
-                        viewCtx.setStudioFocusByTpl(ancestorSlot),
-                      )
+                  <UiText
+                    message={
+                      "This icon is default content for slot {part1}. If you want to change the color of any content in the slot, and not just{part2} default icon, then you should {part3}.{part4}"
                     }
-                  >
-                    <strong>style the slot instead</strong>
-                  </a>
-                  .
-                  {hasTypoStyles && (
-                    <>
-                      {" "}
-                      You can also transfer the color here{" "}
-                      <a
-                        onClick={() =>
-                          viewCtx.change(() =>
-                            viewCtx
-                              .getViewOps()
-                              .transferTextStyleToSlot(
-                                tpl as TplTag,
-                                ancestorSlot,
+                    values={{
+                      part1: <code>{ancestorSlot.param.variable.name}</code>,
+                      part2: (
+                        <em>
+                          <UiText message={"this"} />
+                        </em>
+                      ),
+                      part3: (
+                        <a
+                          onClick={() =>
+                            viewCtx.change(() =>
+                              viewCtx.setStudioFocusByTpl(ancestorSlot),
+                            )
+                          }
+                        >
+                          <strong>
+                            <UiText message={"style the slot instead"} />
+                          </strong>
+                        </a>
+                      ),
+                      part4: hasTypoStyles && (
+                        <>
+                          <UiText
+                            message={
+                              "You can also transfer the color here {part1}."
+                            }
+                            values={{
+                              part1: (
+                                <a
+                                  onClick={() =>
+                                    viewCtx.change(() =>
+                                      viewCtx
+                                        .getViewOps()
+                                        .transferTextStyleToSlot(
+                                          tpl as TplTag,
+                                          ancestorSlot,
+                                        ),
+                                    )
+                                  }
+                                >
+                                  <UiText message={"to the slot"} />
+                                </a>
                               ),
-                          )
-                        }
-                      >
-                        to the slot
-                      </a>
-                      .
-                    </>
-                  )}
+                            }}
+                          />
+                        </>
+                      ),
+                    }}
+                  />
                 </div>
               }
             />
@@ -540,10 +567,16 @@ export function makeImageMenu({
             }
           >
             <span>
-              Unset default value for{" "}
-              <code>
-                {ownerComponent.name}.{variable!.name}
-              </code>
+              <UiText
+                message={"Unset default value for {part1}"}
+                values={{
+                  part1: (
+                    <code>
+                      {ownerComponent.name}.{variable!.name}
+                    </code>
+                  ),
+                }}
+              />
             </span>
           </Menu.Item>,
         );

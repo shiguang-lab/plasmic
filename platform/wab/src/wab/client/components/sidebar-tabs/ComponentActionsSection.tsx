@@ -1,3 +1,4 @@
+import { UiLabel } from "@/wab/client/i18n/UiText";
 import {
   isKnownNamedState,
   isKnownRenderExpr,
@@ -6,8 +7,8 @@ import {
 import { reportError } from "@/wab/client/ErrorNotifications";
 import { ConnectToDBTableModal } from "@/wab/client/components/sidebar-tabs/DataSource/ConnectToDBTable";
 import { updateOrCreateExpr } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
+import { htmlForComponentAction } from "@/wab/client/components/sidebar-tabs/component-action-html";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
-import { htmlForComponentAction } from "./component-action-html";
 import Button from "@/wab/client/components/widgets/Button";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -27,9 +28,9 @@ import { notification } from "antd";
 import domAlign from "dom-align";
 import $ from "jquery";
 import { observer } from "mobx-react";
+import { ok } from "neverthrow";
 import React from "react";
 import { Root } from "react-dom/client";
-import { ok } from "neverthrow";
 import { useUnmount } from "react-use";
 
 export const ComponentActionsSection = observer(
@@ -139,18 +140,20 @@ export function useStudioOps(
     const renderElement = sub.React.createElement(
       sub.StudioControlsProvider,
       { studioDocument: node.ownerDocument },
-      sub.React.createElement(sub.GenericErrorBoundary,
-      {
-        className: "error-boundary",
-      },
-      sub.React.createElement(FullScreenModal, {
-        ...modalProps,
-        show: !!modalProps,
-        onClose: () => {
-          modalProps?.onClose?.();
-          setModalProps(null);
+      sub.React.createElement(
+        sub.GenericErrorBoundary,
+        {
+          className: "error-boundary",
         },
-      })),
+        sub.React.createElement(FullScreenModal, {
+          ...modalProps,
+          show: !!modalProps,
+          onClose: () => {
+            modalProps?.onClose?.();
+            setModalProps(null);
+          },
+        }),
+      ),
     );
     if (root.current) {
       root.current.render(renderElement);
@@ -255,12 +258,15 @@ export function useStudioOps(
         "This slot already has content. Edit the existing template to preserve your changes.",
       );
       const parsed = ensureOk(
-        await htmlToTpl(htmlForComponentAction(html, viewCtx.site, tplComp.component), {
-          site: viewCtx.site,
-          vtm,
-          appCtx: viewCtx.studioCtx.appCtx,
-          pageHrefs: true,
-        }),
+        await htmlToTpl(
+          htmlForComponentAction(html, viewCtx.site, tplComp.component),
+          {
+            site: viewCtx.site,
+            vtm,
+            appCtx: viewCtx.studioCtx.appCtx,
+            pageHrefs: true,
+          },
+        ),
       );
       assert(
         !parsed.errors.length,
@@ -422,23 +428,30 @@ function ButtonAction<P>({
       <Button
         onClick={() => {
           spawn(
-            viewCtx.studioCtx.change(() => ok(onClick({
-                componentProps: componentPropValues,
-                contextData: ccContextData,
-                studioOps: studioOps,
-                projectData: projectData,
-                studioDocument: document,
-              }))).then(ensureOk).catch((error) => {
-              notification.error({
-                message: "Component action failed",
-                description: error.message,
-              });
-              reportError(error);
-            }),
+            viewCtx.studioCtx
+              .change(() =>
+                ok(
+                  onClick({
+                    componentProps: componentPropValues,
+                    contextData: ccContextData,
+                    studioOps: studioOps,
+                    projectData: projectData,
+                    studioDocument: document,
+                  }),
+                ),
+              )
+              .then(ensureOk)
+              .catch((error) => {
+                notification.error({
+                  message: "Component action failed",
+                  description: error.message,
+                });
+                reportError(error);
+              }),
           );
         }}
       >
-        {label}
+        <UiLabel text={label} />
       </Button>
       <div ref={containerRef} style={{ display: "contents" }} />
     </>
@@ -483,17 +496,19 @@ function CustomAction<P>({
     const renderElement = sub.React.createElement(
       sub.StudioControlsProvider,
       { studioDocument: node.ownerDocument },
-      sub.React.createElement(sub.GenericErrorBoundary,
-      {
-        className: "error-boundary",
-      },
-      sub.React.createElement(control, {
-        componentProps: componentPropValues,
-        contextData: ccContextData,
-        studioOps: studioOps,
-        projectData: projectData,
-        studioDocument: window.document,
-      })),
+      sub.React.createElement(
+        sub.GenericErrorBoundary,
+        {
+          className: "error-boundary",
+        },
+        sub.React.createElement(control, {
+          componentProps: componentPropValues,
+          contextData: ccContextData,
+          studioOps: studioOps,
+          projectData: projectData,
+          studioDocument: window.document,
+        }),
+      ),
     );
     if (actionRoot.current) {
       actionRoot.current.render(renderElement);

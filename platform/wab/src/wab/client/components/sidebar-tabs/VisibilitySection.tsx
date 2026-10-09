@@ -168,11 +168,17 @@ function VisibilitySection_(props: {
             }
             onClick={handleUnsetVisibility}
           >
-            {<UiLabel text={RESET_CAP} />}{" "}
-            <strong>
-              <UiText message={"Visibility"} />
-            </strong>{" "}
-            style
+            <UiText
+              message={"{part1} {part2} style"}
+              values={{
+                part1: <UiLabel text={RESET_CAP} />,
+                part2: (
+                  <strong>
+                    <UiText message={"Visibility"} />
+                  </strong>
+                ),
+              }}
+            />
           </Menu.Item>,
         );
       }

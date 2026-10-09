@@ -301,7 +301,7 @@ const AutoChildSettings = observer(function AutoChildSettings(props: {
                     labelSize="small"
                   />
                   <LabeledStyleDimItem
-                    label="Z-index"
+                    label={uiT("Z-index")}
                     styleName="z-index"
                     dimOpts={{
                       allowedUnits: NUMBER_UNITS,
@@ -320,7 +320,7 @@ const AutoChildSettings = observer(function AutoChildSettings(props: {
                 <FullRow>
                   <div style={{ marginLeft: "auto", width: "50%" }}>
                     <LabeledStyleDimItem
-                      label="Z-index"
+                      label={uiT("Z-index")}
                       styleName="z-index"
                       dimOpts={{
                         allowedUnits: NUMBER_UNITS,
@@ -346,6 +346,7 @@ const FreeChildSettings = observer(function FreeChildSettings({
   expsProvider: ExpsProvider;
   renderMaybeCollapsibleRows?: MaybeCollapsibleRowsRenderer;
 }) {
+  const { t: uiT } = useI18n();
   return (
     <>
       <FullRow>
@@ -366,7 +367,7 @@ const FreeChildSettings = observer(function FreeChildSettings({
             <FullRow>
               <div style={{ marginLeft: "auto", width: "50%" }}>
                 <LabeledStyleDimItem
-                  label="Z-index"
+                  label={uiT("Z-index")}
                   styleName="z-index"
                   dimOpts={{
                     allowedUnits: NUMBER_UNITS,
@@ -391,6 +392,7 @@ const FixedChildSettings = observer(function FixedChildSettings({
   expsProvider: ExpsProvider;
   renderMaybeCollapsibleRows?: MaybeCollapsibleRowsRenderer;
 }) {
+  const { t: uiT } = useI18n();
   return (
     <>
       <FullRow>
@@ -417,7 +419,7 @@ const FixedChildSettings = observer(function FixedChildSettings({
             <FullRow>
               <div style={{ marginLeft: "auto", width: "50%" }}>
                 <LabeledStyleDimItem
-                  label="Z-index"
+                  label={uiT("Z-index")}
                   styleName="z-index"
                   dimOpts={{
                     allowedUnits: NUMBER_UNITS,
@@ -525,6 +527,7 @@ const StickyChildSettings = observer(function StickyChildSettings({
   renderMaybeCollapsibleRows?: MaybeCollapsibleRowsRenderer;
   flexParent?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const parentExp = expsProvider.getTargetDeepLayoutParentRsh();
   const flexDir = maybe(
     parentExp,
@@ -559,7 +562,7 @@ const StickyChildSettings = observer(function StickyChildSettings({
             <FullRow>
               <div style={{ marginLeft: "auto", width: "50%" }}>
                 <LabeledStyleDimItem
-                  label="Z-index"
+                  label={uiT("Z-index")}
                   styleName="z-index"
                   dimOpts={{
                     allowedUnits: NUMBER_UNITS,

@@ -21,7 +21,7 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
 
   return (
     <StylePanelSection
-      title={"List"}
+      title={uiT("List")}
       expsProvider={expsProvider}
       styleProps={listStyleCssProps}
     >

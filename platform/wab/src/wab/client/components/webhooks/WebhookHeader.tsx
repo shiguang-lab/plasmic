@@ -22,7 +22,7 @@ function WebhookHeader(props: WebhookHeaderProps) {
     <PlasmicWebhookHeader
       {...rest}
       keyInput={{
-        "aria-label": "Key",
+        "aria-label": uiT("Key"),
         value: headerKey,
         onChange: (e) => {
           onChange(index, e.target.value, headerValue);

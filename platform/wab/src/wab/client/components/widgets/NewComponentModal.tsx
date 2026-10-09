@@ -1,6 +1,7 @@
 import NewComponentItem from "@/wab/client/components/widgets/NewComponentItem";
 import NewComponentSection from "@/wab/client/components/widgets/NewComponentSection";
 import { TextboxRef } from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import {
   buildInsertableExtraInfo,
   getInsertableTemplateComponentItem,
@@ -32,6 +33,7 @@ interface NewComponentModalProps extends Omit<
 }
 
 function NewComponentModal(props: NewComponentModalProps) {
+  const { t: uiT } = useI18n();
   const { onSubmit, onCancel, studioCtx, folderPath, ...rest } = props;
 
   const [expanded, setExpanded] = React.useState(false);
@@ -116,7 +118,7 @@ function NewComponentModal(props: NewComponentModalProps) {
       <NewComponentSection>
         <NewComponentItem
           isSelected={templateName == null}
-          title="Blank component"
+          title={uiT("Blank component")}
           onClick={() => {
             const previousTemplate = templates.find(
               (c) => c.templateName === templateName,
@@ -132,7 +134,7 @@ function NewComponentModal(props: NewComponentModalProps) {
         />
       </NewComponentSection>
       {templates.length > 0 && (
-        <NewComponentSection title={"Common components"}>
+        <NewComponentSection title={uiT("Common components")}>
           {templates.map((template) => {
             const thisTemplateName = template.templateName;
             return (

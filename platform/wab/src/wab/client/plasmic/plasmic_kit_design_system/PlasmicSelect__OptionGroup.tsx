@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: _qMm1mtrqOi
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -201,12 +202,12 @@ function PlasmicSelect__OptionGroup__RenderFunc(props: {
               <Select__Option
                 className={classNames("__wab_instance", sty.option__q5Xro)}
               >
-                {"Option"}
+                {<UiText message={"Option"} />}
               </Select__Option>
               <Select__Option
                 className={classNames("__wab_instance", sty.option__kFyB3)}
               >
-                {"Option"}
+                {<UiText message={"Option"} />}
               </Select__Option>
             </React.Fragment>
           ),

@@ -8,6 +8,7 @@ import Button from "@/wab/client/components/widgets/Button";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { getInvalidDomNesting } from "@/wab/client/lint-invalid-nesting-dom";
 import {
@@ -82,6 +83,7 @@ const LeftLintIssuesPanel = React.forwardRef(LeftLintIssuesPanel_);
 export default LeftLintIssuesPanel;
 
 const SiteIssuesList = observer(function SiteIssuesList() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const site = studioCtx.site;
 
@@ -161,7 +163,7 @@ const SiteIssuesList = observer(function SiteIssuesList() {
             setDomIssues(invalidDomNesting);
           }}
         >
-          Deep inspect current{" "}
+          <UiText message={"Deep inspect current"} />{" "}
           {maybe(
             studioCtx.focusedOrFirstViewCtx()?.component,
             getPageOrComponentLabel,
@@ -172,7 +174,7 @@ const SiteIssuesList = observer(function SiteIssuesList() {
         <>
           <div className="p-sm flex flex-align-baseline gap-m">
             <Textbox
-              placeholder={"Search issues..."}
+              placeholder={uiT("Search issues...")}
               value={filter}
               onChange={(e) => {
                 setFilter(e.target.value);
@@ -242,7 +244,7 @@ const SiteIssuesList = observer(function SiteIssuesList() {
           className={"mt-xxlg"}
           image={<Icon icon={EmojiHappysvgIcon} size={24} />}
           imageStyle={{ height: "24px" }}
-          description={"No issues!"}
+          description={uiT("No issues!")}
         ></Empty>
       )}
     </>

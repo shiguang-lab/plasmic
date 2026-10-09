@@ -6,6 +6,7 @@ import {
 } from "@/wab/client/components/webhooks/plasmic/plasmic_kit_continuous_deployment/PlasmicWebhooksItem";
 import Select from "@/wab/client/components/widgets/Select";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import PresetsIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Presets";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
@@ -134,7 +135,7 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
                 }}
               >
                 <TrashIcon />
-                Delete webhook
+                <UiText message={"Delete webhook"} />
               </Menu.Item>
             </Menu>
           ),

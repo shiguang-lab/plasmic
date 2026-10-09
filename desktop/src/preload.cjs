@@ -4,6 +4,21 @@ if (window.top === window) {
     arg.startsWith("--shiguang-system-languages="),
   );
   contextBridge.exposeInMainWorld("desktopEnvironment", {
+    setUiLocale: (locale) => ipcRenderer.invoke("desktop:ui-locale", locale),
+    getUiMessages: () => {
+      const stored = window.localStorage.getItem("shiguang.ui.language");
+      return ipcRenderer.invoke(
+        "desktop:ui-locale",
+        ["en", "zh-CN", "zh-TW", "ja", "ko"].includes(stored)
+          ? stored
+          : undefined,
+      );
+    },
+    onUiLocale: (callback) => {
+      const listener = (_event, snapshot) => callback(snapshot);
+      ipcRenderer.on("desktop:ui-locale", listener);
+      return () => ipcRenderer.removeListener("desktop:ui-locale", listener);
+    },
     systemLanguages: languageArg
       ? JSON.parse(languageArg.slice("--shiguang-system-languages=".length))
       : navigator.languages,

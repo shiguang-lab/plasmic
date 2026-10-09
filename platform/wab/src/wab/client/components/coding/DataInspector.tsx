@@ -1,6 +1,7 @@
+import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { renderInspector } from "@/wab/client/components/coding/CodePreview";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
-import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { Menu } from "antd";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -45,14 +46,14 @@ export function DataInspector({
                   key="insert"
                   onClick={() => editor.insertAtCursor(insertPath)}
                 >
-                  Insert in code editor
+                  <UiText message={"Insert in code editor"} />
                 </Menu.Item>
               )}
               <Menu.Item
                 key="copy"
                 onClick={() => navigator.clipboard.writeText(insertPath)}
               >
-                Copy JS path
+                <UiText message={"Copy JS path"} />
               </Menu.Item>
             </Menu>,
           );

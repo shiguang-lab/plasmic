@@ -40,6 +40,7 @@ import { AddTplItem, WRAPPERS_MAP } from "@/wab/client/definitions/insertables";
 import { getBoundingClientRect, getOffsetPoint } from "@/wab/client/dom";
 import { getBackgroundImageProps } from "@/wab/client/dom-utils";
 import { FocusHeuristics } from "@/wab/client/focus-heuristics";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { renderCantAddMsg } from "@/wab/client/messages/parenting-msgs";
 import {
   getEventDataForTplComponent,
@@ -1869,7 +1870,16 @@ export class ViewOps {
         const key = common.mkShortId();
         const description = (
           <>
-            The item <strong>is now hidden</strong> on the current variant.{" "}
+            <UiText
+              message="The item {state} on the current variant."
+              values={{
+                state: (
+                  <strong>
+                    <UiText message="is now hidden" />
+                  </strong>
+                ),
+              }}
+            />{" "}
             {!onlyRootSelected && (
               <strong>
                 <LinkButton
@@ -1881,14 +1891,23 @@ export class ViewOps {
                     notification.destroy(key);
                   }}
                 >
-                  Delete instead
+                  <UiText message={"Delete instead"} />
                 </LinkButton>
                 .
               </strong>
             )}
             <hr />
-            <strong>Tip:</strong> to delete an item from all variants, use
-            <OneShortcutCombo combo={getComboForAction("DELETE")} />.
+            <strong>
+              <UiText message={"Tip:"} />
+            </strong>{" "}
+            <UiText
+              message="to delete an item from all variants, use {shortcut}."
+              values={{
+                shortcut: (
+                  <OneShortcutCombo combo={getComboForAction("DELETE")} />
+                ),
+              }}
+            />
           </>
         );
         toast(description, { key });
@@ -3533,12 +3552,19 @@ export class ViewOps {
         message: "Error converting to a slot",
         description: (
           <>
-            This element already contains slots{" "}
-            {joinReactNodes(
-              containedSlots.map((s) => <code>{s.param.variable.name}</code>),
-              ", ",
-            )}
-            . You cannot nest slots.
+            <UiText
+              message={
+                "This element already contains slots {part1}. You cannot nest slots."
+              }
+              values={{
+                part1: joinReactNodes(
+                  containedSlots.map((s) => (
+                    <code>{s.param.variable.name}</code>
+                  )),
+                  ", ",
+                ),
+              }}
+            />
           </>
         ),
       });
@@ -3561,12 +3587,17 @@ export class ViewOps {
         message: "Error converting to a slot",
         description: (
           <>
-            This element contains elements linked to props{" "}
-            {joinReactNodes(
-              varRefs.map((r) => <code>{r.var.name}</code>),
-              ", ",
-            )}
-            .
+            <UiText
+              message={
+                "This element contains elements linked to props {part1}."
+              }
+              values={{
+                part1: joinReactNodes(
+                  varRefs.map((r) => <code>{r.var.name}</code>),
+                  ", ",
+                ),
+              }}
+            />
           </>
         ),
       });
@@ -4311,19 +4342,24 @@ export class ViewOps {
       message: "Cannot create component",
       description: (
         <>
-          Selected elements contain reference to "
-          {name ?? capitalizeFirst(Tpls.summarizeTpl(referencedTpl))}
-          ".{" "}
-          {tplWithExpr && (
-            <a
-              onClick={() => {
-                this.viewCtx().setStudioFocusByTpl(tplWithExpr);
-                notification.destroy(key);
-              }}
-            >
-              [Go to reference]
-            </a>
-          )}
+          <UiText
+            message={
+              'Selected elements contain reference to "{part1}". {part2}'
+            }
+            values={{
+              part1: name ?? capitalizeFirst(Tpls.summarizeTpl(referencedTpl)),
+              part2: tplWithExpr && (
+                <a
+                  onClick={() => {
+                    this.viewCtx().setStudioFocusByTpl(tplWithExpr);
+                    notification.destroy(key);
+                  }}
+                >
+                  <UiText message={"[Go to reference]"} />
+                </a>
+              ),
+            }}
+          />
         </>
       ),
     });

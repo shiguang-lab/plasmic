@@ -2,6 +2,7 @@ import CardPickerItem from "@/wab/client/components/sidebar-tabs/ComponentProps/
 import CardPickerModal from "@/wab/client/components/sidebar-tabs/ComponentProps/CardPickerModal";
 import { BareModal } from "@/wab/client/components/studio/BareModal";
 import Chip from "@/wab/client/components/widgets/Chip";
+import { UiText } from "@/wab/client/i18n/UiText";
 import React from "react";
 
 export function CardPickerEditor(props: {
@@ -38,10 +39,11 @@ export function CardPickerEditor(props: {
       <div className="flex-fill flex-left text-ellipsis">
         <Chip onClick={() => setShow(true)}>
           <span className="line-clamp-12">
-            {value
-              ? (options.find((option) => option.value === value)?.label ??
-                value)
-              : "unset"}
+            {value ? (
+              (options.find((option) => option.value === value)?.label ?? value)
+            ) : (
+              <UiText message="unset" />
+            )}
           </span>
         </Chip>
       </div>

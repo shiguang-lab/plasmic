@@ -763,7 +763,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     className={classNames("__wab_instance", sty.option__xuurC)}
                     value={"value1"}
                   >
-                    {"viewer"}
+                    {<UiText message={"viewer"} />}
                   </Select__Option>
                 </Select>
               </div>
@@ -1008,7 +1008,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     className={classNames("__wab_instance", sty.option___4Unkq)}
                     value={"value1"}
                   >
-                    {"viewer"}
+                    {<UiText message={"viewer"} />}
                   </Select__Option>
                 </Select>
               </div>
@@ -1727,7 +1727,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                 className={classNames("__wab_instance", sty.option__v6EPs)}
                 value={"value1"}
               >
-                {"viewer"}
+                {<UiText message={"viewer"} />}
               </Select__Option>
             </Select>
           </div>

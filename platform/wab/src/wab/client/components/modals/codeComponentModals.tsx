@@ -78,11 +78,18 @@ export async function promptRemapCodeComponent(props: {
       onCancel={() => onCancel()}
     >
       <p>
-        <UiText message={"Component"} />{" "}
-        <code>{getComponentDisplayName(component)}</code> is no longer
-        registered, but is being used by{" "}
-        {refComponents.map((c) => getComponentDisplayName(c)).join(", ")}. What
-        would you like to do?
+        <UiText
+          message={
+            "{part1} {part2} is no longer registered, but is being used by {part3}. What would you like to do?"
+          }
+          values={{
+            part1: <UiText message={"Component"} />,
+            part2: <code>{getComponentDisplayName(component)}</code>,
+            part3: refComponents
+              .map((c) => getComponentDisplayName(c))
+              .join(", "),
+          }}
+        />
       </p>
       <div className="flex flex-vcenter">
         <Select
@@ -173,14 +180,16 @@ export async function promptRemapCodeComponent(props: {
             </Button>
           </Dropdown>
         </div> */}
-        <div className="mh-lg">or</div>
+        <div className="mh-lg">
+          <UiText message={"or"} />
+        </div>
         <div>
           <Button
             startIcon={<Icon icon={TrashsvgIcon} />}
             withIcons={["startIcon"]}
             onClick={() => onSubmit("delete")}
           >
-            Delete all existing uses
+            <UiText message={"Delete all existing uses"} />
           </Button>
         </div>
       </div>
@@ -200,8 +209,13 @@ export async function fixMissingCodeComponents(
       fixed = await studioCtx.siteOps().tryRemapCodeComponent(
         c,
         <>
-          Code component no longer registered: {getComponentDisplayName(c)} (
-          <code>{c.codeComponentMeta?.importPath}</code>)
+          <UiText
+            message={"Code component no longer registered: {part1} ({part2})"}
+            values={{
+              part1: getComponentDisplayName(c),
+              part2: <code>{c.codeComponentMeta?.importPath}</code>,
+            }}
+          />
         </>,
       );
     }
@@ -235,9 +249,11 @@ export async function confirmRemovedCodeComponentVariants(
       message: (
         <>
           <p>
-            The following code component variants have been removed. Please
-            confirm that the respective styles to each of those selectors are no
-            longer needed.
+            <UiText
+              message={
+                "The following code component variants have been removed. Please confirm that the respective styles to each of those selectors are no longer needed."
+              }
+            />
           </p>
           {removedSelectorsByComponent.map(([comp, selectors]) => (
             <div key={comp.uuid}>
@@ -265,8 +281,11 @@ export async function confirmRemovedTokens(removedTokens: StyleToken[]) {
     message: (
       <>
         <p>
-          The following tokens have been removed. Please confirm that the
-          respective tokens are no longer needed.
+          <UiText
+            message={
+              "The following tokens have been removed. Please confirm that the respective tokens are no longer needed."
+            }
+          />
         </p>
         {removedTokens.map((token) => (
           <div key={token.uuid}>
@@ -294,14 +313,30 @@ function promptFixReactVersionForHostLessPackages(props: {
         onCancel={() => onCancel()}
       >
         <p>
-          The {hostLessPkgInfo.name} requires a React version {">="}{" "}
-          {hostLessPkgInfo.minimumReactVersion} and your current version is{" "}
-          {React.version}. We suggest you to upgrade your React version and
-          refresh this page after it.
+          <UiText
+            message={
+              "The {part1} requires a React version >= {part2} and your current version is {part3}. We suggest you to upgrade your React version and refresh this page after it."
+            }
+            values={{
+              part1: hostLessPkgInfo.name,
+              part2: hostLessPkgInfo.minimumReactVersion,
+              part3: React.version,
+            }}
+          />
         </p>
         <p>
-          If you <strong>can't</strong> upgrade your react version you will need
-          to delete all existing uses of this package.
+          <UiText
+            message={
+              "If you {part1} upgrade your react version you will need to delete all existing uses of this package."
+            }
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"can't"} />
+                </strong>
+              ),
+            }}
+          />
         </p>
         <div>
           <Button
@@ -309,7 +344,7 @@ function promptFixReactVersionForHostLessPackages(props: {
             withIcons={["startIcon"]}
             onClick={() => onSubmit("delete")}
           >
-            Delete all existing uses
+            <UiText message={"Delete all existing uses"} />
           </Button>
         </div>
       </Modal>
@@ -348,10 +383,16 @@ export async function fixInvalidReactVersion(
 
 export const duplicateCodeComponentErrorDescription = (
   <p>
-    Failed to load Studio, please make sure to register each code component with
-    a unique <code>name</code>. In case you have two components with the same
-    name in your codebase, you can register them with different{" "}
-    <code>name</code>s but with the same <code>importName</code>.
+    <UiText
+      message={
+        "Failed to load Studio, please make sure to register each code component with a unique {part1}. In case you have two components with the same name in your codebase, you can register them with different {part2}s but with the same {part3}."
+      }
+      values={{
+        part1: <code>name</code>,
+        part2: <code>name</code>,
+        part3: <code>importName</code>,
+      }}
+    />
   </p>
 );
 
@@ -360,9 +401,12 @@ export function unknownCodeComponentErrorDescription(
 ) {
   return (
     <p>
-      Some code components reference a component that is not registered. Please
-      either register a code component named <code>{err.componentName}</code> or
-      remove the references to it.
+      <UiText
+        message={
+          "Some code components reference a component that is not registered. Please either register a code component named {part1} or remove the references to it."
+        }
+        values={{ part1: <code>{err.componentName}</code> }}
+      />
     </p>
   );
 }
@@ -376,16 +420,22 @@ export async function showModalToRefreshCodeComponentProps(
   }
   return !!(await showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
     <Modal
-      title={<h2>Refresh code component props</h2>}
+      title={
+        <h2>
+          <UiText message={"Refresh code component props"} />
+        </h2>
+      }
       visible
       footer={null}
       onCancel={() => onCancel()}
     >
       <>
         <p>
-          Some registered code components have updated existing props. Would you
-          like to refresh these props? If you don't, your code components may
-          not behave correctly.
+          <UiText
+            message={
+              "Some registered code components have updated existing props. Would you like to refresh these props? If you don't, your code components may not behave correctly."
+            }
+          />
         </p>
         <ul>
           {changes.map((diff) => (
@@ -420,7 +470,7 @@ function ComponentPropDeltas(props: {
           <ul>
             <div className={sty.headerItem}>
               <Icon icon={CloseIcon} className="removed-fg mr-sm" />
-              Removed
+              <UiText message={"Removed"} />
             </div>
             <ul className="pl-xxlg">
               {removedProps.map((param) => (
@@ -437,7 +487,7 @@ function ComponentPropDeltas(props: {
         <ul>
           <div className={sty.headerItem}>
             <Icon icon={PlusIcon} className="added-fg mr-sm" />
-            Added
+            <UiText message={"Added"} />
           </div>
           <ul className="pl-xxlg">
             {addedProps.map((param) => (
@@ -453,7 +503,7 @@ function ComponentPropDeltas(props: {
         <ul>
           <div className={sty.headerItem}>
             <Icon icon={PencilIcon} className="dimfg mr-sm" />
-            Updated
+            <UiText message={"Updated"} />
           </div>
           <ul className="pl-xxlg">
             {updatedProps.map(({ before, after }) => {
@@ -492,22 +542,28 @@ export function notifyInvalidImportName(components: string[]) {
     message: "Some registered components have invalid javascript names",
     description: (
       <p>
-        The following code components have invalid names; please use a valid
-        javascript variable name in{" "}
-        <a
-          target="_blank"
-          href="https://docs.plasmic.app/learn/code-components/#register-code-components-from-the-host-application"
-        >
-          <code>meta.name</code> or <code>meta.importName</code>
-        </a>{" "}
-        for the following components:{" "}
-        {components.map((c, i) => (
-          <>
-            {i > 0 && (i + 1 === components.length ? " and " : ", ")}
-            <code>{c}</code>
-          </>
-        ))}
-        .
+        <UiText
+          message={
+            "The following code components have invalid names; please use a valid javascript variable name in {part1} for the following components: {part2}."
+          }
+          values={{
+            part1: (
+              <a
+                target="_blank"
+                href="https://docs.plasmic.app/learn/code-components/#register-code-components-from-the-host-application"
+              >
+                <code>meta.name</code> <UiText message={"or"} />{" "}
+                <code>meta.importName</code>
+              </a>
+            ),
+            part2: components.map((c, i) => (
+              <>
+                {i > 0 && (i + 1 === components.length ? " and " : ", ")}
+                <code>{c}</code>
+              </>
+            )),
+          }}
+        />
       </p>
     ),
     duration: 0,
@@ -548,7 +604,9 @@ function HostLessPackageForm({
           message={<strong>DO NOT USE THIS FORM</strong>}
           description={
             <div>
-              <p>...unless you read this first!</p>
+              <p>
+                <UiText message={"...unless you read this first!"} />
+              </p>
               <p>
                 Submitting this form will publish a new version of this hostless
                 project, which means new projects that import from this will be
@@ -559,19 +617,39 @@ function HostLessPackageForm({
                 delay, it will then happen when the user opens a project).
               </p>
               <p>
-                You should <strong>only use this form</strong> for:
+                <UiText
+                  message={"You should {part1} for:"}
+                  values={{ part1: <strong>only use this form</strong> }}
+                />
               </p>
               <ul className="disc-list">
                 <li>
-                  <strong>
-                    Creating a hostless project for the first time
-                  </strong>
-                  , or updating a hostless project that is not public yet.
+                  <UiText
+                    message={
+                      "{part1}, or updating a hostless project that is not public yet."
+                    }
+                    values={{
+                      part1: (
+                        <strong>
+                          Creating a hostless project for the first time
+                        </strong>
+                      ),
+                    }}
+                  />
                 </li>
                 <li>
-                  <strong>Triggering an upgrade for existing projects</strong>,
-                  if you are sure that the new version is compatible with the
-                  existing projects.
+                  <UiText
+                    message={
+                      "{part1}, if you are sure that the new version is compatible with the existing projects."
+                    }
+                    values={{
+                      part1: (
+                        <strong>
+                          Triggering an upgrade for existing projects
+                        </strong>
+                      ),
+                    }}
+                  />
                 </li>
               </ul>
             </div>
@@ -750,8 +828,10 @@ export function checkAndNotifyUnsupportedHostVersion(requiredVersion?: number) {
     notification.error({
       message: (
         <>
-          Please upgrade the <code>@plasmicapp/*</code> packages in your host
-          app
+          <UiText
+            message={"Please upgrade the {part1} packages in your host app"}
+            values={{ part1: <code>@plasmicapp/*</code> }}
+          />
         </>
       ),
       description:
@@ -767,14 +847,28 @@ export function notifyInstallableSuccess(
   description?: React.ReactNode,
 ) {
   notification.success({
-    message: <>{name} has successfully been installed!</>,
+    message: (
+      <>
+        <UiText
+          message={"{part1} has successfully been installed!"}
+          values={{ part1: name }}
+        />
+      </>
+    ),
     description,
   });
 }
 
 export function notifyInstallableFailure(name: string, errorMessage: string) {
   notification.error({
-    message: <>{name} was not installed!</>,
+    message: (
+      <>
+        <UiText
+          message={"{part1} was not installed!"}
+          values={{ part1: name }}
+        />
+      </>
+    ),
     description: errorMessage,
   });
 }
@@ -790,10 +884,16 @@ export function notifyCodeLibraryInstalled(
       notification.success({
         message: (
           <>
-            <code>{name}</code> has been successfully installed! You can now use
-            this package with the following code snippet:
-            <br />
-            <code lang="javascript">$$.{jsIdentifier}()</code>
+            <UiText
+              message={
+                "{part1} has been successfully installed! You can now use this package with the following code snippet:{part2}{part3}"
+              }
+              values={{
+                part1: <code>{name}</code>,
+                part2: <br />,
+                part3: <code lang="javascript">$$.{jsIdentifier}()</code>,
+              }}
+            />
           </>
         ),
         ...commonOpts,
@@ -803,10 +903,18 @@ export function notifyCodeLibraryInstalled(
       notification.success({
         message: (
           <>
-            <code>{name}</code> library installed. You can now call functions in
-            this package from any code snippet with (replace "FUNCTION"):
-            <br />
-            <code lang="javascript">$$.{jsIdentifier}.FUNCTION()</code>
+            <UiText
+              message={
+                '{part1} library installed. You can now call functions in this package from any code snippet with (replace "FUNCTION"):{part2}{part3}'
+              }
+              values={{
+                part1: <code>{name}</code>,
+                part2: <br />,
+                part3: (
+                  <code lang="javascript">$$.{jsIdentifier}.FUNCTION()</code>
+                ),
+              }}
+            />
           </>
         ),
         ...commonOpts,
@@ -834,7 +942,10 @@ export function checkAndNotifyUnsupportedReactVersion(
     notification.error({
       message: (
         <>
-          Please upgrade the <code>react</code> package in your host app
+          <UiText
+            message={"Please upgrade the {part1} package in your host app"}
+            values={{ part1: <code>react</code> }}
+          />
         </>
       ),
       description: `This feature requires a react version >= ${

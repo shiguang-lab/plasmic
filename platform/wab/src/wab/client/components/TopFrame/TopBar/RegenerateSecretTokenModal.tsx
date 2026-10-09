@@ -1,5 +1,6 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { reactAlert, reactConfirm } from "@/wab/client/components/quick-modals";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiPermission, ApiProject } from "@/wab/shared/ApiSchema";
 import * as React from "react";
 
@@ -35,7 +36,11 @@ export async function showRegenerateSecretTokenModal({
       message: (
         <>
           <p>
-            New secret API token for this project (will not be shown again):
+            <UiText
+              message={
+                "New secret API token for this project (will not be shown again):"
+              }
+            />
           </p>
           <pre>{regeneratedSecretApiToken}</pre>
         </>

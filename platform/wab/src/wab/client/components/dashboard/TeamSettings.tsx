@@ -6,6 +6,7 @@ import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultTeamSettingsProps,
   PlasmicTeamSettings,
@@ -130,8 +131,15 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
               title: `Transfer ownership`,
               message: (
                 <>
-                  You will lose owner status and become an editor. Transfer
-                  ownership of <strong>{team.name}</strong> to {email}?
+                  <UiText
+                    message={
+                      "You will lose owner status and become an editor. Transfer ownership of {part1} to {part2}?"
+                    }
+                    values={{
+                      part1: <strong>{team.name}</strong>,
+                      part2: email,
+                    }}
+                  />
                 </>
               ),
             });

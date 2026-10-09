@@ -1,4 +1,5 @@
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicStarterGroup } from "@/wab/client/plasmic/plasmic_kit/PlasmicStarterGroup";
 import {
   DefaultTutorialsSectionProps,
@@ -52,7 +53,8 @@ export function TutorialsSection({ ...props }: TutorialsSectionProps) {
         game={{
           name: (
             <>
-              Play <span className="game-name">Plasmic Levels</span>
+              <UiText message={"Play"} />{" "}
+              <span className="game-name">Plasmic Levels</span>
             </>
           ),
           tag: "game",

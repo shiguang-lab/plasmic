@@ -1,21 +1,41 @@
 (() => {
   const { studioOrigin, canvasOrigin } = document.currentScript?.dataset || {};
   const isMain = window.top === window;
-  if (isMain ? !window.desktopUpdates : window.parent !== window.top || location.origin !== canvasOrigin) return;
+  if (
+    isMain
+      ? !window.desktopUpdates
+      : window.parent !== window.top || location.origin !== canvasOrigin
+  )
+    return;
 
+  const { t, setSnapshot, snapshot, subscribe } = window.desktopUiI18n;
   let latestStatus;
   const editorFrame = () => document.querySelector("iframe.studio-frame");
   const sendStatus = (status) => {
     latestStatus = status;
-    editorFrame()?.contentWindow?.postMessage({ channel: "plasmic-desktop-update-status", status }, canvasOrigin);
+    editorFrame()?.contentWindow?.postMessage(
+      { channel: "plasmic-desktop-update-status", status },
+      canvasOrigin,
+    );
     render(status);
   };
+  const sendLocale = () =>
+    editorFrame()?.contentWindow?.postMessage(
+      { channel: "plasmic-desktop-ui-locale", localization: snapshot() },
+      canvasOrigin,
+    );
   if (isMain) {
     // Only the bundled editor's direct frame may invoke the main-frame bridge.
     window.addEventListener("message", async (event) => {
-      if (event.origin !== canvasOrigin || event.source !== editorFrame()?.contentWindow || event.data?.channel !== "plasmic-desktop-update-command") return;
+      if (
+        event.origin !== canvasOrigin ||
+        event.source !== editorFrame()?.contentWindow ||
+        event.data?.channel !== "plasmic-desktop-update-command"
+      )
+        return;
       const command = event.data.command;
       if (!["status", "open"].includes(command)) return;
+      if (command === "status") sendLocale();
       if (command === "status" && latestStatus) {
         sendStatus(latestStatus);
         return;
@@ -24,7 +44,12 @@
     });
   } else {
     window.addEventListener("message", (event) => {
-      if (event.origin === studioOrigin && event.source === window.parent && event.data?.channel === "plasmic-desktop-update-status") render(event.data.status);
+      if (event.origin !== studioOrigin || event.source !== window.parent)
+        return;
+      if (event.data?.channel === "plasmic-desktop-update-status")
+        render(event.data.status);
+      if (event.data?.channel === "plasmic-desktop-ui-locale")
+        setSnapshot(event.data.localization);
     });
   }
 
@@ -71,7 +96,11 @@
   tooltip.setAttribute("role", "tooltip");
   tooltip.setAttribute("popover", "manual");
   const showTooltip = () => {
-    if (control.dataset.placement === "rail" && !button.disabled && !button.hasAttribute("popover")) {
+    if (
+      control.dataset.placement === "rail" &&
+      !button.disabled &&
+      !button.hasAttribute("popover")
+    ) {
       // The expanded button must escape the toolbar's scrolling container.
       const anchor = button.getBoundingClientRect();
       button.setAttribute("popover", "manual");
@@ -100,48 +129,80 @@
   button.append(icon, label);
   control.append(button, tooltip);
   const render = (status) => {
+    latestStatus = status;
     const { phase, version, percent = 0, error } = status;
     const progress = Math.min(100, Math.max(0, Math.round(percent)));
     control.dataset.phase = phase;
-    control.hidden = !["available", "downloading", "downloaded", "installing", "error"].includes(phase);
+    control.hidden = ![
+      "available",
+      "downloading",
+      "downloaded",
+      "installing",
+      "error",
+    ].includes(phase);
     if (control.hidden) hideTooltip();
     const states = {
-      available: ["Preparing…", `Preparing update ${version}`],
-      downloading: [`${progress}%`, `Downloading ${version} · ${progress}%`],
-      downloaded: ["Update", `Update ${version} is ready. Restart Plasmic to install.`],
-      installing: ["Installing", "Saving your design and preparing to install…"],
+      available: ["Preparing…", t("Preparing update {version}", { version })],
+      downloading: [
+        `${progress}%`,
+        t("Downloading {version} · {progress}%", { version, progress }),
+      ],
+      downloaded: [
+        "Update",
+        t("Update {version} is ready. Restart Plasmic to install.", {
+          version,
+        }),
+      ],
+      installing: [
+        "Installing",
+        "Saving your design and preparing to install…",
+      ],
       error: ["Retry", error || "Update failed. Open updates to retry."],
     };
     const state = states[phase] || ["Check for Updates", "Check for Updates"];
-    label.textContent = state[0];
-    tooltip.textContent = state[1];
-    button.setAttribute("aria-label", state[1]);
+    label.textContent = t(state[0]);
+    tooltip.textContent = t(state[1]);
+    button.setAttribute("aria-label", t(state[1]));
     const busy = ["available", "downloading", "installing"].includes(phase);
     button.disabled = busy;
     button.setAttribute("aria-busy", String(busy));
     icon.innerHTML = ["downloading", "installing"].includes(phase)
-      ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${progress * 37.7 / 100} 37.7" transform="rotate(-90 8 8)"/>` : `<path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/>`}</svg>`
+      ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${(progress * 37.7) / 100} 37.7" transform="rotate(-90 8 8)"/>` : `<path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/>`}</svg>`
       : phase === "downloaded"
         ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="restart"><path d="M13 6a5 5 0 1 0 .2 3.5M13 2v4H9"/></svg>`
         : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="${phase === "error" ? "error" : "download"}">${phase === "error" ? `<path d="M8 3v6M8 12v.1"/>` : `<path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/>`}</svg>`;
     if (phase === "downloading") {
       control.setAttribute("role", "progressbar");
       control.setAttribute("tabindex", "0");
-      control.setAttribute("aria-label", state[1]);
+      control.setAttribute("aria-label", t(state[1]));
       control.setAttribute("aria-valuemin", "0");
       control.setAttribute("aria-valuemax", "100");
       control.setAttribute("aria-valuenow", String(progress));
     } else {
-      for (const attr of ["role", "tabindex", "aria-label", "aria-valuemin", "aria-valuemax", "aria-valuenow"]) control.removeAttribute(attr);
+      for (const attr of [
+        "role",
+        "tabindex",
+        "aria-label",
+        "aria-valuemin",
+        "aria-valuemax",
+        "aria-valuenow",
+      ])
+        control.removeAttribute(attr);
     }
   };
   async function runCommand(action) {
     if (!isMain) {
-      window.parent.postMessage({ channel: "plasmic-desktop-update-command", command: action }, studioOrigin);
+      window.parent.postMessage(
+        { channel: "plasmic-desktop-update-command", command: action },
+        studioOrigin,
+      );
       return;
     }
-    try { sendStatus(await window.desktopUpdates.command(action)); }
-    catch (error) { sendStatus({ phase: "error", error: error.message, retry: action }); }
+    try {
+      sendStatus(await window.desktopUpdates.command(action));
+    } catch (error) {
+      sendStatus({ phase: "error", error: error.message, retry: action });
+    }
   }
   button.onclick = () => {
     hideTooltip();
@@ -150,14 +211,19 @@
   };
   let observedDocument;
   function place() {
-    const uiDocument = isMain ? document : document.querySelector("iframe.__wab_studio-frame")?.contentDocument || document;
+    const uiDocument = isMain
+      ? document
+      : document.querySelector("iframe.__wab_studio-frame")?.contentDocument ||
+        document;
     if (uiDocument !== observedDocument) {
       observer.disconnect();
       observer.observe(document, { childList: true, subtree: true });
-      if (uiDocument !== document) observer.observe(uiDocument, { childList: true, subtree: true });
+      if (uiDocument !== document)
+        observer.observe(uiDocument, { childList: true, subtree: true });
       observedDocument = uiDocument;
     }
-    if (uiDocument.head && style.parentElement !== uiDocument.head) uiDocument.head.append(style);
+    if (uiDocument.head && style.parentElement !== uiDocument.head)
+      uiDocument.head.append(style);
     const strip = uiDocument.getElementById("left-tab-strip");
     const footer = uiDocument.querySelector("aside > footer");
     const parent = strip?.lastElementChild || footer;
@@ -174,6 +240,16 @@
   const observer = new MutationObserver(place);
   document.addEventListener("load", place, true);
   place();
-  if (isMain) window.desktopUpdates.onStatus(sendStatus);
+  if (isMain) {
+    subscribe(() => {
+      sendLocale();
+      if (latestStatus) render(latestStatus);
+    });
+    window.desktopUpdates.onStatus(sendStatus);
+  }
+  if (!isMain)
+    subscribe(() => {
+      if (latestStatus) render(latestStatus);
+    });
   void runCommand("status");
 })();

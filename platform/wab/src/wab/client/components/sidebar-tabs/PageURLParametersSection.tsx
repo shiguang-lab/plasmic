@@ -64,34 +64,47 @@ export function URLParamTooltip(props: { type: URLParamType }) {
       title={
         type === "Query" ? (
           <>
-            URL query parameters look like{" "}
-            <code>
-              ?search=pants&<strong>page=3</strong>
-            </code>
-            . They are optional, always contain text values, come after ? and
-            are separated by &.
+            <UiText
+              message="URL query parameters look like {part1}. They are optional, always contain text values, come after ? and are separated by &."
+              values={{
+                part1: (
+                  <code>
+                    ?search=pants&<strong>page=3</strong>
+                  </code>
+                ),
+              }}
+            />
           </>
         ) : type === "Path" ? (
           <>
-            Path parameters look like{" "}
-            <code>
-              /posts/<strong>42</strong>
-            </code>{" "}
-            or{" "}
-            <code>
-              /products/<strong>rainbow-sandals</strong>
-            </code>
-            . They are required, always contain text values, and must occupy a
-            whole path segment in between slashes.
+            <UiText
+              message="Path parameters look like {part1} or {part2}. They are required, always contain text values, and must occupy a whole path segment in between slashes."
+              values={{
+                part1: (
+                  <code>
+                    /posts/<strong>42</strong>
+                  </code>
+                ),
+                part2: (
+                  <code>
+                    /products/<strong>rainbow-sandals</strong>
+                  </code>
+                ),
+              }}
+            />
           </>
         ) : type === "Fragment" ? (
           <>
-            A fragment looks like{" "}
-            <code>
-              /posts#<strong>42</strong>
-            </code>
-            . It is optional, always contain text values, and come after # at
-            the end of the URL.
+            <UiText
+              message="A fragment looks like {part1}. It is optional, always contain text values, and come after # at the end of the URL."
+              values={{
+                part1: (
+                  <code>
+                    /posts#<strong>42</strong>
+                  </code>
+                ),
+              }}
+            />
           </>
         ) : (
           unexpected()

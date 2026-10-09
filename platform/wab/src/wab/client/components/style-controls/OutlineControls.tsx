@@ -91,10 +91,9 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
               className="mb-lg"
               message={
                 <StandardMarkdown>
-                  [Outlines](https://developer.mozilla.org/en-US/docs/Web/CSS/outline)
-                  are typically used for styling the focused state of an
-                  element. We recommend only using this property for
-                  focus-related interaction variants.
+                  {uiT(
+                    "[Outlines](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) are typically used for styling the focused state of an element. We recommend only using this property for focus-related interaction variants.",
+                  )}
                 </StandardMarkdown>
               }
               type="info"
@@ -108,7 +107,7 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
             dimOpts={{
               extraOptions: [
                 { value: "thin", label: "Thin" },
-                { value: "medium", label: "Medium" },
+                { value: "medium", label: uiT("Medium") },
                 { value: "thick", label: "Thick" },
               ],
               min: 0,

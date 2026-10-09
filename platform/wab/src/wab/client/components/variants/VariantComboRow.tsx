@@ -10,6 +10,7 @@ import {
   VariantSettingPopoverTitle,
 } from "@/wab/client/components/style-controls/DefinedIndicator";
 import Chip from "@/wab/client/components/widgets/Chip";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicVariantComboRow } from "@/wab/client/plasmic/plasmic_kit_variants/PlasmicVariantComboRow";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -63,7 +64,9 @@ const VariantComboRow = observer(function VariantComboRow(
             }}
             key={`clear-combo-settings`}
           >
-            <MenuItemContent>Clear settings for this combo</MenuItemContent>
+            <MenuItemContent>
+              <UiText message={"Clear settings for this combo"} />
+            </MenuItemContent>
           </Menu.Item>,
         );
       });

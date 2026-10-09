@@ -84,7 +84,7 @@ export const SiteDiffs = observer(function SideDiffs(props: {
                 {patches.length > 0 && (
                   <li className={sty.item}>
                     <Icon icon={ThemeIcon} className="dimfg mr-sm" />
-                    Styles and elements updated
+                    <UiText message={"Styles and elements updated"} />
                   </li>
                 )}
               </ul>
@@ -164,7 +164,7 @@ export const SplitStatusUpdateSection = observer(
           <li>
             <div className={sty.headerItem}>
               <Icon icon={RocketsvgIcon} className="dimfg mr-sm" />
-              Split Status Updated
+              <UiText message={"Split Status Updated"} />
             </div>
             <ul className="pl-xxlg">
               {splitStatusUpdate.map((diff) => (
@@ -217,16 +217,20 @@ export const SplitStatusUpdateSummarySection = observer(
     }
     return (
       <div className={sty.headerItem}>
-        {splitTypesChanged.map((val, idx) => {
-          const separator =
-            idx === splitTypesChanged.length - 2
-              ? " and "
-              : idx < splitTypesChanged.length - 2
-                ? ", "
-                : "";
-          return `${val}${separator}`;
-        })}{" "}
-        content changed.
+        <UiText
+          message={"{part1} content changed."}
+          values={{
+            part1: splitTypesChanged.map((val, idx) => {
+              const separator =
+                idx === splitTypesChanged.length - 2
+                  ? " and "
+                  : idx < splitTypesChanged.length - 2
+                    ? ", "
+                    : "";
+              return `${val}${separator}`;
+            }),
+          }}
+        />
       </div>
     );
   },
@@ -255,7 +259,7 @@ const ChangeSubSection = observer(function ChangeSubSection(props: {
         <li>
           <div className={sty.headerItem}>
             <Icon icon={CloseIcon} className="removed-fg mr-sm" />
-            Removed
+            <UiText message={"Removed"} />
           </div>
           <ul className="pl-xxlg">
             {removeds.map((diff) => (
@@ -270,7 +274,7 @@ const ChangeSubSection = observer(function ChangeSubSection(props: {
         <li>
           <div className={sty.headerItem}>
             <Icon icon={PlusIcon} className="added-fg mr-sm" />
-            Added
+            <UiText message={"Added"} />
           </div>
           <ul className="pl-xxlg">
             {addeds.map((diff) => (
@@ -285,7 +289,7 @@ const ChangeSubSection = observer(function ChangeSubSection(props: {
         <li>
           <div className={sty.headerItem}>
             <Icon icon={TextInputIcon} className="dimfg mr-sm" />
-            Renamed
+            <UiText message={"Renamed"} />
           </div>
           <ul className="pl-xxlg">
             {renameds.map((diff) => (
@@ -300,7 +304,7 @@ const ChangeSubSection = observer(function ChangeSubSection(props: {
         <li>
           <div className={sty.headerItem}>
             <Icon icon={PencilIcon} className="dimfg mr-sm" />
-            Updated
+            <UiText message={"Updated"} />
           </div>
           <ul className="pl-xxlg">
             {updateds.map((diff) => (
@@ -339,9 +343,15 @@ const SplitChangeEntity = observer(function SplitChangeEntity(props: {
   if (oldValue?.type === "Split Status" && newValue?.type === "Split Status") {
     return (
       <>
-        <span className="mr-sm">{objIcon(newValue)}</span>
-        <strong>{newValue.name}</strong> from <strong>{oldValue.value}</strong>{" "}
-        to <strong>{newValue.value}</strong>
+        <UiText
+          message={"{part1}{part2} from {part3} to {part4}"}
+          values={{
+            part1: <span className="mr-sm">{objIcon(newValue)}</span>,
+            part2: <strong>{newValue.name}</strong>,
+            part3: <strong>{oldValue.value}</strong>,
+            part4: <strong>{newValue.value}</strong>,
+          }}
+        />
       </>
     );
   }
@@ -359,18 +369,26 @@ const ChangeRenamedEntity = observer(function ChangeRenamedEntity(props: {
   if (entity) {
     return (
       <>
-        <span className="mr-sm">{objIcon(entity)}</span>
-        {entity.type} <strong>{entity.name}</strong> renamed to{" "}
-        <strong>
-          "
-          {
-            ensure(
-              diff.newValue,
-              "Unexpected Rename diff element without newValue",
-            ).name
-          }
-          "
-        </strong>
+        <UiText
+          message={"{part1}{part2} {part3} renamed to {part4}"}
+          values={{
+            part1: <span className="mr-sm">{objIcon(entity)}</span>,
+            part2: entity.type,
+            part3: <strong>{entity.name}</strong>,
+            part4: (
+              <strong>
+                "
+                {
+                  ensure(
+                    diff.newValue,
+                    "Unexpected Rename diff element without newValue",
+                  ).name
+                }
+                "
+              </strong>
+            ),
+          }}
+        />
       </>
     );
   }

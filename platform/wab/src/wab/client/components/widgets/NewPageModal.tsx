@@ -2,6 +2,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import NewComponentItem from "@/wab/client/components/widgets/NewComponentItem";
 import NewComponentSection from "@/wab/client/components/widgets/NewComponentSection";
 import { TextboxRef } from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { getPageTemplatesGroups } from "@/wab/client/insertable-templates";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
 import {
@@ -41,6 +42,7 @@ interface NewPageModalProps extends Omit<
 }
 
 function NewPageModal(props: NewPageModalProps) {
+  const { t: uiT } = useI18n();
   const { onSubmit, onCancel, studioCtx, folderPath, ...rest } = props;
 
   const [pageInfo, setPageInfo] = React.useState<NewPageInfo>({
@@ -115,7 +117,7 @@ function NewPageModal(props: NewPageModalProps) {
         <NewComponentSection title={""}>
           <NewComponentItem
             isSelected={pageInfo.type === "blank"}
-            title="Empty page"
+            title={uiT("Empty page")}
             imgUrl={"https://jovial-poitras-57edb1.netlify.app/blank.png"}
             onClick={() => {
               setPageInfo({ type: "blank", name: getNewPageName("NewPage") });
@@ -123,7 +125,7 @@ function NewPageModal(props: NewPageModalProps) {
           />
           <NewComponentItem
             isSelected={pageInfo.type === "dynamic"}
-            title="Dynamic page"
+            title={uiT("Dynamic page")}
             imgUrl={"https://jovial-poitras-57edb1.netlify.app/blank.png"}
             onClick={() => {
               setPageInfo({ type: "dynamic", name: getNewPageName("NewPage") });
@@ -163,7 +165,7 @@ function NewPageModal(props: NewPageModalProps) {
                   }
                 }}
                 controls={
-                  <Tooltip title="Open page template in new window">
+                  <Tooltip title={uiT("Open page template in new window")}>
                     <Icon
                       icon={EyeIcon}
                       onClick={async () => {

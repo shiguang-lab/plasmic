@@ -77,6 +77,19 @@ try {
     filter: (file) => !file.endsWith(".map"),
   });
   await bundleStudioFonts(target, config.studioOrigin);
+  const localeSource = path.join(
+    desktop,
+    "../platform/wab/src/wab/client/i18n",
+  );
+  await cp(
+    path.join(localeSource, "locales"),
+    path.join(target, "ui-locales"),
+    { recursive: true },
+  );
+  await cp(
+    path.join(localeSource, "locale-resolution.cjs"),
+    path.join(target, "ui-locales/locale-resolution.cjs"),
+  );
   let count = 0,
     bytes = 0;
   async function configure(directory) {

@@ -273,8 +273,9 @@ function MergeFlow_(
         spinnerContainer={{
           children: error ? (
             <div className="text-center">
-              Oops! Unexpected error loading the request. <br /> <br />
-              Please try again later
+              <UiText message={"Oops! Unexpected error loading the request."} />{" "}
+              <br /> <br />
+              <UiText message={"Please try again later"} />
             </div>
           ) : (
             <Spinner />
@@ -425,7 +426,11 @@ function MergeFlow_(
           {isKnownComponent(mergedParent) ? (
             <>
               <strong>{getComponentDisplayName(mergedParent)}</strong>{" "}
-              {mergedParent.type === "page" ? "page" : "component"}{" "}
+              {mergedParent.type === "page" ? (
+                <UiText message={"page"} />
+              ) : (
+                <UiText message={"component"} />
+              )}{" "}
             </>
           ) : (
             ""
@@ -463,9 +468,17 @@ function MergeFlow_(
         return (
           <LineItem icon={objIcon(semverItem, tplIcon)}>
             <span>
-              {typeName} <strong>{rec.origName}</strong> exists in both
-              versions. <br />
-              We renamed yours to <strong>{rec.renamedTo}</strong>
+              <UiText
+                message={
+                  "{part1} {part2} exists in both versions. {part3}We renamed yours to {part4}"
+                }
+                values={{
+                  part1: typeName,
+                  part2: <strong>{rec.origName}</strong>,
+                  part3: <br />,
+                  part4: <strong>{rec.renamedTo}</strong>,
+                }}
+              />
             </span>
           </LineItem>
         );
@@ -473,10 +486,19 @@ function MergeFlow_(
         return (
           <LineItem icon={objIcon(semverItem)}>
             <span>
-              <UiText message={"Page"} />{" "}
-              <strong>{getComponentDisplayName(rec.mergedInst)}</strong> (
-              <code>{rec.origPath}</code>) has a conflicting path, so we renamed
-              it to <code>{rec.newPath}</code>
+              <UiText
+                message={
+                  "{part1} {part2} ({part3}) has a conflicting path, so we renamed it to {part4}"
+                }
+                values={{
+                  part1: <UiText message={"Page"} />,
+                  part2: (
+                    <strong>{getComponentDisplayName(rec.mergedInst)}</strong>
+                  ),
+                  part3: <code>{rec.origPath}</code>,
+                  part4: <code>{rec.newPath}</code>,
+                }}
+              />
             </span>
           </LineItem>
         );

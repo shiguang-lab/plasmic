@@ -208,8 +208,15 @@ export const LegacyComponentParamsSection = observer(
                 message: "Key changed to be valid",
                 description: (
                   <>
-                    <code>{metaKeyAndValue.key}</code> is not a valid key name;
-                    renamed to <code>{validKey}</code> instead.
+                    <UiText
+                      message={
+                        "{part1} is not a valid key name; renamed to {part2} instead."
+                      }
+                      values={{
+                        part1: <code>{metaKeyAndValue.key}</code>,
+                        part2: <code>{validKey}</code>,
+                      }}
+                    />
                   </>
                 ),
               });
@@ -221,8 +228,10 @@ export const LegacyComponentParamsSection = observer(
                   message: "Existing key",
                   description: (
                     <>
-                      <code>{metaKeyAndValue.key}</code> is already a metadata
-                      key.
+                      <UiText
+                        message={"{part1} is already a metadata key."}
+                        values={{ part1: <code>{metaKeyAndValue.key}</code> }}
+                      />
                     </>
                   ),
                 });
@@ -290,7 +299,9 @@ export const LegacyComponentParamsSection = observer(
           </LabeledListItem>
         )}
         <p style={{ userSelect: "text", marginTop: 16, color: "#bbb" }}>
-          <small>ID: {component.uuid}</small>
+          <small>
+            <UiText message={"ID:"} /> {component.uuid}
+          </small>
         </p>
         {showNewParamModal && (
           <ComponentPropModal
@@ -391,7 +402,9 @@ const ParamRow = observer(function ParamRow(props: {
           disabled={!canRename}
         />
         {showType && (
-          <div className="dimfg">(Type: {typeDisplayName(param.type)})</div>
+          <div className="dimfg">
+            <UiText message={"(Type:"} /> {typeDisplayName(param.type)})
+          </div>
         )}
         <IFrameAwareDropdownMenu menu={overlay}>
           <div className="SidebarSectionListItem__actionIcon">
@@ -402,7 +415,11 @@ const ParamRow = observer(function ParamRow(props: {
       {showDefault && !isKnownFunctionType(param.type) && (
         <div className="SidebarSectionListItem">
           <LabeledItemRow
-            label={<div className="dimfg">Default:</div>}
+            label={
+              <div className="dimfg">
+                <UiText message={"Default:"} />
+              </div>
+            }
             labelSize="small"
           >
             <PropValueEditor
@@ -460,8 +477,15 @@ const MetadataRow = observer(function MetadataRow(props: {
                 message: "Key changed to be valid",
                 description: (
                   <>
-                    <code>{newKey}</code> is not a valid key name; renamed to{" "}
-                    <code>{validKey}</code> instead.
+                    <UiText
+                      message={
+                        "{part1} is not a valid key name; renamed to {part2} instead."
+                      }
+                      values={{
+                        part1: <code>{newKey}</code>,
+                        part2: <code>{validKey}</code>,
+                      }}
+                    />
                   </>
                 ),
               });
@@ -475,7 +499,10 @@ const MetadataRow = observer(function MetadataRow(props: {
                       message: "Existing key",
                       description: (
                         <>
-                          <code>{newKey}</code> is already a metadata key.
+                          <UiText
+                            message={"{part1} is already a metadata key."}
+                            values={{ part1: <code>{newKey}</code> }}
+                          />
                         </>
                       ),
                     });

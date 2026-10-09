@@ -29,6 +29,7 @@ function createAssetHandler({
   authPagePath,
   updateUiPath,
   updateDialogPath,
+  rendererI18nPath,
   bundledFontCss = "",
 }) {
   root = path.resolve(root);
@@ -110,10 +111,17 @@ function createAssetHandler({
     if (bridgePath && pathname === "/static/desktop/editor-bridge.js") {
       return fileResponse(bridgePath);
     }
+    if (rendererI18nPath && pathname === "/static/desktop/renderer-i18n.js") {
+      return fileResponse(rendererI18nPath);
+    }
     if (updateUiPath && pathname === "/static/desktop/update-ui.js") {
       return fileResponse(updateUiPath);
     }
-    if (updateDialogPath && studio && pathname === "/static/desktop/update-dialog.js") {
+    if (
+      updateDialogPath &&
+      studio &&
+      pathname === "/static/desktop/update-dialog.js"
+    ) {
       return fileResponse(updateDialogPath);
     }
     const target = path.resolve(root, "." + pathname);
@@ -121,8 +129,16 @@ function createAssetHandler({
       return new Response("Forbidden", { status: 403 });
     }
     function injectUpdateDialog(html) {
+      if (rendererI18nPath && !html.includes("renderer-i18n.js"))
+        html = html.replace(
+          "</head>",
+          `<script defer src="${studioOrigin}/static/desktop/renderer-i18n.js"></script></head>`,
+        );
       return updateDialogPath
-        ? html.replace("</head>", `<script defer src="${studioOrigin}/static/desktop/update-dialog.js"></script></head>`)
+        ? html.replace(
+            "</head>",
+            `<script defer src="${studioOrigin}/static/desktop/update-dialog.js"></script></head>`,
+          )
         : html;
     }
     async function fileResponse(file) {
@@ -152,7 +168,7 @@ function createAssetHandler({
             .toString()
             .replace(
               "</head>",
-              `<script defer src="${studioOrigin}/static/desktop/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script></head>`,
+              `${!studio && rendererI18nPath ? `<script defer src="${studioOrigin}/static/desktop/renderer-i18n.js"></script>` : ""}<script defer src="${studioOrigin}/static/desktop/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script></head>`,
             ),
         );
       }

@@ -1112,11 +1112,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         message: "Unknown element",
         description: (
           <span>
-            Plasmic cannot determine which layer the the clicked element belongs
-            to. This happens typically on code component where Plasmic doesn't
-            know the structure of the DOM in the component. <br />
-            <br />
-            Please select nodes from the tree in the left panel.
+            <UiText
+              message={
+                "Plasmic cannot determine which layer the the clicked element belongs to. This happens typically on code component where Plasmic doesn't know the structure of the DOM in the component. {part1}{part2}Please select nodes from the tree in the left panel."
+              }
+              values={{ part1: <br />, part2: <br /> }}
+            />
           </span>
         ),
       });
@@ -1657,30 +1658,39 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                     <p>{<UiLabel text={ARENAS_DESCRIPTION} />}</p>
                   )}
                   <p>
-                    You can create a{" "}
-                    <widgets.LinkButton
-                      onClick={() =>
-                        studioCtx.siteOps().createFrameForNewPage()
-                      }
-                    >
-                      new page
-                    </widgets.LinkButton>{" "}
-                    or a{" "}
-                    <widgets.LinkButton
-                      onClick={() =>
-                        studioCtx.siteOps().createFrameForNewComponent()
-                      }
-                    >
-                      new component
-                    </widgets.LinkButton>{" "}
-                    to get started!
+                    <UiText
+                      message="You can create a {page} or a {component} to get started!"
+                      values={{
+                        page: (
+                          <widgets.LinkButton
+                            onClick={() =>
+                              studioCtx.siteOps().createFrameForNewPage()
+                            }
+                          >
+                            <UiText message="new page" />
+                          </widgets.LinkButton>
+                        ),
+                        component: (
+                          <widgets.LinkButton
+                            onClick={() =>
+                              studioCtx.siteOps().createFrameForNewComponent()
+                            }
+                          >
+                            <UiText message="new component" />
+                          </widgets.LinkButton>
+                        ),
+                      }}
+                    />
                   </p>
                 </>
               ) : isPageArena(studioCtx.currentArena) ? (
                 <>
                   <p>
-                    You can add artboards to with different screen sizes for
-                    viewing your page.
+                    <UiText
+                      message={
+                        "You can add artboards to with different screen sizes for viewing your page."
+                      }
+                    />
                   </p>
                   <p>
                     <DropdownButton
@@ -2053,7 +2063,7 @@ const RightPane = observer(function RightPane(props: {
   if (focusedViewCtx && !studioCtx.focusedFrame()) {
     tabs.push(
       new widgets.Tab({
-        name: "Settings",
+        name: <UiText message="Settings" />,
         key: RightTabKey.settings,
         contents: () => (
           <StyleTabContext.Provider value={"settings-only"}>
@@ -2064,7 +2074,7 @@ const RightPane = observer(function RightPane(props: {
     );
     tabs.push(
       new widgets.Tab({
-        name: "Design",
+        name: <UiText message="Design" />,
         key: RightTabKey.style,
         contents: () => (
           <StyleTabContext.Provider value={"style-only"}>
@@ -2080,9 +2090,15 @@ const RightPane = observer(function RightPane(props: {
   if (focusedOrFirstViewCtx) {
     tabs.push(
       new widgets.Tab({
-        name: isPageComponent(focusedOrFirstViewCtx.component)
-          ? "Page data"
-          : "Component data",
+        name: (
+          <UiText
+            message={
+              isPageComponent(focusedOrFirstViewCtx.component)
+                ? "Page data"
+                : "Component data"
+            }
+          />
+        ),
         key: RightTabKey.component,
         contents: () => (
           <ComponentOrPageTab

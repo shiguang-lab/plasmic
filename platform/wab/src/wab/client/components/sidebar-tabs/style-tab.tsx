@@ -479,9 +479,16 @@ function CodeComponentRootMessage(props: { component: Component }) {
             showIcon={true}
             message={
               <div>
-                This is the root of code component{" "}
-                <code>{getComponentDisplayName(props.component)}</code>. It is
-                not editable.
+                <UiText
+                  message={
+                    "This is the root of code component {part1}. It is not editable."
+                  }
+                  values={{
+                    part1: (
+                      <code>{getComponentDisplayName(props.component)}</code>
+                    ),
+                  }}
+                />
               </div>
             }
           />
@@ -501,9 +508,16 @@ function CodeComponentTplSlotMessage(props: { component: Component }) {
             showIcon={true}
             message={
               <div>
-                This the slot of code component{" "}
-                <code>{getComponentDisplayName(props.component)}</code>. Please
-                edit its content in the canvas.
+                <UiText
+                  message={
+                    "This the slot of code component {part1}. Please edit its content in the canvas."
+                  }
+                  values={{
+                    part1: (
+                      <code>{getComponentDisplayName(props.component)}</code>
+                    ),
+                  }}
+                />
               </div>
             }
           />
@@ -531,7 +545,12 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
               {selectionPath(viewCtx, node).at(-1)?.label}
             </div>
             <div className="ml-sm">
-              Slot for <code>{getComponentDisplayName(component)}</code>
+              <UiText
+                message={"Slot for {part1}"}
+                values={{
+                  part1: <code>{getComponentDisplayName(component)}</code>,
+                }}
+              />
             </div>
           </div>
           <p className="text-m">{node.slotParam.about}</p>
@@ -581,7 +600,12 @@ const TplSlotMessage = observer(function TplSlotMessage(props: {
           placeholder={`(unnamed slot)`}
           suffix={
             <div className="text-ellipsis">
-              Slot target for <code>{getComponentDisplayName(component)}</code>
+              <UiText
+                message={"Slot target for {part1}"}
+                values={{
+                  part1: <code>{getComponentDisplayName(component)}</code>,
+                }}
+              />
             </div>
           }
         />
@@ -592,12 +616,14 @@ const TplSlotMessage = observer(function TplSlotMessage(props: {
           showIcon={true}
           message={
             <div>
-              This is a slot target - instances of{" "}
-              <code>{getComponentDisplayName(component)}</code> can customize
-              the content of this slot target. You can provide default text
-              styles to control how text and icons look in this slot. You cannot
-              reference dynamic values specific to this component, since the
-              owner of the slot content is the instance parent.
+              <UiText
+                message={
+                  "This is a slot target - instances of {part1} can customize the content of this slot target. You can provide default text styles to control how text and icons look in this slot. You cannot reference dynamic values specific to this component, since the owner of the slot content is the instance parent."
+                }
+                values={{
+                  part1: <code>{getComponentDisplayName(component)}</code>,
+                }}
+              />
             </div>
           }
         />
@@ -619,21 +645,32 @@ const NonBaseTplSlotDescendantMessage = observer(
           showIcon={true}
           message={
             <div>
-              This is default content for slot target{" "}
-              <code>{slot.param.variable.name}</code>. Note that the default
-              slot content is the same for all variants, so edits you make will
-              target the Base variant. If you want to <em>style</em> slot
-              content differently for different variants, you can do so{" "}
-              <strong>
-                <a
-                  onClick={() =>
-                    viewCtx.change(() => viewCtx.setStudioFocusByTpl(slot))
-                  }
-                >
-                  on the slot target instead
-                </a>
-              </strong>
-              .
+              <UiText
+                message={
+                  "This is default content for slot target {part1}. Note that the default slot content is the same for all variants, so edits you make will target the Base variant. If you want to {part2} slot content differently for different variants, you can do so {part3}."
+                }
+                values={{
+                  part1: <code>{slot.param.variable.name}</code>,
+                  part2: (
+                    <em>
+                      <UiText message={"style"} />
+                    </em>
+                  ),
+                  part3: (
+                    <strong>
+                      <a
+                        onClick={() =>
+                          viewCtx.change(() =>
+                            viewCtx.setStudioFocusByTpl(slot),
+                          )
+                        }
+                      >
+                        <UiText message={"on the slot target instead"} />
+                      </a>
+                    </strong>
+                  ),
+                }}
+              />
             </div>
           }
         />
@@ -661,11 +698,16 @@ function NonBaseVariantTransitionsMessage_() {
       type="warning"
       message={
         <div>
-          The transitions style is always applied to the{" "}
-          <a onClick={handleBaseVariantLinkClick}>
-            <UiText message={"Base variant"} />
-          </a>
-          .
+          <UiText
+            message={"The transitions style is always applied to the {part1}."}
+            values={{
+              part1: (
+                <a onClick={handleBaseVariantLinkClick}>
+                  <UiText message={"Base variant"} />
+                </a>
+              ),
+            }}
+          />
         </div>
       }
     />

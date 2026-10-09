@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import { getShiguangSignInUrl } from "@/wab/shared/shiguang-auth";
 import { Button } from "antd";
 import * as React from "react";
@@ -17,7 +18,7 @@ export function ShiguangSignIn() {
   }, [loginUrl]);
   return (
     <Button type="primary" href={loginUrl}>
-      Sign in with Shiguang
+      <UiText message={"Sign in with Shiguang"} />
     </Button>
   );
 }

@@ -1,4 +1,5 @@
 import sty from "@/wab/client/components/canvas/HoverBox/draggable-edge.module.sass";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
 import { cx } from "@/wab/shared/common";
 import {
@@ -142,7 +143,11 @@ export function SpaceEdgeControls(props: {
         <SpaceEdgeArea
           side={side}
           edgeType="margin"
-          label={<>Margin: {marginLabel}</>}
+          label={
+            <>
+              <UiText message={"Margin:"} /> {marginLabel}
+            </>
+          }
           showLabel={
             (showMeasurements && marginPxValue > 0 && innerSpace > 100) ||
             (draggedEdgeType === "margin" && draggedSide === side)
@@ -166,7 +171,11 @@ export function SpaceEdgeControls(props: {
         <SpaceEdgeArea
           side={side}
           edgeType="padding"
-          label={<>Padding: {paddingLabel}</>}
+          label={
+            <>
+              <UiText message={"Padding:"} /> {paddingLabel}
+            </>
+          }
           showLabel={
             (showMeasurements && paddingPxValue > 0 && innerSpace > 100) ||
             (draggedEdgeType === "padding" && draggedSide === side)

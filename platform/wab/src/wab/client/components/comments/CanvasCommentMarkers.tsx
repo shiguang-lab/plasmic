@@ -8,6 +8,7 @@ import {
   TplCommentThread,
 } from "@/wab/client/components/comments/utils";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
+import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
   getSetOfPinnedVariantsForViewCtx,
@@ -129,6 +130,7 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
 
 export const CanvasAddCommentMarker = observer(
   function CanvasAddCommentMarker(props: { viewCtx: ViewCtx; tpl: TplNode }) {
+    const { t: uiT } = useI18n();
     const { viewCtx, tpl } = props;
     const commentsCtx = viewCtx.studioCtx.commentsCtx;
     const commentStats = commentsCtx.computedData().commentStatsByVariant;
@@ -164,7 +166,7 @@ export const CanvasAddCommentMarker = observer(
             : ADD_COMMENT_INDIVIDUAL_MARKER_MARGIN
         }
       >
-        <Tooltip title="New comment">
+        <Tooltip title={uiT("New comment")}>
           <AddCommentMarker
             isRecording={isRecording}
             icon={{

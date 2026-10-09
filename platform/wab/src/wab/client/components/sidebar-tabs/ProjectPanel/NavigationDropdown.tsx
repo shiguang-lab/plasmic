@@ -783,12 +783,17 @@ function NavigationDropdown_(
                     overlay={
                       <Menu>
                         <Menu.Item onClick={() => onAddArena("page")}>
-                          <UiText message={"New"} /> <strong>page</strong>
+                          <UiText message={"New"} />{" "}
+                          <strong>
+                            <UiText message={"page"} />
+                          </strong>
                         </Menu.Item>
                         {!contentEditorMode && (
                           <Menu.Item onClick={() => onAddArena("component")}>
                             <UiText message={"New"} />{" "}
-                            <strong>component</strong>
+                            <strong>
+                              <UiText message={"component"} />
+                            </strong>
                           </Menu.Item>
                         )}
                         {!contentEditorMode && (

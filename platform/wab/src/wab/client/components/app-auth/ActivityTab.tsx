@@ -15,6 +15,7 @@ import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultActivityTabProps,
   PlasmicActivityTab,
@@ -86,13 +87,13 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
             <Textbox
               styleType="bordered"
               className="fill-width"
-              placeholder="Search by email"
+              placeholder={uiT("Search by email")}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
               }}
             />
-            <Tooltip title={"Refresh table data"}>
+            <Tooltip title={uiT("Refresh table data")}>
               <IconButton
                 className="ml-sm"
                 onClick={async () => {
@@ -146,7 +147,7 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                           });
                         }}
                       >
-                        View as this user
+                        <UiText message={"View as this user"} />
                       </Menu.Item>
                       <Menu.Item
                         disabled={!canRevokePermission}
@@ -226,12 +227,18 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                     <>
                       {record.endUserEmail ? (
                         <>
-                          <div> Email: </div>
+                          <div>
+                            {" "}
+                            <UiText message={"Email:"} />{" "}
+                          </div>
                           <div> {record.endUserEmail}</div>
                         </>
                       ) : (
                         <>
-                          <div> External ID: </div>
+                          <div>
+                            {" "}
+                            <UiText message={"External ID:"} />{" "}
+                          </div>
                           <div> {record.endUserExternalId}</div>
                         </>
                       )}
@@ -301,7 +308,9 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                           </Select.Option>
                         ))}
                       {matchedRoles.length === 0 && (
-                        <Select.Option value={"none"}>No role</Select.Option>
+                        <Select.Option value={"none"}>
+                          <UiText message={"No role"} />
+                        </Select.Option>
                       )}
                     </Select>
                   );

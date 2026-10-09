@@ -1,5 +1,6 @@
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
+import { useI18n } from "@/wab/client/i18n";
 import { ensureArray, filterMapTruthy } from "@/wab/shared/common";
 import { ChoiceOptions, ChoiceValue } from "@plasmicapp/host";
 import { Select } from "antd";
@@ -47,6 +48,7 @@ type EnumWithSearchPropEditor<T extends ChoiceValue> = {
 export function EnumWithSearchPropEditor<T extends ChoiceValue>(
   props: EnumWithSearchPropEditor<T>,
 ) {
+  const { t: uiT, label: localizeLabel } = useI18n();
   const {
     value,
     onChange,
@@ -78,7 +80,7 @@ export function EnumWithSearchPropEditor<T extends ChoiceValue>(
       }}
       mode={multiSelect ? "multiple" : undefined}
       disabled={readOnly}
-      placeholder={defaultValueHint}
+      placeholder={defaultValueHint ?? uiT("unset")}
       value={
         !value
           ? undefined
@@ -91,14 +93,14 @@ export function EnumWithSearchPropEditor<T extends ChoiceValue>(
       {options.map((option) =>
         !isObject(option) ? (
           <Select.Option key={option.toString()} value={stringify(option)}>
-            {option}
+            {typeof option === "string" ? localizeLabel(option) : option}
           </Select.Option>
         ) : (
           <Select.Option
             key={stringify(option.value)}
             value={stringify(option.value)}
           >
-            {option.label}
+            {localizeLabel(option.label)}
           </Select.Option>
         ),
       )}
@@ -135,6 +137,7 @@ export function EnumPropEditor<T extends ChoiceValue>(props: {
   "data-plasmic-prop"?: string;
   name?: string;
 }) {
+  const { t: uiT, label: localizeLabel } = useI18n();
   const {
     value,
     onChange,
@@ -187,9 +190,9 @@ export function EnumPropEditor<T extends ChoiceValue>(props: {
         .find((option) => option.value === props.defaultValueHint)?.label ??
       props.defaultValueHint ??
       value?.toString() ??
-      "unset"
+      uiT("unset")
     );
-  }, [options, props.defaultValueHint, value]);
+  }, [options, props.defaultValueHint, value, uiT]);
 
   return (
     <StyleSelect
@@ -205,7 +208,7 @@ export function EnumPropEditor<T extends ChoiceValue>(props: {
           onChange(parsedVal as T);
         }
       }}
-      placeholder={placeholder}
+      placeholder={localizeLabel(placeholder)}
       valueSetState={valueSetState}
       isDisabled={readOnly}
       data-plasmic-prop={props["data-plasmic-prop"]}
@@ -213,15 +216,18 @@ export function EnumPropEditor<T extends ChoiceValue>(props: {
     >
       {options.map((option) => {
         return isGroupLabeledValue(option) ? (
-          <StyleSelect.OptionGroup key={option.label} title={option.label}>
+          <StyleSelect.OptionGroup
+            key={option.label}
+            title={localizeLabel(option.label)}
+          >
             {option.values.map((v) => (
               <StyleSelect.Option
                 key={stringify(v.value)}
                 value={stringify(v.value)}
-                textValue={v.label}
+                textValue={localizeLabel(v.label)}
                 isDisabled={v.isDisabled}
               >
-                {v.label}{" "}
+                {localizeLabel(v.label)}{" "}
               </StyleSelect.Option>
             ))}
           </StyleSelect.OptionGroup>
@@ -229,10 +235,10 @@ export function EnumPropEditor<T extends ChoiceValue>(props: {
           <StyleSelect.Option
             key={stringify(option.value)}
             value={stringify(option.value)}
-            textValue={option.label}
+            textValue={localizeLabel(option.label)}
             isDisabled={option.isDisabled}
           >
-            {option.label}
+            {localizeLabel(option.label)}
           </StyleSelect.Option>
         );
       })}

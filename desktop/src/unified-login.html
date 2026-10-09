@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Sign in to Plasmic</title>
+    <title data-ui-message="Sign in to Plasmic">Sign in to Plasmic</title>
     <style>
       :root {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -167,66 +167,103 @@
           <path d="M33 43a7 7 0 0 1 14 0" />
         </g>
       </svg>
-      <p class="eyebrow">PLASMIC</p>
-      <h1 id="title">Sign in to Plasmic</h1>
-      <p id="message" role="status">
+      <p class="eyebrow" data-ui-message="PLASMIC">PLASMIC</p>
+      <h1 id="title" data-ui-message="Sign in to Plasmic">
+        Sign in to Plasmic
+      </h1>
+      <p
+        id="message"
+        role="status"
+        data-ui-message="Use your Shiguang account to access your projects and workspace."
+      >
         Use your Shiguang account to access your projects and workspace.
       </p>
       <div class="status" id="status" hidden>
         <span id="spinner" class="spinner" aria-hidden="true"></span
-        ><span id="status-label">Connecting</span>
+        ><span id="status-label" data-ui-message="Connecting">Connecting</span>
       </div>
       <div class="actions">
         <button id="sign-in" class="primary">Sign in with Shiguang</button
         ><button id="open" class="primary" hidden disabled>Open browser</button
         ><button id="retry" class="primary" hidden>Try again</button
-        ><button id="copy" hidden>Copy sign-in link</button>
+        ><button id="copy" hidden data-ui-message="Copy sign-in link">
+          Copy sign-in link
+        </button>
       </div>
-      <input id="link" aria-label="Sign-in link" readonly hidden />
-      <p class="hint" id="hint">Your browser will open when you sign in.</p>
-      <p class="hint" id="waiting-hint" hidden>
+      <input
+        id="link"
+        data-ui-message="Sign-in link"
+        data-ui-attribute="aria-label"
+        aria-label="Sign-in link"
+        readonly
+        hidden
+      />
+      <p
+        class="hint"
+        id="hint"
+        data-ui-message="Your browser will open when you sign in."
+      >
+        Your browser will open when you sign in.
+      </p>
+      <p
+        class="hint"
+        id="waiting-hint"
+        hidden
+        data-ui-message="You will return to the app automatically after authorization. Keep this window open until sign-in completes."
+      >
         You will return to the app automatically after authorization. Keep this
         window open until sign-in completes.
       </p>
-      <button id="cancel" class="back" hidden>Cancel sign-in</button>
+      <button id="cancel" class="back" hidden data-ui-message="Cancel sign-in">
+        Cancel sign-in
+      </button>
     </main>
+    <script src="/static/desktop/renderer-i18n.js"></script>
     <script>
       const api = window.desktopUnifiedLogin;
+      const { t, subscribe } = window.desktopUiI18n;
+      let latestState = { phase: "idle" };
       function render(state) {
+        latestState = state;
         const idle = state.phase === "idle",
           failed = state.phase === "error",
           waiting = state.phase === "waiting";
-        document.getElementById("title").textContent = idle
-          ? "Sign in to Plasmic"
-          : failed
-            ? "Sign-in incomplete"
-            : state.phase === "success"
-              ? "Signed in"
-              : waiting
-                ? "Continue sign-in in your browser"
-                : "Opening browser";
-        document.getElementById("message").textContent = idle
-          ? "Use your Shiguang account to access your projects and workspace."
-          : failed
-            ? state.message
-            : waiting
-              ? state.message ||
-                "Complete Shiguang authorization in your browser to return to the desktop app."
+        document.getElementById("title").textContent = t(
+          idle
+            ? "Sign in to Plasmic"
+            : failed
+              ? "Sign-in incomplete"
               : state.phase === "success"
-                ? "Returning to your workspace."
-                : "Please wait while your default browser opens.";
+                ? "Signed in"
+                : waiting
+                  ? "Continue sign-in in your browser"
+                  : "Opening browser",
+        );
+        document.getElementById("message").textContent = t(
+          idle
+            ? "Use your Shiguang account to access your projects and workspace."
+            : failed
+              ? state.message
+              : waiting
+                ? state.message ||
+                  "Complete Shiguang authorization in your browser to return to the desktop app."
+                : state.phase === "success"
+                  ? "Returning to your workspace."
+                  : "Please wait while your default browser opens.",
+        );
         document.getElementById("status").hidden = idle || failed;
         document.getElementById("sign-in").hidden = !idle;
         document.getElementById("hint").hidden = !idle;
         document.getElementById("waiting-hint").hidden = idle || failed;
         document.getElementById("cancel").hidden =
           idle || state.phase === "success";
-        document.getElementById("status-label").textContent =
+        document.getElementById("status-label").textContent = t(
           state.phase === "success"
             ? "Returning to workspace"
             : waiting
               ? "Waiting for browser authorization"
-              : "Connecting";
+              : "Connecting",
+        );
         if (!waiting || !state.copied) {
           document.getElementById("link").hidden = true;
           document.getElementById("link").value = "";
@@ -240,10 +277,12 @@
           const link = document.getElementById("link");
           link.hidden = false;
           link.value = state.authorizationUrl;
-          document.getElementById("message").textContent =
-            "Sign-in link copied. Paste it into your browser to continue authorization.";
+          document.getElementById("message").textContent = t(
+            "Sign-in link copied. Paste it into your browser to continue authorization.",
+          );
         }
       }
+      subscribe(() => render(latestState));
       api.onStatus(render);
       api.command("status").then(render);
       for (const [id, command] of [

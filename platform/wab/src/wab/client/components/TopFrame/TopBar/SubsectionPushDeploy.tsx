@@ -252,10 +252,16 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
           },
           children: [
             <Select.Option value="commit" key="commit" textValue="commit">
-              a commit to <strong>{branch}</strong>
+              <UiText
+                message={"a commit to {part1}"}
+                values={{ part1: <strong>{branch}</strong> }}
+              />
             </Select.Option>,
             <Select.Option value="pr" key="pr" textValue="pr">
-              a new pull request to <strong>{branch}</strong>
+              <UiText
+                message={"a new pull request to {part1}"}
+                values={{ part1: <strong>{branch}</strong> }}
+              />
             </Select.Option>,
           ].concat(
             filterPlasmicPullRequests(
@@ -267,7 +273,10 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
                 key={`${name}`}
                 textValue={`update to ${name}`}
               >
-                an update to <strong>{name}</strong>
+                <UiText
+                  message={"an update to {part1}"}
+                  values={{ part1: <strong>{name}</strong> }}
+                />
               </Select.Option>
             )),
           ),
@@ -314,7 +323,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
                 />
               ))
           ) : (
-            <GitJobStep status="started" description="Set up job" />
+            <GitJobStep status="started" description={uiT("Set up job")} />
           ),
         }}
         githubPagesDelayNotice={{

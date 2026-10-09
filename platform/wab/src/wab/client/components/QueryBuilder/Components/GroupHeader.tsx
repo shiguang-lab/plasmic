@@ -1,4 +1,5 @@
 import { SelectInput } from "@/wab/client/components/QueryBuilder/Components/SelectInput";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ConjsProps } from "@react-awesome-query-builder/antd";
 import React from "react";
 
@@ -27,7 +28,9 @@ export function GroupHeader(props: Props) {
   return (
     <div>
       {/* {props?.id} */}
-      <span className="group-prefix">and&nbsp;</span>
+      <span className="group-prefix">
+        <UiText message={"and"} />
+      </span>
       {showNot ? (
         <SelectInput
           className={`not-selector ${props.not ? "is-active" : "is-inactive"}`}
@@ -45,7 +48,9 @@ export function GroupHeader(props: Props) {
           hideArrow={true}
         />
       ) : (
-        <span>Match</span>
+        <span>
+          <UiText message={"Match"} />
+        </span>
       )}
 
       {conjunctions.length > 1 ? (
@@ -60,7 +65,9 @@ export function GroupHeader(props: Props) {
         <span>{conjunctions[0].label.toLowerCase()}</span>
       )}
 
-      <span>of the following conditions</span>
+      <span>
+        <UiText message={"of the following conditions"} />
+      </span>
       {/* <pre>{JSON.stringify(props, null, 2)}</pre> */}
     </div>
   );

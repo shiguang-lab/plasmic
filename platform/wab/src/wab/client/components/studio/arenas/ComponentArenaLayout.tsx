@@ -310,15 +310,24 @@ export const ComponentArenaLayout = observer(
                 menu={() => (
                   <Menu onClick={() => ghostFrameRef.current?.closeMenu()}>
                     <Menu.Item onClick={handleAddToggleVariant}>
-                      <UiText message={"Add"} /> <strong>toggle</strong>{" "}
+                      <UiText message={"Add"} />{" "}
+                      <strong>
+                        <UiText message={"toggle"} />
+                      </strong>{" "}
                       <UiText message={"variant"} />
                     </Menu.Item>
                     <Menu.Item onClick={handleAddSingleSelectVariantGroup}>
-                      <UiText message={"Add"} /> <strong>single-select</strong>{" "}
+                      <UiText message={"Add"} />{" "}
+                      <strong>
+                        <UiText message={"single-select"} />
+                      </strong>{" "}
                       <UiText message={"group of variants"} />
                     </Menu.Item>
                     <Menu.Item onClick={handleAddMultiSelectVariantGroup}>
-                      <UiText message={"Add"} /> <strong>multi-select</strong>{" "}
+                      <UiText message={"Add"} />{" "}
+                      <strong>
+                        <UiText message={"multi-select"} />
+                      </strong>{" "}
                       <UiText message={"group of variants"} />
                     </Menu.Item>
                     {!isShowingScreenVariantsGroup && (
@@ -327,7 +336,10 @@ export const ComponentArenaLayout = observer(
                         <Menu.SubMenu
                           title={
                             <div>
-                              <UiText message={"Add"} /> <strong>screen</strong>{" "}
+                              <UiText message={"Add"} />{" "}
+                              <strong>
+                                <UiText message={"screen"} />
+                              </strong>{" "}
                               <UiText message={"variant"} />
                             </div>
                           }

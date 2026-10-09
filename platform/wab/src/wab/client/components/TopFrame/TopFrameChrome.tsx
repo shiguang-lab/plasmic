@@ -30,6 +30,7 @@ import {
   TopFrameApiReturnType,
 } from "@/wab/client/frame-ctx/top-frame-api";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { Shortcut } from "@/wab/client/shortcuts/shortcut";
@@ -210,24 +211,36 @@ export function TopFrameChrome({
                   <CloseIcon />
                 </IconButton>
                 <big>
-                  You are previewing a page built in Plasmic <br />
+                  <UiText
+                    message={"You are previewing a page built in Plasmic"}
+                  />{" "}
+                  <br />
                   <br />
                 </big>
                 <p style={{ textAlign: "left" }}>
-                  Click{" "}
-                  <a
-                    href={APP_ROUTES.project.fill({
-                      projectId: project.id,
-                    })}
-                    target="_blank"
-                  >
-                    here
-                  </a>{" "}
-                  to open the project in the Studio.
-                  <br />
-                  <strong>Important</strong>: Notice this page might include and
-                  run third-party javascript, so be careful to not provide
-                  personal information or credentials while using it.
+                  <UiText
+                    message={
+                      "Click {part1} to open the project in the Studio.{part2}{part3}: Notice this page might include and run third-party javascript, so be careful to not provide personal information or credentials while using it."
+                    }
+                    values={{
+                      part1: (
+                        <a
+                          href={APP_ROUTES.project.fill({
+                            projectId: project.id,
+                          })}
+                          target="_blank"
+                        >
+                          <UiText message={"here"} />
+                        </a>
+                      ),
+                      part2: <br />,
+                      part3: (
+                        <strong>
+                          <UiText message={"Important"} />
+                        </strong>
+                      ),
+                    }}
+                  />
                 </p>
               </div>
             ),

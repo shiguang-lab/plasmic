@@ -1,4 +1,6 @@
 import { useDataTokenSuggestionsMenu } from "@/wab/client/components/sidebar-tabs/DataBinding/useDataTokenSuggestionsMenu";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { InputNumber, Slider, notification } from "antd";
 import { defer, isNil } from "lodash";
@@ -17,6 +19,7 @@ interface InputNumPropEditorProps {
 }
 
 export function InputNumPropEditor(props: InputNumPropEditorProps) {
+  const { t: uiT } = useI18n();
   const {
     value: draft,
     isDirty,
@@ -49,18 +52,26 @@ export function InputNumPropEditor(props: InputNumPropEditorProps) {
     const numeric = typeof val === "string" ? +val : val;
     if (isNaN(numeric)) {
       notification.warning({
-        message: "Invalid value",
-        description: `Expected a number, but got "${val}"`,
+        message: <UiText message="Invalid value" />,
+        description: uiT('Expected a number, but got "{value}"', {
+          value: val,
+        }),
       });
     } else if (!isNil(props.min) && numeric < props.min) {
       notification.warning({
-        message: "Value is out of range",
-        description: `Minimum value is ${props.min}, but got "${val}"`,
+        message: <UiText message="Value is out of range" />,
+        description: uiT('Minimum value is {min}, but got "{value}"', {
+          min: props.min,
+          value: val,
+        }),
       });
     } else if (!isNil(props.max) && numeric > props.max) {
       notification.warning({
-        message: "Value is out of range",
-        description: `Maximum value is ${props.max}, but got "${val}"`,
+        message: <UiText message="Value is out of range" />,
+        description: uiT('Maximum value is {max}, but got "{value}"', {
+          max: props.max,
+          value: val,
+        }),
       });
     } else if (numeric !== props.value) {
       props.onChange(numeric);
@@ -107,7 +118,7 @@ export function InputNumPropEditor(props: InputNumPropEditorProps) {
         type="number" // https://ant.design/components/input-number#notes
         className="code textboxlike fill-width"
         size="small"
-        placeholder={props.defaultValueHint?.toString() ?? "unset"}
+        placeholder={props.defaultValueHint?.toString() ?? uiT("unset")}
         value={draft}
         onChange={(val) => {
           setDraft(val ?? undefined);

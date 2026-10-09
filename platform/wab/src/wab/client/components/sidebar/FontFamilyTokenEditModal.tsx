@@ -3,6 +3,7 @@ import { newTokenValueAllowed } from "@/wab/client/components/sidebar/token-util
 import { FontFamilySelector } from "@/wab/client/components/widgets/FontFamilySelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { useI18n } from "@/wab/client/i18n";
 import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
@@ -21,6 +22,7 @@ export const FontFamilyTokenEditModal = observer(
     onClose: () => void;
     vsh?: VariantedStylesHelper;
   }) {
+    const { t: uiT } = useI18n();
     const {
       token,
       studioCtx,
@@ -58,7 +60,7 @@ export const FontFamilyTokenEditModal = observer(
                 })
               }
               readOnly={!(token instanceof MutableToken)}
-              placeholder={"(unnamed token)"}
+              placeholder={uiT("(unnamed token)")}
               autoFocus={defaultEditingName}
               selectAllOnFocus={true}
               fontSize="xlarge"

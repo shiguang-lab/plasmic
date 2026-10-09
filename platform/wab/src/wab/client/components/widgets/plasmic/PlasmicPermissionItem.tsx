@@ -277,25 +277,25 @@ function PlasmicPermissionItem__RenderFunc(props: {
               className={classNames("__wab_instance", sty.option__clhZ3)}
               value={"viewer"}
             >
-              {"viewer"}
+              {<UiText message={"viewer"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__wZq0D)}
               value={"content"}
             >
-              {"designer"}
+              {<UiText message={"designer"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__xCsAc)}
               value={"designer"}
             >
-              {"content creator"}
+              {<UiText message={"content creator"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__ncavV)}
               value={"editor"}
             >
-              {"editor"}
+              {<UiText message={"editor"} />}
             </Select__Option>
           </Select>
         ) : null}

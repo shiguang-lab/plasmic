@@ -305,7 +305,7 @@ function genDataBindingMenu(
       <>
         {onEditDynamicValue && (
           <Menu.Item key="change-init-val" onClick={onEditDynamicValue}>
-            Change dynamic value
+            <UiText message={"Change dynamic value"} />
           </Menu.Item>
         )}
         {onRemoveDynamicValue && (
@@ -358,9 +358,16 @@ export function makeVariantGroupMenu(opts: {
       if (onToggleMulti) {
         push(
           <Menu.Item key="change" onClick={onToggleMulti}>
-            Change type to{" "}
-            <strong>{group.multi ? "single-choice" : "multi-choice"}</strong>{" "}
-            group
+            <UiText
+              message={"Change type to {part1} group"}
+              values={{
+                part1: (
+                  <strong>
+                    {group.multi ? "single-choice" : "multi-choice"}
+                  </strong>
+                ),
+              }}
+            />
           </Menu.Item>,
         );
       }

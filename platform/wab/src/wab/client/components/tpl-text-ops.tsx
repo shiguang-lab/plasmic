@@ -185,14 +185,14 @@ export function makeTplTextMenu(ops: TplTextOps, viewCtx: ViewCtx) {
         key="remove-text-override"
         onClick={ops.actions.removeVariantSetting}
       >
-        Remove text override
+        <UiText message={"Remove text override"} />
       </Menu.Item>,
     );
   }
   if (ops.actions.clear) {
     menuItems.push(
       <Menu.Item key="clear-text" onClick={ops.actions.clear}>
-        Clear text
+        <UiText message={"Clear text"} />
       </Menu.Item>,
     );
   }

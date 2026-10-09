@@ -9,6 +9,7 @@ import {
   useToggleDisplayed,
 } from "@/wab/client/dom-utils";
 import { useFileDragState } from "@/wab/client/file-drag/useFileDragState";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
@@ -390,12 +391,13 @@ export interface FileUploaderProps {
 }
 
 export function FileUploader(props: FileUploaderProps) {
+  const { t: uiT } = useI18n();
   const { onChange, accept, style, children, disabled } = props;
   const { inputAccept, dropText } = fileUploaderAcceptConfig[accept];
   const [input, setInput] = React.useState<HTMLInputElement | null>(null);
   const dragState = useFileDragState(input);
   return (
-    <Tooltip title={"Upload or drag a file here"}>
+    <Tooltip title={uiT("Upload or drag a file here")}>
       <PlainLinkButton className="file-uploader" style={style}>
         {children ?? (
           <div className={"fake-upload"}>
@@ -946,7 +948,7 @@ export function StudioPlaceholder() {
   return (
     <div className="StudioPlaceholder visible">
       <span className="placeholder_srOnly" role="status">
-        Loading project…
+        <UiText message={"Loading project…"} />
       </span>
       <div className="placeholder_topBar" aria-hidden="true">
         <svg

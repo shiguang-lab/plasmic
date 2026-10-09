@@ -39,7 +39,7 @@ import {
   useTopFrameApi,
 } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -215,7 +215,11 @@ const PropFolder = observer(function PropFolder(props: {
   );
   return (
     <div className="mv-m">
-      <LabeledListItem noContent label={name} padding="noHorizontal" />
+      <LabeledListItem
+        noContent
+        label={<UiLabel text={name} />}
+        padding="noHorizontal"
+      />
       {visibleChildren.map((child, idx) => {
         return (
           <ConnectorLine
@@ -240,6 +244,7 @@ export const ComponentPropsSection = observer(
     includeVariants?: boolean;
     tab: "settings" | "style";
   }) {
+    const { t: uiT, label: localizeLabel } = useI18n();
     const { viewCtx, tpl, expsProvider, tab, includeVariants } = props;
     const tplCtx = { tpl, viewCtx, expsProvider };
     const component = tpl.component;
@@ -328,9 +333,10 @@ export const ComponentPropsSection = observer(
             id="component-props-section"
             title={
               props.customTitle ??
-              `${getComponentDisplayName(tpl.component)} ${
-                tab === "settings" ? "props" : "nested styles"
-              }`
+              uiT(
+                tab === "settings" ? "{name} props" : "{name} nested styles",
+                { name: getComponentDisplayName(tpl.component) },
+              )
             }
             hasCollapsibleContent={advancedParams.length > 0}
             onExtraContentExpanded={() => {
@@ -369,7 +375,11 @@ export const ComponentPropsSection = observer(
                     className="flex-col gap-xsm mb-m"
                     data-test-id="slot-content-navigation"
                   >
-                    <div className="dimfg">{title}: content</div>
+                    <div className="dimfg">
+                      {uiT("{name}: content", {
+                        name: localizeLabel(title ?? param.variable.name),
+                      })}
+                    </div>
                     {expr.tpl.map((child) => (
                       <Button
                         key={child.uuid}
@@ -385,7 +395,7 @@ export const ComponentPropsSection = observer(
                         {("name" in child && child.name) ||
                           (isKnownTplComponent(child)
                             ? getComponentDisplayName(child.component)
-                            : "Text / layout")}
+                            : uiT("Text / layout"))}
                       </Button>
                     ))}
                   </div>
@@ -882,6 +892,7 @@ export const DataSourceEditor = observer(function DataSourceEditor({
   paramName,
   defaultValueHint,
 }: DataSourceEditorProps) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
 
@@ -914,11 +925,11 @@ export const DataSourceEditor = observer(function DataSourceEditor({
   return (
     <Input
       className={`form-control code text-right`}
-      value={isValidating ? "loading..." : dataSource?.name}
+      value={isValidating ? uiT("Loading") : dataSource?.name}
       readOnly
       disabled={readOnly}
       onClick={onClick}
-      placeholder={defaultValueHint ?? "unset"}
+      placeholder={defaultValueHint ?? uiT("unset")}
     />
   );
 });
@@ -1017,7 +1028,7 @@ export const FallbackEditor = observer(function FallbackEditor_(props: {
           )}
         </Menu>
       )}
-      label={!hideFallbackLabel && "Fallback"}
+      label={!hideFallbackLabel && <UiText message="Fallback" />}
       definedIndicator={isSet ? definedIndicator : { source: "none" }}
     >
       {children}
@@ -1132,8 +1143,13 @@ export async function promptForParamName(
       message: "New prop created",
       description: (
         <>
-          <code>{name}</code> is not a valid prop name; renamed to{" "}
-          <code>{validName}</code> instead.
+          <UiText
+            message="{part1} is not a valid prop name; renamed to {part2} instead."
+            values={{
+              part1: <code>{name}</code>,
+              part2: <code>{validName}</code>,
+            }}
+          />
         </>
       ),
     });

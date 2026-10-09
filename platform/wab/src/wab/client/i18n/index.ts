@@ -36,7 +36,22 @@ let locale = resolveUiLocale(preference, systemLanguages());
 const listeners = new Set<() => void>();
 let followsTopFrame = false;
 
+function syncDesktopLocale() {
+  if (window.top === window) {
+    const desktop = (
+      window as Window & {
+        desktopEnvironment?: {
+          setUiLocale?: (locale: UiLocale) => Promise<void>;
+        };
+      }
+    ).desktopEnvironment;
+    void desktop?.setUiLocale?.(locale);
+  }
+}
+syncDesktopLocale();
+
 function notify() {
+  syncDesktopLocale();
   listeners.forEach((listener) => listener());
 }
 

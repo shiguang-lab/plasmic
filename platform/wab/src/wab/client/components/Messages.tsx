@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as common from "@/wab/shared/common";
 import { notification } from "antd";
 import L from "lodash";
@@ -22,9 +23,14 @@ export function showForbiddenError() {
   const key = L.uniqueId();
   notification.error({
     key,
-    message: "Error",
+    message: <UiText message="Error" />,
     description: (
-      <span>Changes could not be saved. {FORBIDDEN_EXPLANATION}</span>
+      <span>
+        <UiText
+          message={"Changes could not be saved. {part1}"}
+          values={{ part1: FORBIDDEN_EXPLANATION }}
+        />
+      </span>
     ),
     duration: 0,
   });
@@ -37,16 +43,22 @@ export function showReloadNotice() {
     message: "Info",
     description: (
       <span>
-        {RELOAD_EXPLANATION}{" "}
-        <a
-          onClick={() => {
-            notification.destroy(key);
-            reload();
+        <UiText
+          message={"{part1} {part2} to edit."}
+          values={{
+            part1: RELOAD_EXPLANATION,
+            part2: (
+              <a
+                onClick={() => {
+                  notification.destroy(key);
+                  reload();
+                }}
+              >
+                <UiText message={"Reload project"} />
+              </a>
+            ),
           }}
-        >
-          Reload project
-        </a>{" "}
-        to edit.
+        />
       </span>
     ),
     duration: 0,
@@ -57,19 +69,27 @@ export function showReloadError() {
   const key = L.uniqueId();
   notification.error({
     key,
-    message: "Error",
+    message: <UiText message="Error" />,
     description: (
       <span>
-        Changes could not be saved. {RELOAD_EXPLANATION}{" "}
-        <a
-          onClick={() => {
-            notification.destroy(key);
-            reload();
+        <UiText
+          message={
+            "Changes could not be saved. {part1} {part2} to continue editing."
+          }
+          values={{
+            part1: RELOAD_EXPLANATION,
+            part2: (
+              <a
+                onClick={() => {
+                  notification.destroy(key);
+                  reload();
+                }}
+              >
+                <UiText message={"Reload project"} />
+              </a>
+            ),
           }}
-        >
-          Reload project
-        </a>{" "}
-        to continue editing.
+        />
       </span>
     ),
     duration: 0,

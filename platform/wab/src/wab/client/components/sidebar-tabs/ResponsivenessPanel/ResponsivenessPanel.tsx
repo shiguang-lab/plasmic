@@ -177,10 +177,19 @@ export function ResponsivenessPanel_() {
               </p>
               {missingVariants.length > 0 && (
                 <p>
-                  <strong>You will lose changes</strong> associated with
-                  breakpoints{" "}
-                  {" " + missingVariants.map((v) => `"${v.name}"`).join(", ")},
-                  because there are no new breakpoints that match them exactly.
+                  <UiText
+                    message="{part1} associated with breakpoints {part2}, because there are no new breakpoints that match them exactly."
+                    values={{
+                      part1: (
+                        <strong>
+                          <UiText message={"You will lose changes"} />
+                        </strong>
+                      ),
+                      part2:
+                        " " +
+                        missingVariants.map((v) => `"${v.name}"`).join(", "),
+                    }}
+                  />
                 </p>
               )}
             </div>
@@ -213,21 +222,47 @@ export function ResponsivenessPanel_() {
               .
             </p>
             <p>
-              <strong>
-                <UiText message={"Most projects need just 1 breakpoint"} />
-              </strong>
-              , to switch between desktop and mobile styles. We recommend not
-              exceeding 3. Too many can be hard to manage.
+              <UiText
+                message="{part1}, to switch between desktop and mobile styles. We recommend not exceeding 3. Too many can be hard to manage."
+                values={{
+                  part1: (
+                    <strong>
+                      <UiText
+                        message={"Most projects need just 1 breakpoint"}
+                      />
+                    </strong>
+                  ),
+                }}
+              />
             </p>
             <p>
-              <strong>
-                Don't create a breakpoint for your{" "}
-                {isMobileFirst ? "smallest" : "largest"} screen size
-              </strong>
-              . Instead, use the Base variant as your{" "}
-              {isMobileFirst ? "smallest" : "largest"} screen size, and specify
-              responsive overrides for other{" "}
-              {isMobileFirst ? "larger" : "smaller"} breakpoints.
+              <UiText
+                message="{part1}. Instead, use the Base variant as your {part2} screen size, and specify responsive overrides for other {part3} breakpoints."
+                values={{
+                  part1: (
+                    <strong>
+                      <UiText
+                        message={
+                          "Don't create a breakpoint for your {part1} screen size"
+                        }
+                        values={{
+                          part1: (
+                            <UiText
+                              message={isMobileFirst ? "smallest" : "largest"}
+                            />
+                          ),
+                        }}
+                      />
+                    </strong>
+                  ),
+                  part2: (
+                    <UiText message={isMobileFirst ? "smallest" : "largest"} />
+                  ),
+                  part3: (
+                    <UiText message={isMobileFirst ? "larger" : "smaller"} />
+                  ),
+                }}
+              />
             </p>
           </div>
         }

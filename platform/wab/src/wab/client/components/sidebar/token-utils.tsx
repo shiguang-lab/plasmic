@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { DataTokenType, DataTokenValue } from "@/wab/commons/DataToken";
 import {
@@ -215,7 +216,11 @@ export const newTokenValueAllowed = (
     message: "Cyclic token references disallowed",
     description: (
       <div>
-        Cannot refer to the token since it will lead to the following cycle{" "}
+        <UiText
+          message={
+            "Cannot refer to the token since it will lead to the following cycle"
+          }
+        />{" "}
         <div>{cycle}</div>
       </div>
     ),

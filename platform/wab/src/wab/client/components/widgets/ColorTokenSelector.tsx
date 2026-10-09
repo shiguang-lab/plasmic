@@ -4,6 +4,7 @@ import { PlainLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { useToggleDisplayed } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import { PlusIcon } from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
@@ -33,6 +34,7 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
   vsh?: VariantedStylesHelper;
   hideAddToken?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const {
     tokens,
     onSelect,
@@ -112,7 +114,7 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
               <Icon icon={SearchIcon} className="dimdimfg" />
               <input
                 className="ml-sm flex-fill mr-sm"
-                placeholder={"Search for token"}
+                placeholder={uiT("Search for token")}
                 {...downshift.getInputProps({
                   onKeyDown: (e) => {
                     if (e.key === "Enter") {
@@ -129,7 +131,7 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
                 autoFocus={props.autoFocusSearch}
               />
               {hideAddToken ? null : (
-                <Tooltip title="Create a new color token">
+                <Tooltip title={uiT("Create a new color token")}>
                   <IconButton onClick={() => onAddToken()} type="round">
                     <Icon icon={PlusIcon} />
                   </IconButton>

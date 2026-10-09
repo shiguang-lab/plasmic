@@ -391,7 +391,9 @@ function ActionBuilder_(
                 stretched
                 data-plasmic-prop="mode-when"
               >
-                <div className="text-m">When...</div>
+                <div className="text-m">
+                  <UiText message={"When..."} />
+                </div>
               </StyleToggleButton>
             </StyleToggleButtonGroup>
           ),

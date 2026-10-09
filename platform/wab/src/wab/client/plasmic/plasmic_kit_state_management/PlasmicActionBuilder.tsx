@@ -851,7 +851,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__rQi9K)}
                   >
-                    {"When..."}
+                    {<UiText message={"When..."} />}
                   </div>
                 </StyleToggleButton>
               </StyleToggleButtonGroup>

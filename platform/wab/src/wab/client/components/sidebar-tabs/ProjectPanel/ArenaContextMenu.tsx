@@ -223,10 +223,16 @@ export function ArenaContextMenu({
           hidden={!shouldShowItem.findReferences}
           onClick={onFindReferences}
         >
-          <strong>
-            <UiText message={"Find"} />
-          </strong>{" "}
-          all references
+          <UiText
+            message="{part1} all references"
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Find"} />
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
       )}
       {menuSection(
@@ -263,30 +269,48 @@ export function ArenaContextMenu({
           hidden={!shouldShowItem.editInNewArtboard}
           onClick={onRequestEditingInNewArtboard}
         >
-          <strong>
-            <UiText message={"Edit"} />
-          </strong>{" "}
-          in new artboard
+          <UiText
+            message="{part1} in new artboard"
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Edit"} />
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
         <Menu.Item
           key="convertToComponent"
           hidden={!shouldShowItem.convertToComponent}
           onClick={onConvertToComponent}
         >
-          <strong>
-            <UiText message={"Convert"} />
-          </strong>{" "}
-          to reusable component
+          <UiText
+            message="{part1} to reusable component"
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Convert"} />
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
         <Menu.Item
           key="convertToPage"
           hidden={!shouldShowItem.convertToPage}
           onClick={onConvertToPage}
         >
-          <strong>
-            <UiText message={"Convert"} />
-          </strong>{" "}
-          to page component
+          <UiText
+            message="{part1} to page component"
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Convert"} />
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
       )}
       {shouldShowItem.replaceAllInstances &&
@@ -296,10 +320,16 @@ export function ArenaContextMenu({
             key="replaceAllInstances"
             title={
               <span>
-                <strong>
-                  <UiText message={"Replace"} />
-                </strong>{" "}
-                all instances of this component with...
+                <UiText
+                  message="{part1} all instances of this component with..."
+                  values={{
+                    part1: (
+                      <strong>
+                        <UiText message={"Replace"} />
+                      </strong>
+                    ),
+                  }}
+                />
               </span>
             }
           >
@@ -313,10 +343,16 @@ export function ArenaContextMenu({
             key="replaceAllLinks"
             title={
               <span>
-                <strong>
-                  <UiText message={"Replace"} />
-                </strong>{" "}
-                all links to this page with...
+                <UiText
+                  message="{part1} all links to this page with..."
+                  values={{
+                    part1: (
+                      <strong>
+                        <UiText message={"Replace"} />
+                      </strong>
+                    ),
+                  }}
+                />
               </span>
             }
           >
@@ -366,10 +402,16 @@ export function ArenaContextMenu({
                       )
                     }
                   >
-                    <strong>
-                      <UiText message={"Delete"} />
-                    </strong>{" "}
-                    page, but convert PageHref to links
+                    <UiText
+                      message="{part1} page, but convert PageHref to links"
+                      values={{
+                        part1: (
+                          <strong>
+                            <UiText message={"Delete"} />
+                          </strong>
+                        ),
+                      }}
+                    />
                   </Menu.Item>
                 )}
               </Menu.SubMenu>

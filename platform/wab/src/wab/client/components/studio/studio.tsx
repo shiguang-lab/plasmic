@@ -8,6 +8,7 @@ import {
   getReactWebBundle,
 } from "@/wab/client/components/studio/studio-bundles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
 import RocketsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RocketSvg";
 import { bindStudioShortcutHandlers } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
@@ -53,16 +54,23 @@ export class Studio extends React.Component<StudioProps, {}> {
         message: "Enable image optimization for this project?",
         description: (
           <p>
-            <a
-              onClick={() => {
-                notification.destroy(id);
-                return showPlasmicImgModal(studioCtx);
+            <UiText
+              message={
+                "{part1} to read more about the new image optimization feature and enable it for this project"
+              }
+              values={{
+                part1: (
+                  <a
+                    onClick={() => {
+                      notification.destroy(id);
+                      return showPlasmicImgModal(studioCtx);
+                    }}
+                  >
+                    <UiText message={"Click here"} />
+                  </a>
+                ),
               }}
-            >
-              Click here
-            </a>{" "}
-            to read more about the new image optimization feature and enable it
-            for this project
+            />
           </p>
         ),
         duration: 20,

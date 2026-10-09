@@ -147,7 +147,7 @@ function PlasmicComponentsPanel__RenderFunc(props: {
                   sty.componentListItem__mTRbM
                 )}
               >
-                {"Card"}
+                {<UiText message={"Card"} />}
               </ComponentListItem>
             </React.Fragment>
           ),

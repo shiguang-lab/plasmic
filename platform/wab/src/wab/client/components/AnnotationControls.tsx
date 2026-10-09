@@ -2,6 +2,7 @@ import { PanelSection } from "@/wab/client/components/sidebar/PanelSection";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { useViewCtx } from "@/wab/client/contexts/StudioContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   Annotation,
   addAnnotation,
@@ -12,13 +13,14 @@ import { Collapse } from "antd";
 import React, { useState } from "react";
 
 export function AnnotationControls() {
+  const { t: uiT } = useI18n();
   const vc = useViewCtx();
   const [expanded, setExpanded] = useState<string | undefined>(undefined);
 
   const tpl = ensure(vc.focusedTpl(true));
 
   return (
-    <PanelSection title={"Annotations"}>
+    <PanelSection title={uiT("Annotations")}>
       <ListBox
         appendPrepend={"append"}
         onAdd={() =>

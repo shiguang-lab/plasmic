@@ -69,14 +69,30 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
                   value={FrameViewMode.Stretch}
                   tooltip={
                     <>
-                      Stretch mode, where content fills entire{" "}
-                      {<UiLabel text={FRAME_CAP} />}. Useful for full-screen
-                      designs.{" "}
-                      {!isStretchable && (
-                        <strong>
-                          Will also set your root width to <code>stretch</code>!
-                        </strong>
-                      )}
+                      <UiText
+                        message={
+                          "Stretch mode, where content fills entire {part1}. Useful for full-screen designs. {part2}"
+                        }
+                        values={{
+                          part1: <UiLabel text={FRAME_CAP} />,
+                          part2: !isStretchable && (
+                            <strong>
+                              <UiText
+                                message={
+                                  "Will also set your root width to {part1}!"
+                                }
+                                values={{
+                                  part1: (
+                                    <code>
+                                      <UiText message={"stretch"} />
+                                    </code>
+                                  ),
+                                }}
+                              />
+                            </strong>
+                          ),
+                        }}
+                      />
                     </>
                   }
                 >
@@ -86,9 +102,12 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
                   value={FrameViewMode.Centered}
                   tooltip={
                     <>
-                      Centered mode, where content is centered in{" "}
-                      {<UiLabel text={FRAME_CAP} />}. Useful for reusable
-                      components like buttons.
+                      <UiText
+                        message={
+                          "Centered mode, where content is centered in {part1}. Useful for reusable components like buttons."
+                        }
+                        values={{ part1: <UiLabel text={FRAME_CAP} /> }}
+                      />
                     </>
                   }
                 >

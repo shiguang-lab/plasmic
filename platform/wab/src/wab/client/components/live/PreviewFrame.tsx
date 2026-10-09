@@ -8,11 +8,12 @@ import {
 } from "@/wab/client/components/live/live-syncer";
 import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
 import {
-  getSortedHostLessPkgs,
   getHostLessPkgIdentity,
+  getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { scriptExec } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { isComponentArena } from "@/wab/shared/Arenas";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
@@ -140,7 +141,14 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       return;
     }
     const win = frameRef.current;
-    if (usedPkgs.some((pkg) => !installedPkgsSet.has(getHostLessPkgIdentity(pkg, previewCtx.studioCtx.site)))) {
+    if (
+      usedPkgs.some(
+        (pkg) =>
+          !installedPkgsSet.has(
+            getHostLessPkgIdentity(pkg, previewCtx.studioCtx.site),
+          ),
+      )
+    ) {
       setIsInstalling(true);
       spawn(
         (async () => {
@@ -181,7 +189,12 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       !frameLoaded ||
       !frameRef.current ||
       isInstalling ||
-      usedPkgs.some((pkg) => !installedPkgsSet.has(getHostLessPkgIdentity(pkg, previewCtx.studioCtx.site)))
+      usedPkgs.some(
+        (pkg) =>
+          !installedPkgsSet.has(
+            getHostLessPkgIdentity(pkg, previewCtx.studioCtx.site),
+          ),
+      )
     ) {
       return;
     }
@@ -224,6 +237,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
 export const PreviewFrame = observer(function PreviewFrame({
   previewCtx,
 }: PreviewFrameProps) {
+  const { t: uiT } = useI18n();
   const studioCtx = previewCtx.studioCtx;
   const stageRef = React.useRef<HTMLDivElement | null>(null);
   const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
@@ -370,7 +384,7 @@ export const PreviewFrame = observer(function PreviewFrame({
                 throw e;
               }
             }}
-            title="Page preview"
+            title={uiT("Page preview")}
             style={{
               width: "100%",
               height: "100%",

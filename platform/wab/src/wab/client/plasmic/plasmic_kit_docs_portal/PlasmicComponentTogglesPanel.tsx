@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: dwF8TMwvPf
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -104,6 +105,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
   overrides: PlasmicComponentTogglesPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -285,7 +287,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
               <React.Fragment>
                 <SlotProp
                   className={classNames("__wab_instance", sty.slotProp__o6Qg3)}
-                  label={"children"}
+                  label={uiT("children")}
                 >
                   <Textbox
                     className={classNames("__wab_instance", sty.textbox__pu95O)}
@@ -306,7 +308,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
                 </SlotProp>
                 <SlotProp
                   className={classNames("__wab_instance", sty.slotProp___3GZuj)}
-                  label={"icon"}
+                  label={uiT("icon")}
                 >
                   <Textbox
                     className={classNames("__wab_instance", sty.textbox__e6AqT)}
@@ -421,7 +423,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
                       role={"img"}
                     />
                   }
-                  label={"button"}
+                  label={uiT("button")}
                 />
               </React.Fragment>
             ),

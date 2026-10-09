@@ -19,6 +19,7 @@ import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   EXPANDER_COLLAPSED_ICON,
   EXPANDER_EXPANDED_ICON,
@@ -919,7 +920,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
               )}
               popoverTitle={() => (
                 <VariantSettingPopoverTitle vs={indicatedVs} viewCtx={viewCtx}>
-                  Settings for{" "}
+                  <UiText message={"Settings for"} />{" "}
                   {pluralize("variant", indicatedVs.variants.length)} "
                   {variantComboName(indicatedVs.variants)}"
                 </VariantSettingPopoverTitle>

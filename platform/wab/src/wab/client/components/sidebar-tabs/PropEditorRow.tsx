@@ -675,7 +675,7 @@ export interface PropEditorRef {
 export const InnerPropEditorRow = observer(InnerPropEditorRow_);
 
 function InnerPropEditorRow_(props: PropEditorRowProps) {
-  const { t: uiT } = useI18n();
+  const { t: uiT, label: localizeLabel } = useI18n();
   const {
     about = maybePropTypeToAbout(props.propType),
     label,
@@ -1224,7 +1224,13 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                   <MaybeWrap
                     cond={!!about}
                     wrapper={(x) => (
-                      <LabelWithDetailedTooltip tooltip={about}>
+                      <LabelWithDetailedTooltip
+                        tooltip={
+                          typeof about === "string"
+                            ? localizeLabel(about)
+                            : about
+                        }
+                      >
                         {x}
                       </LabelWithDetailedTooltip>
                     )}
@@ -1232,9 +1238,11 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     <div>
                       {isPlainObjectPropType(propType) &&
                       hackyCast(propType).required ? (
-                        <span className="required-prop">{label}</span>
+                        <span className="required-prop">
+                          {localizeLabel(label)}
+                        </span>
                       ) : (
-                        label
+                        localizeLabel(label)
                       )}
                     </div>
                   </MaybeWrap>
@@ -1283,7 +1291,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     propType.helpText !== undefined && (
                       <div className="fill-width dimfg gap-xsm">
                         <StandardMarkdown>
-                          {propType.helpText.trim()}
+                          {localizeLabel(propType.helpText.trim())}
                         </StandardMarkdown>
                       </div>
                     )}
@@ -1566,7 +1574,7 @@ function PageHrefRows({
             size="small"
             tooltip={
               <div>
-                Add a query param, used in the URL as:
+                <UiText message={"Add a query param, used in the URL as:"} />
                 <p>
                   <span style={{ opacity: 0.5 }}>abc.com</span>
                   <strong>?page=3</strong>
@@ -1586,7 +1594,7 @@ function PageHrefRows({
             data-test-id="add-fragment"
             tooltip={
               <div>
-                Add a fragment, used in the URL as:
+                <UiText message={"Add a fragment, used in the URL as:"} />
                 <p>
                   <span style={{ opacity: 0.5 }}>abc.com</span>
                   <strong>#fragment</strong>
@@ -1613,10 +1621,10 @@ function PageHrefRows({
               <LabelWithDetailedTooltip
                 tooltip={
                   <>
-                    Encodes path and query params using{" "}
-                    <code>encodeURIComponent</code> to ensure a valid link
-                    destination. Turning this off should only be reserved for
-                    advanced cases where encoding is handled in a dynamic value.
+                    <UiText
+                      message="Encodes path and query params using {part1} to ensure a valid link destination. Turning this off should only be reserved for advanced cases where encoding is handled in a dynamic value."
+                      values={{ part1: <code>encodeURIComponent</code> }}
+                    />
                   </>
                 }
               >

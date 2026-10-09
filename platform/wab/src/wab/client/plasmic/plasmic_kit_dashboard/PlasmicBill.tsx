@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: sK-iPs7I1Z
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -382,7 +383,7 @@ function PlasmicBill__RenderFunc(props: {
               ? "New yearly total "
               : hasVariant($state, "type", "month")
               ? "New monthly total "
-              : "Total"}
+              : <UiText message={"Total"} />}
           </div>
           <div className={classNames("all", sty.freeBox___5MDgk)}>
             <div className={classNames("all", sty.freeBox__ixJv)}>

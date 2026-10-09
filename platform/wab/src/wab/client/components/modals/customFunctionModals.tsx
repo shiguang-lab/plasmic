@@ -6,6 +6,7 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
+import { UiText } from "@/wab/client/i18n/UiText";
 import TrashsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__TrashSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { cachedExprsInSite } from "@/wab/shared/cached-selectors";
@@ -62,8 +63,13 @@ async function promptRemapCustomFunction(props: {
     <Modal
       title={
         <>
-          Custom function no longer registered: {fnDisplay} (
-          <code>{customFunction.importPath}</code>)
+          <UiText
+            message={"Custom function no longer registered: {part1} ({part2})"}
+            values={{
+              part1: fnDisplay,
+              part2: <code>{customFunction.importPath}</code>,
+            }}
+          />
         </>
       }
       visible={true}
@@ -71,10 +77,19 @@ async function promptRemapCustomFunction(props: {
       onCancel={() => onCancel()}
     >
       <p>
-        Function <code>{fnDisplay}</code> is no longer registered, but is being
-        used by{" "}
-        <strong>{refComponents.map(getComponentDisplayName).join(", ")}</strong>
-        . What would you like to do?
+        <UiText
+          message={
+            "Function {part1} is no longer registered, but is being used by {part2}. What would you like to do?"
+          }
+          values={{
+            part1: <code>{fnDisplay}</code>,
+            part2: (
+              <strong>
+                {refComponents.map(getComponentDisplayName).join(", ")}
+              </strong>
+            ),
+          }}
+        />
       </p>
       <div className="flex flex-vcenter">
         <Select
@@ -118,14 +133,16 @@ async function promptRemapCustomFunction(props: {
             </Select.Option>
           ))}
         </Select>
-        <div className="mh-lg">or</div>
+        <div className="mh-lg">
+          <UiText message={"or"} />
+        </div>
         <div>
           <Button
             startIcon={<Icon icon={TrashsvgIcon} />}
             withIcons={["startIcon"]}
             onClick={() => onSubmit("delete")}
           >
-            Delete all existing uses
+            <UiText message={"Delete all existing uses"} />
           </Button>
         </div>
       </div>

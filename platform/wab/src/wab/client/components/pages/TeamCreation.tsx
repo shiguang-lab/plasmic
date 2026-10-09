@@ -125,9 +125,15 @@ export function TeamCreation() {
               onFinish={onSubmit}
               className={"SurveyForm__Fields"}
             >
-              <h2>Welcome to Plasmic!</h2>
+              <h2>
+                <UiText message={"Welcome to Plasmic!"} />
+              </h2>
               <Form.Item
-                label={<Label>Tell us about your organization</Label>}
+                label={
+                  <Label>
+                    <UiText message={"Tell us about your organization"} />
+                  </Label>
+                }
                 name={"teamName"}
               >
                 <Input size={"large"} placeholder={`Organization name...`} />
@@ -138,7 +144,7 @@ export function TeamCreation() {
                 type={"primary"}
                 size={"large"}
               >
-                Name this organization
+                <UiText message={"Name this organization"} />
               </Button>
             </Form>
           )}
@@ -149,14 +155,20 @@ export function TeamCreation() {
               onFinish={onInvites}
               className={"SurveyForm__Fields"}
             >
-              <h2>Invite your collaborators</h2>
-              <Label>Share organization files and create together</Label>
+              <h2>
+                <UiText message={"Invite your collaborators"} />
+              </h2>
+              <Label>
+                <UiText
+                  message={"Share organization files and create together"}
+                />
+              </Label>
               <Button
                 htmlType={"button"}
                 size={"large"}
                 onClick={() => copy(getTeamInviteLink(team))}
               >
-                Copy invite link
+                <UiText message={"Copy invite link"} />
               </Button>
               <Form.Item
                 name={"inviteEmails"}
@@ -187,7 +199,7 @@ export function TeamCreation() {
                 type={"primary"}
                 size={"large"}
               >
-                Send invites
+                <UiText message={"Send invites"} />
               </Button>
               <Button htmlType={"button"} size={"large"} onClick={onSkip}>
                 <UiText message={"Do this later"} />

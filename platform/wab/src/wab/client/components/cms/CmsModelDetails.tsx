@@ -933,7 +933,9 @@ function WebhookForm(props: {
         menuButton={{
           menu: () => (
             <Menu>
-              <Menu.Item onClick={() => onDelete()}>Delete webhook</Menu.Item>
+              <Menu.Item onClick={() => onDelete()}>
+                <UiText message={"Delete webhook"} />
+              </Menu.Item>
             </Menu>
           ),
         }}

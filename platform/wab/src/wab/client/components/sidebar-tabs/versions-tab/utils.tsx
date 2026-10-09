@@ -214,9 +214,20 @@ export const promptVersionRevert = async (
           title={`Revert to version ${release.version}`}
           description={
             <>
-              You are about to revert to version {release.version}, originally
-              published by{" "}
-              <UserOnDate user={user} date={new Date(release.createdAt)} />.
+              <UiText
+                message={
+                  "You are about to revert to version {part1}, originally published by {part2}."
+                }
+                values={{
+                  part1: release.version,
+                  part2: (
+                    <UserOnDate
+                      user={user}
+                      date={new Date(release.createdAt)}
+                    />
+                  ),
+                }}
+              />
             </>
           }
           diffs={state.value ?? null}
@@ -276,12 +287,19 @@ export const promptRevisionRevert = async (
           title={uiT("Revert to an Autosaved version")}
           description={
             <>
-              You are about to go back in time to an autosaved version by{" "}
-              <UserOnDate
-                user={user}
-                date={new Date(revertRevision.createdAt)}
+              <UiText
+                message={
+                  "You are about to go back in time to an autosaved version by {part1}."
+                }
+                values={{
+                  part1: (
+                    <UserOnDate
+                      user={user}
+                      date={new Date(revertRevision.createdAt)}
+                    />
+                  ),
+                }}
               />
-              .
             </>
           }
           diffs={state.value ?? null}
@@ -306,12 +324,17 @@ export const UserOnDate = function ({
 }) {
   return (
     <span>
-      {user ? (
-        <Tooltip title={getUserEmail(user)}>{fullName(user)}</Tooltip>
-      ) : (
-        "Unknown User"
-      )}{" "}
-      on {formatDateShortTimeShort(date)}
+      <UiText
+        message={"{part1} on {part2}"}
+        values={{
+          part1: user ? (
+            <Tooltip title={getUserEmail(user)}>{fullName(user)}</Tooltip>
+          ) : (
+            "Unknown User"
+          ),
+          part2: formatDateShortTimeShort(date),
+        }}
+      />
     </span>
   );
 };

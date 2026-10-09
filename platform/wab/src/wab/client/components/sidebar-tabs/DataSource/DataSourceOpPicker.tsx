@@ -243,15 +243,20 @@ const LazyCodePreview = React.lazy(
 
 const INVALID_CURRENT_USER_OPERATION_MESSAGE = () => (
   <span>
-    This {<UiLabel text={DATA_SOURCE_OPERATION_LOWER} />} can't be saved because
-    of unsafe usage of the current user. Refer to{" "}
-    <a
-      target="_blank"
-      href="https://docs.plasmic.app/learn/auth/#using-the-logged-in-user-in-dynamic-values"
-    >
-      docs
-    </a>{" "}
-    for more information.
+    <UiText
+      message="This {part1} can't be saved because of unsafe usage of the current user. Refer to {part2} for more information."
+      values={{
+        part1: <UiLabel text={DATA_SOURCE_OPERATION_LOWER} />,
+        part2: (
+          <a
+            target="_blank"
+            href="https://docs.plasmic.app/learn/auth/#using-the-logged-in-user-in-dynamic-values"
+          >
+            <UiText message={"docs"} />
+          </a>
+        ),
+      }}
+    />
   </span>
 );
 
@@ -2847,10 +2852,18 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
                       setExprValue(createExprForDataPickerValue("null"));
                     }}
                   >
-                    <strong>
-                      <UiText message={"Set"} />
-                    </strong>{" "}
-                    {field.label ?? fieldName} to <code>null</code>
+                    <UiText
+                      message="{part1} {part2} to {part3}"
+                      values={{
+                        part1: (
+                          <strong>
+                            <UiText message={"Set"} />
+                          </strong>
+                        ),
+                        part2: field.label ?? fieldName,
+                        part3: <code>null</code>,
+                      }}
+                    />
                   </Menu.Item>,
                 );
               });
@@ -3603,7 +3616,10 @@ export function DataSourcePicker({
             </StyleSelect.Option>
           ))}
           <StyleSelect.Option value={PICK_DIFFERENT_INTEGRATION_VALUE}>
-            Pick a different {<UiLabel text={DATA_SOURCE_LOWER} />}...
+            <UiText
+              message="Pick a different {part1}..."
+              values={{ part1: <UiLabel text={DATA_SOURCE_LOWER} /> }}
+            />
           </StyleSelect.Option>
         </StyleSelect>
         {showRefreshButton && (

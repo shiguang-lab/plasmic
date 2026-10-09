@@ -2,6 +2,7 @@ import { HostConfig } from "@/wab/client/components/HostConfig";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { mkUuid, spawn } from "@/wab/shared/common";
 import { notification } from "antd";
@@ -29,29 +30,34 @@ export function HostLoadTimeoutPrompt({
                 key,
                 description: (
                   <p>
-                    Would you like to{" "}
-                    <a
-                      onClick={() => {
-                        spawn(
-                          showTemporaryPrompt(() => (
-                            <HostConfig
-                              appCtx={appCtx}
-                              project={project}
-                              onCancel={() => {}}
-                              onUpdate={async (canSkipRefresh) => {
-                                if (!canSkipRefresh) {
-                                  window.location.reload();
-                                }
-                              }}
-                            />
-                          )),
-                        );
-                        notification.destroy(key);
+                    <UiText
+                      message={"Would you like to {part1} the host app URL?"}
+                      values={{
+                        part1: (
+                          <a
+                            onClick={() => {
+                              spawn(
+                                showTemporaryPrompt(() => (
+                                  <HostConfig
+                                    appCtx={appCtx}
+                                    project={project}
+                                    onCancel={() => {}}
+                                    onUpdate={async (canSkipRefresh) => {
+                                      if (!canSkipRefresh) {
+                                        window.location.reload();
+                                      }
+                                    }}
+                                  />
+                                )),
+                              );
+                              notification.destroy(key);
+                            }}
+                          >
+                            <UiText message={"update"} />
+                          </a>
+                        ),
                       }}
-                    >
-                      update
-                    </a>{" "}
-                    the host app URL?
+                    />
                   </p>
                 ),
               }

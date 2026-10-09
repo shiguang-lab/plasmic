@@ -81,27 +81,50 @@ export async function reconcileLinkedProp(opts: {
     message: (
       <div>
         <p>
-          <UiText message={"Update"} />{" "}
-          <strong>{outerParam.variable.name}</strong> in{" "}
-          <strong>{getComponentDisplayName(outerComponent)}</strong> to match{" "}
-          <strong>{innerName}</strong>?
+          <UiText
+            message={"{part1} {part2} in {part3} to match {part4}?"}
+            values={{
+              part1: <UiText message={"Update"} />,
+              part2: <strong>{outerParam.variable.name}</strong>,
+              part3: <strong>{getComponentDisplayName(outerComponent)}</strong>,
+              part4: <strong>{innerName}</strong>,
+            }}
+          />
         </p>
         {added.length > 0 && (
           <p>
             <Icon icon={PlusIcon} className="added-fg mr-sm" />
-            <strong>Adding:</strong> {added.map((o) => o.label).join(", ")}
+            <strong>
+              <UiText message={"Adding:"} />
+            </strong>{" "}
+            {added.map((o) => o.label).join(", ")}
           </p>
         )}
         {removed.length > 0 && (
           <p>
             <Icon icon={MinusIcon} className="removed-fg mr-sm" />
-            <strong>Removing:</strong> {removed.map((o) => o.label).join(", ")}
+            <strong>
+              <UiText message={"Removing:"} />
+            </strong>{" "}
+            {removed.map((o) => o.label).join(", ")}
           </p>
         )}
         {multiChanged && (
           <p>
-            Switching to{" "}
-            <strong>{multi ? "multi-select" : "single-select"}</strong>.
+            <UiText
+              message={"Switching to {part1}."}
+              values={{
+                part1: (
+                  <strong>
+                    {multi ? (
+                      <UiText message={"multi-select"} />
+                    ) : (
+                      <UiText message={"single-select"} />
+                    )}
+                  </strong>
+                ),
+              }}
+            />
           </p>
         )}
       </div>

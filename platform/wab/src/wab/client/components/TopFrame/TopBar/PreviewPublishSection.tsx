@@ -103,7 +103,10 @@ export default function PreviewPublishSection(
         {publication?.enabled && (
           <div className={styles.publication}>
             <div className={styles.description}>
-              Published version: {publication.version}
+              <UiText
+                message={"Published version: {part1}"}
+                values={{ part1: publication.version }}
+              />
             </div>
             <div className={styles.linkRow}>
               <a

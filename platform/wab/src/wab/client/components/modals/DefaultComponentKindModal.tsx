@@ -1,5 +1,6 @@
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { defaultComponentKinds } from "@/wab/shared/core/components";
 import { naturalSort } from "@/wab/shared/sort";
@@ -13,9 +14,14 @@ export function DefaultComponentKindModal<T>({
   onSubmit: (val: T) => void;
   onCancel: () => void;
 }) {
+  const { t: uiT } = useI18n();
   return (
     <Modal
-      title={<h3>Set as default component</h3>}
+      title={
+        <h3>
+          <UiText message={"Set as default component"} />
+        </h3>
+      }
       visible
       footer={null}
       onCancel={() => onCancel()}
@@ -30,14 +36,16 @@ export function DefaultComponentKindModal<T>({
       >
         <Form.Item
           name="kind"
-          label="Kind"
+          label={uiT("Kind")}
           rules={[
             {
               required: true,
             },
           ]}
         >
-          <Select placeholder="Set as the default component for this category">
+          <Select
+            placeholder={uiT("Set as the default component for this category")}
+          >
             {naturalSort(
               Object.entries(defaultComponentKinds),
               ([_kind, label]) => label,

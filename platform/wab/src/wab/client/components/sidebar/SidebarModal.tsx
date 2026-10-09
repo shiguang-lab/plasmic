@@ -2,6 +2,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
+import { UiLabel } from "@/wab/client/i18n/UiText";
 import ArrowLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowLeft";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -246,7 +247,7 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
           )}
           {title && (
             <div className="flex flex-fill flex-vcenter strong text-xlg tight-line-height list-item-height">
-              {title}
+              {typeof title === "string" ? <UiLabel text={title} /> : title}
             </div>
           )}
           {!hideCloseIcon && (

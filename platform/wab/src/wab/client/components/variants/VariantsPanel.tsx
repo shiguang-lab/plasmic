@@ -166,7 +166,10 @@ export const VariantsPanel = observer(
                 key="toggle-group"
                 onClick={() => addVariantGroup(VariantOptionsType.standalone)}
               >
-                <UiText message={"Add"} /> <strong>toggle</strong>{" "}
+                <UiText message={"Add"} />{" "}
+                <strong>
+                  <UiText message={"toggle"} />
+                </strong>{" "}
                 <UiText message={"variant"} />
               </Menu.Item>,
             );
@@ -177,7 +180,10 @@ export const VariantsPanel = observer(
                 key="single-select-group"
                 onClick={() => addVariantGroup(VariantOptionsType.singleChoice)}
               >
-                <UiText message={"Add"} /> <strong>single-select</strong>{" "}
+                <UiText message={"Add"} />{" "}
+                <strong>
+                  <UiText message={"single-select"} />
+                </strong>{" "}
                 <UiText message={"group of variants"} />
               </Menu.Item>,
             );
@@ -186,7 +192,10 @@ export const VariantsPanel = observer(
                 key="multi-select-group"
                 onClick={() => addVariantGroup(VariantOptionsType.multiChoice)}
               >
-                <UiText message={"Add"} /> <strong>multi-select</strong>{" "}
+                <UiText message={"Add"} />{" "}
+                <strong>
+                  <UiText message={"multi-select"} />
+                </strong>{" "}
                 <UiText message={"group of variants"} />
               </Menu.Item>,
             );
@@ -600,8 +609,8 @@ export const VariantsPanel = observer(
           }
           controls={
             <IconLinkButton
-              tooltip="Add group of variants"
-              aria-label="Add group of variants"
+              tooltip={uiT("Add group of variants")}
+              aria-label={uiT("Add group of variants")}
               onClick={handleAddGlobalGroupOfVariants}
             >
               <Icon

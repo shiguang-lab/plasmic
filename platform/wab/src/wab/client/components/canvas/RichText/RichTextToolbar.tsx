@@ -312,7 +312,7 @@ function RichTextToolbar_(
                           setColorPickerVisible(false);
                         }}
                       >
-                        Unset color
+                        <UiText message={"Unset color"} />
                       </Button>
                     </div>
                   </div>

@@ -290,8 +290,12 @@ function PlasmicHostingSettings_(
       subdomainErrorFeedback={{
         children: domainStatus ? (
           <>
-            <strong>{domainStatus.domain}</strong> is not available. Please
-            choose another subdomain.
+            <UiText
+              message={
+                "{part1} is not available. Please choose another subdomain."
+              }
+              values={{ part1: <strong>{domainStatus.domain}</strong> }}
+            />
           </>
         ) : (
           <></>

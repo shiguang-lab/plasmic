@@ -150,10 +150,16 @@ function OverflowToggles(props: {
         value="visible"
         tooltip={
           <>
-            <strong>
-              <UiText message={"Visible"} />
-            </strong>
-            : do not clip/hide content that overflows
+            <UiText
+              message="{part1}: do not clip/hide content that overflows"
+              values={{
+                part1: (
+                  <strong>
+                    <UiText message={"Visible"} />
+                  </strong>
+                ),
+              }}
+            />
           </>
         }
       >
@@ -163,10 +169,16 @@ function OverflowToggles(props: {
         value="hidden"
         tooltip={
           <>
-            <strong>
-              <UiText message={"Hidden"} />
-            </strong>
-            : clip/hide content that overflows
+            <UiText
+              message="{part1}: clip/hide content that overflows"
+              values={{
+                part1: (
+                  <strong>
+                    <UiText message={"Hidden"} />
+                  </strong>
+                ),
+              }}
+            />
           </>
         }
       >
@@ -175,7 +187,7 @@ function OverflowToggles(props: {
       <StyleToggleButton
         value="auto"
         tooltip={uiT("Show scrollbars when contents overflow")}
-        label={"Scroll"}
+        label={uiT("Scroll")}
         showLabel
         children={null}
       />

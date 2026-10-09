@@ -251,7 +251,11 @@ function SettingsTab_(props: SettingsTabProps, ref: HTMLElementRefOf<"div">) {
   }
 
   if (!config) {
-    return <h1>App is not configured for auth</h1>;
+    return (
+      <h1>
+        <UiText message={"App is not configured for auth"} />
+      </h1>
+    );
   }
   return (
     <>
@@ -314,7 +318,7 @@ function SettingsTab_(props: SettingsTabProps, ref: HTMLElementRefOf<"div">) {
               </Select.Option>
             )),
             <Select.Option key="new" value="new">
-              Create new directory
+              <UiText message={"Create new directory"} />
             </Select.Option>,
           ],
           onChange: async (directoryId) => {

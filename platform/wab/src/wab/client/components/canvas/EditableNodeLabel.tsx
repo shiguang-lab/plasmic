@@ -1,6 +1,7 @@
 import styles from "@/wab/client/components/canvas/EditableNodeLabel.module.sass";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import RepeatingsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RepeatingSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -29,6 +30,7 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
   nameable?: ArenaFrame | Tpls.TplNamable | TplSlot;
   onChangeEditing?: (editing: boolean) => void;
 }) {
+  const { t: uiT } = useI18n();
   const {
     studioCtx,
     viewCtx,
@@ -128,7 +130,7 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
               {icon && <div className="InlineIcon mr-sm">{icon}</div>}
               <span ref={textRef}>{displayName}</span>
               {isRepeated && (
-                <Tooltip title="Repeated element" mouseEnterDelay={0.5}>
+                <Tooltip title={uiT("Repeated element")} mouseEnterDelay={0.5}>
                   <Icon
                     className={styles.repeatedElementIcon}
                     icon={RepeatingsvgIcon}

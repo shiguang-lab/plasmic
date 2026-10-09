@@ -64,17 +64,23 @@ test("update UI is injected and served locally without fetching NAS static asset
     path.join(page, "static/host.html"),
     "<html><head></head><body>canvas</body></html>",
   );
+  const rendererI18nPath = path.join(page, "renderer-i18n.js");
+  await fs.writeFile(rendererI18nPath, "window.desktopUiI18n = {};");
   const updateUiPath = path.join(page, "update-ui.js");
   await fs.writeFile(updateUiPath, "window.updateUiLoaded = true;");
   const updateDialogPath = path.join(page, "update-dialog.js");
   await fs.writeFile(updateDialogPath, "window.updateDialogLoaded = true;");
   const authPagePath = path.join(page, "login.html");
-  await fs.writeFile(authPagePath, "<html><head></head><body>Sign in</body></html>");
+  await fs.writeFile(
+    authPagePath,
+    "<html><head></head><body>Sign in</body></html>",
+  );
   const pageHandler = createAssetHandler({
     root: page,
     ...config,
     updateUiPath,
     updateDialogPath,
+    rendererI18nPath,
     authPagePath,
     remoteFetch: () => {
       throw new Error("Unexpected network request");
@@ -89,14 +95,26 @@ test("update UI is injected and served locally without fetching NAS static asset
     /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/,
   );
   assert.match(studioHtml, /static\/desktop\/update-dialog.js/);
-  const login = await pageHandler(new Request(config.studioOrigin + "/desktop/unified-login"));
+  assert.equal((studioHtml.match(/renderer-i18n.js/g) || []).length, 1);
+  assert.ok(
+    studioHtml.indexOf("renderer-i18n.js") <
+      studioHtml.indexOf("update-dialog.js"),
+  );
+  const login = await pageHandler(
+    new Request(config.studioOrigin + "/desktop/unified-login"),
+  );
   assert.match(await login.text(), /static\/desktop\/update-dialog.js/);
   const canvas = await pageHandler(
     new Request(config.canvasOrigin + "/static/host.html"),
   );
   const canvasHtml = await canvas.text();
   assert.match(canvasHtml, /static\/desktop\/update-ui.js/);
-  assert.doesNotMatch(canvasHtml, /update-dialog.js/, "Only the trusted main document owns the dialog");
+  assert.equal((canvasHtml.match(/renderer-i18n.js/g) || []).length, 1);
+  assert.doesNotMatch(
+    canvasHtml,
+    /update-dialog.js/,
+    "Only the trusted main document owns the dialog",
+  );
   assert.match(
     canvasHtml,
     /data-studio-origin="https:\/\/studio.plasmic.shiguanglab.com"/,
@@ -110,7 +128,13 @@ test("update UI is injected and served locally without fetching NAS static asset
   );
   assert.match(script.headers.get("Content-Type"), /javascript/);
   assert.equal(await script.text(), "window.updateUiLoaded = true;");
-  const dialogScript = await pageHandler(new Request(config.studioOrigin + "/static/desktop/update-dialog.js"));
+  const localeScript = await pageHandler(
+    new Request(config.studioOrigin + "/static/desktop/renderer-i18n.js"),
+  );
+  assert.equal(await localeScript.text(), "window.desktopUiI18n = {};");
+  const dialogScript = await pageHandler(
+    new Request(config.studioOrigin + "/static/desktop/update-dialog.js"),
+  );
   assert.equal(await dialogScript.text(), "window.updateDialogLoaded = true;");
 });
 test("Canvas scripts and Monaco workers are local with executable MIME types", async () => {

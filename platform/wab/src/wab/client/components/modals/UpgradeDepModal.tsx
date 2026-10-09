@@ -100,9 +100,16 @@ export async function promptUpgradeDeps(props: {
               targetDep={targetDep}
               heading={
                 <p>
-                  You are upgrading {targetDep.name} from{" "}
-                  <strong>v{curDep.version}</strong> to{" "}
-                  <strong>v{targetDep.version}</strong>.
+                  <UiText
+                    message={
+                      "You are upgrading {part1} from {part2} to {part3}."
+                    }
+                    values={{
+                      part1: targetDep.name,
+                      part2: <strong>v{curDep.version}</strong>,
+                      part3: <strong>v{targetDep.version}</strong>,
+                    }}
+                  />
                 </p>
               }
             />
@@ -138,9 +145,14 @@ export async function promptUpgradeDep(props: {
           targetDep={targetDep}
           heading={
             <p>
-              You are upgrading {targetDep.name} from{" "}
-              <strong>v{curDep.version}</strong> to{" "}
-              <strong>v{targetDep.version}</strong>.
+              <UiText
+                message={"You are upgrading {part1} from {part2} to {part3}."}
+                values={{
+                  part1: targetDep.name,
+                  part2: <strong>v{curDep.version}</strong>,
+                  part3: <strong>v{targetDep.version}</strong>,
+                }}
+              />
             </p>
           }
         />
@@ -175,8 +187,12 @@ export async function promptDeleteDep(props: {
           targetDep={undefined}
           heading={
             <p>
-              You will no longer be able to use components, styles, and other
-              assets from {depName}.
+              <UiText
+                message={
+                  "You will no longer be able to use components, styles, and other assets from {part1}."
+                }
+                values={{ part1: depName }}
+              />
             </p>
           }
         />
@@ -230,7 +246,13 @@ function PublishContent(props: {
 
   if (!nextVersion) {
     return (
-      <p>There have been no new changes since your last published version</p>
+      <p>
+        <UiText
+          message={
+            "There have been no new changes since your last published version"
+          }
+        />
+      </p>
     );
   }
 
@@ -243,8 +265,11 @@ function PublishContent(props: {
   return (
     <Form>
       <p>
-        When you publish a new version, you let other developers and designers
-        know that your updates are ready for use.
+        <UiText
+          message={
+            "When you publish a new version, you let other developers and designers know that your updates are ready for use."
+          }
+        />
       </p>
       {releaseType === "major" && (
         <p>
@@ -256,13 +281,16 @@ function PublishContent(props: {
         </p>
       )}
       <p>
-        <strong>Version: </strong> {version}
+        <strong>
+          <UiText message={"Version:"} />{" "}
+        </strong>{" "}
+        {version}
       </p>
       <p>
         <Textbox
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Description (optional)..."
+          placeholder={uiT("Description (optional)...")}
           aria-label={uiT("Description")}
           autoFocus
           styleType={"bordered"}
@@ -272,8 +300,8 @@ function PublishContent(props: {
         <Select
           mode="tags"
           style={{ width: "100%" }}
-          placeholder="Tags (optional) ..."
-          aria-label="Tags selector"
+          placeholder={uiT("Tags (optional) ...")}
+          aria-label={uiT("Tags selector")}
           onChange={(newTags) => setTags(newTags)}
           tokenSeparators={[","]}
         >
@@ -516,10 +544,14 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
     ) : null;
   const functionsNote = removedReferencedFunctions.size > 0 && (
     <div className="mt-m">
-      These functions will no longer be available:{" "}
-      {[...removedReferencedFunctions]
-        .map((fn) => getCustomFunctionDisplayName(fn))
-        .join(", ")}
+      <UiText
+        message={"These functions will no longer be available: {part1}"}
+        values={{
+          part1: [...removedReferencedFunctions]
+            .map((fn) => getCustomFunctionDisplayName(fn))
+            .join(", "),
+        }}
+      />
     </div>
   );
   const removedHostlessArtifactTypes = withoutNils([
@@ -538,7 +570,7 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
       {heading}
       {diffs.length > 0 && (
         <div className="mb-m">
-          The changes are:
+          <UiText message={"The changes are:"} />
           <SiteDiffs diffs={diffs} />
         </div>
       )}
@@ -556,8 +588,12 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
             isHostLessPackage(curDep.site) ? (
               <div>
                 <div>
-                  These external {removedHostlessArtifactLabel} will be removed
-                  from this project:
+                  <UiText
+                    message={
+                      "These external {part1} will be removed from this project:"
+                    }
+                    values={{ part1: removedHostlessArtifactLabel }}
+                  />
                 </div>
                 {removedReferencedComponents.size > 0 && (
                   <div>
@@ -572,7 +608,13 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
               </div>
             ) : (
               <div>
-                <div>We will make a copy of them for you in this project:</div>
+                <div>
+                  <UiText
+                    message={
+                      "We will make a copy of them for you in this project:"
+                    }
+                  />
+                </div>
                 {removedReferencedComponents.size > 0 && (
                   <div>
                     <Icon className="component-fg mr-sm" icon={ComponentIcon} />{" "}
@@ -591,7 +633,8 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                 )}
                 {removedReferencedMixins.size > 0 && (
                   <div>
-                    <Icon className="mixin-fg mr-sm" icon={MixinIcon} /> Mixins{" "}
+                    <Icon className="mixin-fg mr-sm" icon={MixinIcon} />{" "}
+                    <UiText message={"Mixins"} />{" "}
                     {[...removedReferencedMixins].map((t) => t.name).join(", ")}
                   </div>
                 )}
@@ -606,9 +649,16 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                 )}
                 {transitiveDeps.size > 0 && (
                   <div className="mt-m">
-                    To copy these objects, we will also need to import these
-                    projects:{" "}
-                    {[...transitiveDeps].map((dep) => dep.name).join(", ")}
+                    <UiText
+                      message={
+                        "To copy these objects, we will also need to import these projects: {part1}"
+                      }
+                      values={{
+                        part1: [...transitiveDeps]
+                          .map((dep) => dep.name)
+                          .join(", "),
+                      }}
+                    />
                   </div>
                 )}
                 {functionsNote}

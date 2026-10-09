@@ -94,9 +94,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
           >
             <Form onFinish={() => onSubmit("downgrade")}>
               <span>
-                Some operations in the current page have higher minimum role
-                than the new selected minimum role of the page. Do you want to
-                downgrade them or keep the required role?
+                <UiText message="Some operations in the current page have higher minimum role than the new selected minimum role of the page. Do you want to downgrade them or keep the required role?" />
               </span>
               <Form.Item style={{ marginBottom: 0, marginTop: 28 }}>
                 <Button
@@ -107,7 +105,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
                   <UiText message={"Cancel"} />
                 </Button>
                 <Button className="mr-sm" onClick={() => onSubmit("keep")}>
-                  keep
+                  <UiText message={"keep"} />
                 </Button>
                 <Button
                   type="primary"

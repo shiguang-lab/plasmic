@@ -386,8 +386,17 @@ export const ImageAssetOrUrlPicker = observer(
           {selectableAssets.length > 0 && (
             <>
               <div className="mb-sm">
-                {"Pick an existing "}
-                {type === ImageAssetType.Icon ? "icon" : "image"}
+                <UiText
+                  message="Pick an existing {kind}"
+                  values={{
+                    kind:
+                      type === ImageAssetType.Icon ? (
+                        <UiText message="icon" />
+                      ) : (
+                        <UiText message="image" />
+                      ),
+                  }}
+                />
               </div>
               <Select
                 className={cx({
@@ -435,7 +444,9 @@ export const ImageAssetOrUrlPicker = observer(
             </>
           )}
           {selectableAssets.length > 0 ? (
-            <div className="mv-sm">{"or upload a new image"}</div>
+            <div className="mv-sm">
+              {<UiText message={"or upload a new image"} />}
+            </div>
           ) : (
             <div className="mb-sm">
               {<UiText message={"Upload a new image"} />}
@@ -445,33 +456,52 @@ export const ImageAssetOrUrlPicker = observer(
             onUploaded={handleImageUploaded}
             accept={type === ImageAssetType.Picture ? "image" : "svg"}
           />
-          <div className="mv-sm">{"or paste a new image from clipboard"}</div>
+          <div className="mv-sm">
+            {<UiText message={"or paste a new image from clipboard"} />}
+          </div>
           <ImagePaster onPasted={handleImageUploaded} />
           {type === ImageAssetType.Picture && (
             <>
-              <div className="mv-sm">{"or enter a URL"}</div>
+              <div className="mv-sm">
+                {<UiText message={"or enter a URL"} />}
+              </div>
               {urlForm}
             </>
           )}
           {type === ImageAssetType.Icon ? (
             <div className="mv-sm">
-              {"You can find free SVG icons on galleries like "}
-              <a href="https://www.svgrepo.com/" target="_blank">
-                {"SVG Repo"}
-              </a>
-              {"."}
+              <UiText
+                message={
+                  "You can find free SVG icons on galleries like {part1}."
+                }
+                values={{
+                  part1: (
+                    <a href="https://www.svgrepo.com/" target="_blank">
+                      {"SVG Repo"}
+                    </a>
+                  ),
+                }}
+              />
             </div>
           ) : (
             <div className="mv-sm">
-              {"You can find free images on galleries like "}
-              <a href="https://unsplash.com/" target="_blank">
-                {"Unsplash"}
-              </a>
-              {" and "}
-              <a href="https://burst.shopify.com/" target="_blank">
-                {"Burst"}
-              </a>
-              {"."}
+              <UiText
+                message={
+                  "You can find free images on galleries like {part1} and {part2}."
+                }
+                values={{
+                  part1: (
+                    <a href="https://unsplash.com/" target="_blank">
+                      {"Unsplash"}
+                    </a>
+                  ),
+                  part2: (
+                    <a href="https://burst.shopify.com/" target="_blank">
+                      {"Burst"}
+                    </a>
+                  ),
+                }}
+              />
             </div>
           )}
         </div>

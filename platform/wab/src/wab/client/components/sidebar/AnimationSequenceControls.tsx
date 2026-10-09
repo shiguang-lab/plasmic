@@ -146,7 +146,7 @@ const AnimationSequenceEditModal = observer(
                   }),
                 )
               }
-              placeholder="(unnamed animation sequence)"
+              placeholder={uiT("(unnamed animation sequence)")}
               autoFocus={props.autoFocusTitle}
               selectAllOnFocus={true}
               fontSize="xlarge"

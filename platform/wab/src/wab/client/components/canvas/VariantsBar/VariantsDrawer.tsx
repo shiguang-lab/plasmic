@@ -307,8 +307,14 @@ function VariantsDrawer_({
 
       {!shouldShowBase && !groupedVariants.length && (
         <div className={styles.emptyResultsMessage}>
-          <UiText message={"No"} /> {<UiLabel text={VARIANTS_LOWER} />} matching{" "}
-          <strong>{query}</strong>
+          <UiText
+            message={"{part1} {part2} matching {part3}"}
+            values={{
+              part1: <UiText message={"No"} />,
+              part2: <UiLabel text={VARIANTS_LOWER} />,
+              part3: <strong>{query}</strong>,
+            }}
+          />
         </div>
       )}
     </PlasmicVariantsDrawer>
@@ -406,7 +412,7 @@ function useGroupedVariants(
         key: "Splits",
         groupLabel: (
           <>
-            Splits
+            <UiText message={"Splits"} />
             <Icon icon={SplitIcon} />
           </>
         ),

@@ -2,6 +2,8 @@ import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { ObserverLoadable } from "@/wab/client/components/widgets";
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   JsonObject,
   jsonStringify,
@@ -22,14 +24,15 @@ export const GraphQLEditor = (props: {
   method?: string;
   headers?: Record<string, string>;
 }) => {
+  const { t: uiT } = useI18n();
   const { title, value, onChange, endpoint, headers, method } = props;
 
   const [show, setShow] = React.useState<boolean>(false);
   const onCancel = async () => {
     const confirm = await reactConfirm({
-      message: "Are you sure you want to discard your changes?",
-      confirmLabel: "Discard",
-      cancelLabel: "Keep editing",
+      message: uiT("Are you sure you want to discard your changes?"),
+      confirmLabel: uiT("Discard"),
+      cancelLabel: uiT("Keep editing"),
     });
     if (confirm) {
       setShow(false);
@@ -53,7 +56,7 @@ export const GraphQLEditor = (props: {
       <div className="flex-fill flex-left text-ellipsis">
         <Chip onClick={() => setShow(true)}>
           <span className="line-clamp-3 text-align-left">
-            {value ? JSON.stringify(value) : "unset"}
+            {value ? JSON.stringify(value) : <UiText message="unset" />}
           </span>
         </Chip>
       </div>

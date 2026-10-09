@@ -388,16 +388,16 @@ function _MixinsPanel() {
     }
 
     if (
-      !(await sc
-        .siteOps()
-        .maybePromptForTransitiveImports(
-          <>
-            The mixin you are cloning uses tokens from the following projects.
-            To clone this mixin, you will also need to import these projects.
-            Are you sure you want to continue?
-          </>,
-          transitiveDeps,
-        ))
+      !(await sc.siteOps().maybePromptForTransitiveImports(
+        <>
+          <UiText
+            message={
+              "The mixin you are cloning uses tokens from the following projects. To clone this mixin, you will also need to import these projects. Are you sure you want to continue?"
+            }
+          />
+        </>,
+        transitiveDeps,
+      ))
     ) {
       return;
     }

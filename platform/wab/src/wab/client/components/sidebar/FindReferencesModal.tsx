@@ -239,7 +239,12 @@ export const FindReferencesModal = observer(
         title={
           <>
             {icon}
-            <div> References to {displayName} </div>
+            <div>
+              <UiText
+                message={"References to {part1}"}
+                values={{ part1: displayName }}
+              />
+            </div>
           </>
         }
         onClose={() => props.onClose()}

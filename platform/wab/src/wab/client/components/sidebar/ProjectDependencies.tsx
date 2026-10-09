@@ -256,18 +256,28 @@ async function trySwitchScreenVariant(
       message: (
         <div>
           <p>
-            Only one set of responsive breakpoints can be used in a project.
-            This imported project also has responsive breakpoints associated;
-            would you like to switch to them, so that the imported components
-            can be responsive? We will preserve styles for your existing
-            breakpoints that match up with imported breakpoints.
+            <UiText
+              message={
+                "Only one set of responsive breakpoints can be used in a project. This imported project also has responsive breakpoints associated; would you like to switch to them, so that the imported components can be responsive? We will preserve styles for your existing breakpoints that match up with imported breakpoints."
+              }
+            />
           </p>
           {missingVariants.length > 0 && (
             <p>
-              But <strong>you will lose changes</strong> associated with
-              breakpoints{" "}
-              {" " + missingVariants.map((v) => `"${v.name}"`).join(", ")},
-              because there are no imported breakpoints that match them exactly.
+              <UiText
+                message={
+                  "But {part1} associated with breakpoints {part2}, because there are no imported breakpoints that match them exactly."
+                }
+                values={{
+                  part1: (
+                    <strong>
+                      <UiText message={"you will lose changes"} />
+                    </strong>
+                  ),
+                  part2:
+                    " " + missingVariants.map((v) => `"${v.name}"`).join(", "),
+                }}
+              />
             </p>
           )}
         </div>

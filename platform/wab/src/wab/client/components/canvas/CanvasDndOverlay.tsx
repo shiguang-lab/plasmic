@@ -1,5 +1,6 @@
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useFileDragState } from "@/wab/client/file-drag/useFileDragState";
+import { UiText } from "@/wab/client/i18n/UiText";
 import UploadSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UploadSvg";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import cx from "classnames";
@@ -24,7 +25,9 @@ function CanvasDndOverlay_({ container }: CanvasDndOverlayProps) {
       })}
     >
       <Icon icon={UploadSvgIcon} size={40} />
-      <span>Drop image to upload</span>
+      <span>
+        <UiText message={"Drop image to upload"} />
+      </span>
     </div>
   );
 }

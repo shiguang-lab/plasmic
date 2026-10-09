@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
 import classNames from "classnames";
@@ -10,6 +11,7 @@ export function VirtualScrollBar(props: {
   barClassName?: string;
   style?: React.CSSProperties;
 }) {
+  const { t: uiT } = useI18n();
   const { element, className, barClassName, style, axis } = props;
   const studioCtx = useStudioCtx();
   const trackRef = React.useRef<HTMLDivElement>(null);
@@ -48,7 +50,9 @@ export function VirtualScrollBar(props: {
       )}
       onMouseDown={(e) => e.preventDefault()}
       onMouseUp={(e) => e.preventDefault()}
-      title="Drag to scroll content, or use Alt/Option + wheel inside the container"
+      title={uiT(
+        "Drag to scroll content, or use Alt/Option + wheel inside the container",
+      )}
       style={style}
       ref={trackRef}
     >

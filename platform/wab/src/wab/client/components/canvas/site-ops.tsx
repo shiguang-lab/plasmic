@@ -13,6 +13,7 @@ import {
   ResizableImage,
   maybeUploadImage,
 } from "@/wab/client/dom-utils";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { deleteComponent } from "@/wab/client/operations/delete-component";
 import { deleteComponentState } from "@/wab/client/operations/delete-component-state";
 import {
@@ -467,7 +468,7 @@ export class SiteOps {
       message,
       description: (
         <>
-          It is referenced in the current component.{" "}
+          <UiText message={"It is referenced in the current component."} />{" "}
           {viewCtx?.component === component && maybeNode ? (
             <a
               onClick={() => {
@@ -475,7 +476,7 @@ export class SiteOps {
                 notification.destroy(key);
               }}
             >
-              [Go to reference]
+              <UiText message={"[Go to reference]"} />
             </a>
           ) : null}
         </>
@@ -612,22 +613,33 @@ export class SiteOps {
       return await reactConfirm({
         title: (
           <div>
-            Are you sure you want to delete variant{" "}
-            <strong>{makeVariantName({ variant, site: this.site })}</strong>?
+            <UiText
+              message={"Are you sure you want to delete variant {part1}?"}
+              values={{
+                part1: (
+                  <strong>
+                    {makeVariantName({ variant, site: this.site })}
+                  </strong>
+                ),
+              }}
+            />
           </div>
         ),
         message: (
           <>
             {usingComps.size > 0 && (
               <p>
-                It is being used by{" "}
-                {joinReactNodes(
-                  [...usingComps].map((comp) =>
-                    makeComponentName(this.site, comp),
-                  ),
-                  ", ",
-                )}
-                .
+                <UiText
+                  message={"It is being used by {part1}."}
+                  values={{
+                    part1: joinReactNodes(
+                      [...usingComps].map((comp) =>
+                        makeComponentName(this.site, comp),
+                      ),
+                      ", ",
+                    ),
+                  }}
+                />
               </p>
             )}
           </>
@@ -911,9 +923,12 @@ export class SiteOps {
     if (
       !(await this.maybePromptForTransitiveImports(
         <>
-          The {componentType} you are cloning uses things from the following
-          projects. To clone this {componentType}, you will also need to import
-          these projects. Are you sure you want to continue?
+          <UiText
+            message={
+              "The {part1} you are cloning uses things from the following projects. To clone this {part2}, you will also need to import these projects. Are you sure you want to continue?"
+            }
+            values={{ part1: componentType, part2: componentType }}
+          />
         </>,
         transitiveDeps,
       ))
@@ -1147,7 +1162,7 @@ export class SiteOps {
         message: `Cannot delete ${DATA_QUERY_LOWER}`,
         description: (
           <>
-            It is referenced in the current component.{" "}
+            <UiText message={"It is referenced in the current component."} />{" "}
             {viewCtx?.component === component && maybeNode ? (
               <a
                 onClick={() => {
@@ -1155,7 +1170,7 @@ export class SiteOps {
                   notification.destroy(key);
                 }}
               >
-                [Go to reference]
+                <UiText message={"[Go to reference]"} />
               </a>
             ) : null}
           </>
@@ -1217,7 +1232,7 @@ export class SiteOps {
         message: `Cannot delete ${SERVER_QUERY_LOWER}`,
         description: (
           <>
-            It is referenced in the current component.{" "}
+            <UiText message={"It is referenced in the current component."} />{" "}
             {viewCtx?.component === component && maybeNode ? (
               <a
                 onClick={() => {
@@ -1225,7 +1240,7 @@ export class SiteOps {
                   notification.destroy(key);
                 }}
               >
-                [Go to reference]
+                <UiText message={"[Go to reference]"} />
               </a>
             ) : null}
           </>
@@ -1475,14 +1490,20 @@ export class SiteOps {
         description: (
           <>
             <p>
-              Change not applied because{" "}
-              <strong>{containingComponentName}</strong> dynamically sets the
-              variant value for{" "}
-              <strong>
-                {getComponentDisplayName(failure.tpl.component)}.
-                {failure.arg.param.variable.name}
-              </strong>
-              .
+              <UiText
+                message={
+                  "Change not applied because {part1} dynamically sets the variant value for {part2}."
+                }
+                values={{
+                  part1: <strong>{containingComponentName}</strong>,
+                  part2: (
+                    <strong>
+                      {getComponentDisplayName(failure.tpl.component)}.
+                      {failure.arg.param.variable.name}
+                    </strong>
+                  ),
+                }}
+              />
             </p>
             {containingComponent ? (
               <a
@@ -1506,7 +1527,7 @@ export class SiteOps {
                   notification.destroy(key);
                 }}
               >
-                [Go to reference]
+                <UiText message={"[Go to reference]"} />
               </a>
             ) : null}
           </>

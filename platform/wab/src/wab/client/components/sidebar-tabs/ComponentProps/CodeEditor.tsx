@@ -10,6 +10,7 @@ import {
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { readUploadedFileAsText } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { ensure, swallow } from "@/wab/shared/common";
@@ -33,16 +34,17 @@ const hardStrSizeLimit = 5000 * 1024; // 5MB
 export function checkStrSizeLimit(val: string) {
   if (val.length > hardStrSizeLimit) {
     notification.warning({
-      message: "Value is longer than 5MB",
-      description: "Please provide a shorter value.",
+      message: <UiText message="Value is longer than 5MB" />,
+      description: <UiText message="Please provide a shorter value." />,
     });
     return false;
   }
   if (val.length > softStrSizeLimit) {
     notification.warning({
-      message: "Value is longer than 500KB",
-      description:
-        "This long content will be embedded into your page, which will increase load time.",
+      message: <UiText message="Value is longer than 500KB" />,
+      description: (
+        <UiText message="This long content will be embedded into your page, which will increase load time." />
+      ),
     });
   }
   return true;
@@ -57,8 +59,13 @@ export function checkSyntaxError(val: string) {
   } catch (err) {
     if (err instanceof SyntaxError) {
       notification.warning({
-        message: "Syntax error",
-        description: `The expression has a syntax error, it's required to fix it before saving. ${err.message}`,
+        message: <UiText message="Syntax error" />,
+        description: (
+          <UiText
+            message="The expression has a syntax error. Fix it before saving. {error}"
+            values={{ error: err.message }}
+          />
+        ),
       });
       return false;
     }
@@ -71,18 +78,16 @@ export function checkDisallowedUseOfLibs(val: string) {
   if (hasUnexpected$$Usage(val)) {
     notification.warning({
       message: (
-        <>
-          Unexpected usage of <code>$$</code>
-        </>
+        <UiText
+          message="Unexpected usage of {name}"
+          values={{ name: <code>$$</code> }}
+        />
       ),
       description: (
-        <>
-          The <code>$$</code> object can only be used to access libraries
-          directly, for example: <code>$$.libName</code>, as a way to import the
-          used libraries and functions into your code snippet.
-          <br /> <br />
-          Please do not use <code>$$</code> as a "normal" variable.
-        </>
+        <UiText
+          message="The {name} object can only access libraries directly, for example {example}, to import libraries and functions into your code snippet. Do not use {name} as a regular variable."
+          values={{ name: <code>$$</code>, example: <code>$$.libName</code> }}
+        />
       ),
       duration: 20,
     });
@@ -95,16 +100,17 @@ export function checkDisallowedStateBindingAssignment(val: string) {
   const writesToState = tryCodeWritesToGlobalVariable(val, "$state");
   if (writesToState === undefined) {
     notification.warning({
-      message: "Unsupported JavaScript syntax",
-      description: "This code cannot be analyzed safely.",
+      message: <UiText message="Unsupported JavaScript syntax" />,
+      description: <UiText message="This code cannot be analyzed safely." />,
     });
     return false;
   }
   if (writesToState) {
     notification.warning({
-      message: "Cannot reassign $state",
-      description:
-        "Update one of its properties instead, for example: $state.count = value.",
+      message: <UiText message="Cannot reassign $state" />,
+      description: (
+        <UiText message="Update one of its properties instead, for example: $state.count = value." />
+      ),
     });
     return false;
   }
@@ -114,12 +120,15 @@ export function checkDisallowedStateBindingAssignment(val: string) {
 export function checkWindowGlobalUsage(val: string) {
   if (codeUsesGlobalObjects(val)) {
     notification.warning({
-      message: "Global object usage detected",
+      message: <UiText message="Global object usage detected" />,
       description: (
-        <>
-          Using <code>window</code> or <code>globalThis</code> in code
-          expressions can cause issues during pre-rendering.
-        </>
+        <UiText
+          message="Using {window} or {global} in code expressions can cause issues during pre-rendering."
+          values={{
+            window: <code>window</code>,
+            global: <code>globalThis</code>,
+          }}
+        />
       ),
       duration: 10,
     });
@@ -146,6 +155,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
   disabledTooltip?: React.ReactNode;
   "data-plasmic-prop"?: string;
 }) {
+  const { t: uiT } = useI18n();
   const {
     value,
     onChange,
@@ -205,8 +215,10 @@ export const CodeEditor = observer(function CodeEditor(props: {
     if (lang === "json" && requireObject) {
       if (val[0] !== "{") {
         notification.warning({
-          message: "Invalid JSON object",
-          description: "Only JSON objects (wrapped in {}) are supported.",
+          message: <UiText message="Invalid JSON object" />,
+          description: (
+            <UiText message="Only JSON objects (wrapped in {}) are supported." />
+          ),
         });
         return false;
       }
@@ -219,7 +231,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
         return true;
       } catch (err) {
         notification.warning({
-          message: "Invalid JSON",
+          message: <UiText message="Invalid JSON" />,
           description: `${err}`,
         });
         return false;
@@ -279,32 +291,42 @@ export const CodeEditor = observer(function CodeEditor(props: {
             {fullscreen && (
               <div className="mb-lg flex-col">
                 <div className="mb-sm">
-                  {"Enter your content or "}
-                  <FileUploadLink
-                    onChange={async (files) => {
-                      if (files === null || files.length === 0) {
-                        return;
-                      }
-                      const file = files[0];
-                      if (
-                        file.type.startsWith("text/") ||
-                        ["css", "html", "javascript", "json"].some((str) =>
-                          file.type.includes(str),
-                        )
-                      ) {
-                        const contents = await readUploadedFileAsText(file);
-                        trySave(contents);
-                      } else {
-                        notification.error({
-                          message: "Unknown file format",
-                          description: "Please make sure to upload a text file",
-                        });
-                      }
+                  <UiText
+                    message="Enter your content or {upload}."
+                    values={{
+                      upload: (
+                        <FileUploadLink
+                          onChange={async (files) => {
+                            if (files === null || files.length === 0) {
+                              return;
+                            }
+                            const file = files[0];
+                            if (
+                              file.type.startsWith("text/") ||
+                              ["css", "html", "javascript", "json"].some(
+                                (str) => file.type.includes(str),
+                              )
+                            ) {
+                              const contents =
+                                await readUploadedFileAsText(file);
+                              trySave(contents);
+                            } else {
+                              notification.error({
+                                message: (
+                                  <UiText message="Unknown file format" />
+                                ),
+                                description: uiT(
+                                  "Please make sure to upload a text file",
+                                ),
+                              });
+                            }
+                          }}
+                        >
+                          <UiText message={"upload a file"} />
+                        </FileUploadLink>
+                      ),
                     }}
-                  >
-                    upload a file
-                  </FileUploadLink>
-                  .
+                  />
                 </div>
               </div>
             )}

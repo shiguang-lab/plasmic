@@ -128,7 +128,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
             },
           );
         }}
-        placeholder={"(unnamed token)"}
+        placeholder={uiT("(unnamed token)")}
         autoFocus={defaultEditingName}
         selectAllOnFocus={true}
         fontSize="xlarge"

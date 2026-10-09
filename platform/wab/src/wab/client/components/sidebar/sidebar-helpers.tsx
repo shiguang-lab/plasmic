@@ -23,7 +23,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
 import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { PlasmicStyleToggleButtonGroup__VariantsArgs } from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButtonGroup";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -358,7 +358,7 @@ export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
         }
         ref={ref}
       >
-        {label}
+        {typeof label === "string" ? <UiLabel text={label} /> : label}
       </div>
     </XDraggable>
   );

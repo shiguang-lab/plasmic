@@ -211,7 +211,7 @@ function buildPlasmicComponentMenuItems(
           <strong data-test-id="edit-component">
             <UiText message={"Edit"} />
           </strong>{" "}
-          component
+          <UiText message={"component"} />
         </Menu.Item>,
       );
       if (isMixedArena(arena)) {
@@ -224,10 +224,17 @@ function buildPlasmicComponentMenuItems(
               )
             }
           >
-            <strong>
-              <UiText message={"Edit"} />
-            </strong>{" "}
-            in new {<UiLabel text={FRAME_CAP} />}
+            <UiText
+              message={"{part1} in new {part2}"}
+              values={{
+                part1: (
+                  <strong>
+                    <UiText message={"Edit"} />
+                  </strong>
+                ),
+                part2: <UiLabel text={FRAME_CAP} />,
+              }}
+            />
           </Menu.Item>,
         );
       }
@@ -250,10 +257,16 @@ function buildPlasmicComponentMenuItems(
             );
           }}
         >
-          <strong>
-            <UiText message={"Open"} />
-          </strong>{" "}
-          component in new tab
+          <UiText
+            message={"{part1} component in new tab"}
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Open"} />
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
       );
     }
@@ -282,7 +295,7 @@ function buildPlasmicComponentMenuItems(
           <strong>
             <UiText message={"Rename"} />
           </strong>{" "}
-          component
+          <UiText message={"component"} />
         </Menu.Item>,
       );
     }
@@ -293,7 +306,7 @@ function buildPlasmicComponentMenuItems(
           <strong>
             <UiText message={"Duplicate"} />
           </strong>{" "}
-          component
+          <UiText message={"component"} />
         </Menu.Item>,
       );
     }
@@ -312,10 +325,16 @@ function buildPlasmicComponentMenuItems(
             )
           }
         >
-          <strong>
-            <UiText message={"Convert"} />
-          </strong>{" "}
-          to page
+          <UiText
+            message={"{part1} to page"}
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"Convert"} />
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
       );
     }
@@ -347,7 +366,7 @@ function buildPlasmicComponentMenuItems(
           <strong>
             <UiText message={"Delete"} />
           </strong>{" "}
-          component
+          <UiText message={"component"} />
         </Menu.Item>,
       );
     }
@@ -409,10 +428,16 @@ function buildCodeComponentMenuItems(
           );
         }}
       >
-        <strong>
-          <UiText message={"Refresh"} />
-        </strong>{" "}
-        registered props
+        <UiText
+          message={"{part1} registered props"}
+          values={{
+            part1: (
+              <strong>
+                <UiText message={"Refresh"} />
+              </strong>
+            ),
+          }}
+        />
       </Menu.Item>,
     );
   });
@@ -440,7 +465,7 @@ function buildCodeComponentMenuItems(
         <strong>
           <UiText message={"Delete"} />
         </strong>{" "}
-        component
+        <UiText message={"component"} />
       </Menu.Item>,
     );
   });
@@ -461,10 +486,16 @@ function buildCommonComponentMenuItems(
   builder.genSection(undefined, (push) => {
     push(
       <Menu.Item key="references" onClick={onFindReferences}>
-        <strong>
-          <UiText message={"Find"} />
-        </strong>{" "}
-        all references
+        <UiText
+          message={"{part1} all references"}
+          values={{
+            part1: (
+              <strong>
+                <UiText message={"Find"} />
+              </strong>
+            ),
+          }}
+        />
       </Menu.Item>,
     );
     genComponentSwapMenuItem(builder, studioCtx, component);
@@ -495,7 +526,16 @@ function buildCommonComponentMenuItems(
           }
         }}
       >
-        Set as <strong>default component category</strong>
+        <UiText
+          message={"Set as {part1}"}
+          values={{
+            part1: (
+              <strong>
+                <UiText message={"default component category"} />
+              </strong>
+            ),
+          }}
+        />
       </Menu.Item>,
     );
     const matchingDefaultComponent = Object.entries(
@@ -513,10 +553,17 @@ function buildCommonComponentMenuItems(
             });
           }}
         >
-          Unset as{" "}
-          <strong>
-            default component category {defaultComponentKinds[kind]}
-          </strong>
+          <UiText
+            message={"Unset as {part1}"}
+            values={{
+              part1: (
+                <strong>
+                  <UiText message={"default component category"} />{" "}
+                  {defaultComponentKinds[kind]}
+                </strong>
+              ),
+            }}
+          />
         </Menu.Item>,
       );
     }
@@ -531,12 +578,22 @@ function buildCommonComponentMenuItems(
           });
         }}
       >
-        {studioCtx.site.pageWrapper === component ? (
-          <UiText message={"Unset"} />
-        ) : (
-          <UiText message={"Set"} />
-        )}{" "}
-        as <strong>default page wrapper</strong>
+        <UiText
+          message={"{part1} as {part2}"}
+          values={{
+            part1:
+              studioCtx.site.pageWrapper === component ? (
+                <UiText message={"Unset"} />
+              ) : (
+                <UiText message={"Set"} />
+              ),
+            part2: (
+              <strong>
+                <UiText message={"default page wrapper"} />
+              </strong>
+            ),
+          }}
+        />
       </Menu.Item>,
     );
   });
@@ -574,10 +631,16 @@ function genComponentSwapMenuItem(
   };
   builder.genSub(
     <>
-      <strong>
-        <UiText message={"Replace"} />
-      </strong>{" "}
-      all instances of this component with...
+      <UiText
+        message={"{part1} all instances of this component with..."}
+        values={{
+          part1: (
+            <strong>
+              <UiText message={"Replace"} />
+            </strong>
+          ),
+        }}
+      />
     </>,
     (push) => {
       pushComps(studioCtx.site.components, push, true);

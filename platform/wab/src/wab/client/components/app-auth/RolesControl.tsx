@@ -80,7 +80,7 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
                       });
                     }}
                   >
-                    Copy role ID
+                    <UiText message={"Copy role ID"} />
                   </Menu.Item>
                   {!role.isFake && (
                     <Menu.Item
