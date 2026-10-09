@@ -210,7 +210,7 @@
     "@tinymce/tinymce-react": "^4.3.2",
     "@ts-rest/core": "3.52.1",
     "@ts-rest/express": "3.52.1",
-    "@types/react": "18.3.18",
+    "@types/react": "18.3.27",
     "@xmldom/xmldom": "0.8.12",
     "@xyflow/react": "12.10.2",
     "@zxcvbn-ts/core": "^3.0.4",

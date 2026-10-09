@@ -84,10 +84,11 @@ overrides:
   "@react-types/overlays": 3.8.15
   "@react-types/shared": 3.32.1
   "@types/underscore": 1.10.24
+  # Match the root SDK workspace's React types for shared host contexts.
   # One @types/react identity across the graph. Transitives declaring
   # @types/react@* would otherwise resolve a second, newer copy, and every
   # JSX prop bag crossing the two copies fails to typecheck.
-  "@types/react@^18": 18.3.18
+  "@types/react@^18": 18.3.27
   "@types/react-dom@^18": 18.3.5
   # @jest/core declares a broad @types/node dependency and otherwise floats to
   # a newer patch than wab's direct pin. jest-config also treats @types/node as

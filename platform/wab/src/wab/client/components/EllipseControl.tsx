@@ -96,9 +96,9 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
     return (
       <div className={"ellipse-control"}>
         <svg
-          ref={(el: /*TWZ*/ SVGSVGElement | SVGSVGElement | null) =>
-            (this.svg = el)
-          }
+          ref={(el) => {
+            this.svg = el;
+          }}
           className={"ellipse-control__svg"}
         >
           <ellipse

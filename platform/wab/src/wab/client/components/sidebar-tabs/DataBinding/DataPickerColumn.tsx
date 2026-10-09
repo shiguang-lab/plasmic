@@ -146,7 +146,7 @@ function DataPickerColumn_(
                 <DataPickerColumnItem
                   ref={
                     isSelected && isActiveColumn
-                      ? (el) =>
+                      ? (el) => {
                           setTimeout(
                             () =>
                               el?.scrollIntoView({
@@ -155,7 +155,8 @@ function DataPickerColumn_(
                                 behavior: "smooth",
                               }),
                             0,
-                          )
+                          );
+                        }
                       : undefined
                   }
                   key={pathToString(path)}
