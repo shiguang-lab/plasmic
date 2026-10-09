@@ -53,3 +53,10 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 - Use English PascalCase for editable node names, independently of the business page language.
 - Prefer the actual component display name for unique page-level structural components: a standalone page's single shell is `AppShell`. Add stable business scope when repeated components need distinction, such as `AllGroupsTable` and `MyGroupsTable`; business controls retain meaningful action/field names such as `CreateGroup` and `StatusFilter`.
 - Rename instances through Studio's rename operation so state and expression references stay valid. Preserve component identities, node UUIDs, props, slots, routes and interactions. Check the editor label and persisted readback after save/reopen.
+
+## Admin prototype templates
+
+- Before designing or composing admin prototypes, read `ai/plasmic/references/admin-templates.md` and `ai/plasmic/references/templates/admin/catalog.json`. Select page, section, and overlay templates by their scenarios and composition rules, then read the live template model and registered component contracts through Plasmic MCP. The catalog does not replace real Props or Slots.
+- Reuse existing registered components. Prefer Antd `Flex`, `Row`, `Col`, `Space`, and `Card` for layout, and the existing `AppShell` for the shell. Use sections inside an existing shell; keep one shell per page.
+- After copying or detaching a template, bind the consuming project's data, events, states, and routes using the current model. Verify native forms, pagination, tabs, and overlay behavior in Preview, then save and reread.
+- Check the catalog's `directoryConfiguration` and the actual Studio UI before claiming that organization or workspace template menus are enabled. A prepared UI configuration file is not an applied setting.

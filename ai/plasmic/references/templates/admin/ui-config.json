@@ -1,0 +1,96 @@
+{
+  "pageTemplates": [
+    {
+      "displayName": "Standard list",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/638032a646429300de1a26853fd38639.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "StandardListPage",
+      "category": "Admin pages",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Catalog workspace",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/26c082c5c44d38efa8f5be958049e2c4.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "SplitTabsPage",
+      "category": "Admin pages",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Basic form",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/b41bada2c2a3f1f974e869eae513f28e.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "BasicFormPage",
+      "category": "Admin pages",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Record detail",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/2ef2071613bf6b032795a2a7bb633244.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "RecordDetailPage",
+      "category": "Admin pages",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    }
+  ],
+  "insertableTemplates": [
+    {
+      "displayName": "Search and table",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/14c0d7f606b19372175549b28570f8ce.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "SearchTableSection",
+      "category": "Admin sections",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Tabbed tables",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/2854b95def5be0f0512422706daaf3d4.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "TabsTableSection",
+      "category": "Admin sections",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Catalog and tabs",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/45d2f931c5c14e021424bdde44db08a7.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "CatalogTabsSection",
+      "category": "Admin sections",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Detail content",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/19c7041c79d38dd5e1b6aee0046753d2.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "DetailSection",
+      "category": "Admin sections",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Detail drawer",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/343cb2922395575e3c1e77e1ccc7bdbb.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "DrawerDetailSection",
+      "category": "Admin overlays",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    },
+    {
+      "displayName": "Form drawer",
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/c6b1ce6185c0f5573daf0acdeb58cc77.png",
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "componentName": "DrawerFormSection",
+      "category": "Admin overlays",
+      "tokenResolution": "reuse-by-name",
+      "componentResolution": "inline"
+    }
+  ]
+}

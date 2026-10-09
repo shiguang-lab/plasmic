@@ -1,0 +1,15 @@
+{
+  "check": "model",
+  "notChecked": [
+    "visual-layout",
+    "interactions",
+    "responsive-breakpoints"
+  ],
+  "valid": true,
+  "errors": [],
+  "warnings": [],
+  "pages": 0,
+  "components": 10,
+  "codeComponentInstances": 201,
+  "antDesign6Instances": 164
+}

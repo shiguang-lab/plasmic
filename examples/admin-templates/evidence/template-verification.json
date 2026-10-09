@@ -1,0 +1,116 @@
+{
+  "slots": {
+    "SearchTableSection": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "TabsTableSection": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "CatalogTabsSection": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "DetailSection": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "DrawerDetailSection": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "DrawerFormSection": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "StandardListPage": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "SplitTabsPage": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "BasicFormPage": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    },
+    "RecordDetailPage": {
+      "missingComponents": [],
+      "wrongComponents": [],
+      "emptyCards": [],
+      "cardContentOutsideSlot": [],
+      "wrongCardPadding": [],
+      "unprovidedSlotChildren": [],
+      "passed": true,
+      "invalidNodeNames": []
+    }
+  },
+  "forms": {
+    "DrawerFormSection": {
+      "passed": true,
+      "checkedFields": 3,
+      "errors": []
+    },
+    "BasicFormPage": {
+      "passed": true,
+      "checkedFields": 3,
+      "errors": []
+    }
+  }
+}

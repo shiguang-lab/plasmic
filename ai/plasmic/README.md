@@ -12,6 +12,8 @@ ai/plasmic/references/guide.md             资源总入口
 ai/plasmic/references/workflows/           prototype / codegen 工作流
 ai/plasmic/references/codegen/             页面读取、项目工程、交互与验收规范
 ai/plasmic/references/                     设计规范与 MCP 契约
+ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与绑定规范
+ai/plasmic/references/templates/admin/     素材库目录和官方 UiConfig 的唯一维护源
 ai/plasmic/scripts/                        结构、Slot、模型比较检查
 scripts/build-plasmic-resources.mjs        构建资源与同版本 CLI 安装包
 .github/workflows/publish-plasmic-cli.yml  新 tag 自动发布 npm 并打包资源
@@ -79,6 +81,34 @@ plasmickit references path
 `context resolve` 每次读取 NAS 的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。prototype 模式返回原型工作流；codegen 模式额外返回四份代码规范，Agent 读取页面模型与当前组件实现后编写目标项目代码。
 
 缓存默认位于 `~/.cache/plasmic/`：`releases/<releaseId>/` 保存版本，`current.json` 原子切换当前版本。`PLASMIC_RESOURCE_HOME` / `--home` 设置缓存目录；`PLASMIC_RESOURCE_URL` / `--feed` 设置资源源（HTTPS；loopback 测试允许 HTTP）。`path` 仅供显式离线检查，不能证明缓存最新。NAS 不可达或校验失败时停止依赖任务。更新以目录锁防止交叉写入；异常退出留下 `.update-lock` 时，确认没有更新进程后删除锁再执行。
+
+## 管理后台模板规范
+
+原型 workflow 要求在组合后台页面前读取 [模板规范](references/admin-templates.md) 和 [素材库目录](references/templates/admin/catalog.json)。目录提供 Admin Templates 的真实项目、十个组合组件、适用场景、Slots、版本和组合规则；AI 按需求选型，通过 Desktop MCP 核对实时模型和目标项目契约，再复用或参考结构组合。布局优先使用现有 Antd Flex、Row/Col、Space 和 Card，业务状态、事件和路由由目标项目绑定。
+
+模板规范、目录和 [UiConfig](references/templates/admin/ui-config.json) 均由资源构建器自动纳入 bundle，不依赖目标项目存在本仓库的 `examples/` 目录。`examples/admin-templates/` 保存素材库生成函数、使用说明和验收证据；目录和配置只在 `references/templates/admin/` 维护。发布新素材库版本后核对实时 UUID、Slots、依赖和缩略图，更新目录并同步 UiConfig。
+
+素材库的 `publishedVersion` 与 skill 资源发布版本独立。规范发布使外部 AI 可以发现素材库，不会应用组织 UiConfig，也不会接入 Studio 内置 AI 检索。配置是否启用、目标用户是否有素材库访问权限，都需要通过当前系统核对。
+
+### Reference 更新发布
+
+仅修改 references 时无需修改薄 `SKILL.md`、CLI 运行代码或最低 CLI 版本。资源版本仍必须使用一个未发布的新数字 tag；相同版本不能覆盖不同内容。先在仓库根目录完成本地打包检查，例如：
+
+```sh
+node scripts/build-plasmic-resources.mjs --version 0.0.53 --output /tmp/plasmic-resources-0.0.53
+```
+
+版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；不会发布或切换 NAS 清单。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
+
+正式发布沿用下文的 tag 流程：提交本次规范文件，推送新数字 tag，等待 CLI workflow 成功，从该次 workflow 下载同版本 `plasmic-resources-<tag>` artifact，再通过 `publish:resources --from ... --version ...` 部署到 NAS。该数字 tag 还会触发现有 server/web 镜像 workflow；它不是仅触发 references 的专用 tag。NAS 部署必须使用该次 CI 产物，不要重新构建并覆盖已发布版本。
+
+NAS 部署成功后，客户端执行：
+
+```sh
+npx -y @plasmickit/cli@latest context resolve --mode prototype
+```
+
+核对返回的 `version`、`releaseId`，以及返回 `resourceRoot` 下的模板规范和目录。原型 workflow 会引导读取这些文件。已有兼容 CLI 可以下载新的 references；无需重新安装 skill 或 Desktop App。更新只影响下一次规范加载，已运行任务应重新 resolve/read 后使用新规则。
 
 ## 代码生成规范
 

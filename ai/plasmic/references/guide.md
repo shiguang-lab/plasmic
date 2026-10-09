@@ -4,7 +4,7 @@ The installed `plasmic` skill loads this NAS resource bundle through `plasmickit
 
 ## Task routing
 
-- Product prototype design, revision or review: [prototype workflow](workflows/prototype.md). For admin pages read [admin design](admin-design.md); for requirement-driven work read [requirement alignment](requirement-alignment.md). Explicit regeneration/stability work also needs [reproducibility](reproducibility.md).
+- Product prototype design, revision or review: [prototype workflow](workflows/prototype.md). For admin pages read [admin design](admin-design.md) and [admin templates](admin-templates.md), including its bundled catalog, before composing pages; for requirement-driven work read [requirement alignment](requirement-alignment.md). Explicit regeneration/stability work also needs [reproducibility](reproducibility.md).
 - Generate and integrate development code: [codegen workflow](workflows/codegen.md). Read the real page model and component contracts, then author native project code using the returned code-generation standards. The agent performs generation; the CLI delivers current guidance.
 - Exact Desktop tool behavior: [Desktop MCP contract](desktop-mcp.md). Discover live operation schemas through `get_app_state`; bundled guidance does not override actual registrations or permissions.
 

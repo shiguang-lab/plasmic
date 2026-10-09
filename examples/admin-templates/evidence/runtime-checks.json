@@ -1,0 +1,60 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "checks": [
+    {
+      "name": "Drawer form open",
+      "passed": true
+    },
+    {
+      "name": "Empty form required validation",
+      "passed": true,
+      "evidence": "form-validation.png"
+    },
+    {
+      "name": "Category selection and valid submit closes form",
+      "passed": true
+    },
+    {
+      "name": "Cancel and reopen resets form",
+      "passed": true
+    },
+    {
+      "name": "Detail drawer close",
+      "passed": true
+    },
+    {
+      "name": "Table second page",
+      "passed": true,
+      "firstRecordId": "1021"
+    },
+    {
+      "name": "My records tab",
+      "passed": true,
+      "visibleRows": 20,
+      "otherOwnerRows": 0
+    },
+    {
+      "name": "Detail status single line",
+      "passed": true,
+      "renderedSize": {
+        "width": 32,
+        "height": 19
+      }
+    },
+    {
+      "name": "Save and reload persisted templates",
+      "passed": true,
+      "componentCount": 10,
+      "drawersInitiallyClosed": true
+    }
+  ],
+  "notVerified": [
+    "Business query and save APIs",
+    "Business routes and row actions",
+    "Mobile layout",
+    "Cross-project template insertion"
+  ]
+}

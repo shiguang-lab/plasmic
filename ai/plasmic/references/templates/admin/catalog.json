@@ -1,0 +1,267 @@
+{
+  "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+  "projectName": "Admin Templates",
+  "projectUrl": "https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ",
+  "workspaceId": "b8k3wLnCGATcW6cAquxJ3K",
+  "organizationId": "1SggWCFqHbS4RipBHnqVqY",
+  "publishedVersion": "0.0.1",
+  "reference": {
+    "file": "pen-antd-kit/libraries/templates.pen",
+    "readVia": "Pen MCP",
+    "notes": "TabsTableSection 按 standard-list 的标签列表组合规则提取。抽屉仅含原生 Drawer，不含来源页面背景。"
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "libraries": [
+    {
+      "name": "antd6",
+      "projectId": "eYLujTHmWfX9qEoQaFDSi4",
+      "version": "1.12.0",
+      "installed": true
+    },
+    {
+      "name": "overseas",
+      "projectId": "f3f4ju424PVNTAQPkwovrE",
+      "version": "1.4.0",
+      "installed": true
+    },
+    {
+      "name": "antd-icons",
+      "projectId": "vuoraLeVbtw7rQTKJ6UKar",
+      "version": "0.1.0",
+      "installed": true
+    },
+    {
+      "name": "react-ui",
+      "projectId": "vJfWZAFzStvt61gEWotC7k",
+      "version": "0.1.0",
+      "installed": true
+    }
+  ],
+  "templates": [
+    {
+      "componentName": "SearchTableSection",
+      "componentUuid": "ZcMtIZI9J_IS",
+      "kind": "section",
+      "pattern": "standard-list",
+      "displayName": "Search and table",
+      "sourceFrameId": "RiMP8",
+      "useWhen": "向现有 AppShell 内容区插入筛选表单与表格。",
+      "avoidWhen": "需要互斥数据视图或目录导航时，使用对应区块。",
+      "slotNames": [
+        "filterFields",
+        "listTitle",
+        "primaryActions",
+        "tableColumns"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/14c0d7f606b19372175549b28570f8ce.png"
+    },
+    {
+      "componentName": "TabsTableSection",
+      "componentUuid": "Lrdw4Jts1Zzd",
+      "kind": "section",
+      "pattern": "standard-list",
+      "displayName": "Tabbed tables",
+      "sourceFrameId": "RiMP8",
+      "useWhen": "同一业务下的全部、我负责的等互斥列表视图。",
+      "avoidWhen": "每个标签已有不同筛选和目录上下文时，使用 CatalogTabsSection。",
+      "slotNames": [
+        "tableColumns",
+        "primaryActions"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/2854b95def5be0f0512422706daaf3d4.png"
+    },
+    {
+      "componentName": "CatalogTabsSection",
+      "componentUuid": "eFXbkqjp2LYe",
+      "kind": "section",
+      "pattern": "split-tabs",
+      "displayName": "Catalog and tabs",
+      "sourceFrameId": "rlAE5",
+      "useWhen": "现有外壳中的目录导航与标签工作区。",
+      "avoidWhen": "不需要左侧目录的单列表场景。",
+      "slotNames": [
+        "catalogItems",
+        "filterFields",
+        "tableColumns",
+        "primaryActions"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/45d2f931c5c14e021424bdde44db08a7.png"
+    },
+    {
+      "componentName": "DetailSection",
+      "componentUuid": "eKrbsAe1CNAG",
+      "kind": "section",
+      "pattern": "profile-basic",
+      "displayName": "Detail content",
+      "sourceFrameId": "vjnvs",
+      "useWhen": "向现有详情布局插入 Descriptions 与关联表格。",
+      "avoidWhen": "只需要短摘要的快速查看场景。",
+      "slotNames": [
+        "summaryContent",
+        "relatedContent"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/19c7041c79d38dd5e1b6aee0046753d2.png"
+    },
+    {
+      "componentName": "DrawerDetailSection",
+      "componentUuid": "Y2GrhBSWir6g",
+      "kind": "overlay",
+      "pattern": "drawer-detail",
+      "displayName": "Detail drawer",
+      "sourceFrameId": "bAEIb",
+      "useWhen": "保留当前页面上下文，快速查看记录摘要。",
+      "avoidWhen": "多层关联信息应使用独立 RecordDetailPage。",
+      "slotNames": [
+        "drawerTitle",
+        "detailContent",
+        "drawerActions"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/343cb2922395575e3c1e77e1ccc7bdbb.png"
+    },
+    {
+      "componentName": "DrawerFormSection",
+      "componentUuid": "1GHv4K3Ij7gq",
+      "kind": "overlay",
+      "pattern": "drawer-form",
+      "displayName": "Form drawer",
+      "sourceFrameId": "YciXK",
+      "useWhen": "保留列表上下文的新建或短表单编辑。",
+      "avoidWhen": "长表单、分步流程应使用页面模板。",
+      "slotNames": [
+        "drawerTitle",
+        "formFields",
+        "drawerActions"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/c6b1ce6185c0f5573daf0acdeb58cc77.png"
+    },
+    {
+      "componentName": "StandardListPage",
+      "componentUuid": "cDYZYokFR4sw",
+      "kind": "page",
+      "pattern": "standard-list",
+      "displayName": "Standard list",
+      "sourceFrameId": "RiMP8",
+      "useWhen": "可筛选、分页、行操作的资源管理列表。",
+      "avoidWhen": "已有 AppShell 或需要目录分栏时，使用区块或 SplitTabsPage。",
+      "slotNames": [],
+      "nestedTemplates": [
+        "SearchTableSection"
+      ],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/638032a646429300de1a26853fd38639.png"
+    },
+    {
+      "componentName": "SplitTabsPage",
+      "componentUuid": "KYAcKbK6fx1I",
+      "kind": "page",
+      "pattern": "split-tabs",
+      "displayName": "Catalog workspace",
+      "sourceFrameId": "rlAE5",
+      "useWhen": "左侧目录选择，右侧标签配置与列表工作区。",
+      "avoidWhen": "不需要目录时，使用 StandardListPage。",
+      "slotNames": [],
+      "nestedTemplates": [
+        "CatalogTabsSection"
+      ],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/26c082c5c44d38efa8f5be958049e2c4.png"
+    },
+    {
+      "componentName": "BasicFormPage",
+      "componentUuid": "KWg6A2bKJRd7",
+      "kind": "page",
+      "pattern": "basic-form",
+      "displayName": "Basic form",
+      "sourceFrameId": "FhyyS",
+      "useWhen": "独立页面的新建或编辑，字段较少、无需分步。",
+      "avoidWhen": "保留列表上下文的小型编辑，使用 DrawerFormSection。",
+      "slotNames": [
+        "formTitle",
+        "formFields",
+        "formActions"
+      ],
+      "nestedTemplates": [],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/b41bada2c2a3f1f974e869eae513f28e.png"
+    },
+    {
+      "componentName": "RecordDetailPage",
+      "componentUuid": "Rgc3jqPJJ8Ot",
+      "kind": "page",
+      "pattern": "profile-basic",
+      "displayName": "Record detail",
+      "sourceFrameId": "vjnvs",
+      "useWhen": "独立记录详情，包含摘要和关联列表。",
+      "avoidWhen": "快速查阅少量字段，使用 DrawerDetailSection。",
+      "slotNames": [],
+      "nestedTemplates": [
+        "DetailSection"
+      ],
+      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/2ef2071613bf6b032795a2a7bb633244.png"
+    }
+  ],
+  "compositions": [
+    {
+      "name": "列表与抽屉",
+      "parts": [
+        "StandardListPage",
+        "DrawerDetailSection",
+        "DrawerFormSection"
+      ],
+      "rule": "整页只保留一个 AppShell；两个 Drawer 放在页面级，默认关闭。"
+    },
+    {
+      "name": "已有外壳的标签列表",
+      "parts": [
+        "TabsTableSection",
+        "DrawerDetailSection",
+        "DrawerFormSection"
+      ],
+      "rule": "替换现有内容区，不再插入页面外壳；每个标签使用自己的 Table。"
+    },
+    {
+      "name": "目录配置工作区",
+      "parts": [
+        "SplitTabsPage",
+        "DrawerFormSection"
+      ],
+      "rule": "目录选择和标签切换分别绑定业务上下文；右栏宽度自适应，Table 独立横向滚动。"
+    },
+    {
+      "name": "完整详情与编辑页",
+      "parts": [
+        "RecordDetailPage",
+        "BasicFormPage"
+      ],
+      "rule": "是两个独立页面。使用项目真实路由关联，不将两个 AppShell 嵌套。"
+    }
+  ],
+  "aiWorkflow": [
+    "先按 useWhen、avoidWhen 和 compositions 选结构，再读取模板的实时模型。",
+    "安装并核对现有库；通过真实注册名称、Props、Slots 实例化，布局优先使用 Antd。",
+    "已存在 AppShell 时只使用 section 或 overlay。",
+    "以普通组件方式插入 Overlay 时先解离组合实例，由当前页面绑定原生 Drawer.open 与内部 Form ref。",
+    "替换示例字段、列、选项和数据；沿用组件契约，不另造控件。",
+    "官方模板插入会复制布局，来源自定义 State、事件和查询不能视为自动迁移完成。重新绑定业务状态、事件和路由。",
+    "用 Preview 检查查询与重置、分页、标签切换、表单校验、抽屉打开与关闭；保存后重读。"
+  ],
+  "directoryConfiguration": {
+    "format": "Plasmic UiConfig",
+    "file": "ui-config.json",
+    "applied": false,
+    "reason": "当前 shuhe 为 Free，组织与工作区官方 Configure Studio UI 入口由 Enterprise 门槛限制。"
+  },
+  "preview": {
+    "name": "TemplatePreview",
+    "uuid": "SkI5nLNWy2UT",
+    "path": "/templates",
+    "url": "https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ/preview/templates",
+    "purpose": "筛选表格与两个原生抽屉的组合演示；成功表单提交只关闭抽屉，不调用业务保存接口。"
+  }
+}
