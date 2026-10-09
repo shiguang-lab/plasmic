@@ -162,6 +162,51 @@ app
         );
       }
     }
+
+    await win.webContents.executeJavaScript(
+      'localStorage.setItem("shiguang.ui.language", "zh-CN")',
+    );
+    await win.loadURL(config.studioOrigin + "/desktop/unified-login");
+    const zhPack = JSON.parse(
+      fs.readFileSync(
+        path.join(
+          __dirname,
+          "../../platform/wab/src/wab/client/i18n/locales/zh-CN.json",
+        ),
+        "utf8",
+      ),
+    );
+    for (let attempt = 0; attempt < 100; attempt++) {
+      if (
+        (await win.webContents.executeJavaScript(
+          'document.getElementById("sign-in").textContent',
+        )) === zhPack["Sign in with Shiguang"]
+      )
+        break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    for (const [id, key] of [
+      ["sign-in", "Sign in with Shiguang"],
+      ["open", "Open browser"],
+      ["retry", "Try again"],
+    ]) {
+      assert.equal(
+        await win.webContents.executeJavaScript(
+          `document.getElementById(${JSON.stringify(id)}).textContent`,
+        ),
+        zhPack[key],
+      );
+    }
+    assert.equal(
+      Menu.getApplicationMenu().getMenuItemById("desktop-file").label,
+      zhPack.File,
+    );
+    console.log(
+      "PASS: Reload restores the cached language in native menus and sign-in controls",
+    );
+    await win.webContents.executeJavaScript(
+      'localStorage.setItem("shiguang.ui.language", "en")',
+    );
     await win.webContents.executeJavaScript(
       'window.desktopEnvironment.setUiLocale("en")',
     );
