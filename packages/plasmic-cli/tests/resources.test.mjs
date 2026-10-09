@@ -112,13 +112,14 @@ test("newer required CLI returns the immutable install URL and does not select r
 });
 test("compatible newer CLI is reported while resources can still update", async (t) => {
   const options = await setup(t);
-  options.state.manifest.version = "0.0.60";
+  const newerVersion = CLI_VERSION.replace(/\d+$/, (patch) => String(Number(patch) + 1));
+  options.state.manifest.version = newerVersion;
   options.state.manifest.releaseId = releaseId(options.state.manifest);
   const status = await checkCliVersion(options);
   assert.equal(status.cliUpdateAvailable, true);
   assert.equal(status.cliCompatible, true);
   const context = await resolveContext("prototype", options);
-  assert.equal(context.latestCliVersion, "0.0.60");
+  assert.equal(context.latestCliVersion, newerVersion);
   assert.equal(context.cliVersion, CLI_VERSION);
 });
 test("path traversal, duplicates, manifest tampering and missing entrypoints are rejected", () => {
