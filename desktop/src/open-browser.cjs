@@ -11,7 +11,7 @@ async function openBrowser(url) {
       await new Promise((resolve, reject) => {
         const child = spawn(
           path.join(browser.path, "Contents/MacOS/Google Chrome"),
-          ["--new-window", url],
+          [url],
           { detached: true, stdio: "ignore" },
         );
         child.once("error", reject);
