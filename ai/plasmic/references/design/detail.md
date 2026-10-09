@@ -19,4 +19,3 @@ In live preview, hover and keyboard-focus the return Button to verify the destin
 Save/reopen and recheck the heading structure, Tooltip, destination and relevant state handoff. Identify screenshots by breadcrumb/title and the target business node. Record model/layout, screenshot and interaction evidence separately; a matching screenshot width or a successful save does not establish header acceptance.
 
 Verify structure and visuals after save/reopen. Check exact viewport, shell consistency, one padding owner, control size, readable labels, row count/page totals, fixed operations, scroll reachability, tab content ownership, long values, overlay backdrop/footer, and required state transitions. Validate both default and task-changing states. No visible implementation notes or provenance artboards; keep evidence in the sidecar report. A structurally valid component can still render incorrectly: inspect actual screenshots and exercised interactions before acceptance.
-
