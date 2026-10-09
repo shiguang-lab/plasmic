@@ -9,8 +9,11 @@ packages/plasmic-cli/skill/plasmic/SKILL.md  薄入口的唯一维护源
 packages/plasmic-cli/src/                  CLI 运行代码，无外部运行依赖
 packages/plasmic-cli/scripts/publish.mjs   tag / npm 版本与完整性检查、发布
 ai/plasmic/references/guide.md             资源总入口
-ai/plasmic/references/workflows/           prototype / codegen 工作流
-ai/plasmic/references/codegen/             页面读取、项目工程、交互与验收规范
+ai/plasmic/references/workflows/           inspect / prototype / codegen 工作流
+ai/plasmic/references/model-reading.md     只读解读与 coding 共用的模型读取契约
+ai/plasmic/references/codegen/             项目工程、交互与验收规范
+ai/plasmic/references/design/              按受影响区域选读的后台设计规则
+ai/plasmic/references/engineering/         仅平台/组件实现任务使用的验证规则
 ai/plasmic/references/                     设计规范与 MCP 契约
 ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与绑定规范
 ai/plasmic/references/templates/admin/     素材库目录和官方 UiConfig 的唯一维护源
@@ -27,6 +30,7 @@ scripts/build-plasmic-resources.mjs        构建资源与同版本 CLI 安装�
 
 ```sh
 npx -y @plasmickit/cli@latest skill install
+npx -y @plasmickit/cli@latest context resolve --mode inspect
 npx -y @plasmickit/cli@latest context resolve --mode prototype
 npx -y @plasmickit/cli@latest context resolve --mode codegen
 ```
@@ -71,6 +75,7 @@ plasmickit skill install
 plasmickit version check
 plasmickit references check
 plasmickit references update
+plasmickit context resolve --mode inspect
 plasmickit context resolve --mode prototype
 plasmickit context resolve --mode codegen
 plasmickit references path
@@ -78,7 +83,7 @@ plasmickit references path
 
 `version check` 查询 NAS 当前发布清单，返回正在运行的 `cliVersion`、NAS 发布的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
 
-`context resolve` 每次读取 NAS 的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。prototype 模式返回原型工作流；codegen 模式额外返回四份代码规范，Agent 读取页面模型与当前组件实现后编写目标项目代码。
+`context resolve` 每次读取 NAS 的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流，通过后台索引按受影响区域选读；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
 
 缓存默认位于 `~/.cache/plasmic/`：`releases/<releaseId>/` 保存版本，`current.json` 原子切换当前版本。`PLASMIC_RESOURCE_HOME` / `--home` 设置缓存目录；`PLASMIC_RESOURCE_URL` / `--feed` 设置资源源（HTTPS；loopback 测试允许 HTTP）。`path` 仅供显式离线检查，不能证明缓存最新。NAS 不可达或校验失败时停止依赖任务。更新以目录锁防止交叉写入；异常退出留下 `.update-lock` 时，确认没有更新进程后删除锁再执行。
 
@@ -95,7 +100,7 @@ plasmickit references path
 仅修改 references 时无需修改薄 `SKILL.md`、CLI 运行代码或最低 CLI 版本。资源版本仍必须使用一个未发布的新数字 tag；相同版本不能覆盖不同内容。先在仓库根目录完成本地打包检查，例如：
 
 ```sh
-node scripts/build-plasmic-resources.mjs --version 0.0.53 --output /tmp/plasmic-resources-0.0.53
+node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
 ```
 
 版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；不会发布或切换 NAS 清单。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
@@ -114,7 +119,7 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 流程为：读取目标项目 → 读取真实 Plasmic 页面/状态/交互 → 核对当前组件实现与目标 API → 按工程规范实现项目代码 → 在真实入口验证。生成由 Agent 执行，CLI 提供最新 references；不调用 `export_code` 或官方 Plasmic CLI。
 
-- [页面读取与实现依据](references/codegen/page-reading.md)：读取隐藏分支、实际组件信息、数据和资产，依据当前两端实现决定代码。
+- [页面读取与实现依据](references/model-reading.md)：读取隐藏分支、实际组件信息、数据和资产，依据当前两端实现决定代码。
 - [项目代码规范](references/codegen/project-code.md)：目录职责、组件拆分、类型边界、主题样式、宿主与独立应用、国际化和权限。
 - [数据与交互规范](references/codegen/interactions.md)：状态所有权、查询分页、请求竞态、表单校验、弹层生命周期与防重提交。
 - [代码验收规范](references/codegen/acceptance.md)：类型/构建检查、真实入口行为和视觉验证、交付证据。
@@ -157,9 +162,9 @@ npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-r
 
 ```sh
 node packages/plasmic-cli/src/index.mjs skill install --dry-run
-node scripts/build-plasmic-resources.mjs --version 0.0.35
+node scripts/build-plasmic-resources.mjs --version 0.0.59
 # 默认只对 npm 做 dry-run（会查询真实 registry，不上传）：
-node packages/plasmic-cli/scripts/publish.mjs --tag 0.0.35
+node packages/plasmic-cli/scripts/publish.mjs --tag 0.0.59
 ```
 
 实际发布 npm 需要显式加 `--execute`；推送 tag 的 CI 会自动传入。Desktop App 使用自己的发布流程；CLI/resources 现在由仓库 release tag 发布，Desktop `publish:nas` 不再另外覆盖该清单。
@@ -184,3 +189,11 @@ node --test desktop/tests/plasmic-resources.test.cjs desktop/tests/mcp-skill.tes
 python3 ai/plasmic/scripts/test_verify_slots.py
 python3 ai/plasmic/scripts/test_verify_structure.py
 ```
+
+行为评测见 [evals](evals/README.md)：用独立上下文覆盖只读解读、局部原型修改、现有代码更新、官方 CLI 和跨项目保存副作用，并对生成代码与修改计划做独立验证。fixture 评测与真实 Desktop 的 Preview、保存、重开验收分别记录。
+
+## 渐进式资源检查
+
+构建器在打包前检查本地 reference 链接、标题锚点和从 guide 可达性，包括构建时加入的 SearchForm 文档。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
+
+官方 `@plasmicapp/cli` 与资源 CLI 分工见 [工具选择](references/guide.md#tool-choice) 和 [官方 CLI](references/official-cli.md)。MCP 完整组件读取包含配置的现代/旧查询定义及注册 import 身份；集成设置和源码不随模型读取下载，未知参数或未核对的迁移条件必须明确。

@@ -11,7 +11,7 @@ const usage = `plasmickit commands:
   skill install [--dry-run]
   version check [--feed HTTPS_URL]
   references check|update|path [--feed HTTPS_URL] [--home CACHE_ROOT]
-  context resolve --mode prototype|codegen [--feed HTTPS_URL] [--home CACHE_ROOT]
+  context resolve --mode inspect|prototype|codegen [--feed HTTPS_URL] [--home CACHE_ROOT]
   --version
 `;
 export async function main(argv) {

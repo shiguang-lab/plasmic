@@ -29,7 +29,7 @@ const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
-const { createUpdateWindow } = require("./update-window.cjs");
+const { createUpdateDialog } = require("./update-dialog.cjs");
 const {
   DesktopWorkspace,
   fileMenu,
@@ -169,6 +169,7 @@ async function startDesktop() {
         bridgePath: path.join(__dirname, "editor-bridge.js"),
         authPagePath: path.join(__dirname, "unified-login.html"),
         updateUiPath: path.join(__dirname, "update-ui.js"),
+        updateDialogPath: path.join(__dirname, "update-dialog.js"),
         bundledFontCss: fs
           .readdirSync(path.join(root, "static/desktop-fonts"))
           .filter((file) => file.endsWith(".css"))
@@ -350,7 +351,7 @@ async function startDesktop() {
       config,
       getWindow: () => mainWindow,
       session: desktopSession,
-      showUpdateWindow: () => openUpdates(),
+      showUpdateDialog: () => openUpdates(),
       beforeInstall: async () => {
         const state = await controller.state();
         if (state.projectId) {
@@ -363,8 +364,8 @@ async function startDesktop() {
         }
       },
     });
-    openUpdates = createUpdateWindow(updates, () => mainWindow);
   }
+  openUpdates = createUpdateDialog(updates, win);
   function buildMenu() {
     const checkForUpdatesItem = {
       label: "Check for Updates…",

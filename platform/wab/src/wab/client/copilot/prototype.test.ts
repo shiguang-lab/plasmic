@@ -1,12 +1,13 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
+import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
 import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
-import { tryExtractJson } from "@/wab/shared/core/exprs";
+import { customCode, tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import { createSite } from "@/wab/shared/core/sites";
 import {
@@ -49,6 +50,21 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it("reads configured query definitions with edit permission denied and leaves design state unchanged", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage("QueryInspection");
+    const op = customCode("$props.records");
+    const query = mkServerQuery("Records", op);
+    runInAction(() => page.serverQueries.push(query));
+    vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
+    expect((await call("identify", { model: "test", client: "test", skill: "plasmic", outputFormat: "json" })).canEdit).toBe(false);
+    const history = studioCtx.undoLog._log.length;
+    const result = await call("read", { componentUuids: [page.uuid] });
+    expect(result.results[0].dataQueries).toEqual([{ __type: "DataQuery", name: "Records", uuid: query.uuid, reference: "$q.records", kind: "customCode", code: op.code }]);
+    expect(page.serverQueries).toEqual([query]);
+    expect(studioCtx.undoLog._log).toHaveLength(history);
+    studioCtx.copilotActivity.dispose();
+  });
   it("restores prop and empty-slot defaults without treating null as unset, and rejects destructive resets atomically", async () => {
     const site = createSite();
     const footer = mkParam({

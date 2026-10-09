@@ -3777,6 +3777,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 </plasmic-component>]]></baseVariantTplTree>
 </Component>",
   "hostless-plasmic-head": "<Component name="hostless-plasmic-head" description="Set page metadata (HTML <head />) to dynamic values." uuid="3Q5tZgoUcjgc" type="code">
+  <codeComponent importPath="@plasmicapp/react-web" importName="PlasmicHead" defaultExport="false"></codeComponent>
   <props>
     <ARRAY>
       <ITEM>
@@ -3802,6 +3803,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <baseVariantTplTree><![CDATA[<div id="I5WSi3eZbGYU" style="display: flex; flex-direction: row"></div>]]></baseVariantTplTree>
 </Component>",
   "plasmic-data-source-fetcher": "<Component name="plasmic-data-source-fetcher" uuid="eG7R2DxKySYs" type="code">
+  <codeComponent importPath="@plasmicapp/react-web/lib/data-sources" importName="Fetcher" defaultExport="false"></codeComponent>
   <props>
     <ARRAY>
       <ITEM>
@@ -9362,6 +9364,11 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   "hostless-plasmic-head": {
     "__type": "Component",
     "baseVariantTplTree": "<div id="I5WSi3eZbGYU" style="display: flex; flex-direction: row"></div>",
+    "codeComponent": {
+      "defaultExport": false,
+      "importName": "PlasmicHead",
+      "importPath": "@plasmicapp/react-web",
+    },
     "description": "Set page metadata (HTML <head />) to dynamic values.",
     "name": "hostless-plasmic-head",
     "props": [
@@ -9400,6 +9407,11 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     "baseVariantTplTree": "<div id="nFqjKfbIuuRb" style="display: flex; flex-direction: row">
   <slot-target name="children" id="P9k7Vhn5ICRU"></slot-target>
 </div>",
+    "codeComponent": {
+      "defaultExport": false,
+      "importName": "Fetcher",
+      "importPath": "@plasmicapp/react-web/lib/data-sources",
+    },
     "name": "plasmic-data-source-fetcher",
     "props": [
       {

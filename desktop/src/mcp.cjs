@@ -303,7 +303,7 @@ tools.push(
   {
     name: "read_skill",
     description:
-      "Read the bootstrap instructions for the current NAS-hosted Plasmic prototype and codegen workflows.",
+      "Read the bootstrap instructions for the current NAS-hosted Plasmic inspection, prototype and codegen workflows.",
     inputSchema: object({}),
   },
   {
@@ -421,7 +421,7 @@ async function serveMcp(profile) {
             )
           : request.params.name === "read_skill"
             ? {
-                instructions: "Run npx -y @plasmickit/cli@latest context resolve --mode prototype for product design, or --mode codegen for development code. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with npx -y @plasmickit/cli@latest skill install; it detects supported local Agent CLIs and apps and installs for all detected clients without asking for paths. Use skill install --dry-run to inspect detection and destinations. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
+                instructions: "Run npx -y @plasmickit/cli@latest context resolve --mode inspect for read-only page/template explanation or design review, --mode prototype for design edits, or --mode codegen for native development code. Inspection requires accessible reads, not edit permission; it does not save or mutate designs. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with npx -y @plasmickit/cli@latest skill install; it detects supported local Agent CLIs and apps and installs for all detected clients without asking for paths. Use skill install --dry-run to inspect detection and destinations. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
                 resourceManifestUrl: require("../desktop.config.json").updateUrl + "/plasmic/latest.json",
               }
             : await requestRpc(

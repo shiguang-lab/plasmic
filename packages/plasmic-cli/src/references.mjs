@@ -1,7 +1,7 @@
 import { lstat, mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
-import { artifactUrl, CLI_VERSION, CODEGEN_REFERENCES, feedUrl, MAX_BYTES, requiresNewCli, sha256, unpackResources, validateManifest } from "./protocol.mjs";
+import { artifactUrl, CLI_VERSION, MODE_REFERENCES, feedUrl, MAX_BYTES, requiresNewCli, sha256, unpackResources, validateManifest } from "./protocol.mjs";
 
 const cacheRoot = (options) => path.resolve(options.home || process.env.PLASMIC_RESOURCE_HOME || path.join(homedir(), ".cache", "plasmic"));
 async function download(url) {
@@ -139,8 +139,8 @@ export async function referencePath(options = {}) {
   return result(root, { manifest, cliUrl: artifactUrl(feedUrl(state.feed), manifest, "cli") }, { freshness: "unchecked" });
 }
 export async function resolveContext(mode, options = {}) {
-  if (!["prototype", "codegen"].includes(mode)) throw new Error("--mode must be prototype or codegen");
+  if (!Object.hasOwn(MODE_REFERENCES, mode)) throw new Error("--mode must be inspect, prototype or codegen");
   const { manifest, ...resources } = await updateReferences(options);
-  const references = [manifest.entrypoints.guide, "references/desktop-mcp.md", manifest.entrypoints[mode], ...(mode === "codegen" ? CODEGEN_REFERENCES : [])];
+  const references = [manifest.entrypoints.guide, "references/desktop-mcp.md", manifest.entrypoints[mode], ...MODE_REFERENCES[mode]];
   return { ...resources, mode, mustRead: references.map((reference) => path.join(resources.resourceRoot, reference)) };
 }

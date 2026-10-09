@@ -16,6 +16,7 @@ test("MCP bootstrap works without an open editor or a bundled workflow file", as
   assert.ok(!result.isError);
   const bootstrap = JSON.parse(result.content.find((item) => item.type === "text").text);
   assert.match(bootstrap.instructions, /context resolve/);
+  assert.match(bootstrap.instructions, /--mode inspect/);
   assert.match(bootstrap.instructions, /--mode prototype/);
   assert.match(bootstrap.instructions, /--mode codegen/);
   assert.match(bootstrap.instructions, /cli@latest skill install;/);

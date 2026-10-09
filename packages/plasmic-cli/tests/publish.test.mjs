@@ -19,13 +19,13 @@ test("only stable repository version tags release the CLI", () => {
 test("npm release checks tag, registry versions and integrity before publishing or skipping", async (t) => {
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-publish-test-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
-  const built = await buildResources(temporary, "0.0.35");
+  const built = await buildResources(temporary, "0.0.59");
   const bytes = await readFile(path.join(built.directory, "plasmic-cli.tgz"));
   const integrity = "sha512-" + createHash("sha512").update(bytes).digest("base64");
   const calls = [];
   let registry = null, status = 404;
   const options = {
-    directory: built.directory, tag: "0.0.35",
+    directory: built.directory, tag: "0.0.59",
     fetchRelease: async () => ({ ok: status === 200, status, json: async () => registry }),
     runNpm: (args) => { calls.push(args); return "dry run"; },
     waitForPropagation: async () => {},
@@ -33,21 +33,21 @@ test("npm release checks tag, registry versions and integrity before publishing 
   const dryRun = await publishCli(options);
   assert.equal(dryRun.mode, "dry-run");
   assert.ok(calls[0].includes("--dry-run"));
-  await assert.rejects(publishCli({ ...options, tag: "0.0.36" }), /does not match/);
+  await assert.rejects(publishCli({ ...options, tag: "0.0.60" }), /does not match/);
   status = 200;
-  registry = { "dist-tags": { latest: "0.0.35" }, versions: { "0.0.35": { dist: { integrity } } } };
+  registry = { "dist-tags": { latest: "0.0.59" }, versions: { "0.0.59": { dist: { integrity } } } };
   assert.equal((await publishCli({ ...options, execute: true })).skipped, true);
   assert.equal(calls.length, 1);
-  registry.versions["0.0.35"].dist.integrity = "sha512-wrong";
+  registry.versions["0.0.59"].dist.integrity = "sha512-wrong";
   await assert.rejects(publishCli(options), /different artifact bytes/);
-  registry = { "dist-tags": { latest: "0.0.36" }, versions: {} };
-  await assert.rejects(publishCli(options), /npm latest is 0.0.36/);
+  registry = { "dist-tags": { latest: "0.0.60" }, versions: {} };
+  await assert.rejects(publishCli(options), /npm latest is 0.0.60/);
   status = 401;
   await assert.rejects(publishCli(options), /HTTP 401/);
   status = 404;
   options.runNpm = (args) => {
     calls.push(args);
-    registry = { "dist-tags": { latest: "0.0.35" }, versions: { "0.0.35": { dist: { integrity } } } };
+    registry = { "dist-tags": { latest: "0.0.59" }, versions: { "0.0.59": { dist: { integrity } } } };
     status = 200;
     return "published";
   };
@@ -60,6 +60,6 @@ test("npm release checks tag, registry versions and integrity before publishing 
   })).mode, "execute");
   assert.equal(waits, 2);
   status = 404;
-  options.runNpm = () => { status = 200; registry = { "dist-tags": { latest: "0.0.35" }, versions: {} }; return "published"; };
+  options.runNpm = () => { status = 200; registry = { "dist-tags": { latest: "0.0.59" }, versions: {} }; return "published"; };
   await assert.rejects(publishCli({ ...options, execute: true }), /integrity or latest version mismatch/);
 });

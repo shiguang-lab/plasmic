@@ -6,8 +6,9 @@ import {
   tryGetVariantSetting,
 } from "@/wab/shared/Variants";
 import { paramToVarName, toVarName } from "@/wab/shared/codegen/util";
-import { assert, switchType } from "@/wab/shared/common";
-import { exprLeavesToInterpolations, exprToInterpolatedString } from "@/wab/shared/copilot/dynamic-value-input";
+import { assert, switchType, withoutNils } from "@/wab/shared/common";
+import { exprLeavesToInterpolations, exprToDataQueryArg, exprToInterpolatedString } from "@/wab/shared/copilot/dynamic-value-input";
+import { customFunctionId } from "@/wab/shared/core/query-ids";
 import {
   isPageComponent,
   tryGetVariantGroupValueFromArg,
@@ -36,10 +37,13 @@ import {
   tplChildren,
 } from "@/wab/shared/core/tpls";
 import { PLASMIC_DISPLAY_NONE, normProp } from "@/wab/shared/css";
+import { dataSourceTemplateToString } from "@/wab/shared/data-sources-meta/data-sources";
+import { getProjectFlags } from "@/wab/shared/devflags";
 import {
   Component,
   CompositeExpr,
   CustomCode,
+  CustomFunctionExpr,
   Expr,
   ImageAssetRef,
   Interaction,
@@ -83,6 +87,7 @@ import {
   isOptionsType,
   normalizeToChoiceObjects,
 } from "@/wab/shared/model/model-util";
+import { countQueryReferences, findQueryInvalidationRefs } from "@/wab/shared/refactoring";
 import {
   TplVisibility,
   getVariantSettingVisibility,
@@ -957,10 +962,6 @@ export function buildComponentResource(
   component: Component,
   opts: {
     site: Site;
-    // Query definitions are resolved by the client tools (source names require
-    // an async lookup) and injected here, so this stays free of studioCtx.
-    dataQueries?: DataQueryJson[];
-    legacyDataQueries?: LegacyDataQueryJson[];
   },
 ): ComponentJson {
   const pageMeta = buildPageMeta(component);
@@ -968,6 +969,34 @@ export function buildComponentResource(
   const states = buildComponentStates(component);
   const variantSettings = buildVariantOverrides(component);
   const interactions = buildComponentInteractions(component);
+  const dataQueries: DataQueryJson[] = component.serverQueries.map((query) => {
+    const identity = { __type: "DataQuery" as const, name: query.name, uuid: query.uuid, reference: `$q.${toVarName(query.name)}` };
+    if (!query.op) {
+      return { ...identity, kind: "empty" };
+    }
+    return switchType(query.op)
+      .when(CustomCode, (op): DataQueryJson => ({ ...identity, kind: "customCode", code: op.code }))
+      .when(CustomFunctionExpr, (op): DataQueryJson => {
+        const args = op.args.map((arg) => exprToDataQueryArg(arg.argType.argName, arg.expr));
+        const unavailableArgs = op.args.filter((_, index) => args[index] === undefined).map((arg) => arg.argType.argName);
+        return { ...identity, kind: "function", ...(op.func ? { functionId: customFunctionId(op.func) } : {}), args: withoutNils(args), ...(unavailableArgs.length ? { unavailableArgs } : {}) };
+      }).result();
+  });
+  const references = component.dataQueries.length ? countQueryReferences(component, component.dataQueries, findQueryInvalidationRefs(opts.site)) : undefined;
+  const legacyDataQueries: LegacyDataQueryJson[] = component.dataQueries.map((query) => ({
+    __type: "LegacyDataQuery", name: query.name, uuid: query.uuid, reference: `$queries.${toVarName(query.name)}`,
+    references: references?.get(query) ?? 0, migratable: false,
+    migrationBlockers: [query.op ? "Integration configuration is not included in model reads; inspect it before assessing migration." : "The query has no operation configured yet."],
+    ...(query.op ? { op: {
+      __type: "DataSourceOp" as const, sourceId: query.op.sourceId, opId: query.op.opId, opName: query.op.opName,
+      ...(query.op.roleId ? { roleId: query.op.roleId } : {}),
+      ...(query.op.cacheKey ? { cacheKey: exprToInterpolatedString(query.op.cacheKey) } : {}),
+      args: Object.entries(query.op.templates).map(([name, template]) => ({
+        __type: "DataSourceOpArg" as const, name, fieldType: template.fieldType,
+        value: dataSourceTemplateToString(template, { component, projectFlags: getProjectFlags(opts.site), inStudio: true }),
+      })),
+    } } : {}),
+  }));
   return {
     __type: "Component",
     name: component.name,
@@ -976,14 +1005,19 @@ export function buildComponentResource(
     type: component.type as ComponentJson["type"],
     ...(pageMeta ? { pageMeta } : {}),
     ...(fromProject ? { fromProject } : {}),
+    ...(component.codeComponentMeta ? { codeComponent: {
+      importPath: component.codeComponentMeta.importPath,
+      importName: component.codeComponentMeta.importName,
+      defaultExport: component.codeComponentMeta.defaultExport,
+    } } : {}),
     props: buildComponentProps(component),
     variants: buildComponentVariantDefs(component),
     variantGroups: component.variantGroups.map(group => ({uuid: group.uuid, name: group.param.variable.name, multi: group.multi, variants: group.variants.map(variant => ({__type: "Variant" as const, uuid: variant.uuid, name: variant.name}))})),
     ...(states.length > 0 ? { states } : {}),
     ...(interactions.length > 0 ? { interactions } : {}),
-    ...(opts.dataQueries?.length ? { dataQueries: opts.dataQueries } : {}),
-    ...(opts.legacyDataQueries?.length
-      ? { legacyDataQueries: opts.legacyDataQueries }
+    ...(dataQueries.length ? { dataQueries } : {}),
+    ...(legacyDataQueries.length
+      ? { legacyDataQueries }
       : {}),
     baseVariantTplTree: component.tplTree
       ? tplToHtml(component.tplTree, opts.site)

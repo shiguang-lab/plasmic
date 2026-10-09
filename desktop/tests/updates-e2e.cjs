@@ -60,7 +60,7 @@ async function until(predicate, timeout = 120000) {
   report.downloadVerified = true;
   report.automaticDownload = true;
   console.log("NAS download completed and verified; installing");
-  const prompt = await until(() => browser.contexts()[0].pages().find((page) => page.url().endsWith("/update-window.html")));
+  const prompt = page;
   const install = prompt.getByRole("button", { name: "Restart and Install", exact: true });
   await install.waitFor({ state: "visible" });
   assert(await install.isEnabled());

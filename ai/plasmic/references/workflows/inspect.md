@@ -1,0 +1,10 @@
+# Read-only design and template inspection
+
+Use for explaining a page/component/template, assessing reuse, or reviewing a design. No design edit permission is required for accessible reads. Do not install/upgrade libraries, detach, change initial props, save or publish as part of inspection.
+
+1. Resolve `--mode inspect`, discover the Desktop/project and exact operation schemas, then identify the session. Read the overview and the named target using the [model-reading contract](../model-reading.md). Follow referenced custom components and hidden branches; distinguish known contracts from unavailable implementation details.
+2. For template interpretation read [template selection and source inspection](../admin-templates.md#select-by-scenario) and the [catalog](../templates/admin/catalog.json). Read only selected live templates and their nested definitions. Explain source/version, composition, Slots, shell ownership, sample behavior and destination binding work. Catalog records and screenshots alone do not prove current contracts.
+3. For a design review select only relevant rules through the [admin reference index](../admin-design.md). For requirement/page/navigation coverage also read [requirement alignment](../requirement-alignment.md). Do not run write-oriented pre-insertion/save gates during a read-only review.
+4. When visual evidence is needed read [rendered inspection](../desktop-inspection.md). Observe Preview behavior without rewriting saved initial state; restore temporary view state after observation. Static pixels, model findings and exercised interactions are separate evidence.
+
+Return a concise explanation or actionable findings with source page/component identities, affected nodes/regions, evidence and unknowns. A missing query/source/schema is an unknown, not proof that no behavior exists. Do not imply full runtime acceptance from a readback or screenshot. If the user asks to apply corrections, resolve prototype before editing; resolve codegen before writing target application code.

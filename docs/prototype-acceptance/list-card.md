@@ -7,7 +7,7 @@
 这是生成规范、实现和验收共同遗漏，不是 Card 组件或 MCP 不支持。
 
 - 桌面主 [Skill](../../packages/plasmic-cli/skill/plasmic/SKILL.md) 的组件使用清单遗漏 Card，而旧浏览器版 [Skill](https://github.com/shiguang-lab/plasmic/blob/cac978f2182c2c99b7dd41de37496a0af9ba7bf2/ai/skills/plasmic-prototype/SKILL.md) 已泛泛要求卡片使用 Antd6，两个入口的规则不一致。
-- [Admin 规范](../../ai/plasmic/references/admin-design.md#card-ownership) 原来只描述卡片背景、边框、圆角和内边距，没有约束实际组件类型、children 所有权和验收方式。
+- [Admin 规范](../../ai/plasmic/references/design/layout.md#card-ownership) 原来只描述卡片背景、边框、圆角和内边距，没有约束实际组件类型、children 所有权和验收方式。
 - 本地任务生成器 [generate.cjs](../../desktop/desktop-report/req075-regeneration/generate.cjs) 的 `box()` 统一输出带卡片样式的原生 section，列表、SQL、详情和指标面板都使用该函数。原验收 `check.py` 检查布局、Table、ActionGroup、默认 Slot 等，没有检查 Card 类型；原 Slot 校验也没有检查同名组件的真实类型或 Card 内容归属。因此旧检查通过不代表使用了 Card。
 
 ## 当前实现与规则

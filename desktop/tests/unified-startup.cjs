@@ -1,4 +1,4 @@
-const { app, session } = require("electron");
+const { app, session, BrowserWindow, nativeTheme } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -82,6 +82,7 @@ app
         { status: 401 },
       );
     };
+    nativeTheme.themeSource = "dark";
     const win = await startDesktop();
     assert(slowRequests > 0, "The first navigation must still have a loading resource");
     assert.equal(win.webContents.getLastWebPreferences().sandbox, true);
@@ -110,6 +111,15 @@ app
       ),
       true,
     );
+    await win.webContents.executeJavaScript("window.desktopUpdates.command('open')");
+    assert.deepEqual(await win.webContents.executeJavaScript(`(() => {
+      const root = document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
+      const dialog = root.querySelector("dialog");
+      return { open: dialog.open, modal: dialog.matches(":modal"), background: getComputedStyle(dialog).backgroundColor, title: root.getElementById("status").textContent };
+    })()`), { open: true, modal: true, background: "rgb(255, 255, 255)", title: "Updates unavailable" });
+    assert.equal(BrowserWindow.getAllWindows().length, 1);
+    await win.webContents.executeJavaScript('document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("primary").click()');
+    assert.equal(await win.webContents.executeJavaScript('document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").open'), false);
     await win.webContents.executeJavaScript(
       "document.getElementById('sign-in').click()",
     );
@@ -132,6 +142,9 @@ app
     console.log(
       "Native sign-in prompt, explicit browser authorization and cancellation passed",
     );
+    // Destroy the isolated fixture window without invoking the app's asynchronous
+    // workspace checkpoint-on-close flow (the fixture is deliberately logged out).
+    win.destroy();
     app.exit(0);
   })
   .catch((error) => {

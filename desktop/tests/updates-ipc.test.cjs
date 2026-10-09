@@ -27,7 +27,7 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
   const window = { webContents, isDestroyed: () => false };
   let requests = 0;
   let opened = 0;
-  const manager = await createUpdates({ config, getWindow: () => window, showUpdateWindow: () => opened++, beforeInstall: async () => {}, session: { fetch: async (url, options) => {
+  const manager = await createUpdates({ config, getWindow: () => window, showUpdateDialog: () => opened++, beforeInstall: async () => {}, session: { fetch: async (url, options) => {
     requests++;
     assert.equal(url, `https://updates.example/desktop-updates/darwin/${process.arch}/latest-mac.yml`);
     assert.equal(options.bypassCustomProtocolHandlers, true);
@@ -49,6 +49,6 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
   assert.equal(requests, 2);
   assert.equal(handler({ sender: webContents, senderFrame: frame }, "open").phase, "current");
   assert.equal(opened, 1);
-  assert.equal(requests, 2, "Opening the update window must not directly download or install");
+  assert.equal(requests, 2, "Opening the update dialog must not directly download or install");
   assert.equal(sent.at(-1).channel, "desktop:update-status");
 });

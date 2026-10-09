@@ -8,17 +8,18 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
 import { buildResources } from "../../../scripts/build-plasmic-resources.mjs";
+import { validateReferences } from "../../../scripts/validate-plasmic-references.mjs";
 import { checkCliVersion, checkReferences, referencePath, resolveContext, updateReferences } from "../src/references.mjs";
-import { CLI_VERSION, CODEGEN_REFERENCES, releaseId, sha256, validateManifest } from "../src/protocol.mjs";
+import { CLI_VERSION, MODE_REFERENCES, releaseId, sha256, unpackResources, validateManifest } from "../src/protocol.mjs";
 
 const run = promisify(execFile);
 function fixture(text = "first release") {
-  const files = ["guide", "prototype", "codegen", "desktop-mcp"].map((name) => ({ path: `references/${name}.md`, content: text + name }));
-  files.push(...CODEGEN_REFERENCES.map((path) => ({ path, content: text + path })));
+  const files = ["guide", "prototype", "codegen", "desktop-mcp", "inspect"].map((name) => ({ path: `references/${name}.md`, content: text + name }));
+  files.push(...[...new Set(Object.values(MODE_REFERENCES).flat())].map((path) => ({ path, content: text + path })));
   const bytes = gzipSync(JSON.stringify({ schemaVersion: 1, files }));
   const manifest = {
     schemaVersion: 1, version: CLI_VERSION, minCliVersion: CLI_VERSION,
-    entrypoints: { guide: files[0].path, prototype: files[1].path, codegen: files[2].path },
+    entrypoints: { guide: files[0].path, prototype: files[1].path, codegen: files[2].path, inspect: files[4].path },
     files: files.map((file) => ({ path: file.path, sha256: sha256(file.content), size: Buffer.byteLength(file.content) })),
     artifacts: { resources: { file: "resources.json.gz", size: bytes.length, sha256: sha256(bytes) }, cli: { file: "plasmic-cli.tgz", size: 1, sha256: sha256("x") } },
   };
@@ -50,7 +51,7 @@ test("context checks the feed every task, reuses valid bytes and switches both m
   assert.match(await readFile(first.mustRead[2], "utf8"), /first releaseprototype/);
   const codegen = await resolveContext("codegen", options);
   assert.equal(codegen.updated, false);
-  assert.deepEqual(codegen.mustRead.slice(3), CODEGEN_REFERENCES.map((reference) => path.join(codegen.resourceRoot, reference)));
+  assert.deepEqual(codegen.mustRead.slice(3), MODE_REFERENCES.codegen.map((reference) => path.join(codegen.resourceRoot, reference)));
   for (const reference of codegen.mustRead) await access(reference);
   assert.equal((await checkReferences(options)).updateAvailable, false);
   assert.equal(options.state.requests.filter((r) => r.path.endsWith(".gz")).length, 1);
@@ -74,6 +75,14 @@ test("checksum and freshness failures keep the previous verified release without
   options.state.failure = true;
   await assert.rejects(resolveContext("codegen", options), /HTTP 503/);
   assert.equal((await referencePath(options)).freshness, "unchecked");
+});
+test("inspection resolves only shared reading contracts and rejects unknown modes before fetching", async (t) => {
+  const options = await setup(t);
+  await assert.rejects(resolveContext("unknown", options), /--mode/);
+  assert.equal(options.state.requests.length, 0);
+  const context = await resolveContext("inspect", options);
+  assert.equal(context.mode, "inspect");
+  assert.deepEqual(context.mustRead.map((filename) => path.relative(context.resourceRoot, filename)), ["references/guide.md", "references/desktop-mcp.md", "references/inspect.md", "references/model-reading.md"]);
 });
 test("changed and missing cached files and corrupt local manifests are repaired from verified downloads", async (t) => {
   const options = await setup(t);
@@ -103,13 +112,13 @@ test("newer required CLI returns the immutable install URL and does not select r
 });
 test("compatible newer CLI is reported while resources can still update", async (t) => {
   const options = await setup(t);
-  options.state.manifest.version = "0.0.35";
+  options.state.manifest.version = "0.0.60";
   options.state.manifest.releaseId = releaseId(options.state.manifest);
   const status = await checkCliVersion(options);
   assert.equal(status.cliUpdateAvailable, true);
   assert.equal(status.cliCompatible, true);
   const context = await resolveContext("prototype", options);
-  assert.equal(context.latestCliVersion, "0.0.35");
+  assert.equal(context.latestCliVersion, "0.0.60");
   assert.equal(context.cliVersion, CLI_VERSION);
 });
 test("path traversal, duplicates, manifest tampering and missing entrypoints are rejected", () => {
@@ -117,7 +126,7 @@ test("path traversal, duplicates, manifest tampering and missing entrypoints are
     (m) => { m.files[0].path = "references/../../outside.md"; },
     (m) => { m.files.push(m.files[0]); },
     (m) => { m.entrypoints.codegen = "references/missing.md"; },
-    (m) => { m.files = m.files.filter((file) => file.path !== CODEGEN_REFERENCES[0]); },
+    (m) => { m.files = m.files.filter((file) => file.path !== MODE_REFERENCES.inspect[0]); },
     (m) => { m.artifacts.cli.file = "../outside"; },
   ]) {
     const manifest = fixture().manifest;
@@ -131,9 +140,20 @@ test("path traversal, duplicates, manifest tampering and missing entrypoints are
 test("built NAS artifacts install a working CLI binary and only the thin skill", async (t) => {
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-pack-test-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
-  const built = await buildResources(path.join(temporary, "feed"), "0.0.35");
-  const repeated = await buildResources(path.join(temporary, "repeat"), "0.0.35");
+  const built = await buildResources(path.join(temporary, "feed"), "0.0.60");
+  const repeated = await buildResources(path.join(temporary, "repeat"), "0.0.60");
   assert.equal(built.manifest.releaseId, repeated.manifest.releaseId);
+  const files = unpackResources(await readFile(path.join(built.directory, "resources.json.gz")), built.manifest);
+  const readingBytes = validateReferences(files, built.manifest.entrypoints);
+  assert.ok(readingBytes.prototype < 12000);
+  assert.ok(readingBytes.inspect < 14000);
+  assert.ok(readingBytes.codegen < 24576);
+  for (const destination of ["missing.md", "design/forms.md#missing-heading", "../../outside.md"]) {
+    const changed = files.map((file) => file.path === built.manifest.entrypoints.guide ? { ...file, content: file.content + `\n[Broken](${destination})` } : file);
+    assert.throws(() => validateReferences(changed, built.manifest.entrypoints), /Missing reference|Missing heading/);
+  }
+  assert.throws(() => validateReferences([...files, { path: "references/unrouted.md", content: "# Unrouted" }], built.manifest.entrypoints), /Unreachable/);
+  assert.throws(() => validateReferences(files.map((file) => file.path === "references/design/forms.md" ? { ...file, content: file.content + "x".repeat(20480) } : file), built.manifest.entrypoints), /reading budget/);
   const archivedFiles = (await run("tar", ["-tzf", path.join(built.directory, "plasmic-cli.tgz")])).stdout.trim().split("\n");
   assert.deepEqual(archivedFiles.filter((name) => name.endsWith("/SKILL.md")), ["package/skill/plasmic/SKILL.md"]);
   const packed = JSON.parse((await run("tar", ["-xOzf", path.join(built.directory, "plasmic-cli.tgz"), "package/package.json"])).stdout);
@@ -143,7 +163,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
   await run(npm, ["install", "--global", "--prefix", prefix, "--ignore-scripts", "--no-audit", "--no-fund", path.join(built.directory, "plasmic-cli.tgz")]);
   const binary = path.join(prefix, process.platform === "win32" ? "plasmickit.cmd" : "bin/plasmickit");
-  assert.equal((await run(binary, ["--version"])).stdout.trim(), "0.0.35");
+  assert.equal((await run(binary, ["--version"])).stdout.trim(), "0.0.60");
   const agentHome = path.join(temporary, "agent-home");
   await mkdir(path.join(agentHome, ".codex"), { recursive: true });
   const installEnv = { ...process.env, HOME: agentHome, USERPROFILE: agentHome, CODEX_HOME: path.join(agentHome, ".codex"), CLAUDE_CONFIG_DIR: path.join(agentHome, ".claude"), XDG_CONFIG_HOME: path.join(agentHome, ".config"), XDG_DATA_HOME: path.join(agentHome, ".local/share"), APPDATA: path.join(agentHome, "AppData/Roaming"), ProgramData: path.join(agentHome, "ProgramData") };
@@ -165,12 +185,12 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   t.after(() => { server.closeAllConnections(); return new Promise((resolve) => server.close(resolve)); });
   const args = ["--feed", `http://127.0.0.1:${server.address().port}`, "--home", path.join(temporary, "cache")];
   const versions = JSON.parse((await run(binary, ["version", "check", ...args])).stdout);
-  assert.equal(versions.cliVersion, "0.0.35");
-  assert.equal(versions.latestCliVersion, "0.0.35");
+  assert.equal(versions.cliVersion, "0.0.60");
+  assert.equal(versions.latestCliVersion, "0.0.60");
   assert.equal(versions.cliUpdateAvailable, false);
-  for (const mode of ["prototype", "codegen"]) {
+  for (const mode of ["inspect", "prototype", "codegen"]) {
     const context = JSON.parse((await run(binary, ["context", "resolve", "--mode", mode, ...args])).stdout);
-    assert.deepEqual(context.mustRead.map((reference) => path.relative(context.resourceRoot, reference)), [built.manifest.entrypoints.guide, "references/desktop-mcp.md", built.manifest.entrypoints[mode], ...(mode === "codegen" ? CODEGEN_REFERENCES : [])]);
+    assert.deepEqual(context.mustRead.map((reference) => path.relative(context.resourceRoot, reference)), [built.manifest.entrypoints.guide, "references/desktop-mcp.md", built.manifest.entrypoints[mode], ...MODE_REFERENCES[mode]]);
     for (const reference of context.mustRead) await access(reference);
     for (const file of built.manifest.files.filter((f) => f.path.endsWith(".md"))) {
       const absolute = path.join(context.resourceRoot, file.path);

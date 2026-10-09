@@ -6,19 +6,23 @@ const { JSDOM } = require("jsdom");
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 async function fixture(t, initial) {
-  const dom = new JSDOM(fs.readFileSync(path.join(__dirname, "../src/update-window.html"), "utf8"), { runScripts: "outside-only" });
+  const dom = new JSDOM("<html><body><button id=workspace>Workspace</button></body></html>", { runScripts: "outside-only" });
   t.after(() => dom.window.close());
   let status = { currentVersion: "0.0.23", ...initial };
-  let listener;
+  let listener, open;
+  dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
   const commands = [];
-  dom.window.updateWindow = {
+  dom.window.desktopUpdates = {
+    onOpen: (callback) => { open = callback; },
     onStatus: (callback) => { listener = callback; },
     command: async (command) => { commands.push(command); return status; },
   };
-  dom.window.eval(fs.readFileSync(path.join(__dirname, "../src/update-window-renderer.js"), "utf8"));
+  dom.window.eval(fs.readFileSync(path.join(__dirname, "../src/update-dialog.js"), "utf8"));
   await flush();
+  const root = dom.window.document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
   return {
-    window: dom.window, commands, element: (id) => dom.window.document.getElementById(id),
+    window: dom.window, commands, dialog: root.querySelector("dialog"), open: () => open(status), element: (id) => root.getElementById(id),
     send: (next) => { status = { currentVersion: "0.0.23", ...next }; listener(status); },
   };
 }
@@ -45,11 +49,13 @@ test("update UI follows download and install events without installing automatic
   await flush();
   assert.equal(ui.commands.at(-1), "install");
   ui.send({ phase: "installing" });
-  ui.window.document.dispatchEvent(new ui.window.KeyboardEvent("keydown", { key: "Escape" }));
+  const cancel = new ui.window.Event("cancel", { cancelable: true });
+  ui.dialog.dispatchEvent(cancel);
+  assert.equal(cancel.defaultPrevented, true);
   assert.equal(ui.commands.at(-1), "install");
 });
 
-test("retry uses the failed operation and Later only closes the window", async (t) => {
+test("retry uses the failed operation and Later closes only the dialog", async (t) => {
   const ui = await fixture(t, { phase: "error", error: "Network unavailable", retry: "download" });
   assert.equal(ui.element("description").textContent, "Network unavailable");
   ui.element("primary").click();
@@ -57,9 +63,12 @@ test("retry uses the failed operation and Later only closes the window", async (
   assert.equal(ui.commands.at(-1), "download");
   ui.send({ phase: "available", version: "0.0.24", releaseNotes: [{ note: "- Improvement" }] });
   assert.equal(ui.element("notes-section").hidden, false);
+  ui.open();
+  assert.equal(ui.dialog.open, true);
   ui.element("secondary").click();
   await flush();
-  assert.equal(ui.commands.at(-1), "close");
+  assert.equal(ui.dialog.open, false);
+  assert.equal(ui.commands.includes("close"), false);
   assert.equal(ui.commands.includes("install"), false);
 });
 
@@ -73,5 +82,26 @@ test("a completed check removes stale release information and provides Done", as
   assert.equal(ui.element("primary").textContent, "Done");
   ui.element("primary").click();
   await flush();
-  assert.equal(ui.commands.at(-1), "close");
+  assert.equal(ui.dialog.open, false);
+  assert.equal(ui.commands.includes("close"), false);
+});
+
+
+test("update dialog stays in the main document with isolated light styles", async (t) => {
+  const ui = await fixture(t, { phase: "downloaded", version: "0.0.31" });
+  assert.equal(ui.dialog.open, false);
+  ui.open();
+  assert.equal(ui.dialog.open, true);
+  assert.equal(ui.dialog.getAttribute("aria-label"), "Software Update");
+  assert.equal(ui.element("dismiss").disabled, false);
+  ui.element("dismiss").click();
+  assert.equal(ui.dialog.open, false);
+  assert.equal(ui.commands.includes("install"), false);
+  const style = ui.dialog.getRootNode().querySelector("style").textContent;
+  assert.match(style, /color-scheme: light;/);
+  assert.doesNotMatch(style, /prefers-color-scheme/);
+  assert.equal(ui.window.document.querySelector("style"), null);
+  ui.open();
+  ui.send({ phase: "installing" });
+  assert.equal(ui.element("dismiss").disabled, true);
 });

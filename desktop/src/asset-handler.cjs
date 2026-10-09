@@ -28,6 +28,7 @@ function createAssetHandler({
   bridgePath,
   authPagePath,
   updateUiPath,
+  updateDialogPath,
   bundledFontCss = "",
 }) {
   root = path.resolve(root);
@@ -68,8 +69,9 @@ function createAssetHandler({
     }
     const studio = url.origin === studioOrigin;
     if (studio && authPagePath && url.pathname === "/desktop/unified-login") {
+      const html = await fs.readFile(authPagePath, "utf8");
       return new Response(
-        request.method === "HEAD" ? null : await fs.readFile(authPagePath),
+        request.method === "HEAD" ? null : injectUpdateDialog(html),
         {
           headers: {
             "Content-Type": "text/html; charset=utf-8",
@@ -111,12 +113,23 @@ function createAssetHandler({
     if (updateUiPath && pathname === "/static/desktop/update-ui.js") {
       return fileResponse(updateUiPath);
     }
+    if (updateDialogPath && studio && pathname === "/static/desktop/update-dialog.js") {
+      return fileResponse(updateDialogPath);
+    }
     const target = path.resolve(root, "." + pathname);
     if (target !== root && !target.startsWith(root + path.sep)) {
       return new Response("Forbidden", { status: 403 });
     }
+    function injectUpdateDialog(html) {
+      return updateDialogPath
+        ? html.replace("</head>", `<script defer src="${studioOrigin}/static/desktop/update-dialog.js"></script></head>`)
+        : html;
+    }
     async function fileResponse(file) {
       let data = await fs.readFile(file);
+      if (studio && file === path.join(root, "index.html")) {
+        data = Buffer.from(injectUpdateDialog(data.toString()));
+      }
       if (bridgePath && path.basename(file) === "index.html") {
         data = Buffer.from(
           data

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
 import { parseArgs } from "node:util";
 import { CLI_VERSION, MIN_CLI_VERSION, compareVersions, releaseId, resourcePath, sha256, unpackResources, validateManifest } from "../packages/plasmic-cli/src/protocol.mjs";
+import { validateReferences } from "./validate-plasmic-references.mjs";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export async function buildResources(output = path.join(repo, "dist/plasmic-resources"), version = CLI_VERSION) {
@@ -30,6 +31,8 @@ export async function buildResources(output = path.join(repo, "dist/plasmic-reso
   await visit("scripts");
   files.push({ path: "references/search-form.md", content: await readFile(path.join(repo, "docs/search-form.md"), "utf8") });
   files.sort((a, b) => a.path.localeCompare(b.path));
+  const entrypoints = { guide: "references/guide.md", inspect: "references/workflows/inspect.md", prototype: "references/workflows/prototype.md", codegen: "references/workflows/codegen.md" };
+  validateReferences(files, entrypoints);
   const resources = gzipSync(JSON.stringify({ schemaVersion: 1, files }));
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-resources-"));
   try {
@@ -55,7 +58,7 @@ export async function buildResources(output = path.join(repo, "dist/plasmic-reso
       schemaVersion: 1,
       version,
       minCliVersion: MIN_CLI_VERSION,
-      entrypoints: { guide: "references/guide.md", prototype: "references/workflows/prototype.md", codegen: "references/workflows/codegen.md" },
+      entrypoints,
       files: files.map((file) => ({ path: file.path, sha256: sha256(file.content), size: Buffer.byteLength(file.content) })),
       artifacts: {
         resources: { file: "resources.json.gz", sha256: sha256(resources), size: resources.length },

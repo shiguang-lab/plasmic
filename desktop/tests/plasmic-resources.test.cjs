@@ -36,7 +36,7 @@ test("NAS promotion verifies downloads, is idempotent and keeps latest on failed
   await promoteResources(root, built.output, built.manifest);
   assert.equal(await fs.readFile(path.join(root, "latest.json"), "utf8"), latest);
   const invalid = structuredClone(built.manifest);
-  invalid.version = "0.0.35";
+  invalid.version = "0.0.60";
   invalid.artifacts.resources.sha256 = "0".repeat(64);
   invalid.releaseId = releaseId(invalid);
   await fs.cp(built.directory, path.join(built.output, "releases", invalid.releaseId), { recursive: true });

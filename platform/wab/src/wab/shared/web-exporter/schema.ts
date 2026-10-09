@@ -225,6 +225,11 @@ export function componentSchema() {
       .string()
       .optional()
       .describe("Imported project id, present only for imported components."),
+    codeComponent: z.object({
+      importPath: z.string(),
+      importName: z.string().nullish().describe("Named import when registered; may be absent for a default import."),
+      defaultExport: z.boolean(),
+    }).optional().describe("Registered implementation import identity; not a source download or a guarantee of the target project's npm export."),
     props: z
       .array(propSchema())
       .describe(
@@ -349,6 +354,7 @@ export function dataQuerySchema() {
       .array(dataQueryArgSchema())
       .optional()
       .describe("Function call arguments, present when kind is `function`."),
+    unavailableArgs: z.array(z.string()).optional().describe("Function argument names whose expression cannot be represented in the inline read format; these values remain unknown."),
   });
 }
 export type DataQueryJson = z.infer<ReturnType<typeof dataQuerySchema>>;

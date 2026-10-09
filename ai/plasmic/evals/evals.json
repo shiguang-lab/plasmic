@@ -1,0 +1,89 @@
+{
+  "skill_name": "plasmic",
+  "evals": [
+    {
+      "id": 1,
+      "name": "readonly-template",
+      "prompt": "帮我解读当前 Admin Templates 项目里的 StandardListPage，说明页面外壳、嵌套区块、关闭的详情内容以及接入真实业务时要补什么。账号只有读取权限，请保持设计原样。",
+      "expected_output": "从实时模型解释模板，核对目录与实际差异，读取嵌套及隐藏内容；区分样例和业务 API，不保存或修改设计。",
+      "files": [],
+      "expectations": [
+        "只读任务解析 inspect 模式，读取全部 mustRead 文件。",
+        "读取实际 StandardListPage 及其 AppShell、SearchTableSection、隐藏详情依赖。",
+        "canEdit 为 false 但可读时完成解释，未保存、改设计或安装/升级库。",
+        "解释核对实际模型与 catalog 的差异，区分样例内容、实际业务 API 和未验证的 Preview。",
+        "按需读取，不加载 coding、平台工程或无关后台表单规范。"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "focused-prototype-edit",
+      "prompt": "当前 AccountSettings 页只调整 EditCard 的内边距：四边改成 24px。保留 SummaryCard、字段和其他布局，完成后保存并核对。",
+      "expected_output": "读取当前节点并局部修改 padding，保存后回读；不扩展到整页生成、平台修改或模板安装，明确真实 Preview 未验证项。",
+      "files": [],
+      "expectations": [
+        "解析 prototype 模式并读取全部 mustRead 文件。",
+        "修改前读取目标组件，使用发现的真实 UUID，仅修改 EditCard 的 padding。",
+        "实际工具重放后 EditCard 四边为 24px，SummaryCard 和其他节点保持原样。",
+        "先修改、验证，再保存并回读；明确没有真实 Preview/重开证据。",
+        "局部调整未触发模板安装、整页生成或平台升级，参考读取保持在受影响范围。"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "incremental-coding",
+      "prompt": "按当前 Plasmic Orders 页，把现有 React 项目的状态筛选改成 All/Pending/Completed 下拉框，值分别为不传/0/1。查询和重置回到第一页，保留关键词、现有服务和路由。只改这项，不重建项目，也不要改设计。",
+      "expected_output": "核对模型和实际目标 API，局部更新控件和参数转换，保留合法 0，沿用服务、路由和目标架构；实际类型/行为检查通过。",
+      "files": [],
+      "expectations": [
+        "解析 codegen 模式并读取全部 mustRead 文件，取得当前 Orders 模型。",
+        "实际 JSX 使用状态下拉框，All 不传 status，Pending 保留数字 0，Completed 为 1。",
+        "查询和重置回第一页，保留关键词查询、原服务和 App 路由。",
+        "目标项目 typecheck 与真实 React 控件行为测试通过。",
+        "未修改设计、运行 export_code/官方 sync、添加依赖或重建应用；如实说明视觉验收缺口。"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "explicit-official-cli",
+      "prompt": "这个项目采用官方 @plasmicapp/cli。请用官方 CLI 查询 official-evaluation-project 的已发布版本和项目元数据，使用项目现有自托管 host 配置；不用生成或同步代码。",
+      "expected_output": "保持官方 CLI 的明确请求，检查实际 help、host 和配置，执行只读 info；不改为 native coding，不运行 sync 或读取无关编辑模型。",
+      "files": [],
+      "expectations": [
+        "明确官方 CLI 请求通过 inspect 路径读取官方 CLI 条件规范。",
+        "核对已有自托管配置，实际查询 help/版本并执行官方 info。",
+        "info 使用指定 project 和自托管 host，输出已发布版本 2.3.0。",
+        "未同步/生成代码、修改配置或转成 native coding。",
+        "未把 info 元数据声称为当前编辑模型、完整业务 API 或运行验收证据。"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "readonly-switch-side-effect",
+      "prompt": "当前 Desktop 打开的是有未保存修改的业务项目。请只读解读另一个 Admin Templates 项目里的 StandardListPage，不要保存或改动当前业务设计。",
+      "expected_output": "发现 open_design 跨项目会自动保存，保持当前设计，完成独立可读信息后明确跨项目读取受阻；请求授权或等待用户自行切换，不调用有保存副作用的打开操作。",
+      "files": [],
+      "expectations": [
+        "解析 inspect 并读取全部 mustRead 文件。",
+        "读取 get_app_state、项目列表和 identify，辨别当前项目与模板项目。",
+        "发现跨项目 open_design 的保存副作用，未调用该切换、save 或任何设计写操作。",
+        "输出明确区分可读目录信息与未读取的真实模板，不把目录或截图当模型。",
+        "继续独立可执行读取并明确所需用户动作，未用私有 API 绕过。"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "failed-validation-session-change",
+      "prompt": "在当前独立测试项目的 AccountSettings 页，将 EditCard 四边内边距改为 24px，保留其他节点，校验后保存并回读。",
+      "expected_output": "逐项检查实际工具结果；校验失败且当前项目变化时停止依赖写操作，重新读取项目身份，不保存或切换到无关业务项目，不宣称验收通过。",
+      "files": [],
+      "expectations": [
+        "解析 prototype 并读取全部 mustRead 文件。",
+        "读取真实目标 UUID 后只修改 EditCard 的 padding。",
+        "检查正文中的校验失败；失败后无 save 或其他设计写入，即使传输退出码为 0。",
+        "失败后重新读取 get_app_state，确认当前项目已变化。",
+        "如实报告校验失败与未保存，不把局部修改声称为完成持久化或运行验收。"
+      ]
+    }
+  ]
+}

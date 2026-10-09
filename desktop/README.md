@@ -110,11 +110,16 @@ platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an In
 process running under Rosetta selects the native arm64 feed. GitHub is not contacted when checking, downloading or installing.
 The application checks immediately at startup and every ten minutes, then downloads
 new versions automatically in the background. The sidebar shows download progress.
-When the verified download finishes, the Software Update window opens with
+When the verified download finishes, the main window's Software Update dialog opens with
 **Restart and Install** and **Later**. Choosing Later leaves a blue restart icon;
 hover or keyboard focus expands it into an **Update** button. Clicking the sidebar
-button reopens the update window; it does not restart the app directly. Failures
-remain available in the update window for retry. On macOS, **Check for Updates…**
+button reopens the update dialog; it does not restart the app directly. Failures
+remain available in the update dialog for retry. The dialog uses bundled local frontend
+resources, a light appearance and isolated styles in the main document; it creates no
+additional Electron window and works on the login page without a server request.
+Closing the dialog leaves background downloads running. Installation remains in the
+main process behind the validated main-frame IPC and saves the current design first.
+On macOS, **Check for Updates…**
 is in the Plasmic menu immediately below **About Plasmic**. Other platforms use
 the **Updates** menu. These menus also work on the login page.
 Development launches disable installation.

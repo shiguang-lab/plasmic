@@ -2,6 +2,11 @@ const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
   contextBridge.exposeInMainWorld("desktopUpdates", {
     command: (command) => ipcRenderer.invoke("desktop:update", command),
+    onOpen: (callback) => {
+      const listener = (_event, status) => callback(status);
+      ipcRenderer.on("desktop:update-open", listener);
+      return () => ipcRenderer.removeListener("desktop:update-open", listener);
+    },
     onStatus: (callback) => {
       const listener = (_event, status) => callback(status);
       ipcRenderer.on("desktop:update-status", listener);

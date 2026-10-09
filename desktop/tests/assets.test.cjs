@@ -66,10 +66,16 @@ test("update UI is injected and served locally without fetching NAS static asset
   );
   const updateUiPath = path.join(page, "update-ui.js");
   await fs.writeFile(updateUiPath, "window.updateUiLoaded = true;");
+  const updateDialogPath = path.join(page, "update-dialog.js");
+  await fs.writeFile(updateDialogPath, "window.updateDialogLoaded = true;");
+  const authPagePath = path.join(page, "login.html");
+  await fs.writeFile(authPagePath, "<html><head></head><body>Sign in</body></html>");
   const pageHandler = createAssetHandler({
     root: page,
     ...config,
     updateUiPath,
+    updateDialogPath,
+    authPagePath,
     remoteFetch: () => {
       throw new Error("Unexpected network request");
     },
@@ -77,15 +83,20 @@ test("update UI is injected and served locally without fetching NAS static asset
   const response = await pageHandler(
     new Request(config.studioOrigin + "/projects/123"),
   );
+  const studioHtml = await response.text();
   assert.match(
-    await response.text(),
+    studioHtml,
     /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/,
   );
+  assert.match(studioHtml, /static\/desktop\/update-dialog.js/);
+  const login = await pageHandler(new Request(config.studioOrigin + "/desktop/unified-login"));
+  assert.match(await login.text(), /static\/desktop\/update-dialog.js/);
   const canvas = await pageHandler(
     new Request(config.canvasOrigin + "/static/host.html"),
   );
   const canvasHtml = await canvas.text();
   assert.match(canvasHtml, /static\/desktop\/update-ui.js/);
+  assert.doesNotMatch(canvasHtml, /update-dialog.js/, "Only the trusted main document owns the dialog");
   assert.match(
     canvasHtml,
     /data-studio-origin="https:\/\/studio.plasmic.shiguanglab.com"/,
@@ -99,6 +110,8 @@ test("update UI is injected and served locally without fetching NAS static asset
   );
   assert.match(script.headers.get("Content-Type"), /javascript/);
   assert.equal(await script.text(), "window.updateUiLoaded = true;");
+  const dialogScript = await pageHandler(new Request(config.studioOrigin + "/static/desktop/update-dialog.js"));
+  assert.equal(await dialogScript.text(), "window.updateDialogLoaded = true;");
 });
 test("Canvas scripts and Monaco workers are local with executable MIME types", async () => {
   for (const url of [

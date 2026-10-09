@@ -1,5 +1,5 @@
 // Native sidebar/rail update UI and Electron's ASAR bundle cleanup.
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, nativeTheme } = require("electron");
 const fs = require("original-fs").promises;
 const path = require("node:path");
 const os = require("node:os");
@@ -11,11 +11,13 @@ let window;
 app.whenReady().then(async () => {
   window = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
   const updateUi = await fs.readFile(path.join(__dirname, "../src/update-ui.js"), "utf8");
+  const updateDialog = await fs.readFile(path.join(__dirname, "../src/update-dialog.js"), "utf8");
   const studioOrigin = "https://studio.update.test";
   const canvasOrigin = "https://canvas.update.test";
   window.webContents.session.protocol.handle("https", (request) => {
     const url = new URL(request.url);
     if (url.pathname === "/update-ui.js") return new Response(updateUi, { headers: { "Content-Type": "application/javascript; charset=utf-8" } });
+    if (url.pathname === "/update-dialog.js") return new Response(updateDialog, { headers: { "Content-Type": "application/javascript; charset=utf-8" } });
     const isStudio = url.origin === studioOrigin;
     const content = isStudio
       ? (url.pathname === "/delayed" ? "" : `<aside style="width:220px"><nav>Projects</nav><footer>Settings</footer></aside><main>Workspace</main>`)
@@ -36,17 +38,31 @@ app.whenReady().then(async () => {
     return new Response(`<html><head><style>body{margin:0;font:14px sans-serif}aside{height:100vh;display:flex;flex-direction:column}footer{margin-top:auto;padding:8px}</style></head><body>${content}
       ${isStudio ? `<script>
         window.commands = [];
+        window.updateListeners = [];
+        window.updateStatus = status => window.updateListeners.forEach(callback => callback(status));
         window.fixtureStatus = { phase: "downloaded", version: "0.0.7", currentVersion: "0.0.6" };
         window.desktopUpdates = {
-          onStatus: callback => { window.updateStatus = callback; },
+          onStatus: callback => { window.updateListeners.push(callback); },
+          onOpen: callback => { window.updateOpen = callback; },
           command: async command => { window.commands.push(command); return window.fixtureStatus; },
         };
-      </script>` : ""}
+      </script><script defer src="${studioOrigin}/update-dialog.js"></script>` : ""}
       <script defer src="${studioOrigin}/update-ui.js" data-studio-origin="${studioOrigin}" data-canvas-origin="${canvasOrigin}"></script>
       </body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   });
   const evaluate = (code) => window.webContents.executeJavaScript(code);
+  nativeTheme.themeSource = "dark";
   await window.loadURL(studioOrigin + "/delayed");
+  await evaluate(`window.updateOpen(window.fixtureStatus)`);
+  assert.deepEqual(await evaluate(`(() => {
+    const dialog = document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog");
+    return { open: dialog.open, modal: dialog.matches(":modal"), colorScheme: getComputedStyle(dialog).colorScheme, background: getComputedStyle(dialog).backgroundColor };
+  })()`), { open: true, modal: true, colorScheme: "light", background: "rgb(255, 255, 255)" });
+  assert.equal(BrowserWindow.getAllWindows().length, 1, "Updates must not create an Electron window");
+  await evaluate(`document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("secondary").click()`);
+  assert.equal(await evaluate(`document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").open`), false);
+  assert.deepEqual(await evaluate(`window.commands`), ["status", "status"], "Later is local dismissal, never cancellation or install");
+  console.log("PASS: Bundled frontend dialog is modal and white under OS dark mode, without another Electron window");
   assert.equal(await evaluate(`typeof window.updateStatus`), "function", "Update listeners must initialize before the sidebar mounts");
   await evaluate(`document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`);
   assert.equal(await evaluate(`document.querySelector(".update-action")?.getAttribute("aria-label")`), "Update 0.0.7 is ready. Restart Plasmic to install.");

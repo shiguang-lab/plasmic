@@ -4,13 +4,12 @@ import { createRequire } from "node:module";
 
 export const DEFAULT_FEED = "https://studio.plasmic.shiguanglab.com/desktop-updates/plasmic";
 export const CLI_VERSION = createRequire(import.meta.url)("../package.json").version;
-export const MIN_CLI_VERSION = "0.0.34";
-export const CODEGEN_REFERENCES = [
-  "references/codegen/page-reading.md",
-  "references/codegen/project-code.md",
-  "references/codegen/interactions.md",
-  "references/codegen/acceptance.md",
-];
+export const MIN_CLI_VERSION = "0.0.59";
+export const MODE_REFERENCES = {
+  inspect: ["references/model-reading.md"],
+  prototype: [],
+  codegen: ["references/model-reading.md", "references/codegen/project-code.md", "references/codegen/acceptance.md"],
+};
 export function compareVersions(a, b) {
   const parse = (version) => {
     if (typeof version !== "string" || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) throw new Error(`Invalid stable version: ${version}`);
@@ -53,13 +52,13 @@ export function validateManifest(manifest) {
     }
     files.set(file.path, file);
   }
-  for (const mode of ["guide", "prototype", "codegen"]) {
+  for (const mode of ["guide", ...Object.keys(MODE_REFERENCES)]) {
     const entry = manifest.entrypoints?.[mode];
     if (!files.has(entry) || !entry.startsWith("references/") || !entry.endsWith(".md")) throw new Error(`Missing ${mode} entrypoint`);
   }
   if (!files.has("references/desktop-mcp.md")) throw new Error("Missing Desktop MCP reference");
-  for (const reference of CODEGEN_REFERENCES) {
-    if (!files.has(reference)) throw new Error(`Missing code-generation standard: ${reference}`);
+  for (const reference of new Set(Object.values(MODE_REFERENCES).flat())) {
+    if (!files.has(reference)) throw new Error(`Missing task reference: ${reference}`);
   }
   for (const [kind, name] of [["resources", "resources.json.gz"], ["cli", "plasmic-cli.tgz"]]) {
     const artifact = manifest.artifacts?.[kind];
