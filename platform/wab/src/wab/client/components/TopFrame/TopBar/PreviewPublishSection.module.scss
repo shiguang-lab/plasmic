@@ -79,6 +79,17 @@
   line-height: 1.5;
 }
 
+.versionUpdate:global(.ant-checkbox-wrapper) {
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+
+  :global(.ant-checkbox) {
+    top: 0;
+    flex-shrink: 0;
+  }
+}
+
 .field,
 .publication {
   display: flex;

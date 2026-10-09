@@ -54,11 +54,12 @@ export default function PreviewPublishSection(
           with the link can view it.
         </p>
         <Checkbox
+          className={styles.versionUpdate}
           checked={enabled}
           disabled={busy || !canEdit}
           onChange={(event) => setEnabled(event.target.checked)}
         >
-          Update website when publishing a version
+          Also update website when saving a version
         </Checkbox>
         <div className={styles.field}>
           <label htmlFor="preview-entry-page">Entry page</label>
