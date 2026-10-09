@@ -503,18 +503,19 @@ function registerAdditional(loader) {
     xxl: "object"
   });
   register(loader, AntdDescriptions, "descriptions", "AntdDescriptions", {
-    title: { ...slot("Details"), hidePlaceholder: true },
+    title: { ...slot("Details"), hidePlaceholder: true, description: "Editable heading for this read-only information group." },
     items: {
       type: "array",
+      description: "Read-only fields: [{ key, label, children, span? }]. Keep each field's label separate from its value in children. Bind the array with an expression for runtime values; span controls column allocation. Editable inputs belong in Form.Item, alongside this group.",
       defaultValue: [{ key: "name", label: "Name", children: "Example" }]
     },
-    column: "number",
+    column: { type: "number", description: "Number of fields per row. Allocate a full row to long values with an item span matching this count." },
     layout: choice(["horizontal", "vertical"]),
     bordered: "boolean",
     size: sizes,
     styles: "object",
     classNames: "object"
-  });
+  }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
     children: slot("Divider"),
     orientation: choice(["horizontal", "vertical"]),

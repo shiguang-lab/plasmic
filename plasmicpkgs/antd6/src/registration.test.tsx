@@ -29,6 +29,12 @@ test("Form.Item label tooltip is editable and simplified fields expose tooltip t
   assert.equal(item.meta.props.tooltip.type, "slot");
   assert.equal(form.meta.props.formItems.itemType.fields.tooltip.type, "string");
   assert.equal(form.meta.props.dataFormItems.itemType.fields.tooltip.type, "string");
+  assert.equal(item.meta.props.description.type, "slot");
+  assert.equal(item.meta.props.validateFirst.defaultValue, true);
+  for (const prop of ["formItems", "dataFormItems"]) {
+    assert.equal(form.meta.props[prop].itemType.fields.description.type, "string");
+    assert.equal(form.meta.props[prop].itemType.fields.validateFirst.defaultValue, true);
+  }
   assert.deepEqual(form.meta.refActions.submit.argTypes, []);
   assert.equal(item.meta.props.tooltip.hidden({ noLabel: true }, null), true);
   assert.equal(item.meta.props.tooltip.hidden({}, null), false);

@@ -170,6 +170,18 @@ function commonFormItemProps(usage) {
       displayName: "Validation rules",
       type: "formValidationRules"
     },
+    validateFirst: {
+      type: "boolean",
+      displayName: "Stop at first validation error",
+      description: "Validate rules in order and show only the first failing rule. Put required rules before format, range and business rules.",
+      defaultValue: true
+    },
+    description: {
+      type: usage === "advanced-form-item" ? "slot" : "string",
+      ...{},
+      displayName: "Description",
+      description: "Persistent field instructions rendered by Form.Item extra, below the control and any validation error. Does not replace native validation messages."
+    },
     tooltip: {
       type: usage === "advanced-form-item" ? "slot" : "string",
       displayName: "Tooltip",

@@ -5,6 +5,8 @@ Expect {"pages": [{"componentUuid": "...", "forms": [{"name": "Form", "fields":
 [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name",
 "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}.
 Rules are matched by their specified keys. Omit tooltip when none is expected.
+Optional formLayout checks native Form layout. Optional field validateFirst and
+description check ordered validation and persistent Form.Item instructions.
 Optional form layout specifies container, columns, columnGap and paired rows
 [{container, fields: [nodeName, ...]}]; fields specify full-row or single-column span.
 All project Pages and business Forms must be inventoried, including empty-form Pages.
@@ -166,6 +168,8 @@ def check(expectations, overview, readback):
                 errors.append({"page": model["uuid"], "form": form_name, "error": "Expected one registered Form"})
                 continue
             form = candidates[0]
+            if "formLayout" in expected_form and props(form).get("layout") != expected_form["formLayout"]:
+                errors.append({"page": model["uuid"], "form": form_name, "error": "Wrong native Form layout"})
             form_children = slot(form, "children")
             items = [n for n in walk(form_children or {"children": []}) if identity(n) == "plasmicantd6formitem"]
             actual_keys = [props(n).get("name") for n in items]
@@ -249,6 +253,20 @@ def check(expectations, overview, readback):
                     tooltip = content(slot(item, "tooltip")) or values.get("tooltip", "")
                     if tooltip != field.get("tooltip", ""):
                         failures.append("Wrong Form.Item tooltip content")
+                    if "validateFirst" in field and values.get("validateFirst") is not field["validateFirst"]:
+                        failures.append("Wrong Form.Item validation short-circuit setting")
+                    if "description" in field:
+                        description_slot = slot(item, "description")
+                        description = content(description_slot) or values.get("description", "")
+                        if description != field["description"]:
+                            failures.append("Persistent instructions must match Form.Item description")
+                        owned_text = {id(n) for n in walk(description_slot or {"children": []})}
+                        if field["description"] and any(
+                            n["tag"] == "text" and n.get("text", "").strip() == field["description"]
+                            and id(n) not in owned_text
+                            for n in walk(form_children or {"children": []})
+                        ):
+                            failures.append("Remove standalone duplicate field instructions")
                     children = slot(item, "children")
                     controls = [n for n in (children or {}).get("children", []) if n["tag"] == "plasmic-component" and n["attrs"].get("data-plasmic-name") == field["control"]]
                     if len(controls) != 1:

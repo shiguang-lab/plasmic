@@ -3776,7 +3776,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   </slot>
 </plasmic-component>]]></baseVariantTplTree>
 </Component>",
-  "hostless-plasmic-head": "<Component name="hostless-plasmic-head" uuid="3Q5tZgoUcjgc" type="code">
+  "hostless-plasmic-head": "<Component name="hostless-plasmic-head" description="Set page metadata (HTML <head />) to dynamic values." uuid="3Q5tZgoUcjgc" type="code">
   <props>
     <ARRAY>
       <ITEM>
@@ -9362,6 +9362,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   "hostless-plasmic-head": {
     "__type": "Component",
     "baseVariantTplTree": "<div id="I5WSi3eZbGYU" style="display: flex; flex-direction: row"></div>",
+    "description": "Set page metadata (HTML <head />) to dynamic values.",
     "name": "hostless-plasmic-head",
     "props": [
       {

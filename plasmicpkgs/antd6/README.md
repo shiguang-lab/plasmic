@@ -30,6 +30,11 @@ pages import the same wrappers from the package's `skinny` entry points.
 - Form validation rejects on failure. Submission disabling restores after success
   or failure and preserves explicit/inherited disabled settings. Its
   `extendedOnValuesChange(values)` event receives the complete form values.
+- Form Field defaults to ordered validation with `validateFirst=true`, showing
+  one error per field. Place required checks before format/range and business
+  rules. Its `description` renders persistent instructions through native
+  Form.Item `extra`: an editable Slot in advanced forms and text in simplified
+  field configurations. Native errors remain visible alongside those instructions.
 - Table selection supports controlled keys or internal selection. Pagination
   initializes index states without firing `onChange` on mount.
 - Tabs animates the ink bar by default. Tree expansion, Popover delays and date

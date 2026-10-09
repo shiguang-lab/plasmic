@@ -554,6 +554,9 @@ function buildComponentProps(component: Component): PropJson[] {
       const prop: PropJson = {
         __type: "Prop",
         name: paramToVarName(component, param),
+        ...(component.codeComponentMeta && param.description
+          ? { description: param.description }
+          : {}),
         uuid: param.uuid,
         type: isSlot(param)
           ? "slot"
@@ -968,6 +971,7 @@ export function buildComponentResource(
   return {
     __type: "Component",
     name: component.name,
+    ...(component.codeComponentMeta?.description ? { description: component.codeComponentMeta.description } : {}),
     uuid: component.uuid,
     type: component.type as ComponentJson["type"],
     ...(pageMeta ? { pageMeta } : {}),

@@ -6,6 +6,7 @@ import {
 } from "@/wab/shared/Variants";
 import { generateSiteFromBundle } from "@/wab/shared/__testonly__/site-tests-utils";
 import { Bundle } from "@/wab/shared/bundler";
+import { ensure } from "@/wab/shared/common";
 import {
   codeToDynExpr,
   interpolatedStringToTemplatedString,
@@ -19,6 +20,7 @@ import { mkParam, mkVar } from "@/wab/shared/core/lang";
 import { mkRuleSet } from "@/wab/shared/core/styles";
 import { TplTagType, mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
 import {
+  CodeComponentMeta,
   ExprText,
   ImageAssetRef,
   NodeMarker,
@@ -41,6 +43,7 @@ import { jsonToXml } from "@/wab/shared/web-exporter/json-to-xml";
 import {
   DataQueryJson,
   LegacyDataQueryJson,
+  componentSchema,
 } from "@/wab/shared/web-exporter/schema";
 
 describe("Component Serialization", () => {
@@ -56,6 +59,35 @@ describe("Component Serialization", () => {
     }
     expect(xmlOutput).toMatchSnapshot();
     expect(output).toMatchSnapshot();
+  });
+
+  it("exposes registered usage guidance without changing prop contracts", () => {
+    const component = mkComponent({
+      name: "Descriptions",
+      type: ComponentType.Code,
+      tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }),
+      params: [mkParam({ paramType: "prop", name: "items", type: typeFactory.any(), description: "Separate labels from values", defaultExpr: codeLit([]) })],
+      codeComponentMeta: new CodeComponentMeta({
+        importPath: "antd", defaultExport: false, importName: "Descriptions",
+        displayName: "Descriptions", description: "Grouped read-only fields",
+        section: null, thumbnailUrl: null, classNameProp: null, refProp: null,
+        defaultStyles: null, defaultDisplay: null, isHostLess: true,
+        isContext: false, isAttachment: false, providesData: false,
+        hasRef: false, isRepeatable: true, subtreePrefetchingConfig: null,
+        styleSections: null, helpers: null, defaultSlotContents: {},
+        variants: {}, refActions: [],
+      }),
+    });
+    const result = buildComponentResource(component, { site });
+    expect(componentSchema().parse(result)).toMatchObject({
+      description: "Grouped read-only fields",
+      props: [{ name: "items", description: "Separate labels from values", type: "any", default: [] }],
+    });
+    ensure(component.codeComponentMeta, "Expected registered component metadata").description = null;
+    component.params[0].description = null;
+    const withoutGuidance = buildComponentResource(component, { site });
+    expect(withoutGuidance).not.toHaveProperty("description");
+    expect(withoutGuidance.props?.[0]).not.toHaveProperty("description");
   });
 
   it("serializes variant attr overrides without overwriting tpl ids", () => {

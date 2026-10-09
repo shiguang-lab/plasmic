@@ -144,6 +144,7 @@ export function FormItemWrapper(props: InternalFormItemProps) {
     noLabel,
     name,
     hideValidationMessage,
+    validateFirst = true,
     customizeProps: _customizeProps,
     setControlContextData: _setControlContextData,
     alignLabellessWithControls = true,
@@ -230,6 +231,7 @@ export function FormItemWrapper(props: InternalFormItemProps) {
       label={noLabel ? undefined : props.label}
       name={relativeFormItemName}
       rules={rules}
+      validateFirst={validateFirst}
       extra={description}
       help={hideValidationMessage ? "" : props.help}
       colon={noLabel ? false : undefined}

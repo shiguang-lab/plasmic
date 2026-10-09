@@ -25,6 +25,23 @@ class FormCheckTests(unittest.TestCase):
     def test_real_fields_pass_with_both_component_name_formats(self):
         self.assertTrue(self.result(self.html)["passed"])
 
+    def test_native_form_layout_and_single_error_setting(self):
+        form = self.expected["pages"][0]["forms"][0]
+        form["formLayout"] = "horizontal"
+        form["fields"][0]["validateFirst"] = True
+        html = self.html.replace('data-plasmic-name="Form"', 'data-plasmic-name="Form" data-props=\'{"layout":"horizontal"}\'').replace('"name":"name","rules"', '"name":"name","validateFirst":true,"rules"')
+        self.assertTrue(self.result(html)["passed"])
+        self.assertFalse(self.result(html.replace('"horizontal"', '"vertical"'))["passed"])
+        self.assertFalse(self.result(html.replace('"validateFirst":true', '"validateFirst":false'))["passed"])
+
+    def test_persistent_description_must_belong_to_item(self):
+        self.expected["pages"][0]["forms"][0]["fields"][0]["description"] = "Default 14 days"
+        html = self.html.replace('<slot name="label">', '<slot name="description"><span>Default 14 days</span></slot><slot name="label">')
+        self.assertTrue(self.result(html)["passed"])
+        self.assertFalse(self.result(self.html + '<span>Default 14 days</span>')["passed"])
+        duplicate = html.replace('</slot></plasmic-component>', '<span>Default 14 days</span></slot></plasmic-component>')
+        self.assertFalse(self.result(duplicate)["passed"])
+
     def test_native_wrappers_and_label_stars_fail(self):
         self.assertFalse(self.result(self.html.replace("plasmic-antd6-form-item", "native-field"))["passed"])
         self.assertFalse(self.result(self.html.replace(">Name</span>", ">Name *</span>"))["passed"])

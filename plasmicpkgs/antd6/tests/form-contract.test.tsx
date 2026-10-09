@@ -7,12 +7,72 @@ import { FormRefActions, FormWrapper } from "../src/form/Form";
 import { FormItemWrapper } from "../src/form/FormItem";
 import { FormWrapper as SchemaForm } from "../src/form/SchemaForm";
 
+test("FormItem reports one ordered error, keeps its description and clears errors after correction", async () => {
+  const ref = React.createRef<FormRefActions>();
+  const range = vi.fn((_rule, value) => Number.isInteger(value) && value >= 1 && value <= 365);
+  const view = render(
+    <FormWrapper ref={ref}>
+      <FormItemWrapper
+        name="expiry"
+        label="Expiry"
+        description={<span>Default 14 days; maximum 365 days.</span>}
+        rules={[
+          { ruleType: "required", message: "Enter expiry" },
+          { ruleType: "advanced", custom: range, message: "Use an integer from 1 to 365" },
+        ]}
+      >
+        <Input />
+      </FormItemWrapper>
+    </FormWrapper>,
+  );
+  await act(async () => {
+    await expect(ref.current!.validateFields()).rejects.toMatchObject({
+      errorFields: [{ name: ["expiry"], errors: ["Enter expiry"] }],
+    });
+  });
+  expect(range).not.toHaveBeenCalled();
+  expect(view.container.querySelector(".ant-form-item-extra")?.textContent).toBe("Default 14 days; maximum 365 days.");
+  for (const value of [0, 366, 1.5]) {
+    act(() => ref.current!.setFieldsValue({ expiry: value }));
+    await act(async () => {
+      await expect(ref.current!.validateFields()).rejects.toMatchObject({
+        errorFields: [{ errors: ["Use an integer from 1 to 365"] }],
+      });
+    });
+  }
+  act(() => ref.current!.setFieldsValue({ expiry: 14 }));
+  await act(async () => {
+    await expect(ref.current!.validateFields()).resolves.toEqual({ expiry: 14 });
+  });
+  await vi.waitFor(() => expect(view.container.querySelectorAll(".ant-form-item-explain-error").length).toBe(0));
+  expect(view.container.querySelector(".ant-form-item-extra")?.textContent).toBe("Default 14 days; maximum 365 days.");
+});
+
+test("FormItem honors explicit validateFirst=false", async () => {
+  const ref = React.createRef<FormRefActions>();
+  render(
+    <FormWrapper ref={ref}>
+      <FormItemWrapper name="expiry" validateFirst={false} rules={[
+        { ruleType: "required", message: "Enter expiry" },
+        { ruleType: "advanced", custom: () => false, message: "Invalid expiry" },
+      ]}>
+        <Input />
+      </FormItemWrapper>
+    </FormWrapper>,
+  );
+  await act(async () => {
+    await expect(ref.current!.validateFields()).rejects.toMatchObject({
+      errorFields: [{ errors: ["Enter expiry", "Invalid expiry"] }],
+    });
+  });
+});
+
 const capture = vi.hoisted(() => ({ props: null as any }));
 vi.mock("antd", async (importOriginal) => {
   const original = await importOriginal<typeof import("antd")>();
-  const React = await import("react");
+  const ReactModule = await import("react");
   const CapturedForm = Object.assign(
-    React.forwardRef((props: any, ref: any) => {
+    ReactModule.forwardRef((props: any, ref: any) => {
       capture.props = props;
       return <original.Form {...props} ref={ref} />;
     }),
