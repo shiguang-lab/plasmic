@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 // eslint-disable-next-line no-restricted-imports
 import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
 import { AnonymousAvatar, Avatar } from "@/wab/client/components/studio/Avatar";
@@ -36,7 +37,6 @@ import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { PlayerData } from "@/wab/client/studio-ctx/multiplayer-ctx";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { Stated } from "@/wab/commons/components/Stated";
-import { ANIMATIONS_CAP, MIXINS_CAP } from "@/wab/shared/Labels";
 import { spawn, unexpected } from "@/wab/shared/common";
 import { BASE_URL } from "@/wab/shared/discourse/config";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
@@ -76,6 +76,7 @@ export interface NavMenuGroup {
 }
 
 const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
+  const { t } = useI18n();
   const studioCtx = useStudioCtx();
   const isLoggedIn = studioCtx.appCtx.selfInfo != null;
   const contentEditorMode = studioCtx.contentEditorMode;
@@ -125,48 +126,48 @@ Help
     assets: {
       type: "group",
       icon: <ComponentssvgIcon />,
-      title: "Assets",
+      title: t("Assets"),
       items: {
         tokens: {
           type: "item",
           tabKey: "tokens",
           icon: <DiamondsIcon />,
-          label: "Style tokens",
+          label: t("Style tokens"),
           cond: canViewTab("tokens"),
         },
         dataTokens: {
           type: "item",
           tabKey: "dataTokens",
           icon: <DataTokenIcon />,
-          label: "Data tokens",
+          label: t("Data tokens"),
           cond: canViewTab("dataTokens"),
         },
         mixins: {
           type: "item",
           tabKey: "mixins",
           icon: <MixinIcon />,
-          label: MIXINS_CAP,
+          label: t("Style presets"),
           cond: canViewTab("mixins"),
         },
         animationSequences: {
           type: "item",
           tabKey: "animationSequences",
           icon: <KeyframesIcon />,
-          label: ANIMATIONS_CAP,
+          label: t("Animations"),
           cond: canViewTab("animationSequences"),
         },
         components: {
           type: "item",
           tabKey: "components",
           icon: <ComponentsvgIcon />,
-          label: "Components",
+          label: t("Components"),
           cond: canViewTab("components"),
         },
         images: {
           type: "item",
           tabKey: "images",
           icon: <PhotosvgIcon />,
-          label: "Images and icons",
+          label: t("Images and icons"),
           cond: canViewTab("images"),
         },
       },
@@ -174,20 +175,20 @@ Help
     settingsGroup: {
       type: "group",
       icon: <GearIcon />,
-      title: "Settings",
+      title: t("Settings"),
       items: {
         settings: {
           type: "item",
           tabKey: "settings",
           icon: <GearIcon />,
-          label: "Project settings",
+          label: t("Project settings"),
           cond: hasGlobalContexts && canViewTab("settings"),
         },
         fonts: {
           type: "item",
           tabKey: "fonts",
           icon: <FontFamily2SvgIcon />,
-          label: "Custom fonts",
+          label: t("Custom fonts"),
           cond: canViewTab("fonts"),
           showAlert: missingUsedFonts.length > 0 ? "showAlert" : undefined,
         },
@@ -195,14 +196,14 @@ Help
           type: "item",
           tabKey: "responsiveness",
           icon: <DevicessvgIcon />,
-          label: "Responsive breakpoints",
+          label: t("Responsive breakpoints"),
           cond: canViewTab("responsiveness"),
         },
         themes: {
           type: "item",
           tabKey: "themes",
           icon: <Paintbrush2SvgIcon />,
-          label: "Default styles theme",
+          label: t("Default styles theme"),
           cond: canViewTab("themes"),
         },
       },
@@ -210,27 +211,27 @@ Help
     more: {
       type: "group",
       icon: <DotsHorizontalCirclesvgIcon />,
-      title: "More",
+      title: t("More"),
       items: {
         splits: {
           type: "item",
           tabKey: "splits",
           icon: <SplitSvgIcon />,
-          label: "Split content",
+          label: t("Split content"),
           cond: isLoggedIn && canViewTab("splits"),
         },
         imports: {
           type: "item",
           tabKey: "imports",
           icon: <DownloadsvgIcon />,
-          label: "Imported projects",
+          label: t("Imported projects"),
           cond: isLoggedIn && canViewTab("imports"),
         },
         versions: {
           type: "item",
           tabKey: "versions",
           icon: <ClocksvgIcon />,
-          label: "Published versions",
+          label: t("Published versions"),
           cond: isLoggedIn && canViewTab("versions"),
           showAlert: props.useVersionsCTA ? "showYellowCircle" : undefined,
         },
@@ -238,18 +239,18 @@ Help
           type: "item",
           tabKey: "expressions",
           icon: <SearchSvgIcon />,
-          label: "Expressions",
+          label: t("Expressions"),
           cond: canViewTab("expressions"),
         },
         figma: {
           type: "item",
           icon: <FigmasvgIcon />,
-          label: "Import from Figma",
+          label: t("Import from Figma"),
           cond: canViewTab("figma"),
           onClick: () => {
             spawn(
               showTemporaryInfo({
-                title: "Import from Figma",
+                title: t("Import from Figma"),
                 content: <FigmaModalContent />,
                 width: 640,
               }),
@@ -264,13 +265,13 @@ Help
       type: "item",
       tabKey: "outline",
       icon: <TreeIcon />,
-      label: "Outline",
+      label: t("Outline"),
     },
     lint: {
       type: "item",
       tabKey: "lint",
       icon: <WarningTrianglesvgIcon />,
-      label: "Issues detected",
+      label: t("Issues detected"),
       cond: canViewTab("lint"),
     },
     ...(contentEditorMode
@@ -290,40 +291,40 @@ Help
     helpGroup: {
       type: "group",
       icon: <HelpCirclesvgIcon />,
-      title: "Help",
+      title: t("Help"),
       items: {
         keyboard: {
           type: "item",
           icon: <KeyboardIcon />,
-          label: "Keyboard shortcuts",
+          label: t("Keyboard shortcuts"),
           className: shortcutModalButtonClassName,
           onClick: studioCtx.openShortcutsModal,
         },
         slack: {
           type: "item",
           icon: <SlackIcon style={{ margin: 4 }} height={16} width={16} />,
-          label: "Slack community",
+          label: t("Slack community"),
           href: "https://www.plasmic.app/slack",
           cond: true,
         },
         forum: {
           type: "item",
           icon: <MessagesvgIcon />,
-          label: "Forum",
+          label: t("Forum"),
           href: BASE_URL,
           cond: true,
         },
         docs: {
           type: "item",
           icon: <BooksvgIcon />,
-          label: "Documentation",
+          label: t("Documentation"),
           href: "https://docs.plasmic.app/",
           cond: true,
         },
         help: {
           type: "item",
           icon: <HelpsvgIcon />,
-          label: "Help",
+          label: t("Help"),
           href: studioCtx.siteInfo.teamId
             ? APP_ROUTES.orgSupport.fill({
                 teamId: studioCtx.siteInfo.teamId!,

@@ -11,6 +11,8 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import {
   ApiPermission,
@@ -545,9 +547,12 @@ export async function promptWorkspace({
 
 export async function promptNewTeam(appCtx: AppCtx, history: History) {
   const name = await reactPrompt({
-    message: `Enter the name for your new ${ORGANIZATION_LOWER}`,
-    placeholder: `${ORGANIZATION_CAP} name`,
-    actionText: "Add",
+    message: translate(
+      getUiLocale(),
+      "Enter the name for your new organization",
+    ),
+    placeholder: translate(getUiLocale(), "Organization name"),
+    actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {
     return;
@@ -570,7 +575,7 @@ export async function promptNewWorkspace(
   const name = await reactPrompt({
     message: `Enter the name for your new workspace`,
     placeholder: "Workspace name",
-    actionText: "Add",
+    actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {
     return;
@@ -603,7 +608,7 @@ export async function promptNewDatabase(
   const name = await reactPrompt({
     message: `Enter the name for your new CMS database`,
     placeholder: "Database name",
-    actionText: "Add",
+    actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {
     return;
@@ -624,7 +629,7 @@ export async function promptNewTable(
   const name = await reactPrompt({
     message: `Enter the name for your new CMS table`,
     placeholder: "Table name",
-    actionText: "Add",
+    actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {
     return;

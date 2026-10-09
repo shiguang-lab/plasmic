@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 /** @format */
 
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
@@ -50,6 +51,7 @@ interface TopBarProps {
 }
 
 function _TopBar({ preview }: TopBarProps) {
+  const { t } = useI18n();
   const studioCtx = useStudioCtx();
   const appCtx = useAppCtx();
   const previewCtx = usePreviewCtx();
@@ -139,7 +141,7 @@ function _TopBar({ preview }: TopBarProps) {
                   key="rename"
                   onClick={() => topFrameApi.setShowProjectNameModal(true)}
                 >
-                  Rename project
+                  {t("Rename project")}
                 </Menu.Item>,
               );
             }
@@ -150,7 +152,7 @@ function _TopBar({ preview }: TopBarProps) {
                   key="duplicate"
                   onClick={() => topFrameApi.setShowCloneProjectModal(true)}
                 >
-                  Duplicate project
+                  {t("Duplicate project")}
                 </Menu.Item>,
               );
             }
@@ -395,7 +397,7 @@ function _TopBar({ preview }: TopBarProps) {
         freeTrial={team ? { team } : { render: () => null }}
         logoLink={{
           render: (props) => (
-            <Tooltip title={brand.logoTooltip ?? "Back to dashboard"}>
+            <Tooltip title={brand.logoTooltip ?? t("Back to dashboard")}>
               <PublicLink
                 {...props}
                 className={`${props.className ?? ""} ${styles.logoLink}`}
@@ -404,7 +406,7 @@ function _TopBar({ preview }: TopBarProps) {
                 {brand.logoImgSrc ? (
                   <img
                     src={brand.logoImgSrc}
-                    alt={brand.logoTooltip ?? "Back to dashboard"}
+                    alt={brand.logoTooltip ?? t("Back to dashboard")}
                   />
                 ) : (
                   props.children
@@ -452,7 +454,7 @@ function _TopBar({ preview }: TopBarProps) {
           ),
         }}
         play={{
-          "aria-label": "Preview",
+          "aria-label": t("Preview"),
           onClick: () => {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
@@ -460,20 +462,20 @@ function _TopBar({ preview }: TopBarProps) {
             <TextAndShortcut
               shortcut={getComboForAction("TOGGLE_PREVIEW_MODE")}
             >
-              Preview the current artboard
+              {t("Preview")}
             </TextAndShortcut>
           ),
           disabled: !studioCtx.currentArena || studioCtx.currentArenaEmpty,
           ...{ "data-test-id": "enter-live-mode-btn" },
         }}
         stop={{
-          "aria-label": "Back to editor",
+          "aria-label": t("Back to editor"),
           onClick: () => {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
           tooltip: (
             <TextAndShortcut shortcut={"esc"}>
-              Go back to edit mode
+              {t("Back to editor")}
             </TextAndShortcut>
           ),
 

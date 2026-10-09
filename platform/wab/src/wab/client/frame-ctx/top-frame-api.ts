@@ -3,6 +3,7 @@ import { MergeModalContext } from "@/wab/client/components/TopFrame/TopFrameChro
 import { TopBarPromptBillingArgs } from "@/wab/client/components/modals/PricingModal";
 import type { RemoteFileDragEvent } from "@/wab/client/file-drag/file-drag-monitor";
 import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
+import type { UiLocale } from "@/wab/client/i18n";
 import { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
 import {
   ApiBranch,
@@ -21,6 +22,9 @@ import { Listener } from "history";
  */
 export type TopFrameFullApi = {
   exposeHostFrameApi(hostFrameApi: HostFrameApi): void;
+  registerUiLocaleListener(
+    listener: (locale: UiLocale) => void,
+  ): Promise<() => void>;
   toJSON(): string;
 } & Api &
   TopFrameApi;

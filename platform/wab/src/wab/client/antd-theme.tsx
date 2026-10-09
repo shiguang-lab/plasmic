@@ -1,5 +1,11 @@
+import { useI18n } from "@/wab/client/i18n";
 import type { ThemeConfig } from "antd";
 import { ConfigProvider } from "antd";
+import enUS from "antd/locale/en_US";
+import jaJP from "antd/locale/ja_JP";
+import koKR from "antd/locale/ko_KR";
+import zhCN from "antd/locale/zh_CN";
+import zhTW from "antd/locale/zh_TW";
 import * as React from "react";
 
 // Port of the antd v4 less variables from antd-overrides.less.
@@ -28,7 +34,20 @@ export function AntdConfigProvider({
 }: {
   children: React.ReactNode;
 }) {
-  return <ConfigProvider theme={antdTheme}>{children}</ConfigProvider>;
+  const { locale } = useI18n();
+  React.useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+  return (
+    <ConfigProvider
+      theme={antdTheme}
+      locale={
+        { en: enUS, "zh-CN": zhCN, "zh-TW": zhTW, ja: jaJP, ko: koKR }[locale]
+      }
+    >
+      {children}
+    </ConfigProvider>
+  );
 }
 
 // Static notification/message/Modal.confirm calls render in their own React

@@ -8,6 +8,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { ClickStopper } from "@/wab/client/components/widgets";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { PlasmicProjectListItem } from "@/wab/client/plasmic/plasmic_kit/PlasmicProjectListItem";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
@@ -15,7 +16,6 @@ import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { Stated } from "@/wab/commons/components/Stated";
 import { ApiPermission, ApiProject, WorkspaceId } from "@/wab/shared/ApiSchema";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
-import { PERSONAL_WORKSPACE } from "@/wab/shared/Labels";
 import { ensure } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import {
@@ -24,7 +24,6 @@ import {
 } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Menu, notification } from "antd";
-import moment from "moment";
 import React from "react";
 
 interface ProjectListItemProps {
@@ -42,6 +41,7 @@ interface ProjectListItemProps {
 function ProjectListItem(props: ProjectListItemProps) {
   const { project, perms, onUpdate, workspaces, matcher, showWorkspace } =
     props;
+  const { t, locale } = useI18n();
   const appCtx = useAppCtx();
   const history = useHistory();
   const appOps = ensure(appCtx.ops, "Unexpected nullish AppOps");
@@ -93,7 +93,7 @@ function ProjectListItem(props: ProjectListItemProps) {
           props: {
             children:
               project.workspaceId === personalWorkspace?.id
-                ? PERSONAL_WORKSPACE
+                ? t("My Playground")
                 : matcher?.boldSnippets(
                     project.workspaceName || "",
                     "yellow-snippet",
@@ -109,7 +109,12 @@ function ProjectListItem(props: ProjectListItemProps) {
             },
           },
         }}
-        timestamp={`updated ${moment(project.updatedAt).fromNow()}`}
+        timestamp={t("Updated {date}", {
+          date: new Intl.DateTimeFormat(locale, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(new Date(project.updatedAt)),
+        })}
         editableName={{
           render: (editableNameProps) => (
             <>
@@ -181,7 +186,7 @@ function ProjectListItem(props: ProjectListItemProps) {
                 {accessLevelRank(projectAccessLevel) >=
                   accessLevelRank("editor") && (
                   <Menu.Item onClick={() => setConfigProjectId(project.id)}>
-                    <strong>Configure</strong> project
+                    {t("Configure project")}
                   </Menu.Item>
                 )}
                 <Menu.Item
@@ -217,11 +222,11 @@ function ProjectListItem(props: ProjectListItemProps) {
                     );
                   }}
                 >
-                  <strong>Duplicate</strong> project
+                  {t("Duplicate project")}
                 </Menu.Item>
                 {DEVFLAGS.demo && (
                   <Menu.Item onClick={() => appOps.download(project.id)}>
-                    <strong>Download</strong> project
+                    {t("Download project")}
                   </Menu.Item>
                 )}
                 {workspaces && canMove && (
@@ -252,16 +257,17 @@ function ProjectListItem(props: ProjectListItemProps) {
                         },
                       );
                       notification.info({
-                        message: `Project moved to ${
-                          response.result === "workspace"
-                            ? response.workspace.name
-                            : PERSONAL_WORKSPACE
-                        }.`,
+                        message: t("Project moved to {name}.", {
+                          name:
+                            response.result === "workspace"
+                              ? response.workspace.name
+                              : t("My Playground"),
+                        }),
                       });
                       await onUpdate?.();
                     }}
                   >
-                    <strong>Move</strong> to workspace
+                    {t("Move to workspace")}
                   </Menu.Item>
                 )}
                 {accessLevelRank(workspaceAccessLevel) >=
@@ -280,8 +286,11 @@ function ProjectListItem(props: ProjectListItemProps) {
                       await onUpdate?.();
                     }}
                   >
-                    <strong>{!project.isUserStarter ? "Set" : "Unset"}</strong>{" "}
-                    as workspace starter
+                    {t(
+                      !project.isUserStarter
+                        ? "Set as workspace starter"
+                        : "Unset as workspace starter",
+                    )}
                   </Menu.Item>
                 )}
                 {!(
@@ -293,13 +302,13 @@ function ProjectListItem(props: ProjectListItemProps) {
                     <Menu.Item
                       onClick={async () => {
                         const confirm = await reactConfirm({
-                          title: `Remove from dashboard`,
+                          title: t("Remove from dashboard"),
                           message: (
                             <>
-                              Are you sure you want to remove the project{" "}
-                              <strong>{project.name}</strong> from your
-                              dashboard? This will remove your current
-                              permissions on it.
+                              {t(
+                                'Remove project "{name}" from your dashboard? This removes your current permissions.',
+                                { name: project.name },
+                              )}
                             </>
                           ),
                         });
@@ -310,7 +319,7 @@ function ProjectListItem(props: ProjectListItemProps) {
                         await onUpdate?.();
                       }}
                     >
-                      <strong>Remove</strong> from dashboard
+                      {t("Remove from dashboard")}
                     </Menu.Item>
                   )}
                 {accessLevelRank(projectAccessLevel) >=
@@ -318,11 +327,12 @@ function ProjectListItem(props: ProjectListItemProps) {
                   <Menu.Item
                     onClick={async () => {
                       const confirm = await reactConfirm({
-                        title: `Delete project`,
+                        title: t("Delete project"),
                         message: (
                           <>
-                            Are you sure you want to delete the project{" "}
-                            <strong>{project.name}</strong>?
+                            {t('Delete project "{name}"?', {
+                              name: project.name,
+                            })}
                           </>
                         ),
                       });
@@ -333,7 +343,7 @@ function ProjectListItem(props: ProjectListItemProps) {
                       await onUpdate?.();
                     }}
                   >
-                    <strong>Delete</strong> project
+                    {t("Delete project")}
                   </Menu.Item>
                 )}
               </Menu>

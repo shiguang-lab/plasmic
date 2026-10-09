@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: Mql0DTa_iO
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -82,6 +83,7 @@ function PlasmicNavTeamButton__RenderFunc(props: {
   overrides: PlasmicNavTeamButton__OverridesType;
   forNode?: string;
 }) {
+  const { t } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -211,7 +213,7 @@ function PlasmicNavTeamButton__RenderFunc(props: {
               ),
             })}
           >
-            {"Organization"}
+            {t("Organization")}
           </div>
           {(hasVariant($state, "freeTrial", "freeTrial") ? true : false) ? (
             <div
@@ -246,7 +248,7 @@ function PlasmicNavTeamButton__RenderFunc(props: {
             )}
             platform={"react"}
           >
-            {"Free trial"}
+            {t("Free trial")}
           </PlasmicLink__>
         </div>
       </div>

@@ -1,5 +1,13 @@
 const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
+  const languageArg = process.argv.find((arg) =>
+    arg.startsWith("--shiguang-system-languages="),
+  );
+  contextBridge.exposeInMainWorld("desktopEnvironment", {
+    systemLanguages: languageArg
+      ? JSON.parse(languageArg.slice("--shiguang-system-languages=".length))
+      : navigator.languages,
+  });
   contextBridge.exposeInMainWorld("desktopUpdates", {
     command: (command) => ipcRenderer.invoke("desktop:update", command),
     onOpen: (callback) => {

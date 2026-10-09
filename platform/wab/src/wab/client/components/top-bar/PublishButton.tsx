@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 /** @format */
 
 import { menuSection } from "@/wab/client/components/menu-builder";
@@ -24,6 +25,7 @@ interface PublishButtonProps extends DefaultPublishButtonProps {
 export const PublishButton = observer(function PublishButton(
   props: PublishButtonProps,
 ) {
+  const { t } = useI18n();
   const studioCtx = useStudioCtx();
   const appCtx = useAppCtx();
   const topFrameApi = useTopFrameApi();
@@ -153,7 +155,8 @@ export const PublishButton = observer(function PublishButton(
                       </Tooltip>
                     ),
                 props: {
-                  "aria-label": "Publish project",
+                  "aria-label": t("Publish"),
+                  children: t("Publish"),
                   id: "topbar-publish-btn",
                   onClick: spawnWrapper(() => {
                     studioCtx.tourActionEvents.dispatch({

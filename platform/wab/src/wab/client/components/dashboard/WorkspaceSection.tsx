@@ -17,6 +17,7 @@ import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultWorkspaceSectionProps,
   PlasmicWorkspaceSection,
@@ -69,6 +70,7 @@ function WorkspaceSection_(
   }: WorkspaceSectionProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t } = useI18n();
   const appCtx = useAppCtx();
 
   const workspaceAccessLevel = getAccessLevelToResource(
@@ -149,6 +151,7 @@ function WorkspaceSection_(
       <PlasmicWorkspaceSection
         {...rest}
         root={{ ref }}
+        h3={{ children: t("Content Management Systems (CMS)") }}
         editableName={{
           render: (props) => (
             <InlineEdit
@@ -212,13 +215,16 @@ function WorkspaceSection_(
             : undefined
         }
         newProjectButton={{
+          children: t("New project"),
           onClick: () => setShowNewProjectModal(true),
         }}
         newCmsButton={{
+          children: t("New CMS"),
           onClick: () =>
             spawn(promptNewDatabase(appCtx, history, workspace.id)),
         }}
         newCmsButton2={{
+          children: t("New CMS"),
           onClick: () =>
             spawn(promptNewDatabase(appCtx, history, workspace.id)),
         }}
@@ -245,17 +251,19 @@ function WorkspaceSection_(
         noProjects={!projects.length && (!showTabs || openTab === "projects")}
         noProjectsText={
           matcher.hasQuery()
-            ? "No projects matching query."
-            : "This workspace has no projects."
+            ? t("No projects matching query.")
+            : t("This workspace has no projects.")
         }
         canUseCms={
           !showTabs && (appCtx.appConfig.content || databases.length > 0)
         }
         canUseCmsAndDataSources={showTabs ? openTab : undefined}
         projectsTab={{
+          children: t("Projects"),
           onClick: () => updateTab("projects"),
         }}
         dataSourcesTab={{
+          children: t("Data sources"),
           onClick: () => updateTab("dataSources"),
         }}
         // If empty, just show default contents (No CMSes indicator)

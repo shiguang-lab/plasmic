@@ -4,6 +4,7 @@ import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import SettingsContainer from "@/wab/client/components/pages/plasmic/SettingsContainer";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultSettingsPageProps,
   PlasmicSettingsPage,
@@ -21,6 +22,7 @@ interface SettingsPageProps extends DefaultSettingsPageProps {
 
 function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
   const { appCtx, ...rest } = props;
+  const { t } = useI18n();
   const user = ensure(appCtx.selfInfo, "Unexpected null selfInfo");
   const tokensState = usePersonalApiTokens();
   const ops = ensure(appCtx.ops, "Unexpected null AppOps");
@@ -43,7 +45,7 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
   }, [updateHostList]);
   return (
     <>
-      {documentTitle("Settings")}
+      {documentTitle(t("Settings"))}
       <PlasmicSettingsPage
         root={{ ref }}
         {...rest}

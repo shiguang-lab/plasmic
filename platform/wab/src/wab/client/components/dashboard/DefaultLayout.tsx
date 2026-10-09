@@ -6,6 +6,7 @@ import { promptNewTeam } from "@/wab/client/components/dashboard/dashboard-actio
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultDefaultLayoutProps,
   PlasmicDefaultLayout,
@@ -37,6 +38,7 @@ function DefaultLayout_(
 ) {
   const { team, workspace, freeTrial, upgradeButton, helpButton, ...rest } =
     props;
+  const { t } = useI18n();
   const history = useHistory();
   const appCtx = useAppCtx();
   const userInfo = ensure(
@@ -52,14 +54,16 @@ function DefaultLayout_(
   const userMenu = (
     <Menu>
       <Menu.Item>
-        <PublicLink href={APP_ROUTES.settings.fill({})}>Settings</PublicLink>
+        <PublicLink href={APP_ROUTES.settings.fill({})}>
+          {t("Settings")}
+        </PublicLink>
       </Menu.Item>
       <Menu.Item
         onClick={async () => {
           await appCtx.logout();
         }}
       >
-        Sign Out
+        {t("Sign Out")}
       </Menu.Item>
     </Menu>
   );
@@ -111,17 +115,17 @@ function DefaultLayout_(
           : undefined
       }
       freeTrial={freeTrial ?? { render: () => null }}
-      teams={teams.map((t) => (
-        <React.Fragment key={t.id}>
+      teams={teams.map((navigationTeam) => (
+        <React.Fragment key={navigationTeam.id}>
           <NavSeparator />
           <NavTeamSection
-            name={t.name}
-            href={APP_ROUTES.org.fill({ teamId: t.id })}
-            selected={team?.id === t.id}
-            freeTrial={t.onTrial}
+            name={navigationTeam.name}
+            href={APP_ROUTES.org.fill({ teamId: navigationTeam.id })}
+            selected={team?.id === navigationTeam.id}
+            freeTrial={navigationTeam.onTrial}
           >
             {workspaces
-              .filter((w) => w.team.id === t.id)
+              .filter((w) => w.team.id === navigationTeam.id)
               .map((w) => (
                 <NavWorkspaceButton
                   key={w.id}
@@ -136,8 +140,12 @@ function DefaultLayout_(
         </React.Fragment>
       ))}
       upgradeButton={upgradeButton ?? { render: () => null }}
-      helpButton={helpButton}
+      helpButton={helpButton ?? { children: t("Help") }}
+      allProjectsButton={{ children: t("All projects") }}
+      myProjectsButton={{ children: t("My Playground") }}
+      documentationButton={{ children: t("Documentation") }}
       newTeamButton={{
+        children: t("New organization"),
         onClick: async () => {
           await promptNewTeam(appCtx, history);
         },

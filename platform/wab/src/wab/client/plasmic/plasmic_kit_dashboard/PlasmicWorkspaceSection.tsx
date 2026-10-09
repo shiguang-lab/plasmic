@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 5cdjGaqBQ4
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -133,6 +134,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
   overrides: PlasmicWorkspaceSection__OverridesType;
   forNode?: string;
 }) {
+  const { t } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -372,7 +374,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
               })}
             >
               <div className={classNames("all", "__wab_text", sty.text__fuUz1)}>
-                {"Workspace"}
+                {t("Workspace")}
               </div>
               <div className={classNames("all", "__wab_text", sty.text__oyPmf)}>
                 {"\u2022"}
@@ -412,7 +414,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                       }
                       style={{ color: "#706F6C" }}
                     >
-                      {"members"}
+                      {t("members")}
                     </span>
                   </React.Fragment>
                 </div>

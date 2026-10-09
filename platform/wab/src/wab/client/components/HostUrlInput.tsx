@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 import { PlasmicHostUrlInput } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicHostUrlInput";
 import { swallow } from "@/wab/shared/common";
 import * as React from "react";
@@ -28,6 +29,7 @@ function HostUrlInput({
   inputTestId,
   className,
 }: HostUrlInputProps) {
+  const { t } = useI18n();
   const [draftUrl, setDraftUrl] = React.useState(defaultUrl || "");
 
   React.useEffect(() => {
@@ -83,6 +85,7 @@ function HostUrlInput({
         onConfirm || confirmDisabled !== undefined
           ? {
               props: {
+                children: t("Confirm"),
                 onClick: () => {
                   if (!validDraftUrl || !parsedDraftUrl || confirmDisabled) {
                     return;
@@ -100,6 +103,7 @@ function HostUrlInput({
         onClear || clearDisabled !== undefined
           ? {
               props: {
+                children: t("Clear"),
                 onClick: onClear,
                 disabled: clearDisabled,
               },

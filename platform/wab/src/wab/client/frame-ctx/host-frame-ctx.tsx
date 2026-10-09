@@ -7,8 +7,9 @@ import { FrameMessage } from "@/wab/client/frame-ctx/frame-message-types";
 import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import { getPlasmicStudioArgs } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import { TopFrameFullApi } from "@/wab/client/frame-ctx/top-frame-api";
+import { setUiLocale } from "@/wab/client/i18n";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { ensure, spawn, spawnWrapper } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import * as Comlink from "comlink";
 import {
   Action,
@@ -57,16 +58,32 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
 
     const hostHistory = new HostHistory(topFrameApi);
 
-    setHostFrameCtx({
-      history: hostHistory,
-      topFrameApi,
-      onHostFrameApiReady: (api) => {
-        console.log("[HostFrame] HostFrameApi ready, exposing API to TopFrame");
-        // complex objects sent over Comlink must be proxied
-        spawn(topFrameApi.exposeHostFrameApi(Comlink.proxy(api)));
-      },
-    });
-    return spawnWrapper(hostHistory.dispose);
+    let disposed = false;
+    const localeSubscription = topFrameApi.registerUiLocaleListener(
+      Comlink.proxy(setUiLocale),
+    );
+    spawn(
+      localeSubscription.then(() => {
+        if (disposed) {
+          return;
+        }
+        setHostFrameCtx({
+          history: hostHistory,
+          topFrameApi,
+          onHostFrameApiReady: (api) => {
+            console.log(
+              "[HostFrame] HostFrameApi ready, exposing API to TopFrame",
+            );
+            spawn(topFrameApi.exposeHostFrameApi(Comlink.proxy(api)));
+          },
+        });
+      }),
+    );
+    return () => {
+      disposed = true;
+      spawn(localeSubscription.then((unregister) => unregister()));
+      spawn(hostHistory.dispose());
+    };
   }, []);
 
   // block children until connected to TopFrame

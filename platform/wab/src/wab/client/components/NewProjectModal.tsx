@@ -6,6 +6,7 @@ import {
   useAllProjectsData,
   useAppCtx,
 } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultNewProjectModalProps,
   PlasmicNewProjectModal,
@@ -22,6 +23,7 @@ interface NewProjectModalProps extends DefaultNewProjectModalProps {
 }
 
 function NewProjectModalBody(props: Pick<NewProjectModalProps, "workspaceId">) {
+  const { t } = useI18n();
   const appCtx = useAppCtx();
   const { workspaceId } = props;
   const [currentTab, setCurrentTab] = React.useState<"website" | "app">(
@@ -48,12 +50,12 @@ function NewProjectModalBody(props: Pick<NewProjectModalProps, "workspaceId">) {
           activeTabClassName="hilite-tab--active"
           tabs={[
             new Tab({
-              name: "Website",
+              name: t("Website"),
               key: "website",
               contents: () => <></>,
             }),
             new Tab({
-              name: "App",
+              name: t("App"),
               key: "app",
               contents: () => <></>,
             }),
@@ -101,6 +103,7 @@ const NewProjectModal = observer(function NewProjectModal({
   onCancel,
   ...rest
 }: NewProjectModalProps) {
+  const { t } = useI18n();
   const appCtx = useAppCtx();
   const { data: projectsData } = useAllProjectsData();
 
@@ -118,11 +121,12 @@ const NewProjectModal = observer(function NewProjectModal({
       <PlasmicNewProjectModal
         {...rest}
         root={{
+          title: t("New project"),
           style: {
             maxHeight: `calc(100vh - 64px)`,
           },
         }}
-        cancelButton={{ onClick: onCancel }}
+        cancelButton={{ children: t("Cancel"), onClick: onCancel }}
       >
         {appCtx.appConfig.newProjectModal ? (
           <NewProjectModalBody workspaceId={workspaceId} />
@@ -130,7 +134,7 @@ const NewProjectModal = observer(function NewProjectModal({
           <>
             {workspaceStarters.length > 0 && (
               <StarterGroup
-                title="Workspace starters"
+                title={t("Workspace starters")}
                 tag="workspace-starters"
                 projects={workspaceStarters.map((project) => ({
                   name: project.name,

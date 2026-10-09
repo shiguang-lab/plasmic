@@ -8,6 +8,7 @@ import {
   useAppCtx,
 } from "@/wab/client/contexts/AppContexts";
 import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultAllProjectsPageProps,
   PlasmicAllProjectsPage,
@@ -21,6 +22,7 @@ function AllProjectsPage_(
   props: AllProjectsPageProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t } = useI18n();
   const appCtx = useAppCtx();
   const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
 
@@ -35,7 +37,7 @@ function AllProjectsPage_(
   if (!projectsData) {
     return (
       <>
-        {documentTitle("All projects")}
+        {documentTitle(t("All projects"))}
         <Spinner />
       </>
     );
@@ -43,13 +45,16 @@ function AllProjectsPage_(
 
   return (
     <>
-      {documentTitle("All projects")}
+      {documentTitle(t("All projects"))}
       <PlasmicAllProjectsPage
         root={{ ref, className: styles.dashboardContent }}
         {...props}
         projects={{ className: styles.projects }}
         defaultLayout={{ render: ({ children }) => <>{children}</> }}
-        newProjectButton={{ onClick: () => setShowNewProjectModal(true) }}
+        newProjectButton={{
+          children: t("New project"),
+          onClick: () => setShowNewProjectModal(true),
+        }}
         filter={{ props: filterProps }}
         mainList={{
           children: projects.map((project) => (
@@ -70,8 +75,10 @@ function AllProjectsPage_(
             : {
                 style: { display: "flex" },
                 children: matcher.hasQuery()
-                  ? "No projects matching query."
-                  : 'You have no projects. Create a new one by hitting "New project".',
+                  ? t("No projects matching query.")
+                  : t(
+                      'You have no projects. Create a new one by hitting "New project".',
+                    ),
               }
         }
       />

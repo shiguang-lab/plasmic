@@ -203,6 +203,9 @@ async function startDesktop() {
     webPreferences: {
       session: desktopSession,
       preload: path.join(__dirname, "preload.cjs"),
+      additionalArguments: [
+        `--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`,
+      ],
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,

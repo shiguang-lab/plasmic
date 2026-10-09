@@ -1,6 +1,7 @@
 import DefaultLayout, {
   DefaultLayoutProps,
 } from "@/wab/client/components/dashboard/DefaultLayout";
+import { useI18n } from "@/wab/client/i18n";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
@@ -12,6 +13,7 @@ function DefaultTeamLayout_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { team, ...rest } = props;
+  const { t } = useI18n();
 
   return (
     <DefaultLayout
@@ -25,6 +27,7 @@ function DefaultTeamLayout_(
           ? { render: () => null }
           : {
               props: {
+                children: t("Help"),
                 href: APP_ROUTES.orgSupport.fill({ teamId: team.id }),
               },
             }

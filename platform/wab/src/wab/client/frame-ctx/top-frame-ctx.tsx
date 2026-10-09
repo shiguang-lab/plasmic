@@ -12,6 +12,7 @@ import {
   TopFrameApi,
   TopFrameFullApi,
 } from "@/wab/client/frame-ctx/top-frame-api";
+import { getUiLocale, subscribeUiLocale } from "@/wab/client/i18n";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
 import { assert } from "@/wab/shared/common";
@@ -50,6 +51,7 @@ export function TopFrameCtxProvider({
   });
 
   React.useEffect(() => {
+    const localeDisposers = new Set<() => void>();
     let comlinkState:
       | undefined
       | {
@@ -101,6 +103,19 @@ export function TopFrameCtxProvider({
         ...topFrameApi,
 
         // Override some methods to hide Comlink implementation details.
+        async registerUiLocaleListener(localeListener): Promise<() => void> {
+          const dispose = subscribeUiLocale(() =>
+            localeListener(getUiLocale()),
+          );
+          localeDisposers.add(dispose);
+          // The callback crosses a MessagePort, while registration returns on
+          // the window endpoint. Await it so the host mounts in the right locale.
+          await localeListener(getUiLocale());
+          return Comlink.proxy(() => {
+            dispose();
+            localeDisposers.delete(dispose);
+          });
+        },
         registerLocationListener(locationListener): () => void {
           return Comlink.proxy(
             topFrameApi.registerLocationListener(locationListener),
@@ -135,6 +150,7 @@ export function TopFrameCtxProvider({
     };
     window.addEventListener("message", listener);
     return () => {
+      localeDisposers.forEach((dispose) => dispose());
       window.removeEventListener("message", listener);
       if (comlinkState) {
         comlinkState.hostFrameEndpoint.removeEventListener(
