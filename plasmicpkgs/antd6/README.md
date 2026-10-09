@@ -35,6 +35,9 @@ pages import the same wrappers from the package's `skinny` entry points.
   `styles.content` can align them using flex, center and a 12px gap. These styles
   apply across the Form, so inspect all fields. Long instructions use `description`
   below the control; native `extra` has no placement switch.
+- Optional Form Field tooltip and description Slots hide empty canvas placeholders,
+  so an unconfigured tooltip does not add a help icon in the normal editor view.
+  Configured tooltip content remains editable and uses the native label Tooltip.
 - Form Field defaults to ordered validation with `validateFirst=true`, showing
   one error per field. Place required checks before format/range and business
   rules. Its `description` renders persistent instructions through native

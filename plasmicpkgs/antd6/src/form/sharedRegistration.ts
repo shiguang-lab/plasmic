@@ -240,6 +240,7 @@ export function commonFormItemProps(
     },
     tooltip: {
       type: usage === "advanced-form-item" ? "slot" : "string",
+      ...(usage === "advanced-form-item" ? { hidePlaceholder: true } : {}),
       displayName: "Tooltip",
       description: "Help shown beside the field label by Form.Item.",
       hidden: (ps: any, ctx: any, extras: any) =>

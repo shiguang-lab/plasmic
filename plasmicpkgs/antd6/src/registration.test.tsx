@@ -286,6 +286,7 @@ test("Tour target selectors do not access the DOM during SSR", () => {
 
 test("optional decoration slots do not inject empty canvas placeholders", () => {
   const optionalSlots = {
+    "form-item": ["tooltip", "description"],
     statistic: ["title", "prefix", "suffix"],
     tag: ["icon", "children"],
     badge: ["children"],
@@ -319,7 +320,7 @@ test("optional decoration slots do not inject empty canvas placeholders", () => 
       );
     }
   }
-  for (const name of ["flex", "card", "splitter-panel"]) {
+  for (const name of ["flex", "card", "splitter-panel", "form-item"]) {
     const registration = components.get(`plasmic-antd6-${name}`);
     assert(registration);
     assert.notEqual(

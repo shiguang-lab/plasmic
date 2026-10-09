@@ -186,6 +186,7 @@ function commonFormItemProps(usage) {
     },
     tooltip: {
       type: usage === "advanced-form-item" ? "slot" : "string",
+      ...{},
       displayName: "Tooltip",
       description: "Help shown beside the field label by Form.Item.",
       hidden: (ps, ctx, extras) => !!getFormItemProps(ps, ctx, extras)?.noLabel
