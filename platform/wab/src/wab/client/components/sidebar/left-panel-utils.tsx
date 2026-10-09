@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ProjectDependency } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
@@ -49,7 +50,7 @@ export function useDepFilterButton(opts: {
                   ))}
                   <Menu.Divider />
                   <Menu.Item key="clear" onClick={() => setFilterDeps([])}>
-                    Clear filter
+                    <UiText message={"Clear filter"} />
                   </Menu.Item>
                 </Menu>
               );

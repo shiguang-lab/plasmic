@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: wQH36LoqQL
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -152,7 +153,7 @@ function PlasmicSharePageModal__RenderFunc(props: {
                 sty.h2
               )}
             >
-              {"Share your analytics page"}
+              {<UiText message={"Share your analytics page"} />}
             </h2>
           }
           <React.Fragment>{""}</React.Fragment>
@@ -184,7 +185,7 @@ function PlasmicSharePageModal__RenderFunc(props: {
               : ["primary"]
           }
         >
-          {hasVariant($state, "copied", "copied") ? "Copied!" : "Copy"}
+          {hasVariant($state, "copied", "copied") ? "Copied!" : <UiText message={"Copy"} />}
         </Button>
       </div>
     </div>

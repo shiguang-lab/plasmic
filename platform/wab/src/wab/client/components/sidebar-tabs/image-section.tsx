@@ -20,8 +20,14 @@ import {
   StylePanelSection,
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { isCodeComponentSlot } from "@/wab/shared/SlotUtils";
+import { unsetTplVariantableAttr } from "@/wab/shared/TplMgr";
+import { $$$ } from "@/wab/shared/TplQuery";
+import { ensureVariantSetting, isGlobalVariant } from "@/wab/shared/Variants";
 import { assert, ensureInstance } from "@/wab/shared/common";
 import { getRealParams } from "@/wab/shared/core/components";
 import {
@@ -40,33 +46,29 @@ import { mkParam } from "@/wab/shared/core/lang";
 import { typographyCssProps } from "@/wab/shared/core/style-props";
 import { getTplComponentsInSite } from "@/wab/shared/core/tpls";
 import {
-  computeDefinedIndicator,
   DefinedIndicatorType,
+  computeDefinedIndicator,
 } from "@/wab/shared/defined-indicator";
 import {
   Component,
   CustomCode,
-  ensureKnownTplTag,
   Expr,
   ImageAsset,
   ImageAssetRef,
+  ObjectPath,
+  TplSlot,
+  TplTag,
+  Var,
+  VarRef,
+  VariantSetting,
+  ensureKnownTplTag,
   isKnownCustomCode,
   isKnownImageAsset,
   isKnownImageAssetRef,
   isKnownObjectPath,
   isKnownVarRef,
-  ObjectPath,
-  TplSlot,
-  TplTag,
-  Var,
-  VariantSetting,
-  VarRef,
 } from "@/wab/shared/model/classes";
 import { isImageType, typeFactory } from "@/wab/shared/model/model-util";
-import { isCodeComponentSlot } from "@/wab/shared/SlotUtils";
-import { unsetTplVariantableAttr } from "@/wab/shared/TplMgr";
-import { $$$ } from "@/wab/shared/TplQuery";
-import { ensureVariantSetting, isGlobalVariant } from "@/wab/shared/Variants";
 import { Alert, Menu, Tooltip } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
@@ -76,6 +78,7 @@ export const ImageSection = observer(function ImageSection(props: {
   expsProvider: TplExpsProvider;
   ancestorSlot?: TplSlot;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider, ancestorSlot } = props;
 
   const studioCtx = expsProvider.studioCtx;
@@ -174,10 +177,13 @@ export const ImageSection = observer(function ImageSection(props: {
       expsProvider={expsProvider}
       title={
         isIcon ? (
-          "Icon"
+          uiT("Icon")
         ) : (
           <>
-            <span>Image{variable && " slot"}</span>
+            <span>
+              <UiText message={"Image"} />
+              {variable && " slot"}
+            </span>
             {variable && (
               <span
                 className="labeled-item__text"
@@ -187,7 +193,7 @@ export const ImageSection = observer(function ImageSection(props: {
                   title={
                     <>
                       <p>
-                        Linked to{" "}
+                        <UiText message={"Linked to"} />{" "}
                         <code>
                           {ownerComponent.name}.{variable.name}
                         </code>
@@ -214,7 +220,7 @@ export const ImageSection = observer(function ImageSection(props: {
           overlay={imageMenu}
           className="panel-row style-wrapper"
         >
-          <DefinedIndicator type={definedIndicator} label="Image" />
+          <DefinedIndicator type={definedIndicator} label={uiT("Image")} />
           <DefaultVariableImagePicker
             studioCtx={studioCtx}
             ownerComponent={ownerComponent}
@@ -227,8 +233,12 @@ export const ImageSection = observer(function ImageSection(props: {
             overlay={imageMenu}
             className="panel-row style-wrapper"
           >
-            <DefinedIndicator type={definedIndicator} label="Image" />
-            <LabeledItemRow label="Image URL" menu={imageMenu} noMenuButton>
+            <DefinedIndicator type={definedIndicator} label={uiT("Image")} />
+            <LabeledItemRow
+              label={uiT("Image URL")}
+              menu={imageMenu}
+              noMenuButton
+            >
               <ContextMenuIndicator
                 menu={imageMenu}
                 showDynamicValueButton={false}
@@ -347,7 +357,7 @@ export const ImageSection = observer(function ImageSection(props: {
           overlay={imageMenu}
           className="panel-row style-wrapper"
         >
-          <DefinedIndicator type={definedIndicator} label="Image" />
+          <DefinedIndicator type={definedIndicator} label={uiT("Image")} />
           <ContextMenuIndicator
             menu={imageMenu}
             showDynamicValueButton={!isIcon}
@@ -428,7 +438,10 @@ export const ImageSection = observer(function ImageSection(props: {
               }
             />
           )}
-          <LabeledStyleColorItemRow label="Icon Color" styleName="color" />
+          <LabeledStyleColorItemRow
+            label={uiT("Icon Color")}
+            styleName="color"
+          />
         </>
       )}
       {!isIcon && (
@@ -550,7 +563,7 @@ export function makeImageMenu({
             }
           >
             <span>
-              Unlink from component prop{" "}
+              <UiText message={"Unlink from component prop"} />{" "}
               <code>
                 {ownerComponent.name}.{variable!.name}
               </code>
@@ -593,7 +606,13 @@ export function makeImageMenu({
           }
         };
         push(
-          <Menu.SubMenu title={<span>Allow external access</span>}>
+          <Menu.SubMenu
+            title={
+              <span>
+                <UiText message={"Allow external access"} />
+              </span>
+            }
+          >
             {getRealParams(ownerComponent)
               .filter((p) => p.type.name === "img")
               .map((param) => (
@@ -644,7 +663,7 @@ export function makeImageMenu({
               switchToDynamic();
             }}
           >
-            Use dynamic value
+            <UiText message={"Use dynamic value"} />
           </Menu.Item>,
         );
       }
@@ -656,7 +675,7 @@ export function makeImageMenu({
               key={"fallback"}
               onClick={() => fallback?.setShowFallback(true)}
             >
-              Change fallback value
+              <UiText message={"Change fallback value"} />
             </Menu.Item>,
           );
         }
@@ -678,7 +697,7 @@ export function makeImageMenu({
               });
             }}
           >
-            Remove dynamic value
+            <UiText message={"Remove dynamic value"} />
           </Menu.Item>,
         );
       }
@@ -698,7 +717,7 @@ export function makeImageMenu({
             })
           }
         >
-          Unset image
+          <UiText message={"Unset image"} />
         </Menu.Item>,
       );
     }
@@ -714,7 +733,7 @@ const _ImageSectionForCodeComponent = (props: {
 }) => (
   <StylePanelSection
     expsProvider={props.expsProvider}
-    title={"Image"}
+    title={<UiText message={"Image"} />}
     styleProps={["object-fit", "object-position"]}
   >
     <ContentPanelSection expsProvider={props.expsProvider} />

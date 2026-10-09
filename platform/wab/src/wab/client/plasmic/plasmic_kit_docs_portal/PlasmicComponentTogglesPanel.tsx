@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: dwF8TMwvPf
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -187,7 +188,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
           withIcons={"startIcon"}
         >
           <div className={classNames("all", "__wab_text", sty.text__eixHp)}>
-            {"Reset all"}
+            {<UiText message={"Reset all"} />}
           </div>
         </Button>
       </div>
@@ -272,7 +273,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
           className={classNames("__wab_instance", sty.slotPropsHeader)}
           slot={"Customize slot content"}
         >
-          {"Slot Props"}
+          {<UiText message={"Slot Props"} />}
         </ComponentPropsSubHeader>
         <div
           data-plasmic-name={"slotPropsContainer"}
@@ -335,7 +336,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
           className={classNames("__wab_instance", sty.linkedPropsHeader)}
           noDetails={true}
         >
-          {"Other Props"}
+          {<UiText message={"Other Props"} />}
         </ComponentPropsSubHeader>
         <div
           data-plasmic-name={"linkedPropsContainer"}
@@ -374,7 +375,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
           className={classNames("__wab_instance", sty.elementPropsHeader)}
           slot={"Override props of named elements"}
         >
-          {"Named Element Props"}
+          {<UiText message={"Named Element Props"} />}
         </ComponentPropsSubHeader>
         <div
           data-plasmic-name={"elementPropsContainer"}

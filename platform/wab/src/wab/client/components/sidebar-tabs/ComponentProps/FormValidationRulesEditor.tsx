@@ -6,6 +6,7 @@ import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import Button from "@/wab/client/components/widgets/Button";
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -261,7 +262,7 @@ export function FormValidationRulesEditor(
                 }}
                 type={"primary"}
               >
-                Add new rule
+                <UiText message={"Add new rule"} />
               </Button>
             </div>
           </div>

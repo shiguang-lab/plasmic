@@ -2,6 +2,7 @@ import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
 import { makeReadOnlySection } from "@/wab/client/components/variants/VariantSection";
 import { VariantsController } from "@/wab/client/components/variants/VariantsController";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import VariantGroupIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__VariantGroup";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -24,7 +25,7 @@ export const SuperComponentVariantsSection = observer(
           collapseState={isExpanded ? "expanded" : "collapsed"}
           onToggle={() => setExpanded(!isExpanded)}
         >
-          {component.name} Variants
+          {component.name} <UiText message={"Variants"} />
         </ListSectionHeader>
         {isExpanded &&
           component.variantGroups.map((group) =>

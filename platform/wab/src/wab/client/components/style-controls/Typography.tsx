@@ -17,6 +17,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import AlignCenterIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignCenter";
 import AlignLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignLeft";
 import AlignRightIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignRight";
@@ -94,6 +95,7 @@ function _Typography({
   animatableOnly,
   ...props
 }: TypographyContentProps) {
+  const { t: uiT } = useI18n();
   const sc = useStyleComponent();
   const exp = sc.exp();
   const vsh =
@@ -107,7 +109,7 @@ function _Typography({
   return (
     <>
       <LabeledStyleColorItemRow
-        label="Color"
+        label={uiT("Color")}
         styleName="color"
         vsh={vsh}
         data-test-id="color-selector"
@@ -115,7 +117,7 @@ function _Typography({
       {!animatableOnly && (
         <FullRow>
           <LabeledFontFamilySelector
-            label="Font"
+            label={uiT("Font")}
             styleName="font-family"
             selectOpts={{
               onChange: (val) => props.onChange("font-family", val),
@@ -130,7 +132,7 @@ function _Typography({
         <LabeledStyleSelectItem
           styleName={"font-weight"}
           tooltip={`Font weight (boldness)`}
-          label={"Weight"}
+          label={uiT("Weight")}
           textRight={false}
           selectOpts={{
             value: currentFontWeight,
@@ -142,7 +144,7 @@ function _Typography({
       </FullRow>
       <FullRow>
         <LabeledStyleDimItem
-          label="Size"
+          label={uiT("Size")}
           styleName="font-size"
           dimOpts={{
             ...tokenTypeDimOpts("FontSize"),
@@ -189,20 +191,20 @@ function _Typography({
           <FullRow>
             <LabeledToggleButtonGroup
               styleName="text-align"
-              label="Align"
+              label={uiT("Align")}
               autoWidth
               isDisabled={readOnly}
             >
-              <StyleToggleButton value="left" tooltip="Align left">
+              <StyleToggleButton value="left" tooltip={uiT("Align left")}>
                 <Icon icon={AlignLeftIcon} />
               </StyleToggleButton>
-              <StyleToggleButton value="center" tooltip="Align center">
+              <StyleToggleButton value="center" tooltip={uiT("Align center")}>
                 <Icon icon={AlignCenterIcon} />
               </StyleToggleButton>
-              <StyleToggleButton value="right" tooltip="Align right">
+              <StyleToggleButton value="right" tooltip={uiT("Align right")}>
                 <Icon icon={AlignRightIcon} />
               </StyleToggleButton>
-              <StyleToggleButton value="justify" tooltip="Justify">
+              <StyleToggleButton value="justify" tooltip={uiT("Justify")}>
                 <Icon icon={JustifyIcon} />
               </StyleToggleButton>
             </LabeledToggleButtonGroup>
@@ -210,7 +212,7 @@ function _Typography({
           <FullRow>
             <LabeledToggleButtonGroup
               styleName="font-style"
-              label="Style"
+              label={uiT("Style")}
               autoWidth
               isDisabled={readOnly}
             >
@@ -228,7 +230,7 @@ function _Typography({
         <FullRow>
           <LabeledToggleButtonGroup
             styleName="text-decoration-line"
-            label="Decorate"
+            label={uiT("Decorate")}
             autoWidth
             isDisabled={readOnly}
             data-test-id="text-decoration-selector"
@@ -271,7 +273,7 @@ function _Typography({
               <>
                 <FullRow>
                   <LabeledStyleSwitchItem
-                    label="Selectable"
+                    label={uiT("Selectable")}
                     styleName="user-select"
                     value={exp.get("user-select") === "text"}
                     onChange={(val) => {
@@ -282,7 +284,7 @@ function _Typography({
                 </FullRow>
                 <FullRow>
                   <LabeledToggleButtonGroup
-                    label={"Text transform"}
+                    label={uiT("Text transform")}
                     styleName="text-transform"
                     autoWidth
                     isDisabled={readOnly}
@@ -312,7 +314,7 @@ function _Typography({
               <>
                 <FullRow>
                   <LabeledStyleSwitchItem
-                    label="Line wrap"
+                    label={uiT("Line wrap")}
                     styleName="white-space"
                     value={exp.get("white-space") !== "nowrap"}
                     onChange={(val) => {
@@ -331,7 +333,7 @@ function _Typography({
 
                 <FullRow>
                   <LabeledToggleButtonGroup
-                    label="Overflow"
+                    label={uiT("Overflow")}
                     styleName="text-overflow"
                     isDisabled={readOnly || exp.get("white-space") !== "nowrap"}
                     disabledTooltip="Line wrap needs to be turned off to set the text overflow options"
@@ -389,12 +391,13 @@ function LetterSpacingLineHeightControls({
   readOnly?: boolean;
   vsh?: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   return (
     <>
       <FullRow>
         <LabeledStyleDimItem
           styleName={"line-height"}
-          label={"Line height"}
+          label={uiT("Line height")}
           dimOpts={{
             ...tokenTypeDimOpts("LineHeight"),
             dragScale: "0.1",
@@ -406,7 +409,7 @@ function LetterSpacingLineHeightControls({
       </FullRow>
       <FullRow>
         <LabeledStyleDimItem
-          label={"Letter spacing"}
+          label={uiT("Letter spacing")}
           styleName={"letter-spacing"}
           dimOpts={{
             ...tokenTypeDimOpts("Spacing"),

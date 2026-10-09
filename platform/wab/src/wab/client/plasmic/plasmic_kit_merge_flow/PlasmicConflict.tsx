@@ -11,6 +11,7 @@
 // Plasmic Project: p8FkKgCnyuat1kHSEYAKfW
 // Component: RM-Ya_c-mv
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -217,7 +218,7 @@ function PlasmicConflict__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__rp81Z)}
                 >
-                  {"Homepage"}
+                  {<UiText message={"Homepage"} />}
                 </div>
               ),
               value: args.name,
@@ -346,7 +347,7 @@ function PlasmicConflict__RenderFunc(props: {
                 data-plasmic-override={overrides.label14}
                 className={classNames("all", "__wab_text", sty.label14)}
               >
-                {"Auto merged"}
+                {<UiText message={"Auto merged"} />}
               </div>
               {false ? (
                 <div
@@ -354,7 +355,7 @@ function PlasmicConflict__RenderFunc(props: {
                   data-plasmic-override={overrides.text}
                   className={classNames("all", "__wab_text", sty.text)}
                 >
-                  {"Label"}
+                  {<UiText message={"Label"} />}
                 </div>
               ) : null}
             </div>

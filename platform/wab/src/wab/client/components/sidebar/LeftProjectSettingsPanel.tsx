@@ -10,6 +10,7 @@ import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { Matcher } from "@/wab/client/components/view-common";
 import { SimpleReorderableList } from "@/wab/client/components/widgets/SimpleReorderableList";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftSettingsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSettingsPanel";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
@@ -274,7 +275,7 @@ const ContextRow = observer(function ContextRow_(props: {
             }
           }}
         >
-          Delete package
+          <UiText message={"Delete package"} />
         </Menu.Item>
       </Menu>
     ) : undefined;
@@ -446,7 +447,7 @@ const ContextPropEditor = observer(function ContextPropEditor_(props: {
                                 )
                               }
                             >
-                              Unset {label}
+                              <UiText message={"Unset"} /> {label}
                             </Menu.Item>
                           </Menu>
                         ) : undefined

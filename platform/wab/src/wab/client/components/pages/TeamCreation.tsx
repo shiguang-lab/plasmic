@@ -5,6 +5,7 @@ import { PageFooter } from "@/wab/client/components/pages/PageFooter";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { getTeamInviteLink } from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import MarkFullColorIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__MarkFullColor";
 import { ApiTeam, Grant, MAX_GRANTS_PER_REQUEST } from "@/wab/shared/ApiSchema";
 import { ensure, spawn, withoutNils } from "@/wab/shared/common";
@@ -189,7 +190,7 @@ export function TeamCreation() {
                 Send invites
               </Button>
               <Button htmlType={"button"} size={"large"} onClick={onSkip}>
-                Do this later
+                <UiText message={"Do this later"} />
               </Button>
             </Form>
           )}

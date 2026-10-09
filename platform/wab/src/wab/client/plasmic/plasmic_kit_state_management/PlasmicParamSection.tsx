@@ -11,6 +11,8 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: RzN6mQN5_D
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -133,6 +135,7 @@ function PlasmicParamSection__RenderFunc(props: {
   overrides: PlasmicParamSection__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -287,7 +290,7 @@ function PlasmicParamSection__RenderFunc(props: {
             data-plasmic-override={overrides.name}
             className={classNames("all", "__wab_text", sty.name)}
           >
-            {"Name"}
+            {<UiText message={"Name"} />}
           </div>
         }
         layout={"vertical"}
@@ -334,7 +337,7 @@ function PlasmicParamSection__RenderFunc(props: {
           [sty.labeledItemspecialParamType_eventHandler__iRfEpmsWcM]:
             hasVariant($state, "specialParamType", "eventHandler"),
         })}
-        label={"Type"}
+        label={uiT("Type")}
         layout={"vertical"}
         value={
           <React.Fragment>
@@ -471,7 +474,7 @@ function PlasmicParamSection__RenderFunc(props: {
                 hasVariant($state, "specialParamType", "eventHandler"),
             })}
           >
-            {"Event handler arguments"}
+            {<UiText message={"Event handler arguments"} />}
           </div>
           {renderPlasmicSlot({
             defaultContents: (
@@ -637,7 +640,7 @@ function PlasmicParamSection__RenderFunc(props: {
         })}
         label={
           <div className={classNames("all", "__wab_text", sty.text__pxpk9)}>
-            {"Default Value"}
+            {<UiText message={"Default Value"} />}
           </div>
         }
         layout={"vertical"}
@@ -694,7 +697,7 @@ function PlasmicParamSection__RenderFunc(props: {
               ),
             })}
           >
-            {"Preview Value"}
+            {<UiText message={"Preview Value"} />}
           </div>
         }
         layout={"vertical"}
@@ -757,7 +760,7 @@ function PlasmicParamSection__RenderFunc(props: {
           }
         }}
       >
-        {"Localizable"}
+        {<UiText message={"Localizable"} />}
       </Switch>
       {(
         hasVariant($state, "showAdvancedSection", "showAdvancedSection")
@@ -808,7 +811,7 @@ function PlasmicParamSection__RenderFunc(props: {
             />
           }
         >
-          {"Cancel"}
+          {<UiText message={"Cancel"} />}
         </Button>
         <Button
           data-plasmic-name={"confirmBtn"}
@@ -828,7 +831,7 @@ function PlasmicParamSection__RenderFunc(props: {
           }
           type={["primary"]}
         >
-          {"Confirm"}
+          {<UiText message={"Confirm"} />}
         </Button>
       </div>
     </div>

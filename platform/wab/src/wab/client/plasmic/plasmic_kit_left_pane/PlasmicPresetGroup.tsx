@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: kZ3Ar3RnLt
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -178,7 +179,7 @@ function PlasmicPresetGroup__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__uIv8N)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               }
             />
@@ -189,7 +190,7 @@ function PlasmicPresetGroup__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__xxvsv)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               }
             />

@@ -11,6 +11,8 @@
 // Plasmic Project: ieacQ3Z46z4gwo1FnaB5vY
 // Component: k2vc2stl18
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -85,6 +87,7 @@ function PlasmicCmsEntriesList__RenderFunc(props: {
   overrides: PlasmicCmsEntriesList__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -175,7 +178,7 @@ function PlasmicCmsEntriesList__RenderFunc(props: {
           data-plasmic-name={"searchInput"}
           data-plasmic-override={overrides.searchInput}
           className={classNames("__wab_instance", sty.searchInput)}
-          placeholder={"Filter..."}
+          placeholder={uiT("Filter...")}
         />
 
         <IconButton
@@ -233,7 +236,7 @@ function PlasmicCmsEntriesList__RenderFunc(props: {
           [sty.textisEmpty]: hasVariant($state, "isEmpty", "isEmpty"),
         })}
       >
-        {"No entries have been created yet."}
+        {<UiText message={"No entries have been created yet."} />}
       </div>
     </div>
   ) as React.ReactElement | null;

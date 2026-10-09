@@ -58,6 +58,7 @@ import {
 } from "@/wab/client/definitions/events";
 import { isArrowKey } from "@/wab/client/dom";
 import { getElementBounds, isCanvasIframeEvent } from "@/wab/client/dom-utils";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { shouldHandleStudioShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
@@ -1653,7 +1654,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               isMixedArena(studioCtx.currentArena) ? (
                 <>
                   {isMixedArena(studioCtx.currentArena) && (
-                    <p>{ARENAS_DESCRIPTION}</p>
+                    <p>{<UiLabel text={ARENAS_DESCRIPTION} />}</p>
                   )}
                   <p>
                     You can create a{" "}
@@ -1699,7 +1700,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                         })
                       }
                     >
-                      Add a screen size
+                      <UiText message={"Add a screen size"} />
                     </DropdownButton>
                   </p>
                 </>

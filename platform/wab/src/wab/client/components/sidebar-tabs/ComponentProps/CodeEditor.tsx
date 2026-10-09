@@ -10,6 +10,7 @@ import {
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { readUploadedFileAsText } from "@/wab/client/dom-utils";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { ensure, swallow } from "@/wab/shared/common";
 import { tryEvalExpr } from "@/wab/shared/eval";
@@ -327,7 +328,9 @@ export const CodeEditor = observer(function CodeEditor(props: {
               )}
             />
             <div className="flex flex-right mt-lg mr-xlg">
-              <Button onClick={onCancel}>Cancel</Button>
+              <Button onClick={onCancel}>
+                <UiText message={"Cancel"} />
+              </Button>
               <Button
                 className={"ml-lg"}
                 onClick={() => {
@@ -346,7 +349,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
                 type={"primary"}
                 data-test-id={"save-code"}
               >
-                Save
+                <UiText message={"Save"} />
               </Button>
               {!fullscreen && (
                 <Button
@@ -357,7 +360,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
                   }}
                   type={"primary"}
                 >
-                  Fullscreen
+                  <UiText message={"Fullscreen"} />
                 </Button>
               )}
             </div>

@@ -14,6 +14,8 @@ import {
 import { AttributesTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -186,6 +188,7 @@ function switchableTags(tpl: TplTag): readonly string[] {
 export const TplTagSection = observer(TplTagSection_);
 
 function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
+  const { t: uiT } = useI18n();
   const { viewCtx, tpl } = props;
   const vtm = viewCtx.variantTplMgr();
   const baseVs = vtm.ensureBaseVariantSetting(tpl);
@@ -205,7 +208,7 @@ function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
 
   return (
     <SidebarSection
-      title={"Tag"}
+      title={uiT("Tag")}
       hasExtraContent={true}
       oneLiner
       controls={
@@ -245,14 +248,14 @@ function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
               optionFilterProp="children"
               ref={selectRef}
             >
-              <Select.OptGroup label="Common">
+              <Select.OptGroup label={uiT("Common")}>
                 {commonTagOptions.map((option) => (
                   <Select.Option key={option} value={option}>
                     {tagDisplayLabel(option)}
                   </Select.Option>
                 ))}
               </Select.OptGroup>
-              <Select.OptGroup label="Everything else">
+              <Select.OptGroup label={uiT("Everything else")}>
                 {otherTagOptions.map((option) => (
                   <Select.Option key={option} value={option}>
                     {tagDisplayLabel(option)}
@@ -413,7 +416,7 @@ export const HTMLAttributesSection = observer(
         <SidebarSection
           title={
             <LabelWithDetailedTooltip tooltip={AttributesTooltip}>
-              HTML attributes
+              <UiText message={"HTML attributes"} />
             </LabelWithDetailedTooltip>
           }
           hasExtraContent
@@ -466,6 +469,7 @@ function AddHtmlAttrButton(props: {
   tag: string;
   onSelect: (attr: string) => void;
 }) {
+  const { t: uiT } = useI18n();
   const { tag, onSelect } = props;
   const hiddenAttrs = getHiddenTagAttrs(tag);
   const params = metaSvc
@@ -512,7 +516,7 @@ function AddHtmlAttrButton(props: {
             autoFocus
             bordered={false}
             ref={selectRef}
-            placeholder="Search or enter any attribute"
+            placeholder={uiT("Search or enter any attribute")}
             open
           >
             {searchValue && (

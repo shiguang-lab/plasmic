@@ -2,6 +2,7 @@
 // This file is owned by you, feel free to edit as you see fit.
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import styles from "@/wab/client/components/app-auth/DirectoryUserRow.module.sass";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultDirectoryUserRowProps,
   PlasmicDirectoryUserRow,
@@ -35,6 +36,7 @@ function DirectoryUserRow_(
   props: DirectoryUserRowProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const { user, groups, changeUserGroups, onDelete, ...rest } = props;
 
   return (
@@ -100,7 +102,7 @@ function DirectoryUserRow_(
               renderOption={(option) => option.label}
               renderSelectedItem={(option) => option.label}
               pillClassName={styles.MultiSelectPill}
-              placeholder="Select"
+              placeholder={uiT("Select")}
             ></XMultiSelect>
           );
         },

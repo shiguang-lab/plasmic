@@ -11,6 +11,8 @@
 // Plasmic Project: 4B48dRthR8uGgyaBYpWthR
 // Component: OwugJe7uVc
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -85,6 +87,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
   overrides: PlasmicInsertPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -133,7 +136,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
           data-plasmic-name={"leftSearchPanel"}
           data-plasmic-override={overrides.leftSearchPanel}
           className={classNames("__wab_instance", sty.leftSearchPanel)}
-          placeholder={"Search..."}
+          placeholder={uiT("Search...")}
           styleType={["bordered"]}
           withIcons={["withPrefix"]}
         />
@@ -166,7 +169,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
             />
           }
         >
-          {"Image"}
+          {<UiText message={"Image"} />}
         </QuickInsertItem>
         <QuickInsertItem
           className={classNames("__wab_instance", sty.quickInsertItem__m1Xj6)}
@@ -178,7 +181,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
           }
         >
           <div className={classNames("all", "__wab_text", sty.text___9JjeM)}>
-            {"Icon"}
+            {<UiText message={"Icon"} />}
           </div>
         </QuickInsertItem>
         <QuickInsertItem
@@ -190,7 +193,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
             />
           }
         >
-          {"Button"}
+          {<UiText message={"Button"} />}
         </QuickInsertItem>
         <QuickInsertItem
           className={classNames("__wab_instance", sty.quickInsertItem__jvd3S)}
@@ -201,7 +204,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
             />
           }
         >
-          {"Vertical Stack"}
+          {<UiText message={"Vertical Stack"} />}
         </QuickInsertItem>
         <QuickInsertItem
           className={classNames("__wab_instance", sty.quickInsertItem___8WyL)}
@@ -213,7 +216,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
           }
         >
           <div className={classNames("all", "__wab_text", sty.text__qZI)}>
-            {"Responsive Columns"}
+            {<UiText message={"Responsive Columns"} />}
           </div>
         </QuickInsertItem>
       </div>
@@ -235,7 +238,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
               )}
               isSelected={true}
             >
-              {"Templates"}
+              {<UiText message={"Templates"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -243,7 +246,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__ajt0O
               )}
             >
-              {"Local Components"}
+              {<UiText message={"Local Components"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -251,7 +254,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__lYfXg
               )}
             >
-              {"Imported Code Components"}
+              {<UiText message={"Imported Code Components"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -259,7 +262,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__g7UkS
               )}
             >
-              {"Basic Elements"}
+              {<UiText message={"Basic Elements"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -267,7 +270,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__r5X3
               )}
             >
-              {"Content Elements"}
+              {<UiText message={"Content Elements"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -275,7 +278,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__zT2E1
               )}
             >
-              {"Text / Typography"}
+              {<UiText message={"Text / Typography"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -283,7 +286,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem___7Eov0
               )}
             >
-              {"Media"}
+              {<UiText message={"Media"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -291,7 +294,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__wztnU
               )}
             >
-              {"Data"}
+              {<UiText message={"Data"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -299,7 +302,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__fEjVp
               )}
             >
-              {"Layout"}
+              {<UiText message={"Layout"} />}
             </InsertPanelTabItem>
             <InsertPanelTabItem
               className={classNames(
@@ -307,7 +310,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 sty.insertPanelTabItem__mYYbM
               )}
             >
-              {"Forms"}
+              {<UiText message={"Forms"} />}
             </InsertPanelTabItem>
             <InsertPanelTabGroup
               data-plasmic-name={"insertPanelTabGroup"}
@@ -350,7 +353,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                 />
               }
             >
-              {"Component Store"}
+              {<UiText message={"Component Store"} />}
             </InsertPanelTabItem>
             <Spacer
               className={classNames("__wab_instance", sty.spacer___3Clt5)}

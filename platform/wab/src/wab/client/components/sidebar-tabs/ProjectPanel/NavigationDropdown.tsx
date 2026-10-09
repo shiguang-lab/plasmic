@@ -44,6 +44,8 @@ import { ListStack } from "@/wab/client/components/widgets/ListStack";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { NewComponentInfo } from "@/wab/client/components/widgets/NewComponentModal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import {
   buildInsertableExtraInfo,
   getScreenVariantToInsertableTemplate,
@@ -254,7 +256,7 @@ function DataSourceTablePickerWrapper({
           disabled={isSaveDisabled}
           onClick={onCreatePage}
         >
-          Create dynamic page
+          <UiText message={"Create dynamic page"} />
         </Button>
       </div>
     </div>
@@ -302,6 +304,7 @@ function NavigationDropdown_(
   { onClose }: NavigationDropdownProps,
   outerRef: React.Ref<HTMLDivElement>,
 ) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const contentEditorMode = studioCtx.contentEditorMode;
 
@@ -780,11 +783,12 @@ function NavigationDropdown_(
                     overlay={
                       <Menu>
                         <Menu.Item onClick={() => onAddArena("page")}>
-                          New <strong>page</strong>
+                          <UiText message={"New"} /> <strong>page</strong>
                         </Menu.Item>
                         {!contentEditorMode && (
                           <Menu.Item onClick={() => onAddArena("component")}>
-                            New <strong>component</strong>
+                            <UiText message={"New"} />{" "}
+                            <strong>component</strong>
                           </Menu.Item>
                         )}
                         {!contentEditorMode && (
@@ -793,7 +797,10 @@ function NavigationDropdown_(
                               tooltip={ARENAS_DESCRIPTION}
                             >
                               <span>
-                                New <strong>{ARENA_LOWER}</strong>
+                                <UiText message={"New"} />{" "}
+                                <strong>
+                                  {<UiLabel text={ARENA_LOWER} />}
+                                </strong>
                               </span>
                             </LabelWithDetailedTooltip>
                           </Menu.Item>
@@ -810,7 +817,7 @@ function NavigationDropdown_(
               shortcut: {
                 wrap: () =>
                   debouncedQuery ? null : (
-                    <KeyboardShortcut tooltip="Go to page/component">
+                    <KeyboardShortcut tooltip={uiT("Go to page/component")}>
                       {getComboForAction("SEARCH_PROJECT_ARENAS")}
                     </KeyboardShortcut>
                   ),
@@ -934,7 +941,7 @@ const buildItems = computedFn(
       ...recentRows,
       getSection(
         <LabelWithDetailedTooltip tooltip={ARENAS_DESCRIPTION}>
-          Arenas
+          <UiText message={"Arenas"} />
         </LabelWithDetailedTooltip>,
         "custom",
         studioCtx.getSortedMixedArenas(),

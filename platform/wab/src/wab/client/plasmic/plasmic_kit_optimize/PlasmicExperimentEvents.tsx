@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: SRI244k7gOA
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -152,7 +153,7 @@ function PlasmicExperimentEvents__RenderFunc(props: {
                   }
                   style={{ textDecorationLine: "underline" }}
                 >
-                  {"Docs"}
+                  {<UiText message={"Docs"} />}
                 </span>
                 <React.Fragment>{" ->"}</React.Fragment>
               </React.Fragment>
@@ -180,7 +181,7 @@ function PlasmicExperimentEvents__RenderFunc(props: {
           withIcons={"startIcon"}
         >
           <div className={classNames("all", "__wab_text", sty.text__sWmXu)}>
-            {"New"}
+            {<UiText message={"New"} />}
           </div>
         </Button>
         <ExpandButton

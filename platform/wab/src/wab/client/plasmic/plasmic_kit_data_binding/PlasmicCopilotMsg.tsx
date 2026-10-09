@@ -11,6 +11,8 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: CdMYaSGMjG
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -122,6 +124,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
   overrides: PlasmicCopilotMsg__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -356,7 +359,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
               })}
               tabIndex={0}
             >
-              {"Apply"}
+              {<UiText message={"Apply"} />}
             </div>
           </div>
         ) : null}
@@ -388,7 +391,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
             hasVariant($state, "feedback", "submitting") ? true : undefined
           }
           extraPadding={true}
-          placeholder={"Your feedback (optional)"}
+          placeholder={uiT("Your feedback (optional)")}
           styleType={["gray"]}
         />
       ) : null}

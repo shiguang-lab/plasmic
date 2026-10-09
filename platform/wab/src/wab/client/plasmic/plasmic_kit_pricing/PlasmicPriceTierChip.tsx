@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: UwHbCO-1rFrq
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -164,7 +165,7 @@ function PlasmicPriceTierChip__RenderFunc(props: {
         {renderPlasmicSlot({
           defaultContents: (
             <div className={classNames("all", "__wab_text", sty.text___4TEmb)}>
-              {"Free"}
+              {<UiText message={"Free plan"} />}
             </div>
           ),
           value: args.tier,
@@ -213,7 +214,7 @@ function PlasmicPriceTierChip__RenderFunc(props: {
                 [sty.textcurrent]: hasVariant($state, "current", "current"),
               })}
             >
-              {"Current plan"}
+              {<UiText message={"Current plan"} />}
             </div>
           ) : null}
         </div>

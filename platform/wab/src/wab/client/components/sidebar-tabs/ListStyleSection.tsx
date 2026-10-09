@@ -7,6 +7,8 @@ import {
   ExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { listStyleCssProps } from "@/wab/shared/core/style-props";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -14,6 +16,7 @@ import * as React from "react";
 export const ListStyleSection = observer(ListStyleSection_);
 
 function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
 
   return (
@@ -26,7 +29,7 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
         <LabeledStyleSelectItem
           styleName={"list-style-type"}
           tooltip={`List Style Type`}
-          label={"Type"}
+          label={uiT("Type")}
           textRight={false}
           selectOpts={{
             options: [
@@ -34,7 +37,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "none",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>&nbsp;</span> None
+                    <span className={sty.selectIcon}>&nbsp;</span>{" "}
+                    <UiText message={"None"} />
                   </span>
                 ),
               },
@@ -42,7 +46,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "disc",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>•</span> Disc
+                    <span className={sty.selectIcon}>•</span>{" "}
+                    <UiText message={"Disc"} />
                   </span>
                 ),
               },
@@ -50,7 +55,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "circle",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>○</span> Circle
+                    <span className={sty.selectIcon}>○</span>{" "}
+                    <UiText message={"Circle"} />
                   </span>
                 ),
               },
@@ -58,7 +64,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "square",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>■</span> Square
+                    <span className={sty.selectIcon}>■</span>{" "}
+                    <UiText message={"Square"} />
                   </span>
                 ),
               },
@@ -66,7 +73,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "decimal",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>1.</span> Decimal
+                    <span className={sty.selectIcon}>1.</span>{" "}
+                    <UiText message={"Decimal"} />
                   </span>
                 ),
               },
@@ -74,8 +82,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "decimal-leading-zero",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>01.</span> Decimal with
-                    leading zero
+                    <span className={sty.selectIcon}>01.</span>{" "}
+                    <UiText message={"Decimal with leading zero"} />
                   </span>
                 ),
               },
@@ -83,8 +91,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "upper-roman",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>I.</span> Uppercase roman
-                    numerals
+                    <span className={sty.selectIcon}>I.</span>{" "}
+                    <UiText message={"Uppercase roman numerals"} />
                   </span>
                 ),
               },
@@ -92,8 +100,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "lower-roman",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>i.</span> Lowercase roman
-                    numerals
+                    <span className={sty.selectIcon}>i.</span>{" "}
+                    <UiText message={"Lowercase roman numerals"} />
                   </span>
                 ),
               },
@@ -101,7 +109,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "upper-alpha",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>A.</span> Uppercase letters
+                    <span className={sty.selectIcon}>A.</span>{" "}
+                    <UiText message={"Uppercase letters"} />
                   </span>
                 ),
               },
@@ -109,7 +118,8 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
                 value: "lower-alpha",
                 label: (
                   <span className="flex-vcenter">
-                    <span className={sty.selectIcon}>a.</span> Lowercase letters
+                    <span className={sty.selectIcon}>a.</span>{" "}
+                    <UiText message={"Lowercase letters"} />
                   </span>
                 ),
               },
@@ -121,12 +131,12 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
         <LabeledStyleSelectItem
           styleName={"list-style-position"}
           tooltip={`List Style Position`}
-          label={"Position"}
+          label={uiT("Position")}
           textRight={false}
           selectOpts={{
             options: [
               { value: "outside", label: "Outside" },
-              { value: "inside", label: "Inside" },
+              { value: "inside", label: uiT("Inside") },
             ],
           }}
         />

@@ -11,6 +11,7 @@ import {
 } from "@/wab/client/components/sidebar/token-utils";
 import ColorSwatch from "@/wab/client/components/style-controls/ColorSwatch";
 import { Matcher } from "@/wab/client/components/view-common";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UiActionsOverlay } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -64,7 +65,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
     builder.genSection(undefined, (push) => {
       push(
         <Menu.Item key="references" onClick={() => onFindReferences()}>
-          Find all references
+          <UiText message={"Find all references"} />
         </Menu.Item>,
       );
       if (
@@ -75,7 +76,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
         if (vsh && !vsh.isTargetBaseVariant()) {
           push(
             <Menu.Item key="varianted-override" onClick={() => onSelect(token)}>
-              Override global variant value
+              <UiText message={"Override global variant value"} />
             </Menu.Item>,
           );
           if (token.override && !vsh.isStyleInherited(token)) {
@@ -89,14 +90,14 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
                   });
                 }}
               >
-                Remove global variant override
+                <UiText message={"Remove global variant override"} />
               </Menu.Item>,
             );
           }
         } else {
           push(
             <Menu.Item key="override" onClick={() => onSelect(token)}>
-              Override value
+              <UiText message={"Override value"} />
             </Menu.Item>,
           );
           if (token.override?.value) {
@@ -105,7 +106,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
                 key="remove-override"
                 onClick={() => onDeleteOverride(token)}
               >
-                Remove override
+                <UiText message={"Remove override"} />
               </Menu.Item>,
             );
           }
@@ -115,7 +116,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
       if (!tokenPanelReadOnly && token.isLocal) {
         push(
           <Menu.Item key="clone" onClick={() => onDuplicate(token.base)}>
-            Duplicate
+            <UiText message={"Duplicate"} />
           </Menu.Item>,
         );
       }
@@ -137,7 +138,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
               });
             }}
           >
-            Remove global variant value
+            <UiText message={"Remove global variant value"} />
           </Menu.Item>,
         );
       }
@@ -172,22 +173,25 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
             }
           }
         };
-        builder.genSub("Replace all usages of this token with...", (push2) => {
-          pushTokens(
-            siteFinalStyleTokensOfType(studioCtx.site, token.type),
-            push2,
-          );
-          for (const dep of studioCtx.site.projectDependencies) {
-            builder.genSection(`Imported from "${dep.name}"`, (push3) => {
-              pushTokens(
-                finalStyleTokensForDep(studioCtx.site, dep.site).filter(
-                  (t) => t.type === token.type,
-                ),
-                push3,
-              );
-            });
-          }
-        });
+        builder.genSub(
+          <UiText message={"Replace all usages of this token with..."} />,
+          (push2) => {
+            pushTokens(
+              siteFinalStyleTokensOfType(studioCtx.site, token.type),
+              push2,
+            );
+            for (const dep of studioCtx.site.projectDependencies) {
+              builder.genSection(`Imported from "${dep.name}"`, (push3) => {
+                pushTokens(
+                  finalStyleTokensForDep(studioCtx.site, dep.site).filter(
+                    (t) => t.type === token.type,
+                  ),
+                  push3,
+                );
+              });
+            }
+          },
+        );
       });
 
       if (
@@ -203,7 +207,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
                 multiAssetsActions.onAssetSelected(token.uuid, true);
               }}
             >
-              Start bulk selection
+              <UiText message={"Start bulk selection"} />
             </Menu.Item>,
           );
           push2(
@@ -213,7 +217,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
                 await studioCtx.siteOps().tryDeleteTokens([token.base]);
               }}
             >
-              Delete
+              <UiText message={"Delete"} />
             </Menu.Item>,
           );
         });

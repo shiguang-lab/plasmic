@@ -13,6 +13,8 @@ import {
 } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { LegacyComponentParamsSection } from "@/wab/client/components/sidebar-tabs/legacy-component-params-section";
 import { ImageAssetPreviewAndPicker } from "@/wab/client/components/style-controls/ImageSelector";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultPageSettingsProps,
   PlasmicPageSettings,
@@ -130,7 +132,7 @@ const ImageAssetPickerWithDynamicValue = observer(
             key={"openGraphImageDynamic"}
             onClick={switchToDynamicValue}
           >
-            Use dynamic value
+            <UiText message={"Use dynamic value"} />
           </Menu.Item>
         )}
       </Menu>
@@ -214,6 +216,7 @@ const PageSettings = observer(function PageSettings({
   exprCtx,
   ...props
 }: PageSettingsProps) {
+  const { t: uiT } = useI18n();
   const sc = useStudioCtx();
   const pageMeta = page.pageMeta;
   const [route, setRoute] = React.useState(pageMeta.path);
@@ -283,7 +286,7 @@ const PageSettings = observer(function PageSettings({
           title={
             <PropEditorRow
               attr="title"
-              label="Title"
+              label={uiT("Title")}
               propType={{ type: "string", defaultValueHint: "Title" }}
               expr={title}
               onChange={(expr) => {
@@ -299,7 +302,7 @@ const PageSettings = observer(function PageSettings({
           description={
             <PropEditorRow
               attr="description"
-              label="Description"
+              label={uiT("Description")}
               propType={{
                 type: "string",
                 control: "multiLine",
@@ -322,7 +325,7 @@ const PageSettings = observer(function PageSettings({
           canonical={
             <PropEditorRow
               attr="canonical"
-              label="Canonical URL"
+              label={uiT("Canonical URL")}
               propType={{ type: "string", defaultValueHint: "Canonical URL" }}
               expr={canonical}
               onChange={(expr) => {

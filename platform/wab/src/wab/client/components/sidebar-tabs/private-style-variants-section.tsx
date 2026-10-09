@@ -10,6 +10,7 @@ import { IconLinkButton } from "@/wab/client/components/widgets";
 import { ElementVariantsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { UiLabel } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -80,7 +81,7 @@ export const PrivateStyleVariantsPanel = observer(
         title={
           <div data-test-id="private-style-variants-title">
             <LabelWithDetailedTooltip tooltip={<ElementVariantsTooltip />}>
-              {PRIVATE_STYLE_VARIANTS_CAP}
+              {<UiLabel text={PRIVATE_STYLE_VARIANTS_CAP} />}
             </LabelWithDetailedTooltip>
           </div>
         }

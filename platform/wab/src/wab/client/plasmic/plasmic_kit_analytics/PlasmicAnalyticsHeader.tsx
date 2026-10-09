@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: lpGYGncEBV
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -138,7 +139,7 @@ function PlasmicAnalyticsHeader__RenderFunc(props: {
               })}
             </div>
             <div className={classNames("all", "__wab_text", sty.text___3ZaQ)}>
-              {"Analytics"}
+              {<UiText message={"Analytics"} />}
             </div>
           </div>
         </div>
@@ -155,7 +156,7 @@ function PlasmicAnalyticsHeader__RenderFunc(props: {
           />
 
           <div className={classNames("all", "__wab_text", sty.text__rbN23)}>
-            {"Back to projects/studio"}
+            {<UiText message={"Back to projects/studio"} />}
           </div>
         </div>
       </div>

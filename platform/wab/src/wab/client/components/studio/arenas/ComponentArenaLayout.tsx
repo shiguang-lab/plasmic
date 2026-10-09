@@ -1,5 +1,5 @@
-import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
+import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import ExperimentCanvasButton from "@/wab/client/components/splits/ExperimentCanvasButton";
 import sty from "@/wab/client/components/studio/arenas/ComponentArenaLayout.module.sass";
 import {
@@ -15,12 +15,28 @@ import {
 } from "@/wab/client/components/widgets/EditableLabel";
 import { useRefMap } from "@/wab/client/hooks/useRefMap";
 import { useResponsiveBreakpoints } from "@/wab/client/hooks/useResponsiveBreakpoints";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
   ensureCustomFrameForActivatedVariants,
   getFrameHeight,
 } from "@/wab/shared/Arenas";
+import {
+  COMBINATIONS_CAP,
+  FRAME_LOWER,
+  VARIANTS_LOWER,
+  VARIANT_CAP,
+} from "@/wab/shared/Labels";
+import { VariantOptionsType } from "@/wab/shared/TplMgr";
+import {
+  VariantCombo,
+  canHaveStyleOrCodeComponentVariant,
+  isGlobalVariantGroup,
+  isScreenVariantGroup,
+  isStandaloneVariantGroup,
+} from "@/wab/shared/Variants";
 import { isTplRootWithCodeComponentVariants } from "@/wab/shared/code-components/variants";
 import { maybe, spawn } from "@/wab/shared/common";
 import { getComponentArenaRowLabel } from "@/wab/shared/component-arenas";
@@ -32,31 +48,17 @@ import { allGlobalVariantGroups } from "@/wab/shared/core/sites";
 import { isGlobalVariantGroupUsedInSplits } from "@/wab/shared/core/splits";
 import { isTplCodeComponent } from "@/wab/shared/core/tpls";
 import {
-  COMBINATIONS_CAP,
-  FRAME_LOWER,
-  VARIANT_CAP,
-  VARIANTS_LOWER,
-} from "@/wab/shared/Labels";
-import {
   ArenaFrame,
   ArenaFrameRow,
   Component,
   ComponentArena,
-  ensureKnownComponentVariantGroup,
-  ensureMaybeKnownVariantGroup,
-  isKnownVariantGroup,
   PageArena,
   Site,
   VariantGroup,
+  ensureKnownComponentVariantGroup,
+  ensureMaybeKnownVariantGroup,
+  isKnownVariantGroup,
 } from "@/wab/shared/model/classes";
-import { VariantOptionsType } from "@/wab/shared/TplMgr";
-import {
-  canHaveStyleOrCodeComponentVariant,
-  isGlobalVariantGroup,
-  isScreenVariantGroup,
-  isStandaloneVariantGroup,
-  VariantCombo,
-} from "@/wab/shared/Variants";
 import { Button, Form, Menu, Popover } from "antd";
 import cn from "classnames";
 import { observer } from "mobx-react";
@@ -68,6 +70,7 @@ export const ComponentArenaLayout = observer(
     arena: ComponentArena;
     onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, arena, onFrameLoad } = props;
     const component = arena.component;
 
@@ -210,7 +213,7 @@ export const ComponentArenaLayout = observer(
                             )?.current?.setEditing(true);
                           }}
                         >
-                          Rename
+                          <UiText message={"Rename"} />
                         </Menu.Item>
                       </Menu>,
                     );
@@ -275,7 +278,7 @@ export const ComponentArenaLayout = observer(
             } else if (isScreenVariantGroup(group)) {
               return (
                 <GhostFrame
-                  tooltip="Add more responsive breakpoints"
+                  tooltip={uiT("Add more responsive breakpoints")}
                   width={framesWidth}
                   height={framesHeight}
                   onClick={handleAddResponsiveBreakpoints}
@@ -285,7 +288,7 @@ export const ComponentArenaLayout = observer(
             } else {
               return (
                 <GhostFrame
-                  tooltip="Add variant to this group"
+                  tooltip={uiT("Add variant to this group")}
                   width={framesWidth}
                   height={framesHeight}
                   onClick={handleAddVariantToGroup(group)}
@@ -307,13 +310,16 @@ export const ComponentArenaLayout = observer(
                 menu={() => (
                   <Menu onClick={() => ghostFrameRef.current?.closeMenu()}>
                     <Menu.Item onClick={handleAddToggleVariant}>
-                      Add <strong>toggle</strong> variant
+                      <UiText message={"Add"} /> <strong>toggle</strong>{" "}
+                      <UiText message={"variant"} />
                     </Menu.Item>
                     <Menu.Item onClick={handleAddSingleSelectVariantGroup}>
-                      Add <strong>single-select</strong> group of variants
+                      <UiText message={"Add"} /> <strong>single-select</strong>{" "}
+                      <UiText message={"group of variants"} />
                     </Menu.Item>
                     <Menu.Item onClick={handleAddMultiSelectVariantGroup}>
-                      Add <strong>multi-select</strong> group of variants
+                      <UiText message={"Add"} /> <strong>multi-select</strong>{" "}
+                      <UiText message={"group of variants"} />
                     </Menu.Item>
                     {!isShowingScreenVariantsGroup && (
                       <>
@@ -321,7 +327,8 @@ export const ComponentArenaLayout = observer(
                         <Menu.SubMenu
                           title={
                             <div>
-                              Add <strong>screen</strong> variant
+                              <UiText message={"Add"} /> <strong>screen</strong>{" "}
+                              <UiText message={"variant"} />
                             </div>
                           }
                         >
@@ -345,7 +352,7 @@ export const ComponentArenaLayout = observer(
                               })
                             }
                           >
-                            Edit breakpoints
+                            <UiText message={"Edit breakpoints"} />
                           </Menu.Item>
                         </Menu.SubMenu>
                       </>
@@ -462,7 +469,7 @@ function VariantComboForm(props: {
           htmlType="submit"
           size={"small"}
         >
-          Create {FRAME_LOWER}
+          <UiText message={"Create"} /> {<UiLabel text={FRAME_LOWER} />}
         </Button>
       </Form.Item>
     </Form>

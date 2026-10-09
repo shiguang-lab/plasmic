@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: A4UIAN_FGs
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -106,6 +108,7 @@ function PlasmicContentPage__RenderFunc(props: {
   overrides: PlasmicContentPage__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -163,7 +166,7 @@ function PlasmicContentPage__RenderFunc(props: {
           >
             <div className={classNames("all", sty.freeBox__zQtUe)}>
               <div className={classNames("all", "__wab_text", sty.text__crDwU)}>
-                {"Content"}
+                {<UiText message={"Content"} />}
               </div>
               <MenuButton
                 data-plasmic-name={"moreButton"}
@@ -188,7 +191,7 @@ function PlasmicContentPage__RenderFunc(props: {
                         sty.text__o1YhO
                       )}
                     >
-                      {"Types"}
+                      {<UiText message={"Types"} />}
                     </div>
                     <PlasmicLink__
                       data-plasmic-name={"editModelsButton"}
@@ -200,7 +203,7 @@ function PlasmicContentPage__RenderFunc(props: {
                         sty.editModelsButton
                       )}
                       platform={"react"}
-                      title={"Manage Content Types"}
+                      title={uiT("Manage Content Types")}
                     >
                       <SettingsSlidersSvgIcon
                         data-plasmic-name={"svg"}

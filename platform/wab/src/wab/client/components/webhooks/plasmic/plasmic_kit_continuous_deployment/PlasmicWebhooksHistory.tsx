@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: Ynwp30ZgYk
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -208,8 +209,8 @@ function PlasmicWebhooksHistory__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "loading", "loading")
-            ? "Loading\u2026"
-            : "Enter some text"}
+            ? <UiText message={"Loading…"} />
+            : <UiText message={"Enter some text"} />}
         </div>
       ) : null}
     </div>

@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: ratDJT6SAx
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -124,10 +125,10 @@ function PlasmicAuthConfig__RenderFunc(props: {
           </div>
           <div className={classNames("all", sty.freeBox__v1Vh)}>
             <div className={classNames("all", "__wab_text", sty.text__bpYhI)}>
-              {"Authentication"}
+              {<UiText message={"Authentication"} />}
             </div>
             <div className={classNames("all", "__wab_text", sty.text__ipbcz)}>
-              {"Configure how users login to your app"}
+              {<UiText message={"Configure how users login to your app"} />}
             </div>
           </div>
           <IconButton

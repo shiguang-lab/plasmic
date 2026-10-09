@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: wx3bEfvj7g
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -139,10 +140,10 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
                 data-plasmic-override={overrides.directoryName}
                 className={classNames("all", "__wab_text", sty.directoryName)}
               >
-                {"Main users"}
+                {<UiText message={"Main users"} />}
               </div>
               <div className={classNames("all", "__wab_text", sty.text__fzVhc)}>
-                {"Directory"}
+                {<UiText message={"Directory"} />}
               </div>
             </div>
             <Button
@@ -165,7 +166,7 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
               withIcons={["startIcon"]}
             >
               <div className={classNames("all", "__wab_text", sty.text__qKaok)}>
-                {"Back"}
+                {<UiText message={"Back"} />}
               </div>
             </Button>
             <IconButton
@@ -211,7 +212,7 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
               data-plasmic-override={overrides.groupsLabel}
               className={classNames("all", "__wab_text", sty.groupsLabel)}
             >
-              {"Groups"}
+              {<UiText message={"Groups"} />}
             </div>
           </div>
           <div
@@ -263,13 +264,13 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
         <div className={classNames("all", sty.columns__dfy35)}>
           <div className={classNames("all", sty.column__f6Uis)}>
             <div className={classNames("all", "__wab_text", sty.text__x4J25)}>
-              {"Users"}
+              {<UiText message={"Users"} />}
             </div>
           </div>
           <div className={classNames("all", sty.column___2OR5)}>
             <div className={classNames("all", sty.freeBox__ixFOn)}>
               <div className={classNames("all", "__wab_text", sty.text__kYzzB)}>
-                {"Group(s)"}
+                {<UiText message={"Group(s)"} />}
               </div>
               <IconButton
                 data-plasmic-name={"addUserBtn"}
@@ -329,7 +330,7 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
             }
             type={["clear"]}
           >
-            {"Import from..."}
+            {<UiText message={"Import from..."} />}
           </Button>
           <Button
             data-plasmic-name={"uploadCsvBtn"}
@@ -349,7 +350,7 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
             }
             type={["clear"]}
           >
-            {"Upload CSV..."}
+            {<UiText message={"Upload CSV..."} />}
           </Button>
         </div>
       </div>

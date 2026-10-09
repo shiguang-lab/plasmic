@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: -zGA-erYhCmv
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -319,7 +320,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
                 )
               })}
             >
-              {"Describe what you want to get:"}
+              {<UiText message={"Describe what you want to get:"} />}
             </div>
             <h6
               data-plasmic-name={"history"}
@@ -346,7 +347,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
                 }
               )}
             >
-              {"Suggestion history"}
+              {<UiText message={"Suggestion history"} />}
             </h6>
             <div
               data-plasmic-name={"rightButtons"}
@@ -462,7 +463,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
                 >
                   {hasVariant($state, "state", "historyEmpty")
                     ? "No data"
-                    : "Enter some text"}
+                    : <UiText message={"Enter some text"} />}
                 </div>
                 <div
                   data-plasmic-name={"historyContents"}
@@ -723,7 +724,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
             >
               {hasVariant($state, "state", "quotaExceeded")
                 ? "Oops!\nYou have exceeded the daily limit for using Plasmic Copilot.\nPlease come back tomorrow or at a later time to continue using the service."
-                : "Enter some text"}
+                : <UiText message={"Enter some text"} />}
             </div>
             <CopilotMsg
               data-plasmic-name={"reply"}

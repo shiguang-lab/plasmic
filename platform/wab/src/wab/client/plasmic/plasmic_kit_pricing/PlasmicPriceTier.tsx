@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: P7E8qtNzKrbM
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -549,12 +550,12 @@ function PlasmicPriceTier__RenderFunc(props: {
                   : hasVariant($state, "tier", "enterprise")
                   ? "Enterprise"
                   : hasVariant($state, "tier", "team")
-                  ? "Scale"
+                  ? <UiText message={"Scale"} />
                   : hasVariant($state, "tier", "pro")
                   ? "Pro"
                   : hasVariant($state, "tier", "starter")
                   ? "Starter"
-                  : "Free"}
+                  : <UiText message={"Free plan"} />}
               </div>
             }
           />

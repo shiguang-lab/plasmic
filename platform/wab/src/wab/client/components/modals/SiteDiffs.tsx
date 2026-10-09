@@ -1,5 +1,6 @@
 import sty from "@/wab/client/components/modals/SiteDiffs.module.css";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ArrowRightIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowRight";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import CodeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Code";
@@ -70,7 +71,7 @@ export const SiteDiffs = observer(function SideDiffs(props: {
             <li>
               <div className={sty.item}>
                 <Icon icon={ComponentIcon} className="component-fg mr-sm" />
-                Component{" "}
+                <UiText message={"Component"} />{" "}
                 <strong>
                   {ensure(
                     parentNameByUuid.get(parent),

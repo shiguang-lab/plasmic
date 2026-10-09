@@ -11,6 +11,7 @@
 // Plasmic Project: oYWs1jXLUht24zyQBdCd5F
 // Component: dWRKivg8dUht
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -154,7 +155,7 @@ function PlasmicInitTokenContainer__RenderFunc(props: {
             ),
           })}
         >
-          {"Authorize Plasmic CLI"}
+          {<UiText message={"Authorize Plasmic CLI"} />}
         </div>
         <div
           className={classNames("all", "__wab_text", sty.text__v6QVe, {
@@ -213,7 +214,7 @@ function PlasmicInitTokenContainer__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "state", "loading")
-              ? "Loading..."
+              ? <UiText message={"Loading..."} />
               : "Authorize"}
           </div>
         </Button>

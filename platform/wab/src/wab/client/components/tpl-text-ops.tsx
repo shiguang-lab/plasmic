@@ -1,6 +1,7 @@
 import { MenuItemContent } from "@/wab/client/components/menu-builder";
 import { makeDataTokensSubMenu } from "@/wab/client/components/sidebar-tabs/DataBinding/data-tokens-context-menu";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { DataTokenRef, generateDataTokenName } from "@/wab/commons/DataToken";
@@ -151,7 +152,7 @@ export function makeTplTextMenu(ops: TplTextOps, viewCtx: ViewCtx) {
     menuItems.push(
       <Menu.Item key="edit-text" onClick={ops.actions.edit}>
         <MenuItemContent shortcut={getComboForAction("NAV_CHILD")}>
-          Edit text
+          <UiText message={"Edit text"} />
         </MenuItemContent>
       </Menu.Item>,
     );
@@ -174,7 +175,7 @@ export function makeTplTextMenu(ops: TplTextOps, viewCtx: ViewCtx) {
         key="use-dynamic-value"
         onClick={ops.actions.convertToDynamicValue}
       >
-        Use dynamic value
+        <UiText message={"Use dynamic value"} />
       </Menu.Item>,
     );
   }

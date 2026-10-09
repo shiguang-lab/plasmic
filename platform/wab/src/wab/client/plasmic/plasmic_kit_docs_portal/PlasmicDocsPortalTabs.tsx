@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: g_uMeV_Uh6
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -152,7 +153,7 @@ function PlasmicDocsPortalTabs__RenderFunc(props: {
         }
         isActive={hasVariant($state, "activeTab", "intro") ? true : undefined}
       >
-        {"Get Started"}
+        {<UiText message={"Get Started"} />}
       </DocsPortalTab>
       <DocsPortalTab
         data-plasmic-name={"components"}
@@ -179,7 +180,7 @@ function PlasmicDocsPortalTabs__RenderFunc(props: {
           hasVariant($state, "activeTab", "components") ? true : undefined
         }
       >
-        {"Components"}
+        {<UiText message={"Components"} />}
       </DocsPortalTab>
       <DocsPortalTab
         data-plasmic-name={"images"}
@@ -199,7 +200,7 @@ function PlasmicDocsPortalTabs__RenderFunc(props: {
         }
         isActive={hasVariant($state, "activeTab", "images") ? true : undefined}
       >
-        {"Icons"}
+        {<UiText message={"Icons"} />}
       </DocsPortalTab>
     </div>
   ) as React.ReactElement | null;

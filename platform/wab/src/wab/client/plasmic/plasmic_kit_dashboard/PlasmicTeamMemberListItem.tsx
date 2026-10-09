@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: gdLJj97tYt
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -213,7 +214,7 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
                 data-plasmic-override={overrides.text}
                 className={classNames("all", "__wab_text", sty.text)}
               >
-                {"Select..."}
+                {<UiText message={"Select..."} />}
               </div>
             }
             type={"bordered"}
@@ -224,38 +225,38 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
               isDisabled={true}
               value={"owner"}
             >
-              {"Owner"}
+              {<UiText message={"Owner"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__rEr0)}
               value={"editor"}
             >
-              {"Editor"}
+              {<UiText message={"Editor"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__vXrYx)}
               value={"designer"}
             >
-              {"Designer"}
+              {<UiText message={"Designer"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__itAig)}
               value={"content"}
             >
-              {"Content Creator"}
+              {<UiText message={"Content Creator"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__r0GbZ)}
               value={"viewer"}
             >
-              {"Viewer"}
+              {<UiText message={"Viewer"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option___0ByQx)}
               isDisabled={true}
               value={"none"}
             >
-              {"None"}
+              {<UiText message={"None"} />}
             </Select__Option>
           </Select>
           <InformationSvgIcon

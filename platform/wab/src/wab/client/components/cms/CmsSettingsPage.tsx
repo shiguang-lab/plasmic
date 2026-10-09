@@ -7,6 +7,7 @@ import {
 import Button from "@/wab/client/components/widgets/Button";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultCmsSettingsPageProps,
   PlasmicCmsSettingsPage,
@@ -164,7 +165,7 @@ function CmsSettingsPage_(
                           htmlType={"button"}
                           onClick={() => handles.remove(name)}
                         >
-                          Remove
+                          <UiText message={"Remove"} />
                         </Button>
                       </div>
                     ))}
@@ -215,7 +216,7 @@ function CopiableCode(props: { text: string; hide?: boolean; name?: string }) {
           copy(text);
         }}
       >
-        Copy
+        <UiText message={"Copy"} />
       </Button>
     </div>
   );

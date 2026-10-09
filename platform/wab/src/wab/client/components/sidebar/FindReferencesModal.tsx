@@ -5,6 +5,7 @@ import ReferenceItem from "@/wab/client/components/sidebar/ReferenceItem";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { TokenEditModal } from "@/wab/client/components/sidebar/TokenEditModal";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
 import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
@@ -349,7 +350,7 @@ function getReferenceItemMenuRenderer({
         {menuSection(
           "references",
           <Menu.Item key="references" onClick={onFindReferences}>
-            Find all references
+            <UiText message={"Find all references"} />
           </Menu.Item>,
         )}
       </Menu>

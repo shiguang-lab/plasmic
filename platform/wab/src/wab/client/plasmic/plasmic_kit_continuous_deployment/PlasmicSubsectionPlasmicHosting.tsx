@@ -11,6 +11,8 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: aeDQsBfp-eA
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -111,6 +113,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
   overrides: PlasmicSubsectionPlasmicHosting__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -264,7 +267,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
               ),
             })}
           >
-            {"Publish to Plasmic Hosting"}
+            {<UiText message={"Publish to Plasmic Hosting"} />}
           </div>
           {false ? (
             <svg className={classNames("all", sty.svg___1TkF4)} role={"img"} />
@@ -298,7 +301,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                 ),
               })}
             >
-              {hasVariant($state, "collapse", "collapse") ? "Show" : "Remove"}
+              {hasVariant($state, "collapse", "collapse") ? "Show" : <UiText message={"Remove"} />}
             </div>
           </Button>
           {false ? (
@@ -322,7 +325,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___43JWs)}
               >
-                {"Button"}
+                {<UiText message={"Button"} />}
               </div>
             </Button>
           ) : null}
@@ -360,7 +363,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
           >
             <div className={classNames("all", "__wab_text", sty.text__wYnuA)}>
               {
-                "Publish your app or website to Plasmic's built-in hosting platform."
+                <UiText message={"Publish your app or website to Plasmic's built-in hosting platform."} />
               }
             </div>
             <PlasmicLink__
@@ -379,7 +382,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
               platform={"react"}
               target={"_blank"}
             >
-              {"Learn more."}
+              {<UiText message={"Learn more."} />}
             </PlasmicLink__>
             <div
               data-plasmic-name={"warning"}
@@ -394,7 +397,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                     }
                     style={{ fontWeight: 700 }}
                   >
-                    {"Warning"}
+                    {<UiText message={"Warning"} />}
                   </span>
                   <React.Fragment>
                     {
@@ -435,7 +438,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                   }
                   type={["secondary"]}
                 >
-                  {"Review all changes ->"}
+                  {<UiText message={"Review all changes ->"} />}
                 </Button>
               ) : null}
             </div>
@@ -489,7 +492,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                   )}
                   platform={"react"}
                 >
-                  {"DOMAIN"}
+                  {<UiText message={"DOMAIN"} />}
                 </PlasmicLink__>
               </div>
               {false ? (
@@ -513,7 +516,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                   type={["secondary"]}
                   withIcons={["startIcon"]}
                 >
-                  {"Button"}
+                  {<UiText message={"Button"} />}
                 </Button>
               ) : null}
               {false ? (
@@ -539,7 +542,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                   type={["seamless"]}
                   withIcons={["startIcon"]}
                 >
-                  {"Remove"}
+                  {<UiText message={"Remove"} />}
                 </Button>
               ) : null}
               <Button
@@ -570,7 +573,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__wx7K8)}
                 >
-                  {"Configure"}
+                  {<UiText message={"Configure"} />}
                 </div>
               </Button>
             </div>
@@ -580,7 +583,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__q3S4W)}
                   >
-                    {"Push options"}
+                    {<UiText message={"Push options"} />}
                   </div>
                   <div className={classNames("all", sty.freeBox__sTqXg)}>
                     <Button
@@ -607,7 +610,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           sty.text__flkoU
                         )}
                       >
-                        {"Fewer options"}
+                        {<UiText message={"Fewer options"} />}
                       </div>
                     </Button>
                     <ExpandButton
@@ -630,7 +633,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                         sty.text__kz772
                       )}
                     >
-                      {"Push as"}
+                      {<UiText message={"Push as"} />}
                     </div>
                     <Select
                       data-plasmic-name={"pushAs"}
@@ -674,7 +677,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           sty.text__fMrn6
                         )}
                       >
-                        {"Title (optional)"}
+                        {<UiText message={"Title (optional)"} />}
                       </div>
                       <input
                         data-plasmic-name={"title"}
@@ -685,7 +688,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           "input__fpbcK",
                           sty.title
                         )}
-                        placeholder={"Title (optional)"}
+                        placeholder={uiT("Title (optional)")}
                         ref={(ref) => {
                           $refs["title"] = ref;
                         }}
@@ -702,7 +705,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           sty.text__eYbzm
                         )}
                       >
-                        {"Description (optional)"}
+                        {<UiText message={"Description (optional)"} />}
                       </div>
                       <textarea
                         data-plasmic-name={"description"}
@@ -713,7 +716,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           "textarea__fpbcK",
                           sty.description
                         )}
-                        placeholder={"Description (optional)"}
+                        placeholder={uiT("Description (optional)")}
                         ref={(ref) => {
                           $refs["description"] = ref;
                         }}
@@ -747,47 +750,47 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
               className={classNames("__wab_instance", sty.gitJobStep__u7Srv)}
               status={"finished"}
             >
-              {"Check repository state"}
+              {<UiText message={"Check repository state"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__y2Fyr)}
               status={"finished"}
             >
-              {"Fetch GitHub access token"}
+              {<UiText message={"Fetch GitHub access token"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__kX6Oh)}
               status={"finished"}
             >
-              {"Fetch Plasmic access token"}
+              {<UiText message={"Fetch Plasmic access token"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__mbLw0)}
               status={"started"}
             >
-              {"Clone repository"}
+              {<UiText message={"Clone repository"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__gOzj4)}
             >
-              {"Sync project"}
+              {<UiText message={"Sync project"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__nxWc0)}
             >
               <div className={classNames("all", "__wab_text", sty.text__kGJg)}>
-                {"Commit changes"}
+                {<UiText message={"Commit changes"} />}
               </div>
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep___3Ntiv)}
             >
-              {"Push changes"}
+              {<UiText message={"Push changes"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep___4D1Y)}
             >
-              {"Make pull request"}
+              {<UiText message={"Make pull request"} />}
             </GitJobStep>
           </ul>
         </div>
@@ -802,7 +805,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
             sty.githubPagesDelayNotice
           )}
         >
-          {"Enter some text"}
+          {<UiText message={"Enter some text"} />}
         </div>
       ) : null}
     </div>

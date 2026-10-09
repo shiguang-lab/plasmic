@@ -11,6 +11,7 @@
 // Plasmic Project: 29njzcsBEPR4koRddw4knF
 // Component: DCWq1LLaJ6e
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -649,7 +650,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
               ),
             })}
           >
-            {hasVariant($state, "state", "concurrentEdit") ? "Watch" : "Button"}
+            {hasVariant($state, "state", "concurrentEdit") ? "Watch" : <UiText message={"Button"} />}
           </div>
         </Button>
       ) : null}
@@ -819,7 +820,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
                 ? "Reload Project"
                 : hasVariant($state, "state", "readOnly")
                 ? "Copy Project"
-                : "Button"}
+                : <UiText message={"Button"} />}
             </div>
           </Button>
         ) : null}

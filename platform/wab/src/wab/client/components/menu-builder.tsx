@@ -1,5 +1,6 @@
 import { comboToKeyLabels } from "@/wab/client/components/studio/Shortcuts";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { MaybeWrap, joinReactNodes } from "@/wab/commons/components/ReactUtil";
@@ -142,7 +143,8 @@ export function CreateNewMenuItemContent(props: {
 }) {
   return (
     <div className="flex flex-vcenter">
-      <Icon icon={PlusIcon} className="mr-sm" /> Create new {props.entity}
+      <Icon icon={PlusIcon} className="mr-sm" />{" "}
+      <UiText message={"Create new"} /> {props.entity}
     </div>
   );
 }

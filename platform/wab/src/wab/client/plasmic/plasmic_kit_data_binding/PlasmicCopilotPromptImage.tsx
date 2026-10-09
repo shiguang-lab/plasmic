@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: MmbJYtYh-0Eh
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -69,6 +70,7 @@ function PlasmicCopilotPromptImage__RenderFunc(props: {
   overrides: PlasmicCopilotPromptImage__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -131,7 +133,7 @@ function PlasmicCopilotPromptImage__RenderFunc(props: {
           <button
             data-plasmic-name={"button"}
             data-plasmic-override={overrides.button}
-            aria-label={"Delete image"}
+            aria-label={uiT("Delete image")}
             className={classNames("all", "button", "button__w2GXN", sty.button)}
             type={"button"}
           >

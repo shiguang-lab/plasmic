@@ -6,6 +6,7 @@ import {
 } from "@/wab/client/api-hooks";
 import { APP_AUTH_TRACKING_EVENT } from "@/wab/client/app-auth/constants";
 import { AppCtx } from "@/wab/client/app-ctx";
+import PermissionRule from "@/wab/client/components/app-auth/PermissionRule";
 import {
   useAppAccessRules,
   useAppAuthConfig,
@@ -13,10 +14,10 @@ import {
   useDirectoryGroups,
   useMutateHostAppAuthData,
 } from "@/wab/client/components/app-auth/app-auth-contexts";
-import PermissionRule from "@/wab/client/components/app-auth/PermissionRule";
 import { Spinner } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import Chip from "@/wab/client/components/widgets/Chip";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultPermissionsTabProps,
   PlasmicPermissionsTab,
@@ -30,7 +31,7 @@ import { parseEmailAddress } from "@/wab/shared/email-address";
 import { DomainValidator } from "@/wab/shared/hosting";
 import { prodUrlForProject } from "@/wab/shared/project-urls";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification, Select, Tag, Tooltip } from "antd";
+import { Select, Tag, Tooltip, notification } from "antd";
 import { uniqBy, without } from "lodash";
 import * as React from "react";
 import { useEffect, useState } from "react";
@@ -283,7 +284,11 @@ function PermissionsTab_(
   const options = uniqBy(
     withoutFalsy([
       ...suggestedEmails.map((email) => ({
-        label: <>Add {email}</>,
+        label: (
+          <>
+            <UiText message={"Add"} /> {email}
+          </>
+        ),
         value: email,
       })),
       ...groups.map((group) => ({
@@ -359,7 +364,11 @@ function PermissionsTab_(
               disabled={submitting || !isEditor}
               htmlType={"submit"}
             >
-              {anyEmails && realNotify() ? "Invite" : "Add"}
+              {anyEmails && realNotify() ? (
+                <UiText message={"Invite"} />
+              ) : (
+                <UiText message={"Add"} />
+              )}
             </Button>
           ),
         }}

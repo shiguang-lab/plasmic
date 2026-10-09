@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: BOKmukuncx
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -108,7 +109,7 @@ function PlasmicShareButton__RenderFunc(props: {
       }
       type={["clear"]}
     >
-      {"Share"}
+      {<UiText message={"Share"} />}
     </Button>
   ) as React.ReactElement | null;
 }

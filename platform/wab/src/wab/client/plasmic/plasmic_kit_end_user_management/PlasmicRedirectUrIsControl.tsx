@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: FvbTyDpXOYV
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -122,7 +123,7 @@ function PlasmicRedirectUrIsControl__RenderFunc(props: {
             data-plasmic-override={overrides.redirectsLabel}
             className={classNames("all", "__wab_text", sty.redirectsLabel)}
           >
-            {"Redirect URIs"}
+            {<UiText message={"Redirect URIs"} />}
           </div>
         </div>
         <div className={classNames("all", sty.column__nsFLe)}>
@@ -144,7 +145,7 @@ function PlasmicRedirectUrIsControl__RenderFunc(props: {
               />
             }
           >
-            {"Save"}
+            {<UiText message={"Save"} />}
           </Button>
         </div>
         <div className={classNames("all", sty.column__zTZy)}>

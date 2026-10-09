@@ -60,6 +60,7 @@ import {
   TplExpsProvider,
   mkStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
@@ -409,9 +410,7 @@ function getRenderBySection(
   };
 
   const enabledStyleSections = getEnabledStyleSections(tpl) as
-    | PublicStyleSection[]
-    | boolean
-    | undefined;
+    PublicStyleSection[] | boolean | undefined;
 
   const showSection = (section: Section) => {
     const setting = getSectionSetting(section);
@@ -1230,7 +1229,8 @@ const MissingPositionClassSection = observer(
             description={
               <p>
                 <strong>
-                  Component {currentComponentName} does not support styling
+                  <UiText message={"Component"} /> {currentComponentName} does
+                  not support styling
                 </strong>
                 <br />
                 It looks like the{isNestedStructure ? " root " : " "}code

@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: KCou38FwxL
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -107,7 +108,7 @@ function PlasmicScheduleControls__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__jRmBs)}>
         <div className={classNames("all", "__wab_text", sty.text__tlc4B)}>
-          {"Start date"}
+          {<UiText message={"Start date"} />}
         </div>
       </div>
       <div className={classNames("all", sty.freeBox__dKhK)}>
@@ -119,7 +120,7 @@ function PlasmicScheduleControls__RenderFunc(props: {
       </div>
       <div className={classNames("all", sty.freeBox__nMyw)}>
         <div className={classNames("all", "__wab_text", sty.text__fjTqm)}>
-          {"End date"}
+          {<UiText message={"End date"} />}
         </div>
       </div>
       <div className={classNames("all", sty.freeBox__z8Zv)}>

@@ -5,6 +5,7 @@ import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
@@ -50,7 +51,9 @@ export async function promptWrapInComponent(props: {
         ))}
       </div>
       <div className="flex flex-hcenter pt-m">
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>
+          <UiText message={"Cancel"} />
+        </Button>
       </div>
     </Modal>
   ));

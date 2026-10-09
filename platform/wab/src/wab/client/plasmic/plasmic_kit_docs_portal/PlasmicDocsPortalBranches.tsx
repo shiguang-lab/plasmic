@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: -rnSZERM6Kf
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -214,7 +215,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__z1Fo)}
                 >
-                  {"Generate presentational components into your codebase."}
+                  {<UiText message={"Generate presentational components into your codebase."} />}
                 </div>
                 <div
                   className={classNames("all", "__wab_text", sty.text___4G3Po)}

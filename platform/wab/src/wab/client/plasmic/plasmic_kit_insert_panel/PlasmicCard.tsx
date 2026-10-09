@@ -11,6 +11,7 @@
 // Plasmic Project: 4B48dRthR8uGgyaBYpWthR
 // Component: qqXViGcFWb
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -180,7 +181,7 @@ function PlasmicCard__RenderFunc(props: {
             data-plasmic-override={overrides.text}
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"Insert component"}
+            {<UiText message={"Insert component"} />}
           </div>
           <div className={classNames("all", sty.freeBox__yIvsa)}>
             <Button
@@ -195,7 +196,7 @@ function PlasmicCard__RenderFunc(props: {
               type={["secondary"]}
               withIcons={["startIcon"]}
             >
-              {"Before"}
+              {<UiText message={"Before"} />}
             </Button>
             <Button
               className={classNames("__wab_instance", sty.button__oRkMq)}
@@ -209,7 +210,7 @@ function PlasmicCard__RenderFunc(props: {
               type={["secondary"]}
               withIcons={["startIcon"]}
             >
-              {"Inside"}
+              {<UiText message={"Inside"} />}
             </Button>
             <Button
               className={classNames("__wab_instance", sty.button__aJGv9)}
@@ -223,7 +224,7 @@ function PlasmicCard__RenderFunc(props: {
               type={["secondary"]}
               withIcons={["startIcon"]}
             >
-              {"After"}
+              {<UiText message={"After"} />}
             </Button>
           </div>
           <ActionMenuButton
@@ -234,7 +235,7 @@ function PlasmicCard__RenderFunc(props: {
             size={"small"}
             type={[]}
           >
-            {"Insert"}
+            {<UiText message={"Insert"} />}
           </ActionMenuButton>
         </div>
       </div>

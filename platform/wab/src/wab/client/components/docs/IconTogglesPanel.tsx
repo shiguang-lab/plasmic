@@ -3,6 +3,7 @@ import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarMod
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultIconTogglesPanelProps,
   PlasmicIconTogglesPanel,
@@ -18,6 +19,7 @@ type IconTogglesPanelProps = DefaultIconTogglesPanelProps;
 const IconTogglesPanel = observer(function IconTogglesPanel(
   props: IconTogglesPanelProps,
 ) {
+  const { t: uiT } = useI18n();
   const docsCtx = useDocsPortalCtx();
   const icon = docsCtx.tryGetFocusedIcon();
 
@@ -51,7 +53,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
             onChange={(e) =>
               docsCtx.setIconToggle(icon, "title", e.target.value || undefined)
             }
-            placeholder="Unset"
+            placeholder={uiT("Unset")}
           />
         ),
       }}
@@ -73,7 +75,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
             value={docsCtx.getIconToggle(icon, "width") || ""}
             onChange={(v) => docsCtx.setIconToggle(icon, "width", v)}
             styleType={["bordered"]}
-            placeholder="Unset"
+            placeholder={uiT("Unset")}
             allowedUnits={LENGTH_PERCENTAGE_UNITS}
             allowFunctions
           />
@@ -86,7 +88,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
             value={docsCtx.getIconToggle(icon, "height") || ""}
             onChange={(v) => docsCtx.setIconToggle(icon, "height", v)}
             styleType={["bordered"]}
-            placeholder="Unset"
+            placeholder={uiT("Unset")}
             allowedUnits={LENGTH_PERCENTAGE_UNITS}
             allowFunctions
           />

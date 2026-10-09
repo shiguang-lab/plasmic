@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: pTr2lSrGWq8O
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -122,7 +123,7 @@ function PlasmicMarkdownHintsPopoverContent__RenderFunc(props: {
           target={"_blank"}
         >
           <div className={classNames("all", "__wab_text", sty.text__mEhd3)}>
-            {"More"}
+            {<UiText message={"More"} />}
           </div>
           <ArrowUpRightSvgIcon
             data-plasmic-name={"svg"}

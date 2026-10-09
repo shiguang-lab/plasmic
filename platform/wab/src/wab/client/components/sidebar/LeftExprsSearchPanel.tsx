@@ -11,6 +11,7 @@ import {
   getTextWithScrolling,
   truncate,
 } from "@/wab/client/components/view-common";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicLeftExprsSearchPanel } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftExprsSearchPanel";
 import {
   RightTabKey,
@@ -515,8 +516,7 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
   }, [expressions, matcher, selectedExprTypes]);
 
   const virtualItems = React.useMemo((): (
-    | Item<ExpressionItem>
-    | Group<string, ExpressionItem>
+    Item<ExpressionItem> | Group<string, ExpressionItem>
   )[] => {
     if (groupBy === "none") {
       // Return flat list of items
@@ -652,7 +652,7 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
         <div ref={containerRef} className="fill-width fill-height">
           {filteredExprs.length === 0 ? (
             <div className="p-m text-center text-secondary">
-              No matching expressions found
+              <UiText message={"No matching expressions found"} />
             </div>
           ) : (
             <VirtualGroupedList

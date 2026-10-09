@@ -5,6 +5,8 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { zIndex } from "@/wab/client/z-index";
@@ -30,6 +32,7 @@ const MIN_ROLE_TOOLTIP =
   "Any user that has role lower than the selected one won't be able to see this page";
 
 function PageMinRoleSection_({ page }: { page: Component }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const appId = studioCtx.siteInfo.id;
   const appCtx = studioCtx.appCtx;
@@ -82,7 +85,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
       const answer = await showTemporaryPrompt<"keep" | "downgrade">(
         (onSubmit, onCancel) => (
           <Modal
-            title={"Downgrade minimum role to execute operations?"}
+            title={uiT("Downgrade minimum role to execute operations?")}
             visible={true}
             footer={null}
             onCancel={onCancel}
@@ -101,7 +104,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
                   type="backlitError"
                   onClick={onCancel}
                 >
-                  Cancel
+                  <UiText message={"Cancel"} />
                 </Button>
                 <Button className="mr-sm" onClick={() => onSubmit("keep")}>
                   keep
@@ -112,7 +115,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
                   onClick={() => onSubmit("downgrade")}
                   autoFocus
                 >
-                  Downgrade
+                  <UiText message={"Downgrade"} />
                 </Button>
               </Form.Item>
             </Form>
@@ -140,7 +143,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
 
   return (
     <SidebarSection style={{ paddingTop: 12 }}>
-      <LabeledItemRow label="Role needed" tooltip={MIN_ROLE_TOOLTIP}>
+      <LabeledItemRow label={uiT("Role needed")} tooltip={MIN_ROLE_TOOLTIP}>
         <AntSelect
           className="form-control textboxlike"
           style={{ width: "100%" }}
@@ -258,7 +261,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
             </AntSelect.Option>
           ))}
           <AntSelect.Option value="anon" key="anon">
-            Anonymous
+            <UiText message={"Anonymous"} />
           </AntSelect.Option>
         </AntSelect>
       </LabeledItemRow>

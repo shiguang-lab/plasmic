@@ -38,6 +38,8 @@ import {
   useDataSource,
   useTopFrameApi,
 } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -825,6 +827,7 @@ export const TplRefEditor = observer(function TplRefEditor(props: {
   viewCtx: ViewCtx;
   valueSetState?: ValueSetState;
 }) {
+  const { t: uiT } = useI18n();
   const { value, onChange, viewCtx, valueSetState } = props;
   const component = viewCtx.currentComponent();
   const reffableTpls = flattenComponent(component)
@@ -846,7 +849,7 @@ export const TplRefEditor = observer(function TplRefEditor(props: {
       valueSetState={valueSetState}
       isDisabled={reffableTpls.length === 0}
       disabledTooltip={"No element action available"}
-      placeholder="Pick an element"
+      placeholder={uiT("Pick an element")}
     >
       {reffableTpls.map((tpl) => (
         <StyleSelect.Option value={tpl.uuid} textValue={tpl.name ?? ""}>
@@ -972,7 +975,8 @@ export const DataSelectorEditor = (props: {
           key={i}
         >
           <StyleSelect.Option key={`${i}_select`} value={"none"}>
-            Select {!isArray(_data) ? "a field" : "an index"}...
+            <UiText message={"Select"} />{" "}
+            {!isArray(_data) ? "a field" : "an index"}...
           </StyleSelect.Option>
           {Object.keys(_data ?? {}).map((option, j) => (
             <StyleSelect.Option key={`${j}_${option}`} value={option}>
@@ -1008,7 +1012,7 @@ export const FallbackEditor = observer(function FallbackEditor_(props: {
         <Menu>
           {isSet && onUnset && !hideUnset && (
             <Menu.Item key={"deleteFallback"} onClick={onUnset}>
-              Unset fallback
+              <UiText message={"Unset fallback"} />
             </Menu.Item>
           )}
         </Menu>
@@ -1255,7 +1259,9 @@ const ApplyMenu = observer(function ApplyMenu_(props: {
         }
         data-test-id="apply-menu"
       >
-        <span className="text-set">Apply</span>
+        <span className="text-set">
+          <UiText message={"Apply"} />
+        </span>
       </Button>
     </Dropdown>
   );

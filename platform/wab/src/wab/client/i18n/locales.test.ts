@@ -45,3 +45,22 @@ it("interpolates names without interpreting them as markup or replacement tokens
     }),
   ).toBe("删除项目“<script>$&</script>”？");
 });
+
+it("includes every shared editor caption in all five language packs", async () => {
+  const labels = await import("@/wab/shared/Labels");
+  for (const label of Object.values(labels)) {
+    expect(Object.hasOwn(messages.en, label), label).toBe(true);
+  }
+});
+
+it("includes the descriptions and contexts of all Studio keyboard shortcuts", async () => {
+  const { STUDIO_SHORTCUTS } =
+    await import("@/wab/client/shortcuts/studio/studio-shortcuts");
+  const labels = Object.values(STUDIO_SHORTCUTS).flatMap((shortcut) => [
+    shortcut.description,
+    ...(shortcut.context ? [shortcut.context] : []),
+  ]);
+  expect(labels.filter((label) => !Object.hasOwn(messages.en, label))).toEqual(
+    [],
+  );
+});

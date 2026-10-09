@@ -1,6 +1,7 @@
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { UiText } from "@/wab/client/i18n/UiText";
 import LinkIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Link";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -80,7 +81,8 @@ export async function reconcileLinkedProp(opts: {
     message: (
       <div>
         <p>
-          Update <strong>{outerParam.variable.name}</strong> in{" "}
+          <UiText message={"Update"} />{" "}
+          <strong>{outerParam.variable.name}</strong> in{" "}
           <strong>{getComponentDisplayName(outerComponent)}</strong> to match{" "}
           <strong>{innerName}</strong>?
         </p>
@@ -174,7 +176,7 @@ export function notifyLinkedPropDrift(
             notification.destroy(key);
           }}
         >
-          [Review in Issues tab]
+          <UiText message={"[Review in Issues tab]"} />
         </a>
       </>
     ),
@@ -193,7 +195,7 @@ export function LinkedPropIndicator(props: {
     <div className="flex flex-align-start labeled-item__value-vpadding">
       <Icon icon={LinkIcon} className="mr-ch dimfg" />
       <span>
-        Linked to{" "}
+        <UiText message={"Linked to"} />{" "}
         <strong>
           {getComponentDisplayName(ownerComponent)}.
           {referencedParam.variable.name}
@@ -225,7 +227,13 @@ export function LinkToPropMenuItem(props: {
 }) {
   const { availableParams, onLinkExisting, onCreateNew } = props;
   return (
-    <Menu.SubMenu title={<span>Allow external access</span>}>
+    <Menu.SubMenu
+      title={
+        <span>
+          <UiText message={"Allow external access"} />
+        </span>
+      }
+    >
       {availableParams.map((param) => (
         <Menu.Item key={param.uid} onClick={() => onLinkExisting(param)}>
           <strong>{param.variable.name}</strong>
@@ -234,7 +242,8 @@ export function LinkToPropMenuItem(props: {
       {availableParams.length > 0 && <Menu.Divider />}
       <Menu.Item onClick={onCreateNew}>
         <div className="flex flex-vcenter">
-          <Icon icon={PlusIcon} className="mr-sm" /> Create new prop
+          <Icon icon={PlusIcon} className="mr-sm" />{" "}
+          <UiText message={"Create new prop"} />
         </div>
       </Menu.Item>
     </Menu.SubMenu>
@@ -250,7 +259,7 @@ export function UnlinkFromPropMenuItem(props: {
   return (
     <Menu.Item onClick={onUnlink}>
       <span>
-        Unlink from component prop{" "}
+        <UiText message={"Unlink from component prop"} />{" "}
         <strong>
           {getComponentDisplayName(ownerComponent)}.
           {referencedParam.variable.name}

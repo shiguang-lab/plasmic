@@ -1,5 +1,7 @@
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useCodegenType } from "@/wab/client/hooks/useCodegenType";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import CirclesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__CircleSvg";
 import PlasmicCodeButton from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicCodeButton";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -16,6 +18,7 @@ import { MdOpenInNew } from "react-icons/all";
 import { useLocalStorage } from "react-use";
 
 export const CodeButton = observer(function CodeButton() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
 
@@ -62,13 +65,17 @@ export const CodeButton = observer(function CodeButton() {
   }
 
   const quickstartTooltipContent = isPlasmicLevels ? (
-    "Disabled for Plasmic Levels"
+    uiT("Disabled for Plasmic Levels")
   ) : (
     <>
-      Integrate into your codebase
+      <UiText message={"Integrate into your codebase"} />
       {redCircle && (
         <div className="mt-sm">
-          (This project has never been synced and never been imported.)
+          <UiText
+            message={
+              "(This project has never been synced and never been imported.)"
+            }
+          />
         </div>
       )}
     </>
@@ -90,19 +97,21 @@ export const CodeButton = observer(function CodeButton() {
         button={{ ...props }}
         menuButton={{
           ...props,
-          "aria-label": "Code",
+          "aria-label": uiT("Code"),
           menu: () => (
             <Menu>
               <Menu.Item
                 onClick={() => showQuickstarts()}
                 disabled={isPlasmicLevels}
               >
-                <Tooltip title={quickstartTooltipContent}>Quickstarts</Tooltip>
+                <Tooltip title={quickstartTooltipContent}>
+                  <UiText message={"Quickstarts"} />
+                </Tooltip>
               </Menu.Item>
               <Menu.Item
                 onClick={() => window.open("https://docs.plasmic.app/learn")}
               >
-                Documentation
+                <UiText message={"Documentation"} />
                 <MdOpenInNew style={{ color: "silver", marginLeft: "8px" }} />
               </Menu.Item>
               <Menu.Item
@@ -114,11 +123,13 @@ export const CodeButton = observer(function CodeButton() {
                 <Tooltip
                   title={
                     isPlasmicLevels
-                      ? "Disabled for Plasmic Levels"
-                      : "Auto-generated docs and component explorer for this project"
+                      ? uiT("Disabled for Plasmic Levels")
+                      : uiT(
+                          "Auto-generated docs and component explorer for this project",
+                        )
                   }
                 >
-                  Component API explorer
+                  <UiText message={"Component API explorer"} />
                   <MdOpenInNew style={{ color: "silver", marginLeft: "8px" }} />
                 </Tooltip>
               </Menu.Item>
@@ -127,7 +138,7 @@ export const CodeButton = observer(function CodeButton() {
                   window.open("https://www.github.com/plasmicapp/plasmic")
                 }
               >
-                Plasmic on GitHub
+                <UiText message={"Plasmic on GitHub"} />
                 <MdOpenInNew style={{ color: "silver", marginLeft: "8px" }} />
               </Menu.Item>
             </Menu>

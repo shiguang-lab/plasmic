@@ -1,5 +1,6 @@
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { defaultComponentKinds } from "@/wab/shared/core/components";
 import { naturalSort } from "@/wab/shared/sort";
 import { Form, Select } from "antd";
@@ -57,7 +58,7 @@ export function DefaultComponentKindModal<T>({
           }}
         >
           <Button htmlType={"submit"} size={"stretch"} type={"primary"}>
-            Submit
+            <UiText message={"Submit"} />
           </Button>
         </Form.Item>
       </Form>

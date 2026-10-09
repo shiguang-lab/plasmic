@@ -22,6 +22,8 @@ import { FontFamilySelector } from "@/wab/client/components/widgets/FontFamilySe
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { PlasmicStyleToggleButtonGroup__VariantsArgs } from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButtonGroup";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -198,6 +200,7 @@ export const LabeledStyleItem = observer(function LabeledStyleItem_(
     noExtract?: boolean;
   },
 ) {
+  const { label: localizeLabel } = useI18n();
   const sc = useStyleComponent();
   const { styleName, hideIndicator, ...rest } = props;
   const styleNames = ensureArray(styleName);
@@ -214,7 +217,21 @@ export const LabeledStyleItem = observer(function LabeledStyleItem_(
     : ensureArray(
         props.definedIndicator || sc.definedIndicators(...styleNames),
       );
-  return <LabeledItem {...rest} menu={makeMenu} definedIndicator={indicator} />;
+  return (
+    <LabeledItem
+      {...rest}
+      label={
+        typeof rest.label === "string" ? localizeLabel(rest.label) : rest.label
+      }
+      tooltip={
+        typeof rest.tooltip === "string"
+          ? localizeLabel(rest.tooltip)
+          : rest.tooltip
+      }
+      menu={makeMenu}
+      definedIndicator={indicator}
+    />
+  );
 });
 
 export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
@@ -590,6 +607,7 @@ export const LabeledStyleSelectItem = observer(function LabeledStyleSelectItem(
     "data-test-id"?: string;
   },
 ) {
+  const { label: localizeLabel } = useI18n();
   const { selectOpts, textRight = true, ...rest } = props;
   const { labelProps, fieldProps } = useLabel(props);
   const sc = useStyleComponent();
@@ -635,7 +653,9 @@ export const LabeledStyleSelectItem = observer(function LabeledStyleSelectItem(
             value={option.value}
             isDisabled={option.isDisabled}
           >
-            {option.label}
+            {typeof option.label === "string"
+              ? localizeLabel(option.label)
+              : option.label}
           </StyleSelect.Option>
         ))}
       </StyleSelect>
@@ -946,28 +966,33 @@ export function TargetBlockedTooltip(props: {
   return (
     <>
       <p>
-        The {displayName ? <strong>{displayName}</strong> : null} is overwritten
-        in variant{" "}
-        <strong>
-          {combo
-            .map((variant) =>
-              makeVariantName({ variant, site: props.studioCtx?.site }),
-            )
-            .join(" + ")}
-        </strong>
-        .
+        <UiText
+          message="The {name} is overwritten in variant {variant}."
+          values={{
+            name: displayName ? <strong>{displayName}</strong> : null,
+            variant: (
+              <strong>
+                {combo
+                  .map((variant) =>
+                    makeVariantName({ variant, site: props.studioCtx?.site }),
+                  )
+                  .join(" + ")}
+              </strong>
+            ),
+          }}
+        />
       </p>
       <p>
-        To edit, switch to editing that variant (by activating it in the
-        floating toolbar).
+        <UiText message="To edit, switch to editing that variant (by activating it in the floating toolbar)." />
       </p>
       <p>
-        Or to remove the override, in the right sidebar, right-click{" "}
-        {displayName === "text" ? (
-          <>"Content" and select "Clear text."</>
-        ) : (
-          <>the property and remove it.</>
-        )}
+        <UiText
+          message={
+            displayName === "text"
+              ? 'Or to remove the override, in the right sidebar, right-click "Content" and select "Clear text."'
+              : "Or to remove the override, in the right sidebar, right-click the property and remove it."
+          }
+        />
       </p>
     </>
   );
@@ -1013,12 +1038,13 @@ export function InvariantablePropTooltip(props: { propName: string }) {
   return (
     <>
       <p>
-        The <strong>{propName}</strong> is invariantable so it should only be
-        modified in the <strong>Base</strong> variant.
+        <UiText
+          message="The {name} is invariantable so it should only be modified in the Base variant."
+          values={{ name: <strong>{propName}</strong> }}
+        />
       </p>
       <p>
-        To edit, switch to editing that variant (by activating it in the
-        floating toolbar).
+        <UiText message="To edit, switch to editing that variant (by activating it in the floating toolbar)." />
       </p>
     </>
   );

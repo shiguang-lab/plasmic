@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: GDvL7J9P5V4
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -109,7 +110,7 @@ function PlasmicDataPickerGlobalSearchResults__RenderFunc(props: {
         data-plasmic-override={overrides.text}
         className={classNames("all", "__wab_text", sty.text)}
       >
-        {"Search results"}
+        {<UiText message={"Search results"} />}
       </div>
       <div
         data-plasmic-name={"freeBox"}

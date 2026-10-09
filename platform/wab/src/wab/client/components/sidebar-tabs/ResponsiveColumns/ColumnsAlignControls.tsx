@@ -4,6 +4,7 @@ import StyleToggleButtonGroup from "@/wab/client/components/style-controls/Style
 import { alignItemsIcons } from "@/wab/client/components/style-controls/align-items-controls";
 import { JustifyContentIcons } from "@/wab/client/components/style-controls/justify-content-controls";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
@@ -92,7 +93,7 @@ export const ColumnsAlignControls = observer(function ColumnsAlignControls(
     <>
       <FullRow autoHeight className="mb-lg">
         <div className="flex-fill">
-          Layout items <EachColumnTooltip />
+          <UiText message={"Layout items"} /> <EachColumnTooltip />
         </div>
       </FullRow>
       <FullRow>

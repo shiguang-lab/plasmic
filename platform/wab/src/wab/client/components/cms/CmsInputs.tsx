@@ -19,6 +19,7 @@ import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import Select from "@/wab/client/components/widgets/Select";
 import { Switch, SwitchProps } from "@/wab/client/components/widgets/Switch";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import Trash2Icon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
 import ArrowDownSvg from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ArrowDownSvg";
@@ -314,7 +315,7 @@ export function CmsListInput(props: any) {
                         }}
                         type="secondary"
                       >
-                        Expand all
+                        <UiText message={"Expand all"} />
                       </Button>
                       <Button
                         onClick={() => {
@@ -322,7 +323,7 @@ export function CmsListInput(props: any) {
                         }}
                         type="secondary"
                       >
-                        Collapse all
+                        <UiText message={"Collapse all"} />
                       </Button>
                     </>
                   )}
@@ -701,7 +702,9 @@ export function CmsEnumInput(props: any) {
 
   return (
     <Select {...props} type={"bordered"}>
-      <Select.Option value={undefined}>Unset</Select.Option>
+      <Select.Option value={undefined}>
+        <UiText message={"Unset"} />
+      </Select.Option>
       {typeMeta?.options?.map((row) => (
         <Select.Option key={row} value={row}>
           {row}

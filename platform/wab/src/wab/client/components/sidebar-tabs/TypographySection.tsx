@@ -6,12 +6,12 @@ import {
 } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { FallbackEditor } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import { DataTokenEditModal } from "@/wab/client/components/sidebar/DataTokenEditModal";
+import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
-  getValueSetState,
   LabeledItemRow,
   ValueSetState,
+  getValueSetState,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
-import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   ExpsProvider,
   StylePanelSection,
@@ -24,16 +24,23 @@ import {
   makeTplTextOps,
 } from "@/wab/client/components/tpl-text-ops";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
+import {
+  isCodeComponentSlot,
+  isPlainTextTplSlot,
+} from "@/wab/shared/SlotUtils";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { assert, cx, ensureInstance } from "@/wab/shared/common";
 import {
+  ExprCtx,
   asCode,
   clone,
   codeLit,
   createExprForDataPickerValue,
-  ExprCtx,
   extractValueSavedFromDataPicker,
   flattenTemplatedStringToString,
   isFallbackSet,
@@ -51,24 +58,19 @@ import {
 import {
   CustomCode,
   DataToken,
-  ensureKnownTplTag,
   ExprText,
-  isKnownCustomCode,
-  isKnownExprText,
-  isKnownObjectPath,
-  isKnownTemplatedString,
   ObjectPath,
   RawText,
   RichText,
   TemplatedString,
   TplSlot,
   TplTag,
+  ensureKnownTplTag,
+  isKnownCustomCode,
+  isKnownExprText,
+  isKnownObjectPath,
+  isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import {
-  isCodeComponentSlot,
-  isPlainTextTplSlot,
-} from "@/wab/shared/SlotUtils";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { Alert, Menu, Tooltip } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
@@ -205,6 +207,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
   viewCtx: ViewCtx;
   expsProvider: TplExpsProvider;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider, viewCtx } = props;
   const studioCtx = useStudioCtx();
   const contentRef = React.useRef<HTMLDivElement>(null);
@@ -307,7 +310,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
         {makeTplTextMenu(textTplOps, viewCtx)}
         {!isSubNode && isKnownExprText(text) && !isFallbackSet(text.expr) && (
           <Menu.Item key={"fallback"} onClick={() => setShowFallback(true)}>
-            Change fallback value
+            <UiText message={"Change fallback value"} />
           </Menu.Item>
         )}
         {isSubNode &&
@@ -327,7 +330,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                 )
               }
             >
-              Use static value
+              <UiText message={"Use static value"} />
             </Menu.Item>
           )}
       </Menu>
@@ -337,7 +340,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
     <>
       <LabeledItemRow
         data-test-id="text-content"
-        label="Content"
+        label={uiT("Content")}
         definedIndicator={indicator}
         menu={contextMenu}
         ref={contentRef}
@@ -495,7 +498,13 @@ export const TextContentRow = observer(function TextContentRow(props: {
           label={
             <LabelWithDetailedTooltip
               tooltip={
-                <div>If set, treat custom code expression content as HTML.</div>
+                <div>
+                  <UiText
+                    message={
+                      "If set, treat custom code expression content as HTML."
+                    }
+                  />
+                </div>
               }
             >
               HTML?

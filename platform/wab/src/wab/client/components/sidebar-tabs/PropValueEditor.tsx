@@ -53,6 +53,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/StyleExprModal";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -212,8 +213,7 @@ const PropValueEditor_ = (
   const _getContextDependentValue = React.useCallback(
     function <P>(
       contextDependentValue?:
-        | P
-        | ComponentContextConfig<typeof componentPropValues, P>,
+        P | ComponentContextConfig<typeof componentPropValues, P>,
     ) {
       return getContextDependentValue(
         contextDependentValue,
@@ -1181,7 +1181,11 @@ const PropValueEditor_ = (
     if (!fields || Object.keys(fields).length === 0) {
       // QueryBuilder validates the value against the config's fields,
       // so make sure the config is loaded before rendering.
-      return <span className="dimfg">No data available to filter.</span>;
+      return (
+        <span className="dimfg">
+          <UiText message={"No data available to filter."} />
+        </span>
+      );
     }
     return (
       <QueryBuilderPropEditor

@@ -3,6 +3,7 @@ import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftFontsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftFontsPanel";
 import AlertIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
@@ -48,7 +49,7 @@ function _UserManagedFontsPanel(props: {}) {
                 })
               }
             >
-              Delete
+              <UiText message={"Delete"} />
             </Menu.Item>,
           );
         });

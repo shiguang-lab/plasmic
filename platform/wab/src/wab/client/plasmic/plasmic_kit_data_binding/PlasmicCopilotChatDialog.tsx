@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: zXJ41ZVTz7ne
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -106,6 +107,7 @@ function PlasmicCopilotChatDialog__RenderFunc(props: {
   overrides: PlasmicCopilotChatDialog__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -170,7 +172,7 @@ function PlasmicCopilotChatDialog__RenderFunc(props: {
             data-plasmic-name={"copilotPromptInput"}
             data-plasmic-override={overrides.copilotPromptInput}
 
-            placeholder={"What can I build for you today?"}
+            placeholder={uiT("What can I build for you today?")}
           />
         </div>
       }

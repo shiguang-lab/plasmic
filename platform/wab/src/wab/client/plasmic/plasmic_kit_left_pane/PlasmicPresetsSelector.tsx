@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: neIW4UOiRU
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -121,7 +122,7 @@ function PlasmicPresetsSelector__RenderFunc(props: {
           data-plasmic-override={overrides.text}
           className={classNames("all", "__wab_text", sty.text)}
         >
-          {"All Presets"}
+          {<UiText message={"All Presets"} />}
         </div>
       </div>
       <div
@@ -153,7 +154,7 @@ function PlasmicPresetsSelector__RenderFunc(props: {
                 data-plasmic-override={overrides.example162}
                 className={classNames("all", "__wab_text", sty.example162)}
               >
-                {"Screenshot"}
+                {<UiText message={"Screenshot"} />}
               </div>
             }
           />

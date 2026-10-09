@@ -2,6 +2,7 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
+import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { Dim } from "@/wab/shared/core/bg-styles";
 import { getSliderConfig } from "@/wab/shared/core/transform-utils";
@@ -26,6 +27,7 @@ interface TransformPanelProps {
 export const TransformPanel = observer(function TransformPanel(
   props: TransformPanelProps,
 ) {
+  const { t: uiT } = useI18n();
   const { studioCtx, transform, onChange } = props;
 
   // ensure that we stop unlogging in case the component is going to unmount
@@ -49,28 +51,28 @@ export const TransformPanel = observer(function TransformPanel(
         <StyleToggleButton
           stretched
           value="translate"
-          label={"Move"}
+          label={uiT("Move")}
           showLabel
           children={null}
         />
         <StyleToggleButton
           stretched
           value="rotate"
-          label={"Rotate"}
+          label={uiT("Rotate")}
           showLabel
           children={null}
         />
         <StyleToggleButton
           stretched
           value="scale"
-          label={"Scale"}
+          label={uiT("Scale")}
           showLabel
           children={null}
         />
         <StyleToggleButton
           stretched
           value="skew"
-          label={"Skew"}
+          label={uiT("Skew")}
           showLabel
           children={null}
         />

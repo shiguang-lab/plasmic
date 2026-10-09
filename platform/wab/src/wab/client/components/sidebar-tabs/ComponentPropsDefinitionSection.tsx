@@ -11,6 +11,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem";
 import { SimpleReorderableList } from "@/wab/client/components/widgets/SimpleReorderableList";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
@@ -131,7 +132,7 @@ export const ComponentPropsDefinitionSection = observer(
         <SidebarSection
           title={
             <LabelWithDetailedTooltip tooltip={PropsTooltip}>
-              {COMPONENT_PROP_PLURAL_CAP}
+              {<UiLabel text={COMPONENT_PROP_PLURAL_CAP} />}
             </LabelWithDetailedTooltip>
           }
           controls={
@@ -368,7 +369,9 @@ const PropRow = observer(function ParamRow(props: {
                 disabled={!canRename}
               />
               {isKnownPropParam(param) && param.advanced && (
-                <div className="text-xsm dimfg">(advanced)</div>
+                <div className="text-xsm dimfg">
+                  <UiText message={"(advanced)"} />
+                </div>
               )}
             </div>
           }
@@ -404,7 +407,7 @@ function makeParamMenu(
   return (
     <Menu>
       <Menu.Item onClick={() => opts.onConfigureParam()}>
-        {CONFIGURE_ACTION}
+        {<UiLabel text={CONFIGURE_ACTION} />}
       </Menu.Item>
       {canChangeParamExportType(component, param) && (
         <Menu.SubMenu title="Set code export type to">
@@ -451,7 +454,7 @@ function makeParamMenu(
             });
           }}
         >
-          {DELETE_ACTION}
+          {<UiLabel text={DELETE_ACTION} />}
         </Menu.Item>
       )}
     </Menu>

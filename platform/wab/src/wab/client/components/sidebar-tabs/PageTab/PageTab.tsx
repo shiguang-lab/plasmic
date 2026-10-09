@@ -14,6 +14,7 @@ import { TopModal } from "@/wab/client/components/studio/TopModal";
 import { VariantsPanel } from "@/wab/client/components/variants/VariantsPanel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -32,6 +33,7 @@ export const PageTab = observer(function PageTab(props: {
   page: PageComponent;
   isHalf?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { studioCtx, page, viewCtx, isHalf = false } = props;
 
   const focusedOrFirstViewCtx = studioCtx.focusedOrFirstViewCtx();
@@ -77,7 +79,7 @@ export const PageTab = observer(function PageTab(props: {
     () =>
       canEdit(PublicStyleSection.PageMeta) && (
         <IconButton
-          tooltip="Page settings"
+          tooltip={uiT("Page settings")}
           data-test-id="page-settings-button"
           onClick={() => setShowSettings(true)}
         >
@@ -90,7 +92,10 @@ export const PageTab = observer(function PageTab(props: {
   return (
     <>
       {showSettings && (
-        <TopModal title="Page Settings" onClose={() => setShowSettings(false)}>
+        <TopModal
+          title={uiT("Page Settings")}
+          onClose={() => setShowSettings(false)}
+        >
           <PageSettings page={page} viewCtx={viewCtx} exprCtx={exprCtx} />
         </TopModal>
       )}

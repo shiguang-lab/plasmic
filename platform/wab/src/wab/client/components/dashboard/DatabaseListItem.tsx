@@ -1,11 +1,12 @@
-import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboard-actions";
 import EditableResourceName from "@/wab/client/components/EditableResourceName";
 import { PublicLink } from "@/wab/client/components/PublicLink";
+import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboard-actions";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
 import { ClickStopper } from "@/wab/client/components/widgets";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicDatabaseListItem } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDatabaseListItem";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
@@ -15,8 +16,8 @@ import {
   ApiPermission,
   ApiWorkspace,
 } from "@/wab/shared/ApiSchema";
-import { assert } from "@/wab/shared/common";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
+import { assert } from "@/wab/shared/common";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
@@ -142,7 +143,10 @@ function DatabaseListItem_(
                       onUpdate();
                     }}
                   >
-                    <strong>Move</strong> to workspace
+                    <strong>
+                      <UiText message={"Move"} />
+                    </strong>{" "}
+                    to workspace
                   </Menu.Item>
                   <Menu.Item
                     key="duplicate"
@@ -154,7 +158,10 @@ function DatabaseListItem_(
                       onUpdate();
                     }}
                   >
-                    <strong>Duplicate</strong> CMS Schema
+                    <strong>
+                      <UiText message={"Duplicate"} />
+                    </strong>{" "}
+                    CMS Schema
                   </Menu.Item>
                   <Menu.Item
                     key="delete"
@@ -175,7 +182,10 @@ function DatabaseListItem_(
                       onUpdate();
                     }}
                   >
-                    <strong>Delete</strong> CMS
+                    <strong>
+                      <UiText message={"Delete"} />
+                    </strong>{" "}
+                    CMS
                   </Menu.Item>
                 </Menu>
               ),

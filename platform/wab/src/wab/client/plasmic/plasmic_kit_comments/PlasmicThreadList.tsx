@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: nObxvgrqmfvo
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -176,7 +177,7 @@ function PlasmicThreadList__RenderFunc(props: {
             data-plasmic-override={overrides.text}
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"No comments"}
+            {<UiText message={"No comments"} />}
           </div>
           <div
             data-plasmic-name={"freeBox"}
@@ -193,7 +194,7 @@ function PlasmicThreadList__RenderFunc(props: {
                 sty.span__uO4IR
               )}
             >
-              {"Use"}
+              {<UiText message={"Use"} />}
             </span>
             <SpeechBubblePlusSvgIcon
               data-plasmic-name={"svg"}

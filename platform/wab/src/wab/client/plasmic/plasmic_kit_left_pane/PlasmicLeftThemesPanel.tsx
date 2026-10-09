@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: 9I47RGPv62
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -97,6 +99,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
   overrides: PlasmicLeftThemesPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -210,7 +213,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
             className={classNames("all", sty.freeBox)}
           >
             <div className={classNames("all", "__wab_text", sty.text__rgfqo)}>
-              {"Active theme"}
+              {<UiText message={"Active theme"} />}
             </div>
             <StyleSelect
               data-plasmic-name={"themeSelector"}
@@ -266,7 +269,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
             className={classNames("__wab_instance", sty.textWithInfo)}
           >
             <div className={classNames("all", "__wab_text", sty.text__sLPev)}>
-              {"Theme"}
+              {<UiText message={"Theme"} />}
             </div>
           </TextWithInfo>
         }
@@ -279,7 +282,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
             : undefined
         }
         noDescription={true}
-        title={"Theme"}
+        title={uiT("Theme")}
       />
 
       {(

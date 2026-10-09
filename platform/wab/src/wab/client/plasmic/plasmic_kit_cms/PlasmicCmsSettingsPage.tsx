@@ -11,6 +11,7 @@
 // Plasmic Project: ieacQ3Z46z4gwo1FnaB5vY
 // Component: a5viGetjMi
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -139,7 +140,7 @@ function PlasmicCmsSettingsPage__RenderFunc(props: {
             className={classNames("all", sty.left)}
           >
             <div className={classNames("all", "__wab_text", sty.text___6B6St)}>
-              {"Settings"}
+              {<UiText message={"Settings"} />}
             </div>
             <div
               data-plasmic-name={"details"}
@@ -173,7 +174,7 @@ function PlasmicCmsSettingsPage__RenderFunc(props: {
               size={"wide"}
               type={["primary"]}
             >
-              {"Save"}
+              {<UiText message={"Save"} />}
             </Button>
           </div>
         </div>

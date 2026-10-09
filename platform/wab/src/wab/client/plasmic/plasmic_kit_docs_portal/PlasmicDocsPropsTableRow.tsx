@@ -11,6 +11,8 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: MQ5YoyUM0K
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -97,6 +99,7 @@ function PlasmicDocsPropsTableRow__RenderFunc(props: {
   overrides: PlasmicDocsPropsTableRow__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -411,7 +414,7 @@ function PlasmicDocsPropsTableRow__RenderFunc(props: {
                 "text"
               ),
             })}
-            placeholder={"Enter something here..."}
+            placeholder={uiT("Enter something here...")}
             prefixIcon={
               <SearchSvgIcon
                 className={classNames("all", sty.svg__e4RQx)}
@@ -478,7 +481,7 @@ function PlasmicDocsPropsTableRow__RenderFunc(props: {
               data-plasmic-override={overrides.text}
               className={classNames("all", "__wab_text", sty.text)}
             >
-              {"Enter some text"}
+              {<UiText message={"Enter some text"} />}
             </div>
           </Switch>
         </div>

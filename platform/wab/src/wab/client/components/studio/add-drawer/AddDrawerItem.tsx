@@ -8,8 +8,11 @@ import IconButton from "@/wab/client/components/widgets/IconButton";
 import {
   AddItem,
   AddTplItem,
+  INSERTABLES_MAP,
   isTplAddItem,
 } from "@/wab/client/definitions/insertables";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLocale, translateUiLabel } from "@/wab/client/i18n/locales";
 import AfterIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__After";
 import BeforeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Before";
 import { AddPresetIcon } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__AddPreset";
@@ -58,20 +61,29 @@ function AddDrawerItem(props: AddDrawerItemProps) {
   );
 }
 
+export function getAddItemLabel(item: AddItem, locale: UiLocale): string {
+  return Object.hasOwn(INSERTABLES_MAP, item.key)
+    ? translateUiLabel(locale, item.label)
+    : item.label;
+}
+
 function AddItemCard(props: AddDrawerItemProps) {
+  const { locale, t } = useI18n();
   const { item, matcher, isHighlighted } = props;
   return (
     <AddDrawerCardItem
       className={props.cardClassName}
       title={
         props.cardTitle ??
-        (matcher ? matcher.boldSnippets(item.label) : item.label)
+        (matcher
+          ? matcher.boldSnippets(getAddItemLabel(item, locale))
+          : getAddItemLabel(item, locale))
       }
       titleBox={{ className: props.cardTitleClassName }}
       hoverText={
         item["hostLessPackageInfo"]?.syntheticPackage
-          ? "Show package"
-          : "Install package"
+          ? t("Show package")
+          : t("Install package")
       }
       _new={item.isNew}
       installOnly={item["isPackage"]}
@@ -90,6 +102,7 @@ function AddItemCard(props: AddDrawerItemProps) {
 }
 
 function AddItemRow(props: AddDrawerItemProps) {
+  const { locale } = useI18n();
   const {
     item,
     matcher,
@@ -99,7 +112,7 @@ function AddItemRow(props: AddDrawerItemProps) {
     validTplLocs,
     indent = 0,
   } = props;
-  const displayLabel = item.displayLabel ?? item.label;
+  const displayLabel = item.displayLabel ?? getAddItemLabel(item, locale);
   return (
     <Tooltip title={item.description}>
       <PlasmicAddDrawerItem
@@ -149,6 +162,7 @@ const InsertActions = observer(function InsertActions(props: {
   onInserted?: (tplNode: TplNode | null) => void;
   validTplLocs?: Set<InsertRelLoc>;
 }) {
+  const { t: uiT } = useI18n();
   const { studioCtx, item, onInserted, validTplLocs } = props;
 
   let preset: React.ReactElement | null = null;
@@ -157,7 +171,7 @@ const InsertActions = observer(function InsertActions(props: {
     if (getComponentPresets(studioCtx, item.component).length > 0) {
       preset = (
         <Tooltip
-          title="Insert a component template"
+          title={uiT("Insert a component template")}
           trigger={["focus", "hover"]}
         >
           <IconButton
@@ -165,7 +179,7 @@ const InsertActions = observer(function InsertActions(props: {
               studioCtx.showPresetsModal(component);
               e.stopPropagation();
             }}
-            aria-label={`Insert presets...`}
+            aria-label={uiT("Insert presets...")}
           >
             <AddPresetIcon />
           </IconButton>
@@ -202,10 +216,15 @@ const InsertActions = observer(function InsertActions(props: {
     <>
       {preset}
       {validTplLocs.has(InsertRelLoc.wrap) && item.canWrap && (
-        <Tooltip title="Wrap current selection" trigger={["focus", "hover"]}>
+        <Tooltip
+          title={uiT("Wrap current selection")}
+          trigger={["focus", "hover"]}
+        >
           <IconButton
             onClick={async (e) => await insert(e, InsertRelLoc.wrap)}
-            aria-label={`Wrap current selection with ${item.label}`}
+            aria-label={uiT("Wrap current selection with {name}", {
+              name: item.label,
+            })}
             size="small"
             type="seamless"
           >
@@ -216,12 +235,14 @@ const InsertActions = observer(function InsertActions(props: {
 
       {validTplLocs.has(InsertRelLoc.before) && (
         <Tooltip
-          title="Insert before current selection"
+          title={uiT("Insert before current selection")}
           trigger={["focus", "hover"]}
         >
           <IconButton
             onClick={async (e) => await insert(e, InsertRelLoc.before)}
-            aria-label={`Insert ${item.label} before current selection`}
+            aria-label={uiT("Insert {name} before current selection", {
+              name: item.label,
+            })}
             size="small"
             type="seamless"
           >
@@ -232,12 +253,14 @@ const InsertActions = observer(function InsertActions(props: {
 
       {validTplLocs.has(InsertRelLoc.after) && (
         <Tooltip
-          title="Insert after current selection"
+          title={uiT("Insert after current selection")}
           trigger={["focus", "hover"]}
         >
           <IconButton
             onClick={async (e) => await insert(e, InsertRelLoc.after)}
-            aria-label={`Insert ${item.label} after current selection`}
+            aria-label={uiT("Insert {name} after current selection", {
+              name: item.label,
+            })}
             size="small"
             type="seamless"
           >

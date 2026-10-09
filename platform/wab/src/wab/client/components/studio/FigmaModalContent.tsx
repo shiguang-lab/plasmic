@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 export function FigmaModalContent() {
@@ -16,9 +17,16 @@ export function FigmaModalContent() {
 
       <p>
         Then, on a Figma file, load the plugin by right-clicking the canvas,
-        hovering into <em>Plugins</em> and clicking{" "}
-        <em>Figma-to-Code by Plasmic</em>. Select the layers you want to export
-        and click <em>Export selected layers to clipboard</em>.
+        hovering into{" "}
+        <em>
+          <UiText message={"Plugins"} />
+        </em>{" "}
+        and clicking <em>Figma-to-Code by Plasmic</em>. Select the layers you
+        want to export and click{" "}
+        <em>
+          <UiText message={"Export selected layers to clipboard"} />
+        </em>
+        .
       </p>
 
       <p>Finally, paste into a Plasmic artboard by pressing Cmd/Ctrl+V.</p>

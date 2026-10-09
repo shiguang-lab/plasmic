@@ -3,6 +3,7 @@ import {
   MenuItemContent,
 } from "@/wab/client/components/menu-builder";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -53,7 +54,7 @@ export function makeFrameMenu({
           key={`duplicate-${FRAME_LOWER}`}
         >
           <MenuItemContent shortcut={getComboForAction("DUPLICATE")}>
-            Duplicate {FRAME_LOWER}
+            <UiText message={"Duplicate"} /> {<UiLabel text={FRAME_LOWER} />}
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -91,7 +92,9 @@ export function makeFrameMenu({
             }
             key={`new-${ARENA_LOWER}`}
           >
-            <MenuItemContent>New {ARENA_LOWER}</MenuItemContent>
+            <MenuItemContent>
+              <UiText message={"New"} /> {<UiLabel text={ARENA_LOWER} />}
+            </MenuItemContent>
           </Menu.Item>,
         );
       });
@@ -170,7 +173,8 @@ export function makeFrameMenu({
           key={`delete-global-variant-artboard`}
         >
           <MenuItemContent>
-            Delete {FRAME_LOWER} for <strong>{globalVariant.name}</strong>
+            <UiText message={"Delete"} /> {<UiLabel text={FRAME_LOWER} />} for{" "}
+            <strong>{globalVariant.name}</strong>
           </MenuItemContent>
         </Menu.Item>,
       );

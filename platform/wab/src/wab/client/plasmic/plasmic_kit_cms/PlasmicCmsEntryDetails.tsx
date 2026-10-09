@@ -11,6 +11,7 @@
 // Plasmic Project: ieacQ3Z46z4gwo1FnaB5vY
 // Component: 9vM3ZFGR4eV
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -132,7 +133,7 @@ function PlasmicCmsEntryDetails__RenderFunc(props: {
               data-plasmic-override={overrides.entryNameValue}
               className={classNames("all", "__wab_text", sty.entryNameValue)}
             >
-              {"Enter some text"}
+              {<UiText message={"Enter some text"} />}
             </div>
           </InlineEditable>
           <div
@@ -140,7 +141,7 @@ function PlasmicCmsEntryDetails__RenderFunc(props: {
             data-plasmic-override={overrides.saveStatus}
             className={classNames("all", "__wab_text", sty.saveStatus)}
           >
-            {"Auto-saved"}
+            {<UiText message={"Auto-saved"} />}
           </div>
         </div>
         <div
@@ -163,7 +164,7 @@ function PlasmicCmsEntryDetails__RenderFunc(props: {
             withIcons={["startIcon"]}
           >
             <div className={classNames("all", "__wab_text", sty.text__hLvhX)}>
-              {"History"}
+              {<UiText message={"History"} />}
             </div>
           </Button>
           <Button
@@ -181,7 +182,7 @@ function PlasmicCmsEntryDetails__RenderFunc(props: {
             withIcons={["startIcon"]}
           >
             <div className={classNames("all", "__wab_text", sty.text___8Mqz6)}>
-              {"Preview"}
+              {<UiText message={"Preview"} />}
             </div>
           </Button>
           <Button
@@ -191,7 +192,7 @@ function PlasmicCmsEntryDetails__RenderFunc(props: {
             size={"wide"}
             type={["primary"]}
           >
-            {"Publish"}
+            {<UiText message={"Publish"} />}
           </Button>
           <MenuButton
             data-plasmic-name={"menuButton"}

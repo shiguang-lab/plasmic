@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: d693eBfNDs7j
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -191,7 +192,7 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
             }
           }}
         >
-          {"Select all"}
+          {<UiText message={"Select all"} />}
         </Checkbox>
         <IconButton
           data-plasmic-name={"deleteSelected"}

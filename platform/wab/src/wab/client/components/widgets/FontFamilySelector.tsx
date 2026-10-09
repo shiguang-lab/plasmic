@@ -1,12 +1,13 @@
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { derefToken, mkTokenRef } from "@/wab/commons/StyleToken";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { cx, withoutNils } from "@/wab/shared/common";
 import { siteFinalStyleTokensOfType } from "@/wab/shared/core/site-style-tokens";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { Select } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -24,6 +25,7 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
   };
   "data-test-id"?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { selectOpts, studioCtx } = props;
 
   const tokens = siteFinalStyleTokensOfType(studioCtx.site, "FontFamily", {
@@ -96,7 +98,7 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
         tokens.length === 0
           ? undefined
           : {
-              label: "Style Tokens",
+              label: uiT("Style Tokens"),
               options: tokens.map((token) => ({
                 value: mkTokenRef(token.base),
                 label: (

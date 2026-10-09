@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 3jXSiWKc1-
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -88,6 +90,7 @@ function PlasmicTeamMemberList__RenderFunc(props: {
   overrides: PlasmicTeamMemberList__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -169,7 +172,7 @@ function PlasmicTeamMemberList__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         <div className={classNames("all", "__wab_text", sty.text__l8Prb)}>
-          {"Members"}
+          {<UiText message={"Members"} />}
         </div>
         <div
           data-plasmic-name={"actions"}
@@ -197,7 +200,7 @@ function PlasmicTeamMemberList__RenderFunc(props: {
             type={["clear"]}
             withIcons={["startIcon"]}
           >
-            {"New member"}
+            {<UiText message={"New member"} />}
           </Button>
           <Select
             data-plasmic-name={"filterSelect"}
@@ -224,7 +227,7 @@ function PlasmicTeamMemberList__RenderFunc(props: {
                 return;
               }
             }}
-            placeholder={"Filter\u2026"}
+            placeholder={uiT("Filter…")}
             type={"bordered"}
             value={generateStateValueProp($state, ["filterSelect", "value"])}
           >
@@ -232,43 +235,43 @@ function PlasmicTeamMemberList__RenderFunc(props: {
               className={classNames("__wab_instance", sty.option__egmzu)}
               value={"all"}
             >
-              {"All Roles"}
+              {<UiText message={"All Roles"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option___6MrRo)}
               value={"owner"}
             >
-              {"Owners"}
+              {<UiText message={"Owners"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__q1Ek5)}
               value={"editor"}
             >
-              {"Editors"}
+              {<UiText message={"Editors"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__oBlVc)}
               value={"designer"}
             >
-              {"Designers"}
+              {<UiText message={"Designers"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option__xaQz)}
               value={"content"}
             >
-              {"Content Creators"}
+              {<UiText message={"Content Creators"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option___4VAek)}
               value={"viewer"}
             >
-              {"Viewers"}
+              {<UiText message={"Viewers"} />}
             </Select__Option>
             <Select__Option
               className={classNames("__wab_instance", sty.option___7OsFo)}
               value={"none"}
             >
-              {"None"}
+              {<UiText message={"None"} />}
             </Select__Option>
           </Select>
           <Searchbox
@@ -286,16 +289,16 @@ function PlasmicTeamMemberList__RenderFunc(props: {
         className={classNames("all", sty.header)}
       >
         <div className={classNames("all", "__wab_text", sty.text__cuGtX)}>
-          {"Name"}
+          {<UiText message={"Name"} />}
         </div>
         <div className={classNames("all", "__wab_text", sty.text___0Cf9)}>
-          {"Last active"}
+          {<UiText message={"Last active"} />}
         </div>
         <div className={classNames("all", "__wab_text", sty.text__qi9E0)}>
-          {"Projects"}
+          {<UiText message={"Projects"} />}
         </div>
         <div className={classNames("all", "__wab_text", sty.text__k2CEs)}>
-          {"Team role"}
+          {<UiText message={"Team role"} />}
         </div>
       </div>
       {renderPlasmicSlot({

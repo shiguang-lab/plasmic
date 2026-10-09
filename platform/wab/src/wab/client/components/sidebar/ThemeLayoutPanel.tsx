@@ -7,6 +7,7 @@ import {
   StyleComponent,
   providesStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultThemeLayoutPanelProps,
   PlasmicThemeLayoutPanel,
@@ -32,6 +33,7 @@ function ThemeLayoutPanel_(
   props: ThemeLayoutPanelProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const theme = studioCtx.site.activeTheme;
   const layout =
@@ -69,10 +71,10 @@ function ThemeLayoutPanel_(
       {...props}
       children={
         <>
-          <SidebarSection title={"Document layout"} className="fill-width">
+          <SidebarSection title={uiT("Document layout")} className="fill-width">
             <LabeledStyleDimItemRow
               styleName={CONTENT_LAYOUT_STANDARD_WIDTH_PROP}
-              label="Standard width"
+              label={uiT("Standard width")}
               dimOpts={{
                 allowedUnits: LENGTH_PERCENTAGE_UNITS,
                 allowFunctions: true,
@@ -82,7 +84,7 @@ function ThemeLayoutPanel_(
             />
             <LabeledStyleDimItemRow
               styleName={CONTENT_LAYOUT_WIDE_WIDTH_PROP}
-              label="Wide width"
+              label={uiT("Wide width")}
               dimOpts={{
                 allowedUnits: LENGTH_PERCENTAGE_UNITS,
                 allowFunctions: true,
@@ -92,7 +94,7 @@ function ThemeLayoutPanel_(
             />
             <LabeledStyleDimItemRow
               styleName={CONTENT_LAYOUT_VIEWPORT_GAP_PROP}
-              label="Viewport gap"
+              label={uiT("Viewport gap")}
               dimOpts={{
                 allowedUnits: LENGTH_PERCENTAGE_UNITS,
                 allowFunctions: true,

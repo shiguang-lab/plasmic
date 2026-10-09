@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: F7n0gyM6hJ6
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -158,7 +159,7 @@ function PlasmicCmsPage__RenderFunc(props: {
                     sty.noProjectsText
                   )}
                 >
-                  {"This workspace has no projects."}
+                  {<UiText message={"This workspace has no projects."} />}
                 </div>
               }
             >

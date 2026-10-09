@@ -1,6 +1,7 @@
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { Checkbox, Form, Row } from "antd";
 import { CheckboxValueType } from "antd/lib/checkbox/Group";
 import * as React from "react";
@@ -78,9 +79,11 @@ function ChooseItemsForm<T>(props: {
         </Form.Item>
         <Form.Item>
           <Button className="mr-sm" type="primary" htmlType="submit">
-            Confirm
+            <UiText message={"Confirm"} />
           </Button>
-          <Button onClick={() => onCancel()}>Cancel</Button>
+          <Button onClick={() => onCancel()}>
+            <UiText message={"Cancel"} />
+          </Button>
         </Form.Item>
       </Form>
     </Modal>

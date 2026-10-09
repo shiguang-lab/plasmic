@@ -11,6 +11,7 @@
 // Plasmic Project: kA1Hysr5ZeimtATHTDJz5B
 // Component: GFrmKeyhlA
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -197,7 +198,7 @@ function PlasmicPermissionItem__RenderFunc(props: {
               [sty.ownerrole_owner]: hasVariant($state, "role", "owner"),
             })}
           >
-            {hasVariant($state, "role", "owner") ? "Owner" : "Enter some text"}
+            {hasVariant($state, "role", "owner") ? <UiText message={"Owner"} /> : <UiText message={"Enter some text"} />}
           </div>
         ) : null}
         {(hasVariant($state, "loading", "loading") ? true : false)

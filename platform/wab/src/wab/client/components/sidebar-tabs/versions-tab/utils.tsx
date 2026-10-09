@@ -4,6 +4,8 @@ import { NoItemMessage } from "@/wab/client/components/sidebar-tabs/versions-tab
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ApiUser } from "@/wab/shared/ApiSchema";
 import { fullName, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
@@ -126,6 +128,7 @@ const RevertConfirmModal = ({
   onSubmit: (value: boolean) => void;
   onCancel: () => void;
 }) => {
+  const { t: uiT } = useI18n();
   return (
     <ConfirmModal
       title={title}
@@ -147,24 +150,34 @@ const RevertConfirmModal = ({
           showIcon
           className="mv-m"
           message="Failed to load changes"
-          description="Could not fetch the differences. You can still proceed with the revert."
+          description={uiT(
+            "Could not fetch the differences. You can still proceed with the revert.",
+          )}
         />
       ) : isLoadingDiffs ? (
         <div className="p-m text-center">
           <Spin />
-          <div className="mt-sm dimfg">Loading changes...</div>
+          <div className="mt-sm dimfg">
+            <UiText message={"Loading changes..."} />
+          </div>
         </div>
       ) : (
         diffs !== null &&
         (diffs.length > 0 ? (
           <>
             <div className="mt-m">
-              This will undo the following changes made after that point:
+              <UiText
+                message={
+                  "This will undo the following changes made after that point:"
+                }
+              />
             </div>
             <SiteDiffs diffs={diffs} />
           </>
         ) : (
-          <NoItemMessage>No changes</NoItemMessage>
+          <NoItemMessage>
+            <UiText message={"No changes"} />
+          </NoItemMessage>
         ))
       )}
     </ConfirmModal>
@@ -249,6 +262,7 @@ export const promptRevisionRevert = async (
 ) => {
   return showTemporaryPrompt<boolean>((onSubmit, onCancel) => {
     const ModalContent = () => {
+      const { t: uiT } = useI18n();
       const state = useAsyncStrict(async () => {
         return getRevisionDiffs(
           revertRevision.id,
@@ -259,7 +273,7 @@ export const promptRevisionRevert = async (
 
       return (
         <RevertConfirmModal
-          title="Revert to an Autosaved version"
+          title={uiT("Revert to an Autosaved version")}
           description={
             <>
               You are about to go back in time to an autosaved version by{" "}

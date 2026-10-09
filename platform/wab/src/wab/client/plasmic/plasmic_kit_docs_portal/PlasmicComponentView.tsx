@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: fiIuU8gs9A
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -199,7 +200,7 @@ function PlasmicComponentView__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "componentType", "code")
-              ? "Templates"
+              ? <UiText message={"Templates"} />
               : "Base Props"}
           </div>
         ) : null}
@@ -238,8 +239,8 @@ function PlasmicComponentView__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "componentType", "code")
-                ? "Base"
-                : "Enter some text"}
+                ? <UiText message={"Base"} />
+                : <UiText message={"Enter some text"} />}
             </div>
           </TemplateRow>
           {(hasVariant($state, "componentType", "code") ? true : false) ? (
@@ -265,7 +266,7 @@ function PlasmicComponentView__RenderFunc(props: {
                 ),
               })}
             >
-              {"Disabled"}
+              {<UiText message={"Disabled"} />}
             </TemplateRow>
           ) : null}
           {(hasVariant($state, "componentType", "code") ? true : false) ? (
@@ -278,7 +279,7 @@ function PlasmicComponentView__RenderFunc(props: {
                 ),
               })}
             >
-              {"Horizontal"}
+              {<UiText message={"Horizontal"} />}
             </TemplateRow>
           ) : null}
         </div>
@@ -469,7 +470,7 @@ function PlasmicComponentView__RenderFunc(props: {
             ),
           })}
         >
-          {hasVariant($state, "componentType", "code") ? "Props" : "Base Props"}
+          {hasVariant($state, "componentType", "code") ? <UiText message={"Props"} /> : "Base Props"}
         </div>
         <DocsPropsTable
           data-plasmic-name={"baseProps"}
@@ -623,7 +624,7 @@ function PlasmicComponentView__RenderFunc(props: {
             ),
           })}
         >
-          {"Custom Props"}
+          {<UiText message={"Custom Props"} />}
         </div>
         <DocsPropsTable
           data-plasmic-name={"customProps"}

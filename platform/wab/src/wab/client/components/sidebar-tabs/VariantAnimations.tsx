@@ -6,6 +6,7 @@ import { AnimationControls } from "@/wab/client/components/style-controls/Animat
 import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrapper";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import PlayIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__PlaySvg";
 import StopIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Stop";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
@@ -37,6 +38,7 @@ interface VariantAnimationsProps {
 export const VariantAnimations = observer(function VariantAnimations(
   props: VariantAnimationsProps,
 ) {
+  const { t: uiT } = useI18n();
   const { variants, tpl, viewCtx, children } = props;
   const { newAnimation, onAnimationAdded } = useNewAnimationContext();
   const privateStyleVariant = tryGetPrivateStyleVariant(variants);
@@ -108,7 +110,7 @@ export const VariantAnimations = observer(function VariantAnimations(
           <PlexusButton
             onClick={stopAnimations}
             start={
-              <Tooltip title="Stop animation">
+              <Tooltip title={uiT("Stop animation")}>
                 <Icon icon={StopIcon} />
               </Tooltip>
             }
@@ -121,7 +123,7 @@ export const VariantAnimations = observer(function VariantAnimations(
           <PlexusButton
             onClick={() => playAnimations(animations)}
             start={
-              <Tooltip title="Play animation">
+              <Tooltip title={uiT("Play animation")}>
                 <Icon icon={PlayIcon} />
               </Tooltip>
             }
@@ -149,7 +151,7 @@ export const VariantAnimations = observer(function VariantAnimations(
       <SidebarModal
         show={!!inspectedAnimation}
         onClose={closeInspectedAnimation}
-        title="Apply Animation"
+        title={uiT("Apply Animation")}
       >
         {inspectedAnimation && (
           <div className="panel-content">

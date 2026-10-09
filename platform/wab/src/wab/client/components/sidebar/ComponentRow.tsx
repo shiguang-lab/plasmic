@@ -13,6 +13,7 @@ import { DraggableInsertable } from "@/wab/client/components/studio/add-drawer/D
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { AddItemType } from "@/wab/client/definitions/insertables";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import {
   getEventDataForTplComponent,
   trackInsertItem,
@@ -163,7 +164,9 @@ export const ComponentRow = observer(function ComponentRow(props: {
             <Popover
               content={
                 <p>
-                  <strong>Default component:</strong>{" "}
+                  <strong>
+                    <UiText message={"Default component:"} />
+                  </strong>{" "}
                   {getDefaultComponentLabel(defaultComponentKind)}
                 </p>
               }
@@ -205,7 +208,10 @@ function buildPlasmicComponentMenuItems(
             )
           }
         >
-          <strong data-test-id="edit-component">Edit</strong> component
+          <strong data-test-id="edit-component">
+            <UiText message={"Edit"} />
+          </strong>{" "}
+          component
         </Menu.Item>,
       );
       if (isMixedArena(arena)) {
@@ -218,7 +224,10 @@ function buildPlasmicComponentMenuItems(
               )
             }
           >
-            <strong>Edit</strong> in new {FRAME_CAP}
+            <strong>
+              <UiText message={"Edit"} />
+            </strong>{" "}
+            in new {<UiLabel text={FRAME_CAP} />}
           </Menu.Item>,
         );
       }
@@ -241,7 +250,10 @@ function buildPlasmicComponentMenuItems(
             );
           }}
         >
-          <strong>Open</strong> component in new tab
+          <strong>
+            <UiText message={"Open"} />
+          </strong>{" "}
+          component in new tab
         </Menu.Item>,
       );
     }
@@ -267,7 +279,10 @@ function buildPlasmicComponentMenuItems(
             }
           }}
         >
-          <strong>Rename</strong> component
+          <strong>
+            <UiText message={"Rename"} />
+          </strong>{" "}
+          component
         </Menu.Item>,
       );
     }
@@ -275,7 +290,10 @@ function buildPlasmicComponentMenuItems(
     if (onDuplicate) {
       push(
         <Menu.Item key="duplicate" onClick={() => onDuplicate()}>
-          <strong>Duplicate</strong> component
+          <strong>
+            <UiText message={"Duplicate"} />
+          </strong>{" "}
+          component
         </Menu.Item>,
       );
     }
@@ -294,7 +312,10 @@ function buildPlasmicComponentMenuItems(
             )
           }
         >
-          <strong>Convert</strong> to page
+          <strong>
+            <UiText message={"Convert"} />
+          </strong>{" "}
+          to page
         </Menu.Item>,
       );
     }
@@ -323,7 +344,10 @@ function buildPlasmicComponentMenuItems(
             );
           }}
         >
-          <strong>Delete</strong> component
+          <strong>
+            <UiText message={"Delete"} />
+          </strong>{" "}
+          component
         </Menu.Item>,
       );
     }
@@ -385,7 +409,10 @@ function buildCodeComponentMenuItems(
           );
         }}
       >
-        <strong>Refresh</strong> registered props
+        <strong>
+          <UiText message={"Refresh"} />
+        </strong>{" "}
+        registered props
       </Menu.Item>,
     );
   });
@@ -403,13 +430,17 @@ function buildCodeComponentMenuItems(
           studioCtx.siteOps().tryRemapCodeComponent(
             component,
             <>
-              Delete code component {getComponentDisplayName(component)} (
+              <UiText message={"Delete code component"} />{" "}
+              {getComponentDisplayName(component)} (
               <code>{component.codeComponentMeta.importPath}</code>)
             </>,
           )
         }
       >
-        <strong>Delete</strong> component
+        <strong>
+          <UiText message={"Delete"} />
+        </strong>{" "}
+        component
       </Menu.Item>,
     );
   });
@@ -430,7 +461,10 @@ function buildCommonComponentMenuItems(
   builder.genSection(undefined, (push) => {
     push(
       <Menu.Item key="references" onClick={onFindReferences}>
-        <strong>Find</strong> all references
+        <strong>
+          <UiText message={"Find"} />
+        </strong>{" "}
+        all references
       </Menu.Item>,
     );
     genComponentSwapMenuItem(builder, studioCtx, component);
@@ -497,8 +531,12 @@ function buildCommonComponentMenuItems(
           });
         }}
       >
-        {studioCtx.site.pageWrapper === component ? "Unset" : "Set"} as{" "}
-        <strong>default page wrapper</strong>
+        {studioCtx.site.pageWrapper === component ? (
+          <UiText message={"Unset"} />
+        ) : (
+          <UiText message={"Set"} />
+        )}{" "}
+        as <strong>default page wrapper</strong>
       </Menu.Item>,
     );
   });
@@ -536,7 +574,10 @@ function genComponentSwapMenuItem(
   };
   builder.genSub(
     <>
-      <strong>Replace</strong> all instances of this component with...
+      <strong>
+        <UiText message={"Replace"} />
+      </strong>{" "}
+      all instances of this component with...
     </>,
     (push) => {
       pushComps(studioCtx.site.components, push, true);

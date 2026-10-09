@@ -6,6 +6,7 @@ import styles from "@/wab/client/components/style-controls/FilterEffectPanel.mod
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { cx, ensure } from "@/wab/shared/common";
 import {
@@ -33,11 +34,12 @@ const menuDescription = {
 };
 
 export const FilterEffectPanel = observer((props: FilterEffectPanelProps) => {
+  const { t: uiT } = useI18n();
   const { filterEffect, onChange } = props;
 
   return (
     <>
-      <LabeledItemRow label="Filter" labelSize="small">
+      <LabeledItemRow label={uiT("Filter")} labelSize="small">
         <Select
           className={styles.Dropdown}
           value={filterEffect.type}
@@ -64,6 +66,7 @@ export const FilterEffectPanel = observer((props: FilterEffectPanelProps) => {
 });
 
 const FilterEffectEditor = (props: FilterEffectPanelProps) => {
+  const { t: uiT } = useI18n();
   const { studioCtx, filterEffect, onChange } = props;
   const { type } = filterEffect;
 
@@ -157,7 +160,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
             </div>
           </FullRow>
         </LabeledItemRow>
-        <LabeledItemRow label="Radius" labelSize="small">
+        <LabeledItemRow label={uiT("Radius")} labelSize="small">
           <FullRow>
             <div className={cx(styles.EffectControllersContainer, "flex-row")}>
               <Slider
@@ -191,7 +194,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
             </div>
           </FullRow>
         </LabeledItemRow>
-        <LabeledItemRow label="Color">{null}</LabeledItemRow>
+        <LabeledItemRow label={uiT("Color")}>{null}</LabeledItemRow>
         <ColorPicker
           color={color}
           onChange={(newColor) => {

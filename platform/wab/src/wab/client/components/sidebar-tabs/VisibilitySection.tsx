@@ -1,24 +1,26 @@
 import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
-import { useAppRoles } from "@/wab/client/components/app-auth/app-auth-contexts";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
+import { useAppRoles } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { BoolPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/BoolPropEditor";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import { FallbackEditor } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import S from "@/wab/client/components/sidebar-tabs/VisibilitySection.module.scss";
+import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   LabeledItem,
   LabeledItemRow,
   LabeledStyleDimItem,
   shouldBeDisabled,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
-import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   TplExpsProvider,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getVisibilityIcon } from "@/wab/client/icons";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -27,6 +29,11 @@ import {
 } from "@/wab/client/utils/style-utils";
 import { getVisibilityChoicesForTpl } from "@/wab/client/utils/tpl-client-utils";
 import { isTokenRef } from "@/wab/commons/StyleToken";
+import { RESET_CAP } from "@/wab/shared/Labels";
+import {
+  isPrivateStyleVariant,
+  tryGetVariantSetting,
+} from "@/wab/shared/Variants";
 import { ensureInstance } from "@/wab/shared/common";
 import {
   clone,
@@ -40,23 +47,18 @@ import {
 import { isTplCodeComponent } from "@/wab/shared/core/tpls";
 import { PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { computeDefinedIndicator } from "@/wab/shared/defined-indicator";
-import { RESET_CAP } from "@/wab/shared/Labels";
 import {
   CustomCode,
-  ensureKnownCustomCode,
   ObjectPath,
   TplNode,
+  ensureKnownCustomCode,
 } from "@/wab/shared/model/classes";
 import {
-  isPrivateStyleVariant,
-  tryGetVariantSetting,
-} from "@/wab/shared/Variants";
-import {
+  TplVisibility,
   clearTplVisibility,
   getVisibilityDataProp,
   getVisibilityLabel,
   hasVisibilitySetting,
-  TplVisibility,
 } from "@/wab/shared/visibility-utils";
 import { Menu } from "antd";
 import cn from "classnames";
@@ -70,6 +72,7 @@ function VisibilitySection_(props: {
   viewCtx: ViewCtx;
   expsProvider: TplExpsProvider;
 }) {
+  const { t: uiT } = useI18n();
   const { viewCtx, tpl, expsProvider } = props;
 
   const noStyles =
@@ -165,7 +168,11 @@ function VisibilitySection_(props: {
             }
             onClick={handleUnsetVisibility}
           >
-            {RESET_CAP} <strong>Visibility</strong> style
+            {<UiLabel text={RESET_CAP} />}{" "}
+            <strong>
+              <UiText message={"Visibility"} />
+            </strong>{" "}
+            style
           </Menu.Item>,
         );
       }
@@ -187,13 +194,13 @@ function VisibilitySection_(props: {
             switchToDynamicValue();
           }}
         >
-          Use dynamic value
+          <UiText message={"Use dynamic value"} />
         </Menu.Item>,
       );
     });
 
     if (roles.length > 0) {
-      builder.genSub("Show based on user role", (push) => {
+      builder.genSub(<UiText message={"Show based on user role"} />, (push) => {
         for (const role of roles) {
           push(
             <Menu.Item
@@ -242,7 +249,7 @@ function VisibilitySection_(props: {
       : undefined;
   return (
     <SidebarSection
-      title="Visibility"
+      title={uiT("Visibility")}
       {...(!customCode && { emptyBody: true })}
       isHeaderActive={
         (targetVisibilityVs && hasVisibilitySetting(targetVisibilityVs)) ||
@@ -255,7 +262,7 @@ function VisibilitySection_(props: {
               className={S.opacityField}
               styleName="opacity"
               definedIndicator={opacityDefinedIndicator}
-              aria-label="Opacity"
+              aria-label={uiT("Opacity")}
               autoWidth
               dimOpts={{
                 value: formattedOpacity,
@@ -266,7 +273,7 @@ function VisibilitySection_(props: {
                 minDropdownWidth: 170,
                 allowedUnits: PERCENTAGE_UNITS,
                 allowFunctions: true,
-                tooltip: "Opacity",
+                tooltip: uiT("Opacity"),
                 className: cn(S.opacityInput),
               }}
               tokenType={"Opacity"}
@@ -324,7 +331,7 @@ function VisibilitySection_(props: {
         <>
           <LabeledItemRow
             data-test-id="visibility-custom-code"
-            label="Condition"
+            label={uiT("Condition")}
           >
             <DataPickerEditor
               viewCtx={viewCtx}

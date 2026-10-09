@@ -11,6 +11,8 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: W_Uez__b5a-
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -73,6 +75,7 @@ function PlasmicPermissionsTab__RenderFunc(props: {
   overrides: PlasmicPermissionsTab__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -114,7 +117,7 @@ function PlasmicPermissionsTab__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__zZaCn)}>
         <div className={classNames("all", "__wab_text", sty.text___71ZHi)}>
-          {"Who can log in?"}
+          {<UiText message={"Who can log in?"} />}
         </div>
       </div>
       <form
@@ -124,14 +127,14 @@ function PlasmicPermissionsTab__RenderFunc(props: {
       >
         <div className={classNames("all", sty.freeBox__nW6I)}>
           <div className={classNames("all", "__wab_text", sty.text__kDdP0)}>
-            {"Enter an email, a @domain.com, or a group name"}
+            {<UiText message={"Enter an email, a @domain.com, or a group name"} />}
           </div>
           <StyleCheckbox
             data-plasmic-name={"notifyCheckbox"}
             data-plasmic-override={overrides.notifyCheckbox}
             className={classNames("__wab_instance", sty.notifyCheckbox)}
           >
-            {"Notify users"}
+            {<UiText message={"Notify users"} />}
           </StyleCheckbox>
         </div>
         <div className={classNames("all", sty.freeBox___5SwlD)}>
@@ -139,7 +142,7 @@ function PlasmicPermissionsTab__RenderFunc(props: {
             data-plasmic-name={"input"}
             data-plasmic-override={overrides.input}
             className={classNames("__wab_instance", sty.input)}
-            placeholder={"Add people, groups or @domains..."}
+            placeholder={uiT("Add people, groups or @domains...")}
             prefixIcon={
               <SearchSvgIcon
                 className={classNames("all", sty.svg__yfl01)}
@@ -160,7 +163,7 @@ function PlasmicPermissionsTab__RenderFunc(props: {
             data-plasmic-name={"roleSelect"}
             data-plasmic-override={overrides.roleSelect}
             className={classNames("__wab_instance", sty.roleSelect)}
-            placeholder={"Role"}
+            placeholder={uiT("Role")}
             valueSetState={"isSet"}
           />
 
@@ -177,7 +180,7 @@ function PlasmicPermissionsTab__RenderFunc(props: {
             type={["primary"]}
           >
             <div className={classNames("all", "__wab_text", sty.text__qQqcQ)}>
-              {"Add"}
+              {<UiText message={"Add"} />}
             </div>
           </IconButton>
         </div>
@@ -190,12 +193,12 @@ function PlasmicPermissionsTab__RenderFunc(props: {
         >
           <div className={classNames("all", sty.column__hc3GY)}>
             <div className={classNames("all", "__wab_text", sty.text__saiUl)}>
-              {"User or group"}
+              {<UiText message={"User or group"} />}
             </div>
           </div>
           <div className={classNames("all", sty.column__o7NGs)}>
             <div className={classNames("all", "__wab_text", sty.text__yiZe)}>
-              {"Role"}
+              {<UiText message={"Role"} />}
             </div>
           </div>
         </div>

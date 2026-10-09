@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: Of6596-KMlOa
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -292,7 +293,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -314,7 +315,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -336,7 +337,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -358,7 +359,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -380,7 +381,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -402,7 +403,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -424,7 +425,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -446,7 +447,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>
@@ -468,7 +469,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Tag"}
+                {<UiText message={"Tag"} />}
               </span>
             </React.Fragment>
           </div>

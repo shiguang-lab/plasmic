@@ -11,6 +11,7 @@
 // Plasmic Project: kTSMroKPFv65RRTb44SCtk
 // Component: HSPuw3LccxMD
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -107,7 +108,7 @@ function PlasmicUserMentionDisplay__RenderFunc(props: {
       {renderPlasmicSlot({
         defaultContents: (
           <div className={classNames("all", "__wab_text", sty.text__gSlk)}>
-            {"User name"}
+            {<UiText message={"User name"} />}
           </div>
         ),
         value: args.children,

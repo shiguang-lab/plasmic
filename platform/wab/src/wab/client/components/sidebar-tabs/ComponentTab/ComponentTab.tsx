@@ -15,6 +15,8 @@ import {
 import { HoverableDisclosure } from "@/wab/client/components/widgets/HoverableDisclosure";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import PlumeMarkIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__PlumeMark";
@@ -34,6 +36,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
   viewCtx: ViewCtx;
   isHalf?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { component, studioCtx, viewCtx, isHalf = false } = props;
   const appConfig = studioCtx.appCtx.appConfig;
 
@@ -102,7 +105,8 @@ export const ComponentTab = observer(function ComponentTab(props: {
                         >
                           <span>
                             <Icon icon={PlumeMarkIcon} />{" "}
-                            <code>{plugin.componentMeta.name}</code> Component
+                            <code>{plugin.componentMeta.name}</code>{" "}
+                            <UiText message={"Component"} />
                           </span>
                         </HoverableDisclosure>
                       ) : undefined
@@ -110,7 +114,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
                   />
                   {canEdit(PublicStyleSection.ComponentProps) && (
                     <IconButton
-                      tooltip="Component settings"
+                      tooltip={uiT("Component settings")}
                       onClick={() => setShowSettings(true)}
                       data-test-id="btn-show-settings"
                     >

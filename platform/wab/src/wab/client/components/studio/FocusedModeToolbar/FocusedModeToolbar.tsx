@@ -4,6 +4,8 @@ import S from "@/wab/client/components/studio/FocusedModeToolbar/FocusedModeTool
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import Switch from "@/wab/client/components/widgets/Switch";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import RefreshsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RefreshSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { observer } from "mobx-react";
@@ -12,6 +14,7 @@ import React from "react";
 
 export const FocusedModeToolbar = observer(
   ({ studioCtx }: { studioCtx: StudioCtx }) => {
+    const { t: uiT } = useI18n();
     const onChange = (val) =>
       studioCtx.change(() => {
         studioCtx.isInteractiveMode = val;
@@ -45,10 +48,10 @@ export const FocusedModeToolbar = observer(
                 style={{ marginRight: 6 }}
                 data-test-id={"interactive-switch"}
               />
-              Interactive
+              <UiText message={"Interactive"} />
             </label>
             <IconButton
-              tooltip="Refresh arena"
+              tooltip={uiT("Refresh arena")}
               id={"refresh-canvas-btn"}
               onClick={onClick}
             >

@@ -2,6 +2,7 @@ import {
   PopupFocuser,
   useOnIFrameMouseDown,
 } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
 import { PageHref } from "@/wab/shared/model/classes";
 import { Popover, RefSelectProps, Select } from "antd";
 import React from "react";
@@ -20,6 +21,7 @@ export function HrefQueryPopover({
   children,
   onAdd,
 }: HrefQueryPopoverProps) {
+  const { t: uiT } = useI18n();
   const [searchValue, setSearchValue] = React.useState<string | undefined>(
     undefined,
   );
@@ -56,7 +58,7 @@ export function HrefQueryPopover({
             }}
             bordered={false}
             ref={selectRef}
-            placeholder="Choose a query param"
+            placeholder={uiT("Choose a query param")}
             notFoundContent={null}
             open
           >

@@ -9,6 +9,8 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import GLogo from "@/wab/commons/images/g-logo.png";
 import {
   ApiDataSource,
@@ -17,6 +19,7 @@ import {
   ListAuthIntegrationsResponse,
   WorkspaceId,
 } from "@/wab/shared/ApiSchema";
+import { DATA_SOURCE_CAP, DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
 import { ensure, notNil } from "@/wab/shared/common";
 import {
   DataSourceType,
@@ -24,13 +27,12 @@ import {
   getDataSourceMeta,
 } from "@/wab/shared/data-sources-meta/data-source-registry";
 import {
-  coerceArgValueToString,
   DataSourceMeta,
   EnumArgMeta,
   SettingFieldMeta,
+  coerceArgValueToString,
 } from "@/wab/shared/data-sources-meta/data-sources";
 import { POSTGRES_META } from "@/wab/shared/data-sources-meta/postgres-meta";
-import { DATA_SOURCE_CAP, DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Alert, Form, FormInstance, Input, notification } from "antd";
 import { jsonrepair } from "jsonrepair";
@@ -152,6 +154,7 @@ export function DataSourceModal({
   readOpsOnly,
   canEdit,
 }: DataSourceModalProps) {
+  const { t: uiT } = useI18n();
   const api = useApi();
   const [form] = Form.useForm<DataSourceFormData>();
   const dataSourceMetasOrAliases = React.useMemo(() => {
@@ -454,7 +457,7 @@ export function DataSourceModal({
         {selectedDataSourceType && (
           <Form.Item
             name="name"
-            label="Name"
+            label={uiT("Name")}
             key="name"
             initialValue={
               editingDataSource !== "new" ? editingDataSource.name : undefined
@@ -465,7 +468,7 @@ export function DataSourceModal({
               placeholder="Name this integration"
               styleType={["bordered"]}
               autoFocus
-              aria-label="Name"
+              aria-label={uiT("Name")}
               autoComplete="off"
               disabled={isDisabled}
               data-test-id={`data-source-name`}
@@ -526,14 +529,14 @@ export function DataSourceModal({
             data-test-id="prompt-submit"
             disabled={!selectedDataSourceType || isDisabled || isLoading}
           >
-            {"Confirm"}
+            {<UiText message={"Confirm"} />}
           </Button>
           <Button
             className="mr-sm"
             onClick={() => onDone()}
             disabled={isLoading || isTestingConnection}
           >
-            Cancel
+            <UiText message={"Cancel"} />
           </Button>
           {isUntestableDataSourceType(selectedDataSourceType) ? null : (
             <Button
@@ -821,6 +824,7 @@ function DataSourceBaseFormSelect(props: {
   value?: string;
   disabled?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { sourceMeta, settingMeta, disabled, ...selectProps } = props;
   const api = useApi();
   const { data: basesList } = useSWR(BASES_KEY + sourceMeta.id, async () => {
@@ -831,7 +835,7 @@ function DataSourceBaseFormSelect(props: {
       isDisabled={!basesList || disabled}
       type="bordered"
       aria-label={settingMeta.label}
-      placeholder="Base"
+      placeholder={uiT("Base")}
       {...selectProps}
     >
       {basesList?.bases.map((s) => (
@@ -941,6 +945,7 @@ function StringDictEditor(props: {
   onChange?: (v: string | null) => void;
   disabled?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { value, defaultValue, onChange, disabled } = props;
   const parseValue = (v: any) => {
     return Object.entries(typeof v === "string" ? JSON.parse(v) : v).map(
@@ -1007,7 +1012,7 @@ function StringDictEditor(props: {
                     const newVal = ev.target.value;
                     handleChange(idx, { key: newVal, value: val });
                   }}
-                  placeholder="Name"
+                  placeholder={uiT("Name")}
                   disabled={disabled}
                 />
                 <Input
@@ -1016,7 +1021,7 @@ function StringDictEditor(props: {
                     const newVal = ev.target.value;
                     handleChange(idx, { key: key, value: newVal });
                   }}
-                  placeholder="Value"
+                  placeholder={uiT("Value")}
                   disabled={disabled}
                 />
               </div>

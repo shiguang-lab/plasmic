@@ -11,6 +11,8 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: OkB-fXuJPc
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -80,6 +82,7 @@ function PlasmicWebhookHeader__RenderFunc(props: {
   overrides: PlasmicWebhookHeader__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -156,14 +159,14 @@ function PlasmicWebhookHeader__RenderFunc(props: {
         data-plasmic-override={overrides.text}
         className={classNames("all", "__wab_text", sty.text)}
       >
-        {"Header"}
+        {<UiText message={"Header"} />}
       </div>
       <div className={classNames("all", sty.freeBox__ynHvD)}>
         <input
           data-plasmic-name={"keyInput"}
           data-plasmic-override={overrides.keyInput}
           className={classNames("all", "input", "input__fpbcK", sty.keyInput)}
-          placeholder={"Enter key…"}
+          placeholder={uiT("Enter key…")}
           ref={(ref) => {
             $refs["keyInput"] = ref;
           }}
@@ -176,7 +179,7 @@ function PlasmicWebhookHeader__RenderFunc(props: {
           data-plasmic-name={"valueInput"}
           data-plasmic-override={overrides.valueInput}
           className={classNames("all", "input", "input__fpbcK", sty.valueInput)}
-          placeholder={"Enter value…"}
+          placeholder={uiT("Enter value…")}
           ref={(ref) => {
             $refs["valueInput"] = ref;
           }}

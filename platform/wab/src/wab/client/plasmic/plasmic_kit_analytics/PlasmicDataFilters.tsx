@@ -11,6 +11,8 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: Dza4MqGNx4p
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -66,6 +68,7 @@ function PlasmicDataFilters__RenderFunc(props: {
   overrides: PlasmicDataFilters__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -109,7 +112,7 @@ function PlasmicDataFilters__RenderFunc(props: {
         data-plasmic-name={"timeRangeFilter"}
         data-plasmic-override={overrides.timeRangeFilter}
         className={classNames("__wab_instance", sty.timeRangeFilter)}
-        label={"Time range"}
+        label={uiT("Time range")}
         noRightPadding={true}
       />
 
@@ -117,7 +120,7 @@ function PlasmicDataFilters__RenderFunc(props: {
         data-plasmic-name={"eventFilter"}
         data-plasmic-override={overrides.eventFilter}
         className={classNames("__wab_instance", sty.eventFilter)}
-        label={"Event"}
+        label={uiT("Event")}
         noRightPadding={true}
       />
 
@@ -139,7 +142,7 @@ function PlasmicDataFilters__RenderFunc(props: {
           size={"wide"}
           type={["clear"]}
         >
-          {"Export"}
+          {<UiText message={"Export"} />}
         </Button>
         <Button
           data-plasmic-name={"shareBtn"}
@@ -152,7 +155,7 @@ function PlasmicDataFilters__RenderFunc(props: {
             data-plasmic-override={overrides.text}
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"Share"}
+            {<UiText message={"Share"} />}
           </div>
         </Button>
       </div>

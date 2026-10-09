@@ -1,4 +1,5 @@
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 /** @format */
 
 import { menuSection } from "@/wab/client/components/menu-builder";
@@ -71,7 +72,7 @@ export const PublishButton = observer(function PublishButton(
       <PlasmicPublishButton
         menuButton={
           !branchInfo
-            ? { "aria-label": "Publish menu" }
+            ? { "aria-label": t("Publish menu") }
             : {
                 style: {
                   display: "flex",
@@ -99,8 +100,7 @@ export const PublishButton = observer(function PublishButton(
                           });
                         }}
                       >
-                        <strong>Review and merge changes</strong> from this
-                        branch
+                        <strong>{t("Merge changes from this branch")}</strong>
                       </Menu.Item>,
                       <Menu.Item
                         key="pull"
@@ -113,7 +113,7 @@ export const PublishButton = observer(function PublishButton(
                           });
                         }}
                       >
-                        <strong>Update</strong> from main branch
+                        <strong>{t("Update from main branch")}</strong>
                       </Menu.Item>,
                       appCtx.appConfig.commitsOnBranches && (
                         <Menu.Item
@@ -122,7 +122,7 @@ export const PublishButton = observer(function PublishButton(
                             await topFrameApi.setShowPublishModal(true);
                           }}
                         >
-                          <strong>Save</strong> a checkpoint
+                          <strong>{t("Save a checkpoint")}</strong>
                         </Menu.Item>
                       ),
                     )}
@@ -130,10 +130,12 @@ export const PublishButton = observer(function PublishButton(
                 ),
                 tooltip: (
                   <>
-                    Publish a new version of your project
+                    <UiText message={"Publish a new version of your project"} />
                     {redCircle && (
                       <div className="mt-sm">
-                        (This project has unpublished changes.)
+                        <UiText
+                          message={"(This project has unpublished changes.)"}
+                        />
                       </div>
                     )}
                   </>
@@ -149,7 +151,7 @@ export const PublishButton = observer(function PublishButton(
                 wrap: !isPlasmicLevels
                   ? undefined
                   : (node) => (
-                      <Tooltip title={"Disabled for Plasmic Levels"}>
+                      <Tooltip title={t("Disabled for Plasmic Levels")}>
                         {node}
                         <div className={"cover"}></div>
                       </Tooltip>
@@ -167,10 +169,14 @@ export const PublishButton = observer(function PublishButton(
                   disabled: isPlasmicLevels,
                   tooltip: (
                     <>
-                      Publish a new version of your project
+                      <UiText
+                        message={"Publish a new version of your project"}
+                      />
                       {redCircle && (
                         <div className="mt-sm">
-                          (This project has unpublished changes.)
+                          <UiText
+                            message={"(This project has unpublished changes.)"}
+                          />
                         </div>
                       )}
                     </>

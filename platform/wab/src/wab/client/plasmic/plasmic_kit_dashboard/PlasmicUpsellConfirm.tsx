@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: C9PGGs5iUd
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -117,7 +118,7 @@ function PlasmicUpsellConfirm__RenderFunc(props: {
         />
 
         <div className={classNames("all", "__wab_text", sty.text__aeosj)}>
-          {"Thank you for your payment!"}
+          {<UiText message={"Thank you for your payment!"} />}
         </div>
         <div className={classNames("all", "__wab_text", sty.text__efG6S)}>
           {
@@ -147,7 +148,7 @@ function PlasmicUpsellConfirm__RenderFunc(props: {
         </PlasmicLink__>
         <div className={classNames("all", sty.freeBox___65IXe)}>
           <div className={classNames("all", "__wab_text", sty.text__fWkFm)}>
-            {"Total Paid"}
+            {<UiText message={"Total Paid"} />}
           </div>
           {renderPlasmicSlot({
             defaultContents: "$15.00",
@@ -175,7 +176,7 @@ function PlasmicUpsellConfirm__RenderFunc(props: {
           }
           type={["primary"]}
         >
-          {"Dismiss"}
+          {<UiText message={"Dismiss"} />}
         </Button>
       </div>
     </div>

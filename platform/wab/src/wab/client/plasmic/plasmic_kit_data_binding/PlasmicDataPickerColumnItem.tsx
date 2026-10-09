@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: fa3uzsyXr0
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -387,7 +388,7 @@ function PlasmicDataPickerColumnItem__RenderFunc(props: {
                 )
               })}
             >
-              {"Name"}
+              {<UiText message={"Name"} />}
             </div>
           </div>
           <div

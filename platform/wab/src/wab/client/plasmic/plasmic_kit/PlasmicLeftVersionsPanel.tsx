@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: YldGgVsq6N
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -85,6 +87,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
   overrides: PlasmicLeftVersionsPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -187,7 +190,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
               type={["secondary", "bordered"]}
               withIcons={["startIcon"]}
             >
-              {"Publish project"}
+              {<UiText message={"Publish project"} />}
             </Button>
             <Button
               data-plasmic-name={"filterButton"}
@@ -208,7 +211,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
               type={["bordered", "clear"]}
               withIcons={["endIcon"]}
             >
-              {"All"}
+              {<UiText message={"All"} />}
             </Button>
           </div>
         }
@@ -230,7 +233,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
                   }
                   style={{ fontWeight: 500 }}
                 >
-                  {"Autosaved Versions"}
+                  {<UiText message={"Autosaved Versions"} />}
                 </span>
                 <React.Fragment>
                   {
@@ -247,7 +250,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
                   }
                   style={{ fontWeight: 500 }}
                 >
-                  {"Published Versions"}
+                  {<UiText message={"Published Versions"} />}
                 </span>
                 <React.Fragment>
                   {
@@ -261,7 +264,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
         showAlert={
           hasVariant($state, "showAlert", "showAlert") ? true : undefined
         }
-        title={"Version History"}
+        title={uiT("Version History")}
       />
 
       <div
@@ -294,7 +297,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Autosaved Versions"}
+                {<UiText message={"Autosaved Versions"} />}
               </span>
             </React.Fragment>
           </div>
@@ -356,7 +359,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
               >
-                {"Published Versions"}
+                {<UiText message={"Published Versions"} />}
               </span>
             </React.Fragment>
           </div>

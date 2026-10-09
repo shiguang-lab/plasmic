@@ -12,6 +12,7 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { getUiLocale } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import {
@@ -104,7 +105,7 @@ export function TeamMenu(props: TeamMenuProps) {
             }
           }}
         >
-          Configure Studio UI for {ORGANIZATION_CAP}
+          Configure Studio UI for {<UiLabel text={ORGANIZATION_CAP} />}
         </Menu.Item>,
       );
     });
@@ -124,7 +125,8 @@ export function TeamMenu(props: TeamMenuProps) {
               message: (
                 <>
                   <p>
-                    Are you sure you want to delete the {ORGANIZATION_LOWER}{" "}
+                    Are you sure you want to delete the{" "}
+                    {<UiLabel text={ORGANIZATION_LOWER} />}{" "}
                     <strong>{team.name}</strong>?
                   </p>
                   {meta.workspaceCount ? (
@@ -140,8 +142,8 @@ export function TeamMenu(props: TeamMenuProps) {
                         ``
                       )}
                       . If you want to keep those workspaces and projects,
-                      please move them to a different {ORGANIZATION_LOWER}{" "}
-                      first.
+                      please move them to a different{" "}
+                      {<UiLabel text={ORGANIZATION_LOWER} />} first.
                     </p>
                   ) : (
                     ``
@@ -162,7 +164,10 @@ export function TeamMenu(props: TeamMenuProps) {
             }
           }}
         >
-          <strong>Delete</strong> {ORGANIZATION_LOWER}
+          <strong>
+            <UiText message={"Delete"} />
+          </strong>{" "}
+          {<UiLabel text={ORGANIZATION_LOWER} />}
         </Menu.Item>,
       );
     });
@@ -228,7 +233,10 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
               }
             }}
           >
-            <strong>Edit</strong> content creator mode
+            <strong>
+              <UiText message={"Edit"} />
+            </strong>{" "}
+            content creator mode
           </Menu.Item>
         )}
       {accessLevelRank(teamAccessLevel) >= accessLevelRank("editor") && (
@@ -251,7 +259,10 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
             await onUpdate();
           }}
         >
-          <strong>Move</strong> to another {ORGANIZATION_LOWER}
+          <strong>
+            <UiText message={"Move"} />
+          </strong>{" "}
+          to another {<UiLabel text={ORGANIZATION_LOWER} />}
         </Menu.Item>
       )}
       {accessLevelRank(workspaceAccessLevel) >= accessLevelRank("owner") && (
@@ -293,7 +304,10 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
             }
           }}
         >
-          <strong>Delete</strong> workspace
+          <strong>
+            <UiText message={"Delete"} />
+          </strong>{" "}
+          workspace
         </Menu.Item>
       )}
     </Menu>
@@ -346,7 +360,9 @@ async function promptTeam(
             ))}
             {teams.length === 0 && (
               <Select.Option value={null} isDisabled={true}>
-                No {ORGANIZATION_PLURAL_LOWER} to move workspace into.
+                <UiText message={"No"} />{" "}
+                {<UiLabel text={ORGANIZATION_PLURAL_LOWER} />} to move workspace
+                into.
               </Select.Option>
             )}
           </Select>
@@ -355,7 +371,9 @@ async function promptTeam(
           <Button className="mr-sm" type="primary" htmlType="submit">
             Move workspace
           </Button>
-          <Button onClick={() => onCancel()}>Cancel</Button>
+          <Button onClick={() => onCancel()}>
+            <UiText message={"Cancel"} />
+          </Button>
         </Form.Item>
       </Form>
     </Modal>
@@ -499,7 +517,7 @@ export async function promptWorkspace({
             <Select name="select" autoFocus>
               {selectedWorkspaceId && allowNoWorkspace ? (
                 <Select.Option key="none" value="">
-                  {PERSONAL_WORKSPACE}
+                  {<UiLabel text={PERSONAL_WORKSPACE} />}
                 </Select.Option>
               ) : null}
               {teams.map((t) => (
@@ -534,7 +552,9 @@ export async function promptWorkspace({
                   >
                     {confirmButtonMessage ?? "Confirm"}
                   </Button>
-                  <Button onClick={() => onCancel()}>Cancel</Button>
+                  <Button onClick={() => onCancel()}>
+                    <UiText message={"Cancel"} />
+                  </Button>
                 </>
               );
             }}

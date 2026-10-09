@@ -6,6 +6,7 @@ import LinkedProp from "@/wab/client/components/docs/LinkedProp";
 import SlotProp from "@/wab/client/components/docs/SlotProp";
 import VariantProp from "@/wab/client/components/docs/VariantProp";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicComponentTogglesPanel } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicComponentTogglesPanel";
 import { getTplSlots } from "@/wab/shared/SlotUtils";
 import { makeNodeNamer } from "@/wab/shared/codegen/react-p";
@@ -255,7 +256,7 @@ function VariantPropsTooltip() {
         href="https://www.plasmic.app/learn/codegen-guide/#variant-props"
         target="_blank"
       >
-        Learn more.
+        <UiText message={"Learn more."} />
       </a>
     </DocsTooltip>
   );
@@ -270,7 +271,7 @@ function SlotPropsTooltip() {
         href="https://www.plasmic.app/learn/codegen-guide/#slot-props"
         target="_blank"
       >
-        Learn more.
+        <UiText message={"Learn more."} />
       </a>
     </DocsTooltip>
   );
@@ -320,7 +321,7 @@ element={{
             href="https://www.plasmic.app/learn/codegen-guide/#override-props"
             target="_blank"
           >
-            Learn more.
+            <UiText message={"Learn more."} />
           </a>
         </>
       )}

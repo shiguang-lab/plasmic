@@ -1,4 +1,6 @@
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { getResponsiveStrategy } from "@/wab/shared/core/sites";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
@@ -12,6 +14,7 @@ function NewScreenVariantForm_(props: {
   isVisible?: boolean;
   onSubmit: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const [name, setName] = useState("");
   const [minWidth, setMinWidth] = useState("");
@@ -54,7 +57,7 @@ function NewScreenVariantForm_(props: {
           <Textbox
             autoFocus
             required
-            placeholder="Name"
+            placeholder={uiT("Name")}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -65,7 +68,7 @@ function NewScreenVariantForm_(props: {
               type="number"
               min={1}
               style={{ width: "100%" }}
-              placeholder={"Min W"}
+              placeholder={uiT("Min W")}
               value={minWidth}
               onChange={(e) => setMinWidth(e.target.value)}
             />
@@ -76,7 +79,7 @@ function NewScreenVariantForm_(props: {
             type="number"
             min={1}
             style={{ width: "100%" }}
-            placeholder={isMobileFirst ? "Min W" : "Max W"}
+            placeholder={isMobileFirst ? uiT("Min W") : uiT("Max W")}
             value={isMobileFirst ? minWidth : maxWidth}
             onChange={(e) =>
               isMobileFirst
@@ -87,7 +90,7 @@ function NewScreenVariantForm_(props: {
         </Col>
         <Col span={5}>
           <Button block type="primary" htmlType="submit">
-            Add
+            <UiText message={"Add"} />
           </Button>
         </Col>
       </Row>

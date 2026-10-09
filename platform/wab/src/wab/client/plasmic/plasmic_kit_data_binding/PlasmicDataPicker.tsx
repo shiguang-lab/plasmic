@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: cbEBf9RLgx
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -594,7 +595,7 @@ function PlasmicDataPicker__RenderFunc(props: {
               )}
               platform={"react"}
             >
-              {"Remove dynamic value"}
+              {<UiText message={"Remove dynamic value"} />}
             </PlasmicLink__>
           ) : null}
           {(hasVariant($state, "withUnlink", "withUnlink") ? true : false) ? (
@@ -654,7 +655,7 @@ function PlasmicDataPicker__RenderFunc(props: {
             )}
             platform={"react"}
           >
-            {"Add new Data Fetch"}
+            {<UiText message={"Add new Data Fetch"} />}
           </PlasmicLink__>
           {(
             hasVariant($state, "withAddQuery", "withAddQuery") ? true : false
@@ -801,7 +802,7 @@ function PlasmicDataPicker__RenderFunc(props: {
             platform={"react"}
             target={"_blank"}
           >
-            {"Help"}
+            {<UiText message={"Help"} />}
           </PlasmicLink__>
         </div>
       </div>
@@ -1161,7 +1162,7 @@ function PlasmicDataPicker__RenderFunc(props: {
                 ),
               })}
             >
-              {"More results"}
+              {<UiText message={"More results"} />}
             </div>
             <DataPickerGlobalSearchResultsItem
               className={classNames(
@@ -1260,7 +1261,7 @@ function PlasmicDataPicker__RenderFunc(props: {
               [sty.textempty__qiatw6WvzY]: hasVariant($state, "empty", "empty"),
             })}
           >
-            {"No dynamic data available"}
+            {<UiText message={"No dynamic data available"} />}
           </div>
         ) : null}
       </div>
@@ -1531,7 +1532,7 @@ function PlasmicDataPicker__RenderFunc(props: {
                 />
               }
             >
-              {"Delete"}
+              {<UiText message={"Delete"} />}
             </Button>
           ) : null}
           {(
@@ -1595,8 +1596,8 @@ function PlasmicDataPicker__RenderFunc(props: {
                   "isRunCodeInteraction",
                   "isRunCodeInteraction"
                 )
-                  ? "Run"
-                  : "Save"}
+                  ? <UiText message={"Run"} />
+                  : <UiText message={"Save"} />}
               </div>
             </Button>
           ) : null}
@@ -1636,7 +1637,7 @@ function PlasmicDataPicker__RenderFunc(props: {
               />
             }
           >
-            {"Cancel"}
+            {<UiText message={"Cancel"} />}
           </Button>
           <Button
             data-plasmic-name={"saveButton"}
@@ -1669,7 +1670,7 @@ function PlasmicDataPicker__RenderFunc(props: {
             }
             type={["primary"]}
           >
-            {"Save"}
+            {<UiText message={"Save"} />}
           </Button>
         </div>
       </div>

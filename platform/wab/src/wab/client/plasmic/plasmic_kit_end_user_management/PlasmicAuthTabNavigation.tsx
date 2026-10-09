@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: 1lRaedKrFR
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -138,7 +139,7 @@ function PlasmicAuthTabNavigation__RenderFunc(props: {
           ),
         })}
       >
-        {"Permissions"}
+        {<UiText message={"Permissions"} />}
       </div>
       <div
         data-plasmic-name={"settings"}
@@ -151,7 +152,7 @@ function PlasmicAuthTabNavigation__RenderFunc(props: {
           ),
         })}
       >
-        {"Settings"}
+        {<UiText message={"Settings"} />}
       </div>
       <div
         data-plasmic-name={"activity"}
@@ -169,7 +170,7 @@ function PlasmicAuthTabNavigation__RenderFunc(props: {
           ),
         })}
       >
-        {"Activity"}
+        {<UiText message={"Activity"} />}
       </div>
     </div>
   ) as React.ReactElement | null;

@@ -2,6 +2,7 @@ import { Transition } from "@/wab/client/components/sidebar-tabs/TransitionsSect
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { asValidCssTime } from "@/wab/shared/css";
 import { observer } from "mobx-react";
 import React, { useState } from "react";
@@ -14,6 +15,7 @@ interface TransitionPanelProps {
 export const TransitionPanel = observer(function TransitionPanel(
   props: TransitionPanelProps,
 ) {
+  const { t: uiT } = useI18n();
   const handleChange = (f: () => Transition) => {
     props.onChange(f());
   };
@@ -69,7 +71,7 @@ export const TransitionPanel = observer(function TransitionPanel(
 
   return (
     <>
-      <LabeledItemRow label="What to animate" labelSize="small">
+      <LabeledItemRow label={uiT("What to animate")} labelSize="small">
         <StyleSelect
           value={transition.transitionProperty}
           onChange={(value) => {
@@ -83,7 +85,7 @@ export const TransitionPanel = observer(function TransitionPanel(
             }
           }}
           valueSetState={"isSet"}
-          aria-label="What to animate"
+          aria-label={uiT("What to animate")}
         >
           {supportedProps.map((value) => (
             <StyleSelect.Option value={value} key={value}>
@@ -92,7 +94,7 @@ export const TransitionPanel = observer(function TransitionPanel(
           ))}
         </StyleSelect>
       </LabeledItemRow>
-      <LabeledItemRow label="Duration" labelSize="small">
+      <LabeledItemRow label={uiT("Duration")} labelSize="small">
         <Textbox
           styleType={["mono", "gray"]}
           value={styleDuration}
@@ -114,10 +116,10 @@ export const TransitionPanel = observer(function TransitionPanel(
           onEscape={() => {
             setStyleDuration(transition.transitionDuration);
           }}
-          aria-label={"Duration"}
+          aria-label={uiT("Duration")}
         />
       </LabeledItemRow>
-      <LabeledItemRow label="Delay" labelSize="small">
+      <LabeledItemRow label={uiT("Delay")} labelSize="small">
         <Textbox
           styleType={["mono", "gray"]}
           value={styleDelay}
@@ -139,10 +141,10 @@ export const TransitionPanel = observer(function TransitionPanel(
           onEscape={() => {
             setStyleDelay(transition.transitionDelay);
           }}
-          aria-label="Delay"
+          aria-label={uiT("Delay")}
         />
       </LabeledItemRow>
-      <LabeledItemRow label="Curve" labelSize="small">
+      <LabeledItemRow label={uiT("Curve")} labelSize="small">
         <StyleSelect
           value={transition.transitionTimingFunction}
           onChange={(value) => {
@@ -156,7 +158,7 @@ export const TransitionPanel = observer(function TransitionPanel(
             }
           }}
           valueSetState={"isSet"}
-          aria-label="Timing curve"
+          aria-label={uiT("Timing curve")}
         >
           {timingFunctions.map((value, i) => (
             <StyleSelect.Option

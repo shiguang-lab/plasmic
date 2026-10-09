@@ -4,6 +4,7 @@ import { MarkdownHintsPopoverContent } from "@/wab/client/components/comments/Ma
 import { Popover } from "@/wab/client/components/plexus/Popover";
 import { useShareDialog } from "@/wab/client/components/top-bar/useShareDialog";
 import { useUserMentions } from "@/wab/client/components/user-mentions/useUserMentions";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCommentPostFormProps,
   PlasmicCommentPostForm,
@@ -29,6 +30,7 @@ export type CommentPostFormProps = DefaultCommentPostFormProps & {
 const CommentPostForm = observer(function CommentPostForm(
   props: CommentPostFormProps,
 ) {
+  const { t: uiT } = useI18n();
   const {
     id,
     defaultValue,
@@ -94,7 +96,7 @@ const CommentPostForm = observer(function CommentPostForm(
         body={<StandardMarkdown>{value}</StandardMarkdown>}
         bodyInput={{
           autoComplete: "off",
-          placeholder: "Add a comment",
+          placeholder: uiT("Add a comment"),
           textAreaInput: {
             props: {
               id: inputElementId,

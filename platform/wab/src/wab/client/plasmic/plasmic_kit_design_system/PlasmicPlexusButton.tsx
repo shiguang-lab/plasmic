@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: sbyrU_8SkoWY
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -713,7 +714,7 @@ function PlasmicPlexusButton__RenderFunc(props: {
         {renderPlasmicSlot({
           defaultContents: (
             <div className={classNames("all", "__wab_text", sty.text__umbvB)}>
-              {"Text"}
+              {<UiText message={"Text"} />}
             </div>
           ),
           value: args.label,

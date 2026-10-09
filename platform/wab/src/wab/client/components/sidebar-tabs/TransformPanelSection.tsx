@@ -13,6 +13,7 @@ import {
   ListBoxItem,
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
@@ -29,6 +30,7 @@ import React, { useState } from "react";
 
 export const TransformPanelSection = observer(
   (props: { expsProvider: ExpsProvider }) => {
+    const { t: uiT } = useI18n();
     const { expsProvider } = props;
     const { studioCtx } = expsProvider;
     const exp = expsProvider.mergedExp();
@@ -136,7 +138,7 @@ export const TransformPanelSection = observer(
     return (
       <StylePanelSection
         key={String(transforms.length > 0 || isSettingOpen)}
-        title="Transform"
+        title={uiT("Transform")}
         styleProps={styleProps}
         onHeaderClick={
           transforms.length === 0 && !isDisabled ? addTransformation : undefined
@@ -160,7 +162,7 @@ export const TransformPanelSection = observer(
           transforms[inspect] && (
             <SidebarModal
               show
-              title="Transform"
+              title={uiT("Transform")}
               onClose={() => setInspect(undefined)}
             >
               <div className="panel-content">
@@ -178,7 +180,7 @@ export const TransformPanelSection = observer(
         {isSettingOpen && (
           <SidebarModal
             show
-            title={"Transform Settings"}
+            title={uiT("Transform Settings")}
             onClose={() => setIsSettingOpen(false)}
           >
             <TransformSettingsPanel

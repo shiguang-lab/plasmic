@@ -5,6 +5,7 @@ import {
   PreviewViewportMode,
   isViewportDimension,
 } from "@/wab/client/components/live/preview-viewport";
+import { UiText } from "@/wab/client/i18n/UiText";
 import React from "react";
 
 export function PreviewViewportControls({
@@ -89,7 +90,7 @@ export function PreviewViewportControls({
             onChange={(event) => setHeight(event.target.value)}
           />
           <button type="submit" disabled={!valid}>
-            Apply
+            <UiText message={"Apply"} />
           </button>
         </form>
       ) : (
@@ -111,7 +112,9 @@ export function PreviewViewportControls({
         </button>
       )}
       {value.viewport !== "desktop" && (
-        <span className={styles.size}>Zoom {Math.round(scale * 100)}%</span>
+        <span className={styles.size}>
+          <UiText message={"Zoom"} /> {Math.round(scale * 100)}%
+        </span>
       )}
     </div>
   );

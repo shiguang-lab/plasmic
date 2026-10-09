@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: pcPdf_yULU3
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -196,7 +197,7 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
               ),
             })}
           >
-            {"Organization"}
+            {<UiText message={"Organization"} />}
           </div>
           <div className={classNames("all", "__wab_text", sty.text__wGb9A)}>
             {"\u2022"}
@@ -231,7 +232,7 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
                   }
                   style={{ color: "#706F6C" }}
                 >
-                  {"members"}
+                  {<UiText message={"members"} />}
                 </span>
               </React.Fragment>
             </div>
@@ -300,7 +301,7 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
           type={["clear"]}
           withIcons={["startIcon"]}
         >
-          {"New workspace"}
+          {<UiText message={"New workspace"} />}
         </Button>
         <Button
           data-plasmic-name={"settingsButton"}
@@ -342,7 +343,7 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
               ),
             })}
           >
-            {"Manage organization"}
+            {<UiText message={"Manage organization"} />}
           </div>
         </Button>
         <ProjectsFilter

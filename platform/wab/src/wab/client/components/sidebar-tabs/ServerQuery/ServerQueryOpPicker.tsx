@@ -11,8 +11,8 @@ import {
   ServerQueryOpArgs,
   useServerQueryOp,
 } from "@/wab/client/components/sidebar-tabs/ServerQuery/useServerQueryOp";
-import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
+import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import { Tab, Tabs } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
@@ -21,14 +21,17 @@ import {
   InvalidArgsBadge,
   InvalidArgsSummary,
 } from "@/wab/client/components/widgets/InvalidArgs";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
-  getInstallableCustomFunctions,
   HostLessCustomFunction,
+  getInstallableCustomFunctions,
   installCustomFunction,
 } from "@/wab/client/utils/hostless-custom-functions";
+import { CUSTOM_CODE_QUERY_CAP } from "@/wab/shared/Labels";
 import { allCustomFunctions } from "@/wab/shared/cached-selectors";
 import {
   getPropTypeDefaultValue,
@@ -46,14 +49,14 @@ import {
 } from "@/wab/shared/common";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
 import {
-  getCustomFunctionParams,
   StatefulQueryState,
+  getCustomFunctionParams,
 } from "@/wab/shared/core/custom-functions";
 import {
+  ExprCtx,
   clone,
   codeLit,
   customCode,
-  ExprCtx,
   stripParens,
 } from "@/wab/shared/core/exprs";
 import { InvalidArg } from "@/wab/shared/core/invalid-arg";
@@ -63,7 +66,6 @@ import {
 } from "@/wab/shared/core/query-ids";
 import { flattenExprs } from "@/wab/shared/core/tpls";
 import { makeDataTokenIdentifier } from "@/wab/shared/eval/expression-parser";
-import { CUSTOM_CODE_QUERY_CAP } from "@/wab/shared/Labels";
 import {
   ArgType,
   ComponentServerQuery,
@@ -73,9 +75,9 @@ import {
   Expr,
   FunctionArg,
   Interaction,
-  isKnownComponentServerQuery,
   Site,
   TplTag,
+  isKnownComponentServerQuery,
 } from "@/wab/shared/model/classes";
 import { convertToFunction } from "@/wab/shared/parser-utils";
 import { renameDataTokenInExpr } from "@/wab/shared/refactoring";
@@ -153,8 +155,7 @@ interface QueryDraft {
 }
 
 type ValidQueryDraft =
-  | SetRequired<QueryDraft, "fnExpr">
-  | SetRequired<QueryDraft, "codeExpr">;
+  SetRequired<QueryDraft, "fnExpr"> | SetRequired<QueryDraft, "codeExpr">;
 function isValidQueryDraft(draft: QueryDraft): draft is ValidQueryDraft {
   if (draft.codeExpr) {
     const code = stripParens(draft.codeExpr.code);
@@ -212,6 +213,7 @@ export const ServerQueryOpDraftForm = observer(
     invalidArgs: Record<string, InvalidArg> | undefined;
     currGlobalThis?: typeof globalThis;
   }) {
+    const { t: uiT } = useI18n();
     const {
       value,
       isDisabled,
@@ -497,17 +499,17 @@ export const ServerQueryOpDraftForm = observer(
     return (
       <div id="data-source-modal-draft-section">
         {showQueryName && (
-          <LabeledItemRow label="Query name" data-test-id="query-name">
+          <LabeledItemRow label={uiT("Query name")} data-test-id="query-name">
             <StringPropEditor
               value={value?.queryName}
               onChange={(newName) => onChange({ ...value, queryName: newName })}
             />
           </LabeledItemRow>
         )}
-        <LabeledItemRow label={"Data query"} data-test-id="data-query-fn">
+        <LabeledItemRow label={uiT("Data query")} data-test-id="data-query-fn">
           <StyleSelect
             value={dropdownValue}
-            placeholder={"Select..."}
+            placeholder={uiT("Select...")}
             valueSetState={dropdownValue ? "isSet" : undefined}
             isDisabled={isDisabled || readOnly || isInstalling}
             onChange={(id) => {
@@ -593,7 +595,7 @@ export const ServerQueryOpDraftForm = observer(
             )}
             <StyleSelect.OptionGroup title={undefined} noTitle={false}>
               <StyleSelect.Option value={CUSTOM_CODE_OPTION}>
-                {CUSTOM_CODE_QUERY_CAP}...
+                {<UiLabel text={CUSTOM_CODE_QUERY_CAP} />}...
               </StyleSelect.Option>
             </StyleSelect.OptionGroup>
           </StyleSelect>
@@ -610,7 +612,7 @@ export const ServerQueryOpDraftForm = observer(
           value?.fnExpr &&
           value.fnExpr.func.params.length > 0 && (
             <SidebarSection
-              title="Parameters"
+              title={uiT("Parameters")}
               key={`params.${value.fnExpr.func.uid}`}
               zeroBodyPadding
               zeroHeaderPadding
@@ -697,14 +699,14 @@ function _ServerQueryOpPreview(props: {
             setPreviewCollapseCount((x) => x + 1);
           }}
         >
-          Collapse All
+          <UiText message={"Collapse All"} />
         </a>
         <a
           onClick={() => {
             setPreviewExpand(true);
           }}
         >
-          Expand All
+          <UiText message={"Expand All"} />
         </a>
       </div>
     );
@@ -733,7 +735,9 @@ function _ServerQueryOpPreview(props: {
               invalidArgsList ? (
                 <div className="flex-col fill-width fill-height flex-vcenter flex-hcenter gap-m dimfg text-center">
                   <InvalidArgsBadge>
-                    <strong>Fix validation errors</strong>
+                    <strong>
+                      <UiText message={"Fix validation errors"} />
+                    </strong>
                   </InvalidArgsBadge>
                   <div>
                     <InvalidArgsSummary invalidArgs={invalidArgsList} />
@@ -741,7 +745,7 @@ function _ServerQueryOpPreview(props: {
                 </div>
               ) : !queryState ? (
                 <div className="flex-col fill-width fill-height flex-vcenter flex-hcenter dimfg">
-                  Press Execute to preview results
+                  <UiText message={"Press Execute to preview results"} />
                 </div>
               ) : (
                 <React.Suspense>
@@ -939,7 +943,7 @@ export const ServerQueryOpExprFormAndPreview = observer(
                 disabled={!saveOp}
                 onClick={saveOp}
               >
-                Save
+                <UiText message={"Save"} />
               </Button>
               <Button
                 onClick={executeOp}
@@ -947,9 +951,11 @@ export const ServerQueryOpExprFormAndPreview = observer(
                 disabled={!validDraft}
                 startIcon={<Icon icon={SearchIcon} />}
               >
-                Execute
+                <UiText message={"Execute"} />
               </Button>
-              <Button onClick={onCancel}>Cancel</Button>
+              <Button onClick={onCancel}>
+                <UiText message={"Cancel"} />
+              </Button>
             </BottomModalButtons>
           </div>
           <ServerQueryOpPreview

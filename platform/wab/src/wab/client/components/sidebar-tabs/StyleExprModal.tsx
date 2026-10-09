@@ -21,6 +21,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import Button from "@/wab/client/components/widgets/Button";
 import Select from "@/wab/client/components/widgets/Select";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
@@ -99,7 +100,7 @@ export const StyleExprButton = observer(function StyleExprButton(props: {
           })
         }
       >
-        Configure styles
+        <UiText message={"Configure styles"} />
       </Button>
       {expr && show && (
         <StyleExprPopup

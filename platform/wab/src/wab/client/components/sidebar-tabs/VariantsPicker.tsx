@@ -21,6 +21,7 @@ import { InstanceVariantsTooltip } from "@/wab/client/components/widgets/Detaile
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { useViewCtx } from "@/wab/client/contexts/StudioContexts";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { toVarName } from "@/wab/shared/codegen/util";
@@ -96,7 +97,7 @@ export function _VariantsPickerPanel({ tpl }: VariantsPickerPanelProps) {
     <SidebarSection
       title={
         <LabelWithDetailedTooltip tooltip={<InstanceVariantsTooltip />}>
-          {VARIANTS_CAP}
+          {<UiLabel text={VARIANTS_CAP} />}
         </LabelWithDetailedTooltip>
       }
       isHeaderActive={
@@ -391,22 +392,22 @@ export const VariantPicker = observer(function VariantPicker(props: {
                 )
               }
             >
-              Clear
+              <UiText message={"Clear"} />
             </Menu.Item>
           )}
           {arg.valueType === "literal" && (
             <Menu.Item key={"dynamicValue"} onClick={linkToDynamicValue}>
-              Use dynamic value
+              <UiText message={"Use dynamic value"} />
             </Menu.Item>
           )}
           {arg.valueType === "dynamic" && !showFallback && (
             <Menu.Item key={"fallback"} onClick={() => setShowFallback(true)}>
-              Change fallback value
+              <UiText message={"Change fallback value"} />
             </Menu.Item>
           )}
           {arg.valueType === "dynamic" && (
             <Menu.Item key={"!dynamicValue"} onClick={unlinkFromDynamicValue}>
-              Remove dynamic value
+              <UiText message={"Remove dynamic value"} />
             </Menu.Item>
           )}
           {arg.valueType === "literal" && canLinkToProp && (

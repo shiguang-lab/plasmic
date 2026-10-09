@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: 1OCmfT86EB3
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -137,7 +138,7 @@ function PlasmicTextboxLike__RenderFunc(props: {
       {renderPlasmicSlot({
         defaultContents: (
           <div className={classNames("all", "__wab_text", sty.text__oZBco)}>
-            {"Enter some text"}
+            {<UiText message={"Enter some text"} />}
           </div>
         ),
         value: args.children,

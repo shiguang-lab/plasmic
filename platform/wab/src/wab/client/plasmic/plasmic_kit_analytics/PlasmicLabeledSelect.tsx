@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: bQ74QBVIbHI
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -84,6 +85,7 @@ function PlasmicLabeledSelect__RenderFunc(props: {
   overrides: PlasmicLabeledSelect__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -194,7 +196,7 @@ function PlasmicLabeledSelect__RenderFunc(props: {
         data-plasmic-name={"select"}
         data-plasmic-override={overrides.select}
         className={classNames("__wab_instance", sty.select)}
-        placeholder={"Select..."}
+        placeholder={uiT("Select...")}
         type={"bordered"}
       >
         <Select__Option
@@ -211,7 +213,7 @@ function PlasmicLabeledSelect__RenderFunc(props: {
         </Select__Option>
         <Select__OptionGroup
           className={classNames("__wab_instance", sty.optionGroup__iiXo)}
-          title={"Group Name"}
+          title={uiT("Group Name")}
         >
           <Select__Option
             className={classNames("__wab_instance", sty.option__h2F3)}

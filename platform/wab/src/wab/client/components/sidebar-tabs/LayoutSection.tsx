@@ -11,17 +11,19 @@ import {
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import GridIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Grid";
 import ArrowDownIcon from "@/wab/client/plasmic/plasmic_kit_style_controls/icons/PlasmicIcon__ArrowDown";
 import ArrowRightIcon from "@/wab/client/plasmic/plasmic_kit_style_controls/icons/PlasmicIcon__ArrowRight";
 import WildcardIcon from "@/wab/client/plasmic/plasmic_kit_style_controls/icons/PlasmicIcon__Wildcard";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import {
   ContainerLayoutType,
   ensureContainerType,
   getContainerTypeName,
   getRshContainerType,
 } from "@/wab/shared/layoututils";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { Menu } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
@@ -35,13 +37,14 @@ type LayoutSectionProps = {
 export const LayoutSection = observer(function LayoutSection_(
   props: LayoutSectionProps,
 ) {
+  const { t: uiT } = useI18n();
   const styling = useStyleComponent();
   const hasDisplay = styling.exp().has("display");
   const containerType = getRshContainerType(styling.exp());
   const makeMenu =
     props.allowConvert && props.expsProvider instanceof TplExpsProvider
       ? (builder: MenuBuilder) => {
-          builder.genSection("Convert to...", (push) => {
+          builder.genSection(<UiText message={"Convert to..."} />, (push) => {
             if (
               containerType === ContainerLayoutType.contentLayout ||
               containerType === ContainerLayoutType.grid
@@ -90,7 +93,7 @@ export const LayoutSection = observer(function LayoutSection_(
   return (
     <StylePanelSection
       hasMore
-      title="Layout"
+      title={uiT("Layout")}
       expsProvider={props.expsProvider}
       extraMenuItems={makeMenu}
       controls={
@@ -99,7 +102,9 @@ export const LayoutSection = observer(function LayoutSection_(
           : (props.isCodeComponentTpl ||
               containerType !== ContainerLayoutType.grid) &&
             (containerType === ContainerLayoutType.contentLayout ? (
-              <span>Document layout</span>
+              <span>
+                <UiText message={"Document layout"} />
+              </span>
             ) : (
               <StyleToggleButtonGroup
                 value={containerType}
@@ -115,21 +120,21 @@ export const LayoutSection = observer(function LayoutSection_(
                   <>
                     <StyleToggleButton
                       value="free"
-                      tooltip="Free"
+                      tooltip={uiT("Free")}
                       data-test-id="layout-free"
                     >
                       <Icon icon={WildcardIcon} size={17} />
                     </StyleToggleButton>
                     <StyleToggleButton
                       value={ContainerLayoutType.flexColumn}
-                      tooltip="Vertical"
+                      tooltip={uiT("Vertical")}
                       data-test-id="layout-vstack"
                     >
                       <Icon icon={ArrowDownIcon} size={17} />
                     </StyleToggleButton>
                     <StyleToggleButton
                       value={ContainerLayoutType.flexRow}
-                      tooltip="Horizontal"
+                      tooltip={uiT("Horizontal")}
                       data-test-id="layout-hstack"
                     >
                       <Icon icon={ArrowRightIcon} size={17} />
@@ -137,7 +142,7 @@ export const LayoutSection = observer(function LayoutSection_(
                     {props.isCodeComponentTpl && (
                       <StyleToggleButton
                         value={ContainerLayoutType.grid}
-                        tooltip="Grid"
+                        tooltip={uiT("Grid")}
                         data-test-id="layout-grid"
                       >
                         <Icon icon={GridIcon} size={17} />
@@ -172,7 +177,9 @@ export const LayoutSection = observer(function LayoutSection_(
         hasDisplay && (
           <>
             {containerType === ContainerLayoutType.free && (
-              <p>Children can be freely positioned.</p>
+              <p>
+                <UiText message={"Children can be freely positioned."} />
+              </p>
             )}
             {containerType && containerType.includes("flex") && (
               <FlexContainerControls

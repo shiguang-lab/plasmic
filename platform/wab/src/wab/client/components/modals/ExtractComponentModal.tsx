@@ -2,6 +2,7 @@ import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import {
   Component,
@@ -134,9 +135,11 @@ export function ExtractComponentForm(props: {
           onClick={() => props.onSubmit(resp)}
           disabled={!resp.name || !!errors.get().name}
         >
-          Create component
+          <UiText message={"Create component"} />
         </Button>
-        <Button onClick={() => props.onCancel()}>Cancel</Button>
+        <Button onClick={() => props.onCancel()}>
+          <UiText message={"Cancel"} />
+        </Button>
       </Form.Item>
     </Form>
   ));

@@ -24,6 +24,8 @@ import {
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -49,6 +51,7 @@ export interface ColumnsPanelProps {
 export const ColumnsPanelSection = observer(function ColumnsPanelSection(
   props: ColumnsPanelProps,
 ) {
+  const { t: uiT } = useI18n();
   const { tpl, expsProvider } = props;
   const childrenLength = props.tpl.children.length;
   const studioCtx = props.studioCtx;
@@ -90,11 +93,11 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
 
   return (
     <SidebarSection
-      title="Responsive Section"
+      title={uiT("Responsive Section")}
       isHeaderActive={true}
       definedIndicator={
         <DefinedIndicator
-          label={"Responsive Section"}
+          label={uiT("Responsive Section")}
           type={definedIndicator}
         />
       }
@@ -126,7 +129,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
                 });
               }}
             >
-              Reset style
+              <UiText message={"Reset style"} />
             </Menu.Item>
           </Menu>
         );
@@ -143,7 +146,11 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
             />
           )}
           <LabeledItemRow
-            label={<div className={S.rcLabelWidth}>Total Columns</div>}
+            label={
+              <div className={S.rcLabelWidth}>
+                <UiText message={"Total Columns"} />
+              </div>
+            }
           >
             <FullRow twinCols>
               <DimTokenSpinner
@@ -234,10 +241,11 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
 
 export const ColumnsStyleOnlySection = observer(
   function ColumnsStyleOnlySection(props: { expsProvider: ExpsProvider }) {
+    const { t: uiT } = useI18n();
     const { expsProvider } = props;
     const studioCtx = useStudioCtx();
     return (
-      <SidebarSection title="Responsive Section">
+      <SidebarSection title={uiT("Responsive Section")}>
         <ColumnsGapControls
           expsProvider={expsProvider}
           studioCtx={studioCtx}
@@ -254,14 +262,18 @@ export const ColumnsGapControls = observer(function ColumnsGapControls(props: {
   isDisabled?: boolean;
   includeRowGap?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider, studioCtx, isDisabled, includeRowGap } = props;
   const exp = expsProvider.mergedExp();
 
   return (
-    <LabeledStyleItemRow label={"Gaps"} styleName={["column-gap", "row-gap"]}>
+    <LabeledStyleItemRow
+      label={uiT("Gaps")}
+      styleName={["column-gap", "row-gap"]}
+    >
       <FullRow twinCols>
         <VerticalLabeledStyleDimItem
-          label="Column"
+          label={uiT("Column")}
           styleName="column-gap"
           expsProvider={expsProvider}
           dimOpts={{
@@ -273,7 +285,7 @@ export const ColumnsGapControls = observer(function ColumnsGapControls(props: {
           isDisabled={isDisabled}
         />
         <VerticalLabeledStyleDimItem
-          label="Row"
+          label={uiT("Row")}
           styleName="row-gap"
           expsProvider={expsProvider}
           dimOpts={{
@@ -294,10 +306,11 @@ export const ColumnSection = observer(function ColumnSection(props: {
   expsProvider: ExpsProvider;
   tpl: TplColumnTag;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   return (
     <StylePanelSection
-      title="Responsive Column"
+      title={uiT("Responsive Column")}
       expsProvider={expsProvider}
       styleProps={[
         "flex-direction",

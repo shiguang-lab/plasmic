@@ -11,6 +11,8 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: 5hDgjGS3IR
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -70,6 +72,7 @@ function PlasmicSegmentAddField__RenderFunc(props: {
   overrides: PlasmicSegmentAddField__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -114,13 +117,13 @@ function PlasmicSegmentAddField__RenderFunc(props: {
         data-plasmic-override={overrides.text}
         className={classNames("all", "__wab_text", sty.text)}
       >
-        {"Add custom field type"}
+        {<UiText message={"Add custom field type"} />}
       </div>
       <Textbox
         data-plasmic-name={"fieldName"}
         data-plasmic-override={overrides.fieldName}
         className={classNames("__wab_instance", sty.fieldName)}
-        placeholder={"Field name"}
+        placeholder={uiT("Field name")}
         prefixIcon={
           <SearchSvgIcon
             className={classNames("all", sty.svg__o2Qg)}
@@ -166,7 +169,7 @@ function PlasmicSegmentAddField__RenderFunc(props: {
           />
         }
       >
-        {"Add"}
+        {<UiText message={"Add"} />}
       </Button>
     </div>
   ) as React.ReactElement | null;

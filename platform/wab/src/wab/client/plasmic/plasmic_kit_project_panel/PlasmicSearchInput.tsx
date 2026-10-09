@@ -11,6 +11,7 @@
 // Plasmic Project: m8VxGcigeLAEXFe8c12w5Q
 // Component: CHoUJxFMpo
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -79,6 +80,7 @@ function PlasmicSearchInput__RenderFunc(props: {
   overrides: PlasmicSearchInput__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -209,7 +211,7 @@ function PlasmicSearchInput__RenderFunc(props: {
               ),
             }
           )}
-          placeholder={"Search…"}
+          placeholder={uiT("Search…")}
           ref={(ref) => {
             $refs["searchInput"] = ref;
           }}

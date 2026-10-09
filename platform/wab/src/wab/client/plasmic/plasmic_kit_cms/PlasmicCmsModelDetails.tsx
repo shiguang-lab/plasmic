@@ -11,6 +11,7 @@
 // Plasmic Project: ieacQ3Z46z4gwo1FnaB5vY
 // Component: pLQf-lY112u
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -126,7 +127,7 @@ function PlasmicCmsModelDetails__RenderFunc(props: {
               data-plasmic-override={overrides.modelNameValue}
               className={classNames("all", "__wab_text", sty.modelNameValue)}
             >
-              {"Enter some text"}
+              {<UiText message={"Enter some text"} />}
             </div>
           </InlineEditable>
           <div
@@ -134,7 +135,7 @@ function PlasmicCmsModelDetails__RenderFunc(props: {
             data-plasmic-override={overrides.text}
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"Model schema"}
+            {<UiText message={"Model schema"} />}
           </div>
         </div>
         <div
@@ -149,7 +150,7 @@ function PlasmicCmsModelDetails__RenderFunc(props: {
             size={"wide"}
             type={["primary"]}
           >
-            {"Save"}
+            {<UiText message={"Save"} />}
           </Button>
           <MenuButton
             data-plasmic-name={"menuButton"}

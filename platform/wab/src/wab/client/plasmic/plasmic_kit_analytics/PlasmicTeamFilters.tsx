@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: U5oM6fe0OlY
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -63,6 +64,7 @@ function PlasmicTeamFilters__RenderFunc(props: {
   overrides: PlasmicTeamFilters__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -106,14 +108,14 @@ function PlasmicTeamFilters__RenderFunc(props: {
         data-plasmic-name={"workspaceSelect"}
         data-plasmic-override={overrides.workspaceSelect}
         className={classNames("__wab_instance", sty.workspaceSelect)}
-        label={"Workspace"}
+        label={uiT("Workspace")}
       />
 
       <LabeledSelect
         data-plasmic-name={"projectSelect"}
         data-plasmic-override={overrides.projectSelect}
         className={classNames("__wab_instance", sty.projectSelect)}
-        label={"Project"}
+        label={uiT("Project")}
         withBottomBorder={true}
       />
 
@@ -121,7 +123,7 @@ function PlasmicTeamFilters__RenderFunc(props: {
         data-plasmic-name={"pageSelect"}
         data-plasmic-override={overrides.pageSelect}
         className={classNames("__wab_instance", sty.pageSelect)}
-        label={"Page or Component"}
+        label={uiT("Page or Component")}
         withBottomBorder={true}
         withInfo={true}
       />
@@ -136,7 +138,7 @@ function PlasmicTeamFilters__RenderFunc(props: {
             "__wab_instance",
             sty.optimizationOption___6Xcl1
           )}
-          label={"None"}
+          label={uiT("None")}
           selected={true}
           unset={true}
         />

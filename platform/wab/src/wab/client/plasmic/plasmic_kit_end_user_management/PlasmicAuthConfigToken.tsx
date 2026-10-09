@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: HQf5xQMdD4
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -110,7 +111,7 @@ function PlasmicAuthConfigToken__RenderFunc(props: {
           data-plasmic-override={overrides.tokenLabel}
           className={classNames("all", "__wab_text", sty.tokenLabel)}
         >
-          {"Secret token"}
+          {<UiText message={"Secret token"} />}
         </div>
       </div>
       <div className={classNames("all", sty.column__vsg2R)}>

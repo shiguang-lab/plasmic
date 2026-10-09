@@ -11,6 +11,7 @@
 // Plasmic Project: oB885NJtg5rwT11s7yCnwW
 // Component: YWyR9ESU0CU
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -121,7 +122,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 selected={true}
                 type={"page"}
               >
-                {"Page"}
+                {<UiText message={"Page"} />}
               </ReferenceItem>
               <ReferenceItem
                 className={classNames(
@@ -147,7 +148,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"component"}
               >
-                {"Component"}
+                {<UiText message={"Component"} />}
               </ReferenceItem>
               <ReferenceItem
                 className={classNames(
@@ -173,7 +174,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"token"}
               >
-                {"Token"}
+                {<UiText message={"Token"} />}
               </ReferenceItem>
               <ListSectionSeparator
                 center={true}
@@ -238,7 +239,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"theme"}
               >
-                {"Theme"}
+                {<UiText message={"Theme"} />}
               </ReferenceItem>
               <ListSectionSeparator
                 center={true}
@@ -255,7 +256,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"preset"}
               >
-                {"Preset"}
+                {<UiText message={"Preset"} />}
               </ReferenceItem>
             </React.Fragment>
           ),

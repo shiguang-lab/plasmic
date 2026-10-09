@@ -1,4 +1,5 @@
 import CopilotMsg from "@/wab/client/components/CopilotMsg";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCopilotPromptDialogProps,
   PlasmicCopilotPromptDialog,
@@ -37,6 +38,7 @@ function CopilotPromptDialog<Response>({
   maxLength,
   onCopilotSubmit,
 }: CopilotPromptDialogProps<Response>) {
+  const { t: uiT } = useI18n();
   const [showHistory, setShowHistory] = React.useState(false);
   const [copilotPrompt, setCopilotPrompt] = React.useState<CopilotPrompt>({
     prompt: "",
@@ -133,13 +135,13 @@ function CopilotPromptDialog<Response>({
           setShowHistory(false);
           onDialogOpenChange?.(false);
         },
-        tooltip: "Close",
+        tooltip: uiT("Close"),
       }}
       historyBtn={{
         onClick: () => setShowHistory(!showHistory),
         tooltip: showHistory
           ? "Close suggestion history"
-          : "Suggestion history",
+          : uiT("Suggestion history"),
       }}
       historyContents={{
         children: suggestionHistory.map(

@@ -17,6 +17,8 @@ import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { getSlotParams } from "@/wab/shared/SlotUtils";
@@ -54,6 +56,7 @@ export const LegacyComponentParamsSection = observer(
     metaDataOnly?: boolean;
     justOneSection?: "variants" | "slots" | "meta";
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, component, justOneSection, metaDataOnly } = props;
     const [showNewParamModal, setShowNewParamModal] = React.useState(false);
 
@@ -79,7 +82,7 @@ export const LegacyComponentParamsSection = observer(
             <>
               <div className="SidebarSectionListItem justify-between">
                 <div className="labeled-item__label">
-                  Editable by content editors
+                  <UiText message={"Editable by content editors"} />
                 </div>
                 <BoolPropEditor
                   onChange={(val) => {
@@ -99,7 +102,7 @@ export const LegacyComponentParamsSection = observer(
 
               <div className="SidebarSectionListItem justify-between">
                 <div className="labeled-item__label">
-                  Hidden from content editors
+                  <UiText message={"Hidden from content editors"} />
                 </div>
                 <BoolPropEditor
                   onChange={(val) => {
@@ -127,7 +130,7 @@ export const LegacyComponentParamsSection = observer(
                     "User of the studio must select this component element first before selecting any of its slot contents. Useful for components like Button, where the user is much more likely to intend to select the Button itself than its label."
                   }
                 >
-                  Selected before slot contents
+                  <UiText message={"Selected before slot contents"} />
                 </LabelWithDetailedTooltip>
               </div>
               <BoolPropEditor
@@ -151,7 +154,7 @@ export const LegacyComponentParamsSection = observer(
             component.variantGroups.length > 0 &&
             shown.variants && (
               <ParamsSection
-                title="Variants"
+                title={uiT("Variants")}
                 studioCtx={studioCtx}
                 component={component}
                 params={component.variantGroups.map((vg) => vg.param)}
@@ -159,7 +162,7 @@ export const LegacyComponentParamsSection = observer(
             )}
           {!metaDataOnly && slotParams.length > 0 && shown.slots && (
             <ParamsSection
-              title="Slots"
+              title={uiT("Slots")}
               studioCtx={studioCtx}
               component={component}
               params={slotParams}
@@ -168,7 +171,7 @@ export const LegacyComponentParamsSection = observer(
           {Object.keys(metadata).length > 0 && shown.keyValue && (
             <MetadataSection
               studioCtx={studioCtx}
-              title={"Key-value Metadata"}
+              title={uiT("Key-value Metadata")}
               component={component}
             />
           )}
@@ -191,7 +194,11 @@ export const LegacyComponentParamsSection = observer(
             if (!metaKeyAndValue) {
               notification.error({
                 message: "Fill key and value",
-                description: <>You should fill both key and value.</>,
+                description: (
+                  <>
+                    <UiText message={"You should fill both key and value."} />
+                  </>
+                ),
               });
               return;
             }
@@ -230,7 +237,7 @@ export const LegacyComponentParamsSection = observer(
           }}
         >
           <LabelWithDetailedTooltip tooltip={MetadataTooltip}>
-            Add metadata key-value
+            <UiText message={"Add metadata key-value"} />
           </LabelWithDetailedTooltip>
         </Button>
         {!metaDataOnly && (
@@ -239,7 +246,7 @@ export const LegacyComponentParamsSection = observer(
             onClick={() => setShowNewParamModal(true)}
           >
             <LabelWithDetailedTooltip tooltip={PropsTooltip}>
-              Create prop
+              <UiText message={"Create prop"} />
             </LabelWithDetailedTooltip>
           </Button>
         )}
@@ -250,8 +257,12 @@ export const LegacyComponentParamsSection = observer(
           <LabeledListItem
             className="mt-m p0"
             label={
-              <Tooltip title="Globally unique name for this template component">
-                <span>Template component name</span>
+              <Tooltip
+                title={uiT("Globally unique name for this template component")}
+              >
+                <span>
+                  <UiText message={"Template component name"} />
+                </span>
               </Tooltip>
             }
           >
@@ -540,7 +551,7 @@ function makeParamMenu(
             })
           }
         >
-          Delete prop
+          <UiText message={"Delete prop"} />
         </Menu.Item>
       )}
     </Menu>
@@ -561,7 +572,7 @@ function makeMetadataMenu(
           })
         }
       >
-        Delete metadata
+        <UiText message={"Delete metadata"} />
       </Menu.Item>
     </Menu>
   );

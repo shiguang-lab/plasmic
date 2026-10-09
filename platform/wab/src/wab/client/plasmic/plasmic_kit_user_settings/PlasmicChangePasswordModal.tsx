@@ -11,6 +11,7 @@
 // Plasmic Project: aaggSgVS8yYsAwQffVQB4p
 // Component: 61Ev5d6FaD
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -152,7 +153,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
       )}
     >
       <div className={classNames("all", "__wab_text", sty.text__xFwGm)}>
-        {"Change password"}
+        {<UiText message={"Change password"} />}
       </div>
       {(hasVariant($state, "isFeedback", "isFeedback") ? false : true) ? (
         <form
@@ -169,7 +170,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
         >
           <label className={classNames("all", sty.label__z95AF)}>
             <div className={classNames("all", "__wab_text", sty.text__otKoM)}>
-              {"Old password"}
+              {<UiText message={"Old password"} />}
             </div>
             <Textbox
               data-plasmic-name={"oldPasswordInput"}
@@ -180,7 +181,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
           <div className={classNames("all", sty.freeBox__wJrGa)}>
             <label className={classNames("all", sty.label__cfedi)}>
               <div className={classNames("all", "__wab_text", sty.text__nfn3B)}>
-                {"New password"}
+                {<UiText message={"New password"} />}
               </div>
               <Textbox
                 data-plasmic-name={"newPasswordInput"}
@@ -203,7 +204,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
           </div>
           <label className={classNames("all", sty.label__gCzX2)}>
             <div className={classNames("all", "__wab_text", sty.text__pG1Hs)}>
-              {"Confirm new password"}
+              {<UiText message={"Confirm new password"} />}
             </div>
             <Textbox
               data-plasmic-name={"confirmPasswordInput"}
@@ -224,7 +225,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
             type={["primary"]}
           >
             <div className={classNames("all", "__wab_text", sty.text__ftmVc)}>
-              {"Change password"}
+              {<UiText message={"Change password"} />}
             </div>
           </Button>
           {(hasVariant($state, "hasError", "hasError") ? true : false)
@@ -233,7 +234,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__xa4AX)}
                   >
-                    {"The passwords do not match."}
+                    {<UiText message={"The passwords do not match."} />}
                   </div>
                 ),
                 value: args.error,
@@ -261,7 +262,7 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
           })}
         >
           <div className={classNames("all", "__wab_text", sty.text__cVxa0)}>
-            {"Your password has been changed successfully."}
+            {<UiText message={"Your password has been changed successfully."} />}
           </div>
         </div>
       ) : null}

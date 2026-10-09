@@ -11,6 +11,8 @@
 // Plasmic Project: kdj5vahTyUKxznuR6rrtt6
 // Component: 8q06bNJu0e
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -69,6 +71,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
   overrides: PlasmicVariantsDrawer__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -129,7 +132,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
             "input__kdj5v",
             sty.searchInput
           )}
-          placeholder={"Search variants"}
+          placeholder={uiT("Search variants")}
           ref={(ref) => {
             $refs["searchInput"] = ref;
           }}
@@ -154,7 +157,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__xsPjs)}
                 >
-                  {"Base"}
+                  {<UiText message={"Base"} />}
                 </div>
               </VariantRow>
               <VariantsSectionDivider
@@ -170,7 +173,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__wrKaW)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               </VariantRow>
               <VariantRow
@@ -180,7 +183,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mCOb)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               </VariantRow>
               <VariantsSectionDivider
@@ -204,7 +207,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__pBdts)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               </VariantRow>
               <VariantRow
@@ -228,7 +231,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__s6JqC)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               </VariantRow>
               <VariantRow
@@ -237,7 +240,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__j9Dww)}
                 >
-                  {"Enter some text"}
+                  {<UiText message={"Enter some text"} />}
                 </div>
               </VariantRow>
             </React.Fragment>

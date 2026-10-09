@@ -8,6 +8,7 @@ import {
   isDataTokenPanelReadOnly,
 } from "@/wab/client/components/sidebar/token-utils";
 import { Matcher } from "@/wab/client/components/view-common";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UiActionsOverlay } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -48,14 +49,14 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
     builder.genSection(undefined, (push) => {
       push(
         <Menu.Item key="references" onClick={() => onFindReferences()}>
-          Find all references
+          <UiText message={"Find all references"} />
         </Menu.Item>,
       );
 
       if (!tokenPanelReadOnly && token.isLocal) {
         push(
           <Menu.Item key="clone" onClick={() => onDuplicate(token.base)}>
-            Duplicate
+            <UiText message={"Duplicate"} />
           </Menu.Item>,
         );
       }
@@ -75,7 +76,7 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
                 multiAssetsActions.onAssetSelected(token.uuid, true);
               }}
             >
-              Start bulk selection
+              <UiText message={"Start bulk selection"} />
             </Menu.Item>,
           );
           push2(
@@ -85,7 +86,7 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
                 await studioCtx.siteOps().tryDeleteDataTokens([token.base]);
               }}
             >
-              Delete
+              <UiText message={"Delete"} />
             </Menu.Item>,
           );
         });

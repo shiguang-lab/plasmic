@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: cwS3NAy41ya
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -64,6 +65,7 @@ function PlasmicVariantsMenu__RenderFunc(props: {
   overrides: PlasmicVariantsMenu__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -124,7 +126,7 @@ function PlasmicVariantsMenu__RenderFunc(props: {
             "input__6Crqk",
             sty.searchInput
           )}
-          placeholder={"Search variants…"}
+          placeholder={uiT("Search variants…")}
           ref={(ref) => {
             $refs["searchInput"] = ref;
           }}

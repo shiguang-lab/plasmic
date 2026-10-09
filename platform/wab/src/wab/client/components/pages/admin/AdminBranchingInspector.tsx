@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 import React from "react";
 
 import { NonAuthCtx, loadAppCtx, useNonAuthCtx } from "@/wab/client/app-ctx";
@@ -66,6 +67,7 @@ function PkgVersionDetails(props: {
   metadata: ProjectMetadata;
   pkgVersionId: string;
 }) {
+  const { t: uiT } = useI18n();
   const { nonAuthCtx, metadata, pkgVersionId } = props;
   const currentPkgVersion = ensure(
     metadata.pkgVersions.find((pkgVersion) => pkgVersion.id === pkgVersionId),
@@ -151,7 +153,7 @@ function PkgVersionDetails(props: {
             ))}
           </div>
         </Descriptions.Item>
-        <Descriptions.Item label="Description">
+        <Descriptions.Item label={uiT("Description")}>
           {currentPkgVersion.description}
         </Descriptions.Item>
       </Descriptions>

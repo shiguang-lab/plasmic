@@ -1,6 +1,8 @@
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicVariantProp } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicVariantProp";
 import { isStandaloneVariantGroup } from "@/wab/shared/Variants";
 import { toVarName } from "@/wab/shared/codegen/util";
@@ -17,6 +19,7 @@ interface VariantPropProps {
 }
 
 const VariantProp = observer(function VariantProp(props: VariantPropProps) {
+  const { t: uiT } = useI18n();
   const { docsCtx, group } = props;
   const param = group.param;
   const component = docsCtx.getFocusedComponent();
@@ -84,7 +87,7 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
           renderInput={(options) => (
             <input {...options} className="transparent" />
           )}
-          placeholder="(Unset)"
+          placeholder={uiT("(Unset)")}
         />
       ) : (
         <Select
@@ -97,12 +100,14 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
               docsCtx.setComponentToggle(component, param, selected);
             }
           }}
-          placeholder="(Unset)"
+          placeholder={uiT("(Unset)")}
           aria-label={name}
         >
           {[
             <Select.Option value={null} key="" textValue="Unset">
-              <em>(Unset)</em>
+              <em>
+                <UiText message={"(Unset)"} />
+              </em>
             </Select.Option>,
             ...group.variants.map((variant) => (
               <Select.Option

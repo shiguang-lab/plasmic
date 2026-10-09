@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: nmt_YiclQJk
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -83,6 +85,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
   overrides: PlasmicDefaultStylesPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -203,7 +206,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
           })}
         >
           <div className={classNames("all", "__wab_text", sty.text__amsGc)}>
-            {"Tag"}
+            {<UiText message={"Tag"} />}
           </div>
           <div
             data-plasmic-name={"globalVariantSelectorContainer"}
@@ -219,7 +222,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
                 ),
               })}
             >
-              {"Target:"}
+              {<UiText message={"Target:"} />}
             </div>
             <Select
               data-plasmic-name={"globalVariantSelect"}
@@ -252,7 +255,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__oqmBw)}
                 >
-                  {"Base"}
+                  {<UiText message={"Base"} />}
                 </div>
               }
               size={"tiny"}
@@ -270,7 +273,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__jSaSm)}
                 >
-                  {"Base"}
+                  {<UiText message={"Base"} />}
                 </div>
               </Select__Option>
             </Select>
@@ -361,7 +364,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
               { value: "option1", label: "Option 1" },
               { value: "option2", label: "Option 2" },
             ]}
-            placeholder={"Select\u2026"}
+            placeholder={uiT("Select…")}
             type={"bordered"}
             value={generateStateValueProp($state, [
               "pseudoClassSelect",

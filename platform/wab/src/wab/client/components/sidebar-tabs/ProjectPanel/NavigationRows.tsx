@@ -9,6 +9,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -215,6 +216,7 @@ export function NavigationArenaRow({
   isSelected,
   onClick,
 }: NavigationArenaRowProps) {
+  const { t: uiT } = useI18n();
   const [renaming, setRenaming] = React.useState(false);
   const studioCtx = useStudioCtx();
   const { onClose } = ensure(
@@ -234,7 +236,7 @@ export function NavigationArenaRow({
         actions: (
           <IconButton
             size="small"
-            tooltip="Page settings"
+            tooltip={uiT("Page settings")}
             onClick={() =>
               studioCtx.change(() => {
                 studioCtx.showPageSettings = arena.component as PageComponent;

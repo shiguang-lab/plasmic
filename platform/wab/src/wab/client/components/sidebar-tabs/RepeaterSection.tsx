@@ -2,6 +2,7 @@ import { ComponentPropsSection } from "@/wab/client/components/sidebar-tabs/Comp
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { RepeaterPropsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { assert } from "@/wab/shared/common";
 import { isKnownTplComponent, TplNode } from "@/wab/shared/model/classes";
@@ -25,7 +26,7 @@ export const RepeaterSection = observer(function (props: {
       tpl={tpl.parent}
       customTitle={
         <LabelWithDetailedTooltip tooltip={<RepeaterPropsTooltip />}>
-          Repeater Props
+          <UiText message={"Repeater Props"} />
         </LabelWithDetailedTooltip>
       }
       expsProvider={new TplExpsProvider(viewCtx, tpl.parent)}

@@ -3,6 +3,7 @@ import { PropValueEditor } from "@/wab/client/components/sidebar-tabs/PropValueE
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import {
   arrayMoveIndex,
@@ -120,8 +121,12 @@ export const ArrayPrimitiveEditor = observer(function ArrayPrimitiveEditor({
         {rows.length > 0 && (
           <div className={"flex-row flex-vcenter fill-width"}>
             <div className={"flex-fill flex-row gap-sm"}>
-              <div className={"flex-fill text-sm dimfg"}>Value</div>
-              <div className={"flex-fill text-sm dimfg"}>Label</div>
+              <div className={"flex-fill text-sm dimfg"}>
+                <UiText message={"Value"} />
+              </div>
+              <div className={"flex-fill text-sm dimfg"}>
+                <UiText message={"Label"} />
+              </div>
             </div>
             <div className={"list-box-header__spacer"} />
           </div>

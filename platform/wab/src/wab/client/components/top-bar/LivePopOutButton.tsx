@@ -8,6 +8,7 @@ import {
   useLivePreview,
 } from "@/wab/client/components/live/PreviewFrame";
 import { untilClosed } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultLivePopOutButtonProps,
   PlasmicLivePopOutButton,
@@ -28,6 +29,7 @@ type LivePopOutButtonProps = DefaultLivePopOutButtonProps;
 const LivePopOutButton = observer(function LivePopOutButton(
   props: LivePopOutButtonProps,
 ) {
+  const { t: uiT } = useI18n();
   const history = useHistory();
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
@@ -182,14 +184,14 @@ const LivePopOutButton = observer(function LivePopOutButton(
       root={{
         props: {
           "aria-label": isDesktop
-            ? "Open preview in browser"
-            : "Open preview in new tab",
+            ? uiT("Open preview in browser")
+            : uiT("Open preview in new tab"),
         },
       }}
       tooltip={
         isDesktop
-          ? "Preview in default browser"
-          : "Preview the artboard in new window"
+          ? uiT("Preview in default browser")
+          : uiT("Preview the artboard in new window")
       }
       disabled={studioCtx.currentArenaEmpty && !previewCtx}
       onClick={() => openLivePopup()}

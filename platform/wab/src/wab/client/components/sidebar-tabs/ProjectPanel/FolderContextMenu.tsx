@@ -1,4 +1,5 @@
 import { menuSection } from "@/wab/client/components/menu-builder";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { Menu } from "antd";
 import * as React from "react";
 
@@ -26,7 +27,10 @@ export function FolderContextMenu({
       {menuSection(
         "add",
         <Menu.Item key="add" onClick={onAdd}>
-          <strong>Add</strong> {itemDisplay}
+          <strong>
+            <UiText message={"Add"} />
+          </strong>{" "}
+          {itemDisplay}
         </Menu.Item>,
       )}
       {menuSection(
@@ -38,13 +42,19 @@ export function FolderContextMenu({
             onSelectRename();
           }}
         >
-          <strong>Rename</strong> folder
+          <strong>
+            <UiText message={"Rename"} />
+          </strong>{" "}
+          folder
         </Menu.Item>,
       )}
       {menuSection(
         "delete",
         <Menu.Item key="delete" onClick={onDelete}>
-          <strong>Delete</strong> folder
+          <strong>
+            <UiText message={"Delete"} />
+          </strong>{" "}
+          folder
         </Menu.Item>,
       )}
     </Menu>

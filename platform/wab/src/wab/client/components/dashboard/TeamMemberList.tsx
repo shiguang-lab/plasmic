@@ -1,15 +1,16 @@
 import TeamMemberListItem from "@/wab/client/components/dashboard/TeamMemberListItem";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Modal } from "@/wab/client/components/widgets/Modal";
-import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
 import Select from "@/wab/client/components/widgets/Select";
+import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultTeamMemberListProps,
   PlasmicTeamMemberList,
 } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberList";
 import { ApiPermission, ApiTeam, TeamMember } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
-import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
+import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { sortBy } from "lodash";
 import * as React from "react";
@@ -97,16 +98,28 @@ function TeamMemberList_(
           value: filterSelect,
           onChange: setFilterSelect,
           children: [
-            <Select.Option value="all">All Roles</Select.Option>,
-            <Select.Option value="owner">Owners</Select.Option>,
+            <Select.Option value="all">
+              <UiText message={"All Roles"} />
+            </Select.Option>,
+            <Select.Option value="owner">
+              <UiText message={"Owners"} />
+            </Select.Option>,
             <Select.Option value="editor">Developers</Select.Option>,
-            <Select.Option value="designer">Designers</Select.Option>,
-            <Select.Option value="content">Content Creators</Select.Option>,
+            <Select.Option value="designer">
+              <UiText message={"Designers"} />
+            </Select.Option>,
+            <Select.Option value="content">
+              <UiText message={"Content Creators"} />
+            </Select.Option>,
             ...(perms.some((perm) => perm.accessLevel === "commenter")
               ? [<Select.Option value="commenter">Commenters</Select.Option>]
               : []),
-            <Select.Option value="viewer">Viewers</Select.Option>,
-            <Select.Option value="none">None</Select.Option>,
+            <Select.Option value="viewer">
+              <UiText message={"Viewers"} />
+            </Select.Option>,
+            <Select.Option value="none">
+              <UiText message={"None"} />
+            </Select.Option>,
           ],
         }}
       >

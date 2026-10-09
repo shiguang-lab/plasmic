@@ -5,6 +5,7 @@ import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/Component
 import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
+import { useI18n } from "@/wab/client/i18n";
 import { validateStateAccessType } from "@/wab/client/operations/utils/validate-state-changes";
 import {
   DefaultNewVariableProps,
@@ -21,8 +22,8 @@ import {
   NormalStateVariableType,
   StateAccessType,
   getAccessTypeDisplayName,
-  isReadonlyState,
   getDefaultValueForStateVariableType,
+  isReadonlyState,
 } from "@/wab/shared/core/states";
 import { evalCodeWithEnv } from "@/wab/shared/eval";
 import {
@@ -86,6 +87,7 @@ export const VariableValueEditor = observer(function VariableValueEditor({
   onChangeInitialValue,
   hidePreview = false,
 }: VariableValueEditorProps) {
+  const { t: uiT } = useI18n();
   assert(
     !isKnownTplSlot(component.tplTree),
     "slots can't be root of a component",
@@ -93,8 +95,12 @@ export const VariableValueEditor = observer(function VariableValueEditor({
   const [previewDraft, setPreviewDraft] = React.useState<Expr | undefined>(
     undefined,
   );
-  const initialValue = hidePreview ? undefined : viewCtx.getStateCurrentInitialValue(state);
-  const currentValue = hidePreview ? undefined : viewCtx.getCanvasStateValue(state);
+  const initialValue = hidePreview
+    ? undefined
+    : viewCtx.getStateCurrentInitialValue(state);
+  const currentValue = hidePreview
+    ? undefined
+    : viewCtx.getCanvasStateValue(state);
   const hasTempValue = initialValue !== currentValue;
   const previewExpr = previewDraft ?? codeLit(currentValue);
   const propType = wabTypeToPropType(
@@ -112,7 +118,7 @@ export const VariableValueEditor = observer(function VariableValueEditor({
         <PropEditorRow
           viewCtx={viewCtx}
           tpl={component.tplTree}
-          label={"Initial Value"}
+          label={uiT("Initial Value")}
           attr="initial-value"
           expr={state.param.defaultExpr ?? undefined}
           definedIndicator={{ source: "none" }}
@@ -146,60 +152,64 @@ export const VariableValueEditor = observer(function VariableValueEditor({
           disabled={disableInitialValue}
         />
       </div>
-      {!hidePreview && !disableInitialValue && viewCtx.hasUnstableStateInitializer(state) && (
-        <Alert
-          className="mb-m"
-          type="warning"
-          showIcon
-          message="Unstable state initializers are not recommended. Use Side Effects for random or time based inputs."
+      {!hidePreview &&
+        !disableInitialValue &&
+        viewCtx.hasUnstableStateInitializer(state) && (
+          <Alert
+            className="mb-m"
+            type="warning"
+            showIcon
+            message="Unstable state initializers are not recommended. Use Side Effects for random or time based inputs."
+          />
+        )}
+      {!hidePreview && (
+        <PropEditorRow
+          viewCtx={viewCtx}
+          tpl={component.tplTree}
+          label={uiT("Preview value")}
+          attr="preview-value"
+          about={
+            state.implicitState && isReadonlyState(state.implicitState)
+              ? PREVIEW_DISABLED_TOOLTIP_MESSAGE[state.implicitState.accessType]
+              : `Temporarily set a value for this variable to preview how your component would look or behave.`
+          }
+          disabled={
+            state.implicitState ? isReadonlyState(state.implicitState) : false
+          }
+          expr={previewExpr}
+          definedIndicator={
+            hasTempValue && previewExpr
+              ? {
+                  source: "setNonVariable",
+                  prop: "preview-value",
+                  value: tryExtractString(previewExpr) || "",
+                }
+              : { source: "none" }
+          }
+          valueSetState={"isSet"}
+          propType={propType}
+          onChange={(_expr) => {
+            if (!_expr) {
+              return;
+            }
+            setPreviewDraft(_expr);
+            const code = getRawCode(_expr, {
+              projectFlags: studioCtx.projectFlags(),
+              component,
+              inStudio: true,
+            });
+            const newValue = evalCodeWithEnv(code, env);
+            viewCtx.setCanvasStateValue(state, newValue);
+          }}
+          onDelete={() => {
+            setPreviewDraft(undefined);
+            viewCtx.resetCanvasStateValue(state);
+          }}
+          layout={"vertical"}
+          disableLinkToProp={true}
+          disableDynamicValue={true}
         />
       )}
-      {!hidePreview && <PropEditorRow
-        viewCtx={viewCtx}
-        tpl={component.tplTree}
-        label="Preview value"
-        attr="preview-value"
-        about={
-          state.implicitState && isReadonlyState(state.implicitState)
-            ? PREVIEW_DISABLED_TOOLTIP_MESSAGE[state.implicitState.accessType]
-            : `Temporarily set a value for this variable to preview how your component would look or behave.`
-        }
-        disabled={
-          state.implicitState ? isReadonlyState(state.implicitState) : false
-        }
-        expr={previewExpr}
-        definedIndicator={
-          hasTempValue && previewExpr
-            ? {
-                source: "setNonVariable",
-                prop: "preview-value",
-                value: tryExtractString(previewExpr) || "",
-              }
-            : { source: "none" }
-        }
-        valueSetState={"isSet"}
-        propType={propType}
-        onChange={(_expr) => {
-          if (!_expr) {
-            return;
-          }
-          setPreviewDraft(_expr);
-          const code = getRawCode(_expr, {
-            projectFlags: studioCtx.projectFlags(),
-            component,
-            inStudio: true,
-          });
-          const newValue = evalCodeWithEnv(code, env);
-          viewCtx.setCanvasStateValue(state, newValue);
-        }}
-        onDelete={() => {
-          setPreviewDraft(undefined);
-          viewCtx.resetCanvasStateValue(state);
-        }}
-        layout={"vertical"}
-        disableLinkToProp={true}
-        disableDynamicValue={true}
-      />}
     </div>
   );
 });
@@ -219,6 +229,7 @@ const VariableEditingForm = observer(
     }: NewVariableProps,
     ref: HTMLElementRefOf<"div">,
   ) {
+    const { t: uiT } = useI18n();
     const StringEditor = React.useCallback(
       ({
         label,
@@ -251,18 +262,20 @@ const VariableEditingForm = observer(
         {...rest}
         variableName={
           <StringEditor
-            label={state.implicitState ? "External name" : "Name"}
+            label={state.implicitState ? "External name" : uiT("Name")}
             onChange={(val) =>
-              onDraftChange ? onDraftChange({ name: val }) : COMMANDS.component.changeStateVariableName.execute(
-                studioCtx,
-                {
-                  varName: val,
-                },
-                {
-                  state,
-                  component,
-                },
-              )
+              onDraftChange
+                ? onDraftChange({ name: val })
+                : COMMANDS.component.changeStateVariableName.execute(
+                    studioCtx,
+                    {
+                      varName: val,
+                    },
+                    {
+                      state,
+                      component,
+                    },
+                  )
             }
             data-plasmic-prop={"variable-name"}
             value={state.param.variable.name}
@@ -273,15 +286,25 @@ const VariableEditingForm = observer(
             value: state.variableType,
             "data-plasmic-prop": "variable-type",
             onChange: (val) =>
-              onDraftChange ? val && onDraftChange({ variableType: val as NormalStateVariableType, initialValue: codeLit(getDefaultValueForStateVariableType(val as NormalStateVariableType)) }) : COMMANDS.component.changeStateVariableType.execute(
-                studioCtx,
-                {
-                  type: val as NormalStateVariableType | null,
-                },
-                {
-                  state,
-                },
-              ),
+              onDraftChange
+                ? val &&
+                  onDraftChange({
+                    variableType: val as NormalStateVariableType,
+                    initialValue: codeLit(
+                      getDefaultValueForStateVariableType(
+                        val as NormalStateVariableType,
+                      ),
+                    ),
+                  })
+                : COMMANDS.component.changeStateVariableType.execute(
+                    studioCtx,
+                    {
+                      type: val as NormalStateVariableType | null,
+                    },
+                    {
+                      state,
+                    },
+                  ),
             children: NORMAL_STATE_VARIABLE_TYPES.map((stateType) => (
               <StyleSelect.Option value={stateType} key={stateType}>
                 {L.startCase(stateType)}
@@ -297,14 +320,21 @@ const VariableEditingForm = observer(
             studioCtx={studioCtx}
             viewCtx={viewCtx}
             hidePreview={mode === "new"}
-            onChangeInitialValue={onDraftChange ? (expr) => onDraftChange({ initialValue: expr ?? null }) : undefined}
+            onChangeInitialValue={
+              onDraftChange
+                ? (expr) => onDraftChange({ initialValue: expr ?? null })
+                : undefined
+            }
           />
         }
         allowExternalAccess={{
           props: {
             isChecked: hasExternalAccess,
             onChange: (allow) => {
-              if (onDraftChange) { onDraftChange({ accessType: allow ? "readonly" : "private" }); return; }
+              if (onDraftChange) {
+                onDraftChange({ accessType: allow ? "readonly" : "private" });
+                return;
+              }
               spawn(
                 COMMANDS.component.changeStateVariableAccessType.execute(
                   studioCtx,
@@ -337,7 +367,10 @@ const VariableEditingForm = observer(
                 });
                 return;
               }
-              if (onDraftChange) { onDraftChange({ accessType: val as StateAccessType }); return; }
+              if (onDraftChange) {
+                onDraftChange({ accessType: val as StateAccessType });
+                return;
+              }
               await COMMANDS.component.changeStateVariableAccessType.execute(
                 studioCtx,
                 {

@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: 9qTu7qylBlP
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -167,7 +168,7 @@ function PlasmicIconTogglesPanel__RenderFunc(props: {
           withIcons={"startIcon"}
         >
           <div className={classNames("all", "__wab_text", sty.text__wJgZr)}>
-            {"Reset all"}
+            {<UiText message={"Reset all"} />}
           </div>
         </Button>
       </div>

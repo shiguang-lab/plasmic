@@ -11,6 +11,7 @@
 // Plasmic Project: m8VxGcigeLAEXFe8c12w5Q
 // Component: BSjTPez6aCjk
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -172,7 +173,7 @@ function PlasmicOutlineTab__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___3DWbJ)}
                 >
-                  {"Everything"}
+                  {<UiText message={"Everything"} />}
                 </div>
               ),
               value: args.filterLabel,
@@ -233,32 +234,32 @@ function PlasmicOutlineTab__RenderFunc(props: {
                 className={classNames("__wab_instance", sty.folderItem__nPdKw)}
                 type={"folderOpen"}
               >
-                {"Folder"}
+                {<UiText message={"Folder"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem___51U39)}
                 nested={true}
                 type={"arena"}
               >
-                {"Arena"}
+                {<UiText message={"Arena"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem__wvdkK)}
                 type={"arena"}
               >
-                {"Arena"}
+                {<UiText message={"Arena"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem___15OvX)}
               >
-                {"Component"}
+                {<UiText message={"Component"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem__kvnp4)}
                 selected={true}
                 type={"page"}
               >
-                {"Page"}
+                {<UiText message={"Page"} />}
               </FolderItem>
             </React.Fragment>
           ),

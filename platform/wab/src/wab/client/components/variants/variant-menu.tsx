@@ -1,6 +1,7 @@
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { zIndex } from "@/wab/client/z-index";
 import {
@@ -85,7 +86,7 @@ export function makeVariantMenu(opts: {
         builder.genSection(undefined, (push) => {
           push(
             <Menu.Item key="rename" onClick={onRename}>
-              Rename
+              <UiText message={"Rename"} />
             </Menu.Item>,
           );
         });
@@ -95,7 +96,7 @@ export function makeVariantMenu(opts: {
         builder.genSection(undefined, (push) => {
           push(
             <Menu.Item key="edit-selectors" onClick={onEditSelectors}>
-              Edit{" "}
+              <UiText message={"Edit"} />{" "}
               {isCodeComponentVariant(variant)
                 ? "registered keys"
                 : "interaction selectors"}
@@ -108,7 +109,7 @@ export function makeVariantMenu(opts: {
         if (onClone) {
           push(
             <Menu.Item key="clone" onClick={onClone}>
-              Duplicate
+              <UiText message={"Duplicate"} />
             </Menu.Item>,
           );
         }
@@ -150,9 +151,11 @@ export function makeVariantMenu(opts: {
       builder.genSection(undefined, (push) => {
         push(
           <Menu.Item key="preview-animation" onClick={previewAnimation.onClick}>
-            {previewAnimation.type === "play"
-              ? "Play animation"
-              : "Stop animation"}
+            {previewAnimation.type === "play" ? (
+              <UiText message={"Play animation"} />
+            ) : (
+              <UiText message={"Stop animation"} />
+            )}
           </Menu.Item>,
         );
       });
@@ -162,7 +165,7 @@ export function makeVariantMenu(opts: {
       builder.genSection(undefined, (push) => {
         push(
           <Menu.Item key="delete" onClick={onRemove}>
-            Delete
+            <UiText message={"Delete"} />
           </Menu.Item>,
         );
       });
@@ -307,7 +310,7 @@ function genDataBindingMenu(
         )}
         {onRemoveDynamicValue && (
           <Menu.Item key="remove-init-val" onClick={onRemoveDynamicValue}>
-            Remove dynamic value
+            <UiText message={"Remove dynamic value"} />
           </Menu.Item>
         )}
       </>
@@ -317,7 +320,7 @@ function genDataBindingMenu(
   return (
     onEditDynamicValue && (
       <Menu.Item key="add-init-val" onClick={onEditDynamicValue}>
-        Use dynamic value
+        <UiText message={"Use dynamic value"} />
       </Menu.Item>
     )
   );
@@ -347,7 +350,7 @@ export function makeVariantGroupMenu(opts: {
       if (onRename) {
         push(
           <Menu.Item key="rename" onClick={onRename}>
-            Rename
+            <UiText message={"Rename"} />
           </Menu.Item>,
         );
       }
@@ -380,7 +383,10 @@ export function makeVariantGroupMenu(opts: {
         push(<Menu.Divider />);
         push(
           <Menu.Item key="delete" onClick={onRemove}>
-            <strong>Delete</strong> {VARIANT_GROUP_LOWER}
+            <strong>
+              <UiText message={"Delete"} />
+            </strong>{" "}
+            {<UiLabel text={VARIANT_GROUP_LOWER} />}
           </Menu.Item>,
         );
       }

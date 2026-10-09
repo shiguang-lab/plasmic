@@ -30,6 +30,7 @@ import {
   downloadImageAsset,
   maybeUploadImage,
 } from "@/wab/client/dom-utils";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
 import PlasmicLeftImagesPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftImagesPanel";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -344,13 +345,13 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
     builder.genSection(undefined, (push) => {
       push(
         <Menu.Item key="references" onClick={onFindReferences}>
-          Find all references
+          <UiText message={"Find all references"} />
         </Menu.Item>,
       );
       if (asset.dataUri) {
         push(
           <Menu.Item key="download" onClick={() => downloadImageAsset(asset)}>
-            Download image
+            <UiText message={"Download image"} />
           </Menu.Item>,
         );
       }
@@ -363,7 +364,7 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
                 multiAssetsActions.onAssetSelected(asset.uuid, true)
               }
             >
-              Start bulk selection
+              <UiText message={"Start bulk selection"} />
             </Menu.Item>,
           );
           push(
@@ -371,7 +372,7 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
               key="delete"
               onClick={() => studioCtx.siteOps().tryDeleteImageAssets([asset])}
             >
-              Delete
+              <UiText message={"Delete"} />
             </Menu.Item>,
           );
         }
@@ -520,7 +521,9 @@ export const ImageAssetSidebarPopup = observer(
 
           {editable && (
             <div className="panel-content dimfg flex-col">
-              <div className="mb-sm">Upload a new image</div>
+              <div className="mb-sm">
+                <UiText message={"Upload a new image"} />
+              </div>
               <ImageUploader
                 accept={asset.type === ImageAssetType.Picture ? "image" : "svg"}
                 onUploaded={handleUploaded}

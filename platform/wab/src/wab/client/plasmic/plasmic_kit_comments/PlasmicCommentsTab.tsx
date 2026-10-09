@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: bV6LLO0B3Y
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -130,7 +131,7 @@ function PlasmicCommentsTab__RenderFunc(props: {
             type={["clear"]}
             withIcons={["endIcon"]}
           >
-            {"All comments"}
+            {<UiText message={"All comments"} />}
           </Button>
           <Button
             data-plasmic-name={"notificationsButton"}

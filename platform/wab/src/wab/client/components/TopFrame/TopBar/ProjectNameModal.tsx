@@ -5,6 +5,8 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
 import { Button, Form } from "antd";
@@ -24,6 +26,7 @@ export const ProjectNameModal = observer(function ProjectNameModal({
   showProjectNameModal,
   setShowProjectNameModal,
 }: ProjectNameModalProps) {
+  const { t: uiT } = useI18n();
   const { hostFrameApi } = useTopFrameCtx();
   const [name, setName] = React.useState(project.name);
   const appCtx = useAppCtx();
@@ -65,10 +68,10 @@ export const ProjectNameModal = observer(function ProjectNameModal({
             data-test-id="prompt-form"
             layout="vertical"
           >
-            <Form.Item name="name" label={"Enter a new project name"}>
+            <Form.Item name="name" label={uiT("Enter a new project name")}>
               <Textbox
                 name="name"
-                placeholder={"Project Name"}
+                placeholder={uiT("Project Name")}
                 styleType={["bordered"]}
                 autoFocus
                 data-test-id="promptName"
@@ -81,10 +84,10 @@ export const ProjectNameModal = observer(function ProjectNameModal({
                 htmlType="submit"
                 data-test-id="prompt-submit"
               >
-                {"Submit"}
+                {<UiText message={"Submit"} />}
               </Button>
               <Button onClick={() => setShowProjectNameModal(false)}>
-                Cancel
+                <UiText message={"Cancel"} />
               </Button>
             </Form.Item>
           </Form>

@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: Jt0CZzY1xy
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -137,7 +138,7 @@ function PlasmicPeriodPicker__RenderFunc(props: {
         data-plasmic-override={overrides.text}
         className={classNames("all", "__wab_text", sty.text)}
       >
-        {"View by"}
+        {<UiText message={"View by"} />}
       </div>
       <div
         data-plasmic-name={"picker"}

@@ -1,4 +1,6 @@
 import styles from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection.module.scss";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import GlobeSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__GlobeSvg";
 import type { PreviewPublication } from "@plasmic-shared/preview";
 import { Alert, Button, Checkbox, Input, Select } from "antd";
@@ -21,6 +23,7 @@ export interface PreviewPublishSectionProps {
 export default function PreviewPublishSection(
   props: PreviewPublishSectionProps,
 ) {
+  const { t: uiT } = useI18n();
   const {
     publication,
     enabled,
@@ -35,7 +38,7 @@ export default function PreviewPublishSection(
   } = props;
   return (
     <section
-      aria-label="Published website"
+      aria-label={uiT("Published website")}
       aria-busy={busy}
       className={styles.section}
     >
@@ -43,15 +46,20 @@ export default function PreviewPublishSection(
         <span className={styles.icon} aria-hidden="true">
           <GlobeSvgIcon />
         </span>
-        <h3>Published website</h3>
+        <h3>
+          <UiText message={"Published website"} />
+        </h3>
         <span className={publication?.enabled ? styles.live : styles.offline}>
           {publication?.enabled ? "Live" : "Not published"}
         </span>
       </div>
       <div className={styles.content}>
         <p className={styles.description}>
-          Save and publish your latest changes as an interactive website. Anyone
-          with the link can view it.
+          <UiText
+            message={
+              "Save and publish your latest changes as an interactive website. Anyone with the link can view it."
+            }
+          />
         </p>
         <Checkbox
           className={styles.versionUpdate}
@@ -59,14 +67,16 @@ export default function PreviewPublishSection(
           disabled={busy || !canEdit}
           onChange={(event) => setEnabled(event.target.checked)}
         >
-          Also update website when saving a version
+          <UiText message={"Also update website when saving a version"} />
         </Checkbox>
         <div className={styles.field}>
-          <label htmlFor="preview-entry-page">Entry page</label>
+          <label htmlFor="preview-entry-page">
+            <UiText message={"Entry page"} />
+          </label>
           {publication?.pages.length ? (
             <Select
               id="preview-entry-page"
-              aria-label="Entry page"
+              aria-label={uiT("Entry page")}
               value={entryPath || publication.entryPath}
               disabled={busy || !canEdit}
               className={styles.input}
@@ -81,10 +91,10 @@ export default function PreviewPublishSection(
           ) : (
             <Input
               id="preview-entry-page"
-              aria-label="Entry page"
+              aria-label={uiT("Entry page")}
               value={entryPath}
               disabled={busy || !canEdit}
-              placeholder="First page (default)"
+              placeholder={uiT("First page (default)")}
               className={styles.input}
               onChange={(event) => setEntryPath(event.target.value)}
             />
@@ -105,7 +115,7 @@ export default function PreviewPublishSection(
                 {publication.url}
               </a>
               <Button size="small" onClick={() => copy(publication.url)}>
-                Copy link
+                <UiText message={"Copy link"} />
               </Button>
             </div>
           </div>
@@ -124,7 +134,7 @@ export default function PreviewPublishSection(
           </Button>
           {publication?.enabled && (
             <Button danger disabled={busy || !canEdit} onClick={unpublish}>
-              Unpublish website
+              <UiText message={"Unpublish website"} />
             </Button>
           )}
         </div>

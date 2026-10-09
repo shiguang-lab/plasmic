@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: UttGK3xVrb
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -82,6 +83,7 @@ function PlasmicEditableResourceName__RenderFunc(props: {
   overrides: PlasmicEditableResourceName__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -211,7 +213,7 @@ function PlasmicEditableResourceName__RenderFunc(props: {
           ref={(ref) => {
             $refs["editButton"] = ref;
           }}
-          title={"Rename"}
+          title={uiT("Rename")}
           type={"button"}
         >
           <EditSvgIcon

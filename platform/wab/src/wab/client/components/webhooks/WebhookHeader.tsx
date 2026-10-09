@@ -2,6 +2,7 @@ import {
   DefaultWebhookHeaderProps,
   PlasmicWebhookHeader,
 } from "@/wab/client/components/webhooks/plasmic/plasmic_kit_continuous_deployment/PlasmicWebhookHeader";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 interface WebhookHeaderProps extends DefaultWebhookHeaderProps {
@@ -14,6 +15,7 @@ interface WebhookHeaderProps extends DefaultWebhookHeaderProps {
 }
 
 function WebhookHeader(props: WebhookHeaderProps) {
+  const { t: uiT } = useI18n();
   const { index, headerKey, headerValue, onChange, onAdd, onRemove, ...rest } =
     props;
   return (
@@ -27,7 +29,7 @@ function WebhookHeader(props: WebhookHeaderProps) {
         },
       }}
       valueInput={{
-        "aria-label": "Value",
+        "aria-label": uiT("Value"),
         value: headerValue,
         onChange: (e) => {
           onChange(index, headerKey, e.target.value);

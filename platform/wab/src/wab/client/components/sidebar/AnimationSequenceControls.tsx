@@ -44,6 +44,8 @@ import { Matcher } from "@/wab/client/components/view-common";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import AnimationEnterSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__AnimationEnterSvg";
 import PlasmicLeftAnimationSequencesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftAnimationSequencesPanel";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -98,6 +100,7 @@ const AnimationSequenceEditModal = observer(
     onClose: () => void;
     autoFocusTitle?: boolean;
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, sequence } = props;
     const [selectedKeyframe, setSelectedKeyframe] = React.useState<
       KeyFrame | undefined
@@ -123,7 +126,11 @@ const AnimationSequenceEditModal = observer(
 
     return (
       <SidebarModal
-        title={<div>Edit animation sequence</div>}
+        title={
+          <div>
+            <UiText message={"Edit animation sequence"} />
+          </div>
+        }
         show={props.show}
         onClose={props.onClose}
       >
@@ -148,7 +155,7 @@ const AnimationSequenceEditModal = observer(
           </div>
         </SidebarSection>
 
-        <SidebarSection title="Keyframes">
+        <SidebarSection title={uiT("Keyframes")}>
           <div className="panel-row">
             <KeyFrameStops
               sequence={sequence}
@@ -183,7 +190,7 @@ const AnimationSequenceEditModal = observer(
           </div>
           {selectedKeyframe && (
             <FullRow>
-              <LabeledItem label="Percentage">
+              <LabeledItem label={uiT("Percentage")}>
                 <DimTokenSpinner
                   value={`${selectedKeyframe.percentage}%`}
                   onChange={(val) => {
@@ -239,6 +246,7 @@ function AnimationSequenceStylePanelSections({
   expsProvider: ExpsProvider;
   vsh: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   const styleComponent = mkStyleComponent({ expsProvider });
   const isSet = isStylePropSet(expsProvider);
 
@@ -250,7 +258,7 @@ function AnimationSequenceStylePanelSections({
             key="visibility"
             expsProvider={expsProvider}
             styleProps={["opacity"]}
-            title={"Visibility"}
+            title={uiT("Visibility")}
           >
             <FullRow>
               <OpacityControl expsProvider={expsProvider} />
@@ -350,14 +358,14 @@ const AnimationSequenceRow = observer(function AnimationSequenceRow(
     builder.genSection(undefined, (push) => {
       push(
         <Menu.Item key="references" onClick={() => props.onFindReferences()}>
-          Find all references
+          <UiText message={"Find all references"} />
         </Menu.Item>,
       );
 
       if (onDuplicate) {
         push(
           <Menu.Item key="duplicate" onClick={() => onDuplicate()}>
-            Duplicate
+            <UiText message={"Duplicate"} />
           </Menu.Item>,
         );
       }
@@ -365,7 +373,7 @@ const AnimationSequenceRow = observer(function AnimationSequenceRow(
       if (onDelete) {
         push(
           <Menu.Item key="delete" onClick={() => onDelete()}>
-            Delete
+            <UiText message={"Delete"} />
           </Menu.Item>,
         );
       }

@@ -12,16 +12,13 @@ import {
 } from "@/wab/client/components/tpl-text-ops";
 import { SlotsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getVisibilityChoicesForTpl } from "@/wab/client/utils/tpl-client-utils";
 import { MainBranchId } from "@/wab/shared/ApiSchema";
 import { isMixedArena } from "@/wab/shared/Arenas";
-import {
-  FRAME_CAP,
-  HORIZ_CONTAINER_CAP,
-  VERT_CONTAINER_CAP,
-} from "@/wab/shared/Labels";
+import { HORIZ_CONTAINER_CAP, VERT_CONTAINER_CAP } from "@/wab/shared/Labels";
 import {
   getAncestorSlotArg,
   isCodeComponentSlot,
@@ -147,7 +144,7 @@ export function makeSlotSelectionMenu(
       viewCtx.studioCtx.appCtx.appConfig,
     )
   ) {
-    builder.genSection("Debug", (push) => {
+    builder.genSection(<UiText message={"Debug"} />, (push) => {
       const dom = viewCtx.renderState.sel2dom(
         node,
         viewCtx.canvasCtx,
@@ -164,7 +161,7 @@ export function makeSlotSelectionMenu(
             });
           }}
         >
-          Log to console
+          <UiText message={"Log to console"} />
         </Menu.Item>,
       );
     });
@@ -192,7 +189,7 @@ function pushSlotSelectionMenu(
           await viewCtx.getViewOps().tryDelete({ tpl: node })
         }
       >
-        Clear slot content
+        <UiText message={"Clear slot content"} />
       </Menu.Item>,
     );
   }
@@ -210,7 +207,7 @@ function pushSlotSelectionMenu(
           })
         }
       >
-        Revert to default slot content
+        <UiText message={"Revert to default slot content"} />
       </Menu.Item>,
     );
   }
@@ -264,14 +261,14 @@ export function makeTplMenu(
     !isMarkerTpl &&
     !forMultipleTpls
   ) {
-    builder.genSection("Ordering", (push) => {
+    builder.genSection(<UiText message={"Ordering"} />, (push) => {
       push(
         <Menu.Item
           key="MOVE_HOME"
           onClick={() => viewCtx.getViewOps().moveStart(tpl)}
         >
           <MenuItemContent shortcut={getComboForAction("MOVE_HOME")}>
-            Move to beginning of container
+            <UiText message={"Move to beginning of container"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -281,7 +278,7 @@ export function makeTplMenu(
           onClick={() => viewCtx.getViewOps().moveBackward(tpl)}
         >
           <MenuItemContent shortcut={getComboForAction("MOVE_LEFT")}>
-            Move to previous position in container
+            <UiText message={"Move to previous position in container"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -291,7 +288,7 @@ export function makeTplMenu(
           onClick={() => viewCtx.getViewOps().moveForward(tpl)}
         >
           <MenuItemContent shortcut={getComboForAction("MOVE_RIGHT")}>
-            Move to next position in container
+            <UiText message={"Move to next position in container"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -301,14 +298,14 @@ export function makeTplMenu(
           onClick={() => viewCtx.getViewOps().moveEnd(tpl)}
         >
           <MenuItemContent shortcut={getComboForAction("MOVE_END")}>
-            Move to end of container
+            <UiText message={"Move to end of container"} />
           </MenuItemContent>
         </Menu.Item>,
       );
     });
   }
 
-  builder.genSection("Edit", (pushEdit) => {
+  builder.genSection(<UiText message={"Edit"} />, (pushEdit) => {
     if (
       tpls.every(
         (_tpl) => isTplTag(_tpl) || isTplComponent(_tpl) || isTplSlot(tpl),
@@ -327,7 +324,7 @@ export function makeTplMenu(
         canInsertContext,
       );
       if (canWrapHStack || canWrapVStack) {
-        builder.genSub("Wrap in container...", (push3) => {
+        builder.genSub(<UiText message={"Wrap in container..."} />, (push3) => {
           if (canWrapHStack) {
             push3(
               <Menu.Item
@@ -337,7 +334,7 @@ export function makeTplMenu(
                 }
               >
                 <MenuItemContent shortcut={getComboForAction("WRAP_HSTACK")}>
-                  {HORIZ_CONTAINER_CAP}
+                  {<UiLabel text={HORIZ_CONTAINER_CAP} />}
                 </MenuItemContent>
               </Menu.Item>,
             );
@@ -353,7 +350,7 @@ export function makeTplMenu(
                 }
               >
                 <MenuItemContent shortcut={getComboForAction("WRAP_VSTACK")}>
-                  {VERT_CONTAINER_CAP}
+                  {<UiLabel text={VERT_CONTAINER_CAP} />}
                 </MenuItemContent>
               </Menu.Item>,
             );
@@ -377,7 +374,9 @@ export function makeTplMenu(
           key="wrap-component"
           onClick={async () => await viewCtx.getViewOps().wrapInComponent(tpls)}
         >
-          <MenuItemContent>Wrap in component</MenuItemContent>
+          <MenuItemContent>
+            <UiText message={"Wrap in component"} />
+          </MenuItemContent>
         </Menu.Item>,
       );
     }
@@ -412,10 +411,14 @@ export function makeTplMenu(
                 : false
             }
             title={
-              "Root element can only be ungrouped if it contains a single element"
+              <UiText
+                message={
+                  "Root element can only be ungrouped if it contains a single element"
+                }
+              />
             }
           >
-            Ungroup
+            <UiText message={"Ungroup"} />
           </Tooltip>
         </Menu.Item>,
       );
@@ -449,7 +452,10 @@ export function makeTplMenu(
             }
           >
             <MenuItemContent shortcut={getComboForAction("ENTER_EDIT")}>
-              Edit component <strong>{tpl.component.name}</strong> in place
+              <UiText
+                message="Edit component {name} in place"
+                values={{ name: tpl.component.name }}
+              />
             </MenuItemContent>
           </Menu.Item>,
         );
@@ -467,7 +473,7 @@ export function makeTplMenu(
               }
             >
               <MenuItemContent shortcut={getComboForAction("ENTER_EDIT_FRAME")}>
-                Edit component in new {FRAME_CAP}
+                <UiText message="Edit component in new artboard" />
               </MenuItemContent>
             </Menu.Item>,
           );
@@ -486,7 +492,8 @@ export function makeTplMenu(
             <MenuItemContent
               shortcut={getComboForAction("GO_TO_COMPONENT_ARENA")}
             >
-              Go to component <strong>{tpl.component.name}</strong>
+              <UiText message={"Go to component"} />{" "}
+              <strong>{tpl.component.name}</strong>
             </MenuItemContent>
           </Menu.Item>,
         );
@@ -510,7 +517,10 @@ export function makeTplMenu(
                 );
               }}
             >
-              Open component <strong>{tpl.component.name}</strong> in new tab
+              <UiText
+                message="Open component {name} in new tab"
+                values={{ name: tpl.component.name }}
+              />
             </Menu.Item>,
           );
         }
@@ -533,17 +543,17 @@ export function makeTplMenu(
           }
         >
           <MenuItemContent shortcut={getComboForAction("TOGGLE_AUTOLAYOUT")}>
-            Change to {getContainerTypeName(nextAutoLayoutType)}
+            <UiLabel
+              text={`Change to ${getContainerTypeName(nextAutoLayoutType)}`}
+            />
           </MenuItemContent>
         </Menu.Item>,
       );
 
-      if (
-        !(
-          positionType === PositionLayoutType.fixed ||
-          positionType === PositionLayoutType.sticky
-        )
-      ) {
+      if (!(
+        positionType === PositionLayoutType.fixed ||
+        positionType === PositionLayoutType.sticky
+      )) {
         pushEdit(
           <Menu.Item
             key="CONVERT_TO_RCOLUMNS"
@@ -553,7 +563,9 @@ export function makeTplMenu(
               )
             }
           >
-            <MenuItemContent>Convert to Responsive Columns</MenuItemContent>
+            <MenuItemContent>
+              <UiText message={"Convert to Responsive Columns"} />
+            </MenuItemContent>
           </Menu.Item>,
         );
       }
@@ -573,7 +585,7 @@ export function makeTplMenu(
             }
           >
             <MenuItemContent shortcut={getComboForAction("AUTOSIZE")}>
-              Auto-size
+              <UiText message={"Auto-size"} />
             </MenuItemContent>
           </Menu.Item>,
         );
@@ -585,7 +597,7 @@ export function makeTplMenu(
       canToggleVisibility(tpl, viewCtx) &&
       !contentEditorMode
     ) {
-      builder.genSub("Set visibility...", (push3) => {
+      builder.genSub(<UiText message={"Set visibility..."} />, (push3) => {
         const choices = getVisibilityChoicesForTpl(viewCtx, tpl);
         choices.forEach((choice) => {
           push3(
@@ -596,7 +608,9 @@ export function makeTplMenu(
                 });
               }}
             >
-              <MenuItemContent>{getVisibilityLabel(choice)}</MenuItemContent>
+              <MenuItemContent>
+                <UiLabel text={getVisibilityLabel(choice)} />
+              </MenuItemContent>
             </Menu.Item>,
           );
         });
@@ -619,7 +633,9 @@ export function makeTplMenu(
                   )
                 }
               >
-                <MenuItemContent>Unset</MenuItemContent>
+                <MenuItemContent>
+                  <UiText message={"Unset"} />
+                </MenuItemContent>
               </Menu.Item>,
             );
           });
@@ -641,7 +657,7 @@ export function makeTplMenu(
           }}
         >
           <MenuItemContent shortcut={getComboForAction("CONVERT_LINK")}>
-            Convert to a link
+            <UiText message={"Convert to a link"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -660,7 +676,7 @@ export function makeTplMenu(
           onClick={() => viewCtx.getViewOps().extractComponent(tpl)}
         >
           <MenuItemContent shortcut={getComboForAction("EXTRACT_COMPONENT")}>
-            Create component
+            <UiText message={"Create component"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -675,7 +691,7 @@ export function makeTplMenu(
   ) {
     builder.genSection(
       <>
-        Component <code>{component.name}</code>
+        <UiText message={"Component"} /> <code>{component.name}</code>
       </>,
       (push) => {
         if (canConvertToSlot(tpl)) {
@@ -687,7 +703,7 @@ export function makeTplMenu(
               }
             >
               <LabelWithDetailedTooltip tooltip={<SlotsTooltip />}>
-                Convert to a slot target
+                <UiText message={"Convert to a slot target"} />
               </LabelWithDetailedTooltip>
             </Menu.Item>,
           );
@@ -703,7 +719,9 @@ export function makeTplMenu(
                 });
               }}
             >
-              <MenuItemContent>De-slot</MenuItemContent>
+              <MenuItemContent>
+                <UiText message={"De-slot"} />
+              </MenuItemContent>
             </Menu.Item>,
           );
         }
@@ -713,7 +731,7 @@ export function makeTplMenu(
 
   if (!forMultipleTpls && !contentEditorMode) {
     builder.genSection(undefined, (_push) => {
-      builder.genSub("Convert to...", (push2) => {
+      builder.genSub(<UiText message={"Convert to..."} />, (push2) => {
         if (isTplPicture(tpl)) {
           push2(
             <Menu.Item
@@ -724,7 +742,7 @@ export function makeTplMenu(
                 )
               }
             >
-              A container with this background image
+              <UiText message={"A container with this background image"} />
             </Menu.Item>,
           );
         }
@@ -739,7 +757,7 @@ export function makeTplMenu(
                 )
               }
             >
-              A container with this text
+              <UiText message={"A container with this text"} />
             </Menu.Item>,
           );
         }
@@ -753,7 +771,7 @@ export function makeTplMenu(
       (isTplTag(tpl) || (isTplComponent(tpl) && isCodeComponent(tpl.component)))
     ) {
       const exp = viewCtx.effectiveCurrentVariantSetting(tpl).rsh();
-      builder.genSub("Copy...", (push2) => {
+      builder.genSub(<UiText message={"Copy..."} />, (push2) => {
         if (exp.has("background") && exp.get("background") !== "none") {
           push2(
             <Menu.Item
@@ -762,7 +780,7 @@ export function makeTplMenu(
                 viewCtx.change(() => viewCtx.getViewOps().copyBgImageStyle(tpl))
               }
             >
-              Copy image as background
+              <UiText message={"Copy image as background"} />
             </Menu.Item>,
           );
         }
@@ -777,7 +795,7 @@ export function makeTplMenu(
             }
           >
             <MenuItemContent shortcut={getComboForAction("COPY")}>
-              Copy
+              <UiText message={"Copy"} />
             </MenuItemContent>
           </Menu.Item>,
         );
@@ -793,7 +811,7 @@ export function makeTplMenu(
               }
             >
               <MenuItemContent shortcut={getComboForAction("CUT")}>
-                Cut
+                <UiText message={"Cut"} />
               </MenuItemContent>
             </Menu.Item>,
           );
@@ -807,7 +825,7 @@ export function makeTplMenu(
             }}
           >
             <MenuItemContent shortcut={getComboForAction("PASTE")}>
-              Paste
+              <UiText message={"Paste"} />
             </MenuItemContent>
           </Menu.Item>,
         );
@@ -819,7 +837,7 @@ export function makeTplMenu(
             }}
           >
             <MenuItemContent shortcut={getComboForAction("PASTE_AS_SIBLING")}>
-              Paste as sibling
+              <UiText message={"Paste as sibling"} />
             </MenuItemContent>
           </Menu.Item>,
         );
@@ -831,12 +849,12 @@ export function makeTplMenu(
             }
           >
             <MenuItemContent shortcut={getComboForAction("COPY_ELEMENT_STYLE")}>
-              Copy style
+              <UiText message={"Copy style"} />
             </MenuItemContent>
           </Menu.Item>,
         );
       });
-      builder.genSub("Paste...", (push2) => {
+      builder.genSub(<UiText message={"Paste..."} />, (push2) => {
         const clip = viewCtx.getViewOps().clipboard().contents();
         if (clip && isStyleClip(clip)) {
           if (
@@ -856,7 +874,7 @@ export function makeTplMenu(
                   );
                 }}
               >
-                Paste background image
+                <UiText message={"Paste background image"} />
               </Menu.Item>,
             );
           }
@@ -875,7 +893,7 @@ export function makeTplMenu(
               <MenuItemContent
                 shortcut={getComboForAction("PASTE_ELEMENT_STYLE")}
               >
-                Paste style
+                <UiText message={"Paste style"} />
               </MenuItemContent>
             </Menu.Item>,
           );
@@ -893,7 +911,7 @@ export function makeTplMenu(
     });
     builder.genSection(
       <>
-        Prop <code>{tplComponent.component.name}</code>.
+        <UiText message={"Prop"} /> <code>{tplComponent.component.name}</code>.
         <code>{arg.param.variable.name}</code>
       </>,
       (push) => {
@@ -924,7 +942,7 @@ export function makeTplMenu(
                 : getComboForAction("RENAME_ELEMENT")
             }
           >
-            Rename
+            <UiText message={"Rename"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -945,7 +963,7 @@ export function makeTplMenu(
           }
         >
           <MenuItemContent shortcut={getComboForAction("DELETE")}>
-            Delete
+            <UiText message={"Delete"} />
           </MenuItemContent>
         </Menu.Item>,
       );
@@ -959,7 +977,7 @@ export function makeTplMenu(
         onClick={() => studioCtx.tryZoomToFitTpl(tpl)}
       >
         <MenuItemContent shortcut={getComboForAction("ZOOM_TO_SELECTION")}>
-          Zoom to fit
+          <UiText message={"Zoom to fit"} />
         </MenuItemContent>
       </Menu.Item>,
     );
@@ -972,7 +990,9 @@ export function makeTplMenu(
           key="add-comment"
           onClick={() => commentsCtx.openNewCommentDialog(viewCtx, tpl)}
         >
-          <MenuItemContent>Add comment</MenuItemContent>
+          <MenuItemContent>
+            <UiText message={"Add comment"} />
+          </MenuItemContent>
         </Menu.Item>,
       );
     });
@@ -984,7 +1004,7 @@ export function makeTplMenu(
       viewCtx.studioCtx.appCtx.appConfig,
     )
   ) {
-    builder.genSection("Debug", (push) => {
+    builder.genSection(<UiText message={"Debug"} />, (push) => {
       const maybeVal = viewCtx.renderState.tpl2bestVal(
         tpl,
         viewCtx.focusedCloneKey(),
@@ -1004,7 +1024,7 @@ export function makeTplMenu(
             });
           }}
         >
-          Log to console
+          <UiText message={"Log to console"} />
         </Menu.Item>,
       );
     });

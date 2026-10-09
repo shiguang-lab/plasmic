@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: c-G65M7vor
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -130,7 +131,7 @@ function PlasmicComponentsPanel__RenderFunc(props: {
                   sty.componentListItem__tmJC
                 )}
               >
-                {"Button"}
+                {<UiText message={"Button"} />}
               </ComponentListItem>
               <ComponentListItem
                 className={classNames(

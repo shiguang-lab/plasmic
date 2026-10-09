@@ -1,5 +1,6 @@
 import styles from "@/wab/client/components/style-controls/TrackSizeInput.module.scss";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { maybe } from "@/wab/shared/common";
 import {
   AtomicSize,
@@ -83,9 +84,15 @@ function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
       <div className={styles.vcenter}>
         <Switch size={"small"} checked={isRange} onChange={handleSwitch} />
       </div>
-      <div className={styles.vcenter}>Min-max range</div>
+      <div className={styles.vcenter}>
+        <UiText message={"Min-max range"} />
+      </div>
       <div className={styles.label}>
-        {defaultText2 !== undefined ? "Min" : "Size"}
+        {defaultText2 !== undefined ? (
+          <UiText message={"Min"} />
+        ) : (
+          <UiText message={"Size"} />
+        )}
       </div>
 
       <DimTokenSpinner
@@ -96,7 +103,9 @@ function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
       />
       {defaultText2 !== undefined && (
         <>
-          <div className={styles.label}>Max</div>
+          <div className={styles.label}>
+            <UiText message={"Max"} />
+          </div>
 
           <DimTokenSpinner
             onChange={(val) => handleEdit(false, val || "")}

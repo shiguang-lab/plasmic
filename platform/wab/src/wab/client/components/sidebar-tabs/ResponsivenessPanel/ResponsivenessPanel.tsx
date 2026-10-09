@@ -6,24 +6,26 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { useResponsiveBreakpoints } from "@/wab/client/hooks/useResponsiveBreakpoints";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import PlasmicButton from "@/wab/client/plasmic/PlasmicButton";
 import PlasmicIcon__Plus from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import PlasmicIcon__Trash2 from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import PlasmicIcon__Alert from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
-import PlasmicButton from "@/wab/client/plasmic/PlasmicButton";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UiActionsWrapper } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
+import { FRAMES_LOWER, FRAME_LOWER } from "@/wab/shared/Labels";
+import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import { ensure, spawn, xGroupBy } from "@/wab/shared/common";
 import { getSiteScreenSizes } from "@/wab/shared/core/sites";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
-import { FRAME_LOWER, FRAMES_LOWER } from "@/wab/shared/Labels";
 import { Variant } from "@/wab/shared/model/classes";
 import {
   ResponsiveStrategy,
   screenVariantPresetGroups,
 } from "@/wab/shared/responsiveness";
-import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import {
   Col,
   Dropdown,
@@ -78,6 +80,7 @@ function MissingFrameWarning_({
 }
 
 export function ResponsivenessPanel_() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const site = studioCtx.site;
 
@@ -166,8 +169,11 @@ export function ResponsivenessPanel_() {
           message: (
             <div>
               <p>
-                Are you sure you want to switch to a different set of
-                breakpoints?
+                <UiText
+                  message={
+                    "Are you sure you want to switch to a different set of breakpoints?"
+                  }
+                />
               </p>
               {missingVariants.length > 0 && (
                 <p>
@@ -189,24 +195,29 @@ export function ResponsivenessPanel_() {
   return (
     <>
       <LeftPaneHeader
-        title="Responsive Breakpoints"
+        title={uiT("Responsive Breakpoints")}
         description={
           <div>
             <p>
-              Breakpoints let you make pages and components look different
-              depending on the screen size.{" "}
+              <UiText
+                message={
+                  "Breakpoints let you make pages and components look different depending on the screen size."
+                }
+              />{" "}
               <a
                 href={"https://docs.plasmic.app/learn/screen-variants"}
                 target={"_blank"}
               >
-                Learn more
+                <UiText message={"Learn more"} />
               </a>
               .
             </p>
             <p>
-              <strong>Most projects need just 1 breakpoint</strong>, to switch
-              between desktop and mobile styles. We recommend not exceeding 3.
-              Too many can be hard to manage.
+              <strong>
+                <UiText message={"Most projects need just 1 breakpoint"} />
+              </strong>
+              , to switch between desktop and mobile styles. We recommend not
+              exceeding 3. Too many can be hard to manage.
             </p>
             <p>
               <strong>
@@ -224,7 +235,7 @@ export function ResponsivenessPanel_() {
           <>
             {allScreenVariantGroups.length > 1 && (
               <Select
-                aria-label="Select breakpoints to use"
+                aria-label={uiT("Select breakpoints to use")}
                 value={site.activeScreenVariantGroup?.uuid}
                 onChange={handleBreakpointsGroupChange}
                 isDisabled={readOnly}
@@ -278,7 +289,7 @@ export function ResponsivenessPanel_() {
                   endIcon={<Icon icon={TriangleBottomIcon} />}
                   withIcons="endIcon"
                 >
-                  Start with a preset
+                  <UiText message={"Start with a preset"} />
                 </Button>
               </Dropdown>
             ) : undefined}
@@ -325,7 +336,7 @@ export function ResponsivenessPanel_() {
                           />
                           <InputNumber
                             style={{ width: "30%" }}
-                            placeholder="Min W"
+                            placeholder={uiT("Min W")}
                             formatter={(v) => (v ? `≥ ${v}` : "")}
                             parser={(v) => Number(`${v}`.replace(/\D/g, ""))}
                             defaultValue={screenSpec.minWidth}
@@ -339,7 +350,7 @@ export function ResponsivenessPanel_() {
                           />
                           <InputNumber
                             style={{ width: "30%" }}
-                            placeholder="Max W"
+                            placeholder={uiT("Max W")}
                             formatter={(v) => (v ? `≤ ${v}` : "")}
                             parser={(v) => Number(`${v}`.replace(/\D/g, ""))}
                             defaultValue={screenSpec.maxWidth}
@@ -369,7 +380,9 @@ export function ResponsivenessPanel_() {
                           <InputNumber
                             style={{ width: "100%" }}
                             placeholder={
-                              isMobileFirst ? "Min width" : "Max width"
+                              isMobileFirst
+                                ? uiT("Min width")
+                                : uiT("Max width")
                             }
                             formatter={(v) =>
                               v ? `${isMobileFirst ? "≥" : "≤"} ${v} px` : ""
@@ -390,7 +403,7 @@ export function ResponsivenessPanel_() {
                     {isActiveOwnedBySite && !readOnly && (
                       <Col span={3} className={styles.deleteIconCol}>
                         <Popconfirm
-                          title="Delete this breakpoint?"
+                          title={uiT("Delete this breakpoint?")}
                           onConfirm={() =>
                             studioCtx.changeUnsafe(() => {
                               spawn(
@@ -434,7 +447,7 @@ export function ResponsivenessPanel_() {
                 withIcons={["startIcon"]}
                 startIcon={<Icon icon={PlasmicIcon__Plus} />}
               >
-                New breakpoint
+                <UiText message={"New breakpoint"} />
               </PlasmicButton>
             </Popover>
           )}

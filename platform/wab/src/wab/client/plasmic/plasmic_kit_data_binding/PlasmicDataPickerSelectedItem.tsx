@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: PZbWryjVVD
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -134,7 +135,7 @@ function PlasmicDataPickerSelectedItem__RenderFunc(props: {
           [sty.itemNamelastItem]: hasVariant($state, "lastItem", "lastItem"),
         })}
       >
-        {"Current"}
+        {<UiText message={"Current"} />}
       </div>
       <div
         data-plasmic-name={"slash"}

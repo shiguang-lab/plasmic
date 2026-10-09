@@ -7,6 +7,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useToggleDisplayed } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import PlasmicOutlineTab from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicOutlineTab";
 import PlasmicSearchInput from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput";
@@ -27,6 +28,7 @@ import * as React from "react";
 export const OutlineTab = observer(OutlineTab_);
 
 function OutlineTab_() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const dndManager = React.useMemo(
     () => new TreeDndManager(studioCtx),
@@ -180,13 +182,13 @@ function OutlineTab_() {
         ),
       }}
       expandAllButton={{
-        "aria-label": "Expand all",
-        title: "Expand all",
+        "aria-label": uiT("Expand all"),
+        title: uiT("Expand all"),
         onClick: () => outlineCtx.expandAll(),
       }}
       collapseAllButton={{
-        "aria-label": "Collapse all",
-        title: "Collapse all",
+        "aria-label": uiT("Collapse all"),
+        title: uiT("Collapse all"),
         onClick: () => outlineCtx.collapseAll(),
       }}
     >

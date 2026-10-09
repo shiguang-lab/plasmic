@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: OAMl2pw5C9W
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -169,7 +170,7 @@ function PlasmicArenaSwitcher__RenderFunc(props: {
             [sty.textarenaType_page]: hasVariant($state, "arenaType", "page"),
           })}
         >
-          {"Arena Name"}
+          {<UiText message={"Arena Name"} />}
         </div>
       </div>
     </Button>

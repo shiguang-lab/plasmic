@@ -1,18 +1,17 @@
-import { DragInsertManager } from "@/wab/client/Dnd";
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
-import { WithContextMenu } from "@/wab/client/components/ContextMenu";
-import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
-import ListSectionSeparator from "@/wab/client/components/ListSectionSeparator";
 import { useFocusManager } from "@/wab/client/components/aria-utils";
 import {
-  InsertRelLoc,
   getFocusedInsertAnchor,
   getValidInsertLocs,
+  InsertRelLoc,
 } from "@/wab/client/components/canvas/view-ops";
+import { WithContextMenu } from "@/wab/client/components/ContextMenu";
+import { groupInstalledItems } from "@/wab/client/components/insert-panel/groupInstalledItems";
 import S from "@/wab/client/components/insert-panel/InsertPanel.module.scss";
 import InsertPanelTabGroup from "@/wab/client/components/insert-panel/InsertPanelTabGroup";
 import InsertPanelTabItem from "@/wab/client/components/insert-panel/InsertPanelTabItem";
-import { groupInstalledItems } from "@/wab/client/components/insert-panel/groupInstalledItems";
+import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
+import ListSectionSeparator from "@/wab/client/components/ListSectionSeparator";
 import {
   notifyInstallableFailure,
   notifyInstallableSuccess,
@@ -38,7 +37,9 @@ import {
   makePlumeInsertables,
   shouldShowHostLessPackage,
 } from "@/wab/client/components/studio/add-drawer/AddDrawer";
-import AddDrawerItem from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
+import AddDrawerItem, {
+  getAddItemLabel,
+} from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
 import {
   DraggableInsertable,
   DraggableInsertableProps,
@@ -57,12 +58,16 @@ import {
   isTemplateComponent,
   isTplAddItem,
 } from "@/wab/client/definitions/insertables";
+import { DragInsertManager } from "@/wab/client/Dnd";
 import { useVirtualCombobox } from "@/wab/client/hooks/useVirtualCombobox";
+import { useI18n } from "@/wab/client/i18n";
+import { translateUiLabel, UiLocale } from "@/wab/client/i18n/locales";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { DOWNLOAD_ICON } from "@/wab/client/icons";
 import {
+  getEventDataForTplComponent,
   InsertItemEventData,
   InsertOpts,
-  getEventDataForTplComponent,
   trackInsertItem,
 } from "@/wab/client/observability/events/insert-item";
 import {
@@ -70,15 +75,14 @@ import {
   PlasmicInsertPanel,
 } from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicInsertPanel";
 import {
-  StudioCtx,
   normalizeTemplateSpec,
+  StudioCtx,
   useStudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { isFlexContainer } from "@/wab/client/utils/tpl-client-utils";
 import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
-import { FRAMES_CAP } from "@/wab/shared/Labels";
 import { isBuiltinCodeComponent } from "@/wab/shared/code-components/builtin-code-components";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { createMapFromObject } from "@/wab/shared/collections";
@@ -126,21 +130,22 @@ import {
 } from "@/wab/shared/core/tpls";
 import {
   DEVFLAGS,
+  flattenInsertableTemplates,
+  flattenInsertableTemplatesByType,
   HostLessComponentInfo,
   HostLessPackageInfo,
   InsertableTemplatesGroup,
-  flattenInsertableTemplates,
-  flattenInsertableTemplatesByType,
 } from "@/wab/shared/devflags";
 import { PLEXUS_INSERTABLE_ID } from "@/wab/shared/insertables";
+import { FRAMES_CAP } from "@/wab/shared/Labels";
 import {
   Component,
-  ProjectDependency,
-  TplNode,
-  TplTag,
   isKnownArena,
   isKnownComponent,
   isKnownTplNode,
+  ProjectDependency,
+  TplNode,
+  TplTag,
 } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import {
@@ -159,7 +164,7 @@ import * as React from "react";
 import { useMemo, useState } from "react";
 import { FocusScope } from "react-aria";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { VariableSizeList, areEqual } from "react-window";
+import { areEqual, VariableSizeList } from "react-window";
 
 const leftSideWidth = 200;
 const rightSideWidth = 330;
@@ -321,6 +326,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   onClose: () => void;
   recentItems: AddTplItem[];
 }) {
+  const { t: uiT, label: localizeLabel, locale } = useI18n();
   const {
     studioCtx,
     onDragStart,
@@ -356,6 +362,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
   const allFamilies = useMemo(() => {
     const allItemGroups = buildAddItemGroups({
+      uiLocale: locale,
       studioCtx,
       matcher: new Matcher(""),
       includeFrames: isKnownArena(studioCtx.currentArena),
@@ -365,7 +372,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       projectDependencies,
     });
     return groupBy(allItemGroups, (group) => group.familyKey ?? "");
-  }, [studioCtx, filterToTarget, insertLoc, projectDependencies]);
+  }, [studioCtx, filterToTarget, insertLoc, projectDependencies, locale]);
   const allSectionKeysFlattened = uniq(
     Object.values(allFamilies).flatMap((sections) =>
       sections.map((sec) => sec.sectionKey ?? sec.key),
@@ -385,6 +392,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     (query: string) => {
       const matcher = new Matcher(query, { matchMiddleOfWord: true });
       let groupedItems = buildAddItemGroups({
+        uiLocale: locale,
         studioCtx: studioCtx,
         matcher: matcher,
         includeFrames: isKnownArena(studioCtx.currentArena),
@@ -478,6 +486,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       isIconLibrary,
       iconQuery,
       iconTheme,
+      locale,
     ],
   );
 
@@ -707,7 +716,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         }}
         leftSearchPanel={{
           ...getInputProps({
-            placeholder: "What would you like to insert?",
+            placeholder: uiT("What would you like to insert?"),
             autoFocus: true,
             refKey: "ref",
             onKeyDown: spawnWrapper(async (e) => {
@@ -745,8 +754,10 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                             key={sectionKey}
                             children={
                               <span>
-                                {someGroupInSection.sectionLabel ??
-                                  someGroupInSection.label}{" "}
+                                {localizeLabel(
+                                  someGroupInSection.sectionLabel ??
+                                    someGroupInSection.label,
+                                )}{" "}
                                 {scrollToSection === sectionKey && (
                                   <div
                                     style={{
@@ -766,7 +777,9 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                                 )}
                                 {highlightSection ===
                                   someGroupInSection.key && (
-                                  <span className={"NewBadge"}>New</span>
+                                  <span className={"NewBadge"}>
+                                    <UiText message={"New"} />
+                                  </span>
                                 )}
                               </span>
                             }
@@ -805,7 +818,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                   onKeyDown={(event) => event.stopPropagation()}
                 >
                   <Select
-                    aria-label="Icon style"
+                    aria-label={uiT("Icon style")}
                     getPopupContainer={(trigger) =>
                       ensure(
                         trigger.parentElement,
@@ -818,15 +831,15 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                       setHighlightedItemIndex(0);
                     }}
                     options={[
-                      { value: "", label: "All styles" },
-                      { value: "Outlined", label: "Outlined" },
-                      { value: "Filled", label: "Filled" },
-                      { value: "Two Tone", label: "Two Tone" },
+                      { value: "", label: uiT("All styles") },
+                      { value: "Outlined", label: uiT("Outlined") },
+                      { value: "Filled", label: uiT("Filled") },
+                      { value: "Two Tone", label: uiT("Two Tone") },
                     ]}
                   />
                   <Input.Search
-                    aria-label="Search icons by name"
-                    placeholder="Search icons by name"
+                    aria-label={uiT("Search icons by name")}
+                    placeholder={uiT("Search icons by name")}
                     allowClear
                     value={iconQuery}
                     onChange={(event) => {
@@ -853,7 +866,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
             ),
           props: {
             ...getMenuProps({
-              "aria-label": "Insert",
+              "aria-label": uiT("Insert"),
               ref: contentRef,
             }),
 
@@ -964,6 +977,7 @@ const Row = React.memo(function Row(props: {
   index: number;
   style: React.CSSProperties;
 }) {
+  const { label: localizeLabel, locale } = useI18n();
   const { style } = props;
   const virtualRow = props.data[props.index];
   const context = ensure(
@@ -1010,7 +1024,7 @@ const Row = React.memo(function Row(props: {
                     size={"small"}
                     onClick={() => context.onInsert(installableItem)}
                   >
-                    Install all
+                    <UiText message={"Install all"} />
                   </Button>
                 )
               }
@@ -1024,7 +1038,9 @@ const Row = React.memo(function Row(props: {
                 }}
               >
                 {context.matcher.boldSnippets(
-                  virtualItem.displayLabel ?? virtualItem.group.label,
+                  localizeLabel(
+                    virtualItem.displayLabel ?? virtualItem.group.label,
+                  ),
                 )}
               </span>
             </ListSectionHeader>
@@ -1069,7 +1085,9 @@ const Row = React.memo(function Row(props: {
                           onInserted(addTplItem, tplNode);
                         }}
                       >
-                        Create a new copy of this component
+                        <UiText
+                          message={"Create a new copy of this component"}
+                        />
                       </Menu.Item>
                     </Menu>
                   )}
@@ -1080,7 +1098,7 @@ const Row = React.memo(function Row(props: {
             >
               <li
                 {...getItemProps({ item, index: itemIndex })}
-                aria-label={item.label}
+                aria-label={getAddItemLabel(item, locale)}
                 data-plasmic-add-item-name={item.systemName ?? item.label}
                 role="option"
                 aria-disabled={item.isDisabled}
@@ -1331,6 +1349,7 @@ interface AddItemGroup {
 }
 
 export function buildAddItemGroups({
+  uiLocale,
   studioCtx,
   includeFrames = true,
   matcher,
@@ -1339,6 +1358,7 @@ export function buildAddItemGroups({
   insertLoc,
   projectDependencies,
 }: {
+  uiLocale: UiLocale;
   includeFrames?: boolean;
   studioCtx: StudioCtx;
   matcher: Matcher;
@@ -1347,6 +1367,7 @@ export function buildAddItemGroups({
   insertLoc?: InsertRelLoc;
   projectDependencies: Array<ProjectDependency>;
 }): AddItemGroup[] {
+  const localizeLabel = (text: string) => translateUiLabel(uiLocale, text);
   const uiConfig = studioCtx.getCurrentUiConfig();
   const installedHostlessComponents = new Set<string>();
   const getInsertableTemplatesSection = (
@@ -1903,7 +1924,10 @@ export function buildAddItemGroups({
     groupedItems.forEach((group) => {
       if (
         matcher.matches(group.label) ||
-        (group.sectionLabel && matcher.matches(group.sectionLabel))
+        matcher.matches(localizeLabel(group.label)) ||
+        (group.sectionLabel &&
+          (matcher.matches(group.sectionLabel) ||
+            matcher.matches(localizeLabel(group.sectionLabel))))
       ) {
         return; // don't filter items if group label matches
       }
@@ -1913,6 +1937,7 @@ export function buildAddItemGroups({
         group.items.filter(
           (item) =>
             !matcher.matches(item.label) &&
+            !matcher.matches(getAddItemLabel(item, uiLocale)) &&
             (!item.systemName || !matcher.matches(item.systemName)),
         ),
       );

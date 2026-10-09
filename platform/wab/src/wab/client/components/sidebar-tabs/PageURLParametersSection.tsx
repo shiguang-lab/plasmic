@@ -13,6 +13,8 @@ import { PageQueryParamsTooltip } from "@/wab/client/components/widgets/Detailed
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UiActionsOverlay } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
@@ -108,6 +110,7 @@ function URLParameterRow(props: {
   onCommit: (value: string) => void;
   onRemove?: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const [draft, setDraft] = React.useState(props.value);
   React.useEffect(() => setDraft(props.value), [props.value]);
   const commit = () => defer(() => props.onCommit(draft));
@@ -121,14 +124,16 @@ function URLParameterRow(props: {
       menu={
         props.onRemove && (
           <Menu>
-            <Menu.Item onClick={props.onRemove}>{DELETE_ACTION}</Menu.Item>
+            <Menu.Item onClick={props.onRemove}>
+              {<UiLabel text={DELETE_ACTION} />}
+            </Menu.Item>
           </Menu>
         )
       }
     >
       <Input
         className="transparent"
-        placeholder={"Preview value"}
+        placeholder={uiT("Preview value")}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -151,6 +156,7 @@ interface DetailsSpec {
 
 export const PageURLParametersSection = observer(
   function PageQueryPanel(props: { page: Component }) {
+    const { t: uiT } = useI18n();
     const { page } = props;
     const sc = useStudioCtx();
 
@@ -167,14 +173,12 @@ export const PageURLParametersSection = observer(
     const mainDetailsSpec: DetailsSpec | undefined = maybeFirst(
       page.dataQueries.flatMap((query) => {
         const params = extractParamsFromPagePath(pageMeta.path);
-        if (
-          !(
-            query.op &&
-            ["getMany", "getList"].includes(query.op.opName) &&
-            params.length > 0 &&
-            query.op.templates.filters
-          )
-        ) {
+        if (!(
+          query.op &&
+          ["getMany", "getList"].includes(query.op.opName) &&
+          params.length > 0 &&
+          query.op.templates.filters
+        )) {
           return [];
         }
 
@@ -184,14 +188,12 @@ export const PageURLParametersSection = observer(
           tryCoerceString(query.op.templates.resource.value),
           JSON.parse,
         );
-        if (
-          !(
-            tableId &&
-            filtersBindings &&
-            filtersValue &&
-            size(filtersBindings) === size(params)
-          )
-        ) {
+        if (!(
+          tableId &&
+          filtersBindings &&
+          filtersValue &&
+          size(filtersBindings) === size(params)
+        )) {
           return [];
         }
         const filters = extractFiltersFromDefaultDataSourceQueries(query.op);
@@ -249,7 +251,7 @@ export const PageURLParametersSection = observer(
         id="sidebar-page-url-parameters"
         title={
           <LabelWithDetailedTooltip tooltip={<PageQueryParamsTooltip />}>
-            URL parameters
+            <UiText message={"URL parameters"} />
           </LabelWithDetailedTooltip>
         }
         controls={
@@ -261,7 +263,7 @@ export const PageURLParametersSection = observer(
               })
             }
           >
-            <IconLinkButton aria-label="Add URL parameter">
+            <IconLinkButton aria-label={uiT("Add URL parameter")}>
               <Icon icon={PlusIcon} />
             </IconLinkButton>
           </AddQueryParamButton>
@@ -279,7 +281,7 @@ export const PageURLParametersSection = observer(
                   className="fill-width"
                   onClick={() => {
                     open({
-                      title: "View different record",
+                      title: uiT("View different record"),
                       value: ensureDataSourceStandardQuery(
                         sourceMeta,
                         "getList",
@@ -309,7 +311,7 @@ export const PageURLParametersSection = observer(
                     });
                   }}
                 >
-                  View different record
+                  <UiText message={"View different record"} />
                 </Button>
               </SidebarSection>
             </>
@@ -355,6 +357,7 @@ export function AddQueryParamButton({
   children,
   onAdd,
 }: AddQueryParamButtonProps) {
+  const { t: uiT } = useI18n();
   const [value, setValue] = React.useState<string>("");
   const [showing, setShowing] = React.useState(false);
   const inputRef = React.useRef<InputRef>(null);
@@ -379,7 +382,7 @@ export function AddQueryParamButton({
             id="url-query-param-input"
             ref={inputRef}
             value={value}
-            placeholder="Enter key for new URL query param"
+            placeholder={uiT("Enter key for new URL query param")}
             bordered={false}
             autoFocus
             style={{ width: 200 }}

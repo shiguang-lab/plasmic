@@ -6,6 +6,7 @@ import {
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -37,6 +38,7 @@ interface AnimationControlsProps {
 export const AnimationControls = observer(function AnimationControls(
   props: AnimationControlsProps,
 ) {
+  const { t: uiT } = useI18n();
   const { animation, studioCtx, onUpdated } = props;
   const site = studioCtx.site;
 
@@ -70,7 +72,11 @@ export const AnimationControls = observer(function AnimationControls(
 
   return (
     <>
-      <SidebarSection title="Animation" zeroBodyPadding zeroHeaderPadding>
+      <SidebarSection
+        title={uiT("Animation")}
+        zeroBodyPadding
+        zeroHeaderPadding
+      >
         <FullRow className="labeled-item">
           <Select
             className={cx({
@@ -120,9 +126,9 @@ export const AnimationControls = observer(function AnimationControls(
         </FullRow>
       </SidebarSection>
 
-      <SidebarSection title="Timing" zeroBodyPadding zeroHeaderPadding>
+      <SidebarSection title={uiT("Timing")} zeroBodyPadding zeroHeaderPadding>
         <FullRow>
-          <LabeledItem label="Duration">
+          <LabeledItem label={uiT("Duration")}>
             <DimTokenSpinner
               value={animation.duration}
               onChange={(val) =>
@@ -137,7 +143,7 @@ export const AnimationControls = observer(function AnimationControls(
           </LabeledItem>
         </FullRow>
         <FullRow>
-          <LabeledItem label="Delay">
+          <LabeledItem label={uiT("Delay")}>
             <DimTokenSpinner
               value={animation.delay || "0s"}
               onChange={(val) =>
@@ -153,12 +159,12 @@ export const AnimationControls = observer(function AnimationControls(
       </SidebarSection>
 
       <SidebarSection
-        title="Easing & Repetition"
+        title={uiT("Easing & Repetition")}
         zeroBodyPadding
         zeroHeaderPadding
       >
         <FullRow>
-          <LabeledItem label="Easing">
+          <LabeledItem label={uiT("Easing")}>
             <StyleSelect
               value={animation.timingFunction || "ease"}
               onChange={(val) =>
@@ -176,7 +182,7 @@ export const AnimationControls = observer(function AnimationControls(
         </FullRow>
 
         <FullRow>
-          <LabeledItem label="Iteration Count">
+          <LabeledItem label={uiT("Iteration Count")}>
             <DimTokenSpinner
               min={0}
               value={animation.iterationCount || "1"}
@@ -192,7 +198,7 @@ export const AnimationControls = observer(function AnimationControls(
         </FullRow>
 
         <FullRow>
-          <LabeledItem label="Direction">
+          <LabeledItem label={uiT("Direction")}>
             <StyleSelect
               value={animation.direction}
               onChange={(val) =>
@@ -216,7 +222,11 @@ export const AnimationControls = observer(function AnimationControls(
         </FullRow>
       </SidebarSection>
 
-      <SidebarSection title="Fill Mode" zeroBodyPadding zeroHeaderPadding>
+      <SidebarSection
+        title={uiT("Fill Mode")}
+        zeroBodyPadding
+        zeroHeaderPadding
+      >
         <FullRow>
           <StyleSelect
             value={animation.fillMode || "none"}

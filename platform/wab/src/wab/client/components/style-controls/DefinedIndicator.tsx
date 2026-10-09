@@ -14,6 +14,8 @@ import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPic
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getVisibilityIcon } from "@/wab/client/icons";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import ComponentBaseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ComponentBase";
@@ -368,7 +370,11 @@ export const SourceValue = observer(function SourceValue(props: {
           </Tooltip>
         );
       } else {
-        return <code>(unset)</code>;
+        return (
+          <code>
+            <UiText message={"(unset)"} />
+          </code>
+        );
       }
     } else {
       return (
@@ -466,7 +472,11 @@ export const SourceValue = observer(function SourceValue(props: {
       display,
     );
     if (source.isDerived) {
-      return <>{rendered} (derived)</>;
+      return (
+        <>
+          {rendered} <UiText message={"(derived)"} />
+        </>
+      );
     } else {
       return rendered;
     }
@@ -589,6 +599,7 @@ export function SourceRow(props: {
   type?: "overwritten" | "target";
   onClear?: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const { title, icon, children, type, onClear } = props;
   return (
     <div
@@ -612,7 +623,7 @@ export function SourceRow(props: {
             e.stopPropagation();
             onClear();
           }}
-          tooltip="Unset"
+          tooltip={uiT("Unset")}
         >
           <Icon icon={CloseIcon} />
         </IconButton>
@@ -696,8 +707,8 @@ const PopoverContent = observer(function PopoverContent(props: {
       type="info"
       message={
         <>
-          Your settings in target {VARIANT_LOWER} are overwritten by other
-          visible {VARIANTS_LOWER}.
+          Your settings in target {<UiLabel text={VARIANT_LOWER} />} are
+          overwritten by other visible {<UiLabel text={VARIANTS_LOWER} />}.
         </>
       }
     />
@@ -879,7 +890,7 @@ export const VariantSettingPopoverTitle = observer(
               })
             }
           >
-            Reset all settings
+            <UiText message={"Reset all settings"} />
           </Menu.Item>,
         );
       });
@@ -905,6 +916,7 @@ export const VariantSettingPopoverContent = observer(
     vs: VariantSetting;
     viewCtx: ViewCtx;
   }) {
+    const { t: uiT } = useI18n();
     const { site, tpl, vs, viewCtx } = props;
     const exp = RSH(vs.rs, tpl);
 
@@ -913,7 +925,7 @@ export const VariantSettingPopoverContent = observer(
         {vs.dataCond && (
           <SourceRow
             key="dataCond"
-            title="Visibility"
+            title={uiT("Visibility")}
             type="target"
             onClear={() =>
               viewCtx.change(() => clearTplVisibility(tpl, vs.variants))
@@ -933,7 +945,7 @@ export const VariantSettingPopoverContent = observer(
         {vs.text && (
           <SourceRow
             key="text"
-            title="Text"
+            title={uiT("Text")}
             type="target"
             onClear={() =>
               viewCtx.change(
@@ -1048,7 +1060,9 @@ export const VariantSettingPopoverContent = observer(
                 </div>
               </Tooltip>
             ) : (
-              <span>None</span>
+              <span>
+                <UiText message={"None"} />
+              </span>
             )}
           </SourceRow>
         )}

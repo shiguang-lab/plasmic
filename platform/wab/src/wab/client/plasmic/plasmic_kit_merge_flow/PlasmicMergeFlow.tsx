@@ -11,6 +11,8 @@
 // Plasmic Project: p8FkKgCnyuat1kHSEYAKfW
 // Component: A4VINgKjc8
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -108,6 +110,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
   overrides: PlasmicMergeFlow__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -257,7 +260,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text__lUvMr
                       )}
                     >
-                      {"Review changes"}
+                      {<UiText message={"Review changes"} />}
                     </div>
                     {false ? (
                       <div
@@ -267,7 +270,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                           sty.text__gZfMj
                         )}
                       >
-                        {"Label"}
+                        {<UiText message={"Label"} />}
                       </div>
                     ) : null}
                   </div>
@@ -319,7 +322,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                           sty.text__sy7Wj
                         )}
                       >
-                        {"Variants"}
+                        {<UiText message={"Variants"} />}
                       </div>
                       {false ? (
                         <div
@@ -329,7 +332,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                             sty.text__qJa9R
                           )}
                         >
-                          {"Label"}
+                          {<UiText message={"Label"} />}
                         </div>
                       ) : null}
                     </div>
@@ -422,7 +425,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                           sty.text__x53Vz
                         )}
                       >
-                        {"Label"}
+                        {<UiText message={"Label"} />}
                       </div>
                     ) : null}
                   </div>
@@ -482,7 +485,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                           sty.text__nvNxw
                         )}
                       >
-                        {"Label"}
+                        {<UiText message={"Label"} />}
                       </div>
                     ) : null}
                   </div>
@@ -547,7 +550,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text__uH8Hs
                       )}
                     >
-                      {"Conflicting changes"}
+                      {<UiText message={"Conflicting changes"} />}
                     </div>
                     <div
                       className={classNames(
@@ -556,7 +559,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text__knemq
                       )}
                     >
-                      {"Pick the branch to keep changes from."}
+                      {<UiText message={"Pick the branch to keep changes from."} />}
                     </div>
                   </div>
                   {false ? (
@@ -630,7 +633,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text__haM4A
                       )}
                     >
-                      {"Show all changes"}
+                      {<UiText message={"Show all changes"} />}
                     </div>
                   </Switch>
                 </div>
@@ -690,7 +693,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                             sty.text__ipYnc
                           )}
                         >
-                          {"Label"}
+                          {<UiText message={"Label"} />}
                         </div>
                       ) : null}
                     </div>
@@ -754,7 +757,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                               sty.text__pbYbl
                             )}
                           >
-                            {"Label"}
+                            {<UiText message={"Label"} />}
                           </div>
                         ) : null}
                       </div>
@@ -817,7 +820,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                               sty.text__yDyvZ
                             )}
                           >
-                            {"Label"}
+                            {<UiText message={"Label"} />}
                           </div>
                         ) : null}
                       </div>
@@ -916,7 +919,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                   ),
                 })}
               >
-                {"No conflicting changes!"}
+                {<UiText message={"No conflicting changes!"} />}
               </div>
             </div>
           </div>
@@ -978,7 +981,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text__ifdJl
                       )}
                     >
-                      {"Automatically reconciled changes"}
+                      {<UiText message={"Automatically reconciled changes"} />}
                     </div>
                     {false ? (
                       <div
@@ -988,7 +991,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                           sty.text__uKa6G
                         )}
                       >
-                        {"Label"}
+                        {<UiText message={"Label"} />}
                       </div>
                     ) : null}
                   </div>
@@ -1112,7 +1115,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Cannot merge branches"}
+                  {<UiText message={"Cannot merge branches"} />}
                 </div>
               </div>
               <div
@@ -1161,7 +1164,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
               })}
             >
               <div className={classNames("all", "__wab_text", sty.text__tPwaU)}>
-                {"Merge and save version"}
+                {<UiText message={"Merge and save version"} />}
               </div>
               <div className={classNames("all", "__wab_text", sty.text__uUu0C)}>
                 {
@@ -1187,7 +1190,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Description"}
+                {<UiText message={"Description"} />}
               </div>
               <textarea
                 data-plasmic-name={"description"}
@@ -1205,7 +1208,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                     );
                   }).apply(null, eventArgs);
                 }}
-                placeholder={"Enter description here (optional)…"}
+                placeholder={uiT("Enter description here (optional)…")}
                 ref={(ref) => {
                   $refs["description"] = ref;
                 }}
@@ -1225,7 +1228,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
               })}
             >
               <div className={classNames("all", "__wab_text", sty.text__dd2Qx)}>
-                {"Tags"}
+                {<UiText message={"Tags"} />}
               </div>
               <Select
                 data-plasmic-name={"tagsSelector"}
@@ -1249,7 +1252,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                 caption={"Caption"}
                 className={classNames("__wab_instance", sty.cancelButton)}
               >
-                {"Cancel"}
+                {<UiText message={"Cancel"} />}
               </Button>
               <Button
                 data-plasmic-name={"finishButton"}
@@ -1268,7 +1271,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                 isSubmit={false}
                 type={["primary"]}
               >
-                {"Merge"}
+                {<UiText message={"Merge"} />}
               </Button>
             </div>
           </div>
@@ -1302,7 +1305,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
             ),
           })}
         >
-          {"Please wait, determining conflicting changes..."}
+          {<UiText message={"Please wait, determining conflicting changes..."} />}
         </div>
         <div
           data-plasmic-name={"spinnerContainer"}

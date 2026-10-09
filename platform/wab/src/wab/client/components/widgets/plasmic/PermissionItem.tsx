@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import PublishSpinner from "@/wab/client/components/widgets/PublishSpinner";
 import Select from "@/wab/client/components/widgets/Select";
 import PP__PermissionItem from "@/wab/client/components/widgets/plasmic/PlasmicPermissionItem";
@@ -18,32 +19,22 @@ export const contentCreatorTooltip = (
   <Tooltip
     zIndex={200000}
     title="Can edit pages using existing components, and can update CMS content."
-  >
-    Content creator
-  </Tooltip>
+  ><UiText message={"Content creator"} /></Tooltip>
 );
 export const designerTooltip = (
   <Tooltip
     zIndex={200000}
     title="Can update Plasmic designs including all styling and layout. Can create design components."
-  >
-    Designer
-  </Tooltip>
+  ><UiText message={"Designer"} /></Tooltip>
 );
 export const developerTooltip = (
-  <Tooltip zIndex={200000} title="Can update anything including model schemas.">
-    Developer
-  </Tooltip>
+  <Tooltip zIndex={200000} title="Can update anything including model schemas."><UiText message={"Developer"} /></Tooltip>
 );
 export const commenterTooltip = (
-  <Tooltip zIndex={200000} title="Can view and comment on content.">
-    Commenter
-  </Tooltip>
+  <Tooltip zIndex={200000} title="Can view and comment on content."><UiText message={"Commenter"} /></Tooltip>
 );
 export const viewerTooltip = (
-  <Tooltip zIndex={200000} title="Can view content.">
-    Viewer
-  </Tooltip>
+  <Tooltip zIndex={200000} title="Can view content."><UiText message={"Viewer"} /></Tooltip>
 );
 
 function PermissionItem(props: PermissionItemProps) {
@@ -81,9 +72,7 @@ function PermissionItem(props: PermissionItemProps) {
           <Select.Option
             value="owner"
             style={props.showOwnerOption ? {} : { display: "none" }}
-          >
-            Owner
-          </Select.Option>,
+          ><UiText message={"Owner"} /></Select.Option>,
         ],
         isDisabled: !canEdit || loading,
       }}

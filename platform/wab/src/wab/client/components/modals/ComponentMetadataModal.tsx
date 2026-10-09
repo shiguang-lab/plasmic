@@ -2,6 +2,7 @@ import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { Component } from "@/wab/shared/model/classes";
 import { Form } from "antd";
 import React from "react";
@@ -60,9 +61,11 @@ export default async function promptForMetadata(
               htmlType="submit"
               data-test-id="prompt-submit"
             >
-              Confirm
+              <UiText message={"Confirm"} />
             </Button>
-            <Button onClick={() => onCancel()}>Cancel</Button>
+            <Button onClick={() => onCancel()}>
+              <UiText message={"Cancel"} />
+            </Button>
           </Form.Item>
         </Form>
       </Modal>

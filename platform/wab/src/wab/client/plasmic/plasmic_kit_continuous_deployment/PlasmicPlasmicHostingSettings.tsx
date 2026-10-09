@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: aFapl-YUjv9
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -264,7 +265,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 ),
               })}
             >
-              {"Subdomain"}
+              {<UiText message={"Subdomain"} />}
             </div>
             {(hasVariant($state, "subdomain", "success") ? true : false) ? (
               <div
@@ -493,7 +494,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
               }
               type={["primary"]}
             >
-              {"Save subdomain"}
+              {<UiText message={"Save subdomain"} />}
             </Button>
           </div>
           {(hasVariant($state, "subdomain", "success") ? true : false) ? (
@@ -540,7 +541,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                         }
                         style={{ textDecorationLine: "underline" }}
                       >
-                        {"Click here to request access"}
+                        {<UiText message={"Click here to request access"} />}
                       </span>
                       <React.Fragment>{"."}</React.Fragment>
                     </React.Fragment>
@@ -568,7 +569,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                   type={["clear"]}
                   withIcons={["startIcon"]}
                 >
-                  {"Edit"}
+                  {<UiText message={"Edit"} />}
                 </Button>
                 <Button
                   data-plasmic-name={"refreshButton8"}
@@ -594,7 +595,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__iHfQr)}
                   >
-                    {"Remove"}
+                    {<UiText message={"Remove"} />}
                   </div>
                 </Button>
               </div>
@@ -649,7 +650,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                   hasVariant($state, "customDomain", "preliminaryError"),
               })}
             >
-              {"Custom domain"}
+              {<UiText message={"Custom domain"} />}
             </div>
             <input
               data-plasmic-name={"customDomainInput"}
@@ -716,7 +717,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                     }
                     style={{ textDecorationLine: "underline" }}
                   >
-                    {"Click here to request access"}
+                    {<UiText message={"Click here to request access"} />}
                   </span>
                   <React.Fragment>{"."}</React.Fragment>
                 </React.Fragment>
@@ -794,7 +795,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
               }
               type={["primary"]}
             >
-              {"Add custom domain"}
+              {<UiText message={"Add custom domain"} />}
             </Button>
           </div>
         </form>
@@ -848,7 +849,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                         }
                         style={{ textDecorationLine: "underline" }}
                       >
-                        {"Learn more"}
+                        {<UiText message={"Learn more"} />}
                       </span>
                     </React.Fragment>
                   </PlasmicLink__>
@@ -875,7 +876,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                         }
                         style={{ textDecorationLine: "underline" }}
                       >
-                        {"upgrade now"}
+                        {<UiText message={"upgrade now"} />}
                       </span>
                     </React.Fragment>
                   </PlasmicLink__>
@@ -924,7 +925,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 ),
               })}
             >
-              {'Show "Made in Plasmic" badge?'}
+              {<UiText message={"Show \"Made in Plasmic\" badge?"} />}
             </div>
             <Switch
               data-plasmic-name={"showBadge"}
@@ -987,7 +988,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 ),
               })}
             >
-              {"Favicon"}
+              {<UiText message={"Favicon"} />}
             </div>
             <div
               data-plasmic-name={"faviconControlContainer"}

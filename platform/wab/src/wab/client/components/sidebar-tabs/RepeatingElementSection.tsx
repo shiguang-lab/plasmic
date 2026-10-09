@@ -4,6 +4,8 @@ import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isBaseVariant } from "@/wab/shared/Variants";
@@ -28,6 +30,7 @@ export const RepeatingElementSection = observer(function (props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
 }) {
+  const { t: uiT } = useI18n();
   const { tpl, viewCtx } = props;
   const ownerComponent = tryGetTplOwnerComponent(tpl);
   const [isDataPickerVisible, setIsDataPickerVisible] =
@@ -59,13 +62,13 @@ export const RepeatingElementSection = observer(function (props: {
 
   return (
     <SidebarSection
-      title="Repeat element"
+      title={uiT("Repeat element")}
       isHeaderActive={!!dataRep}
       controls={
         !dataRep && (
           <IconLinkButton
             onClick={resetDataRep}
-            aria-label="Repeat element"
+            aria-label={uiT("Repeat element")}
             data-test-id="btn-repeating-element-add"
           >
             <Icon icon={PlusIcon} />
@@ -83,7 +86,7 @@ export const RepeatingElementSection = observer(function (props: {
                     });
                   }}
                 >
-                  Remove repetition
+                  <UiText message={"Remove repetition"} />
                 </Menu.Item>
               </Menu>
             )
@@ -94,7 +97,7 @@ export const RepeatingElementSection = observer(function (props: {
       {!!dataRep && (
         <>
           <LabeledItemRow
-            label="Collection"
+            label={uiT("Collection")}
             data-test-id="repeating-element-collection"
           >
             <DataPickerEditor
@@ -126,7 +129,7 @@ export const RepeatingElementSection = observer(function (props: {
             />
           </LabeledItemRow>
           <LabeledItemRow
-            label="Element name"
+            label={uiT("Element name")}
             data-test-id="repeating-element-name"
           >
             <StringPropEditor
@@ -151,7 +154,7 @@ export const RepeatingElementSection = observer(function (props: {
             />
           </LabeledItemRow>
           <LabeledItemRow
-            label="Index name"
+            label={uiT("Index name")}
             data-test-id="repeating-element-index-name"
           >
             <StringPropEditor

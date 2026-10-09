@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: lzLkhV0UJA
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -243,7 +244,7 @@ function PlasmicTooltip__RenderFunc(props: {
                         sty.text__pcxZh
                       )}
                     >
-                      {"Tips"}
+                      {<UiText message={"Tips"} />}
                     </div>
                     <div
                       className={classNames(

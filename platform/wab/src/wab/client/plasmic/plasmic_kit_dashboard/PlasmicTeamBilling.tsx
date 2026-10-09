@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: MtL6MGlBxoy
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -109,6 +111,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
   overrides: PlasmicTeamBilling__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -247,7 +250,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                 platform={"react"}
                 target={"_blank"}
               >
-                {"Learn more."}
+                {<UiText message={"Learn more."} />}
               </PlasmicLink__>
             </div>
           </div>
@@ -281,7 +284,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
               className: classNames(sty.slotTargetCurrentBill),
             })}
             <div className={classNames("all", "__wab_text", sty.text___4Yo4)}>
-              {"Recurring bill"}
+              {<UiText message={"Recurring bill"} />}
             </div>
           </div>
           <div className={classNames("all", sty.freeBox__mOmdD)}>
@@ -304,7 +307,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
               </div>
             </div>
             <div className={classNames("all", "__wab_text", sty.text__ofLuw)}>
-              {"Current usage"}
+              {<UiText message={"Current usage"} />}
             </div>
           </div>
         </div>
@@ -387,12 +390,12 @@ function PlasmicTeamBilling__RenderFunc(props: {
               sty.h4
             )}
           >
-            {"Preferences"}
+            {<UiText message={"Preferences"} />}
           </h4>
           <div className={classNames("all", sty.freeBox__sDa4Q)}>
             <div className={classNames("all", sty.freeBox__oz3Ad)}>
               <div className={classNames("all", "__wab_text", sty.text__dsQj7)}>
-                {"Billing email"}
+                {<UiText message={"Billing email"} />}
               </div>
               <div className={classNames("all", sty.freeBox___4WK2C)}>
                 <input
@@ -404,7 +407,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                     "input__ooL7E",
                     sty.billingEmail
                   )}
-                  placeholder={"Enter…"}
+                  placeholder={uiT("Enter…")}
                   ref={(ref) => {
                     $refs["billingEmail"] = ref;
                   }}
@@ -438,7 +441,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__vqNbp)}
                   >
-                    {"Update"}
+                    {<UiText message={"Update"} />}
                   </div>
                 </Button>
               </div>
@@ -487,7 +490,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__l6WqO)}
                 >
-                  {"Change credit card"}
+                  {<UiText message={"Change credit card"} />}
                 </div>
               </Button>
               <Button
@@ -513,7 +516,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__k3Dt)}
                 >
-                  {"Manage billing"}
+                  {<UiText message={"Manage billing"} />}
                 </div>
               </Button>
             </div>
@@ -527,7 +530,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
               withIcons={[]}
             >
               <div className={classNames("all", "__wab_text", sty.text__iI7N)}>
-                {"Cancel plan"}
+                {<UiText message={"Cancel plan"} />}
               </div>
             </Button>
           </div>

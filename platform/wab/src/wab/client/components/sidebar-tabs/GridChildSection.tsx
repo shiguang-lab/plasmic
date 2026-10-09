@@ -9,6 +9,8 @@ import {
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { spawn } from "@/wab/shared/common";
 import { NUMBER_UNITS } from "@/wab/shared/css/types";
 import { parseGridChildCssProps } from "@/wab/shared/grid-utils";
@@ -19,6 +21,7 @@ import React from "react";
 export const GridChildSection = observer(function GridChildSection(props: {
   expsProvider: ExpsProvider;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
 
   const childTpl =
@@ -62,15 +65,19 @@ export const GridChildSection = observer(function GridChildSection(props: {
 
   return (
     <SidebarSection
-      title="Grid Child"
+      title={uiT("Grid Child")}
       isHeaderActive={true}
       definedIndicator={
-        <DefinedIndicator label="GridChild" type={definedIndicators} />
+        <DefinedIndicator label={uiT("GridChild")} type={definedIndicators} />
       }
     >
       <FullRow>
         <LabeledStyleItem
-          label={<div style={{ minWidth: 90 }}>Row</div>}
+          label={
+            <div style={{ minWidth: 90 }}>
+              <UiText message={"Row"} />
+            </div>
+          }
           styleName="grid-row"
         >
           <FullRow twinCols>
@@ -82,7 +89,9 @@ export const GridChildSection = observer(function GridChildSection(props: {
                 allowedUnits={NUMBER_UNITS}
                 allowFunctions={false}
               />
-              <span>Start</span>
+              <span>
+                <UiText message={"Start"} />
+              </span>
             </div>
             <div className="flex flex-col flex-align-start">
               <DimTokenSpinner
@@ -93,14 +102,20 @@ export const GridChildSection = observer(function GridChildSection(props: {
                 allowedUnits={NUMBER_UNITS}
                 allowFunctions={false}
               />
-              <span>Span</span>
+              <span>
+                <UiText message={"Span"} />
+              </span>
             </div>
           </FullRow>
         </LabeledStyleItem>
       </FullRow>
       <FullRow>
         <LabeledStyleItem
-          label={<div style={{ minWidth: 90 }}>Column</div>}
+          label={
+            <div style={{ minWidth: 90 }}>
+              <UiText message={"Column"} />
+            </div>
+          }
           styleName="grid-column"
         >
           <FullRow twinCols>
@@ -112,7 +127,9 @@ export const GridChildSection = observer(function GridChildSection(props: {
                 allowedUnits={NUMBER_UNITS}
                 allowFunctions={false}
               />
-              <span>Start</span>
+              <span>
+                <UiText message={"Start"} />
+              </span>
             </div>
             <div className="flex flex-col flex-align-start">
               <DimTokenSpinner
@@ -123,7 +140,9 @@ export const GridChildSection = observer(function GridChildSection(props: {
                 allowedUnits={NUMBER_UNITS}
                 allowFunctions={false}
               />
-              <span>Span</span>
+              <span>
+                <UiText message={"Span"} />
+              </span>
             </div>
           </FullRow>
         </LabeledStyleItem>

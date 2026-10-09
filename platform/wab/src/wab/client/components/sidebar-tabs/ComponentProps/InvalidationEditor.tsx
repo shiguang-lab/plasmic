@@ -5,6 +5,8 @@ import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/Data
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import Trash2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Trash2Svg";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -52,6 +54,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
   layout?: "vertical" | "horizontal";
   component?: Component | null;
 }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const firstRenderRef = React.useRef(true);
   React.useLayoutEffect(() => {
@@ -150,7 +153,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
         wrapper={(children) => (
           <LabeledItemRow
             className="flex-vcenter-important"
-            label={"Refresh queries"}
+            label={uiT("Refresh queries")}
             key={"invalidationQueries"}
           >
             {children}
@@ -217,7 +220,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
           className={
             layout === "horizontal" ? "flex-vcenter-important" : undefined
           }
-          label={"Refresh query groups"}
+          label={uiT("Refresh query groups")}
           key={"invalidationKeys"}
           layout={layout}
           menu={
@@ -233,7 +236,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
                   setShowKeysEditor(false);
                 }}
               >
-                Remove query groups
+                <UiText message={"Remove query groups"} />
               </Menu.Item>
             </Menu>
           }

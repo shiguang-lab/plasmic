@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: tNBvs5bIAy
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -304,7 +305,7 @@ function PlasmicTopBar__RenderFunc(props: {
               ),
             })}
           >
-            {"Project Name"}
+            {<UiText message={"Project Name"} />}
           </div>
           <MenuButton
             data-plasmic-name={"projectMenu"}
@@ -403,7 +404,7 @@ function PlasmicTopBar__RenderFunc(props: {
             }}
             placeholder={
               <div className={classNames("all", "__wab_text", sty.text__yJyck)}>
-                {"Select\u2026"}
+                {<UiText message={"Select…"} />}
               </div>
             }
             value={generateStateValueProp($state, ["previewSelect", "value"])}
@@ -433,7 +434,7 @@ function PlasmicTopBar__RenderFunc(props: {
               ),
             })}
           >
-            {"Base"}
+            {<UiText message={"Base"} />}
           </VariantsComboSelect>
         ) : null}
       </div>
@@ -454,7 +455,7 @@ function PlasmicTopBar__RenderFunc(props: {
               }
               style={{ fontWeight: 700 }}
             >
-              {"admin mode"}
+              {<UiText message={"admin mode"} />}
             </span>
             <React.Fragment>{" is disabled"}</React.Fragment>
           </React.Fragment>

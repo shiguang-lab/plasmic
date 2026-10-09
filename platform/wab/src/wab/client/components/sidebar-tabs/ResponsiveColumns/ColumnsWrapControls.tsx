@@ -8,6 +8,8 @@ import { ExpsProvider } from "@/wab/client/components/style-controls/StyleCompon
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -34,6 +36,7 @@ export const ColumnsWrapControls = observer(
     expsProvider: ExpsProvider;
     isDisabled?: boolean;
   }) {
+    const { t: uiT } = useI18n();
     const { viewCtx, tpl, config, isDisabled, expsProvider } = props;
     const { breakUpRows, colsSizes } = config;
     const studioCtx = viewCtx.studioCtx;
@@ -84,7 +87,7 @@ export const ColumnsWrapControls = observer(
               });
             }}
           >
-            Wrap?
+            <UiText message={"Wrap?"} />
           </StyleCheckbox>
           <StyleCheckbox
             className="ml-m"
@@ -101,11 +104,11 @@ export const ColumnsWrapControls = observer(
               });
             }}
           >
-            Reverse?
+            <UiText message={"Reverse?"} />
           </StyleCheckbox>
         </LabeledItemRow>
         {config.breakUpRows && (
-          <LabeledItemRow label={"Columns / row"}>
+          <LabeledItemRow label={uiT("Columns / row")}>
             <FullRow twinCols>
               <DimTokenSpinner
                 disabled={isDisabled || !breakUpRows}

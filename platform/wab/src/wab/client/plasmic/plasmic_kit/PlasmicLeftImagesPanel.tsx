@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: ECu8FUyP0f3
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -82,6 +84,7 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
   overrides: PlasmicLeftImagesPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -178,7 +181,7 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New icon"}
+            {<UiText message={"New icon"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.iconsHeader, {
@@ -203,8 +206,8 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "compact", "compact")
-                ? "Icons"
-                : "Color tokens"}
+                ? <UiText message={"Icons"} />
+                : <UiText message={"Color tokens"} />}
             </div>
           </TextWithInfo>
         }
@@ -212,7 +215,7 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
           "Icons are colorable SVGs that you can use throughout your designs."
         }
         expandState={"expanded"}
-        title={"Icons"}
+        title={uiT("Icons")}
       />
 
       <div
@@ -246,7 +249,7 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New image"}
+            {<UiText message={"New image"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.imagesHeader, {
@@ -271,18 +274,18 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "compact", "compact")
-                ? "Images"
-                : "Color tokens"}
+                ? <UiText message={"Images"} />
+                : <UiText message={"Color tokens"} />}
             </div>
           </TextWithInfo>
         }
         description={
-          "Images are any PNGs, JPGs, or non-colorable SVGs that you can use throughout your designs as pictures or background images."
+          uiT("Images are any PNGs, JPGs, or non-colorable SVGs that you can use throughout your designs as pictures or background images.")
         }
         expandState={
           hasVariant($state, "compact", "compact") ? "expanded" : undefined
         }
-        title={"Images"}
+        title={uiT("Images")}
       />
 
       <div

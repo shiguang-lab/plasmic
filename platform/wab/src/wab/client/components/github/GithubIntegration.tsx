@@ -16,6 +16,8 @@ import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import GatsbyIcon from "@/wab/commons/images/gatsby.svg";
 import NextjsIcon from "@/wab/commons/images/nextjs.svg";
@@ -60,6 +62,7 @@ interface GithubIntegrationProps extends DefaultGithubIntegrationProps {
 }
 
 function GithubIntegration(props: GithubIntegrationProps) {
+  const { t: uiT } = useI18n();
   const { appCtx, project, onSave, ...rest } = props;
   const projectId = project.id;
 
@@ -279,9 +282,11 @@ function GithubIntegration(props: GithubIntegrationProps) {
         render={({ onClick, isWaiting }) => (
           <Button {...props2} onClick={onClick} disabled={isWaiting}>
             <span className={styles.missingButton}>
-              {isWaiting
-                ? "Waiting for GitHub..."
-                : "Adjust GitHub App permissions"}
+              {isWaiting ? (
+                "Waiting for GitHub..."
+              ) : (
+                <UiText message={"Adjust GitHub App permissions"} />
+              )}
             </span>
           </Button>
         )}
@@ -332,7 +337,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
         },
       }}
       org={{
-        "aria-label": "Organization",
+        "aria-label": uiT("Organization"),
         value: org?.login ?? null,
         onChange: (key) => {
           const o = githubData.value?.organizations.filter(
@@ -369,7 +374,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
         },
       }}
       repository={{
-        "aria-label": "Repository",
+        "aria-label": uiT("Repository"),
         value: repository?.name ?? null,
         onChange: (key) => {
           const r = githubData.value?.repositories.filter(
@@ -394,7 +399,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
         value: directory,
       }}
       branch={{
-        "aria-label": "Branch",
+        "aria-label": uiT("Branch"),
         value: branch,
         onChange: (key) => {
           setBranch(key as string);
@@ -411,7 +416,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           : "Select branch...",
       }}
       framework={{
-        "aria-label": "Framework",
+        "aria-label": uiT("Framework"),
         value: detectedOptions.loading ? undefined : framework,
         onChange: async (key) => {
           const sure =
@@ -451,7 +456,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           : "Select framework...",
       }}
       language={{
-        "aria-label": "Language",
+        "aria-label": uiT("Language"),
         value: detectedOptions.loading ? null : language,
         onChange: (key) => {
           setLanguage(key as GitSyncLanguage);
@@ -470,7 +475,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           : "Select language...",
       }}
       mode={{
-        "aria-label": "Mode",
+        "aria-label": uiT("Mode"),
         value: mode,
         onChange: (key) => {
           setMode(key as GitSyncScheme);
@@ -498,17 +503,17 @@ function GithubIntegration(props: GithubIntegrationProps) {
         ),
       }}
       action={{
-        "aria-label": "Default action",
+        "aria-label": uiT("Default action"),
         value: action,
         onChange: (key) => {
           setAction(key as GitSyncAction);
         },
         children: [
           <Select.Option value="pr" key="pr">
-            Make pull request
+            <UiText message={"Make pull request"} />
           </Select.Option>,
           <Select.Option value="commit" key="commit">
-            Commit changes
+            <UiText message={"Commit changes"} />
           </Select.Option>,
         ],
       }}

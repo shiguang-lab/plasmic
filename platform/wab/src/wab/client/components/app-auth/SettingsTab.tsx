@@ -21,6 +21,7 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultSettingsTabProps,
   PlasmicSettingsTab,
@@ -371,7 +372,7 @@ function SettingsTab_(props: SettingsTabProps, ref: HTMLElementRefOf<"div">) {
               </Select.Option>
             )),
             <Select.Option key="anon" value="anon">
-              Anonymous
+              <UiText message={"Anonymous"} />
             </Select.Option>,
           ],
         }}

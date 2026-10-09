@@ -10,6 +10,8 @@ import {
   maybeUploadImage,
   readAndSanitizeFileAsImage,
 } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ArrowRightIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowRight";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
@@ -44,6 +46,7 @@ export const ImageAssetPreviewAndPicker = observer(
     keepOpen?: boolean; // don't allow user to close the image picker, if there is no image selected
     forFallback?: boolean;
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, value, onPicked, type, keepOpen, forFallback } = props;
     const asset = isKnownImageAsset(value) ? value : undefined;
     const uri =
@@ -79,7 +82,11 @@ export const ImageAssetPreviewAndPicker = observer(
               style={{
                 height: previewHeight,
               }}
-              hoverMsg={<>Replace image...</>}
+              hoverMsg={
+                <>
+                  <UiText message={"Replace image..."} />
+                </>
+              }
               onClick={() => setPickingImage(true)}
               size="contain"
               showCheckboard={true}
@@ -93,7 +100,7 @@ export const ImageAssetPreviewAndPicker = observer(
                       <MaybeWrap
                         cond={isEditable(studioCtx.site, asset)}
                         wrapper={(x) => (
-                          <Tooltip title="Update image asset">
+                          <Tooltip title={uiT("Update image asset")}>
                             <PlainLinkButton
                               onClick={() => setShowAssetPopup(true)}
                             >
@@ -262,6 +269,7 @@ export const ImageAssetOrUrlPicker = observer(
     keepOpen?: boolean;
     hideCancel?: boolean;
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, onPicked, onCancel, type, value, keepOpen, hideCancel } =
       props;
     const [urlInputError, setUrlInputError] = React.useState<
@@ -317,7 +325,7 @@ export const ImageAssetOrUrlPicker = observer(
           autoFocus={false}
           ref={urlInputRef}
           onChange={() => setUrlInputError(undefined)}
-          placeholder={"Enter a URL"}
+          placeholder={uiT("Enter a URL")}
           // Avoid setting dataUrl in this textbox because it's ugly, but
           // more importantly because it slows down the app to a crawl if
           // it's a big file!
@@ -360,7 +368,7 @@ export const ImageAssetOrUrlPicker = observer(
             and focus the img TplTag to appear again
         */}
         {onCancel && (!keepOpen || value) && !hideCancel && (
-          <Tooltip title="Cancel">
+          <Tooltip title={uiT("Cancel")}>
             <IconButton
               onClick={() => onCancel && onCancel()}
               className="absolute"
@@ -429,7 +437,9 @@ export const ImageAssetOrUrlPicker = observer(
           {selectableAssets.length > 0 ? (
             <div className="mv-sm">{"or upload a new image"}</div>
           ) : (
-            <div className="mb-sm">{"Upload a new image"}</div>
+            <div className="mb-sm">
+              {<UiText message={"Upload a new image"} />}
+            </div>
           )}
           <ImageUploader
             onUploaded={handleImageUploaded}

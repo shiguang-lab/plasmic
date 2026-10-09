@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: FCNHcPh1ZR
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -147,7 +148,7 @@ function PlasmicCodeButton__RenderFunc(props: {
           size={"small"}
           type={["secondary"]}
         >
-          {"Code"}
+          {<UiText message={"Code"} />}
         </ActionMenuButton>
       ) : null}
       {(hasVariant($state, "hideMenu", "hideMenu") ? true : false) ? (
@@ -175,7 +176,7 @@ function PlasmicCodeButton__RenderFunc(props: {
               : undefined
           }
         >
-          {hasVariant($state, "hideMenu", "hideMenu") ? "Code" : "Button"}
+          {hasVariant($state, "hideMenu", "hideMenu") ? <UiText message={"Code"} /> : <UiText message={"Button"} />}
         </Button>
       ) : null}
     </div>

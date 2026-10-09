@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: O5AxABt3WN
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -173,7 +174,7 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
             ),
           })}
         >
-          {"Integrations"}
+          {<UiText message={"Integrations"} />}
         </div>
         <Button
           data-plasmic-name={"newDataSource"}
@@ -210,7 +211,7 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
           }
         >
           {hasVariant(globalVariants, "screen", "mobile")
-            ? "New member"
+            ? <UiText message={"New member"} />
             : "New integration"}
         </Button>
       </div>
@@ -311,7 +312,7 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
           >
             <div className={classNames("all", "__wab_text", sty.text___2VnNh)}>
               {hasVariant(globalVariants, "screen", "mobile")
-                ? "New member"
+                ? <UiText message={"New member"} />
                 : "New API key"}
             </div>
           </Button>

@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: 60hnxzzKks
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -159,7 +160,7 @@ function PlasmicSegmentControls__RenderFunc(props: {
         type={"primary"}
         withIcons={"startIcon"}
       >
-        {"Edit Rules"}
+        {<UiText message={"Edit Rules"} />}
       </Button>
       <div
         data-plasmic-name={"targetRules"}
@@ -177,7 +178,7 @@ function PlasmicSegmentControls__RenderFunc(props: {
             ),
           })}
         >
-          {"No rules set."}
+          {<UiText message={"No rules set."} />}
         </div>
         <div
           data-plasmic-name={"rulesContent"}

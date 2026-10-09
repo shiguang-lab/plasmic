@@ -3,6 +3,7 @@ import {
   ExpsProvider,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
 import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
@@ -18,6 +19,7 @@ interface OpacityControlProps {
 export const OpacityControl = observer(function OpacityControl(
   props: OpacityControlProps,
 ) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const styling = useStyleComponent();
 
@@ -54,7 +56,7 @@ export const OpacityControl = observer(function OpacityControl(
     <LabeledStyleDimItem
       styleName="opacity"
       definedIndicator={opacityDefinedIndicator}
-      aria-label="Opacity"
+      aria-label={uiT("Opacity")}
       dimOpts={{
         value: formattedOpacity,
         onChange: handleOpacityChange,
@@ -63,7 +65,7 @@ export const OpacityControl = observer(function OpacityControl(
         extraOptions: ["100%", "75%", "50%", "25%", "0%"],
         allowedUnits: PERCENTAGE_UNITS,
         allowFunctions: true,
-        tooltip: "Opacity",
+        tooltip: uiT("Opacity"),
       }}
       tokenType={"Opacity"}
       vsh={vsh}

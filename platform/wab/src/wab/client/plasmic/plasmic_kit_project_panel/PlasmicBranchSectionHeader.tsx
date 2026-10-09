@@ -11,6 +11,7 @@
 // Plasmic Project: m8VxGcigeLAEXFe8c12w5Q
 // Component: -MhOsyk6L9so
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -113,7 +114,7 @@ function PlasmicBranchSectionHeader__RenderFunc(props: {
               sty.span__a1DGj,
             )}
           >
-            {"Section"}
+            {<UiText message={"Section"} />}
           </span>
         ),
         value: args.children,

@@ -1,3 +1,6 @@
+import { UiLabel } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PermissionsTab from "@/wab/client/components/app-auth/PermissionsTab";
 import { useAppAuthConfig } from "@/wab/client/components/app-auth/app-auth-contexts";
 import {
@@ -53,12 +56,12 @@ import React, { useEffect, useState } from "react";
 
 export const personalProjectPaywallMessage = (
   <>
-    This project is a personal project that is not in any {ORGANIZATION_LOWER}{" "}
+    This project is a personal project that is not in any {<UiLabel text={ORGANIZATION_LOWER} />}{" "}
     workspace, so it is limited to {DEVFLAGS.freeTier.maxUsers} editors and no
     A/B testing or custom targeting. Please move the project into a{" "}
-    {ORGANIZATION_LOWER} whose plan supports a larger number of seats, or{" "}
+    {<UiLabel text={ORGANIZATION_LOWER} />} whose plan supports a larger number of seats, or{" "}
     <a href="https://www.plasmic.app/pricing" target="_blank">
-      create such a {ORGANIZATION_LOWER}
+      create such a {<UiLabel text={ORGANIZATION_LOWER} />}
     </a>
     .
   </>
@@ -85,6 +88,7 @@ interface ShareDialogContentProps {
 }
 
 function ShareDialogContent(props: ShareDialogContentProps) {
+  const { t: uiT } = useI18n();
   const {
     className,
     resource,
@@ -255,7 +259,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                   "Must be logged in to transfer ownership",
                 );
                 const confirmed = await reactConfirm({
-                  title: "Transfer ownership",
+                  title: uiT("Transfer ownership"),
                   message: (
                     <>
                       You will lose owner status and become an editor. Transfer
@@ -371,9 +375,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         },
         isDisabled: !canEdit,
         children: [
-          <Select.Option key="none" value="none">
-            None
-          </Select.Option>,
+          <Select.Option key="none" value="none"><UiText message={"None"} /></Select.Option>,
           <Select.Option key="viewer" value="viewer">
             {viewerTooltip}
           </Select.Option>,
@@ -505,9 +507,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                   ).toString(),
                 );
               }}
-            >
-              Copy project link
-            </Menu.Item>
+            ><UiText message={"Copy project link"} /></Menu.Item>
             <Menu.Item
               onClick={() => {
                 analytics().track("project-copy-menu", {
@@ -515,9 +515,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                 });
                 copy(window.location.href);
               }}
-            >
-              Copy link to current arena
-            </Menu.Item>
+            ><UiText message={"Copy link to current arena"} /></Menu.Item>
             {arenaId && arenaType !== "custom" && (
               <Menu.Item
                 onClick={() => {
@@ -534,9 +532,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                     ).toString(),
                   );
                 }}
-              >
-                Copy current arena preview link
-              </Menu.Item>
+              ><UiText message={"Copy current arena preview link"} /></Menu.Item>
             )}
           </Menu>
         ),

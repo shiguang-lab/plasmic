@@ -11,6 +11,7 @@
 // Plasmic Project: eyjDfHaWPk4awNJAqhg4Cb
 // Component: JH5l4wUr73
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -177,7 +178,7 @@ function PlasmicMultiplayerLightDarkColorProvider__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__nLmle)}
                   >
-                    {"Foreground Color"}
+                    {<UiText message={"Foreground Color"} />}
                   </div>
                 </div>
               ),

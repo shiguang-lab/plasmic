@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: APlN8dajrS9
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -150,7 +151,7 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
       <div className={classNames("all", sty.freeBox__suSks)}>
         <div className={classNames("all", sty.freeBox___0FIp)}>
           <div className={classNames("all", "__wab_text", sty.text__zqAfa)}>
-            {"External IDs"}
+            {<UiText message={"External IDs"} />}
           </div>
           <PlasmicLink__
             data-plasmic-name={"link"}
@@ -168,7 +169,7 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
                   }
                   style={{ textDecorationLine: "underline" }}
                 >
-                  {"Docs"}
+                  {<UiText message={"Docs"} />}
                 </span>
               </React.Fragment>
             </div>
@@ -273,7 +274,7 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
           >
             {hasVariant($state, "isExpanded", "isExpanded") &&
             hasVariant($state, "isSegmentation", "isSegmentation")
-              ? "Original"
+              ? <UiText message={"Original"} />
               : "A"}
           </div>
         </div>

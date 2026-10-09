@@ -2,6 +2,7 @@ import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useDocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultDocsPortalHeaderProps,
   PlasmicDocsPortalHeader,
@@ -24,6 +25,7 @@ const CodegenTypes = [
 ];
 
 function DocsPortalHeader(props: DocsPortalHeaderProps) {
+  const { t: uiT } = useI18n();
   const history = useHistory();
   const docsCtx = useDocsPortalCtx();
   return (
@@ -57,7 +59,7 @@ function DocsPortalHeader(props: DocsPortalHeaderProps) {
                     {...ps}
                     onClick={async () => {
                       await showTemporaryInfo({
-                        title: "Project token",
+                        title: uiT("Project token"),
                         content: (
                           <code>
                             {docsCtx.studioCtx.siteInfo.projectApiToken}

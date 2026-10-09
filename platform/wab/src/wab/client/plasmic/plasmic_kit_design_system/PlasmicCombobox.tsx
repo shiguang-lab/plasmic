@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: zIW2sbKF4DAY
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -341,7 +342,7 @@ function PlasmicCombobox__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__yToMh)}
                   >
-                    {"Section"}
+                    {<UiText message={"Section"} />}
                   </div>
                 }
                 items={

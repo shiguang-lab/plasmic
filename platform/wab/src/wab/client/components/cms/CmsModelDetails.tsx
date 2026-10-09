@@ -19,6 +19,7 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import Trash2Icon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
@@ -355,7 +356,7 @@ function renderModelFieldForm(
               handles.remove(fieldPath[0]);
             }}
           >
-            Delete
+            <UiText message={"Delete"} />
           </Button>
           <Dropdown
             // trigger={"click"}
@@ -366,19 +367,21 @@ function renderModelFieldForm(
                     moveBy(-1);
                   }}
                 >
-                  Move up
+                  <UiText message={"Move up"} />
                 </Menu.Item>
                 <Menu.Item
                   onClick={() => {
                     moveBy(1);
                   }}
                 >
-                  Move down
+                  <UiText message={"Move down"} />
                 </Menu.Item>
               </Menu>
             }
           >
-            <Button>More</Button>
+            <Button>
+              <UiText message={"More"} />
+            </Button>
           </Dropdown>
         </div>
       </Form.Item>
@@ -557,7 +560,11 @@ export function CmsModelDetails_(
           children={
             <div className={"vlist-gap-xlg fill-width"}>
               <Form.Item
-                label={<strong>Description</strong>}
+                label={
+                  <strong>
+                    <UiText message={"Description"} />
+                  </strong>
+                }
                 name={"description"}
                 help={
                   'Explain what this model is for and give helpful context. For example, "Testimonials are shown on the homepage and checkout page."'
@@ -849,10 +856,10 @@ function ModelSettingsModal(props: {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Save
+              <UiText message={"Save"} />
             </Button>
             <Button className="ml-ch" onClick={() => onClose()}>
-              Cancel
+              <UiText message={"Cancel"} />
             </Button>
           </Form.Item>
         </Form>

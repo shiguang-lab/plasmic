@@ -1,5 +1,6 @@
 import styles from "@/wab/client/components/studio/Shortcuts.module.scss";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
 import {
   FREE_CONTAINER_ICON,
   HORIZ_STACK_ICON,
@@ -31,6 +32,7 @@ import {
 
 export const ShortcutsModal = observer(
   ({ children }: { children: React.ReactNode }) => {
+    const { t: uiT } = useI18n();
     const studioCtx = useStudioCtx();
     const open = studioCtx.isShortcutsModalOpen();
     const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +41,7 @@ export const ShortcutsModal = observer(
       <>
         {children}
         <Modal
-          title="Keyboard Shortcuts"
+          title={uiT("Keyboard Shortcuts")}
           centered
           bodyStyle={{ padding: 0 }}
           footer={null}
@@ -48,7 +50,7 @@ export const ShortcutsModal = observer(
         >
           <div className={styles.scrollableShortcuts}>
             <Input
-              placeholder="Search shortcuts here..."
+              placeholder={uiT("Search shortcuts here...")}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
             />
@@ -80,13 +82,14 @@ function ShortcutSection(props: {
   section: ShortcutSection;
   searchQuery?: string;
 }) {
+  const { label } = useI18n();
   const { searchQuery } = props;
 
   const filteredChunks: ShortcutChunk[] = searchQuery
     ? props.section.chunks.map((chunk) => ({
         ...chunk,
         shortcuts: chunk.shortcuts.filter((shortcut) =>
-          shortcut.description
+          label(shortcut.description)
             .toLowerCase()
             .includes(searchQuery.toLowerCase()),
         ),
@@ -103,12 +106,12 @@ function ShortcutSection(props: {
 
   return (
     <div className="mb-xlg">
-      <h2>{props.section.title}</h2>
+      <h2>{label(props.section.title)}</h2>
       {filteredChunks.map((chunk, i) => (
         <>
           {chunk.shortcuts.length ? (
             <div className="pv-sm" key={i}>
-              {chunk.title && <h3 className="dimfg">{chunk.title}</h3>}
+              {chunk.title && <h3 className="dimfg">{label(chunk.title)}</h3>}
               {chunk.shortcuts.map((s, _i) => (
                 <ShortcutRow shortcut={s} key={_i} />
               ))}
@@ -121,6 +124,7 @@ function ShortcutSection(props: {
 }
 
 function ShortcutRow(props: { shortcut: Shortcut }) {
+  const { label } = useI18n();
   const { shortcut } = props;
   const icon = shortcutIcon(shortcut);
   return (
@@ -128,12 +132,12 @@ function ShortcutRow(props: { shortcut: Shortcut }) {
       <div className="flex justify-between">
         <div className="flex-fill mr-sm flex flex-vcenter">
           {icon && <span className="mr-sm no-line-height">{icon}</span>}
-          {shortcut.description}
+          {label(shortcut.description)}
         </div>
         <div className="flex flex-no-shrink flex-vcenter gap-xsm">
           <ShortcutCombo combo={shortcut.combos} />
           {shortcut.context && (
-            <div className="dimfg ml-sm">{shortcut.context}</div>
+            <div className="dimfg ml-sm">{label(shortcut.context)}</div>
           )}
         </div>
       </div>

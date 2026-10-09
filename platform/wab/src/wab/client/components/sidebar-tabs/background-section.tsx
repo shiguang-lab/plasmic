@@ -29,6 +29,8 @@ import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPic
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import ContainIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Contain";
 import CoverIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Cover";
@@ -97,6 +99,7 @@ interface BackgroundProps {
 export const BackgroundSection = observer(function BackgroundSection(
   props: BackgroundProps,
 ) {
+  const { t: uiT } = useI18n();
   const { expsProvider, animatableOnly } = props;
   const { studioCtx } = expsProvider;
   const exp = expsProvider.mergedExp();
@@ -172,12 +175,12 @@ export const BackgroundSection = observer(function BackgroundSection(
     <StylePanelSection
       key={String(isSet)}
       expsProvider={expsProvider}
-      title={"Backgrounds"}
+      title={uiT("Backgrounds")}
       styleProps={["background"]}
       controls={
         <>
           <IconButton
-            tooltip="Add background color"
+            tooltip={uiT("Add background color")}
             onClick={() => addBackgroundLayer("fill")}
             disabled={isDisabled}
           >
@@ -186,21 +189,21 @@ export const BackgroundSection = observer(function BackgroundSection(
           {!animatableOnly && (
             <>
               <IconButton
-                tooltip="Add background image"
+                tooltip={uiT("Add background image")}
                 onClick={() => addBackgroundLayer("image")}
                 disabled={isDisabled}
               >
                 <Icon icon={ImageBlockIcon} />
               </IconButton>
               <IconButton
-                tooltip="Add linear gradient background"
+                tooltip={uiT("Add linear gradient background")}
                 onClick={() => addBackgroundLayer("linear")}
                 disabled={isDisabled}
               >
                 <Icon icon={LinearIcon} />
               </IconButton>
               <IconButton
-                tooltip="Add radial gradient background"
+                tooltip={uiT("Add radial gradient background")}
                 onClick={() => addBackgroundLayer("radial")}
                 disabled={isDisabled}
               >
@@ -338,6 +341,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
   vsh,
   animatableOnly,
 }: BackgroundLayerPanelProps) {
+  const { t: uiT } = useI18n();
   const { studioCtx } = expsProvider;
   const [cachedValuesByBgType] = React.useState({});
 
@@ -374,7 +378,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
     );
 
     return (
-      <SidebarSection title={"Image"}>
+      <SidebarSection title={uiT("Image")}>
         <ImageAssetPreviewAndPicker
           className="flex-fill flex-col"
           value={tryParseImageAssetRef(img.url, imageAssets) || img.url}
@@ -393,7 +397,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
 
   const colorFillPanel = (col: ColorFill) => {
     return (
-      <SidebarSection title={"Fill color"}>
+      <SidebarSection title={uiT("Fill color")}>
         <ColorPicker
           autoFocus
           color={col.color}
@@ -413,8 +417,8 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
   // TODO does repeating actually have any effect if the color stops are always in %?
   const linearGradientPanel = (lin: LinearGradient) => {
     return (
-      <SidebarSection title={"Linear"} key="Linear">
-        <LabeledItemRow label={"Angle"}>
+      <SidebarSection title={uiT("Linear")} key="Linear">
+        <LabeledItemRow label={uiT("Angle")}>
           <DimTokenSpinner
             value={`${lin.angle}deg`}
             onChange={(val) => {
@@ -478,7 +482,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       );
     };
     return (
-      <SidebarSection title={"Radial"} key="Radial">
+      <SidebarSection title={uiT("Radial")} key="Radial">
         <FullRow>
           <div className={"vcenter flex-even"}>
             <UnloggedDragCatcher sc={studioCtx}>
@@ -502,28 +506,28 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
           </div>
 
           <div className={"vcenter flex-even"}>
-            <LabeledItemRow label="Left" labelSize="small">
+            <LabeledItemRow label={uiT("Left")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.cx.showCss(),
                 onChange: (val) =>
                   updateImg(rad, () => rad.cx.setValue(val || "center")),
               })}
             </LabeledItemRow>
-            <LabeledItemRow label="Top" labelSize="small">
+            <LabeledItemRow label={uiT("Top")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.cy.showCss(),
                 onChange: (val) =>
                   updateImg(rad, () => rad.cy.setValue(val || "center")),
               })}
             </LabeledItemRow>
-            <LabeledItemRow label="Width" labelSize="small">
+            <LabeledItemRow label={uiT("Width")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.rx.showCss(),
                 onChange: (val) =>
                   updateImg(rad, () => rad.rx.setValue(val || "")),
               })}
             </LabeledItemRow>
-            <LabeledItemRow label="Height" labelSize="small">
+            <LabeledItemRow label={uiT("Height")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.ry.showCss(),
                 onChange: (val) =>
@@ -577,7 +581,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       <TabbedStylePanelSection
         key={String(isCustomSize)}
         expsProvider={expsProvider}
-        title={"Size"}
+        title={uiT("Size")}
         styleProps={[]}
         emptyBody={!isCustomSize}
         onSwitch={(val) =>
@@ -612,14 +616,14 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
         tabs={[
           {
             key: "custom",
-            label: "Custom",
+            label: uiT("Custom"),
             icon: null,
           },
           {
             key: "cover",
-            label: "Cover",
+            label: uiT("Cover"),
             icon: (
-              <Tooltip title="Cover">
+              <Tooltip title={uiT("Cover")}>
                 <Icon icon={CoverIcon} />
               </Tooltip>
             ),
@@ -627,7 +631,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
           },
           {
             key: "contain",
-            label: "Contain",
+            label: uiT("Contain"),
             icon: <Icon icon={ContainIcon} />,
             iconOnly: true,
           },
@@ -636,7 +640,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
         {isCustomSize && (
           <div className="panel-block">
             <FullRow twinCols>
-              <LabeledItem label="Width" labelSize="small">
+              <LabeledItem label={uiT("Width")} labelSize="small">
                 <DimTokenSpinner
                   value={maybe(bgSize(), (x: string[]) => x[0]) || ""}
                   onChange={(val) =>
@@ -654,7 +658,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
                   allowFunctions
                 />
               </LabeledItem>
-              <LabeledItem label="Height" labelSize="small">
+              <LabeledItem label={uiT("Height")} labelSize="small">
                 <DimTokenSpinner
                   value={maybe(bgSize(), (x: string[]) => x[1]) || ""}
                   onChange={(val) =>
@@ -684,7 +688,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       layer.position ?? css.getCssInitial("background-position", "div"),
     );
     return (
-      <SidebarSection title={"Position"}>
+      <SidebarSection title={uiT("Position")}>
         <div className={"panel-block"}>
           <FullRow>
             <PosControls2
@@ -719,7 +723,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
     const bgRep = layer.repeat;
     return (
       <SidebarSection
-        title="Repeat"
+        title={uiT("Repeat")}
         controls={
           <StyleToggleButtonGroup
             value={bgRep}
@@ -750,7 +754,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
   const miscSection = () => {
     return (
       <SidebarSection>
-        <LabeledItemRow label={"Clipping"}>
+        <LabeledItemRow label={uiT("Clipping")}>
           <StyleSelect
             value={
               (layer.clip === bgClipTextTag ? "text" : layer.clip) ||
@@ -760,19 +764,21 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
             valueSetState={layer.clip ? "isSet" : "isUnset"}
           >
             <StyleSelect.Option value="border-box">
-              Within border (default)
+              <UiText message={"Within border (default)"} />
             </StyleSelect.Option>
             <StyleSelect.Option value="padding-box">
-              Within padding
+              <UiText message={"Within padding"} />
             </StyleSelect.Option>
             <StyleSelect.Option value="content-box">
-              Within content
+              <UiText message={"Within content"} />
             </StyleSelect.Option>
-            <StyleSelect.Option value="text">Clip to text</StyleSelect.Option>
+            <StyleSelect.Option value="text">
+              <UiText message={"Clip to text"} />
+            </StyleSelect.Option>
           </StyleSelect>
         </LabeledItemRow>
 
-        <LabeledItemRow label={"Scrolling"}>
+        <LabeledItemRow label={uiT("Scrolling")}>
           <StyleSelect
             value={
               layer.attachment ||
@@ -784,16 +790,18 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
             valueSetState={layer.attachment ? "isSet" : "isUnset"}
           >
             <StyleSelect.Option value="scroll">
-              Scroll with page (default)
+              <UiText message={"Scroll with page (default)"} />
             </StyleSelect.Option>
-            <StyleSelect.Option value="fixed">Fixed to page</StyleSelect.Option>
+            <StyleSelect.Option value="fixed">
+              <UiText message={"Fixed to page"} />
+            </StyleSelect.Option>
             <StyleSelect.Option value="local">
-              Scroll with content
+              <UiText message={"Scroll with content"} />
             </StyleSelect.Option>
           </StyleSelect>
         </LabeledItemRow>
 
-        <LabeledItemRow label={"Origin"}>
+        <LabeledItemRow label={uiT("Origin")}>
           <StyleSelect
             value={
               layer.origin || css.getCssInitial("background-origin", "div")
@@ -802,13 +810,13 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
             valueSetState={layer.origin ? "isSet" : "isUnset"}
           >
             <StyleSelect.Option value="padding-box">
-              Within padding (default)
+              <UiText message={"Within padding (default)"} />
             </StyleSelect.Option>
             <StyleSelect.Option value="border-box">
-              Within border
+              <UiText message={"Within border"} />
             </StyleSelect.Option>
             <StyleSelect.Option value="content-box">
-              Within content
+              <UiText message={"Within content"} />
             </StyleSelect.Option>
           </StyleSelect>
         </LabeledItemRow>

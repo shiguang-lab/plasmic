@@ -11,6 +11,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { Spinner } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ensure } from "@/wab/shared/common";
@@ -52,6 +53,7 @@ interface DataSourceTablePickerProps {
 }
 
 export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
+  const { t: uiT } = useI18n();
   const {
     studioCtx,
     env,
@@ -101,8 +103,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
   const table = React.useMemo(
     () =>
       sourceSchemaData?.tables.find((t) => t.id === tableId) as
-        | TableSchema
-        | undefined,
+        TableSchema | undefined,
     [sourceSchemaData, tableId],
   );
   const tableFields = React.useMemo(() => {
@@ -242,7 +243,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
         }
       })()}
       {tableId && tableFields && !onlySchema && (
-        <LabeledItemRow label={"Lookup field"}>
+        <LabeledItemRow label={uiT("Lookup field")}>
           <EnumPropEditor
             name={"dataTablePickerLookupField"}
             valueSetState={lookupField ? "isSet" : undefined}
@@ -254,7 +255,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
       )}
       {lookupFieldMeta && lookupField && requireLookupValue && (
         <LabeledItemRow
-          label={"Lookup value"}
+          label={uiT("Lookup value")}
           layout={
             lookupField === MULTIPLE_PRIMARY_KEY_VALUE
               ? "vertical"

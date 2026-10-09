@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: cdd2zPdEWaRL
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -65,6 +66,7 @@ function PlasmicMessagePartPopoverContent__RenderFunc(props: {
   overrides: PlasmicMessagePartPopoverContent__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -132,7 +134,7 @@ function PlasmicMessagePartPopoverContent__RenderFunc(props: {
             "__wab_instance",
             sty.messagePartPopoverContentBlock__snGdG
           )}
-          title={"Output"}
+          title={uiT("Output")}
         />
       </div>
     </div>

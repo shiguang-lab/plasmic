@@ -23,6 +23,8 @@ import {
 import { Matcher } from "@/wab/client/components/view-common";
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicLeftGeneralTokensPanel } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftGeneralTokensPanel";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useModelUiActionHandler } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
@@ -127,6 +129,7 @@ function mapToTokenPanelRow({
 }
 
 const LeftGeneralTokensPanel = observer(function LeftGeneralTokensPanel() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const treeRef = React.useRef<VirtualTreeHandle>(null);
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
@@ -604,10 +607,12 @@ const LeftGeneralTokensPanel = observer(function LeftGeneralTokensPanel() {
           "data-test-id": "global-variant-select",
           children: (
             <>
-              <Select.Option value="base">Base</Select.Option>
+              <Select.Option value="base">
+                <UiText message={"Base"} />
+              </Select.Option>
               {studioCtx.site.activeScreenVariantGroup?.variants &&
                 studioCtx.site.activeScreenVariantGroup.variants.length > 0 && (
-                  <Select.OptionGroup title="Screen Variants">
+                  <Select.OptionGroup title={uiT("Screen Variants")}>
                     {studioCtx.site.activeScreenVariantGroup.variants.map(
                       (variant) => (
                         <Select.Option value={variant.uuid} key={variant.uuid}>
@@ -618,7 +623,7 @@ const LeftGeneralTokensPanel = observer(function LeftGeneralTokensPanel() {
                   </Select.OptionGroup>
                 )}
               {contextGlobalVariants.length > 0 && (
-                <Select.OptionGroup title="Global Variants">
+                <Select.OptionGroup title={uiT("Global Variants")}>
                   {contextGlobalVariants.map((variant) => (
                     <Select.Option value={variant.uuid} key={variant.uuid}>
                       {variant.name}

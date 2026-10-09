@@ -3,6 +3,7 @@ import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboa
 import { confirmDeleteDataSource } from "@/wab/client/components/data-source-ui";
 import { Matcher } from "@/wab/client/components/view-common";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultDataSourceProps,
   PlasmicDataSource,
@@ -34,7 +35,7 @@ function DataSource_(
           await confirmDeleteDataSource(appCtx, source, onUpdate);
         }}
       >
-        Delete
+        <UiText message={"Delete"} />
       </Menu.Item>
       <Menu.Item
         key="move"
@@ -58,7 +59,7 @@ function DataSource_(
           await onUpdate();
         }}
       >
-        Move to workspace
+        <UiText message={"Move to workspace"} />
       </Menu.Item>
     </Menu>
   );

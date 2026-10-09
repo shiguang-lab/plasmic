@@ -43,6 +43,7 @@ import {
   wrapInBox,
   wrapTplNodes,
 } from "@/wab/client/figma-importer/utils";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
 import { FrameViewMode, isMixedArena } from "@/wab/shared/Arenas";
@@ -125,7 +126,7 @@ export async function pasteFromFigma(
           href="https://docs.plasmic.app/learn/importing-from-figma/#converting-component-instances"
           target="_blank"
         >
-          Learn more.
+          <UiText message={"Learn more."} />
         </a>
       </>
     ),

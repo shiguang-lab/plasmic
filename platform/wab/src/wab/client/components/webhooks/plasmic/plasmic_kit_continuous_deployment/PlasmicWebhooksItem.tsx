@@ -11,6 +11,8 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: mSgnlB96I5A
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -90,6 +92,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
   overrides: PlasmicWebhooksItem__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -247,7 +250,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
             data-plasmic-name={"url"}
             data-plasmic-override={overrides.url}
             className={classNames("all", "input", "input__fpbcK", sty.url)}
-            placeholder={"URL…"}
+            placeholder={uiT("URL…")}
             ref={(ref) => {
               $refs["url"] = ref;
             }}
@@ -311,7 +314,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                 ),
               })}
             >
-              {"Payload"}
+              {<UiText message={"Payload"} />}
             </div>
             <textarea
               data-plasmic-name={"payload"}
@@ -329,7 +332,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                   ),
                 }
               )}
-              placeholder={"Enter payload…"}
+              placeholder={uiT("Enter payload…")}
               ref={(ref) => {
                 $refs["payload"] = ref;
               }}
@@ -358,7 +361,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Send Data?"}
+                {<UiText message={"Send Data?"} />}
               </div>
               <InfoIcon
                 data-plasmic-name={"sendDataInfo"}

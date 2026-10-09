@@ -5,6 +5,7 @@ import {
 import { TextContentRow } from "@/wab/client/components/sidebar-tabs/TypographySection";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { TplTag } from "@/wab/shared/model/classes";
 import { observer } from "mobx-react";
@@ -23,8 +24,9 @@ export const LinkSection = observer(function LinkSection({
   tpl: TplTag;
   expsProvider: TplExpsProvider;
 }) {
+  const { t: uiT } = useI18n();
   return (
-    <SidebarSection title="Link" data-test-id="link-section">
+    <SidebarSection title={uiT("Link")} data-test-id="link-section">
       <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
       {LINK_ATTRS.map((attr) => (
         <HTMLAttributePropEditor

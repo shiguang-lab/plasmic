@@ -9,6 +9,7 @@ import {
   useToggleDisplayed,
 } from "@/wab/client/dom-utils";
 import { useFileDragState } from "@/wab/client/file-drag/useFileDragState";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
@@ -139,7 +140,7 @@ export class Spinner extends React.Component<{}, {}> {
   render() {
     return (
       <div className={"loader-container"}>
-        <div className={"loader"}>{"Loading..."}</div>
+        <div className={"loader"}>{<UiText message={"Loading..."} />}</div>
       </div>
     );
   }

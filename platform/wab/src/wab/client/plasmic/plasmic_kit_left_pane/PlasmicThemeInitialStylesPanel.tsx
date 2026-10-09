@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: T_OF2Q8rJc1U
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -135,7 +136,7 @@ function PlasmicThemeInitialStylesPanel__RenderFunc(props: {
       </div>
       <div className={classNames("all", sty.freeBox__kPz9)}>
         <div className={classNames("all", "__wab_text", sty.text__t3OaN)}>
-          {"Element Type"}
+          {<UiText message={"Element Type"} />}
         </div>
         <Select
           data-plasmic-name={"elementSelect"}

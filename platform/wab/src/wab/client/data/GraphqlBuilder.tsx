@@ -1,4 +1,5 @@
 import Button from "@/wab/client/components/widgets/Button";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { explorerPlugin } from "@graphiql/plugin-explorer";
 import { Fetcher } from "@graphiql/toolkit";
 import GraphiQL from "graphiql";
@@ -96,7 +97,7 @@ export default function GraphiqlWithExplorer({
             onCancel?.();
           }}
         >
-          Cancel
+          <UiText message={"Cancel"} />
         </Button>
         <Button
           className={"ml-lg"}
@@ -105,7 +106,7 @@ export default function GraphiqlWithExplorer({
           }}
           type={"primary"}
         >
-          Save
+          <UiText message={"Save"} />
         </Button>
       </div>
     </div>

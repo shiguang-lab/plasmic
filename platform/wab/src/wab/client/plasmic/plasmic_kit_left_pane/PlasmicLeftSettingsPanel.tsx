@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: EeT-6P6YTW
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -63,6 +64,7 @@ function PlasmicLeftSettingsPanel__RenderFunc(props: {
   overrides: PlasmicLeftSettingsPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -124,7 +126,7 @@ function PlasmicLeftSettingsPanel__RenderFunc(props: {
             }
           </div>
         }
-        title={"Project Settings"}
+        title={uiT("Project Settings")}
       />
 
       <div

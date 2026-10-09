@@ -8,6 +8,7 @@ import {
 } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { arrayMoveIndex } from "@/wab/shared/collections";
 import * as tokens from "@/wab/styles/_tokens";
@@ -141,7 +142,7 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
                         await mutateHostAppAuthData();
                       }}
                     >
-                      Delete
+                      <UiText message={"Delete"} />
                     </Menu.Item>
                   )}
                 </Menu>

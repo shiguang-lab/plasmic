@@ -8,6 +8,7 @@ import {
 import VersionsListItem from "@/wab/client/components/sidebar/VersionsListItem";
 import { Matcher } from "@/wab/client/components/view-common";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { promptTagsAndDesc } from "@/wab/client/prompts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ApiUser, BranchId } from "@/wab/shared/ApiSchema";
@@ -80,7 +81,7 @@ export const VersionsList = observer(function VersionsList(
             );
           }}
         >
-          Edit tags and description
+          <UiText message={"Edit tags and description"} />
         </Menu.Item>
         <Menu.Item
           key="revert"
@@ -97,7 +98,7 @@ export const VersionsList = observer(function VersionsList(
             }
           }}
         >
-          Revert to this version
+          <UiText message={"Revert to this version"} />
         </Menu.Item>
       </Menu>
     );

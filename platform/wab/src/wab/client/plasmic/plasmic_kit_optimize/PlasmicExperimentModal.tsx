@@ -11,6 +11,8 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: nlaW16gbH_n
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -104,6 +106,7 @@ function PlasmicExperimentModal__RenderFunc(props: {
   overrides: PlasmicExperimentModal__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -235,14 +238,14 @@ function PlasmicExperimentModal__RenderFunc(props: {
         <div className={classNames("all", sty.freeBox___0TdUa)}>
           <div className={classNames("all", sty.freeBox__twqIm)}>
             <div className={classNames("all", "__wab_text", sty.text__gYkPa)}>
-              {"Description"}
+              {<UiText message={"Description"} />}
             </div>
           </div>
           <Textbox
             data-plasmic-name={"descriptionInput"}
             data-plasmic-override={overrides.descriptionInput}
             className={classNames("__wab_instance", sty.descriptionInput)}
-            placeholder={"Enter description..."}
+            placeholder={uiT("Enter description...")}
             prefixIcon={
               <SearchSvgIcon
                 className={classNames("all", sty.svg__qnp6T)}
@@ -348,7 +351,7 @@ function PlasmicExperimentModal__RenderFunc(props: {
         })}
       >
         <div className={classNames("all", "__wab_text", sty.text__yIfwr)}>
-          {"Change status"}
+          {<UiText message={"Change status"} />}
         </div>
         <Select
           data-plasmic-name={"statusSelect"}

@@ -9,6 +9,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
@@ -34,6 +35,7 @@ export const outlineStyleProps = [
 ];
 
 export const OutlinePanelSection = observer(function OutlinePanelSection() {
+  const { t: uiT } = useI18n();
   const sc = useStyleComponent();
 
   const studioCtx = sc.studioCtx();
@@ -72,7 +74,7 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
   return (
     <StylePanelSection
       key={String(isVisible)}
-      title="Outline"
+      title={uiT("Outline")}
       expsProvider={sc.props.expsProvider}
       styleProps={outlineStyleProps}
       onHeaderClick={!isVisible ? onClick : undefined}
@@ -100,7 +102,7 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
             />
           )}
           <LabeledStyleDimItemRow
-            label="Width"
+            label={uiT("Width")}
             styleName={[OutlineProps.width]}
             tokenType={"Spacing"}
             dimOpts={{
@@ -115,16 +117,16 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
             }}
           />
           <LabeledLineStyleToggleButtonGroupItemRow
-            label="Style"
+            label={uiT("Style")}
             styleName={[OutlineProps.style]}
           />
           <LabeledStyleColorItemRow
-            label="Color"
+            label={uiT("Color")}
             styleName={[OutlineProps.color]}
             displayStyleName={OutlineProps.color}
           />
           <LabeledStyleDimItemRow
-            label="Offset"
+            label={uiT("Offset")}
             styleName={[OutlineProps.offset]}
             tokenType={"Spacing"}
             dimOpts={{

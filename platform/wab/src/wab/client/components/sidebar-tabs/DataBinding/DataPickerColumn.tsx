@@ -13,6 +13,7 @@ import {
   isTypeSupported,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerUtil";
 import { useViewCtxMaybe } from "@/wab/client/contexts/StudioContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultDataPickerColumnProps,
   PlasmicDataPickerColumn,
@@ -55,7 +56,9 @@ function ColumnErrorNotice(props: { columnIndex: number; message: string }) {
       className={sty.columnError}
       data-test-id={`data-picker-column-${columnIndex}-error`}
     >
-      <div className={sty.columnErrorTitle}>Error</div>
+      <div className={sty.columnErrorTitle}>
+        <UiText message={"Error"} />
+      </div>
       <div className={sty.columnErrorMessage}>{message}</div>
     </div>
   );

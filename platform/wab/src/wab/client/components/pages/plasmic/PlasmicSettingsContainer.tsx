@@ -11,6 +11,7 @@
 // Plasmic Project: aaggSgVS8yYsAwQffVQB4p
 // Component: XkSd43CUYOB
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -217,7 +218,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
           ),
         })}
       >
-        {"Profile settings"}
+        {<UiText message={"Profile settings"} />}
       </div>
       <div
         className={classNames("all", sty.freeBox__vlwnM, {
@@ -356,7 +357,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
               )}
               size={"wide"}
             >
-              {"Change password"}
+              {<UiText message={"Change password"} />}
             </Button>
           </div>
         </div>
@@ -413,7 +414,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
               ),
             })}
           >
-            {"Personal Access Tokens"}
+            {<UiText message={"Personal Access Tokens"} />}
           </div>
           <Button
             data-plasmic-name={"newTokenButton"}
@@ -439,7 +440,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
             }
             withIcons={["startIcon"]}
           >
-            {"New Token"}
+            {<UiText message={"New Token"} />}
           </Button>
         </div>
         {(
@@ -579,7 +580,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
               ),
             })}
           >
-            {hasVariant($state, "tokenState", "loading") ? "Loading\u2026" : ""}
+            {hasVariant($state, "tokenState", "loading") ? <UiText message={"Loading…"} /> : ""}
           </div>
         ) : null}
         {(hasVariant($state, "tokenState", "error") ? true : false) ? (
@@ -689,12 +690,12 @@ function PlasmicSettingsContainer__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "trustedHostsState", "error")
-                ? "Trusted host apps"
+                ? <UiText message={"Trusted host apps"} />
                 : hasVariant($state, "trustedHostsState", "loading")
-                ? "Trusted host apps"
+                ? <UiText message={"Trusted host apps"} />
                 : hasVariant($state, "trustedHostsState", "enabled")
-                ? "Trusted host apps"
-                : "Personal Access Tokens"}
+                ? <UiText message={"Trusted host apps"} />
+                : <UiText message={"Personal Access Tokens"} />}
             </div>
             <Button
               data-plasmic-name={"newTrustedHostBtn"}
@@ -721,12 +722,12 @@ function PlasmicSettingsContainer__RenderFunc(props: {
               withIcons={["startIcon"]}
             >
               {hasVariant($state, "trustedHostsState", "error")
-                ? "Add URL"
+                ? <UiText message={"Add URL"} />
                 : hasVariant($state, "trustedHostsState", "loading")
-                ? "Add URL"
+                ? <UiText message={"Add URL"} />
                 : hasVariant($state, "trustedHostsState", "enabled")
-                ? "Add URL"
-                : "New Token"}
+                ? <UiText message={"Add URL"} />
+                : <UiText message={"New Token"} />}
             </Button>
           </div>
         ) : null}
@@ -845,8 +846,8 @@ function PlasmicSettingsContainer__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "trustedHostsState", "loading")
-              ? "Loading..."
-              : "Enter some text"}
+              ? <UiText message={"Loading..."} />
+              : <UiText message={"Enter some text"} />}
           </div>
         ) : null}
         {(
@@ -873,8 +874,8 @@ function PlasmicSettingsContainer__RenderFunc(props: {
             {hasVariant($state, "trustedHostsState", "error")
               ? "Error while loading trusted hosts. Please refresh page to try again."
               : hasVariant($state, "trustedHostsState", "loading")
-              ? "Loading..."
-              : "Enter some text"}
+              ? <UiText message={"Loading..."} />
+              : <UiText message={"Enter some text"} />}
           </div>
         ) : null}
       </div>

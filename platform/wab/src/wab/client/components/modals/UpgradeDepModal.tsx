@@ -1,10 +1,12 @@
-import { getCustomFunctionDisplayName } from "@/wab/client/components/modals/customFunctionModals";
 import { SiteDiffs } from "@/wab/client/components/modals/SiteDiffs";
+import { getCustomFunctionDisplayName } from "@/wab/client/components/modals/customFunctionModals";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import CodeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Code";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
@@ -53,8 +55,8 @@ import {
 } from "@/wab/shared/model/classes";
 import {
   ChangeLogEntry,
-  compareSites,
   SemVerReleaseType,
+  compareSites,
 } from "@/wab/shared/site-diffs";
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
 import { Alert, Form, Select } from "antd";
@@ -188,6 +190,7 @@ function PublishContent(props: {
   onSubmit: (response: PublishProjResponse) => void;
   onCancel: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const { studioCtx, onSubmit, onCancel } = props;
   const [nextVersion, setNextVersion] = React.useState<{
     version: string;
@@ -218,7 +221,11 @@ function PublishContent(props: {
   }, [studioCtx, loading]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <p>
+        <UiText message={"Loading..."} />
+      </p>
+    );
   }
 
   if (!nextVersion) {
@@ -256,7 +263,7 @@ function PublishContent(props: {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Description (optional)..."
-          aria-label="Description"
+          aria-label={uiT("Description")}
           autoFocus
           styleType={"bordered"}
         />
@@ -285,9 +292,11 @@ function PublishContent(props: {
           htmlType="submit"
           onClick={() => onSubmit({ confirm: true, tags, title })}
         >
-          Confirm
+          <UiText message={"Confirm"} />
         </Button>
-        <Button onClick={() => onCancel()}>Cancel</Button>
+        <Button onClick={() => onCancel()}>
+          <UiText message={"Cancel"} />
+        </Button>
       </div>
     </Form>
   );
@@ -498,7 +507,8 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
   const functionsList =
     removedReferencedFunctions.size > 0 ? (
       <div>
-        <Icon className="function-fg mr-sm" icon={CodeIcon} /> Functions{" "}
+        <Icon className="function-fg mr-sm" icon={CodeIcon} />{" "}
+        <UiText message={"Functions"} />{" "}
         {[...removedReferencedFunctions]
           .map((fn) => getCustomFunctionDisplayName(fn))
           .join(", ")}
@@ -552,7 +562,7 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                 {removedReferencedComponents.size > 0 && (
                   <div>
                     <Icon className="component-fg mr-sm" icon={ComponentIcon} />{" "}
-                    Components{" "}
+                    <UiText message={"Components"} />{" "}
                     {[...removedReferencedComponents]
                       .map((t) => getComponentDisplayName(t))
                       .join(", ")}
@@ -566,7 +576,7 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                 {removedReferencedComponents.size > 0 && (
                   <div>
                     <Icon className="component-fg mr-sm" icon={ComponentIcon} />{" "}
-                    Components{" "}
+                    <UiText message={"Components"} />{" "}
                     {[...removedReferencedComponents]
                       .map((t) => getComponentDisplayName(t))
                       .join(", ")}
@@ -574,8 +584,8 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                 )}
                 {removedReferencedTokens.size > 0 && (
                   <div>
-                    <Icon className="token-fg mr-sm" icon={TokenIcon} /> Style
-                    tokens{" "}
+                    <Icon className="token-fg mr-sm" icon={TokenIcon} />{" "}
+                    <UiText message={"Style tokens"} />{" "}
                     {[...removedReferencedTokens].map((t) => t.name).join(", ")}
                   </div>
                 )}
@@ -588,7 +598,7 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                 {removedReferencedImageAssets.size > 0 && (
                   <div>
                     <Icon className="mixin-fg mr-sm" icon={ImageBlockIcon} />{" "}
-                    Images and icons{" "}
+                    <UiText message={"Images and icons"} />{" "}
                     {[...removedReferencedImageAssets]
                       .map((t) => t.name)
                       .join(", ")}
@@ -632,9 +642,11 @@ const WarnChangeDepForm = observer(function WarnChangeDepForm_(props: {
           htmlType="submit"
           onClick={() => onSubmit(true)}
         >
-          Confirm
+          <UiText message={"Confirm"} />
         </Button>
-        <Button onClick={() => onCancel()}>Cancel</Button>
+        <Button onClick={() => onCancel()}>
+          <UiText message={"Cancel"} />
+        </Button>
       </Form.Item>
     </Form>
   );

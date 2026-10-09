@@ -4,6 +4,7 @@ import {
   getPaddingRect,
   hasLayoutBox,
 } from "@/wab/client/dom";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { IRuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
 import { ensure, isHTMLElt, maybe, precisionRound } from "@/wab/shared/common";
@@ -73,7 +74,10 @@ export class DimManip {
       maybe(parseCssNumericNew(exp().get(prop)), (v) => v.units) ===
         fromUnit && (
         <Menu.Item key={`convert-${fromUnit}-${toUnit}`} onClick={convert}>
-          <strong>Switch</strong> to {toUnit}
+          <strong>
+            <UiText message={"Switch"} />
+          </strong>{" "}
+          to {toUnit}
         </Menu.Item>
       )
     );

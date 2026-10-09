@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: znioE83CPU
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -253,7 +254,7 @@ function PlasmicListSection__RenderFunc(props: {
                     />
                   }
                 >
-                  {"Item name"}
+                  {<UiText message={"Item name"} />}
                 </ListItem>
                 <ListItem
                   actions={
@@ -270,7 +271,7 @@ function PlasmicListSection__RenderFunc(props: {
                     />
                   }
                 >
-                  {"Item name"}
+                  {<UiText message={"Item name"} />}
                 </ListItem>
                 <ListItem
                   actions={
@@ -287,7 +288,7 @@ function PlasmicListSection__RenderFunc(props: {
                     />
                   }
                 >
-                  {"Item name"}
+                  {<UiText message={"Item name"} />}
                 </ListItem>
               </React.Fragment>
             ),

@@ -3,6 +3,7 @@ import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { PageParamsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ensure } from "@/wab/shared/common";
 import { Component } from "@/wab/shared/model/classes";
@@ -38,7 +39,7 @@ const PageParamsPanel = observer(function PageParamsPanel(props: {
     <SidebarSection
       title={
         <LabelWithDetailedTooltip tooltip={<PageParamsTooltip />}>
-          Preview parameters
+          <UiText message={"Preview parameters"} />
         </LabelWithDetailedTooltip>
       }
       isHeaderActive={true}

@@ -7,6 +7,7 @@ import { Spinner } from "@/wab/client/components/widgets";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiBranch, ApiProject, MainBranchId } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
 import React from "react";
@@ -130,7 +131,7 @@ export function HostConfig({
                   isDisabled={branches.length === 0}
                 >
                   <Select.Option key={MainBranchId} value={MainBranchId}>
-                    Main branch
+                    <UiText message={"Main branch"} />
                   </Select.Option>
                   {branches.map((branch) => (
                     <Select.Option key={branch.name} value={branch.name}>

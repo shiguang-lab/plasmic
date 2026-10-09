@@ -6,18 +6,19 @@ import IconButton from "@/wab/client/components/widgets/IconButton";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import RefreshsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RefreshSvg";
 import { ApiProject, WorkspaceId } from "@/wab/shared/ApiSchema";
-import {
-  DataSourceType,
-  getDataSourceMeta,
-} from "@/wab/shared/data-sources-meta/data-source-registry";
 import {
   A_DATA_SOURCE_LOWER,
   DATA_SOURCE_CAP,
   DATA_SOURCE_LOWER,
   DATA_SOURCE_PLURAL_LOWER,
 } from "@/wab/shared/Labels";
+import {
+  DataSourceType,
+  getDataSourceMeta,
+} from "@/wab/shared/data-sources-meta/data-source-registry";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Form } from "antd";
 import React from "react";
@@ -124,7 +125,7 @@ export function DataSourcePicker({
                         textValue={`Create new ${DATA_SOURCE_LOWER}`}
                         value="create"
                       >
-                        Create a new {DATA_SOURCE_LOWER}...
+                        Create a new {<UiLabel text={DATA_SOURCE_LOWER} />}...
                       </Select.Option>
                       {sources
                         .filter(
@@ -160,10 +161,10 @@ export function DataSourcePicker({
               data-test-id="prompt-submit"
               disabled={!selectedSourceId}
             >
-              Confirm
+              <UiText message={"Confirm"} />
             </Button>
             <Button className="mr-sm" onClick={onCanceled}>
-              Cancel
+              <UiText message={"Cancel"} />
             </Button>
             {thisProjectsWorkspace && (
               <a
@@ -174,7 +175,8 @@ export function DataSourcePicker({
                   }) + "#tab=dataSources"
                 }
               >
-                Manage {DATA_SOURCE_PLURAL_LOWER}
+                <UiText message={"Manage"} />{" "}
+                {<UiLabel text={DATA_SOURCE_PLURAL_LOWER} />}
               </a>
             )}
           </Form.Item>

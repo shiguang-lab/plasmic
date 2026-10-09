@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: IQWpmX8J3t
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -103,7 +104,7 @@ function PlasmicBranchSwitcher__RenderFunc(props: {
       type={["clear"]}
       withIcons={["endIcon", "startIcon"]}
     >
-      {"Branch"}
+      {<UiText message={"Branch"} />}
     </Button>
   ) as React.ReactElement | null;
 }

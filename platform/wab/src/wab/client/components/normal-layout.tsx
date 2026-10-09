@@ -10,6 +10,7 @@ import * as widgets from "@/wab/client/components/widgets";
 import { InlineIcon } from "@/wab/client/components/widgets";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import MarkFullColorIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__MarkFullColor";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { ensure } from "@/wab/shared/common";
@@ -64,14 +65,16 @@ export class NormalLayout extends AppComponent {
     const menu = (
       <Menu>
         <Menu.Item>
-          <PublicLink href={APP_ROUTES.settings.fill({})}>Settings</PublicLink>
+          <PublicLink href={APP_ROUTES.settings.fill({})}>
+            <UiText message={"Settings"} />
+          </PublicLink>
         </Menu.Item>
         <Menu.Item
           onClick={async () => {
             await this.logout();
           }}
         >
-          Sign Out
+          <UiText message={"Sign Out"} />
         </Menu.Item>
       </Menu>
     );

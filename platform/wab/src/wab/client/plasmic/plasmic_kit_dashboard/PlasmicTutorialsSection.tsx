@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 3oNTe9fVQ0xW
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -238,7 +239,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
             sty.span__vQlHs
           )}
         >
-          {"Get Started"}
+          {<UiText message={"Get Started"} />}
         </span>
         <div
           className={classNames("all", sty.freeBox__bhxn, {
@@ -380,7 +381,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                       sty.span__l1V3M
                     )}
                   >
-                    {"Developer Quickstart"}
+                    {<UiText message={"Developer Quickstart"} />}
                   </span>
                 }
                 type={"third"}
@@ -398,7 +399,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                 sty.span__hs004
               )}
             >
-              {"Tutorials"}
+              {<UiText message={"Tutorials"} />}
             </span>
           }
           twoColumnGrid={true}

@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: 9vACp1cwGL
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -159,7 +160,7 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
             ),
           })}
         >
-          {"Property"}
+          {<UiText message={"Property"} />}
         </div>
         <div
           className={classNames("all", "__wab_text", sty.text__gDsMx, {
@@ -170,7 +171,7 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
             ),
           })}
         >
-          {"Description"}
+          {<UiText message={"Description"} />}
         </div>
         <div
           className={classNames("all", "__wab_text", sty.text__k2Mxo, {
@@ -181,7 +182,7 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
             ),
           })}
         >
-          {"Type"}
+          {<UiText message={"Type"} />}
         </div>
         <div
           className={classNames("all", "__wab_text", sty.text__yr0Wp, {
@@ -194,7 +195,7 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
         >
           {hasVariant($state, "showControls", "showControls")
             ? "Controls"
-            : "Enter some text"}
+            : <UiText message={"Enter some text"} />}
         </div>
       </div>
       <div

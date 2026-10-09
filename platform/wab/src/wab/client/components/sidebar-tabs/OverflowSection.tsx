@@ -8,6 +8,8 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import OverflowHiddenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__OverflowHidden";
 import OverflowVisibleIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__OverflowVisible";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -20,6 +22,7 @@ import React from "react";
 export const OverflowSection = observer(OverflowSection_);
 
 function OverflowSection_({ expsProvider }: { expsProvider: ExpsProvider }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const exp = expsProvider.mergedExp();
   const currentOverflow = exp.getRaw("overflow");
@@ -31,7 +34,7 @@ function OverflowSection_({ expsProvider }: { expsProvider: ExpsProvider }) {
     <StylePanelSection
       expsProvider={expsProvider}
       styleProps={["overflow", "overflow-x", "overflow-y"]}
-      title="Overflow"
+      title={uiT("Overflow")}
       oneLiner
       extraMenuItems={
         isSplit
@@ -62,7 +65,7 @@ function OverflowSection_({ expsProvider }: { expsProvider: ExpsProvider }) {
                       )
                     }
                   >
-                    Split overflow for X and Y
+                    <UiText message={"Split overflow for X and Y"} />
                   </Menu.Item>,
                 );
               })
@@ -131,6 +134,7 @@ function OverflowToggles(props: {
   onChange?: (value: string) => void;
   hideIndicator?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { styleName, label, value, onChange, hideIndicator } = props;
   return (
     <LabeledToggleButtonGroup
@@ -146,7 +150,10 @@ function OverflowToggles(props: {
         value="visible"
         tooltip={
           <>
-            <strong>Visible</strong>: do not clip/hide content that overflows
+            <strong>
+              <UiText message={"Visible"} />
+            </strong>
+            : do not clip/hide content that overflows
           </>
         }
       >
@@ -156,7 +163,10 @@ function OverflowToggles(props: {
         value="hidden"
         tooltip={
           <>
-            <strong>Hidden</strong>: clip/hide content that overflows
+            <strong>
+              <UiText message={"Hidden"} />
+            </strong>
+            : clip/hide content that overflows
           </>
         }
       >
@@ -164,7 +174,7 @@ function OverflowToggles(props: {
       </StyleToggleButton>
       <StyleToggleButton
         value="auto"
-        tooltip="Show scrollbars when contents overflow"
+        tooltip={uiT("Show scrollbars when contents overflow")}
         label={"Scroll"}
         showLabel
         children={null}

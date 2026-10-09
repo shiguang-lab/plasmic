@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: eqF_n5a1-6b
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -193,7 +194,7 @@ function PlasmicDomainCard__RenderFunc(props: {
             [sty.labelerror_apex]: hasVariant($state, "error", "apex"),
           })}
         >
-          {"Custom domain"}
+          {<UiText message={"Custom domain"} />}
         </div>
         <div className={classNames("all", sty.freeBox__iNuFl)}>
           <div
@@ -322,7 +323,7 @@ function PlasmicDomainCard__RenderFunc(props: {
                   }
                   style={{ textDecorationLine: "underline" }}
                 >
-                  {"Click here to request access"}
+                  {<UiText message={"Click here to request access"} />}
                 </span>
                 <React.Fragment>{"."}</React.Fragment>
               </React.Fragment>
@@ -362,7 +363,7 @@ function PlasmicDomainCard__RenderFunc(props: {
               ),
             })}
           >
-            {"Correctly configured!"}
+            {<UiText message={"Correctly configured!"} />}
           </div>
         </div>
         <div
@@ -427,7 +428,7 @@ function PlasmicDomainCard__RenderFunc(props: {
           >
             {hasVariant($state, "refreshing", "refreshing")
               ? "Refreshing\u2026"
-              : "Refresh"}
+              : <UiText message={"Refresh"} />}
           </Button>
           <Button
             data-plasmic-name={"removeButton"}
@@ -451,7 +452,7 @@ function PlasmicDomainCard__RenderFunc(props: {
             withIcons={["startIcon"]}
           >
             <div className={classNames("all", "__wab_text", sty.text__oH9Ce)}>
-              {"Remove"}
+              {<UiText message={"Remove"} />}
             </div>
           </Button>
         </div>
@@ -509,7 +510,7 @@ function PlasmicDomainCard__RenderFunc(props: {
             ),
           })}
         >
-          {"Set the following records on your DNS provider to continue:"}
+          {<UiText message={"Set the following records on your DNS provider to continue:"} />}
         </div>
         <div className={classNames("all", sty.freeBox__jmREj)}>
           <button
@@ -618,13 +619,13 @@ function PlasmicDomainCard__RenderFunc(props: {
                 ),
               })}
             >
-              {"Type"}
+              {<UiText message={"Type"} />}
             </div>
             <div className={classNames("all", "__wab_text", sty.text__eXNr)}>
-              {"Name"}
+              {<UiText message={"Name"} />}
             </div>
             <div className={classNames("all", "__wab_text", sty.text__o16H)}>
-              {"Value"}
+              {<UiText message={"Value"} />}
             </div>
           </div>
           <div

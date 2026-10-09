@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: AqMe9uK-Yh
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -154,7 +155,7 @@ function PlasmicFreeTrialModal__RenderFunc(props: {
           }
           type={["primary"]}
         >
-          {"Continue"}
+          {<UiText message={"Continue"} />}
         </Button>
       </div>
     </div>

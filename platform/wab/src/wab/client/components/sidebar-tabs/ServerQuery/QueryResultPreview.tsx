@@ -7,6 +7,7 @@ import {
   InvalidArgsSummary,
 } from "@/wab/client/components/widgets/InvalidArgs";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { observer } from "@/wab/client/utils/mobx-client-util";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { StatefulQueryState } from "@/wab/shared/core/custom-functions";
@@ -81,7 +82,7 @@ function InlineValidationErrorPreview(props: {
   return (
     <Tooltip title={<InvalidArgsSummary invalidArgs={invalidArgs} />}>
       <InvalidArgsBadge className="value-preview">
-        Fix validation errors
+        <UiText message={"Fix validation errors"} />
       </InvalidArgsBadge>
     </Tooltip>
   );

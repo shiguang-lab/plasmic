@@ -11,6 +11,8 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: pnV7KLVDUyoz
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -136,6 +138,7 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
   overrides: PlasmicCopilotPromptInput__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -321,7 +324,7 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
             return;
           }
         }}
-        placeholder={"System prompt"}
+        placeholder={uiT("System prompt")}
         value={generateStateValueProp($state, ["systemPromptInput", "value"])}
       />
 
@@ -564,7 +567,7 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
               }
             )}
           >
-            {"Drop image to attach"}
+            {<UiText message={"Drop image to attach"} />}
           </span>
         </div>
       </div>

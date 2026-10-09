@@ -5,6 +5,7 @@ import VariantsSectionDivider from "@/wab/client/components/canvas/VariantsBar/V
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useRefMap } from "@/wab/client/hooks/useRefMap";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlasmicIcon__Bolt from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Bolt";
 import SplitIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
 import {
@@ -180,9 +181,7 @@ function VariantsDrawer_({
       case "Enter":
       case "Space": {
         const currentHighlightedVariant = flattenedVariants[highlightIndex] as
-          | Variant
-          | string
-          | undefined;
+          Variant | string | undefined;
         if (currentHighlightedVariant) {
           handleVariantClick(currentHighlightedVariant)();
         }
@@ -308,7 +307,8 @@ function VariantsDrawer_({
 
       {!shouldShowBase && !groupedVariants.length && (
         <div className={styles.emptyResultsMessage}>
-          No {VARIANTS_LOWER} matching <strong>{query}</strong>
+          <UiText message={"No"} /> {<UiLabel text={VARIANTS_LOWER} />} matching{" "}
+          <strong>{query}</strong>
         </div>
       )}
     </PlasmicVariantsDrawer>

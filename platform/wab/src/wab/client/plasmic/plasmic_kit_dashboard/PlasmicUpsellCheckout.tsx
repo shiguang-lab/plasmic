@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 5PfErhGRfT
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -347,10 +348,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                     target={"_blank"}
                   >
                     {hasVariant($state, "tempPickOneModal", "tempPickOneModal")
-                      ? "Learn more."
+                      ? <UiText message={"Learn more."} />
                       : hasVariant($state, "onFreeTrial", "onFreeTrial")
-                      ? "Learn more."
-                      : "Learn more."}
+                      ? <UiText message={"Learn more."} />
+                      : <UiText message={"Learn more."} />}
                   </PlasmicLink__>
                 }
                 <React.Fragment>{""}</React.Fragment>
@@ -389,10 +390,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                     target={"_blank"}
                   >
                     {hasVariant($state, "tempPickOneModal", "tempPickOneModal")
-                      ? "Learn more."
+                      ? <UiText message={"Learn more."} />
                       : hasVariant($state, "onFreeTrial", "onFreeTrial")
-                      ? "Learn more."
-                      : "Learn more."}
+                      ? <UiText message={"Learn more."} />
+                      : <UiText message={"Learn more."} />}
                   </PlasmicLink__>
                 }
                 <React.Fragment>{""}</React.Fragment>
@@ -447,10 +448,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                     target={"_blank"}
                   >
                     {hasVariant($state, "tempPickOneModal", "tempPickOneModal")
-                      ? "Learn more."
+                      ? <UiText message={"Learn more."} />
                       : hasVariant($state, "onFreeTrial", "onFreeTrial")
-                      ? "Learn more."
-                      : "Learn more."}
+                      ? <UiText message={"Learn more."} />
+                      : <UiText message={"Learn more."} />}
                   </PlasmicLink__>
                 }
                 <React.Fragment>{""}</React.Fragment>
@@ -489,10 +490,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                     target={"_blank"}
                   >
                     {hasVariant($state, "tempPickOneModal", "tempPickOneModal")
-                      ? "Learn more."
+                      ? <UiText message={"Learn more."} />
                       : hasVariant($state, "onFreeTrial", "onFreeTrial")
-                      ? "Learn more."
-                      : "Learn more."}
+                      ? <UiText message={"Learn more."} />
+                      : <UiText message={"Learn more."} />}
                   </PlasmicLink__>
                 }
                 <React.Fragment>{""}</React.Fragment>
@@ -527,10 +528,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                     target={"_blank"}
                   >
                     {hasVariant($state, "tempPickOneModal", "tempPickOneModal")
-                      ? "Learn more."
+                      ? <UiText message={"Learn more."} />
                       : hasVariant($state, "onFreeTrial", "onFreeTrial")
-                      ? "Learn more."
-                      : "Learn more."}
+                      ? <UiText message={"Learn more."} />
+                      : <UiText message={"Learn more."} />}
                   </PlasmicLink__>
                 }
                 <React.Fragment>{""}</React.Fragment>
@@ -656,7 +657,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                 />
               }
             >
-              {"Cancel"}
+              {<UiText message={"Cancel"} />}
             </Button>
             <Button
               data-plasmic-name={"confirmButton"}
@@ -677,7 +678,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
               }
               type={["primary"]}
             >
-              {"Submit"}
+              {<UiText message={"Submit"} />}
             </Button>
           </div>
         </div>
@@ -697,7 +698,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
         >
           <div className={classNames("all", sty.freeBox__eVxan)}>
             <div className={classNames("all", "__wab_text", sty.text__ik21K)}>
-              {"Checkout"}
+              {<UiText message={"Checkout"} />}
             </div>
             <div className={classNames("all", sty.freeBox__i0LzW)}>
               <div
@@ -715,7 +716,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__aX7C)}
                 >
-                  {"Expiration"}
+                  {<UiText message={"Expiration"} />}
                 </div>
                 <div className={classNames("all", sty.freeBox__m66BV)}>
                   <div
@@ -794,7 +795,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                 />
               }
             >
-              {"Cancel"}
+              {<UiText message={"Cancel"} />}
             </Button>
             <Button
               data-plasmic-name={"confirmButton2"}
@@ -815,7 +816,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
               }
               type={["primary"]}
             >
-              {"Submit"}
+              {<UiText message={"Submit"} />}
             </Button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { MixinPopup } from "@/wab/client/components/sidebar/MixinControls";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { ApplyMixinsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { MIXINS_CAP, MIXIN_CAP } from "@/wab/shared/Labels";
@@ -88,7 +89,7 @@ export const MixinsSection = observer(function (props: {
     <SidebarSection
       title={
         <LabelWithDetailedTooltip tooltip={<ApplyMixinsTooltip />}>
-          {MIXINS_CAP}
+          {<UiLabel text={MIXINS_CAP} />}
         </LabelWithDetailedTooltip>
       }
       defaultExpanded
@@ -96,7 +97,13 @@ export const MixinsSection = observer(function (props: {
     >
       {fixedMixins.length > 0 && (
         <div className={"fixed-mixins-container flex"}>
-          <Tooltip title={<>Applied Mixins from other variants</>}>
+          <Tooltip
+            title={
+              <>
+                <UiText message={"Applied Mixins from other variants"} />
+              </>
+            }
+          >
             {fixedMixins.map((mixin, index) => (
               <div key={mixin.uuid} className={"fixed-mixins-pill"}>
                 <span className={"fixed-mixins-pill__contents"}>
@@ -117,7 +124,7 @@ export const MixinsSection = observer(function (props: {
           } else {
             return (
               <>
-                Create new {MIXIN_CAP}{" "}
+                <UiText message={"Create new"} /> {<UiLabel text={MIXIN_CAP} />}{" "}
                 {mixin.text && (
                   <strong>
                     <code>{mixin.text}</code>
@@ -136,7 +143,14 @@ export const MixinsSection = observer(function (props: {
               isKnownMixin(mixin) && isEditable(viewCtx.studioCtx.site, mixin)
             }
             wrapper={(x) => (
-              <Tooltip title={<>Click to edit {MIXIN_CAP}</>}>
+              <Tooltip
+                title={
+                  <>
+                    <UiText message={"Click to edit"} />{" "}
+                    {<UiLabel text={MIXIN_CAP} />}
+                  </>
+                }
+              >
                 {x as React.ReactElement}
               </Tooltip>
             )}

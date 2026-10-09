@@ -18,6 +18,7 @@ import {
   makeAllLegacyQueriesMigrationPrompt,
   makeLegacyQueryMigrationPrompt,
 } from "@/wab/client/copilot/query-migration";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { SparklesSvgIcon } from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SparklesSvg";
 import {
@@ -148,7 +149,7 @@ const DataQueryRow = observer(
       return (
         <Menu>
           <Menu.Item onClick={() => openDataSourceModal()}>
-            {CONFIGURE_ACTION}
+            {<UiLabel text={CONFIGURE_ACTION} />}
           </Menu.Item>
           {showMigrateItem && (
             <Menu.Item
@@ -167,7 +168,7 @@ const DataQueryRow = observer(
             >
               <span className="inline-flex flex-vcenter gap-xsm">
                 <SparklesSvgIcon />
-                Migrate
+                <UiText message={"Migrate"} />
               </span>
             </Menu.Item>
           )}
@@ -177,7 +178,7 @@ const DataQueryRow = observer(
               studioCtx.siteOps().removeComponentQuery(component, query)
             }
           >
-            {DELETE_ACTION}
+            {<UiLabel text={DELETE_ACTION} />}
           </Menu.Item>
         </Menu>
       );
@@ -231,7 +232,9 @@ const DataQueryRow = observer(
               </PlasmicDataSourceContextProvider>
             </div>
           ) : (
-            <div className="dimfg">Click to configure...</div>
+            <div className="dimfg">
+              <UiText message={"Click to configure..."} />
+            </div>
           )}
         </LabeledListItem>
       </WithContextMenu>
@@ -285,7 +288,7 @@ function ComponentQueriesSection_(props: {
             )
           }
         >
-          {DATA_QUERY_PLURAL_CAP}
+          {<UiLabel text={DATA_QUERY_PLURAL_CAP} />}
           {isDeprecated ? " (legacy)" : ""}
         </LabelWithDetailedTooltip>
       }
@@ -300,7 +303,7 @@ function ComponentQueriesSection_(props: {
               onClick={handleMigrateAll}
             >
               <SparklesSvgIcon />
-              Migrate all
+              <UiText message={"Migrate all"} />
             </LinkButton>
           )}
           <IconLinkButton
@@ -381,10 +384,14 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
             />
           </div>
         ) : (
-          <div className="dimfg">Not visible</div>
+          <div className="dimfg">
+            <UiText message={"Not visible"} />
+          </div>
         )
       ) : (
-        <div className="dimfg">Click to configure...</div>
+        <div className="dimfg">
+          <UiText message={"Click to configure..."} />
+        </div>
       )}
     </LabeledListItem>
   );

@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: l_AKXl2AAu
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -262,7 +263,7 @@ function PlasmicCommentPost__RenderFunc(props: {
               sty.userFullName
             )}
           >
-            {"User Name"}
+            {<UiText message={"User Name"} />}
           </span>
           <span
             data-plasmic-name={"timestamp"}

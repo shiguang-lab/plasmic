@@ -11,6 +11,7 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: s6ZC9dnvK9A
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -202,7 +203,7 @@ function PlasmicHandlerSection__RenderFunc(props: {
                         sty.text__ojzWh
                       )}
                     >
-                      {"Value"}
+                      {<UiText message={"Value"} />}
                     </div>
                   }
                   layout={"vertical"}
@@ -242,7 +243,7 @@ function PlasmicHandlerSection__RenderFunc(props: {
                         sty.text__u4N46
                       )}
                     >
-                      {"Variable"}
+                      {<UiText message={"Variable"} />}
                     </div>
                   }
                   layout={"vertical"}
@@ -289,7 +290,7 @@ function PlasmicHandlerSection__RenderFunc(props: {
                         sty.text__uZ7AV
                       )}
                     >
-                      {"Value"}
+                      {<UiText message={"Value"} />}
                     </div>
                   }
                   layout={"vertical"}
@@ -329,7 +330,7 @@ function PlasmicHandlerSection__RenderFunc(props: {
                         sty.text__x8QxG
                       )}
                     >
-                      {"Variable"}
+                      {<UiText message={"Variable"} />}
                     </div>
                   }
                   layout={"vertical"}
@@ -388,7 +389,7 @@ function PlasmicHandlerSection__RenderFunc(props: {
             type={["primary"]}
             withIcons={["startIcon"]}
           >
-            {"Add new action"}
+            {<UiText message={"Add new action"} />}
           </Button>
         </div>
       </div>

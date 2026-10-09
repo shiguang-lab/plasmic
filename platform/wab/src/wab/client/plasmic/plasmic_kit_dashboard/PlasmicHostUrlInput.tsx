@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: XxbnrpTDqu
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -215,7 +216,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
             ),
           })}
         >
-          {"URL:"}
+          {<UiText message={"URL:"} />}
         </div>
         <TextInput
           data-plasmic-name={"urlInput"}
@@ -259,7 +260,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
           }
         >
           <div className={classNames("all", "__wab_text", sty.text__sYxzC)}>
-            {"Clear"}
+            {<UiText message={"Clear"} />}
           </div>
         </Button>
         <Button
@@ -284,7 +285,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
           type={["primary"]}
         >
           <div className={classNames("all", "__wab_text", sty.text__ijKr)}>
-            {"Confirm"}
+            {<UiText message={"Confirm"} />}
           </div>
         </Button>
       </div>
@@ -352,7 +353,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
               ),
             })}
           >
-            {"Please enter a valid URL."}
+            {<UiText message={"Please enter a valid URL."} />}
           </div>
         </div>
         <div

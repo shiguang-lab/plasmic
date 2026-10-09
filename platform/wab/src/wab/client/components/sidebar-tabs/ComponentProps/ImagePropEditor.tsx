@@ -7,6 +7,7 @@ import {
 import { PlainLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
 import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -27,6 +28,7 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
   type: ImageAssetType;
   readOnly?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { attr, studioCtx, value, onPicked, type, readOnly } = props;
   const asset = isKnownImageAsset(value) ? value : undefined;
   const uri =
@@ -66,7 +68,7 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
                 cond={asset ? isEditable(studioCtx.site, asset) : false}
                 wrapper={(x) =>
                   readOnly ? (
-                    <Tooltip title="Replace image...">
+                    <Tooltip title={uiT("Replace image...")}>
                       {x as React.ReactElement}
                     </Tooltip>
                   ) : (

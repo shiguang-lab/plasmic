@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: TcSQ7HIQUWt9
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -137,7 +138,7 @@ function PlasmicLeftExprsSearchPanel__RenderFunc(props: {
         <div className={classNames("all", sty.freeBox___0U0Rm)}>
           <div className={classNames("all", sty.freeBox__hAVe)}>
             <div className={classNames("all", "__wab_text", sty.text__krNmH)}>
-              {"Expression Type"}
+              {<UiText message={"Expression Type"} />}
             </div>
             <div className={classNames("all", sty.freeBox__dPZaC)}>
               {renderPlasmicSlot({
@@ -148,7 +149,7 @@ function PlasmicLeftExprsSearchPanel__RenderFunc(props: {
           </div>
           <div className={classNames("all", sty.freeBox__x3LJf)}>
             <div className={classNames("all", "__wab_text", sty.text__mcRf7)}>
-              {"Group By"}
+              {<UiText message={"Group By"} />}
             </div>
             <div className={classNames("all", sty.freeBox__z3H89)}>
               {renderPlasmicSlot({

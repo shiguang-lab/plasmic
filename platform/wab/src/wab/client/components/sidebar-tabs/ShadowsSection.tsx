@@ -14,6 +14,7 @@ import {
   ListBoxItem,
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
@@ -115,7 +116,7 @@ class _ShadowsPanelSection extends StyleComponent<
       <StylePanelSection
         key={String(boxShadows.shadows.length > 0)}
         expsProvider={this.props.expsProvider}
-        title={"Shadows"}
+        title={<UiText message={"Shadows"} />}
         styleProps={["box-shadow"]}
         onExtraContentExpanded={() => {
           if (boxShadows.shadows.length === 0) {

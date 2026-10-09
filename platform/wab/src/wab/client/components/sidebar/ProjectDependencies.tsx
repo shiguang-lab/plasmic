@@ -16,6 +16,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftImportsPanel, {
   PlasmicLeftImportsPanel__VariantsArgs,
@@ -71,7 +72,7 @@ const DependencyItem = observer(function DependencyItem(props: {
               );
             }}
           >
-            Open project in new tab
+            <UiText message={"Open project in new tab"} />
           </Menu.Item>,
         );
       }
@@ -107,7 +108,7 @@ const DependencyItem = observer(function DependencyItem(props: {
               }
             }}
           >
-            Remove imported project
+            <UiText message={"Remove imported project"} />
           </Menu.Item>,
         );
       }

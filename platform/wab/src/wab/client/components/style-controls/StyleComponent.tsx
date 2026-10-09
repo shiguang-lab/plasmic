@@ -14,6 +14,7 @@ import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch"
 import { DefinedIndicator } from "@/wab/client/components/style-controls/DefinedIndicator";
 import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
 import { Tab, Tabs } from "@/wab/client/components/widgets";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioChangeOpts, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -391,8 +392,9 @@ export function createStyleContextMenu(
             key={`extract-variant-${styleName}`}
             title={
               <>
-                Extract <strong>{getLabelForStyleName(styleName)}</strong> style
-                to variant
+                <UiText message={"Extract"} />{" "}
+                <strong>{getLabelForStyleName(styleName)}</strong> style to
+                variant
               </>
             }
           >
@@ -401,7 +403,11 @@ export function createStyleContextMenu(
         )),
         <SubMenu
           key={`extract-variant-all`}
-          title={<>Extract all styles to variant</>}
+          title={
+            <>
+              <UiText message={"Extract all styles to variant"} />
+            </>
+          }
         >
           {mkVariantMenuItems((v) => extractAllToVariant(v))}
         </SubMenu>,
@@ -430,7 +436,7 @@ export function createStyleContextMenu(
           key={opts.displayStyleName}
           onClick={() => resetStyle(opts.displayStyleName!)}
         >
-          {RESET_CAP} <strong>{label}</strong> style
+          {<UiLabel text={RESET_CAP} />} <strong>{label}</strong> style
         </Menu.Item>,
       );
     } else {
@@ -438,7 +444,7 @@ export function createStyleContextMenu(
         const label = getLabelForStyleName(styleName);
         push(
           <Menu.Item key={styleName} onClick={() => resetStyle(styleName)}>
-            {RESET_CAP} <strong>{label}</strong> style
+            {<UiLabel text={RESET_CAP} />} <strong>{label}</strong> style
           </Menu.Item>,
         );
       }
@@ -446,7 +452,7 @@ export function createStyleContextMenu(
 
     push(
       <Menu.Item key={"reset-all"} onClick={() => resetAllStyles()}>
-        {RESET_CAP} all styles
+        {<UiLabel text={RESET_CAP} />} all styles
       </Menu.Item>,
     );
   });
@@ -519,11 +525,11 @@ function buildExtractToMixins(
   const buildExtractToMixin = (styleName?: string) => {
     builder.genSub(
       <>
-        Extract{" "}
+        <UiText message={"Extract"} />{" "}
         <strong>
           {styleName ? getLabelForStyleName(styleName) : "all styles"}
         </strong>{" "}
-        to {MIXIN_LOWER}
+        to {<UiLabel text={MIXIN_LOWER} />}
       </>,
       (push) => {
         buildMixinPicker(builder, sc, async (mixinOrName) => {
@@ -575,7 +581,7 @@ function buildMixinPicker(
           await mkMixinFromPrompt((mixin) => onPick(mixin));
         }}
       >
-        New {MIXIN_LOWER}...
+        <UiText message={"New"} /> {<UiLabel text={MIXIN_LOWER} />}...
       </Menu.Item>,
     );
   });
@@ -613,8 +619,9 @@ function buildExtractToTokens(
 
     builder.genSub(
       <>
-        Extract <strong>{getLabelForStyleName(styleName)}</strong> as{" "}
-        {tokenTypeLabel(tokenType).toLowerCase()} token
+        <UiText message={"Extract"} />{" "}
+        <strong>{getLabelForStyleName(styleName)}</strong> as{" "}
+        {tokenTypeLabel(tokenType).toLowerCase()} <UiText message={"token"} />
       </>,
       (push) => {
         builder.genSection(undefined, (_push) => {
@@ -641,7 +648,7 @@ function buildExtractToTokens(
                 });
               }}
             >
-              New token...
+              <UiText message={"New token..."} />
             </Menu.Item>,
           );
         });
@@ -805,14 +812,21 @@ function StylePanelSection_(
             });
           }}
         >
-          {RESET_CAP} all <strong>{title}</strong> styles
+          <UiText
+            message="Remove all {name} styles"
+            values={{ name: <strong>{title}</strong> }}
+          />
         </Menu.Item>,
       );
       builder.genSub(
-        <>
-          {isMixin ? "Move" : "Extract"} all <strong>{title}</strong> styles to{" "}
-          {MIXIN_LOWER}
-        </>,
+        <UiText
+          message={
+            isMixin
+              ? "Move all {name} styles to a style preset"
+              : "Extract all {name} styles to a style preset"
+          }
+          values={{ name: <strong>{title}</strong> }}
+        />,
         () => {
           buildMixinPicker(builder, studioCtx, async (mixinOrName) => {
             await studioCtx.changeUnsafe(() => {

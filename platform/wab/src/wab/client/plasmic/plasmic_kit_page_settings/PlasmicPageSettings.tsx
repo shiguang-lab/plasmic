@@ -11,6 +11,7 @@
 // Plasmic Project: 6BCq4vMow1yqGKFdcP68Rz
 // Component: jTLog2H3DE
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -167,7 +168,7 @@ function PlasmicPageSettings__RenderFunc(props: {
         <div className={classNames("all", sty.freeBox__jBw6C)}>
           <div className={classNames("all", sty.freeBox__oAobL)}>
             <div className={classNames("all", "__wab_text", sty.text__byQuB)}>
-              {"URL Path"}
+              {<UiText message={"URL Path"} />}
             </div>
           </div>
           <Textbox
@@ -198,7 +199,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__sM34)}
                   >
-                    {"Title"}
+                    {<UiText message={"Title"} />}
                   </div>
                 </div>
                 <Textbox
@@ -236,7 +237,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                         sty.text__oSXc
                       )}
                     >
-                      {"Description"}
+                      {<UiText message={"Description"} />}
                     </div>
                   </div>
                   <div className={classNames("all", sty.freeBox__rmMyq)}>
@@ -285,7 +286,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__nGAv)}
                   >
-                    {"Canonical URL"}
+                    {<UiText message={"Canonical URL"} />}
                   </div>
                 </div>
                 <Textbox
@@ -313,7 +314,7 @@ function PlasmicPageSettings__RenderFunc(props: {
         <div className={classNames("all", sty.freeBox__zwdd8)}>
           <div className={classNames("all", sty.freeBox__elLZ)}>
             <div className={classNames("all", "__wab_text", sty.text__eyrOx)}>
-              {"Open Graph image"}
+              {<UiText message={"Open Graph image"} />}
             </div>
             <div className={classNames("all", sty.freeBox__dGq)}>
               <span
@@ -346,7 +347,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                 rel={"noopener noreferrer"}
                 target={"_blank"}
               >
-                {"Learn more."}
+                {<UiText message={"Learn more."} />}
               </PlasmicLink__>
             </div>
           </div>
@@ -365,7 +366,7 @@ function PlasmicPageSettings__RenderFunc(props: {
         </div>
         <div className={classNames("all", sty.freeBox__pd0)}>
           <div className={classNames("all", "__wab_text", sty.text__rAUsl)}>
-            {"More metadata"}
+            {<UiText message={"More metadata"} />}
           </div>
           <div className={classNames("all", sty.freeBox__zwogK)} />
         </div>
@@ -381,13 +382,13 @@ function PlasmicPageSettings__RenderFunc(props: {
               data-plasmic-override={overrides.propsControl}
               className={classNames("all", "__wab_text", sty.propsControl)}
             >
-              {"Props control"}
+              {<UiText message={"Props control"} />}
             </div>
           </div>
         </div>
         <div className={classNames("all", sty.freeBox__cMjM)}>
           <div className={classNames("all", "__wab_text", sty.text__a8Wj)}>
-            {"Advanced"}
+            {<UiText message={"Advanced"} />}
           </div>
           <div className={classNames("all", sty.freeBox__ykmFj)} />
         </div>
@@ -398,7 +399,7 @@ function PlasmicPageSettings__RenderFunc(props: {
             className={classNames("all", sty.renderModeLabel)}
           >
             <div className={classNames("all", "__wab_text", sty.text__y4M9G)}>
-              {"Render mode"}
+              {<UiText message={"Render mode"} />}
             </div>
           </div>
           <Select
@@ -438,7 +439,7 @@ function PlasmicPageSettings__RenderFunc(props: {
             className={classNames("all", sty.loginRequiredLabel)}
           >
             <div className={classNames("all", "__wab_text", sty.text__fdmLq)}>
-              {"Login needed"}
+              {<UiText message={"Login needed"} />}
             </div>
           </div>
           <Switch
@@ -482,7 +483,7 @@ function PlasmicPageSettings__RenderFunc(props: {
             className={classNames("all", sty.roleRequiredLabel)}
           >
             <div className={classNames("all", "__wab_text", sty.text__yxT2J)}>
-              {"Role needed"}
+              {<UiText message={"Role needed"} />}
             </div>
           </div>
           <Select

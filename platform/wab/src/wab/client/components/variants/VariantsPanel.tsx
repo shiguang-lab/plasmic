@@ -40,6 +40,8 @@ import { EditableLabelHandles } from "@/wab/client/components/widgets/EditableLa
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { SimpleReorderableList } from "@/wab/client/components/widgets/SimpleReorderableList";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import BoltIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Bolt";
 import GlobeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Globe";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -114,6 +116,7 @@ export const VariantsPanel = observer(
     props: VariantsPanelProps,
     ref: React.Ref<VariantsPanelHandle>,
   ) {
+    const { t: uiT } = useI18n();
     const { studioCtx, component, viewCtx } = props;
     const site = studioCtx.site;
 
@@ -163,7 +166,8 @@ export const VariantsPanel = observer(
                 key="toggle-group"
                 onClick={() => addVariantGroup(VariantOptionsType.standalone)}
               >
-                Add <strong>toggle</strong> variant
+                <UiText message={"Add"} /> <strong>toggle</strong>{" "}
+                <UiText message={"variant"} />
               </Menu.Item>,
             );
             push(<Menu.Divider />);
@@ -173,7 +177,8 @@ export const VariantsPanel = observer(
                 key="single-select-group"
                 onClick={() => addVariantGroup(VariantOptionsType.singleChoice)}
               >
-                Add <strong>single-select</strong> group of variants
+                <UiText message={"Add"} /> <strong>single-select</strong>{" "}
+                <UiText message={"group of variants"} />
               </Menu.Item>,
             );
             push(
@@ -181,7 +186,8 @@ export const VariantsPanel = observer(
                 key="multi-select-group"
                 onClick={() => addVariantGroup(VariantOptionsType.multiChoice)}
               >
-                Add <strong>multi-select</strong> group of variants
+                <UiText message={"Add"} /> <strong>multi-select</strong>{" "}
+                <UiText message={"group of variants"} />
               </Menu.Item>,
             );
           })
@@ -361,7 +367,7 @@ export const VariantsPanel = observer(
               data-event="variantspanel-add-variant"
             >
               <IFrameAwareDropdownMenu menu={addVariantsMenu}>
-                <IconLinkButton aria-label="Add variant">
+                <IconLinkButton aria-label={uiT("Add variant")}>
                   <Icon icon={PlusIcon} />
                 </IconLinkButton>
               </IFrameAwareDropdownMenu>
@@ -384,7 +390,7 @@ export const VariantsPanel = observer(
                   return ok();
                 })
               }
-              label={"Base"}
+              label={uiT("Base")}
             />
 
             <SimpleReorderableList
@@ -589,7 +595,7 @@ export const VariantsPanel = observer(
           ref={globalVariantsSectionRef}
           title={
             <LabelWithDetailedTooltip tooltip={<GlobalVariantsTooltip />}>
-              Global Variants
+              <UiText message={"Global Variants"} />
             </LabelWithDetailedTooltip>
           }
           controls={
@@ -728,7 +734,7 @@ export const VariantsPanel = observer(
         <SidebarSection
           title={
             <LabelWithDetailedTooltip tooltip={<VariantCombosTooltip />}>
-              Combinations
+              <UiText message={"Combinations"} />
             </LabelWithDetailedTooltip>
           }
           zeroBodyPadding

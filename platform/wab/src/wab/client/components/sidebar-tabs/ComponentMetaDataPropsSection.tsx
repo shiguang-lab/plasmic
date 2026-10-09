@@ -9,15 +9,17 @@ import Button from "@/wab/client/components/widgets/Button";
 import { MetadataTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { DELETE_ACTION } from "@/wab/shared/Labels";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { spawn } from "@/wab/shared/common";
 import {
   addOrEditComponentMetadata,
   removeComponentMetadata,
 } from "@/wab/shared/core/components";
-import { DELETE_ACTION } from "@/wab/shared/Labels";
 import { Component } from "@/wab/shared/model/classes";
 import { Menu, notification } from "antd";
 import { observer } from "mobx-react";
@@ -29,6 +31,7 @@ export const ComponentMetaDataPropsSection = observer(
     component: Component;
     justOneSection?: "variants" | "slots" | "meta";
   }) {
+    const { t: uiT } = useI18n();
     const { studioCtx, component, justOneSection } = props;
     const [showNewParamModal, setShowNewParamModal] = React.useState(false);
     const metadata = component.metadata;
@@ -49,7 +52,7 @@ export const ComponentMetaDataPropsSection = observer(
             <>
               <div className="SidebarSectionListItem justify-between">
                 <div className="labeled-item__label">
-                  Editable by content editors
+                  <UiText message={"Editable by content editors"} />
                 </div>
                 <BoolPropEditor
                   onChange={(val) => {
@@ -67,7 +70,7 @@ export const ComponentMetaDataPropsSection = observer(
 
               <div className="SidebarSectionListItem justify-between">
                 <div className="labeled-item__label">
-                  Hidden from content editors
+                  <UiText message={"Hidden from content editors"} />
                 </div>
                 <BoolPropEditor
                   onChange={(val) => {
@@ -90,7 +93,7 @@ export const ComponentMetaDataPropsSection = observer(
           {Object.keys(metadata).length > 0 && shown.keyValue && (
             <MetadataSection
               studioCtx={studioCtx}
-              title={"Key-value Metadata"}
+              title={uiT("Key-value Metadata")}
               component={component}
             />
           )}
@@ -103,7 +106,11 @@ export const ComponentMetaDataPropsSection = observer(
             if (!metaKeyAndValue) {
               notification.error({
                 message: "Fill key and value",
-                description: <>You should fill both key and value.</>,
+                description: (
+                  <>
+                    <UiText message={"You should fill both key and value."} />
+                  </>
+                ),
               });
               return;
             }
@@ -142,7 +149,7 @@ export const ComponentMetaDataPropsSection = observer(
           }}
         >
           <LabelWithDetailedTooltip tooltip={MetadataTooltip}>
-            Add metadata key-value
+            <UiText message={"Add metadata key-value"} />
           </LabelWithDetailedTooltip>
         </Button>
         {showNewParamModal && (
@@ -277,7 +284,7 @@ function makeMetadataMenu(
           })
         }
       >
-        {DELETE_ACTION}
+        {<UiLabel text={DELETE_ACTION} />}
       </Menu.Item>
     </Menu>
   );

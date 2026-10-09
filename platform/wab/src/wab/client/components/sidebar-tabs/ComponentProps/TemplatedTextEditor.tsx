@@ -10,6 +10,8 @@ import DataPicker, {
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { useDataTokenSuggestionsMenu } from "@/wab/client/components/sidebar-tabs/DataBinding/useDataTokenSuggestionsMenu";
 import { PropEditorRef } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { zIndex } from "@/wab/client/z-index";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
@@ -389,7 +391,7 @@ export const TemplatedTextEditor = React.forwardRef<
         <div className="flex-row fill-width">
           {sql && !validSqlString && (
             <small className={cx(styles.errorMsg, "flex-no-shrink")}>
-              Invalid SQL string
+              <UiText message={"Invalid SQL string"} />
             </small>
           )}
           {sql && dataSourceSchema && (
@@ -1048,6 +1050,7 @@ interface CaretUIProps {
 }
 
 function CaretUI({ top, left }: CaretUIProps) {
+  const { t: uiT } = useI18n();
   const isFocused = useFocused();
   const [hover, setHover] = useState(false);
 
@@ -1085,7 +1088,7 @@ function CaretUI({ top, left }: CaretUIProps) {
       }}
     >
       <Tooltip
-        title={"Insert dynamic value here"}
+        title={uiT("Insert dynamic value here")}
         overlayClassName={"show-ant-tooltip-arrow"}
         open={hover && isFocused}
       >

@@ -6,6 +6,8 @@ import {
 } from "@/wab/client/components/sidebar-tabs/versions-tab/utils";
 import VersionsListItem from "@/wab/client/components/sidebar/VersionsListItem";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ApiUser, MainBranchId } from "@/wab/shared/ApiSchema";
 import { MinimalRevisionInfo } from "@/wab/shared/SharedApi";
@@ -21,6 +23,7 @@ interface RevisionsListProps {
 export const RevisionsList = observer(function RevisionsList(
   props: RevisionsListProps,
 ) {
+  const { t: uiT } = useI18n();
   const { studioCtx } = props;
   const dbCtx = studioCtx.dbCtx();
   const currentBranchName = dbCtx.branchInfo?.name ?? MainBranchId;
@@ -77,7 +80,11 @@ export const RevisionsList = observer(function RevisionsList(
   };
 
   if (projectRevisions.length === 0) {
-    return <NoItemMessage>No Autosaved Versions</NoItemMessage>;
+    return (
+      <NoItemMessage>
+        <UiText message={"No Autosaved Versions"} />
+      </NoItemMessage>
+    );
   }
 
   return (
@@ -104,7 +111,9 @@ export const RevisionsList = observer(function RevisionsList(
                   }}
                   preventDefault
                 >
-                  <Tooltip title="Revert to this version">{node}</Tooltip>
+                  <Tooltip title={uiT("Revert to this version")}>
+                    {node}
+                  </Tooltip>
                 </ClickStopper>
               ),
               props: {

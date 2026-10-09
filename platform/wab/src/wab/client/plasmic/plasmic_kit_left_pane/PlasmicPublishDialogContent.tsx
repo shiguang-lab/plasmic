@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: V25hk8i--ck
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -83,6 +85,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
   overrides: PlasmicPublishDialogContent__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -170,7 +173,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
               ),
             })}
           >
-            {"Publish new version"}
+            {<UiText message={"Publish new version"} />}
           </div>
           <div
             className={classNames("all", sty.freeBox__ad0B7, {
@@ -248,7 +251,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
             })}
           >
             <div className={classNames("all", "__wab_text", sty.text__pPoTy)}>
-              {"Version number"}
+              {<UiText message={"Version number"} />}
             </div>
             <div className={classNames("all", sty.freeBox__epD6O)}>
               <div className={classNames("all", sty.freeBox__iv4LQ)}>
@@ -299,7 +302,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
               ),
             })}
           >
-            {"Description"}
+            {<UiText message={"Description"} />}
           </div>
           <input
             data-plasmic-name={"title"}
@@ -319,7 +322,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
             disabled={
               hasVariant($state, "state", "disabled") ? true : undefined
             }
-            placeholder={"Description (optional)…"}
+            placeholder={uiT("Description (optional)…")}
             ref={(ref) => {
               $refs["title"] = ref;
             }}
@@ -411,7 +414,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
             }
             type={["primary"]}
           >
-            {"Publish"}
+            {<UiText message={"Publish"} />}
           </Button>
         ) : null}
       </div>

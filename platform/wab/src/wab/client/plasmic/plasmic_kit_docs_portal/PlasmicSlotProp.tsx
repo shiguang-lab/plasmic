@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: jW-aUu5X3W
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -187,7 +188,7 @@ function PlasmicSlotProp__RenderFunc(props: {
             >
               {hasVariant($state, "isNonText", "isNonText")
                 ? "Non-text content"
-                : "Enter some text"}
+                : <UiText message={"Enter some text"} />}
             </div>
           ) : null
         }

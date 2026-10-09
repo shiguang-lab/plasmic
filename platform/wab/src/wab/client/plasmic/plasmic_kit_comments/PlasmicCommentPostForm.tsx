@@ -11,6 +11,8 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: qi3Y1X2qZ7
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -87,6 +89,7 @@ function PlasmicCommentPostForm__RenderFunc(props: {
   overrides: PlasmicCommentPostForm__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -202,7 +205,7 @@ function PlasmicCommentPostForm__RenderFunc(props: {
               return;
             }
           }}
-          placeholder={"Add a comment"}
+          placeholder={uiT("Add a comment")}
           showLabel={false}
           value={generateStateValueProp($state, ["bodyInput", "value"])}
         />
@@ -340,8 +343,8 @@ function PlasmicCommentPostForm__RenderFunc(props: {
                 })}
               >
                 {hasVariant($state, "isPreviewing", "isPreviewing")
-                  ? "Edit"
-                  : "Preview"}
+                  ? <UiText message={"Edit"} />
+                  : <UiText message={"Preview"} />}
               </div>
             }
             type={"clear"}
@@ -362,7 +365,7 @@ function PlasmicCommentPostForm__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___9U10X)}
               >
-                {"Cancel"}
+                {<UiText message={"Cancel"} />}
               </div>
             }
             type={"soft"}
@@ -388,7 +391,7 @@ function PlasmicCommentPostForm__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "isEditing", "isEditing") ? "Save" : "Send"}
+                {hasVariant($state, "isEditing", "isEditing") ? <UiText message={"Save"} /> : "Send"}
               </div>
             }
           />

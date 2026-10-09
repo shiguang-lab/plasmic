@@ -11,6 +11,8 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: FuvSZfvXL5
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -171,6 +173,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
   overrides: PlasmicGithubIntegration__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -412,7 +415,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
               hasVariant($state, "view", "existingRepo") ? ["clear"] : undefined
             }
           >
-            {"New repo"}
+            {<UiText message={"New repo"} />}
           </Button>
           <Button
             data-plasmic-name={"existingRepoButton"}
@@ -455,7 +458,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                 ),
               })}
             >
-              {"Existing repo"}
+              {<UiText message={"Existing repo"} />}
             </div>
           </Button>
         </div>
@@ -508,7 +511,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Organization"}
+                {<UiText message={"Organization"} />}
               </div>
               <Select
                 data-plasmic-name={"org"}
@@ -535,7 +538,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     return;
                   }
                 }}
-                placeholder={"Select a GitHub organization..."}
+                placeholder={uiT("Select a GitHub organization...")}
                 type={"bordered"}
                 value={generateStateValueProp($state, ["org", "value"])}
               />
@@ -587,7 +590,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Missing user/org?"}
+                  {<UiText message={"Missing user/org?"} />}
                 </div>
                 <Button
                   data-plasmic-name={"missingOrg"}
@@ -628,7 +631,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       }
                     )}
                   >
-                    {"Adjust GitHub App permissions"}
+                    {<UiText message={"Adjust GitHub App permissions"} />}
                   </div>
                 </Button>
               </div>
@@ -654,7 +657,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Name"}
+                {<UiText message={"Name"} />}
               </div>
               <input
                 data-plasmic-name={"name"}
@@ -673,7 +676,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     ),
                   }
                 )}
-                placeholder={"Enter name…"}
+                placeholder={uiT("Enter name…")}
                 ref={(ref) => {
                   $refs["name"] = ref;
                 }}
@@ -738,7 +741,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       )}
                     >
                       {
-                        "There is already a repo with this name on this GitHub organization. Change to something that is not in use."
+                        <UiText message={"There is already a repo with this name on this GitHub organization. Change to something that is not in use."} />
                       }
                     </div>
                   </div>
@@ -770,7 +773,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Private?"}
+                {<UiText message={"Private?"} />}
               </div>
               <div
                 className={classNames("all", sty.freeBox__um2Rp, {
@@ -856,7 +859,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Repository"}
+                {<UiText message={"Repository"} />}
               </div>
               <Select
                 data-plasmic-name={"repository"}
@@ -924,7 +927,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Missing repository?"}
+                  {<UiText message={"Missing repository?"} />}
                 </div>
                 <Button
                   data-plasmic-name={"missingRepo"}
@@ -959,7 +962,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       }
                     )}
                   >
-                    {"Adjust GitHub App permissions"}
+                    {<UiText message={"Adjust GitHub App permissions"} />}
                   </div>
                 </Button>
               </div>
@@ -984,7 +987,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Branch"}
+                {<UiText message={"Branch"} />}
               </div>
               <Select
                 data-plasmic-name={"branch"}
@@ -1039,7 +1042,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Directory"}
+                {<UiText message={"Directory"} />}
               </div>
               <input
                 data-plasmic-name={"directory"}
@@ -1062,7 +1065,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     ),
                   }
                 )}
-                placeholder={"Enter directory if not repository root..."}
+                placeholder={uiT("Enter directory if not repository root...")}
                 ref={(ref) => {
                   $refs["directory"] = ref;
                 }}
@@ -1106,7 +1109,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   })}
                 >
                   {
-                    "The specified directory does not contain a valid package.json."
+                    <UiText message={"The specified directory does not contain a valid package.json."} />
                   }
                 </div>
               </div>
@@ -1165,7 +1168,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                 ),
               })}
             >
-              {"Framework"}
+              {<UiText message={"Framework"} />}
             </div>
             <Select
               data-plasmic-name={"framework"}
@@ -1216,7 +1219,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                 ),
               })}
             >
-              {"Language"}
+              {<UiText message={"Language"} />}
             </div>
             <Select
               data-plasmic-name={"language"}
@@ -1286,7 +1289,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Mode"}
+                {<UiText message={"Mode"} />}
               </div>
               <InfoIcon
                 data-plasmic-name={"modeInfo"}
@@ -1364,7 +1367,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Default action"}
+                  {<UiText message={"Default action"} />}
                 </div>
                 <InfoIcon
                   data-plasmic-name={"actionInfo"}
@@ -1577,7 +1580,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     }
                   )}
                 >
-                  {"Publish site?"}
+                  {<UiText message={"Publish site?"} />}
                 </div>
                 <div
                   className={classNames("all", sty.freeBox__kvwzT, {
@@ -1859,7 +1862,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                         }
                       )}
                     >
-                      {"Domain"}
+                      {<UiText message={"Domain"} />}
                     </div>
                     <div
                       data-plasmic-name={"apparentSubdomainInput"}
@@ -1916,7 +1919,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                               hasVariant($state, "errors", "missingDomain"),
                           }
                         )}
-                        placeholder={"Enter name..."}
+                        placeholder={uiT("Enter name...")}
                         ref={(ref) => {
                           $refs["subdomainInput"] = ref;
                         }}
@@ -2074,7 +2077,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     href={"https://www.plasmic.app/learn/publishing"}
                     platform={"react"}
                   >
-                    {"See more providers"}
+                    {<UiText message={"See more providers"} />}
                   </PlasmicLink__>
                   <div
                     className={classNames("all", "__wab_text", sty.text__tt3Dz)}

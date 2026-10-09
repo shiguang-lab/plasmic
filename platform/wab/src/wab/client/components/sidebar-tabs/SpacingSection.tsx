@@ -5,6 +5,7 @@ import {
   StylePanelSection,
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import {
   isMarginValidForTpl,
@@ -22,6 +23,7 @@ export function SpacingSection({
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   let showPaddingControls: boolean;
   let showMarginControls: boolean;
   if (expsProvider instanceof TplExpsProvider) {
@@ -46,7 +48,7 @@ export function SpacingSection({
 
   return (
     <StylePanelSection
-      title="Spacing"
+      title={uiT("Spacing")}
       styleProps={spacingSectionProps}
       expsProvider={expsProvider}
       key={`${showPaddingControls} ${showMarginControls}`}
@@ -57,7 +59,7 @@ export function SpacingSection({
             spacingStyleProp={"padding"}
             popoverPlacement={"left"}
             expsProvider={expsProvider}
-            label="Padding"
+            label={uiT("Padding")}
             subtitle="(inner)"
             vsh={vsh}
           />
@@ -70,7 +72,7 @@ export function SpacingSection({
             spacingStyleProp={"margin"}
             popoverPlacement={"left"}
             expsProvider={expsProvider}
-            label="Margin"
+            label={uiT("Margin")}
             subtitle="(outer)"
             vsh={vsh}
           />

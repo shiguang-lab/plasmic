@@ -11,6 +11,7 @@
 // Plasmic Project: oermwjefjidrRRHcrxyCjQ
 // Component: ZDk8OKbbuW
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -478,7 +479,7 @@ function PlasmicNewComponentModal__RenderFunc(props: {
             }
             type={["secondary"]}
           >
-            {"Cancel"}
+            {<UiText message={"Cancel"} />}
           </Button>
         </div>
         <div
@@ -520,7 +521,7 @@ function PlasmicNewComponentModal__RenderFunc(props: {
             >
               {hasVariant($state, "isPage", "isPage")
                 ? "Create page"
-                : "Create component"}
+                : <UiText message={"Create component"} />}
             </div>
           </Button>
         </div>

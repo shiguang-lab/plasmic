@@ -7,6 +7,8 @@ import Checkbox from "@/wab/client/components/widgets/Checkbox";
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiEndUser } from "@/wab/shared/ApiSchema";
 import { Table } from "antd";
 import React from "react";
@@ -15,6 +17,7 @@ export default function DirectoryUsers(props: {
   teamId: string;
   directoryId: string;
 }) {
+  const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
   const { teamId, directoryId } = props;
   const { users, mutate: mutateUsers } = useDirectoryUsers(appCtx, directoryId);
@@ -37,19 +40,19 @@ export default function DirectoryUsers(props: {
             await mutateUsers();
           }}
         >
-          Refresh
+          <UiText message={"Refresh"} />
         </Button>
         <Table
           dataSource={users}
           rowKey="id"
           columns={[
             {
-              title: "Email",
+              title: uiT("Email"),
               dataIndex: "email",
               key: "email",
             },
             {
-              title: "Groups",
+              title: uiT("Groups"),
               dataIndex: "groups",
               render: (userGroups) => {
                 return userGroups.map((group, idx) => {
@@ -144,7 +147,7 @@ export default function DirectoryUsers(props: {
             setSelectedUserGroups([]);
           }}
         >
-          Save
+          <UiText message={"Save"} />
         </Button>
       </Modal>
     </div>

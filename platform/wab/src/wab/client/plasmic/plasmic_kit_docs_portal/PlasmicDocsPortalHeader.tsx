@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: 6yrnCqYwJf
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -212,7 +213,7 @@ function PlasmicDocsPortalHeader__RenderFunc(props: {
           type={"secondary"}
         >
           <div className={classNames("all", "__wab_text", sty.text__yCc95)}>
-            {"Project token"}
+            {<UiText message={"Project token"} />}
           </div>
         </Button>
         <PlasmicLink__
@@ -253,7 +254,7 @@ function PlasmicDocsPortalHeader__RenderFunc(props: {
             withIcons={"startIcon"}
           >
             <div className={classNames("all", "__wab_text", sty.text__ciDOi)}>
-              {"Back to Studio"}
+              {<UiText message={"Back to Studio"} />}
             </div>
           </Button>
         </PlasmicLink__>

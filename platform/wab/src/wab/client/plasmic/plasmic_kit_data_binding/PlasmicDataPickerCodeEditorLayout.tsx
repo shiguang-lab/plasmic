@@ -11,6 +11,8 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: yN9xaawDlts
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -122,6 +124,7 @@ function PlasmicDataPickerCodeEditorLayout__RenderFunc(props: {
   overrides: PlasmicDataPickerCodeEditorLayout__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -256,7 +259,7 @@ function PlasmicDataPickerCodeEditorLayout__RenderFunc(props: {
               )
             })}
           >
-            {"Data context"}
+            {<UiText message={"Data context"} />}
           </div>
         </div>
       ) : null}
@@ -287,7 +290,7 @@ function PlasmicDataPickerCodeEditorLayout__RenderFunc(props: {
             data-plasmic-name={"envToggleButton"}
             data-plasmic-override={overrides.envToggleButton}
 
-            aria-label={"Toggle data context preview"}
+            aria-label={uiT("Toggle data context preview")}
             className={classNames(
               "all",
               "button",

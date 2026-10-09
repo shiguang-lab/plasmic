@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: 0bODOMCtGi
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -66,6 +67,7 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
   overrides: PlasmicOptimizationsSelect__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -125,7 +127,7 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
                   "__wab_instance",
                   sty.optimizationOption__jRgRr
                 )}
-                label={"Unset"}
+                label={uiT("Unset")}
                 selected={true}
               />
 

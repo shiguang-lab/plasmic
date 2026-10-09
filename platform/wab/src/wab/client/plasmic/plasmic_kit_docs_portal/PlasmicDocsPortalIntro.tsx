@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: 13UGPPY1WI6
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -236,7 +237,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             }
           )}
         >
-          {"Quickstart"}
+          {<UiText message={"Quickstart"} />}
         </h2>
         <div
           data-plasmic-name={"introText3"}
@@ -274,7 +275,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             sty.h2___4NJTw
           )}
         >
-          {"Installation"}
+          {<UiText message={"Installation"} />}
         </h2>
         <div
           className={classNames("all", "__wab_text", sty.text__jcCxu, {

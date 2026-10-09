@@ -11,6 +11,7 @@
 // Plasmic Project: uLddf5fC1aQbF7tmV1WQ1a
 // Component: GzEy-XDJM8
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -186,7 +187,7 @@ function PlasmicRichTextToolbar__RenderFunc(props: {
                 data-plasmic-override={overrides.text}
                 className={classNames("all", "__wab_text", sty.text)}
               >
-                {"Default"}
+                {<UiText message={"Default"} />}
               </div>
             </div>
           }

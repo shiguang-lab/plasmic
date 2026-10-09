@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: 5TapYEMkYCfR
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -182,7 +183,7 @@ function PlasmicDialogHeader__RenderFunc(props: {
         {renderPlasmicSlot({
           defaultContents: (
             <div className={classNames("all", "__wab_text", sty.text__cwRb6)}>
-              {"Heading"}
+              {<UiText message={"Heading"} />}
             </div>
           ),
           value: args.heading,

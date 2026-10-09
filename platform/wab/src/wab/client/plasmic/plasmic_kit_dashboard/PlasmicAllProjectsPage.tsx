@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: gCsGtvW8svmg
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -245,7 +246,7 @@ function PlasmicAllProjectsPage__RenderFunc(props: {
                       sty.span__kb7Yr
                     )}
                   >
-                    {"New project"}
+                    {<UiText message={"New project"} />}
                   </span>
                 </Button>
                 <ProjectsFilter
@@ -316,7 +317,7 @@ function PlasmicAllProjectsPage__RenderFunc(props: {
                   )}
                 >
                   {
-                    'You have no projects. Create a new one by hitting "New project".'
+                    <UiText message={"You have no projects. Create a new one by hitting \"New project\"."} />
                   }
                 </span>
               </div>

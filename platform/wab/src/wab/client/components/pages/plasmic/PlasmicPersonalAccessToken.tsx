@@ -11,6 +11,7 @@
 // Plasmic Project: aaggSgVS8yYsAwQffVQB4p
 // Component: F4ZVtfq6Xg
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -173,7 +174,7 @@ function PlasmicPersonalAccessToken__RenderFunc(props: {
             ),
           })}
         >
-          {hasVariant($state, "copyState", "copied") ? "Copied" : "Copy"}
+          {hasVariant($state, "copyState", "copied") ? <UiText message={"Copied"} /> : <UiText message={"Copy"} />}
         </div>
       </div>
       <IconButton

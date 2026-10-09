@@ -1,5 +1,6 @@
 import { CodeSnippet } from "@/wab/client/components/coding/CodeDisplay";
 import { confirm } from "@/wab/client/components/quick-modals";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawnWrapper } from "@/wab/shared/common";
 import { notification } from "antd";
@@ -46,8 +47,11 @@ export async function showPlasmicImgModal(studioCtx: StudioCtx) {
             </li>
             <li>
               If you want the image to not make use lazy loading, you'll need to
-              explicitly set its "<code>Loading</code>" attribute to "
-              <code>Eager</code>" in the studio.
+              explicitly set its "
+              <code>
+                <UiText message={"Loading"} />
+              </code>
+              " attribute to "<code>Eager</code>" in the studio.
             </li>
           </ul>
         </p>

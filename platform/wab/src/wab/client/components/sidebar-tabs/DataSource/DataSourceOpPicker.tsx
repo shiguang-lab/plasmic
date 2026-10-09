@@ -1,4 +1,6 @@
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import "@graphiql/plugin-explorer/dist/style.css";
 import type { CrudSorting } from "@pankod/refine-core";
 import {
@@ -241,8 +243,8 @@ const LazyCodePreview = React.lazy(
 
 const INVALID_CURRENT_USER_OPERATION_MESSAGE = () => (
   <span>
-    This {DATA_SOURCE_OPERATION_LOWER} can't be saved because of unsafe usage of
-    the current user. Refer to{" "}
+    This {<UiLabel text={DATA_SOURCE_OPERATION_LOWER} />} can't be saved because
+    of unsafe usage of the current user. Refer to{" "}
     <a
       target="_blank"
       href="https://docs.plasmic.app/learn/auth/#using-the-logged-in-user-in-dynamic-values"
@@ -535,7 +537,11 @@ export const DataSourceOpExprSummary = observer(
       return <ValuePreview err={sourceError} />;
     }
     if (!source || !opMeta) {
-      return <div>Loading...</div>;
+      return (
+        <div>
+          <UiText message={"Loading..."} />
+        </div>
+      );
     }
     return (
       <div className={styles.dataSourceExprValue}>
@@ -999,7 +1005,7 @@ const DataSourceOpExprFormAndPreview = observer(
                 setShowControls(!showControls);
               }}
             >
-              Show filters
+              <UiText message={"Show filters"} />
             </Switch>
           </BottomModalButtons>
         )}
@@ -1053,7 +1059,7 @@ const DataSourceOpExprFormAndPreview = observer(
                   }
                   onClick={saveOpExpr}
                 >
-                  {isGettingOpId ? "Saving..." : "Save"}
+                  {isGettingOpId ? "Saving..." : <UiText message={"Save"} />}
                 </Button>
                 <Button
                   onClick={async () => {
@@ -1112,17 +1118,23 @@ const DataSourceOpExprFormAndPreview = observer(
                       }
                     : {})}
                 >
-                  {opMeta?.type === "read"
-                    ? "Preview"
-                    : isExecuting || executeQueue.length > 0
-                      ? "Executing..."
-                      : "Execute"}
+                  {opMeta?.type === "read" ? (
+                    <UiText message={"Preview"} />
+                  ) : isExecuting || executeQueue.length > 0 ? (
+                    "Executing..."
+                  ) : (
+                    <UiText message={"Execute"} />
+                  )}
                 </Button>
-                <Button onClick={onCancel}>Cancel</Button>
+                <Button onClick={onCancel}>
+                  <UiText message={"Cancel"} />
+                </Button>
               </BottomModalButtons>
             ) : (
               <BottomModalButtons>
-                <Button onClick={onCancel}>Cancel</Button>
+                <Button onClick={onCancel}>
+                  <UiText message={"Cancel"} />
+                </Button>
               </BottomModalButtons>
             )}
           </div>
@@ -1212,6 +1224,7 @@ export function DataSourceOpDraftForm(props: {
   hideCacheKey?: boolean;
   exprCtx: ExprCtx;
 }) {
+  const { t: uiT } = useI18n();
   const {
     value,
     sourceType,
@@ -1408,7 +1421,7 @@ export function DataSourceOpDraftForm(props: {
   return (
     <div id="data-source-modal-draft-section">
       {showQueryName && (
-        <LabeledItemRow label="Query name">
+        <LabeledItemRow label={uiT("Query name")}>
           <StringPropEditor
             value={value?.queryName}
             onChange={(newName) => onChange({ ...value, queryName: newName })}
@@ -1430,7 +1443,8 @@ export function DataSourceOpDraftForm(props: {
                       }) + "#tab=dataSources"
                     }
                   >
-                    Manage workspace {DATA_SOURCE_PLURAL_LOWER}
+                    <UiText message={"Manage workspace"} />{" "}
+                    {<UiLabel text={DATA_SOURCE_PLURAL_LOWER} />}
                   </a>
                 </Menu.Item>
               </Menu>
@@ -1466,10 +1480,10 @@ export function DataSourceOpDraftForm(props: {
       {sourceMeta && (sourceSchemaData || !sourceMeta.studioOps.schemaOp) && (
         <>
           {!isRowSelector && availableDataOps.length > 1 && (
-            <LabeledItemRow label="Operation">
+            <LabeledItemRow label={uiT("Operation")}>
               <StyleSelect
                 id="data-source-modal-pick-operation-btn"
-                aria-label="Operation"
+                aria-label={uiT("Operation")}
                 value={opName}
                 placeholder={
                   maybes(opName)((name) =>
@@ -1795,7 +1809,7 @@ export function DataSourceOpDraftForm(props: {
                 collapsible: !cacheKey,
                 content: opMeta && opMeta.type === "read" && (
                   <LabeledItemRow
-                    label={"Query group"}
+                    label={uiT("Query group")}
                     key={"cacheKey"}
                     tooltip={`Assign this query to a query group. Then from interactions, you can refresh entire query groups.`}
                   >
@@ -1835,12 +1849,14 @@ export function DataSourceOpDraftForm(props: {
                       collapsible: !studioCtx.site.defaultPageRoleId,
                       content: (
                         <LabeledItemRow
-                          label="Min Role"
-                          tooltip="Require the user to be in a certain role or higher"
+                          label={uiT("Min Role")}
+                          tooltip={uiT(
+                            "Require the user to be in a certain role or higher",
+                          )}
                         >
                           <StyleSelect
-                            aria-label="Select a role"
-                            placeholder="Select a role"
+                            aria-label={uiT("Select a role")}
+                            placeholder={uiT("Select a role")}
                             value={selectedRole ?? "anon"}
                             onChange={(newId) => {
                               if (newId === "anon") {
@@ -1876,10 +1892,17 @@ export function DataSourceOpDraftForm(props: {
       {(schemaError || sourceError) && (
         <div className="pt-m light-error flex flex-col">
           <div>
-            We're sorry, but we were unable to connect with your integration at
-            this time.
+            <UiText
+              message={
+                "We're sorry, but we were unable to connect with your integration at this time."
+              }
+            />
             <br />
-            Please check your connection and credentials and try again later.
+            <UiText
+              message={
+                "Please check your connection and credentials and try again later."
+              }
+            />
           </div>
         </div>
       )}
@@ -1989,6 +2012,7 @@ function DataSourceOpDataPreview(props: {
   opType: "read" | "write" | undefined;
   exprCtx: ExprCtx;
 }) {
+  const { t: uiT } = useI18n();
   const { expr, env, opType, tableSchema, exprCtx } = props;
   const isReadOp = opType === "read";
 
@@ -2108,7 +2132,9 @@ function DataSourceOpDataPreview(props: {
     }
     return (
       <div className="flex-row fill-height mr-m flex-vcenter">
-        <a onClick={() => setExpandLevel(50)}>Expand All</a>
+        <a onClick={() => setExpandLevel(50)}>
+          <UiText message={"Expand All"} />
+        </a>
       </div>
     );
   }, [tabKey]);
@@ -2173,7 +2199,7 @@ function DataSourceOpDataPreview(props: {
                                 onClick={() => onRowSelected?.(row)}
                                 type={"clearPrimary"}
                               >
-                                View
+                                <UiText message={"View"} />
                               </Button>
                             ),
                           }
@@ -2197,7 +2223,7 @@ function DataSourceOpDataPreview(props: {
                           key: "name",
                         },
                         {
-                          title: "Type",
+                          title: uiT("Type"),
                           dataIndex: "type",
                           key: "type",
                         },
@@ -2276,11 +2302,13 @@ export function DataSourcePickerButton(props: {
         }
       }}
     >
-      {!sourceId
-        ? `Pick an ${DATA_SOURCE_LOWER}`
-        : !source
-          ? "Loading..."
-          : source.name}
+      {!sourceId ? (
+        `Pick an ${DATA_SOURCE_LOWER}`
+      ) : !source ? (
+        <UiText message={"Loading..."} />
+      ) : (
+        source.name
+      )}
     </Button>
   );
 }
@@ -2348,6 +2376,7 @@ const PaginationEditor = observer(function PaginationEditor({
   disabled?: boolean;
   exprCtx: ExprCtx;
 }) {
+  const { t: uiT } = useI18n();
   const pageSize =
     (value?.pageSize && bindings && bindings[value.pageSize]) || undefined;
   const pageIndex =
@@ -2386,7 +2415,7 @@ const PaginationEditor = observer(function PaginationEditor({
     <div className={"flex-row fill-width"}>
       <TemplatedTextEditorWithMenuIndicator
         value={pageSize ? ensureKnownTemplatedString(pageSize) : undefined}
-        placeholder="Items per page"
+        placeholder={uiT("Items per page")}
         data={data}
         schema={schema}
         onChange={(newVal) => changeVal("pageSize", newVal)}
@@ -2398,7 +2427,7 @@ const PaginationEditor = observer(function PaginationEditor({
       <div className="flex-row fill-width ml-m">
         <TemplatedTextEditorWithMenuIndicator
           value={pageIndex ? ensureKnownTemplatedString(pageIndex) : undefined}
-          placeholder="Page number (starts from 0)"
+          placeholder={uiT("Page number (starts from 0)")}
           data={data}
           onChange={(newVal) => changeVal("pageIndex", newVal)}
           exprCtx={exprCtx}
@@ -2420,6 +2449,7 @@ export const SortEditor = observer(function SortEditor({
   onChange: (value: CrudSorting) => void;
   fields: Fields;
 }) {
+  const { t: uiT } = useI18n();
   // TODO: Support sorting by multiple fields (mostly UI)
   const singleValue = value?.[0];
   const isAscending = singleValue?.order !== "desc";
@@ -2429,7 +2459,7 @@ export const SortEditor = observer(function SortEditor({
   return (
     <div className={"flex-row flex-fill justify-between"}>
       <StyleSelect
-        aria-label="Sort by"
+        aria-label={uiT("Sort by")}
         value={maybe(singleValue?.field, (f) => sanitizeFieldId(f))}
         onChange={(v) =>
           onChange(
@@ -2448,13 +2478,13 @@ export const SortEditor = observer(function SortEditor({
               : [],
           )
         }
-        placeholder="Select a field"
+        placeholder={uiT("Select a field")}
         valueSetState={singleValue ? "isSet" : "isUnset"}
         data-plasmic-prop={"data-source-sort"}
       >
         {
           <StyleSelect.Option value="" key="">
-            (Unset)
+            <UiText message={"(Unset)"} />
           </StyleSelect.Option>
         }
         {Object.entries(fields).map(([fieldId, field]) => (
@@ -2517,6 +2547,7 @@ const StringDictPropEditor = observer(function StringDictPropEditor({
   exprCtx: ExprCtx;
   "data-plasmic-prop"?: string;
 }) {
+  const { t: uiT } = useI18n();
   const bindings = React.useRef({ ...defaultBindings });
 
   const [currentValues, setCurrentValues] = React.useState(
@@ -2567,7 +2598,7 @@ const StringDictPropEditor = observer(function StringDictPropEditor({
                 const newVal = event.target.value;
                 handleChange(idx, { key: newVal, value: fieldValue });
               }}
-              placeholder="Name"
+              placeholder={uiT("Name")}
               data-plasmic-prop={`${dataPlasmicProp}-key`}
             />
             {(() => {
@@ -2598,7 +2629,7 @@ const StringDictPropEditor = observer(function StringDictPropEditor({
                     }
                   }}
                   value={fieldValue}
-                  placeholder={"Value"}
+                  placeholder={uiT("Value")}
                   data-plasmic-prop={`${dataPlasmicProp}-value`}
                 />
               );
@@ -2621,7 +2652,7 @@ const StringDictPropEditor = observer(function StringDictPropEditor({
           setCurrentValues([...currentValues, { key: "", value: "" }]);
         }}
       >
-        <PlusIcon /> Add new
+        <PlusIcon /> <UiText message={"Add new"} />
       </div>
     </div>
   );
@@ -2800,7 +2831,10 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
                         setValue(undefined);
                       }}
                     >
-                      <strong>Unset</strong> {field.label ?? fieldName}
+                      <strong>
+                        <UiText message={"Unset"} />
+                      </strong>{" "}
+                      {field.label ?? fieldName}
                     </Menu.Item>,
                   );
                 });
@@ -2813,8 +2847,10 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
                       setExprValue(createExprForDataPickerValue("null"));
                     }}
                   >
-                    <strong>Set</strong> {field.label ?? fieldName} to{" "}
-                    <code>null</code>
+                    <strong>
+                      <UiText message={"Set"} />
+                    </strong>{" "}
+                    {field.label ?? fieldName} to <code>null</code>
                   </Menu.Item>,
                 );
               });
@@ -3096,7 +3132,7 @@ const JsonArrayWithSchemaEditor = observer(function JsonArrayWithSchemaEditor({
                 <div className={"baseline-friendly-centered-block-container"}>
                   <PlusIcon />
                 </div>{" "}
-                Add row
+                <UiText message={"Add row"} />
               </div>
             </FullRow>
           )}
@@ -3501,6 +3537,7 @@ export function DataSourcePicker({
   showRefreshButton,
   onRefreshClick,
 }: DataSourcePickerProps) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
 
@@ -3553,7 +3590,7 @@ export function DataSourcePicker({
           }}
           placeholder={
             isLoading
-              ? "Loading"
+              ? uiT("Loading")
               : `Select ${A_DATA_SOURCE_LOWER} from your workspace to use`
           }
           valueSetState={sourceId ? "isSet" : undefined}
@@ -3566,7 +3603,7 @@ export function DataSourcePicker({
             </StyleSelect.Option>
           ))}
           <StyleSelect.Option value={PICK_DIFFERENT_INTEGRATION_VALUE}>
-            Pick a different {DATA_SOURCE_LOWER}...
+            Pick a different {<UiLabel text={DATA_SOURCE_LOWER} />}...
           </StyleSelect.Option>
         </StyleSelect>
         {showRefreshButton && (
@@ -3618,6 +3655,7 @@ function GraphqlQueryFieldInner(props: {
   onClickReference: () => void;
   onChange: (query: string, extraState: any) => void;
 }) {
+  const { t: uiT } = useI18n();
   const { onClickReference, onChange } = props;
 
   // We need GraphqlQueryFieldInner because @graphiql/react hooks
@@ -3670,7 +3708,7 @@ function GraphqlQueryFieldInner(props: {
                 }}
               />
               <div className={"floating-inset-toolbar"}>
-                <Tooltip title={"Toggle explorer sidebar"}>
+                <Tooltip title={uiT("Toggle explorer sidebar")}>
                   <IconButton
                     className={"white-bg-unimp"}
                     withBackgroundHover
@@ -3679,7 +3717,7 @@ function GraphqlQueryFieldInner(props: {
                     <TreeIcon />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={"Prettify code"}>
+                <Tooltip title={uiT("Prettify code")}>
                   <IconButton
                     className={"white-bg-unimp"}
                     withBackgroundHover

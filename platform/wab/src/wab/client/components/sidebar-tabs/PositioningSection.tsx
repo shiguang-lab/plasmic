@@ -23,6 +23,8 @@ import StyleToggleButtonGroup from "@/wab/client/components/style-controls/Style
 import { AlignItemsControls } from "@/wab/client/components/style-controls/align-items-controls";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { isStylePropSet } from "@/wab/client/utils/style-utils";
 import {
   Axis,
@@ -52,18 +54,29 @@ export const PositioningPanelSection = observer(
                 tooltip={
                   this.studioCtx().focusedViewCtx()?.component.pageMeta ? (
                     <div>
-                      Positioning controls are disabled on root elements,
-                      because a page always takes up the full window.
+                      <UiText
+                        message={
+                          "Positioning controls are disabled on root elements, because a page always takes up the full window."
+                        }
+                      />
                     </div>
                   ) : (
                     <div>
-                      Positioning controls are disabled on root element.{" "}
-                      <strong>Set it on component instances instead.</strong>
+                      <UiText
+                        message={
+                          "Positioning controls are disabled on root element."
+                        }
+                      />{" "}
+                      <strong>
+                        <UiText
+                          message={"Set it on component instances instead."}
+                        />
+                      </strong>
                     </div>
                   )
                 }
               >
-                Position
+                <UiText message={"Position"} />
               </LabelWithDetailedTooltip>
             }
           />
@@ -140,7 +153,7 @@ export const PositioningPanelSection = observer(
         <>
           <StylePanelSection
             expsProvider={this.props.expsProvider}
-            title={"Position"}
+            title={<UiText message={"Position"} />}
             unremovableStyleProps={
               // You cannot remove "position" if you're a base variant
               exps instanceof TplExpsProvider &&
@@ -238,6 +251,7 @@ const AutoChildSettings = observer(function AutoChildSettings(props: {
   renderMaybeCollapsibleRows?: MaybeCollapsibleRowsRenderer;
   parentContainerType: ContainerType | undefined;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider, parentContainerType } = props;
   const parentExp = expsProvider.getTargetDeepLayoutParentRsh();
   const flexDir = maybe(
@@ -276,7 +290,7 @@ const AutoChildSettings = observer(function AutoChildSettings(props: {
               content: (
                 <FullRow twinCols>
                   <LabeledStyleDimItem
-                    label="Order"
+                    label={uiT("Order")}
                     styleName="order"
                     dimOpts={{
                       allowedUnits: NUMBER_UNITS,
@@ -424,6 +438,7 @@ const FixedChildSettings = observer(function FixedChildSettings({
 const GridChildSettings = observer(function GridChildSettings(props: {
   expsProvider: ExpsProvider;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const sc = expsProvider.studioCtx;
   const exp = () => expsProvider.mergedExp();
@@ -466,7 +481,7 @@ const GridChildSettings = observer(function GridChildSettings(props: {
   return (
     <>
       <LabeledStyleItemRow
-        label={"Placement"}
+        label={uiT("Placement")}
         styleName={["grid-row", "grid-column"]}
         labelSize="small"
       >
@@ -481,7 +496,7 @@ const GridChildSettings = observer(function GridChildSettings(props: {
       </LabeledStyleItemRow>
 
       <AlignItemsControls
-        label="Justify"
+        label={uiT("Justify")}
         expsProvider={expsProvider}
         prop="justify-self"
         dir="column"
@@ -490,7 +505,7 @@ const GridChildSettings = observer(function GridChildSettings(props: {
       />
 
       <AlignItemsControls
-        label="Align"
+        label={uiT("Align")}
         expsProvider={expsProvider}
         prop="align-self"
         dir="row"

@@ -2,6 +2,8 @@ import { getControlModePropType } from "@/wab/client/code-components/code-compon
 import { updateComponentMode } from "@/wab/client/code-components/simplified-mode";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import StyleSwitch from "@/wab/client/components/style-controls/StyleSwitch";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
 import { ensureBaseVariantSetting } from "@/wab/shared/Variants";
@@ -16,6 +18,7 @@ export const SimplifiedCodeComponentModeSection = observer(function (props: {
   tpl: TplComponent;
   viewCtx: ViewCtx;
 }) {
+  const { t: uiT } = useI18n();
   const { tpl, viewCtx } = props;
 
   const baseVs = ensureBaseVariantSetting(tpl);
@@ -39,13 +42,13 @@ export const SimplifiedCodeComponentModeSection = observer(function (props: {
     await updateComponentMode(tpl, viewCtx, param, newMode);
   };
   return (
-    <SidebarSection title="Component mode" id="component-mode-section">
+    <SidebarSection title={uiT("Component mode")} id="component-mode-section">
       <StyleSwitch
         isChecked={getMode(modeArg?.expr) === "simplified"}
         onChange={(value) => spawn(onChange(value ? "simplified" : "advanced"))}
         data-plasmic-prop="simplified-mode-toggle"
       >
-        Simplified
+        <UiText message={"Simplified"} />
       </StyleSwitch>
     </SidebarSection>
   );

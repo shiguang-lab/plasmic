@@ -16,6 +16,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { DropdownTooltip } from "@/wab/client/components/widgets/DropdownTooltip";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import ChevronLeftsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronLeftSvg";
 import ChevronRightsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronRightSvg";
@@ -40,10 +41,7 @@ type FlexArrangement = "row" | "column";
 
 type AlignmentType = "with-axis" | "cross-axis" | "wrap-content";
 type AlignmentProp =
-  | "justify-content"
-  | "align-items"
-  | "align-content"
-  | "justify-items";
+  "justify-content" | "align-items" | "align-content" | "justify-items";
 
 type FlexAlignmentStyles = Partial<Record<AlignmentProp, FlexOptions>>;
 type FlexConfig = {
@@ -256,6 +254,7 @@ interface FlexContainerControlsProps {
 }
 
 function FlexContainerControls_(props: FlexContainerControlsProps) {
+  const { t: uiT } = useI18n();
   const styling = useStyleComponent();
   const studioCtx = useStudioCtx();
   const {
@@ -374,7 +373,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
         showColumnGapControls && (
           <FullRow key="col">
             <LabeledStyleDimItem
-              label={"Cols gap"}
+              label={uiT("Cols gap")}
               {...getGapFieldProps("column-gap")}
             />
           </FullRow>
@@ -382,7 +381,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
         showRowGapControls && (
           <FullRow key="row">
             <LabeledStyleDimItem
-              label={"Rows gap"}
+              label={uiT("Rows gap")}
               {...getGapFieldProps("row-gap")}
             />
           </FullRow>
@@ -391,15 +390,15 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
       <FullRow twinCols>
         <LabeledStyleSwitchItem
           styleName="flex-wrap"
-          label="Wrap"
+          label={uiT("Wrap")}
           value={isWrap}
           onChange={toggleWrap}
         />
         {isWrap && (
           <LabeledStyleSwitchItem
-            tooltip="Wrap reverse"
+            tooltip={uiT("Wrap reverse")}
             styleName="flex-wrap"
-            label="Reverse"
+            label={uiT("Reverse")}
             value={isWrapReverse}
             onChange={toggleWrapReverse}
           />
@@ -412,7 +411,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
             <FullRow className={S.flexTogglers}>
               <LabeledStyleSwitchItem
                 styleName="flex-reverse"
-                label="Reverse items"
+                label={uiT("Reverse items")}
                 value={isReverse}
                 onChange={toggleReverse}
               />

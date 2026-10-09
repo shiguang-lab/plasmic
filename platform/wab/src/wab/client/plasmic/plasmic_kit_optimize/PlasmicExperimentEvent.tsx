@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: fjdDZovo7S
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -167,7 +168,7 @@ function PlasmicExperimentEvent__RenderFunc(props: {
             ),
           })}
         >
-          {"Event ID"}
+          {<UiText message={"Event ID"} />}
         </div>
       </div>
       <Textbox

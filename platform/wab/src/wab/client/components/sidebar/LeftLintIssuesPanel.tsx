@@ -8,6 +8,7 @@ import Button from "@/wab/client/components/widgets/Button";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { getInvalidDomNesting } from "@/wab/client/lint-invalid-nesting-dom";
 import {
   getLintIssueIcon,
@@ -208,7 +209,9 @@ const SiteIssuesList = observer(function SiteIssuesList() {
                 className={"flex-no-shrink"}
                 onClick={(e) => e.preventDefault()}
               >
-                <Space>Types</Space>
+                <Space>
+                  <UiText message={"Types"} />
+                </Space>
               </a>
             </Popover>
           </div>

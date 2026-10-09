@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   isKnownRandomSplitSlice,
   isKnownSegmentSplitSlice,
@@ -180,7 +181,9 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
             }
           },
           children: [
-            <Select.Option value="running">Running</Select.Option>,
+            <Select.Option value="running">
+              <UiText message={"Running"} />
+            </Select.Option>,
             <Select.Option value="stopped">Stopped</Select.Option>,
           ],
         },

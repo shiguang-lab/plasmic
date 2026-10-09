@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: tccr1SFVw_AY
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -198,7 +199,7 @@ function PlasmicCommentsDialogHead__RenderFunc(props: {
           data-plasmic-override={overrides.name}
           className={classNames("all", "__wab_text", sty.name)}
         >
-          {"Heading"}
+          {<UiText message={"Heading"} />}
         </div>
       }
       subheading={

@@ -1,4 +1,6 @@
 import { ValueViewer } from "@/wab/client/components/coding/ValueViewer";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { cx } from "@/wab/shared/common";
 import { summarizeVal } from "@/wab/shared/core/vals";
@@ -46,6 +48,7 @@ type ValuePreviewProps = {
 };
 
 export function ValuePreview(props: ValuePreviewProps) {
+  const { t: uiT } = useI18n();
   const isLoading = props.isLoading && !props.val && !props.err;
   const Tag = props.onClick ? "a" : "div";
   return (
@@ -66,7 +69,7 @@ export function ValuePreview(props: ValuePreviewProps) {
       })}
     >
       {isLoading ? (
-        "Loading..."
+        <UiText message={"Loading..."} />
       ) : props.err ? (
         <Tooltip title={props.err.message ?? `${props.err}`}>
           <span>Error: {props.err.message ?? `${props.err}`}</span>
@@ -74,7 +77,7 @@ export function ValuePreview(props: ValuePreviewProps) {
       ) : (
         <MaybeWrap
           cond={!!props.onClick}
-          wrapper={(x) => <Tooltip title="Inspect data">{x}</Tooltip>}
+          wrapper={(x) => <Tooltip title={uiT("Inspect data")}>{x}</Tooltip>}
         >
           {summarizeVal(props.val ?? props.err)}
         </MaybeWrap>

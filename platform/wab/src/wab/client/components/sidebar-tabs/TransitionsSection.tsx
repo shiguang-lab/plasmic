@@ -15,14 +15,15 @@ import {
   ListBoxItem,
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
+import { RSH } from "@/wab/shared/RuleSetHelpers";
+import { isBaseVariant, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
 import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
 import { assert, ensure, maybe, tuple, uniqueKey } from "@/wab/shared/common";
 import { transitionProps } from "@/wab/shared/core/style-props";
 import { getCssInitial } from "@/wab/shared/css";
 import { joinCssValues, splitCssValue } from "@/wab/shared/css/parse";
-import { RSH } from "@/wab/shared/RuleSetHelpers";
-import { isBaseVariant, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
 import { observer } from "mobx-react";
 import React, { createRef } from "react";
 
@@ -164,7 +165,7 @@ class _TransitionsPanelSection extends StyleComponent<
         key={String(transitions.length > 0)}
         ref={this.sectionRef}
         expsProvider={this.props.expsProvider}
-        title="Transitions"
+        title={<UiText message={"Transitions"} />}
         styleProps={transitionProps}
         onHeaderClick={transitions.length === 0 ? addTransition : undefined}
         controls={
@@ -230,7 +231,7 @@ class _TransitionsPanelSection extends StyleComponent<
                       mainContent={
                         <div className="labeled-item labeled-item--horizontal--vcenter">
                           <div className="labeled-item__label labeled-item__label--horizontal">
-                            Property
+                            <UiText message={"Property"} />
                           </div>
                           <code>{transition.transitionProperty}</code>
                         </div>

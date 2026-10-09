@@ -11,6 +11,8 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: Coj9xtPv-Oc
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -110,6 +112,7 @@ function PlasmicNewVariable__RenderFunc(props: {
   overrides: PlasmicNewVariable__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -284,7 +287,7 @@ function PlasmicNewVariable__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___7B2Br)}
                 >
-                  {"Variable name"}
+                  {<UiText message={"Variable name"} />}
                 </div>
               }
               layout={"vertical"}
@@ -348,7 +351,7 @@ function PlasmicNewVariable__RenderFunc(props: {
                 return;
               }
             }}
-            placeholder={"Placeholder\u2026"}
+            placeholder={uiT("Placeholder…")}
             value={generateStateValueProp($state, ["variableType", "value"])}
             valueSetState={"isSet"}
           >
@@ -386,7 +389,7 @@ function PlasmicNewVariable__RenderFunc(props: {
           defaultContents: (
             <LabeledItem
               className={classNames("__wab_instance", sty.labeledItem__yQqyl)}
-              label={"Initial Value"}
+              label={uiT("Initial Value")}
               layout={"vertical"}
               value={
                 <Textbox
@@ -544,7 +547,7 @@ function PlasmicNewVariable__RenderFunc(props: {
                   return;
                 }
               }}
-              placeholder={"Placeholder\u2026"}
+              placeholder={uiT("Placeholder…")}
               value={generateStateValueProp($state, [
                 "accessTypeSelect",
                 "value",
@@ -594,7 +597,7 @@ function PlasmicNewVariable__RenderFunc(props: {
             />
           }
         >
-          {"Cancel"}
+          {<UiText message={"Cancel"} />}
         </Button>
         <Button
           data-plasmic-name={"confirmButton"}
@@ -615,7 +618,7 @@ function PlasmicNewVariable__RenderFunc(props: {
           }
           type={["primary"]}
         >
-          {"Confirm"}
+          {<UiText message={"Confirm"} />}
         </Button>
       </div>
     </div>

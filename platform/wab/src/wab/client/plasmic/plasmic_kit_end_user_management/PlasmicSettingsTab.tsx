@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: bRXkugOm8Ra
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -129,7 +130,7 @@ function PlasmicSettingsTab__RenderFunc(props: {
             data-plasmic-override={overrides.providerLabel}
             className={classNames("all", "__wab_text", sty.providerLabel)}
           >
-            {"Provider"}
+            {<UiText message={"Provider"} />}
           </div>
         </div>
         <div className={classNames("all", sty.column__rW0DU)}>
@@ -154,7 +155,7 @@ function PlasmicSettingsTab__RenderFunc(props: {
             data-plasmic-override={overrides.directoryLabel}
             className={classNames("all", "__wab_text", sty.directoryLabel)}
           >
-            {"User directory"}
+            {<UiText message={"User directory"} />}
           </div>
         </div>
         <div className={classNames("all", sty.column__gHt5R)}>
@@ -186,7 +187,7 @@ function PlasmicSettingsTab__RenderFunc(props: {
               type={["clear"]}
               withIcons={["endIcon"]}
             >
-              {"Manage"}
+              {<UiText message={"Manage"} />}
             </Button>
           </div>
         </div>
@@ -198,7 +199,7 @@ function PlasmicSettingsTab__RenderFunc(props: {
             data-plasmic-override={overrides.rolesLabel}
             className={classNames("all", "__wab_text", sty.rolesLabel)}
           >
-            {"Roles"}
+            {<UiText message={"Roles"} />}
           </div>
         </div>
         <div className={classNames("all", sty.column__bdpF)}>
@@ -240,7 +241,7 @@ function PlasmicSettingsTab__RenderFunc(props: {
               data-plasmic-override={overrides.defaultRoleLabel}
               className={classNames("all", "__wab_text", sty.defaultRoleLabel)}
             >
-              {"Default min role"}
+              {<UiText message={"Default min role"} />}
             </div>
           </div>
           <div className={classNames("all", sty.column__f3Cki)}>

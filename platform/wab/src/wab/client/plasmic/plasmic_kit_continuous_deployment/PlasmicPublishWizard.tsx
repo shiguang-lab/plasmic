@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: JhFt3V1Imn
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -133,10 +134,10 @@ function PlasmicPublishWizard__RenderFunc(props: {
           <div className={classNames("all", sty.freeBox__q75N)}>
             <div className={classNames("all", sty.freeBox__nblJd)}>
               <div className={classNames("all", "__wab_text", sty.text__qzEe)}>
-                {"Welcome to your new project!"}
+                {<UiText message={"Welcome to your new project!"} />}
               </div>
               <div className={classNames("all", "__wab_text", sty.text__xWr3)}>
-                {"Publish to a GitHub repo and JAMstack website."}
+                {<UiText message={"Publish to a GitHub repo and JAMstack website."} />}
               </div>
             </div>
             <IconButton
@@ -178,7 +179,7 @@ function PlasmicPublishWizard__RenderFunc(props: {
               type={["clear"]}
             >
               <div className={classNames("all", "__wab_text", sty.text___0QRy)}>
-                {"Do this later"}
+                {<UiText message={"Do this later"} />}
               </div>
             </Button>
             <Button
@@ -200,7 +201,7 @@ function PlasmicPublishWizard__RenderFunc(props: {
               }
               type={["primary"]}
             >
-              {"Connect to GitHub"}
+              {<UiText message={"Connect to GitHub"} />}
             </Button>
           </div>
         </div>

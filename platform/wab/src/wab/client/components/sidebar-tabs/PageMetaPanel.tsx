@@ -5,6 +5,7 @@ import {
 import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
+import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkSectionUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -32,6 +33,7 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
   viewCtx: ViewCtx;
   page: PageComponent;
 }) {
+  const { t: uiT } = useI18n();
   const { page, viewCtx } = props;
   const sc = useStudioCtx();
 
@@ -44,7 +46,7 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
     <SidebarSection style={{ paddingTop: 12 }} id="sidebar-page-meta">
       <LabeledItemRow
         uiId={mkSectionUiId("PageMetaUrl")}
-        label="URL path"
+        label={uiT("URL path")}
         data-test-id="page-path"
       >
         <StringPropEditor
@@ -56,7 +58,7 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
       </LabeledItemRow>
       <PropEditorRow
         attr="title"
-        label="Title"
+        label={uiT("Title")}
         propType={{ type: "string", defaultValueHint: "Title" }}
         expr={titleExpr}
         onChange={(expr: Expr | undefined) => {

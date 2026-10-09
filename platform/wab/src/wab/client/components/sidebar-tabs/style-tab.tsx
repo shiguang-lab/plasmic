@@ -24,6 +24,7 @@ import {
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import SlotIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Slot";
 import { selectionPath } from "@/wab/client/selection-context";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -182,7 +183,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
       const isRoot = tpl === component.tplTree;
       const applicableSelectors = getApplicableSelectors(tpl.tag, true, isRoot);
 
-      builder.genSub("Animations", (push) => {
+      builder.genSub(<UiText message={"Animations"} />, (push) => {
         push(
           <Menu.Item
             key="base"
@@ -191,7 +192,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
               setNewAnimation({ type: "base" });
             }}
           >
-            Base
+            <UiText message={"Base"} />
           </Menu.Item>,
         );
 
@@ -243,7 +244,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
             key="private-style-variants"
             onClick={() => setShowPrivateStyleVariants(true)}
           >
-            {PRIVATE_STYLE_VARIANTS_CAP}
+            {<UiLabel text={PRIVATE_STYLE_VARIANTS_CAP} />}
           </Menu.Item>,
         );
       });
@@ -254,7 +255,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
       builder.genSection(undefined, (push) => {
         push(
           <Menu.Item key="mixins" onClick={() => setShowMixins(true)}>
-            {MIXINS_CAP}
+            {<UiLabel text={MIXINS_CAP} />}
           </Menu.Item>,
         );
       });
@@ -552,7 +553,7 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
                 })
               }
             >
-              Revert to default slot content
+              <UiText message={"Revert to default slot content"} />
             </Button>
           </SidebarSection>
         )}
@@ -661,7 +662,10 @@ function NonBaseVariantTransitionsMessage_() {
       message={
         <div>
           The transitions style is always applied to the{" "}
-          <a onClick={handleBaseVariantLinkClick}>Base variant</a>.
+          <a onClick={handleBaseVariantLinkClick}>
+            <UiText message={"Base variant"} />
+          </a>
+          .
         </div>
       }
     />

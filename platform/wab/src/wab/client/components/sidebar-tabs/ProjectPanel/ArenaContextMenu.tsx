@@ -1,5 +1,7 @@
 import { menuSection } from "@/wab/client/components/menu-builder";
 import { promptDeleteComponent } from "@/wab/client/components/modals/componentDeletionModal";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
   AnyArena,
@@ -68,6 +70,7 @@ export function ArenaContextMenu({
   onSelectRename?: () => void;
   onClose?: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const currentArena = studioCtx.currentArena;
   const component = isDedicatedArena(arena) ? arena.component : undefined;
 
@@ -220,7 +223,10 @@ export function ArenaContextMenu({
           hidden={!shouldShowItem.findReferences}
           onClick={onFindReferences}
         >
-          <strong>Find</strong> all references
+          <strong>
+            <UiText message={"Find"} />
+          </strong>{" "}
+          all references
         </Menu.Item>,
       )}
       {menuSection(
@@ -233,7 +239,10 @@ export function ArenaContextMenu({
               onSelectRename();
             }}
           >
-            <strong>Rename</strong> {getSiteItemTypeName(arena)}
+            <strong>
+              <UiText message={"Rename"} />
+            </strong>{" "}
+            {getSiteItemTypeName(arena)}
           </Menu.Item>
         ) : null,
         <Menu.Item
@@ -241,7 +250,10 @@ export function ArenaContextMenu({
           hidden={!shouldShowItem.duplicate}
           onClick={onDuplicate}
         >
-          <strong>Duplicate</strong> {getSiteItemTypeName(arena)}
+          <strong>
+            <UiText message={"Duplicate"} />
+          </strong>{" "}
+          {getSiteItemTypeName(arena)}
         </Menu.Item>,
       )}
       {menuSection(
@@ -251,21 +263,30 @@ export function ArenaContextMenu({
           hidden={!shouldShowItem.editInNewArtboard}
           onClick={onRequestEditingInNewArtboard}
         >
-          <strong>Edit</strong> in new artboard
+          <strong>
+            <UiText message={"Edit"} />
+          </strong>{" "}
+          in new artboard
         </Menu.Item>,
         <Menu.Item
           key="convertToComponent"
           hidden={!shouldShowItem.convertToComponent}
           onClick={onConvertToComponent}
         >
-          <strong>Convert</strong> to reusable component
+          <strong>
+            <UiText message={"Convert"} />
+          </strong>{" "}
+          to reusable component
         </Menu.Item>,
         <Menu.Item
           key="convertToPage"
           hidden={!shouldShowItem.convertToPage}
           onClick={onConvertToPage}
         >
-          <strong>Convert</strong> to page component
+          <strong>
+            <UiText message={"Convert"} />
+          </strong>{" "}
+          to page component
         </Menu.Item>,
       )}
       {shouldShowItem.replaceAllInstances &&
@@ -275,7 +296,10 @@ export function ArenaContextMenu({
             key="replaceAllInstances"
             title={
               <span>
-                <strong>Replace</strong> all instances of this component with...
+                <strong>
+                  <UiText message={"Replace"} />
+                </strong>{" "}
+                all instances of this component with...
               </span>
             }
           >
@@ -289,7 +313,10 @@ export function ArenaContextMenu({
             key="replaceAllLinks"
             title={
               <span>
-                <strong>Replace</strong> all links to this page with...
+                <strong>
+                  <UiText message={"Replace"} />
+                </strong>{" "}
+                all links to this page with...
               </span>
             }
           >
@@ -303,17 +330,20 @@ export function ArenaContextMenu({
           onClick={onDelete}
           hidden={!shouldShowItem.delete}
         >
-          <strong>Delete</strong> {getSiteItemTypeName(arena)}
+          <strong>
+            <UiText message={"Delete"} />
+          </strong>{" "}
+          {getSiteItemTypeName(arena)}
         </Menu.Item>,
       )}
       {isAdmin &&
         menuSection(
           "debug",
-          <Menu.SubMenu key="debug" title={"Debug"}>
+          <Menu.SubMenu key="debug" title={uiT("Debug")}>
             {component && (
               <Menu.SubMenu
                 key="site-splitting"
-                title="Site-splitting utilities"
+                title={uiT("Site-splitting utilities")}
               >
                 {isPageComponent(component) && (
                   <Menu.Item
@@ -336,7 +366,10 @@ export function ArenaContextMenu({
                       )
                     }
                   >
-                    <strong>Delete</strong> page, but convert PageHref to links
+                    <strong>
+                      <UiText message={"Delete"} />
+                    </strong>{" "}
+                    page, but convert PageHref to links
                   </Menu.Item>
                 )}
               </Menu.SubMenu>

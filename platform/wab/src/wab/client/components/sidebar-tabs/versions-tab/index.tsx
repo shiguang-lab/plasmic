@@ -2,6 +2,7 @@ import { promptPublishProj } from "@/wab/client/components/modals/UpgradeDepModa
 import { RevisionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/RevisionsList";
 import { VersionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/VersionsList";
 import { Matcher } from "@/wab/client/components/view-common";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftVersionsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftVersionsPanel";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
@@ -55,7 +56,7 @@ export const VersionsTab = observer(function VersionsTab(
       >
         <Spin size="small" className="ml-sm" />
         <div className="flex-fill ml-sm text-ellipsis text-unselectable">
-          A new version is being published
+          <UiText message={"A new version is being published"} />
         </div>
       </div>
     );
@@ -130,8 +131,10 @@ export const VersionsTab = observer(function VersionsTab(
           ? {
               alert: (
                 <div>
-                  Newest changes haven't been published.{" "}
-                  <a onClick={props.dismissVersionsCTA}>[Dismiss]</a>
+                  <UiText message={"Newest changes haven't been published."} />{" "}
+                  <a onClick={props.dismissVersionsCTA}>
+                    <UiText message={"[Dismiss]"} />
+                  </a>
                 </div>
               ),
             }

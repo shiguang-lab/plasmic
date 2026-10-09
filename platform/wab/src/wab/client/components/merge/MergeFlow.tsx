@@ -12,6 +12,8 @@ import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultMergeFlowProps,
   PlasmicMergeFlow,
@@ -77,8 +79,7 @@ interface MergeModalWrapperProps {
   project: ApiProject;
   editorPerm: boolean;
   latestPublishedVersionData:
-    | { revisionId: string; version: string }
-    | undefined;
+    { revisionId: string; version: string } | undefined;
   revisionNum: number;
   mergeModalContext: MergeModalContext | undefined;
   setMergeModalContext: (val: MergeModalContext | undefined) => Promise<void>;
@@ -137,6 +138,7 @@ function MergeFlow_(
   }: MergeFlowProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
   const api = appCtx.api;
   const projectId = project.id;
@@ -471,7 +473,8 @@ function MergeFlow_(
         return (
           <LineItem icon={objIcon(semverItem)}>
             <span>
-              Page <strong>{getComponentDisplayName(rec.mergedInst)}</strong> (
+              <UiText message={"Page"} />{" "}
+              <strong>{getComponentDisplayName(rec.mergedInst)}</strong> (
               <code>{rec.origPath}</code>) has a conflicting path, so we renamed
               it to <code>{rec.newPath}</code>
             </span>
@@ -616,7 +619,7 @@ function MergeFlow_(
                 <Select
                   mode="tags"
                   style={{ width: "100%" }}
-                  placeholder="Enter the tags here (optional) ..."
+                  placeholder={uiT("Enter the tags here (optional) ...")}
                   onChange={setTags}
                   tokenSeparators={[","]}
                 >

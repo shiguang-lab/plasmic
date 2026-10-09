@@ -9,6 +9,7 @@ import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { LocalizationConfig } from "@/wab/shared/localization";
@@ -81,7 +82,9 @@ export const EnableLocalizationModal = observer(
                     type="bordered"
                   >
                     <Select.Option value="path">Path</Select.Option>
-                    <Select.Option value="content">Content</Select.Option>
+                    <Select.Option value="content">
+                      <UiText message={"Content"} />
+                    </Select.Option>
                     <Select.Option value="hash">Hash</Select.Option>
                   </Select>
                 </Form.Item>
@@ -101,9 +104,11 @@ export const EnableLocalizationModal = observer(
                 type="primary"
                 autoFocus
               >
-                Confirm
+                <UiText message={"Confirm"} />
               </Button>
-              <Button onClick={() => onDone()}>Cancel</Button>
+              <Button onClick={() => onDone()}>
+                <UiText message={"Cancel"} />
+              </Button>
             </Form.Item>
           </Form>
         </FocusScope>

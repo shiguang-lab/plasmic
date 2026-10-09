@@ -11,6 +11,8 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: YP664uas0Q
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -136,6 +138,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
   overrides: PlasmicActionBuilder__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -612,7 +615,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                         sty.text__f4LVu
                       )}
                     >
-                      {"Action"}
+                      {<UiText message={"Action"} />}
                     </div>
                   }
                   layout={"vertical"}
@@ -643,7 +646,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                           return;
                         }
                       }}
-                      placeholder={"Select..."}
+                      placeholder={uiT("Select...")}
                       value={generateStateValueProp($state, [
                         "actionType",
                         "value",
@@ -670,7 +673,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                               sty.text__iBtM5
                             )}
                           >
-                            {"Value"}
+                            {<UiText message={"Value"} />}
                           </div>
                         }
                         layout={"vertical"}
@@ -710,7 +713,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                               sty.text__a8Ca9
                             )}
                           >
-                            {"Variable"}
+                            {<UiText message={"Variable"} />}
                           </div>
                         }
                         layout={"vertical"}
@@ -777,7 +780,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___1QIqN)}
               >
-                {"Run this step"}
+                {<UiText message={"Run this step"} />}
               </div>
               <StyleToggleButtonGroup
                 data-plasmic-name={"conditionalMode"}
@@ -809,7 +812,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__zKDe6)}
                   >
-                    {"Always"}
+                    {<UiText message={"Always"} />}
                   </div>
                 </StyleToggleButton>
                 <StyleToggleButton
@@ -826,7 +829,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__rTcr)}
                   >
-                    {"Never"}
+                    {<UiText message={"Never"} />}
                   </div>
                 </StyleToggleButton>
                 <StyleToggleButton
@@ -938,7 +941,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                 />
               }
             >
-              {"Cancel"}
+              {<UiText message={"Cancel"} />}
             </Button>
             <Button
               data-plasmic-name={"saveBtn"}
@@ -964,7 +967,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
               }
               type={["primary"]}
             >
-              {"Save"}
+              {<UiText message={"Save"} />}
             </Button>
           </div>
         ) : null}

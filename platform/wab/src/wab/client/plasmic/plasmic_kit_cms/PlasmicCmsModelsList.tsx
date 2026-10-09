@@ -11,6 +11,8 @@
 // Plasmic Project: ieacQ3Z46z4gwo1FnaB5vY
 // Component: M3aa84scyXT
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -90,6 +92,7 @@ function PlasmicCmsModelsList__RenderFunc(props: {
   overrides: PlasmicCmsModelsList__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -244,7 +247,7 @@ function PlasmicCmsModelsList__RenderFunc(props: {
             data-plasmic-name={"searchInput"}
             data-plasmic-override={overrides.searchInput}
             className={classNames("__wab_instance", sty.searchInput)}
-            placeholder={"Filter..."}
+            placeholder={uiT("Filter...")}
           />
         </div>
         {(hasVariant($state, "isEmpty", "isEmpty") ? false : true) ? (
@@ -288,7 +291,7 @@ function PlasmicCmsModelsList__RenderFunc(props: {
             ),
           })}
         >
-          {"No models have been created."}
+          {<UiText message={"No models have been created."} />}
         </div>
       </div>
       {(
@@ -315,7 +318,7 @@ function PlasmicCmsModelsList__RenderFunc(props: {
           isLast={true}
           title={
             <div className={classNames("all", "__wab_text", sty.text__r8NEf)}>
-              {"Archived models"}
+              {<UiText message={"Archived models"} />}
             </div>
           }
         >
@@ -374,7 +377,7 @@ function PlasmicCmsModelsList__RenderFunc(props: {
                 ),
               })}
             >
-              {"No models have been created."}
+              {<UiText message={"No models have been created."} />}
             </div>
           </div>
         </ListSection>

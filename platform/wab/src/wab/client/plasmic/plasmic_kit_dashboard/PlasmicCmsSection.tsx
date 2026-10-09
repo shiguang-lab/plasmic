@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 54ykx6A8G6T
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -332,7 +333,7 @@ function PlasmicCmsSection__RenderFunc(props: {
               href={"#"}
               platform={"react"}
             >
-              {"Back"}
+              {<UiText message={"Back"} />}
             </PlasmicLink__>
             <EditableResourceName
               data-plasmic-name={"editableName"}
@@ -376,7 +377,7 @@ function PlasmicCmsSection__RenderFunc(props: {
                 ),
               })}
             >
-              {"Read-only"}
+              {<UiText message={"Read-only"} />}
             </div>
             <div className={classNames("all", sty.freeBox__qR4PO)}>
               <div
@@ -449,7 +450,7 @@ function PlasmicCmsSection__RenderFunc(props: {
             type={[]}
             withIcons={["startIcon"]}
           >
-            {"New"}
+            {<UiText message={"New"} />}
           </Button>
           <MenuButton
             data-plasmic-name={"moreButton"}
@@ -472,7 +473,7 @@ function PlasmicCmsSection__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___5CnRl)}
               >
-                {"This workspace has no projects."}
+                {<UiText message={"This workspace has no projects."} />}
               </div>
             ),
             value: args.noProjectsText,

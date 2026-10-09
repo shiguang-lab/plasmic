@@ -19,6 +19,8 @@ import {
   PropValueEditor,
   shouldEditAsTemplatedString,
 } from "@/wab/client/components/sidebar-tabs/PropValueEditor";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import WarningIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import { ok } from "neverthrow";
 
@@ -125,7 +127,6 @@ import { tryEvalExpr } from "@/wab/shared/eval";
 import { makeDataTokenIdentifier } from "@/wab/shared/eval/expression-parser";
 import { getFolderDisplayName } from "@/wab/shared/folders/folders-util";
 import { getInputTypeOptions } from "@/wab/shared/html-utils";
-import { RESET_CAP } from "@/wab/shared/Labels";
 import { isLinkCompatible } from "@/wab/shared/linked-props";
 import {
   getChoicePropOptions,
@@ -674,6 +675,7 @@ export interface PropEditorRef {
 export const InnerPropEditorRow = observer(InnerPropEditorRow_);
 
 function InnerPropEditorRow_(props: PropEditorRowProps) {
+  const { t: uiT } = useI18n();
   const {
     about = maybePropTypeToAbout(props.propType),
     label,
@@ -923,7 +925,13 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
         ) &&
         !["functionArgs"].includes(getPropTypeType(propType) ?? "") && (
           <Menu.Item onClick={onDelete}>
-            {RESET_CAP} <strong>{label}</strong> {labelType}
+            <UiText
+              message="Remove {name} {type}"
+              values={{
+                name: <strong>{label}</strong>,
+                type: <UiLabel text={labelType} />,
+              }}
+            />
           </Menu.Item>
         )}
       {!readOnly &&
@@ -937,7 +945,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
             }
           >
             <span>
-              Unset default value for component prop{" "}
+              <UiText message={"Unset default value for component prop"} />{" "}
               <strong>
                 {getComponentDisplayName(ownerComponent)}.
                 {referencedParam.variable.name}
@@ -977,7 +985,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
             key={"customCode"}
             onClick={onUseDynamicValueClick}
           >
-            Use dynamic value
+            <UiText message={"Use dynamic value"} />
           </Menu.Item>
         )}
       {!readOnly &&
@@ -986,7 +994,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
         !showFallback &&
         !disableFallback && (
           <Menu.Item key={"fallback"} onClick={() => setShowFallback(true)}>
-            Change fallback value
+            <UiText message={"Change fallback value"} />
           </Menu.Item>
         )}
       {!readOnly &&
@@ -1010,7 +1018,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
               setShowFallback(false);
             }}
           >
-            Remove fallback value
+            <UiText message={"Remove fallback value"} />
           </Menu.Item>
         )}
       {!readOnly &&
@@ -1028,7 +1036,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
               setShowFallback(false);
             }}
           >
-            Remove dynamic value
+            <UiText message={"Remove dynamic value"} />
           </Menu.Item>
         )}
     </Menu>
@@ -1195,12 +1203,15 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
             {invalidArg ? (
               <WarnInvalid message={getInvalidArgErrorMessage(invalidArg)} />
             ) : invalidVal ? (
-              <WarnInvalid message="Prop value not allowed" />
+              <WarnInvalid message={uiT("Prop value not allowed")} />
             ) : referencedParam && linkDrift ? (
               <WarnInvalid
-                message={`Type mismatch with linked prop "${
-                  referencedParam.variable.name
-                }"${onReconcileLink ? ". Click to update." : ""}`}
+                message={uiT(
+                  onReconcileLink
+                    ? 'Type mismatch with linked prop "{name}". Click to update.'
+                    : 'Type mismatch with linked prop "{name}"',
+                  { name: referencedParam.variable.name },
+                )}
                 onClick={onReconcileLink}
               />
             ) : null}
@@ -1254,7 +1265,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     showDynamicValueButton={showDynamicValueButton}
                     tooltip={
                       isEditedAsTemplatedString
-                        ? "Append dynamic value"
+                        ? uiT("Append dynamic value")
                         : undefined
                     }
                     onIndicatorClickDefault={onUseDynamicValueClick}
@@ -1426,6 +1437,7 @@ function PageHrefRows({
   maybeWrapExpr,
   onChange,
 }: PageHrefRowsProps) {
+  const { t: uiT } = useI18n();
   const meta = ensure(
     expr.page.pageMeta,
     "PageHref is expected to contain a page",
@@ -1526,7 +1538,7 @@ function PageHrefRows({
           expr={expr.fragment}
           attr={"fragment"}
           propType={"string"}
-          label={"Fragment"}
+          label={uiT("Fragment")}
           onChange={(paramValue) => {
             updatePageHrefField({ type: "Fragment", paramValue });
           }}
@@ -1562,7 +1574,9 @@ function PageHrefRows({
               </div>
             }
           >
-            <span className="text-set">Add Query</span>
+            <span className="text-set">
+              <UiText message={"Add Query"} />
+            </span>
           </Button>
         </HrefQueryPopover>
         {expr.fragment == null && (
@@ -1585,7 +1599,9 @@ function PageHrefRows({
               onChange(maybeWrapExpr(newExpr));
             }}
           >
-            <span className="text-set">Add Fragment</span>
+            <span className="text-set">
+              <UiText message={"Add Fragment"} />
+            </span>
           </Button>
         )}
       </div>
@@ -1604,7 +1620,7 @@ function PageHrefRows({
                   </>
                 }
               >
-                Encode?
+                <UiText message={"Encode?"} />
               </LabelWithDetailedTooltip>
             }
             noMenuButton
@@ -1630,11 +1646,12 @@ function PageHrefRows({
 }
 
 function PageHrefPreview(props: EvalPageHrefProps) {
+  const { t: uiT } = useI18n();
   const { val, err } = evalPageHrefPath(props);
   return (
     <LabeledItemRow
       data-test-id={`prop-editor-row-href-preview`}
-      label={"Preview"}
+      label={uiT("Preview")}
       noMenuButton
     >
       <div className="flex flex-vcenter justify-start flex-fill text-wrap selectable-text token-ref-cycle-item">

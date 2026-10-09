@@ -1,13 +1,15 @@
 import { useNonAuthCtx } from "@/wab/client/app-ctx";
+import { PublicLink } from "@/wab/client/components/PublicLink";
+import { useAdminCtx } from "@/wab/client/components/pages/admin/AdminCtx";
+import { AdminUserSelect } from "@/wab/client/components/pages/admin/AdminUserSelect";
+import { AdminUserTable } from "@/wab/client/components/pages/admin/AdminUserTable";
 import {
   AutoInfo,
   smartRender,
 } from "@/wab/client/components/pages/admin/admin-util";
-import { useAdminCtx } from "@/wab/client/components/pages/admin/AdminCtx";
-import { AdminUserSelect } from "@/wab/client/components/pages/admin/AdminUserSelect";
-import { AdminUserTable } from "@/wab/client/components/pages/admin/AdminUserTable";
-import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   ApiFeatureTier,
   ApiPermission,
@@ -32,10 +34,10 @@ import {
   Input,
   /* eslint-disable-next-line no-restricted-imports */
   Modal,
-  notification,
   Select,
   Table,
   Tabs,
+  notification,
 } from "antd";
 import React, { useMemo, useState } from "react";
 
@@ -81,7 +83,11 @@ export function AdminTeamsView() {
           title={
             <div className="flex-col">
               <h1 className="m0">
-                {data ? `Team: ${data.team.name}` : "Loading..."}
+                {data ? (
+                  `Team: ${data.team.name}`
+                ) : (
+                  <UiText message={"Loading..."} />
+                )}
               </h1>
               <pre className="text-xsm dimfg">{teamId}</pre>
             </div>
@@ -283,6 +289,7 @@ interface TeamProps {
 }
 
 function TeamDetail(props: TeamProps) {
+  const { t: uiT } = useI18n();
   return (
     <div className="flex-col gap-xlg">
       <Tabs
@@ -294,7 +301,7 @@ function TeamDetail(props: TeamProps) {
           },
           {
             key: "members",
-            label: "Members",
+            label: uiT("Members"),
             children: <Members {...props} />,
           },
           {
@@ -314,7 +321,7 @@ function TeamDetail(props: TeamProps) {
           },
           {
             key: "misc",
-            label: "Misc",
+            label: uiT("Misc"),
             children: <Misc {...props} />,
           },
         ]}
@@ -417,7 +424,7 @@ function CancelTeamPlan({
         });
       }}
     >
-      Cancel {featureTier.name} plan
+      <UiText message={"Cancel"} /> {featureTier.name} plan
     </Button>
   );
 }
@@ -800,7 +807,7 @@ function UpdateWhiteLabelName({ team, refetch }: TeamProps) {
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" type="primary">
-                    Save
+                    <UiText message={"Save"} />
                   </Button>
                 </Form.Item>
               </Form>
@@ -861,7 +868,7 @@ function UpdateWhiteLabelJwt({ team, refetch }: TeamProps) {
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" type="primary">
-                    Save
+                    <UiText message={"Save"} />
                   </Button>
                 </Form.Item>
               </Form>
@@ -928,7 +935,7 @@ function UpdateWhiteLabelTeamClientCredentials({ team, refetch }: TeamProps) {
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" type="primary">
-                    Save
+                    <UiText message={"Save"} />
                   </Button>
                 </Form.Item>
               </Form>
@@ -1019,6 +1026,7 @@ function TeamDiscourseInfoForm({
   discourseInfo: ApiTeamDiscourseInfo | null;
   refetch: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const nonAuthCtx = useNonAuthCtx();
   const [form] = Form.useForm();
   const initialValues = useMemo(() => {
@@ -1065,7 +1073,7 @@ function TeamDiscourseInfoForm({
       </Form.Item>
       <Form.Item
         name="name"
-        label="Name"
+        label={uiT("Name")}
         validateFirst
         rules={[
           { required: true },

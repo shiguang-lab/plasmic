@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 5cdjGaqBQ4
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -359,7 +360,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                       ),
                   })}
                 >
-                  {"Untitled workspace"}
+                  {<UiText message={"Untitled workspace"} />}
                 </div>
               }
             />
@@ -483,7 +484,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___4Euis)}
               >
-                {"New project"}
+                {<UiText message={"New project"} />}
               </div>
             </Button>
             <ShareButton
@@ -607,7 +608,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                 ),
               })}
             >
-              {"Projects"}
+              {<UiText message={"Projects"} />}
             </div>
             <div
               data-plasmic-name={"dataSourcesTab"}
@@ -620,10 +621,10 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "canUseCmsAndDataSources", "dataSources")
-                ? "Integrations"
+                ? <UiText message={"Integrations"} />
                 : hasVariant($state, "canUseCmsAndDataSources", "projects")
-                ? "Integrations"
-                : "Data sources"}
+                ? <UiText message={"Integrations"} />
+                : <UiText message={"Data sources"} />}
             </div>
           </div>
           <div
@@ -640,7 +641,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__bQefr)}
                 >
-                  {"This workspace has no projects."}
+                  {<UiText message={"This workspace has no projects."} />}
                 </div>
               ),
               value: args.noProjectsText,
@@ -682,7 +683,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                   }
                 )}
               >
-                {"Content Management Systems (CMS)"}
+                {<UiText message={"Content Management Systems (CMS)"} />}
               </h3>
               <Button
                 data-plasmic-name={"newCmsButton2"}
@@ -703,7 +704,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                 type={["clear"]}
                 withIcons={["startIcon"]}
               >
-                {"New CMS"}
+                {<UiText message={"New CMS"} />}
               </Button>
             </div>
           ) : null}
@@ -827,7 +828,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                   })}
                 >
                   {hasVariant($state, "canUseCmsAndDataSources", "dataSources")
-                    ? "Content Management Systems (CMS)"
+                    ? <UiText message={"Content Management Systems (CMS)"} />
                     : "Workspace CMSs"}
                 </div>
                 <Button
@@ -862,7 +863,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                   type={["clear"]}
                   withIcons={["startIcon"]}
                 >
-                  {"New CMS"}
+                  {<UiText message={"New CMS"} />}
                 </Button>
               </div>
               {renderPlasmicSlot({

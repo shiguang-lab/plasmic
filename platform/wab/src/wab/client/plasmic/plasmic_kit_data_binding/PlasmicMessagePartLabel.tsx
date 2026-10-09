@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: Ht1M6qhEEAnx
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -164,7 +165,7 @@ function PlasmicMessagePartLabel__RenderFunc(props: {
       {renderPlasmicSlot({
         defaultContents: (
           <div className={classNames("all", "__wab_text", sty.text___7ZkKz)}>
-            {"Text"}
+            {<UiText message={"Text"} />}
           </div>
         ),
         value: args.label,

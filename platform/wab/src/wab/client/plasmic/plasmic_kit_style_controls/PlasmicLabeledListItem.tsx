@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: -L2zZ5Mvmr
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -716,7 +717,7 @@ function PlasmicLabeledListItem__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__u1Jb1)}
                   >
-                    {"Enter some text"}
+                    {<UiText message={"Enter some text"} />}
                   </div>
                 ),
                 value: args.subtitle,

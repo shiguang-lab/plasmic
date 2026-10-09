@@ -14,6 +14,7 @@ import styles from "@/wab/client/components/sidebar-tabs/ProjectPanel/ProjectPan
 import { Matcher } from "@/wab/client/components/view-common";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicBranchPanel from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicBranchPanel";
 import { DefaultFolderItemProps } from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicFolderItem";
 import PlasmicSearchInput from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput";
@@ -500,7 +501,15 @@ function getBranchMenuRenderer({
                 await onToggleProtectionMainBranch();
               }}
             >
-              <Tooltip title="When the main branch is in a protected state it's not possible to do direct changes to it.">
+              <Tooltip
+                title={
+                  <UiText
+                    message={
+                      "When the main branch is in a protected state it's not possible to do direct changes to it."
+                    }
+                  />
+                }
+              >
                 <strong>
                   {isMainBranchProtected ? "Unprotect" : "Protect"}
                 </strong>{" "}
@@ -512,7 +521,10 @@ function getBranchMenuRenderer({
         {menuSection(
           "branch-switch",
           <Menu.Item key="switch" onClick={onSwitch}>
-            <strong>Switch</strong> to branch
+            <strong>
+              <UiText message={"Switch"} />
+            </strong>{" "}
+            to branch
           </Menu.Item>,
         )}
         {menuSection(
@@ -525,11 +537,17 @@ function getBranchMenuRenderer({
                 await onRename();
               }}
             >
-              <strong>Rename</strong> branch
+              <strong>
+                <UiText message={"Rename"} />
+              </strong>{" "}
+              branch
             </Menu.Item>
           ),
           <Menu.Item key="duplicate" onClick={onDuplicate}>
-            <strong>Duplicate</strong> branch
+            <strong>
+              <UiText message={"Duplicate"} />
+            </strong>{" "}
+            branch
           </Menu.Item>,
         )}
         {branch &&
@@ -561,7 +579,9 @@ function getBranchMenuRenderer({
                           Are you sure you want to delete the branch{" "}
                           <strong>{branch.name}</strong>?
                         </p>
-                        <p>This action cannot be undone.</p>
+                        <p>
+                          <UiText message={"This action cannot be undone."} />
+                        </p>
                       </>
                     ),
                     confirmLabel: "Delete",
@@ -584,7 +604,10 @@ function getBranchMenuRenderer({
                 }
               }}
             >
-              <strong>Delete</strong> branch
+              <strong>
+                <UiText message={"Delete"} />
+              </strong>{" "}
+              branch
             </Menu.Item>,
           )}
       </Menu>

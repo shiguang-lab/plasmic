@@ -6,6 +6,7 @@ import {
 import { FullRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import DoubleDotsVerticalSvgIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__DoubleDotsVerticalSvg";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -101,6 +102,7 @@ export const ColumnSizeControlDraggables = observer(
     isCanvas: boolean;
     setDragState: (s: ColumnSizeDragState | undefined) => void;
   }) {
+    const { t: uiT } = useI18n();
     const {
       tpl,
       viewCtx,
@@ -192,7 +194,9 @@ export const ColumnSizeControlDraggables = observer(
                   onMouseLeave={() => setMouseOver(undefined)}
                 >
                   {isCanvas && (
-                    <Tooltip title="Drag to adjust the size of your columns">
+                    <Tooltip
+                      title={uiT("Drag to adjust the size of your columns")}
+                    >
                       <Icon icon={DoubleDotsVerticalSvgIcon} size={12} />
                     </Tooltip>
                   )}
@@ -212,7 +216,7 @@ export const ColumnSizeControlDraggables = observer(
                 })
               }
             >
-              <Tooltip title="Add a new column">
+              <Tooltip title={uiT("Add a new column")}>
                 <Icon icon={PlusIcon} />
               </Tooltip>
             </IconLinkButton>

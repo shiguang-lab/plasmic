@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: mdX7wFJOmP
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -70,6 +72,7 @@ function PlasmicProjectsFilter__RenderFunc(props: {
   overrides: PlasmicProjectsFilter__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -161,7 +164,7 @@ function PlasmicProjectsFilter__RenderFunc(props: {
             data-plasmic-override={overrides.text}
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"Select..."}
+            {<UiText message={"Select..."} />}
           </div>
         }
         type={"wide"}
@@ -171,20 +174,20 @@ function PlasmicProjectsFilter__RenderFunc(props: {
           className={classNames("__wab_instance", sty.option__uOhyt)}
           value={"updatedAt"}
         >
-          {"Last modified"}
+          {<UiText message={"Last modified"} />}
         </Select__Option>
         <Select__Option
           className={classNames("__wab_instance", sty.option__w9Sj6)}
           value={"name"}
         >
-          {"Alphabetically"}
+          {<UiText message={"Alphabetically"} />}
         </Select__Option>
       </Select>
       <Textbox
         data-plasmic-name={"searchBox"}
         data-plasmic-override={overrides.searchBox}
         className={classNames("__wab_instance", sty.searchBox)}
-        placeholder={"Search..."}
+        placeholder={uiT("Search...")}
         prefixIcon={
           <SearchSvgIcon
             className={classNames("all", sty.svg___7Xs0L)}

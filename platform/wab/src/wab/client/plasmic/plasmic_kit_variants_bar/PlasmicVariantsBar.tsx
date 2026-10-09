@@ -11,6 +11,7 @@
 // Plasmic Project: kdj5vahTyUKxznuR6rrtt6
 // Component: 98t4Edcdrb
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -462,7 +463,7 @@ function PlasmicVariantsBar__RenderFunc(props: {
                   }
                 )}
               >
-                {"Select variants to record"}
+                {<UiText message={"Select variants to record"} />}
               </div>
             ) : null}
             <div

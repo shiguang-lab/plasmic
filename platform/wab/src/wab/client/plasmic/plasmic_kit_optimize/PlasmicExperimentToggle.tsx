@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: b4qqi4IFfg
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -68,6 +69,7 @@ function PlasmicExperimentToggle__RenderFunc(props: {
   overrides: PlasmicExperimentToggle__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -126,7 +128,7 @@ function PlasmicExperimentToggle__RenderFunc(props: {
         styleTokensClassNames,
         sty.root
       )}
-      title={"Enable / Disable"}
+      title={uiT("Enable / Disable")}
     >
       <div
         data-plasmic-name={"selectionIndicator"}

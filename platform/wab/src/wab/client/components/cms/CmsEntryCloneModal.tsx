@@ -1,5 +1,6 @@
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { Input, InputRef } from "antd";
 import * as React from "react";
 import { useRef, useState } from "react";
@@ -41,8 +42,8 @@ export function CmsEntryCloneModal({
       onCancel={onCancel}
     >
       <p>
-        Duplicate {entryDisplayName}? This will create an unpublished duplicate
-        of the entry and all its data.
+        <UiText message={"Duplicate"} /> {entryDisplayName}? This will create an
+        unpublished duplicate of the entry and all its data.
       </p>
       <Input
         ref={ref}

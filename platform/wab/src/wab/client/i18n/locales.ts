@@ -70,3 +70,10 @@ export function translate(
       values[name] === undefined ? placeholder : String(values[name]),
   );
 }
+
+/** Translate presentation labels from editor metadata without changing stored values. */
+export function translateUiLabel(locale: UiLocale, label: string): string {
+  return Object.prototype.hasOwnProperty.call(messages.en, label)
+    ? translate(locale, label as MessageKey)
+    : label;
+}

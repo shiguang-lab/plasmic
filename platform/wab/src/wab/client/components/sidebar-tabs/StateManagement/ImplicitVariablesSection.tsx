@@ -4,6 +4,7 @@ import { getContextDependentValuesForImplicitState } from "@/wab/client/componen
 import ImplicitVariableRow from "@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariableRow";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultImplicitVariablesSectionProps,
   PlasmicImplicitVariablesSection,
@@ -50,7 +51,7 @@ const ImplicitVariablesSection = observer(
       builder.genSection(undefined, (push) => {
         push(
           <Menu.Item key="renmame-tpl" onClick={() => setDefaultEditing(true)}>
-            Rename
+            <UiText message={"Rename"} />
           </Menu.Item>,
         );
       });

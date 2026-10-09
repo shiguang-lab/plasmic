@@ -1,3 +1,4 @@
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicExperimentRow from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentRow";
 import PlasmicExperimentRows from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentRows";
 import { SplitType } from "@/wab/shared/core/splits";
@@ -27,7 +28,9 @@ export const ExperimentRows = observer(function ExperimentRows(props: {
               height: 48,
               menu: onDelete ? (
                 <Menu>
-                  <Menu.Item onClick={() => onDelete(split)}>Delete</Menu.Item>
+                  <Menu.Item onClick={() => onDelete(split)}>
+                    <UiText message={"Delete"} />
+                  </Menu.Item>
                 </Menu>
               ) : undefined,
             }}

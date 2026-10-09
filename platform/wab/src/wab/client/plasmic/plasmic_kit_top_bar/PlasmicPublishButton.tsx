@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: yXRcEjTceQ
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -159,7 +160,7 @@ function PlasmicPublishButton__RenderFunc(props: {
         }
         type={["primary"]}
       >
-        {"Publish"}
+        {<UiText message={"Publish"} />}
       </Button>
       <ActionMenuButton
         data-plasmic-name={"menuButton"}
@@ -180,7 +181,7 @@ function PlasmicPublishButton__RenderFunc(props: {
         size={"small"}
         type={["primary"]}
       >
-        {"Publish"}
+        {<UiText message={"Publish"} />}
       </ActionMenuButton>
     </div>
   ) as React.ReactElement | null;

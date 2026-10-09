@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: HtHxjHknmj_
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -209,7 +210,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
               ),
             })}
           >
-            {"Original"}
+            {<UiText message={"Original"} />}
           </div>
           {(hasVariant($state, "isBase", "isBase") ? false : true)
             ? renderPlasmicSlot({
@@ -293,7 +294,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
               >
                 {hasVariant($state, "isEditing", "isEditing")
                   ? "Stop Editing"
-                  : "Edit"}
+                  : <UiText message={"Edit"} />}
               </div>
             </div>
           </Button>
@@ -326,7 +327,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
               ),
             })}
           >
-            {"Name"}
+            {<UiText message={"Name"} />}
           </div>
         </div>
         <div
@@ -341,7 +342,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
             data-plasmic-override={overrides.variantName2}
             className={classNames("all", "__wab_text", sty.variantName2)}
           >
-            {"Variant Name"}
+            {<UiText message={"Variant Name"} />}
           </div>
           <Textbox
             data-plasmic-name={"variantName"}
@@ -425,7 +426,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "type", "segment")
-              ? "Condition"
+              ? <UiText message={"Condition"} />
               : hasVariant($state, "type", "schedule")
               ? "Date range"
               : "Distribution"}
@@ -592,7 +593,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
                 ),
               })}
             >
-              {"Promote"}
+              {<UiText message={"Promote"} />}
             </div>
           </div>
         </Button>

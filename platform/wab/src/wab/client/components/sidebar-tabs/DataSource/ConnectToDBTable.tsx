@@ -24,6 +24,8 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   StudioCtx,
   providesStudioCtx,
@@ -92,6 +94,7 @@ export function ConnectToDBTable({
   onSubmit: (val: ConnectionData) => void;
   onCancel: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const [selectedFormOption, setSelectedFormOption] = React.useState<
     FormType | undefined
@@ -187,20 +190,22 @@ export function ConnectToDBTable({
   return (
     <Modal
       open={true}
-      title={"Connect to DB Table"}
+      title={uiT("Connect to DB Table")}
       closable={false}
       footer={
         <div className="flex gap-m justify-end">
-          <Button onClick={onCancel}>Cancel</Button>
+          <Button onClick={onCancel}>
+            <UiText message={"Cancel"} />
+          </Button>
           <Button type="primary" onClick={onSave} disabled={isSaveDisabled}>
-            Save
+            <UiText message={"Save"} />
           </Button>
         </div>
       }
       forceRender={true}
     >
       <div className="flex flex-col gap-xlg">
-        <LabeledItemRow label={"Form Type"} tooltip={formTypeDescription}>
+        <LabeledItemRow label={uiT("Form Type")} tooltip={formTypeDescription}>
           <ChoicePropEditor
             attr="formType"
             options={formOptions}
@@ -373,7 +378,7 @@ export function ConnectToDBTableModal({
           }
         }}
       >
-        Connect to Table
+        <UiText message={"Connect to Table"} />
       </Button>
     </>
   );
@@ -467,13 +472,15 @@ export function FormDataConnectionPropEditor({
       }}
       data-test-id="form-data"
     >
-      {tableSchema
-        ? `${
-            selectedFormOption === FormType.NewEntry
-              ? "New Entry"
-              : "Update Entry"
-          }: ${tableSchema.label ?? tableSchema.id}`
-        : "Loading..."}
+      {tableSchema ? (
+        `${
+          selectedFormOption === FormType.NewEntry
+            ? "New Entry"
+            : "Update Entry"
+        }: ${tableSchema.label ?? tableSchema.id}`
+      ) : (
+        <UiText message={"Loading..."} />
+      )}
     </Button>
   );
 }
@@ -497,6 +504,7 @@ function FormDataConnectionBottomModal({
   component?: Component;
   tpl: TplComponent;
 }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const [draft, setDraft] = React.useState(lookupSpec);
   const [opDraft, setOpDraft] = React.useState<DataSourceOpExpr | undefined>(
@@ -586,10 +594,15 @@ function FormDataConnectionBottomModal({
         message: (
           <>
             <p>
-              This will reset your form configuration (specifically, the Fields
-              prop and the On submit interaction)
+              <UiText
+                message={
+                  "This will reset your form configuration (specifically, the Fields prop and the On submit interaction)"
+                }
+              />
             </p>
-            <p>Are you sure you want to proceed?</p>
+            <p>
+              <UiText message={"Are you sure you want to proceed?"} />
+            </p>
           </>
         ),
       }));
@@ -644,7 +657,10 @@ function FormDataConnectionBottomModal({
     <>
       <div className="flex flex-row p-xxlg gap-xlg">
         <div className="flex flex-col gap-xlg fill-width">
-          <LabeledItemRow label={"Form Type"} tooltip={formTypeDescription}>
+          <LabeledItemRow
+            label={uiT("Form Type")}
+            tooltip={formTypeDescription}
+          >
             <ChoicePropEditor
               attr="formType"
               options={formOptions}
@@ -697,10 +713,14 @@ function FormDataConnectionBottomModal({
       </div>
       <BottomModalButtons>
         <Button onClick={onSave} type="primary">
-          Save
+          <UiText message={"Save"} />
         </Button>
-        <Button onClick={onPreview}>Preview</Button>
-        <Button onClick={() => modalActions.close(modalKey)}>Cancel</Button>
+        <Button onClick={onPreview}>
+          <UiText message={"Preview"} />
+        </Button>
+        <Button onClick={() => modalActions.close(modalKey)}>
+          <UiText message={"Cancel"} />
+        </Button>
       </BottomModalButtons>
     </>
   );

@@ -11,6 +11,7 @@
 // Plasmic Project: m8VxGcigeLAEXFe8c12w5Q
 // Component: Kyrn_lAAwr
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -126,7 +127,7 @@ function PlasmicNavigationDropdown__RenderFunc(props: {
             data-plasmic-override={overrides.text}
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"Pages, Components, Arenas"}
+            {<UiText message={"Pages, Components, Arenas"} />}
           </div>
           <div
             data-plasmic-name={"plusButtonContainer"}
@@ -153,7 +154,7 @@ function PlasmicNavigationDropdown__RenderFunc(props: {
               type={["secondary"]}
               withIcons={["endIcon"]}
             >
-              {"New"}
+              {<UiText message={"New"} />}
             </Button>
           </div>
         </div>
@@ -251,32 +252,32 @@ function PlasmicNavigationDropdown__RenderFunc(props: {
                 className={classNames("__wab_instance", sty.folderItem__sAaJb)}
                 type={"folderOpen"}
               >
-                {"Folder"}
+                {<UiText message={"Folder"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem__b8A7C)}
                 nested={true}
                 type={"arena"}
               >
-                {"Arena"}
+                {<UiText message={"Arena"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem__zdPd5)}
                 type={"arena"}
               >
-                {"Arena"}
+                {<UiText message={"Arena"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem__aLare)}
               >
-                {"Component"}
+                {<UiText message={"Component"} />}
               </FolderItem>
               <FolderItem
                 className={classNames("__wab_instance", sty.folderItem__xH8O)}
                 selected={true}
                 type={"page"}
               >
-                {"Page"}
+                {<UiText message={"Page"} />}
               </FolderItem>
             </React.Fragment>
           ),

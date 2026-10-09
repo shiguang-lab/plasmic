@@ -10,6 +10,8 @@ import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPic
 import DropdownOverlay from "@/wab/client/components/widgets/DropdownOverlay";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useOnContainerScroll } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PencilIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Pencil";
 import { PlusCircleIcon } from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__PlusCircle";
 import PlasmicDimTokenSelector, {
@@ -299,9 +301,7 @@ export const DimTokenSpinner = observer(
     const resolver = useClientTokenResolver();
 
     const makeTokenOptions = (): (
-      | AddTokenItem
-      | EditTokenItem
-      | SelectTokenItem
+      AddTokenItem | EditTokenItem | SelectTokenItem
     )[] => {
       if (!tokenType || !tokens) {
         return [];
@@ -891,6 +891,7 @@ const Row = React.memo(function Row(props: {
   index: number;
   style: React.CSSProperties;
 }) {
+  const { t: uiT } = useI18n();
   const { data, index, style } = props;
   const item = data[index];
   const context = ensure(
@@ -912,7 +913,7 @@ const Row = React.memo(function Row(props: {
         {tokenTypeLabel(
           ensure(tokenType, "tokenType is expected to be not null"),
         )}{" "}
-        Tokens
+        <UiText message={"Tokens"} />
       </ListSectionHeader>
     );
   } else if (item.type === "separator") {
@@ -960,9 +961,11 @@ const Row = React.memo(function Row(props: {
       );
     } else if (action.type === "clear") {
       return (
-        <li {...itemProps} aria-label={"Unset"}>
+        <li {...itemProps} aria-label={uiT("Unset")}>
           <ListItem isFocused={isFocused} hideIcon>
-            <em>(Unset)</em>
+            <em>
+              <UiText message={"(Unset)"} />
+            </em>
           </ListItem>
         </li>
       );

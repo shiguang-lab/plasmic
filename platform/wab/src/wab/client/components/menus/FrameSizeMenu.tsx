@@ -1,4 +1,5 @@
 import sty from "@/wab/client/components/menus/FrameSizeMenu.module.sass";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { FrameSize, frameSizeGroups } from "@/wab/shared/responsiveness";
 import { Menu } from "antd";
@@ -38,7 +39,7 @@ export function makeFrameSizeMenu({
           })
         }
       >
-        Edit breakpoints
+        <UiText message={"Edit breakpoints"} />
       </Menu.Item>
     </Menu>
   );

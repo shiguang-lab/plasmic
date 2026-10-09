@@ -1,5 +1,6 @@
 import { PlainLink } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 export function HelpButton() {
@@ -10,7 +11,7 @@ export function HelpButton() {
       href={"https://plasmic.app/learn"}
       target="_blank"
     >
-      Help
+      <UiText message={"Help"} />
     </PlainLink>
   );
 }

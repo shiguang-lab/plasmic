@@ -2,6 +2,7 @@ import { VisibleEnableBlock } from "@/wab/client/components/TopFrame/TopBar/Publ
 import { PublishState } from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
 import GitJobStep from "@/wab/client/components/widgets/GitJobStep";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultSubsectionSaveVersionProps,
   PlasmicSubsectionSaveVersion,
@@ -61,6 +62,7 @@ interface SubsectionSaveVersionProps
 }
 
 function SubsectionSaveVersion(props: SubsectionSaveVersionProps) {
+  const { t: uiT } = useI18n();
   const {
     project,
     visible,
@@ -144,7 +146,7 @@ function SubsectionSaveVersion(props: SubsectionSaveVersionProps) {
             <Select
               mode="tags"
               style={{ width: "100%" }}
-              placeholder="Enter the tags here (optional) ..."
+              placeholder={uiT("Enter the tags here (optional) ...")}
               onChange={(tags2) => setTags(tags2)}
               tokenSeparators={[","]}
             >

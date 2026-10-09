@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: -r2DBYss6
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -141,7 +142,7 @@ function PlasmicViewButton__RenderFunc(props: {
         type={["clear"]}
         withIcons={["endIcon"]}
       >
-        {"View"}
+        {<UiText message={"View"} />}
       </Button>
     ) : null
   ) as React.ReactElement | null;

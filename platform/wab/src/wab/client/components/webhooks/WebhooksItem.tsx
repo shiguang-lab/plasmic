@@ -1,10 +1,11 @@
+import WebhookHeader from "@/wab/client/components/webhooks/WebhookHeader";
+import styles from "@/wab/client/components/webhooks/WebhooksItem.module.scss";
 import {
   DefaultWebhooksItemProps,
   PlasmicWebhooksItem,
 } from "@/wab/client/components/webhooks/plasmic/plasmic_kit_continuous_deployment/PlasmicWebhooksItem";
-import WebhookHeader from "@/wab/client/components/webhooks/WebhookHeader";
-import styles from "@/wab/client/components/webhooks/WebhooksItem.module.scss";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
 import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import PresetsIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Presets";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
@@ -25,6 +26,7 @@ interface WebhooksItemProps extends DefaultWebhooksItemProps {
 }
 
 const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
+  const { t: uiT } = useI18n();
   const { webhook, setWebhook, enabled, setEnabled, onRemove, ...rest } = props;
 
   const [expanded, setExpanded] = React.useState(false);
@@ -140,7 +142,7 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
         expanded={expanded}
         headers={headers}
         payload={{
-          "aria-label": "Payload",
+          "aria-label": uiT("Payload"),
           value: webhook.payload,
           onChange: (e) => {
             const w = { ...webhook };

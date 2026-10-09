@@ -11,6 +11,7 @@
 // Plasmic Project: p8FkKgCnyuat1kHSEYAKfW
 // Component: o4Oidp6CzFL
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -124,7 +125,7 @@ function PlasmicDiffs__RenderFunc(props: {
               type={["clear"]}
               withIcons={["startIcon"]}
             >
-              {"Back"}
+              {<UiText message={"Back"} />}
             </Button>
             <div className={classNames("all", sty.freeBox__bo5SR)}>
               <div className={classNames("all", sty.freeBox__xCi3C)}>
@@ -166,7 +167,7 @@ function PlasmicDiffs__RenderFunc(props: {
                         data-plasmic-override={overrides.text}
                         className={classNames("all", "__wab_text", sty.text)}
                       >
-                        {"Label"}
+                        {<UiText message={"Label"} />}
                       </div>
                     ) : null}
                   </div>

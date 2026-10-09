@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: Z4n6NebjkHpR
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -239,7 +240,7 @@ function PlasmicDataQueryCodeEditorLayout__RenderFunc(props: {
               }
             )}
           >
-            {"Data Context"}
+            {<UiText message={"Data Context"} />}
           </h4>
           {(hasVariant($state, "copilot", "copilot") ? true : false) ? (
             <CopilotCodePrompt

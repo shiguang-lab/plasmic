@@ -11,6 +11,8 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: 74wUdEnJhwr
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -111,6 +113,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
   overrides: PlasmicSubsectionSaveVersion__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -288,7 +291,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
             ) : null}
           </div>
           <div className={classNames("all", "__wab_text", sty.text__rAFb)}>
-            {"Save a new version"}
+            {<UiText message={"Save a new version"} />}
           </div>
         </div>
       </div>
@@ -331,7 +334,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
           >
             <div className={classNames("all", "__wab_text", sty.text__dnUmC)}>
               {
-                "Publishing a version lets you restore it later, and also lets other projects import this project to use its components/assets."
+                <UiText message={"Publishing a version lets you restore it later, and also lets other projects import this project to use its components/assets."} />
               }
             </div>
             <PlasmicLink__
@@ -347,7 +350,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
               href={"https://www.plasmic.app/learn/publishing-importing/"}
               platform={"react"}
             >
-              {"Learn more."}
+              {<UiText message={"Learn more."} />}
             </PlasmicLink__>
           </div>
           <div
@@ -384,7 +387,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
               })}
             >
               <div className={classNames("all", "__wab_text", sty.text__kJhMc)}>
-                {"Changes"}
+                {<UiText message={"Changes"} />}
               </div>
               <div
                 className={classNames("all", sty.freeBox___0H0Cx, {
@@ -564,7 +567,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                     }
                     type={["secondary"]}
                   >
-                    {"Review all changes ->"}
+                    {<UiText message={"Review all changes ->"} />}
                   </Button>
                 ) : null}
               </div>
@@ -611,7 +614,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Version"}
+                  {<UiText message={"Version"} />}
                 </div>
                 <div
                   className={classNames("all", sty.freeBox__kospk, {
@@ -661,7 +664,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                         sty.text___6S6Cr
                       )}
                     >
-                      {"View history"}
+                      {<UiText message={"View history"} />}
                     </div>
                   </Button>
                 </div>
@@ -704,7 +707,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Description"}
+                  {<UiText message={"Description"} />}
                 </div>
                 <textarea
                   data-plasmic-name={"description"}
@@ -727,7 +730,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                       ),
                     }
                   )}
-                  placeholder={"Enter description here (optional)…"}
+                  placeholder={uiT("Enter description here (optional)…")}
                   ref={(ref) => {
                     $refs["description"] = ref;
                   }}
@@ -775,7 +778,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Tags"}
+                  {<UiText message={"Tags"} />}
                 </div>
                 <Select
                   data-plasmic-name={"tagsSelector"}

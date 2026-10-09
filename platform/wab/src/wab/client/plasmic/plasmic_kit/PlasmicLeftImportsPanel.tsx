@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: MeRxD_0BtJ
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -86,6 +88,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
   overrides: PlasmicLeftImportsPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -201,7 +204,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
               type={["secondary"]}
               withIcons={["startIcon"]}
             >
-              {"Import"}
+              {<UiText message={"Import"} />}
             </Button>
             <Button
               data-plasmic-name={"refreshButton"}
@@ -297,7 +300,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
         description={
           "You can import other published projects to use assets\u2014components, images/icons, style tokens, and style presets\u2014from those projects."
         }
-        title={"Imported projects"}
+        title={uiT("Imported projects")}
       />
 
       <div

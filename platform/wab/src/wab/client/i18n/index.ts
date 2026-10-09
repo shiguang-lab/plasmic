@@ -3,6 +3,7 @@ import {
   LanguagePreference,
   resolveUiLocale,
   translate,
+  translateUiLabel,
   UiLocale,
 } from "@/wab/client/i18n/locales";
 import * as React from "react";
@@ -101,9 +102,14 @@ export function useI18n() {
     ) => translate(currentLocale, key, values),
     [currentLocale],
   );
+  const label = React.useCallback(
+    (text: string) => translateUiLabel(currentLocale, text),
+    [currentLocale],
+  );
   return {
     locale: currentLocale,
     preference: currentPreference,
+    label,
     setLanguagePreference,
     t,
   };

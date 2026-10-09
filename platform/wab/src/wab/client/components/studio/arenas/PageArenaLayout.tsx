@@ -5,6 +5,7 @@ import { VariantComboGhostFrame } from "@/wab/client/components/studio/arenas/Co
 import sty from "@/wab/client/components/studio/arenas/ComponentArenaLayout.module.sass";
 import { GhostFrame } from "@/wab/client/components/studio/arenas/GhostFrame";
 import { GridFramesLayout } from "@/wab/client/components/studio/arenas/GridFramesLayout";
+import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
 import { allComponentVariants } from "@/wab/shared/core/components";
@@ -25,6 +26,7 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
   arena: PageArena;
   onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
 }) {
+  const { t: uiT } = useI18n();
   const { studioCtx, arena, onFrameLoad } = props;
   const component = arena.component;
 
@@ -70,7 +72,7 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
         rowEndControls={(_row, _index) => {
           return (
             <GhostFrame
-              tooltip="Add screen size"
+              tooltip={uiT("Add screen size")}
               data-event="page-arena-add-screen-size"
               menu={() =>
                 makeFrameSizeMenu({

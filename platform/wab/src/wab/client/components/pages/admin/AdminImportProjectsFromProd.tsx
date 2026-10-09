@@ -1,5 +1,6 @@
 import { NonAuthCtx, useNonAuthCtx } from "@/wab/client/app-ctx";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { WorkspaceId } from "@/wab/shared/ApiSchema";
 import { Bundle } from "@/wab/shared/bundles";
 import { DevFlagsType } from "@/wab/shared/devflags";
@@ -155,7 +156,9 @@ export function AdminImportProjectsFromProd() {
           ref={ref}
         />
       </Modal>
-      <Button onClick={() => setModalVisible((v) => !v)}>Import</Button>
+      <Button onClick={() => setModalVisible((v) => !v)}>
+        <UiText message={"Import"} />
+      </Button>
       <p>This will override your current devflags</p>
     </div>
   );

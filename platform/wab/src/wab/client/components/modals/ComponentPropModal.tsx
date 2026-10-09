@@ -17,6 +17,7 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { createComponentProp } from "@/wab/client/operations/create-component-prop";
 import { updateComponentProp } from "@/wab/client/operations/update-component-prop";
 import { validateValueForPropType } from "@/wab/client/operations/utils/validate-prop-changes";
@@ -429,12 +430,12 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
                 <LabelWithDetailedTooltip
                   tooltip={
                     <div>
-                      Use <code>/</code> to organize props into folders, e.g.{" "}
-                      <code>Header / title</code>.
+                      <UiText message={"Use"} /> <code>/</code> to organize
+                      props into folders, e.g. <code>Header / title</code>.
                     </div>
                   }
                 >
-                  Name
+                  <UiText message={"Name"} />
                 </LabelWithDetailedTooltip>
               ),
             },
@@ -602,7 +603,7 @@ const AdvancedToggle: React.FC<{
         <LabelWithDetailedTooltip
           tooltip={<div>If set, the prop is hidden in the UI by default.</div>}
         >
-          Advanced
+          <UiText message={"Advanced"} />
         </LabelWithDetailedTooltip>
       }
     >
@@ -705,7 +706,9 @@ const PropValueEditorWithMenu: React.FC<{
       <IFrameAwareDropdownMenu
         menu={
           <Menu>
-            <Menu.Item onClick={() => onChange(undefined)}>Unset</Menu.Item>
+            <Menu.Item onClick={() => onChange(undefined)}>
+              <UiText message={"Unset"} />
+            </Menu.Item>
           </Menu>
         }
       >

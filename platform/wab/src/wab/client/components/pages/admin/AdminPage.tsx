@@ -22,6 +22,8 @@ import {
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { downloadBlob, getUploadedFile } from "@/wab/client/dom-utils";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import CheckIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Check";
 import CircleCloseIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__CircleClose";
 import { ApiFeatureTier, ApiProjectRevision } from "@/wab/shared/ApiSchema";
@@ -62,6 +64,7 @@ export default function AdminPage({ nonAuthCtx }: { nonAuthCtx: NonAuthCtx }) {
 }
 
 function AdminPageTabs() {
+  const { t: uiT } = useI18n();
   const { tab, navigate } = useAdminCtx();
   return (
     <Tabs
@@ -79,7 +82,7 @@ function AdminPageTabs() {
         },
         {
           key: "projects",
-          label: "Projects",
+          label: uiT("Projects"),
           children: (
             <div className="flex-col gap-xxxlg">
               <DownloadProjectView />
@@ -168,7 +171,9 @@ function PublicProjectsView() {
         >
           Should be public
         </Checkbox>
-        <Button htmlType={"submit"}>Update</Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Update"} />
+        </Button>
       </Form>
     </div>
   );
@@ -239,7 +244,7 @@ function UploadProject() {
           })
         }
       >
-        Upload
+        <UiText message={"Upload"} />
       </Button>
     </div>
   );
@@ -276,7 +281,9 @@ function DownloadProjectView() {
         >
           <Checkbox />
         </Form.Item>
-        <Button htmlType={"submit"}>Download</Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Download"} />
+        </Button>
       </Form>
     </div>
   );
@@ -318,7 +325,9 @@ function DownloadProjectViewAndBranches() {
             placeholder="Comma separated list of branch IDs (main is always included)"
           />
         </Form.Item>
-        <Button htmlType={"submit"}>Download</Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Download"} />
+        </Button>
       </Form>
     </div>
   );
@@ -466,7 +475,7 @@ function DevFlagControls() {
           )}
         </div>
         <Button loading={submitting} htmlType={"submit"}>
-          Submit
+          <UiText message={"Submit"} />
         </Button>
       </form>
       <Table
@@ -535,7 +544,9 @@ function DevFlagControls() {
         <div className="flex">
           {data && data.length > 0 && (
             <div>
-              <h3>Current</h3>
+              <h3>
+                <UiText message={"Current"} />
+              </h3>
               <pre
                 style={{
                   width: 600,
@@ -651,7 +662,7 @@ export function FeatureTierControls() {
           onChange={(e) => setNewTierData(e.target.value)}
         />
         <Button loading={submitting} htmlType={"submit"}>
-          Add
+          <UiText message={"Add"} />
         </Button>
       </form>
     </div>
@@ -722,7 +733,9 @@ function ChangeProjectOwner() {
         <Form.Item name="ownerEmail" label="New owner email address">
           <Input placeholder="Owner email" type={"email"} />
         </Form.Item>
-        <Button htmlType="submit">Update</Button>
+        <Button htmlType="submit">
+          <UiText message={"Update"} />
+        </Button>
       </Form>
     </div>
   );
@@ -779,7 +792,9 @@ function PromotionCode() {
           <DatePicker format={"YYYY-MM-DD"} />
         </Form.Item>
         <Form.Item>
-          <Button htmlType="submit">Save</Button>
+          <Button htmlType="submit">
+            <UiText message={"Save"} />
+          </Button>
         </Form.Item>
       </Form>
     </div>
@@ -1021,7 +1036,9 @@ function DownloadAppMeta() {
         <Form.Item name="projectId" label="Project ID">
           <Input type={"input"} placeholder="Project Id" />
         </Form.Item>
-        <Button htmlType={"submit"}>Download</Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Download"} />
+        </Button>
       </Form>
     </div>
   );
@@ -1095,7 +1112,7 @@ function EditProjectRevBundle() {
                   }
                 }}
               >
-                Save
+                <UiText message={"Save"} />
               </Button>
             </Form.Item>
           </>
@@ -1153,7 +1170,9 @@ function EditPkgVersionBundle() {
               <code>PkgVersion ID {pkgVersion.id}</code>
             </p>
             <p>
-              <code>Version {pkgVersion.version}</code>
+              <code>
+                <UiText message={"Version"} /> {pkgVersion.version}
+              </code>
             </p>
             <div style={{ height: 500 }}>
               <LazyFullCodeEditor
@@ -1181,7 +1200,7 @@ function EditPkgVersionBundle() {
                   }
                 }}
               >
-                Save
+                <UiText message={"Save"} />
               </Button>
             </Form.Item>
           </>

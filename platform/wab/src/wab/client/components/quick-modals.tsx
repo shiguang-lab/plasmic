@@ -2,6 +2,7 @@ import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import type { UsageSummary } from "@/wab/client/operations/delete-resources";
 import { zIndex } from "@/wab/client/z-index";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
@@ -162,7 +163,7 @@ export async function alert(opts: {
             onClick={() => onSubmit(true)}
             autoFocus
           >
-            OK
+            <UiText message={"OK"} />
           </Button>
         </Form.Item>
       </Form>
@@ -239,9 +240,11 @@ function HardConfirmForm(props: {
             htmlType="submit"
             disabled={!readySubmit}
           >
-            Confirm
+            <UiText message={"Confirm"} />
           </Button>
-          <Button onClick={() => onCancel()}>Cancel</Button>
+          <Button onClick={() => onCancel()}>
+            <UiText message={"Cancel"} />
+          </Button>
         </Form.Item>
       </Form>
     </Modal>
@@ -294,7 +297,9 @@ export async function reactPrompt(opts: ReactPromptOpts) {
           >
             {actionText ?? "Submit"}
           </Button>
-          <Button onClick={() => onCancel()}>Cancel</Button>
+          <Button onClick={() => onCancel()}>
+            <UiText message={"Cancel"} />
+          </Button>
         </Form.Item>
       </Form>
     </Modal>

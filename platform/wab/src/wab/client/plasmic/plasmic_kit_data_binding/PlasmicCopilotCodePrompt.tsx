@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: SdMPiPjcB9G
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -160,7 +161,7 @@ function PlasmicCopilotCodePrompt__RenderFunc(props: {
 
             className={classNames("all", "__wab_text", sty.text)}
           >
-            {"Generate design"}
+            {<UiText message={"Generate design"} />}
           </div>
           <Sparkles3Icon
             data-plasmic-name={"svg"}

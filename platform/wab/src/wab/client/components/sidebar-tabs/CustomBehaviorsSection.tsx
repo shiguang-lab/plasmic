@@ -1,4 +1,3 @@
-import { CUSTOM_BEHAVIORS_CAP } from "@/wab/shared/Labels";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { checkAndNotifyUnsupportedHostVersion } from "@/wab/client/components/modals/codeComponentModals";
 import S from "@/wab/client/components/sidebar-tabs/CustomBehaviorsSection.module.scss";
@@ -9,10 +8,15 @@ import { IconLinkButton } from "@/wab/client/components/widgets";
 import { ApplyCustomBehaviorsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import OpenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Open";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { CUSTOM_BEHAVIORS_CAP } from "@/wab/shared/Labels";
+import { getSlotParams } from "@/wab/shared/SlotUtils";
+import { $$$ } from "@/wab/shared/TplQuery";
 import { assert, ensureArray } from "@/wab/shared/common";
 import {
   getComponentDisplayName,
@@ -29,8 +33,6 @@ import {
   TplComponent,
   TplNode,
 } from "@/wab/shared/model/classes";
-import { getSlotParams } from "@/wab/shared/SlotUtils";
-import { $$$ } from "@/wab/shared/TplQuery";
 import { Dropdown, Menu } from "antd";
 import { findIndex } from "lodash";
 import { observer } from "mobx-react";
@@ -40,6 +42,7 @@ export const CustomBehaviorsSection = observer(function (props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
 }) {
+  const { t: uiT } = useI18n();
   const { tpl, viewCtx } = props;
 
   // Getting immediate parents that are code component attachments
@@ -65,12 +68,15 @@ export const CustomBehaviorsSection = observer(function (props: {
     <SidebarSection
       title={
         <LabelWithDetailedTooltip tooltip={<ApplyCustomBehaviorsTooltip />}>
-          {CUSTOM_BEHAVIORS_CAP}
+          {<UiLabel text={CUSTOM_BEHAVIORS_CAP} />}
         </LabelWithDetailedTooltip>
       }
       controls={
         <Dropdown overlay={menu} trigger={["click"]}>
-          <IconLinkButton aria-label="Add custom behavior" onClick={(e) => e.preventDefault()}>
+          <IconLinkButton
+            aria-label={uiT("Add custom behavior")}
+            onClick={(e) => e.preventDefault()}
+          >
             <Icon icon={PlusIcon} />
           </IconLinkButton>
         </Dropdown>
@@ -165,63 +171,68 @@ export function getMenu(
     });
   });
 
-  builder.genSection("Available from Component Store", (push) => {
-    uninstalledPacks?.forEach((pack) => {
-      push(
-        <Menu.Item
-          key={pack.codeName}
-          onClick={async () => {
-            if (checkAndNotifyUnsupportedHostVersion()) {
-              return;
-            }
-            const projectDependencies: ProjectDependency[] = [];
-            for (const id of ensureArray(pack.projectId)) {
-              projectDependencies.push(
-                await viewCtx.studioCtx.projectDependencyManager.addByProjectId(
-                  id,
+  builder.genSection(
+    <UiText message={"Available from Component Store"} />,
+    (push) => {
+      uninstalledPacks?.forEach((pack) => {
+        push(
+          <Menu.Item
+            key={pack.codeName}
+            onClick={async () => {
+              if (checkAndNotifyUnsupportedHostVersion()) {
+                return;
+              }
+              const projectDependencies: ProjectDependency[] = [];
+              for (const id of ensureArray(pack.projectId)) {
+                projectDependencies.push(
+                  await viewCtx.studioCtx.projectDependencyManager.addByProjectId(
+                    id,
+                  ),
+                );
+              }
+
+              projectDependencies.forEach((projectDependency) =>
+                maybeShowGlobalContextNotification(
+                  viewCtx.studioCtx,
+                  projectDependency,
                 ),
               );
-            }
-
-            projectDependencies.forEach((projectDependency) =>
-              maybeShowGlobalContextNotification(
-                viewCtx.studioCtx,
-                projectDependency,
-              ),
-            );
-            // Assumes the project has only one component
-            const hostLessComps = projectDependencies
-              .flatMap((projectDependency) => projectDependency.site.components)
-              .filter(
-                (comp) =>
-                  isHostLessCodeComponent(comp) &&
-                  comp.codeComponentMeta?.isAttachment,
+              // Assumes the project has only one component
+              const hostLessComps = projectDependencies
+                .flatMap(
+                  (projectDependency) => projectDependency.site.components,
+                )
+                .filter(
+                  (comp) =>
+                    isHostLessCodeComponent(comp) &&
+                    comp.codeComponentMeta?.isAttachment,
+                );
+              assert(
+                hostLessComps.length == 1,
+                "Assumes the project has only one component",
               );
-            assert(
-              hostLessComps.length == 1,
-              "Assumes the project has only one component",
-            );
-            attachComp(viewCtx, hostLessComps[0], selectedTpl);
-          }}
-        >
-          {pack.name}
+              attachComp(viewCtx, hostLessComps[0], selectedTpl);
+            }}
+          >
+            {pack.name}
+          </Menu.Item>,
+        );
+      });
+      push(
+        <Menu.Item key={"browse-store"}>
+          <div className={S.root}>
+            <OpenIcon />
+            <a
+              href="https://docs.plasmic.app/learn/custom-behaviors/"
+              target="_blank"
+            >
+              <UiText message={"Docs on adding custom behaviors"} />
+            </a>
+          </div>
         </Menu.Item>,
       );
-    });
-    push(
-      <Menu.Item key={"browse-store"}>
-        <div className={S.root}>
-          <OpenIcon />
-          <a
-            href="https://docs.plasmic.app/learn/custom-behaviors/"
-            target="_blank"
-          >
-            Docs on adding custom behaviors
-          </a>
-        </div>
-      </Menu.Item>,
-    );
-  });
+    },
+  );
 
   return builder.build();
 }

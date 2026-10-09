@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: ORzNrJx0uEH6
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -73,6 +75,7 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
   overrides: PlasmicLeftAnimationSequencesPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -153,7 +156,7 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___5M3E9)}
               >
-                {"Import Plasmic animations"}
+                {<UiText message={"Import Plasmic animations"} />}
               </div>
             </Button>
             <Button
@@ -174,7 +177,7 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
               type={["secondary"]}
               withIcons={["startIcon"]}
             >
-              {"New animation"}
+              {<UiText message={"New animation"} />}
             </Button>
           </div>
         }
@@ -214,7 +217,7 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
             </React.Fragment>
           </div>
         }
-        title={"Animations"}
+        title={uiT("Animations")}
       />
 
       <div

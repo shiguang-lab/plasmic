@@ -11,6 +11,8 @@
 // Plasmic Project: 783YKJdyRRPxZbx3qiNi5Q
 // Component: 6ODOBecfUs5
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -88,6 +90,7 @@ function PlasmicCardPickerModal__RenderFunc(props: {
   overrides: PlasmicCardPickerModal__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -167,7 +170,7 @@ function PlasmicCardPickerModal__RenderFunc(props: {
               data-plasmic-override={overrides.text}
               className={classNames("all", "__wab_text", sty.text)}
             >
-              {"Cancel"}
+              {<UiText message={"Cancel"} />}
             </div>
           </Button>
           <Button
@@ -189,7 +192,7 @@ function PlasmicCardPickerModal__RenderFunc(props: {
             }
             type={["primary"]}
           >
-            {"Save"}
+            {<UiText message={"Save"} />}
           </Button>
         </React.Fragment>
       }
@@ -214,7 +217,7 @@ function PlasmicCardPickerModal__RenderFunc(props: {
               "showInput"
             ),
           })}
-          placeholder={"Search..."}
+          placeholder={uiT("Search...")}
           styleType={["bordered"]}
         />
       </div>

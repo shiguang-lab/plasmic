@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: mQBPD0GccAU
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -147,7 +148,7 @@ function PlasmicUpsellCreditCard__RenderFunc(props: {
             }
             type={["primary"]}
           >
-            {"Submit"}
+            {<UiText message={"Submit"} />}
           </Button>
         </div>
       </div>

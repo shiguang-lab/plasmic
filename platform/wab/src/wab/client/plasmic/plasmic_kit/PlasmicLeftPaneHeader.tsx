@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: XLa52PvduIy
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -509,7 +510,7 @@ function PlasmicLeftPaneHeader__RenderFunc(props: {
                         sty.text__loEe2
                       )}
                     >
-                      {"Color tokens"}
+                      {<UiText message={"Color tokens"} />}
                     </div>
                   </TextWithInfo>
                 ),
@@ -544,7 +545,7 @@ function PlasmicLeftPaneHeader__RenderFunc(props: {
                   type={["secondary"]}
                   withIcons={["startIcon"]}
                 >
-                  {"New token"}
+                  {<UiText message={"New token"} />}
                 </Button>
               ),
               value: args.actions,

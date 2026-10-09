@@ -1,4 +1,3 @@
-import { SERVER_QUERY_PLURAL_CAP } from "@/wab/shared/Labels";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import {
   CustomCodePreview,
@@ -18,6 +17,8 @@ import { ServerQueriesTooltip } from "@/wab/client/components/widgets/DetailedTo
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -27,6 +28,7 @@ import {
   DELETE_ACTION,
   DUPLICATE_ACTION,
   SERVER_QUERY_LOWER,
+  SERVER_QUERY_PLURAL_CAP,
 } from "@/wab/shared/Labels";
 import {
   ServerQueryOp,
@@ -100,7 +102,7 @@ const ServerQueryRow = observer(
       return (
         <Menu>
           <Menu.Item onClick={() => openServerQueryModal()}>
-            {CONFIGURE_ACTION}
+            {<UiLabel text={CONFIGURE_ACTION} />}
           </Menu.Item>
           <Menu.Item
             onClick={() =>
@@ -114,7 +116,7 @@ const ServerQueryRow = observer(
               )
             }
           >
-            {DUPLICATE_ACTION}
+            {<UiLabel text={DUPLICATE_ACTION} />}
           </Menu.Item>
           <Menu.Divider />
           <Menu.Item
@@ -122,7 +124,7 @@ const ServerQueryRow = observer(
               studioCtx.siteOps().removeComponentServerQuery(component, query)
             }
           >
-            {DELETE_ACTION}
+            {<UiLabel text={DELETE_ACTION} />}
           </Menu.Item>
         </Menu>
       );
@@ -165,7 +167,9 @@ const ServerQueryRow = observer(
               ) : null}
             </div>
           ) : (
-            <div className="dimfg">Click to configure...</div>
+            <div className="dimfg">
+              <UiText message={"Click to configure..."} />
+            </div>
           )}
         </LabeledListItem>
       </WithContextMenu>
@@ -177,6 +181,7 @@ function ServerQueriesSection_(props: {
   component: Component;
   viewCtx: ViewCtx;
 }) {
+  const { t: uiT } = useI18n();
   const { component, viewCtx } = props;
   const studioCtx = useStudioCtx();
 
@@ -251,12 +256,12 @@ function ServerQueriesSection_(props: {
           onMenuClicked();
         }}
       >
-        New
+        <UiText message={"New"} />
       </Menu.Item>
       {otherComponentsWithQueries.length > 0 && (
         <>
           <Menu.Divider />
-          <Menu.SubMenu key="copy-from" title="Copy from...">
+          <Menu.SubMenu key="copy-from" title={uiT("Copy from...")}>
             {otherComponentsWithQueries.map((c) => (
               <Menu.SubMenu key={c.uuid} title={getComponentDisplayName(c)}>
                 {c.serverQueries.filter(isServerQueryWithOperation).map((q) => (
@@ -286,7 +291,7 @@ function ServerQueriesSection_(props: {
       id="server-queries-section"
       title={
         <LabelWithDetailedTooltip tooltip={ServerQueriesTooltip}>
-          {SERVER_QUERY_PLURAL_CAP}
+          {<UiLabel text={SERVER_QUERY_PLURAL_CAP} />}
         </LabelWithDetailedTooltip>
       }
       emptyBody={component.serverQueries.length === 0}
@@ -297,7 +302,7 @@ function ServerQueriesSection_(props: {
           <IFrameAwareDropdownMenu menu={addMenu}>
             <IconLinkButton
               id="server-queries-add-btn"
-              aria-label="Add data query"
+              aria-label={uiT("Add data query")}
               tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
             >
               <Icon icon={PlusIcon} />
@@ -306,7 +311,7 @@ function ServerQueriesSection_(props: {
         ) : (
           <IconLinkButton
             id="server-queries-add-btn"
-              aria-label="Add data query"
+            aria-label={uiT("Add data query")}
             tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
             onClick={handleAddBlankQuery}
           >

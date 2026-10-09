@@ -18,6 +18,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
+import { useI18n } from "@/wab/client/i18n";
 import {
   EXPANDER_COLLAPSED_ICON,
   EXPANDER_EXPANDED_ICON,
@@ -160,6 +161,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
   parentId: OutlineNodeKey | undefined;
   isDropParent: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const {
     id,
     item,
@@ -424,7 +426,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     // so that showLockIcon always shows up at the same column
     if (item instanceof SlotSelection && isHidden) {
       return (
-        <Tooltip title={"This prop is currently not visible"}>
+        <Tooltip title={uiT("This prop is currently not visible")}>
           <div
             className={cx({
               "tpltree__label__action-icon": true,
@@ -468,7 +470,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     if (item instanceof SlotSelection) {
       if (props.ancestorLocked) {
         return (
-          <Tooltip title={"This prop is currently locked"}>
+          <Tooltip title={uiT("This prop is currently locked")}>
             <div
               className={cx({
                 "tpltree__label__action-icon": true,
@@ -892,7 +894,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       {!codeComponentRoot && !codeComponentSlot && (
         <MenuButton
           className={"tpltree__label__menu"}
-          aria-label="Outline item menu"
+          aria-label={uiT("Outline item menu")}
           menu={
             isOutOfContext ? undefined : () => makeTreeNodeMenu(viewCtx, item)
           }

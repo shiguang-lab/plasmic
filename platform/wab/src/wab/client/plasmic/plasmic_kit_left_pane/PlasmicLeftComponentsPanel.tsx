@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: 7Wsvgu6cRd
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -67,6 +69,7 @@ function PlasmicLeftComponentsPanel__RenderFunc(props: {
   overrides: PlasmicLeftComponentsPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -135,14 +138,14 @@ function PlasmicLeftComponentsPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New component"}
+            {<UiText message={"New component"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.leftPaneHeader)}
         description={
           "Components are chunks of UI you can reuse. Instances of a component can be customized with different props, variants or slot contents."
         }
-        title={"Components"}
+        title={uiT("Components")}
       />
 
       <div

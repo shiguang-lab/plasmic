@@ -7,6 +7,8 @@ import StyleToggleButtonGroup from "@/wab/client/components/style-controls/Style
 import * as widgets from "@/wab/client/components/widgets";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import CenterAndPadIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__CenterAndPad";
 import FrameStretchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__FrameStretch";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
@@ -34,6 +36,7 @@ interface FramePanelProps extends ViewComponentProps {
 }
 
 export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
+  const { t: uiT } = useI18n();
   const { viewCtx, frame } = props;
 
   const component = frame.container.component;
@@ -51,7 +54,7 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
         !isPageComponent(component) && (
           <>
             <FrameBgSection viewCtx={viewCtx} />
-            <LabeledItemRow label="View mode">
+            <LabeledItemRow label={uiT("View mode")}>
               <StyleToggleButtonGroup
                 value={frame.viewMode}
                 onChange={async (mode) =>
@@ -66,8 +69,9 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
                   value={FrameViewMode.Stretch}
                   tooltip={
                     <>
-                      Stretch mode, where content fills entire {FRAME_CAP}.
-                      Useful for full-screen designs.{" "}
+                      Stretch mode, where content fills entire{" "}
+                      {<UiLabel text={FRAME_CAP} />}. Useful for full-screen
+                      designs.{" "}
                       {!isStretchable && (
                         <strong>
                           Will also set your root width to <code>stretch</code>!
@@ -82,8 +86,9 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
                   value={FrameViewMode.Centered}
                   tooltip={
                     <>
-                      Centered mode, where content is centered in {FRAME_CAP}.
-                      Useful for reusable components like buttons.
+                      Centered mode, where content is centered in{" "}
+                      {<UiLabel text={FRAME_CAP} />}. Useful for reusable
+                      components like buttons.
                     </>
                   }
                 >
@@ -102,6 +107,7 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
 const FrameBgSection = observer(function FrameBgSection(props: {
   viewCtx: ViewCtx;
 }) {
+  const { t: uiT } = useI18n();
   const { viewCtx } = props;
   const frame = viewCtx.arenaFrame();
 
@@ -122,11 +128,11 @@ const FrameBgSection = observer(function FrameBgSection(props: {
   return (
     <SidebarModalProvider>
       <LabeledItemRow
-        label="Background"
+        label={uiT("Background")}
         menu={() => (
           <Menu>
             <Menu.Item onClick={() => handleChange(undefined)}>
-              Clear background color
+              <UiText message={"Clear background color"} />
             </Menu.Item>
           </Menu>
         )}
@@ -154,6 +160,7 @@ const FrameBgSection = observer(function FrameBgSection(props: {
 const FrameSizeSection = observer(function FrameSizeSection(
   props: FramePanelProps,
 ) {
+  const { t: uiT } = useI18n();
   const { frame, viewCtx } = props;
 
   const changeSize = (prop: "width" | "height", val: string) => {
@@ -171,7 +178,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
   return (
     <>
       {frame.viewMode === FrameViewMode.Stretch && (
-        <LabeledItemRow label="Device">
+        <LabeledItemRow label={uiT("Device")}>
           <widgets.IFrameAwareDropdownMenu
             menu={() =>
               makeFrameSizeMenu({
@@ -218,7 +225,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
           </widgets.IFrameAwareDropdownMenu>
         </LabeledItemRow>
       )}
-      <LabeledItemRow label={"Width"}>
+      <LabeledItemRow label={uiT("Width")}>
         <DimTokenSpinner
           data-test-id="artboard-size-width"
           allowedUnits={["px"]}
@@ -228,7 +235,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
           allowFunctions={false}
         />
       </LabeledItemRow>
-      <LabeledItemRow label={"Height"}>
+      <LabeledItemRow label={uiT("Height")}>
         <DimTokenSpinner
           data-test-id="artboard-size-height"
           allowedUnits={["px"]}
@@ -239,7 +246,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
         />
       </LabeledItemRow>
       {isHeightAutoDerived(frame) && (
-        <LabeledItemRow label={"Content Height"}>
+        <LabeledItemRow label={uiT("Content Height")}>
           <DimTokenSpinner
             data-test-id="artboard-size-content-height"
             allowedUnits={["px"]}

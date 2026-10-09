@@ -1,6 +1,7 @@
 import ListItem from "@/wab/client/components/ListItem";
 import { DataSourceOpExprSummary } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { ERROR_ICON, NOT_RENDERED_ICON } from "@/wab/client/icons";
 import TreeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Tree";
 import UnlockIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Unlock";
@@ -122,7 +123,7 @@ const SCREEN_VARIANT_OVERRIDE_INSTRUCTIONS = (
         }
         target={"_blank"}
       >
-        Learn more in the docs
+        <UiText message={"Learn more in the docs"} />
       </a>
       .
     </p>
@@ -146,7 +147,7 @@ const INVALID_DOM_NESTING_INSTRUCTIONS = (
         }
         target={"_blank"}
       >
-        Learn more in the docs
+        <UiText message={"Learn more in the docs"} />
       </a>
       .
     </p>
@@ -324,9 +325,9 @@ const LinkedPropDriftLintIssueRow = observer(
     const { issue } = props;
     const content = (
       <>
-        <TplLink component={issue.component} tpl={issue.tpl} /> prop{" "}
-        <strong>{issue.propName}</strong> no longer matches the linked component
-        prop
+        <TplLink component={issue.component} tpl={issue.tpl} />{" "}
+        <UiText message={"prop"} /> <strong>{issue.propName}</strong> no longer
+        matches the linked component prop
       </>
     );
     return renderIssueListItem(
@@ -385,7 +386,7 @@ const TplLink = observer(function TplLink(props: {
     >
       {isTplNamable(tpl) && tpl.name ? (
         <>
-          Element <strong>{tpl.name}</strong>
+          <UiText message={"Element"} /> <strong>{tpl.name}</strong>
         </>
       ) : isTplSlot(tpl) ? (
         <>
@@ -409,7 +410,12 @@ const ComponentLink = observer(function ComponentLink(props: {
         spawn(studioCtx.setStudioFocusOnTpl(component, component.tplTree));
       }}
     >
-      {isPageComponent(component) ? "Page" : "Component"} {component.name}
+      {isPageComponent(component) ? (
+        <UiText message={"Page"} />
+      ) : (
+        <UiText message={"Component"} />
+      )}{" "}
+      {component.name}
     </a>
   );
 });

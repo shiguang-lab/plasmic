@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: nSkQWLjK-B
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -235,7 +236,7 @@ function PlasmicDefaultLayout__RenderFunc(props: {
               }
               violet={true}
             >
-              {"Upgrade"}
+              {<UiText message={"Upgrade"} />}
             </NavButton>
             <FreeTrial
               data-plasmic-name={"freeTrial"}
@@ -320,7 +321,7 @@ function PlasmicDefaultLayout__RenderFunc(props: {
                     sty.span
                   )}
                 >
-                  {"All projects"}
+                  {<UiText message={"All projects"} />}
                 </span>
               </NavButton>
               <NavButton
@@ -352,7 +353,7 @@ function PlasmicDefaultLayout__RenderFunc(props: {
                   />
                 }
               >
-                {"My Playground"}
+                {<UiText message={"My Playground"} />}
               </NavButton>
               <div
                 className={classNames("all", sty.freeBox___1I5Dl, {
@@ -399,7 +400,7 @@ function PlasmicDefaultLayout__RenderFunc(props: {
                   />
                 }
               >
-                {"New organization"}
+                {<UiText message={"New organization"} />}
               </NavButton>
               <NavButton
                 data-plasmic-name={"documentationButton"}
@@ -423,7 +424,7 @@ function PlasmicDefaultLayout__RenderFunc(props: {
                 }
                 target={"_blank"}
               >
-                {"Documentation"}
+                {<UiText message={"Documentation"} />}
               </NavButton>
               <NavButton
                 data-plasmic-name={"helpButton"}
@@ -444,7 +445,7 @@ function PlasmicDefaultLayout__RenderFunc(props: {
                 }
                 target={"_blank"}
               >
-                {"Help"}
+                {<UiText message={"Help"} />}
               </NavButton>
               <NavButton
                 data-plasmic-name={"userButton"}

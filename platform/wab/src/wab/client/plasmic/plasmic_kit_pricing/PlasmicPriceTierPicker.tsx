@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: Xx_WsdQKli-S
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -299,7 +300,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   platform={"react"}
                   target={"_blank"}
                 >
-                  {"Learn more."}
+                  {<UiText message={"Learn more."} />}
                 </PlasmicLink__>
               }
               <React.Fragment>{""}</React.Fragment>
@@ -515,7 +516,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__l2Try)}
                 >
-                  {"Component library"}
+                  {<UiText message={"Component library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -538,7 +539,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___8XziC)}
                 >
-                  {"Integration library"}
+                  {<UiText message={"Integration library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -560,7 +561,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__e4Jg5)}
                 >
-                  {"Template library"}
+                  {<UiText message={"Template library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -573,7 +574,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__ikC)}>
-                {"Hosting"}
+                {<UiText message={"Hosting"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -585,7 +586,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__cob6F)}
                 >
-                  {"Custom domains"}
+                  {<UiText message={"Custom domains"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -620,7 +621,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__dj5IP)}>
-                {"Building"}
+                {<UiText message={"Building"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -632,7 +633,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__oa3WG)}
                 >
-                  {"Components"}
+                  {<UiText message={"Components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -654,7 +655,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__gjk9I)}
                 >
-                  {"Interactions"}
+                  {<UiText message={"Interactions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -676,7 +677,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__gwmOh)}
                 >
-                  {"Style tokens"}
+                  {<UiText message={"Style tokens"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -698,7 +699,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___6J4UO)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -755,7 +756,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text___1RAR)}>
-                {"Customization"}
+                {<UiText message={"Customization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -767,7 +768,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__sEjW)}
                 >
-                  {"Code components"}
+                  {<UiText message={"Code components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -789,7 +790,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__zXlnn)}
                 >
-                  {"Integrate with codebase"}
+                  {<UiText message={"Integrate with codebase"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -811,7 +812,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___6Uuqs)}
                 >
-                  {"Extensions"}
+                  {<UiText message={"Extensions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -876,7 +877,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__eWym3)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -889,7 +890,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__lZFm5)}>
-                {"Collaboration"}
+                {<UiText message={"Collaboration"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -926,7 +927,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__meilQ)}
                 >
-                  {"Analytics"}
+                  {<UiText message={"Analytics"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -951,7 +952,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__ruEvu)}
                 >
-                  {"Backup & export"}
+                  {<UiText message={"Backup & export"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -973,7 +974,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___5MMsk)}
                 >
-                  {"Code generation"}
+                  {<UiText message={"Code generation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -995,7 +996,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mId4R)}
                 >
-                  {"Transfer ownership"}
+                  {<UiText message={"Transfer ownership"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1017,7 +1018,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 {"14-day version history"}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__qmDdm)}>
-                {"Resources"}
+                {<UiText message={"Resources"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1170,7 +1171,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___74Evg)}
                 >
-                  {"Deploy to third-party servers"}
+                  {<UiText message={"Deploy to third-party servers"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1265,7 +1266,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__u8GPl)}
                 >
-                  {"Component library"}
+                  {<UiText message={"Component library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1288,7 +1289,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__eyn4R)}
                 >
-                  {"Integration library"}
+                  {<UiText message={"Integration library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1310,7 +1311,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mwPp4)}
                 >
-                  {"Template library"}
+                  {<UiText message={"Template library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1323,7 +1324,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__ntHsg)}>
-                {"Hosting"}
+                {<UiText message={"Hosting"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1333,7 +1334,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
               >
                 <div className={classNames("all", "__wab_text", sty.text__hSo)}>
-                  {"Custom domains"}
+                  {<UiText message={"Custom domains"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1377,7 +1378,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___6Yyeu)}
                 >
-                  {"Remove Plasmic branding"}
+                  {<UiText message={"Remove Plasmic branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1390,7 +1391,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__igeUt)}>
-                {"Building"}
+                {<UiText message={"Building"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1402,7 +1403,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__uC1L3)}
                 >
-                  {"Components"}
+                  {<UiText message={"Components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1424,7 +1425,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kVodx)}
                 >
-                  {"Interactions"}
+                  {<UiText message={"Interactions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1446,7 +1447,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__jVXwd)}
                 >
-                  {"Style tokens"}
+                  {<UiText message={"Style tokens"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1466,7 +1467,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
               >
                 <div className={classNames("all", "__wab_text", sty.text__fcA)}>
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1523,7 +1524,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__lWfh9)}>
-                {"Customization"}
+                {<UiText message={"Customization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1535,7 +1536,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___7Moln)}
                 >
-                  {"Code components"}
+                  {<UiText message={"Code components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1557,7 +1558,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__laRqY)}
                 >
-                  {"Integrate with codebase"}
+                  {<UiText message={"Integrate with codebase"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1579,7 +1580,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__veThT)}
                 >
-                  {"Extensions"}
+                  {<UiText message={"Extensions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1644,7 +1645,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__tvf0R)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1657,7 +1658,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__kj2W3)}>
-                {"Collaboration"}
+                {<UiText message={"Collaboration"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1694,7 +1695,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___6MN9)}
                 >
-                  {"Analytics"}
+                  {<UiText message={"Analytics"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1717,7 +1718,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__gjsCn)}
                 >
-                  {"Backup & export"}
+                  {<UiText message={"Backup & export"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1739,7 +1740,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__s586)}
                 >
-                  {"Code generation"}
+                  {<UiText message={"Code generation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1761,7 +1762,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__biz18)}
                 >
-                  {"Transfer ownership"}
+                  {<UiText message={"Transfer ownership"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1783,7 +1784,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 {"30-day version history"}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__dbKvl)}>
-                {"Resources"}
+                {<UiText message={"Resources"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1870,7 +1871,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__vqwlZ)}
                 >
-                  {"Remove Plasmic badge"}
+                  {<UiText message={"Remove Plasmic badge"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1883,7 +1884,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__igIci)}
                 >
-                  {"Add your custom favicon"}
+                  {<UiText message={"Add your custom favicon"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1973,7 +1974,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mdilp)}
                 >
-                  {"Component library"}
+                  {<UiText message={"Component library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1996,7 +1997,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__bW72W)}
                 >
-                  {"Integration library"}
+                  {<UiText message={"Integration library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2018,7 +2019,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__cOfLp)}
                 >
-                  {"Template library"}
+                  {<UiText message={"Template library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2031,7 +2032,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__rY5Id)}>
-                {"Hosting"}
+                {<UiText message={"Hosting"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2043,7 +2044,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__bdWr9)}
                 >
-                  {"Custom domains"}
+                  {<UiText message={"Custom domains"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2087,7 +2088,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__nZ1JJ)}
                 >
-                  {"Remove Plasmic branding"}
+                  {<UiText message={"Remove Plasmic branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2102,7 +2103,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___1OdUs)}
               >
-                {"Building"}
+                {<UiText message={"Building"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2114,7 +2115,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__lAeb)}
                 >
-                  {"Components"}
+                  {<UiText message={"Components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2136,7 +2137,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mChN)}
                 >
-                  {"Interactions"}
+                  {<UiText message={"Interactions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2158,7 +2159,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__yWoWg)}
                 >
-                  {"Style tokens"}
+                  {<UiText message={"Style tokens"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2180,7 +2181,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__cxRml)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2237,7 +2238,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__kU1N3)}>
-                {"Customization"}
+                {<UiText message={"Customization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2249,7 +2250,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__iKkbB)}
                 >
-                  {"Code components"}
+                  {<UiText message={"Code components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2271,7 +2272,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__onGl7)}
                 >
-                  {"Integrate with codebase"}
+                  {<UiText message={"Integrate with codebase"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2293,7 +2294,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__zdMal)}
                 >
-                  {"Extensions"}
+                  {<UiText message={"Extensions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2358,7 +2359,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__ufb8M)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2371,7 +2372,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__lKyts)}>
-                {"Collaboration"}
+                {<UiText message={"Collaboration"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2408,7 +2409,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__jpqHw)}
                 >
-                  {"Analytics"}
+                  {<UiText message={"Analytics"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2431,7 +2432,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__ok9SN)}
                 >
-                  {"Backup & export"}
+                  {<UiText message={"Backup & export"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2453,7 +2454,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__q3Hi1)}
                 >
-                  {"Code generation"}
+                  {<UiText message={"Code generation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2475,7 +2476,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__f1Dx0)}
                 >
-                  {"Transfer ownership"}
+                  {<UiText message={"Transfer ownership"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2497,7 +2498,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 {"90-day version history"}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__nOyyf)}>
-                {"Resources"}
+                {<UiText message={"Resources"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2664,7 +2665,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kVomX)}
                 >
-                  {"Component library"}
+                  {<UiText message={"Component library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2687,7 +2688,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__emYts)}
                 >
-                  {"Integration library"}
+                  {<UiText message={"Integration library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2709,7 +2710,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__gdNzg)}
                 >
-                  {"Template library"}
+                  {<UiText message={"Template library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2722,7 +2723,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__kx43Y)}>
-                {"Hosting"}
+                {<UiText message={"Hosting"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2734,7 +2735,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__lGxPo)}
                 >
-                  {"Custom domains"}
+                  {<UiText message={"Custom domains"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2778,7 +2779,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___62QpX)}
                 >
-                  {"Remove Plasmic branding"}
+                  {<UiText message={"Remove Plasmic branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2793,7 +2794,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___4HWwM)}
               >
-                {"Building"}
+                {<UiText message={"Building"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2805,7 +2806,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__aIla)}
                 >
-                  {"Components"}
+                  {<UiText message={"Components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2827,7 +2828,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__dp845)}
                 >
-                  {"Interactions"}
+                  {<UiText message={"Interactions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2849,7 +2850,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__si5Jv)}
                 >
-                  {"Style tokens"}
+                  {<UiText message={"Style tokens"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2871,7 +2872,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__tzy5P)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2930,7 +2931,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___6Nefj)}
               >
-                {"Customization"}
+                {<UiText message={"Customization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2942,7 +2943,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__gr9Sl)}
                 >
-                  {"Code components"}
+                  {<UiText message={"Code components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2964,7 +2965,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__p5CGx)}
                 >
-                  {"Integrate with codebase"}
+                  {<UiText message={"Integrate with codebase"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2986,7 +2987,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___8LkAr)}
                 >
-                  {"Extensions"}
+                  {<UiText message={"Extensions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3051,7 +3052,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__e4CpE)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3064,7 +3065,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__yc5Yq)}>
-                {"Collaboration"}
+                {<UiText message={"Collaboration"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3101,7 +3102,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___2O8V8)}
                 >
-                  {"Analytics"}
+                  {<UiText message={"Analytics"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3187,7 +3188,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__lbIQe)}
                 >
-                  {"Localization"}
+                  {<UiText message={"Localization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3212,7 +3213,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__lJfOw)}
                 >
-                  {"Backup & export"}
+                  {<UiText message={"Backup & export"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3234,7 +3235,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__xdhCe)}
                 >
-                  {"Code generation"}
+                  {<UiText message={"Code generation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3256,7 +3257,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___7IZ1)}
                 >
-                  {"Transfer ownership"}
+                  {<UiText message={"Transfer ownership"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3313,7 +3314,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___5CQg)}
                 >
-                  {"Content creator mode"}
+                  {<UiText message={"Content creator mode"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3336,7 +3337,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__czXsI)}>
-                {"Resources"}
+                {<UiText message={"Resources"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3434,7 +3435,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___4Iy2)}
                 >
-                  {"Content creator mode"}
+                  {<UiText message={"Content creator mode"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -3549,7 +3550,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__uIJq)}
                 >
-                  {"Component library"}
+                  {<UiText message={"Component library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3574,7 +3575,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__hwyPh)}
                 >
-                  {"Integration library"}
+                  {<UiText message={"Integration library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3598,7 +3599,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__dLeQy)}
                 >
-                  {"Template library"}
+                  {<UiText message={"Template library"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3612,7 +3613,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__sNu1J)}>
-                {"Hosting"}
+                {<UiText message={"Hosting"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3625,7 +3626,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___8N39)}
                 >
-                  {"Custom domains"}
+                  {<UiText message={"Custom domains"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3673,7 +3674,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___8T5Ay)}
                 >
-                  {"Remove Plasmic branding"}
+                  {<UiText message={"Remove Plasmic branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3687,7 +3688,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__zj1O7)}>
-                {"Building"}
+                {<UiText message={"Building"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3700,7 +3701,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__fOq7Q)}
                 >
-                  {"Components"}
+                  {<UiText message={"Components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3724,7 +3725,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__qeIWi)}
                 >
-                  {"Interactions"}
+                  {<UiText message={"Interactions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3748,7 +3749,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__sOvy)}
                 >
-                  {"Style tokens"}
+                  {<UiText message={"Style tokens"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3772,7 +3773,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kFfXv)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3834,7 +3835,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__kyAK)}>
-                {"Customization"}
+                {<UiText message={"Customization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3845,7 +3846,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 tier={"enterprise"}
               >
                 <div className={classNames("all", "__wab_text", sty.text__gQz)}>
-                  {"Code components"}
+                  {<UiText message={"Code components"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3869,7 +3870,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__srlsk)}
                 >
-                  {"Integrate with codebase"}
+                  {<UiText message={"Integrate with codebase"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3893,7 +3894,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___5Vi55)}
                 >
-                  {"Extensions"}
+                  {<UiText message={"Extensions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3939,7 +3940,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___1UF9)}
                 >
-                  {"Embedding"}
+                  {<UiText message={"Embedding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4068,7 +4069,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kNeRw)}
                 >
-                  {"Image optimization"}
+                  {<UiText message={"Image optimization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4084,7 +4085,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___08CEc)}
               >
-                {"Collaboration"}
+                {<UiText message={"Collaboration"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4148,7 +4149,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kiaSh)}
                 >
-                  {"Analytics"}
+                  {<UiText message={"Analytics"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4242,7 +4243,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___0NLlu)}
                 >
-                  {"Localization"}
+                  {<UiText message={"Localization"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4269,7 +4270,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__flqSh)}
                 >
-                  {"Backup & export"}
+                  {<UiText message={"Backup & export"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4293,7 +4294,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__qPzee)}
                 >
-                  {"Code generation"}
+                  {<UiText message={"Code generation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4317,7 +4318,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__auCpe)}
                 >
-                  {"Transfer ownership"}
+                  {<UiText message={"Transfer ownership"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4379,7 +4380,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__n67Y1)}
                 >
-                  {"Content creator mode"}
+                  {<UiText message={"Content creator mode"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4535,7 +4536,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__oi9Ug)}>
-                {"Resources"}
+                {<UiText message={"Resources"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4600,7 +4601,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kp70J)}
                 >
-                  {"Onboarding"}
+                  {<UiText message={"Onboarding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(

@@ -4,6 +4,7 @@ import {
   TemplatedTextEditorProps,
 } from "@/wab/client/components/sidebar-tabs/ComponentProps/TemplatedTextEditor";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { useI18n } from "@/wab/client/i18n";
 import { ExprCtx } from "@/wab/shared/core/exprs";
 import {
   CustomCode,
@@ -47,10 +48,11 @@ export function TemplatedTextWidget(props: TemplatedTextWidgetProps) {
 export function TemplatedTextEditorWithMenuIndicator(
   props: TemplatedTextEditorProps,
 ) {
+  const { t: uiT } = useI18n();
   return (
     <ContextMenuIndicator
       showDynamicValueButton
-      tooltip={"Append dynamic value"}
+      tooltip={uiT("Append dynamic value")}
       className="qb-custom-widget"
       fullWidth
     >

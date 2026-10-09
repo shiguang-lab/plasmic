@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: aXXfRDkhD-
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -225,7 +226,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
         >
           <div className={classNames("all", sty.freeBox___36Jc0)}>
             <div className={classNames("all", "__wab_text", sty.text__pIqHc)}>
-              {"Publish"}
+              {<UiText message={"Publish"} />}
             </div>
             {renderPlasmicSlot({
               defaultContents: "Project Acme",
@@ -302,7 +303,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                 className: classNames(sty.slotTargetCurrentVersionNumber),
               })}
               <div className={classNames("all", "__wab_text", sty.text__hL72Z)}>
-                {"Version"}
+                {<UiText message={"Version"} />}
               </div>
             </div>
             <div
@@ -340,7 +341,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                 {"n/a"}
               </PlasmicLink__>
               <div className={classNames("all", "__wab_text", sty.text__ecN0)}>
-                {"Destination"}
+                {<UiText message={"Destination"} />}
               </div>
             </div>
           </div>
@@ -401,7 +402,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                 ),
               })}
             >
-              {"<- Back"}
+              {<UiText message={"<- Back"} />}
             </div>
           </Button>
         </div>
@@ -459,7 +460,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                 ),
               })}
             >
-              {"Publishing pipeline"}
+              {<UiText message={"Publishing pipeline"} />}
             </div>
             <SubsectionSaveVersion
               data-plasmic-name={"subsectionSaveVersion"}
@@ -557,7 +558,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text__shiks)}
               >
-                {"Add publish actions"}
+                {<UiText message={"Add publish actions"} />}
               </div>
               <div className={classNames("all", sty.freeBox__t1Hp1)}>
                 <div
@@ -593,7 +594,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                     className={classNames("all", "__wab_text", sty.text__lh5N)}
                   >
                     {
-                      "Just publish an app or site. Use a custom domain for free. No coding required."
+                      <UiText message={"Just publish an app or site. Use a custom domain for free. No coding required."} />
                     }
                   </div>
                 </div>
@@ -624,12 +625,12 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                     type={["secondary"]}
                     withIcons={["startIcon"]}
                   >
-                    {"Push to GitHub"}
+                    {<UiText message={"Push to GitHub"} />}
                   </Button>
                   <div
                     className={classNames("all", "__wab_text", sty.text__j4Rcl)}
                   >
-                    {"Generate a new Next.js / Gatsby / React repo."}
+                    {<UiText message={"Generate a new Next.js / Gatsby / React repo."} />}
                   </div>
                 </div>
                 <div
@@ -659,7 +660,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                     type={["secondary"]}
                     withIcons={["startIcon"]}
                   >
-                    {"Call webhooks"}
+                    {<UiText message={"Call webhooks"} />}
                   </Button>
                   <div
                     data-plasmic-name={"webhooksDescription"}
@@ -671,7 +672,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                     )}
                   >
                     {
-                      "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase]."
+                      <UiText message={"Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase]."} />
                     }
                   </div>
                 </div>
@@ -911,7 +912,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                   }
                   type={["primary"]}
                 >
-                  {"Publish"}
+                  {<UiText message={"Publish"} />}
                 </Button>
               ) : null}
               {(hasVariant($state, "view", "status") ? true : false) ? (
@@ -933,7 +934,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                   }
                   type={["primary"]}
                 >
-                  {"Start over"}
+                  {<UiText message={"Start over"} />}
                 </Button>
               ) : null}
             </div>
@@ -993,7 +994,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Cancel"}
+                {<UiText message={"Cancel"} />}
               </div>
             </Button>
           ) : null}
@@ -1121,7 +1122,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                   ),
                 })}
               >
-                {"See more ->"}
+                {<UiText message={"See more ->"} />}
               </div>
             </Button>
           </div>

@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: 6ztKJ9-EG9Y
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -145,7 +146,7 @@ function PlasmicErrorFeedback__RenderFunc(props: {
       {renderPlasmicSlot({
         defaultContents: (
           <div className={classNames("all", "__wab_text", sty.text__yV28R)}>
-            {"Requires repo to be public."}
+            {<UiText message={"Requires repo to be public."} />}
           </div>
         ),
         value: args.children,

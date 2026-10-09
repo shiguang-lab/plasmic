@@ -5,6 +5,8 @@ import {
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ContainIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Contain";
 import CoverIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Cover";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
@@ -42,6 +44,7 @@ interface ContentPanelSectionProps {
 }
 
 function _ContentPanelSection(props: ContentPanelSectionProps) {
+  const { t: uiT } = useI18n();
   const { expsProvider, shouldShowSizeProps } = props;
   const studioCtx = expsProvider.studioCtx;
   const viewCtx = expsProvider.viewCtx;
@@ -79,8 +82,11 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
             showIcon={true}
             message={
               <div>
-                For optimal rendering of an external image, please specify its
-                intrinsic width and height.
+                <UiText
+                  message={
+                    "For optimal rendering of an external image, please specify its intrinsic width and height."
+                  }
+                />
               </div>
             }
           />
@@ -101,24 +107,31 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
       )}
       <LabeledStyleSelectItemRow
         styleName="object-fit"
-        label="Image size"
+        label={uiT("Image size")}
         textRight={false}
         selectOpts={{
           options: [
             {
               value: "fill",
               label: (
-                <Tooltip title="Stretch to fit">
-                  <span className="flex-fill">Fill</span>
+                <Tooltip title={uiT("Stretch to fit")}>
+                  <span className="flex-fill">
+                    <UiText message={"Fill"} />
+                  </span>
                 </Tooltip>
               ),
             },
             {
               value: "contain",
               label: (
-                <Tooltip title="Scale to fit without clipping; maintains aspect ratio">
+                <Tooltip
+                  title={uiT(
+                    "Scale to fit without clipping; maintains aspect ratio",
+                  )}
+                >
                   <span className="flex flex-vcenter baseline-friendly-centered-block-container">
-                    <Icon icon={ContainIcon} className="mr-ch" /> Contain
+                    <Icon icon={ContainIcon} className="mr-ch" />{" "}
+                    <UiText message={"Contain"} />
                   </span>
                 </Tooltip>
               ),
@@ -126,9 +139,12 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
             {
               value: "cover",
               label: (
-                <Tooltip title="Scale and clip to fit; maintains aspect ratio">
+                <Tooltip
+                  title={uiT("Scale and clip to fit; maintains aspect ratio")}
+                >
                   <span className="flex flex-vcenter baseline-friendly-centered-block-container">
-                    <Icon icon={CoverIcon} className="mr-ch" /> Cover
+                    <Icon icon={CoverIcon} className="mr-ch" />{" "}
+                    <UiText message={"Cover"} />
                   </span>
                 </Tooltip>
               ),
@@ -136,16 +152,24 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
             {
               value: "none",
               label: (
-                <Tooltip title="Do not resize">
-                  <span className="flex-fill">None</span>
+                <Tooltip title={uiT("Do not resize")}>
+                  <span className="flex-fill">
+                    <UiText message={"None"} />
+                  </span>
                 </Tooltip>
               ),
             },
             {
               value: "scale-down",
               label: (
-                <Tooltip title="Shrink to fit without clipping; maintains aspect ratio">
-                  <span className="flex-fill">Scale down</span>
+                <Tooltip
+                  title={uiT(
+                    "Shrink to fit without clipping; maintains aspect ratio",
+                  )}
+                >
+                  <span className="flex-fill">
+                    <UiText message={"Scale down"} />
+                  </span>
                 </Tooltip>
               ),
             },
@@ -153,7 +177,7 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
         }}
       />
       <LabeledStyleDimItemRow
-        label={"X-align"}
+        label={uiT("X-align")}
         styleName="object-position"
         dimOpts={{
           noClear: true,
@@ -172,7 +196,7 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
         }}
       />
       <LabeledStyleDimItemRow
-        label={"Y-align"}
+        label={uiT("Y-align")}
         styleName="object-position"
         dimOpts={{
           noClear: true,

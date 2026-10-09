@@ -11,6 +11,7 @@
 // Plasmic Project: p8FkKgCnyuat1kHSEYAKfW
 // Component: LCAZOUPfDDB
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -191,13 +192,13 @@ function PlasmicToggleButtonSwitch__RenderFunc(props: {
                 [sty.label13side_left]: hasVariant($state, "side", "left"),
               })}
             >
-              {"Keep"}
+              {<UiText message={"Keep"} />}
             </div>
             {false ? (
               <div
                 className={classNames("all", "__wab_text", sty.text___3V0UF)}
               >
-                {"Label"}
+                {<UiText message={"Label"} />}
               </div>
             ) : null}
           </div>
@@ -278,11 +279,11 @@ function PlasmicToggleButtonSwitch__RenderFunc(props: {
               data-plasmic-override={overrides.label14}
               className={classNames("all", "__wab_text", sty.label14)}
             >
-              {"Keep"}
+              {<UiText message={"Keep"} />}
             </div>
             {false ? (
               <div className={classNames("all", "__wab_text", sty.text__nsOzi)}>
-                {"Label"}
+                {<UiText message={"Label"} />}
               </div>
             ) : null}
           </div>

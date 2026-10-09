@@ -2,6 +2,7 @@ import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import styles from "@/wab/client/components/sidebar/SidebarSection.module.scss";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
+import { useI18n } from "@/wab/client/i18n";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import ChevronUpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronUpSvg";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -48,6 +49,7 @@ function ChevronToggle(props: {
   noBorder?: boolean;
   fullyCollapsedBody?: boolean;
 }) {
+  const { t: uiT } = useI18n();
   const { expanded, onClick, sticky, noBorder, fullyCollapsedBody } = props;
   return (
     <div
@@ -66,7 +68,7 @@ function ChevronToggle(props: {
         })}
         onClick={onClick}
         data-test-id="collapse"
-        aria-label={expanded ? "Show less" : "Show more"}
+        aria-label={expanded ? uiT("Show less") : uiT("Show more")}
         aria-expanded={expanded}
       >
         <Icon icon={expanded ? ChevronUpsvgIcon : ChevronDownsvgIcon} />

@@ -4,12 +4,12 @@ import VariantsGroupLabel from "@/wab/client/components/canvas/VariantsBar/Varia
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { Matcher } from "@/wab/client/components/view-common";
 import { useRefMap } from "@/wab/client/hooks/useRefMap";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultVariantsMenuProps,
   PlasmicVariantsMenu,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsMenu";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { VARIANTS_LOWER } from "@/wab/shared/Labels";
 import {
   getAllVariantsForTpl,
   getVariantLabel,
@@ -61,6 +61,7 @@ function VariantsMenu_({
   studioCtx,
   ...props
 }: VariantsMenuProps) {
+  const { t } = useI18n();
   const searchInputRef_ = searchInputRef ?? useRef<HTMLInputElement>(null);
   const variantsListRef = useRef<HTMLDivElement>(null);
 
@@ -229,7 +230,7 @@ function VariantsMenu_({
         onBlur: handleDismiss,
         onFocus: handleSearchInputFocus,
         onChange: (e) => setQuery(e.target.value),
-        placeholder: `Search ${VARIANTS_LOWER}`,
+        placeholder: t("Search variants"),
         value: query,
       }}
       variantsList={{ ref: variantsListRef }}
@@ -268,7 +269,7 @@ function VariantsMenu_({
 
       {!groupedVariants.length && (
         <div className={styles.emptyResultsMessage}>
-          No {VARIANTS_LOWER} matching <strong>{query}</strong>
+          {t("No variants matching {query}", { query })}
         </div>
       )}
     </PlasmicVariantsMenu>

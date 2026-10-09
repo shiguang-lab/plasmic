@@ -11,6 +11,8 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: 0HHLsxeAqF8
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -125,6 +127,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
   overrides: PlasmicSubsectionPushDeploy__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -366,7 +369,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                 hasVariant($state, "result", "success"),
             })}
           >
-            {"Push to GitHub"}
+            {<UiText message={"Push to GitHub"} />}
           </div>
           {(
             hasVariant($state, "view", "status") &&
@@ -436,7 +439,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "collapse", "collapse") ? "Show" : "Remove"}
+                {hasVariant($state, "collapse", "collapse") ? "Show" : <UiText message={"Remove"} />}
               </div>
             </Button>
           ) : null}
@@ -504,7 +507,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
               >
                 {hasVariant($state, "view", "status")
                   ? "View on GitHub"
-                  : "Button"}
+                  : <UiText message={"Button"} />}
               </div>
             </Button>
           ) : null}
@@ -549,7 +552,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                 ),
               })}
             >
-              {"Publish to a new or existing GitHub repo."}
+              {<UiText message={"Publish to a new or existing GitHub repo."} />}
             </div>
             <PlasmicLink__
               data-plasmic-name={"learnMoreLink"}
@@ -567,7 +570,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
               platform={"react"}
               target={"_blank"}
             >
-              {"Learn more."}
+              {<UiText message={"Learn more."} />}
             </PlasmicLink__>
           </div>
           <div
@@ -677,7 +680,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                     : hasVariant($state, "connection", "connected")
                     ? "<repository name>"
                     : hasVariant($state, "connection", "loading")
-                    ? "Loading..."
+                    ? <UiText message={"Loading..."} />
                     : "Not connected"}
                 </PlasmicLink__>
               </div>
@@ -709,8 +712,8 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   withIcons={["startIcon"]}
                 >
                   {hasVariant($state, "connection", "error")
-                    ? "Retry"
-                    : "Button"}
+                    ? <UiText message={"Retry"} />
+                    : <UiText message={"Button"} />}
                 </Button>
               ) : null}
               {(
@@ -745,7 +748,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   type={["seamless"]}
                   withIcons={["startIcon"]}
                 >
-                  {"Remove"}
+                  {<UiText message={"Remove"} />}
                 </Button>
               ) : null}
               {(
@@ -815,7 +818,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                       }
                     )}
                   >
-                    {"Connect to GitHub"}
+                    {<UiText message={"Connect to GitHub"} />}
                   </div>
                 </Button>
               ) : null}
@@ -877,7 +880,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                         }
                       )}
                     >
-                      {"Push options"}
+                      {<UiText message={"Push options"} />}
                     </div>
                     {(
                       hasVariant($state, "repoState", "existingLoader")
@@ -931,7 +934,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                               "collapseOptions"
                             )
                               ? "More options"
-                              : "Fewer options"}
+                              : <UiText message={"Fewer options"} />}
                           </div>
                         </Button>
                         <ExpandButton
@@ -1014,7 +1017,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                           }
                         )}
                       >
-                        {"Push as"}
+                        {<UiText message={"Push as"} />}
                       </div>
                       <Select
                         data-plasmic-name={"pushAs"}
@@ -1103,7 +1106,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                             sty.text__zUeWf
                           )}
                         >
-                          {"Title (optional)"}
+                          {<UiText message={"Title (optional)"} />}
                         </div>
                         <input
                           data-plasmic-name={"title"}
@@ -1121,7 +1124,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                               ),
                             }
                           )}
-                          placeholder={"Title (optional)"}
+                          placeholder={uiT("Title (optional)")}
                           ref={(ref) => {
                             $refs["title"] = ref;
                           }}
@@ -1138,7 +1141,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                             sty.text__ug7Xy
                           )}
                         >
-                          {"Description (optional)"}
+                          {<UiText message={"Description (optional)"} />}
                         </div>
                         <textarea
                           data-plasmic-name={"description"}
@@ -1149,7 +1152,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                             "textarea__fpbcK",
                             sty.description
                           )}
-                          placeholder={"Description (optional)"}
+                          placeholder={uiT("Description (optional)")}
                           ref={(ref) => {
                             $refs["description"] = ref;
                           }}
@@ -1201,13 +1204,13 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
               })}
               status={"finished"}
             >
-              {"Check repository state"}
+              {<UiText message={"Check repository state"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__pvL5)}
               status={"finished"}
             >
-              {"Fetch GitHub access token"}
+              {<UiText message={"Fetch GitHub access token"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__crXgO, {
@@ -1219,7 +1222,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
               })}
               status={"finished"}
             >
-              {"Fetch Plasmic access token"}
+              {<UiText message={"Fetch Plasmic access token"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__inJas, {
@@ -1231,24 +1234,24 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
               })}
               status={"started"}
             >
-              {"Clone repository"}
+              {<UiText message={"Clone repository"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__lw6Bz)}
             >
-              {"Sync project"}
+              {<UiText message={"Sync project"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__vWw1D)}
             >
               <div className={classNames("all", "__wab_text", sty.text__aqa8U)}>
-                {"Commit changes"}
+                {<UiText message={"Commit changes"} />}
               </div>
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep__s2ONg)}
             >
-              {"Push changes"}
+              {<UiText message={"Push changes"} />}
             </GitJobStep>
             <GitJobStep
               className={classNames("__wab_instance", sty.gitJobStep___0IbFw, {
@@ -1259,7 +1262,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                 ),
               })}
             >
-              {"Make pull request"}
+              {<UiText message={"Make pull request"} />}
             </GitJobStep>
           </ul>
         </div>
@@ -1292,7 +1295,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
           {hasVariant($state, "view", "status") &&
           hasVariant($state, "result", "success")
             ? "GitHub Pages may take a minute or two for your changes to show up."
-            : "Enter some text"}
+            : <UiText message={"Enter some text"} />}
         </div>
       ) : null}
     </div>

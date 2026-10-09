@@ -7,6 +7,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { DataTokenIcon } from "@/wab/client/icons";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
@@ -43,6 +44,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
   triggerElement?: HTMLElement;
   popoverFrameValuePath?: PropValuePath;
 }) {
+  const { t: uiT } = useI18n();
   const {
     token,
     studioCtx,
@@ -141,7 +143,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
   const content = (
     <div className="p-xlg">
       <div className="flex-col gap-m">
-        <LabeledItemRow label="Type">
+        <LabeledItemRow label={uiT("Type")}>
           <Select
             value={selectedTokenType}
             onChange={(val) => val && onTypeChange(val as DataTokenType)}
@@ -156,7 +158,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
           </Select>
         </LabeledItemRow>
 
-        <LabeledItemRow label="Value">
+        <LabeledItemRow label={uiT("Value")}>
           {selectedTokenType === "code" ? (
             <CodeEditor
               title={token.name || "Data Token Value"}

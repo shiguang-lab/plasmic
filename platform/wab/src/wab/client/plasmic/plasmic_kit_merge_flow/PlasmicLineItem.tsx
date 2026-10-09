@@ -11,6 +11,7 @@
 // Plasmic Project: p8FkKgCnyuat1kHSEYAKfW
 // Component: VgvN9iOqwZ
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -152,7 +153,7 @@ function PlasmicLineItem__RenderFunc(props: {
               data-plasmic-override={overrides.text}
               className={classNames("all", "__wab_text", sty.text)}
             >
-              {"Label"}
+              {<UiText message={"Label"} />}
             </div>
           ) : null}
         </div>

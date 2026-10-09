@@ -1,4 +1,5 @@
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 /** @format */
 
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
@@ -159,87 +160,91 @@ function _TopBar({ preview }: TopBarProps) {
           });
 
           if (studioCtx.canEditProject() && !studioCtx.contentEditorMode) {
-            builder.genSection("Configuration", (push2) => {
-              push2(
-                <Menu.Item
-                  key="configure"
-                  data-test-id="configure-project"
-                  onClick={() => {
-                    spawn(topFrameApi.setShowHostModal(true));
-                  }}
-                >
-                  Configure custom app host
-                </Menu.Item>,
-              );
-              // Only show auth config if the app already uses it
-              const showAuth = studioCtx.siteInfo.hasAppAuth;
-              if (showAuth) {
+            builder.genSection(
+              <UiText message={"Configuration"} />,
+              (push2) => {
                 push2(
                   <Menu.Item
-                    key="app-auth"
+                    key="configure"
+                    data-test-id="configure-project"
                     onClick={() => {
-                      spawn(topFrameApi.setShowAppAuthModal(true));
+                      spawn(topFrameApi.setShowHostModal(true));
                     }}
                   >
-                    Configure app authentication
+                    <UiText message={"Configure custom app host"} />
                   </Menu.Item>,
                 );
-              }
+                // Only show auth config if the app already uses it
+                const showAuth = studioCtx.siteInfo.hasAppAuth;
+                if (showAuth) {
+                  push2(
+                    <Menu.Item
+                      key="app-auth"
+                      onClick={() => {
+                        spawn(topFrameApi.setShowAppAuthModal(true));
+                      }}
+                    >
+                      <UiText message={"Configure app authentication"} />
+                    </Menu.Item>,
+                  );
+                }
 
-              if (canEditProjectConfig(uiConfig, "localization")) {
-                push2(
-                  <Menu.Item
-                    key="localization"
-                    onClick={() => {
-                      spawn(topFrameApi.setShowLocalizationModal(true));
-                    }}
-                  >
-                    {studioCtx.site.flags.usePlasmicTranslation
-                      ? "Disable"
-                      : "Enable"}{" "}
-                    localization framework integration
-                  </Menu.Item>,
-                );
-              }
+                if (canEditProjectConfig(uiConfig, "localization")) {
+                  push2(
+                    <Menu.Item
+                      key="localization"
+                      onClick={() => {
+                        spawn(topFrameApi.setShowLocalizationModal(true));
+                      }}
+                    >
+                      {t(
+                        studioCtx.site.flags.usePlasmicTranslation
+                          ? "Disable localization framework integration"
+                          : "Enable localization framework integration",
+                      )}
+                    </Menu.Item>,
+                  );
+                }
 
-              if (
-                appCtx.appConfig.secretApiTokenTeams?.includes(
-                  studioCtx.siteInfo.teamId ?? "",
-                )
-              ) {
-                push2(
-                  <Menu.Item
-                    key="secret"
-                    onClick={() => {
-                      spawn(topFrameApi.showRegenerateSecretTokenModal());
-                    }}
-                  >
-                    Regenerate secret project API token
-                  </Menu.Item>,
-                );
-              }
+                if (
+                  appCtx.appConfig.secretApiTokenTeams?.includes(
+                    studioCtx.siteInfo.teamId ?? "",
+                  )
+                ) {
+                  push2(
+                    <Menu.Item
+                      key="secret"
+                      onClick={() => {
+                        spawn(topFrameApi.showRegenerateSecretTokenModal());
+                      }}
+                    >
+                      <UiText message={"Regenerate secret project API token"} />
+                    </Menu.Item>,
+                  );
+                }
 
-              if (canEditUiConfig) {
-                push2(
-                  <Menu.Item
-                    key="ui-config"
-                    onClick={() => {
-                      spawn(topFrameApi.setShowUiConfigModal(true));
-                    }}
-                  >
-                    Configure Studio UI for project
-                  </Menu.Item>,
-                );
-              }
-            });
+                if (canEditUiConfig) {
+                  push2(
+                    <Menu.Item
+                      key="ui-config"
+                      onClick={() => {
+                        spawn(topFrameApi.setShowUiConfigModal(true));
+                      }}
+                    >
+                      <UiText message={"Configure Studio UI for project"} />
+                    </Menu.Item>,
+                  );
+                }
+              },
+            );
 
             const isAdmin = isAdminTeamEmail(
               appCtx.selfInfo?.email,
               appCtx.appConfig,
             );
             if (isAdmin || appCtx.appConfig.debug) {
-              builder.genSection("Debug", (push2) => {
-                builder.genSub("Optimization", (push3) => {
+              builder.genSection(<UiText message={"Debug"} />, (push2) => {
+                builder.genSub(<UiText message={"Optimization"} />, (push3) => {
                   push3(
                     <Menu.Item
                       key="cleanup"
@@ -255,7 +260,7 @@ function _TopBar({ preview }: TopBarProps) {
                         });
                       }}
                     >
-                      Remove redundant overrides
+                      <UiText message={"Remove redundant overrides"} />
                     </Menu.Item>,
                   );
                   push3(
@@ -275,7 +280,7 @@ function _TopBar({ preview }: TopBarProps) {
                         );
                       }}
                     >
-                      Remove unused image assets
+                      <UiText message={"Remove unused image assets"} />
                     </Menu.Item>,
                   );
                   push3(
@@ -304,7 +309,7 @@ function _TopBar({ preview }: TopBarProps) {
                         );
                       }}
                     >
-                      Lint and fix invisible elements
+                      <UiText message={"Lint and fix invisible elements"} />
                     </Menu.Item>,
                   );
                 });
@@ -313,7 +318,7 @@ function _TopBar({ preview }: TopBarProps) {
                     <Menu.SubMenu
                       title={
                         <span>
-                          <strong>Start</strong> onboarding tour
+                          <UiText message={"Start onboarding tour"} />
                         </span>
                       }
                     >
@@ -331,28 +336,35 @@ function _TopBar({ preview }: TopBarProps) {
                               });
                             }}
                           >
-                            {tour} - {STUDIO_ONBOARDING_TUTORIALS[tour].length}{" "}
-                            steps
+                            {t("{tour} - {count} steps", {
+                              tour,
+                              count: STUDIO_ONBOARDING_TUTORIALS[tour].length,
+                            })}
                           </Menu.Item>
                         );
                       })}
                     </Menu.SubMenu>,
                   );
 
-                  builder.genSub("Site-splitting utils", (push3) => {
-                    push3(
-                      <Menu.Item
-                        key="fix-page-hrefs-to-local"
-                        onClick={async () =>
-                          studioCtx.changeUnsafe(() => {
-                            fixPageHrefsToLocal(studioCtx.site);
-                          })
-                        }
-                      >
-                        Convert page hrefs to local pages
-                      </Menu.Item>,
-                    );
-                  });
+                  builder.genSub(
+                    <UiText message={"Site-splitting utils"} />,
+                    (push3) => {
+                      push3(
+                        <Menu.Item
+                          key="fix-page-hrefs-to-local"
+                          onClick={async () =>
+                            studioCtx.changeUnsafe(() => {
+                              fixPageHrefsToLocal(studioCtx.site);
+                            })
+                          }
+                        >
+                          <UiText
+                            message={"Convert page hrefs to local pages"}
+                          />
+                        </Menu.Item>,
+                      );
+                    },
+                  );
                 }
               });
             }
@@ -426,7 +438,7 @@ function _TopBar({ preview }: TopBarProps) {
         projectMenu={{
           props: {
             ...contextMenuProps,
-            "aria-label": "Project menu",
+            "aria-label": t("Project menu"),
             "data-test-id": "project-menu-btn",
           },
           wrap: (n) =>
@@ -494,7 +506,7 @@ function _TopBar({ preview }: TopBarProps) {
         commentButton={{
           wrap: studioCtx.showComments() ? undefined : () => null,
           props: {
-            "aria-label": "Comments",
+            "aria-label": t("Comments"),
             active: studioCtx.showCommentsPanel,
             onClick: () => studioCtx.toggleCommentsPanel(),
             "data-test-id": "top-comment-icon",
@@ -503,7 +515,7 @@ function _TopBar({ preview }: TopBarProps) {
         aiButton={{
           wrap: studioCtx.chatCopilotEnabled() ? undefined : () => null,
           props: {
-            "aria-label": "AI assistant",
+            "aria-label": t("AI assistant"),
             active: studioCtx.isCopilotChatOpen,
             onClick: () => spawn(topFrameApi.toggleCopilotChat()),
           },
@@ -516,11 +528,11 @@ function _TopBar({ preview }: TopBarProps) {
         previewSelect={
           preview
             ? {
-                "aria-label": "Select component",
+                "aria-label": t("Select component"),
                 children: (
                   <>
                     {previewPages.length > 0 && (
-                      <Select.OptionGroup title="Pages">
+                      <Select.OptionGroup title={t("Pages")}>
                         {naturalSort(previewPages, (c) => c.name).map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
                             <Icon icon={PageIcon} style={{ marginRight: 4 }} />
@@ -540,7 +552,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Select.OptionGroup>
                     )}
                     {previewComponents.length > 0 && (
-                      <Select.OptionGroup title="Components">
+                      <Select.OptionGroup title={t("Components")}>
                         {naturalSort(previewComponents, (c) => c.name).map(
                           (c) => (
                             <Select.Option key={c.uuid} value={c.uuid}>
@@ -555,7 +567,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Select.OptionGroup>
                     )}
                     {previewArtboards.length > 0 && (
-                      <Select.OptionGroup title="Artboards">
+                      <Select.OptionGroup title={t("Artboards")}>
                         {previewArtboards.map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
                             {c.name || "Unnamed artboard"}

@@ -1,37 +1,40 @@
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
-import {
-  INTERACTION_VARIANTS_LOWER,
-  MIXINS_CAP,
-  MIXIN_LOWER,
-  PRIVATE_STYLE_VARIANTS_CAP,
-} from "@/wab/shared/Labels";
+import { MIXINS_CAP, PRIVATE_STYLE_VARIANTS_CAP } from "@/wab/shared/Labels";
 import React, { ReactNode } from "react";
 
 export function MixinsTooltip({ preamble }: { preamble?: ReactNode }) {
   return (
     <div>
-      <p className={"tooltip-title"}>{MIXINS_CAP}</p>
+      <p className={"tooltip-title"}>{<UiLabel text={MIXINS_CAP} />}</p>
       {preamble}
       <p>
-        {MIXINS_CAP} are entire bundles of styles that you can apply to many
-        elements. Normally, you set styles directly on elements, via the Design
-        tab in the right sidebar. You can instead store some or all those styles
-        in a style preset, and then apply the style preset to elements.
+        <UiText
+          message={
+            "Style presets are entire bundles of styles that you can apply to many elements. Normally, you set styles directly on elements, via the Design tab in the right sidebar. You can instead store some or all those styles in a style preset, and then apply the style preset to elements."
+          }
+        />
       </p>
       <p>
-        You can right-click styles or style sections to extract them into a{" "}
-        {MIXIN_LOWER}.
+        <UiText
+          message={
+            "You can right-click styles or style sections to extract them into a style preset."
+          }
+        />
       </p>
       <p>
-        Style presets are a powerful way to let you design faster and maintain
-        consistency.
+        <UiText
+          message={
+            "Style presets are a powerful way to let you design faster and maintain consistency."
+          }
+        />
       </p>
       <p>
         <a
           target="_blank"
           href={"https://docs.plasmic.app/learn/style-presets"}
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -42,27 +45,34 @@ export function MixinsTooltip({ preamble }: { preamble?: ReactNode }) {
 export function VariantsTooltip({ preamble }: { preamble?: ReactNode }) {
   return (
     <div>
-      <p className={"tooltip-title"}>Variants</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Variants"} />
+      </p>
       {preamble}
       <p>
-        <strong>Variants</strong> let you design a page or component to look
-        different in different conditions. For instance, a page can have a
-        mobile variant or a French variant. A Button component can have
-        hover/pressed states, or primary/secondary styles.
+        <UiText
+          message={
+            "Variants let you design a page or component to look different in different conditions. For instance, a page can have a mobile variant or a French variant. A Button component can have hover/pressed states, or primary/secondary styles."
+          }
+        />
       </p>
       <p>
-        Use the on-canvas variant toolbar to toggle recording to any variant.
-        Any edits you make while recording will <strong>override</strong> the
-        component's "Base" (default) appearance. These overrides are indicated
-        by a red colored dot.
+        <UiText
+          message={
+            'Use the on-canvas variant toolbar to toggle recording to any variant. Any edits you make while recording will override the component\'s "Base" (default) appearance. These overrides are indicated by a red colored dot.'
+          }
+        />
       </p>
       <p>
-        <em>Screen variants</em> are a special variant group that are based on
-        screen size ("breakpoints") such as desktop vs. mobile.
+        <UiText
+          message={
+            'Screen variants are a special variant group that are based on screen size ("breakpoints") such as desktop vs. mobile.'
+          }
+        />
       </p>
       <p>
         <a target="_blank" href={"https://docs.plasmic.app/learn/variants"}>
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -73,24 +83,29 @@ export function VariantsTooltip({ preamble }: { preamble?: ReactNode }) {
 export function GlobalVariantsTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Global Variants</p>
-      <p>
-        If you want to re-theme the entire app, such as adding a dark mode, or a
-        French language translation, you probably want to change many
-        pages/components together.
+      <p className={"tooltip-title"}>
+        <UiText message={"Global Variants"} />
       </p>
       <p>
-        <strong>Global variants</strong> are similar to normal
-        (component/page-specific) variants, except that global variants are
-        global to the entire project: <em>any</em> component can have edits
-        defined under a single “Dark mode” variant.
+        <UiText
+          message={
+            "If you want to re-theme the entire app, such as adding a dark mode, or a French language translation, you probably want to change many pages/components together."
+          }
+        />
+      </p>
+      <p>
+        <UiText
+          message={
+            "Global variants are similar to normal (component/page-specific) variants, except that global variants are global to the entire project: any component can have edits defined under a single \u201cDark mode\u201d variant."
+          }
+        />
       </p>
       <p>
         <a
           target={"_blank"}
           href={"https://docs.plasmic.app/learn/global-variants/"}
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -101,12 +116,15 @@ export function GlobalVariantsTooltip() {
 export function VariantCombosTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Variant Combinations</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Variant Combinations"} />
+      </p>
       <p>
-        This lists all the combinations of variants that this component has
-        recorded edits for. For instance, you might want a Button to have
-        specific style settings when both the "Primary" variant and "Hover"
-        interaction variant are activated.
+        <UiText
+          message={
+            'This lists all the combinations of variants that this component has recorded edits for. For instance, you might want a Button to have specific style settings when both the "Primary" variant and "Hover" interaction variant are activated.'
+          }
+        />
       </p>
       <p>
         <a
@@ -115,7 +133,7 @@ export function VariantCombosTooltip() {
             "https://docs.plasmic.app/learn/variants/#targeting-combinations-of-variants"
           }
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -126,19 +144,22 @@ export function VariantCombosTooltip() {
 export function MetadataTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Component metadata</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Component metadata"} />
+      </p>
       <p>
-        You can specify arbitrary key-value pairs as metadata for this page or
-        component. Note: these are not page "meta tags"--these are arbitrary
-        data for your code to consume from the headless API or in codegen (for
-        any purpose). Learn more in the API docs.
+        <UiText
+          message={
+            'You can specify arbitrary key-value pairs as metadata for this page or component. Note: these are not page "meta tags"--these are arbitrary data for your code to consume from the headless API or in codegen (for any purpose). Learn more in the API docs.'
+          }
+        />
       </p>
       <p>
         <a
           target={"_blank"}
           href={"https://docs.plasmic.app/learn/page-head-metadata/"}
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -149,18 +170,26 @@ export function MetadataTooltip() {
 export function PropsTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Props</p>
-      <p>
-        Props enable you to customize individual instances of a component.
-        Reference props anywhere inside the component with dynamic values.
+      <p className={"tooltip-title"}>
+        <UiText message={"Props"} />
       </p>
       <p>
-        Use <code>/</code> in a prop name to organize props into folders, e.g.{" "}
-        <code>Header / title</code>.
+        <UiText
+          message={
+            "Props enable you to customize individual instances of a component. Reference props anywhere inside the component with dynamic values."
+          }
+        />
+      </p>
+      <p>
+        <UiText
+          message={
+            "Use / in a prop name to organize props into folders, e.g. Header / title."
+          }
+        />
       </p>
       <p>
         <a target={"_blank"} href={"https://docs.plasmic.app/learn/props"}>
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -171,30 +200,33 @@ export function PropsTooltip() {
 export function ElementVariantsTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>{PRIVATE_STYLE_VARIANTS_CAP}</p>
-
-      <p>
-        {PRIVATE_STYLE_VARIANTS_CAP} let you edit the styles of individual
-        elements in special interactive states, such as hovered, focused,
-        pressed.
+      <p className={"tooltip-title"}>
+        {<UiLabel text={PRIVATE_STYLE_VARIANTS_CAP} />}
       </p>
 
       <p>
-        {PRIVATE_STYLE_VARIANTS_CAP} can also target elements in a more advanced
-        way using{" "}
+        <UiText
+          message={
+            "Element variants let you edit the styles of individual elements in special interactive states, such as hovered, focused, pressed."
+          }
+        />
+      </p>
+
+      <p>
         <a
           href="https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes"
           target="_blank"
         >
-          CSS pseudo-classes
+          <UiText message="Element variants can also target elements in a more advanced way using CSS pseudo-classes." />
         </a>
-        .
       </p>
 
       <p>
-        (Component <em>{INTERACTION_VARIANTS_LOWER}</em> are similar, but let
-        you edit anything in the component based on the hover/focused/pressed
-        state of the component's root element.)
+        <UiText
+          message={
+            "(Component interaction variants are similar, but let you edit anything in the component based on the hover/focused/pressed state of the component's root element.)"
+          }
+        />
       </p>
     </div>
   );
@@ -203,12 +235,15 @@ export function ElementVariantsTooltip() {
 export function ProjectDependenciesTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Project Dependencies</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Project Dependencies"} />
+      </p>
       <p>
-        You can import other Plasmic projects as a dependency. The imported
-        components are labeled as <em>imported components</em>, in the
-        Components tab. Imported components are read-only. In order to edit
-        these components, please visit their home project.
+        <UiText
+          message={
+            "You can import other Plasmic projects as a dependency. The imported components are labeled as imported components, in the Components tab. Imported components are read-only. In order to edit these components, please visit their home project."
+          }
+        />
       </p>
     </div>
   );
@@ -217,15 +252,22 @@ export function ProjectDependenciesTooltip() {
 export function AttributesTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Attributes</p>
-      <p>
-        Attributes are non-style settings you can set on an element. Examples
-        include hover text, ARIA attributes, and tab order.
+      <p className={"tooltip-title"}>
+        <UiText message={"Attributes"} />
       </p>
       <p>
-        Different types of elements have different attributes. For instance,
-        with text inputs you can set placeholder text, with links you can set
-        the URL, with buttons you can set whether it's disabled, and so on.
+        <UiText
+          message={
+            "Attributes are non-style settings you can set on an element. Examples include hover text, ARIA attributes, and tab order."
+          }
+        />
+      </p>
+      <p>
+        <UiText
+          message={
+            "Different types of elements have different attributes. For instance, with text inputs you can set placeholder text, with links you can set the URL, with buttons you can set whether it's disabled, and so on."
+          }
+        />
       </p>
     </div>
   );
@@ -234,18 +276,26 @@ export function AttributesTooltip() {
 export function SlotsTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Slots</p>
-      <p>
-        Slots let you fill in different instances of a component with different
-        content.
+      <p className={"tooltip-title"}>
+        <UiText message={"Slots"} />
       </p>
       <p>
-        Converting an element in a component to a slot target means you want to
-        let component instances override that element.
+        <UiText
+          message={
+            "Slots let you fill in different instances of a component with different content."
+          }
+        />
+      </p>
+      <p>
+        <UiText
+          message={
+            "Converting an element in a component to a slot target means you want to let component instances override that element."
+          }
+        />
       </p>
       <p>
         <a target={"_blank"} href={"https://docs.plasmic.app/learn/slots"}>
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -259,14 +309,18 @@ export function ApplyMixinsTooltip() {
       preamble={
         <>
           <p>
-            This is where you can apply style presets to the selected element.
+            <UiText
+              message={
+                "This is where you can apply style presets to the selected element."
+              }
+            />
           </p>
           <p>
             <a
               target={"_blank"}
               href={"https://docs.plasmic.app/learn/style-presets"}
             >
-              Learn more in the docs
+              <UiText message={"Learn more in the docs"} />
             </a>
             .
           </p>
@@ -282,21 +336,25 @@ export function ApplyCustomBehaviorsTooltip() {
       preamble={
         <>
           <p>
-            This is where you can apply Custom Behaviors to the selected
-            element. Use cases are general and varied. Examples: attach
-            click-tracking to an element, or trigger a complex interaction, or
-            apply an animated effect transform.
+            <UiText
+              message={
+                "This is where you can apply Custom Behaviors to the selected element. Use cases are general and varied. Examples: attach click-tracking to an element, or trigger a complex interaction, or apply an animated effect transform."
+              }
+            />
           </p>
           <p>
-            Underlying these are code components that are meant to wrap around
-            an element.
+            <UiText
+              message={
+                "Underlying these are code components that are meant to wrap around an element."
+              }
+            />
           </p>
           <p>
             <a
               target="_blank"
               href="https://docs.plasmic.app/learn/custom-behaviors"
             >
-              Learn more in the docs
+              <UiText message={"Learn more in the docs"} />
             </a>
             .
           </p>
@@ -309,10 +367,15 @@ export function ApplyCustomBehaviorsTooltip() {
 export function RepeaterPropsTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Repeater Props</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Repeater Props"} />
+      </p>
       <p>
-        This section shows props for the parent Repeater component. You can use
-        it to customize the elements which are being repeated.
+        <UiText
+          message={
+            "This section shows props for the parent Repeater component. You can use it to customize the elements which are being repeated."
+          }
+        />
       </p>
     </div>
   );
@@ -321,15 +384,16 @@ export function RepeaterPropsTooltip() {
 export function PageParamsTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Preview parameters</p>
-      <p>{`
-        This section shows URL parameters defined in page path using brackets
-        (e.g. [param]). In production, such parameters are defined based in
-        the URL, but in studio you can customize what preview value they
-        should have. For example, if your page path is /products/[slug] you
-        can see how the page looks like and customize its styles using
-        different "slug" values.
-      `}</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Preview parameters"} />
+      </p>
+      <p>
+        <UiText
+          message={
+            'This section shows URL parameters defined in page path using brackets (e.g. [param]). In production, such parameters are defined based in the URL, but in studio you can customize what preview value they should have. For example, if your page path is /products/[slug] you can see how the page looks like and customize its styles using different "slug" values.'
+          }
+        />
+      </p>
     </div>
   );
 }
@@ -337,28 +401,36 @@ export function PageParamsTooltip() {
 export function PageQueryParamsTooltip() {
   return (
     <div style={{ paddingBottom: 10 }}>
-      <p className={"tooltip-title"}>URL Parameters</p>
-      <p>
-        Add a <em>path parameter</em> like{" "}
-        <span style={{ opacity: 0.5 }}>/item/</span>
-        <strong>[id]</strong> to accept URLs like{" "}
-        <span style={{ opacity: 0.5 }}>abc.com/item/</span>
-        <strong>235</strong>.
+      <p className={"tooltip-title"}>
+        <UiText message={"URL Parameters"} />
       </p>
       <p>
-        Add a <em>URL query parameter</em> to accept URLs like{" "}
-        <span style={{ opacity: 0.5 }}>abc.com/item/235</span>?
-        <strong>coupon=summer10</strong>.
+        <UiText
+          message={
+            "Add a path parameter like /item/ [id] to accept URLs like abc.com/item/ 235."
+          }
+        />
       </p>
       <p>
-        Here you can also set the current preview values for these parameters.
+        <UiText
+          message={
+            "Add a URL query parameter to accept URLs like abc.com/item/235? coupon=summer10."
+          }
+        />
+      </p>
+      <p>
+        <UiText
+          message={
+            "Here you can also set the current preview values for these parameters."
+          }
+        />
       </p>
       <p>
         <a
           target={"_blank"}
           href="https://docs.plasmic.app/learn/dynamic-pages"
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -370,12 +442,15 @@ export function ServerQueriesTooltip() {
   return (
     <div style={{ paddingBottom: 10 }}>
       <p>
-        Add <strong>data queries</strong> to get data from a data source such as
-        an API or CMS.
+        <UiText
+          message={
+            "Add data queries to get data from a data source such as an API or CMS."
+          }
+        />
       </p>
       <p>
         <a target={"_blank"} href="https://docs.plasmic.app/learn/data-queries">
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -387,14 +462,19 @@ export function DataQueriesDeprecatedTooltip(props: { showMigrate?: boolean }) {
   return (
     <div style={{ paddingBottom: 10 }}>
       <p>
-        Legacy data queries (<code>$queries</code>) are deprecated. Please use
-        the new data queries (<code>$q</code>) in the section above.
+        <UiText
+          message={
+            "Legacy data queries ($queries) are deprecated. Please use the new data queries ($q) in the section above."
+          }
+        />
       </p>
       {props.showMigrate && (
         <p>
-          Use the <strong>Migrate all</strong> button, or{" "}
-          <strong>Migrate</strong> in an individual query's menu, to convert to
-          new data queries with Plasmic AI.
+          <UiText
+            message={
+              "Use the Migrate all button, or Migrate in an individual query's menu, to convert to new data queries with Plasmic AI."
+            }
+          />
         </p>
       )}
       <p>
@@ -402,7 +482,7 @@ export function DataQueriesDeprecatedTooltip(props: { showMigrate?: boolean }) {
           target={"_blank"}
           href="https://docs.plasmic.app/learn/integrations-migration-guide"
         >
-          Learn more in the migration guide
+          <UiText message={"Learn more in the migration guide"} />
         </a>
         .
       </p>
@@ -414,15 +494,18 @@ export function DataQueriesTooltip() {
   return (
     <div style={{ paddingBottom: 10 }}>
       <p>
-        Add <strong>data queries</strong> to get data from an{" "}
-        <em>integration</em> like a backend database or API.
+        <UiText
+          message={
+            "Add data queries to get data from an integration like a backend database or API."
+          }
+        />
       </p>
       <p>
         <a
           target={"_blank"}
           href="https://docs.plasmic.app/learn/integrations#data-queries"
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -434,21 +517,25 @@ export function StateVariablesTooltip() {
   return (
     <div style={{ paddingBottom: 10 }}>
       <p>
-        Create <strong>state variables</strong> to store any data that can
-        change in your UI over time or as the user interacts. Update these from
-        interactions, and connect your UI to them with dynamic values.
+        <UiText
+          message={
+            "Create state variables to store any data that can change in your UI over time or as the user interacts. Update these from interactions, and connect your UI to them with dynamic values."
+          }
+        />
       </p>
       <p>
-        For instance, add a <code>counter</code> number variable that increments
-        every time the user clicks a button. Set an element's text dynamic value
-        to display the current <code>counter</code>.
+        <UiText
+          message={
+            "For instance, add a counter number variable that increments every time the user clicks a button. Set an element's text dynamic value to display the current counter."
+          }
+        />
       </p>
       <p>
         <a
           target={"_blank"}
           href="https://docs.plasmic.app/learn/interactions/"
         >
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -461,8 +548,11 @@ export function InstanceVariantsTooltip() {
     <VariantsTooltip
       preamble={
         <p>
-          This is where you can select what variant(s) to show on the selected
-          component instance.
+          <UiText
+            message={
+              "This is where you can select what variant(s) to show on the selected component instance."
+            }
+          />
         </p>
       }
     />
@@ -472,16 +562,21 @@ export function InstanceVariantsTooltip() {
 export function ModeTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Mode</p>
-      <p>
-        You can choose to use either the <strong>Loader</strong> or{" "}
-        <strong>Codegen</strong> paths. The Loader path is only available for
-        Next.js and Gatsby-based builds, and can greatly simplify deployments
-        for most use cases. For all other React stacks, for users who want
-        advanced customizability, and to be able to check Plasmic-generated code
-        into your repository, choose the Codegen path.
+      <p className={"tooltip-title"}>
+        <UiText message={"Mode"} />
       </p>
-      <p>(Loader is not available for existing repositories)</p>
+      <p>
+        <UiText
+          message={
+            "You can choose to use either the Loader or Codegen paths. The Loader path is only available for Next.js and Gatsby-based builds, and can greatly simplify deployments for most use cases. For all other React stacks, for users who want advanced customizability, and to be able to check Plasmic-generated code into your repository, choose the Codegen path."
+          }
+        />
+      </p>
+      <p>
+        <UiText
+          message={"(Loader is not available for existing repositories)"}
+        />
+      </p>
     </div>
   );
 }
@@ -489,12 +584,15 @@ export function ModeTooltip() {
 export function DefaultActionTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Default action</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Default action"} />
+      </p>
       <p>
-        When you push a Plasmic project to a GitHub repository, you can choose
-        whether to make a pull request with the updated code generated by
-        Plasmic or directly commit that code. This option sets the default
-        behavior, but it can be overridden per push.
+        <UiText
+          message={
+            "When you push a Plasmic project to a GitHub repository, you can choose whether to make a pull request with the updated code generated by Plasmic or directly commit that code. This option sets the default behavior, but it can be overridden per push."
+          }
+        />
       </p>
     </div>
   );
@@ -503,7 +601,9 @@ export function DefaultActionTooltip() {
 export function CustomBehaviorsTooltip({ preamble }: { preamble?: ReactNode }) {
   return (
     <div>
-      <p className={"tooltip-title"}>Custom behaviors</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Custom behaviors"} />
+      </p>
       {preamble}
     </div>
   );
@@ -516,11 +616,16 @@ export function LeftImagesSectionTooltip({
 }) {
   return (
     <div>
-      <p className={"tooltip-title"}>Images</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Images"} />
+      </p>
       {preamble}
       <p>
-        Images are any PNGs, JPGs, or non-colorable SVGs that you can use
-        throughout your designs as pictures or background images.
+        <UiText
+          message={
+            "Images are any PNGs, JPGs, or non-colorable SVGs that you can use throughout your designs as pictures or background images."
+          }
+        />
       </p>
     </div>
   );
@@ -533,11 +638,16 @@ export function LeftIconsSectionTooltip({
 }) {
   return (
     <div>
-      <p className={"tooltip-title"}>Icons</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Icons"} />
+      </p>
       {preamble}
       <p>
-        Icons are colorable (but monochrome) SVGs that you can use throughout
-        your designs.
+        <UiText
+          message={
+            "Icons are colorable (but monochrome) SVGs that you can use throughout your designs."
+          }
+        />
       </p>
     </div>
   );
@@ -565,12 +675,15 @@ export function UserDirectoryTooltip() {
   return (
     <div>
       <p>
-        User directories are lists of users and user groups. These are reused
-        across projects in your organization or workspace.
+        <UiText
+          message={
+            "User directories are lists of users and user groups. These are reused across projects in your organization or workspace."
+          }
+        />
       </p>
       <p>
         <a target={"_blank"} href={"https://docs.plasmic.app/learn/auth"}>
-          Learn more in the docs
+          <UiText message={"Learn more in the docs"} />
         </a>
         .
       </p>
@@ -639,12 +752,15 @@ Pass this into \`ensurePlasmicAppUser()\` to get a user token, and thus be able 
 export function StylePreviewTooltip() {
   return (
     <div>
-      <p className={"tooltip-title"}>Preview</p>
+      <p className={"tooltip-title"}>
+        <UiText message={"Preview"} />
+      </p>
       <p>
-        This is how text will look on your site. Styles you define layer on top
-        of the base default styles and Plasmic's CSS resets, just like on your
-        published pages; anything you leave unset falls back to those. Click the
-        preview text to edit.
+        <UiText
+          message={
+            "This is how text will look on your site. Styles you define layer on top of the base default styles and Plasmic's CSS resets, just like on your published pages; anything you leave unset falls back to those. Click the preview text to edit."
+          }
+        />
       </p>
     </div>
   );

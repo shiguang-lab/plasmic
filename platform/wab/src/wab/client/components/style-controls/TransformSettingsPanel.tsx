@@ -3,6 +3,8 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ensure } from "@/wab/shared/common";
 import { getSliderConfig } from "@/wab/shared/core/transform-utils";
@@ -39,6 +41,7 @@ interface TransformSettingsPanelProps {
 export const TransformSettingsPanel = observer(function TransformSettingsPanel(
   props: TransformSettingsPanelProps,
 ) {
+  const { t: uiT } = useI18n();
   const {
     studioCtx,
     selfPerspective,
@@ -77,7 +80,9 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
   const createUnsetMenu = (onClick) => {
     return (
       <Menu>
-        <Menu.Item onClick={onClick}>Unset</Menu.Item>
+        <Menu.Item onClick={onClick}>
+          <UiText message={"Unset"} />
+        </Menu.Item>
       </Menu>
     );
   };
@@ -114,7 +119,7 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
         <LabeledItemRow
           menu={createUnsetMenu(() => updateTransformOrigin(undefined))}
           className="pb-sm"
-          label="Origin Left"
+          label={uiT("Origin Left")}
           labelSize="small"
         >
           <Slider
@@ -155,7 +160,7 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
         <LabeledItemRow
           menu={createUnsetMenu(() => updateTransformOrigin(undefined))}
           className="pb-sm"
-          label="Origin Top"
+          label={uiT("Origin Top")}
           labelSize="small"
         >
           <Slider
@@ -194,7 +199,7 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
           />
         </LabeledItemRow>
         <LabeledItemRow
-          label="Backface"
+          label={uiT("Backface")}
           menu={createUnsetMenu(() => updateBackfaceVisibility(undefined))}
         >
           <StyleToggleButtonGroup
@@ -204,15 +209,15 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
             }}
             autoWidth
           >
-            <StyleToggleButton value="visible" label="Visible" noIcon />
-            <StyleToggleButton value="hidden" label="Hidden" noIcon />
+            <StyleToggleButton value="visible" label={uiT("Visible")} noIcon />
+            <StyleToggleButton value="hidden" label={uiT("Hidden")} noIcon />
           </StyleToggleButtonGroup>
         </LabeledItemRow>
       </SidebarSection>
-      <SidebarSection title="Self Perspective" isHeaderActive>
+      <SidebarSection title={uiT("Self Perspective")} isHeaderActive>
         <LabeledItemRow
           menu={createUnsetMenu(() => updateSelfPerspective(undefined))}
-          label="Distance"
+          label={uiT("Distance")}
           labelSize="small"
         >
           <Slider
@@ -241,11 +246,11 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
           />
         </LabeledItemRow>
       </SidebarSection>
-      <SidebarSection title="Child Perspective" isHeaderActive>
+      <SidebarSection title={uiT("Child Perspective")} isHeaderActive>
         <LabeledItemRow
           menu={createUnsetMenu(() => updateChildPerspective(undefined))}
           className="pb-sm"
-          label="Distance"
+          label={uiT("Distance")}
           labelSize="small"
         >
           <Slider
@@ -276,7 +281,7 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
         <LabeledItemRow
           menu={createUnsetMenu(() => updatePerspectiveOrigin(undefined))}
           className="pb-sm"
-          label="Origin Left"
+          label={uiT("Origin Left")}
           labelSize="small"
         >
           <Slider
@@ -317,7 +322,7 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
         <LabeledItemRow
           menu={createUnsetMenu(() => updatePerspectiveOrigin(undefined))}
           className="pb-sm"
-          label="Origin Top"
+          label={uiT("Origin Top")}
           labelSize="small"
         >
           <Slider

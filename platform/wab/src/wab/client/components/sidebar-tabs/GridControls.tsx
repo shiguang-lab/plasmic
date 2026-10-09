@@ -11,6 +11,7 @@ import {
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
+import { useI18n } from "@/wab/client/i18n";
 import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
 import { allImageAssets, allMixins } from "@/wab/shared/core/sites";
 import { CssVarResolver } from "@/wab/shared/core/styles";
@@ -32,6 +33,7 @@ import React from "react";
 export const GridControls = observer(function GridControls(props: {
   expsProvider: ExpsProvider;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const sc = useStyleComponent();
   const studioCtx = sc.studioCtx();
@@ -64,7 +66,7 @@ export const GridControls = observer(function GridControls(props: {
 
   return (
     <>
-      <LabeledItemRow label="Grid Type">
+      <LabeledItemRow label={uiT("Grid Type")}>
         <StyleToggleButtonGroup
           value={isFlexible ? "filled" : "fixed"}
           onChange={async (val) => {
@@ -84,15 +86,17 @@ export const GridControls = observer(function GridControls(props: {
         >
           <StyleToggleButton
             value="fixed"
-            tooltip="Fixed number of columns per row"
-            label="Fixed"
+            tooltip={uiT("Fixed number of columns per row")}
+            label={uiT("Fixed")}
             showLabel
             children={null}
           />
           <StyleToggleButton
             value="filled"
-            tooltip="Flexibly fill as many columns as possible per row, as long as each column is larger than some minimum size"
-            label="Filled"
+            tooltip={uiT(
+              "Flexibly fill as many columns as possible per row, as long as each column is larger than some minimum size",
+            )}
+            label={uiT("Filled")}
             showLabel
             children={null}
           />
@@ -100,7 +104,7 @@ export const GridControls = observer(function GridControls(props: {
       </LabeledItemRow>
 
       {isFlexibleSize(templateColumns) ? (
-        <LabeledItemRow label="Min Width">
+        <LabeledItemRow label={uiT("Min Width")}>
           <DimTokenSpinner
             value={`${templateColumns.size.num}${templateColumns.size.unit}`}
             onChange={async (val) => {
@@ -121,7 +125,7 @@ export const GridControls = observer(function GridControls(props: {
           />
         </LabeledItemRow>
       ) : (
-        <LabeledItemRow label="Columns">
+        <LabeledItemRow label={uiT("Columns")}>
           <DimTokenSpinner
             value={`${
               isTrackTemplate(templateColumns)
@@ -148,7 +152,7 @@ export const GridControls = observer(function GridControls(props: {
       )}
       <FullRow>
         <LabeledStyleDimItem
-          label="Row Height"
+          label={uiT("Row Height")}
           styleName="grid-auto-rows"
           tokenType={"Spacing"}
           dimOpts={{
@@ -160,7 +164,7 @@ export const GridControls = observer(function GridControls(props: {
       </FullRow>
       <FullRow>
         <LabeledStyleDimItem
-          label="Row Gap"
+          label={uiT("Row Gap")}
           styleName="grid-row-gap"
           tokenType={"Spacing"}
           dimOpts={{
@@ -173,7 +177,7 @@ export const GridControls = observer(function GridControls(props: {
       </FullRow>
       <FullRow>
         <LabeledStyleDimItem
-          label="Col Gap"
+          label={uiT("Col Gap")}
           styleName="grid-column-gap"
           tokenType={"Spacing"}
           dimOpts={{

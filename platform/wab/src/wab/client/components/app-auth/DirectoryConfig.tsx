@@ -18,6 +18,7 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultDirectoryConfigProps,
   PlasmicDirectoryConfig,
@@ -508,7 +509,7 @@ function AddUserToDirectoryModal(props: {
                 onCancel();
               }}
             >
-              Cancel
+              <UiText message={"Cancel"} />
             </Button>
           </div>
         </div>

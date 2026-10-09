@@ -14,6 +14,7 @@ import {
 } from "@/wab/client/components/widgets";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultViewAsButtonProps,
   PlasmicViewAsButton,
@@ -280,7 +281,7 @@ export function AdvancedAppAuthMenuItems() {
               });
             }}
           >
-            Configure
+            <UiText message={"Configure"} />
           </Menu.Item>
         )}
         {appCurrentUserOpConfig?.userPropsBundledOp && (
@@ -310,7 +311,7 @@ export function AdvancedAppAuthMenuItems() {
               );
             }}
           >
-            Remove
+            <UiText message={"Remove"} />
           </Menu.Item>
         )}
       </Menu.ItemGroup>

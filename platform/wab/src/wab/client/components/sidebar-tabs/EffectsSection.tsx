@@ -13,6 +13,8 @@ import {
   ExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { isStylePropSet } from "@/wab/client/utils/style-utils";
 import L from "lodash";
 import { observer } from "mobx-react";
@@ -59,6 +61,7 @@ export const EffectsPanelSection = observer(
     expsProvider: ExpsProvider;
     animatableOnly?: boolean;
   }) {
+    const { t: uiT } = useI18n();
     const { expsProvider, animatableOnly } = props;
     const { studioCtx } = expsProvider;
     const exp = expsProvider.mergedExp();
@@ -69,7 +72,7 @@ export const EffectsPanelSection = observer(
       <StylePanelSection
         fullyCollapsible
         expsProvider={expsProvider}
-        title={"Effects"}
+        title={uiT("Effects")}
         styleProps={effectsStyleProps}
         hasMore
       >
@@ -85,21 +88,23 @@ export const EffectsPanelSection = observer(
                         <FullRow>
                           <LabeledStyleSelectItem
                             styleName="cursor"
-                            label="Cursor"
-                            tooltip="Set mouse cursor when hovering on this layer"
+                            label={uiT("Cursor")}
+                            tooltip={uiT(
+                              "Set mouse cursor when hovering on this layer",
+                            )}
                             textRight={false}
                             selectOpts={{
                               options: [
                                 {
                                   value: "auto",
-                                  label: "Auto",
+                                  label: uiT("Auto"),
                                 },
                                 {
                                   value: "default",
                                   label: (
                                     <span className="flex-vcenter">
                                       <FaMousePointer className="mr-ch" />{" "}
-                                      Default
+                                      <UiText message={"Default"} />
                                     </span>
                                   ),
                                 },
@@ -116,7 +121,8 @@ export const EffectsPanelSection = observer(
                                   value: "text",
                                   label: (
                                     <span className="flex-vcenter">
-                                      <FaICursor className="mr-ch" /> Text
+                                      <FaICursor className="mr-ch" />{" "}
+                                      <UiText message={"Text"} />
                                     </span>
                                   ),
                                 },
@@ -124,7 +130,8 @@ export const EffectsPanelSection = observer(
                                   value: "move",
                                   label: (
                                     <span className="flex-vcenter">
-                                      <FiMove className="mr-ch" /> Move
+                                      <FiMove className="mr-ch" />{" "}
+                                      <UiText message={"Move"} />
                                     </span>
                                   ),
                                 },
@@ -132,7 +139,8 @@ export const EffectsPanelSection = observer(
                                   value: "wait",
                                   label: (
                                     <span className="flex-vcenter">
-                                      <FaSpinner className="mr-ch" /> Wait
+                                      <FaSpinner className="mr-ch" />{" "}
+                                      <UiText message={"Wait"} />
                                     </span>
                                   ),
                                 },
@@ -140,7 +148,8 @@ export const EffectsPanelSection = observer(
                                   value: "grab",
                                   label: (
                                     <span className="flex-vcenter">
-                                      <FaHandPaper className="mr-ch" /> Grab
+                                      <FaHandPaper className="mr-ch" />{" "}
+                                      <UiText message={"Grab"} />
                                     </span>
                                   ),
                                 },
@@ -148,7 +157,8 @@ export const EffectsPanelSection = observer(
                                   value: "grabbing",
                                   label: (
                                     <span className="flex-vcenter">
-                                      <FaHandRock className="mr-ch" /> Grabbing
+                                      <FaHandRock className="mr-ch" />{" "}
+                                      <UiText message={"Grabbing"} />
                                     </span>
                                   ),
                                 },
@@ -157,7 +167,7 @@ export const EffectsPanelSection = observer(
                                   label: (
                                     <span className="flex-vcenter">
                                       <MdDoNotDisturbAlt className="mr-ch" />{" "}
-                                      Not allowed
+                                      <UiText message={"Not allowed"} />
                                     </span>
                                   ),
                                 },
@@ -168,7 +178,7 @@ export const EffectsPanelSection = observer(
                         <FullRow>
                           <LabeledStyleSwitchItem
                             styleName="pointer-events"
-                            label="Interactive"
+                            label={uiT("Interactive")}
                             value={exp.get("pointer-events") === "auto"}
                             onChange={(checked) =>
                               studioCtx.changeUnsafe(() =>
@@ -196,8 +206,10 @@ export const EffectsPanelSection = observer(
                         <FullRow>
                           <LabeledStyleSelectItemRow
                             styleName="mix-blend-mode"
-                            label="Blend"
-                            tooltip="How should the colors blend with the elements behind it?"
+                            label={uiT("Blend")}
+                            tooltip={uiT(
+                              "How should the colors blend with the elements behind it?",
+                            )}
                             textRight={false}
                             selectOpts={{
                               options: mixBlendModeOpts.map((value) => ({
@@ -210,7 +222,7 @@ export const EffectsPanelSection = observer(
                         <FullRow>
                           <LabeledStyleSwitchItem
                             styleName="isolation"
-                            label="Reset context"
+                            label={uiT("Reset context")}
                             value={exp.get("isolation") === "isolate"}
                             onChange={(checked) =>
                               studioCtx.changeUnsafe(() =>
@@ -220,7 +232,9 @@ export const EffectsPanelSection = observer(
                                 ),
                               )
                             }
-                            tooltip="Prevents children elements with blend modes from blending with parents of this container."
+                            tooltip={uiT(
+                              "Prevents children elements with blend modes from blending with parents of this container.",
+                            )}
                           />
                         </FullRow>
                       </>

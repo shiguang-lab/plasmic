@@ -1,4 +1,3 @@
-import { capitalizeFirst } from "@/wab/shared/strs";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import S from "@/wab/client/components/sidebar-tabs/SizeSection.module.scss";
 import {
@@ -27,6 +26,8 @@ import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon as IconComponent } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { DimManip } from "@/wab/client/DimManip";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   default as PlasmicIcon__Stretch,
   default as StretchIcon,
@@ -67,6 +68,7 @@ import {
   isTplResizable,
   setPageSizeType,
 } from "@/wab/shared/sizingutils";
+import { capitalizeFirst } from "@/wab/shared/strs";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { Alert, Menu } from "antd";
@@ -119,7 +121,7 @@ class SizeSection_ extends StyleComponent<
       <StylePanelSection
         expsProvider={this.props.expsProvider}
         styleProps={sizeSectionProps}
-        title={"Size"}
+        title={<UiText message={"Size"} />}
         hasMore
         data-test-id="size-section"
       >
@@ -168,7 +170,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="Min Width"
+                      label={<UiText message={"Min Width"} />}
                       styleName={`min-width`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -188,7 +190,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="Max Width"
+                      label={<UiText message={"Max Width"} />}
                       styleName={`max-width`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -223,7 +225,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="Min Height"
+                      label={<UiText message={"Min Height"} />}
                       styleName={`min-height`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -243,7 +245,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="Max Height"
+                      label={<UiText message={"Max Height"} />}
                       styleName={`max-height`}
                       dimOpts={{
                         ...tokenTypeDimOpts("Spacing"),
@@ -263,7 +265,7 @@ class SizeSection_ extends StyleComponent<
                 content: (
                   <FullRow>
                     <LabeledStyleDimItem
-                      label="Aspect Ratio"
+                      label={<UiText message={"Aspect Ratio"} />}
                       styleName="aspect-ratio"
                       disabledDragging
                       dimOpts={{
@@ -323,7 +325,7 @@ class SizeSection_ extends StyleComponent<
                 ),
                 content: (
                   <LabeledStyleDimItemRow
-                    label="Flex basis"
+                    label={<UiText message={"Flex basis"} />}
                     styleName="flex-basis"
                     dimOpts={{
                       ...dimOpts,
@@ -348,6 +350,7 @@ export const SizeSection = observer(SizeSection_);
 export const SizeWidthOnlySection = observer(function SizeWidthOnlySection(
   props: StyleComponentProps,
 ) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const studioCtx = expsProvider.studioCtx;
   const vsh = props.vsh ?? makeVariantedStylesHelperFromCurrentCtx(studioCtx);
@@ -355,7 +358,7 @@ export const SizeWidthOnlySection = observer(function SizeWidthOnlySection(
     <StylePanelSection
       expsProvider={expsProvider}
       styleProps={["width"]}
-      title={"Size"}
+      title={uiT("Size")}
       data-test-id="size-width-section"
     >
       <FullRow>
@@ -372,6 +375,7 @@ const SizeControl = observer(function SizeRow(props: {
   isDisabled?: boolean;
   disabledTooltip?: React.ReactNode;
 }) {
+  const { t: uiT } = useI18n();
   const {
     prop,
     expsProvider,
@@ -422,7 +426,7 @@ const SizeControl = observer(function SizeRow(props: {
                   transform: prop === "height" ? "rotate(-90deg)" : undefined,
                 }}
               />
-              Hug content
+              <UiText message={"Hug content"} />
             </div>
           ),
         },
@@ -527,8 +531,8 @@ const SizeControl = observer(function SizeRow(props: {
                 type="clear"
                 tooltip={
                   isDeepContentLayoutChild && prop === "width"
-                    ? "Stretch standard"
-                    : "Stretch"
+                    ? uiT("Stretch standard")
+                    : uiT("Stretch")
                 }
                 onClick={() => setProp("stretch")}
                 className={cn(S.toggleSizingIcon, {
@@ -548,7 +552,7 @@ const SizeControl = observer(function SizeRow(props: {
               <IconButton
                 size="small"
                 type="clear"
-                tooltip={"Hug content"}
+                tooltip={uiT("Hug content")}
                 onClick={() => setProp("wrap")}
                 className={cn(S.toggleSizingIcon, {
                   [S.toggleSizingIcon__height]: prop === "height",
@@ -563,7 +567,7 @@ const SizeControl = observer(function SizeRow(props: {
                   <IconButton
                     size="small"
                     type="clear"
-                    tooltip={"Stretch wide"}
+                    tooltip={uiT("Stretch wide")}
                     onClick={() => setProp(CONTENT_LAYOUT_WIDE)}
                     className={S.toggleSizingIcon}
                   >
@@ -574,7 +578,7 @@ const SizeControl = observer(function SizeRow(props: {
                   <IconButton
                     size="small"
                     type="clear"
-                    tooltip={"Stretch full bleed"}
+                    tooltip={uiT("Stretch full bleed")}
                     onClick={() => setProp(CONTENT_LAYOUT_FULL_BLEED)}
                     className={S.toggleSizingIcon}
                   >
@@ -754,6 +758,7 @@ function fromDisplay(val: string, stretchLabel: string) {
 
 export const PageSizePanelSection = observer(
   function PageSizePanelSection(props: { expsProvider: ExpsProvider }) {
+    const { t: uiT } = useI18n();
     const { expsProvider } = props;
     assert(
       expsProvider instanceof TplExpsProvider,
@@ -767,7 +772,7 @@ export const PageSizePanelSection = observer(
     );
     const sizeType = getPageFrameSizeType(arenaFrame);
     return (
-      <SidebarSection title="Size">
+      <SidebarSection title={uiT("Size")}>
         {
           // Using LabeleditemRow instead of LabeledStyleCheckboxItem
           // because we are carefully managing the height style, unlike
@@ -786,7 +791,7 @@ export const PageSizePanelSection = observer(
                     })
                   }
                 >
-                  Let page height fill the browser window
+                  <UiText message={"Let page height fill the browser window"} />
                 </Menu.Item>
               ) : (
                 <Menu.Item
@@ -796,16 +801,18 @@ export const PageSizePanelSection = observer(
                     })
                   }
                 >
-                  Let page height hug content instead
+                  <UiText message={"Let page height hug content instead"} />
                 </Menu.Item>
               )}
             </Menu>
           )}
         >
           <div>
-            {sizeType === "wrap"
-              ? "Page height hugs page content"
-              : "Page height fills up the browser window"}
+            {sizeType === "wrap" ? (
+              <UiText message={"Page height hugs page content"} />
+            ) : (
+              <UiText message={"Page height fills up the browser window"} />
+            )}
           </div>
         </WithContextMenu>
         {sizeType !== "wrap" && (
@@ -820,13 +827,15 @@ export const PageSizePanelSection = observer(
               valueSetState={sizeType === "fixed" ? "isSet" : undefined}
               tooltip={
                 <>
-                  If your page has scrollable containers inside, you can fix the
-                  page height to the window height, so that the window does not
-                  scroll.
+                  <UiText
+                    message={
+                      "If your page has scrollable containers inside, you can fix the page height to the window height, so that the window does not scroll."
+                    }
+                  />
                 </>
               }
             >
-              Fix page height to window height
+              <UiText message={"Fix page height to window height"} />
             </StyleCheckbox>
           </LabeledItemRow>
         )}
@@ -839,6 +848,7 @@ export const StretchyComponentSizePanelSection = observer(
   function StretchyComponentSizePanelSection(props: {
     expsProvider: ExpsProvider;
   }) {
+    const { t: uiT } = useI18n();
     const { expsProvider } = props;
     assert(
       expsProvider instanceof TplExpsProvider,
@@ -846,14 +856,18 @@ export const StretchyComponentSizePanelSection = observer(
     );
 
     return (
-      <SidebarSection title="Size">
-        <div>Stretchy components take up the entire artboard.</div>
+      <SidebarSection title={uiT("Size")}>
+        <div>
+          <UiText
+            message={"Stretchy components take up the entire artboard."}
+          />
+        </div>
         <FullRow>
           <SizeControl
             prop="width"
             expsProvider={props.expsProvider}
             isDisabled={true}
-            disabledTooltip={"Cannot modify width in stretch view mode"}
+            disabledTooltip={uiT("Cannot modify width in stretch view mode")}
           />
         </FullRow>
         <FullRow>

@@ -4,6 +4,8 @@ import {
   IFrameAwareDropdownMenu,
 } from "@/wab/client/components/widgets";
 import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicZoomButton from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicZoomButton";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -42,6 +44,7 @@ function ZoomSpinner_() {
 }
 
 export const ZoomButton = observer(function ZoomButton() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const menu = () => (
     <Menu>
@@ -51,27 +54,27 @@ export const ZoomButton = observer(function ZoomButton() {
       <Menu.Divider />
       <Menu.Item onClick={() => studioCtx.tryZoomWithDirection(1)}>
         <MenuItemContent shortcut={getComboForAction("ZOOM_IN")}>
-          Zoom in
+          <UiText message={"Zoom in"} />
         </MenuItemContent>
       </Menu.Item>
       <Menu.Item onClick={() => studioCtx.tryZoomWithDirection(-1)}>
         <MenuItemContent shortcut={getComboForAction("ZOOM_OUT")}>
-          Zoom out
+          <UiText message={"Zoom out"} />
         </MenuItemContent>
       </Menu.Item>
       <Menu.Item onClick={() => studioCtx.tryZoomToFitArena()}>
         <MenuItemContent shortcut={getComboForAction("ZOOM_TO_FIT")}>
-          Zoom to fit all
+          <UiText message={"Zoom to fit all"} />
         </MenuItemContent>
       </Menu.Item>
       <Menu.Item onClick={() => spawn(studioCtx.tryZoomToFitSelection())}>
         <MenuItemContent shortcut={getComboForAction("ZOOM_TO_SELECTION")}>
-          Zoom to fit selection
+          <UiText message={"Zoom to fit selection"} />
         </MenuItemContent>
       </Menu.Item>
       <Menu.Item onClick={() => studioCtx.tryZoomWithScale(1)}>
         <MenuItemContent shortcut={getComboForAction("ZOOM_RESET")}>
-          Zoom to 100%
+          <UiText message={"Zoom to 100%"} />
         </MenuItemContent>
       </Menu.Item>
     </Menu>
@@ -80,7 +83,7 @@ export const ZoomButton = observer(function ZoomButton() {
   return (
     <IFrameAwareDropdownMenu menu={menu}>
       <PlasmicZoomButton
-        root={{ props: { "aria-label": "Zoom" } }}
+        root={{ props: { "aria-label": uiT("Zoom") } }}
         children={`${Math.round(studioCtx.zoom * 100)}%`}
         disabled={studioCtx.currentArenaEmpty}
       />

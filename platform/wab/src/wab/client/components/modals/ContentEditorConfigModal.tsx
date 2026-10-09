@@ -3,10 +3,12 @@ import sty from "@/wab/client/components/modals/ContentEditorConfigModal.module.
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { toOpaque } from "@/wab/commons/types";
 import { PublicStyleSection, TemplateSpec } from "@/wab/shared/ApiSchema";
-import { ensureType, isOneOf, unreachable } from "@/wab/shared/common";
 import { MIXINS_CAP } from "@/wab/shared/Labels";
+import { ensureType, isOneOf, unreachable } from "@/wab/shared/common";
 import { capitalizeFirst } from "@/wab/shared/strs";
 import {
   BASIC_ALIASES,
@@ -14,9 +16,9 @@ import {
   COMPONENT_ALIASES,
   LEFT_TAB_UI_KEYS,
   LeftTabUiKey,
-  makeNiceAliasName,
   PROJECT_CONFIGS,
   UiConfig,
+  makeNiceAliasName,
 } from "@/wab/shared/ui-config-utils";
 import { Alert, Form, Input } from "antd";
 import { capitalize, omit, uniqBy } from "lodash";
@@ -32,6 +34,7 @@ export function ContentEditorConfigModal(props: {
   onSubmit: (config: UiConfig) => void;
   onCancel: () => void;
 }) {
+  const { t: uiT } = useI18n();
   const { appCtx, config, onSubmit, onCancel, title, level } = props;
 
   const [form] = Form.useForm();
@@ -84,10 +87,12 @@ export function ContentEditorConfigModal(props: {
               message={`Changes to the project UI configuration will only take place after refreshing the page.`}
             />
           )}
-          <h3 className="mv-xlg">Creation</h3>
+          <h3 className="mv-xlg">
+            <UiText message={"Creation"} />
+          </h3>
           <Form.Item name={["canCreateBasics"]} noStyle>
             <BooleanPreferencesControl
-              label="Can create basic entities?"
+              label={uiT("Can create basic entities?")}
               prefKeys={BASIC_ENTITY_ALIASES.map((alias) => ({
                 value: alias,
                 label: makeNiceAliasName(alias),
@@ -95,10 +100,12 @@ export function ContentEditorConfigModal(props: {
             />
           </Form.Item>
 
-          <h3 className="mv-xlg">Insertion</h3>
+          <h3 className="mv-xlg">
+            <UiText message={"Insertion"} />
+          </h3>
           <Form.Item name={["canInsertBasics"]} noStyle>
             <BooleanPreferencesControl
-              label="Can insert basic elements?"
+              label={uiT("Can insert basic elements?")}
               prefKeys={BASIC_ALIASES.map((alias) => ({
                 value: alias,
                 label: makeNiceAliasName(alias),
@@ -107,7 +114,7 @@ export function ContentEditorConfigModal(props: {
           </Form.Item>
           <Form.Item name={["canInsertBuiltinComponent"]} noStyle>
             <BooleanPreferencesControl
-              label="Can insert builtin components?"
+              label={uiT("Can insert builtin components?")}
               prefKeys={COMPONENT_ALIASES.map((alias) => ({
                 value: alias,
                 label: makeNiceAliasName(alias),
@@ -116,7 +123,7 @@ export function ContentEditorConfigModal(props: {
           </Form.Item>
           <Form.Item name={["canInsertHostless"]} noStyle>
             <BooleanPreferencesControl
-              label="Can use components from component store?"
+              label={uiT("Can use components from component store?")}
               prefKeys={uniqBy(
                 [
                   // The "plume" key gates both Plume and Plexus components
@@ -131,24 +138,31 @@ export function ContentEditorConfigModal(props: {
             />
           </Form.Item>
 
-          <h3 className="mv-xlg">Project Configs</h3>
+          <h3 className="mv-xlg">
+            <UiText message={"Project Configs"} />
+          </h3>
           <Form.Item name={["projectConfigs"]} noStyle>
             <BooleanPreferencesControl
-              label={"Can edit project configurations?"}
+              label={uiT("Can edit project configurations?")}
               prefKeys={PROJECT_CONFIGS.map((t) => ({
                 value: t,
                 label: capitalizeFirst(t),
               })).sort((a, b) => a.label.localeCompare(b.label))}
             />
           </Form.Item>
-          <Form.Item name={["canPublishProject"]} label="Can publish project?">
+          <Form.Item
+            name={["canPublishProject"]}
+            label={uiT("Can publish project?")}
+          >
             <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
           </Form.Item>
 
-          <h3 className="mv-xlg">Left tabs</h3>
+          <h3 className="mv-xlg">
+            <UiText message={"Left tabs"} />
+          </h3>
           <Form.Item name={["leftTabs"]} noStyle>
             <PreferencesControl
-              label={"Show left tabs?"}
+              label={uiT("Show left tabs?")}
               prefKeys={LEFT_TAB_UI_KEYS.filter(
                 (x) => !HIDDEN_LEFT_TAB_KEYS.includes(x),
               )
@@ -159,10 +173,12 @@ export function ContentEditorConfigModal(props: {
             />
           </Form.Item>
 
-          <h3 className="mv-xlg">Style controls</h3>
+          <h3 className="mv-xlg">
+            <UiText message={"Style controls"} />
+          </h3>
           <Form.Item name={["styleSectionVisibilities"]} noStyle>
             <BooleanPreferencesControl
-              label="Can edit these sections in the right panel?"
+              label={uiT("Can edit these sections in the right panel?")}
               prefKeys={Object.entries(PublicStyleSection).map(
                 ([label, value]) => ({
                   value,
@@ -173,13 +189,13 @@ export function ContentEditorConfigModal(props: {
           </Form.Item>
           <Form.Item
             name={["canOverrideImportedTokens"]}
-            label="Can override imported tokens?"
+            label={uiT("Can override imported tokens?")}
           >
             <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
           </Form.Item>
           <Form.Item
             name={["canOverrideRegisteredTokens"]}
-            label="Can override registered tokens?"
+            label={uiT("Can override registered tokens?")}
           >
             <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
           </Form.Item>
@@ -187,10 +203,12 @@ export function ContentEditorConfigModal(props: {
           {isOneOf(level, ["team", "workspace"]) && (
             <>
               <hr className="mv-xlg" />
-              <h3>Branding</h3>
+              <h3>
+                <UiText message={"Branding"} />
+              </h3>
               <Form.Item
                 name={["brand", "logoImgSrc"]}
-                label="Logo image url"
+                label={uiT("Logo image url")}
                 getValueFromEvent={(e) =>
                   e.target.value === "" ? undefined : e.target.value
                 }
@@ -199,7 +217,7 @@ export function ContentEditorConfigModal(props: {
               </Form.Item>
               <Form.Item
                 name={["brand", "logoHref"]}
-                label="Logo link url"
+                label={uiT("Logo link url")}
                 getValueFromEvent={(e) =>
                   e.target.value === "" ? undefined : e.target.value
                 }
@@ -210,17 +228,22 @@ export function ContentEditorConfigModal(props: {
           )}
 
           <hr className="mv-xlg" />
-          <h3>Templates</h3>
+          <h3>
+            <UiText message={"Templates"} />
+          </h3>
           <p>
-            Don't forget to publish the project with your templates. Templates
-            will always use the latest published version.{" "}
+            <UiText
+              message={
+                "Don't forget to publish the project with your templates. Templates will always use the latest published version."
+              }
+            />{" "}
             <a href="https://docs.plasmic.app/learn/custom-templates/">
-              Learn more
+              <UiText message={"Learn more"} />
             </a>
           </p>
           <Form.Item
             name="hideDefaultPageTemplates"
-            label="Hide default page templates?"
+            label={uiT("Hide default page templates?")}
             help={
               'Hide default page templates like "Empty page". Can only be hidden if custom page templates (below) are defined.'
             }
@@ -262,9 +285,11 @@ export function ContentEditorConfigModal(props: {
         </div>
         <div className="flex-no-shrink p-xxlg bt-dim">
           <Button className="mr-sm" type="primary" htmlType="submit">
-            Update
+            <UiText message={"Update"} />
           </Button>
-          <Button onClick={() => onCancel()}>Cancel</Button>
+          <Button onClick={() => onCancel()}>
+            <UiText message={"Cancel"} />
+          </Button>
         </div>
       </Form>
     </Modal>
@@ -321,7 +346,7 @@ function JsonControl(props: {
         className={value ? "display-none" : undefined}
         onClick={() => onChange?.(defaultInitialValue)}
       >
-        Configure
+        <UiText message={"Configure"} />
       </Button>
     </>
   );
@@ -354,7 +379,9 @@ function BooleanControl(props: {
         )
       }
     >
-      <Select.Option value={"default"}>Default</Select.Option>
+      <Select.Option value={"default"}>
+        <UiText message={"Default"} />
+      </Select.Option>
       <Select.Option value={"true"}>{trueLabel}</Select.Option>
       <Select.Option value={"false"}>{falseLabel}</Select.Option>
     </Select>
@@ -367,8 +394,7 @@ function BooleanControl(props: {
  * If the value is BooleanOrDefault, the value applies to all string keys.
  */
 type BooleanOrDefaultRecord<T extends string> =
-  | BooleanOrDefault
-  | Record<T, BooleanOrDefault>;
+  BooleanOrDefault | Record<T, BooleanOrDefault>;
 
 function BooleanPreferencesControl<T extends string>(props: {
   label: string;
@@ -404,10 +430,18 @@ function BooleanPreferencesControl<T extends string>(props: {
             )
           }
         >
-          <Select.Option value={"default"}>Default</Select.Option>
-          <Select.Option value={"yes"}>Allowed</Select.Option>
-          <Select.Option value={"no"}>Disallowed</Select.Option>
-          <Select.Option value={"whitelist"}>Configure whitelist</Select.Option>
+          <Select.Option value={"default"}>
+            <UiText message={"Default"} />
+          </Select.Option>
+          <Select.Option value={"yes"}>
+            <UiText message={"Allowed"} />
+          </Select.Option>
+          <Select.Option value={"no"}>
+            <UiText message={"Disallowed"} />
+          </Select.Option>
+          <Select.Option value={"whitelist"}>
+            <UiText message={"Configure whitelist"} />
+          </Select.Option>
         </Select>
       </Form.Item>
       {value != null && typeof value === "object" && (
@@ -459,7 +493,9 @@ function PreferenceSelect<OptionType>(props: {
       }}
       size={size}
     >
-      <Select.Option value={"default"}>Default</Select.Option>
+      <Select.Option value={"default"}>
+        <UiText message={"Default"} />
+      </Select.Option>
       {options?.map((op) => (
         <Select.Option key={optionKey(op)} value={optionKey(op)}>
           {optionLabel(op)}
@@ -495,8 +531,12 @@ function PreferencesControl<T extends string, OptionType>(props: {
             )
           }
         >
-          <Select.Option value={"default"}>Default</Select.Option>
-          <Select.Option value={"customize"}>Customize</Select.Option>
+          <Select.Option value={"default"}>
+            <UiText message={"Default"} />
+          </Select.Option>
+          <Select.Option value={"customize"}>
+            <UiText message={"Customize"} />
+          </Select.Option>
         </Select>
       </Form.Item>
       {value != null && typeof value === "object" && (
@@ -528,8 +568,12 @@ function PreferenceMapControl<T extends string, OptionType>(props: {
       <table className={sty.prefsTable}>
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Allowed?</th>
+            <th>
+              <UiText message={"Item"} />
+            </th>
+            <th>
+              <UiText message={"Allowed?"} />
+            </th>
           </tr>
         </thead>
         <tbody>

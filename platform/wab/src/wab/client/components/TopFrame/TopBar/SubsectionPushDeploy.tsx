@@ -11,6 +11,8 @@ import Button from "@/wab/client/components/widgets/Button";
 import GitJobStep from "@/wab/client/components/widgets/GitJobStep";
 import Select from "@/wab/client/components/widgets/Select";
 import { AsyncFnReturn } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultSubsectionPushDeployProps,
   PlasmicSubsectionPushDeploy,
@@ -76,6 +78,7 @@ interface SubsectionPushDeployProps
 }
 
 function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
+  const { t: uiT } = useI18n();
   const {
     appCtx,
     project,
@@ -200,9 +203,11 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
                   type="primary"
                   size="small"
                 >
-                  {_props.isWaiting
-                    ? "Waiting for GitHub..."
-                    : "Connect to GitHub"}
+                  {_props.isWaiting ? (
+                    "Waiting for GitHub..."
+                  ) : (
+                    <UiText message={"Connect to GitHub"} />
+                  )}
                 </Button>
               )}
               refreshDeps={[connectedToGithub]}
@@ -227,7 +232,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
               : undefined
         }
         pushAs={{
-          "aria-label": "Push as",
+          "aria-label": uiT("Push as"),
           value: pushAs,
           onChange: (key) => {
             const newPushAs = key as string;

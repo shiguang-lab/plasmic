@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: xymZo1AIeU
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -66,6 +68,7 @@ function PlasmicLeftLintIssuesPanel__RenderFunc(props: {
   overrides: PlasmicLeftLintIssuesPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -128,7 +131,7 @@ function PlasmicLeftLintIssuesPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"Refresh issues"}
+            {<UiText message={"Refresh issues"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.leftPaneHeader)}
@@ -144,7 +147,7 @@ function PlasmicLeftLintIssuesPanel__RenderFunc(props: {
           </div>
         }
         noActions={true}
-        title={"Issues"}
+        title={uiT("Issues")}
       />
 
       <div

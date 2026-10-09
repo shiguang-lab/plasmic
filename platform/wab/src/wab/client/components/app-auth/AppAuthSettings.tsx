@@ -14,6 +14,7 @@ import { Spinner, Tab, Tabs } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { trackEvent } from "@/wab/client/tracking";
 import { ApiEndUserDirectory, ApiProject } from "@/wab/shared/ApiSchema";
 import { uniqueName, withoutNils } from "@/wab/shared/common";
@@ -133,9 +134,15 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
               await hostFrameApi.refreshSiteInfo();
             }}
           >
-            {isSettingUp ? "Loading..." : "Continue"}
+            {isSettingUp ? (
+              <UiText message={"Loading..."} />
+            ) : (
+              <UiText message={"Continue"} />
+            )}
           </Button>
-          <Button onClick={onCancel}>Cancel</Button>
+          <Button onClick={onCancel}>
+            <UiText message={"Cancel"} />
+          </Button>
         </div>
       </Modal>
     );

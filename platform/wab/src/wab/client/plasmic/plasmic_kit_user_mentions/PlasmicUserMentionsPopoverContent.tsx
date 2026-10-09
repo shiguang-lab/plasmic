@@ -11,6 +11,7 @@
 // Plasmic Project: kTSMroKPFv65RRTb44SCtk
 // Component: Gc2UoCN4xKJL
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -139,7 +140,7 @@ function PlasmicUserMentionsPopoverContent__RenderFunc(props: {
         type={["clear"]}
         withIcons={["startIcon"]}
       >
-        {"Share proejct"}
+        {<UiText message={"Share proejct"} />}
       </Button>
     </div>
   ) as React.ReactElement | null;

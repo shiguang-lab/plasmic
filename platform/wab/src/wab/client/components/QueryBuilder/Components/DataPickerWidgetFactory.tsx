@@ -5,6 +5,7 @@ import DataPicker, {
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { zIndex } from "@/wab/client/z-index";
 import { cx } from "@/wab/shared/common";
@@ -70,7 +71,7 @@ export function DataPickerWidgetFactory({
             setValue(undefined);
           }}
         >
-          Remove dynamic value
+          <UiText message={"Remove dynamic value"} />
         </Menu.Item>
       </Menu>
     );
@@ -92,7 +93,7 @@ export function DataPickerWidgetFactory({
           key="use-dynamic-value"
           onClick={switchToDynamicValue}
         >
-          Use dynamic value
+          <UiText message={"Use dynamic value"} />
         </Menu.Item>
       </Menu>
     );

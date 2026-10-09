@@ -8,6 +8,7 @@ import {
   SectionSeparator,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { observer } from "mobx-react";
 import React from "react";
@@ -16,6 +17,7 @@ export const ContentLayoutContainerControls = observer(
   function ContentLayoutContainerControls(props: {
     expsProvider: ExpsProvider;
   }) {
+    const { t: uiT } = useI18n();
     return (
       <>
         <AlignmentGridControl
@@ -30,7 +32,7 @@ export const ContentLayoutContainerControls = observer(
         />
         <SectionSeparator className="mv-m" />
         <LabeledStyleDimItemRow
-          label={"Gap"}
+          label={uiT("Gap")}
           styleName="grid-row-gap"
           tokenType={"Spacing"}
           dimOpts={{

@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: rD0wOVzSnE
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -214,7 +215,7 @@ function PlasmicModal__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text___1X6U)}
                   >
-                    {"Cancel"}
+                    {<UiText message={"Cancel"} />}
                   </div>
                 </Button>
                 <Button
@@ -234,7 +235,7 @@ function PlasmicModal__RenderFunc(props: {
                   }
                   type={["primary"]}
                 >
-                  {"Next"}
+                  {<UiText message={"Next"} />}
                 </Button>
               </React.Fragment>
             ),

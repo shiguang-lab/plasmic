@@ -5,6 +5,7 @@ import {
   useTeamProjects,
 } from "@/wab/client/components/analytics/analytics-contexts";
 import { COMPONENT_PICKER_INFO } from "@/wab/client/components/analytics/utils";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultTeamFiltersProps,
   PlasmicTeamFilters,
@@ -39,6 +40,7 @@ export interface TeamFiltersProps extends DefaultTeamFiltersProps {
 }
 
 function TeamFilters_(props: TeamFiltersProps, ref: HTMLElementRefOf<"div">) {
+  const { t: uiT } = useI18n();
   const {
     teamId,
     workspaceId,
@@ -69,7 +71,7 @@ function TeamFilters_(props: TeamFiltersProps, ref: HTMLElementRefOf<"div">) {
       projectSelect={{
         options: [
           {
-            label: "Unset",
+            label: uiT("Unset"),
             value: undefined,
           },
           ...teamProjects.map((project) => ({
@@ -95,7 +97,7 @@ function TeamFilters_(props: TeamFiltersProps, ref: HTMLElementRefOf<"div">) {
         info: COMPONENT_PICKER_INFO,
         options: [
           {
-            label: "Unset",
+            label: uiT("Unset"),
             value: undefined,
           },
           ...projectMeta.pages.map((page) => ({
@@ -109,7 +111,7 @@ function TeamFilters_(props: TeamFiltersProps, ref: HTMLElementRefOf<"div">) {
       optimizationsSelect={{
         options: [
           {
-            label: "Unset",
+            label: uiT("Unset"),
             value: undefined,
           },
           ...projectMeta.splits.map((split) => ({

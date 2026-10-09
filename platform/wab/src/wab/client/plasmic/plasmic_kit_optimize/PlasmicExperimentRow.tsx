@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: 74OdgMxR-T
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -135,14 +136,14 @@ function PlasmicExperimentRow__RenderFunc(props: {
             data-plasmic-override={overrides.title}
             className={classNames("all", "__wab_text", sty.title)}
           >
-            {"Enter some text"}
+            {<UiText message={"Enter some text"} />}
           </div>
           <div
             data-plasmic-name={"status"}
             data-plasmic-override={overrides.status}
             className={classNames("all", "__wab_text", sty.status)}
           >
-            {"Running"}
+            {<UiText message={"Running"} />}
           </div>
         </div>
       </ListItem>

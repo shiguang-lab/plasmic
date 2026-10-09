@@ -12,6 +12,8 @@ import {
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import StrikeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Strike";
 import BoldsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__BoldSvg";
 import CodesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__CodeSvg";
@@ -137,6 +139,7 @@ function RichTextToolbar_(
   { ctx, ...props }: RichTextToolbarProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   // This is just a wrapper to use the run() function from
   // viewCtx.editingTextContext() with no need to check if it's undefined.
   const runInEditor = (action: string, params?: any) => {
@@ -267,7 +270,7 @@ function RichTextToolbar_(
               )),
               <Select.Option key={null} value={null} textValue={"Default"}>
                 <Icon icon={TextsvgIcon} style={{ marginRight: 4 }} />
-                Default
+                <UiText message={"Default"} />
               </Select.Option>,
             ],
             onChange: (tag) => runInEditor("WRAP_BLOCK", tag),
@@ -346,10 +349,10 @@ function RichTextToolbar_(
                   </Menu.Item>
                 ))}
                 <Menu.Item
-                  aria-label="Unset"
+                  aria-label={uiT("Unset")}
                   onClick={() => markCss({ fontWeight: undefined })}
                 >
-                  Unset
+                  <UiText message={"Unset"} />
                 </Menu.Item>
               </Menu>
             ),
@@ -363,31 +366,32 @@ function RichTextToolbar_(
         }}
         textDecoration={{
           props: {
-            "aria-label": "Underline",
+            "aria-label": uiT("Underline"),
             type: textDecorationLine ? ["noDivider", "secondary"] : "noDivider",
             onClick: () => runInEditor("UNDERLINE"),
             menu: () => (
               <Menu>
                 <Menu.Item
                   key="underline"
-                  aria-label="Underline"
+                  aria-label={uiT("Underline")}
                   onClick={() => runInEditor("UNDERLINE")}
                 >
                   <Icon icon={UnderlinesvgIcon} />
-                  Underline
+                  <UiText message={"Underline"} />
                 </Menu.Item>
                 <Menu.Item
                   key="line-through"
-                  aria-label="Strikethrough"
+                  aria-label={uiT("Strikethrough")}
                   onClick={() => runInEditor("STRIKETHROUGH")}
                 >
-                  <Icon icon={StrikeIcon} /> Strikethrough
+                  <Icon icon={StrikeIcon} />{" "}
+                  <UiText message={"Strikethrough"} />
                 </Menu.Item>
                 <Menu.Item
-                  aria-label="Unset"
+                  aria-label={uiT("Unset")}
                   onClick={() => markCss({ textDecorationLine: undefined })}
                 >
-                  Unset
+                  <UiText message={"Unset"} />
                 </Menu.Item>
               </Menu>
             ),
@@ -396,7 +400,7 @@ function RichTextToolbar_(
         inline={{
           // TODO: Make button active if selection has link, code or span.
           props: {
-            "aria-label": "Link",
+            "aria-label": uiT("Link"),
             onClick: () => runInEditor("LINK"),
             menu: () => (
               <Menu>

@@ -11,6 +11,8 @@
 // Plasmic Project: kA1Hysr5ZeimtATHTDJz5B
 // Component: cWsnP3_PIix
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -131,6 +133,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
   overrides: PlasmicShareDialogContent__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -395,7 +398,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
             }
             type={["primary"]}
           >
-            {"Copy link"}
+            {<UiText message={"Copy link"} />}
           </ActionMenuButton>
         </div>
         <ListSectionSeparator
@@ -649,7 +652,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                       }
                     )}
                   >
-                    {"Copy Link"}
+                    {<UiText message={"Copy Link"} />}
                   </div>
                 </Button>
               ) : null}
@@ -896,7 +899,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                 error={
                   hasVariant($state, "state", "invalidEmail") ? true : undefined
                 }
-                placeholder={"Invite someone by email…"}
+                placeholder={uiT("Invite someone by email…")}
                 prefixIcon={
                   <SearchSvgIcon
                     className={classNames("all", sty.svg__yai2I)}
@@ -1054,12 +1057,12 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                 type={["primary"]}
               >
                 {hasVariant($state, "state", "noPermToShare")
-                  ? "Invite"
+                  ? <UiText message={"Invite"} />
                   : hasVariant($state, "state", "unlogged")
-                  ? "Invite"
+                  ? <UiText message={"Invite"} />
                   : hasVariant($state, "state", "submitting")
                   ? "Inviting..."
-                  : "Invite"}
+                  : <UiText message={"Invite"} />}
               </Button>
             </div>
           </div>
@@ -1282,7 +1285,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Who has access"}
+                {<UiText message={"Who has access"} />}
               </div>
             </div>
             <div
@@ -1330,7 +1333,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                         sty.teamName
                       )}
                     >
-                      {"Name"}
+                      {<UiText message={"Name"} />}
                     </span>
                   }
                   <React.Fragment>{""}</React.Fragment>
@@ -1373,7 +1376,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   type={["link"]}
                   withIcons={["endIcon"]}
                 >
-                  {"Manage"}
+                  {<UiText message={"Manage"} />}
                 </Button>
               </div>
             </div>
@@ -1414,7 +1417,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                           sty.workspaceName
                         )}
                       >
-                        {"Name"}
+                        {<UiText message={"Name"} />}
                       </span>
                     }
                     <React.Fragment>{""}</React.Fragment>
@@ -1449,7 +1452,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     type={["link"]}
                     withIcons={["endIcon"]}
                   >
-                    {"Manage"}
+                    {<UiText message={"Manage"} />}
                   </Button>
                 </div>
               </div>

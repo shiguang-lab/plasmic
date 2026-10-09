@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: bDbzY5jXLz
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -83,6 +85,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
   overrides: PlasmicLeftGeneralTokensPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -192,7 +195,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"Import tokens"}
+            {<UiText message={"Import tokens"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.leftPaneHeader, {
@@ -206,7 +209,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
           "Create tokens for colors, spacing, and more. Tokens can reference other tokens."
         }
         hasTitleActions={true}
-        title={"Style Tokens"}
+        title={uiT("Style Tokens")}
         titleActions={
           <div
             data-plasmic-name={"globalVariantsSelectContainer"}
@@ -222,7 +225,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
                 ),
               })}
             >
-              {"Target:"}
+              {<UiText message={"Target:"} />}
             </div>
             <Select
               data-plasmic-name={"globalVariantSelect"}
@@ -255,7 +258,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__hDqR6)}
                 >
-                  {"Base"}
+                  {<UiText message={"Base"} />}
                 </div>
               }
               size={"tiny"}
@@ -273,7 +276,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__qa0Lm)}
                 >
-                  {"Base"}
+                  {<UiText message={"Base"} />}
                 </div>
               </Select__Option>
             </Select>

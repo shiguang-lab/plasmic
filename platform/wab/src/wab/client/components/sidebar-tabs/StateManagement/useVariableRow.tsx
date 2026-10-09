@@ -6,17 +6,18 @@ import {
 } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
 import { VariableEditingModal } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { CONFIGURE_ACTION, DELETE_ACTION } from "@/wab/shared/Labels";
 import { assert, ensure, spawn } from "@/wab/shared/common";
 import { canDeleteState } from "@/wab/shared/core/components";
 import {
+  StateVariableType,
   getStateDisplayName,
   isPrivateState,
-  StateVariableType,
 } from "@/wab/shared/core/states";
-import { CONFIGURE_ACTION, DELETE_ACTION } from "@/wab/shared/Labels";
-import { Component, isKnownTplSlot, State } from "@/wab/shared/model/classes";
+import { Component, State, isKnownTplSlot } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
 import React from "react";
 
@@ -42,12 +43,12 @@ function useVariableMenu({
   builder.genSection(undefined, (push) => {
     push(
       <Menu.Item key="edit-state" onClick={() => showVariableConfigModal()}>
-        {CONFIGURE_ACTION}
+        {<UiLabel text={CONFIGURE_ACTION} />}
       </Menu.Item>,
     );
     push(
       <Menu.Item key="change-value" onClick={() => showValueModal()}>
-        Change preview value
+        <UiText message={"Change preview value"} />
       </Menu.Item>,
     );
     push(
@@ -56,7 +57,7 @@ function useVariableMenu({
         disabled={!hasTempValue}
         onClick={handleTempValueReset}
       >
-        Reset preview value
+        <UiText message={"Reset preview value"} />
       </Menu.Item>,
     );
   });
@@ -65,7 +66,7 @@ function useVariableMenu({
     if (canDeleteState(component, state)) {
       push(
         <Menu.Item key="remove-state" onClick={() => onRemove?.()}>
-          {DELETE_ACTION}
+          {<UiLabel text={DELETE_ACTION} />}
         </Menu.Item>,
       );
     }

@@ -11,6 +11,7 @@ import {
   EditableLabel,
   EditableLabelHandles,
 } from "@/wab/client/components/widgets/EditableLabel";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { spawn } from "@/wab/shared/common";
@@ -148,7 +149,7 @@ export function makeCanvasVariantContextMenu({
           })
         }
       >
-        Delete {VARIANT_LOWER}
+        <UiText message={"Delete"} /> {<UiLabel text={VARIANT_LOWER} />}
       </Menu.Item>
     </Menu>
   );
@@ -236,7 +237,7 @@ export const StyleVariantEditor = observer(function StyleVariantEditor_({
           return maybeSubmit();
         }}
       >
-        Done
+        <UiText message={"Done"} />
       </Button>
     </div>
   );

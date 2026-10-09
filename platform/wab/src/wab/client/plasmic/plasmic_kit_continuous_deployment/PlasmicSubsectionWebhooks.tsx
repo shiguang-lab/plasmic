@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: 9EUA-QZFp69
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -237,7 +238,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
             ) : null}
           </div>
           <div className={classNames("all", "__wab_text", sty.text__oIlvd)}>
-            {"Call webhooks"}
+            {<UiText message={"Call webhooks"} />}
           </div>
         </div>
         <div
@@ -282,7 +283,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "collapse", "collapse") ? "Show" : "Remove"}
+                {hasVariant($state, "collapse", "collapse") ? "Show" : <UiText message={"Remove"} />}
               </div>
             </Button>
           ) : null}
@@ -324,7 +325,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
               className={classNames("all", "__wab_text", sty.description)}
             >
               {
-                "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase]."
+                <UiText message={"Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase]."} />
               }
             </div>
             <PlasmicLink__
@@ -341,7 +342,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
               platform={"react"}
               target={"_blank"}
             >
-              {"Learn more."}
+              {<UiText message={"Learn more."} />}
             </PlasmicLink__>
           </div>
           <div
@@ -406,7 +407,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___7CxUe)}
                 >
-                  {"View history ->"}
+                  {<UiText message={"View history ->"} />}
                 </div>
               </Button>
               <Button
@@ -428,7 +429,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
                 }
                 type={["primary"]}
               >
-                {"New webhook"}
+                {<UiText message={"New webhook"} />}
               </Button>
             </div>
           </div>

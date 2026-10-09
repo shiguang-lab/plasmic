@@ -8,6 +8,8 @@ import { LabeledItem } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultActionBuilderProps,
   PlasmicActionBuilder,
@@ -78,6 +80,7 @@ function ActionBuilder_(
   props: ActionBuilderProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const {
     tpl,
     sc,
@@ -223,7 +226,7 @@ function ActionBuilder_(
         }}
         actionItem={{
           render: () => (
-            <LabeledItem label={"Action"} layout={"vertical"}>
+            <LabeledItem label={uiT("Action")} layout={"vertical"}>
               <StyleSelect
                 data-plasmic-prop={"action-name"}
                 valueSetState={"isSet"}
@@ -314,7 +317,7 @@ function ActionBuilder_(
             </LabeledItem>
           ),
         }}
-        label={"Action"}
+        label={uiT("Action")}
         actionName={interaction.interactionName}
         isEditingActionName={isEditingInteractionnName}
         edit={{
@@ -370,14 +373,18 @@ function ActionBuilder_(
                 stretched
                 data-plasmic-prop="mode-always"
               >
-                <div className="text-m">Always</div>
+                <div className="text-m">
+                  <UiText message={"Always"} />
+                </div>
               </StyleToggleButton>
               <StyleToggleButton
                 value={InteractionConditionalMode.Never}
                 stretched
                 data-plasmic-prop="mode-never"
               >
-                <div className="text-m">Never</div>
+                <div className="text-m">
+                  <UiText message={"Never"} />
+                </div>
               </StyleToggleButton>
               <StyleToggleButton
                 value={InteractionConditionalMode.Expression}

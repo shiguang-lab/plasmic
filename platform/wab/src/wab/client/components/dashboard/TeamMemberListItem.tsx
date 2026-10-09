@@ -1,4 +1,5 @@
 import { Matcher } from "@/wab/client/components/view-common";
+import Select from "@/wab/client/components/widgets/Select";
 import {
   commenterTooltip,
   contentCreatorTooltip,
@@ -6,16 +7,16 @@ import {
   developerTooltip,
   viewerTooltip,
 } from "@/wab/client/components/widgets/plasmic/PermissionItem";
-import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultTeamMemberListItemProps,
   PlasmicTeamMemberListItem,
 } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberListItem";
 import { ApiPermission, TeamMember } from "@/wab/shared/ApiSchema";
 import { fullName, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
+import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { ensure } from "@/wab/shared/common";
-import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Menu, Tooltip } from "antd";
 import moment from "moment";
@@ -112,7 +113,7 @@ function TeamMemberListItem_(
             style={selfRoleValue === "owner" ? {} : { display: "none" }}
             value="owner"
           >
-            Owner
+            <UiText message={"Owner"} />
           </Select.Option>,
           <Select.Option value="editor">{developerTooltip}</Select.Option>,
           <Select.Option value="content">
@@ -127,7 +128,7 @@ function TeamMemberListItem_(
             }}
             value="none"
           >
-            None
+            <UiText message={"None"} />
           </Select.Option>,
         ],
       }}
@@ -156,7 +157,10 @@ function TeamMemberListItem_(
                   await removeUser(user.email);
                 }}
               >
-                <strong>Remove</strong> {isSelf ? "self" : "member"}
+                <strong>
+                  <UiText message={"Remove"} />
+                </strong>{" "}
+                {isSelf ? "self" : "member"}
               </Menu.Item>
             </Menu>
           ),

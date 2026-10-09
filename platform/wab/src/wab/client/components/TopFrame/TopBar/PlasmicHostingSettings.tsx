@@ -12,6 +12,7 @@ import {
 } from "@/wab/client/components/modals/PricingModal";
 import { ImageUploader } from "@/wab/client/components/style-controls/ImageSelector";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultPlasmicHostingSettingsProps,
   PlasmicPlasmicHostingSettings,
@@ -465,7 +466,9 @@ function PlasmicHostingSettings_(
           >
             <div className="flex gap-sm dimfg p-sm">
               <FaUpload />
-              <span>Upload</span>
+              <span>
+                <UiText message={"Upload"} />
+              </span>
             </div>
           </ImageUploader>
         </div>

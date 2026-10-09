@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: xmF37LmWYE
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -216,7 +217,7 @@ function PlasmicDataPickerColumn__RenderFunc(props: {
 
           className={classNames("all", "__wab_text", sty.text)}
         >
-          {"Run all previous steps"}
+          {<UiText message={"Run all previous steps"} />}
         </div>
       </Button>
       <div

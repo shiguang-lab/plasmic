@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: WwK9TyWdjIfT
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -76,6 +78,7 @@ function PlasmicLeftGeneralDataTokensPanel__RenderFunc(props: {
   overrides: PlasmicLeftGeneralDataTokensPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -179,7 +182,7 @@ function PlasmicLeftGeneralDataTokensPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New token"}
+            {<UiText message={"New token"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.leftPaneHeader, {
@@ -189,9 +192,9 @@ function PlasmicLeftGeneralDataTokensPanel__RenderFunc(props: {
             "isTargeting"
           ),
         })}
-        description={"Create tokens for code expressions."}
+        description={uiT("Create tokens for code expressions.")}
         hasTitleActions={true}
-        title={"Data Tokens"}
+        title={uiT("Data Tokens")}
         titleActions={null}
       />
 

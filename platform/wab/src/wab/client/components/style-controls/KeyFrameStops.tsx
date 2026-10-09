@@ -3,6 +3,7 @@ import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import sty from "@/wab/client/components/style-controls/KeyFrameStops.module.scss";
 import { getHTMLElt } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ColorStopIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__ColorStop";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
@@ -123,7 +124,7 @@ const KeyFrameStops_ = (props: KeyFrameStopsProps) => {
       if (onDeleteKeyframe && sequence.keyframes.length > 1) {
         push(
           <Menu.Item key="delete" onClick={() => onDeleteKeyframe(keyframe)}>
-            Delete keyframe
+            <UiText message={"Delete keyframe"} />
           </Menu.Item>,
         );
       }

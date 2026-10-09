@@ -18,6 +18,7 @@ import {
   handleIframeLoad,
 } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { usePreventDefaultBrowserPinchToZoomBehavior } from "@/wab/client/hooks/usePreventDefaultBrowserPinchToZoomBehavior";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
 import { useBrowserNotification } from "@/wab/client/utils/useBrowserNotification";
@@ -222,12 +223,13 @@ export function StudioFrame({
         Plasmic login screen. Only open projects that are hosted by domains you
         trust! [
         <a href="https://www.plasmic.app/learn/app-hosting/" target="_blank">
-          Learn more about app hosting
+          <UiText message={"Learn more about app hosting"} />
         </a>
         ].
         <br />
         <br />
-        Enter the domain <code>{hostOrigin}</code> to add it to your{" "}
+        <UiText message={"Enter the domain"} /> <code>{hostOrigin}</code> to add
+        it to your{" "}
         <PublicLink href={APP_ROUTES.settings.fill({})}>
           trusted list
         </PublicLink>

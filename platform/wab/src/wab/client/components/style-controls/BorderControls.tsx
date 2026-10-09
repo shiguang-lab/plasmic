@@ -15,6 +15,7 @@ import { DimTokenSpinnerRef } from "@/wab/client/components/widgets/DimTokenSele
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
+import { useI18n } from "@/wab/client/i18n";
 import BorderAllIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderAll";
 import BorderRadiusAllIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderRadiusAll";
 import BorderRadiusSideIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderRadiusSide";
@@ -67,6 +68,7 @@ function BorderPanelSection_(props: {
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const studioCtx = useStudioCtx();
 
@@ -106,7 +108,7 @@ function BorderPanelSection_(props: {
   return (
     <StylePanelSection
       key={String(open || hasBorderProps)}
-      title="Border"
+      title={uiT("Border")}
       expsProvider={expsProvider}
       styleProps={borderStyleProps}
       onHeaderClick={
@@ -136,6 +138,7 @@ function BorderRadiusSection_(props: {
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const studioCtx = useStudioCtx();
   const inputRef = useRef<DimTokenSpinnerRef>(null);
@@ -182,7 +185,7 @@ function BorderRadiusSection_(props: {
   return (
     <StylePanelSection
       key={String(open || hasBorderRadiusProps)}
-      title="Corner radius"
+      title={uiT("Corner radius")}
       expsProvider={expsProvider}
       styleProps={borderRadiusStyleProps}
       onHeaderClick={
@@ -278,6 +281,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
   initialBorderPositions: Side[];
   vsh: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider, initialBorderPositions, vsh } = props;
   const studioCtx = expsProvider.studioCtx;
   const [selectedSides, setSelectedSides] = React.useState<Side[]>(
@@ -375,7 +379,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
           className="col-start-2"
           isActive={selectedSides.includes("top")}
           onClick={() => toggleSide("top")}
-          tooltip="Top border"
+          tooltip={uiT("Top border")}
         >
           <Icon icon={BorderSideIcon} style={{ transform: "rotate(90deg)" }} />
         </IconButton>
@@ -383,21 +387,21 @@ const BorderLineControls = observer(function BorderLineControls(props: {
           className="col-start-1"
           isActive={selectedSides.includes("left")}
           onClick={() => toggleSide("left")}
-          tooltip="Left border"
+          tooltip={uiT("Left border")}
         >
           <Icon icon={BorderSideIcon} />
         </IconButton>
         <IconButton
           isActive={selectedSides.length === 0}
           onClick={() => setSelectedSides([])}
-          tooltip="All borders"
+          tooltip={uiT("All borders")}
         >
           <Icon icon={BorderAllIcon} />
         </IconButton>
         <IconButton
           isActive={selectedSides.includes("right")}
           onClick={() => toggleSide("right")}
-          tooltip="Right border"
+          tooltip={uiT("Right border")}
         >
           <Icon icon={BorderSideIcon} style={{ transform: "rotate(180deg)" }} />
         </IconButton>
@@ -405,14 +409,14 @@ const BorderLineControls = observer(function BorderLineControls(props: {
           className="col-start-2"
           isActive={selectedSides.includes("bottom")}
           onClick={() => toggleSide("bottom")}
-          tooltip="Bottom border"
+          tooltip={uiT("Bottom border")}
         >
           <Icon icon={BorderSideIcon} style={{ transform: "rotate(-90deg)" }} />
         </IconButton>
       </div>
       <div className="ml-lg flex-fill">
         <LabeledStyleDimItemRow
-          label="Width"
+          label={uiT("Width")}
           styleName={effectiveSides().map((s) => `border-${s}-width`)}
           labelSize="small"
           displayStyleName="border-width"
@@ -429,7 +433,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
           }}
         />
         <LabeledLineStyleToggleButtonGroupItemRow
-          label="Style"
+          label={uiT("Style")}
           styleName={effectiveSides().map((s) => `border-${s}-style`)}
           labelSize="small"
           value={getUnanimousSelectedSidesProp("style") || ""}
@@ -443,7 +447,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
           }
         />
         <LabeledStyleColorItemRow
-          label="Color"
+          label={uiT("Color")}
           styleName={effectiveSides().map((s) => `border-${s}-color`)}
           labelSize="small"
           displayStyleName="border-color"
@@ -465,6 +469,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
   inputRef?: React.Ref<DimTokenSpinnerRef>;
   vsh: VariantedStylesHelper;
 }) {
+  const { t: uiT } = useI18n();
   const { expsProvider, initialBorderPositions } = props;
   const studioCtx = expsProvider.studioCtx;
   const [selectedCorners, setSelectedCorners] = React.useState<Corner[]>(
@@ -545,7 +550,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
         <IconButton
           isActive={selectedCorners.includes("top-left")}
           onClick={() => toggleCorner("top-left")}
-          tooltip="Top-left corner"
+          tooltip={uiT("Top-left corner")}
         >
           <Icon icon={BorderRadiusSideIcon} />
         </IconButton>
@@ -553,7 +558,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
           className="col-start-3"
           isActive={selectedCorners.includes("top-right")}
           onClick={() => toggleCorner("top-right")}
-          tooltip="Top-right corner"
+          tooltip={uiT("Top-right corner")}
         >
           <Icon
             icon={BorderRadiusSideIcon}
@@ -564,7 +569,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
           className="col-start-2"
           isActive={selectedCorners.length === 0}
           onClick={() => setSelectedCorners([])}
-          tooltip="All corners"
+          tooltip={uiT("All corners")}
         >
           <Icon icon={BorderRadiusAllIcon} />
         </IconButton>
@@ -572,7 +577,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
           className="col-start-1"
           isActive={selectedCorners.includes("bottom-left")}
           onClick={() => toggleCorner("bottom-left")}
-          tooltip="Bottom-left corner"
+          tooltip={uiT("Bottom-left corner")}
         >
           <Icon
             icon={BorderRadiusSideIcon}
@@ -583,7 +588,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
           className="col-start-3"
           isActive={selectedCorners.includes("bottom-right")}
           onClick={() => toggleCorner("bottom-right")}
-          tooltip="Bottom-right corner"
+          tooltip={uiT("Bottom-right corner")}
         >
           <Icon
             icon={BorderRadiusSideIcon}
@@ -593,7 +598,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
       </div>
       <div className={cn("ml-lg", "flex-fill", styles.inputContainer)}>
         <LabeledStyleDimItem
-          label="Radius"
+          label={uiT("Radius")}
           styleName={effectiveCorners().map((s) => `border-${s}-radius`)}
           labelSize="small"
           displayStyleName="border-radius"

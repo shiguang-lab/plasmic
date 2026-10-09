@@ -13,6 +13,7 @@ import NewPageModal, {
   NewPageInfo,
 } from "@/wab/client/components/widgets/NewPageModal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { Site } from "@/wab/shared/model/classes";
@@ -200,9 +201,11 @@ export async function promptTagsAndDesc(
             htmlType="submit"
             data-test-id="prompt-submit"
           >
-            {"Submit"}
+            {<UiText message={"Submit"} />}
           </Button>
-          <Button onClick={() => onCancel()}>Cancel</Button>
+          <Button onClick={() => onCancel()}>
+            <UiText message={"Cancel"} />
+          </Button>
         </Form.Item>
       </Form>
     </Modal>

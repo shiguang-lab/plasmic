@@ -35,6 +35,7 @@ import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { UiText } from "@/wab/client/i18n/UiText";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
 import ThemeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Theme";
 import PlasmicLeftMixinsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftMixinsPanel";
@@ -276,7 +277,7 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
       <SidebarSection
         title={
           <LabelWithDetailedTooltip tooltip={<StylePreviewTooltip />}>
-            Preview
+            <UiText message={"Preview"} />
           </LabelWithDetailedTooltip>
         }
       >
@@ -575,13 +576,13 @@ const MixinRow = observer(function MixinRow(props: {
     builder.genSection(undefined, (push) => {
       push(
         <Menu.Item key="references" onClick={() => props.onFindReferences()}>
-          Find all references
+          <UiText message={"Find all references"} />
         </Menu.Item>,
       );
       if (props.onDuplicate) {
         push(
           <Menu.Item key="clone" onClick={() => props.onDuplicate!()}>
-            Duplicate
+            <UiText message={"Duplicate"} />
           </Menu.Item>,
         );
       }
@@ -597,7 +598,7 @@ const MixinRow = observer(function MixinRow(props: {
               )()
             }
           >
-            Delete
+            <UiText message={"Delete"} />
           </Menu.Item>,
         );
       }

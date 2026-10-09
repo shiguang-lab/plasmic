@@ -11,6 +11,7 @@
 // Plasmic Project: m8VxGcigeLAEXFe8c12w5Q
 // Component: -6NBGvUCP1-j
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -147,7 +148,7 @@ function PlasmicBranchPanel__RenderFunc(props: {
                 sty.span,
               )}
             >
-              {"New"}
+              {<UiText message={"New"} />}
             </span>
           </Button>
         </div>
@@ -171,7 +172,7 @@ function PlasmicBranchPanel__RenderFunc(props: {
                     sty.span__clSgu,
                   )}
                 >
-                  {"Active Branches"}
+                  {<UiText message={"Active Branches"} />}
                 </span>
               </BranchSectionHeader>
               <FolderItem
@@ -222,7 +223,7 @@ function PlasmicBranchPanel__RenderFunc(props: {
                     sty.span__gbZnQ,
                   )}
                 >
-                  {"Archived Branches"}
+                  {<UiText message={"Archived Branches"} />}
                 </span>
               </BranchSectionHeader>
               <FolderItem

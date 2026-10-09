@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: vSQc3cNg5Q
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -178,7 +179,7 @@ function PlasmicChartView__RenderFunc(props: {
               ),
             })}
           >
-            {"Loading your data ..."}
+            {<UiText message={"Loading your data ..."} />}
           </div>
         </div>
         {(
@@ -212,7 +213,7 @@ function PlasmicChartView__RenderFunc(props: {
             >
               {hasVariant($state, "empty", "empty")
                 ? "No data found"
-                : "Loading your data ..."}
+                : <UiText message={"Loading your data ..."} />}
             </div>
           </div>
         ) : null}

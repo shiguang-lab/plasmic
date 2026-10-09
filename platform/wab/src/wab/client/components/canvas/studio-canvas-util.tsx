@@ -2,6 +2,7 @@ import { PublicLink } from "@/wab/client/components/PublicLink";
 import { getComponentByPath } from "@/wab/client/components/live/PreviewCtx";
 import { LinkButton } from "@/wab/client/components/widgets";
 import * as domMod from "@/wab/client/dom";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { Fiber } from "@/wab/client/react-global-hook/fiber";
 import {
   getMostRecentFiberVersion,
@@ -222,7 +223,7 @@ export function showCanvasPageNavigationNotification(
                 notification.destroy("navigation-notification");
               }}
             >
-              Open {href} in a new tab
+              <UiText message={"Open"} /> {href} in a new tab
             </PublicLink>
           </p>
         )}

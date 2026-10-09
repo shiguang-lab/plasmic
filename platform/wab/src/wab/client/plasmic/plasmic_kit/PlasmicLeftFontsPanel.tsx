@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: 5oz1qmvGBe
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -68,6 +70,7 @@ function PlasmicLeftFontsPanel__RenderFunc(props: {
   overrides: PlasmicLeftFontsPanel__OverridesType;
   forNode?: string;
 }) {
+  const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -137,7 +140,7 @@ function PlasmicLeftFontsPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New font"}
+            {<UiText message={"New font"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.fontsHeader)}
@@ -159,7 +162,7 @@ function PlasmicLeftFontsPanel__RenderFunc(props: {
             {"Learn how to add custom fonts."}
           </PlasmicLink__>
         }
-        title={"Custom fonts"}
+        title={uiT("Custom fonts")}
       />
 
       <div
