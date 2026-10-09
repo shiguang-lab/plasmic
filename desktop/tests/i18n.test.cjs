@@ -176,3 +176,35 @@ test("every explicit native menu caption has a shared language-pack key", () => 
     for (const label of labels) assert.ok(Object.hasOwn(pack, label), label);
   }
 });
+test("a delayed initial locale cannot overwrite a newer language change", async (t) => {
+  const locale = i18n(["en-US"]);
+  const dom = new JSDOM(
+    '<html><body><button data-ui-message="File">File</button></body></html>',
+    { runScripts: "outside-only" },
+  );
+  t.after(() => dom.window.close());
+  let resolveInitial;
+  let changed;
+  const initial = locale.snapshot();
+  dom.window.desktopEnvironment = {
+    getUiMessages: () =>
+      new Promise((resolve) => {
+        resolveInitial = resolve;
+      }),
+    onUiLocale: (callback) => {
+      changed = callback;
+    },
+  };
+  dom.window.eval(
+    fs.readFileSync(path.join(__dirname, "../src/renderer-i18n.js"), "utf8"),
+  );
+  locale.setLocale("zh-CN");
+  changed(locale.snapshot());
+  resolveInitial(initial);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(dom.window.document.documentElement.lang, "zh-CN");
+  assert.equal(
+    dom.window.document.querySelector("button").textContent,
+    locale.t("File"),
+  );
+});

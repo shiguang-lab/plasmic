@@ -267,6 +267,12 @@ app
     app.exit(0);
   })
   .catch((error) => {
+    if (process.env.GITHUB_ACTIONS === "true") {
+      console.error(
+        "::error title=Native startup failure::" +
+          String(error.stack || error).replaceAll("\n", "%0A"),
+      );
+    }
     console.error(error);
     app.exit(1);
   });

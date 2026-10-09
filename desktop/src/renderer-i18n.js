@@ -34,7 +34,13 @@
   };
   const api = window.desktopEnvironment || window.mcpSettings;
   if (api) {
-    api.onUiLocale(setSnapshot);
-    void api.getUiMessages().then(setSnapshot);
+    let receivedLocale = false;
+    api.onUiLocale((value) => {
+      receivedLocale = true;
+      setSnapshot(value);
+    });
+    void api.getUiMessages().then((value) => {
+      if (!receivedLocale) setSnapshot(value);
+    });
   }
 })();
