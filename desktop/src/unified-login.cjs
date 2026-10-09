@@ -1,3 +1,4 @@
+const { uiError } = require("./ui-error.cjs");
 const { randomBytes, createHash, timingSafeEqual } = require("node:crypto");
 const { consumeSessionTicket } = require("./session-ticket.cjs");
 const AUTH_ORIGIN = "https://shiguanglab.com";
@@ -17,10 +18,10 @@ class DesktopUnifiedLogin {
       target.origin !== this.studioOrigin ||
       target.pathname.startsWith("/desktop/")
     ) {
-      throw new Error("Invalid sign-in destination");
+      throw uiError("Invalid sign-in destination");
     }
     if (signal?.aborted) {
-      throw new Error("Sign-in cancelled");
+      throw uiError("Sign-in cancelled");
     }
     const verifier = randomBytes(32).toString("base64url");
     const state = randomBytes(32).toString("base64url");
@@ -30,12 +31,12 @@ class DesktopUnifiedLogin {
       fail = reject;
     });
     callback.catch(() => {});
-    if (this.pending) throw new Error("Sign-in already in progress");
+    if (this.pending) throw uiError("Sign-in already in progress");
     this.pending = { state, finish, fail };
-    const abort = () => fail(new Error("Sign-in cancelled"));
+    const abort = () => fail(uiError("Sign-in cancelled"));
     signal?.addEventListener("abort", abort, { once: true });
     const timer = setTimeout(
-      () => fail(new Error("Sign-in timed out. Please try again.")),
+      () => fail(uiError("Sign-in timed out. Please try again.")),
       10 * 60_000,
     );
     try {
@@ -58,7 +59,7 @@ class DesktopUnifiedLogin {
       await openBrowser(url.href);
       const code = await callback;
       if (signal?.aborted) {
-        throw new Error("Sign-in cancelled");
+        throw uiError("Sign-in cancelled");
       }
       const tokens = await this.post(
         "/oauth/token",
@@ -76,7 +77,7 @@ class DesktopUnifiedLogin {
         typeof tokens.access_token !== "string" ||
         !tokens.access_token
       ) {
-        throw new Error("Invalid Shiguang token response");
+        throw uiError("Invalid Shiguang token response");
       }
       const ticket = await this.post(
         "/oauth/web-session-ticket",
@@ -91,7 +92,7 @@ class DesktopUnifiedLogin {
         ticketUrl.pathname !== "/oauth/web-session" ||
         !ticketUrl.searchParams.get("ticket")
       ) {
-        throw new Error("Invalid Shiguang session ticket");
+        throw uiError("Invalid Shiguang session ticket");
       }
       await consumeSessionTicket({
         session: this.session,
@@ -141,7 +142,7 @@ class DesktopUnifiedLogin {
     this.pending = undefined;
     if (url.searchParams.has("error")) {
       pending.fail(
-        new Error(
+        uiError(
           url.searchParams.get("error") === "access_denied"
             ? "Shiguang sign-in was cancelled"
             : "Shiguang sign-in was not completed",
@@ -164,7 +165,9 @@ class DesktopUnifiedLogin {
         : AbortSignal.timeout(30_000),
     });
     if (!response.ok) {
-      throw new Error(`Shiguang authorization returned ${response.status}`);
+      throw uiError("Shiguang authorization returned {status}", {
+        status: response.status,
+      });
     }
     return response.json();
   }

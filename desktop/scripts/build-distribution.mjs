@@ -2,6 +2,7 @@ import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import YAML from "yaml";
 import { validateRelease } from "./release-artifacts.mjs";
 
 const desktop = path.resolve(
@@ -15,7 +16,21 @@ export const releaseTargets = [
   { id: "linux", platform: "linux", arch: "x64", extension: ".AppImage" },
 ];
 
-export async function buildDistribution(input, output, version, updateUrl) {
+export async function buildDistribution(
+  input,
+  output,
+  version,
+  updateUrl,
+  localizedReleaseNotes,
+) {
+  for (const locale of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+    if (
+      typeof localizedReleaseNotes?.[locale] !== "string" ||
+      !localizedReleaseNotes[locale].trim()
+    ) {
+      throw new Error(`Missing ${locale} release notes`);
+    }
+  }
   const base = new URL(updateUrl.replace(/\/?$/, "/"));
   if (
     base.protocol !== "https:" ||
@@ -36,7 +51,11 @@ export async function buildDistribution(input, output, version, updateUrl) {
       version,
       target.arch,
     );
-    if (target.platform === "darwin" && !release.manifest.files.some((entry) => entry.url.endsWith(".zip"))) throw new Error(`Missing ${target.arch} macOS update archive`);
+    if (
+      target.platform === "darwin" &&
+      !release.manifest.files.some((entry) => entry.url.endsWith(".zip"))
+    )
+      throw new Error(`Missing ${target.arch} macOS update archive`);
     const file = release.manifest.files.find((entry) =>
       entry.url.endsWith(target.extension),
     );
@@ -47,6 +66,14 @@ export async function buildDistribution(input, output, version, updateUrl) {
     for (const name of [...release.files, release.name]) {
       await cp(path.join(directory, name), path.join(destination, name));
     }
+    await writeFile(
+      path.join(destination, release.name),
+      YAML.stringify({
+        ...release.manifest,
+        releaseNotes: localizedReleaseNotes.en,
+        localizedReleaseNotes,
+      }),
+    );
     installers.push({
       id: target.id,
       platform: target.platform,
@@ -89,6 +116,12 @@ if (
     values.output || path.join(desktop, "public/desktop-updates"),
     metadata.version,
     config.updateUrl,
+    JSON.parse(
+      await readFile(
+        path.join(desktop, "release-notes", metadata.version + ".json"),
+        "utf8",
+      ),
+    ),
   );
   console.log(
     `Prepared all installers and latest.json for ${manifest.version}`,

@@ -1,4 +1,5 @@
 const { EventEmitter } = require("node:events");
+const { errorMessage } = require("./ui-error.cjs");
 
 class UpdateManager extends EventEmitter {
   constructor({ updater, version, enabled, beforeInstall }) {
@@ -6,17 +7,45 @@ class UpdateManager extends EventEmitter {
     this.updater = updater;
     this.enabled = enabled;
     this.beforeInstall = beforeInstall;
-    this.state = { phase: enabled ? "idle" : "disabled", currentVersion: version };
+    this.state = {
+      phase: enabled ? "idle" : "disabled",
+      currentVersion: version,
+    };
     // This manager starts downloads on every platform, including the custom macOS updater.
     updater.autoDownload = false;
     updater.autoInstallOnAppQuit = false;
     updater.allowDowngrade = false;
     updater.allowPrerelease = false;
-    updater.on("checking-for-update", () => this.set({ phase: "checking", error: undefined }));
-    updater.on("update-available", (info) => this.set({ phase: "available", version: info.version, releaseNotes: info.releaseNotes, error: undefined }));
-    updater.on("update-not-available", () => this.set({ phase: "current", version: undefined, releaseNotes: undefined, error: undefined }));
-    updater.on("download-progress", (progress) => this.set({ phase: "downloading", percent: Math.floor(progress.percent) }));
-    updater.on("update-downloaded", (info) => this.set({ phase: "downloaded", version: info.version, percent: 100, error: undefined }));
+    updater.on("checking-for-update", () =>
+      this.set({ phase: "checking", error: undefined }),
+    );
+    updater.on("update-available", (info) =>
+      this.set({
+        phase: "available",
+        version: info.version,
+        releaseNotes: info.localizedReleaseNotes || info.releaseNotes,
+        error: undefined,
+      }),
+    );
+    updater.on("update-not-available", () =>
+      this.set({
+        phase: "current",
+        version: undefined,
+        releaseNotes: undefined,
+        error: undefined,
+      }),
+    );
+    updater.on("download-progress", (progress) =>
+      this.set({ phase: "downloading", percent: Math.floor(progress.percent) }),
+    );
+    updater.on("update-downloaded", (info) =>
+      this.set({
+        phase: "downloaded",
+        version: info.version,
+        percent: 100,
+        error: undefined,
+      }),
+    );
     updater.on("error", (error) => this.fail(error));
   }
   set(value) {
@@ -25,21 +54,40 @@ class UpdateManager extends EventEmitter {
     this.emit("status", this.state);
   }
   fail(error) {
-    this.set({ phase: "error", error: error.message, retry: this.action || this.lastAction || "check" });
+    this.set({
+      phase: "error",
+      error: error.message,
+      uiMessage: errorMessage(error, "Update failed. Please try again."),
+      retry: this.action || this.lastAction || "check",
+    });
   }
   async command(command) {
     if (command === "status") return this.state;
     if (!this.enabled) return this.state;
-    if (!["check", "download", "install"].includes(command)) throw new Error("Invalid update command");
+    if (!["check", "download", "install"].includes(command))
+      throw new Error("Invalid update command");
     if (this.running) return this.running;
-    if (command === "check" && ["downloaded", "installing"].includes(this.state.phase)) return this.state;
-    if (command !== "check" && this.state.phase !== (command === "download" ? "available" : "downloaded") && !(this.state.phase === "error" && this.state.retry === command)) return this.state;
+    if (
+      command === "check" &&
+      ["downloaded", "installing"].includes(this.state.phase)
+    )
+      return this.state;
+    if (
+      command !== "check" &&
+      this.state.phase !==
+        (command === "download" ? "available" : "downloaded") &&
+      !(this.state.phase === "error" && this.state.retry === command)
+    )
+      return this.state;
     this.action = command;
     this.lastAction = command;
     this.running = (async () => {
       try {
         if (command === "check") await this.updater.checkForUpdates();
-        if (command === "download" || (command === "check" && this.state.phase === "available")) {
+        if (
+          command === "download" ||
+          (command === "check" && this.state.phase === "available")
+        ) {
           this.action = this.lastAction = "download";
           this.set({ phase: "downloading", percent: 0, error: undefined });
           await this.updater.downloadUpdate();
@@ -49,20 +97,35 @@ class UpdateManager extends EventEmitter {
           await this.beforeInstall();
           await this.updater.quitAndInstall(false, true);
         }
-      } catch (error) { this.fail(error); }
+      } catch (error) {
+        this.fail(error);
+      }
       return this.state;
     })();
-    try { return await this.running; }
-    finally { this.running = undefined; this.action = undefined; }
+    try {
+      return await this.running;
+    } finally {
+      this.running = undefined;
+      this.action = undefined;
+    }
   }
   start() {
     if (this.state.phase === "disabled") return;
     void this.command("check");
-    this.interval = setInterval(() => {
-      if (["idle", "current", "available"].includes(this.state.phase) || (this.state.phase === "error" && this.state.retry === "check")) void this.command("check");
-    }, 10 * 60 * 1000);
+    this.interval = setInterval(
+      () => {
+        if (
+          ["idle", "current", "available"].includes(this.state.phase) ||
+          (this.state.phase === "error" && this.state.retry === "check")
+        )
+          void this.command("check");
+      },
+      10 * 60 * 1000,
+    );
     this.interval.unref();
   }
-  stop() { clearInterval(this.interval); }
+  stop() {
+    clearInterval(this.interval);
+  }
 }
 module.exports = { UpdateManager };

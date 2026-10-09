@@ -126,7 +126,11 @@ Development launches disable installation.
 
 Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
 `package.json` and `package-lock.json`, pin the compatible Studio `webImage` in
-`desktop.config.json`, and add `release-notes/<version>.md`.
+`desktop.config.json`, and add `release-notes/<version>.md` with English notes and
+`release-notes/<version>.json` with Markdown strings for `en`, `zh-CN`, `zh-TW`,
+`ja` and `ko`. Distribution validation requires all five languages. Each platform
+feed carries these strings in `localizedReleaseNotes`; the desktop selects the
+active UI language and refreshes open release notes when that language changes.
 
 Release notes contain the update body only. The dialog supplies the "What's new"
 heading; do not repeat it in the Markdown file. Use `##` headings for subsections.

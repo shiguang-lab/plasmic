@@ -1,3 +1,4 @@
+const { uiError } = require("./ui-error.cjs");
 const {
   app,
   BrowserWindow,
@@ -377,7 +378,7 @@ async function startDesktop() {
         const state = await controller.state();
         if (state.projectId) {
           if (!state.ready) {
-            throw new Error(
+            throw uiError(
               "The current design is not ready. Wait for it to load before installing the update.",
             );
           }

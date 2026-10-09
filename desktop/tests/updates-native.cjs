@@ -154,7 +154,77 @@ app
         visible: true,
       },
     );
+    const releaseNotes = JSON.parse(
+      await fs.readFile(
+        path.join(__dirname, "../release-notes/0.0.42.json"),
+        "utf8",
+      ),
+    );
+    await evaluate(
+      `window.updateStatus({ phase: "downloaded", version: "0.0.42", releaseNotes: ${JSON.stringify(releaseNotes)} }); window.updateOpen({ phase: "downloaded", version: "0.0.42", releaseNotes: ${JSON.stringify(releaseNotes)} })`,
+    );
+    for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+      const messages = JSON.parse(
+        await fs.readFile(
+          path.join(
+            __dirname,
+            "../../platform/wab/src/wab/client/i18n/locales",
+            language + ".json",
+          ),
+          "utf8",
+        ),
+      );
+      await evaluate(
+        `window.desktopUiI18n.setSnapshot(${JSON.stringify({ locale: language, messages })})`,
+      );
+      assert.deepEqual(
+        await evaluate(
+          '[...document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelectorAll("#notes li")].map(item => item.textContent)',
+        ),
+        releaseNotes[language].split("\n").map((line) => line.slice(2)),
+      );
+    }
+    await evaluate(
+      'window.updateStatus({ phase: "error", error: "NAS update check failed (HTTP 503)", uiMessage: { key: "NAS update check failed (HTTP {status})", values: { status: 503 } } })',
+    );
+    for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+      const messages = JSON.parse(
+        await fs.readFile(
+          path.join(
+            __dirname,
+            "../../platform/wab/src/wab/client/i18n/locales",
+            language + ".json",
+          ),
+          "utf8",
+        ),
+      );
+      await evaluate(
+        `window.desktopUiI18n.setSnapshot(${JSON.stringify({ locale: language, messages })})`,
+      );
+      const expected = messages[
+        "NAS update check failed (HTTP {status})"
+      ].replace("{status}", "503");
+      assert.equal(
+        await evaluate(
+          'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("description").textContent',
+        ),
+        expected,
+      );
+      assert.equal(
+        await evaluate(
+          'document.querySelector(".update-action").getAttribute("aria-label")',
+        ),
+        expected,
+      );
+    }
+    await evaluate(
+      'window.desktopUiI18n.setSnapshot({ locale: "en", messages: {} }); document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").close(); window.updateStatus(window.fixtureStatus)',
+    );
+    console.log(
+      "PASS: Open native update notes, errors and sidebar tooltips follow all five languages",
+    );
     window.show();
+    window.focus();
     window.webContents.focus();
     await evaluate(
       `document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`,

@@ -208,3 +208,187 @@ test("a delayed initial locale cannot overwrite a newer language change", async 
     locale.t("File"),
   );
 });
+
+test("desktop sign-in states and parameterized authorization failures follow every language", async (t) => {
+  const { DesktopUnifiedLogin } = require("../src/unified-login.cjs");
+  const { errorMessage } = require("../src/ui-error.cjs");
+  const login = new DesktopUnifiedLogin({
+    session: { fetch: async () => new Response(null, { status: 503 }) },
+  });
+  let failure;
+  try {
+    await login.post("/oauth/token", {});
+  } catch (error) {
+    failure = error;
+  }
+  assert.equal(failure.message, "Shiguang authorization returned 503");
+  assert.equal(failure.uiMessage.values.status, 503);
+  const locale = i18n(["en-US"]);
+  const dom = new JSDOM(
+    fs.readFileSync(path.join(__dirname, "../src/unified-login.html"), "utf8"),
+    { runScripts: "outside-only" },
+  );
+  t.after(() => dom.window.close());
+  let render;
+  dom.window.desktopUnifiedLogin = {
+    onStatus: (callback) => {
+      render = callback;
+    },
+    command: async () => ({ phase: "idle" }),
+  };
+  dom.window.eval(
+    fs.readFileSync(path.join(__dirname, "../src/renderer-i18n.js"), "utf8"),
+  );
+  dom.window.eval(
+    dom.window.document.querySelector("script:not([src])").textContent,
+  );
+  await new Promise((resolve) => setImmediate(resolve));
+  const element = (id) => dom.window.document.getElementById(id);
+  for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+    locale.setLocale(language);
+    dom.window.desktopUiI18n.setSnapshot(locale.snapshot());
+    for (const [phase, title, message] of [
+      [
+        "idle",
+        "Sign in to Plasmic",
+        "Use your Shiguang account to access your projects and workspace.",
+      ],
+      [
+        "opening",
+        "Opening browser",
+        "Please wait while your default browser opens.",
+      ],
+      [
+        "waiting",
+        "Continue sign-in in your browser",
+        "Complete Shiguang authorization in your browser to return to the desktop app.",
+      ],
+      ["success", "Signed in", "Returning to your workspace."],
+    ]) {
+      render({ phase });
+      assert.equal(element("title").textContent, locale.t(title));
+      assert.equal(element("message").textContent, locale.t(message));
+    }
+    render({
+      phase: "error",
+      message: failure.message,
+      uiMessage: errorMessage(failure, "Sign-in failed. Please try again."),
+    });
+    assert.equal(
+      element("message").textContent,
+      locale.t("Shiguang authorization returned {status}", { status: 503 }),
+    );
+    assert.equal(element("retry").hidden, false);
+    assert.equal(element("retry").textContent, locale.t("Try again"));
+    render({
+      phase: "error",
+      message: "net::ERR_CONNECTION_REFUSED",
+      uiMessage: errorMessage(
+        new Error("net::ERR_CONNECTION_REFUSED"),
+        "Sign-in failed. Please try again.",
+      ),
+    });
+    assert.equal(
+      element("message").textContent,
+      locale.t("Sign-in failed. Please try again."),
+    );
+  }
+});
+
+test("an open update dialog translates release notes and HTTP errors when its language changes", async (t) => {
+  const { EventEmitter } = require("node:events");
+  const { UpdateManager } = require("../src/update-manager.cjs");
+  const { uiError } = require("../src/ui-error.cjs");
+  const locale = i18n(["en-US"]);
+  const notes = JSON.parse(
+    fs.readFileSync(
+      path.join(__dirname, "../release-notes/0.0.42.json"),
+      "utf8",
+    ),
+  );
+  const updater = new EventEmitter();
+  const manager = new UpdateManager({
+    updater,
+    version: "0.0.41",
+    enabled: true,
+  });
+  updater.emit("update-available", {
+    version: "0.0.42",
+    releaseNotes: notes.en,
+    localizedReleaseNotes: notes,
+  });
+  const dom = new JSDOM("<html><body></body></html>", {
+    runScripts: "outside-only",
+  });
+  t.after(() => dom.window.close());
+  dom.window.desktopEnvironment = {
+    getUiMessages: async () => locale.snapshot(),
+    onUiLocale: (callback) =>
+      locale.subscribe(() => callback(locale.snapshot())),
+  };
+  dom.window.desktopUpdates = {
+    command: async () => manager.state,
+    onStatus: (callback) => manager.on("status", callback),
+    onOpen: () => {},
+  };
+  for (const name of ["renderer-i18n.js", "update-dialog.js"]) {
+    dom.window.eval(
+      fs.readFileSync(path.join(__dirname, "../src", name), "utf8"),
+    );
+  }
+  await new Promise((resolve) => setImmediate(resolve));
+  const root = dom.window.document.getElementById(
+    "plasmic-desktop-update-dialog",
+  ).shadowRoot;
+  for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+    locale.setLocale(language);
+    const expected = notes[language].split("\n").map((line) => line.slice(2));
+    assert.deepEqual(
+      [...root.querySelectorAll("#notes li")].map((item) => item.textContent),
+      expected,
+    );
+  }
+  manager.fail(
+    uiError("NAS update check failed (HTTP {status})", { status: 503 }),
+  );
+  assert.equal(manager.state.error, "NAS update check failed (HTTP 503)");
+  for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+    locale.setLocale(language);
+    assert.equal(
+      root.getElementById("description").textContent,
+      locale.t("NAS update check failed (HTTP {status})", { status: 503 }),
+    );
+  }
+  manager.fail(new Error("net::ERR_CONNECTION_REFUSED"));
+  assert.equal(manager.state.error, "net::ERR_CONNECTION_REFUSED");
+  assert.equal(
+    root.getElementById("description").textContent,
+    locale.t("Update failed. Please try again."),
+  );
+});
+
+test("native login and update errors have complete translations", () => {
+  const packs = ["en", "zh-CN", "zh-TW", "ja", "ko"].map((language) =>
+    JSON.parse(
+      fs.readFileSync(
+        path.join(directory, "locales", language + ".json"),
+        "utf8",
+      ),
+    ),
+  );
+  for (const file of [
+    "unified-login.cjs",
+    "session-ticket.cjs",
+    "mac-updater.cjs",
+  ]) {
+    const source = fs.readFileSync(
+      path.join(__dirname, "../src", file),
+      "utf8",
+    );
+    for (const [, key] of source.matchAll(/uiError\(\s*"([^"]+)"/g)) {
+      for (const pack of packs) {
+        assert.ok(Object.hasOwn(pack, key), key);
+      }
+    }
+  }
+});

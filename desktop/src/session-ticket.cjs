@@ -1,3 +1,4 @@
+const { uiError } = require("./ui-error.cjs");
 // Electron fetch rejects manual redirects rather than returning a 302 Response.
 // Observe IAM's redirect with the native client, retaining its Set-Cookie without
 // requesting the destination through the intercepted desktop asset protocol.
@@ -16,7 +17,7 @@ async function consumeSessionTicket({
     : controller.signal;
   try {
     await new Promise((resolve, reject) => {
-      if (combined.aborted) return reject(new Error("Sign-in cancelled"));
+      if (combined.aborted) return reject(uiError("Sign-in cancelled"));
       const client = createRequest({
         session,
         url,
@@ -32,7 +33,7 @@ async function consumeSessionTicket({
         client.abort();
         error ? reject(error) : resolve();
       };
-      const abort = () => finish(new Error("Sign-in cancelled or timed out"));
+      const abort = () => finish(uiError("Sign-in cancelled or timed out"));
       combined.addEventListener("abort", abort, { once: true });
       client.once("redirect", (status, method, destination) => {
         let accepted = false;
@@ -45,12 +46,12 @@ async function consumeSessionTicket({
         finish(
           accepted
             ? undefined
-            : new Error("Shiguang session ticket was rejected"),
+            : uiError("Shiguang session ticket was rejected"),
         );
       });
       client.once("response", (response) => {
         response.resume();
-        finish(new Error("Shiguang session ticket was rejected"));
+        finish(uiError("Shiguang session ticket was rejected"));
       });
       client.on("error", finish);
       client.end();

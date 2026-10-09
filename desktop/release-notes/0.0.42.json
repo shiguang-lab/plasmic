@@ -1,0 +1,7 @@
+{
+  "en": "- Translate desktop sign-in failures and update errors, including HTTP status details.\n- Show release notes in the selected language and refresh them immediately when the language changes.\n- Include complete English, Simplified Chinese, Traditional Chinese, Japanese and Korean release notes in every update feed.",
+  "zh-CN": "- 补齐桌面登录异常和更新错误的翻译，包括 HTTP 状态信息。\n- 更新说明跟随所选语言显示，切换语言后立即刷新。\n- 每个更新源都包含完整的英语、简体中文、繁体中文、日语和韩语更新说明。",
+  "zh-TW": "- 補齊桌面登入異常與更新錯誤的翻譯，包括 HTTP 狀態資訊。\n- 更新說明依所選語言顯示，切換語言後立即重新整理。\n- 每個更新來源都包含完整的英語、簡體中文、繁體中文、日語與韓語更新說明。",
+  "ja": "- デスクトップのログインエラーと更新エラーを翻訳し、HTTP ステータスも表示します。\n- リリースノートを選択した言語で表示し、言語の変更時にすぐに更新します。\n- すべての更新フィードに英語、簡体字中国語、繁体字中国語、日本語、韓国語のリリースノートを含めます。",
+  "ko": "- HTTP 상태 정보를 포함하여 데스크톱 로그인 오류 및 업데이트 오류를 번역했습니다.\n- 선택한 언어로 릴리스 노트를 표시하고 언어를 바꾸면 즉시 갱신합니다.\n- 모든 업데이트 피드에 영어, 중국어 간체, 중국어 번체, 일본어 및 한국어 릴리스 노트를 포함합니다."
+}

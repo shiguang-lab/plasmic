@@ -116,7 +116,10 @@ test("retry uses the failed operation and Later closes only the dialog", async (
     error: "Network unavailable",
     retry: "download",
   });
-  assert.equal(ui.element("description").textContent, "Network unavailable");
+  assert.equal(
+    ui.element("description").textContent,
+    "Update failed. Please try again.",
+  );
   ui.element("primary").click();
   await flush();
   assert.equal(ui.commands.at(-1), "download");

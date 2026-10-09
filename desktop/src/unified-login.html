@@ -256,13 +256,14 @@
           idle
             ? "Use your Shiguang account to access your projects and workspace."
             : failed
-              ? state.message
+              ? state.uiMessage?.key || "Sign-in failed. Please try again."
               : waiting
                 ? state.message ||
                   "Complete Shiguang authorization in your browser to return to the desktop app."
                 : state.phase === "success"
                   ? "Returning to your workspace."
                   : "Please wait while your default browser opens.",
+          state.uiMessage?.values,
         );
         document.getElementById("status").hidden = idle || failed;
         document.getElementById("sign-in").hidden = !idle;
@@ -309,7 +310,11 @@
           try {
             render(await api.command(command));
           } catch (error) {
-            render({ phase: "error", message: error.message });
+            render({
+              phase: "error",
+              message: error.message,
+              uiMessage: { key: "Sign-in failed. Please try again." },
+            });
           }
         });
       }

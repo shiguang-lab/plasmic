@@ -1,6 +1,6 @@
 (() => {
   if (window.top !== window || !window.desktopUpdates) return;
-  const { t, apply, subscribe } = window.desktopUiI18n;
+  const { t, apply, subscribe, snapshot } = window.desktopUiI18n;
   const host = document.createElement("div");
   host.id = "plasmic-desktop-update-dialog";
   const root = host.attachShadow({ mode: "open" });
@@ -58,14 +58,19 @@ button:disabled { opacity: .55; cursor: default; }
   let state = {};
   let action = "check";
   let previousNotes;
+  let previousLocale;
   function renderNotes(value) {
-    if (value === previousNotes) return;
+    const locale = snapshot().locale;
+    if (value === previousNotes && locale === previousLocale) return;
     previousNotes = value;
+    previousLocale = locale;
     const notes = byId("notes");
     notes.replaceChildren();
     const text = Array.isArray(value)
       ? value.map((entry) => entry.note || "").join("\n\n")
-      : value || "";
+      : typeof value === "object" && value !== null
+        ? value[locale] || value.en || ""
+        : value || "";
     let list;
     for (const raw of text.split("\n")) {
       const line = raw.trim();
@@ -93,7 +98,7 @@ button:disabled { opacity: .55; cursor: default; }
   }
   function render(status) {
     state = status;
-    const { phase, version, currentVersion, error, retry } = status;
+    const { phase, version, currentVersion, retry, uiMessage } = status;
     const states = {
       idle: [
         "Checking for updates…",
@@ -145,7 +150,7 @@ button:disabled { opacity: .55; cursor: default; }
       ],
       error: [
         "Update couldn't complete",
-        error || "Please try again.",
+        uiMessage?.key || "Update failed. Please try again.",
         "Retry",
         retry || "check",
       ],
@@ -154,7 +159,7 @@ button:disabled { opacity: .55; cursor: default; }
     byId("dismiss").disabled = phase === "installing";
     apply(root);
     byId("status").textContent = t(title);
-    byId("description").textContent = t(description);
+    byId("description").textContent = t(description, uiMessage?.values);
     byId("current-version").textContent = currentVersion || "—";
     byId("latest-version").textContent = version || "";
     byId("latest").hidden = !version;

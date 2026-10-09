@@ -142,6 +142,32 @@ app
         ),
       );
       const menu = Menu.getApplicationMenu();
+      for (let attempt = 0; attempt < 100; attempt++) {
+        if (
+          (await win.webContents.executeJavaScript(
+            "document.documentElement.lang",
+          )) === language
+        ) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      for (const [id, key] of [
+        ["title", "Sign in to Plasmic"],
+        [
+          "message",
+          "Use your Shiguang account to access your projects and workspace.",
+        ],
+        ["sign-in", "Sign in with Shiguang"],
+        ["hint", "Your browser will open when you sign in."],
+      ]) {
+        assert.equal(
+          await win.webContents.executeJavaScript(
+            `document.getElementById(${JSON.stringify(id)}).textContent`,
+          ),
+          pack[key],
+        );
+      }
       assert.equal(menu.getMenuItemById("desktop-file").label, pack.File);
       const edit = menu.items.find((item) =>
         item.submenu?.items.some((child) => child.role === "undo"),

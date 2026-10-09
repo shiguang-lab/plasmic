@@ -130,7 +130,7 @@
   control.append(button, tooltip);
   const render = (status) => {
     latestStatus = status;
-    const { phase, version, percent = 0, error } = status;
+    const { phase, version, percent = 0, uiMessage } = status;
     const progress = Math.min(100, Math.max(0, Math.round(percent)));
     control.dataset.phase = phase;
     control.hidden = ![
@@ -157,7 +157,13 @@
         "Installing",
         "Saving your design and preparing to install…",
       ],
-      error: ["Retry", error || "Update failed. Open updates to retry."],
+      error: [
+        "Retry",
+        t(
+          uiMessage?.key || "Update failed. Open updates to retry.",
+          uiMessage?.values,
+        ),
+      ],
     };
     const state = states[phase] || ["Check for Updates", "Check for Updates"];
     label.textContent = t(state[0]);

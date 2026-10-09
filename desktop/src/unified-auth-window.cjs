@@ -1,4 +1,5 @@
 const AUTH_PATH = "/desktop/unified-login";
+const { errorMessage } = require("./ui-error.cjs");
 class UnifiedAuthWindow {
   constructor(window, studioOrigin, openBrowser, login) {
     this.window = window;
@@ -84,7 +85,11 @@ class UnifiedAuthWindow {
       await this.window.loadURL(this.returnUrl);
     } catch (error) {
       if (!abort.signal.aborted) {
-        this.publish({ phase: "error", message: error.message });
+        this.publish({
+          phase: "error",
+          message: error.message,
+          uiMessage: errorMessage(error, "Sign-in failed. Please try again."),
+        });
       }
     } finally {
       if (this.abort === abort) {
@@ -125,7 +130,11 @@ class UnifiedAuthWindow {
           abort.abort();
           this.abort = undefined;
           this.authorizationUrl = undefined;
-          this.publish({ phase: "error", message: error.message });
+          this.publish({
+            phase: "error",
+            message: error.message,
+            uiMessage: errorMessage(error, "Sign-in failed. Please try again."),
+          });
         }
       }
       return this.status;
