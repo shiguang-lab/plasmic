@@ -5,7 +5,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
 var canvasOverlay = require('./canvas-overlay-BCQmyJjQ.cjs.js');
-var utils = require('./utils-CRCm44nj.cjs.js');
+var utils = require('./utils-DlS9-CF8.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 

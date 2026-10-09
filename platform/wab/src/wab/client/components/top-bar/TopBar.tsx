@@ -398,10 +398,14 @@ function _TopBar({ preview }: TopBarProps) {
             <Tooltip title={brand.logoTooltip ?? "Back to dashboard"}>
               <PublicLink
                 {...props}
+                className={`${props.className ?? ""} ${styles.logoLink}`}
                 href={brand.logoHref ?? APP_ROUTES.dashboard.fill({})}
               >
                 {brand.logoImgSrc ? (
-                  <img src={brand.logoImgSrc} style={{ maxHeight: 40 }} />
+                  <img
+                    src={brand.logoImgSrc}
+                    alt={brand.logoTooltip ?? "Back to dashboard"}
+                  />
                 ) : (
                   props.children
                 )}

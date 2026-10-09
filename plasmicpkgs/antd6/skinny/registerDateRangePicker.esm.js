@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import kebabCase from 'lodash/kebabCase';
 import React, { useMemo } from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper, c as capitalize } from './utils-CSvRw6Za.esm.js';
+import { r as registerComponentHelper, c as capitalize } from './utils-CJsqmMg5.esm.js';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';
 import '@plasmicapp/host';

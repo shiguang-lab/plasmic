@@ -1,3 +1,22 @@
 .topBar.desktop {
   padding-left: 96px;
 }
+
+.topBar .logoLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 40px;
+
+  > svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  > img {
+    max-width: 80px;
+    max-height: 24px;
+    object-fit: contain;
+  }
+}

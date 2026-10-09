@@ -30,6 +30,8 @@
 
 保留业务语义，去除编辑占位、选择/reveal 状态、registry、模型 UUID 查询与临时 canvas overrides。无需因采用 Plasmic 设计而引入 Loader、SDK 或同步配置。英文 PascalCase 设计节点名可辅助命名，不要求每个节点生成一个组件。
 
+Descriptions.Item 转为 items，保留 key/span、顺序、绑定、条件/重复；Slot 保留 ReactNode，父级 items 优先；移除编辑包装。
+
 解析图片/SVG 的真实来源、尺寸和使用权，按目标工程资源规则接入。需要认证的 NAS URL 或 data URL 不保证生产可用；不可访问时报告依赖，不替换为无关素材。保留业务语言和要求的响应式行为；未确定业务流程列为契约缺口。
 
 ## 读取完整性与实现来源

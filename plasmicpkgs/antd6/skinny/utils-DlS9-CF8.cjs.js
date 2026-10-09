@@ -1,112 +1,29 @@
-"use strict";
+'use strict';
 
-var registerComponent = require("@plasmicapp/host/registerComponent");
-var registerGlobalContext = require("@plasmicapp/host/registerGlobalContext");
-var React = require("react");
-var Ant = require("antd");
+var registerComponent = require('@plasmicapp/host/registerComponent');
+var registerGlobalContext = require('@plasmicapp/host/registerGlobalContext');
+var React = require('react');
+var Ant = require('antd');
 
-function _interopDefault(e) {
-  return e && e.__esModule ? e : { default: e };
-}
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var registerComponent__default =
-  /*#__PURE__*/ _interopDefault(registerComponent);
-var registerGlobalContext__default = /*#__PURE__*/ _interopDefault(
-  registerGlobalContext,
-);
-var React__default = /*#__PURE__*/ _interopDefault(React);
+var registerComponent__default = /*#__PURE__*/_interopDefault(registerComponent);
+var registerGlobalContext__default = /*#__PURE__*/_interopDefault(registerGlobalContext);
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 const sections = {
   General: ["button", "float-button", "typography", "back-top"],
-  Layout: [
-    "divider",
-    "flex",
-    "row",
-    "col",
-    "layout",
-    "masonry",
-    "space",
-    "splitter",
-  ],
-  Navigation: [
-    "anchor",
-    "breadcrumb",
-    "dropdown",
-    "menu",
-    "pagination",
-    "steps",
-    "tabs",
-    "tab-item",
-    "submenu",
-  ],
-  "Data Entry": [
-    "auto-complete",
-    "cascader",
-    "checkbox",
-    "color-picker",
-    "date-picker",
-    "date-range-picker",
-    "form",
-    "input",
-    "textarea",
-    "mentions",
-    "radio",
-    "rate",
-    "select",
-    "option",
-    "slider",
-    "range-slider",
-    "switch",
-    "time-picker",
-    "time-range-picker",
-    "transfer",
-    "tree-select",
-    "upload",
-  ],
-  "Data Display": [
-    "avatar",
-    "badge",
-    "calendar",
-    "card",
-    "carousel",
-    "collapse",
-    "single-collapse",
-    "descriptions",
-    "empty",
-    "image",
-    "list",
-    "listy",
-    "popover",
-    "qr-code",
-    "segmented",
-    "statistic",
-    "table",
-    "tag",
-    "timeline",
-    "tooltip",
-    "tour",
-    "tree",
-    "directory-tree",
-  ],
-  Feedback: [
-    "alert",
-    "drawer",
-    "modal",
-    "popconfirm",
-    "progress",
-    "result",
-    "skeleton",
-    "spin",
-    "watermark",
-  ],
-  Other: ["affix", "border-beam"],
+  Layout: ["divider", "flex", "row", "col", "layout", "masonry", "space", "splitter"],
+  Navigation: ["anchor", "breadcrumb", "dropdown", "menu", "pagination", "steps", "tabs", "tab-item", "submenu"],
+  "Data Entry": ["auto-complete", "cascader", "checkbox", "color-picker", "date-picker", "date-range-picker", "form", "input", "textarea", "mentions", "radio", "rate", "select", "option", "slider", "switch", "time-picker", "time-range-picker", "transfer", "tree-select", "upload"],
+  "Data Display": ["avatar", "badge", "calendar", "card", "carousel", "collapse", "descriptions", "empty", "image", "list", "listy", "popover", "qr-code", "segmented", "statistic", "table", "tag", "timeline", "tooltip", "tour", "tree", "directory-tree"],
+  Feedback: ["alert", "drawer", "modal", "popconfirm", "progress", "result", "skeleton", "spin", "watermark"],
+  Other: ["affix", "border-beam"]
 };
 function getComponentSection(name) {
   const suffix = name.replace(/^plasmic-antd6-/, "");
-  return Object.entries(sections).find(([, families]) =>
-    families.some(
-      (family) => suffix === family || suffix.startsWith(`${family}-`),
-    ),
+  return Object.entries(sections).find(
+    ([, families]) => families.some((family) => suffix === family || suffix.startsWith(`${family}-`))
   )?.[0];
 }
 const componentChildren = {
@@ -115,11 +32,9 @@ const componentChildren = {
   "breadcrumb-item": { displayName: "Breadcrumb.Item", parent: "breadcrumb" },
   "card-grid": { displayName: "Card.Grid", parent: "card" },
   "card-meta": { displayName: "Card.Meta", parent: "card" },
+  "descriptions-item": { displayName: "Descriptions.Item", parent: "descriptions" },
   "cascader-panel": { displayName: "Cascader.Panel", parent: "cascader" },
-  "float-button-group": {
-    displayName: "FloatButton.Group",
-    parent: "float-button",
-  },
+  "float-button-group": { displayName: "FloatButton.Group", parent: "float-button" },
   "back-top": { displayName: "FloatButton.BackTop", parent: "float-button" },
   "image-preview-group": { displayName: "Image.PreviewGroup", parent: "image" },
   "list-item": { displayName: "List.Item", parent: "list" },
@@ -131,18 +46,12 @@ const componentChildren = {
   "input-otp": { displayName: "Input.OTP", parent: "input" },
   "input-search": { displayName: "Input.Search", parent: "input" },
   "input-password": { displayName: "Input.Password", parent: "input" },
-  textarea: { displayName: "Input.TextArea", parent: "input" },
+  "textarea": { displayName: "Input.TextArea", parent: "input" },
   "upload-dragger": { displayName: "Upload.Dragger", parent: "upload" },
-  "time-range-picker": {
-    displayName: "TimePicker.RangePicker",
-    parent: "time-picker",
-  },
-  "date-range-picker": {
-    displayName: "DatePicker.RangePicker",
-    parent: "date-picker",
-  },
+  "time-range-picker": { displayName: "TimePicker.RangePicker", parent: "time-picker" },
+  "date-range-picker": { displayName: "DatePicker.RangePicker", parent: "date-picker" },
   "directory-tree": { displayName: "Tree.DirectoryTree", parent: "tree" },
-  option: { displayName: "Select.Option", parent: "select" },
+  "option": { displayName: "Select.Option", parent: "select" },
   "option-group": { displayName: "Select.OptGroup", parent: "select" },
   "table-column": { displayName: "Table.Column", parent: "table" },
   "table-column-group": { displayName: "Table.ColumnGroup", parent: "table" },
@@ -152,7 +61,7 @@ const componentChildren = {
   "menu-item": { displayName: "Menu.Item", parent: "menu" },
   "menu-item-group": { displayName: "Menu.ItemGroup", parent: "menu" },
   "menu-divider": { displayName: "Menu.Divider", parent: "menu" },
-  submenu: { displayName: "Menu.SubMenu", parent: "menu" },
+  "submenu": { displayName: "Menu.SubMenu", parent: "menu" },
   "form-item": { displayName: "Form.Item", parent: "form" },
   "form-list": { displayName: "Form.List", parent: "form" },
   "collapse-item": { displayName: "Collapse.Panel", parent: "collapse" },
@@ -168,26 +77,15 @@ const componentChildren = {
   "skeleton-node": { displayName: "Skeleton.Node", parent: "skeleton" },
   "typography-text": { displayName: "Typography.Text", parent: "typography" },
   "typography-title": { displayName: "Typography.Title", parent: "typography" },
-  "typography-paragraph": {
-    displayName: "Typography.Paragraph",
-    parent: "typography",
-  },
-  "typography-link": { displayName: "Typography.Link", parent: "typography" },
+  "typography-paragraph": { displayName: "Typography.Paragraph", parent: "typography" },
+  "typography-link": { displayName: "Typography.Link", parent: "typography" }
 };
 
 var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) =>
-  key in obj
-    ? __defProp(obj, key, {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value,
-      })
-    : (obj[key] = value);
-var __publicField = (obj, key, value) => __defNormalProp(obj, key + "", value);
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, key + "" , value);
 function makeRegisterGlobalContext(component, meta) {
-  return function (loader) {
+  return function(loader) {
     if (loader) {
       loader.registerGlobalContext(component, meta);
     } else {
@@ -203,11 +101,7 @@ function registerComponentHelper(loader, component, meta) {
     ...meta,
     displayName: child?.displayName ?? meta.displayName,
     section: meta.section ?? getComponentSection(meta.name),
-    parentComponentName: child
-      ? `plasmic-antd6-${child.parent}`
-      : isStandalone
-        ? void 0
-        : meta.parentComponentName,
+    parentComponentName: child ? `plasmic-antd6-${child.parent}` : isStandalone ? void 0 : meta.parentComponentName
   };
   if (loader) {
     loader.registerComponent(component, meta);
@@ -293,31 +187,26 @@ class ErrorBoundary extends React__default.default.Component {
     console.log(error, errorInfo);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevProps.canvasEnvId !== this.props.canvasEnvId &&
-      prevState.hasError
-    ) {
+    if (prevProps.canvasEnvId !== this.props.canvasEnvId && prevState.hasError) {
       this.setState({ hasError: false });
     }
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ React__default.default.createElement(Ant.Result, {
-        status: "error",
-        title: this.props.message ?? "Something went wrong.",
-        extra: this.state.errorInfo,
-      });
+      return /* @__PURE__ */ React__default.default.createElement(
+        Ant.Result,
+        {
+          status: "error",
+          title: this.props.message ?? "Something went wrong.",
+          extra: this.state.errorInfo
+        }
+      );
     }
     return this.props.children;
   }
 }
 function isUnsafeKey(key) {
-  return (
-    (Array.isArray(key) && key[0] === "__proto__") ||
-    key === "__proto__" ||
-    key === "constructor" ||
-    key === "prototype"
-  );
+  return Array.isArray(key) && key[0] === "__proto__" || key === "__proto__" || key === "constructor" || key === "prototype";
 }
 function get(obj, path) {
   const keys = Array.isArray(path) ? path : path.split(".");
@@ -345,4 +234,4 @@ exports.registerComponentHelper = registerComponentHelper;
 exports.setFieldsToUndefined = setFieldsToUndefined;
 exports.traverseReactEltTree = traverseReactEltTree;
 exports.usePrevious = usePrevious;
-//# sourceMappingURL=utils-C1IAU6Xt.cjs.js.map
+//# sourceMappingURL=utils-DlS9-CF8.cjs.js.map

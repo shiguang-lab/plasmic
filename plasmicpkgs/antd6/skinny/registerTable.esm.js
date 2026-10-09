@@ -3,7 +3,7 @@ import { Table, Button, Image, Avatar } from 'antd';
 import React from 'react';
 import { AntdTag } from './registerAdditional.esm.js';
 import { AntdTooltip } from './registerTooltip.esm.js';
-import { b as asArray, r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import { b as asArray, r as registerComponentHelper } from './utils-CJsqmMg5.esm.js';
 import 'dayjs';
 import './canvas-overlay-Dan70Oxr.esm.js';
 import '@plasmicapp/host/registerComponent';

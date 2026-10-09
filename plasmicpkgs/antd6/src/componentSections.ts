@@ -24,6 +24,7 @@ export const componentChildren: Record<string, { displayName: string; parent: st
   "breadcrumb-item": { displayName: "Breadcrumb.Item", parent: "breadcrumb" },
   "card-grid": { displayName: "Card.Grid", parent: "card" },
   "card-meta": { displayName: "Card.Meta", parent: "card" },
+  "descriptions-item": { displayName: "Descriptions.Item", parent: "descriptions" },
   "cascader-panel": { displayName: "Cascader.Panel", parent: "cascader" },
   "float-button-group": { displayName: "FloatButton.Group", parent: "float-button" },
   "back-top": { displayName: "FloatButton.BackTop", parent: "float-button" },

@@ -944,13 +944,16 @@ export function VerticalFillTable(
 export function StudioPlaceholder() {
   return (
     <div className="StudioPlaceholder visible">
-      <div className="placeholder_topBar">
+      <span className="placeholder_srOnly" role="status">
+        Loading project…
+      </span>
+      <div className="placeholder_topBar" aria-hidden="true">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="placeholder_icon"
           fill="none"
           viewBox="0 0 32 32"
-          role="img"
+          aria-hidden="true"
         >
           <path
             d="M3.2 22C3.2 14.93 8.93 9.2 16 9.2S28.8 14.93 28.8 22H32c0-8.837-7.163-16-16-16S0 13.163 0 22h3.2z"
@@ -967,12 +970,124 @@ export function StudioPlaceholder() {
             fill="currentColor"
           ></path>
         </svg>
+        <span className="placeholder_skeleton placeholder_line--long"></span>
+        <span className="placeholder_skeleton placeholder_line--short"></span>
+        <div className="placeholder_actions">
+          <span className="placeholder_skeleton placeholder_square"></span>
+          <span className="placeholder_skeleton placeholder_button"></span>
+          <span className="placeholder_skeleton placeholder_button"></span>
+        </div>
       </div>
-      <div className="placeholder_leftToolbar"></div>
-      <div className="placeholder_leftPanel"></div>
-      <div className="placeholder_canvasArea"></div>
-      <div className="placeholder_rightPanel"></div>
-      <div className="placeholder_loading placeholder_loading--fast"></div>
+      <div className="placeholder_leftToolbar" aria-hidden="true">
+        <span className="placeholder_skeleton placeholder_square"></span>
+        <span className="placeholder_skeleton placeholder_square"></span>
+        <span className="placeholder_skeleton placeholder_square"></span>
+        <span className="placeholder_skeleton placeholder_square"></span>
+        <span className="placeholder_skeleton placeholder_square"></span>
+        <span className="placeholder_skeleton placeholder_square placeholder_toolbarBottom"></span>
+      </div>
+      <div className="placeholder_leftPanel" aria-hidden="true">
+        <div className="placeholder_panelHeader">
+          <span className="placeholder_skeleton placeholder_line--medium"></span>
+          <span className="placeholder_skeleton placeholder_square"></span>
+        </div>
+        <span className="placeholder_skeleton placeholder_search"></span>
+        <div className="placeholder_tree">
+          <div className="placeholder_treeRow">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--long"></span>
+          </div>
+          <div className="placeholder_treeRow placeholder_treeRow--nested">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--medium"></span>
+          </div>
+          <div className="placeholder_treeRow placeholder_treeRow--deep">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+          </div>
+          <div className="placeholder_treeRow placeholder_treeRow--deep">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--medium"></span>
+          </div>
+          <div className="placeholder_treeRow placeholder_treeRow--nested">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--long"></span>
+          </div>
+          <div className="placeholder_treeRow placeholder_treeRow--deep">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--medium"></span>
+          </div>
+          <div className="placeholder_treeRow placeholder_treeRow--deep">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+          </div>
+          <div className="placeholder_treeRow">
+            <span className="placeholder_skeleton placeholder_square"></span>
+            <span className="placeholder_skeleton placeholder_line--medium"></span>
+          </div>
+        </div>
+      </div>
+      <div className="placeholder_canvasArea" aria-hidden="true">
+        <div className="placeholder_artboard">
+          <span className="placeholder_skeleton placeholder_line--medium"></span>
+          <div className="placeholder_artboardSurface">
+            <span className="placeholder_skeleton placeholder_line--long"></span>
+            <span className="placeholder_skeleton placeholder_line--medium"></span>
+            <span className="placeholder_skeleton placeholder_artboardContent"></span>
+            <span className="placeholder_skeleton placeholder_line--long"></span>
+          </div>
+        </div>
+        <div className="placeholder_canvasControls">
+          <span className="placeholder_skeleton placeholder_square"></span>
+          <span className="placeholder_skeleton placeholder_line--short"></span>
+          <span className="placeholder_skeleton placeholder_square"></span>
+        </div>
+      </div>
+      <div className="placeholder_rightPanel" aria-hidden="true">
+        <div className="placeholder_panelHeader">
+          <span className="placeholder_skeleton placeholder_line--medium"></span>
+          <span className="placeholder_skeleton placeholder_square"></span>
+        </div>
+        <div className="placeholder_propertyGroup">
+          <span className="placeholder_skeleton placeholder_line--short"></span>
+          <div className="placeholder_fieldRow">
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+          </div>
+          <div className="placeholder_fieldRow">
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+          </div>
+        </div>
+        <div className="placeholder_propertyGroup">
+          <span className="placeholder_skeleton placeholder_line--short"></span>
+          <div className="placeholder_fieldRow">
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+          </div>
+          <div className="placeholder_fieldRow">
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+          </div>
+        </div>
+        <div className="placeholder_propertyGroup">
+          <span className="placeholder_skeleton placeholder_line--short"></span>
+          <div className="placeholder_fieldRow">
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+          </div>
+          <div className="placeholder_fieldRow">
+            <span className="placeholder_skeleton placeholder_line--short"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+            <span className="placeholder_skeleton placeholder_field"></span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

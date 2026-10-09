@@ -2,8 +2,8 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { r as registerComponentHelper } from './utils-CJsqmMg5.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
@@ -33,7 +33,26 @@ const AntdCarousel = Ant.Carousel;
 const AntdCascader = Ant.Cascader;
 const AntdCascaderPanel = Ant.Cascader.Panel;
 const AntdCol = Ant.Col;
-const AntdDescriptions = Ant.Descriptions;
+const AntdDescriptionsItem = Ant.Descriptions.Item;
+const AntdDescriptions = React.forwardRef((props, ref) => {
+  if (props.items != null) {
+    return /* @__PURE__ */ React.createElement(Ant.Descriptions, { ...props, ref });
+  }
+  return renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(
+    Ant.Descriptions,
+    {
+      ...props,
+      ref,
+      children: void 0,
+      items: getCanvasItems(children, (item) => item.type === AntdDescriptionsItem).map(
+        (item, index) => {
+          const { __plasmic_selection_prop__: _selection, ...itemProps } = item.props;
+          return { ...itemProps, key: item.key ?? String(index) };
+        }
+      )
+    }
+  ));
+});
 const AntdDivider = Ant.Divider;
 const AntdEmpty = Ant.Empty;
 const AntdFlex = Ant.Flex;
@@ -506,8 +525,30 @@ function registerAdditional(loader) {
     title: { ...slot("Details"), hidePlaceholder: true, description: "Editable heading for this read-only information group." },
     items: {
       type: "array",
-      description: "Read-only fields: [{ key, label, children, span? }]. Keep each field's label separate from its value in children. Bind the array with an expression for runtime values; span controls column allocation. Editable inputs belong in Form.Item, alongside this group.",
-      defaultValue: [{ key: "name", label: "Name", children: "Example" }]
+      advanced: true,
+      description: "Native data-bound fields: [{ key, label, children, span? }]. Items take precedence. Clear items to edit labels and values through Descriptions.Item slots.",
+      itemType: {
+        type: "object",
+        fields: { key: "string", label: "string", children: "string", span: "number" },
+        nameFunc: (item) => item.label ?? item.key
+      }
+    },
+    children: {
+      type: "slot",
+      displayName: "Items",
+      allowedComponents: ["plasmic-antd6-descriptions-item"],
+      hidePlaceholder: true,
+      hidden: (ps) => ps.items != null,
+      description: "Editable label/value fields. This slot is not rendered when native items are set.",
+      defaultValue: [{
+        type: "component",
+        name: "plasmic-antd6-descriptions-item",
+        props: {
+          key: "name",
+          label: [{ type: "text", value: "Name" }],
+          children: [{ type: "text", value: "Example" }]
+        }
+      }]
     },
     column: { type: "number", description: "Number of fields per row. Allocate a full row to long values with an item span matching this count." },
     layout: choice(["horizontal", "vertical"]),
@@ -516,6 +557,14 @@ function registerAdditional(loader) {
     styles: "object",
     classNames: "object"
   }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
+  register(loader, AntdDescriptionsItem, "descriptions-item", "AntdDescriptionsItem", {
+    key: { type: "string", description: "A stable field key within this Descriptions." },
+    label: { ...slot("Label"), hidePlaceholder: true },
+    children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true },
+    span: { type: "number", min: 1, defaultValueHint: 1, description: "Columns occupied by this field." },
+    styles: "object",
+    classNames: "object"
+  }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
     children: slot("Divider"),
     orientation: choice(["horizontal", "vertical"]),
@@ -1115,5 +1164,5 @@ function registerAdditional(loader) {
   });
 }
 
-export { AntdAffix, AntdAlert, AntdAnchor, AntdAutoComplete, AntdBackTop, AntdBadge, AntdBadgeRibbon, AntdBorderBeam, AntdCalendar, AntdCard, AntdCardGrid, AntdCardMeta, AntdCarousel, AntdCascader, AntdCascaderPanel, AntdCol, AntdDescriptions, AntdDivider, AntdEmpty, AntdFlex, AntdFloatButton, AntdFloatButtonGroup, AntdImage, AntdImagePreviewGroup, AntdInputOTP, AntdInputSearch, AntdLayout, AntdLayoutContent, AntdLayoutFooter, AntdLayoutHeader, AntdLayoutSider, AntdList, AntdListItem, AntdListItemMeta, AntdListy, AntdMasonry, AntdMentions, AntdPopconfirm, AntdQRCode, AntdResult, AntdRow, AntdSkeleton, AntdSkeletonAvatar, AntdSkeletonButton, AntdSkeletonImage, AntdSkeletonInput, AntdSkeletonNode, AntdSpace, AntdSpaceCompact, AntdSpin, AntdSplitter, AntdSplitterPanel, AntdStatistic, AntdStatisticTimer, AntdTag, AntdTagCheckable, AntdTimePicker, AntdTimeRangePicker, AntdTimeline, AntdTour, AntdTransfer, AntdTreeSelect, AntdTypography, AntdTypographyLink, AntdTypographyParagraph, AntdTypographyText, AntdTypographyTitle, AntdUploadDragger, AntdWatermark, registerAdditional };
+export { AntdAffix, AntdAlert, AntdAnchor, AntdAutoComplete, AntdBackTop, AntdBadge, AntdBadgeRibbon, AntdBorderBeam, AntdCalendar, AntdCard, AntdCardGrid, AntdCardMeta, AntdCarousel, AntdCascader, AntdCascaderPanel, AntdCol, AntdDescriptions, AntdDescriptionsItem, AntdDivider, AntdEmpty, AntdFlex, AntdFloatButton, AntdFloatButtonGroup, AntdImage, AntdImagePreviewGroup, AntdInputOTP, AntdInputSearch, AntdLayout, AntdLayoutContent, AntdLayoutFooter, AntdLayoutHeader, AntdLayoutSider, AntdList, AntdListItem, AntdListItemMeta, AntdListy, AntdMasonry, AntdMentions, AntdPopconfirm, AntdQRCode, AntdResult, AntdRow, AntdSkeleton, AntdSkeletonAvatar, AntdSkeletonButton, AntdSkeletonImage, AntdSkeletonInput, AntdSkeletonNode, AntdSpace, AntdSpaceCompact, AntdSpin, AntdSplitter, AntdSplitterPanel, AntdStatistic, AntdStatisticTimer, AntdTag, AntdTagCheckable, AntdTimePicker, AntdTimeRangePicker, AntdTimeline, AntdTour, AntdTransfer, AntdTreeSelect, AntdTypography, AntdTypographyLink, AntdTypographyParagraph, AntdTypographyText, AntdTypographyTitle, AntdUploadDragger, AntdWatermark, registerAdditional };
 //# sourceMappingURL=registerAdditional.esm.js.map

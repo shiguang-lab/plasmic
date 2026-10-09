@@ -24,6 +24,7 @@ const componentChildren = {
   "breadcrumb-item": { displayName: "Breadcrumb.Item", parent: "breadcrumb" },
   "card-grid": { displayName: "Card.Grid", parent: "card" },
   "card-meta": { displayName: "Card.Meta", parent: "card" },
+  "descriptions-item": { displayName: "Descriptions.Item", parent: "descriptions" },
   "cascader-panel": { displayName: "Cascader.Panel", parent: "cascader" },
   "float-button-group": { displayName: "FloatButton.Group", parent: "float-button" },
   "back-top": { displayName: "FloatButton.BackTop", parent: "float-button" },
@@ -214,4 +215,4 @@ function get(obj, path) {
 }
 
 export { ErrorBoundary as E, arrayEq as a, asArray as b, capitalize as c, ensureArray as e, get as g, makeRegisterGlobalContext as m, omit as o, registerComponentHelper as r, setFieldsToUndefined as s, traverseReactEltTree as t, usePrevious as u };
-//# sourceMappingURL=utils-CSvRw6Za.esm.js.map
+//# sourceMappingURL=utils-CJsqmMg5.esm.js.map

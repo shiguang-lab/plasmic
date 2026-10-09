@@ -2,7 +2,7 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import { r as registerComponentHelper } from './utils-CJsqmMg5.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

@@ -19,6 +19,26 @@ def model(items=ITEMS, component="plasmicAntd6Descriptions", title="Information"
 
 
 class InformationSelectionTests(unittest.TestCase):
+    def test_editable_item_slots_and_bindings(self):
+        expected = copy.deepcopy(INVENTORY)
+        group = expected["pages"][0]["groups"][0]
+        del group["items"]
+        group["itemSlots"] = [{"name": "NameItem", "key": "name", "label": "Name",
+                               "children": "{{ $ctx.query.name }}", "span": 2}]
+        actual = model(items=None)
+        node = '<slot name="children"><plasmic-component data-plasmic-name="NameItem" data-plasmic-component="plasmicAntd6DescriptionsItem" data-props="{}"><slot name="label"><span>Name</span></slot><slot name="children"><span>{{{{ $ctx.query.name }}}}</span></slot></plasmic-component></slot>'.format(
+            html.escape(json.dumps({"key": "name", "span": 2}), quote=True))
+        actual["results"][0]["baseVariantTplTree"] = actual["results"][0]["baseVariantTplTree"].replace(
+            '</plasmic-component>', node + '</plasmic-component>')
+        self.assertTrue(check(expected, actual)["passed"])
+        original = actual["results"][0]["baseVariantTplTree"]
+        for before, after in [('query.name', 'query.owner'), ('NameItem', 'OtherItem'),
+                              ('&quot;span&quot;: 2', '&quot;span&quot;: 1'),
+                              ('plasmicAntd6DescriptionsItem', 'plasmicAntd6TypographyText'),
+                              ('&quot;items&quot;: null', '&quot;items&quot;: []')]:
+            actual["results"][0]["baseVariantTplTree"] = original.replace(before, after)
+            self.assertFalse(check(expected, actual)["passed"], after)
+
     def test_native_fields_and_zero_pass(self):
         self.assertTrue(check(INVENTORY, model())["passed"])
 

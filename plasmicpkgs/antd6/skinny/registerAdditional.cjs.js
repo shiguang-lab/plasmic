@@ -5,7 +5,7 @@ var Ant = require('antd');
 var dayjs = require('dayjs');
 var React = require('react');
 var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
-var utils = require('./utils-CRCm44nj.cjs.js');
+var utils = require('./utils-DlS9-CF8.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 
@@ -59,7 +59,26 @@ const AntdCarousel = Ant__namespace.Carousel;
 const AntdCascader = Ant__namespace.Cascader;
 const AntdCascaderPanel = Ant__namespace.Cascader.Panel;
 const AntdCol = Ant__namespace.Col;
-const AntdDescriptions = Ant__namespace.Descriptions;
+const AntdDescriptionsItem = Ant__namespace.Descriptions.Item;
+const AntdDescriptions = React__default.default.forwardRef((props, ref) => {
+  if (props.items != null) {
+    return /* @__PURE__ */ React__default.default.createElement(Ant__namespace.Descriptions, { ...props, ref });
+  }
+  return canvasOverlay$1.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React__default.default.createElement(
+    Ant__namespace.Descriptions,
+    {
+      ...props,
+      ref,
+      children: void 0,
+      items: canvasOverlay$1.getCanvasItems(children, (item) => item.type === AntdDescriptionsItem).map(
+        (item, index) => {
+          const { __plasmic_selection_prop__: _selection, ...itemProps } = item.props;
+          return { ...itemProps, key: item.key ?? String(index) };
+        }
+      )
+    }
+  ));
+});
 const AntdDivider = Ant__namespace.Divider;
 const AntdEmpty = Ant__namespace.Empty;
 const AntdFlex = Ant__namespace.Flex;
@@ -532,8 +551,30 @@ function registerAdditional(loader) {
     title: { ...slot("Details"), hidePlaceholder: true, description: "Editable heading for this read-only information group." },
     items: {
       type: "array",
-      description: "Read-only fields: [{ key, label, children, span? }]. Keep each field's label separate from its value in children. Bind the array with an expression for runtime values; span controls column allocation. Editable inputs belong in Form.Item, alongside this group.",
-      defaultValue: [{ key: "name", label: "Name", children: "Example" }]
+      advanced: true,
+      description: "Native data-bound fields: [{ key, label, children, span? }]. Items take precedence. Clear items to edit labels and values through Descriptions.Item slots.",
+      itemType: {
+        type: "object",
+        fields: { key: "string", label: "string", children: "string", span: "number" },
+        nameFunc: (item) => item.label ?? item.key
+      }
+    },
+    children: {
+      type: "slot",
+      displayName: "Items",
+      allowedComponents: ["plasmic-antd6-descriptions-item"],
+      hidePlaceholder: true,
+      hidden: (ps) => ps.items != null,
+      description: "Editable label/value fields. This slot is not rendered when native items are set.",
+      defaultValue: [{
+        type: "component",
+        name: "plasmic-antd6-descriptions-item",
+        props: {
+          key: "name",
+          label: [{ type: "text", value: "Name" }],
+          children: [{ type: "text", value: "Example" }]
+        }
+      }]
     },
     column: { type: "number", description: "Number of fields per row. Allocate a full row to long values with an item span matching this count." },
     layout: choice(["horizontal", "vertical"]),
@@ -542,6 +583,14 @@ function registerAdditional(loader) {
     styles: "object",
     classNames: "object"
   }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
+  register(loader, AntdDescriptionsItem, "descriptions-item", "AntdDescriptionsItem", {
+    key: { type: "string", description: "A stable field key within this Descriptions." },
+    label: { ...slot("Label"), hidePlaceholder: true },
+    children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true },
+    span: { type: "number", min: 1, defaultValueHint: 1, description: "Columns occupied by this field." },
+    styles: "object",
+    classNames: "object"
+  }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
     children: slot("Divider"),
     orientation: choice(["horizontal", "vertical"]),
@@ -1158,6 +1207,7 @@ exports.AntdCascader = AntdCascader;
 exports.AntdCascaderPanel = AntdCascaderPanel;
 exports.AntdCol = AntdCol;
 exports.AntdDescriptions = AntdDescriptions;
+exports.AntdDescriptionsItem = AntdDescriptionsItem;
 exports.AntdDivider = AntdDivider;
 exports.AntdEmpty = AntdEmpty;
 exports.AntdFlex = AntdFlex;

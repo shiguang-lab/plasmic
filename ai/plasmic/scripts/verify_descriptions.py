@@ -5,6 +5,8 @@ Expect {"pages": [{"componentUuid": "...", "groups": [{"name": "Summary",
 "container": "InformationCard", "title": "Basic information", "column": 2,
 "items": [{"key": "name", "label": "Name", "children": "Example"}]}]}]}.
 items may instead be the exact native array expression. No expression is executed.
+For editable fields, replace items with ordered itemSlots entries containing
+name, key, label/content Slot text or bindings (children), and optional span.
 Only inventoried pages are checked; Preview and source inventory review remain required.
 """
 import argparse
@@ -13,6 +15,14 @@ from collections import Counter
 from pathlib import Path
 from verify_forms import TextTree, content, identity, node_name, props, slot
 from verify_slots import walk
+
+
+def item_nodes(node):
+    if identity(node) == "plasmicantd6descriptionsitem":
+        yield node
+    else:
+        for child in node["children"]:
+            yield from item_nodes(child)
 
 
 def check(inventory, readback):
@@ -50,12 +60,28 @@ def check(inventory, readback):
             if region is None or not any(n is node for n in walk(region)):
                 errors.append({**context, "error": "Wrong information container"})
             actual = props(node)
-            for key in ("column", "items"):
+            for key in ("column",) if "itemSlots" in group else ("column", "items"):
                 if json.dumps(actual.get(key), sort_keys=True) != json.dumps(group[key], sort_keys=True):
                     errors.append({**context, "error": "Information prop mismatch", "prop": key,
                                    "expected": group[key], "actual": actual.get(key)})
             if content(slot(node, "title")) != group["title"]:
                 errors.append({**context, "error": "Wrong title Slot content"})
+            if "itemSlots" in group:
+                if actual.get("items") is not None:
+                    errors.append({**context, "error": "Native items override editable Item Slots"})
+                children = slot(node, "children")
+                fields = list(item_nodes(children)) if children else []
+                expected = group["itemSlots"]
+                if [node_name(n) for n in fields] != [f["name"] for f in expected]:
+                    errors.append({**context, "error": "Ordered Descriptions.Item inventory mismatch"})
+                    continue
+                for field, spec in zip(fields, expected):
+                    values = {**props(field), "label": content(slot(field, "label")),
+                              "children": content(slot(field, "children"))}
+                    for key in ("key", "label", "children", "span"):
+                        if json.dumps(values.get(key), sort_keys=True) != json.dumps(spec.get(key), sort_keys=True):
+                            errors.append({**context, "field": spec["name"], "error": "Item Slot contract mismatch",
+                                           "prop": key, "expected": spec.get(key), "actual": values.get(key)})
     return {"passed": not errors, "errors": errors}
 
 

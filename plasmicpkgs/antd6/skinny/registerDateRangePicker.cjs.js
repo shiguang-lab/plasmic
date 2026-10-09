@@ -6,7 +6,7 @@ var dayjs = require('dayjs');
 var kebabCase = require('lodash/kebabCase');
 var React = require('react');
 var canvasOverlay = require('./canvas-overlay-BCQmyJjQ.cjs.js');
-var utils = require('./utils-CRCm44nj.cjs.js');
+var utils = require('./utils-DlS9-CF8.cjs.js');
 var localeData = require('dayjs/plugin/localeData');
 var weekday = require('dayjs/plugin/weekday');
 require('@plasmicapp/host');

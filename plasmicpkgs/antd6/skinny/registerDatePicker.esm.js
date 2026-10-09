@@ -3,7 +3,7 @@ import cls from 'classnames';
 import dayjs from 'dayjs';
 import React from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper, c as capitalize } from './utils-CSvRw6Za.esm.js';
+import { r as registerComponentHelper, c as capitalize } from './utils-CJsqmMg5.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

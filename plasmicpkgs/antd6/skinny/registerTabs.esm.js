@@ -3,7 +3,7 @@ import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo, useState, useEffect } from 'react';
 import { a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-CSvRw6Za.esm.js';
+import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-CJsqmMg5.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

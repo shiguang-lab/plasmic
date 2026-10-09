@@ -1,5 +1,5 @@
 import { b as buttonComponentName, f as formComponentName } from './names-DKofLcnC.esm.js';
-import { a as arrayEq, r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import { a as arrayEq, r as registerComponentHelper } from './utils-CJsqmMg5.esm.js';
 import { InputType, formHelpers } from './Form.esm.js';
 import { FormWrapper as SchemaForm } from './SchemaForm.esm.js';
 import { Input, InputNumber, Radio } from 'antd';

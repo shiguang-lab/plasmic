@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",

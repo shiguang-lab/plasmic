@@ -1,6 +1,6 @@
 import { Rate } from 'antd';
 import React, { useMemo } from 'react';
-import { r as registerComponentHelper } from './utils-CSvRw6Za.esm.js';
+import { r as registerComponentHelper } from './utils-CJsqmMg5.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 

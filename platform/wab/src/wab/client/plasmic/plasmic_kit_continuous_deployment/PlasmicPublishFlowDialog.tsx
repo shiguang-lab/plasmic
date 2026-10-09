@@ -36,6 +36,7 @@ import WebhooksHistory from "../../components/webhooks/WebhooksHistory"; // plas
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -412,347 +413,390 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
           ? false
           : true
       ) ? (
-        <div
-          className={classNames("all", sty.freeBox__h4IIk, {
-            [sty.freeBoxpublishState_publishing__h4IIkPGdW]: hasVariant(
-              $state,
-              "publishState",
-              "publishing"
-            ),
-            [sty.freeBoxview_reviewChanges__h4IIkg8ZSd]: hasVariant(
-              $state,
-              "view",
-              "reviewChanges"
-            ),
-            [sty.freeBoxview_status__h4IIkZjfL6]: hasVariant(
-              $state,
-              "view",
-              "status"
-            ),
-            [sty.freeBoxview_webhooksHistory__h4IIkPC2C]: hasVariant(
-              $state,
-              "view",
-              "webhooksHistory"
-            ),
-          })}
+        <Scrollbar
+          scrollX={false}
+          className={classNames(
+            "all",
+            sty.scrollContainer,
+            "studio-scrollbar"
+          )}
         >
           <div
-            className={classNames("all", "__wab_text", sty.text__lYmaq, {
-              [sty.textview_status__lYmaqZjfL6]: hasVariant(
+            className={classNames("all", sty.freeBox__h4IIk, {
+              [sty.freeBoxpublishState_publishing__h4IIkPGdW]: hasVariant(
+                $state,
+                "publishState",
+                "publishing"
+              ),
+              [sty.freeBoxview_reviewChanges__h4IIkg8ZSd]: hasVariant(
+                $state,
+                "view",
+                "reviewChanges"
+              ),
+              [sty.freeBoxview_status__h4IIkZjfL6]: hasVariant(
                 $state,
                 "view",
                 "status"
               ),
-              [sty.textview_webhooksHistory__lYmaqPC2C]: hasVariant(
+              [sty.freeBoxview_webhooksHistory__h4IIkPC2C]: hasVariant(
                 $state,
                 "view",
                 "webhooksHistory"
               ),
             })}
           >
-            {"Publishing pipeline"}
-          </div>
-          <SubsectionSaveVersion
-            data-plasmic-name={"subsectionSaveVersion"}
-            data-plasmic-override={overrides.subsectionSaveVersion}
-            changesSummary={""}
-            className={classNames("__wab_instance", sty.subsectionSaveVersion, {
-              [sty.subsectionSaveVersionpublishState_failure]: hasVariant(
-                $state,
-                "publishState",
-                "failure"
-              ),
-              [sty.subsectionSaveVersionpublishState_success]: hasVariant(
-                $state,
-                "publishState",
-                "success"
-              ),
-              [sty.subsectionSaveVersionview_status]: hasVariant(
-                $state,
-                "view",
-                "status"
-              ),
-            })}
-            view={hasVariant($state, "view", "status") ? "status" : undefined}
-          />
-
-          <SubsectionPlasmicHosting
-            data-plasmic-name={"subsectionPlasmicHosting"}
-            data-plasmic-override={overrides.subsectionPlasmicHosting}
-            className={classNames(
-              "__wab_instance",
-              sty.subsectionPlasmicHosting,
-              {
-                [sty.subsectionPlasmicHostingview_status]: hasVariant(
+            <div
+              className={classNames("all", "__wab_text", sty.text__lYmaq, {
+                [sty.textview_status__lYmaqZjfL6]: hasVariant(
                   $state,
                   "view",
                   "status"
                 ),
-              }
-            )}
-            view={hasVariant($state, "view", "status") ? "status" : undefined}
-          />
-
-          <SubsectionPushDeploy
-            data-plasmic-name={"subsectionPushDeploy"}
-            data-plasmic-override={overrides.subsectionPushDeploy}
-            className={classNames("__wab_instance", sty.subsectionPushDeploy, {
-              [sty.subsectionPushDeploypublishState_publishing]: hasVariant(
-                $state,
-                "publishState",
-                "publishing"
-              ),
-              [sty.subsectionPushDeployview_status]: hasVariant(
-                $state,
-                "view",
-                "status"
-              ),
-            })}
-            view={hasVariant($state, "view", "status") ? "status" : undefined}
-          />
-
-          <SubsectionWebhooks
-            data-plasmic-name={"subsectionWebhooks"}
-            data-plasmic-override={overrides.subsectionWebhooks}
-            className={classNames("__wab_instance", sty.subsectionWebhooks, {
-              [sty.subsectionWebhooksview_status]: hasVariant(
-                $state,
-                "view",
-                "status"
-              ),
-            })}
-            view={hasVariant($state, "view", "status") ? "status" : undefined}
-          />
-
-          <div
-            data-plasmic-name={"addActionsContainer"}
-            data-plasmic-override={overrides.addActionsContainer}
-            className={classNames("all", sty.addActionsContainer, {
-              [sty.addActionsContainerview_status]: hasVariant(
-                $state,
-                "view",
-                "status"
-              ),
-            })}
-          >
-            <div className={classNames("all", sty.freeBox__uIv1)} />
-
-            <div className={classNames("all", "__wab_text", sty.text__shiks)}>
-              {"Add publish actions"}
+                [sty.textview_webhooksHistory__lYmaqPC2C]: hasVariant(
+                  $state,
+                  "view",
+                  "webhooksHistory"
+                ),
+              })}
+            >
+              {"Publishing pipeline"}
             </div>
-            <div className={classNames("all", sty.freeBox__t1Hp1)}>
+            <SubsectionSaveVersion
+              data-plasmic-name={"subsectionSaveVersion"}
+              data-plasmic-override={overrides.subsectionSaveVersion}
+              changesSummary={""}
+              className={classNames(
+                "__wab_instance",
+                sty.subsectionSaveVersion,
+                {
+                  [sty.subsectionSaveVersionpublishState_failure]: hasVariant(
+                    $state,
+                    "publishState",
+                    "failure"
+                  ),
+                  [sty.subsectionSaveVersionpublishState_success]: hasVariant(
+                    $state,
+                    "publishState",
+                    "success"
+                  ),
+                  [sty.subsectionSaveVersionview_status]: hasVariant(
+                    $state,
+                    "view",
+                    "status"
+                  ),
+                }
+              )}
+              view={hasVariant($state, "view", "status") ? "status" : undefined}
+            />
+
+            <SubsectionPlasmicHosting
+              data-plasmic-name={"subsectionPlasmicHosting"}
+              data-plasmic-override={overrides.subsectionPlasmicHosting}
+              className={classNames(
+                "__wab_instance",
+                sty.subsectionPlasmicHosting,
+                {
+                  [sty.subsectionPlasmicHostingview_status]: hasVariant(
+                    $state,
+                    "view",
+                    "status"
+                  ),
+                }
+              )}
+              view={hasVariant($state, "view", "status") ? "status" : undefined}
+            />
+
+            <SubsectionPushDeploy
+              data-plasmic-name={"subsectionPushDeploy"}
+              data-plasmic-override={overrides.subsectionPushDeploy}
+              className={classNames(
+                "__wab_instance",
+                sty.subsectionPushDeploy,
+                {
+                  [sty.subsectionPushDeploypublishState_publishing]: hasVariant(
+                    $state,
+                    "publishState",
+                    "publishing"
+                  ),
+                  [sty.subsectionPushDeployview_status]: hasVariant(
+                    $state,
+                    "view",
+                    "status"
+                  ),
+                }
+              )}
+              view={hasVariant($state, "view", "status") ? "status" : undefined}
+            />
+
+            <SubsectionWebhooks
+              data-plasmic-name={"subsectionWebhooks"}
+              data-plasmic-override={overrides.subsectionWebhooks}
+              className={classNames("__wab_instance", sty.subsectionWebhooks, {
+                [sty.subsectionWebhooksview_status]: hasVariant(
+                  $state,
+                  "view",
+                  "status"
+                ),
+              })}
+              view={hasVariant($state, "view", "status") ? "status" : undefined}
+            />
+
+            <div
+              data-plasmic-name={"addActionsContainer"}
+              data-plasmic-override={overrides.addActionsContainer}
+              className={classNames("all", sty.addActionsContainer, {
+                [sty.addActionsContainerview_status]: hasVariant(
+                  $state,
+                  "view",
+                  "status"
+                ),
+              })}
+            >
+              <div className={classNames("all", sty.freeBox__uIv1)} />
+
               <div
-                data-plasmic-name={"addWebsitePanel"}
-                data-plasmic-override={overrides.addWebsitePanel}
-                className={classNames("all", sty.addWebsitePanel)}
+                className={classNames("all", "__wab_text", sty.text__shiks)}
               >
-                <Button
-                  data-plasmic-name={"addWebsiteButton"}
-                  data-plasmic-override={overrides.addWebsiteButton}
-                  className={classNames("__wab_instance", sty.addWebsiteButton)}
-                  endIcon={
-                    <ChevronDownSvgIcon
-                      className={classNames("all", sty.svg__inCrR)}
-                      role={"img"}
-                    />
-                  }
-                  startIcon={
-                    <PlusIcon
-                      className={classNames("all", sty.svg__aYWtk)}
-                      role={"img"}
-                    />
-                  }
-                  type={["secondary"]}
-                  withIcons={["startIcon"]}
-                >
-                  {"Plasmic Hosting"}
-                </Button>
-                <div
-                  className={classNames("all", "__wab_text", sty.text__lh5N)}
-                >
-                  {
-                    "Just publish an app or site. Use a custom domain for free. No coding required."
-                  }
-                </div>
+                {"Add publish actions"}
               </div>
-              <div
-                data-plasmic-name={"addGithubPanel"}
-                data-plasmic-override={overrides.addGithubPanel}
-                className={classNames("all", sty.addGithubPanel)}
-              >
-                <Button
-                  data-plasmic-name={"addGithubButton"}
-                  data-plasmic-override={overrides.addGithubButton}
-                  className={classNames("__wab_instance", sty.addGithubButton)}
-                  endIcon={
-                    <ChevronDownSvgIcon
-                      className={classNames("all", sty.svg__mUYi7)}
-                      role={"img"}
-                    />
-                  }
-                  startIcon={
-                    <PlusIcon
-                      className={classNames("all", sty.svg__yvw3T)}
-                      role={"img"}
-                    />
-                  }
-                  type={["secondary"]}
-                  withIcons={["startIcon"]}
-                >
-                  {"Push to GitHub"}
-                </Button>
+              <div className={classNames("all", sty.freeBox__t1Hp1)}>
                 <div
-                  className={classNames("all", "__wab_text", sty.text__j4Rcl)}
+                  data-plasmic-name={"addWebsitePanel"}
+                  data-plasmic-override={overrides.addWebsitePanel}
+                  className={classNames("all", sty.addWebsitePanel)}
                 >
-                  {"Generate a new Next.js / Gatsby / React repo."}
+                  <Button
+                    data-plasmic-name={"addWebsiteButton"}
+                    data-plasmic-override={overrides.addWebsiteButton}
+                    className={classNames(
+                      "__wab_instance",
+                      sty.addWebsiteButton
+                    )}
+                    endIcon={
+                      <ChevronDownSvgIcon
+                        className={classNames("all", sty.svg__inCrR)}
+                        role={"img"}
+                      />
+                    }
+                    startIcon={
+                      <PlusIcon
+                        className={classNames("all", sty.svg__aYWtk)}
+                        role={"img"}
+                      />
+                    }
+                    type={["secondary"]}
+                    withIcons={["startIcon"]}
+                  >
+                    {"Plasmic Hosting"}
+                  </Button>
+                  <div
+                    className={classNames("all", "__wab_text", sty.text__lh5N)}
+                  >
+                    {
+                      "Just publish an app or site. Use a custom domain for free. No coding required."
+                    }
+                  </div>
                 </div>
-              </div>
-              <div
-                data-plasmic-name={"addWebhooksPanel"}
-                data-plasmic-override={overrides.addWebhooksPanel}
-                className={classNames("all", sty.addWebhooksPanel)}
-              >
-                <Button
-                  data-plasmic-name={"addWebhooksButton"}
-                  data-plasmic-override={overrides.addWebhooksButton}
-                  className={classNames(
-                    "__wab_instance",
-                    sty.addWebhooksButton
-                  )}
-                  endIcon={
-                    <ChevronDownSvgIcon
-                      className={classNames("all", sty.svg__q5RO)}
-                      role={"img"}
-                    />
-                  }
-                  startIcon={
-                    <PlusIcon
-                      className={classNames("all", sty.svg__fSqXx)}
-                      role={"img"}
-                    />
-                  }
-                  type={["secondary"]}
-                  withIcons={["startIcon"]}
-                >
-                  {"Call webhooks"}
-                </Button>
                 <div
-                  data-plasmic-name={"webhooksDescription"}
-                  data-plasmic-override={overrides.webhooksDescription}
-                  className={classNames(
-                    "all",
-                    "__wab_text",
-                    sty.webhooksDescription
-                  )}
+                  data-plasmic-name={"addGithubPanel"}
+                  data-plasmic-override={overrides.addGithubPanel}
+                  className={classNames("all", sty.addGithubPanel)}
                 >
-                  {
-                    "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase]."
-                  }
+                  <Button
+                    data-plasmic-name={"addGithubButton"}
+                    data-plasmic-override={overrides.addGithubButton}
+                    className={classNames(
+                      "__wab_instance",
+                      sty.addGithubButton
+                    )}
+                    endIcon={
+                      <ChevronDownSvgIcon
+                        className={classNames("all", sty.svg__mUYi7)}
+                        role={"img"}
+                      />
+                    }
+                    startIcon={
+                      <PlusIcon
+                        className={classNames("all", sty.svg__yvw3T)}
+                        role={"img"}
+                      />
+                    }
+                    type={["secondary"]}
+                    withIcons={["startIcon"]}
+                  >
+                    {"Push to GitHub"}
+                  </Button>
+                  <div
+                    className={classNames("all", "__wab_text", sty.text__j4Rcl)}
+                  >
+                    {"Generate a new Next.js / Gatsby / React repo."}
+                  </div>
+                </div>
+                <div
+                  data-plasmic-name={"addWebhooksPanel"}
+                  data-plasmic-override={overrides.addWebhooksPanel}
+                  className={classNames("all", sty.addWebhooksPanel)}
+                >
+                  <Button
+                    data-plasmic-name={"addWebhooksButton"}
+                    data-plasmic-override={overrides.addWebhooksButton}
+                    className={classNames(
+                      "__wab_instance",
+                      sty.addWebhooksButton
+                    )}
+                    endIcon={
+                      <ChevronDownSvgIcon
+                        className={classNames("all", sty.svg__q5RO)}
+                        role={"img"}
+                      />
+                    }
+                    startIcon={
+                      <PlusIcon
+                        className={classNames("all", sty.svg__fSqXx)}
+                        role={"img"}
+                      />
+                    }
+                    type={["secondary"]}
+                    withIcons={["startIcon"]}
+                  >
+                    {"Call webhooks"}
+                  </Button>
+                  <div
+                    data-plasmic-name={"webhooksDescription"}
+                    data-plasmic-override={overrides.webhooksDescription}
+                    className={classNames(
+                      "all",
+                      "__wab_text",
+                      sty.webhooksDescription
+                    )}
+                  >
+                    {
+                      "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase]."
+                    }
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </Scrollbar>
       ) : null}
       {(hasVariant($state, "view", "reviewChanges") ? true : false) ? (
-        <div
-          className={classNames("all", sty.freeBox__ztMz5, {
-            [sty.freeBoxview_reviewChanges__ztMz5G8ZSd]: hasVariant(
-              $state,
-              "view",
-              "reviewChanges"
-            ),
-          })}
+        <Scrollbar
+          scrollX={false}
+          className={classNames(
+            "all",
+            sty.scrollContainer,
+            "studio-scrollbar"
+          )}
         >
           <div
-            data-plasmic-name={"container"}
-            data-plasmic-override={overrides.container}
-            className={classNames("all", sty.container, {
-              [sty.containerview_reviewChanges]: hasVariant(
+            className={classNames("all", sty.freeBox__ztMz5, {
+              [sty.freeBoxview_reviewChanges__ztMz5G8ZSd]: hasVariant(
                 $state,
                 "view",
                 "reviewChanges"
               ),
             })}
-          />
-        </div>
+          >
+            <div
+              data-plasmic-name={"container"}
+              data-plasmic-override={overrides.container}
+              className={classNames("all", sty.container, {
+                [sty.containerview_reviewChanges]: hasVariant(
+                  $state,
+                  "view",
+                  "reviewChanges"
+                ),
+              })}
+            />
+          </div>
+        </Scrollbar>
       ) : null}
       {(hasVariant($state, "view", "webhooksHistory") ? true : false) ? (
-        <div
-          className={classNames("all", sty.freeBox___5Et5U, {
-            [sty.freeBoxview_webhooksHistory___5Et5UPC2C]: hasVariant(
-              $state,
-              "view",
-              "webhooksHistory"
-            ),
-          })}
+        <Scrollbar
+          scrollX={false}
+          className={classNames(
+            "all",
+            sty.scrollContainer,
+            "studio-scrollbar"
+          )}
         >
-          <WebhooksHistory
-            data-plasmic-name={"webhooksHistory"}
-            data-plasmic-override={overrides.webhooksHistory}
-            events={
-              <React.Fragment>
-                <WebhookEvent
-                  className={classNames(
-                    "__wab_instance",
-                    sty.webhookEvent__hm3Cn,
-                    {
-                      [sty.webhookEventview_webhooksHistory__hm3CnPC2C]:
-                        hasVariant($state, "view", "webhooksHistory"),
+          <div
+            className={classNames("all", sty.freeBox___5Et5U, {
+              [sty.freeBoxview_webhooksHistory___5Et5UPC2C]: hasVariant(
+                $state,
+                "view",
+                "webhooksHistory"
+              ),
+            })}
+          >
+            <WebhooksHistory
+              data-plasmic-name={"webhooksHistory"}
+              data-plasmic-override={overrides.webhooksHistory}
+              events={
+                <React.Fragment>
+                  <WebhookEvent
+                    className={classNames(
+                      "__wab_instance",
+                      sty.webhookEvent__hm3Cn,
+                      {
+                        [sty.webhookEventview_webhooksHistory__hm3CnPC2C]:
+                          hasVariant($state, "view", "webhooksHistory"),
+                      }
+                    )}
+                    method={"GET"}
+                    url={"https://plasmic.app/"}
+                  />
+
+                  <WebhookEvent
+                    className={classNames(
+                      "__wab_instance",
+                      sty.webhookEvent__lLp8M,
+                      {
+                        [sty.webhookEventview_webhooksHistory__lLp8MPC2C]:
+                          hasVariant($state, "view", "webhooksHistory"),
+                      }
+                    )}
+                    status={"404"}
+                    url={
+                      "https://plasmic.app/this-is-a-really/long/url/to-see-what-happens-when-a-url-needs-to-wrap"
                     }
-                  )}
-                  method={"GET"}
-                  url={"https://plasmic.app/"}
-                />
+                  />
 
-                <WebhookEvent
-                  className={classNames(
-                    "__wab_instance",
-                    sty.webhookEvent__lLp8M,
-                    {
-                      [sty.webhookEventview_webhooksHistory__lLp8MPC2C]:
-                        hasVariant($state, "view", "webhooksHistory"),
+                  <WebhookEvent
+                    className={classNames(
+                      "__wab_instance",
+                      sty.webhookEvent__rxX1O
+                    )}
+                    expanded={true}
+                    method={"OPTIONS"}
+                    status={"500"}
+                    url={"https://plasmic.app/options/"}
+                  />
+
+                  <WebhookEvent
+                    className={classNames(
+                      "__wab_instance",
+                      sty.webhookEvent___5UpJ7
+                    )}
+                    method={"GET"}
+                    url={
+                      <div
+                        className={classNames(
+                          "all",
+                          "__wab_text",
+                          sty.text__qKafS
+                        )}
+                      >
+                        {"https://plasmic.app/"}
+                      </div>
                     }
-                  )}
-                  status={"404"}
-                  url={
-                    "https://plasmic.app/this-is-a-really/long/url/to-see-what-happens-when-a-url-needs-to-wrap"
-                  }
-                />
-
-                <WebhookEvent
-                  className={classNames(
-                    "__wab_instance",
-                    sty.webhookEvent__rxX1O
-                  )}
-                  expanded={true}
-                  method={"OPTIONS"}
-                  status={"500"}
-                  url={"https://plasmic.app/options/"}
-                />
-
-                <WebhookEvent
-                  className={classNames(
-                    "__wab_instance",
-                    sty.webhookEvent___5UpJ7
-                  )}
-                  method={"GET"}
-                  url={
-                    <div
-                      className={classNames(
-                        "all",
-                        "__wab_text",
-                        sty.text__qKafS
-                      )}
-                    >
-                      {"https://plasmic.app/"}
-                    </div>
-                  }
-                />
-              </React.Fragment>
-            }
-          />
-        </div>
+                  />
+                </React.Fragment>
+              }
+            />
+          </div>
+        </Scrollbar>
       ) : null}
       <div
         className={classNames("all", sty.freeBox___11T7Q, {
