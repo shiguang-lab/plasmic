@@ -5,6 +5,72 @@ const os = require("node:os");
 const path = require("node:path");
 const { DesktopWorkspace, fileMenu } = require("../src/workspace.cjs");
 const origin = "https://studio.example";
+function startupFixture(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-startup-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const workspace = new DesktopWorkspace(dir, origin);
+  workspace.remember({ url: origin + "/projects/other", ready: true });
+  workspace.remember({ url: origin + "/projects/saved?branch=main#page", ready: true });
+  return { workspace, dir, savedUrl: workspace.recent[0].url };
+}
+test("startup validates the exact saved project before restoring its route", async (t) => {
+  const { workspace, savedUrl } = startupFixture(t);
+  const session = { fetch: async (url, options) => {
+    const request = new URL(url);
+    assert.equal(request.origin, origin);
+    assert.equal(request.pathname, "/api/v1/projects");
+    assert.equal(JSON.parse(request.searchParams.get("query")), "byIds");
+    assert.deepEqual(JSON.parse(request.searchParams.get("projectIds")), ["saved"]);
+    assert.equal(options.bypassCustomProtocolHandlers, true);
+    assert.equal(options.credentials, "include");
+    assert.equal(options.redirect, "manual");
+    return Response.json({ projects: [{ id: "saved" }] });
+  } };
+  assert.equal(await workspace.startupUrl(session), savedUrl);
+  assert.equal(workspace.recent.length, 2);
+});
+for (const status of [200, 401, 403, 404]) test(`startup removes an unavailable project after confirming login (HTTP ${status})`, async (t) => {
+  const { workspace, dir } = startupFixture(t);
+  const checked = [];
+  const session = { fetch: async (url) => {
+    const request = new URL(url);
+    if (request.pathname === "/api/auth/session") return Response.json({ authenticated: true });
+    const [id] = JSON.parse(request.searchParams.get("projectIds"));
+    checked.push(id);
+    return Response.json({ projects: id === "saved" ? [] : [{ id }] }, { status: id === "saved" ? status : 200 });
+  } };
+  assert.equal(await workspace.startupUrl(session), origin + "/");
+  assert.deepEqual(workspace.recent.map((entry) => workspace.projectId(entry.url)), ["other"]);
+  const reopened = new DesktopWorkspace(dir, origin);
+  assert.equal(await reopened.startupUrl(session), origin + "/projects/other");
+  assert.deepEqual(checked, ["saved", "other"], "A later launch must not retry the removed project");
+});
+test("expired login keeps the saved project for sign-in continuation", async (t) => {
+  const { workspace, dir, savedUrl } = startupFixture(t);
+  const session = { fetch: async (url) => new URL(url).pathname === "/api/auth/session"
+    ? Response.json({ authenticated: false }, { status: 401 })
+    : Response.json({}, { status: 401 }) };
+  assert.equal(await workspace.startupUrl(session), savedUrl);
+  assert.equal(new DesktopWorkspace(dir, origin).recent[0].url, savedUrl);
+});
+for (const failure of ["network", "server", "redirect", "malformed", "login-network", "login-server", "login-malformed"]) test(`startup preserves history and opens home when access cannot be verified (${failure})`, async (t) => {
+  const { workspace, dir, savedUrl } = startupFixture(t);
+  const session = { fetch: async (url) => {
+    const login = new URL(url).pathname === "/api/auth/session";
+    if (failure === "network" || (login && failure === "login-network")) throw new Error("Network unavailable");
+    if (failure === "server" || (login && failure === "login-server")) return Response.json({}, { status: 503 });
+    if (failure === "redirect") return new Response(null, { status: 302 });
+    if (failure === "malformed" || (login && failure === "login-malformed")) return Response.json({});
+    return Response.json({}, { status: 403 });
+  } };
+  assert.equal(await workspace.startupUrl(session), origin + "/");
+  assert.equal(new DesktopWorkspace(dir, origin).recent[0].url, savedUrl);
+});
+test("startup with no saved project opens home without a request", async (t) => {
+  const { workspace } = startupFixture(t);
+  workspace.saveRecent([]);
+  assert.equal(await workspace.startupUrl({ fetch: async () => assert.fail("No request expected") }), origin + "/");
+});
 test("restart restores a trusted project and viewport without persisting design props", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-workspace-"));
   try {

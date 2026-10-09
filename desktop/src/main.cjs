@@ -423,8 +423,8 @@ async function startDesktop() {
     });
     Menu.setApplicationMenu(menu);
   }
+  const startupUrl = await workspace.startupUrl(desktopSession);
   buildMenu();
-  const startupUrl = workspace.recent[0]?.url || config.studioOrigin + "/";
   try {
     await mainWindow.loadURL(startupUrl);
   } catch (error) {

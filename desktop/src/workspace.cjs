@@ -28,12 +28,51 @@ class DesktopWorkspace {
     if (!id || !state.ready) return false;
     const entry = { url: state.url, name: state.editorContext?.projectName || id, editorView: state.editorContext?.editorView ?? null };
     const recent = [entry, ...this.recent.filter((item) => this.projectId(item.url) !== id)].slice(0, 8);
+    return this.saveRecent(recent);
+  }
+  saveRecent(recent) {
     if (JSON.stringify(recent) === JSON.stringify(this.recent)) return false;
     const temporary = this.file + ".tmp";
     fs.writeFileSync(temporary, JSON.stringify(recent, null, 2));
     fs.renameSync(temporary, this.file);
     this.recent = recent;
     return true;
+  }
+  async startupUrl(session) {
+    const home = this.origin + "/";
+    const entry = this.recent[0];
+    if (!entry) return home;
+    const id = this.projectId(entry.url);
+    const url = new URL("/api/v1/projects", this.origin);
+    url.searchParams.set("query", JSON.stringify("byIds"));
+    url.searchParams.set("projectIds", JSON.stringify([id]));
+    const options = {
+      bypassCustomProtocolHandlers: true,
+      credentials: "include",
+      redirect: "manual",
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+    };
+    try {
+      const response = await session.fetch(url.toString(), options);
+      if (response.ok) {
+        const { projects } = await response.json();
+        if (!Array.isArray(projects)) throw new Error("Invalid project response");
+        if (projects.some((project) => project.id === id)) return entry.url;
+      } else if (![401, 403, 404].includes(response.status)) {
+        throw new Error("Project access check failed (HTTP " + response.status + ")");
+      }
+      // Permission errors can also mean an expired login. Keep the saved route
+      // for sign-in and remove it only after IAM confirms a valid session.
+      const login = await session.fetch(this.origin + "/api/auth/session", options);
+      const status = await login.json();
+      if (login.status === 401 && status.authenticated === false) return entry.url;
+      if (!login.ok || status.authenticated !== true) throw new Error("Cannot confirm desktop login");
+      this.saveRecent(this.recent.filter((item) => this.projectId(item.url) !== id));
+    } catch (error) {
+      console.warn("Cannot check saved desktop project:", error.message);
+    }
+    return home;
   }
   async capture(controller) {
     const state = await controller.state();

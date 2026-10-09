@@ -199,6 +199,11 @@ Packaging embeds the platform icon; see `assets/README.md` for the design source
 
 ## Runtime
 
+Startup checks the saved project's access before restoring its route and viewport.
+Unavailable projects are removed from the saved history and open the dashboard.
+Expired login sessions keep their saved route for sign-in continuation; network
+or server failures open the dashboard without deleting history.
+
 The application's persistent Electron session handles the two existing HTTPS
 origins. Studio routes resolve to local `index.html`; static URLs, canvas scripts
 and workers resolve inside the packaged renderer. API requests are forwarded
