@@ -423,12 +423,29 @@ async function startDesktop() {
     Menu.setApplicationMenu(menu);
   }
   buildMenu();
-  await mainWindow.loadURL(
-    workspace.recent[0]?.url || config.studioOrigin + "/",
-  );
+  const startupUrl = workspace.recent[0]?.url || config.studioOrigin + "/";
+  try {
+    await mainWindow.loadURL(startupUrl);
+  } catch (error) {
+    // Session recovery can replace the first page before its load finishes.
+    // Wait for that login navigation rather than treating it as a fatal startup.
+    if (
+      error.errno !== -3 ||
+      (!unifiedAuth.navigation &&
+        new URL(mainWindow.webContents.getURL()).pathname !== AUTH_PATH)
+    ) {
+      throw error;
+    }
+    await unifiedAuth.navigation;
+  }
   void workspace.restore(mainWindow, controller).catch(async (error) => {
     console.warn("Cannot restore desktop workspace:", error.message);
-    if (!win.isDestroyed()) {
+    if (
+      !win.isDestroyed() &&
+      !unifiedAuth.navigation &&
+      !win.webContents.isLoadingMainFrame() &&
+      win.webContents.getURL() === startupUrl
+    ) {
       await win.loadURL(config.studioOrigin + "/");
     }
   });

@@ -16,6 +16,7 @@ class UnifiedAuthWindow {
     }
   }
   async show(loginUrl) {
+    if (this.navigation) return this.navigation;
     const current = new URL(loginUrl || this.window.webContents.getURL());
     if (current.pathname !== AUTH_PATH) {
       const next = new URL(
@@ -34,7 +35,23 @@ class UnifiedAuthWindow {
     if (!this.abort) {
       this.publish({ phase: "idle" });
     }
-    await this.window.loadURL(this.studioOrigin + AUTH_PATH);
+    this.navigation = (async () => {
+      const contents = this.window.webContents;
+      // Electron's loadURL listeners also receive the previous navigation's
+      // abort event. Finish stopping it before starting the login navigation.
+      if (contents.isLoadingMainFrame()) {
+        await new Promise((resolve) => {
+          contents.once("did-stop-loading", resolve);
+          contents.stop();
+        });
+      }
+      await this.window.loadURL(this.studioOrigin + AUTH_PATH);
+    })();
+    try {
+      await this.navigation;
+    } finally {
+      this.navigation = undefined;
+    }
   }
   async begin() {
     if (this.abort) {

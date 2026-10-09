@@ -15,8 +15,27 @@ fs.writeFileSync(
   JSON.stringify([{ url: projectUrl, name: "Session expiry fixture" }]),
 );
 let opened;
+let slowRequests = 0;
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
+  if (request === "./asset-handler.cjs" && parent.filename.endsWith("/src/main.cjs")) {
+    const { createAssetHandler } = originalLoad.call(this, request, parent, isMain);
+    return { createAssetHandler: (options) => {
+      const handle = createAssetHandler(options);
+      return async (request) => {
+        const response = await handle(request);
+        if (new URL(request.url).pathname !== "/projects/fixture") return response;
+        const headers = new Headers(response.headers);
+        headers.delete("Content-Length");
+        // Hold the initial document load open while its bootstrap API detects
+        // expiry. Login navigation must be allowed to supersede this load.
+        const html = (await response.text()).replace(
+          "</body>", '<img src="https://startup-fixture.invalid/slow.svg"></body>',
+        );
+        return new Response(html, { headers });
+      };
+    } };
+  }
   if (
     request === "./open-browser.cjs" &&
     parent.filename.endsWith("/src/main.cjs")
@@ -42,6 +61,13 @@ app
     // No production API calls or credentials are involved in this native UI test.
     ses.fetch = async (request) => {
       const url = new URL(typeof request === "string" ? request : request.url);
+      if (url.hostname === "startup-fixture.invalid") {
+        slowRequests++;
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        return new Response('<svg xmlns="http://www.w3.org/2000/svg"/>', {
+          headers: { "Content-Type": "image/svg+xml" },
+        });
+      }
       if (url.pathname === "/api/auth/session") {
         return Response.json({ authenticated: false }, { status: 401 });
       }
@@ -57,6 +83,7 @@ app
       );
     };
     const win = await startDesktop();
+    assert(slowRequests > 0, "The first navigation must still have a loading resource");
     assert.equal(win.webContents.getLastWebPreferences().sandbox, true);
     for (let i = 0; i < 150; i++) {
       if (

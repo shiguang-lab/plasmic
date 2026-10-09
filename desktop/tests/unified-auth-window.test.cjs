@@ -10,7 +10,7 @@ function window() {
   const win = new EventEmitter();
   win.url = origin + "/login";
   win.loads = [];
-  win.webContents = { getURL: () => win.url, send: () => {} };
+  win.webContents = { getURL: () => win.url, send: () => {}, isLoadingMainFrame: () => false };
   win.loadURL = async (url) => {
     win.url = url;
     win.loads.push(url);
@@ -43,6 +43,26 @@ test("central return_to reaches the original project in the same window", async 
   await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(win.loads, [origin + AUTH_PATH, destination]);
   assert.equal(auth.status.phase, "success");
+});
+test("login waits for the previous navigation to stop and shares overlapping redirects", async () => {
+  const win = window();
+  const contents = new EventEmitter();
+  contents.getURL = () => win.url;
+  contents.send = () => {};
+  contents.isLoadingMainFrame = () => true;
+  let stops = 0;
+  contents.stop = () => { stops++; };
+  win.webContents = contents;
+  const auth = new UnifiedAuthWindow(win, origin, () => {}, {});
+  const first = auth.show(origin + "/login?continueTo=%2Fprojects%2Fexample");
+  const second = auth.show();
+  assert.equal(stops, 1);
+  assert.deepEqual(win.loads, []);
+  contents.emit("did-stop-loading");
+  await Promise.all([first, second]);
+  assert.deepEqual(win.loads, [origin + AUTH_PATH]);
+  assert.equal(auth.returnUrl, origin + "/projects/example");
+  assert.equal(auth.navigation, undefined);
 });
 test("cancel returns to the sign-in prompt and allows a fresh attempt", async () => {
   const win = window();

@@ -11,7 +11,7 @@ function fixture(fetch) {
   window.url = projectUrl;
   window.loads = [];
   window.isDestroyed = () => false;
-  window.webContents = { getURL: () => window.url, send: () => {} };
+  window.webContents = { getURL: () => window.url, send: () => {}, isLoadingMainFrame: () => false };
   window.loadURL = async (url) => {
     window.loads.push(url);
     window.url = url;

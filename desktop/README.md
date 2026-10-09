@@ -215,6 +215,9 @@ Only a confirmed unauthenticated session opens the bundled sign-in page, preserv
 the current route, query and hash for return after login. Concurrent failures share
 one check. Resource permission errors and failed session checks retain their normal
 error behavior. The sign-in page does not start browser authorization automatically.
+Login navigation stops an unfinished page load before loading the sign-in page.
+Startup waits for this replacement navigation, and workspace restoration cannot
+replace it with the dashboard.
 The registered HTTPS callback is `https://shiguanglab.com/auth/apps/plasmicapp/callback`.
 Website displays the registered app's logo and automatically requests
 `plasmic-desktop://oauth/callback`, with an **Open Plasmic Desktop** button as a fallback.
