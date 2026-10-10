@@ -675,7 +675,7 @@ export interface PropEditorRef {
 export const InnerPropEditorRow = observer(InnerPropEditorRow_);
 
 function InnerPropEditorRow_(props: PropEditorRowProps) {
-  const { t: uiT, label: localizeLabel } = useI18n();
+  const { t: uiT } = useI18n();
   const {
     about = maybePropTypeToAbout(props.propType),
     label,
@@ -1224,13 +1224,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                   <MaybeWrap
                     cond={!!about}
                     wrapper={(x) => (
-                      <LabelWithDetailedTooltip
-                        tooltip={
-                          typeof about === "string"
-                            ? localizeLabel(about)
-                            : about
-                        }
-                      >
+                      <LabelWithDetailedTooltip tooltip={about}>
                         {x}
                       </LabelWithDetailedTooltip>
                     )}
@@ -1238,11 +1232,9 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     <div>
                       {isPlainObjectPropType(propType) &&
                       hackyCast(propType).required ? (
-                        <span className="required-prop">
-                          {localizeLabel(label)}
-                        </span>
+                        <span className="required-prop">{label}</span>
                       ) : (
-                        localizeLabel(label)
+                        label
                       )}
                     </div>
                   </MaybeWrap>
@@ -1291,7 +1283,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     propType.helpText !== undefined && (
                       <div className="fill-width dimfg gap-xsm">
                         <StandardMarkdown>
-                          {localizeLabel(propType.helpText.trim())}
+                          {propType.helpText.trim()}
                         </StandardMarkdown>
                       </div>
                     )}

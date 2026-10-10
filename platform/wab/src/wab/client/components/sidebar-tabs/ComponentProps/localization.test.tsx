@@ -4,6 +4,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/ComponentProps/EnumPropEditor";
 import { InputNumPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/NumPropEditor";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
+import { InnerPropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import {
@@ -35,7 +36,12 @@ vi.mock(
   () => ({ TemplatedTextEditor: () => null }),
 );
 vi.mock("@/wab/client/studio-ctx/StudioCtx", async () => ({
-  useStudioCtx: () => ({}),
+  useStudioCtx: () => ({
+    site: { dataTokens: [] },
+    siteInfo: { id: "test" },
+    customFunctionsSchema: () => ({}),
+    projectFlags: () => ({}),
+  }),
   StudioCtxContext: (await import("react")).createContext(undefined),
 }));
 
@@ -87,7 +93,7 @@ it("changes empty hints in all five languages without replacing real default val
   expect(onChange).not.toHaveBeenCalled();
 });
 
-it("localizes grouped choices and preserves their original values and unset action", () => {
+it("keeps grouped choices in English across all UI languages and preserves values and unset action", () => {
   const onChange = vi.fn(),
     onDelete = vi.fn();
   const options = [
@@ -109,12 +115,11 @@ it("localizes grouped choices and preserves their original values and unset acti
   );
   for (const { value: locale } of languageOptions) {
     act(() => setLanguagePreference(locale));
-    expect(
-      screen.getByRole("option", { name: translate(locale, "Small") }),
-    ).toHaveProperty("value", "'small'");
-    expect(
-      screen.getByRole("group", { name: translate(locale, "Size") }),
-    ).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Small" })).toHaveProperty(
+      "value",
+      "'small'",
+    );
+    expect(screen.getByRole("group", { name: "Size" })).toBeTruthy();
     expect(
       screen.getByRole("option", { name: "MyCustomLabel" }),
     ).toHaveProperty("value", "'custom-value'");
@@ -130,7 +135,7 @@ it("localizes grouped choices and preserves their original values and unset acti
   expect(options[0].values[0]).toEqual({ label: "Small", value: "small" });
 });
 
-it("refreshes searchable choices and the clear caption while the dropdown is open", async () => {
+it("keeps searchable choices in English while the clear caption follows the UI language", async () => {
   render(
     <EnumWithSearchPropEditor
       value={undefined}
@@ -142,9 +147,32 @@ it("refreshes searchable choices and the clear caption while the dropdown is ope
   fireEvent.mouseDown(screen.getByRole("combobox"));
   for (const { value: locale } of languageOptions) {
     act(() => setLanguagePreference(locale));
-    expect(
-      await screen.findByText(translate(locale, "Is required")),
-    ).toBeTruthy();
+    expect(await screen.findByText("Is required")).toBeTruthy();
     expect(await screen.findByText(translate(locale, "(Unset)"))).toBeTruthy();
+  }
+});
+
+it("keeps property names and registration help in English across all UI languages", () => {
+  render(
+    <>
+      {["Direction", "Username", "Language", "Menu items"].map((label) => (
+        <InnerPropEditorRow
+          key={label}
+          attr={label}
+          label={label}
+          expr={undefined}
+          propType={{ type: "string", required: true, helpText: "Is required" }}
+          disableDynamicValue
+          onChange={vi.fn()}
+        />
+      ))}
+    </>,
+  );
+  for (const { value: locale } of languageOptions) {
+    act(() => setLanguagePreference(locale));
+    for (const label of ["Direction", "Username", "Language", "Menu items"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    expect(screen.getAllByText("Is required")).toHaveLength(4);
   }
 });

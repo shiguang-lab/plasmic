@@ -1,6 +1,5 @@
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
-import { useI18n } from "@/wab/client/i18n";
 import { arrayMoveIndex } from "@/wab/shared/collections";
 import { withoutNils } from "@/wab/shared/common";
 import React from "react";
@@ -16,7 +15,6 @@ export function MultiSelectEnumPropEditor(props: {
   showDropdownArrow?: boolean;
   "data-plasmic-prop"?: string;
 }) {
-  const { label: localizeLabel } = useI18n();
   const {
     value,
     onChange,
@@ -49,17 +47,15 @@ export function MultiSelectEnumPropEditor(props: {
         if (!input) {
           return _options;
         }
-        return _options.filter(
-          (op) =>
-            op.label.toLowerCase().includes(input.toLowerCase()) ||
-            localizeLabel(op.label).toLowerCase().includes(input.toLowerCase()),
+        return _options.filter((op) =>
+          op.label.toLowerCase().includes(input.toLowerCase()),
         );
       }}
       renderInput={(_options) => (
         <input {..._options} className="transparent" />
       )}
-      renderOption={(option) => localizeLabel(option.label)}
-      renderSelectedItem={(option) => localizeLabel(option.label)}
+      renderOption={(option) => option.label}
+      renderSelectedItem={(option) => option.label}
       pillClassName="white-bg"
       placeholder={defaultValueHint?.join(",")}
       isDisabled={disabled}

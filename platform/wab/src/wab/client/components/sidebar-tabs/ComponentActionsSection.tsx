@@ -1,4 +1,3 @@
-import { UiLabel } from "@/wab/client/i18n/UiText";
 import {
   isKnownNamedState,
   isKnownRenderExpr,
@@ -451,7 +450,7 @@ function ButtonAction<P>({
           );
         }}
       >
-        <UiLabel text={label} />
+        {label}
       </Button>
       <div ref={containerRef} style={{ display: "contents" }} />
     </>

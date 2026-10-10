@@ -39,7 +39,7 @@ import {
   useTopFrameApi,
 } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -215,11 +215,7 @@ const PropFolder = observer(function PropFolder(props: {
   );
   return (
     <div className="mv-m">
-      <LabeledListItem
-        noContent
-        label={<UiLabel text={name} />}
-        padding="noHorizontal"
-      />
+      <LabeledListItem noContent label={name} padding="noHorizontal" />
       {visibleChildren.map((child, idx) => {
         return (
           <ConnectorLine
@@ -244,7 +240,7 @@ export const ComponentPropsSection = observer(
     includeVariants?: boolean;
     tab: "settings" | "style";
   }) {
-    const { t: uiT, label: localizeLabel } = useI18n();
+    const { t: uiT } = useI18n();
     const { viewCtx, tpl, expsProvider, tab, includeVariants } = props;
     const tplCtx = { tpl, viewCtx, expsProvider };
     const component = tpl.component;
@@ -377,7 +373,7 @@ export const ComponentPropsSection = observer(
                   >
                     <div className="dimfg">
                       {uiT("{name}: content", {
-                        name: localizeLabel(title ?? param.variable.name),
+                        name: title ?? param.variable.name,
                       })}
                     </div>
                     {expr.tpl.map((child) => (
