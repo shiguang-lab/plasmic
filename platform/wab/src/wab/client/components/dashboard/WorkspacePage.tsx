@@ -1,12 +1,12 @@
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
-import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
 import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultWorkspacePageProps,
   PlasmicWorkspacePage,
@@ -15,6 +15,7 @@ import { Redirect } from "@/wab/client/route/Redirect";
 import { WorkspaceId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Skeleton } from "antd";
 import { uniqBy } from "lodash";
 import * as React from "react";
 
@@ -30,6 +31,7 @@ function WorkspacePage_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const appCtx = useAppCtx();
+  const { t } = useI18n();
   const { workspaceId, ...rest } = props;
 
   const [asyncData, fetchAsyncData] = useAsyncFnStrict(async () => {
@@ -66,8 +68,14 @@ function WorkspacePage_(
   if (!data) {
     return (
       <>
-        {documentTitle("Loading workspace...")}
-        <Spinner />
+        {documentTitle(t("Loading workspace…"))}
+        <div
+          className={styles.dashboardContent}
+          role="status"
+          aria-label={t("Loading workspace…")}
+        >
+          <Skeleton active paragraph={{ rows: 6 }} />
+        </div>
       </>
     );
   }

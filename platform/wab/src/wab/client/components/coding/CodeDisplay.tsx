@@ -1,7 +1,9 @@
 import sty from "@/wab/client/components/coding/CodeDisplay.module.css";
+import { useUiAppearance } from "@/wab/client/ui-theme";
 import { cx } from "@/wab/shared/common";
 import Highlight, { defaultProps, Language } from "prism-react-renderer";
-import theme from "prism-react-renderer/themes/vsDark";
+import lightTheme from "prism-react-renderer/themes/github";
+import darkTheme from "prism-react-renderer/themes/vsDark";
 import React from "react";
 
 export function CodeDisplay(props: {
@@ -11,12 +13,13 @@ export function CodeDisplay(props: {
   style?: React.CSSProperties;
 }) {
   const { children, language } = props;
+  const { appearance } = useUiAppearance();
   return (
     <Highlight
       {...defaultProps}
       code={children.trim()}
       language={language}
-      theme={theme}
+      theme={appearance === "dark" ? darkTheme : lightTheme}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
         <pre

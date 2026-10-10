@@ -16,7 +16,7 @@ export type CmsTopBarProps = DefaultCmsTopBarProps;
 
 function CmsTopBar_(props: CmsTopBarProps, ref: HTMLElementRefOf<"div">) {
   const match = useMatchedRoute(APP_ROUTES.cmsRoot)!;
-  const database = useCmsDatabase(match.pathParams.databaseId);
+  const { database } = useCmsDatabase(match.pathParams.databaseId);
   const api = useApi();
   const mutateDatabase = useMutateDatabase();
   return (

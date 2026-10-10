@@ -1,6 +1,13 @@
 import { useI18n } from "@/wab/client/i18n";
+import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
+import {
+  UiAppearance,
+  useUiAppearance,
+  usesProductTheme,
+} from "@/wab/client/ui-theme";
 import type { ThemeConfig } from "antd";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, theme } from "antd";
+import { ThemeProvider } from "antd-style";
 import enUS from "antd/locale/en_US";
 import jaJP from "antd/locale/ja_JP";
 import koKR from "antd/locale/ko_KR";
@@ -29,25 +36,105 @@ export const antdTheme: ThemeConfig = {
   },
 };
 
+// Independent modal roots share the document theme with the application shell.
+const productThemeRoots = new Map<string, number>();
+
 export function AntdConfigProvider({
   children,
+  productUI = usesProductTheme(window.location.pathname),
 }: {
   children: React.ReactNode;
+  productUI?: boolean;
 }) {
   const { locale } = useI18n();
+  const { appearance } = useUiAppearance();
   React.useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
+  const currentTheme = productUI ? productTheme(appearance) : antdTheme;
+  const { styles } = useProductThemeStyles(theme.getDesignToken(currentTheme));
+  React.useEffect(() => {
+    if (!productUI) {
+      return;
+    }
+    productThemeRoots.set(
+      styles.root,
+      (productThemeRoots.get(styles.root) ?? 0) + 1,
+    );
+    document.body.classList.add(styles.root);
+    return () => {
+      const remaining = (productThemeRoots.get(styles.root) ?? 1) - 1;
+      if (remaining) {
+        productThemeRoots.set(styles.root, remaining);
+      } else {
+        productThemeRoots.delete(styles.root);
+        document.body.classList.remove(styles.root);
+      }
+    };
+  }, [productUI, styles.root]);
+  React.useEffect(() => {
+    ConfigProvider.config({ theme: currentTheme });
+    const token = theme.getDesignToken(currentTheme);
+    const root = document.documentElement;
+    root.dataset.uiAppearance = productUI ? appearance : "light";
+    for (const [name, value] of Object.entries({
+      layout: token.colorBgLayout,
+      surface: token.colorBgContainer,
+      muted: token.colorTextSecondary,
+      border: token.colorBorderSecondary,
+      fill: token.colorFillSecondary,
+    })) {
+      root.style.setProperty(`--studio-loading-${name}`, value);
+    }
+  }, [productUI, appearance]);
   return (
     <ConfigProvider
-      theme={antdTheme}
+      theme={currentTheme}
       locale={
         { en: enUS, "zh-CN": zhCN, "zh-TW": zhTW, ja: jaJP, ko: koKR }[locale]
       }
     >
-      {children}
+      <ThemeProvider
+        appearance={productUI ? appearance : "light"}
+        theme={currentTheme}
+      >
+        {children}
+      </ThemeProvider>
     </ConfigProvider>
   );
+}
+
+export function productTheme(appearance: UiAppearance): ThemeConfig {
+  const dark = appearance === "dark";
+  return {
+    algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    token: {
+      colorPrimary: dark ? "#9474ff" : "#7955d9",
+      colorText: dark ? "#edeef5" : "#252a38",
+      colorTextSecondary: dark ? "#9295a7" : "#70778b",
+      colorBgLayout: dark ? "#15161b" : "#eceef3",
+      colorBgContainer: dark ? "#202128" : "#ffffff",
+      colorBgElevated: dark ? "#272831" : "#ffffff",
+      colorBorder: dark ? "#373842" : "#d7dbe5",
+      colorBorderSecondary: dark ? "#30313b" : "#e6e8ef",
+      borderRadius: 8,
+      borderRadiusLG: 12,
+      controlHeight: 36,
+      fontSize: 14,
+      fontFamily: antdTheme.token?.fontFamily,
+    },
+    components: {
+      Dropdown: {
+        fontSize: 13,
+        lineHeight: 20 / 13,
+        paddingBlock: 8,
+        paddingXXS: 8,
+        borderRadiusSM: 8,
+      },
+      Menu: { fontSize: 13, itemHeight: 36 },
+      Tooltip: { fontSize: 13 },
+    },
+  };
 }
 
 // Static notification/message/Modal.confirm calls render in their own React

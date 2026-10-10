@@ -1,5 +1,15 @@
 const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("mcpSettings", {
+  initialUiAppearance: process.argv
+    .find((arg) => arg.startsWith("--shiguang-ui-appearance="))
+    ?.split("=")[1],
+  getUiAppearance: () =>
+    ipcRenderer.invoke("desktop:mcp-settings", "appearance"),
+  onUiAppearance: (callback) => {
+    const listener = (_event, appearance) => callback(appearance);
+    ipcRenderer.on("desktop:ui-appearance", listener);
+    return () => ipcRenderer.removeListener("desktop:ui-appearance", listener);
+  },
   getUiMessages: () => ipcRenderer.invoke("desktop:mcp-settings", "locale"),
   onUiLocale: (callback) => {
     const listener = (_event, snapshot) => callback(snapshot);

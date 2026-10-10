@@ -109,11 +109,11 @@ const VariantsComboSelect = observer(function VariantsComboSelect(
       trigger={["click"]}
       placement={"topLeft"}
       open={showDropdown}
-      onVisibleChange={(v) => {
+      onOpenChange={(v) => {
         setIsOpen(v);
         setShowDropdown(v);
       }}
-      overlay={() => (
+      popupRender={() => (
         <VariantsMenu
           onDismiss={() => {
             setIsOpen(false);

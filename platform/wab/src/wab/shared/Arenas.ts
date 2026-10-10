@@ -500,38 +500,6 @@ export function isMixedArena(
 }
 
 /**
- * Updates a mixed arena's frames to ensure that the min top/left of all frames
- * is at (0, 0). Returns the delta change in min top/left, if any.
- *
- * The canvas assumes the min top/left is at (0, 0) to set the clipper bounds.
- */
-export function normalizeMixedArenaFrames(arena: Arena) {
-  const frames = getPositionedArenaFrames(arena);
-
-  let minTop = Infinity;
-  let minLeft = Infinity;
-  for (const frame of frames) {
-    if (frame.top < minTop) {
-      minTop = frame.top;
-    }
-    if (frame.left < minLeft) {
-      minLeft = frame.left;
-    }
-  }
-
-  if (minLeft === 0 && minTop === 0) {
-    return null;
-  }
-
-  const delta = new Pt(-minLeft, -minTop);
-  for (const frame of frames) {
-    frame.top += delta.y;
-    frame.left += delta.x;
-  }
-  return delta;
-}
-
-/**
  * Get the size of a mixed arena.
  *
  * Only works for mixed arenas where we use absolute positioning.
@@ -555,7 +523,7 @@ export function getMixedArenaSize(arena: Arena): Pt {
     }
   }
 
-  return new Pt(maxRight, maxBottom);
+  return new Pt(Math.max(0, maxRight), Math.max(0, maxBottom));
 }
 
 /** A dedicated arena for a page or component. */

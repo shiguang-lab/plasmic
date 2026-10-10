@@ -568,7 +568,7 @@ function Aligner(props: {
       {orientation === "horizontal" && indicator}
       <DropdownTooltip
         title={title}
-        overlay={() => {
+        popupRender={() => {
           return (
             <Menu>
               {flexOptions
@@ -679,7 +679,7 @@ function Aligner2(props: {
       {axis === "x" && indicator}
       <DropdownTooltip
         title={title}
-        overlay={() => {
+        popupRender={() => {
           return (
             <Menu>
               {options.map(({ label, value: val }) => (

@@ -78,6 +78,19 @@ export class CommentsCtx {
     ApiNotificationSettings | undefined
   >(undefined);
   private _commentsFilter = observable.box<CommentFilter>("all");
+  private readonly _loading = observable.box(false);
+  private readonly _loadFailed = observable.box(false);
+
+  get isLoading() {
+    return this._loading.get();
+  }
+  get loadFailed() {
+    return this._loadFailed.get();
+  }
+  get hasLoaded() {
+    return this._commentsResponse.get() !== null;
+  }
+
   private readonly _drafts = {
     arenas: new WeakMap<AnyArena, string>(),
     threads: new WeakMap<ApiCommentThread, string>(),
@@ -297,6 +310,10 @@ export class CommentsCtx {
       return;
     }
 
+    runInAction(() => {
+      this._loading.set(true);
+      this._loadFailed.set(false);
+    });
     try {
       const response: GetCommentsResponse =
         await this.studioCtx.appCtx.api.getComments(projectId, branchId);
@@ -310,11 +327,14 @@ export class CommentsCtx {
         this._selfNotificationSettings.set(response.selfNotificationSettings);
       });
     } catch (err) {
+      runInAction(() => this._loadFailed.set(true));
       reportError(err);
       showError(err, {
         title: "Unable to process your request",
         description: "Failed to fetch comments for project",
       });
+    } finally {
+      runInAction(() => this._loading.set(false));
     }
   }
 

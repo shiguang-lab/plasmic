@@ -29,7 +29,6 @@ import { PageComponent } from "@/wab/shared/core/components";
 import { getFolderDisplayName } from "@/wab/shared/folders/folders-util";
 import { Arena, ComponentArena, PageArena } from "@/wab/shared/model/classes";
 import cn from "classnames";
-import { ok } from "neverthrow";
 import * as React from "react";
 
 export const HEADER_HEIGHT = 36;
@@ -237,12 +236,13 @@ export function NavigationArenaRow({
           <IconButton
             size="small"
             tooltip={uiT("Page settings")}
-            onClick={() =>
-              studioCtx.change(() => {
-                studioCtx.showPageSettings = arena.component as PageComponent;
-                return ok();
-              })
-            }
+            onClick={(event) => {
+              event.stopPropagation();
+              return studioCtx.changeUnsafe(() => {
+                studioCtx.pageSettingsPage = arena.component as PageComponent;
+                studioCtx.pageSettingsOpen = true;
+              });
+            }}
           >
             <Icon icon={GearIcon} />
           </IconButton>
@@ -252,13 +252,19 @@ export function NavigationArenaRow({
 
   return (
     <RowItem
+      className={[
+        studioCtx.currentArena === arena && "editor-navigation-current",
+        isSelected && "editor-navigation-keyboard",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       style={{
         height: isPage ? PAGE_HEIGHT : ROW_HEIGHT,
         paddingLeft: indentMultiplier * 16 + 12,
       }}
       onClick={() => onClick(arena)}
       icon={<Icon icon={getArenaIcon(arena, studioCtx)} />}
-      isSelected={isSelected ?? studioCtx.currentArena === arena}
+      isSelected={studioCtx.currentArena === arena}
       menuSize="small"
       menu={
         <ArenaContextMenu
@@ -297,10 +303,12 @@ export function NavigationArenaRow({
         // navigation to the item
         programmaticallyTriggered
       >
-        <div className="flex-col">
-          {matcher.boldSnippets(displayName)}
+        <div className="flex-col editor-document-label">
+          <span title={displayName}>{matcher.boldSnippets(displayName)}</span>
           {pathName && (
-            <span className="dimfg">{matcher.boldSnippets(pathName)}</span>
+            <span className="dimfg" title={pathName}>
+              {matcher.boldSnippets(pathName)}
+            </span>
           )}
         </div>
       </EditableLabel>

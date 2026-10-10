@@ -10,6 +10,7 @@ import {
   AsyncState,
   useAsyncFnStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultSubsectionWebhooksProps,
   PlasmicSubsectionWebhooks,
@@ -84,6 +85,7 @@ function SubsectionWebhooks(props: SubsectionWebhooksProps) {
     ...rest
   } = props;
   const { webhooks, updateWebhook } = setup;
+  const { t } = useI18n();
   const projectId = project.id;
 
   React.useEffect(() => {
@@ -160,11 +162,19 @@ function SubsectionWebhooks(props: SubsectionWebhooksProps) {
       }}
       description={{
         render: (_props) =>
-          replaceLink(_props, (text) => (
-            <a href="javascript: void 0" onClick={showCode}>
-              {text}
-            </a>
-          )),
+          replaceLink(
+            {
+              ..._props,
+              children: t(
+                "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase].",
+              ),
+            },
+            (text) => (
+              <a href="javascript: void 0" onClick={showCode}>
+                {text}
+              </a>
+            ),
+          ),
       }}
     >
       {webhooks.map((webhook) => (

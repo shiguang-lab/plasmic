@@ -1,6 +1,6 @@
+import { expect, test } from "@playwright/test";
 import { build } from "esbuild";
 import path from "node:path";
-import { expect, test } from "playwright/test";
 import { compile } from "sass";
 
 const wabDir = path.resolve(__dirname, "../..");

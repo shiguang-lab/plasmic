@@ -57,8 +57,8 @@ import {
 import { TraitRegistry } from "@/wab/client/components/splits/TraitRegistry";
 import gridFramesLayoutStyles from "@/wab/client/components/studio/arenas/GridFramesLayout.module.sass";
 import {
-  getSortedHostLessPkgs,
   getHostLessPkgIdentity,
+  getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { adjustGridStyleForCurZoom } from "@/wab/client/components/style-controls/GridEditor";
@@ -169,7 +169,6 @@ import {
   isHeightAutoDerived,
   isMixedArena,
   isPageArena,
-  normalizeMixedArenaFrames,
   setFocusedFrame,
   syncArenaFrameSize,
   updateAutoDerivedFrameHeight,
@@ -370,6 +369,10 @@ import {
   summarizeChanges,
 } from "@/wab/shared/model/model-change-util";
 import { reorderPageArenaCols } from "@/wab/shared/page-arenas";
+import {
+  ensurePageOverviewArena,
+  findPageOverviewArena,
+} from "@/wab/shared/page-overview";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import {
   APP_ROUTES,
@@ -437,6 +440,7 @@ import isEqual from "lodash/isEqual";
 import orderBy from "lodash/orderBy";
 import {
   IObservableValue,
+  action,
   autorun,
   flow,
   makeObservable,
@@ -483,6 +487,7 @@ interface PanningState {
   readonly initScreenY: number;
   readonly initScrollX: number;
   readonly initScrollY: number;
+  readonly initCanvasPadding: Pt;
   readonly initiatedByMiddleButton: boolean;
 }
 
@@ -517,6 +522,7 @@ export type ArenaStatus = "visible" | "background" | "cached" | "dead";
 interface StudioViewportSnapshot {
   readonly focusedArenaFrame?: ArenaFrame;
   readonly scroll: Pt;
+  readonly canvasPadding: Pt;
   readonly scale: number;
 }
 
@@ -638,7 +644,7 @@ export function calculateNextVersionKey(studioCtx: StudioCtx) {
 
 export enum RightTabKey {
   style = "style",
-  settings = "settings",
+  interactions = "interactions",
   comments = "comments",
   component = "component",
 }
@@ -703,7 +709,7 @@ export class StudioCtx extends WithDbCtx {
     ({ dbCtx: this._dbCtx } = args);
     this.commentsCtx = new CommentsCtx(this);
 
-    this.switchRightTab(RightTabKey.settings);
+    this.switchRightTab(RightTabKey.style);
 
     this.getInitialLeftTabKey()
       .then((key) => {
@@ -1086,7 +1092,14 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private updatePkgsList(pkgs: string[]) {
-    if (pkgs.some((pkg) => !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, this.site)))) {
+    if (
+      pkgs.some(
+        (pkg) =>
+          !this.installedHostLessPkgs.has(
+            getHostLessPkgIdentity(pkg, this.site),
+          ),
+      )
+    ) {
       spawn(this.updateCcRegistry(pkgs));
     }
   }
@@ -1922,6 +1935,7 @@ export class StudioCtx extends WithDbCtx {
     return {
       focusedArenaFrame: this.focusedViewCtx()?.arenaFrame(),
       scroll: this.viewportCtx!.scroll(),
+      canvasPadding: this.viewportCtx!.canvasPadding(),
       scale: this.viewportCtx!.scale(),
     };
   }
@@ -1937,7 +1951,13 @@ export class StudioCtx extends WithDbCtx {
       });
     }
 
-    this.viewportCtx!.enqueueTransform(snapshot.scale, snapshot.scroll, false);
+    this.viewportCtx!.enqueueTransform(
+      snapshot.scale,
+      snapshot.scroll.plus(
+        this.viewportCtx!.canvasPadding().sub(snapshot.canvasPadding),
+      ),
+      false,
+    );
   }
 
   canEditComponent(component: Component) {
@@ -2429,11 +2449,6 @@ export class StudioCtx extends WithDbCtx {
           lastAccess: new Date().getTime(),
           lastViewSnapshot: this.getCurrentStudioViewportSnapshot(),
         });
-      }
-
-      // Normalize mixed arena frames so min top/left is 0.
-      if (isMixedArena(arena)) {
-        normalizeMixedArenaFrames(arena);
       }
 
       this.viewportCtx?.setArena(arena);
@@ -3141,11 +3156,87 @@ export class StudioCtx extends WithDbCtx {
     this._preferredAiOutputFormat.set(format);
   }
 
+  private _panelsHidden = observable.box(false);
+  get panelsHidden() {
+    return this._panelsHidden.get();
+  }
+  togglePanels = action(() => {
+    this._panelsHidden.set(!this.panelsHidden);
+  });
+
+  get canOpenPageOverview() {
+    if (this.contentEditorMode) {
+      return false;
+    }
+    const pages = this.site.components.filter(isPageComponent);
+    if (pages.length === 0) {
+      return false;
+    }
+    const existing = findPageOverviewArena(this.site);
+    return (
+      this.canSave() ||
+      (!!existing &&
+        pages.every((page) =>
+          existing.children.some((frame) => frame.container.component === page),
+        ))
+    );
+  }
+
+  openPageOverview = async () => {
+    if (!this.canOpenPageOverview) {
+      return;
+    }
+    const arena = this.canSave()
+      ? await this.changeUnsafe(() => ensurePageOverviewArena(this.tplMgr()))
+      : findPageOverviewArena(this.site);
+    if (arena) {
+      this.switchToArena(arena);
+      this.returnToCanvasOverview();
+      defer(() => this.tryZoomToFitArena());
+    }
+  };
+
+  private canvasOverviewViewport = observable.box<
+    | {
+        arena: AnyArena;
+        viewport: StudioViewportSnapshot;
+      }
+    | undefined
+  >(undefined, { deep: false });
+
+  get canvasFocusActive() {
+    return this.canvasOverviewViewport.get()?.arena === this.currentArena;
+  }
+
+  focusCanvasFrame = action((frame: ArenaFrame) => {
+    const arena = this.currentArena;
+    if (
+      !isMixedArena(arena) ||
+      !arena.children.includes(frame) ||
+      !this.viewportCtx
+    ) {
+      return;
+    }
+    if (!this.canvasFocusActive) {
+      this.canvasOverviewViewport.set({
+        arena,
+        viewport: this.getCurrentStudioViewportSnapshot(),
+      });
+    }
+    this.setStudioFocusOnFrame({ frame, autoZoom: false });
+    this.tryZoomToFitFrame(frame, 1);
+  });
+
+  returnToCanvasOverview = action(() => {
+    const overview = this.canvasOverviewViewport.get();
+    if (overview?.arena === this.currentArena && this.viewportCtx) {
+      this.restoreStudioViewportSnapshot(overview.viewport, false);
+    }
+    this.canvasOverviewViewport.set(undefined);
+  });
+
   private _xLeftPaneWidth = observable.box(LEFT_PANE_INIT_WIDTH);
   get leftPaneWidth() {
-    if (!this.leftTabKey) {
-      return 0;
-    }
     return this._xLeftPaneWidth.get();
   }
   set leftPaneWidth(width: number) {
@@ -3160,7 +3251,8 @@ export class StudioCtx extends WithDbCtx {
   }
   private _xRightTabKey = observable.box<RightTabKey | undefined>(undefined);
   private lastElementRightTabKey:
-    Extract<RightTabKey, RightTabKey.style | RightTabKey.settings> | undefined;
+    | Extract<RightTabKey, RightTabKey.style | RightTabKey.interactions>
+    | undefined;
   get rightTabKey() {
     return this._xRightTabKey.get();
   }
@@ -3191,7 +3283,7 @@ export class StudioCtx extends WithDbCtx {
 
   switchRightTab(tabKey: RightTabKey) {
     this._xRightTabKey.set(tabKey);
-    if (tabKey === RightTabKey.style || tabKey === RightTabKey.settings) {
+    if (tabKey === RightTabKey.style || tabKey === RightTabKey.interactions) {
       this.lastElementRightTabKey = tabKey;
     }
   }
@@ -3208,7 +3300,7 @@ export class StudioCtx extends WithDbCtx {
     if (
       this.lastElementRightTabKey &&
       this.rightTabKey &&
-      ![RightTabKey.style, RightTabKey.settings].includes(this.rightTabKey)
+      ![RightTabKey.style, RightTabKey.interactions].includes(this.rightTabKey)
     ) {
       this.switchRightTab(this.lastElementRightTabKey);
     }
@@ -3376,6 +3468,24 @@ export class StudioCtx extends WithDbCtx {
     return this.interactionEventArgsCache.has(eventHandlerUid);
   };
 
+  private _canvasTool = observable.box<"select" | "pan">("select");
+  get canvasTool() {
+    return this._canvasTool.get();
+  }
+  setCanvasTool = (tool: "select" | "pan") => {
+    this._canvasTool.set(tool);
+    this.setFreestyleState(undefined);
+    if (this.isPanning()) {
+      this.endPanning();
+    }
+    if (this.isPanMode()) {
+      this.showPannableCursor();
+    } else {
+      this.hidePannableCursor();
+    }
+  };
+  isPanMode = () => this.canvasTool === "pan" || !!this.isSpaceDown();
+
   private keyDown = new Map<number, boolean>();
   markKeydown = (which: number) => {
     this.keyDown[which] = true;
@@ -3386,7 +3496,7 @@ export class StudioCtx extends WithDbCtx {
 
   markKeyup = (which: number) => {
     this.keyDown[which] = false;
-    if (which === StudioCtx.SPACE) {
+    if (which === StudioCtx.SPACE && this.canvasTool !== "pan") {
       this.hidePannableCursor();
       if (this.panningState && !this.panningState.initiatedByMiddleButton) {
         this.endPanning();
@@ -3575,6 +3685,14 @@ export class StudioCtx extends WithDbCtx {
   //
   // Managing the "Add Drawer"
   //
+  private _isComponentStoreOpen = observable.box(false);
+  get isComponentStoreOpen() {
+    return this._isComponentStoreOpen.get();
+  }
+  setComponentStoreOpen(open: boolean) {
+    this._isComponentStoreOpen.set(open);
+  }
+
   private _showAddDrawer = observable.box(false);
   showAddDrawer() {
     return (
@@ -3583,6 +3701,9 @@ export class StudioCtx extends WithDbCtx {
     );
   }
   setShowAddDrawer(show: boolean) {
+    if (!show) {
+      this.setComponentStoreOpen(false);
+    }
     this._showInlineAddDrawer.set(false);
     this._showAddDrawer.set(show);
   }
@@ -3908,6 +4029,7 @@ export class StudioCtx extends WithDbCtx {
       initScreenY: e.screenY,
       initScrollX: initScroll.x,
       initScrollY: initScroll.y,
+      initCanvasPadding: this.viewportCtx!.canvasPadding(),
       initiatedByMiddleButton: e.button === 1,
     };
     this.showPanningCursor(e);
@@ -3916,11 +4038,11 @@ export class StudioCtx extends WithDbCtx {
   tryPanning = (e: MouseEvent) => {
     const s = this.panningState;
     s !== undefined &&
-      this.viewportCtx!.scrollTo(
+      this.viewportCtx!.panTo(
         new Pt(
           s.initScrollX + s.initScreenX - e.screenX,
           s.initScrollY + s.initScreenY - e.screenY,
-        ),
+        ).plus(this.viewportCtx!.canvasPadding().sub(s.initCanvasPadding)),
       );
     return s !== undefined;
   };
@@ -4321,6 +4443,38 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
+  private canvasZoomPadding() {
+    const clipper = ensure(this.viewportCtx, "Canvas viewport is not ready")
+      .clipperBox()
+      .rect();
+    const left = document
+      .querySelector<HTMLElement>(".canvas-editor__left-pane")
+      ?.getBoundingClientRect();
+    const rail = document
+      .querySelector<HTMLElement>(".canvas-editor__left-pane-container")
+      ?.getBoundingClientRect();
+    const right = document
+      .querySelector<HTMLElement>(".canvas-editor__right-pane")
+      ?.getBoundingClientRect();
+    const controls = document
+      .querySelector<HTMLElement>("[data-test-id=canvas-view-controls]")
+      ?.getBoundingClientRect();
+    return {
+      left: Math.max(
+        DEFAULT_ZOOM_PADDING,
+        left?.width ? left.right - clipper.left + 20 : 0,
+        rail?.width ? rail.right - clipper.left + 20 : 0,
+      ),
+      right: right?.width
+        ? Math.max(DEFAULT_ZOOM_PADDING, clipper.right - right.left + 20)
+        : DEFAULT_ZOOM_PADDING,
+      top: DEFAULT_ZOOM_PADDING,
+      bottom: controls?.height
+        ? Math.max(80, clipper.bottom - controls.top + 20)
+        : 80,
+    };
+  }
+
   tryZoomToFitArena() {
     const arena = this.currentArena;
     if (!arena) {
@@ -4334,15 +4488,14 @@ export class StudioCtx extends WithDbCtx {
       return;
     }
 
+    const padding = this.canvasZoomPadding();
     viewportCtx.zoomToScalerBox(
       Box.zero().withSizeOfPt(viewportCtx.arenaScalerSize()),
       {
         maxScale: 1,
         minPadding: {
-          left: DEFAULT_ZOOM_PADDING + this.getArenaGridLabelsWidth(),
-          right: DEFAULT_ZOOM_PADDING,
-          top: DEFAULT_ZOOM_PADDING,
-          bottom: DEFAULT_ZOOM_PADDING,
+          ...padding,
+          left: padding.left + this.getArenaGridLabelsWidth(),
         },
         ignoreHeight: this.focusedMode,
       },
@@ -4386,12 +4539,11 @@ export class StudioCtx extends WithDbCtx {
         : DEFAULT_ZOOM_PADDING;
 
     const scalerRect = frameToScalerRect(element.getBoundingClientRect(), vc);
+    const padding = this.canvasZoomPadding();
     this.viewportCtx!.zoomToScalerBox(Box.fromRect(scalerRect), {
       minPadding: {
-        left: DEFAULT_ZOOM_PADDING,
-        right: rightZoomPadding,
-        top: DEFAULT_ZOOM_PADDING,
-        bottom: DEFAULT_ZOOM_PADDING,
+        ...padding,
+        right: Math.max(padding.right, rightZoomPadding),
       },
     });
   }
@@ -4415,7 +4567,7 @@ export class StudioCtx extends WithDbCtx {
     if (viewportCtx && scalerRect) {
       viewportCtx.zoomToScalerBox(Box.fromRect(scalerRect), {
         maxScale: maxZoom,
-        minPadding: DEFAULT_ZOOM_PADDING,
+        minPadding: this.canvasZoomPadding(),
       });
     } else {
       // Frame hasn't been rendered yet, so try again next tick
@@ -5221,7 +5373,8 @@ export class StudioCtx extends WithDbCtx {
   framesChanged = new Signals.Signal();
   focusReset = new Signals.Signal();
   leftPanelHighlightingRequested = new Signals.Signal();
-  showProjectPanelRequested = new Signals.Signal();
+  showNavigationPanelRequested: Signals.Signal<"pages" | "outline"> =
+    new Signals.Signal();
   highlightInteractionRequested: Signals.Signal<HighlightInteractionRequest> =
     new Signals.Signal();
 
@@ -5229,9 +5382,19 @@ export class StudioCtx extends WithDbCtx {
     this.leftPanelHighlightingRequested.dispatch();
   };
 
+  private _navigationPanel = observable.box<"pages" | "outline">("outline");
+  get navigationPanel() {
+    return this._navigationPanel.get();
+  }
+  setNavigationPanel = action((panel: "pages" | "outline") =>
+    this._navigationPanel.set(panel),
+  );
+
   showProjectPanel = () => {
-    this.showProjectPanelRequested.dispatch();
+    this.showNavigationPanelRequested.dispatch("pages");
   };
+
+  showLayersPanel = () => this.showNavigationPanelRequested.dispatch("outline");
 
   styleMgrBcast = {
     syncStyles: () => {
@@ -5724,11 +5887,19 @@ export class StudioCtx extends WithDbCtx {
   private isSaving = false;
 
   get saveStatus() {
-    if (this.isUnlogged()) return "unlogged" as const;
-    if (this.isSaving) return "saving" as const;
-    if (this.saveErrorState === "error") return "error" as const;
-    if (this.hasUnsavedChanges() && !this.canSave()) return "blocked" as const;
-    return this.hasUnsavedChanges() ? "pending" as const : "saved" as const;
+    if (this.isUnlogged()) {
+      return "unlogged" as const;
+    }
+    if (this.isSaving) {
+      return "saving" as const;
+    }
+    if (this.saveErrorState === "error") {
+      return "error" as const;
+    }
+    if (this.hasUnsavedChanges() && !this.canSave()) {
+      return "blocked" as const;
+    }
+    return this.hasUnsavedChanges() ? ("pending" as const) : ("saved" as const);
   }
 
   blockChanges = false;
@@ -5771,7 +5942,9 @@ export class StudioCtx extends WithDbCtx {
       return SaveResult.StopSaving;
     }
 
-    runInAction(() => { this.isSaving = true; });
+    runInAction(() => {
+      this.isSaving = true;
+    });
     try {
       const changeCounterBeingSaved = this._changeCounter;
 
@@ -5837,7 +6010,9 @@ export class StudioCtx extends WithDbCtx {
             this.alertBannerState.set(null);
           }
         }
-        runInAction(() => { this.saveErrorState = "normal"; });
+        runInAction(() => {
+          this.saveErrorState = "normal";
+        });
         this._saveFailedCounter = 0;
         return SaveResult.Success;
       } catch (e) {
@@ -5870,7 +6045,9 @@ export class StudioCtx extends WithDbCtx {
           if (this.saveErrorState === "normal") {
             this.alertBannerState.set(AlertSpec.SaveFailed);
           }
-          runInAction(() => { this.saveErrorState = "error"; });
+          runInAction(() => {
+            this.saveErrorState = "error";
+          });
           return SaveResult.GatewayError;
         } else if (incremental && e.name === "UnknownReferencesError") {
           reportError(e, "Unknown references found in project bundle");
@@ -5910,7 +6087,9 @@ export class StudioCtx extends WithDbCtx {
               type: "warning",
             });
           }
-          runInAction(() => { this.saveErrorState = "error"; });
+          runInAction(() => {
+            this.saveErrorState = "error";
+          });
           this._saveFailedCounter += 1;
           return SaveResult.UnknownError;
         }
@@ -5926,11 +6105,15 @@ export class StudioCtx extends WithDbCtx {
           type: "warning",
         });
       }
-      runInAction(() => { this.saveErrorState = "error"; });
+      runInAction(() => {
+        this.saveErrorState = "error";
+      });
       this._saveFailedCounter += 1;
       return SaveResult.UnknownError;
     } finally {
-      runInAction(() => { this.isSaving = false; });
+      runInAction(() => {
+        this.isSaving = false;
+      });
     }
   }
 
@@ -6785,7 +6968,7 @@ export class StudioCtx extends WithDbCtx {
 
       notification.warning({
         message: "Configure this project's dynamic data source",
-        duration: null,
+        duration: 0,
         description: (
           <>
             <p>
@@ -7353,14 +7536,22 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _showPageSettings = observable.box<PageComponent | undefined>(
+  private _pageSettingsPage = observable.box<PageComponent | undefined>(
     undefined,
   );
-  get showPageSettings() {
-    return this._showPageSettings.get();
+  get pageSettingsPage() {
+    return this._pageSettingsPage.get();
   }
-  set showPageSettings(c: PageComponent | undefined) {
-    this._showPageSettings.set(c);
+  set pageSettingsPage(c: PageComponent | undefined) {
+    this._pageSettingsPage.set(c);
+  }
+
+  private _pageSettingsOpen = observable.box(false);
+  get pageSettingsOpen() {
+    return this._pageSettingsOpen.get();
+  }
+  set pageSettingsOpen(open: boolean) {
+    this._pageSettingsOpen.set(open);
   }
 
   siteIsEmpty() {
@@ -7855,20 +8046,6 @@ export class StudioCtx extends WithDbCtx {
 
   getCurrentPathName = () => {
     return this.focusedOrFirstViewCtx()?.component.pageMeta?.path;
-  };
-
-  normalizeCurrentArena = () => {
-    const arena = this.currentArena;
-    if (isMixedArena(arena)) {
-      const delta = normalizeMixedArenaFrames(arena);
-      // normalizeMixedArenaFrames may change the top left of the arena.
-      // To avoid seeming like the clipper moved for the user,
-      // scroll by the delta.
-      if (delta) {
-        const viewportCtx = this.viewportCtx!;
-        viewportCtx.scrollBy(delta.scale(viewportCtx.scale()));
-      }
-    }
   };
 }
 

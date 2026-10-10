@@ -1,17 +1,15 @@
 import TeamMemberListItem from "@/wab/client/components/dashboard/TeamMemberListItem";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Modal } from "@/wab/client/components/widgets/Modal";
-import Select from "@/wab/client/components/widgets/Select";
 import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
-import { UiText } from "@/wab/client/i18n/UiText";
-import {
-  DefaultTeamMemberListProps,
-  PlasmicTeamMemberList,
-} from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberList";
+import { useI18n } from "@/wab/client/i18n";
+import { DefaultTeamMemberListProps } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberList";
 import { ApiPermission, ApiTeam, TeamMember } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Button, Empty, Flex, Input, Select, Typography } from "antd";
+import { createStyles } from "antd-style";
 import { sortBy } from "lodash";
 import * as React from "react";
 
@@ -24,6 +22,16 @@ interface TeamMemberListProps extends DefaultTeamMemberListProps {
   onReload: () => Promise<void>;
   disabled?: boolean;
 }
+
+const useMembersStyles = createStyles(({ token }) => ({
+  root: {
+    color: token.colorText,
+    background: token.colorBgContainer,
+    padding: 24,
+  },
+  search: { width: 280, maxWidth: "100%" },
+  filter: { minWidth: 180 },
+}));
 
 function TeamMemberList_(
   props: TeamMemberListProps,
@@ -39,6 +47,9 @@ function TeamMemberList_(
     team,
     ...rest
   } = props;
+
+  const { t } = useI18n();
+  const { styles, cx } = useMembersStyles();
 
   // Shared Modal
   const [sharedModal, setSharedModal] = React.useState(false);
@@ -58,7 +69,11 @@ function TeamMemberList_(
         return true;
       }
       if (filterSelect === "none") {
-        return !perms.some((p) => p.user?.email === m.email);
+        return !perms.some(
+          (p) =>
+            (p.user?.email ?? p.email) === m.email &&
+            p.accessLevel !== "blocked",
+        );
       }
 
       return perms.some(
@@ -76,59 +91,63 @@ function TeamMemberList_(
     displayedMembers,
     (m) =>
       -accessLevelRank(
-        perms.find((p) => p.user?.email === m.email)?.accessLevel ?? "blocked",
+        perms.find((p) => (p.user?.email ?? p.email) === m.email)
+          ?.accessLevel ?? "blocked",
       ),
   );
   return (
     <>
-      <PlasmicTeamMemberList
-        {...rest}
-        root={{ ref }}
-        newButton={{
-          onClick: async () => {
-            setSharedModal(true);
-          },
-        }}
-        memberSearch={{
-          value: query,
-          onChange: (e) => setQuery(e.target.value),
-          autoFocus: true,
-        }}
-        filterSelect={{
-          value: filterSelect,
-          onChange: setFilterSelect,
-          children: [
-            <Select.Option value="all">
-              <UiText message={"All Roles"} />
-            </Select.Option>,
-            <Select.Option value="owner">
-              <UiText message={"Owners"} />
-            </Select.Option>,
-            <Select.Option value="editor">
-              <UiText message={"Developers"} />
-            </Select.Option>,
-            <Select.Option value="designer">
-              <UiText message={"Designers"} />
-            </Select.Option>,
-            <Select.Option value="content">
-              <UiText message={"Content Creators"} />
-            </Select.Option>,
-            ...(perms.some((perm) => perm.accessLevel === "commenter")
-              ? [
-                  <Select.Option value="commenter">
-                    <UiText message={"Commenters"} />
-                  </Select.Option>,
-                ]
-              : []),
-            <Select.Option value="viewer">
-              <UiText message={"Viewers"} />
-            </Select.Option>,
-            <Select.Option value="none">
-              <UiText message={"None"} />
-            </Select.Option>,
-          ],
-        }}
-      >
+      <section ref={ref} className={cx(styles.root, rest.className)}>
+        <Flex vertical gap={16}>
+          <Flex align="center" justify="space-between" gap={12} wrap>
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              {t("Members")}
+            </Typography.Title>
+            <Button
+              type="primary"
+              disabled={disabled}
+              onClick={() => setSharedModal(true)}
+            >
+              {t("Invite")}
+            </Button>
+          </Flex>
+          <Flex gap={12} wrap>
+            <Input.Search
+              className={styles.search}
+              aria-label={t("Search members")}
+              placeholder={t("Search members")}
+              value={query}
+              allowClear
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <Select
+              className={styles.filter}
+              aria-label={t("Filter by role")}
+              value={filterSelect}
+              onChange={setFilterSelect}
+              options={(
+                [
+                  { value: "all", label: "All Roles" },
+                  { value: "owner", label: "Owners" },
+                  { value: "editor", label: "Developers" },
+                  { value: "designer", label: "Designers" },
+                  { value: "content", label: "Content Creators" },
+                  ...(perms.some((p) => p.accessLevel === "commenter")
+                    ? [{ value: "commenter", label: "Commenters" as const }]
+                    : []),
+                  { value: "viewer", label: "Viewers" },
+                  { value: "none", label: "None" },
+                ] as const
+              ).map((item) => ({ value: item.value, label: t(item.label) }))}
+            />
+          </Flex>
+        </Flex>
+        {!displayedMembers.length && (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={t("No matching members")}
+          />
+        )}
         {displayedMembers.map((user) => (
           <TeamMemberListItem
             key={user.email}
@@ -143,22 +162,22 @@ function TeamMemberList_(
             perms={perms}
           />
         ))}
-      </PlasmicTeamMemberList>
+      </section>
       {sharedModal && (
         <Modal
-          visible={true}
+          open={true}
           onCancel={() => setSharedModal(false)}
-          modalRender={() => (
-            <ShareDialogContent
-              className="ant-modal-content"
-              resource={{ type: "team", resource: team }}
-              perms={perms}
-              closeDialog={() => setSharedModal(false)}
-              reloadPerms={onReload}
-              updateResourceCallback={onReload}
-            />
-          )}
-        />
+          footer={null}
+          closable
+        >
+          <ShareDialogContent
+            resource={{ type: "team", resource: team }}
+            perms={perms}
+            closeDialog={() => setSharedModal(false)}
+            reloadPerms={onReload}
+            updateResourceCallback={onReload}
+          />
+        </Modal>
       )}
     </>
   );

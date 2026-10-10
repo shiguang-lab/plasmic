@@ -283,7 +283,7 @@ class SpacingControl_ extends StyleComponent<
       >
         <div className="spacing-control__container" ref={this.container}>
           <Popover
-            visible={this.state.showPopover}
+            open={this.state.showPopover}
             placement={popoverPlacement}
             content={
               <div

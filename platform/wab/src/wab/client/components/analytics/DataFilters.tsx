@@ -9,13 +9,9 @@ import {
 } from "@/wab/client/components/analytics/utils";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
-import {
-  DefaultDataFiltersProps,
-  PlasmicDataFilters,
-} from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicDataFilters";
-import PlasmicLabeledSelect from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicLabeledSelect";
+import { DefaultDataFiltersProps } from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicDataFilters";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { DatePicker } from "antd";
+import { Button, DatePicker, Flex, Select, Typography } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import * as React from "react";
 import { CSVLink } from "react-csv";
@@ -49,86 +45,77 @@ function DataFilters_(props: DataFiltersProps, ref: HTMLElementRefOf<"div">) {
   return (
     <>
       <Modal
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
         <SharePageModal />
       </Modal>
-      <PlasmicDataFilters
-        root={{ ref }}
-        timeRangeFilter={{
-          render: (_props: React.RefAttributes<HTMLDivElement>, _ref) => {
-            const { key, ..._rest } = _props;
-            return (
-              <PlasmicLabeledSelect
-                root={{ ref: _ref as any }}
-                key={`time-range-${key}`}
-                {..._rest}
-                label={uiT("Time Range")}
-                select={{
-                  render: () => {
-                    return (
-                      <DatePicker.RangePicker
-                        value={timeRange}
-                        presets={[
-                          {
-                            label: "Last week",
-                            value: () => [dayjs().subtract(1, "week"), dayjs()],
-                          },
-                          {
-                            label: "Last month",
-                            value: () => [
-                              dayjs().subtract(1, "month"),
-                              dayjs(),
-                            ],
-                          },
-                        ]}
-                        onChange={(values) => {
-                          if (values) {
-                            setTimeRange(values);
-                          }
-                        }}
-                        disabledDate={(date) => {
-                          return dayjs(date).isAfter(dayjs().endOf("day"));
-                        }}
-                      ></DatePicker.RangePicker>
-                    );
-                  },
-                }}
-              />
-            );
-          },
-        }}
-        eventFilter={{
-          options: ANALYTICS_EVENTS.filter((_event) =>
-            projectId ? true : _event.value.includes("impressions"),
-          ),
-          selected: event,
-          onChange: (x) => setEvent(x ?? "impressions"),
-        }}
-        periodPicker={{
-          period,
-          setPeriod,
-        }}
-        shareBtn={{
-          onClick: () => setIsModalVisible(true),
-        }}
-        exportBtn={{
-          wrap: (node) => {
-            return (
-              <CSVLink
-                data={formatChartData(chartData)}
-                headers={getChartHeaders(chartData)}
-                filename="plasmic-analytics.csv"
-              >
-                {node}
-              </CSVLink>
-            );
-          },
-        }}
-        {...rest}
-      />
+      <Flex ref={ref} className={rest.className} gap={16} wrap align="end">
+        <Flex vertical gap={4} style={{ minWidth: 0, maxWidth: "100%" }}>
+          <Typography.Text>{uiT("Time Range")}</Typography.Text>
+          <DatePicker.RangePicker
+            style={{ maxWidth: "100%" }}
+            aria-label={uiT("Time Range")}
+            value={timeRange}
+            allowClear={false}
+            presets={[
+              {
+                label: uiT("Last week"),
+                value: () => [dayjs().subtract(1, "week"), dayjs()],
+              },
+              {
+                label: uiT("Last month"),
+                value: () => [dayjs().subtract(1, "month"), dayjs()],
+              },
+            ]}
+            onChange={(values) => {
+              if (values) {
+                setTimeRange(values);
+              }
+            }}
+            disabledDate={(date) => dayjs(date).isAfter(dayjs().endOf("day"))}
+          />
+        </Flex>
+        <Flex vertical gap={4} style={{ minWidth: 160 }}>
+          <Typography.Text>{uiT("Metric")}</Typography.Text>
+          <Select
+            aria-label={uiT("Metric")}
+            value={event}
+            onChange={setEvent}
+            options={ANALYTICS_EVENTS.filter(
+              (item) => projectId || item.value.includes("impressions"),
+            ).map((item) => ({ ...item, label: uiT(item.label) }))}
+          />
+        </Flex>
+        <Flex vertical gap={4} style={{ minWidth: 140 }}>
+          <Typography.Text>{uiT("Period")}</Typography.Text>
+          <Select
+            aria-label={uiT("Period")}
+            value={period}
+            onChange={setPeriod}
+            options={[
+              { value: "day", label: uiT("Daily") },
+              { value: "month", label: uiT("Monthly") },
+            ]}
+          />
+        </Flex>
+        <Button onClick={() => setIsModalVisible(true)}>{uiT("Share")}</Button>
+        {chartData.error ||
+        chartData.isLoading ||
+        chartData.isEmpty ||
+        chartData.paywall ? (
+          <Button disabled>{uiT("Export CSV")}</Button>
+        ) : (
+          <CSVLink
+            data={formatChartData(chartData)}
+            headers={getChartHeaders(chartData)}
+            filename="plasmic-analytics.csv"
+          >
+            <Button>{uiT("Export CSV")}</Button>
+          </CSVLink>
+        )}
+      </Flex>
     </>
   );
 }

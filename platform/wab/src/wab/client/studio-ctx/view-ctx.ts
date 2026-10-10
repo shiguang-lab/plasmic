@@ -1062,7 +1062,7 @@ export class ViewCtx extends WithDbCtx {
     // The DataPicker is rendered by the TypogrpahySection.
     // Make sure TypographySection is rendered on the settings tab.
     if (x) {
-      this.studioCtx.switchRightTab(RightTabKey.settings);
+      this.studioCtx.switchRightTab(RightTabKey.style);
     }
     this._triggerEditingTextDataPicker.set(x);
   }

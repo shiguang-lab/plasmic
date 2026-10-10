@@ -1,7 +1,6 @@
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
-import { PreviewViewportControls } from "@/wab/client/components/live/PreviewViewportControls";
 import {
   onLoadInjectSystemJS,
   pushPreviewModules,
@@ -30,6 +29,7 @@ import {
 } from "@/wab/shared/core/exprs";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
+import { createStyles } from "antd-style";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
@@ -40,6 +40,7 @@ const frameHash =
   `&staticBaseUrl=${encodeURIComponent(getStaticBaseUrl())}`;
 
 interface PreviewFrameProps {
+  onDimensionsChange?: (dimensions: { width: number; height: number }) => void;
   previewCtx: PreviewCtx;
 }
 
@@ -234,9 +235,22 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   };
 }
 
+const usePreviewStyles = createStyles(({ token }) => ({
+  root: {
+    "--preview-surface": token.colorBgContainer,
+    "--preview-layout": token.colorBgLayout,
+    "--preview-text": token.colorText,
+    "--preview-muted": token.colorTextSecondary,
+    "--preview-border": token.colorBorderSecondary,
+    "--preview-primary": token.colorPrimary,
+  },
+}));
+
 export const PreviewFrame = observer(function PreviewFrame({
   previewCtx,
+  onDimensionsChange,
 }: PreviewFrameProps) {
+  const { styles: themeStyles } = usePreviewStyles();
   const { t: uiT } = useI18n();
   const studioCtx = previewCtx.studioCtx;
   const stageRef = React.useRef<HTMLDivElement | null>(null);
@@ -307,6 +321,10 @@ export const PreviewFrame = observer(function PreviewFrame({
     ...(fillsWindow ? available : dimensions),
   };
 
+  React.useEffect(() => {
+    onDimensionsChange?.({ width: viewport.width, height: viewport.height });
+  }, [onDimensionsChange, viewport.width, viewport.height]);
+
   const draggedDimensions = (event: React.PointerEvent) => {
     const start = ensure(drag.current, "Expected active preview resize");
     const deltaX = (event.clientX - start.x) / start.scale;
@@ -334,17 +352,9 @@ export const PreviewFrame = observer(function PreviewFrame({
   };
 
   return (
-    <div className={`${styles.viewport} ${previewCtx.full ? styles.full : ""}`}>
-      {!previewCtx.full && (
-        <PreviewViewportControls
-          value={viewport}
-          scale={scale}
-          onChange={(value) => {
-            setDraft(null);
-            spawn(previewCtx.pushViewport(value));
-          }}
-        />
-      )}
+    <div
+      className={`${styles.viewport} ${themeStyles.root} ${previewCtx.full ? styles.full : ""}`}
+    >
       <div
         ref={stageRef}
         className={`${styles.stage} ${fillsWindow ? styles.desktop : ""}`}
@@ -363,6 +373,10 @@ export const PreviewFrame = observer(function PreviewFrame({
             transform: fillsWindow ? undefined : `scale(${scale})`,
             transformOrigin: "top left",
             boxShadow: fillsWindow ? "none" : undefined,
+            borderRadius: fillsWindow ? 0 : 8,
+            outline: fillsWindow
+              ? undefined
+              : "1px solid var(--preview-border)",
           }}
         >
           <iframe
@@ -390,6 +404,7 @@ export const PreviewFrame = observer(function PreviewFrame({
               height: "100%",
               border: 0,
               display: "block",
+              borderRadius: "inherit",
             }}
             data-test-id="live-frame"
           />
@@ -465,6 +480,13 @@ export const PreviewFrame = observer(function PreviewFrame({
             ))}
         </div>
       </div>
+      {!previewCtx.full && (
+        <div className={styles.status} role="status">
+          {viewport.width} × {viewport.height} px
+          {previewCtx.viewport !== "desktop" &&
+            ` · ${uiT("Zoom")} ${Math.round(scale * 100)}%`}
+        </div>
+      )}
     </div>
   );
 });

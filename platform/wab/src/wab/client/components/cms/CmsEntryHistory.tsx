@@ -1,5 +1,4 @@
 import { useUsersMap } from "@/wab/client/api-hooks";
-import MenuItem from "@/wab/client/components/MenuItem";
 import { renderContentEntryFormFields } from "@/wab/client/components/cms/CmsEntryDetails";
 import {
   useCmsDatabase,
@@ -10,20 +9,59 @@ import {
   useMutateRow,
 } from "@/wab/client/components/cms/cms-contexts";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
-import { Spinner } from "@/wab/client/components/widgets";
-import Button from "@/wab/client/components/widgets/Button";
 import { useApi } from "@/wab/client/contexts/AppContexts";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { Redirect } from "@/wab/client/route/Redirect";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
 import { CmsDatabaseId, CmsRowId, CmsTableId } from "@/wab/shared/ApiSchema";
-import { spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { formatDateMediumTimeShort } from "@/wab/shared/utils/date-utils";
-import { Form, message } from "antd";
+import {
+  Alert,
+  Button,
+  Empty,
+  Flex,
+  Form,
+  Skeleton,
+  Tag,
+  Typography,
+  message,
+} from "antd";
+import { createStyles } from "antd-style";
 import React from "react";
+
+const useStyles = createStyles(({ token }) => ({
+  root: {
+    display: "grid",
+    gridTemplateColumns: "minmax(180px, 280px) minmax(0, 1fr)",
+    height: "100%",
+    minHeight: 0,
+    gap: 24,
+    "@media (max-width: 700px)": {
+      gridTemplateColumns: "minmax(0, 1fr)",
+      gridTemplateRows: "minmax(120px, 200px) minmax(0, 1fr)",
+    },
+  },
+  list: {
+    overflow: "auto",
+    minHeight: 0,
+    borderRight: `1px solid ${token.colorBorderSecondary}`,
+    paddingRight: 16,
+  },
+  revision: {
+    width: "100%",
+    height: "auto",
+    textAlign: "left",
+    justifyContent: "flex-start",
+    whiteSpace: "normal",
+    padding: 12,
+    marginBottom: 8,
+  },
+  content: { overflow: "auto", minHeight: 0, minWidth: 0, padding: 4 },
+  state: { padding: 24, color: token.colorText },
+}));
 
 export function CmsEntryHistory(props: {
   databaseId: CmsDatabaseId;
@@ -31,24 +69,44 @@ export function CmsEntryHistory(props: {
   rowId: CmsRowId;
 }) {
   const { databaseId, tableId, rowId } = props;
-  const revisions = useCmsRowHistory(rowId);
+  const { revisions, error, mutate } = useCmsRowHistory(rowId);
   const { data: userById } = useUsersMap(
     (revisions ?? []).map((rev) => rev.createdById),
   );
-
+  const { t } = useI18n();
+  const { styles } = useStyles();
   if (!revisions) {
-    return <Spinner />;
+    return (
+      <div className={styles.state}>
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load revision history")}
+            action={
+              <Button
+                onClick={() => {
+                  void mutate();
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+          />
+        ) : (
+          <div role="status" aria-label={t("Loading revision history…")}>
+            <Skeleton active />
+          </div>
+        )}
+      </div>
+    );
   }
-
+  if (revisions.length === 0) {
+    return <Empty description={t("No revision history")} />;
+  }
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "300px 1fr",
-        height: "100%",
-      }}
-    >
-      <div style={{ overflow: "auto", maxHeight: "100%" }}>
+    <div className={styles.root}>
+      <nav className={styles.list} aria-label={t("Entry revisions")}>
         <Switch
           cases={[
             switchCase({
@@ -56,8 +114,12 @@ export function CmsEntryHistory(props: {
               render: ({ revisionId }) => (
                 <>
                   {revisions.map((revision) => (
-                    <MenuItem
-                      selected={revisionId === revision.id}
+                    <Button
+                      className={styles.revision}
+                      type={revisionId === revision.id ? "primary" : "text"}
+                      aria-current={
+                        revisionId === revision.id ? "page" : undefined
+                      }
                       href={APP_ROUTES.cmsEntryRevision.fill({
                         revisionId: revision.id,
                         tableId,
@@ -66,64 +128,53 @@ export function CmsEntryHistory(props: {
                       })}
                       key={revision.id}
                     >
-                      <div>
-                        {formatDateMediumTimeShort(
-                          new Date(revision.createdAt),
-                        )}
-                        <div>
-                          {revision.isPublished ? (
-                            <span style={{ color: "#4b4" }}>Published</span>
-                          ) : (
-                            <span style={{ color: "#999" }}>Autosave</span>
+                      <Flex vertical gap={4}>
+                        <span>
+                          {formatDateMediumTimeShort(
+                            new Date(revision.createdAt),
                           )}
-                          {userById &&
-                            revision.createdById &&
-                            userById[revision.createdById] &&
-                            ((user) => (
+                        </span>
+                        <Flex gap={4} wrap align="center">
+                          <Tag
+                            color={revision.isPublished ? "success" : "default"}
+                          >
+                            {t(revision.isPublished ? "Published" : "Autosave")}
+                          </Tag>
+                          {revision.createdById &&
+                            userById?.[revision.createdById] && (
                               <span>
-                                {" "}
-                                <span style={{ color: "#999" }}>
-                                  <UiText message={"by"} />
-                                </span>{" "}
-                                {user.displayName}
+                                {t("by")}{" "}
+                                {userById[revision.createdById].displayName}
                               </span>
-                            ))(userById[revision.createdById])}
-                        </div>
-                      </div>
-                    </MenuItem>
+                            )}
+                        </Flex>
+                      </Flex>
+                    </Button>
                   ))}
                 </>
               ),
             }),
             switchCase({
               route: APP_ROUTES.cmsEntryRevisions,
-              render: () => {
-                if (revisions.length === 0) {
-                  return "No revision history";
-                } else {
-                  return (
-                    <Redirect
-                      to={APP_ROUTES.cmsEntryRevision.fill({
-                        ...props,
-                        revisionId: revisions[0].id,
-                      })}
-                    />
-                  );
-                }
-              },
+              render: () => (
+                <Redirect
+                  to={APP_ROUTES.cmsEntryRevision.fill({
+                    ...props,
+                    revisionId: revisions[0].id,
+                  })}
+                />
+              ),
             }),
             switchDefault({ render: () => null }),
           ]}
         />
-      </div>
+      </nav>
       <Switch
         cases={[
           switchCase({
             exact: true,
             route: APP_ROUTES.cmsEntryRevision,
-            render: ({ revisionId }) => (
-              <EntryRevisionView {...props} key={revisionId} />
-            ),
+            render: ({ revisionId }) => <EntryRevisionView key={revisionId} />,
           }),
           switchDefault({ render: () => null }),
         ]}
@@ -132,82 +183,170 @@ export function CmsEntryHistory(props: {
   );
 }
 
-function EntryRevisionView() {
+export function EntryRevisionView() {
   const { databaseId, tableId, rowId, revisionId } = useMatchedRoute(
     APP_ROUTES.cmsEntryRevision,
   )!.pathParams;
-
-  const database = useCmsDatabase(databaseId);
+  const {
+    database,
+    error: databaseError,
+    mutate: retryDatabase,
+  } = useCmsDatabase(databaseId);
   const table = useCmsTable(databaseId, tableId);
-  const currentRow = useCmsRow(tableId, rowId);
-  const revision = useCmsRowRevision(rowId, revisionId);
+  const {
+    row: currentRow,
+    error: rowError,
+    mutate: retryRow,
+  } = useCmsRow(tableId, rowId);
+  const {
+    revision,
+    error: revisionError,
+    mutate: retryRevision,
+  } = useCmsRowRevision(rowId, revisionId);
   const api = useApi();
   const mutateRow = useMutateRow();
   const history = useHistory();
-
+  const { t } = useI18n();
+  const { styles } = useStyles();
   const [restoring, setRestoring] = React.useState(false);
+  const [restoreError, setRestoreError] = React.useState(false);
+  const [refreshError, setRefreshError] = React.useState(false);
+  const restorePending = React.useRef(false);
 
+  const finishRestore = async () => {
+    await mutateRow(tableId, rowId);
+    history.push(APP_ROUTES.cmsEntry.fill({ databaseId, tableId, rowId }));
+  };
   if (!revision || !database || !table || !currentRow) {
-    return <Spinner />;
-  }
-
-  return (
-    <div style={{ overflow: "auto", maxHeight: "100%" }}>
-      <Form
-        initialValues={revision.data}
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 16 }}
-      >
-        <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button
-            disabled={restoring}
-            onClick={async () => {
-              if (
-                !(await reactConfirm({
-                  title: "Overwrite current draft with this revision?",
-                  message:
-                    "Any changes you've made to the current version will be overwritten.",
-                }))
-              ) {
-                return;
-              }
-              setRestoring(true);
-              spawn(
-                message.loading({
-                  content: "Restoring data...",
-                  key: "update-message",
-                  duration: undefined,
-                }),
-              );
-              await api.updateCmsRow(rowId, {
-                draftData: revision.data,
-                revision: currentRow?.revision,
-                noMerge: true,
-              });
-              await mutateRow(tableId, rowId);
-              setRestoring(false);
-              spawn(
-                message.success({
-                  content: "Revision restored!",
-                  key: "update-message",
-                }),
-              );
-
-              history.push(
-                APP_ROUTES.cmsEntry.fill({ databaseId, tableId, rowId }),
-              );
-            }}
-          >
-            Restore
-          </Button>
-        </Form.Item>
-        {renderContentEntryFormFields(
-          table,
-          database,
-          database.extraData.locales,
-          true,
+    return (
+      <div className={styles.state}>
+        {databaseError || rowError || revisionError ? (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load revision")}
+            action={
+              <Button
+                onClick={() => {
+                  void Promise.allSettled([
+                    retryDatabase(),
+                    retryRow(),
+                    retryRevision(),
+                  ]);
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+          />
+        ) : (
+          <div role="status" aria-label={t("Loading revision…")}>
+            <Skeleton active />
+          </div>
         )}
-      </Form>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.content}>
+      <Flex vertical gap={16}>
+        {restoreError && (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to restore revision")}
+          />
+        )}
+        {refreshError && (
+          <Alert
+            type="warning"
+            showIcon
+            title={t("Revision restored, but refreshing failed")}
+            action={
+              <Button
+                loading={restoring}
+                onClick={async () => {
+                  setRestoring(true);
+                  try {
+                    await finishRestore();
+                  } catch {
+                    setRefreshError(true);
+                  } finally {
+                    setRestoring(false);
+                  }
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+          />
+        )}
+        <Form layout="vertical" initialValues={revision.data}>
+          <Flex
+            justify="space-between"
+            align="center"
+            wrap
+            gap={12}
+            style={{ marginBottom: 24 }}
+          >
+            <Typography.Text type="secondary">
+              {t("Revision content is read-only")}
+            </Typography.Text>
+            <Button
+              type="primary"
+              loading={restoring}
+              disabled={refreshError}
+              onClick={async () => {
+                if (restorePending.current) {
+                  return;
+                }
+                restorePending.current = true;
+                try {
+                  if (
+                    !(await reactConfirm({
+                      title: t("Overwrite current draft with this revision?"),
+                      message: t(
+                        "Any changes you've made to the current version will be overwritten.",
+                      ),
+                    }))
+                  ) {
+                    return;
+                  }
+                  setRestoring(true);
+                  setRestoreError(false);
+                  try {
+                    await api.updateCmsRow(rowId, {
+                      draftData: revision.data,
+                      revision: currentRow.revision,
+                      noMerge: true,
+                    });
+                  } catch {
+                    setRestoreError(true);
+                    return;
+                  }
+                  void message.success(t("Revision restored!"));
+                  try {
+                    await finishRestore();
+                  } catch {
+                    setRefreshError(true);
+                  }
+                } finally {
+                  setRestoring(false);
+                  restorePending.current = false;
+                }
+              }}
+            >
+              {t("Restore")}
+            </Button>
+          </Flex>
+          {renderContentEntryFormFields(
+            table,
+            database,
+            database.extraData.locales,
+            true,
+          )}
+        </Form>
+      </Flex>
     </div>
   );
 }

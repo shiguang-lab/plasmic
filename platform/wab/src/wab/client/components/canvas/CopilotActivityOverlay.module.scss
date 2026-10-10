@@ -1,18 +1,6 @@
 .region,
 .status {
-  --scan-color: #1677ff;
-  --scan-rgb: 22, 119, 255;
   pointer-events: none;
-
-  &[data-mode="edit"] {
-    --scan-color: #722ed1;
-    --scan-rgb: 114, 46, 209;
-  }
-
-  &[data-status="error"] {
-    --scan-color: #cf1322;
-    --scan-rgb: 207, 19, 34;
-  }
 }
 
 .region {
@@ -20,8 +8,8 @@
   z-index: 100;
   box-sizing: border-box;
   border: solid var(--scan-color);
-  background: rgba(var(--scan-rgb), 0.04);
-  box-shadow: 0 0 12px rgba(var(--scan-rgb), 0.16);
+  background: color-mix(in srgb, var(--scan-color) 4%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--scan-color) 16%, transparent);
   overflow: hidden;
   contain: paint;
 }
@@ -32,8 +20,8 @@
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(var(--scan-rgb), 0.05) 55%,
-    rgba(var(--scan-rgb), 0.24) 96%,
+    color-mix(in srgb, var(--scan-color) 5%, transparent) 55%,
+    color-mix(in srgb, var(--scan-color) 24%, transparent) 96%,
     var(--scan-color) 100%
   );
   animation: copilotScan 1.4s ease-in-out infinite;
@@ -47,7 +35,7 @@
   max-width: 480px;
   padding: 4px 8px;
   border-radius: 0 0 5px 0;
-  color: white;
+  color: var(--activity-label-text);
   background: var(--scan-color);
   font:
     12px/18px system-ui,
@@ -68,9 +56,9 @@
   gap: 8px;
   max-width: 80%;
   padding: 8px 12px;
-  border: 1px solid rgba(var(--scan-rgb), 0.3);
+  border: 1px solid color-mix(in srgb, var(--scan-color) 30%, transparent);
   border-radius: 8px;
-  background: white;
+  background: var(--activity-surface);
   color: var(--scan-color);
   box-shadow: 0 4px 16px #00000014;
   font:
@@ -92,7 +80,8 @@
   background: var(--scan-color);
 }
 
-[data-status="error"] .scan {
+[data-status="error"] .scan,
+[data-status="success"] .scan {
   animation: none;
   opacity: 0.2;
 }
@@ -109,6 +98,6 @@
 @media (prefers-reduced-motion: reduce) {
   .scan {
     animation: none;
-    background: rgba(var(--scan-rgb), 0.06);
+    background: color-mix(in srgb, var(--scan-color) 6%, transparent);
   }
 }

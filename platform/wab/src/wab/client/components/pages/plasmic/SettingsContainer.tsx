@@ -1,4 +1,5 @@
-import styles from "@/wab/client/components/pages/plasmic/SettingsContainer.module.scss";
+import { useSettingsStyles } from "@/wab/client/components/pages/plasmic/SettingsContainer.styles";
+import { useUiAppearance } from "@/wab/client/ui-theme";
 import { AsyncState } from "@/wab/client/hooks/useAsyncStrict";
 import { languageOptions, useI18n } from "@/wab/client/i18n";
 import { ApiTrustedHost, PersonalApiToken } from "@/wab/shared/ApiSchema";
@@ -21,9 +22,12 @@ interface SettingsContainerProps {
 
 export default function SettingsContainer(props: SettingsContainerProps) {
   const { t, preference, setLanguagePreference } = useI18n();
+  const { styles, cx } = useSettingsStyles();
+  const { preference: appearance, setAppearancePreference } = useUiAppearance();
+  const [appearanceError, setAppearanceError] = React.useState(false);
   const [languageError, setLanguageError] = React.useState(false);
   return (
-    <div className={styles.root}>
+    <div className={cx(styles.root, styles.responsive)}>
       <header className={styles.header}>
         <h1>{t("Settings")}</h1>
         <p>{t("Manage your account and application preferences.")}</p>
@@ -31,7 +35,7 @@ export default function SettingsContainer(props: SettingsContainerProps) {
       <section className={styles.card} aria-labelledby="account-heading">
         <h2 id="account-heading">{t("Account")}</h2>
         <p>{t("Your profile is managed through your Shiguang account.")}</p>
-        <div className={styles.account}>
+        <div className={styles.account} data-settings-row>
           <div className={styles.profile}>
             <div className={styles.avatar} aria-hidden="true">
               {props.avatarImgUrl ? <img src={props.avatarImgUrl} alt="" /> : props.name.slice(0, 2).toUpperCase()}
@@ -43,7 +47,24 @@ export default function SettingsContainer(props: SettingsContainerProps) {
       </section>
       <section className={styles.card} aria-labelledby="preferences-heading">
         <h2 id="preferences-heading">{t("Preferences")}</h2>
-        <div className={styles.preference}>
+        <div className={styles.preference} data-settings-row>
+          <div>
+            <label htmlFor="ui-appearance">{t("Appearance")}</label>
+            <p>{t("Choose the appearance of the application. Canvas content uses its own theme.")}</p>
+          </div>
+          <Select
+            id="ui-appearance"
+            className={styles.languageSelect}
+            value={appearance}
+            options={[{ value: "system", label: t("Follow system") }, { value: "light", label: t("Light") }, { value: "dark", label: t("Dark") }]}
+            onChange={(value) => {
+              try { setAppearancePreference(value); setAppearanceError(false); }
+              catch { setAppearanceError(true); }
+            }}
+          />
+        </div>
+        {appearanceError && <p role="alert" className={styles.error}>{t("Unable to save appearance preference on this device.")}</p>}
+        <div className={styles.preference} data-settings-row>
           <div>
             <label htmlFor="ui-language">{t("Language")}</label>
             <p>{t("Choose the language used throughout the application.")}</p>
@@ -66,7 +87,7 @@ export default function SettingsContainer(props: SettingsContainerProps) {
         {languageError ? <p role="alert" className={styles.error}>{t("Unable to save language preference on this device.")}</p> : <p className={styles.hint}>{t("Changes apply immediately and are saved on this device.")}</p>}
       </section>
       <section className={styles.card} aria-labelledby="tokens-heading">
-        <div className={styles.sectionHeader}>
+        <div className={styles.sectionHeader} data-settings-row>
           <div><h2 id="tokens-heading">{t("Personal access tokens")}</h2><p>{t("Use tokens to connect tools and integrations to your account.")}</p></div>
           <Button onClick={props.onNewToken}>{t("New token")}</Button>
         </div>
@@ -86,7 +107,7 @@ export default function SettingsContainer(props: SettingsContainerProps) {
         <p className={styles.hint}>{t("Keep your tokens private. They provide access to your account.")}</p>
       </section>
       <section className={styles.card} aria-labelledby="hosts-heading">
-        <div className={styles.sectionHeader}>
+        <div className={styles.sectionHeader} data-settings-row>
           <div><h2 id="hosts-heading">{t("Trusted host apps")}</h2><p>{t("Allow custom app hosts from domains you trust.")}</p></div>
           <Button onClick={props.onNewTrustedHost}>{t("Add URL")}</Button>
         </div>

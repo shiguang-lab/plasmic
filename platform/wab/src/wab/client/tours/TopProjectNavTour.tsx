@@ -11,17 +11,17 @@ export const TopProjectNavTour = observer(function TopProjectNavTour() {
   const seenStateKey = tourSeenTopProjectNavKey;
   const targetSelector = "#proj-nav-button";
   const onlyUsersCreatedBefore = "2022-11-01";
-  const didActionSignal = studioCtx.showProjectPanelRequested;
+  const didActionSignal = studioCtx.showNavigationPanelRequested;
   const content = (
     <>
       <h4 className="text-xlg mb-p">Project navigation has moved!</h4>
       <p>
-        Use this dropdown to navigate to your pages and components. You can also
-        use the keyboard shortcut{" "}
+        Use the Documents tab to navigate to your pages, components and arenas.
+        You can also use the keyboard shortcut{" "}
         <KeyboardShortcut>
           {getComboForAction("SEARCH_PROJECT_ARENAS")}
         </KeyboardShortcut>{" "}
-        to open the dropdown.
+        to open document search.
       </p>
     </>
   );

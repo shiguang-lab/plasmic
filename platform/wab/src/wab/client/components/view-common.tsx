@@ -142,8 +142,11 @@ export class Matcher {
 
 function boldSnippets(text: React.ReactNode, pat: RegExp, className?: string) {
   if (React.isValidElement(text)) {
+    if (text.props.children == null) {
+      return text;
+    }
     const newChildren = React.Children.map(text.props.children, (x) =>
-      boldSnippets(x, pat),
+      boldSnippets(x, pat, className),
     );
     return React.cloneElement(text, {}, ...newChildren);
   } else {

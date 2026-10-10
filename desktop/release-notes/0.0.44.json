@@ -1,0 +1,7 @@
+{
+  "en": "- Add Light, Dark and system appearance preferences, save the choice on this device, and synchronize Studio and native dialogs.\n- Improve editor panels, document and layer navigation, menus and shared scrollbars.\n- Open page settings without changing the active page, retain dialog state and animate closing.\n- Refresh project, sharing, delivery, CMS and analytics interfaces and improve canvas controls.",
+  "zh-CN": "- 支持浅色、深色和跟随系统的外观设置，在本机保存选择，并同步 Studio 与桌面弹窗。\n- 优化编辑器面板、文档与图层导航、菜单及统一滚动条。\n- 打开页面设置不切换当前页面，保留弹窗状态并支持关闭过渡。\n- 更新项目、分享、交付、CMS 和分析界面，并优化画布控制。",
+  "zh-TW": "- 支援淺色、深色和跟隨系統的外觀設定，在本機儲存選擇，並同步 Studio 與桌面彈窗。\n- 最佳化編輯器面板、文件與圖層導覽、選單及統一捲軸。\n- 開啟頁面設定不切換目前頁面，保留彈窗狀態並支援關閉過渡。\n- 更新專案、分享、交付、CMS 和分析介面，並最佳化畫布控制。",
+  "ja": "- ライト、ダーク、システムに合わせる外観設定を追加し、端末に保存して Studio とデスクトップのダイアログに反映します。\n- エディターのパネル、ドキュメントとレイヤーのナビゲーション、メニュー、共通スクロールバーを改善します。\n- 現在のページを切り替えずにページ設定を開き、ダイアログの状態を保持して閉じるアニメーションを表示します。\n- プロジェクト、共有、納品、CMS、分析の画面を更新し、キャンバス操作を改善します。",
+  "ko": "- 라이트, 다크, 시스템 설정 따르기를 추가하고 선택을 기기에 저장하며 Studio와 데스크톱 대화상자에 동기화합니다.\n- 편집기 패널, 문서 및 레이어 탐색, 메뉴와 공통 스크롤바를 개선합니다.\n- 현재 페이지를 전환하지 않고 페이지 설정을 열며 대화상자 상태를 유지하고 닫기 애니메이션을 표시합니다.\n- 프로젝트, 공유, 전달, CMS 및 분석 화면을 새롭게 구성하고 캔버스 조작을 개선합니다."
+}

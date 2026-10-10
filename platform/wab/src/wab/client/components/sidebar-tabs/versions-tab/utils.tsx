@@ -41,7 +41,7 @@ const ConfirmModal = ({
 }: ConfirmModalProps) => (
   <Modal
     title={title}
-    visible={true}
+    open={true}
     footer={
       <Form onFinish={() => onSubmit(true)}>
         <Form.Item>

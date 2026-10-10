@@ -3,14 +3,16 @@ import {
   WorkspaceMenu,
 } from "@/wab/client/components/dashboard/dashboard-actions";
 import DatabaseListItem from "@/wab/client/components/dashboard/DatabaseListItem";
-import { ProjectsFilterProps } from "@/wab/client/components/dashboard/ProjectsFilter";
+import ProjectsFilter, {
+  ProjectsFilterProps,
+} from "@/wab/client/components/dashboard/ProjectsFilter";
 import WorkspaceDataSources from "@/wab/client/components/dashboard/WorkspaceDataSources";
 import EditableResourceName from "@/wab/client/components/EditableResourceName";
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
+import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
-import { Spinner } from "@/wab/client/components/widgets";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
@@ -39,7 +41,9 @@ import {
   filterDirectResourcePerms,
   getAccessLevelToResource,
 } from "@/wab/shared/perms";
+import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Alert, Button, Flex, Segmented, Skeleton } from "antd";
 import * as _ from "lodash";
 import { trimStart } from "lodash";
 import * as React from "react";
@@ -71,6 +75,8 @@ function WorkspaceSection_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { t } = useI18n();
+  const { styles, cx } = useProjectBrowserStyles();
+  const [projectView, setProjectView] = React.useState("grid");
   const appCtx = useAppCtx();
 
   const workspaceAccessLevel = getAccessLevelToResource(
@@ -247,7 +253,30 @@ function WorkspaceSection_(
             ),
           },
         }}
-        projectsFilter={filterProps}
+        projectsFilter={{
+          render: () => (
+            <Flex align="center" wrap gap={12}>
+              {filterProps && <ProjectsFilter {...filterProps} />}
+              <Segmented
+                aria-label={t("View")}
+                value={projectView}
+                onChange={setProjectView}
+                options={[
+                  {
+                    value: "grid",
+                    label: t("Grid"),
+                    icon: <AppstoreOutlined aria-hidden />,
+                  },
+                  {
+                    value: "list",
+                    label: t("List"),
+                    icon: <BarsOutlined aria-hidden />,
+                  },
+                ]}
+              />
+            </Flex>
+          ),
+        }}
         noProjects={!projects.length && (!showTabs || openTab === "projects")}
         noProjectsText={
           matcher.hasQuery()
@@ -287,21 +316,39 @@ function WorkspaceSection_(
                   await fetchAsyncData();
                 }}
               />
+            ) : asyncData.error ? (
+              <Alert
+                type="error"
+                showIcon
+                title={t("Failed to load data sources")}
+                action={
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      void fetchAsyncData();
+                    }}
+                  >
+                    {t("Retry")}
+                  </Button>
+                }
+              />
             ) : (
-              <Spinner />
+              <Skeleton active paragraph={{ rows: 3 }} />
             ),
         }}
       >
-        {projects.map((project) => (
-          <ProjectListItem
-            key={project.id}
-            project={project}
-            perms={perms}
-            onUpdate={onUpdate}
-            workspaces={true}
-            matcher={matcher}
-          />
-        ))}
+        <div className={cx(styles.grid, projectView === "list" && styles.list)}>
+          {projects.map((project) => (
+            <ProjectListItem
+              key={project.id}
+              project={project}
+              perms={perms}
+              onUpdate={onUpdate}
+              workspaces={true}
+              matcher={matcher}
+            />
+          ))}
+        </div>
       </PlasmicWorkspaceSection>
       {showNewProjectModal && (
         <NewProjectModal

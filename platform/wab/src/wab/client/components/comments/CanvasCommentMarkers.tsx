@@ -91,11 +91,11 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
     >
       <Popover
         key={isSelected ? "selected" : `${comment.id}-not-selected`}
-        overlayClassName={"NoPaddingPopover NoBackgroundStyles"}
+        classNames={{ root: "NoPaddingPopover NoBackgroundStyles" }}
         placement={"top"}
         trigger={["hover"]}
-        destroyTooltipOnHide
-        showArrow={false}
+        destroyOnHidden
+        arrow={false}
         content={
           !isSelected ? (
             <CommentPost

@@ -297,7 +297,7 @@ export function ResponsivenessPanel_() {
               !orderedScreenVariants?.length) ? (
               <Dropdown
                 trigger={["click"]}
-                overlay={
+                popupRender={() => (
                   <Menu>
                     {screenVariantPresetGroups.map((presetGroup) => (
                       <SubMenu
@@ -317,7 +317,7 @@ export function ResponsivenessPanel_() {
                       </SubMenu>
                     ))}
                   </Menu>
-                }
+                )}
               >
                 <Button
                   type="secondary"
@@ -465,11 +465,11 @@ export function ResponsivenessPanel_() {
           </div>
           {isActiveOwnedBySite && !readOnly && (
             <Popover
-              visible={showAddForm}
+              open={showAddForm}
               placement={"bottomRight"}
               trigger={["click"]}
-              onVisibleChange={(visible) => setShowAddForm(visible)}
-              destroyTooltipOnHide
+              onOpenChange={(visible) => setShowAddForm(visible)}
+              destroyOnHidden
               content={
                 <NewScreenVariantForm
                   isVisible={showAddForm}

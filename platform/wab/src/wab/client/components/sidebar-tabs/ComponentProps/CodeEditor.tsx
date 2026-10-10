@@ -251,9 +251,9 @@ export const CodeEditor = observer(function CodeEditor(props: {
         onClose: onCancel,
       }
     : {
-        visible: show,
+        open: show,
         width: 1024,
-        bodyStyle: { overflowX: "scroll" as any },
+        styles: { body: { overflowX: "scroll" as const } },
         footer: null,
         onCancel,
       };

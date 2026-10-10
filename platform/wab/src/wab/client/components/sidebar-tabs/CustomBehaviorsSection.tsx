@@ -72,7 +72,7 @@ export const CustomBehaviorsSection = observer(function (props: {
         </LabelWithDetailedTooltip>
       }
       controls={
-        <Dropdown overlay={menu} trigger={["click"]}>
+        <Dropdown popupRender={() => menu} trigger={["click"]}>
           <IconLinkButton
             aria-label={uiT("Add custom behavior")}
             onClick={(e) => e.preventDefault()}

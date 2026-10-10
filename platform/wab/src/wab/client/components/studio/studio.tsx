@@ -7,6 +7,7 @@ import {
   getLiveFrameClientJs,
   getReactWebBundle,
 } from "@/wab/client/components/studio/studio-bundles";
+import { useEditorLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
@@ -23,6 +24,15 @@ import * as React from "react";
 interface StudioProps {
   studioCtx: StudioCtx;
   children?: React.ReactNode;
+}
+
+function StudioLayout({ children }: { children?: React.ReactNode }) {
+  const { styles, cx } = useEditorLayoutStyles();
+  return (
+    <div className={cx("studio", styles.root)}>
+      <div className="studio__main-area">{children}</div>
+    </div>
+  );
 }
 
 export class Studio extends React.Component<StudioProps, {}> {
@@ -95,9 +105,7 @@ export class Studio extends React.Component<StudioProps, {}> {
           provider={() => this.props.studioCtx.hostQuerySwrCache}
         >
           <BottomModalsProvider>
-            <div className={"studio"}>
-              <div className={"studio__main-area"}>{this.props.children}</div>
-            </div>
+            <StudioLayout>{this.props.children}</StudioLayout>
             <React.Suspense fallback={null}>
               <TopProjectNavTour />
               <StudioTutorialTours />

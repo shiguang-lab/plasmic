@@ -81,7 +81,7 @@ export async function promptUpgradeDeps(props: {
   return showTemporaryPrompt<UpgradeDepResponse>((onSubmit, onCancel) => (
     <Modal
       title={`Upgrade imported projects`}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onCancel()}
     >
@@ -134,7 +134,7 @@ export async function promptUpgradeDep(props: {
   return showTemporaryPrompt<UpgradeDepResponse>((onSubmit, onCancel) => (
     <Modal
       title={`Upgrade imported project "${targetDep.name}"`}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onCancel()}
     >
@@ -176,7 +176,7 @@ export async function promptDeleteDep(props: {
   return showTemporaryPrompt<DeleteDepResponse>((onSubmit, onCancel) => (
     <Modal
       title={`Remove imported project "${curDep.name}"?`}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onCancel()}
     >
@@ -334,7 +334,7 @@ export async function promptPublishProj(props: { studioCtx: StudioCtx }) {
   return showTemporaryPrompt<PublishProjResponse>((onSubmit, onCancel) => (
     <Modal
       title="Publish a new version"
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onCancel()}
     >

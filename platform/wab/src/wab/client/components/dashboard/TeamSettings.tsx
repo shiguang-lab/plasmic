@@ -3,9 +3,10 @@ import {
   TeamMenu,
 } from "@/wab/client/components/dashboard/dashboard-actions";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
-import { Spinner } from "@/wab/client/components/widgets";
+import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultTeamSettingsProps,
@@ -18,7 +19,7 @@ import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
+import { Alert, Button, notification, Skeleton } from "antd";
 import * as React from "react";
 
 interface TeamSettingsProps extends DefaultTeamSettingsProps {
@@ -28,9 +29,15 @@ interface TeamSettingsProps extends DefaultTeamSettingsProps {
 function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
   const { teamId, ...rest } = props;
   const appCtx = useAppCtx();
+  const { t } = useI18n();
+  const { styles } = useProjectBrowserStyles();
   const selfInfo = ensure(appCtx.selfInfo, "Unexpected nullish selfInfo");
 
-  const { value: data, retry: refetchData } = useAsyncStrict(async () => {
+  const {
+    value: data,
+    error: loadError,
+    retry: refetchData,
+  } = useAsyncStrict(async () => {
     // needs to fetch subscription before team, because getSubscription will check the subscription status
     const subscriptionResp = await appCtx.api.getSubscription(teamId);
     const team = await appCtx.api.getTeam(teamId);
@@ -53,7 +60,22 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
   }, [appCtx, teamId, selfInfo]);
 
   if (!data) {
-    return <Spinner />;
+    return (
+      <div className={styles.root}>
+        {loadError ? (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load team settings")}
+            action={<Button onClick={refetchData}>{t("Retry")}</Button>}
+          />
+        ) : (
+          <div role="status" aria-label={t("Loading team settings…")}>
+            <Skeleton active paragraph={{ rows: 6 }} />
+          </div>
+        )}
+      </div>
+    );
   }
 
   const team = data.team;
@@ -105,10 +127,6 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
           async function grantRevoke(req: GrantRevokeRequest) {
             try {
               await appCtx.api.grantRevoke(req);
-            } catch (e) {
-              notification.error({
-                message: "Failed to update permissions. Please try again.",
-              });
             } finally {
               refetchData();
             }

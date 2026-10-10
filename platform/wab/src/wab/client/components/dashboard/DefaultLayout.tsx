@@ -5,6 +5,7 @@ import NavWorkspaceButton from "@/wab/client/components/dashboard/NavWorkspaceBu
 import { promptNewTeam } from "@/wab/client/components/dashboard/dashboard-actions";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
+import { useApplicationLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -19,7 +20,7 @@ import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Dropdown, Menu } from "antd";
+import { Dropdown, Layout } from "antd";
 import * as _ from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -39,6 +40,7 @@ function DefaultLayout_(
   const { team, workspace, freeTrial, upgradeButton, helpButton, ...rest } =
     props;
   const { t } = useI18n();
+  const { styles: layout, cx } = useApplicationLayoutStyles();
   const history = useHistory();
   const appCtx = useAppCtx();
   const userInfo = ensure(
@@ -51,22 +53,19 @@ function DefaultLayout_(
 
   useBrowserNotification();
 
-  const userMenu = (
-    <Menu>
-      <Menu.Item>
-        <PublicLink href={APP_ROUTES.settings.fill({})}>
-          {t("Settings")}
-        </PublicLink>
-      </Menu.Item>
-      <Menu.Item
-        onClick={async () => {
-          await appCtx.logout();
-        }}
-      >
-        {t("Sign Out")}
-      </Menu.Item>
-    </Menu>
-  );
+  const userMenu = {
+    items: [
+      {
+        key: "settings",
+        label: (
+          <PublicLink href={APP_ROUTES.settings.fill({})}>
+            {t("Settings")}
+          </PublicLink>
+        ),
+      },
+      { key: "sign-out", label: t("Sign Out"), onClick: () => appCtx.logout() },
+    ],
+  };
 
   const brand =
     appCtx.appConfig.brands?.[team?.id ?? ""] ?? appCtx.appConfig.brands?.[""];
@@ -75,13 +74,27 @@ function DefaultLayout_(
     <PlasmicDefaultLayout
       {...rest}
       root={{
-        ref,
-        className: `${styles.applicationLayout} ${navigator.userAgent.includes("PlasmicDesktop/darwin") ? styles.desktopLayout : ""}`,
+        as: Layout,
+        props: {
+          ref,
+          className: cx(
+            styles.applicationLayout,
+            layout.root,
+            navigator.userAgent.includes("PlasmicDesktop/darwin") &&
+              styles.desktopLayout,
+          ),
+        },
       }}
-      header={{ className: styles.applicationHeader }}
+      header={{
+        as: Layout.Header,
+        props: { className: cx(styles.applicationHeader, layout.header) },
+      }}
       headerWrapper={{ className: styles.headerWrapper }}
-      wrapper={{ className: styles.layoutWrapper }}
-      sidebar={{ className: styles.sidebar }}
+      wrapper={{
+        as: Layout,
+        props: { className: cx(styles.layoutWrapper, layout.wrapper) },
+      }}
+      sidebar={{ className: cx(styles.sidebar, layout.sidebar) }}
       nav={{
         as: Scrollbar,
         props: {
@@ -96,7 +109,7 @@ function DefaultLayout_(
         props: {
           element: "main",
           scrollX: false,
-          className: styles.main,
+          className: cx(styles.main, layout.main),
         },
       }}
       headerLogoLink={{
@@ -156,7 +169,7 @@ function DefaultLayout_(
           "data-test-id": "btn-dashboard-user",
         },
         wrap: (node) => (
-          <Dropdown overlay={userMenu} placement="topLeft" trigger={["click"]}>
+          <Dropdown menu={userMenu} placement="topLeft" trigger={["click"]}>
             {node}
           </Dropdown>
         ),

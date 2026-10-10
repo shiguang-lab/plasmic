@@ -376,7 +376,7 @@ async function promptTeam(
   return await showTemporaryPrompt<TeamId | undefined>((onSubmit, onCancel) => (
     <Modal
       title={null}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={onCancel}
       closable={false}
@@ -517,7 +517,7 @@ export async function promptWorkspace({
   return await showTemporaryPrompt<PromptWorkspaceResponse | undefined>(
     (onSubmit, onCancel) => (
       <Modal
-        visible={true}
+        open={true}
         footer={null}
         onCancel={onCancel}
         closable={false}

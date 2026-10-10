@@ -77,7 +77,7 @@ import { ok } from "neverthrow";
 import * as React from "react";
 import { createContext, useContext } from "react";
 
-export const StyleTabContext = createContext<StyleTabFilter>("all");
+export const StyleTabContext = createContext<StyleTabFilter>("design");
 
 /**
  * Represents a pending animation to be added.
@@ -156,8 +156,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
   const currentCombo = viewCtx.variantTplMgr().getCurrentVariantCombo();
   const isBase = isBaseVariant(currentCombo);
 
-  const showStyleSections =
-    styleTabFilter === "all" || styleTabFilter === "style-only";
+  const showStyleSections = styleTabFilter === "design";
 
   const vcontroller = makeVariantsController(studioCtx, viewCtx);
   // Compute checks for ApplyMenu visibility

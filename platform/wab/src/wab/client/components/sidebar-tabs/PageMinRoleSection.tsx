@@ -86,7 +86,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
         (onSubmit, onCancel) => (
           <Modal
             title={uiT("Downgrade minimum role to execute operations?")}
-            visible={true}
+            open={true}
             footer={null}
             onCancel={onCancel}
             closable={false}

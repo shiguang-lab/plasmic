@@ -45,8 +45,8 @@ export const CanvasConfigButton = observer(function CanvasConfigButton_(props: {
     <Popover
       content={vc && <FramePanel viewCtx={vc} frame={frame} />}
       trigger={["click"]}
-      onVisibleChange={(v) => setVisible(v)}
-      visible={visible}
+      onOpenChange={(v) => setVisible(v)}
+      open={visible}
       placement={props.contained ? "bottomLeft" : "right"}
     >
       <button
@@ -59,7 +59,7 @@ export const CanvasConfigButton = observer(function CanvasConfigButton_(props: {
         })}
         data-test-id={isFocused && "artboard-config-button"}
         onPointerDown={async (e) => {
-          if (studioCtx.isSpaceDown()) {
+          if (studioCtx.isPanMode()) {
             // panning clicking.
             return;
           }

@@ -32,6 +32,7 @@ export const ShareModal = observer(function ShareModal({
       closable={false}
       maskClosable={true}
       width={500}
+      styles={{ container: { padding: 0 } }}
       wrapClassName="no-padding-ant-modal"
     >
       <ShareDialogContent

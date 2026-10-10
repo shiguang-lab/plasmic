@@ -9,14 +9,14 @@ import * as React from "react";
 
 export interface FilterButtonProps extends DefaultFilterButtonProps {
   tooltip?: React.ReactNode;
-  overlay?: React.ComponentProps<typeof Dropdown>["overlay"];
+  popupRender?: React.ComponentProps<typeof Dropdown>["popupRender"];
 }
 
 function FilterButton(props: FilterButtonProps) {
-  const { tooltip, overlay, ...rest } = props;
+  const { tooltip, popupRender, ...rest } = props;
   return (
     <Tooltip title={tooltip}>
-      <Dropdown overlay={overlay} trigger={["click"]}>
+      <Dropdown popupRender={popupRender} trigger={["click"]}>
         <PlasmicFilterButton {...rest} />
       </Dropdown>
     </Tooltip>

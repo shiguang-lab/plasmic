@@ -1,13 +1,27 @@
 .viewport {
-  position: absolute;
-  inset: 48px 0 0;
+  position: relative;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .full {
+  position: absolute;
   inset: 0;
+}
+
+.status {
+  flex: 0 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--preview-surface);
+  color: var(--preview-muted);
+  border-top: 1px solid var(--preview-border);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .controls {
@@ -16,37 +30,12 @@
   gap: 16px;
   flex: 0 0 48px;
   padding: 0 16px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--preview-surface);
+  color: var(--preview-text);
+  border-bottom: 1px solid var(--preview-border);
   overflow-x: auto;
   white-space: nowrap;
   font-size: 12px;
-
-  button {
-    height: 28px;
-    padding: 0 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    background: #fff;
-    color: #374151;
-    cursor: pointer;
-    &:hover {
-      background: #f3f4f6;
-    }
-    &:focus-visible {
-      outline: 2px solid #1677ff;
-      outline-offset: 2px;
-    }
-    &:disabled {
-      opacity: 0.45;
-      cursor: default;
-    }
-    &[aria-pressed="true"] {
-      background: #e6f4ff;
-      border-color: #91caff;
-      color: #0958d9;
-    }
-  }
 }
 
 .modes,
@@ -59,11 +48,9 @@
   width: 76px;
   height: 28px;
   padding: 0 6px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
 }
 .size {
-  color: #6b7280;
+  color: var(--preview-muted);
   font-variant-numeric: tabular-nums;
 }
 .stage {
@@ -71,10 +58,10 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: #f3f4f6;
+  background: var(--preview-layout);
 }
 .desktop {
-  background: #fff;
+  background: var(--preview-surface);
 }
 .resize {
   position: absolute;
@@ -86,11 +73,11 @@
   &::after {
     content: "";
     display: block;
-    background: #9ca3af;
+    background: var(--preview-muted);
     border-radius: 3px;
   }
   &:focus-visible {
-    outline: 2px solid #1677ff;
+    outline: 2px solid var(--preview-primary);
   }
 }
 .left,

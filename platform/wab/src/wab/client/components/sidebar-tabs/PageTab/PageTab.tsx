@@ -1,6 +1,5 @@
 /** @format */
 
-import PageSettings from "@/wab/client/components/PageSettings";
 import S from "@/wab/client/components/sidebar-tabs/ComponentTab/ComponentTab.module.scss";
 import PageMetaPanel from "@/wab/client/components/sidebar-tabs/PageMetaPanel";
 import { PageMinRoleSection } from "@/wab/client/components/sidebar-tabs/PageMinRoleSection";
@@ -10,7 +9,6 @@ import { ComponentDataQueriesSection } from "@/wab/client/components/sidebar-tab
 import { ServerQueriesSection } from "@/wab/client/components/sidebar-tabs/server-queries-section";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { NamedPanelHeader } from "@/wab/client/components/sidebar/sidebar-helpers";
-import { TopModal } from "@/wab/client/components/studio/TopModal";
 import { VariantsPanel } from "@/wab/client/components/variants/VariantsPanel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
@@ -21,7 +19,6 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { PageComponent } from "@/wab/shared/core/components";
-import { ExprCtx } from "@/wab/shared/core/exprs";
 import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
 import { observer } from "mobx-react";
 import React from "react";
@@ -36,15 +33,7 @@ export const PageTab = observer(function PageTab(props: {
   const { t: uiT } = useI18n();
   const { studioCtx, page, viewCtx, isHalf = false } = props;
 
-  const focusedOrFirstViewCtx = studioCtx.focusedOrFirstViewCtx();
-  const exprCtx: ExprCtx = {
-    projectFlags: studioCtx.projectFlags(),
-    component: focusedOrFirstViewCtx?.component ?? null,
-    inStudio: true,
-  };
-
   const appConfig = studioCtx.appCtx.appConfig;
-  const [showSettings, setShowSettings] = React.useState(false);
   const [isExpanded, setExpanded] = useLocalStorage(
     "PageTab.isExpanded",
     false,
@@ -81,24 +70,21 @@ export const PageTab = observer(function PageTab(props: {
         <IconButton
           tooltip={uiT("Page settings")}
           data-test-id="page-settings-button"
-          onClick={() => setShowSettings(true)}
+          onClick={() =>
+            studioCtx.changeUnsafe(() => {
+              studioCtx.pageSettingsPage = page;
+              studioCtx.pageSettingsOpen = true;
+            })
+          }
         >
           <Icon icon={GearIcon} />
         </IconButton>
       ),
-    [uiT],
+    [uiT, studioCtx, page],
   );
 
   return (
     <>
-      {showSettings && (
-        <TopModal
-          title={uiT("Page Settings")}
-          onClose={() => setShowSettings(false)}
-        >
-          <PageSettings page={page} viewCtx={viewCtx} exprCtx={exprCtx} />
-        </TopModal>
-      )}
       <SidebarSection
         style={{ paddingTop: 0 }}
         zeroBodyPadding

@@ -171,7 +171,7 @@ test("a completed check removes stale release information and provides Done", as
   assert.equal(ui.commands.includes("close"), false);
 });
 
-test("update dialog stays in the main document with isolated light styles", async (t) => {
+test("update dialog stays isolated and follows Studio appearance", async (t) => {
   const ui = await fixture(t, { phase: "downloaded", version: "0.0.31" });
   assert.equal(ui.dialog.open, false);
   ui.open();
@@ -183,6 +183,17 @@ test("update dialog stays in the main document with isolated light styles", asyn
   assert.equal(ui.commands.includes("install"), false);
   const style = ui.dialog.getRootNode().querySelector("style").textContent;
   assert.match(style, /color-scheme: light;/);
+  const host = ui.window.document.getElementById(
+    "plasmic-desktop-update-dialog",
+  );
+  assert.equal(host.dataset.uiAppearance, "light");
+  ui.window.document.documentElement.dataset.uiAppearance = "dark";
+  await flush();
+  assert.equal(host.dataset.uiAppearance, "dark");
+  assert.match(style, /:host\(\[data-ui-appearance="dark"\]\) dialog/);
+  ui.window.document.documentElement.dataset.uiAppearance = "light";
+  await flush();
+  assert.equal(host.dataset.uiAppearance, "light");
   assert.doesNotMatch(style, /prefers-color-scheme/);
   assert.equal(ui.window.document.querySelector("style"), null);
   ui.open();

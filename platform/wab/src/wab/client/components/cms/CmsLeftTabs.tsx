@@ -21,7 +21,7 @@ function CmsLeftTabs_(props: CmsLeftTabsProps, ref: HTMLElementRefOf<"div">) {
     tableId: CmsTableId;
   }>()!;
   const params = { databaseId: match.pathParams.databaseId };
-  const database = useCmsDatabase(match.pathParams.databaseId);
+  const { database } = useCmsDatabase(match.pathParams.databaseId);
 
   if (!database) {
     return null;

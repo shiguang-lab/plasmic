@@ -3,6 +3,7 @@ import { COMMANDS } from "@/wab/client/commands/command";
 import {
   RenderElementProps,
   VirtualTree,
+  VirtualTreeHandle,
   getFolderKeyChanges,
   useTreeData,
 } from "@/wab/client/components/grouping/VirtualTree";
@@ -39,13 +40,14 @@ import {
 } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationRows";
 import styles from "@/wab/client/components/sidebar-tabs/ProjectPanel/ProjectPanelTop.module.scss";
 import Button from "@/wab/client/components/widgets/Button";
+import { DropdownTooltip } from "@/wab/client/components/widgets/DropdownTooltip";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { ListStack } from "@/wab/client/components/widgets/ListStack";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { NewComponentInfo } from "@/wab/client/components/widgets/NewComponentModal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   buildInsertableExtraInfo,
   getScreenVariantToInsertableTemplate,
@@ -67,7 +69,7 @@ import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { valueAsString } from "@/wab/commons/values";
 import { ArenaType, isArenaType } from "@/wab/shared/ApiSchema";
 import { AnyArena, getArenaName } from "@/wab/shared/Arenas";
-import { ARENAS_DESCRIPTION, ARENA_LOWER } from "@/wab/shared/Labels";
+import { ARENAS_DESCRIPTION } from "@/wab/shared/Labels";
 import { tryGetMainContentSlotTarget } from "@/wab/shared/SlotUtils";
 import { addEmptyQuery } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
@@ -123,13 +125,12 @@ import {
 } from "@/wab/shared/model/classes";
 import { TableSchema } from "@plasmicapp/data-sources";
 import { executePlasmicDataOp } from "@plasmicapp/react-web/lib/data-sources";
-import { Dropdown, Menu } from "antd";
+import { Menu, Tooltip } from "antd";
 import { debounce } from "lodash";
 import { observer } from "mobx-react";
 import { computedFn } from "mobx-utils";
 import { ok } from "neverthrow";
 import React from "react";
-import { FocusScope } from "react-aria";
 
 function mapToArenaData(
   arena: AnyArena,
@@ -308,6 +309,7 @@ function NavigationDropdown_(
   const studioCtx = useStudioCtx();
   const contentEditorMode = studioCtx.contentEditorMode;
 
+  const treeRef = React.useRef<VirtualTreeHandle>(null);
   const searchInputRef = studioCtx.projectSearchInputRef;
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
   const debouncedSetQuery = React.useCallback(
@@ -449,7 +451,7 @@ function NavigationDropdown_(
                 providesAppCtx(studioCtx.appCtx)(
                   <Modal
                     title={`Create dynamic page template`}
-                    visible={true}
+                    open={true}
                     footer={null}
                     onCancel={() => onCancel()}
                   >
@@ -757,140 +759,155 @@ function NavigationDropdown_(
     defaultOpenKeys: "all",
   });
 
-  return (
-    <div className={styles.root} ref={outerRef} {...testIds.projectPanel}>
-      <FocusScope contain>
-        <PlasmicNavigationDropdown
-          // We use pointerEvents:auto here because antd popover has a bug
-          // where if it is open/closed quickly it may not remove the
-          // `pointerEvents: none` it adds to the popover container
-          style={{ zIndex: 0, pointerEvents: "auto" }}
-          plusButton={{
-            props: {
-              id: "nav-dropdown-plus-btn",
-              tooltip: contentEditorMode
-                ? "Create new page"
-                : "Create new page or component",
-              onClick: () =>
-                contentEditorMode ? onAddArena("page") : undefined,
-            },
-            wrap: contentEditorMode
-              ? undefined
-              : (plusButton) => (
-                  <Dropdown
-                    placement={"bottomRight"}
-                    children={plusButton}
-                    overlay={
-                      <Menu>
-                        <Menu.Item onClick={() => onAddArena("page")}>
-                          <UiText message={"New"} />{" "}
-                          <strong>
-                            <UiText message={"page"} />
-                          </strong>
-                        </Menu.Item>
-                        {!contentEditorMode && (
-                          <Menu.Item onClick={() => onAddArena("component")}>
-                            <UiText message={"New"} />{" "}
-                            <strong>
-                              <UiText message={"component"} />
-                            </strong>
-                          </Menu.Item>
-                        )}
-                        {!contentEditorMode && (
-                          <Menu.Item onClick={() => onAddArena("custom")}>
-                            <LabelWithDetailedTooltip
-                              tooltip={ARENAS_DESCRIPTION}
-                            >
-                              <span>
-                                <UiText message={"New"} />{" "}
-                                <strong>
-                                  {<UiLabel text={ARENA_LOWER} />}
-                                </strong>
-                              </span>
-                            </LabelWithDetailedTooltip>
-                          </Menu.Item>
-                        )}
-                      </Menu>
-                    }
-                    trigger={["click"]}
-                  />
-                ),
-          }}
-          searchInput={{
-            props: {
-              withShortcut: true,
-              shortcut: {
-                wrap: () =>
-                  debouncedQuery ? null : (
-                    <KeyboardShortcut tooltip={uiT("Go to page/component")}>
-                      {getComboForAction("SEARCH_PROJECT_ARENAS")}
-                    </KeyboardShortcut>
-                  ),
-              },
-              onChange: (e) => {
-                debouncedSetQuery(e.target.value);
-              },
-              onClear: () => setDebouncedQuery(""),
-              clearFieldIcon: {
-                "data-test-id": "nav-dropdown-clear-search",
-              },
-              searchInput: {
-                ref: searchInputRef,
-                autoFocus: true,
-                onKeyUp: async (e) => {
-                  if (
-                    e.key === "Escape" &&
-                    debouncedQuery.trim().length === 0
-                  ) {
-                    onClose();
-                  } else if (e.key === "ArrowDown") {
-                    selectNextRow(1);
-                    e.preventDefault();
-                  } else if (e.key === "ArrowUp") {
-                    selectNextRow(-1);
-                    e.preventDefault();
-                  } else if (e.key === "Enter") {
-                    const sel = nodeData.treeData.selectedIndex;
-                    if (sel !== undefined) {
-                      const row = nodeData.treeData.nodes[sel];
+  const selectedIndex = nodeData.treeData.selectedIndex;
+  const selectedKey =
+    selectedIndex === undefined
+      ? undefined
+      : nodeData.treeData.nodes[selectedIndex]?.key;
+  React.useEffect(() => {
+    if (selectedKey !== undefined) {
+      treeRef.current?.scrollTo(selectedKey);
+    }
+  }, [selectedKey]);
 
-                      // If the node is an arena, navigate on Enter
-                      if (isArenaType(row.value?.type)) {
-                        e.preventDefault();
-                        await navigateToArena(row.value.arena);
-                      }
+  return (
+    <div
+      className={`${styles.root} editor-navigation-root`}
+      ref={outerRef}
+      {...testIds.projectPanel}
+    >
+      <PlasmicNavigationDropdown
+        style={{ zIndex: 0, pointerEvents: "auto" }}
+        plusButton={{
+          props: {
+            id: "nav-dropdown-plus-btn",
+            "aria-label": uiT(
+              contentEditorMode
+                ? "New page"
+                : "Create a page, component or arena",
+            ),
+            onClick: () => (contentEditorMode ? onAddArena("page") : undefined),
+          },
+          wrap: contentEditorMode
+            ? (plusButton) => (
+                <Tooltip title={uiT("New page")} arrow={false}>
+                  {plusButton}
+                </Tooltip>
+              )
+            : (plusButton) => (
+                <DropdownTooltip
+                  title={uiT("Create a page, component or arena")}
+                  placement={"bottomRight"}
+                  children={plusButton}
+                  popupRender={() => (
+                    <Menu style={{ minWidth: 224 }}>
+                      <Menu.Item onClick={() => onAddArena("page")}>
+                        <UiText message={"New page"} />
+                      </Menu.Item>
+                      {!contentEditorMode && (
+                        <Menu.Item onClick={() => onAddArena("component")}>
+                          <UiText message={"New component"} />
+                        </Menu.Item>
+                      )}
+                      {!contentEditorMode && (
+                        <Menu.Item onClick={() => onAddArena("custom")}>
+                          <LabelWithDetailedTooltip
+                            tooltip={uiT(ARENAS_DESCRIPTION)}
+                          >
+                            <span>
+                              <UiText message={"New custom arena"} />
+                            </span>
+                          </LabelWithDetailedTooltip>
+                        </Menu.Item>
+                      )}
+                    </Menu>
+                  )}
+                  trigger={["click"]}
+                />
+              ),
+        }}
+        searchInput={{
+          props: {
+            withShortcut: true,
+            shortcut: {
+              wrap: () =>
+                debouncedQuery ? null : (
+                  <KeyboardShortcut tooltip={uiT("Go to page/component")}>
+                    {getComboForAction("SEARCH_PROJECT_ARENAS")}
+                  </KeyboardShortcut>
+                ),
+            },
+            onChange: (e) => {
+              debouncedSetQuery(e.target.value);
+            },
+            onClear: () => setDebouncedQuery(""),
+            clearFieldIcon: {
+              "data-test-id": "nav-dropdown-clear-search",
+            },
+            searchInput: {
+              ref: searchInputRef,
+              autoFocus: true,
+              onKeyDown: async (e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!searchInputRef.current?.value.trim()) {
+                    onClose();
+                  } else {
+                    debouncedSetQuery.cancel();
+                    setDebouncedQuery("");
+                  }
+                } else if (e.key === "ArrowDown") {
+                  selectNextRow(1);
+                  e.preventDefault();
+                } else if (e.key === "ArrowUp") {
+                  selectNextRow(-1);
+                  e.preventDefault();
+                } else if (e.key === "Enter") {
+                  const sel = nodeData.treeData.selectedIndex;
+                  if (sel !== undefined) {
+                    const row = nodeData.treeData.nodes[sel];
+
+                    // If the node is an arena, navigate on Enter
+                    if (isArenaType(row.value?.type)) {
+                      e.preventDefault();
+                      await navigateToArena(row.value.arena);
                     }
                   }
-                },
-                "data-test-id": "nav-dropdown-search-input",
+                }
               },
+              "data-test-id": "nav-dropdown-search-input",
             },
-          }}
-          expandButton={{
-            onClick: expandAll,
-            "data-test-id": "nav-dropdown-expand-all",
-          }}
-          collapseButton={{
-            onClick: collapseAll,
-          }}
-        >
-          <NavigationDropdownContext.Provider value={contextValue}>
-            <ListStack>
-              <div style={{ height: 500 }} data-test-id="nav-dropdown-content">
-                <VirtualTree
-                  rootNodes={items}
-                  renderElement={ArenaTreeRow}
-                  nodeData={nodeData}
-                  nodeKey={nodeKey}
-                  nodeHeights={nodeHeights}
-                  expandAll={expandAll}
-                  collapseAll={collapseAll}
-                />
-              </div>
-            </ListStack>
-          </NavigationDropdownContext.Provider>
-        </PlasmicNavigationDropdown>
-      </FocusScope>
+          },
+        }}
+        expandButton={{
+          onClick: expandAll,
+          "data-test-id": "nav-dropdown-expand-all",
+        }}
+        collapseButton={{
+          onClick: collapseAll,
+        }}
+      >
+        <NavigationDropdownContext.Provider value={contextValue}>
+          <ListStack>
+            <div
+              className="editor-navigation-tree"
+              data-test-id="nav-dropdown-content"
+            >
+              <VirtualTree
+                ref={treeRef}
+                rootNodes={items}
+                renderElement={ArenaTreeRow}
+                nodeData={nodeData}
+                nodeKey={nodeKey}
+                nodeHeights={nodeHeights}
+                expandAll={expandAll}
+                collapseAll={collapseAll}
+              />
+            </div>
+          </ListStack>
+        </NavigationDropdownContext.Provider>
+      </PlasmicNavigationDropdown>
     </div>
   );
 }
@@ -903,7 +920,7 @@ const buildItems = computedFn(
       items: AnyArena[],
     ): ArenaPanelRow => {
       const tree = createFolderTreeStructure(items, {
-        pathPrefix: `${title}`,
+        pathPrefix: arenaSection,
         getName: (item) => getFolderTrimmed(getArenaName(item)),
         mapper: (item) =>
           mapToArenaPanelRow({ item, sectionType: arenaSection, actions }),
@@ -911,7 +928,7 @@ const buildItems = computedFn(
 
       return {
         type: "header",
-        key: `$${title}-folder`,
+        key: `$${arenaSection}-folder`,
         name: title,
         items: tree,
         count: items.length,
@@ -951,9 +968,13 @@ const buildItems = computedFn(
         "custom",
         studioCtx.getSortedMixedArenas(),
       ),
-      getSection("Pages", "page", studioCtx.getSortedPageArenas()),
       getSection(
-        "Components",
+        <UiText message="Pages" />,
+        "page",
+        studioCtx.getSortedPageArenas(),
+      ),
+      getSection(
+        <UiText message="Components" />,
         "component",
         studioCtx.getSortedComponentArenas(),
       ),

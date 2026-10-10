@@ -32,7 +32,7 @@ export async function promptExtractComponent(props: {
     <Modal
       title="Create new component"
       footer={null}
-      visible={true}
+      open={true}
       onCancel={() => onCancel()}
     >
       <ExtractComponentForm

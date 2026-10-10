@@ -8,6 +8,7 @@ import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import { getPlasmicStudioArgs } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import { TopFrameFullApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { setUiLocale } from "@/wab/client/i18n";
+import { setUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { ensure, spawn } from "@/wab/shared/common";
 import * as Comlink from "comlink";
@@ -62,8 +63,11 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
     const localeSubscription = topFrameApi.registerUiLocaleListener(
       Comlink.proxy(setUiLocale),
     );
+    const appearanceSubscription = topFrameApi.registerUiAppearanceListener(
+      Comlink.proxy(setUiAppearance),
+    );
     spawn(
-      localeSubscription.then(() => {
+      Promise.all([localeSubscription, appearanceSubscription]).then(() => {
         if (disposed) {
           return;
         }
@@ -82,6 +86,7 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
     return () => {
       disposed = true;
       spawn(localeSubscription.then((unregister) => unregister()));
+      spawn(appearanceSubscription.then((unregister) => unregister()));
       spawn(hostHistory.dispose());
     };
   }, []);

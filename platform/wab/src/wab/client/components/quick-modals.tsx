@@ -111,7 +111,7 @@ export async function confirm(opts: {
   return showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
     <Modal
       title={title}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={onCancel}
       closable={false}
@@ -148,7 +148,7 @@ export async function alert(opts: {
   return showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
     <Modal
       title={title}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={onCancel}
       closable={false}
@@ -203,7 +203,7 @@ function HardConfirmForm(props: {
   return (
     <Modal
       title={title}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={onCancel}
       closable={false}
@@ -264,7 +264,7 @@ export async function reactPrompt(opts: ReactPromptOpts) {
   return showTemporaryPrompt<string | undefined>((onSubmit, onCancel) => (
     <Modal
       title={null}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={onCancel}
       closable={false}

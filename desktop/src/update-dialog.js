@@ -1,11 +1,14 @@
 (() => {
-  if (window.top !== window || !window.desktopUpdates) return;
+  if (window.top !== window || !window.desktopUpdates) {
+    return;
+  }
   const { t, apply, subscribe, snapshot } = window.desktopUiI18n;
   const host = document.createElement("div");
   host.id = "plasmic-desktop-update-dialog";
   const root = host.attachShadow({ mode: "open" });
   root.innerHTML = `<style>
-dialog { color-scheme: light; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #242428; background: #fff; --muted: #73737b; --surface: #f6f6f8; --border: #e5e5e9; }
+dialog { color-scheme: light; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --text: #252a38; --bg: #fff; --muted: #70778b; --surface: #eceef3; --border: #d7dbe5; --primary: #7955d9; color: var(--text); background: var(--bg); }
+:host([data-ui-appearance="dark"]) dialog { color-scheme: dark; --text: #edeef5; --bg: #202128; --muted: #9295a7; --surface: #272831; --border: #373842; --primary: #9474ff; }
 * { box-sizing: border-box; }
 dialog { border: 1px solid var(--border); border-radius: 12px; padding: 0; width: 480px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: hidden; box-shadow: 0 12px 40px #0002; }
 dialog[open] { display: flex; flex-direction: column; }
@@ -20,7 +23,7 @@ main > * { flex: none; }
 .versions > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 dt { flex: none; font-size: 12px; color: var(--muted); }
 dd { min-width: 0; margin: 0; font-size: 13px; font-weight: 600; text-align: right; }
-#latest-version { color: #0285ff; }
+#latest-version { color: var(--primary); }
 h2 { font-size: 12px; font-weight: 600; margin: 0 0 8px; }
 #notes { color: var(--muted); }
 #notes h3 { font-size: 12px; color: inherit; margin: 0 0 8px; }
@@ -29,17 +32,17 @@ h2 { font-size: 12px; font-weight: 600; margin: 0 0 8px; }
 #notes li { margin: 0 0 6px; }
 #notes > :last-child { margin-bottom: 0; }
 .progress-heading { display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
-progress { display: block; width: 100%; height: 6px; border: 0; border-radius: 6px; overflow: hidden; accent-color: #0285ff; background: var(--surface); }
+progress { display: block; width: 100%; height: 6px; border: 0; border-radius: 6px; overflow: hidden; accent-color: var(--primary); background: var(--surface); }
 progress::-webkit-progress-bar { background: var(--surface); }
-progress::-webkit-progress-value { background: #0285ff; border-radius: 6px; }
+progress::-webkit-progress-value { background: var(--primary); border-radius: 6px; }
 footer { flex: none; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding: 12px 24px; }
-button { min-height: 32px; min-width: 72px; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; color: inherit; background: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+button { min-height: 32px; min-width: 72px; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; color: inherit; background: var(--bg); font: inherit; font-weight: 500; cursor: pointer; }
 button:hover:enabled { background: var(--surface); }
-button:focus-visible { outline: 2px solid #0285ff; outline-offset: 3px; }
-#primary[data-emphasis=primary] { background: #0285ff; color: #fff; border-color: #0285ff; }
-#primary[data-emphasis=primary]:hover:enabled { background: #0076e6; }
+button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+#primary[data-emphasis=primary] { background: var(--primary); color: #fff; border-color: var(--primary); }
+#primary[data-emphasis=primary]:hover:enabled { filter: brightness(1.08); }
 #dismiss { position: absolute; top: 16px; right: 16px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-width: 0; min-height: 0; padding: 0; border: 0; color: var(--muted); background: transparent; }
-#dismiss:hover:enabled { color: #242428; background: var(--surface); }
+#dismiss:hover:enabled { color: var(--text); background: var(--surface); }
 #dismiss svg { width: 16px; height: 16px; }
 button:disabled { opacity: .55; cursor: default; }
 </style><dialog data-ui-message="Software Update" data-ui-attribute="aria-label" aria-label="Software Update">
@@ -52,6 +55,15 @@ button:disabled { opacity: .55; cursor: default; }
 </main>
 <footer><button id="secondary">Close</button><button id="primary" disabled>Checking…</button></footer>
 </dialog>`;
+  const syncAppearance = () => {
+    host.dataset.uiAppearance =
+      document.documentElement.dataset.uiAppearance || "light";
+  };
+  syncAppearance();
+  new MutationObserver(syncAppearance).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-ui-appearance"],
+  });
   document.body.append(host);
   const dialog = root.querySelector("dialog");
   const byId = (id) => root.getElementById(id);
@@ -61,7 +73,9 @@ button:disabled { opacity: .55; cursor: default; }
   let previousLocale;
   function renderNotes(value) {
     const locale = snapshot().locale;
-    if (value === previousNotes && locale === previousLocale) return;
+    if (value === previousNotes && locale === previousLocale) {
+      return;
+    }
     previousNotes = value;
     previousLocale = locale;
     const notes = byId("notes");
@@ -182,13 +196,17 @@ button:disabled { opacity: .55; cursor: default; }
   }
   async function run(command) {
     if (command === "close") {
-      if (state.phase !== "installing") dialog.close();
+      if (state.phase !== "installing") {
+        dialog.close();
+      }
       return;
     }
     byId("primary").disabled = true;
     try {
       const result = await window.desktopUpdates.command(command);
-      if (command !== "close") render(result);
+      if (command !== "close") {
+        render(result);
+      }
     } catch {
       render({ phase: "current", currentVersion: state.currentVersion });
     }
@@ -197,12 +215,16 @@ button:disabled { opacity: .55; cursor: default; }
   byId("secondary").onclick = () => run("close");
   byId("dismiss").onclick = () => run("close");
   dialog.addEventListener("cancel", (event) => {
-    if (state.phase === "installing") event.preventDefault();
+    if (state.phase === "installing") {
+      event.preventDefault();
+    }
   });
   window.desktopUpdates.onStatus(render);
   window.desktopUpdates.onOpen((status) => {
     render(status);
-    if (!dialog.open) dialog.showModal();
+    if (!dialog.open) {
+      dialog.showModal();
+    }
   });
   subscribe(() => render(state));
   void run("status");

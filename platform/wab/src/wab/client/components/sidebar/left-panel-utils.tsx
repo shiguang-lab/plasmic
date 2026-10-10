@@ -31,7 +31,7 @@ export function useDepFilterButton(opts: {
                         )}"`,
                     )
                     .join(", ")}`,
-            overlay: () => {
+            popupRender: () => {
               return (
                 <Menu selectedKeys={filterDeps.map((d) => d.uuid)}>
                   {deps.map((dep) => (

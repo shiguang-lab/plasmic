@@ -1,4 +1,9 @@
-import { parseProjectLocation as parseProjectLocationActual } from "@/wab/client/cli-routes";
+import {
+  isHostFrame,
+  isTopFrame,
+  parseProjectLocation as parseProjectLocationActual,
+} from "@/wab/client/cli-routes";
+import { DEVFLAGS } from "@/wab/shared/devflags";
 import {
   ProjectLocationParams,
   mkProjectLocation,
@@ -249,4 +254,20 @@ describe("mkProjectLocation/parseProjectLocation", () => {
       copilotChat: true,
     });
   });
+});
+
+it("recognizes the injected host document when its origin matches Studio", () => {
+  const urls = DEVFLAGS.topFrameUrls;
+  DEVFLAGS.topFrameUrls = [...urls, window.origin];
+  const marker = document.createElement("div");
+  marker.id = "plasmic-studio-tag";
+  try {
+    expect(isTopFrame()).toBe(true);
+    document.body.appendChild(marker);
+    expect(isTopFrame()).toBe(false);
+    expect(isHostFrame()).toBe(true);
+  } finally {
+    marker.remove();
+    DEVFLAGS.topFrameUrls = urls;
+  }
 });

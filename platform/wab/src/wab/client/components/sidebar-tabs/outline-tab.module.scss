@@ -16,6 +16,17 @@
   font-size: 12px;
   display: flex;
   cursor: pointer;
+  width: 100%;
+  justify-content: space-between;
+  min-width: 0;
+
+  & strong,
+  & > div {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   &:hover {
     color: $sand9 !important;
@@ -23,6 +34,7 @@
 
   & svg {
     margin-left: 5px;
+    flex-shrink: 0;
   }
 }
 

@@ -927,7 +927,7 @@ function PlasmicCmsSelect(props: {
 }
 
 function PostgresConnectionStringImportButton(props: {
-  form: FormInstance<ApiUpdateDataSourceRequest>;
+  form: FormInstance<DataSourceFormData>;
   sourceMeta: DataSourceMeta;
   isDisabled?: boolean;
 }) {

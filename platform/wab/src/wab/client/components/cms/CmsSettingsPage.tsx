@@ -27,7 +27,7 @@ function CmsSettingsPage_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const match = useMatchedRoute(APP_ROUTES.cmsSettings);
-  const database = useCmsDatabase(match?.pathParams.databaseId);
+  const { database } = useCmsDatabase(match?.pathParams.databaseId);
   const api = useApi();
   const mutateDatabase = useMutateDatabase();
   const [submitting, setSubmitting] = React.useState(false);

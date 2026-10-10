@@ -128,7 +128,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
 
   if (tooltip) {
     content = (
-      <Tooltip transitionName="" title={tooltip}>
+      <Tooltip motion={{ motionName: "" }} title={tooltip}>
         {content}
       </Tooltip>
     );
@@ -139,9 +139,9 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
       <Dropdown
         open={showMenu}
         overlayClassName={menuOverlayClassName}
-        onVisibleChange={(show) => setShowMenu(show)}
+        onOpenChange={(show) => setShowMenu(show)}
         transitionName=""
-        overlay={menu}
+        popupRender={menu}
         trigger={["contextMenu", "click"]}
       >
         {content}
@@ -155,7 +155,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
         content={popover}
         placement="right"
         trigger="click"
-        destroyTooltipOnHide
+        destroyOnHidden
       >
         {content}
       </Popover>

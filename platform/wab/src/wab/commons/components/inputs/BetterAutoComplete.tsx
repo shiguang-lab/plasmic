@@ -29,11 +29,7 @@ export interface AutoCompleteSource<T> {
 }
 
 export type SelectMethod =
-  | "Enter"
-  | "Tab"
-  | "Click"
-  | "ArrowLeft"
-  | "ArrowRight";
+  "Enter" | "Tab" | "Click" | "ArrowLeft" | "ArrowRight";
 export interface SelectModifiers {
   alt?: boolean;
   ctrl?: boolean;
@@ -269,7 +265,7 @@ export class BetterAutoComplete<P> extends React.Component<
                     ? { overflow: { adjustX: false, adjustY: false } }
                     : undefined
                 }
-                overlay={() => (
+                popupRender={() => (
                   <OverlayMenu
                     selectedKeys={[selectedKey]}
                     scrollClipperAncestors={this.props.scrollClipperAncestors}

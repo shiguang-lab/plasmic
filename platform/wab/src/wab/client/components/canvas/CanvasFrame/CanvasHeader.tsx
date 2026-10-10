@@ -83,7 +83,7 @@ function CanvasHeader_(props: {
           },
         )}
         onClick={async (e) => {
-          if (studioCtx.isSpaceDown()) {
+          if (studioCtx.isPanMode()) {
             // panning clicking.
             return;
           }
@@ -227,9 +227,9 @@ export const VariantName = observer(function VariantName_({
         wrapper={(children) => (
           <Popover
             placement="left"
-            transitionName=""
-            destroyTooltipOnHide
-            visible={showStyleVariantEditor}
+            motion={{ motionName: "" }}
+            destroyOnHidden
+            open={showStyleVariantEditor}
             content={() => (
               <StyleVariantEditor
                 variant={variant as StyleVariant}

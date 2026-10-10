@@ -39,7 +39,7 @@ export const ANALYTICS_EVENTS = [
   //   label: "Conversion Rate",
   //   value: "conversion_rate",
   // },
-];
+] as const;
 
 export type TimeRange = [Dayjs | null, Dayjs | null];
 

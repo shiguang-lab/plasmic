@@ -4,6 +4,8 @@ import {
   renderStyles,
 } from "@/wab/client/components/view-common";
 import { cx, tuple } from "@/wab/shared/common";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 describe("cx", () =>
   it("should work", function () {
@@ -199,5 +201,36 @@ describe("Matcher", () => {
       );
       expect(result).toBeTruthy();
     });
+  });
+});
+
+describe("Matcher React node highlighting", () => {
+  it("preserves childless localized headers while searching arenas", () => {
+    const LocalizedHeader = ({ message }: { message: string }) =>
+      React.createElement("span", null, message);
+    const header = React.createElement(
+      "div",
+      null,
+      React.createElement(LocalizedHeader, { message: "Arenas" }),
+    );
+    expect(
+      renderToStaticMarkup(
+        new Matcher("Custom arena 1").boldSnippets(
+          header,
+        ) as React.ReactElement,
+      ),
+    ).toBe("<div><span>Arenas</span></div>");
+  });
+  it("keeps nested matching text highlighted with the requested class", () => {
+    const label = React.createElement(
+      "div",
+      null,
+      React.createElement("span", null, "Custom arena 1"),
+    );
+    expect(
+      renderToStaticMarkup(
+        new Matcher("arena").boldSnippets(label, "match") as React.ReactElement,
+      ),
+    ).toContain('<strong class="match">arena</strong>');
   });
 });

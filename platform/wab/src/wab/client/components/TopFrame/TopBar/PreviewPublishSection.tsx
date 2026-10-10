@@ -4,8 +4,29 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import GlobeSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__GlobeSvg";
 import type { PreviewPublication } from "@plasmic-shared/preview";
 import { Alert, Button, Checkbox, Input, Select } from "antd";
+import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import React from "react";
+
+const usePublishStyles = createStyles(({ token }) => ({
+  root: {
+    color: token.colorText,
+    [`& .${styles.icon}, & .${styles.offline}`]: {
+      background: token.colorFillSecondary,
+      color: token.colorTextSecondary,
+    },
+    [`& .${styles.live}`]: {
+      background: token.colorSuccessBg,
+      color: token.colorSuccessText,
+    },
+    [`& .${styles.content}`]: {
+      borderColor: token.colorBorderSecondary,
+      background: token.colorBgContainer,
+      borderRadius: token.borderRadiusLG,
+    },
+    [`& .${styles.description}`]: { color: token.colorTextSecondary },
+  },
+}));
 
 export interface PreviewPublishSectionProps {
   publication: PreviewPublication | null | undefined;
@@ -24,6 +45,7 @@ export default function PreviewPublishSection(
   props: PreviewPublishSectionProps,
 ) {
   const { t: uiT } = useI18n();
+  const { styles: themeStyles, cx } = usePublishStyles();
   const {
     publication,
     enabled,
@@ -40,7 +62,7 @@ export default function PreviewPublishSection(
     <section
       aria-label={uiT("Published website")}
       aria-busy={busy}
-      className={styles.section}
+      className={cx(styles.section, themeStyles.root)}
     >
       <div className={styles.header}>
         <span className={styles.icon} aria-hidden="true">
@@ -50,7 +72,7 @@ export default function PreviewPublishSection(
           <UiText message={"Published website"} />
         </h3>
         <span className={publication?.enabled ? styles.live : styles.offline}>
-          {publication?.enabled ? "Live" : "Not published"}
+          {uiT(publication?.enabled ? "Live" : "Not published")}
         </span>
       </div>
       <div className={styles.content}>
@@ -126,14 +148,14 @@ export default function PreviewPublishSection(
         <div className={styles.actions}>
           <Button
             type="primary"
-            aria-label={
-              publication?.enabled ? "Update website" : "Publish website"
-            }
+            aria-label={uiT(
+              publication?.enabled ? "Update website" : "Publish website",
+            )}
             disabled={busy || !canEdit}
             loading={busy}
             onClick={publish}
           >
-            {publication?.enabled ? "Update website" : "Publish website"}
+            {uiT(publication?.enabled ? "Update website" : "Publish website")}
           </Button>
           {publication?.enabled && (
             <Button danger disabled={busy || !canEdit} onClick={unpublish}>
@@ -145,7 +167,7 @@ export default function PreviewPublishSection(
           <Alert
             type="error"
             showIcon
-            message="Website publishing failed"
+            title={uiT("Website publishing failed")}
             description={error}
           />
         )}

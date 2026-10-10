@@ -11,8 +11,8 @@ import {
   isKnownEventHandler,
   isKnownVarRef,
 } from "@/wab/shared/model/classes";
-import { Popover } from "antd";
-import Select, { RefSelectProps } from "antd/lib/select";
+
+import { Select } from "antd";
 import { uniqBy } from "lodash";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -29,16 +29,10 @@ import { HighlightInteractionRequest } from "@/wab/shared/code-components/code-c
 import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
-import {
-  IconLinkButton,
-  PopupFocuser,
-  useOnIFrameMouseDown,
-} from "@/wab/client/components/widgets";
-import { Icon } from "@/wab/client/components/widgets/Icon";
-import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
+import { useOnIFrameMouseDown } from "@/wab/client/components/widgets";
 import { DefaultInteractionsSectionProps } from "@/wab/client/plasmic/plasmic_kit_state_management/PlasmicInteractionsSection";
 import { mkDefaultInteraction } from "@/wab/client/state-management/interactions-meta";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensureBaseVariantSetting } from "@/wab/shared/VariantTplMgr";
 import {
@@ -254,76 +248,36 @@ const AddHandlerFunctionButton = observer(
     const { t: uiT } = useI18n();
     const { tpl, onSelect } = props;
     const options = getAllEventHandlerOptions(tpl);
-    const [searchValue, setSearchValue] = React.useState<string | undefined>(
-      undefined,
-    );
     const [showing, setShowing] = React.useState(false);
-    const selectRef = React.useRef<RefSelectProps>(null);
-    useOnIFrameMouseDown(() => {
-      setShowing(false);
-    });
-    const sc = useStudioCtx();
+    useOnIFrameMouseDown(() => setShowing(false));
     return (
-      <Popover
-        trigger={["click"]}
-        onOpenChange={(visible) => {
-          setShowing(visible);
-          setSearchValue(undefined);
-        }}
-        overlayClassName="ant-popover--tight"
+      <Select
+        aria-label={uiT("Add event handler")}
+        data-test-id="add-interaction"
+        showSearch
+        value={null}
         open={showing}
-        placement={"left"}
-        destroyTooltipOnHide
-        content={
-          <>
-            <PopupFocuser
-              targetId="interactions-select"
-              targetRef={selectRef}
-            />
-            <Select
-              id="interactions-select"
-              showSearch={true}
-              searchValue={searchValue}
-              onSearch={(val) => setSearchValue(val)}
-              onSelect={(val) => {
-                const eventHandlerKey = ensure(
-                  options.find(
-                    (opt) => val === getIdNameOfEventHandlerKey(opt),
-                  ),
-                  "selected value should have an option with the same name",
-                );
-                onSelect(eventHandlerKey);
-                setShowing(false);
-              }}
-              onBlur={() => setShowing(false)}
-              style={{
-                width: 200,
-              }}
-              autoFocus
-              bordered={false}
-              ref={selectRef}
-              placeholder={uiT("Search or enter any attribute")}
-              open
-            >
-              {options.map((opt) => (
-                <Select.Option
-                  id={`interactions-select-opt-${getIdNameOfEventHandlerKey(
-                    opt,
-                  )}`}
-                  key={getIdNameOfEventHandlerKey(opt)}
-                  value={getIdNameOfEventHandlerKey(opt)}
-                >
-                  {getDisplayNameOfEventHandlerKey(opt, { tpl })}
-                </Select.Option>
-              ))}
-            </Select>
-          </>
-        }
-      >
-        <IconLinkButton data-test-id="add-interaction">
-          <Icon icon={PlusIcon} />
-        </IconLinkButton>
-      </Popover>
+        onOpenChange={setShowing}
+        style={{ width: 170 }}
+        placeholder={uiT("Add event handler")}
+        popupMatchSelectWidth={240}
+        optionFilterProp="label"
+        onSelect={(value) => {
+          onSelect(
+            ensure(
+              options.find(
+                (option) => value === getIdNameOfEventHandlerKey(option),
+              ),
+              "Event handler must match the component contract",
+            ),
+          );
+          setShowing(false);
+        }}
+        options={options.map((option) => ({
+          value: getIdNameOfEventHandlerKey(option),
+          label: getDisplayNameOfEventHandlerKey(option, { tpl }),
+        }))}
+      />
     );
   },
 );

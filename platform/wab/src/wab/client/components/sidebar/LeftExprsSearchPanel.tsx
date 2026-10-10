@@ -194,11 +194,8 @@ const ExpressionListItem = observer(function ExpressionListItem({
       return;
     }
     // Ensure the right tab is visible
-    if (
-      studioCtx.rightTabKey !== RightTabKey.style &&
-      studioCtx.rightTabKey !== RightTabKey.settings
-    ) {
-      studioCtx.switchRightTab(RightTabKey.settings);
+    if (studioCtx.rightTabKey !== RightTabKey.style) {
+      studioCtx.switchRightTab(RightTabKey.style);
     }
 
     await studioCtx.setStudioFocusOnTpl(
@@ -623,7 +620,6 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
           >
             {["None", "Component", "Type"].map((label) => {
               const value = label.toLowerCase();
-              const selected = value === groupBy;
               return (
                 <Radio.Button
                   key={label}
@@ -631,8 +627,6 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
                   className="flex-even flex-row flex-vcenter flex-hcenter"
                   style={{
                     border: "none",
-                    backgroundColor: selected ? "#fff" : "unset",
-                    color: "#1b1b18",
                     height: "25px",
                     boxShadow: "none",
                     borderRadius: "2px",

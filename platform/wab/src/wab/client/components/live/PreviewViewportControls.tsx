@@ -7,6 +7,7 @@ import {
 } from "@/wab/client/components/live/preview-viewport";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { Button, Input } from "antd";
 import React from "react";
 
 export function PreviewViewportControls({
@@ -52,14 +53,15 @@ export function PreviewViewportControls({
             ["custom", "Custom"],
           ] as const
         ).map(([mode, label]) => (
-          <button
+          <Button
             key={mode}
-            type="button"
+            size="small"
+            type={value.viewport === mode ? "primary" : "default"}
             aria-pressed={value.viewport === mode}
             onClick={() => selectMode(mode)}
           >
-            {label}
-          </button>
+            {uiT(label)}
+          </Button>
         ))}
       </div>
       {value.viewport === "custom" ? (
@@ -76,7 +78,7 @@ export function PreviewViewportControls({
             }
           }}
         >
-          <input
+          <Input
             aria-label={uiT("Preview width")}
             type="number"
             min={240}
@@ -86,7 +88,7 @@ export function PreviewViewportControls({
             onChange={(event) => setWidth(event.target.value)}
           />
           <span>×</span>
-          <input
+          <Input
             aria-label={uiT("Preview height")}
             type="number"
             min={240}
@@ -95,27 +97,27 @@ export function PreviewViewportControls({
             value={height}
             onChange={(event) => setHeight(event.target.value)}
           />
-          <button type="submit" disabled={!valid}>
+          <Button size="small" htmlType="submit" disabled={!valid}>
             <UiText message={"Apply"} />
-          </button>
+          </Button>
         </form>
       ) : (
         <span className={styles.size} aria-live="polite">
           {value.width} × {value.height}
-          {value.viewport === "desktop" && " · Fit to window"}
+          {value.viewport === "desktop" && ` · ${uiT("Fit to window")}`}
         </span>
       )}
       {(value.viewport === "phone" || value.viewport === "tablet") && (
-        <button
-          type="button"
+        <Button
+          size="small"
           onClick={() =>
             onChange({ ...value, width: value.height, height: value.width })
           }
         >
           {value.width > value.height
-            ? "Switch to portrait"
-            : "Switch to landscape"}
-        </button>
+            ? uiT("Switch to portrait")
+            : uiT("Switch to landscape")}
+        </Button>
       )}
       {value.viewport !== "desktop" && (
         <span className={styles.size}>

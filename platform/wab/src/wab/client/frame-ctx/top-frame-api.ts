@@ -5,6 +5,7 @@ import type { RemoteFileDragEvent } from "@/wab/client/file-drag/file-drag-monit
 import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import type { UiLocale } from "@/wab/client/i18n";
 import { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
+import type { UiAppearance } from "@/wab/client/ui-theme";
 import {
   ApiBranch,
   ApiTeam,
@@ -24,6 +25,9 @@ export type TopFrameFullApi = {
   exposeHostFrameApi(hostFrameApi: HostFrameApi): void;
   registerUiLocaleListener(
     listener: (locale: UiLocale) => void,
+  ): Promise<() => void>;
+  registerUiAppearanceListener(
+    listener: (appearance: UiAppearance) => void,
   ): Promise<() => void>;
   toJSON(): string;
 } & Api &

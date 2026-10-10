@@ -41,7 +41,7 @@ function Indicator(props: IndicatorProps) {
         title={popoverTitle}
         placement={placement}
         content={popover}
-        onVisibleChange={(visible) => {
+        onOpenChange={(visible) => {
           console.log("Visible", visible);
         }}
       >

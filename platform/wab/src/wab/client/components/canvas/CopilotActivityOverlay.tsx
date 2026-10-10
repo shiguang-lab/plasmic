@@ -5,13 +5,27 @@ import {
   activityText,
   currentActivity,
 } from "@/wab/client/copilot/activity";
+import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
 import { flattenTpls } from "@/wab/shared/core/tpls";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
+import { createStyles } from "antd-style";
+import classNames from "classnames";
 import { observer } from "mobx-react";
 import React from "react";
+
+const useActivityStyles = createStyles(({ token }) => ({
+  root: {
+    "--scan-color": token.colorInfo,
+    "--activity-surface": token.colorBgElevated,
+    "--activity-label-text": token.colorTextLightSolid,
+    "&[data-mode=edit]": { "--scan-color": token.colorPrimary },
+    "&[data-status=success]": { "--scan-color": token.colorSuccess },
+    "&[data-status=error]": { "--scan-color": token.colorError },
+  },
+}));
 
 type Bounds = { left: number; top: number; width: number; height: number };
 
@@ -68,6 +82,8 @@ const ActivityRegion = observer(function ActivityRegion({
   request: CanvasActivity;
   target: ActivityTarget;
 }) {
+  const { t } = useI18n();
+  const { styles: themeStyles } = useActivityStyles();
   const [region, setRegion] = React.useState<{
     bounds: Bounds;
     enclosing: boolean;
@@ -88,11 +104,11 @@ const ActivityRegion = observer(function ActivityRegion({
       } else {
         const tpls = flattenTpls(frame.container.component.tplTree);
         let tpl: TplNode | null | undefined = tpls.find(
-          (t) => t.uuid === target.elementUuid,
+          (node) => node.uuid === target.elementUuid,
         );
         if (!tpl) {
           tpl = target.ancestorUuids
-            ?.map((uuid) => tpls.find((t) => t.uuid === uuid))
+            ?.map((uuid) => tpls.find((node) => node.uuid === uuid))
             .find(Boolean);
           enclosing = true;
         }
@@ -127,7 +143,7 @@ const ActivityRegion = observer(function ActivityRegion({
   const zoom = viewCtx.studioCtx.zoom;
   return (
     <div
-      className={styles.region}
+      className={classNames(styles.region, themeStyles.root)}
       data-mode={request.mode}
       data-status={request.status}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}
@@ -136,8 +152,8 @@ const ActivityRegion = observer(function ActivityRegion({
     >
       <div className={styles.scan} />
       <div className={styles.label} style={{ transform: `scale(${1 / zoom})` }}>
-        {activityText(request)} · {target.label}
-        {region.enclosing ? " (containing region)" : ""}
+        {t(activityText(request))} · {target.label}
+        {region.enclosing ? ` (${t("Containing region")})` : ""}
       </div>
     </div>
   );
@@ -183,17 +199,19 @@ export const CopilotActivityStatus = observer(function CopilotActivityStatus({
 }: {
   studioCtx: StudioCtx;
 }) {
+  const { t } = useI18n();
+  const { styles: themeStyles } = useActivityStyles();
   const requests = studioCtx.copilotActivity.requests;
   const request = currentActivity(requests);
   if (!request) {
     return null;
   }
-  const label = Array.from(new Set(request.targets.map((t) => t.label))).join(
-    ", ",
-  );
+  const label = Array.from(
+    new Set(request.targets.map((activityTarget) => activityTarget.label)),
+  ).join(", ");
   return (
     <div
-      className={styles.status}
+      className={classNames(styles.status, themeStyles.root)}
       data-mode={request.mode}
       data-status={request.status}
       role="status"
@@ -201,9 +219,11 @@ export const CopilotActivityStatus = observer(function CopilotActivityStatus({
     >
       <span className={styles.dot} />
       <span>
-        {activityText(request)} · {label}
+        {t(activityText(request))} · {label}
       </span>
-      {requests.length > 1 && <span>({requests.length} operations)</span>}
+      {requests.length > 1 && (
+        <span>({t("{count} operations", { count: requests.length })})</span>
+      )}
     </div>
   );
 });

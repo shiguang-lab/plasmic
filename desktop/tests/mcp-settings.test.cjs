@@ -19,6 +19,9 @@ function setup() {
       };
       windows.push(this);
     }
+    isDestroyed() {
+      return false;
+    }
     setMenu(menu) {
       this.menu = menu;
     }
@@ -68,18 +71,29 @@ function setup() {
     customConfig: () => "fixture",
     set: () => clients,
   };
-  const open = module.exports.createMcpSettings(integrations, () => parent, {
-    snapshot: () => ({ locale: "en", messages: {} }),
-    subscribe: () => {},
-  });
+  const appearance =
+    require("../src/ui-appearance.cjs").createDesktopAppearance();
+  const sent = [];
+  const open = module.exports.createMcpSettings(
+    integrations,
+    () => parent,
+    {
+      snapshot: () => ({ locale: "en", messages: {} }),
+      subscribe: () => {},
+    },
+    appearance,
+  );
   open();
   const window = windows[0];
+  window.webContents.send = (...args) => sent.push(args);
   const event = {
     sender: window.webContents,
     senderFrame: window.webContents.mainFrame,
   };
   return {
     handle,
+    appearance,
+    sent,
     event,
     open,
     clients,
@@ -131,5 +145,25 @@ test("settings read and update clients and copy config without exposing removed 
   assert.throws(
     () => s.handle(s.event, "image-set", {}),
     /Invalid MCP settings command/,
+  );
+});
+
+test("shares Studio appearance with the existing native dialog and protects its theme IPC", () => {
+  const s = setup();
+  assert.equal(s.handle(s.event, "appearance"), "dark");
+  assert.equal(
+    s.windows[0].options.webPreferences.additionalArguments.join(","),
+    "--shiguang-ui-appearance=dark",
+  );
+  s.appearance.set("light");
+  assert.equal(s.handle(s.event, "appearance"), "light");
+  assert.deepEqual(s.sent, [["desktop:ui-appearance", "light"]]);
+  assert.throws(
+    () =>
+      s.handle(
+        { ...s.event, senderFrame: { url: "https://example.com" } },
+        "appearance",
+      ),
+    /Invalid MCP settings page/,
   );
 });

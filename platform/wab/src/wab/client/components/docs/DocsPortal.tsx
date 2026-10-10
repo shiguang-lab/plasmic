@@ -1,4 +1,5 @@
 import { BottomModalsProvider } from "@/wab/client/components/BottomModal";
+import { useDocsLayoutStyles } from "@/wab/client/components/docs/DocsLayout.styles";
 import DocsPortalBranches from "@/wab/client/components/docs/DocsPortalBranches";
 import {
   DocsPortalCtx,
@@ -24,6 +25,7 @@ interface DocsPortalProps {
 
 const DocsPortal = observer(function DocsPortal(props: DocsPortalProps) {
   const { studioCtx } = props;
+  const { styles } = useDocsLayoutStyles();
   const history = useHistory();
   const [docsCtx] = useState(() => new DocsPortalCtx(studioCtx));
 
@@ -70,6 +72,7 @@ const DocsPortal = observer(function DocsPortal(props: DocsPortalProps) {
                   activeTab={docsCtx.docsTabKey}
                   docsPortalHeader={{ projectName: studioCtx.siteInfo.name }}
                   root={{
+                    className: styles.root,
                     style: {
                       position: "absolute",
                       left: 0,

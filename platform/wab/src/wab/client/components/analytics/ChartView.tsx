@@ -5,13 +5,12 @@ import {
   useChartData,
 } from "@/wab/client/components/analytics/useChartData";
 import { getEventLabel } from "@/wab/client/components/analytics/utils";
-import { Spinner } from "@/wab/client/components/widgets";
-import {
-  DefaultChartViewProps,
-  PlasmicChartView,
-} from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicChartView";
+import { useI18n } from "@/wab/client/i18n";
+import { DefaultChartViewProps } from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicChartView";
 import { ensure } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Alert, Button, Card, Empty, Skeleton, theme } from "antd";
+import { sortBy, uniqBy } from "lodash";
 import moment from "moment";
 import * as React from "react";
 import {
@@ -34,13 +33,12 @@ const CHART_MARGIN = {
   left: 50,
 };
 
-const ORIGINAL_STROKE_COLOR = "#3182bd";
-const OVERRIDE_STROKE_COLOR = "#ff82bd";
-
 function AnalyticsChartResult(
   props: ReturnType<typeof useChartData> & ChartFilters,
 ) {
   const { event, splitId, analyticsQuery, projectMeta } = props;
+  const { token } = theme.useToken();
+  const { t } = useI18n();
 
   if (!analyticsQuery || !projectMeta) {
     return null;
@@ -49,6 +47,7 @@ function AnalyticsChartResult(
 
   const XAxisByTime = (
     <XAxis
+      stroke={token.colorTextSecondary}
       dataKey={"time"}
       minTickGap={10}
       tickFormatter={(value) => {
@@ -63,6 +62,7 @@ function AnalyticsChartResult(
 
   const YAxisWithLabel = (
     <YAxis
+      stroke={token.colorTextSecondary}
       label={{
         value: "",
         angle: -90,
@@ -73,6 +73,12 @@ function AnalyticsChartResult(
 
   const TooltipWithLabel = (
     <Tooltip
+      contentStyle={{
+        background: token.colorBgElevated,
+        borderColor: token.colorBorder,
+        color: token.colorText,
+      }}
+      labelStyle={{ color: token.colorText }}
       labelFormatter={(value) => {
         return moment.utc(value).format("MM-DD");
       }}
@@ -88,8 +94,9 @@ function AnalyticsChartResult(
           {TooltipWithLabel}
           <Line
             type="monotone"
-            name={getEventLabel(event)}
+            name={t(getEventLabel(event))}
             dataKey={event}
+            stroke={token.colorPrimary}
             dot={false}
           />
         </LineChart>
@@ -113,35 +120,41 @@ function AnalyticsChartResult(
 
   return (
     <ResponsiveContainer>
-      <LineChart data={originalData || overrideData} margin={CHART_MARGIN}>
+      <LineChart
+        data={sortBy(
+          uniqBy([...(originalData ?? []), ...(overrideData ?? [])], "time"),
+          "time",
+        )}
+        margin={CHART_MARGIN}
+      >
         {XAxisByTime}
         {YAxisWithLabel}
         {TooltipWithLabel}
         <Line
           type="monotone"
-          name={`Original ${getEventLabel(event)}`}
+          name={`${t("Original")} ${t(getEventLabel(event))}`}
           dataKey={({ time }) => {
             if (!originalData) {
               return 0;
             }
             const elem = (originalData as any[]).find((e) => e.time === time);
-            return elem[event];
+            return elem?.[event] ?? null;
           }}
           dot={false}
-          stroke={ORIGINAL_STROKE_COLOR}
+          stroke={token.colorPrimary}
         />
         <Line
           type="monotone"
-          name={`Override ${getEventLabel(event)}`}
+          name={`${t("Override")} ${t(getEventLabel(event))}`}
           dataKey={({ time }) => {
             if (!overrideData) {
               return 0;
             }
             const elem = (overrideData as any[]).find((e) => e.time === time);
-            return elem[event];
+            return elem?.[event] ?? null;
           }}
           dot={false}
-          stroke={OVERRIDE_STROKE_COLOR}
+          stroke={token.colorSuccess}
         />
       </LineChart>
     </ResponsiveContainer>
@@ -162,33 +175,49 @@ function ChartView_(props: ChartViewProps, ref: HTMLElementRefOf<"div">) {
     ...rest
   } = props;
 
+  const { t } = useI18n();
   return (
-    <PlasmicChartView
-      root={{ ref }}
-      loading={chartData.isLoading}
-      empty={!chartData.isLoading && chartData.isEmpty}
-      loadingBox={{
-        render: () => {
-          if (!chartData.isLoading) {
-            return null;
-          }
-          return <Spinner />;
-        },
-      }}
-      chart={
-        <AnalyticsChartResult
-          event={event}
-          teamId={teamId}
-          projectId={projectId}
-          componentId={componentId}
-          splitId={splitId}
-          timeRange={timeRange}
-          period={period}
-          {...chartData}
-        />
-      }
-      {...rest}
-    />
+    <div ref={ref} className={rest.className} style={{ minWidth: 0 }}>
+      <Card>
+        {chartData.error ? (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load analytics")}
+            action={
+              <Button
+                onClick={() => {
+                  void chartData.retry();
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+          />
+        ) : chartData.isLoading ? (
+          <div role="status" aria-label={t("Loading analytics…")}>
+            <Skeleton active paragraph={{ rows: 6 }} />
+          </div>
+        ) : chartData.paywall ? (
+          <Empty description={t("Analytics requires an upgraded plan")} />
+        ) : chartData.isEmpty ? (
+          <Empty description={t("No analytics data for these filters")} />
+        ) : (
+          <div style={{ height: 360, minWidth: 0 }}>
+            <AnalyticsChartResult
+              event={event}
+              teamId={teamId}
+              projectId={projectId}
+              componentId={componentId}
+              splitId={splitId}
+              timeRange={timeRange}
+              period={period}
+              {...chartData}
+            />
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }
 

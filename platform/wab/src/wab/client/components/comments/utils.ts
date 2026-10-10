@@ -53,11 +53,11 @@ export interface TplCommentThread extends ApiCommentThread {
 export type TplCommentThreads = TplCommentThread[];
 export type CommentFilter = "all" | "mentions-and-replies" | "resolved";
 
-export const FilterValueToLabel: Record<CommentFilter, string> = {
+export const FilterValueToLabel = {
   all: "Opened",
   "mentions-and-replies": "Mentions and replies",
   resolved: "Resolved",
-};
+} as const satisfies Record<CommentFilter, string>;
 
 export function hasNonDeletedComments(thread: ApiCommentThread): boolean {
   // hide thread if it has no non-deleted comments

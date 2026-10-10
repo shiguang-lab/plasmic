@@ -2,7 +2,7 @@ export const STUDIO_ELEMENTS_TARGETS = {
   studioAddElement: `[data-test-id="add-button"]`,
   studioAddDrawer: `[data-test-id="add-drawer"]`,
   addTextBlock: `[data-plasmic-add-item-name="Text"]`,
-  editorTabs: `.nav-tabs.hilite-tabs`,
+  editorTabs: `.editor-inspector-tabs > .ant-tabs-nav`,
   topBarPublishBtn: "#topbar-publish-btn",
   canvasFrameContainer: ".CanvasFrame__Container",
   canvasLeftPane: ".canvas-editor__left-pane-container",

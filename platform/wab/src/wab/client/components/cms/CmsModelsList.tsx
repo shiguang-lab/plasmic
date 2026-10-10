@@ -29,7 +29,7 @@ function CmsModelsList_(
     tableId?: CmsTableId;
   }>()!;
   const { databaseId, tableId } = match.pathParams;
-  const database = useCmsDatabase(databaseId);
+  const { database } = useCmsDatabase(databaseId);
   const api = useApi();
   const mutateTables = useMutateTables();
   const history = useHistory();

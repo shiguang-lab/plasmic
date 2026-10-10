@@ -8,7 +8,7 @@ import {
   convertPageMetaStringToExpr,
 } from "@/wab/client/components/sidebar-tabs/PageMetaPanel";
 import {
-  PropEditorRow,
+  InnerPropEditorRow,
   PropValueEditorContext,
 } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { LegacyComponentParamsSection } from "@/wab/client/components/sidebar-tabs/legacy-component-params-section";
@@ -47,14 +47,13 @@ import {
   isKnownImageAssetRef,
   isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import { Menu } from "antd";
+import { Collapse, Menu } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 
 interface PageSettingsProps extends DefaultPageSettingsProps {
   page: PageComponent;
-  viewCtx: ViewCtx;
-  exprCtx: ExprCtx;
+  viewCtx?: ViewCtx;
 }
 
 const ImageAssetPickerWithDynamicValue = observer(
@@ -65,7 +64,7 @@ const ImageAssetPickerWithDynamicValue = observer(
     pageMetaEnv,
   }: {
     page: PageComponent;
-    viewCtx: ViewCtx;
+    viewCtx?: ViewCtx;
     exprCtx: ExprCtx;
     pageMetaEnv;
   }) {
@@ -213,13 +212,20 @@ const ImageAssetPickerWithDynamicValue = observer(
 const PageSettings = observer(function PageSettings({
   page,
   viewCtx,
-  exprCtx,
   ...props
 }: PageSettingsProps) {
   const { t: uiT } = useI18n();
   const sc = useStudioCtx();
+  const exprCtx: ExprCtx = {
+    projectFlags: sc.projectFlags(),
+    component: page,
+    inStudio: true,
+  };
   const pageMeta = page.pageMeta;
   const [route, setRoute] = React.useState(pageMeta.path);
+  const [imagePickerOpen, setImagePickerOpen] = React.useState(
+    Boolean(pageMeta.openGraphImage),
+  );
 
   const title = React.useMemo(
     () => convertPageMetaStringToExpr(page.pageMeta?.title),
@@ -234,7 +240,7 @@ const PageSettings = observer(function PageSettings({
     [page.pageMeta?.canonical],
   );
 
-  const env = viewCtx.getCanvasEnvForTpl(page.tplTree);
+  const env = viewCtx?.getCanvasEnvForTpl(page.tplTree);
 
   const pageMetaEnv = React.useMemo(() => {
     if (!env) {
@@ -248,7 +254,7 @@ const PageSettings = observer(function PageSettings({
       }
     }
     return rest;
-  }, [env]);
+  }, [env, page]);
 
   const descriptionLength = React.useMemo(() => {
     const desc = pageMeta.description;
@@ -267,8 +273,11 @@ const PageSettings = observer(function PageSettings({
         value={{
           componentPropValues: {},
           ccContextData: {},
-          paramOwnerNames: [],
-          env: undefined,
+          paramOwnerNames: [page.name],
+          tpl: page.tplTree as TplTag,
+          viewCtx,
+          env: pageMetaEnv,
+          schema: sc.customFunctionsSchema(),
         }}
       >
         <PlasmicPageSettings
@@ -284,67 +293,79 @@ const PageSettings = observer(function PageSettings({
             },
           }}
           title={
-            <PropEditorRow
+            <InnerPropEditorRow
               attr="title"
               label={uiT("Title")}
-              propType={{ type: "string", defaultValueHint: "Title" }}
+              propType={{ type: "string", defaultValueHint: uiT("Title") }}
               expr={title}
               onChange={(expr) => {
                 const newTitle = convertExprToPageMetaString(expr);
                 spawn(sc.tryChangePageMeta(page, "title", newTitle));
               }}
-              viewCtx={viewCtx}
-              tpl={page.tplTree as TplTag}
               disableLinkToProp={true}
-              env={pageMetaEnv}
             />
           }
           description={
-            <PropEditorRow
+            <InnerPropEditorRow
               attr="description"
               label={uiT("Description")}
               propType={{
                 type: "string",
                 control: "multiLine",
-                defaultValueHint: "Description",
+                defaultValueHint: uiT("Description"),
               }}
               expr={description}
               onChange={(expr) => {
                 const newDesc = convertExprToPageMetaString(expr) ?? "";
                 spawn(sc.tryChangePageMetaDescription(page, newDesc));
               }}
-              viewCtx={viewCtx}
-              tpl={page.tplTree as TplTag}
               disableLinkToProp={true}
-              env={pageMetaEnv}
             />
           }
           characterCount={{
             children: descriptionLength,
           }}
+          span={{
+            children: uiT(
+              "The preview image when the page is shared on social media.",
+            ),
+          }}
           canonical={
-            <PropEditorRow
+            <InnerPropEditorRow
               attr="canonical"
               label={uiT("Canonical URL")}
-              propType={{ type: "string", defaultValueHint: "Canonical URL" }}
+              propType={{
+                type: "string",
+                defaultValueHint: uiT("Canonical URL"),
+              }}
               expr={canonical}
               onChange={(expr) => {
                 const newCanonical = convertExprToPageMetaString(expr);
                 spawn(sc.tryChangePageMeta(page, "canonical", newCanonical));
               }}
-              viewCtx={viewCtx}
-              tpl={page.tplTree as TplTag}
               disableLinkToProp={true}
-              env={pageMetaEnv}
             />
           }
           imageAssetPicker={{
             render: () => (
-              <ImageAssetPickerWithDynamicValue
-                page={page}
-                viewCtx={viewCtx}
-                exprCtx={exprCtx}
-                pageMetaEnv={pageMetaEnv}
+              <Collapse
+                ghost
+                activeKey={imagePickerOpen ? ["image"] : []}
+                onChange={(keys) => setImagePickerOpen(keys.includes("image"))}
+                items={[
+                  {
+                    key: "image",
+                    label: uiT("Choose an image"),
+                    children: (
+                      <ImageAssetPickerWithDynamicValue
+                        page={page}
+                        viewCtx={viewCtx}
+                        exprCtx={exprCtx}
+                        pageMetaEnv={pageMetaEnv}
+                      />
+                    ),
+                  },
+                ]}
               />
             ),
           }}

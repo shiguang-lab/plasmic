@@ -826,7 +826,7 @@ function DefinedIndicator_(props: {
     <Popover
       overlayClassName="defined-indicator__popover group"
       trigger="hover"
-      destroyTooltipOnHide={false}
+      destroyOnHidden={false}
       title={
         label && (
           <div className="flex flex-vcenter">
@@ -851,8 +851,8 @@ function DefinedIndicator_(props: {
           alwaysShowPropLabel={alwaysShowPropLabel}
         />
       )}
-      visible={visible}
-      onVisibleChange={(_v) => setVisible(_v)}
+      open={visible}
+      onOpenChange={(_v) => setVisible(_v)}
     >
       <div className={cx(styles.DefinedIndicatorContainer, props.className)}>
         <div

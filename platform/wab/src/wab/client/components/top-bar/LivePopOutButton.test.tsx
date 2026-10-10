@@ -75,7 +75,7 @@ test("desktop saves and opens the full preview route without tracking a popup", 
       finishSave = resolve;
     }),
   );
-  render(<LivePopOutButton />);
+  render(<LivePopOutButton showLabel />);
   fireEvent.click(
     screen.getByRole("button", { name: "Open preview in browser" }),
   );

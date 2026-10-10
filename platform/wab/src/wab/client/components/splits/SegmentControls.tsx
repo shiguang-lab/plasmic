@@ -55,7 +55,7 @@ function SegmentControls_(
   return (
     <>
       <Modal
-        visible={builderVisible}
+        open={builderVisible}
         footer={null}
         width={MODAL_WIDTH}
         onCancel={() => setBuilderVisible(false)}

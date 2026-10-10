@@ -1,9 +1,17 @@
 const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
+  window.addEventListener("DOMContentLoaded", () => {
+    const appearance = document.documentElement.dataset.uiAppearance;
+    if (appearance === "dark" || appearance === "light") {
+      void ipcRenderer.invoke("desktop:ui-appearance", appearance);
+    }
+  });
   const languageArg = process.argv.find((arg) =>
     arg.startsWith("--shiguang-system-languages="),
   );
   contextBridge.exposeInMainWorld("desktopEnvironment", {
+    setUiAppearance: (appearance) =>
+      ipcRenderer.invoke("desktop:ui-appearance", appearance),
     setUiLocale: (locale) => ipcRenderer.invoke("desktop:ui-locale", locale),
     getUiMessages: () => {
       const stored = window.localStorage.getItem("shiguang.ui.language");

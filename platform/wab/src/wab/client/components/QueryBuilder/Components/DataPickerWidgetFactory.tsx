@@ -160,9 +160,9 @@ export function DynamicValueWidget({
         />
       }
       trigger="click"
-      visible={popoverVisible}
-      onVisibleChange={(_visible) => setPopoverVisible(_visible)}
-      destroyTooltipOnHide={true}
+      open={popoverVisible}
+      onOpenChange={(_visible) => setPopoverVisible(_visible)}
+      destroyOnHidden={true}
       overlayClassName="data-picker-popover-overlay"
     >
       <div

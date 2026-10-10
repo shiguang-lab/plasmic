@@ -85,7 +85,7 @@ function _CanvasAction(props: {
           e.stopPropagation();
 
           // We start enforcing the settings tab, so that it's clear where the user should change something
-          viewCtx.studioCtx.switchRightTab(RightTabKey.settings);
+          viewCtx.studioCtx.switchRightTab(RightTabKey.style);
 
           const invalidTpl = valComponent.tpl;
           const invalidTplOwner = getTplOwnerComponent(invalidTpl);

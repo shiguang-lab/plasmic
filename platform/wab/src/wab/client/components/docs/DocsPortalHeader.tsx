@@ -74,7 +74,7 @@ function DocsPortalHeader(props: DocsPortalHeaderProps) {
           ),
         }}
         codegenType={{
-          "aria-label": "Codegen Type",
+          "aria-label": uiT("Codegen Type"),
           value: docsCtx.getCodegenType(),
           onChange(newCodegenType) {
             if (newCodegenType !== "codegen" && newCodegenType !== "loader") {

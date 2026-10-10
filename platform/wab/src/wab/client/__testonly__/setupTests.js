@@ -39,8 +39,19 @@ for (const method of ["open", "success", "info", "warning", "error"]) {
 }
 
 // Web shims for APIs missing in JSDOM
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
-global.TextEncoder = TextEncoder;
+// Node's encoder returns a Node-realm array. Modules such as esbuild require
+// the result to be an instance of the test environment's Uint8Array.
+global.TextEncoder = class extends TextEncoder {
+  encode(input) {
+    return new Uint8Array(super.encode(input));
+  }
+};
 global.TextDecoder = TextDecoder;
 // Needed at import time by the AI SDKs used for copilot.
 global.TransformStream = TransformStream;

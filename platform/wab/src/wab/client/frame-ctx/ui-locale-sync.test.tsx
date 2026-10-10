@@ -88,3 +88,19 @@ it("keeps the editor synchronized and removes its listener when the frame is dis
   act(() => setLanguagePreference("ja"));
   expect(listener).not.toHaveBeenCalled();
 });
+
+it("sends the resolved appearance before host registration and keeps it synchronized", async () => {
+  const { setAppearancePreference } = await import("@/wab/client/ui-theme");
+  setAppearancePreference("dark");
+  const { api, mounted } = connect();
+  const listener = vitest.fn();
+  const unregister = await api.registerUiAppearanceListener(listener);
+  expect(listener).toHaveBeenCalledWith("dark");
+  act(() => setAppearancePreference("light"));
+  expect(listener).toHaveBeenLastCalledWith("light");
+  unregister();
+  listener.mockClear();
+  act(() => setAppearancePreference("dark"));
+  expect(listener).not.toHaveBeenCalled();
+  mounted.unmount();
+});

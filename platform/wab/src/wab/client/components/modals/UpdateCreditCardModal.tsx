@@ -129,7 +129,7 @@ function UpsellCreditCardForm(
   return (
     <Modal
       title={title}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onCancel()}
       width={"max-content"}

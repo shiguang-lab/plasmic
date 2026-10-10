@@ -33,7 +33,7 @@ export function useVirtualCombobox<I, V extends VirtualItem<I>>(opts: {
     virtualItems: V[];
     virtualRows?: V[][];
   };
-  selectedItem?: I;
+  selectedItem?: I | null;
   onSelect: (item?: I) => void;
   itemToString?: (item: I | null) => string;
   alwaysHighlight?: boolean;

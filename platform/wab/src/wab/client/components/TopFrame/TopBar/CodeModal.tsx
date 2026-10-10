@@ -1,12 +1,15 @@
 /** @format */
 
 import CodeQuickstartDisplay from "@/wab/client/components/studio/code-quickstart/CodeQuickstartDisplay";
-import { TopBarModal } from "@/wab/client/components/TopFrame/TopBar/TopBarModal";
+import {
+  DeliveryModal,
+  DeliveryNavigationProps,
+} from "@/wab/client/components/TopFrame/TopBar/DeliveryModal";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { observer } from "mobx-react";
 import * as React from "react";
 
-interface CodeModalProps {
+interface CodeModalProps extends DeliveryNavigationProps {
   project: ApiProject;
   noComponents: boolean;
   subjectComponentInfo:
@@ -25,19 +28,25 @@ export const CodeModal = observer(function CodeModal({
   subjectComponentInfo,
   showCodeModal,
   setShowCodeModal,
+  onSelectDelivery,
 }: CodeModalProps) {
   return (
     <>
       {showCodeModal && (
-        <TopBarModal onClose={() => setShowCodeModal(false)}>
-          <div style={{ width: 800, height: "calc(100vh - 100px)" }}>
-            <CodeQuickstartDisplay
-              project={project}
-              noComponents={noComponents}
-              subjectComponentInfo={subjectComponentInfo}
-            />
-          </div>
-        </TopBarModal>
+        <DeliveryModal
+          tab="code"
+          open
+          onSelectDelivery={onSelectDelivery}
+          onClose={() => {
+            void setShowCodeModal(false);
+          }}
+        >
+          <CodeQuickstartDisplay
+            project={project}
+            noComponents={noComponents}
+            subjectComponentInfo={subjectComponentInfo}
+          />
+        </DeliveryModal>
       )}
     </>
   );

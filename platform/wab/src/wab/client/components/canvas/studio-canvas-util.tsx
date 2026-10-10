@@ -280,7 +280,7 @@ export function trapInteractionError(
       }
       await studioCtx.setStudioFocusOnTpl(component, tpl);
       await studioCtx.change(() => {
-        studioCtx.switchRightTab(RightTabKey.settings);
+        studioCtx.switchRightTab(RightTabKey.interactions);
         return ok();
       });
       studioCtx.highlightInteractionRequested.dispatch({

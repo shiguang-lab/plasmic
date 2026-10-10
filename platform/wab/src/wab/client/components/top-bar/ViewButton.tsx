@@ -7,25 +7,92 @@ import {
   MenuBuilder,
   TextAndShortcut,
 } from "@/wab/client/components/menu-builder";
+import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
-import { Icon } from "@/wab/client/components/widgets/Icon";
-import HidePlaceholderIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__HidePlaceholder";
-import ShowPlaceholderIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ShowPlaceholder";
-import Refresh2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Refresh2Svg";
-import {
-  DefaultViewButtonProps,
-  PlasmicViewButton,
-} from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewButton";
+import { DefaultViewButtonProps } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewButton";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isDedicatedArena } from "@/wab/shared/Arenas";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { Menu, Tooltip } from "antd";
+import {
+  BorderOutlined,
+  CommentOutlined,
+  ControlOutlined,
+  EditOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import { Button, Menu, Tooltip } from "antd";
+import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 
 type ViewButtonProps = DefaultViewButtonProps;
+
+const useStyles = createStyles(({ token }) => ({
+  popup: {
+    "& .ant-menu, & .ant-dropdown-menu": {
+      width: 336,
+      maxWidth: "calc(100vw - 32px)",
+      padding: 6,
+      background: token.colorBgElevated,
+      border: `1px solid ${token.colorBorderSecondary}`,
+      borderRadius: token.borderRadiusLG,
+      boxShadow: token.boxShadowSecondary,
+      color: token.colorText,
+    },
+    "& .ant-menu-item, & .ant-dropdown-menu-item": {
+      height: 36,
+      minHeight: 36,
+      lineHeight: "20px",
+      padding: "8px 10px",
+      margin: "2px 0",
+      width: "100%",
+      borderRadius: token.borderRadius,
+      fontSize: 13,
+      color: token.colorText,
+    },
+    "& .ant-menu-title-content, & .ant-dropdown-menu-title-content": {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+    },
+    "& .ant-menu-title-content > .flex, & .ant-dropdown-menu-title-content > .flex":
+      { flex: 1, minWidth: 0, alignItems: "center" },
+    "& .anticon, & .dimfg": {
+      width: 16,
+      height: 16,
+      fontSize: 16,
+      flexShrink: 0,
+      color: token.colorTextSecondary,
+    },
+    "& .mr-sm": { marginRight: 0 },
+    "& .shortcut-combo": {
+      background: token.colorFillTertiary,
+      color: token.colorTextSecondary,
+      fontSize: 11,
+      lineHeight: "18px",
+      padding: "0 5px",
+      border: `1px solid ${token.colorBorderSecondary}`,
+      borderRadius: 4,
+      boxShadow: "none",
+      marginLeft: 12,
+    },
+    "& .ant-menu-item-divider, & .ant-dropdown-menu-item-divider": {
+      margin: "6px 4px",
+      borderColor: token.colorBorderSecondary,
+    },
+    "& .ant-menu-item:hover, & .ant-dropdown-menu-item:hover": {
+      background: token.colorFillSecondary,
+    },
+    "& .ant-menu-item:focus-visible, & .ant-dropdown-menu-item:focus-visible": {
+      outline: `2px solid ${token.colorPrimary}`,
+      outlineOffset: -2,
+    },
+  },
+}));
 
 const contentCreatorModeHelp = (
   <>
@@ -55,6 +122,8 @@ const contentCreatorModeHelp = (
 
 const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
   const { t } = useI18n();
+  const { styles } = useStyles();
+  const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
   const vc = studioCtx.focusedViewCtx();
   const showSlotPlaceholder = studioCtx.showSlotPlaceholder();
@@ -64,6 +133,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
 
   return (
     <IFrameAwareDropdownMenu
+      overlayClassName={`${popupStyles.root} ${styles.popup}`}
       menu={() => {
         const builder = new MenuBuilder();
         builder.genSection(undefined, (push) => {
@@ -72,14 +142,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               onClick={async () => studioCtx.toggleShowSlotPlaceholder()}
               key="toggle-show-slot-placeholder"
             >
-              <Icon
-                className="dimfg mr-sm"
-                icon={
-                  showSlotPlaceholder
-                    ? HidePlaceholderIcon
-                    : ShowPlaceholderIcon
-                }
-              />
+              {showSlotPlaceholder ? <EyeInvisibleOutlined /> : <EyeOutlined />}
               {t(
                 showSlotPlaceholder
                   ? "Hide placeholders for empty slots"
@@ -92,14 +155,11 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               onClick={async () => studioCtx.toggleShowContainerPlaceholder()}
               key="toggle-show-container-placeholder"
             >
-              <Icon
-                className="dimfg mr-sm"
-                icon={
-                  showContainerPlaceholder
-                    ? HidePlaceholderIcon
-                    : ShowPlaceholderIcon
-                }
-              />
+              {showContainerPlaceholder ? (
+                <EyeInvisibleOutlined />
+              ) : (
+                <EyeOutlined />
+              )}
               {t(
                 showContainerPlaceholder
                   ? "Hide placeholders for empty containers"
@@ -112,14 +172,11 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               onClick={async () => studioCtx.toggleShowMultiplayerSelections()}
               key="toggle-show-multiplayer"
             >
-              <Icon
-                className="dimfg mr-sm"
-                icon={
-                  showMultiplayerSelections
-                    ? HidePlaceholderIcon
-                    : ShowPlaceholderIcon
-                }
-              />
+              {showMultiplayerSelections ? (
+                <EyeInvisibleOutlined />
+              ) : (
+                <EyeOutlined />
+              )}
               {t(
                 showMultiplayerSelections
                   ? "Hide cursors and selections from other users"
@@ -132,14 +189,11 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               onClick={async () => studioCtx.toggleShowAncestorsHoverBoxes()}
               key="toggle-show-ancestors-hover-boxes"
             >
-              <Icon
-                className="dimfg mr-sm"
-                icon={
-                  showSlotPlaceholder
-                    ? HidePlaceholderIcon
-                    : ShowPlaceholderIcon
-                }
-              />
+              {showAncestorsHoverBoxes ? (
+                <EyeInvisibleOutlined />
+              ) : (
+                <EyeOutlined />
+              )}
               {t(
                 showAncestorsHoverBoxes
                   ? "Hide container outlines when hovering"
@@ -157,13 +211,15 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
                 }
                 key="toggle-show-outline"
               >
+                <BorderOutlined />
                 <TextAndShortcut shortcut={getComboForAction("OUTLINE_MODE")}>
                   {t(isOutlineMode ? "Hide outline mode" : "Show outline mode")}
                 </TextAndShortcut>
               </Menu.Item>,
             );
           }
-
+        });
+        builder.genSection(undefined, (push) => {
           const isFocusedMode = studioCtx.focusedMode;
           if (isFocusedMode || isDedicatedArena(studioCtx.currentArena)) {
             push(
@@ -173,6 +229,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
                 }
                 key="toggle-focus-mode"
               >
+                <EditOutlined />
                 <TextAndShortcut
                   shortcut={getComboForAction("TOGGLE_FOCUSED_MODE")}
                 >
@@ -192,6 +249,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               onClick={() => studioCtx.toggleAutoOpenMode()}
               key="toggle-auto-open-mode"
             >
+              <ControlOutlined />
               {t(
                 isAutoOpenMode
                   ? "Turn off auto-open mode"
@@ -207,6 +265,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
                 onClick={() => studioCtx.toggleShowCommentsOverlay()}
                 key="toggle-show-comments-overlay"
               >
+                <CommentOutlined />
                 {t(
                   showCommentsOverlay
                     ? "Hide comments overlay"
@@ -229,6 +288,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
                 }
                 key="toggle-content-editor-mode"
               >
+                <EditOutlined />
                 <Tooltip zIndex={200000} title={contentCreatorModeHelp}>
                   {t(
                     studioCtx.contentEditorMode
@@ -239,7 +299,8 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               </Menu.Item>,
             );
           }
-
+        });
+        builder.genSection(undefined, (push) => {
           push(
             <Menu.Item
               onClick={async () => {
@@ -248,7 +309,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               }}
               key="refresh-data"
             >
-              <Icon className="dimfg mr-sm" icon={Refresh2SvgIcon} />
+              <ReloadOutlined />
               {t("Refresh data")}
             </Menu.Item>,
           );
@@ -259,16 +320,16 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
         });
       }}
     >
-      <PlasmicViewButton
-        mode={props.mode}
-        root={{
-          props: {
-            ...props,
-            "aria-label": t("View"),
-            id: "view-menu",
-          },
-        }}
-      />
+      <Button type="text" aria-label={t("View")} id="view-menu">
+        {t("View")}
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="editor-view-chevron"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </Button>
     </IFrameAwareDropdownMenu>
   );
 });

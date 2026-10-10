@@ -58,8 +58,8 @@ export function useAnalyticsData(opts: {
       period,
     }),
   );
-  const { data: analyticsData } = useSWR(
-    `analytics-data/${key}`,
+  return useSWR(
+    from && to ? `analytics-data/${key}` : null,
     async () => {
       if (!from || !to) {
         return undefined;
@@ -92,7 +92,6 @@ export function useAnalyticsData(opts: {
     },
     { refreshInterval: REFRESH_INTERVAL },
   );
-  return analyticsData;
 }
 
 export function useProjectAnalyticsMeta(
@@ -100,8 +99,8 @@ export function useProjectAnalyticsMeta(
   projectId: string | undefined,
 ) {
   const api = useApi();
-  const { data: projectAnalyticsMeta } = useSWR(
-    `project-analytcs-meta/${projectId}`,
+  return useSWR(
+    projectId ? `project-analytics-meta/${teamId}/${projectId}` : null,
     async () => {
       if (!projectId) {
         return undefined;
@@ -111,12 +110,11 @@ export function useProjectAnalyticsMeta(
     },
     { refreshInterval: REFRESH_INTERVAL },
   );
-  return projectAnalyticsMeta;
 }
 
 export function useTeamProjects(teamId: string) {
   const api = useApi();
-  const { data: projects } = useSWR(
+  return useSWR(
     `team-projects/${teamId}`,
     async () => {
       const result = await api.listTeamProjects(teamId as TeamId);
@@ -124,5 +122,4 @@ export function useTeamProjects(teamId: string) {
     },
     { refreshInterval: REFRESH_INTERVAL },
   );
-  return projects;
 }

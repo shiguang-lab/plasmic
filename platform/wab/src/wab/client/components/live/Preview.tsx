@@ -1,7 +1,8 @@
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewFrame } from "@/wab/client/components/live/PreviewFrame";
+import { PreviewTopBar } from "@/wab/client/components/live/PreviewTopBar";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
-import { TopBar } from "@/wab/client/components/top-bar";
+import { useEditorLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
 import { PREVIEW_SHORTCUTS } from "@/wab/client/shortcuts/preview/preview-shortcuts";
 import { useBindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
@@ -16,7 +17,12 @@ interface PreviewProps {
 
 const Preview = observer(function Preview(props: PreviewProps) {
   const { studioCtx } = props;
+  const { styles } = useEditorLayoutStyles();
   const previewCtx = usePreviewCtx();
+  const [dimensions, setDimensions] = React.useState<{
+    width: number;
+    height: number;
+  }>();
 
   React.useEffect(() => {
     fixStudioIframePositionAndOverflow();
@@ -35,7 +41,10 @@ const Preview = observer(function Preview(props: PreviewProps) {
   );
   return (
     <div
+      className={styles.root}
       style={{
+        display: "flex",
+        flexDirection: "column",
         position: "absolute",
         left: 0,
         right: 0,
@@ -46,8 +55,13 @@ const Preview = observer(function Preview(props: PreviewProps) {
       {!previewCtx.full && previewCtx.isLive && (
         <TopFrameObserver preview={true} />
       )}
-      {!previewCtx.full && previewCtx.isLive && <TopBar preview={true} />}
-      <PreviewFrame previewCtx={previewCtx} />
+      {!previewCtx.full && previewCtx.isLive && (
+        <PreviewTopBar dimensions={dimensions} />
+      )}
+      <PreviewFrame
+        previewCtx={previewCtx}
+        onDimensionsChange={setDimensions}
+      />
     </div>
   );
 });

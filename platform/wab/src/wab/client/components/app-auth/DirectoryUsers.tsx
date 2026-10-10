@@ -89,7 +89,7 @@ export default function DirectoryUsers(props: {
       </div>
       <Modal
         title={`Manage user ${selectedUser?.email}`}
-        visible={!!selectedUser}
+        open={!!selectedUser}
         onCancel={() => {
           setSelectedUser(null);
           setSelectedUserGroups([]);

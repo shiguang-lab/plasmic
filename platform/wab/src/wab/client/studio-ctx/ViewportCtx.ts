@@ -18,6 +18,7 @@ export interface DomActions {
 
 interface Transform {
   arenaSize: Pt;
+  canvasPadding: Pt;
   scale: number;
   scroll: Pt;
   smooth: boolean;
@@ -48,34 +49,27 @@ export class ViewportCtx {
     // This reduces the number of unnecessary DOM updates.
     this.disposals.push(
       reaction(
-        () => this.canvasPadding(),
-        (canvasPadding, prevCanvasPadding) => {
-          this.dom.updateCanvasPadding(canvasPadding);
-
-          // Offset the full padding change so canvas content stays at the same
-          // screen position when the viewport resizes (e.g. a sidebar toggles).
-          if (prevCanvasPadding) {
-            const scrollBy = canvasPadding.sub(prevCanvasPadding);
-            this.dom.scrollBy(scrollBy, false);
+        () =>
+          [
+            this.canvasPadding(),
+            this.enqueuedTransform(),
+            this.arenaSize(),
+          ] as const,
+        ([padding, transform, arenaSize], prev) => {
+          const paddingChanged = !prev || !padding.equals(prev[0]);
+          if (paddingChanged) {
+            this.dom.updateCanvasPadding(padding);
           }
-        },
-        {
-          name: "ViewportCtx.updateDomCanvasPadding",
-          fireImmediately: true,
-        },
-      ),
-      // Check enqueuedTransform and arenaSize in same reaction
-      // to avoid duplicate setArenaSize calls.
-      reaction(
-        () => [this.enqueuedTransform(), this.arenaSize()] as const,
-        ([transform, arenaSize], prev) => {
-          const prevTransform = prev?.[0];
-
-          if (transform && transform !== prevTransform) {
+          if (transform && transform !== prev?.[1]) {
+            // Absolute transforms already compensate for surface expansion.
             this.dom.updateArenaSize(transform.arenaSize);
             this.dom.scaleTo(transform.scale, transform.smooth);
             this.dom.scrollTo(transform.scroll, transform.smooth);
           } else {
+            // Resizing a sidebar shifts the origin; preserve screen positions.
+            if (prev && paddingChanged) {
+              this.dom.scrollBy(padding.sub(prev[0]), false);
+            }
             this.dom.updateArenaSize(arenaSize);
           }
         },
@@ -110,6 +104,7 @@ export class ViewportCtx {
         return (
           a.scale === b.scale &&
           a.scroll.equals(b.scroll) &&
+          a.canvasPadding.equals(b.canvasPadding) &&
           a.smooth === b.smooth
         );
       } else {
@@ -121,10 +116,12 @@ export class ViewportCtx {
   enqueueTransform = action((scale: number, scroll: Pt, smooth: boolean) => {
     this.setIsTransforming();
     this._scale.set(scale);
+    const growth = this.ensureScrollSpace(scroll);
     this._enqueuedTransform.set({
       arenaSize: this.arenaSize(),
+      canvasPadding: this.canvasPadding(),
       scale,
-      scroll,
+      scroll: scroll.plus(growth),
       smooth,
     });
   });
@@ -149,9 +146,50 @@ export class ViewportCtx {
   /** Scrolls by a relative vector. */
   scrollBy = (delta: Pt, opts?: { smooth: boolean }) => {
     const { smooth = false } = opts ?? {};
-    runInAction(() => this.setIsTransforming());
+    runInAction(() => {
+      this.setIsTransforming();
+      this.ensureScrollSpace(this.scroll().plus(delta));
+    });
     this.dom.scrollBy(delta, smooth);
   };
+
+  private extraCanvasPadding = observable.box(Pt.zero(), {
+    equals: equalsComparer,
+  });
+
+  // Grow the scrollable surface before reaching its edge. Padding growth shifts
+  // the DOM origin and the scroll together, preserving all world coordinates.
+  private ensureScrollSpace(target: Pt): Pt {
+    if (getArenaFrames(this.arena()).length === 0) {
+      return Pt.zero();
+    }
+    const clipper = this.clipperBox().size();
+    const limit = this.arenaSize()
+      .plus(this.canvasPadding().scale(2))
+      .sub(clipper);
+    const growth = new Pt(
+      target.x < 0
+        ? Math.max(clipper.x, -target.x)
+        : target.x > limit.x
+          ? Math.max(clipper.x, target.x - limit.x)
+          : 0,
+      target.y < 0
+        ? Math.max(clipper.y, -target.y)
+        : target.y > limit.y
+          ? Math.max(clipper.y, target.y - limit.y)
+          : 0,
+    );
+    if (growth.x || growth.y) {
+      this.extraCanvasPadding.set(this.extraCanvasPadding.get().plus(growth));
+    }
+    return growth;
+  }
+
+  /** Pans continuously, including beyond the previous scrollable surface. */
+  panTo = action((target: Pt) => {
+    const growth = this.ensureScrollSpace(target);
+    this.enqueueTransform(this.scale(), target.plus(growth), false);
+  });
 
   /** Performs DOM scroll with an absolute vector. */
   scrollTo = action((pt: Pt, opts?: { smooth: boolean }) => {
@@ -296,7 +334,7 @@ export class ViewportCtx {
           return new Pt(
             clipperBox.width() * this.arenaPaddingToClipperRatio,
             clipperBox.height() * this.arenaPaddingToClipperRatio,
-          );
+          ).plus(this.extraCanvasPadding.get());
         } else {
           return Pt.zero();
         }

@@ -856,18 +856,18 @@ function CodeTag({
           schema={schema}
         />
       }
-      visible={open}
+      open={open}
       // We want this only so that the popover dismisses on click outside,
       // and doesn't dismiss on pointer leave.
       trigger={"click"}
-      onVisibleChange={(newOpen) => {
+      onOpenChange={(newOpen) => {
         if (!newOpen && preventPopoverClosingRef.current) {
           setOpen(false);
         } else {
           preventAccidentalPopoverClosing();
         }
       }}
-      destroyTooltipOnHide={true}
+      destroyOnHidden={true}
       overlayClassName="data-picker-popover-overlay"
     >
       <div
@@ -1089,7 +1089,7 @@ function CaretUI({ top, left }: CaretUIProps) {
     >
       <Tooltip
         title={uiT("Insert dynamic value here")}
-        overlayClassName={"show-ant-tooltip-arrow"}
+        classNames={{ root: "show-ant-tooltip-arrow" }}
         open={hover && isFocused}
       >
         <div className="custom-caret" />

@@ -13,6 +13,7 @@ import {
   TopFrameFullApi,
 } from "@/wab/client/frame-ctx/top-frame-api";
 import { getUiLocale, subscribeUiLocale } from "@/wab/client/i18n";
+import { getUiAppearance, subscribeUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
 import { assert } from "@/wab/shared/common";
@@ -111,6 +112,19 @@ export function TopFrameCtxProvider({
           // The callback crosses a MessagePort, while registration returns on
           // the window endpoint. Await it so the host mounts in the right locale.
           await localeListener(getUiLocale());
+          return Comlink.proxy(() => {
+            dispose();
+            localeDisposers.delete(dispose);
+          });
+        },
+        async registerUiAppearanceListener(
+          appearanceListener,
+        ): Promise<() => void> {
+          const dispose = subscribeUiAppearance(() =>
+            appearanceListener(getUiAppearance()),
+          );
+          localeDisposers.add(dispose);
+          await appearanceListener(getUiAppearance());
           return Comlink.proxy(() => {
             dispose();
             localeDisposers.delete(dispose);

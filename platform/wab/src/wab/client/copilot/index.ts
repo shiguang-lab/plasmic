@@ -35,7 +35,6 @@ import {
   getArenaType,
   getArenaUuidOrName,
   getFrameHeight,
-  normalizeMixedArenaFrames,
 } from "@/wab/shared/Arenas";
 import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
@@ -438,7 +437,6 @@ async function prepareMutation(
         frame.left = input.x;
         frame.top = input.y;
         ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
-        normalizeMixedArenaFrames(arena);
       },
       result: () => canvasResult(studio),
     };
@@ -542,7 +540,6 @@ async function prepareMutation(
           });
         frame.left = position.x;
         frame.top = position.y;
-        normalizeMixedArenaFrames(arena);
       },
       result: () => canvasResult(studio),
     };
@@ -1550,6 +1547,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           focusedArenaFrame: frame,
           scale: input.scale,
           scroll: new Pt(input.scroll.x, input.scroll.y),
+          canvasPadding: ensure(
+            studio.viewportCtx,
+            "Canvas viewport is not ready",
+          ).canvasPadding(),
         },
         true,
       );

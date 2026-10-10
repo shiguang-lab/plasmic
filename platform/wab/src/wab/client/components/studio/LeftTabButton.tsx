@@ -10,39 +10,66 @@ import { CSSProperties } from "react";
 
 interface LeftTabButtonProps extends DefaultLeftTabButtonProps {
   onClick: () => void;
+  disabled?: boolean;
+  dataTestId?: string;
+  expanded?: boolean;
   href?: string;
   tooltip?: React.ReactNode;
   style?: CSSProperties;
 }
 
 function LeftTabButton(props: LeftTabButtonProps) {
-  const { href, tooltip, ...rest } = props;
+  const { href, tooltip, disabled, dataTestId, expanded, ...rest } = props;
+  const [tooltipOpen, setTooltipOpen] = React.useState(false);
+  const suppressTooltip = React.useRef(false);
   let res = (
     <PlasmicLeftTabButton
       {...rest}
+      onClick={() => {
+        suppressTooltip.current = true;
+        setTooltipOpen(false);
+        props.onClick();
+      }}
       root={{
         props: {
+          disabled,
+          onMouseLeave: () => {
+            suppressTooltip.current = false;
+            setTooltipOpen(false);
+          },
+          "aria-expanded": expanded,
+          "aria-haspopup": expanded === undefined ? undefined : "dialog",
+          "data-test-id": dataTestId,
+          "aria-current": props.isSelected ? "true" : undefined,
           "aria-label":
-            typeof props.label === "string"
-              ? props.label
-              : typeof tooltip === "string"
-                ? tooltip
+            typeof tooltip === "string"
+              ? tooltip
+              : typeof props.label === "string"
+                ? props.label
                 : undefined,
         },
+        wrap: (button) =>
+          tooltip ? (
+            <Tooltip
+              title={tooltip}
+              placement="right"
+              mouseEnterDelay={0.4}
+              open={tooltipOpen && !expanded}
+              onOpenChange={(open) =>
+                setTooltipOpen(open && !suppressTooltip.current)
+              }
+            >
+              {button}
+            </Tooltip>
+          ) : (
+            button
+          ),
       }}
       {...({
         "data-state-isselected": !!props.isSelected ? "true" : "false",
       } as any)}
     />
   );
-
-  if (tooltip) {
-    res = (
-      <Tooltip title={tooltip} placement="right">
-        {res}
-      </Tooltip>
-    );
-  }
 
   if (href) {
     res = (

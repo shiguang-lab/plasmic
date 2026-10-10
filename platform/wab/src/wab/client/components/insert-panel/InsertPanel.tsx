@@ -8,8 +8,7 @@ import {
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { groupInstalledItems } from "@/wab/client/components/insert-panel/groupInstalledItems";
 import S from "@/wab/client/components/insert-panel/InsertPanel.module.scss";
-import InsertPanelTabGroup from "@/wab/client/components/insert-panel/InsertPanelTabGroup";
-import InsertPanelTabItem from "@/wab/client/components/insert-panel/InsertPanelTabItem";
+import { ResourceUpload } from "@/wab/client/components/insert-panel/ResourceUpload";
 import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
 import ListSectionSeparator from "@/wab/client/components/ListSectionSeparator";
 import {
@@ -26,6 +25,7 @@ import {
   createAddInstallable,
   createAddPackageComponent,
   createAddPackageFunction,
+  createAddPageTemplate,
   createAddTemplateComponent,
   createAddTplCodeComponent,
   createAddTplCodeComponents,
@@ -44,9 +44,12 @@ import {
   DraggableInsertable,
   DraggableInsertableProps,
 } from "@/wab/client/components/studio/add-drawer/DraggableInsertable";
+import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
+import { useResourcePanelStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import Button from "@/wab/client/components/widgets/Button";
-import { TextboxRef } from "@/wab/client/components/widgets/Textbox";
+import { Modal } from "@/wab/client/components/widgets/Modal";
+import { Textbox, TextboxRef } from "@/wab/client/components/widgets/Textbox";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import {
   AddInstallableItem,
@@ -64,6 +67,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { translateUiLabel, UiLocale } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { DOWNLOAD_ICON } from "@/wab/client/icons";
+import { getPageTemplatesGroups } from "@/wab/client/insertable-templates";
 import {
   getEventDataForTplComponent,
   InsertItemEventData,
@@ -151,9 +155,20 @@ import { naturalSort } from "@/wab/shared/sort";
 import {
   canInsertAlias,
   canInsertHostlessPackage,
+  getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
-import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Input, Menu, Select } from "antd";
+import {
+  Button as AntButton,
+  message as antMessage,
+  Empty,
+  Flex,
+  Input,
+  Menu,
+  notification,
+  Select,
+  Tabs,
+  Typography,
+} from "antd";
 import cn from "classnames";
 import { UseComboboxGetItemPropsOptions } from "downshift";
 import L, { groupBy, partition, sortBy, uniq } from "lodash";
@@ -166,8 +181,28 @@ import { FocusScope } from "react-aria";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { areEqual, VariableSizeList } from "react-window";
 
-const leftSideWidth = 200;
-const rightSideWidth = 330;
+type ResourceCategory = "components" | "templates" | "assets";
+
+function filterResourceGroups(
+  groups: AddItemGroup[],
+  category: ResourceCategory,
+) {
+  return groups.flatMap((group) => {
+    const template =
+      group.sectionKey === "insertable-templates" ||
+      group.key.startsWith("insertable-templates-");
+    const items = group.items.filter((item) => {
+      const asset = item.key.startsWith("tpl-image-");
+      return category === "assets"
+        ? asset
+        : category === "templates"
+          ? template && !asset
+          : !template && !asset;
+    });
+    return items.length ? [{ ...group, items }] : [];
+  });
+}
+
 const rightSideHPadding = 8;
 const sameRowGap = 5;
 const compactPerRow = 3;
@@ -211,6 +246,7 @@ export const InsertPanel = observer(function InsertPanel_({
   ...props
 }: InsertPanelProps) {
   const studioCtx = useStudioCtx();
+  const { styles } = useResourcePanelStyles();
   const [isDragging, setDragging] = React.useState(false);
   const recentItemsRef = React.useRef<AddTplItem[]>([]);
 
@@ -251,8 +287,8 @@ export const InsertPanel = observer(function InsertPanel_({
   }
 
   return (
-    <FocusScope contain>
-      <div className={cn(S.addDrawerAnimationWrapper)}>
+    <FocusScope>
+      <div className={styles.root}>
         <AddDrawerContent
           studioCtx={studioCtx}
           onInserted={onInserted}
@@ -286,6 +322,13 @@ export default InsertPanel;
  * Returns false if the item should show a short height row with an icon.
  */
 const shouldShowPreview = (group: AddItemGroup, item: AddItem): boolean => {
+  if (
+    item.key.startsWith("tpl-image-") ||
+    item.key.startsWith("page-template-") ||
+    item.key.startsWith("insertable-template-")
+  ) {
+    return true;
+  }
   if (group.familyKey === "installed") {
     return !!item.previewImageUrl || !!item.previewVideoUrl;
   }
@@ -318,6 +361,18 @@ function shouldShowCompact(virtualItem: VirtualItem): boolean {
   );
 }
 
+function itemsPerRow(virtualItem: VirtualItem): number {
+  if (
+    virtualItem.type === "item" &&
+    (virtualItem.item.key.startsWith("tpl-image-") ||
+      virtualItem.item.key.startsWith("page-template-") ||
+      virtualItem.item.key.startsWith("insertable-template-"))
+  ) {
+    return 2;
+  }
+  return shouldShowCompact(virtualItem) ? compactPerRow : 1;
+}
+
 const AddDrawerContent = observer(function AddDrawerContent(props: {
   studioCtx: StudioCtx;
   onDragStart: DraggableInsertableProps["onDragStart"];
@@ -335,6 +390,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     onClose,
     recentItems,
   } = props;
+  const { styles } = useResourcePanelStyles();
   const inputRef = React.useRef<TextboxRef>(null);
   const contentRef = React.useRef<HTMLElement>(null);
   const listRef = React.useRef<VariableSizeList>(null);
@@ -343,9 +399,6 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
   const vc = studioCtx.focusedViewCtx();
 
-  const [scrollToSection, setScrollToSection] = useState<string | undefined>(
-    undefined,
-  );
   const [highlightSection, setHighlightSection] = useState<string | undefined>(
     undefined,
   );
@@ -360,7 +413,14 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     studioCtx.site.projectDependencies.slice(),
   );
 
-  const allFamilies = useMemo(() => {
+  const canSave = studioCtx.canSave();
+  const imageAssetsKey = studioCtx.site.imageAssets
+    .map((asset) => `${asset.uuid}:${asset.name}:${asset.dataUri}`)
+    .join("|");
+  const [category, setCategory] = useState<ResourceCategory>("components");
+  const storeMode = studioCtx.isComponentStoreOpen;
+
+  const availableFamilies = useMemo(() => {
     const allItemGroups = buildAddItemGroups({
       uiLocale: locale,
       studioCtx,
@@ -372,7 +432,23 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       projectDependencies,
     });
     return groupBy(allItemGroups, (group) => group.familyKey ?? "");
-  }, [studioCtx, filterToTarget, insertLoc, projectDependencies, locale]);
+  }, [
+    studioCtx,
+    filterToTarget,
+    insertLoc,
+    projectDependencies,
+    locale,
+    category,
+    imageAssetsKey,
+    canSave,
+  ]);
+  const allFamilies = groupBy(
+    filterResourceGroups(
+      Object.values(availableFamilies).flat(),
+      category,
+    ).filter((group) => !storeMode || group.familyKey === "hostless-packages"),
+    (group) => group.familyKey ?? "",
+  );
   const allSectionKeysFlattened = uniq(
     Object.values(allFamilies).flatMap((sections) =>
       sections.map((sec) => sec.sectionKey ?? sec.key),
@@ -380,6 +456,11 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   );
 
   const [section, setSection] = useState(allSectionKeysFlattened[0]);
+  React.useEffect(() => {
+    if (!allSectionKeysFlattened.includes(section)) {
+      setSection(allSectionKeysFlattened[0]);
+    }
+  }, [category, allSectionKeysFlattened.join("|"), section]);
   const [iconQuery, setIconQuery] = useState("");
   const [iconTheme, setIconTheme] = useState("");
   const isIconLibrary = (allFamilies.installed ?? []).some(
@@ -401,6 +482,14 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         insertLoc,
         projectDependencies,
       });
+      if (!query) {
+        groupedItems = filterResourceGroups(groupedItems, category);
+      }
+      if (storeMode) {
+        groupedItems = groupedItems.filter(
+          (group) => group.familyKey === "hostless-packages",
+        );
+      }
       if (isIconLibrary && !query) {
         const iconMatcher = new Matcher(iconQuery, { matchMiddleOfWord: true });
         groupedItems = groupedItems
@@ -471,7 +560,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       const virtualRows = groupConsecBy(virtualItems, (item, i) =>
         item.type === "item" ? item.group.key : i,
       ).flatMap(([_key, group]) => {
-        const chunkSize = shouldShowCompact(group[0]) ? compactPerRow : 1;
+        const chunkSize = itemsPerRow(group[0]);
         return sliding(group, chunkSize, chunkSize);
       });
 
@@ -484,12 +573,17 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       highlightSection,
       projectDependencies,
       isIconLibrary,
+      category,
+      storeMode,
+      imageAssetsKey,
+      canSave,
       iconQuery,
       iconTheme,
       locale,
     ],
   );
 
+  const [previewItemKey, setPreviewItemKey] = useState<string>();
   const {
     virtualRows: virtualRowsRaw,
     getInputProps,
@@ -497,20 +591,70 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     getComboboxProps,
     getMenuProps,
     query,
+    setQuery,
     highlightedItemIndex,
     setHighlightedItemIndex,
     items,
   } = useVirtualCombobox({
     listRef,
     buildItems,
+    selectedItem: null,
     onSelect: spawnWrapper(async (item) => {
-      await onInsert(item);
+      if (
+        item.key.startsWith("page-template-") ||
+        item.key.startsWith("insertable-template-")
+      ) {
+        const group = Object.values(allFamilies)
+          .flat()
+          .find((candidateGroup) =>
+            candidateGroup.items.some(
+              (candidate) => candidate.key === item.key,
+            ),
+          );
+        if (group) {
+          setSection(group.sectionKey ?? group.key);
+        }
+        setPreviewItemKey(item.key);
+      } else {
+        await onInsert(item);
+      }
     }),
     itemToString: (item) => item?.key ?? "",
     alwaysHighlight: true,
   });
 
+  const editorBrowseState = React.useRef<{
+    category: ResourceCategory;
+    section: string;
+    query: string;
+    highlightedItemIndex: number;
+  }>();
+  const closeStore = () => {
+    studioCtx.setComponentStoreOpen(false);
+    const previous = editorBrowseState.current;
+    if (previous) {
+      setCategory(previous.category);
+      setSection(previous.section);
+      setQuery(previous.query);
+      setHighlightedItemIndex(previous.highlightedItemIndex);
+      editorBrowseState.current = undefined;
+    }
+  };
+
   const virtualRows = ensure(virtualRowsRaw, "virtualRows must be set");
+  React.useEffect(() => {
+    if (!previewItemKey) {
+      return;
+    }
+    const row = virtualRows.findIndex((rowItems) =>
+      rowItems.some(
+        (item) => item.type === "item" && item.item.key === previewItemKey,
+      ),
+    );
+    if (row >= 0) {
+      listRef.current?.scrollToItem(row, "smart");
+    }
+  }, [previewItemKey, virtualRows]);
 
   const showIconFilters = isIconLibrary && !query;
   const matcher = new Matcher(query || (showIconFilters ? iconQuery : ""), {
@@ -541,6 +685,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     return false;
   };
 
+  const pendingPageCreation = React.useRef(false);
+  const [creatingPage, setCreatingPage] = React.useState(false);
   const onInsert = spawnWrapper(async (item: AddItem) => {
     if (item.isDisabled || shouldInterceptOnInsert(item)) {
       return;
@@ -569,6 +715,14 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         break;
       }
       case AddItemType.installable: {
+        const pageTemplate = item.key.startsWith("page-template-");
+        if (pageTemplate && pendingPageCreation.current) {
+          return;
+        }
+        if (pageTemplate) {
+          pendingPageCreation.current = true;
+          setCreatingPage(true);
+        }
         try {
           const installed = await DragInsertManager.install(studioCtx, item);
           if (!installed) {
@@ -576,15 +730,33 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           }
           await studioCtx.changeUnsafe(() => {
             if (isKnownArena(installed)) {
-              studioCtx.switchToArena(installed);
+              if (!pageTemplate || installed !== studioCtx.currentArena) {
+                studioCtx.switchToArena(installed);
+              }
             } else if (isKnownComponent(installed)) {
               studioCtx.switchToComponentArena(installed);
             }
           });
-          notifyInstallableSuccess(item.label);
+          if (pageTemplate) {
+            void antMessage.success(uiT("Page created"));
+          } else {
+            notifyInstallableSuccess(item.label);
+          }
           onInserted(item, null);
         } catch (error) {
-          notifyInstallableFailure(item.label, (error as any).message);
+          if (pageTemplate) {
+            notification.error({
+              message: uiT("Failed to create page"),
+              description: error instanceof Error ? error.message : undefined,
+            });
+          } else {
+            notifyInstallableFailure(item.label, (error as any).message);
+          }
+        } finally {
+          if (pageTemplate) {
+            pendingPageCreation.current = false;
+            setCreatingPage(false);
+          }
         }
         break;
       }
@@ -593,6 +765,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         if (item.isPackage && extraInfo_ !== false) {
           const extraInfo: { dep: ProjectDependency[] } = extraInfo_;
           setProjectDependencies(studioCtx.site.projectDependencies.slice());
+          closeStore();
           await delay(200);
           const sectionKey = item.hostLessPackageInfo?.syntheticPackage
             ? "synthetic-" + item.hostLessPackageInfo.codeName
@@ -655,33 +828,102 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           allSectionKeysFlattened.length
       ];
     setSection(nextSection);
-    // This does not work because of some mysterious interaction with the focus tricks we're playing. Not digging into this for now.
-    // https://stackoverflow.com/questions/63259596/js-scrollintoview-not-working-with-focus
-    setScrollToSection(nextSection);
   }
 
-  return (
-    <AddDrawerContext.Provider
-      value={{
-        studioCtx,
-        onDragStart,
-        onDragEnd,
-        matcher,
-        onInsert,
-        onInserted,
-        getItemProps,
-        highlightedItemIndex,
-        validTplLocs,
-        shouldInterceptOnInsert,
-      }}
+  const content = (
+    <div
+      className="resource-panel-content"
+      style={
+        storeMode ? { height: "min(560px, calc(100dvh - 120px))" } : undefined
+      }
     >
+      <Flex
+        className="resource-panel-heading"
+        justify="space-between"
+        align="center"
+      >
+        <Typography.Text strong>
+          {uiT(storeMode ? "Component store" : "Insert resources")}
+        </Typography.Text>
+        <PanelCloseButton onClick={storeMode ? () => closeStore() : onClose} />
+      </Flex>
+      {creatingPage && (
+        <Typography.Text
+          role="status"
+          type="secondary"
+          style={{ padding: "4px 12px" }}
+        >
+          {uiT("Creating page…")}
+        </Typography.Text>
+      )}
+      <div className="resource-panel-search">
+        <Textbox
+          {...getInputProps({
+            placeholder: uiT("Search all components, templates and assets"),
+            autoFocus: true,
+            refKey: "ref",
+            onKeyDown: spawnWrapper(async (e) => {
+              if (e.key === "Escape" && query.trim().length === 0) {
+                if (storeMode) {
+                  closeStore();
+                  return;
+                }
+                await studioCtx.changeUnsafe(() => {
+                  studioCtx.setShowAddDrawer(false);
+                });
+              }
+            }),
+            ref: inputRef as any,
+          })}
+          wrapperProps={getComboboxProps()}
+          styleType="bordered"
+          aria-label={uiT("Search resources")}
+        />
+        {query && (
+          <AntButton
+            type="text"
+            size="small"
+            onClick={() => {
+              setQuery("");
+              setHighlightedItemIndex(0);
+              inputRef.current?.focus();
+            }}
+          >
+            {uiT("Clear search")}
+          </AntButton>
+        )}
+      </div>
+      {!query && !storeMode && (
+        <Tabs
+          activeKey={category}
+          onChange={(key) => setCategory(key as ResourceCategory)}
+          items={[
+            { key: "components", label: uiT("Components") },
+            { key: "templates", label: uiT("Templates") },
+            { key: "assets", label: uiT("Assets") },
+          ]}
+        />
+      )}
+      {category === "assets" && (
+        <ResourceUpload
+          studioCtx={studioCtx}
+          onUploaded={(type) => {
+            setQuery("");
+            setSection(type === ImageAssetType.Icon ? "icons" : "images");
+            setHighlightedItemIndex(0);
+          }}
+        />
+      )}
       <PlasmicInsertPanel
         root={{
           props: {
             style: {
-              width: rightSideWidth + (query ? 0 : leftSideWidth),
+              width: "100%",
             },
             onKeyDown: (e) => {
+              if (e.ctrlKey || e.metaKey || e.altKey) {
+                return;
+              }
               if (e.key === "ArrowDown") {
                 if (highlightedItemIndex >= 0) {
                   setHighlightedItemIndex(highlightedItemIndex + 1);
@@ -712,103 +954,51 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           },
         }}
         sectionsContainer={{
-          wrap: (node) => !query && node,
+          render: () =>
+            !query && allSectionKeysFlattened.length > 0 ? (
+              <div
+                className="resource-panel-sections"
+                onKeyDown={(event) => event.stopPropagation()}
+              >
+                <Select
+                  aria-label={uiT("Resource category")}
+                  value={section}
+                  onChange={(value) => {
+                    setSection(value);
+                    setHighlightedItemIndex(0);
+                  }}
+                  options={Object.entries(allFamilies).map(
+                    ([family, groups]) => ({
+                      label: family
+                        ? localizeLabel(
+                            familyKeyToLabel[
+                              family as keyof typeof familyKeyToLabel
+                            ],
+                          )
+                        : uiT("Project resources"),
+                      options: Object.entries(
+                        groupBy(
+                          groups,
+                          (group) => group.sectionKey ?? group.key,
+                        ),
+                      ).map(([key, [group]]) => ({
+                        value: key,
+                        label: localizeLabel(group.sectionLabel ?? group.label),
+                      })),
+                    }),
+                  )}
+                  style={{ width: "100%" }}
+                  getPopupContainer={(trigger) =>
+                    ensure(
+                      trigger.parentElement,
+                      "Missing resource section container",
+                    )
+                  }
+                />
+              </div>
+            ) : null,
         }}
-        leftSearchPanel={{
-          ...getInputProps({
-            placeholder: uiT("What would you like to insert?"),
-            autoFocus: true,
-            refKey: "ref",
-            onKeyDown: spawnWrapper(async (e) => {
-              if (e.key === "Escape" && query.trim().length === 0) {
-                await studioCtx.changeUnsafe(() => {
-                  studioCtx.setShowAddDrawer(false);
-                });
-              }
-            }),
-            ref: inputRef as any,
-          }),
-          wrapperProps: getComboboxProps(),
-        }}
-        sections={{
-          as: Scrollbar,
-          props: {
-            scrollX: false,
-            style: { overflow: "hidden" },
-            className: S.sectionsScrollbar,
-            tabIndex: -1,
-            children: Object.entries(allFamilies).map(
-              ([_familyKey, groupsInFamily]) => {
-                const allSections = groupBy(
-                  groupsInFamily,
-                  (group) => group.sectionKey ?? group.key,
-                );
-                const [someGroupInFamily] = groupsInFamily;
-                const children = Object.entries(allSections).map(
-                  ([sectionKey, groupsInSection]) => {
-                    const [someGroupInSection] = groupsInSection;
-                    return (
-                      <React.Fragment key={sectionKey}>
-                        <div style={{ position: "relative", width: "100%" }}>
-                          <InsertPanelTabItem
-                            key={sectionKey}
-                            children={
-                              <span>
-                                {localizeLabel(
-                                  someGroupInSection.sectionLabel ??
-                                    someGroupInSection.label,
-                                )}{" "}
-                                {scrollToSection === sectionKey && (
-                                  <div
-                                    style={{
-                                      width: 0,
-                                      height: 0,
-                                    }}
-                                    ref={(elt) => {
-                                      if (elt) {
-                                        elt.scrollIntoView({
-                                          block: "center",
-                                          inline: "center",
-                                          behavior: "smooth",
-                                        });
-                                      }
-                                    }}
-                                  />
-                                )}
-                                {highlightSection ===
-                                  someGroupInSection.key && (
-                                  <span className={"NewBadge"}>
-                                    <UiText message={"New"} />
-                                  </span>
-                                )}
-                              </span>
-                            }
-                            onClick={() => {
-                              setSection(sectionKey);
-                            }}
-                            isSelected={section === sectionKey}
-                          />
-                          {highlightSection === someGroupInSection.key && (
-                            <HighlightBlinker doScroll />
-                          )}
-                        </div>
-                      </React.Fragment>
-                    );
-                  },
-                );
-                return someGroupInFamily.familyKey ? (
-                  <InsertPanelTabGroup
-                    title={familyKeyToLabel[someGroupInFamily.familyKey]}
-                  >
-                    {children}
-                  </InsertPanelTabGroup>
-                ) : (
-                  <>{children}</>
-                );
-              },
-            ),
-          },
-        }}
+        searchContainer={{ render: () => null }}
         content={{
           wrap: (node) =>
             showIconFilters ? (
@@ -861,8 +1051,24 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                   )}
                 </div>
               </div>
-            ) : (
+            ) : items.length ? (
               node
+            ) : (
+              <div className="resource-panel-empty-results">
+                {node}
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={uiT(
+                    query.trim()
+                      ? "No matching resources found"
+                      : category === "assets"
+                        ? "No assets in this category"
+                        : category === "templates"
+                          ? "No templates in this category"
+                          : "No resources in this category",
+                  )}
+                />
+              </div>
             ),
           props: {
             ...getMenuProps({
@@ -931,6 +1137,101 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           },
         }}
       />
+      <Flex gap={8} className="resource-panel-library-actions">
+        <AntButton
+          disabled={!availableFamilies["hostless-packages"]?.length}
+          onClick={() => {
+            if (storeMode) {
+              closeStore();
+              return;
+            }
+            editorBrowseState.current = {
+              category,
+              section,
+              query,
+              highlightedItemIndex,
+            };
+            studioCtx.setComponentStoreOpen(true);
+            setQuery("");
+            setCategory("components");
+            setSection(
+              availableFamilies["hostless-packages"][0].sectionKey ??
+                availableFamilies["hostless-packages"][0].key,
+            );
+            setHighlightedItemIndex(0);
+          }}
+        >
+          {uiT(storeMode ? "Back to editor" : "Component store")}
+        </AntButton>
+        {getLeftTabPermission(studioCtx.getCurrentUiConfig(), "imports", {
+          isContentCreator: studioCtx.contentEditorMode,
+        }) !== "hidden" && (
+          <AntButton
+            disabled={!studioCtx.appCtx.selfInfo}
+            onClick={() => {
+              void studioCtx.changeUnsafe(() => {
+                studioCtx.setShowAddDrawer(false);
+                studioCtx.switchLeftTab("imports");
+              });
+            }}
+          >
+            {uiT("Manage libraries")}
+          </AntButton>
+        )}
+      </Flex>
+      {category !== "components" && (
+        <Typography.Text type="secondary" className="resource-panel-hint">
+          {uiT(
+            category === "templates"
+              ? "Preview a template before inserting."
+              : "Select or drag an asset into the current selection.",
+          )}
+        </Typography.Text>
+      )}
+    </div>
+  );
+  return (
+    <AddDrawerContext.Provider
+      value={{
+        studioCtx,
+        onDragStart,
+        onDragEnd,
+        matcher,
+        onInsert,
+        onInserted,
+        getItemProps,
+        highlightedItemIndex,
+        validTplLocs,
+        shouldInterceptOnInsert,
+        previewItemKey,
+        setPreviewItemKey,
+      }}
+    >
+      {!storeMode && content}
+      <Modal
+        open={storeMode}
+        width={720}
+        centered
+        styles={{ container: { padding: 0 } }}
+        footer={null}
+        closable={false}
+        onCancel={() => closeStore()}
+      >
+        {storeMode && (
+          <div
+            className={styles.root}
+            data-component-store="true"
+            style={{
+              width: "100%",
+              height: "min(560px, calc(100dvh - 120px))",
+              boxShadow: "none",
+              border: 0,
+            }}
+          >
+            {content}
+          </div>
+        )}
+      </Modal>
     </AddDrawerContext.Provider>
   );
 });
@@ -946,6 +1247,8 @@ interface AddDrawerContextValue {
   highlightedItemIndex: number;
   validTplLocs: Set<InsertRelLoc> | undefined;
   shouldInterceptOnInsert?: (item: AddTplItem) => boolean;
+  previewItemKey?: string;
+  setPreviewItemKey: (key: string | undefined) => void;
 }
 
 const AddDrawerContext = React.createContext<AddDrawerContextValue | undefined>(
@@ -990,9 +1293,11 @@ const Row = React.memo(function Row(props: {
     firstItem?.type === "item"
       ? shouldShowPreview(firstItem.group, firstItem.item)
       : false;
-  const itemWidth = shouldShowCompact(firstItem)
-    ? `calc((100% - ${(compactPerRow - 1) * sameRowGap}px) / ${compactPerRow})`
-    : "100%";
+  const columns = itemsPerRow(firstItem);
+  const itemWidth =
+    columns > 1
+      ? `calc((100% - ${(columns - 1) * sameRowGap}px) / ${columns})`
+      : "100%";
 
   return (
     <ul
@@ -1104,7 +1409,11 @@ const Row = React.memo(function Row(props: {
                 aria-disabled={item.isDisabled}
                 className={cn({
                   grabbable: item.type === "tpl" && !item.isDisabled,
-                  [S.disabled]: item.isDisabled,
+                  [S.disabled]:
+                    item.isDisabled &&
+                    !item.key.startsWith("tpl-image-") &&
+                    !item.key.startsWith("page-template-") &&
+                    !item.key.startsWith("insertable-template-"),
                 })}
                 style={{ width: itemWidth }}
               >
@@ -1126,6 +1435,11 @@ const Row = React.memo(function Row(props: {
                   <AddDrawerItem
                     key={item.key}
                     variant={showPreview ? "card" : "row"}
+                    previewOpen={context.previewItemKey === item.key}
+                    onPreviewOpenChange={(open) =>
+                      context.setPreviewItemKey(open ? item.key : undefined)
+                    }
+                    onInsert={() => context.onInsert(item)}
                     cardClassName={
                       isAntDesignIconItem(item) ? S.iconCardLayout : undefined
                     }
@@ -1696,6 +2010,23 @@ export function buildAddItemGroups({
           .map((g) =>
             getInsertableTemplatesSection(g as InsertableTemplatesGroup),
           )
+      : []),
+
+    ...(!contentEditorMode && !isApp
+      ? getPageTemplatesGroups(studioCtx)
+          .filter((group) => group.onlyShownIn !== "old")
+          .map((group): AddItemGroup => ({
+            key: `insertable-templates-pages-${group.name}`,
+            sectionKey: "insertable-templates-pages",
+            sectionLabel: "Page templates",
+            label: group.name,
+            items: flattenInsertableTemplates(group)
+              .filter((item) => item.onlyShownIn !== "old")
+              .map((meta) => ({
+                ...createAddPageTemplate(meta),
+                isDisabled: !studioCtx.canSave(),
+              })),
+          }))
       : []),
 
     canInsertAlias(uiConfig, "icon", canInsertContext) && {

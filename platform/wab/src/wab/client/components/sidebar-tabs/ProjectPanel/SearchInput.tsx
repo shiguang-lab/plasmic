@@ -49,6 +49,14 @@ function SearchInput(props: SearchInputProps) {
       {...rest}
       searchInput={mergeProps(props.searchInput, {
         value,
+        onKeyDown: (e) => {
+          if (e.key === "Escape" && value) {
+            e.preventDefault();
+            e.stopPropagation();
+            setValue("");
+            onClear?.();
+          }
+        },
         onChange: (e) => {
           setValue(e.target.value);
           onChange?.(e);

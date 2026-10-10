@@ -263,7 +263,7 @@ function PlasmicPageSettings__RenderFunc(props: {
           <div className={classNames("all", sty.freeBox__uFy4)}>
             <div className={classNames("all", sty.freeBox__aYaBf)}>
               <div className={classNames("all", "__wab_text", sty.text__nf6Kg)}>
-                {"Character count:"}
+                {<UiText message={"Character count:"} />}
               </div>
               <div
                 data-plasmic-name={"characterCount"}
@@ -274,7 +274,7 @@ function PlasmicPageSettings__RenderFunc(props: {
               </div>
             </div>
             <div className={classNames("all", "__wab_text", sty.text__v5Bs7)}>
-              {"(Recommended: 160)"}
+              {<UiText message={"(Recommended: 160)"} />}
             </div>
           </div>
         </div>
@@ -360,7 +360,7 @@ function PlasmicPageSettings__RenderFunc(props: {
               {"This is the image asset picker"}
             </div>
             <div className={classNames("all", "__wab_text", sty.text__hatY)}>
-              {"(Recommended: 1200 x 630 pixels)"}
+              {<UiText message={"(Recommended: 1200 x 630 pixels)"} />}
             </div>
           </div>
         </div>

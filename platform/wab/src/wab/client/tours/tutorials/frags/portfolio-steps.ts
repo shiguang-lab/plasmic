@@ -66,7 +66,7 @@ The newly added text element is now visible both in the canvas and in this outli
   placement: "right-start",
   nextButtonText: "Next",
   onNext: async (ctx) => {
-    ctx.studioCtx.switchRightTab(RightTabKey.settings);
+    ctx.studioCtx.switchRightTab(RightTabKey.style);
   },
 };
 

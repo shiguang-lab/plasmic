@@ -9,6 +9,7 @@ import ChevronUpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Plasm
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { isEmptyReactNode } from "@/wab/commons/ViewUtil";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { useTheme } from "antd-style";
 import cn from "classnames";
 import { observer, Observer } from "mobx-react";
 import React, {
@@ -51,6 +52,7 @@ function ChevronToggle(props: {
   fullyCollapsedBody?: boolean;
 }) {
   const { t: uiT } = useI18n();
+  const token = useTheme();
   const { expanded, onClick, sticky, noBorder, fullyCollapsedBody } = props;
   return (
     <div
@@ -61,7 +63,11 @@ function ChevronToggle(props: {
         [styles.collapsingToggle_sticky]: sticky,
         [styles.fullyCollapsedBody]: fullyCollapsedBody,
       })}
-      style={!noBorder ? { borderBottom: "1px solid #eee" } : {}}
+      style={
+        !noBorder
+          ? { borderBottom: `1px solid ${token.colorBorderSecondary}` }
+          : {}
+      }
     >
       <button
         className={cn(styles.collapsingToggleLabel, {

@@ -54,7 +54,7 @@ export const ProjectNameModal = observer(function ProjectNameModal({
       {showProjectNameModal && (
         <Modal
           title={null}
-          visible={true}
+          open={true}
           footer={null}
           onCancel={() => setShowProjectNameModal(false)}
           closable={false}

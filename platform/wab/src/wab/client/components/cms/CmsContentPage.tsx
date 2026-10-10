@@ -19,7 +19,7 @@ function CmsContentPage_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const m = useMatchedRoute(APP_ROUTES.cmsContentRoot);
-  const database = useCmsDatabase(m?.pathParams.databaseId);
+  const { database } = useCmsDatabase(m?.pathParams.databaseId);
   if (!m || !database) {
     return null;
   }

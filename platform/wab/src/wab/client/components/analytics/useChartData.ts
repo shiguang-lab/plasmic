@@ -26,7 +26,7 @@ export interface ChartFilters {
 export function useChartData(props: ChartFilters) {
   const { timeRange, event, teamId, projectId, splitId, componentId, period } =
     props;
-  const analyticsQuery = useAnalyticsData({
+  const analytics = useAnalyticsData({
     teamId,
     projectId,
     splitId,
@@ -36,13 +36,15 @@ export function useChartData(props: ChartFilters) {
     type: getAnalyticsQueryTypeFromEvent(event),
     period,
   });
-  const projectMeta = useProjectAnalyticsMeta(teamId, projectId) ?? {
+  const metadata = useProjectAnalyticsMeta(teamId, projectId);
+  const analyticsQuery = analytics.data;
+  const projectMeta = metadata.data ?? {
     pages: [],
     splits: [],
   };
 
   function isLoading() {
-    return !analyticsQuery;
+    return analytics.isLoading || (!!splitId && metadata.isLoading);
   }
 
   function isEmpty() {
@@ -89,6 +91,8 @@ export function useChartData(props: ChartFilters) {
   }
 
   return {
+    error: analytics.error || metadata.error,
+    retry: () => Promise.all([analytics.mutate(), metadata.mutate()]),
     isLoading: isLoading(),
     isEmpty: isEmpty(),
     paywall: analyticsQuery?.type === "paywall",

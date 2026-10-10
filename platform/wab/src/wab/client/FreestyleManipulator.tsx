@@ -505,7 +505,6 @@ export class DragMoveFrameManager {
   endDrag() {
     spawn(
       this.studioCtx.change(() => {
-        this.studioCtx.normalizeCurrentArena();
         if (this.studioCtx.isUnlogged()) {
           this.studioCtx.stopUnlogged();
         }

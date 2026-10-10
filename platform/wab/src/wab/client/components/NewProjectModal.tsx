@@ -1,168 +1,354 @@
-import StarterGroup from "@/wab/client/components/StarterGroup";
-import StartersSection from "@/wab/client/components/StartersSection";
-import { BareModal } from "@/wab/client/components/studio/BareModal";
-import { Tab, Tabs } from "@/wab/client/components/widgets";
+import { Modal } from "@/wab/client/components/widgets/Modal";
 import {
   useAllProjectsData,
   useAppCtx,
 } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
+import { useHistory } from "@/wab/client/route/HistoryProvider";
+import { ProjectId, WorkspaceId } from "@/wab/shared/ApiSchema";
+import { updateExtraDataJson } from "@/wab/shared/ApiSchemaUtil";
+import { accessLevelRank } from "@/wab/shared/EntUtil";
+import { ensure } from "@/wab/shared/common";
+import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
+import { StarterProjectConfig } from "@/wab/shared/devflags";
+import { getAccessLevelToResource } from "@/wab/shared/perms";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import {
-  DefaultNewProjectModalProps,
-  PlasmicNewProjectModal,
-} from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNewProjectModal";
-import { zIndex } from "@/wab/client/z-index";
-import { WorkspaceId } from "@/wab/shared/ApiSchema";
+  Alert,
+  Button,
+  Card,
+  Col,
+  Empty,
+  Form,
+  Input,
+  Radio,
+  Row,
+  Select,
+  Space,
+  Tabs,
+  Typography,
+} from "antd";
+import { createStyles } from "antd-style";
+import { union, uniqBy } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 
-interface NewProjectModalProps extends DefaultNewProjectModalProps {
+interface NewProjectModalProps {
   onCancel: () => void;
-  /** Workspace to create the project in; the playground when omitted. */
   workspaceId?: WorkspaceId;
 }
 
-function NewProjectModalBody(props: Pick<NewProjectModalProps, "workspaceId">) {
-  const { t } = useI18n();
-  const appCtx = useAppCtx();
-  const { workspaceId } = props;
-  const [currentTab, setCurrentTab] = React.useState<"website" | "app">(
-    "website",
-  );
-  return (
-    <>
-      <div
-        style={{
-          // This is a hack to make the only the tab bar sticky mantaining the content scrollable through the whole modal
-          position: "sticky",
-          top: -32,
-          backgroundColor: "white",
-          marginTop: -32,
-          paddingBottom: 16,
-          zIndex: zIndex.modal,
-        }}
-      >
-        <Tabs
-          tabKey={currentTab}
-          onSwitch={setCurrentTab}
-          tabBarClassName="pt-m"
-          tabClassName="hilite-tab"
-          activeTabClassName="hilite-tab--active"
-          tabs={[
-            new Tab({
-              name: t("Website"),
-              key: "website",
-              contents: () => <></>,
-            }),
-            new Tab({
-              name: t("App"),
-              key: "app",
-              contents: () => <></>,
-            }),
-          ]}
-        />
-      </div>
-      {currentTab === "website" && (
-        <StartersSection>
-          {appCtx.starters.templateAndExampleSections.map((section) => (
-            <StarterGroup
-              key={section.tag}
-              title={section.title}
-              tag={section.tag}
-              projects={section.projects}
-              infoTooltip={section.infoTooltip}
-              docsUrl={section.docsUrl}
-              moreUrl={section.moreUrl}
-              workspaceId={workspaceId}
-            />
-          ))}
-        </StartersSection>
-      )}
-      {currentTab === "app" && (
-        <StartersSection>
-          {appCtx.starters.appSections.map((section) => (
-            <StarterGroup
-              key={section.tag}
-              title={section.title}
-              tag={section.tag}
-              projects={section.projects}
-              infoTooltip={section.infoTooltip}
-              docsUrl={section.docsUrl}
-              moreUrl={section.moreUrl}
-              workspaceId={workspaceId}
-            />
-          ))}
-        </StartersSection>
-      )}
-    </>
-  );
-}
+const useStyles = createStyles(({ token }) => ({
+  templates: { maxHeight: "min(420px, 45vh)", overflowY: "auto", padding: 2 },
+  card: { height: "100%", cursor: "pointer", borderColor: token.colorBorder },
+  selected: {
+    borderColor: token.colorPrimary,
+    background: token.colorPrimaryBg,
+  },
+  image: {
+    width: "100%",
+    height: 110,
+    objectFit: "cover",
+    borderRadius: token.borderRadius,
+  },
+}));
 
 const NewProjectModal = observer(function NewProjectModal({
   workspaceId,
   onCancel,
-  ...rest
 }: NewProjectModalProps) {
   const { t } = useI18n();
   const appCtx = useAppCtx();
-  const { data: projectsData } = useAllProjectsData();
+  const history = useHistory();
+  const {
+    data: projectsData,
+    error: loadError,
+    mutate: reloadProjects,
+  } = useAllProjectsData();
+  const { styles, cx } = useStyles();
+  const [form] = Form.useForm<{ name: string; workspaceId?: WorkspaceId }>();
+  const [startingPoint, setStartingPoint] = React.useState("blank");
+  const [selectedTemplate, setSelectedTemplate] =
+    React.useState<StarterProjectConfig>();
+  const [creating, setCreating] = React.useState(false);
+  const [error, setError] = React.useState<string>();
+  const showInternal = isAdminTeamEmail(
+    appCtx.selfInfo?.email,
+    appCtx.appConfig,
+  );
+  const destination = Form.useWatch("workspaceId", form);
+  const workspaces = appCtx.workspaces.filter(
+    (workspace) =>
+      projectsData &&
+      accessLevelRank(
+        getAccessLevelToResource(
+          { type: "workspace", resource: workspace },
+          appCtx.selfInfo,
+          projectsData.perms,
+        ),
+      ) >= accessLevelRank("editor"),
+  );
+  const templates = uniqBy(
+    [
+      ...(projectsData?.projects ?? [])
+        .filter(
+          (project) =>
+            project.workspaceId === destination && project.isUserStarter,
+        )
+        .map((project): StarterProjectConfig => ({
+          name: project.name,
+          projectId: project.id,
+          tag: project.id,
+          description: "",
+        })),
+      ...[
+        ...appCtx.starters.templateAndExampleSections,
+        ...appCtx.starters.appSections,
+      ]
+        .flatMap((section) => section.projects)
+        .filter((starter) => !starter.isPlasmicOnly || showInternal),
+    ],
+    (starter) => starter.tag,
+  ).filter((starter) => starter.projectId || starter.baseProjectId);
 
-  const workspaceStarters = React.useMemo(() => {
-    if (!projectsData || !workspaceId) {
-      return [];
+  React.useEffect(() => {
+    if (
+      selectedTemplate &&
+      !templates.some((template) => template.tag === selectedTemplate.tag)
+    ) {
+      setSelectedTemplate(undefined);
     }
-    return projectsData.projects.filter(
-      (project) => project.workspaceId === workspaceId && project.isUserStarter,
-    );
-  }, [projectsData, workspaceId]);
+  }, [destination]);
+
+  const create = async (values: {
+    name: string;
+    workspaceId?: WorkspaceId;
+  }) => {
+    if (startingPoint === "template" && !selectedTemplate) {
+      return;
+    }
+    setCreating(true);
+    setError(undefined);
+    try {
+      let projectId: ProjectId;
+      if (startingPoint === "template" && selectedTemplate) {
+        await appCtx.api.updateUserPreferences(
+          updateExtraDataJson(ensure(appCtx.selfInfo, "Must be logged in"), {
+            starterProgress: (previous) =>
+              union(previous, [selectedTemplate.tag]),
+          }),
+        );
+        const result = selectedTemplate.projectId
+          ? await appCtx.api.cloneProject(selectedTemplate.projectId, {
+              name: values.name.trim(),
+              workspaceId: values.workspaceId,
+            })
+          : await appCtx.api.clonePublishedTemplate(
+              ensure(
+                selectedTemplate.baseProjectId,
+                "Template must have a project",
+              ),
+              values.name.trim(),
+              values.workspaceId,
+            );
+        projectId = result.projectId;
+        // Template imports may change code libraries; load the resulting editor afresh.
+        window.location.href = APP_ROUTES.project.fill({ projectId });
+      } else {
+        const { project } = await appCtx.api.createProject({
+          name: values.name.trim(),
+          workspaceId: values.workspaceId,
+        });
+        projectId = project.id;
+        history.push(APP_ROUTES.project.fill({ projectId }));
+      }
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : t("Failed to create project"),
+      );
+      setCreating(false);
+    }
+  };
 
   return (
-    <BareModal onClose={onCancel} width={1450} style={{ top: 32 }}>
-      <PlasmicNewProjectModal
-        {...rest}
-        root={{
-          title: t("New project"),
-          style: {
-            maxHeight: `calc(100vh - 64px)`,
-          },
+    <Modal
+      open
+      title={t("New project")}
+      width={760}
+      onCancel={onCancel}
+      closable={!creating}
+      maskClosable={!creating}
+      keyboard={!creating}
+      footer={
+        <Space>
+          <Button onClick={onCancel} disabled={creating}>
+            {t("Cancel")}
+          </Button>
+          <Button
+            type="primary"
+            loading={creating}
+            disabled={
+              !projectsData ||
+              !workspaces.some((workspace) => workspace.id === destination) ||
+              (startingPoint === "template" && !selectedTemplate)
+            }
+            onClick={() => form.submit()}
+          >
+            {t("Create")}
+          </Button>
+        </Space>
+      }
+    >
+      <Form
+        form={form}
+        onFinish={create}
+        layout="vertical"
+        initialValues={{
+          workspaceId: workspaceId ?? appCtx.personalWorkspace?.id,
         }}
-        cancelButton={{ children: t("Cancel"), onClick: onCancel }}
+        disabled={creating}
       >
-        {appCtx.appConfig.newProjectModal ? (
-          <NewProjectModalBody workspaceId={workspaceId} />
-        ) : (
-          <>
-            {workspaceStarters.length > 0 && (
-              <StarterGroup
-                title={t("Workspace starters")}
-                tag="workspace-starters"
-                projects={workspaceStarters.map((project) => ({
-                  name: project.name,
-                  projectId: project.id,
-                  tag: project.id,
-                  description: "",
-                  withDropShadow: true,
-                  cloneWithoutName: true,
+        <Row gutter={16}>
+          <Col xs={24} sm={14}>
+            <Form.Item
+              name="name"
+              label={t("Name")}
+              rules={[
+                {
+                  required: true,
+                  whitespace: true,
+                  message: t("Enter a project name"),
+                },
+              ]}
+            >
+              <Input autoFocus maxLength={200} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={10}>
+            <Form.Item
+              name="workspaceId"
+              label={t("Workspace")}
+              rules={[{ required: true }]}
+            >
+              <Select
+                loading={!projectsData}
+                options={workspaces.map((workspace) => ({
+                  value: workspace.id,
+                  label: workspace.name,
                 }))}
-                workspaceId={workspaceId}
               />
-            )}
-            {appCtx.starters.templateAndExampleSections.map((section) => (
-              <StarterGroup
-                key={section.tag}
-                title={section.title}
-                tag={section.tag}
-                projects={section.projects}
-                infoTooltip={section.infoTooltip}
-                docsUrl={section.docsUrl}
-                moreUrl={section.moreUrl}
-                workspaceId={workspaceId}
-              />
-            ))}
-          </>
-        )}
-      </PlasmicNewProjectModal>
-    </BareModal>
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+      {loadError && (
+        <Alert
+          type="error"
+          showIcon
+          title={t("Failed to load projects")}
+          action={
+            <Button
+              size="small"
+              onClick={() => {
+                void reloadProjects();
+              }}
+            >
+              {t("Retry")}
+            </Button>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      {error && (
+        <Alert
+          type="error"
+          showIcon
+          title={error}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      <Tabs
+        activeKey={startingPoint}
+        onChange={(key) => {
+          if (!creating) {
+            setStartingPoint(key);
+          }
+        }}
+        items={[
+          {
+            key: "blank",
+            label: t("Blank project"),
+            children: (
+              <Typography.Paragraph type="secondary">
+                {t("Start with an empty canvas.")}
+              </Typography.Paragraph>
+            ),
+          },
+          {
+            key: "template",
+            label: t("Templates"),
+            children: (
+              <div className={styles.templates}>
+                {templates.length === 0 ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={t("No templates available in this workspace.")}
+                  />
+                ) : (
+                  <Radio.Group
+                    value={selectedTemplate?.tag}
+                    style={{ width: "100%" }}
+                    onChange={(event) =>
+                      setSelectedTemplate(
+                        templates.find(
+                          (template) => template.tag === event.target.value,
+                        ),
+                      )
+                    }
+                    disabled={creating}
+                  >
+                    <Row gutter={[12, 12]}>
+                      {templates.map((template) => (
+                        <Col xs={24} sm={12} key={template.tag}>
+                          <Card
+                            className={cx(
+                              styles.card,
+                              selectedTemplate?.tag === template.tag &&
+                                styles.selected,
+                            )}
+                            onClick={() => {
+                              if (!creating) {
+                                setSelectedTemplate(template);
+                              }
+                            }}
+                          >
+                            {template.imageUrl && (
+                              <img
+                                className={styles.image}
+                                src={template.imageUrl}
+                                alt=""
+                              />
+                            )}
+                            <Radio value={template.tag}>{template.name}</Radio>
+                            <Typography.Paragraph
+                              type="secondary"
+                              ellipsis={{ rows: 2 }}
+                              style={{ marginTop: 8, marginBottom: 0 }}
+                            >
+                              {template.description}
+                            </Typography.Paragraph>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Radio.Group>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
+    </Modal>
   );
 });
 

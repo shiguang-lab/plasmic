@@ -414,9 +414,9 @@ export const VariantComboGhostFrame = observer(
 
     return (
       <Popover
-        transitionName=""
-        visible={visible}
-        onVisibleChange={(v) => setVisible(v)}
+        motion={{ motionName: "" }}
+        open={visible}
+        onOpenChange={(v) => setVisible(v)}
         trigger="click"
         placement="right"
         content={() => (
@@ -438,7 +438,7 @@ export const VariantComboGhostFrame = observer(
             }
           />
         )}
-        destroyTooltipOnHide
+        destroyOnHidden
       >
         <GhostFrame
           tooltip={

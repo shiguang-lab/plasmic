@@ -15,7 +15,7 @@ export default async function promptForMetadata(
     (onSubmit, onCancel) => (
       <Modal
         title={null}
-        visible={true}
+        open={true}
         footer={null}
         onCancel={onCancel}
         closable={false}

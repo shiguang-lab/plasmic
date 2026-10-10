@@ -1,10 +1,6 @@
 import { useGetDomainsForProject } from "@/wab/client/api-hooks";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
-  SiteDiffs,
-  SplitStatusUpdateSummarySection,
-} from "@/wab/client/components/modals/SiteDiffs";
-import {
   SetupPlasmicHosting,
   StatusPlasmicHosting,
 } from "@/wab/client/components/TopFrame/TopBar/SubsectionPlasmicHosting";
@@ -21,13 +17,17 @@ import {
   StatusWebhooks,
 } from "@/wab/client/components/TopFrame/TopBar/SubsectionWebhooks";
 import { topFrameTourSignals } from "@/wab/client/components/TopFrame/TopFrameChrome";
+import {
+  SiteDiffs,
+  SplitStatusUpdateSummarySection,
+} from "@/wab/client/components/modals/SiteDiffs";
 import { replaceLink } from "@/wab/client/components/view-common";
-import { Spinner } from "@/wab/client/components/widgets";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultPublishFlowDialogProps,
   PlasmicPublishFlowDialog,
@@ -43,6 +43,7 @@ import type {
   SemVerReleaseType,
 } from "@/wab/shared/site-diffs";
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
+import { Alert, Button, Skeleton } from "antd";
 import * as React from "react";
 
 export interface VisibleEnableBlockReadOnly {
@@ -93,6 +94,7 @@ interface PublishFlowDialogProps extends DefaultPublishFlowDialogProps {
 }
 
 function PublishFlowDialog(props: PublishFlowDialogProps) {
+  const { t } = useI18n();
   const {
     appCtx,
     project,
@@ -115,6 +117,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
 
   // Versions
   const [loadingVersion, setLoadingVersion] = React.useState(true);
+  const [versionError, setVersionError] = React.useState(false);
   const [nextVersion, setNextVersion] = React.useState<{
     version: string;
     releaseType?: SemVerReleaseType;
@@ -124,23 +127,29 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     spawn(
       (async () => {
         if (loadingVersion) {
-          const next = await hostFrameApi.calculateNextPublishVersion();
-          setNextVersion(next);
-          setLoadingVersion(false);
-          if (view !== "status") {
-            if (next) {
-              subsectionMeta.saveVersion.setVisibleEnableBlock(
-                true,
-                true,
-                false,
-              );
-            } else {
-              subsectionMeta.saveVersion.setVisibleEnableBlock(
-                true,
-                false,
-                true,
-              );
+          setVersionError(false);
+          try {
+            const next = await hostFrameApi.calculateNextPublishVersion();
+            setNextVersion(next);
+            if (view !== "status") {
+              if (next) {
+                subsectionMeta.saveVersion.setVisibleEnableBlock(
+                  true,
+                  true,
+                  false,
+                );
+              } else {
+                subsectionMeta.saveVersion.setVisibleEnableBlock(
+                  true,
+                  false,
+                  true,
+                );
+              }
             }
+          } catch {
+            setVersionError(true);
+          } finally {
+            setLoadingVersion(false);
           }
         }
       })(),
@@ -179,11 +188,38 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
 
   const diffs = !nextVersion ? null : filterUsefulDiffs(nextVersion.changeLog);
 
-  const { data: plasmicHostingDomains, isLoading: loadingDomains } =
-    useGetDomainsForProject(projectId);
+  const {
+    data: plasmicHostingDomains,
+    isLoading: loadingDomains,
+    error: domainsError,
+    mutate: retryDomains,
+  } = useGetDomainsForProject(projectId);
 
   if (loadingDomains) {
-    return <Spinner />;
+    return (
+      <div role="status" aria-label={t("Loading publishing settings…")}>
+        <Skeleton active />
+      </div>
+    );
+  }
+
+  if (domainsError) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title={t("Failed to load publishing settings")}
+        action={
+          <Button
+            onClick={() => {
+              void retryDomains();
+            }}
+          >
+            {t("Retry")}
+          </Button>
+        }
+      />
+    );
   }
 
   const prodUrl = prodUrlForProject(
@@ -194,6 +230,18 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
 
   return (
     <>
+      {versionError && (
+        <Alert
+          type="error"
+          showIcon
+          title={t("Failed to load publishing settings")}
+          action={
+            <Button onClick={() => setLoadingVersion(true)}>
+              {t("Retry")}
+            </Button>
+          }
+        />
+      )}
       <PlasmicPublishFlowDialog
         {...rest}
         projectName={project.name}
@@ -213,7 +261,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
         root={{
           id: "publish-flow-dialog-root",
           style: {
-            maxHeight: `calc(100vh - 100px)`,
+            maxHeight: "calc(100vh - 240px)",
             maxWidth: `calc(100vw - 32px)`,
           },
         }}
@@ -221,7 +269,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           onClick: closeDialog,
         }}
         dismissButton={{
-          onClick: closeDialog,
+          render: () => null,
         }}
         backButton={{
           onClick: () => setView(undefined),
@@ -230,12 +278,13 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           disabled:
             websiteBusy ||
             loadingVersion ||
+            versionError ||
             (!subsectionMeta.saveVersion.enable &&
               !subsectionMeta.pushDeploy.enable &&
               !subsectionMeta.webhooks.enable),
           onClick: publish,
           id: "publish-flow-dialog-publish-btn",
-          ...(loadingVersion && { children: "Loading..." }),
+          ...(loadingVersion && { children: t("Loading...") }),
         }}
         startOverButton={{
           onClick: () => {
@@ -323,14 +372,22 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
         }}
         webhooksDescription={{
           render: (_props) =>
-            replaceLink(_props, (text) => (
-              <a
-                href="javascript: void 0"
-                onClick={() => spawn(setShowCodeModal(true))}
-              >
-                {text}
-              </a>
-            )),
+            replaceLink(
+              {
+                ..._props,
+                children: t(
+                  "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase].",
+                ),
+              },
+              (text) => (
+                <a
+                  href="javascript: void 0"
+                  onClick={() => spawn(setShowCodeModal(true))}
+                >
+                  {text}
+                </a>
+              ),
+            ),
         }}
         addWebhooksPanel={{
           wrap: (node) => !subsectionMeta.webhooks.visible && node,

@@ -6,12 +6,10 @@ import {
 } from "@/wab/client/components/analytics/analytics-contexts";
 import { COMPONENT_PICKER_INFO } from "@/wab/client/components/analytics/utils";
 import { useI18n } from "@/wab/client/i18n";
-import {
-  DefaultTeamFiltersProps,
-  PlasmicTeamFilters,
-} from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicTeamFilters";
+import { DefaultTeamFiltersProps } from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicTeamFilters";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { uniqBy } from "lodash";
+import { Alert, Button, Flex, Select, Typography } from "antd";
+import { groupBy } from "lodash";
 import * as React from "react";
 
 // Your component props start with props for variants and slots you defined
@@ -54,76 +52,88 @@ function TeamFilters_(props: TeamFiltersProps, ref: HTMLElementRefOf<"div">) {
     ...rest
   } = props;
 
-  const teamProjects = useTeamProjects(teamId) ?? [];
-  const projectMeta = useProjectAnalyticsMeta(teamId, projectId) ?? {
-    pages: [],
-    splits: [],
-  };
-
+  const projects = useTeamProjects(teamId);
+  const metadata = useProjectAnalyticsMeta(teamId, projectId);
+  const projectMeta = metadata.data ?? { pages: [], splits: [] };
+  const error = projects.error || metadata.error;
   return (
-    <PlasmicTeamFilters
-      root={{ ref }}
-      workspaceSelect={{
-        options: [],
-        selected: undefined,
-        onChange: (x) => null,
-      }}
-      projectSelect={{
-        options: [
-          {
-            label: uiT("Unset"),
-            value: undefined,
-          },
-          ...teamProjects.map((project) => ({
-            label: project.name,
-            value: project.id,
-            group: project.workspaceId ?? undefined,
-          })),
-        ],
-        groups: uniqBy(
-          teamProjects
-            .filter((project) => project.workspaceId && project.workspaceName)
-            .map((project) => ({
-              label: project.workspaceName!,
-              value: project.workspaceId!,
-            })),
-          (x) => `${x.label}@${x.value}`,
-        ),
-        selected: projectId,
-        onChange: (x) => setProjectId(x),
-      }}
-      pageSelect={{
-        isDisabled: !projectId,
-        info: COMPONENT_PICKER_INFO,
-        options: [
-          {
-            label: uiT("Unset"),
-            value: undefined,
-          },
-          ...projectMeta.pages.map((page) => ({
-            label: page.name,
-            value: page.id,
-          })),
-        ],
-        selected: componentId,
-        onChange: (x) => setComponentId(x),
-      }}
-      optimizationsSelect={{
-        options: [
-          {
-            label: uiT("Unset"),
-            value: undefined,
-          },
-          ...projectMeta.splits.map((split) => ({
-            label: split.name,
-            value: split.id,
-          })),
-        ],
-        selected: splitId,
-        onChange: (x) => setSplitId(x),
-      }}
-      {...rest}
-    />
+    <Flex ref={ref} vertical gap={12} className={rest.className}>
+      {error && (
+        <Alert
+          type="error"
+          showIcon
+          title={uiT("Failed to load analytics filters")}
+          action={
+            <Button
+              onClick={() => {
+                void projects.mutate();
+                void metadata.mutate();
+              }}
+            >
+              {uiT("Retry")}
+            </Button>
+          }
+        />
+      )}
+      <Flex gap={16} wrap>
+        <Flex vertical gap={4} style={{ minWidth: 180, flex: 1 }}>
+          <Typography.Text>{uiT("Project")}</Typography.Text>
+          <Select
+            aria-label={uiT("Project")}
+            allowClear
+            loading={projects.isLoading}
+            value={projectId}
+            placeholder={uiT("All projects")}
+            onChange={(value) => setProjectId(value)}
+            options={Object.values(
+              groupBy(
+                projects.data ?? [],
+                (project) => project.workspaceId ?? "",
+              ),
+            ).map((group) => ({
+              label: group[0].workspaceName ?? uiT("Other projects"),
+              options: group.map((project) => ({
+                label: project.name,
+                value: project.id,
+              })),
+            }))}
+          />
+        </Flex>
+        <Flex vertical gap={4} style={{ minWidth: 180, flex: 1 }}>
+          <Typography.Text>{uiT("Page / component")}</Typography.Text>
+          <Select
+            aria-label={uiT("Page / component")}
+            title={COMPONENT_PICKER_INFO}
+            allowClear
+            disabled={!projectId}
+            loading={metadata.isLoading}
+            value={componentId}
+            placeholder={uiT("All pages and components")}
+            onChange={(value) => setComponentId(value)}
+            options={projectMeta.pages.map((page) => ({
+              label: page.name,
+              value: page.id,
+            }))}
+          />
+        </Flex>
+        <Flex vertical gap={4} style={{ minWidth: 180, flex: 1 }}>
+          <Typography.Text>{uiT("Optimization")}</Typography.Text>
+          <Select
+            aria-label={uiT("Optimization")}
+            allowClear
+            disabled={!projectId}
+            loading={metadata.isLoading}
+            value={splitId}
+            placeholder={uiT("All optimizations")}
+            onChange={(value) => setSplitId(value)}
+            options={projectMeta.splits.map((split) => ({
+              label: split.name,
+              value: split.id,
+            }))}
+          />
+        </Flex>
+      </Flex>
+    </Flex>
   );
 }
 

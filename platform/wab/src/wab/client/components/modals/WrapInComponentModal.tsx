@@ -26,7 +26,7 @@ export async function promptWrapInComponent(props: {
   return showTemporaryPrompt<WrapInComponentResponse>((onSubmit, onCancel) => (
     <Modal
       title={"Wrap in component"}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onCancel()}
     >

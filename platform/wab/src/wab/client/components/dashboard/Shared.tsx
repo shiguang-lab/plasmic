@@ -84,7 +84,7 @@ function Shared_(props: SharedProps, ref: HTMLElementRefOf<"button">) {
       />
       {modal && (
         <Modal
-          visible={true}
+          open={true}
           onCancel={() => setModal(false)}
           modalRender={() => (
             <ShareDialogContent

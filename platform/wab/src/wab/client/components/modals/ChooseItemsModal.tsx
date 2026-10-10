@@ -3,7 +3,6 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { Checkbox, Form, Row } from "antd";
-import { CheckboxValueType } from "antd/lib/checkbox/Group";
 import * as React from "react";
 
 export interface ItemData<T> {
@@ -46,7 +45,7 @@ function ChooseItemsForm<T>(props: {
   onCancel: () => void;
 }) {
   const { title, description, group, onSubmit, onCancel } = props;
-  const [chosen, setChosen] = React.useState<CheckboxValueType[]>([]);
+  const [chosen, setChosen] = React.useState<string[]>([]);
   const handleSubmit = React.useCallback(() => {
     onSubmit(group.filter((i) => chosen?.includes(i.value)));
   }, [onSubmit, group, chosen]);
@@ -54,7 +53,7 @@ function ChooseItemsForm<T>(props: {
   return (
     <Modal
       title={title}
-      visible={true}
+      open={true}
       footer={null}
       maskClosable={false}
       onCancel={() => onCancel()}
@@ -62,7 +61,7 @@ function ChooseItemsForm<T>(props: {
       {description && <p>{description}</p>}
       <Form onFinish={handleSubmit}>
         <Form.Item required>
-          <Checkbox.Group
+          <Checkbox.Group<string>
             onChange={setChosen}
             defaultValue={group
               .filter(({ defaultChecked }) => defaultChecked)

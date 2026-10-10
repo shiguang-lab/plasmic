@@ -1,10 +1,12 @@
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { InsertRelLoc } from "@/wab/client/components/canvas/view-ops";
+import { ResourceAssetActions } from "@/wab/client/components/insert-panel/ResourceAssetActions";
 import AddDrawerCardItem from "@/wab/client/components/studio/add-drawer/AddDrawerCardItem";
 import { ImagePreview } from "@/wab/client/components/style-controls/ImageSelector";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { Modal } from "@/wab/client/components/widgets/Modal";
 import {
   AddItem,
   AddTplItem,
@@ -21,9 +23,11 @@ import { PlasmicAddDrawerItem } from "@/wab/client/plasmic/plasmic_kit_left_pane
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { TplNode } from "@/wab/shared/model/classes";
-import { Tooltip } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import { Button, Tooltip, Typography } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useOverlayTriggerState } from "react-stately";
 
 /**
  * The single view for an `AddItem` in insert UIs.
@@ -35,6 +39,7 @@ import * as React from "react";
  */
 interface AddDrawerItemProps {
   variant: "card" | "row";
+  onInsert?: () => void;
   studioCtx: StudioCtx;
   item: AddItem;
   matcher?: Matcher;
@@ -45,6 +50,8 @@ interface AddDrawerItemProps {
   cardTitleClassName?: string;
   /** Card only: rendered title override. */
   cardTitle?: React.ReactNode;
+  previewOpen?: boolean;
+  onPreviewOpenChange?: (open: boolean) => void;
   /** Row only: called after the item is inserted via an insert action. */
   onInserted?: (tplNode: TplNode | null) => void;
   /** Row only: valid insert locations for the insert action buttons. */
@@ -70,34 +77,145 @@ export function getAddItemLabel(item: AddItem, locale: UiLocale): string {
 function AddItemCard(props: AddDrawerItemProps) {
   const { locale, t } = useI18n();
   const { item, matcher, isHighlighted } = props;
+  const previewState = useOverlayTriggerState({
+    isOpen: props.previewOpen,
+    onOpenChange: props.onPreviewOpenChange,
+  });
+  const previewOpen = previewState.isOpen;
+  const setPreviewOpen = previewState.setOpen;
+  const template =
+    item.key.startsWith("page-template-") ||
+    item.key.startsWith("insertable-template-");
   return (
-    <AddDrawerCardItem
-      className={props.cardClassName}
-      title={
-        props.cardTitle ??
-        (matcher
-          ? matcher.boldSnippets(getAddItemLabel(item, locale))
-          : getAddItemLabel(item, locale))
+    <div
+      style={{ position: "relative", width: "100%", height: "100%" }}
+      onMouseDown={(event) => {
+        if (previewOpen) {
+          event.stopPropagation();
+        }
+      }}
+      onWheel={(event) => {
+        if (previewOpen) {
+          event.stopPropagation();
+        }
+      }}
+      onKeyDown={(event) => {
+        if (previewOpen) {
+          event.stopPropagation();
+        }
+      }}
+      onClick={
+        template
+          ? (event) => {
+              event.stopPropagation();
+              setPreviewOpen(true);
+            }
+          : undefined
       }
-      titleBox={{ className: props.cardTitleClassName }}
-      hoverText={
-        item["hostLessPackageInfo"]?.syntheticPackage
-          ? t("Show package")
-          : t("Install package")
-      }
-      _new={item.isNew}
-      installOnly={item["isPackage"]}
-      preview={
-        item.previewImageUrl
-          ? "image"
-          : item.previewVideoUrl
-            ? "video"
-            : undefined
-      }
-      previewImageUrl={item.previewImageUrl}
-      previewVideoUrl={item.previewVideoUrl}
-      focused={isHighlighted}
-    />
+    >
+      <AddDrawerCardItem
+        className={props.cardClassName}
+        title={
+          props.cardTitle ??
+          (matcher
+            ? matcher.boldSnippets(getAddItemLabel(item, locale))
+            : getAddItemLabel(item, locale))
+        }
+        titleBox={{ className: props.cardTitleClassName }}
+        hoverText={
+          template
+            ? t("Preview template")
+            : item.key.startsWith("tpl-image-")
+              ? t("Insert")
+              : item["hostLessPackageInfo"]?.syntheticPackage
+                ? t("Show package")
+                : t("Install package")
+        }
+        _new={item.isNew}
+        installOnly={item["isPackage"]}
+        preview={
+          item.previewImageUrl
+            ? "image"
+            : item.previewVideoUrl
+              ? "video"
+              : undefined
+        }
+        previewImageUrl={item.previewImageUrl}
+        previewVideoUrl={item.previewVideoUrl}
+        focused={isHighlighted}
+      />
+      {isTplAddItem(item) && item.imageAsset && (
+        <ResourceAssetActions
+          studioCtx={props.studioCtx}
+          asset={item.imageAsset}
+        />
+      )}
+      {template && (
+        <>
+          <Button
+            size="small"
+            type="text"
+            aria-label={t("Preview template")}
+            icon={<EyeOutlined aria-hidden />}
+            style={{ position: "absolute", right: 6, top: 6 }}
+            onClick={(event) => {
+              event.stopPropagation();
+              setPreviewOpen(true);
+            }}
+          />
+          <Modal
+            open={previewOpen}
+            title={getAddItemLabel(item, locale)}
+            width={720}
+            onCancel={(event) => {
+              event.stopPropagation();
+              setPreviewOpen(false);
+            }}
+            footer={
+              <Button
+                type="primary"
+                disabled={item.isDisabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPreviewOpen(false);
+                  props.onInsert?.();
+                }}
+              >
+                {t(
+                  item.key.startsWith("page-template-")
+                    ? "Create page"
+                    : "Use template",
+                )}
+              </Button>
+            }
+          >
+            <div onClick={(event) => event.stopPropagation()}>
+              {item.previewImageUrl ? (
+                <img
+                  src={item.previewImageUrl}
+                  alt={getAddItemLabel(item, locale)}
+                  style={{
+                    width: "100%",
+                    maxHeight: "60vh",
+                    objectFit: "contain",
+                  }}
+                />
+              ) : item.previewVideoUrl ? (
+                <video
+                  controls
+                  src={item.previewVideoUrl}
+                  style={{ width: "100%", maxHeight: "60vh" }}
+                />
+              ) : (
+                <Typography.Text type="secondary">
+                  {t("This template has no preview image.")}
+                </Typography.Text>
+              )}
+            </div>
+          </Modal>
+        </>
+      )}
+    </div>
   );
 }
 

@@ -41,9 +41,9 @@ export class RightPanel extends BaseModel {
     '[data-test-id="close-sidebar-modal"]',
   );
   readonly sidebarModal: Locator = this.frame.locator('[id="sidebar-modal"]');
-  readonly designTabButton: Locator = this.frame.locator(
-    'button[data-test-tabkey="style"]',
-  );
+  readonly designTabButton: Locator = this.frame
+    .locator(".editor-inspector-tabs")
+    .getByRole("tab", { name: "Design", exact: true });
   readonly componentNameInput: Locator = this.frame.locator(
     'input[data-test-class="simple-text-box"]',
   );
@@ -110,9 +110,9 @@ export class RightPanel extends BaseModel {
     .locator('[data-test-id="text-decoration-selector"]')
     .locator("button")
     .nth(0);
-  readonly componentDataTabButton: Locator = this.frame.locator(
-    'button[data-test-tabkey="component"]',
-  );
+  readonly componentDataTabButton: Locator = this.frame
+    .locator(".editor-inspector-tabs")
+    .getByRole("tab", { name: "Data", exact: true });
   readonly globalVariantsHeader: Locator =
     this.frame.getByText("Global Variants");
   readonly responsivenessTabButton: Locator = this.frame

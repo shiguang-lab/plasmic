@@ -4,7 +4,8 @@ import {
   IFrameAwareDropdownMenu,
   MenuMaker,
 } from "@/wab/client/components/widgets";
-import { PlasmicMenuButton } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicMenuButton";
+import IconButton from "@/wab/client/components/widgets/IconButton";
+import DotsVerticalSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DotsVerticalSvg";
 import * as React from "react";
 
 interface MenuButtonProps {
@@ -13,6 +14,7 @@ interface MenuButtonProps {
   style?: React.CSSProperties;
   onVisibleChange?: (visible: boolean) => void;
   onContextMenu?: (e: React.MouseEvent) => void;
+  align?: React.ComponentProps<typeof IFrameAwareDropdownMenu>["align"];
   tabIndex?: number;
   "aria-label"?: string;
 }
@@ -24,14 +26,16 @@ function MenuButton(props: MenuButtonProps) {
     style,
     onVisibleChange,
     onContextMenu,
+    align,
     ...extraProps
   } = props;
   if (!menu && !onContextMenu) {
     return null;
   }
   const button = (
-    <PlasmicMenuButton
-      root={{ "aria-label": props["aria-label"] ?? "More actions" }}
+    <IconButton
+      aria-label={props["aria-label"] ?? "More actions"}
+      size="vertical"
       onClick={(e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -40,12 +44,18 @@ function MenuButton(props: MenuButtonProps) {
       className={className}
       style={style}
       {...extraProps}
-    />
+    >
+      <DotsVerticalSvgIcon />
+    </IconButton>
   );
   return onContextMenu ? (
     button
   ) : (
-    <IFrameAwareDropdownMenu menu={menu} onVisibleChange={onVisibleChange}>
+    <IFrameAwareDropdownMenu
+      menu={menu}
+      onVisibleChange={onVisibleChange}
+      align={align}
+    >
       {button}
     </IFrameAwareDropdownMenu>
   );

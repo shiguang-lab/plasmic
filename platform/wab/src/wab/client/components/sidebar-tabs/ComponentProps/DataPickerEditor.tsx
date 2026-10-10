@@ -179,8 +179,8 @@ export const InternalDataPickerEditor = observer(
           />
         }
         trigger="click"
-        visible={!isDisabled && visible}
-        onVisibleChange={(_visible) => {
+        open={!isDisabled && visible}
+        onOpenChange={(_visible) => {
           // Don't close if a context menu is open (e.g. the data inspector's
           // insert/copy menu), since it's portaled to body and Popover sees
           // clicks on it as outside clicks.
@@ -189,7 +189,7 @@ export const InternalDataPickerEditor = observer(
           }
           setVisible(_visible);
         }}
-        destroyTooltipOnHide={true}
+        destroyOnHidden={true}
         overlayClassName="data-picker-popover-overlay"
       >
         <div

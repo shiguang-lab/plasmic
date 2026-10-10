@@ -1,3 +1,7 @@
+import {
+  DeliveryModal,
+  DeliveryNavigationProps,
+} from "@/wab/client/components/TopFrame/TopBar/DeliveryModal";
 import PreviewPublishSection from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
 import {
   ensureWebsiteVersionSaved,
@@ -115,7 +119,7 @@ function shouldShowPublishWizard(project: ApiProject, appCtx: AppCtx): boolean {
   return starterProjects.map((p) => p.projectId).includes(starterId);
 }
 
-interface PublishFlowDialogWrapperProps {
+interface PublishFlowDialogWrapperProps extends DeliveryNavigationProps {
   project: ApiProject;
   refreshProjectAndPerms: () => void;
   activatedBranch: ApiBranch | undefined;
@@ -141,6 +145,7 @@ export const PublishFlowDialogWrapper = observer(
     setShowPublishModal,
     keepPublishModalOpen,
     setShowCodeModal,
+    onSelectDelivery,
   }: PublishFlowDialogWrapperProps) {
     const appCtx = useAppCtx();
     const { hostFrameApi } = useTopFrameCtx();
@@ -717,7 +722,15 @@ export const PublishFlowDialogWrapper = observer(
         )}
 
         {(showPublishModal || keepPublishModalOpen) && (
-          <TopBarModal onClose={() => setShowPublishModal(false)}>
+          <DeliveryModal
+            tab="publish"
+            open
+            onSelectDelivery={onSelectDelivery}
+            busy={publishState === "publishing" || previewBusy}
+            onClose={() => {
+              void setShowPublishModal(false);
+            }}
+          >
             <PublishFlowDialog
               appCtx={appCtx}
               websiteBusy={
@@ -762,7 +775,7 @@ export const PublishFlowDialogWrapper = observer(
               setShowCodeModal={setShowCodeModal}
               publishState={publishState}
             />
-          </TopBarModal>
+          </DeliveryModal>
         )}
       </>
     );

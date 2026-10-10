@@ -28,14 +28,24 @@ function setup() {
       windowForTest,
       authForTest: { show: (url) => loginUrls.push(url) },
       require: (name) => {
-        if (name === "electron")
+        if (name === "electron") {
           return { shell: { openExternal: (url) => externalUrls.push(url) } };
-        if (name === "../desktop.config.json") return config;
-        if (name === "./open-browser.cjs")
+        }
+        if (name === "../desktop.config.json") {
+          return config;
+        }
+        if (name === "./ui-appearance.cjs") {
+          return require("../src/ui-appearance.cjs");
+        }
+        if (name === "./open-browser.cjs") {
           return { openBrowser: (url) => browserUrls.push(url) };
-        if (name === "./unified-login.cjs")
+        }
+        if (name === "./unified-login.cjs") {
           return { AUTH_ORIGIN: "https://shiguanglab.com" };
-        if (name.startsWith("./")) return {};
+        }
+        if (name.startsWith("./")) {
+          return {};
+        }
         return require(name);
       },
     },

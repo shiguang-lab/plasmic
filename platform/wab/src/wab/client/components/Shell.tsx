@@ -13,7 +13,11 @@ import {
   useHostFrameCtxIfHostFrame,
 } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { initObservability } from "@/wab/client/observability";
-import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
+import {
+  HistoryProvider,
+  useLocation,
+} from "@/wab/client/route/HistoryProvider";
+import { usesProductTheme } from "@/wab/client/ui-theme";
 import { isLiteralObject, swallow, tuple } from "@/wab/shared/common";
 import { DEVFLAGS, applyDevFlagOverrides } from "@/wab/shared/devflags";
 import * as Sentry from "@sentry/browser";
@@ -23,6 +27,15 @@ import { OverlayProvider } from "react-aria";
 import * as ReactDOM from "react-dom";
 
 const localStoragePrefixesThatAreSafeToRemove = ["__mpq_"];
+
+function ShellThemeProvider({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  return (
+    <AntdConfigProvider productUI={usesProductTheme(pathname)}>
+      {children}
+    </AntdConfigProvider>
+  );
+}
 
 function getStudioPlaceholderElement() {
   return document.querySelector(".StudioPlaceholder") as HTMLDivElement;
@@ -174,11 +187,11 @@ export function Shell() {
 
   return (
     <HistoryProvider history={history}>
-      <AntdConfigProvider>
+      <ShellThemeProvider>
         <OverlayProvider style={{ width: "100%", height: "100%" }}>
           <Root />
         </OverlayProvider>
-      </AntdConfigProvider>
+      </ShellThemeProvider>
     </HistoryProvider>
   );
 }

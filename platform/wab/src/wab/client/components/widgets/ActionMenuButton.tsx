@@ -76,7 +76,7 @@ const ActionMenuButton = React.forwardRef(function ActionMenuButton(
             <Tooltip
               title={tooltip}
               open={tooltipVisible}
-              onVisibleChange={(visible) => {
+              onOpenChange={(visible) => {
                 setTooltipVisible(visible && !menuVisible);
               }}
             >

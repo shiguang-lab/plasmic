@@ -6,6 +6,7 @@ import {
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { HelpButton } from "@/wab/client/components/top-bar/HelpButton";
+import { useAuthenticatedLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import * as widgets from "@/wab/client/components/widgets";
 import { InlineIcon } from "@/wab/client/components/widgets";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
@@ -20,6 +21,7 @@ import * as React from "react";
 import { ReactNode } from "react";
 
 interface NormalLayoutComponentProps {
+  className?: string;
   topBar?: ReactNode;
   children?: ReactNode;
 }
@@ -30,7 +32,11 @@ class NormalLayoutComponent extends React.Component<
   render() {
     const { topBar } = this.props;
     return (
-      <div className={"normal-layout"}>
+      <div
+        className={["normal-layout", this.props.className]
+          .filter(Boolean)
+          .join(" ")}
+      >
         {topBar && (
           <div className={"normal-layout__top-bar"}>
             <div
@@ -48,6 +54,10 @@ class NormalLayoutComponent extends React.Component<
       </div>
     );
   }
+}
+function AuthenticatedLayout(props: NormalLayoutComponentProps) {
+  const { styles } = useAuthenticatedLayoutStyles();
+  return <NormalLayoutComponent {...props} className={styles.root} />;
 }
 interface NormalNonAuthLayoutProps extends NonAuthComponentProps {
   children?: React.ReactNode;
@@ -81,11 +91,11 @@ export class NormalLayout extends AppComponent {
     return (
       <>
         <BrowserAlertBanner />
-        <NormalLayoutComponent
+        <AuthenticatedLayout
           topBar={
             <div className={"normal-layout__top-bar-right"}>
               <HelpButton />
-              <Dropdown overlay={menu} trigger={["click"]}>
+              <Dropdown popupRender={() => menu} trigger={["click"]}>
                 <div className={"normal-layout__user"}>
                   <Avatar
                     className={"user-avatar"}
@@ -100,7 +110,7 @@ export class NormalLayout extends AppComponent {
           }
         >
           {this.props.children}
-        </NormalLayoutComponent>
+        </AuthenticatedLayout>
       </>
     );
   }

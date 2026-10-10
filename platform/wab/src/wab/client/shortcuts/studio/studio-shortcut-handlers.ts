@@ -223,14 +223,14 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
           }
         });
       },
-      SWITCH_TO_SETTINGS_TAB: async () => {
-        return studioCtx.changeUnsafe(() =>
-          studioCtx.switchRightTab(RightTabKey.settings),
-        );
-      },
       SWITCH_TO_DESIGN_TAB: async () => {
         return studioCtx.changeUnsafe(() =>
           studioCtx.switchRightTab(RightTabKey.style),
+        );
+      },
+      SWITCH_TO_INTERACTIONS_TAB: async () => {
+        return studioCtx.changeUnsafe(() =>
+          studioCtx.switchRightTab(RightTabKey.interactions),
         );
       },
       SWITCH_TO_COMPONENT_TAB: async () => {

@@ -7,6 +7,7 @@ import {
   mkCustomFunctionExpr,
   mkServerQuery,
 } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
+import { ensure } from "@/wab/shared/common";
 import {
   ComponentType,
   PageComponent,
@@ -16,6 +17,7 @@ import { mkVar } from "@/wab/shared/core/lang";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
+import { Pt } from "@/wab/shared/geom";
 import {
   Arg,
   ComponentServerQuery,
@@ -97,6 +99,66 @@ describe("uniquePagePath", () => {
 });
 
 describe("TplMgr", () => {
+  it("keeps existing world coordinates when adding and removing mixed arena frames", () => {
+    const site = createSite();
+    const mgr = new TplMgr({ site });
+    const page = mgr.addComponent({ name: "Page", type: ComponentType.Page });
+    const arena = mgr.addArena("Canvas");
+    const first = mgr.addNewMixedArenaFrame(arena, "First", page, {
+      insertPt: new Pt(-1800, -1200),
+    });
+    const firstPosition = new Pt(
+      ensure(first.left, "Frame left"),
+      ensure(first.top, "Frame top"),
+    );
+    expect(firstPosition.x).toBeLessThan(0);
+    expect(firstPosition.y).toBeLessThan(0);
+    const second = mgr.addNewMixedArenaFrame(arena, "Second", page, {
+      insertPt: new Pt(1200, 800),
+    });
+    expect(
+      new Pt(ensure(first.left, "Frame left"), ensure(first.top, "Frame top")),
+    ).toEqual(firstPosition);
+    const secondPosition = new Pt(
+      ensure(second.left, "Frame left"),
+      ensure(second.top, "Frame top"),
+    );
+    const third = mkArenaFrame({
+      site,
+      component: page,
+      name: "Third",
+      width: 400,
+      height: 300,
+    });
+    mgr.addExistingArenaFrame(arena, third, new Pt(-3000, -2400));
+    expect(
+      new Pt(ensure(first.left, "Frame left"), ensure(first.top, "Frame top")),
+    ).toEqual(firstPosition);
+    expect(
+      new Pt(
+        ensure(second.left, "Frame left"),
+        ensure(second.top, "Frame top"),
+      ),
+    ).toEqual(secondPosition);
+    mgr.removeExistingArenaFrame(arena, third);
+    expect(
+      new Pt(ensure(first.left, "Frame left"), ensure(first.top, "Frame top")),
+    ).toEqual(firstPosition);
+    expect(
+      new Pt(
+        ensure(second.left, "Frame left"),
+        ensure(second.top, "Frame top"),
+      ),
+    ).toEqual(secondPosition);
+    mgr.removeExistingArenaFrame(arena, first);
+    expect(arena.children).toEqual([second]);
+    expect(
+      new Pt(
+        ensure(second.left, "Frame left"),
+        ensure(second.top, "Frame top"),
+      ),
+    ).toEqual(secondPosition);
+  });
   describe("tryRemoveVariant", () => {
     const site = createSite();
     const mgr = new TplMgr({ site: site });

@@ -21,7 +21,7 @@ function ShareButton(props: ShareButtonProps) {
       <PlasmicShareButton {...rest} onClick={() => setModal(true)} />
       {modal && (
         <Modal
-          visible={true}
+          open={true}
           onCancel={() => setModal(false)}
           modalRender={() => (
             <ShareDialogContent

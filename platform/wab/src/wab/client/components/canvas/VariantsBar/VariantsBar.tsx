@@ -407,7 +407,7 @@ const VariantsBarInner = observer(function VariantsBarInner_({
               trigger={[]}
               placement={"bottomLeft"}
               open={studioCtx.showVariantsDrawer}
-              overlay={() => (
+              popupRender={() => (
                 <VariantsDrawer
                   component={component}
                   targetedVariants={targetedVariants}

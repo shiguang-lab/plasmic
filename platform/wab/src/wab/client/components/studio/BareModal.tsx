@@ -13,7 +13,7 @@ export function BareModal(props: BareModalProps) {
   const { children, onClose, style, width } = props;
   return (
     <Modal
-      visible={true}
+      open={true}
       footer={null}
       closable={false}
       maskClosable={true}

@@ -1,6 +1,6 @@
+import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
-import { Spinner } from "@/wab/client/components/widgets";
-import { useApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCmsRootProps,
   PlasmicCmsRoot,
@@ -10,6 +10,7 @@ import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { CmsDatabaseId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Alert, Button, Skeleton } from "antd";
 import * as React from "react";
 
 export interface CmsRootProps extends DefaultCmsRootProps {
@@ -18,10 +19,34 @@ export interface CmsRootProps extends DefaultCmsRootProps {
 
 function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
   const { databaseId, ...rest } = props;
-  const api = useApi();
-  const database = useCmsDatabase(databaseId);
+  const { t } = useI18n();
+  const { styles } = useCmsLayoutStyles();
+  const { database, error, mutate } = useCmsDatabase(databaseId);
   if (!database) {
-    return <Spinner />;
+    return (
+      <div className={styles.loading}>
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load content library")}
+            action={
+              <Button
+                onClick={() => {
+                  void mutate();
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+          />
+        ) : (
+          <div role="status" aria-label={t("Loading content library…")}>
+            <Skeleton active paragraph={{ rows: 6 }} />
+          </div>
+        )}
+      </div>
+    );
   }
   return (
     <Switch
@@ -29,19 +54,31 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
         switchCase({
           route: APP_ROUTES.cmsContentRoot,
           render: () => (
-            <PlasmicCmsRoot root={{ ref }} activeTab={"content"} {...rest} />
+            <PlasmicCmsRoot
+              root={{ ref, className: styles.root }}
+              activeTab={"content"}
+              {...rest}
+            />
           ),
         }),
         switchCase({
           route: APP_ROUTES.cmsSchemaRoot,
           render: () => (
-            <PlasmicCmsRoot root={{ ref }} activeTab={"schema"} {...rest} />
+            <PlasmicCmsRoot
+              root={{ ref, className: styles.root }}
+              activeTab={"schema"}
+              {...rest}
+            />
           ),
         }),
         switchCase({
           route: APP_ROUTES.cmsSettings,
           render: () => (
-            <PlasmicCmsRoot root={{ ref }} activeTab={"settings"} {...rest} />
+            <PlasmicCmsRoot
+              root={{ ref, className: styles.root }}
+              activeTab={"settings"}
+              {...rest}
+            />
           ),
         }),
         switchDefault({

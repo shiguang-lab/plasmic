@@ -25,10 +25,10 @@ function ReactionsPopover(props: { commentId: CommentId }) {
   return (
     <Popover
       trigger={[]}
-      showArrow={false}
+      arrow={false}
       open={showPicker}
       onOpenChange={(x) => setShowPicker(x)}
-      overlayClassName={"NoPaddingPopover NoBackgroundStyles"}
+      classNames={{ root: "NoPaddingPopover NoBackgroundStyles" }}
       content={
         <div>
           <OnClickAway onDone={() => setShowPicker(false)}>

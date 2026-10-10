@@ -1,16 +1,15 @@
+import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 // eslint-disable-next-line no-restricted-imports
 import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
-import { AnonymousAvatar, Avatar } from "@/wab/client/components/studio/Avatar";
 import { FigmaModalContent } from "@/wab/client/components/studio/FigmaModalContent";
 import LeftTabButton from "@/wab/client/components/studio/LeftTabButton";
+import { useOnIFrameMouseDown } from "@/wab/client/components/widgets";
 import { DataTokenIcon } from "@/wab/client/icons";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
-import SlackIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Slack";
 import TreeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Tree";
-import KeyboardIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Keyboard";
-import BooksvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__BookSvg";
 import ClocksvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ClockSvg";
 import ComponentsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ComponentSvg";
 import ComponentssvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ComponentsSvg";
@@ -19,10 +18,7 @@ import DotsHorizontalCirclesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/
 import DownloadsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DownloadSvg";
 import FigmasvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FigmaSvg";
 import FontFamily2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FontFamily2Svg";
-import HelpCirclesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__HelpCircleSvg";
-import HelpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__HelpSvg";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
-import MessagesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__MessageSvg";
 import Paintbrush2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Paintbrush2Svg";
 import PhotosvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PhotoSvg";
 import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
@@ -33,33 +29,46 @@ import {
   PlasmicLeftTabStrip,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
 import DiamondsIcon from "@/wab/client/plasmic/plasmic_kit_merge_flow/icons/PlasmicIcon__Diamonds";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { PlayerData } from "@/wab/client/studio-ctx/multiplayer-ctx";
+import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
-import { Stated } from "@/wab/commons/components/Stated";
 import { spawn, unexpected } from "@/wab/shared/common";
-import { BASE_URL } from "@/wab/shared/discourse/config";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import {
   LeftTabKey,
   LeftTabUiKey,
   getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
 import { Popover } from "antd";
-import classNames from "classnames";
-import { omit } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { ReactNode } from "react";
 
+const toolIcon = (path: string) => (
+  <svg
+    width={20}
+    height={20}
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.6}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d={path} />
+  </svg>
+);
+
 interface LeftTabStripProps extends DefaultLeftTabStripProps {
   useVersionsCTA: boolean;
+  managementOnly?: boolean;
+  onNavigate?: () => void;
 }
 
 export interface NavMenuItem {
   type: "item";
   icon: ReactNode;
   label: string;
+  tooltip?: string;
   tabKey?: LeftTabKey;
   cond?: boolean;
   href?: string;
@@ -77,12 +86,34 @@ export interface NavMenuGroup {
 
 const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
+  const { styles: popupStyles } = useEditorPopupStyles();
+  const [openGroup, setOpenGroup] = React.useState<string>();
+  useOnIFrameMouseDown(React.useCallback(() => setOpenGroup(undefined), []));
+  React.useEffect(() => {
+    if (!openGroup) {
+      return;
+    }
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setOpenGroup(undefined);
+        document
+          .querySelector<HTMLButtonElement>(
+            `button[data-test-tabkey="${openGroup}"]`,
+          )
+          ?.focus();
+      }
+    };
+    document.addEventListener("keydown", close, true);
+    return () => document.removeEventListener("keydown", close, true);
+  }, [openGroup]);
+  const topFrameApi = useTopFrameApi();
   const studioCtx = useStudioCtx();
   const isLoggedIn = studioCtx.appCtx.selfInfo != null;
   const contentEditorMode = studioCtx.contentEditorMode;
   const hasGlobalContexts = studioCtx.site.globalContexts.length > 0;
   const missingUsedFonts = studioCtx.fontManager.missingUsedFonts();
-  const shortcutModalButtonClassName = "shortcut-modal-button";
 
   const uiConfig = studioCtx.getCurrentUiConfig();
 
@@ -117,10 +148,6 @@ More
   Splits
   Figma import
 
-Help
-  Docs
-  Slack community
-  Keyboard shortcuts
    */
   const mainGroups: Record<string, NavMenuGroup> = {
     assets: {
@@ -271,7 +298,8 @@ Help
       type: "item",
       tabKey: "lint",
       icon: <WarningTrianglesvgIcon />,
-      label: t("Issues detected"),
+      label: t("Issues"),
+      tooltip: t("Issues detected"),
       cond: canViewTab("lint"),
     },
     ...(contentEditorMode
@@ -287,55 +315,6 @@ Help
         }
       : mainGroups),
   };
-  const bottomMenu: Record<string, NavMenuItem | NavMenuGroup> = {
-    helpGroup: {
-      type: "group",
-      icon: <HelpCirclesvgIcon />,
-      title: t("Help"),
-      items: {
-        keyboard: {
-          type: "item",
-          icon: <KeyboardIcon />,
-          label: t("Keyboard shortcuts"),
-          className: shortcutModalButtonClassName,
-          onClick: studioCtx.openShortcutsModal,
-        },
-        slack: {
-          type: "item",
-          icon: <SlackIcon style={{ margin: 4 }} height={16} width={16} />,
-          label: t("Slack community"),
-          href: "https://www.plasmic.app/slack",
-          cond: true,
-        },
-        forum: {
-          type: "item",
-          icon: <MessagesvgIcon />,
-          label: t("Forum"),
-          href: BASE_URL,
-          cond: true,
-        },
-        docs: {
-          type: "item",
-          icon: <BooksvgIcon />,
-          label: t("Documentation"),
-          href: "https://docs.plasmic.app/",
-          cond: true,
-        },
-        help: {
-          type: "item",
-          icon: <HelpsvgIcon />,
-          label: t("Help"),
-          href: studioCtx.siteInfo.teamId
-            ? APP_ROUTES.orgSupport.fill({
-                teamId: studioCtx.siteInfo.teamId!,
-              })
-            : undefined,
-          cond: Boolean(studioCtx.siteInfo.teamId),
-        },
-      },
-    },
-  };
-
   function renderButton(
     key: string,
     item: NavMenuItem,
@@ -349,27 +328,45 @@ Help
           icon={item.icon}
           label={item.label}
           hasLabel={hasLabel}
-          tooltip={!hasLabel && item.label}
+          tooltip={item.tooltip ?? item.label}
           onClick={() =>
             studioCtx.changeUnsafe(() => {
               item.onClick?.();
               if (item.tabKey) {
-                if (studioCtx.leftTabKey === item.tabKey) {
+                if (
+                  studioCtx.leftTabKey === item.tabKey &&
+                  !studioCtx.showAddDrawer() &&
+                  !studioCtx.panelsHidden
+                ) {
                   studioCtx.switchLeftTab(undefined);
                 } else {
                   studioCtx.switchLeftTab(item.tabKey);
                 }
+                if (studioCtx.panelsHidden) {
+                  studioCtx.togglePanels();
+                }
               }
-              (() => {
-                onClick?.();
-              })?.();
+              studioCtx.setShowAddDrawer(false);
+              onClick?.();
+              props.onNavigate?.();
             })
+          }
+          expanded={
+            !props.managementOnly && item.tabKey
+              ? studioCtx.leftTabKey === item.tabKey &&
+                !studioCtx.showAddDrawer() &&
+                !studioCtx.panelsHidden
+              : undefined
           }
           data-test-tabkey={key}
           showAlert={item.showAlert}
           href={item.href}
           className={item.className}
-          isSelected={item.tabKey && item.tabKey === studioCtx.leftTabKey}
+          isSelected={
+            props.managementOnly &&
+            item.tabKey &&
+            item.tabKey === studioCtx.leftTabKey
+          }
         />
       )
     );
@@ -378,157 +375,214 @@ Help
   const renderButtonGroup = (buttons: typeof topMenu) => {
     return Object.entries(buttons).map(([key, item]) =>
       item.type === "item"
-        ? renderButton(key, item, false, undefined)
+        ? renderButton(key, item, true, undefined)
         : item.type === "group"
           ? Object.values(item.items).some((i) => i.cond ?? true) && (
-              <Stated defaultValue={false} key={key}>
-                {(open, setOpen) => (
-                  <Popover
-                    placement={"right"}
-                    overlayClassName={"sidebar-popover"}
-                    open={open}
-                    onOpenChange={(o) => setOpen(o)}
-                    content={
-                      <>
-                        <div
-                          style={{
-                            margin: 6,
-                            marginLeft: 10,
-                            color: "#999",
-                            fontWeight: 600,
-                            textTransform: "uppercase",
-                            letterSpacing: "1px",
-                            fontSize: 11,
-                          }}
-                        >
-                          {item.title}
-                        </div>
-                        {Object.entries(item.items).map(([subkey, subitem]) =>
-                          renderButton(subkey, subitem, true, () =>
-                            setOpen(false),
-                          ),
-                        )}
-                      </>
-                    }
+              <Popover
+                arrow={false}
+                key={key}
+                trigger="click"
+                placement={"right"}
+                align={{ offset: [8, 0] }}
+                overlayClassName={"sidebar-popover"}
+                open={openGroup === key}
+                onOpenChange={(open) => {
+                  setOpenGroup((current) =>
+                    open ? key : current === key ? undefined : current,
+                  );
+                  if (open && !props.managementOnly) {
+                    spawn(
+                      studioCtx.changeUnsafe(() => {
+                        studioCtx.setShowAddDrawer(false);
+                        studioCtx.switchLeftTab(undefined);
+                      }),
+                    );
+                  }
+                }}
+                content={
+                  <div
+                    className={popupStyles.root}
+                    style={{
+                      minWidth: 200,
+                      maxHeight: "calc(100vh - 120px)",
+                      overflowY: "auto",
+                    }}
                   >
-                    <LeftTabButton
-                      icon={item.icon}
-                      label={item.title}
-                      tooltip={item.title}
-                      data-test-tabkey={key}
-                      onClick={() =>
-                        studioCtx.changeUnsafe(() => {
-                          studioCtx.switchLeftTab(undefined);
-                        })
-                      }
-                      isSelected={Object.keys(item.items).some(
-                        (i) => i === studioCtx.leftTabKey,
+                    <div
+                      className="editor-management-menu"
+                      style={{ borderTop: 0, paddingTop: 0 }}
+                    >
+                      {Object.entries(item.items).map(([subkey, subitem]) =>
+                        renderButton(subkey, subitem, true, () =>
+                          setOpenGroup(undefined),
+                        ),
                       )}
-                    />
-                  </Popover>
-                )}
-              </Stated>
+                    </div>
+                  </div>
+                }
+              >
+                <span style={{ display: "inline-flex" }}>
+                  <LeftTabButton
+                    icon={item.icon}
+                    label={item.title}
+                    hasLabel
+                    tooltip={item.title}
+                    data-test-tabkey={key}
+                    onClick={() => {}}
+                    expanded={openGroup === key}
+                    isSelected={
+                      openGroup === key ||
+                      (!studioCtx.showAddDrawer() &&
+                        !studioCtx.panelsHidden &&
+                        Object.keys(item.items).some(
+                          (i) => i === studioCtx.leftTabKey,
+                        ))
+                    }
+                  />
+                </span>
+              </Popover>
             )
           : unexpected(),
     );
   };
 
+  const resourceItems = {
+    ...mainGroups.assets.items,
+    fonts: mainGroups.settingsGroup.items.fonts,
+    responsiveness: mainGroups.settingsGroup.items.responsiveness,
+    themes: mainGroups.settingsGroup.items.themes,
+    imports: mainGroups.more.items.imports,
+  };
+  if (props.managementOnly) {
+    if (mainGroups.settingsGroup.items.settings.cond === false) {
+      return null;
+    }
+    return (
+      <div className="editor-management-menu">
+        {renderButtonGroup({
+          settingsGroup: {
+            ...mainGroups.settingsGroup,
+            items: { settings: mainGroups.settingsGroup.items.settings },
+          },
+        })}
+      </div>
+    );
+  }
+
   return (
     <PlasmicLeftTabStrip
-      showAvatar
-      insert={{
-        props: {
-          "aria-label": t("Insert"),
-          onClick: () => {
-            studioCtx.tourActionEvents.dispatch({
-              type: TutorialEventsType.AddButtonClicked,
-            });
-            spawn(
-              studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(true)),
-            );
-          },
-        },
-      }}
+      showAvatar={false}
+      insert={{ render: () => null }}
       root={{ className: props.className, id: "left-tab-strip" }}
-      buttons={renderButtonGroup(topMenu)}
-      bottomButtons={renderButtonGroup(bottomMenu)}
-      players={{
-        render: (_props) => {
-          // Exclude 'children' from props to avoid React warnings about missing keys,
-          // as they are already omitted inside Player and not needed here.
-          const { children: _children, ...otherProps } = _props;
-          return <Players {...otherProps} studioCtx={studioCtx} />;
-        },
-      }}
-      avatar={{
-        render: () =>
-          studioCtx.appCtx.selfInfo ? (
-            <Avatar user={studioCtx.appCtx.selfInfo} tooltipPlacement="right" />
-          ) : (
-            <AnonymousAvatar tooltipPlacement="right" />
-          ),
-      }}
+      buttons={
+        <>
+          <LeftTabButton
+            hasLabel
+            label={t("Select")}
+            tooltip={t("Select")}
+            icon={toolIcon("M5 3l14 10-7 1-3 7z")}
+            isSelected={studioCtx.canvasTool === "select"}
+            onClick={() => {
+              studioCtx.setCanvasTool("select");
+              spawn(
+                studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(false)),
+              );
+            }}
+          />
+          <LeftTabButton
+            hasLabel
+            label={t("Pan")}
+            tooltip={t("Pan")}
+            icon={toolIcon(
+              "M7 12V6a2 2 0 0 1 4 0v5 M11 11V4a2 2 0 0 1 4 0v7 M15 11V6a2 2 0 0 1 4 0v9c0 5-3 7-6 7-4 0-6-3-9-8a2 2 0 0 1 3-2l2 2",
+            )}
+            isSelected={studioCtx.canvasTool === "pan"}
+            onClick={() => {
+              studioCtx.setCanvasTool("pan");
+              spawn(
+                studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(false)),
+              );
+            }}
+          />
+          <div className="editor-rail-divider" role="separator" />
+          <LeftTabButton
+            dataTestId="add-button"
+            expanded={studioCtx.showAddDrawer()}
+            isSelected={studioCtx.showAddDrawer()}
+            hasLabel
+            label={t("Insert")}
+            tooltip={t("Insert")}
+            icon={toolIcon("M12 4v16 M4 12h16")}
+            onClick={() => {
+              studioCtx.setCanvasTool("select");
+              studioCtx.tourActionEvents.dispatch({
+                type: TutorialEventsType.AddButtonClicked,
+              });
+              spawn(
+                studioCtx.changeUnsafe(() =>
+                  studioCtx.setShowAddDrawer(!studioCtx.showAddDrawer()),
+                ),
+              );
+            }}
+          />
+          <LeftTabButton
+            isSelected={
+              studioCtx.leftTabKey === "outline" && !studioCtx.showAddDrawer()
+            }
+            hasLabel
+            label={t("Layers")}
+            tooltip={t("Layers")}
+            icon={toolIcon(
+              "M2 7l10-5 10 5-10 5z M2 12l10 5 10-5 M2 17l10 5 10-5",
+            )}
+            onClick={() => {
+              studioCtx.showLayersPanel();
+            }}
+          />
+          {renderButtonGroup({
+            assets: {
+              ...mainGroups.assets,
+              icon: toolIcon("M3 3h18v18H3z M3 16l6-6 7 7 3-3 2 2 M15 7h.01"),
+              items: resourceItems,
+            },
+          })}
+          <LeftTabButton
+            hasLabel
+            label={t("AI")}
+            tooltip={t("AI assistant")}
+            icon={toolIcon("M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z")}
+            disabled={!studioCtx.chatCopilotEnabled()}
+            isSelected={studioCtx.isCopilotChatOpen}
+            onClick={() => {
+              if (studioCtx.chatCopilotEnabled()) {
+                spawn(topFrameApi.toggleCopilotChat());
+              }
+            }}
+          />
+          <div className="editor-rail-divider" role="separator" />
+          {topMenu.lint.type === "item" &&
+            renderButton("lint", topMenu.lint, true, undefined)}
+          {renderButtonGroup({
+            more: {
+              ...mainGroups.more,
+              icon: toolIcon("M4 12h.01 M12 12h.01 M20 12h.01"),
+              items: {
+                splits: mainGroups.more.items.splits,
+                expressions: mainGroups.more.items.expressions,
+                figma: mainGroups.more.items.figma,
+              },
+            },
+          })}
+        </>
+      }
+      bottomButtons={null}
+      players={{ render: () => null }}
+      avatar={{ render: () => null }}
+      divider={{ render: () => null }}
+      figma={{ render: () => null }}
+      keyboard={{ render: () => null }}
     />
   );
 });
 
 export default LeftTabStrip;
-
-interface PlayersProps extends React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
-> {
-  studioCtx: StudioCtx;
-}
-
-const Players = observer((playersProps: PlayersProps) => {
-  const otherProps = omit(playersProps, ["children", "studioCtx"]);
-  const { studioCtx } = playersProps;
-  const allPlayers = studioCtx.multiplayerCtx.getAllPlayerData();
-  // Limit to 10 players on the left
-  const players = allPlayers.length > 10 ? allPlayers.slice(0, 9) : allPlayers;
-  const extraPlayers = allPlayers.length > 10 ? allPlayers.slice(9) : [];
-  const playerAvatar = ([playerId, playerData]: [number, PlayerData]) => {
-    // TODO: https://app.shortcut.com/plasmic/story/37322
-    const canBeFollowed = !playerData.viewInfo?.arenaInfo?.focused;
-    const styleOverrides = {
-      className: "AvatarPlayer",
-      style: {
-        borderColor: canBeFollowed ? playerData.color : undefined,
-      } as React.CSSProperties,
-      tooltipPlacement: "right" as const,
-    };
-    const onClick = canBeFollowed
-      ? () => studioCtx.setWatchPlayerId(playerId)
-      : undefined;
-    return playerData.type === "AnonUser" ? (
-      <AnonymousAvatar {...styleOverrides} key={playerId} onClick={onClick} />
-    ) : (
-      <Avatar
-        user={playerData.user}
-        {...styleOverrides}
-        key={playerId}
-        onClick={onClick}
-      />
-    );
-  };
-  return (
-    <div {...otherProps}>
-      {players.map(playerAvatar)}
-      {extraPlayers.length > 0 && (
-        <Popover
-          placement="right"
-          content={
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {extraPlayers.map(playerAvatar)}
-            </div>
-          }
-        >
-          <div className={classNames("Avatar", "AvatarPlayerSize")}>
-            +{extraPlayers.length}
-          </div>
-        </Popover>
-      )}
-    </div>
-  );
-});

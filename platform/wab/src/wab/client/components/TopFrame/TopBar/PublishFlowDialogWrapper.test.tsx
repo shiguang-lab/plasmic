@@ -120,6 +120,7 @@ async function openDialog(firstPublication = false) {
         keepPublishModalOpen={false}
         setShowPublishModal={vi.fn()}
         setShowCodeModal={vi.fn()}
+        onSelectDelivery={vi.fn()}
       />
     </SWRConfig>,
   );
@@ -211,7 +212,11 @@ describe("website publishing from the dialog", () => {
     fireEvent.click(await openDialog());
     await screen.findByText("Code generation failed");
     expect(screen.getByText("Published version: 0.0.1")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Update website" }));
+    const retry = screen.getByRole("button", { name: "Update website" });
+    await waitFor(() =>
+      expect(retry.classList.contains("ant-btn-loading")).toBe(false),
+    );
+    fireEvent.click(retry);
     await screen.findByText("Published version: 0.0.2");
     expect(mocks.saveVersion).toHaveBeenCalledTimes(2);
     expect(mocks.buildWebsite).toHaveBeenCalledTimes(2);

@@ -75,7 +75,7 @@ export function IconLinkButton(props: IconLinkButtonProps) {
     <Tooltip
       title={title}
       open={showingTooltip && !showingDropdown}
-      onVisibleChange={onTooltipVisibleChange}
+      onOpenChange={onTooltipVisibleChange}
       placement={"bottom"}
     >
       {node as React.ReactElement}
@@ -113,9 +113,9 @@ export function IconLinkButton(props: IconLinkButtonProps) {
         >
           <Dropdown
             trigger={["click"]}
-            overlay={menu}
+            popupRender={() => (typeof menu === "function" ? menu() : menu)}
             open={showingDropdown}
-            onVisibleChange={onDropdownVisibleChange}
+            onOpenChange={onDropdownVisibleChange}
           >
             <widgets.PlainLinkButton className="icon-link-btn__dropdown no-line-height">
               <Icon icon={TriangleBottomIcon} />
@@ -129,9 +129,9 @@ export function IconLinkButton(props: IconLinkButtonProps) {
     return (
       <Dropdown
         trigger={["click"]}
-        overlay={menu}
+        popupRender={() => (typeof menu === "function" ? menu() : menu)}
         open={showingDropdown}
-        onVisibleChange={onDropdownVisibleChange}
+        onOpenChange={onDropdownVisibleChange}
       >
         {wrapTooltip(
           <widgets.PlainLinkButton

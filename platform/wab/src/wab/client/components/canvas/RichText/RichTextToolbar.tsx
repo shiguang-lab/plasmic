@@ -285,12 +285,12 @@ function RichTextToolbar_(
         color={{
           wrap: (node) => (
             <Popover
-              visible={colorPickerVisible}
-              onVisibleChange={(visible) => {
+              open={colorPickerVisible}
+              onOpenChange={(visible) => {
                 setColorPickerVisible(visible);
                 markCss({ color: currentColor }, false);
               }}
-              transitionName=""
+              motion={{ motionName: "" }}
               content={() =>
                 colorPickerVisible && (
                   <div style={{ width: 250 }}>

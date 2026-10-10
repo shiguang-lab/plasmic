@@ -29,6 +29,8 @@ const { startRpc } = require("./local-rpc.cjs");
 const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
+const { createDesktopAppearance } = require("./ui-appearance.cjs");
+const desktopAppearance = createDesktopAppearance();
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
 const { createUpdateDialog } = require("./update-dialog.cjs");
 const {
@@ -250,6 +252,7 @@ async function startDesktop() {
       integrations,
       () => mainWindow,
       desktopI18n,
+      desktopAppearance,
     );
     const trustedAuthSender = (event) => {
       return (
@@ -259,9 +262,20 @@ async function startDesktop() {
         new URL(event.senderFrame.url).origin === config.studioOrigin
       );
     };
+    ipcMain.handle("desktop:ui-appearance", (event, value) => {
+      if (!trustedAuthSender(event)) {
+        throw new Error("Invalid Studio page");
+      }
+      desktopAppearance.set(value);
+      return desktopAppearance.snapshot();
+    });
     ipcMain.handle("desktop:ui-locale", (event, value) => {
-      if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
-      if (value !== undefined) desktopI18n.setLocale(value);
+      if (!trustedAuthSender(event)) {
+        throw new Error("Invalid Studio page");
+      }
+      if (value !== undefined) {
+        desktopI18n.setLocale(value);
+      }
       return desktopI18n.snapshot();
     });
     ipcMain.handle("desktop:auth-command", (event, command) => {
@@ -479,8 +493,9 @@ async function startDesktop() {
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {
     buildMenu();
-    if (!win.isDestroyed())
+    if (!win.isDestroyed()) {
       win.webContents.send("desktop:ui-locale", desktopI18n.snapshot());
+    }
   });
   win.once("closed", stopLocale);
   try {
@@ -551,12 +566,16 @@ function bootstrap() {
     const showDesktop = async () => {
       await app.whenReady();
       const win = mainWindow || (await ensureDesktop());
-      if (win.isMinimized()) win.restore();
+      if (win.isMinimized()) {
+        win.restore();
+      }
       win.show();
       win.focus();
     };
     const handleAppCallback = async (url) => {
-      if (!url.startsWith(APP_CALLBACK_URL + "?")) return;
+      if (!url.startsWith(APP_CALLBACK_URL + "?")) {
+        return;
+      }
       await showDesktop();
       unifiedAuth?.login.acceptCallback(url);
     };
@@ -564,23 +583,32 @@ function bootstrap() {
       const callback = argv.find((value) =>
         value.startsWith("plasmic-desktop:"),
       );
-      if (callback) void handleAppCallback(callback);
-      else void showDesktop();
+      if (callback) {
+        void handleAppCallback(callback);
+      } else {
+        void showDesktop();
+      }
     });
     app.on("open-url", (event, url) => {
-      if (!url.startsWith("plasmic-desktop:")) return;
+      if (!url.startsWith("plasmic-desktop:")) {
+        return;
+      }
       event.preventDefault();
       void handleAppCallback(url);
     });
     app
       .whenReady()
       .then(() => {
-        if (app.isPackaged) app.setAsDefaultProtocolClient("plasmic-desktop");
+        if (app.isPackaged) {
+          app.setAsDefaultProtocolClient("plasmic-desktop");
+        }
         return ensureDesktop().then((win) => {
           const callback = process.argv.find((value) =>
             value.startsWith("plasmic-desktop:"),
           );
-          if (callback) void handleAppCallback(callback);
+          if (callback) {
+            void handleAppCallback(callback);
+          }
           return win;
         });
       })

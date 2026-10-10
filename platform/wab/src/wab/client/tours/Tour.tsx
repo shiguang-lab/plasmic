@@ -53,7 +53,7 @@ export const Tour = observer(function Tour<T>({
   React.useEffect(() => {
     if (tourState.run && didActionSignal) {
       const listener = () => {
-        // We use a showProjectPanelRequested listener in case the user opened
+        // We use a showNavigationPanelRequested listener in case the user opened
         // the panel via "p" or clicking the button
         if (helpersRef.current?.info().status === "running") {
           spawn(closeTour());

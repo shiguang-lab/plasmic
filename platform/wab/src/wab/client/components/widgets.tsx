@@ -1,4 +1,5 @@
 import { PublicLink } from "@/wab/client/components/PublicLink";
+import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { uncontrollable } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
@@ -20,6 +21,7 @@ import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
 import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import DragGripIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__DragGrip";
 import UploadSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UploadSvg";
+import { usesProductTheme } from "@/wab/client/ui-theme";
 import {
   MaybeWrap,
   createFakeEvent,
@@ -38,6 +40,8 @@ import {
   makeCancelable,
   maybe,
 } from "@/wab/shared/common";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import type { DropdownProps } from "antd";
 import { Dropdown, Table, Tooltip } from "antd";
 import classNames from "classnames";
 import { isKeyHotkey } from "is-hotkey";
@@ -790,12 +794,20 @@ export const IFrameAwareDropdownMenu = (props: {
   overlayClassName?: string;
   overlayStyle?: CSSProperties;
   onVisibleChange?: (visible: boolean) => void;
+  placement?: DropdownProps["placement"];
+  align?: DropdownProps["align"];
 }) => {
   const { onVisibleChange } = props;
+  const { styles: popupStyles } = useEditorPopupStyles();
+  const productUI = usesProductTheme(window.location.pathname);
   const [menuVisible, setMenuVisibleState] = React.useState(false);
+  const triggerElement = React.useRef<HTMLElement | null>(null);
 
   const setMenuVisible = React.useCallback(
     (visible: boolean) => {
+      if (visible && document.activeElement instanceof HTMLElement) {
+        triggerElement.current = document.activeElement;
+      }
       setMenuVisibleState(visible);
       if (onVisibleChange) {
         onVisibleChange(visible);
@@ -804,34 +816,99 @@ export const IFrameAwareDropdownMenu = (props: {
     [setMenuVisibleState, onVisibleChange],
   );
 
+  React.useEffect(() => {
+    if (!menuVisible) {
+      return;
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setMenuVisible(false);
+      triggerElement.current?.focus();
+    };
+    document.addEventListener("keydown", closeOnEscape, true);
+    return () => document.removeEventListener("keydown", closeOnEscape, true);
+  }, [menuVisible, setMenuVisible]);
+
   const onIFrameClick = React.useCallback(() => {
     setMenuVisible(false);
   }, [setMenuVisible]);
 
   useOnIFrameMouseDown(onIFrameClick);
 
+  const renderScrollableMenu = (menu: ReactNode) =>
+    productUI ? (
+      <Scrollbar
+        scrollX={false}
+        defer={false}
+        className={cx("studio-scrollbar", popupStyles.menuScroll)}
+      >
+        {menu}
+      </Scrollbar>
+    ) : (
+      menu
+    );
+
   return (
     <Dropdown
       disabled={props.disabled}
-      overlay={() => {
+      placement={props.placement}
+      align={
+        props.align ?? {
+          offset: [0, props.placement?.startsWith("top") ? -8 : 8],
+        }
+      }
+      popupRender={() => {
         const { menu } = props;
         const effectiveMenu = (
           L.isFunction(menu) ? menu(() => setMenuVisible(false)) : menu
         ) as React.ReactElement;
-        return React.cloneElement(effectiveMenu, {
-          onClick: (e) => {
-            setMenuVisible(false);
-            if (effectiveMenu.props.onClick) {
-              effectiveMenu.props.onClick(e);
-            }
-            e.domEvent.stopPropagation();
-          },
-        });
+        return renderScrollableMenu(
+          React.cloneElement(effectiveMenu, {
+            rootClassName: cx(
+              effectiveMenu.props.rootClassName,
+              productUI && popupStyles.root,
+            ),
+            popupRender: (node, info) =>
+              renderScrollableMenu(
+                effectiveMenu.props.popupRender?.(node, info) ?? node,
+              ),
+            // Include the menu's 8px padding to align rows and leave a 4px gap.
+            builtinPlacements: productUI
+              ? {
+                  ...effectiveMenu.props.builtinPlacements,
+                  rightTop: {
+                    points: ["tl", "tr"],
+                    offset: [12, -8],
+                    overflow: { adjustX: 1, adjustY: 1 },
+                  },
+                  leftTop: {
+                    points: ["tr", "tl"],
+                    offset: [-12, -8],
+                    overflow: { adjustX: 1, adjustY: 1 },
+                  },
+                }
+              : effectiveMenu.props.builtinPlacements,
+            onClick: (e) => {
+              setMenuVisible(false);
+              if (effectiveMenu.props.onClick) {
+                effectiveMenu.props.onClick(e);
+              }
+              e.domEvent.stopPropagation();
+            },
+          }),
+        );
       }}
       trigger={["click"]}
       open={menuVisible}
-      onVisibleChange={(visible) => setMenuVisible(visible)}
-      overlayClassName={props.overlayClassName}
+      onOpenChange={(visible) => setMenuVisible(visible)}
+      overlayClassName={cx(
+        props.overlayClassName,
+        productUI && popupStyles.root,
+      )}
       overlayStyle={props.overlayStyle}
       destroyPopupOnHide
     >
@@ -933,8 +1010,8 @@ export function SearchBox(
  * A version of antd's Table that fills the available vertical space,
  * and sets scroll properly for the table body
  */
-export function VerticalFillTable(
-  props: React.ComponentProps<typeof Table> & { wrapperClassName?: string },
+export function VerticalFillTable<T extends object>(
+  props: React.ComponentProps<typeof Table<T>> & { wrapperClassName?: string },
 ) {
   const { wrapperClassName, ...rest } = props;
   return (
@@ -946,8 +1023,8 @@ export function VerticalFillTable(
 
 export function StudioPlaceholder() {
   return (
-    <div className="StudioPlaceholder visible">
-      <span className="placeholder_srOnly" role="status">
+    <div className="StudioPlaceholder visible" aria-busy="true">
+      <span className="placeholder_loadingStatus" role="status">
         <UiText message={"Loading project…"} />
       </span>
       <div className="placeholder_topBar" aria-hidden="true">

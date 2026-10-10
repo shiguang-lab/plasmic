@@ -143,7 +143,7 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
           },
 
           wrap: (x) => (
-            <Dropdown overlay={renderElementMenu} trigger={["click"]}>
+            <Dropdown popupRender={renderElementMenu} trigger={["click"]}>
               {x}
             </Dropdown>
           ),

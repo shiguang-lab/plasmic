@@ -5,7 +5,7 @@ import { WritableClipboard } from "@/wab/client/clipboard/WritableClipboard";
 import AutoOpenBanner from "@/wab/client/components/AutoOpenBanner";
 import { BottomModals } from "@/wab/client/components/BottomModal";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
-import PageSettings from "@/wab/client/components/PageSettings";
+import { PageSettingsDialog } from "@/wab/client/components/PageSettingsDialog";
 import { CanvasDndOverlay } from "@/wab/client/components/canvas/CanvasDndOverlay";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
@@ -37,11 +37,12 @@ import {
   StyleTab,
   StyleTabContext,
 } from "@/wab/client/components/sidebar-tabs/style-tab";
+import { CanvasAiComposer } from "@/wab/client/components/studio/CanvasAiComposer";
+import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { FocusedModeToolbar } from "@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar";
 import { GlobalCssVariables } from "@/wab/client/components/studio/GlobalCssVariables";
 import LeftPane from "@/wab/client/components/studio/LeftPane";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
-import { TopModal } from "@/wab/client/components/studio/TopModal";
 import { CodePreviewPanel } from "@/wab/client/components/studio/code-preview/CodePreviewPanel";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
 import { TopBar } from "@/wab/client/components/top-bar";
@@ -89,9 +90,7 @@ import { isBaseVariantFrame } from "@/wab/shared/component-arenas";
 import {
   isCodeComponent,
   isFrameComponent,
-  isPageComponent,
 } from "@/wab/shared/core/components";
-import { ExprCtx } from "@/wab/shared/core/exprs";
 import { getSiteArenas } from "@/wab/shared/core/sites";
 import {
   canConvertToSlot,
@@ -99,6 +98,7 @@ import {
   isTplComponent,
   isTplSlot,
   isTplTextBlock,
+  summarizeTpl,
 } from "@/wab/shared/core/tpls";
 import { ValComponent, ValNode, ValTag } from "@/wab/shared/core/val-nodes";
 import { dbg } from "@/wab/shared/dbg";
@@ -112,11 +112,11 @@ import {
 } from "@/wab/shared/model/classes";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, notification } from "antd";
+import { Alert, Tabs, notification } from "antd";
 import { ArgsProps } from "antd/lib/notification";
 import { default as cn, default as cx } from "classnames";
 import $ from "jquery";
-import { throttle } from "lodash";
+import { defer, throttle } from "lodash";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -147,6 +147,7 @@ type ViewEditorState = {};
 
 class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private canvasClipper: HTMLElement | null = null;
+  private initialFitFrameUuid?: string;
   private canvas = createRef<HTMLDivElement>();
   private canvasScaler = createRef<HTMLDivElement>();
   private onClipperScrollListener: (() => void) | null = null;
@@ -382,6 +383,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     if (initArena) {
       const initArenaChildren = getArenaFrames(initArena);
       if (initArenaChildren.length > 0) {
+        this.initialFitFrameUuid = initArenaChildren[0].uuid;
         spawn(
           this.props.studioCtx.changeUnsafe(() => {
             this.props.studioCtx.setStudioFocusOnFrame({
@@ -991,7 +993,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     }
 
     // Panning has a higher precedence than anything else.
-    if (e.button === 1 || this.props.studioCtx.isSpaceDown()) {
+    if (e.button === 1 || this.props.studioCtx.isPanMode()) {
       if (getArenaFrames(this.props.studioCtx.currentArena).length) {
         this.props.studioCtx.startPanning(e);
       }
@@ -1800,23 +1802,35 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         )
         .on("dragover", (e) => e.preventDefault());
     });
+    // The inspector becomes available when the first ViewCtx is created. Fit
+    // once after it mounts so the initial overview accounts for its occlusion.
+    if (frame.uuid === this.initialFitFrameUuid) {
+      this.initialFitFrameUuid = undefined;
+      const arena = studioCtx.currentArena;
+      if (getArenaFrames(arena).includes(frame)) {
+        defer(() => {
+          if (studioCtx.currentArena === arena && studioCtx.viewportCtx) {
+            studioCtx.tryZoomToFitArena();
+          }
+        });
+      }
+    }
   };
 
   render() {
     const { studioCtx, viewCtx } = this.props;
-
-    const exprCtx: ExprCtx = {
-      projectFlags: studioCtx.projectFlags(),
-      component: viewCtx?.component ?? null,
-      inStudio: true,
-    };
 
     const watchedPlayer = studioCtx.watchPlayerId
       ? studioCtx.multiplayerCtx.getPlayerDataById(studioCtx.watchPlayerId)
       : undefined;
 
     return (
-      <div className="canvas-editor">
+      <div
+        className={cn("canvas-editor", {
+          "canvas-editor--panels-hidden": studioCtx.panelsHidden,
+          "canvas-editor--left-panel-open": !!studioCtx.leftTabKey,
+        })}
+      >
         {viewCtx && <CanvasOverlayToolbar viewCtx={viewCtx} fallback />}
         {!studioCtx.isInteractiveMode && viewCtx?.hasShownHiddenContent && (
           <AutoOpenBanner
@@ -1852,7 +1866,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               onPointerDown={(e) => {
                 if (
                   !studioCtx.isInteractiveMode &&
-                  !studioCtx.isSpaceDown() &&
+                  !studioCtx.isPanMode() &&
                   e.button === 0 &&
                   ((e.target instanceof Element &&
                     e.target.matches(".canvas-editor__canvas")) ||
@@ -1996,6 +2010,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               )}
               <PlayerCursors />
               <FocusedModeToolbar studioCtx={studioCtx} />
+              {studioCtx.showDevControls && (
+                <CanvasViewControls studioCtx={studioCtx} />
+              )}
+              {studioCtx.showDevControls && (
+                <CanvasAiComposer studioCtx={studioCtx} />
+              )}
             </div>
             <RightPane
               studioCtx={studioCtx}
@@ -2018,21 +2038,15 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         {studioCtx.isDraggingObject() &&
           !this.dragState &&
           createPortal(<div className="drag-guard" />, document.body)}
-        {viewCtx && studioCtx.showPageSettings && (
-          <TopModal
-            onClose={() =>
-              studioCtx.changeUnsafe(
-                () => (studioCtx.showPageSettings = undefined),
-              )
-            }
-          >
-            <PageSettings
-              page={studioCtx.showPageSettings}
-              viewCtx={viewCtx}
-              exprCtx={exprCtx}
-            />
-          </TopModal>
-        )}
+        <PageSettingsDialog
+          open={studioCtx.pageSettingsOpen}
+          page={studioCtx.pageSettingsPage}
+          onClose={() =>
+            studioCtx.changeUnsafe(() => {
+              studioCtx.pageSettingsOpen = false;
+            })
+          }
+        />
         <BottomModals
           onFocusedIndexChange={(newIndex) =>
             studioCtx.setFocusedBottomModalIndex(newIndex)
@@ -2055,6 +2069,17 @@ const RightPane = observer(function RightPane(props: {
 
   const focusedViewCtx = studioCtx.focusedViewCtx();
   const focusedOrFirstViewCtx = studioCtx.focusedOrFirstViewCtx();
+  const selectedTpl = focusedViewCtx?.focusedTpl();
+  const selectionTitle = selectedTpl
+    ? ((isTplComponent(selectedTpl) || isKnownTplTag(selectedTpl)) &&
+        selectedTpl.name) ||
+      summarizeTpl(selectedTpl)
+    : focusedOrFirstViewCtx?.component.name;
+
+  const inspectorTitle =
+    studioCtx.rightTabKey === RightTabKey.component
+      ? focusedOrFirstViewCtx?.component.name
+      : selectionTitle;
 
   const tabs: widgets.Tab[] = [];
 
@@ -2063,21 +2088,19 @@ const RightPane = observer(function RightPane(props: {
   if (focusedViewCtx && !studioCtx.focusedFrame()) {
     tabs.push(
       new widgets.Tab({
-        name: <UiText message="Settings" />,
-        key: RightTabKey.settings,
+        name: <UiText message="Design" />,
+        key: RightTabKey.style,
         contents: () => (
-          <StyleTabContext.Provider value={"settings-only"}>
+          <StyleTabContext.Provider value="design">
             <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
           </StyleTabContext.Provider>
         ),
       }),
-    );
-    tabs.push(
       new widgets.Tab({
-        name: <UiText message="Design" />,
-        key: RightTabKey.style,
+        name: <UiText message="Interactions" />,
+        key: RightTabKey.interactions,
         contents: () => (
-          <StyleTabContext.Provider value={"style-only"}>
+          <StyleTabContext.Provider value="interactions">
             <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
           </StyleTabContext.Provider>
         ),
@@ -2090,15 +2113,7 @@ const RightPane = observer(function RightPane(props: {
   if (focusedOrFirstViewCtx) {
     tabs.push(
       new widgets.Tab({
-        name: (
-          <UiText
-            message={
-              isPageComponent(focusedOrFirstViewCtx.component)
-                ? "Page data"
-                : "Component data"
-            }
-          />
-        ),
+        name: <UiText message="Data" />,
         key: RightTabKey.component,
         contents: () => (
           <ComponentOrPageTab
@@ -2139,17 +2154,30 @@ const RightPane = observer(function RightPane(props: {
       {showCommentsPanel ? (
         <CommentsTab />
       ) : (
-        <widgets.Tabs
-          onSwitch={(tabKey: RightTabKey) => {
-            studioCtx.switchRightTab(tabKey);
-          }}
-          tabKey={studioCtx.rightTabKey}
-          useDefaultClasses={false}
-          tabBarClassName="hilite-tabs"
-          tabClassName="hilite-tab"
-          activeTabClassName="hilite-tab--active"
-          tabs={tabs}
-        />
+        <>
+          <div className="editor-panel-header">
+            <strong className="editor-panel-title" title={inspectorTitle}>
+              {inspectorTitle}
+            </strong>
+          </div>
+          <Tabs
+            className="editor-inspector-tabs"
+            activeKey={studioCtx.rightTabKey}
+            onChange={(tabKey) =>
+              studioCtx.switchRightTab(tabKey as RightTabKey)
+            }
+            destroyOnHidden
+            items={tabs.map((tab) => ({
+              key: tab.key,
+              label: tab.name,
+              children: (
+                <div className="vlist-scrollable-descendant">
+                  {tab.contents()}
+                </div>
+              ),
+            }))}
+          />
+        </>
       )}
     </DevContainer>,
   );

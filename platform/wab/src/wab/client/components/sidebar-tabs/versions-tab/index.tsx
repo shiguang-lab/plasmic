@@ -85,7 +85,7 @@ export const VersionsTab = observer(function VersionsTab(
         },
         wrap: (node) => (
           <Dropdown
-            overlay={
+            popupRender={() => (
               <Menu selectedKeys={[filter]}>
                 {Object.entries(FilterValueToLabel).map(([key, label]) => (
                   <Menu.Item
@@ -96,7 +96,7 @@ export const VersionsTab = observer(function VersionsTab(
                   </Menu.Item>
                 ))}
               </Menu>
-            }
+            )}
           >
             {node}
           </Dropdown>

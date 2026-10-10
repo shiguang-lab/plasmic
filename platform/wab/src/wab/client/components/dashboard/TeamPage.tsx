@@ -3,13 +3,13 @@ import FreeTrialModal from "@/wab/client/components/dashboard/FreeTrialModal";
 import WorkspaceSection from "@/wab/client/components/dashboard/WorkspaceSection";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
-import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
 import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultTeamPageProps,
   PlasmicTeamPage,
@@ -25,7 +25,7 @@ import { isNonNil } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
+import { Skeleton, notification } from "antd";
 import * as React from "react";
 
 interface TeamPageProps extends DefaultTeamPageProps {
@@ -38,6 +38,7 @@ type TeamPageData = ListTeamProjectsResponse & {
 
 function TeamPage_(props: TeamPageProps, ref: HTMLElementRefOf<"div">) {
   const appCtx = useAppCtx();
+  const { t } = useI18n();
   const { teamId, ...rest } = props;
   const inviteId = new URL(location.href).searchParams.get("inviteId") ?? "";
 
@@ -74,8 +75,14 @@ function TeamPage_(props: TeamPageProps, ref: HTMLElementRefOf<"div">) {
   if (!data) {
     return (
       <>
-        {documentTitle(`Loading ${ORGANIZATION_LOWER}...`)}
-        <Spinner />
+        {documentTitle(t("Loading team…"))}
+        <div
+          className={styles.dashboardContent}
+          role="status"
+          aria-label={t("Loading team…")}
+        >
+          <Skeleton active paragraph={{ rows: 6 }} />
+        </div>
       </>
     );
   }

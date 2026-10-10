@@ -360,7 +360,7 @@ function renderModelFieldForm(
           </Button>
           <Dropdown
             // trigger={"click"}
-            overlay={
+            popupRender={() => (
               <Menu>
                 <Menu.Item
                   onClick={() => {
@@ -377,7 +377,7 @@ function renderModelFieldForm(
                   <UiText message={"Move down"} />
                 </Menu.Item>
               </Menu>
-            }
+            )}
           >
             <Button>
               <UiText message={"More"} />
@@ -401,7 +401,7 @@ export function CmsModelDetails_(
   const { databaseId, tableId } = match.pathParams;
   const [showSettingsModal, setShowSettingsModal] = React.useState(false);
 
-  const database = useCmsDatabase(databaseId);
+  const { database } = useCmsDatabase(databaseId);
 
   const [form] = useForm();
   const table = useCmsTable(databaseId, tableId);

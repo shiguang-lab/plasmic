@@ -71,12 +71,7 @@ export async function promptRemapCodeComponent(props: {
     (comp) => getComponentDisplayName(comp),
   );
   return showTemporaryPrompt<RemapComponentResponse>((onSubmit, onCancel) => (
-    <Modal
-      title={title}
-      visible={true}
-      footer={null}
-      onCancel={() => onCancel()}
-    >
+    <Modal title={title} open={true} footer={null} onCancel={() => onCancel()}>
       <p>
         <UiText
           message={
@@ -308,7 +303,7 @@ function promptFixReactVersionForHostLessPackages(props: {
     (onSubmit, onCancel) => (
       <Modal
         title={"Invalid React version"}
-        visible={true}
+        open={true}
         footer={null}
         onCancel={() => onCancel()}
       >
@@ -592,7 +587,7 @@ function HostLessPackageForm({
   return (
     <Modal
       title={null}
-      visible={true}
+      open={true}
       footer={null}
       onCancel={() => onSubmit(undefined)}
       closable={false}
@@ -698,11 +693,7 @@ function HostLessPackageForm({
               NPM Package to be installed: <br />
               {fields.map((field) => (
                 <div style={{ display: "flex", flexDirection: "row" }}>
-                  <Form.Item
-                    name={field.name}
-                    fieldKey={field.key}
-                    style={{ width: "100%" }}
-                  >
+                  <Form.Item name={field.name} style={{ width: "100%" }}>
                     <Textbox
                       placeholder="@plasmicpkgs/react-youtube"
                       styleType={["bordered"]}
@@ -731,11 +722,7 @@ function HostLessPackageForm({
               CSS path to be imported:
               {fields.map((field) => (
                 <div style={{ display: "flex", flexDirection: "row" }}>
-                  <Form.Item
-                    name={field.name}
-                    fieldKey={field.key}
-                    style={{ width: "100%" }}
-                  >
+                  <Form.Item name={field.name} style={{ width: "100%" }}>
                     <Textbox
                       placeholder="antd/dist/antd.css"
                       styleType={["bordered"]}
@@ -760,11 +747,7 @@ function HostLessPackageForm({
               Any dependencies to other hostless packages?
               {fields.map((field) => (
                 <div style={{ display: "flex", flexDirection: "row" }}>
-                  <Form.Item
-                    name={field.name}
-                    fieldKey={field.key}
-                    style={{ width: "100%" }}
-                  >
+                  <Form.Item name={field.name} style={{ width: "100%" }}>
                     <Textbox placeholder="commerce" styleType={["bordered"]} />
                   </Form.Item>
                   <Button onClick={() => remove(field.name)}>

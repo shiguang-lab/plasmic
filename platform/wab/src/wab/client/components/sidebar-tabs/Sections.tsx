@@ -286,32 +286,6 @@ function getSectionSetting(section: Section) {
   );
 }
 
-//
-// The following groups can duplicate certain sections - meaning we want to show this section in both tabs.
-// Should do this sparingly.
-//
-
-const settingSections = new Set([
-  Section.SizeWidthOnly,
-  Section.Tag,
-  Section.RepeatingElement,
-  Section.CustomBehaviors,
-  Section.HTMLAttributes,
-  Section.Link,
-  Section.ComponentProps,
-  Section.VariantsPicker,
-  Section.Repeater,
-  Section.ImageCodeComponent,
-  Section.Image,
-  Section.Interactions,
-  Section.Visibility,
-  Section.TextContentOnly,
-  Section.SlotSettings,
-  Section.ComponentMergedSlotProps,
-  Section.ComponentMergedSlotText,
-  Section.SimplifiedCodeComponentMode,
-]);
-
 const styleSections = new Set([
   Section.PrivateStyleVariants,
   Section.Visibility,
@@ -480,7 +454,7 @@ function getRenderBySection(
         codeComponentTpl &&
         tpl.component.params.some((p) => isKnownClassNamePropType(p.type)) && (
           <ComponentPropsSection
-            key={`${tpl.uuid}-component-props`}
+            key={`${tpl.uuid}-component-style-props`}
             viewCtx={viewCtx}
             tpl={tpl as TplComponent}
             expsProvider={expsProvider}
@@ -541,6 +515,7 @@ function getRenderBySection(
       Section.SizeWidthOnly,
       () => {
         if (
+          !showStyleSections &&
           isSizeValidForTpl(tpl) &&
           !missingPositionClass &&
           showSection(Section.SizeWidthOnly)
@@ -738,6 +713,7 @@ function getRenderBySection(
     [
       Section.TextContentOnly,
       () =>
+        (!showStyleSections || !isTypographyValidForTpl(tpl)) &&
         hasTextContent(tpl) &&
         showSection(Section.Typography) &&
         !showLink && (
@@ -904,6 +880,7 @@ function getRenderBySection(
     [
       Section.ComponentMergedSlotText,
       () =>
+        !showStyleSections &&
         isTplComponent(tpl) && (
           <MergedSlotsTextSection tpl={tpl} viewCtx={viewCtx} tab="settings" />
         ),
@@ -1101,15 +1078,17 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   return orderedSections;
 }
 
-function isSettingsSection(section: Section): boolean {
-  return settingSections.has(section);
-}
-
-function isStyleSection(section: Section): boolean {
+function isStyleSection(section: Section) {
   return styleSections.has(section);
 }
 
-export type StyleTabFilter = "all" | "style-only" | "settings-only";
+export type StyleTabFilter = "design" | "interactions";
+
+function sectionMatchesTab(section: Section, tab: StyleTabFilter) {
+  const interaction =
+    section === Section.Interactions || section === Section.CustomBehaviors;
+  return tab === "interactions" ? interaction : !interaction;
+}
 
 export function getOrderedSectionRender(
   tpl: TplNode,
@@ -1123,8 +1102,7 @@ export function getOrderedSectionRender(
     .filter(
       (section) =>
         canEditSection(viewCtx.studioCtx, section) &&
-        ((styleTabFilter === "style-only" && isStyleSection(section)) ||
-          (styleTabFilter === "settings-only" && isSettingsSection(section))),
+        sectionMatchesTab(section, styleTabFilter),
     )
     .map((section) =>
       ensure(

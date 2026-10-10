@@ -12,7 +12,6 @@ import {
   isMixedArena,
   mkArenaFrame,
   mkMixedArena,
-  normalizeMixedArenaFrames,
   removeVariantGroupFromArenas,
   removeVariantsFromArenas,
 } from "@/wab/shared/Arenas";
@@ -1110,7 +1109,6 @@ export class TplMgr {
     ensureVariantSetting(arenaFrame.container, [this.site().globalVariant]);
 
     arena.children.push(arenaFrame);
-    normalizeMixedArenaFrames(arena);
     return arenaFrame;
   }
 
@@ -1147,7 +1145,6 @@ export class TplMgr {
     frame.top = top;
     frame.left = left;
     arena.children.push(frame);
-    normalizeMixedArenaFrames(arena);
   }
 
   removeExistingArenaFrame(
@@ -1157,7 +1154,6 @@ export class TplMgr {
   ) {
     if (isMixedArena(arena)) {
       arrayRemove(arena.children, frame);
-      normalizeMixedArenaFrames(arena);
       const component = frame.container.component;
       if (opts.pruneUnnamedComponent && isFrameComponent(component)) {
         // There shouldn't be any other reference to this component, since it's unnamed.
@@ -2075,10 +2071,7 @@ export class TplMgr {
     timingFunction: string = "ease",
     iterationCount: string = "1",
     direction:
-      | "normal"
-      | "reverse"
-      | "alternate"
-      | "alternate-reverse" = "normal",
+      "normal" | "reverse" | "alternate" | "alternate-reverse" = "normal",
     fillMode: "none" | "forwards" | "backwards" | "both" = "none",
     playState: "paused" | "running" = "running",
   ) {

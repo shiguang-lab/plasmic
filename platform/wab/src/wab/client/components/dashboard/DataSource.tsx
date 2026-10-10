@@ -68,7 +68,7 @@ function DataSource_(
     <MaybeWrap
       cond={!props.readOnly}
       wrapper={(children) => (
-        <Dropdown overlay={renderMenu} trigger={["contextMenu"]}>
+        <Dropdown popupRender={renderMenu} trigger={["contextMenu"]}>
           {children}
         </Dropdown>
       )}

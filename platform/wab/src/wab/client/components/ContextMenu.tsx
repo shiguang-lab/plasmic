@@ -171,8 +171,12 @@ export default class ContextMenu extends React.Component<ContextMenuProps, {}> {
     const popup = (
       <Dropdown
         open={true}
-        onVisibleChange={this.onDropdownVisible}
-        overlay={this.props.overlay}
+        onOpenChange={this.onDropdownVisible}
+        popupRender={() =>
+          typeof this.props.overlay === "function"
+            ? this.props.overlay()
+            : this.props.overlay
+        }
         trigger={["click"]}
       >
         <div
@@ -190,8 +194,7 @@ export default class ContextMenu extends React.Component<ContextMenuProps, {}> {
 
 interface WithContextMenuProps {
   overlay?:
-    | React.ReactElement<MenuProps>
-    | (() => React.ReactElement<MenuProps>);
+    React.ReactElement<MenuProps> | (() => React.ReactElement<MenuProps>);
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

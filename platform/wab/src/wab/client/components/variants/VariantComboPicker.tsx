@@ -86,11 +86,11 @@ function VariantComboPicker_({
       trigger={["click"]}
       placement={"topLeft"}
       open={showDropdown}
-      onVisibleChange={(v) => {
+      onOpenChange={(v) => {
         onVisibleChange?.(v);
         setShowDropdown(v);
       }}
-      overlay={() => (
+      popupRender={() => (
         <VariantsDrawer
           component={component}
           hideBase={hideBase}

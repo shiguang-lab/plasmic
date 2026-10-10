@@ -1,18 +1,20 @@
 import { AppCtx } from "@/wab/client/app-ctx";
+import FreeTrial from "@/wab/client/components/FreeTrial";
 import {
   promptBilling,
   showUpsellConfirm,
 } from "@/wab/client/components/modals/PricingModal";
 import { promptUpdateCc } from "@/wab/client/components/modals/UpdateCreditCardModal";
+import PriceTierPicker from "@/wab/client/components/pricing/PriceTierPicker";
 import {
   reactConfirm,
   reactHardConfirm,
   reactPrompt,
 } from "@/wab/client/components/quick-modals";
-import {
-  DefaultTeamBillingProps,
-  PlasmicTeamBilling,
-} from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamBilling";
+import { useI18n } from "@/wab/client/i18n";
+import { DefaultTeamBillingProps } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamBilling";
+import tierCss from "@/wab/client/plasmic/plasmic_kit_pricing/PlasmicPriceTier.module.css";
+import pickerCss from "@/wab/client/plasmic/plasmic_kit_pricing/PlasmicPriceTierPicker.module.css";
 import {
   ApiFeatureTier,
   ApiTeam,
@@ -27,11 +29,21 @@ import {
 import { ensure } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { ORGANIZATION_CAP } from "@/wab/shared/Labels";
 import { isUpgradableTier } from "@/wab/shared/pricing/pricing-utils";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Flex,
+  Form,
+  Input,
+  Segmented,
+  Typography,
+} from "antd";
+import { createStyles } from "antd-style";
 import * as React from "react";
 
 interface TeamBillingProps extends DefaultTeamBillingProps {
@@ -45,6 +57,25 @@ interface TeamBillingProps extends DefaultTeamBillingProps {
   disabled?: boolean;
 }
 
+const useBillingStyles = createStyles(({ token }) => ({
+  root: {
+    padding: 24,
+    color: token.colorText,
+    background: token.colorBgContainer,
+    minWidth: 0,
+  },
+  preferences: { maxWidth: 560 },
+  plans: {
+    [`& .${pickerCss.freeBox__uhZsz}`]: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))",
+      overflow: "visible",
+      paddingRight: 0,
+    },
+    [`& .${tierCss.root}`]: { minWidth: 0, maxWidth: "100%", width: "100%" },
+  },
+}));
+
 function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
   const {
     appCtx,
@@ -57,7 +88,29 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
     disabled,
     ...rest
   } = props;
-  const [billingEmail, setBillingEmail] = React.useState(team.billingEmail);
+  const { t } = useI18n();
+  const { styles, cx } = useBillingStyles();
+  const [form] = Form.useForm<{ billingEmail: string }>();
+  const [operation, setOperation] = React.useState<string | null>(null);
+  const [actionError, setActionError] = React.useState<string | null>(null);
+  const [savedEmail, setSavedEmail] = React.useState(false);
+  React.useEffect(() => {
+    form.setFieldsValue({ billingEmail: team.billingEmail ?? "" });
+    setSavedEmail(false);
+  }, [form, team.id, team.billingEmail]);
+  const run = async (name: string, action: () => Promise<void>) => {
+    setOperation(name);
+    setActionError(null);
+    try {
+      await action();
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : t("Failed to update billing"),
+      );
+    } finally {
+      setOperation(null);
+    }
+  };
   const [billingFreq, setBillingFreq] = React.useState<BillingFrequency>(
     team.billingFrequency ?? "year",
   );
@@ -79,9 +132,9 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
       team.billingFrequency,
     );
     return team.billingFrequency === "year"
-      ? `$${bill.total}/year`
-      : `$${bill.total}/month`;
-  }, [team.featureTier, team.seats, team.billingFrequency]);
+      ? t("{amount}/year", { amount: `$${bill.total}` })
+      : t("{amount}/month", { amount: `$${bill.total}` });
+  }, [team.featureTier, team.seats, team.billingFrequency, t]);
 
   const seatsUsed = members.filter(
     (m) => !isAdminTeamEmail(m.email, DEVFLAGS),
@@ -93,7 +146,7 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
     // Load the upsell modal to handle either an upgrade/downgrade or new subscription
     const promptResult = await promptBilling({
       appCtx,
-      title: title ?? `Switch to ${tier.name}`,
+      title: title ?? t("Switch to {plan}", { plan: tier.name }),
       target: {
         team,
         initialTier: tier,
@@ -109,10 +162,8 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
       return;
     } else if (promptResult.type === "fail") {
       // Show errors
-      notification.warning({
-        message: `Issue with payment, please try again.`,
-        description: promptResult.errorMsg,
-      });
+      await onChange();
+      throw new Error(promptResult.errorMsg);
     } else if (promptResult.type === "success") {
       await showUpsellConfirm(APP_ROUTES.orgSettings.fill({ teamId: team.id }));
     }
@@ -125,7 +176,7 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
     // Load the upsell modal to handle either an upgrade/downgrade or new subscription
     const promptResult = await promptUpdateCc({
       appCtx,
-      title: `Update payment method`,
+      title: t("Update payment method"),
       team,
     });
 
@@ -134,10 +185,8 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
       return;
     } else if (promptResult.type === "fail") {
       // Show errors
-      notification.warning({
-        message: `Issue with updating payment method, please try again.`,
-        description: promptResult.errorMsg,
-      });
+      await onChange();
+      throw new Error(promptResult.errorMsg);
     } else if (promptResult.type === "success") {
       // TODO: custom confirm, currently using same as for upsell
       await showUpsellConfirm(APP_ROUTES.orgSettings.fill({ teamId: team.id }));
@@ -157,151 +206,242 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
       team.featureTier,
       "Feature tier should exist to change seats",
     );
-    await upsell(tier, "Change seat count");
+    await upsell(tier, t("Change seat count"));
   };
 
+  const cancelSubscription = async () => {
+    if (team.featureTier && !isUpgradableTier(team.featureTier)) {
+      const confirmed = await reactConfirm({
+        title: t("Cancel your Plasmic plan"),
+        message: t(
+          "Contact our team to discuss cancelling your plan. Confirm to schedule an appointment.",
+        ),
+      });
+      if (confirmed) {
+        window.open("https://zcal.co/jason-plasmic/cancel", "_blank");
+      }
+      return;
+    }
+    const reason = await reactPrompt({
+      message: t("Why are you cancelling your plan?"),
+      rules: [{ required: true }],
+      placeholder: t("Tell us what we could improve"),
+    });
+    if (!reason) {
+      return;
+    }
+    const confirmed = await reactHardConfirm({
+      title: t("Cancel your Plasmic plan"),
+      message: t("To cancel your plan, type 'cancel' into the textbox"),
+      mustType: "cancel",
+    });
+    if (!confirmed) {
+      return;
+    }
+    await appCtx.api.cancelSubscription(team.id, { reason });
+    await onChange();
+  };
+  const isFree = subStatus.type === "valid" && (subStatus.free || team.onTrial);
+  const isEnterprise =
+    subStatus.type === "valid" && subStatus.tier.name.includes("Enterprise");
+  const blocked = disabled || operation !== null;
+  const seatsPurchased = team.seats ?? appCtx.appConfig.freeTier.maxUsers;
   return (
-    <PlasmicTeamBilling
-      root={{ ref }}
-      {...rest}
-      showBillingError={!!billingError}
-      billingError={billingError}
-      billingFrequencyToggle={{
-        // Don't let users switch billingFreq if they already have a subscription
-        isDisabled: !(subStatus.type === "valid" && subStatus.free),
-        isChecked: billingFreq === "year",
-        onChange: (checked) => {
-          if (checked) {
-            setBillingFreq("year");
-          } else {
-            setBillingFreq("month");
-          }
-        },
-      }}
-      priceTierPicker={{
-        appCtx: appCtx,
-        disabled: disabled || !!billingError,
-        billingFrequency: billingFreq,
-        availableTiers: availFeatureTiers,
-        currentFeatureTier:
-          subStatus.type === "valid" ? subStatus.tier : subStatus.freeTier,
-        canStartFreeTrial,
-        onSelectFeatureTier: upsell,
-        onManageSeats:
-          subStatus.type === "valid" &&
-          !subStatus.free &&
-          !team.onTrial &&
-          !!team.stripeSubscriptionId
-            ? manageSeats
-            : undefined,
-        onStartFreeTrial: startFreeTrial,
-        isFreeTrialTeam: team.onTrial,
-      }}
-      freeTrial={{
-        team,
-      }}
-      // If we are on free or enterprise tiers, hide certain sections.
-      tier={
-        subStatus.type === "valid" && (subStatus.free || team.onTrial)
-          ? "free"
-          : subStatus.type === "valid" &&
-              subStatus.tier.name.includes("Enterprise")
-            ? "enterprise"
-            : undefined
-      }
-      currentBill={currentBill}
-      seatsUsed={`${seatsUsed}`}
-      seatsPurchased={`${team.seats ?? appCtx.appConfig.freeTier.maxUsers}`}
-      changeCreditCardButton={{
-        onClick: async () => {
-          await updateCreditCard();
-        },
-      }}
-      cancelSubscriptionButton={{
-        onClick: async () => {
-          // If the user is on not on a Upgradable tier,
-          // ask they talk to us first before cancelling
-          if (team.featureTier && !isUpgradableTier(team.featureTier)) {
-            const confirmed = await reactConfirm({
-              title: "Cancel your Plasmic plan",
-              message:
-                "We'd love to speak to you about your experience with Plasmic and walk you through the cancellation. Click 'Confirm' to schedule an appointment with our team.",
-            });
-            if (confirmed) {
-              window.open("https://zcal.co/jason-plasmic/cancel", "_blank");
-            }
-            return;
-          }
-
-          // Ask the user to confirm their cancellation
-          const cancelReason = await reactPrompt({
-            message: `Can you tell us why you're cancelling? What could we have done better?`,
-            rules: [
+    <section
+      ref={ref}
+      className={cx(styles.root, rest.className)}
+      aria-busy={operation !== null}
+    >
+      <Flex vertical gap={24}>
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          {t("Billing")}
+        </Typography.Title>
+        {billingError && (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Payment requires attention")}
+            description={billingError}
+          />
+        )}
+        {actionError && (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to update billing")}
+            description={actionError}
+          />
+        )}
+        {operation && (
+          <Typography.Text role="status">
+            {t("Updating billing…")}
+          </Typography.Text>
+        )}
+        <Card>
+          <Descriptions
+            title={t("Current plan")}
+            column={{ xs: 1, sm: 2, lg: 3 }}
+            items={[
               {
-                required: true,
+                key: "plan",
+                label: t("Plan"),
+                children: (subStatus.type === "valid"
+                  ? subStatus.tier
+                  : subStatus.freeTier
+                ).name,
               },
-            ],
-            placeholder: "Please don't hold back - we need to know the truth.",
-          });
-          if (!cancelReason) {
-            return;
-          }
-
-          // Ask the user to confirm their cancellation
-          const confirmed = await reactHardConfirm({
-            title: "Cancel your Plasmic plan",
-            message: `To cancel your plan, type 'cancel' into the textbox`,
-            mustType: "cancel",
-          });
-          if (!confirmed) {
-            return;
-          }
-
-          // Do the cancellation
-          const teamId = ensure(
-            team,
-            `${ORGANIZATION_CAP} should exist to change subscription`,
-          ).id;
-          await appCtx.api.cancelSubscription(teamId, {
-            reason: cancelReason,
-          });
-          // Refresh the latest team data
-          await onChange();
-        },
-        disabled: disabled,
-      }}
-      billingEmail={{
-        value: billingEmail,
-        onChange: (v) => setBillingEmail(v.target.value),
-      }}
-      updateBillingEmailButton={{
-        onClick: async () => {
-          if (!billingEmail) {
-            return;
-          }
-          const teamId = ensure(
-            team,
-            `${ORGANIZATION_CAP} should exist to update billing email`,
-          ).id;
-          await appCtx.api.updateTeam(teamId, {
-            billingEmail,
-          });
-        },
-        disabled: disabled,
-      }}
-      manageBilling={
-        team.stripeCustomerId
-          ? {
-              props: {
-                href: APP_ROUTES.orgBilling.fill({ teamId: team.id }),
-                target: "_blank",
+              ...(!isFree && !isEnterprise && currentBill
+                ? [
+                    {
+                      key: "bill",
+                      label: t("Recurring bill"),
+                      children: currentBill,
+                    },
+                  ]
+                : []),
+              {
+                key: "seats",
+                label: t("Current usage"),
+                children:
+                  seatsPurchased === null
+                    ? t("{used} seats used", { used: seatsUsed })
+                    : t("{used} of {purchased} seats used", {
+                        used: seatsUsed,
+                        purchased: seatsPurchased,
+                      }),
               },
+            ]}
+          />
+          {isFree && <FreeTrial team={team} accountSection />}
+        </Card>
+        <Flex align="center" gap={12} wrap>
+          <Typography.Text>{t("Billing frequency")}</Typography.Text>
+          <Segmented<BillingFrequency>
+            aria-label={t("Billing frequency")}
+            value={billingFreq}
+            disabled={
+              blocked || !(subStatus.type === "valid" && subStatus.free)
             }
-          : {
-              wrap: () => null,
-            }
-      }
-    />
+            onChange={setBillingFreq}
+            options={[
+              { value: "month", label: t("Monthly") },
+              { value: "year", label: t("Yearly") },
+            ]}
+          />
+          <Button
+            type="link"
+            href="https://www.plasmic.app/pricing"
+            target="_blank"
+          >
+            {t("Learn more.")}
+          </Button>
+        </Flex>
+        <PriceTierPicker
+          className={styles.plans}
+          appCtx={appCtx}
+          disabled={blocked || !!billingError}
+          billingFrequency={billingFreq}
+          availableTiers={availFeatureTiers}
+          currentFeatureTier={
+            subStatus.type === "valid" ? subStatus.tier : subStatus.freeTier
+          }
+          canStartFreeTrial={canStartFreeTrial}
+          isFreeTrialTeam={team.onTrial}
+          onSelectFeatureTier={(tier) => run("plan", () => upsell(tier))}
+          onManageSeats={
+            subStatus.type === "valid" &&
+            !subStatus.free &&
+            !team.onTrial &&
+            !!team.stripeSubscriptionId
+              ? () => run("seats", manageSeats)
+              : undefined
+          }
+          onStartFreeTrial={() => run("trial", startFreeTrial)}
+        />
+        {!isFree && (
+          <Card title={t("Preferences")}>
+            <Form
+              form={form}
+              className={styles.preferences}
+              layout="vertical"
+              disabled={blocked}
+              onValuesChange={() => setSavedEmail(false)}
+              onFinish={(values) => {
+                void run("email", async () => {
+                  await appCtx.api.updateTeam(team.id, {
+                    billingEmail: values.billingEmail,
+                  });
+                  setSavedEmail(true);
+                  await onChange();
+                });
+              }}
+            >
+              <Form.Item
+                name="billingEmail"
+                label={t("Billing email")}
+                rules={[
+                  {
+                    required: true,
+                    type: "email",
+                    message: t("Enter a valid billing email"),
+                  },
+                ]}
+              >
+                <Input type="email" />
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  htmlType="submit"
+                  type="primary"
+                  loading={operation === "email"}
+                >
+                  {t("Save")}
+                </Button>
+              </Form.Item>
+              {savedEmail && (
+                <Alert
+                  type="success"
+                  showIcon
+                  title={t("Billing email saved")}
+                />
+              )}
+            </Form>
+            <Flex gap={12} wrap>
+              {!isEnterprise && (
+                <Button
+                  disabled={blocked}
+                  loading={operation === "payment"}
+                  onClick={() => {
+                    void run("payment", updateCreditCard);
+                  }}
+                >
+                  {t("Update payment method")}
+                </Button>
+              )}
+              {!isEnterprise && team.stripeCustomerId && (
+                <Button
+                  disabled={blocked}
+                  href={APP_ROUTES.orgBilling.fill({ teamId: team.id })}
+                  target="_blank"
+                >
+                  {t("Manage billing")}
+                </Button>
+              )}
+              <Button
+                danger
+                disabled={blocked}
+                loading={operation === "cancel"}
+                onClick={() => {
+                  void run("cancel", cancelSubscription);
+                }}
+              >
+                {t("Cancel subscription")}
+              </Button>
+            </Flex>
+          </Card>
+        )}
+      </Flex>
+    </section>
   );
 }
 

@@ -10,26 +10,38 @@ const source = fs.readFileSync(
 
 function loadPreload(argv, inTopFrame = true) {
   const exposed = {};
-  const window = { addEventListener() {} };
+  const events = new Map();
+  const calls = [];
+  const window = {
+    addEventListener(name, callback) {
+      events.set(name, callback);
+    },
+  };
   window.top = inTopFrame ? window : {};
   vm.runInNewContext(source, {
     process: { argv },
     window,
+    document: { documentElement: { dataset: { uiAppearance: "light" } } },
     navigator: { languages: ["en-US"] },
     location: { pathname: "/", origin: "http://localhost" },
     require(name) {
       assert.equal(name, "electron");
       return {
-        ipcRenderer: { on() {} },
+        ipcRenderer: {
+          on() {},
+          invoke: async (...args) => {
+            calls.push(args);
+          },
+        },
         contextBridge: {
-          exposeInMainWorld: (name, value) => {
-            exposed[name] = value;
+          exposeInMainWorld: (bridgeName, value) => {
+            exposed[bridgeName] = value;
           },
         },
       };
     },
   });
-  return exposed;
+  return { ...exposed, calls, ready: () => events.get("DOMContentLoaded")?.() };
 }
 test("exposes OS language priority even when Chromium uses English", () => {
   const exposed = loadPreload([
@@ -54,4 +66,13 @@ test("uses browser language preferences when launched without desktop arguments"
   assert.deepEqual(Array.from(exposed.desktopEnvironment.systemLanguages), [
     "en-US",
   ]);
+});
+
+test("passes Studio first-paint appearance to native dialogs before React loads", () => {
+  const top = loadPreload(["electron"]);
+  top.ready();
+  assert.deepEqual(top.calls, [["desktop:ui-appearance", "light"]]);
+  const frame = loadPreload(["electron"], false);
+  frame.ready();
+  assert.deepEqual(frame.calls, []);
 });

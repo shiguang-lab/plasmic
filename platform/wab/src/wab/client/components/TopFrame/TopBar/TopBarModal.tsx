@@ -14,7 +14,7 @@ export function TopBarModal(
     <Modal
       open={open}
       footer={null}
-      closable={false}
+      closable
       maskClosable={true}
       onCancel={onClose}
       onOk={onClose}

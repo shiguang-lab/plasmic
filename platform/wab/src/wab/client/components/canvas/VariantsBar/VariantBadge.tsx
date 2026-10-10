@@ -93,8 +93,8 @@ const VariantBadge = observer(function VariantBadge_({
         wrapper={(children) => (
           <Popover
             placement="left"
-            transitionName=""
-            visible={showStyleVariantEditor}
+            motion={{ motionName: "" }}
+            open={showStyleVariantEditor}
             content={() => (
               <StyleVariantEditor
                 variant={variant as StyleVariant}

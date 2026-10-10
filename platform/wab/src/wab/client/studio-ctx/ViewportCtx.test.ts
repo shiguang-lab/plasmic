@@ -167,6 +167,48 @@ describe("ViewportCtx", () => {
     vi.runAllTimers();
     expect(ctx.scroll()).toEqual(new Pt(5, 19));
   });
+  test.each([new Pt(-3000, -2000), new Pt(6000, 4000)])(
+    "panning beyond an edge keeps the requested world position: %s",
+    (worldTarget) => {
+      ctx = new ViewportCtx({
+        dom,
+        initialArena: pageArena,
+        initialClipperBox: new Box(0, 0, 1000, 500),
+        initialClipperScroll: Pt.zero(),
+      });
+      ctx.setArenaScalerSize(new Pt(1440, 1024));
+      const initialPadding = ctx.canvasPadding();
+      ctx.panTo(worldTarget.plus(initialPadding));
+      vi.runAllTimers();
+      expect(ctx.visibleScalerBox().topLeft()).toEqual(worldTarget);
+      expect(ctx.scroll().x).toBeGreaterThanOrEqual(0);
+      expect(ctx.scroll().y).toBeGreaterThanOrEqual(0);
+      // A second move in the same gesture must include the shifted DOM origin.
+      const nextTarget = worldTarget.plus(new Pt(-4000, -3000));
+      ctx.panTo(nextTarget.plus(ctx.canvasPadding()));
+      vi.runAllTimers();
+      expect(ctx.visibleScalerBox().topLeft()).toEqual(nextTarget);
+      expect(ctx.clientToScaler(ctx.scalerToClient(new Pt(100, 200)))).toEqual(
+        new Pt(100, 200),
+      );
+    },
+  );
+
+  test("wheel panning extends the canvas without losing the requested movement", () => {
+    ctx = new ViewportCtx({
+      dom,
+      initialArena: pageArena,
+      initialClipperBox: new Box(0, 0, 1000, 500),
+      initialClipperScroll: Pt.zero(),
+    });
+    const before = ctx.visibleScalerBox().topLeft();
+    ctx.scrollBy(new Pt(-2500, -1500));
+    vi.runAllTimers();
+    expect(ctx.visibleScalerBox().topLeft()).toEqual(
+      before.plus(new Pt(-2500, -1500)),
+    );
+  });
+
   test("scrollTo updates DOM and receives setScroll callback", () => {
     ctx = new ViewportCtx({
       dom,
@@ -299,37 +341,66 @@ describe("ViewportCtx", () => {
       scrollPaddingRatio: 1,
     });
 
-    // We expose a "set scroll and width" method, so call scaleAtMidPt then setScroll.
-    ctx.scaleAtMidPt(0.5);
-    ctx.setScroll(new Pt(0, 0));
-    expect(ctx.visibleScalerBox()).toEqual(
-      Box.fromRect({ left: -2000, top: -1000, width: 2000, height: 1000 }),
-    );
-    ctx.setScroll(new Pt(1000, 500));
-    expect(ctx.visibleScalerBox()).toEqual(
-      Box.fromRect({ left: 0, top: 0, width: 2000, height: 1000 }),
-    );
-
-    ctx.scaleAtMidPt(1);
-    ctx.setScroll(new Pt(0, 0));
-    expect(ctx.visibleScalerBox()).toEqual(
-      Box.fromRect({ left: -1000, top: -500, width: 1000, height: 500 }),
-    );
-    ctx.setScroll(new Pt(1000, 500));
-    expect(ctx.visibleScalerBox()).toEqual(
-      Box.fromRect({ left: 0, top: 0, width: 1000, height: 500 }),
-    );
-
-    ctx.scaleAtMidPt(2);
-    ctx.setScroll(new Pt(0, 0));
-    expect(ctx.visibleScalerBox()).toEqual(
-      Box.fromRect({ left: -500, top: -250, width: 500, height: 250 }),
-    );
-    ctx.setScroll(new Pt(1000, 500));
-    expect(ctx.visibleScalerBox()).toEqual(
-      Box.fromRect({ left: 0, top: 0, width: 500, height: 250 }),
-    );
+    for (const scale of [0.5, 1, 2]) {
+      ctx.scaleAtMidPt(scale);
+      // DOM scroll is measured from the expanded surface, while visible points
+      // retain their world coordinates.
+      ctx.setScroll(ctx.canvasPadding().sub(new Pt(1000, 500)));
+      expect(ctx.visibleScalerBox()).toEqual(
+        Box.fromRect({
+          left: -1000 / scale,
+          top: -500 / scale,
+          width: 1000 / scale,
+          height: 500 / scale,
+        }),
+      );
+      ctx.setScroll(ctx.canvasPadding());
+      expect(ctx.visibleScalerBox()).toEqual(
+        Box.fromRect({
+          left: 0,
+          top: 0,
+          width: 1000 / scale,
+          height: 500 / scale,
+        }),
+      );
+    }
   });
+  test.each([-10000, 10000])(
+    "fits an artboard at world coordinate %s without negative DOM scroll",
+    (coordinate) => {
+      ctx = new ViewportCtx({
+        dom,
+        initialArena: pageArena,
+        initialClipperBox: Box.fromRect({
+          left: 56,
+          top: 80,
+          width: 1000,
+          height: 700,
+        }),
+        initialClipperScroll: Pt.zero(),
+      });
+      ctx.setArenaScalerSize(new Pt(400, 300));
+      const artboard = Box.fromRect({
+        left: coordinate,
+        top: coordinate,
+        width: 400,
+        height: 300,
+      });
+      ctx.zoomToScalerBox(artboard, { minPadding: 50 });
+      vi.runAllTimers();
+      expect(domScroll.x).toBeGreaterThanOrEqual(0);
+      expect(domScroll.y).toBeGreaterThanOrEqual(0);
+      const center = ctx.scalerToClient(artboard.midpt());
+      expect(center.x).toBeCloseTo(ctx.clipperBox().midpt().x);
+      expect(center.y).toBeCloseTo(ctx.clipperBox().midpt().y);
+      const before = ctx.clientToScaler(center);
+      ctx.scaleAtFixedPt(ctx.scale() * 2, before, center);
+      vi.runAllTimers();
+      expect(ctx.clientToScaler(center).x).toBeCloseTo(before.x);
+      expect(ctx.clientToScaler(center).y).toBeCloseTo(before.y);
+    },
+  );
+
   test("client/scaler conversions", () => {
     const expectClientScalerPt = ({
       client,
@@ -366,7 +437,11 @@ describe("ViewportCtx", () => {
     expectClientScalerPt({ client: new Pt(40, 60), scaler: new Pt(30, 40) });
     expectClientScalerPt({ client: new Pt(100, 100), scaler: new Pt(90, 80) });
 
-    ctx.scaleAtMidPt(2);
+    ctx.scaleAtFixedPt(
+      2,
+      Pt.zero(),
+      ctx.clipperBox().topLeft().plus(ctx.canvasPadding()),
+    );
     ctx.setScroll(new Pt(0, 0));
     expectClientScalerPt({ client: new Pt(0, 0), scaler: new Pt(-20, -30) });
     expectClientScalerPt({ client: new Pt(10, 20), scaler: new Pt(-15, -20) });

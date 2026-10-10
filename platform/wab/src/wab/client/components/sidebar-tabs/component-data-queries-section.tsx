@@ -369,7 +369,7 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
       withSubtitle
       onClick={() => {
         viewCtx.setStudioFocusByTpl(tpl);
-        viewCtx.studioCtx.switchRightTab(RightTabKey.settings);
+        viewCtx.studioCtx.switchRightTab(RightTabKey.style);
       }}
     >
       {isKnownDataSourceOpExpr(dataOpExpr) ? (

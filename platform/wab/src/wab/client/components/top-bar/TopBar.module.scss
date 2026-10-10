@@ -6,12 +6,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
   min-width: 24px;
   height: 40px;
 
   > svg {
-    width: 24px;
-    height: 24px;
+    width: 29px;
+    height: 29px;
+    fill: var(--ui-accent);
   }
 
   > img {
@@ -19,4 +23,25 @@
     max-height: 24px;
     object-fit: contain;
   }
+}
+
+@media (max-width: 800px) {
+  .topBar :global(.editor-brand-label) {
+    display: none;
+  }
+}
+
+.projectActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 280px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+}
+
+.projectActions :global(.ant-menu) {
+  border: 0;
+  background: transparent;
 }

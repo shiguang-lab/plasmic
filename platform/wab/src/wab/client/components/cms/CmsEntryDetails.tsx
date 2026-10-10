@@ -7,6 +7,7 @@ import {
   renderEntryField,
   renderMaybeLocalizedInput,
 } from "@/wab/client/components/cms/CmsInputs";
+import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import {
   useCmsDatabase,
   useCmsRow,
@@ -17,6 +18,7 @@ import {
 import { isCmsTextLike } from "@/wab/client/components/cms/utils";
 import { confirm } from "@/wab/client/components/quick-modals";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCmsEntryDetailsProps,
   PlasmicCmsEntryDetails,
@@ -46,7 +48,17 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { substituteUrlParams } from "@/wab/shared/utils/url-utils";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Drawer, Form, Menu, Tooltip, message, notification } from "antd";
+import {
+  Alert,
+  Button,
+  Drawer,
+  Form,
+  Menu,
+  Skeleton,
+  Tooltip,
+  message,
+  notification,
+} from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { isEqual, isNil, mapValues, pickBy } from "lodash";
 import * as React from "react";
@@ -128,12 +140,37 @@ function CmsEntryDetails_(
     rowId: CmsRowId;
   }>()!;
   const { tableId, rowId, databaseId } = match.pathParams;
-  const database = useCmsDatabase(databaseId);
-  const row = useCmsRow(tableId, rowId);
+  const { database } = useCmsDatabase(databaseId);
+  const { row, error, mutate } = useCmsRow(tableId, rowId);
+  const { t } = useI18n();
+  const { styles } = useCmsLayoutStyles();
   const table = useCmsTable(databaseId, tableId);
 
   if (!row || !table || !database) {
-    return null;
+    return (
+      <div className={styles.loading}>
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load content entry")}
+            action={
+              <Button
+                onClick={() => {
+                  void mutate();
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+          />
+        ) : (
+          <div role="status" aria-label={t("Loading content entry…")}>
+            <Skeleton active />
+          </div>
+        )}
+      </div>
+    );
   } else {
     return (
       <CmsEntryDetailsForm
@@ -547,19 +584,23 @@ function CmsEntryDetailsForm_(
         }}
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
-        onValuesChange={(changedValues: CmsRowData, allValues) => {
+        onValuesChange={(changedValues: Partial<CmsRowData>, allValues) => {
           if (Object.keys(changedValues).length > 0) {
             setHasUnsavedChanges(hasChanges());
             setHasUnpublishedChanges(hasPublishableChanges());
             console.log({ changedFields: changedValues, allFields: allValues });
             setUniqueFieldsStatus((prev) => {
-              const changedUniqueData = getUniqueFieldsData(
-                table,
-                changedValues,
-              );
-              const nullUniqueData = getUniqueFieldsData(table, changedValues, {
-                nulls: "only",
+              const changedUniqueData = getUniqueFieldsData(table, {
+                "": {},
+                ...changedValues,
               });
+              const nullUniqueData = getUniqueFieldsData(
+                table,
+                { "": {}, ...changedValues },
+                {
+                  nulls: "only",
+                },
+              );
               return {
                 ...prev,
                 ...dataToUniqueStatus(changedUniqueData, "not started"),

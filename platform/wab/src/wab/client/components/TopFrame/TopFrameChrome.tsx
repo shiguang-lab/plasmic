@@ -4,6 +4,7 @@ import { HostConfig } from "@/wab/client/components/HostConfig";
 import { DataSourcePicker } from "@/wab/client/components/TopFrame/DataSourcePicker";
 import CloneProjectModal from "@/wab/client/components/TopFrame/TopBar/CloneProjectModal";
 import CodeModal from "@/wab/client/components/TopFrame/TopBar/CodeModal";
+import { DeliveryTab } from "@/wab/client/components/TopFrame/TopBar/DeliveryModal";
 import ProjectNameModal from "@/wab/client/components/TopFrame/TopBar/ProjectNameModal";
 import PublishFlowDialogWrapper from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
 import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame/TopBar/RegenerateSecretTokenModal";
@@ -143,6 +144,15 @@ export function TopFrameChrome({
   didShowRegenerateSecretTokenModal,
   ...rest
 }: TopFrameChromeProps) {
+  const selectDelivery = (tab: DeliveryTab) => {
+    const setter =
+      tab === "share"
+        ? topFrameApi.setShowShareModal
+        : tab === "code"
+          ? topFrameApi.setShowCodeModal
+          : topFrameApi.setShowPublishModal;
+    spawn(setter(true));
+  };
   const { hostFrameApiReady } = useTopFrameCtx();
   const location = useLocation();
   const fullPreview = !!APP_ROUTES.projectFullPreview.parse(
@@ -306,6 +316,7 @@ export function TopFrameChrome({
               />
             )}
             <PublishFlowDialogWrapper
+              onSelectDelivery={selectDelivery}
               project={project}
               refreshProjectAndPerms={refreshProjectAndPerms}
               activatedBranch={rest.activatedBranch}
@@ -313,7 +324,11 @@ export function TopFrameChrome({
               latestPublishedVersionData={rest.latestPublishedVersionData}
               revisionNum={rest.revisionNum}
               showPublishModal={rest.showPublishModal}
-              keepPublishModalOpen={rest.keepPublishModalOpen}
+              keepPublishModalOpen={
+                rest.keepPublishModalOpen &&
+                !rest.showShareModal &&
+                !rest.showCodeModal
+              }
               setShowPublishModal={topFrameApi.setShowPublishModal}
               setShowCodeModal={topFrameApi.setShowCodeModal}
             />
@@ -335,6 +350,7 @@ export function TopFrameChrome({
               setShowShareModal={topFrameApi.setShowShareModal}
             />
             <CodeModal
+              onSelectDelivery={selectDelivery}
               project={project}
               noComponents={rest.noComponents}
               subjectComponentInfo={rest.subjectComponentInfo}
@@ -550,13 +566,16 @@ export function useTopFrameState({
   const [revisionNum, setRevisionNum] = React.useState(0);
   const [desktopTitleBarDragRegion, setDesktopTitleBarDragRegion] =
     React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegion">>(null);
-  const [showPublishModal, setShowPublishModal] = React.useState(false);
+  const [deliveryTab, setDeliveryTab] = React.useState<DeliveryTab | null>(
+    null,
+  );
+  const showPublishModal = deliveryTab === "publish";
   const [keepPublishModalOpen, setKeepPublishModalOpen] = React.useState(false);
   const [mergeModalContext, setMergeModalContext] = React.useState<
     MergeModalContext | undefined
   >(undefined);
-  const [showShareModal, setShowShareModal] = React.useState(false);
-  const [showCodeModal, setShowCodeModal] = React.useState(false);
+  const showShareModal = deliveryTab === "share";
+  const showCodeModal = deliveryTab === "code";
   const [showCloneProjectModal, setShowCloneProjectModal] =
     React.useState(false);
   const [showProjectNameModal, setShowProjectNameModal] = React.useState(false);
@@ -677,10 +696,22 @@ export function useTopFrameState({
         setActivatedBranch(x);
       }),
       setMergeModalContext: asyncWrapper(setMergeModalContext),
-      setShowPublishModal: asyncWrapper(setShowPublishModal),
+      setShowPublishModal: asyncWrapper((open: boolean) =>
+        setDeliveryTab((current) =>
+          open ? "publish" : current === "publish" ? null : current,
+        ),
+      ),
       setKeepPublishModalOpen: asyncWrapper(setKeepPublishModalOpen),
-      setShowShareModal: asyncWrapper(setShowShareModal),
-      setShowCodeModal: asyncWrapper(setShowCodeModal),
+      setShowShareModal: asyncWrapper((open: boolean) =>
+        setDeliveryTab((current) =>
+          open ? "share" : current === "share" ? null : current,
+        ),
+      ),
+      setShowCodeModal: asyncWrapper((open: boolean) =>
+        setDeliveryTab((current) =>
+          open ? "code" : current === "code" ? null : current,
+        ),
+      ),
       setShowProjectNameModal: asyncWrapper(setShowProjectNameModal),
       setShowCloneProjectModal: asyncWrapper(setShowCloneProjectModal),
       setShowHostModal: asyncWrapper(setShowHostModal),

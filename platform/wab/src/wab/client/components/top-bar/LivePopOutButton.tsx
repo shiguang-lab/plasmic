@@ -20,17 +20,21 @@ import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getFrameHeight } from "@/wab/shared/Arenas";
 import { spawn } from "@/wab/shared/common";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
-import { notification } from "antd";
+import { Button, Tooltip, notification } from "antd";
 import { createPath } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 
-type LivePopOutButtonProps = DefaultLivePopOutButtonProps;
+type LivePopOutButtonProps = DefaultLivePopOutButtonProps & {
+  showLabel?: boolean;
+  iconOnly?: boolean;
+};
 
 const LivePopOutButton = observer(function LivePopOutButton(
   props: LivePopOutButtonProps,
 ) {
   const { t: uiT } = useI18n();
+  const { showLabel, iconOnly, ...plasmicProps } = props;
   const history = useHistory();
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
@@ -181,14 +185,43 @@ const LivePopOutButton = observer(function LivePopOutButton(
 
   useFrameBgColor(frameRef, previewCtx, setFrameColor);
 
+  const label = isDesktop
+    ? uiT("Open preview in browser")
+    : uiT("Open preview in new tab");
+
+  if (iconOnly) {
+    return (
+      <Tooltip trigger={["hover", "focus"]} title={label}>
+        <Button
+          type="text"
+          className="editor-icon-action"
+          aria-label={label}
+          disabled={!studioCtx.currentArena || studioCtx.currentArenaEmpty}
+          onClick={openLivePopup}
+          icon={
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 3h6v6 M10 14L21 3 M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            </svg>
+          }
+        />
+      </Tooltip>
+    );
+  }
+
+  if (showLabel) {
+    return (
+      <Button type="text" onClick={openLivePopup} aria-label={label}>
+        {label}
+      </Button>
+    );
+  }
+
   return (
     <PlasmicLivePopOutButton
-      {...props}
+      {...plasmicProps}
       root={{
         props: {
-          "aria-label": isDesktop
-            ? uiT("Open preview in browser")
-            : uiT("Open preview in new tab"),
+          "aria-label": label,
         },
       }}
       tooltip={

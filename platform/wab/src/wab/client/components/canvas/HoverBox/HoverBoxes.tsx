@@ -951,7 +951,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                       state.left) -
                       state.left) *
                       studioCtx.zoom +
-                      studioCtx.leftPaneWidth +
+                      (studioCtx.leftTabKey ? studioCtx.leftPaneWidth : 0) +
                       4,
                   ),
                 }}

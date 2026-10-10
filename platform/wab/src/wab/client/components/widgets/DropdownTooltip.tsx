@@ -12,26 +12,30 @@ export interface DropdownTooltipProps extends React.ComponentProps<
  * is shown
  */
 export function DropdownTooltip(props: DropdownTooltipProps) {
-  const { title, children, overlay, ...rest } = props;
+  const { title, children, popupRender, ...rest } = props;
   const [isDropdownOpen, setDropdownOpen] = React.useState(false);
   const [isTooltipShown, setTooltipShown] = React.useState(false);
   return (
     <Dropdown
       {...rest}
       open={isDropdownOpen}
-      onVisibleChange={(visible) => {
+      onOpenChange={(visible) => {
         setDropdownOpen(visible);
         if (!visible) {
           setTooltipShown(false);
         }
       }}
-      overlay={() => {
-        const elt =
-          typeof overlay === "function"
-            ? overlay()
-            : (overlay as React.ReactElement);
+      popupRender={(originNode) => {
+        const elt = popupRender?.(originNode) ?? originNode;
+        if (
+          !React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(
+            elt,
+          )
+        ) {
+          return elt;
+        }
         return React.cloneElement(elt, {
-          onClick: (e: any) => {
+          onClick: (e: React.MouseEvent) => {
             elt.props.onClick?.(e);
             setDropdownOpen(false);
             setTooltipShown(false);
@@ -41,8 +45,9 @@ export function DropdownTooltip(props: DropdownTooltipProps) {
     >
       <Tooltip
         title={title}
+        arrow={false}
         open={isTooltipShown && !isDropdownOpen}
-        onVisibleChange={(visible) => setTooltipShown(visible)}
+        onOpenChange={(visible) => setTooltipShown(visible)}
       >
         {children}
       </Tooltip>

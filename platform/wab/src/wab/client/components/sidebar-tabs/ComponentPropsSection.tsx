@@ -1168,7 +1168,7 @@ function TplComponentNameSection_(props: {
     !isCodeComponent(tpl.component) &&
     studioCtx.canEditComponent(tpl.component) ? (
       <Tooltip
-        overlay={
+        title={
           <TextAndShortcut
             children="Go to component"
             shortcut={getComboForAction("GO_TO_COMPONENT_ARENA")}
@@ -1260,7 +1260,7 @@ const ApplyMenu = observer(function ApplyMenu_(props: {
     return null;
   }
   return (
-    <Dropdown overlay={menu} trigger={["click"]}>
+    <Dropdown popupRender={() => menu} trigger={["click"]}>
       <Button
         className="flex-no-shrink"
         type={"clear"}

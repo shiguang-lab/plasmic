@@ -1,7 +1,7 @@
 const { BrowserWindow, ipcMain, clipboard } = require("electron");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
-function createMcpSettings(integrations, getParent, i18n) {
+function createMcpSettings(integrations, getParent, i18n, appearance) {
   let window;
   const page = pathToFileURL(path.join(__dirname, "mcp-settings.html")).href;
   ipcMain.handle("desktop:mcp-settings", (event, command, input) => {
@@ -10,13 +10,20 @@ function createMcpSettings(integrations, getParent, i18n) {
       event.sender !== window.webContents ||
       event.senderFrame !== event.sender.mainFrame ||
       event.senderFrame.url !== page
-    )
+    ) {
       throw new Error("Invalid MCP settings page");
-    if (command === "locale") return i18n.snapshot();
-    if (command === "get")
+    }
+    if (command === "appearance") {
+      return appearance.snapshot();
+    }
+    if (command === "locale") {
+      return i18n.snapshot();
+    }
+    if (command === "get") {
       return {
         clients: integrations.status(),
       };
+    }
     if (command === "set") {
       try {
         return { clients: integrations.set(input?.id, input?.enabled) };
@@ -35,8 +42,14 @@ function createMcpSettings(integrations, getParent, i18n) {
     throw new Error("Invalid MCP settings command");
   });
   i18n.subscribe(() => {
-    if (window && !window.isDestroyed())
+    if (window && !window.isDestroyed()) {
       window.webContents.send("desktop:ui-locale", i18n.snapshot());
+    }
+  });
+  appearance.subscribe((value) => {
+    if (window && !window.isDestroyed()) {
+      window.webContents.send("desktop:ui-appearance", value);
+    }
   });
   return () => {
     if (window) {
@@ -48,8 +61,8 @@ function createMcpSettings(integrations, getParent, i18n) {
       modal: true,
       width: 760,
       height: 660,
-      minWidth: 600,
-      minHeight: 560,
+      minWidth: 420,
+      minHeight: 420,
       title: "MCP",
       backgroundColor: "#00000000",
       show: false,
@@ -62,6 +75,9 @@ function createMcpSettings(integrations, getParent, i18n) {
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
+        additionalArguments: [
+          `--shiguang-ui-appearance=${appearance.snapshot()}`,
+        ],
       },
     });
     window.setMenu(null);

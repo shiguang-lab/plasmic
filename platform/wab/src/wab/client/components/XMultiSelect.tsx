@@ -172,7 +172,7 @@ class _XMultiSelect<Item> extends React.Component<
                   // We compartmentalize the Ant dropdown menu item padding style tweaks into .xselect.
                   // Don't want to globally affect all Ant dropdown menus.
                   overlayClassName="xselect"
-                  overlay={
+                  popupRender={() => (
                     <Menu
                       className={"ant-select-dropdown-menu"}
                       selectedKeys={[curItem ? itemKey(curItem) : ""]}
@@ -193,7 +193,7 @@ class _XMultiSelect<Item> extends React.Component<
                         );
                       })}
                     </Menu>
-                  }
+                  )}
                 >
                   <div
                     className="flex flex-vcenter flex-wrap flex-fill"

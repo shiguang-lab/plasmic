@@ -1508,7 +1508,7 @@ export class SiteOps {
             {containingComponent ? (
               <a
                 onClick={async () => {
-                  this.studioCtx.switchRightTab(RightTabKey.settings);
+                  this.studioCtx.switchRightTab(RightTabKey.style);
                   await this.studioCtx.setStudioFocusOnTpl(
                     containingComponent,
                     failure.tpl,

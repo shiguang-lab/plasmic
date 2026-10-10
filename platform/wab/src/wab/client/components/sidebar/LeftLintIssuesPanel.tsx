@@ -4,7 +4,6 @@ import {
   VirtualGroupedList,
 } from "@/wab/client/components/sidebar/VirtualGroupedList";
 import { Matcher } from "@/wab/client/components/view-common";
-import Button from "@/wab/client/components/widgets/Button";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Textbox from "@/wab/client/components/widgets/Textbox";
@@ -17,10 +16,6 @@ import {
   renderLintIssue,
 } from "@/wab/client/linting/lint-issue-row";
 import EmojiHappysvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__EmojiHappySvg";
-import {
-  DefaultLeftLintIssuesPanelProps,
-  PlasmicLeftLintIssuesPanel,
-} from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftLintIssuesPanel";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { maybe, xGroupBy } from "@/wab/shared/common";
 import {
@@ -32,24 +27,27 @@ import { lintUnprotectedDataQueries } from "@/wab/shared/linting/lint-unprotecte
 import { lintSite } from "@/wab/shared/linting/lint-utils";
 import { Component, isKnownComponent } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Empty, Popover, Space, notification } from "antd";
+import { Button, Empty, Popover, Space, notification } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useState } from "react";
 
-export type LeftLintIssuesPanelProps = DefaultLeftLintIssuesPanelProps;
+export type LeftLintIssuesPanelProps = React.HTMLAttributes<HTMLDivElement>;
 
 function LeftLintIssuesPanel_(
   props: LeftLintIssuesPanelProps,
   ref: HTMLElementRefOf<"div">,
 ) {
   return (
-    <PlasmicLeftLintIssuesPanel
-      root={{ ref }}
+    <div
       {...props}
-      description={{ wrap: () => null }}
-      content={<SiteIssuesList />}
-    />
+      ref={ref}
+      className={["editor-issues-panel", props.className]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <SiteIssuesList />
+    </div>
   );
 }
 
@@ -224,11 +222,7 @@ const SiteIssuesList = observer(function SiteIssuesList() {
             headerHeight={50}
             renderGroupHeader={(group) => {
               if (isKnownComponent(group)) {
-                return (
-                  <div style={{ color: "black" }}>
-                    {getComponentDisplayName(group)}
-                  </div>
-                );
+                return <div>{getComponentDisplayName(group)}</div>;
               } else {
                 return (
                   <div>

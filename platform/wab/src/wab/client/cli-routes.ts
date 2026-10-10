@@ -151,6 +151,10 @@ export function isPlasmicPath(pathname: string) {
 }
 
 export function isTopFrame(): boolean {
+  // The injected Studio document is the host frame even when both origins match.
+  if (document.getElementById("plasmic-studio-tag")) {
+    return false;
+  }
   return (
     window.origin === getPublicUrl() ||
     DEVFLAGS.topFrameUrls.includes(window.origin)

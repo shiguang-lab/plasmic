@@ -481,9 +481,9 @@ export function VariantDataPicker(props: {
           />
         }
         trigger="click"
-        visible={visibleDataPicker}
-        onVisibleChange={(v) => setVisibleDataPicker(v)}
-        destroyTooltipOnHide={true}
+        open={visibleDataPicker}
+        onOpenChange={(v) => setVisibleDataPicker(v)}
+        destroyOnHidden={true}
         overlayClassName="data-picker-popover-overlay"
       >
         {children}

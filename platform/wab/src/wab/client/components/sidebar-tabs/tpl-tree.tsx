@@ -896,6 +896,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
         <MenuButton
           className={"tpltree__label__menu"}
           aria-label={uiT("Outline item menu")}
+          align={{ points: ["tl", "tr"], offset: [4, 0] }}
           menu={
             isOutOfContext ? undefined : () => makeTreeNodeMenu(viewCtx, item)
           }

@@ -51,12 +51,7 @@ function ChooseItemForm<T>(props: {
   };
 
   return (
-    <Modal
-      title={title}
-      visible={true}
-      footer={null}
-      onCancel={() => onCancel()}
-    >
+    <Modal title={title} open={true} footer={null} onCancel={() => onCancel()}>
       {description && <p>{description}</p>}
       <Form onFinish={() => onSubmit(chosen)}>
         <Form.Item required>

@@ -117,17 +117,17 @@ export const CHROME_SHORTCUT_GROUP = mkShortcutGroup("Chrome", {
     combos: "alt+-",
     description: "Collapse the left panel",
   },
-  SWITCH_TO_SETTINGS_TAB: {
-    combos: "alt+shift+1",
-    description: "Switch to Settings tab on the right",
-  },
   SWITCH_TO_DESIGN_TAB: {
-    combos: "alt+shift+2",
+    combos: "alt+shift+1",
     description: "Switch to Design tab on the right",
+  },
+  SWITCH_TO_INTERACTIONS_TAB: {
+    combos: "alt+shift+2",
+    description: "Switch to Interactions tab on the right",
   },
   SWITCH_TO_COMPONENT_TAB: {
     combos: "alt+shift+3",
-    description: "Switch to Component Data tab on the right",
+    description: "Switch to Data tab on the right",
   },
 });
 

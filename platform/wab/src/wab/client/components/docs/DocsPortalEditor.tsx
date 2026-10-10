@@ -7,6 +7,7 @@ import {
   serializeToggledIcon,
 } from "@/wab/client/components/docs/serialize-docs-preview";
 import { fixWorkerUrl } from "@/wab/client/monaco-worker-url";
+import { useUiAppearance } from "@/wab/client/ui-theme";
 import {
   makeAssetClassName,
   makeIconAssetFileNameWithoutExt,
@@ -42,6 +43,7 @@ export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
   codePreviewCtx?: CodePreviewCtx;
 }) {
   const { docsCtx, codePreviewCtx } = props;
+  const { appearance } = useUiAppearance();
   const component = docsCtx.tryGetFocusedComponent();
   const icon = docsCtx.tryGetFocusedIcon();
   const [{ monaco, editor }, setMonaco] = React.useState<{
@@ -174,6 +176,7 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
 
   return (
     <MonacoEditor
+      theme={appearance === "dark" ? "vs-dark" : "vs"}
       options={{
         folding: false,
         fontSize: 12,
@@ -184,7 +187,6 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
         lineNumbers: "off",
         minimap: { enabled: false },
         tabSize: 2,
-        theme: "vs-dark",
         useTabStops: false,
 
         // automaticLayout means the editor will resize when the available

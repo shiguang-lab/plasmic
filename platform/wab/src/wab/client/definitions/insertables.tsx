@@ -59,6 +59,7 @@ import {
   Arena,
   Component,
   ComponentServerQuery,
+  ImageAsset,
   TplNode,
   TplTag,
 } from "@/wab/shared/model/classes";
@@ -142,6 +143,7 @@ export type AddTplItem<T = any> = AddItemCommon & {
   ) => Promise<T | false>;
   canWrap?: boolean;
   component?: Component;
+  imageAsset?: ImageAsset;
   previewImageUrl?: string;
 };
 

@@ -5,6 +5,7 @@ import {
   ArenaTreeRef,
   TreeDndManager,
 } from "@/wab/client/components/sidebar-tabs/tpl-tree";
+import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useToggleDisplayed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
@@ -15,13 +16,16 @@ import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
   getArenaFrameDesc,
   getArenaFrames,
+  getArenaName,
   isComponentArena,
+  isMixedArena,
   isPageArena,
 } from "@/wab/shared/Arenas";
-import { switchType } from "@/wab/shared/common";
+import { getDisplayVariants } from "@/wab/shared/Variants";
+import { ensure, switchType } from "@/wab/shared/common";
 import { getComponentArenaRowLabel } from "@/wab/shared/component-arenas";
 import { ArenaFrame, ComponentArena } from "@/wab/shared/model/classes";
-import { Dropdown, Menu } from "antd";
+import { Button, Menu } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 
@@ -59,7 +63,6 @@ function OutlineTab_() {
 
   const currentArenaFrame = outlineCtx.viewCtx()?.arenaFrame();
 
-  const _isPageArena = isPageArena(arena);
   const arenaFrameGroups: {
     groupLabel?: string;
     frames: ArenaFrame[];
@@ -79,32 +82,86 @@ function OutlineTab_() {
     .elseUnsafe(() => [{ frames: getArenaFrames(arena) }]);
 
   const query = outlineCtx.query;
+  const frameLabel = (frame: ArenaFrame) => {
+    if (!isPageArena(arena)) {
+      return getArenaFrameDesc(
+        ensure(arena, "Expected current arena"),
+        frame,
+        studioCtx.site,
+      );
+    }
+    const variants = getDisplayVariants({
+      site: studioCtx.site,
+      frame,
+      isPageArena: true,
+    })
+      .map((variant) => variant.displayName)
+      .join(" + ");
+    return `${getArenaName(arena)} · ${frame.width} × ${frame.height}${variants ? ` · ${variants}` : ""}`;
+  };
 
   return (
     <PlasmicOutlineTab
-      noHeader={_isPageArena || !arena}
       headerFilter={{
         wrap: () =>
-          !_isPageArena && arena && !studioCtx.focusedMode ? (
-            <Dropdown
-              trigger={["click"]}
-              overlay={() => (
-                <Menu>
+          arena ? (
+            <IFrameAwareDropdownMenu
+              menu={() => (
+                <Menu
+                  selectedKeys={
+                    currentArenaFrame &&
+                    (!isMixedArena(arena) || studioCtx.canvasFocusActive)
+                      ? [currentArenaFrame.uuid]
+                      : ["overview"]
+                  }
+                >
+                  <Menu.Item
+                    key="documents"
+                    onClick={studioCtx.showProjectPanel}
+                  >
+                    {uiT("Documents")}
+                  </Menu.Item>
+                  <Menu.Item
+                    key="overview"
+                    disabled={
+                      isMixedArena(arena)
+                        ? studioCtx.currentArenaEmpty
+                        : !studioCtx.canOpenPageOverview
+                    }
+                    onClick={() => {
+                      if (isMixedArena(arena)) {
+                        studioCtx.returnToCanvasOverview();
+                        studioCtx.tryZoomToFitArena();
+                      } else {
+                        void studioCtx.openPageOverview();
+                      }
+                    }}
+                  >
+                    {uiT(
+                      isMixedArena(arena)
+                        ? "Return to overview"
+                        : "Pages overview",
+                    )}
+                  </Menu.Item>
+                  <Menu.Divider />
                   {arenaFrameGroups
                     .filter((it) => it.frames.length)
                     .map((group) => {
                       const items = group.frames.map((frame) => (
                         <Menu.Item
+                          key={frame.uuid}
                           onClick={() =>
-                            studioCtx.changeUnsafe(() =>
-                              studioCtx.setStudioFocusOnFrame({
-                                frame: frame,
-                                autoZoom: true,
-                              }),
-                            )
+                            isMixedArena(arena)
+                              ? studioCtx.focusCanvasFrame(frame)
+                              : studioCtx.changeUnsafe(() =>
+                                  studioCtx.setStudioFocusOnFrame({
+                                    frame,
+                                    autoZoom: true,
+                                  }),
+                                )
                           }
                         >
-                          {getArenaFrameDesc(arena, frame, studioCtx.site)}
+                          {frameLabel(frame)}
                         </Menu.Item>
                       ));
 
@@ -130,30 +187,23 @@ function OutlineTab_() {
                 </Menu>
               )}
             >
-              <div
+              <Button
+                type="text"
+                size="small"
                 data-test-id="elements-panel--current-frame"
                 className={styles.currentFrame}
               >
-                {currentArenaFrame ? (
-                  <strong>
-                    {getArenaFrameDesc(
-                      arena,
-                      currentArenaFrame,
-                      studioCtx.site,
-                    )}
-                  </strong>
+                {currentArenaFrame &&
+                (!isMixedArena(arena) || studioCtx.canvasFocusActive) ? (
+                  <strong>{frameLabel(currentArenaFrame)}</strong>
                 ) : (
-                  <div>
-                    {isComponentArena(arena)
-                      ? "Select a variant"
-                      : "Select an artboard"}
-                  </div>
+                  <div>{getArenaName(arena)}</div>
                 )}
                 {arenaFrameGroups.some((groups) => groups.frames.length) && (
                   <Icon monochromeExempt icon={ChevronDownsvgIcon} />
                 )}
-              </div>
-            </Dropdown>
+              </Button>
+            </IFrameAwareDropdownMenu>
           ) : (
             <div style={{ height: 8 }} />
           ),
@@ -164,8 +214,8 @@ function OutlineTab_() {
             overrides={{
               searchInput: {
                 value: query,
-                placeholder: "Search outline…",
-                "aria-label": "Search outline",
+                placeholder: uiT("Search…"),
+                "aria-label": uiT("Search"),
                 onChange: (e) => outlineCtx.setQuery(e.target.value),
                 onKeyUp: (e) => {
                   if (e.key === "Escape") {
