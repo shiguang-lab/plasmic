@@ -98,7 +98,7 @@ button:disabled { opacity: .55; cursor: default; }
   }
   function render(status) {
     state = status;
-    const { phase, version, currentVersion, retry, uiMessage } = status;
+    const { phase, version, currentVersion } = status;
     const states = {
       idle: [
         "Checking for updates…",
@@ -148,18 +148,12 @@ button:disabled { opacity: .55; cursor: default; }
         "Done",
         "close",
       ],
-      error: [
-        "Update couldn't complete",
-        uiMessage?.key || "Update failed. Please try again.",
-        "Retry",
-        retry || "check",
-      ],
     };
     const [title, description, label, command] = states[phase] || states.idle;
     byId("dismiss").disabled = phase === "installing";
     apply(root);
     byId("status").textContent = t(title);
-    byId("description").textContent = t(description, uiMessage?.values);
+    byId("description").textContent = t(description);
     byId("current-version").textContent = currentVersion || "—";
     byId("latest-version").textContent = version || "";
     byId("latest").hidden = !version;
@@ -169,9 +163,8 @@ button:disabled { opacity: .55; cursor: default; }
     byId("progress").value = percent;
     byId("percent").textContent = `${percent}%`;
     byId("primary").textContent = t(label);
-    byId("primary").dataset.emphasis = ["downloaded", "error"].includes(phase)
-      ? "primary"
-      : "neutral";
+    byId("primary").dataset.emphasis =
+      phase === "downloaded" ? "primary" : "neutral";
     byId("primary").disabled = [
       "idle",
       "checking",
@@ -196,13 +189,8 @@ button:disabled { opacity: .55; cursor: default; }
     try {
       const result = await window.desktopUpdates.command(command);
       if (command !== "close") render(result);
-    } catch (error) {
-      render({
-        ...state,
-        phase: "error",
-        error: error.message,
-        retry: command,
-      });
+    } catch {
+      render({ phase: "current", currentVersion: state.currentVersion });
     }
   }
   byId("primary").onclick = () => run(action);

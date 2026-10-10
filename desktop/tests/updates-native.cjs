@@ -86,6 +86,16 @@ app
       );
     });
     const evaluate = (code) => window.webContents.executeJavaScript(code);
+    const focusWindow = async () => {
+      window.show();
+      window.focus();
+      window.webContents.focus();
+      for (let attempt = 0; attempt < 20; attempt++) {
+        if (await evaluate("document.hasFocus()")) return;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      assert.fail("The native fixture must gain focus before keyboard checks");
+    };
     nativeTheme.themeSource = "dark";
     await window.loadURL(studioOrigin + "/delayed");
     await evaluate(`window.updateOpen(window.fixtureStatus)`);
@@ -184,8 +194,17 @@ app
         releaseNotes[language].split("\n").map((line) => line.slice(2)),
       );
     }
+    const { EventEmitter } = require("node:events");
+    const { UpdateManager } = require("../src/update-manager.cjs");
+    const failedUpdates = new UpdateManager({
+      updater: new EventEmitter(),
+      enabled: true,
+      version: "0.0.6",
+    });
+    failedUpdates.fail(new Error("NAS update check failed (HTTP 503)"));
+    assert.equal(failedUpdates.state.phase, "current");
     await evaluate(
-      'window.updateStatus({ phase: "error", error: "NAS update check failed (HTTP 503)", uiMessage: { key: "NAS update check failed (HTTP {status})", values: { status: 503 } } })',
+      `window.updateStatus(${JSON.stringify(failedUpdates.state)})`,
     );
     for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
       const messages = JSON.parse(
@@ -201,9 +220,8 @@ app
       await evaluate(
         `window.desktopUiI18n.setSnapshot(${JSON.stringify({ locale: language, messages })})`,
       );
-      const expected = messages[
-        "NAS update check failed (HTTP {status})"
-      ].replace("{status}", "503");
+      const expected =
+        messages["You're running the latest version of Plasmic."];
       assert.equal(
         await evaluate(
           'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("description").textContent',
@@ -212,20 +230,18 @@ app
       );
       assert.equal(
         await evaluate(
-          'document.querySelector(".update-action").getAttribute("aria-label")',
+          'document.getElementById("plasmic-desktop-update").hidden',
         ),
-        expected,
+        true,
       );
     }
     await evaluate(
       'window.desktopUiI18n.setSnapshot({ locale: "en", messages: {} }); document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").close(); window.updateStatus(window.fixtureStatus)',
     );
     console.log(
-      "PASS: Open native update notes, errors and sidebar tooltips follow all five languages",
+      "PASS: Native update notes follow all five languages; failed checks show no error indicator",
     );
-    window.show();
-    window.focus();
-    window.webContents.focus();
+    await focusWindow();
     await evaluate(
       `document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`,
     );
@@ -259,10 +275,6 @@ app
       `window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`,
     );
     assert.equal(await evaluate(`window.commands.at(-1)`), "open");
-    await evaluate(
-      `window.fixtureStatus = { phase: "error", error: "下载失败", retry: "download" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`,
-    );
-    assert.equal(await evaluate(`window.commands.at(-1)`), "open");
     for (const phase of ["idle", "current", "checking", "disabled"]) {
       await evaluate(
         `window.updateStatus({ phase: ${JSON.stringify(phase)} })`,
@@ -289,7 +301,7 @@ app
       "FOOTER",
     );
     console.log(
-      "PASS: Sidebar shows download progress, then opens the ready/retry window instead of restarting directly",
+      "PASS: Sidebar shows download progress, then opens the ready dialog instead of restarting directly",
     );
 
     await evaluate(
@@ -336,8 +348,7 @@ app
       ),
       "restart",
     );
-    window.show();
-    window.webContents.focus();
+    await focusWindow();
     await editor.executeJavaScript(
       `document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`,
     );

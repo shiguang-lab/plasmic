@@ -113,8 +113,7 @@ new versions automatically in the background. The sidebar shows download progres
 When the verified download finishes, the main window's Software Update dialog opens with
 **Restart and Install** and **Later**. Choosing Later leaves a blue restart icon;
 hover or keyboard focus expands it into an **Update** button. Clicking the sidebar
-button reopens the update dialog; it does not restart the app directly. Failures
-remain available in the update dialog for retry. The dialog uses bundled local frontend
+button reopens the update dialog; it does not restart the app directly. Update failures are logged locally and treated as no update; no error indicator or exception is displayed. Automatic checks continue every ten minutes. The dialog uses bundled local frontend
 resources, a light appearance and isolated styles in the main document; it creates no
 additional Electron window and works on the login page without a server request.
 Closing the dialog leaves background downloads running. Installation remains in the

@@ -110,20 +110,8 @@ test("update UI follows download and install events without installing automatic
   assert.equal(ui.commands.at(-1), "install");
 });
 
-test("retry uses the failed operation and Later closes only the dialog", async (t) => {
+test("Later closes only the dialog", async (t) => {
   const ui = await fixture(t, {
-    phase: "error",
-    error: "Network unavailable",
-    retry: "download",
-  });
-  assert.equal(
-    ui.element("description").textContent,
-    "Update failed. Please try again.",
-  );
-  ui.element("primary").click();
-  await flush();
-  assert.equal(ui.commands.at(-1), "download");
-  ui.send({
     phase: "available",
     version: "0.0.24",
     releaseNotes: [{ note: "- Improvement" }],
@@ -136,6 +124,33 @@ test("retry uses the failed operation and Later closes only the dialog", async (
   assert.equal(ui.dialog.open, false);
   assert.equal(ui.commands.includes("close"), false);
   assert.equal(ui.commands.includes("install"), false);
+});
+
+test("a rejected update command clears stale release details without displaying an exception", async (t) => {
+  const ui = await fixture(t, {
+    phase: "downloaded",
+    version: "0.0.24",
+    releaseNotes: "- Improvement",
+  });
+  ui.window.desktopUpdates.command = async () => {
+    throw new Error("net::ERR_CONNECTION_REFUSED");
+  };
+  ui.open();
+  ui.element("primary").click();
+  await flush();
+  assert.equal(ui.element("status").textContent, "You're up to date");
+  assert.equal(
+    ui.element("description").textContent,
+    "You're running the latest version of Plasmic.",
+  );
+  assert.equal(ui.element("primary").textContent, "Done");
+  assert.equal(ui.element("current-version").textContent, "0.0.23");
+  assert.equal(ui.element("latest").hidden, true);
+  assert.equal(ui.element("notes-section").hidden, true);
+  assert.doesNotMatch(
+    ui.dialog.textContent,
+    /ERR_CONNECTION_REFUSED|Retry|couldn't complete/,
+  );
 });
 
 test("a completed check removes stale release information and provides Done", async (t) => {

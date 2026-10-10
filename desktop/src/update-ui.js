@@ -130,7 +130,7 @@
   control.append(button, tooltip);
   const render = (status) => {
     latestStatus = status;
-    const { phase, version, percent = 0, uiMessage } = status;
+    const { phase, version, percent = 0 } = status;
     const progress = Math.min(100, Math.max(0, Math.round(percent)));
     control.dataset.phase = phase;
     control.hidden = ![
@@ -138,7 +138,6 @@
       "downloading",
       "downloaded",
       "installing",
-      "error",
     ].includes(phase);
     if (control.hidden) hideTooltip();
     const states = {
@@ -157,13 +156,6 @@
         "Installing",
         "Saving your design and preparing to install…",
       ],
-      error: [
-        "Retry",
-        t(
-          uiMessage?.key || "Update failed. Open updates to retry.",
-          uiMessage?.values,
-        ),
-      ],
     };
     const state = states[phase] || ["Check for Updates", "Check for Updates"];
     label.textContent = t(state[0]);
@@ -176,7 +168,7 @@
       ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${(progress * 37.7) / 100} 37.7" transform="rotate(-90 8 8)"/>` : `<path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/>`}</svg>`
       : phase === "downloaded"
         ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="restart"><path d="M13 6a5 5 0 1 0 .2 3.5M13 2v4H9"/></svg>`
-        : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="${phase === "error" ? "error" : "download"}">${phase === "error" ? `<path d="M8 3v6M8 12v.1"/>` : `<path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/>`}</svg>`;
+        : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="download"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg>`;
     if (phase === "downloading") {
       control.setAttribute("role", "progressbar");
       control.setAttribute("tabindex", "0");
@@ -206,8 +198,11 @@
     }
     try {
       sendStatus(await window.desktopUpdates.command(action));
-    } catch (error) {
-      sendStatus({ phase: "error", error: error.message, retry: action });
+    } catch {
+      sendStatus({
+        phase: "current",
+        currentVersion: latestStatus?.currentVersion,
+      });
     }
   }
   button.onclick = () => {

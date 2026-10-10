@@ -295,7 +295,7 @@ test("desktop sign-in states and parameterized authorization failures follow eve
   }
 });
 
-test("an open update dialog translates release notes and HTTP errors when its language changes", async (t) => {
+test("an open update dialog localizes release notes and treats failures as no update", async (t) => {
   const { EventEmitter } = require("node:events");
   const { UpdateManager } = require("../src/update-manager.cjs");
   const { uiError } = require("../src/ui-error.cjs");
@@ -351,19 +351,22 @@ test("an open update dialog translates release notes and HTTP errors when its la
   manager.fail(
     uiError("NAS update check failed (HTTP {status})", { status: 503 }),
   );
-  assert.equal(manager.state.error, "NAS update check failed (HTTP 503)");
+  assert.equal(manager.state.phase, "current");
+  assert.equal(manager.state.error, undefined);
   for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
     locale.setLocale(language);
     assert.equal(
       root.getElementById("description").textContent,
-      locale.t("NAS update check failed (HTTP {status})", { status: 503 }),
+      locale.t("You're running the latest version of Plasmic."),
     );
+    assert.equal(root.getElementById("latest").hidden, true);
+    assert.equal(root.getElementById("notes-section").hidden, true);
   }
   manager.fail(new Error("net::ERR_CONNECTION_REFUSED"));
-  assert.equal(manager.state.error, "net::ERR_CONNECTION_REFUSED");
+  assert.equal(manager.state.error, undefined);
   assert.equal(
     root.getElementById("description").textContent,
-    locale.t("Update failed. Please try again."),
+    locale.t("You're running the latest version of Plasmic."),
   );
 });
 

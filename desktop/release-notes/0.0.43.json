@@ -1,7 +1,7 @@
 {
-  "en": "- Keep component property names, slot names, help text and choice labels in English across all interface languages.\n- Restrict Descriptions content to direct Descriptions.Item children.\n- Keep the title slot unrestricted and preserve editable field labels and content.",
-  "zh-CN": "- 所有界面语言下，组件属性名、插槽名、帮助说明和选项标签保持英文。\n- Descriptions 内容只允许直接放置 Descriptions.Item。\n- title 插槽不限制类型，字段标签和内容继续支持编辑。",
-  "zh-TW": "- 所有介面語言下，元件屬性名稱、插槽名稱、說明和選項標籤保持英文。\n- Descriptions 內容只允許直接放置 Descriptions.Item。\n- title 插槽不限制類型，欄位標籤和內容繼續支援編輯。",
-  "ja": "- すべての表示言語で、コンポーネントのプロパティ名、スロット名、説明、選択肢のラベルを英語で表示します。\n- Descriptions のコンテンツには直接の子要素として Descriptions.Item のみを配置できます。\n- title スロットの型は制限せず、項目のラベルと内容は引き続き編集できます。",
-  "ko": "- 모든 UI 언어에서 컴포넌트 속성 이름, 슬롯 이름, 도움말 및 선택 항목 레이블을 영어로 표시합니다.\n- Descriptions 콘텐츠에는 Descriptions.Item만 직접 자식으로 배치할 수 있습니다.\n- title 슬롯의 유형은 제한하지 않으며 항목 레이블과 콘텐츠는 계속 편집할 수 있습니다."
+  "en": "- Keep component property names, slot names, help text and choice labels in English across all interface languages.\n- Restrict Descriptions content to direct Descriptions.Item children.\n- Keep the title slot unrestricted and preserve editable field labels and content.\n- Handle update failures silently, clear stale update indicators and retry automatically during subsequent checks.",
+  "zh-CN": "- 所有界面语言下，组件属性名、插槽名、帮助说明和选项标签保持英文。\n- Descriptions 内容只允许直接放置 Descriptions.Item。\n- title 插槽不限制类型，字段标签和内容继续支持编辑。\n- 更新失败时静默记录日志，清除过期更新提示，并在后续检查中自动重试。",
+  "zh-TW": "- 所有介面語言下，元件屬性名稱、插槽名稱、說明和選項標籤保持英文。\n- Descriptions 內容只允許直接放置 Descriptions.Item。\n- title 插槽不限制類型，欄位標籤和內容繼續支援編輯。\n- 更新失敗時靜默記錄日誌，清除過期更新提示，並在後續檢查中自動重試。",
+  "ja": "- すべての表示言語で、コンポーネントのプロパティ名、スロット名、説明、選択肢のラベルを英語で表示します。\n- Descriptions のコンテンツには直接の子要素として Descriptions.Item のみを配置できます。\n- title スロットの型は制限せず、項目のラベルと内容は引き続き編集できます。\n- 更新エラーはログに記録し、古い更新表示を消して、次回以降の確認で自動的に再試行します。",
+  "ko": "- 모든 UI 언어에서 컴포넌트 속성 이름, 슬롯 이름, 도움말 및 선택 항목 레이블을 영어로 표시합니다.\n- Descriptions 콘텐츠에는 Descriptions.Item만 직접 자식으로 배치할 수 있습니다.\n- title 슬롯의 유형은 제한하지 않으며 항목 레이블과 콘텐츠는 계속 편집할 수 있습니다.\n- 업데이트 실패 시 로그를 남기고 오래된 업데이트 표시를 지우며 이후 확인에서 자동으로 재시도합니다."
 }
