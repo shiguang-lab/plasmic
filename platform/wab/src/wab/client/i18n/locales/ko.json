@@ -3592,5 +3592,8 @@
   "Secret Token": "비밀 토큰",
   "Locales": "로케일",
   "Edit content": "콘텐츠 편집",
-  "Edit models": "모델 편집"
+  "Edit models": "모델 편집",
+  "Unable to load this page": "페이지를 불러오지 못했습니다",
+  "Please try again. If the problem persists, try again later.": "다시 시도해 주세요. 문제가 계속되면 잠시 후 다시 시도해 주세요.",
+  "Failed to load workspace": "워크스페이스를 불러오지 못했습니다"
 }

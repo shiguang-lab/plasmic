@@ -31,6 +31,7 @@ import {
   FormSkeleton,
   RowsSkeleton,
 } from "@/wab/client/components/widgets/ContentSkeletons";
+import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { providesAppCtx, useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useHostFrameCtxIfHostFrame } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { analytics } from "@/wab/client/observability";
@@ -501,55 +502,55 @@ function LoggedInContainer(props: LoggedInContainerProps) {
 
 export function Root() {
   const history = useHistory();
-  const [nonAuthCtx, setNonAuthCtx] = React.useState<NonAuthCtx | undefined>(
-    undefined,
-  );
-  const [loaderKey, setLoaderKey] = React.useState(0);
-
-  const reloadData = () => setLoaderKey((prev) => prev + 1);
   const forceUpdate = useForceUpdate();
-
   const hostFrameCtx = useHostFrameCtxIfHostFrame();
 
-  React.useEffect(() => {
+  const loader = async () => {
     const api: PromisifyMethods<Api> =
       hostFrameCtx?.topFrameApi || promisifyMethods(new Api());
     const topFrameApi = hostFrameCtx?.topFrameApi || null;
     const bundler = new FastBundler();
 
-    spawn(
-      (async () => {
-        const lastBundleVersion = await withHostFrameCache(
-          "bundle",
-          true,
-          api,
-          async () => {
-            const { latestBundleVersion } = await api.getLastBundleVersion();
-            return latestBundleVersion;
-          },
-        );
-        setNonAuthCtx(
-          new NonAuthCtx({
-            api,
-            topFrameApi,
-            history,
-            router: new Router(history),
-            change: forceUpdate,
-            bundler,
-            lastBundleVersion,
-          }),
-        );
-      })(),
+    const lastBundleVersion = await withHostFrameCache(
+      "bundle",
+      true,
+      api,
+      async () => {
+        const { latestBundleVersion } = await api.getLastBundleVersion();
+        return latestBundleVersion;
+      },
     );
-  }, []);
+    return new NonAuthCtx({
+      api,
+      topFrameApi,
+      history,
+      router: new Router(history),
+      change: forceUpdate,
+      bundler,
+      lastBundleVersion,
+    });
+  };
+  return (
+    <widgets.Loadable
+      loader={loader}
+      loadingContents={() => <ApplicationPageLoading />}
+      failureContents={(retry) => (
+        <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />
+      )}
+      contents={(nonAuthCtx) => (
+        <InitializedRoot nonAuthCtx={nonAuthCtx} forceUpdate={forceUpdate} />
+      )}
+    />
+  );
+}
 
-  console.log("Rendering app");
-  if (!nonAuthCtx) {
-    return isProjectPath(history.location.pathname) ? null : (
-      <ApplicationPageLoading />
-    );
-  }
-
+function InitializedRoot({
+  nonAuthCtx,
+  forceUpdate,
+}: {
+  nonAuthCtx: NonAuthCtx;
+  forceUpdate: () => void;
+}) {
   const loader = async () => {
     const appCtx = await loadAppCtx(nonAuthCtx, true);
     hackyCast(window).gAppCtx = appCtx;
@@ -591,15 +592,13 @@ export function Root() {
         // This matters in particular to e.g. SidebarPopup.
         return (
           <widgets.Loadable
-            key={loaderKey}
             loader={loader}
-            loadingContents={() =>
-              isProjectPath(history.location.pathname) ? (
-                <widgets.Spinner />
-              ) : (
-                <ApplicationPageLoading />
-              )
-            }
+            loadingContents={() => <ApplicationPageLoading />}
+            failureContents={(retry) => (
+              <ApplicationPageLoading
+                failure={<LoadingError onRetry={retry} />}
+              />
+            )}
             contents={(appCtx: /*TWZ*/ AppCtx) => {
               return providesAppCtx(appCtx)(
                 <NonAuthCtxContext.Provider value={nonAuthCtx}>

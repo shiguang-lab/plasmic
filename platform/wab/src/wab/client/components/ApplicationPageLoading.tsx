@@ -1,3 +1,4 @@
+import { isProjectPath } from "@/wab/client/cli-routes";
 import AnalyticsHeader from "@/wab/client/components/analytics/AnalyticsHeader";
 import { ANALYTICS_EVENTS } from "@/wab/client/components/analytics/utils";
 import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
@@ -5,6 +6,7 @@ import { DashboardLayout } from "@/wab/client/components/dashboard/DashboardLayo
 import { DashboardPageLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
 import { NormalLayoutLoading } from "@/wab/client/components/normal-layout";
 import { IntakeFlowForm } from "@/wab/client/components/pages/IntakeFlowForm";
+import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import {
   ChartSkeleton,
   FormSkeleton,
@@ -29,10 +31,24 @@ import {
 import dayjs from "dayjs";
 import * as React from "react";
 
-export function ApplicationPageLoading() {
+export function ApplicationPageLoading({
+  failure,
+}: { failure?: React.ReactNode } = {}) {
   const { pathname, search } = useLocation();
   const { t } = useI18n();
   const params = new URLSearchParams(search);
+  if (isProjectPath(pathname)) {
+    return <StudioChrome>{failure}</StudioChrome>;
+  }
+  if (failure) {
+    return usesProductTheme(pathname) ? (
+      <DashboardLayout>
+        <div style={{ padding: 24 }}>{failure}</div>
+      </DashboardLayout>
+    ) : (
+      <IntakeFlowForm>{failure}</IntakeFlowForm>
+    );
+  }
   if (APP_ROUTES.login.parse(pathname) || APP_ROUTES.register.parse(pathname)) {
     return (
       <IntakeFlowForm>

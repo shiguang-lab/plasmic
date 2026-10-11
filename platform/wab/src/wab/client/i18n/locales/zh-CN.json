@@ -3592,5 +3592,8 @@
   "Secret Token": "私密令牌",
   "Locales": "语言区域",
   "Edit content": "编辑内容",
-  "Edit models": "编辑模型"
+  "Edit models": "编辑模型",
+  "Unable to load this page": "页面加载失败",
+  "Please try again. If the problem persists, try again later.": "请重试。如果问题持续，请稍后再试。",
+  "Failed to load workspace": "工作区加载失败"
 }

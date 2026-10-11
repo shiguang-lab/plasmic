@@ -1,0 +1,7 @@
+{
+  "en": "- Keep the page and editor layout visible while the app starts.\n- Show an error with a Retry button when startup or page data requests fail.\n- Preserve existing projects and workspace content when refresh requests fail.",
+  "zh-CN": "- 应用启动时保留真实页面和编辑器布局。\n- 启动或页面数据请求失败时显示错误和重试按钮。\n- 刷新请求失败时保留已显示的项目和工作区内容。",
+  "zh-TW": "- 應用程式啟動時保留真實頁面和編輯器版面。\n- 啟動或頁面資料請求失敗時顯示錯誤和重試按鈕。\n- 重新整理請求失敗時保留已顯示的專案和工作區內容。",
+  "ja": "- アプリの起動中もページとエディターのレイアウトを表示します。\n- 起動やページデータの取得に失敗した場合は、エラーと再試行ボタンを表示します。\n- 更新に失敗しても、表示済みのプロジェクトとワークスペースの内容を保持します。",
+  "ko": "- 앱 시작 중에도 페이지와 편집기 레이아웃을 표시합니다.\n- 시작 또는 페이지 데이터 요청이 실패하면 오류와 다시 시도 버튼을 표시합니다.\n- 새로고침 요청이 실패해도 기존 프로젝트와 워크스페이스 내용을 유지합니다."
+}

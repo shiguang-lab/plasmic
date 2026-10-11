@@ -1,8 +1,10 @@
+import { reportError } from "@/wab/client/ErrorNotifications";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { uncontrollable } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { Textbox, TextboxRef } from "@/wab/client/components/widgets/Textbox";
 import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import {
@@ -154,10 +156,12 @@ type LoadableProps<T> = {
   loader: () => Promise<T>;
   contents: (data: T) => ReactNode;
   loadingContents: () => ReactNode;
+  failureContents?: (retry: () => void) => ReactNode;
 };
 type LoadableState<T> = {
   loaded: boolean;
   data: T | null;
+  failed: boolean;
 };
 export class Loadable<T> extends React.Component<
   LoadableProps<T>,
@@ -173,24 +177,46 @@ export class Loadable<T> extends React.Component<
     this.state = {
       loaded: false,
       data: null,
+      failed: false,
     };
   }
   pLoad: /*TWZ*/ { cancel: () => any; promise: Promise<T> };
-  async componentDidMount() {
-    this.pLoad = makeCancelable(this.props.loader());
-    const data = await this.pLoad.promise;
-    return this.setState({
-      loaded: true,
-      data,
-    });
+  private unmounted = false;
+  componentDidMount() {
+    this.unmounted = false;
+    void this.load();
   }
   componentWillUnmount() {
+    this.unmounted = true;
     return this.pLoad.cancel();
   }
+  private load = async () => {
+    this.setState({ failed: false });
+    const pending = makeCancelable(Promise.resolve().then(this.props.loader));
+    this.pLoad = pending;
+    try {
+      const data = await pending.promise;
+      if (!this.unmounted && this.pLoad === pending) {
+        this.setState({ loaded: true, data });
+      }
+    } catch (error) {
+      if (!this.unmounted && this.pLoad === pending) {
+        this.setState({ failed: true });
+        reportError(error instanceof Error ? error : new Error(String(error)));
+      }
+    }
+  };
   render() {
     if (this.state.loaded) {
       return this.props.contents(
         ensure(this.state.data, "Data state not defined in Loadable component"),
+      );
+    } else if (this.state.failed) {
+      const retry = () => void this.load();
+      return this.props.failureContents ? (
+        this.props.failureContents(retry)
+      ) : (
+        <LoadingError onRetry={retry} />
       );
     } else {
       return this.props.loadingContents();

@@ -3592,5 +3592,8 @@
   "Secret Token": "秘密トークン",
   "Locales": "ロケール",
   "Edit content": "コンテンツを編集",
-  "Edit models": "モデルを編集"
+  "Edit models": "モデルを編集",
+  "Unable to load this page": "ページを読み込めませんでした",
+  "Please try again. If the problem persists, try again later.": "再試行してください。問題が解決しない場合は、しばらくしてからお試しください。",
+  "Failed to load workspace": "ワークスペースを読み込めませんでした"
 }

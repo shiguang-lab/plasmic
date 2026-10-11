@@ -46,6 +46,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
     const {
       data: projectsData,
       error: loadError,
+      isValidating,
       mutate: updateProjectsData,
     } = useAllProjectsData();
     const {
@@ -132,8 +133,12 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
             action={
               <Button
                 size="small"
+                loading={isValidating}
                 onClick={() => {
-                  void updateProjectsData();
+                  void updateProjectsData((current) => current, {
+                    revalidate: true,
+                    throwOnError: false,
+                  });
                 }}
               >
                 {t("Retry")}

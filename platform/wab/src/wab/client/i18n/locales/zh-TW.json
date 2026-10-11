@@ -3592,5 +3592,8 @@
   "Secret Token": "私密權杖",
   "Locales": "語言地區",
   "Edit content": "編輯內容",
-  "Edit models": "編輯模型"
+  "Edit models": "編輯模型",
+  "Unable to load this page": "頁面載入失敗",
+  "Please try again. If the problem persists, try again later.": "請重試。如果問題持續，請稍後再試。",
+  "Failed to load workspace": "工作區載入失敗"
 }

@@ -9,11 +9,12 @@ const mocks = vi.hoisted(() => ({
   retry: vi.fn(),
   failed: false,
   loading: false,
+  cached: false,
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAllProjectsData: () => ({
     data:
-      mocks.failed || mocks.loading
+      (mocks.failed && !mocks.cached) || mocks.loading
         ? undefined
         : {
             perms: [],
@@ -71,6 +72,7 @@ afterEach(() => {
   cleanup();
   mocks.failed = false;
   mocks.loading = false;
+  mocks.cached = false;
   vi.clearAllMocks();
 });
 
@@ -114,6 +116,20 @@ it("shows a retry action rather than an endless loading state after a request fa
   ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(mocks.retry).toHaveBeenCalledTimes(1);
+});
+
+it("keeps cached projects and details visible alongside a refresh error", () => {
+  mocks.failed = true;
+  mocks.cached = true;
+  renderProjects();
+  expect(screen.getByText("Failed to load projects")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
+  expect(screen.getByText("Details for Beta")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(mocks.retry).toHaveBeenCalledWith(expect.any(Function), {
+    revalidate: true,
+    throwOnError: false,
+  });
 });
 
 it("opens the shared creation dialog from the workbench", () => {

@@ -4,7 +4,7 @@ import {
   AvatarGallery,
 } from "@/wab/client/components/studio/Avatar";
 import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
-import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { MessageKey } from "@/wab/client/i18n/locales";
 import { PlasmicPublishButton } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicPublishButton";
@@ -129,7 +129,7 @@ export function TopBarChrome({
   projectReady?: boolean;
 }) {
   const { t } = useI18n();
-  const appCtx = useAppCtx();
+  const appCtx = React.useContext(AppCtxContext);
   const mac = navigator.userAgent.includes("PlasmicDesktop/darwin");
   const windows = navigator.userAgent.includes("PlasmicDesktop/win32");
   const empty = { render: () => null };
@@ -161,7 +161,7 @@ export function TopBarChrome({
         render: (linkProps) => (
           <EditorBrandLink
             {...linkProps}
-            brand={appCtx.appConfig.brands?.[""]}
+            brand={appCtx?.appConfig.brands?.[""]}
           />
         ),
       }}
@@ -218,7 +218,7 @@ export function TopBarChrome({
               menuButton={{ render: () => null }}
             />
             <span className="editor-action-divider" />
-            {appCtx.selfInfo ? (
+            {appCtx?.selfInfo ? (
               <AvatarGallery users={[appCtx.selfInfo]} />
             ) : (
               <AnonymousAvatar />

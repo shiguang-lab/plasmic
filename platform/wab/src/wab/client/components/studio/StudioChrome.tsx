@@ -6,7 +6,13 @@ import { StudioLoading } from "@/wab/client/components/widgets";
 import * as React from "react";
 
 // Render the editor's shared chrome while its project model is being fetched.
-export function StudioChrome({ projectName }: { projectName?: string }) {
+export function StudioChrome({
+  projectName,
+  children,
+}: {
+  projectName?: string;
+  children?: React.ReactNode;
+}) {
   React.useEffect(() => {
     document.getElementById("studio-startup-loading")?.classList.add("fadeOut");
   }, []);
@@ -30,7 +36,11 @@ export function StudioChrome({ projectName }: { projectName?: string }) {
               <EditorToolRail />
             </div>
             <div className="canvas-editor__canvas-container">
-              <StudioLoading />
+              {children ? (
+                <div style={{ padding: 24 }}>{children}</div>
+              ) : (
+                <StudioLoading />
+              )}
               <CanvasViewControls />
             </div>
           </div>
