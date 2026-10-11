@@ -2,6 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <style>
+      :root {
+        color-scheme: light;
+        --studio-loading-layout: #eceef3;
+        --studio-loading-surface: #ffffff;
+        --studio-loading-muted: #70778b;
+        --studio-loading-border: #e6e8ef;
+        background-color: var(--studio-loading-layout);
+      }
+      :root[data-ui-appearance="dark"] {
+        color-scheme: dark;
+        --studio-loading-layout: #15161b;
+        --studio-loading-surface: #202128;
+        --studio-loading-muted: #9295a7;
+        --studio-loading-border: #30313b;
+      }
+      body {
+        margin: 0;
+        background-color: var(--studio-loading-layout);
+      }
+    </style>
     <meta name="robots" content="noindex" />
     <script>
       if (navigator.userAgent.includes("PlasmicDesktop/darwin")) {
@@ -39,6 +60,11 @@
             : preference;
       }
       applyStartupAppearance();
+      if (window.top === window) {
+        void window.desktopEnvironment?.setUiAppearance?.(
+          document.documentElement.dataset.uiAppearance,
+        );
+      }
     </script>
     <script>
       if (typeof window !== "undefined") {
@@ -91,25 +117,6 @@
         top: -1000px;
       }
 
-      :root {
-        color-scheme: light;
-        --studio-loading-layout: #eceef3;
-        --studio-loading-surface: #ffffff;
-        --studio-loading-muted: #70778b;
-        --studio-loading-border: #e6e8ef;
-        background-color: var(--studio-loading-layout);
-      }
-      :root[data-ui-appearance="dark"] {
-        color-scheme: dark;
-        --studio-loading-layout: #15161b;
-        --studio-loading-surface: #202128;
-        --studio-loading-muted: #9295a7;
-        --studio-loading-border: #30313b;
-      }
-      body {
-        margin: 0;
-        background-color: var(--studio-loading-layout);
-      }
       .studio-loading {
         display: none;
         position: absolute;

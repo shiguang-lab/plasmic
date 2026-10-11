@@ -4,6 +4,13 @@ __plasmicIframe.classList.add("__wab_studio-frame");
 __plasmicIframe.style.width = "100vw";
 __plasmicIframe.style.height = "100vh";
 __plasmicIframe.style.border = "none";
+// Cover the blank iframe document while its Studio HTML is being injected.
+const __plasmicAppearance = new URLSearchParams(location.hash.slice(1)).get("uiAppearance");
+if (__plasmicAppearance === "dark" || __plasmicAppearance === "light") {
+  __plasmicIframe.style.colorScheme = __plasmicAppearance;
+  __plasmicIframe.style.backgroundColor =
+    __plasmicAppearance === "dark" ? "#15161b" : "#eceef3";
+}
 __plasmicIframe.style.position = "absolute";
 __plasmicIframe.style.top = "0";
 __plasmicIframe.style.left = "0";

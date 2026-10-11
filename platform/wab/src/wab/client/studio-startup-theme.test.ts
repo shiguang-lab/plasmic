@@ -80,6 +80,56 @@ it("ignores an invalid inherited appearance and resolves the stored preference",
   expect(root.dataset.uiAppearance).toBe("dark");
 });
 
+it.each(["dark", "light"])(
+  "sends the configured %s appearance to the native window before bundles load",
+  (appearance) => {
+    const setUiAppearance = vi.fn();
+    const desktopWindow: any = {
+      desktopEnvironment: { setUiAppearance },
+      matchMedia: () => ({ matches: appearance !== "dark" }),
+    };
+    desktopWindow.top = desktopWindow;
+    new Function("window", "document", "localStorage", "maybeParams", script)(
+      desktopWindow,
+      { documentElement: { dataset: {} } },
+      { getItem: () => appearance },
+    );
+    expect(setUiAppearance).toHaveBeenCalledWith(appearance);
+  },
+);
+
+it.each(["dark", "light"])(
+  "paints the host's inherited %s background before host code loads",
+  (appearance) => {
+    const host = readFileSync(resolve(process.cwd(), "../sub/public/static/host.html"), "utf8");
+    const startup = host.slice(host.indexOf("<script>") + 8, host.indexOf("</script>"));
+    const root = document.createElement("html");
+    new Function("location", "document", startup)(
+      { hash: `#origin=https://studio.example&uiAppearance=${appearance}` },
+      { documentElement: root },
+    );
+    expect(root.style.colorScheme).toBe(appearance);
+    expect(root.style.backgroundColor).toBe(
+      appearance === "dark" ? "rgb(21, 22, 27)" : "rgb(236, 238, 243)",
+    );
+  },
+);
+
+it.each(["#uiAppearance=dark", "#origin=https://studio.example&canvas=true&uiAppearance=dark"])(
+  "leaves business canvas backgrounds unchanged for %s",
+  (hash) => {
+    const host = readFileSync(resolve(process.cwd(), "../sub/public/static/host.html"), "utf8");
+    const startup = host.slice(host.indexOf("<script>") + 8, host.indexOf("</script>"));
+    const root = document.createElement("html");
+    new Function("location", "document", startup)(
+      { hash },
+      { documentElement: root },
+    );
+    expect(root.style.backgroundColor).toBe("");
+    expect(root.style.colorScheme).toBe("");
+  },
+);
+
 it("tracks system changes while retaining the host's inherited appearance", async () => {
   let onChange: () => void = () => {};
   const media = {

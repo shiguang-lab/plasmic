@@ -9,6 +9,7 @@ const {
   shell,
   clipboard,
   ipcMain,
+  nativeTheme,
 } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -30,7 +31,9 @@ const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createDesktopAppearance } = require("./ui-appearance.cjs");
-const desktopAppearance = createDesktopAppearance();
+const desktopAppearance = createDesktopAppearance(
+  nativeTheme.shouldUseDarkColors ? "dark" : "light",
+);
 const { createUpdates, acknowledgeMacUpdate } = require("./updates.cjs");
 const { createUpdateDialog } = require("./update-dialog.cjs");
 const {
@@ -74,7 +77,7 @@ function isUnifiedLogin(url) {
 function protectWindow(win) {
   const syncBackground = (appearance) => {
     if (!win.isDestroyed()) {
-      win.setBackgroundColor(appearance === "dark" ? "#15161b" : "#eceef4");
+      win.setBackgroundColor(appearance === "dark" ? "#15161b" : "#eceef3");
     }
   };
   syncBackground(desktopAppearance.snapshot());
@@ -110,7 +113,7 @@ function protectWindow(win) {
     return {
       action: "allow",
       overrideBrowserWindowOptions: {
-        backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef4",
+        backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
         webPreferences: {
           session: win.webContents.session,
           nodeIntegration: false,
@@ -215,7 +218,7 @@ async function startDesktop() {
     title: "Plasmic",
     icon: appIcon,
     show: false,
-    backgroundColor: "#15161b",
+    backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
     ...(process.platform === "darwin"
       ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 32, y: 33 } }
       : process.platform === "win32"
@@ -259,7 +262,7 @@ async function startDesktop() {
     const dark = appearance === "dark";
     if (process.platform === "win32") {
       appearanceWindow.setTitleBarOverlay({
-        color: dark ? "#15161b" : "#eceef4",
+        color: dark ? "#15161b" : "#eceef3",
         symbolColor: dark ? "#edeef5" : "#252936",
         height: 40,
       });

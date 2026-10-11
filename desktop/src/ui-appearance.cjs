@@ -1,7 +1,7 @@
 // Studio owns the persisted preference and resolves system appearance.
 // Native dialogs share its current resolved appearance for this app session.
-function createDesktopAppearance() {
-  let appearance = "dark";
+function createDesktopAppearance(initialAppearance = "dark") {
+  let appearance = initialAppearance;
   const listeners = new Set();
   return {
     snapshot: () => appearance,

@@ -1,0 +1,7 @@
+{
+  "en": "- Apply the configured theme background before app content loads.\n- Keep the editor host and embedded Studio background consistent during startup.",
+  "zh-CN": "- 在应用内容加载前应用配置的主题背景。\n- 启动时保持编辑器宿主页与内嵌 Studio 背景一致。",
+  "zh-TW": "- 在應用程式內容載入前套用設定的主題背景。\n- 啟動時保持編輯器宿主頁與內嵌 Studio 背景一致。",
+  "ja": "- アプリのコンテンツ読み込み前に、設定したテーマの背景を適用します。\n- 起動中のエディターホストと埋め込み Studio の背景を統一します。",
+  "ko": "- 앱 콘텐츠가 로드되기 전에 설정된 테마 배경을 적용합니다.\n- 시작 중 편집기 호스트와 내장 Studio의 배경을 일치시킵니다."
+}

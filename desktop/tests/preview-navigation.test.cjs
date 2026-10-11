@@ -34,7 +34,10 @@ function setup() {
       authForTest: { show: (url) => loginUrls.push(url) },
       require: (name) => {
         if (name === "electron") {
-          return { shell: { openExternal: (url) => externalUrls.push(url) } };
+          return {
+            nativeTheme: { shouldUseDarkColors: true },
+            shell: { openExternal: (url) => externalUrls.push(url) },
+          };
         }
         if (name === "../desktop.config.json") {
           return config;
@@ -86,15 +89,15 @@ test("navigation and internal popup windows share the selected native background
   assert.equal(s.windowForTest.background, "#15161b");
   assert.equal(s.handle(popupUrl).overrideBrowserWindowOptions.backgroundColor, "#15161b");
   s.appearance.set("light");
-  assert.equal(s.windowForTest.background, "#eceef4");
-  assert.equal(s.handle(popupUrl).overrideBrowserWindowOptions.backgroundColor, "#eceef4");
+  assert.equal(s.windowForTest.background, "#eceef3");
+  assert.equal(s.handle(popupUrl).overrideBrowserWindowOptions.backgroundColor, "#eceef3");
   const child = Object.assign(new EventEmitter(), {
     webContents: Object.assign(new EventEmitter(), { setWindowOpenHandler() {} }),
     isDestroyed: () => false,
     setBackgroundColor: (value) => { child.background = value; },
   });
   s.webContents.emit("did-create-window", child);
-  assert.equal(child.background, "#eceef4");
+  assert.equal(child.background, "#eceef3");
   s.appearance.set("dark");
   assert.equal(child.background, "#15161b");
   child.emit("closed");

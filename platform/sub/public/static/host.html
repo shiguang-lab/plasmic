@@ -2,6 +2,21 @@
 <html>
   <head>
     <script>
+      // The editor host paints its inherited appearance before loading host code.
+      // Canvas/preview documents keep their authored backgrounds.
+      const studioParams = new URLSearchParams(location.hash.slice(1));
+      const studioAppearance = studioParams.get("uiAppearance");
+      if (
+        studioParams.has("origin") &&
+        studioParams.get("canvas") !== "true" &&
+        (studioAppearance === "dark" || studioAppearance === "light")
+      ) {
+        document.documentElement.style.colorScheme = studioAppearance;
+        document.documentElement.style.backgroundColor =
+          studioAppearance === "dark" ? "#15161b" : "#eceef3";
+      }
+    </script>
+    <script>
       if (typeof window !== "undefined") {
         if (window.parent !== window) {
           try {
