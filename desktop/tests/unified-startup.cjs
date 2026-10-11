@@ -15,6 +15,10 @@ fs.writeFileSync(
   path.join(profile, "workspace.json"),
   JSON.stringify([{ url: projectUrl, name: "Session expiry fixture" }]),
 );
+fs.writeFileSync(
+  path.join(profile, "workspace-route.json"),
+  JSON.stringify(projectUrl),
+);
 let opened;
 let slowRequests = 0;
 const originalLoad = Module._load;
@@ -124,7 +128,12 @@ app
         return { left: rect.left, top: rect.top, height: rect.height,
           paddingLeft: getComputedStyle(brand).paddingLeft };
       })()`);
-      assert.deepEqual(chrome, { left: 16, top: 16, height: 48, paddingLeft: "80px" });
+      assert.deepEqual(chrome, {
+        left: 16,
+        top: 16,
+        height: 48,
+        paddingLeft: "80px",
+      });
       const bounds = win.getBounds();
       const resized = once(win, "resize");
       win.setSize(bounds.width + 40, bounds.height);
@@ -148,7 +157,9 @@ app
       await new Promise(setImmediate);
       assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
       win.setBounds(bounds);
-      console.log("PASS: Native window buttons stay aligned after resize, restore and fullscreen");
+      console.log(
+        "PASS: Native window buttons stay aligned after resize, restore and fullscreen",
+      );
     }
     assert.equal(
       await win.webContents.executeJavaScript(
