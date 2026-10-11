@@ -7,14 +7,27 @@ class DesktopWorkspace {
   constructor(userData, studioOrigin) {
     this.file = path.join(userData, "workspace.json");
     this.origin = studioOrigin;
+    this.routeFile = path.join(userData, "workspace-route.json");
+    this.lastUrl = studioOrigin + "/";
+    try {
+      const url = JSON.parse(fs.readFileSync(this.routeFile, "utf8"));
+      if (this.isWorkspaceUrl(url)) {
+        this.lastUrl = url;
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        console.warn("Cannot read desktop route:", error.message);
+      }
+    }
     this.recent = [];
     try {
       this.recent = JSON.parse(fs.readFileSync(this.file, "utf8"))
         .filter((entry) => this.projectId(entry.url))
         .slice(0, 8);
     } catch (error) {
-      if (error.code !== "ENOENT")
+      if (error.code !== "ENOENT") {
         console.warn("Cannot read desktop workspace:", error.message);
+      }
     }
   }
   projectId(url) {
@@ -27,9 +40,34 @@ class DesktopWorkspace {
       return undefined;
     }
   }
+  isWorkspaceUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return (
+        parsed.origin === this.origin &&
+        /^\/(?:$|(?:projects|orgs|teams|workspaces|settings|playground|cms|content|copilot)(?:\/|$))/.test(
+          parsed.pathname,
+        )
+      );
+    } catch {
+      return false;
+    }
+  }
+  rememberUrl(url) {
+    if (!this.isWorkspaceUrl(url) || url === this.lastUrl) {
+      return false;
+    }
+    const temporary = this.routeFile + ".tmp";
+    fs.writeFileSync(temporary, JSON.stringify(url));
+    fs.renameSync(temporary, this.routeFile);
+    this.lastUrl = url;
+    return true;
+  }
   remember(state) {
     const id = this.projectId(state.url);
-    if (!id || !state.ready) return false;
+    if (!id || !state.ready) {
+      return false;
+    }
     const entry = {
       url: state.url,
       name: state.editorContext?.projectName || id,
@@ -42,7 +80,9 @@ class DesktopWorkspace {
     return this.saveRecent(recent);
   }
   saveRecent(recent) {
-    if (JSON.stringify(recent) === JSON.stringify(this.recent)) return false;
+    if (JSON.stringify(recent) === JSON.stringify(this.recent)) {
+      return false;
+    }
     const temporary = this.file + ".tmp";
     fs.writeFileSync(temporary, JSON.stringify(recent, null, 2));
     fs.renameSync(temporary, this.file);
@@ -51,9 +91,10 @@ class DesktopWorkspace {
   }
   async startupUrl(session) {
     const home = this.origin + "/";
-    const entry = this.recent[0];
-    if (!entry) return home;
-    const id = this.projectId(entry.url);
+    const id = this.projectId(this.lastUrl);
+    if (!id) {
+      return this.lastUrl;
+    }
     const url = new URL("/api/v1/projects", this.origin);
     url.searchParams.set("query", JSON.stringify("byIds"));
     url.searchParams.set("projectIds", JSON.stringify([id]));
@@ -68,9 +109,12 @@ class DesktopWorkspace {
       const response = await session.fetch(url.toString(), options);
       if (response.ok) {
         const { projects } = await response.json();
-        if (!Array.isArray(projects))
+        if (!Array.isArray(projects)) {
           throw new Error("Invalid project response");
-        if (projects.some((project) => project.id === id)) return entry.url;
+        }
+        if (projects.some((project) => project.id === id)) {
+          return this.lastUrl;
+        }
       } else if (![401, 403, 404].includes(response.status)) {
         throw new Error(
           "Project access check failed (HTTP " + response.status + ")",
@@ -83,10 +127,13 @@ class DesktopWorkspace {
         options,
       );
       const status = await login.json();
-      if (login.status === 401 && status.authenticated === false)
-        return entry.url;
-      if (!login.ok || status.authenticated !== true)
+      if (login.status === 401 && status.authenticated === false) {
+        return this.lastUrl;
+      }
+      if (!login.ok || status.authenticated !== true) {
         throw new Error("Cannot confirm desktop login");
+      }
+      this.rememberUrl(home);
       this.saveRecent(
         this.recent.filter((item) => this.projectId(item.url) !== id),
       );
@@ -100,17 +147,29 @@ class DesktopWorkspace {
     return this.remember(state);
   }
   async restore(win, controller) {
-    const entry = this.recent[0];
-    if (!entry) return;
+    const url = win.webContents.getURL();
+    const id = this.projectId(url);
+    const entry = this.recent.find((item) => this.projectId(item.url) === id);
+    if (!entry?.editorView) {
+      return;
+    }
     // A fresh Studio takes time to initialize. Stop if the user navigates away.
     const deadline = Date.now() + 30000;
     while (
       Date.now() < deadline &&
       !win.isDestroyed() &&
-      win.webContents.getURL() === entry.url
+      win.webContents.getURL() === url
     ) {
-      const state = await controller.state();
-      if (state.ready) {
+      let state;
+      try {
+        state = await controller.state();
+      } catch (error) {
+        console.warn(
+          "Editor is not ready for workspace restoration:",
+          error.message,
+        );
+      }
+      if (state?.ready) {
         if (entry.editorView) {
           try {
             await controller.editor("restoreEditorView", entry.editorView);
@@ -122,9 +181,6 @@ class DesktopWorkspace {
       }
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    if (!win.isDestroyed() && win.webContents.getURL() === entry.url) {
-      await win.loadURL(this.origin + "/");
-    }
   }
 }
 
@@ -134,7 +190,7 @@ function fileMenu({
   getWindow,
   dialog,
   refresh,
-  state,
+  state: menuState,
   t,
 }) {
   const run = (action) => async () => {
@@ -153,8 +209,9 @@ function fileMenu({
         accelerator: "CmdOrCtrl+O",
         click: run(async () => {
           const state = await controller.state();
-          if (state.ready && state.editorContext?.canEdit)
+          if (state.ready && state.editorContext?.canEdit) {
             await controller.dispatch("execute", { name: "save", input: {} });
+          }
           await getWindow().loadURL(workspace.origin + "/");
         }),
       },
@@ -167,11 +224,12 @@ function fileMenu({
                 await controller.dispatch("open_design", {
                   projectId: workspace.projectId(entry.url),
                 });
-                if (entry.editorView)
+                if (entry.editorView) {
                   await controller.dispatch("execute", {
                     name: "restoreEditorView",
                     input: entry.editorView,
                   });
+                }
               }),
             }))
           : [{ label: t("No Recent Projects"), enabled: false }],
@@ -180,7 +238,7 @@ function fileMenu({
       {
         id: "desktop-save",
         label: t("Save"),
-        enabled: !!(state?.ready && state.editorContext?.canEdit),
+        enabled: !!(menuState?.ready && menuState.editorContext?.canEdit),
         accelerator: "CmdOrCtrl+S",
         click: run(async () => {
           const state = await controller.state();
@@ -197,9 +255,9 @@ function fileMenu({
         id: "desktop-export",
         label: t("Export Artboard…"),
         enabled: !!(
-          state?.ready &&
-          state.editorContext?.mode === "edit" &&
-          state.editorContext.frameUuid
+          menuState?.ready &&
+          menuState.editorContext?.mode === "edit" &&
+          menuState.editorContext.frameUuid
         ),
         click: run(async () => {
           const state = await controller.state();
@@ -220,10 +278,13 @@ function fileMenu({
               { name: t("Static HTML Snapshot"), extensions: ["html"] },
             ],
           });
-          if (output.canceled || !output.filePath) return;
+          if (output.canceled || !output.filePath) {
+            return;
+          }
           const format = path.extname(output.filePath).slice(1).toLowerCase();
-          if (!["png", "pdf", "html"].includes(format))
+          if (!["png", "pdf", "html"].includes(format)) {
             throw new Error(t("Choose PNG, PDF, or HTML format."));
+          }
           // The native dialog owns overwrite confirmation. The public exporter writes
           // a new sibling file; replace the destination only after a complete export.
           const temporary = path.join(

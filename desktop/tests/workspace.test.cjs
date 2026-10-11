@@ -14,6 +14,7 @@ function startupFixture(t) {
     url: origin + "/projects/saved?branch=main#page",
     ready: true,
   });
+  workspace.rememberUrl(workspace.recent[0].url);
   return { workspace, dir, savedUrl: workspace.recent[0].url };
 }
 test("startup validates the exact saved project before restoring its route", async (t) => {
@@ -36,15 +37,16 @@ test("startup validates the exact saved project before restoring its route", asy
   assert.equal(await workspace.startupUrl(session), savedUrl);
   assert.equal(workspace.recent.length, 2);
 });
-for (const status of [200, 401, 403, 404])
+for (const status of [200, 401, 403, 404]) {
   test(`startup removes an unavailable project after confirming login (HTTP ${status})`, async (t) => {
     const { workspace, dir } = startupFixture(t);
     const checked = [];
     const session = {
       fetch: async (url) => {
         const request = new URL(url);
-        if (request.pathname === "/api/auth/session")
+        if (request.pathname === "/api/auth/session") {
           return Response.json({ authenticated: true });
+        }
         const [id] = JSON.parse(request.searchParams.get("projectIds"));
         checked.push(id);
         return Response.json(
@@ -59,16 +61,14 @@ for (const status of [200, 401, 403, 404])
       ["other"],
     );
     const reopened = new DesktopWorkspace(dir, origin);
-    assert.equal(
-      await reopened.startupUrl(session),
-      origin + "/projects/other",
-    );
+    assert.equal(await reopened.startupUrl(session), origin + "/");
     assert.deepEqual(
       checked,
-      ["saved", "other"],
+      ["saved"],
       "A later launch must not retry the removed project",
     );
   });
+}
 test("expired login keeps the saved project for sign-in continuation", async (t) => {
   const { workspace, dir, savedUrl } = startupFixture(t);
   const session = {
@@ -88,28 +88,38 @@ for (const failure of [
   "login-network",
   "login-server",
   "login-malformed",
-])
+]) {
   test(`startup preserves history and opens home when access cannot be verified (${failure})`, async (t) => {
     const { workspace, dir, savedUrl } = startupFixture(t);
     const session = {
       fetch: async (url) => {
         const login = new URL(url).pathname === "/api/auth/session";
-        if (failure === "network" || (login && failure === "login-network"))
+        if (failure === "network" || (login && failure === "login-network")) {
           throw new Error("Network unavailable");
-        if (failure === "server" || (login && failure === "login-server"))
+        }
+        if (failure === "server" || (login && failure === "login-server")) {
           return Response.json({}, { status: 503 });
-        if (failure === "redirect") return new Response(null, { status: 302 });
-        if (failure === "malformed" || (login && failure === "login-malformed"))
+        }
+        if (failure === "redirect") {
+          return new Response(null, { status: 302 });
+        }
+        if (
+          failure === "malformed" ||
+          (login && failure === "login-malformed")
+        ) {
           return Response.json({});
+        }
         return Response.json({}, { status: 403 });
       },
     };
     assert.equal(await workspace.startupUrl(session), origin + "/");
     assert.equal(new DesktopWorkspace(dir, origin).recent[0].url, savedUrl);
   });
+}
 test("startup with no saved project opens home without a request", async (t) => {
   const { workspace } = startupFixture(t);
   workspace.saveRecent([]);
+  workspace.rememberUrl(origin + "/");
   assert.equal(
     await workspace.startupUrl({
       fetch: async () => assert.fail("No request expected"),
@@ -228,7 +238,7 @@ test("native menu availability follows ready, preview, permission and frame cont
   updateFileMenuContext(native, { ready: false });
   assert.equal(save.enabled, false);
 });
-for (const fail of [false, true])
+for (const fail of [false, true]) {
   test(`native export ${fail ? "failure preserves" : "confirmed overwrite replaces"} an existing file`, async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-export-"));
     try {
@@ -247,7 +257,9 @@ for (const fail of [false, true])
           assert.notEqual(input.outputPath, dest);
           assert.equal(fs.existsSync(input.outputPath), false);
           fs.writeFileSync(input.outputPath, "new export");
-          if (fail) throw new Error("export failed");
+          if (fail) {
+            throw new Error("export failed");
+          }
         },
       };
       const menu = fileMenu({
@@ -272,3 +284,88 @@ for (const fail of [false, true])
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
+}
+
+test("startup resumes dashboard routes independently of recent projects", async (t) => {
+  const { workspace, dir } = startupFixture(t);
+  for (const route of [
+    "/projects",
+    "/settings",
+    "/workspaces/team-workspace",
+    "/orgs/org",
+  ]) {
+    const url = origin + route;
+    workspace.rememberUrl(url);
+    const reopened = new DesktopWorkspace(dir, origin);
+    assert.equal(
+      await reopened.startupUrl({
+        fetch: async () =>
+          assert.fail("Dashboard must not check a recent project"),
+      }),
+      url,
+    );
+    assert.equal(reopened.recent.length, 2);
+  }
+  for (const url of [
+    origin + "/desktop/unified-login",
+    origin + "/login",
+    "https://other.example/projects/secret",
+  ]) {
+    assert.equal(workspace.rememberUrl(url), false);
+  }
+  assert.equal(new DesktopWorkspace(dir, origin).lastUrl, origin + "/orgs/org");
+});
+
+test("restoration timeout or metadata failure does not navigate away from the editor", async (t) => {
+  const { workspace, savedUrl } = startupFixture(t);
+  workspace.recent[0].editorView = { scale: 0.7 };
+  const win = {
+    isDestroyed: () => false,
+    webContents: { getURL: () => savedUrl },
+    loadURL: () => assert.fail("Restoration must not redirect"),
+  };
+  let now = 0;
+  t.mock.method(Date, "now", () => now);
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const restoring = workspace.restore(win, {
+    state: async () => {
+      now = 31000;
+      throw new Error("Metadata bridge is starting");
+    },
+    editor: async () => assert.fail("Editor is not ready"),
+  });
+  await Promise.resolve();
+  t.mock.timers.tick(500);
+  await restoring;
+  assert.equal(win.webContents.getURL(), savedUrl);
+});
+
+test("restoration uses the current project, even when another project is most recent", async (t) => {
+  const { workspace } = startupFixture(t);
+  const view = { scale: 0.5 };
+  workspace.recent[1].editorView = view;
+  const calls = [];
+  await workspace.restore(
+    {
+      isDestroyed: () => false,
+      webContents: { getURL: () => origin + "/projects/other?arena=new" },
+    },
+    {
+      state: async () => ({ ready: true }),
+      editor: async (...args) => calls.push(args),
+    },
+  );
+  assert.deepEqual(calls, [["restoreEditorView", view]]);
+});
+
+test("recent-project checkpoints do not overwrite the current Dashboard route", async (t) => {
+  const { workspace, savedUrl } = startupFixture(t);
+  workspace.rememberUrl(origin + "/settings");
+  workspace.remember({ url: savedUrl, ready: true });
+  assert.equal(
+    await workspace.startupUrl({
+      fetch: async () => assert.fail("Must resume settings"),
+    }),
+    origin + "/settings",
+  );
+});

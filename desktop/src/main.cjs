@@ -113,7 +113,8 @@ function protectWindow(win) {
     return {
       action: "allow",
       overrideBrowserWindowOptions: {
-        backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
+        backgroundColor:
+          desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
         webPreferences: {
           session: win.webContents.session,
           nodeIntegration: false,
@@ -218,7 +219,8 @@ async function startDesktop() {
     title: "Plasmic",
     icon: appIcon,
     show: false,
-    backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
+    backgroundColor:
+      desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
     ...(process.platform === "darwin"
       ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 32, y: 33 } }
       : process.platform === "win32"
@@ -253,12 +255,20 @@ async function startDesktop() {
         appearanceWindow.setWindowButtonPosition({ x: 32, y: 33 });
       }
     };
-    for (const event of ["show", "resize", "resized", "restore", "leave-full-screen"]) {
+    for (const event of [
+      "show",
+      "resize",
+      "resized",
+      "restore",
+      "leave-full-screen",
+    ]) {
       appearanceWindow.on(event, () => setImmediate(alignWindowButtons));
     }
   }
   const syncWindowAppearance = (appearance) => {
-    if (appearanceWindow.isDestroyed()) return;
+    if (appearanceWindow.isDestroyed()) {
+      return;
+    }
     const dark = appearance === "dark";
     if (process.platform === "win32") {
       appearanceWindow.setTitleBarOverlay({
@@ -362,6 +372,14 @@ async function startDesktop() {
     config.studioOrigin,
   );
   const win = mainWindow;
+  win.webContents.on("did-navigate", (_event, url) =>
+    workspace.rememberUrl(url),
+  );
+  win.webContents.on("did-navigate-in-page", (_event, url, isMainFrame) => {
+    if (isMainFrame) {
+      workspace.rememberUrl(url);
+    }
+  });
   attachWindowRecovery(win, {
     controller,
     dialog,
@@ -370,8 +388,9 @@ async function startDesktop() {
   });
   let menuState;
   let checkpoint;
-  const capture = () =>
-    (checkpoint ??= controller
+  const capture = () => {
+    workspace.rememberUrl(win.webContents.getURL());
+    return (checkpoint ??= controller
       .state()
       .then((state) => {
         menuState = state;
@@ -387,6 +406,7 @@ async function startDesktop() {
       .finally(() => {
         checkpoint = undefined;
       }));
+  };
   const workspaceTimer = setInterval(() => {
     if (win.webContents.isLoadingMainFrame() || win.webContents.isCrashed()) {
       return;
@@ -557,16 +577,8 @@ async function startDesktop() {
     }
     await unifiedAuth.navigation;
   }
-  void workspace.restore(mainWindow, controller).catch(async (error) => {
+  void workspace.restore(mainWindow, controller).catch((error) => {
     console.warn("Cannot restore desktop workspace:", error.message);
-    if (
-      !win.isDestroyed() &&
-      !unifiedAuth.navigation &&
-      !win.webContents.isLoadingMainFrame() &&
-      win.webContents.getURL() === startupUrl
-    ) {
-      await win.loadURL(config.studioOrigin + "/");
-    }
   });
   if (process.platform === "darwin") {
     await acknowledgeMacUpdate(app);

@@ -1,0 +1,7 @@
+{
+  "en": "- Resume the Dashboard or editor page used before quitting.\n- Keep recent projects separate from the saved startup route.\n- Keep the editor open when viewport restoration is slow or fails.",
+  "zh-CN": "- 启动时恢复退出前所在的 Dashboard 或编辑器页面。\n- 将最近项目历史与启动路由分开保存。\n- 视口恢复缓慢或失败时保留编辑器，不再自动跳回 Dashboard。",
+  "zh-TW": "- 啟動時恢復退出前所在的 Dashboard 或編輯器頁面。\n- 將最近專案歷史與啟動路由分開儲存。\n- 視口恢復緩慢或失敗時保留編輯器，不再自動跳回 Dashboard。",
+  "ja": "- 終了前に開いていた Dashboard またはエディターページを起動時に復元。\n- 最近のプロジェクト履歴と起動時のルートを分けて保存。\n- ビューポートの復元が遅い場合や失敗した場合も、エディターを維持。",
+  "ko": "- 시작 시 종료 전에 사용하던 Dashboard 또는 편집기 페이지를 복원합니다.\n- 최근 프로젝트 기록과 시작 경로를 별도로 저장합니다.\n- 뷰포트 복원이 느리거나 실패해도 편집기를 유지합니다."
+}

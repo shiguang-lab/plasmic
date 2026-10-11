@@ -103,6 +103,13 @@ Projected code-component parts can mark DOM roots with
 parts belonging to the same authored node and owner within that scope. Table
 uses this contract for column cells; hierarchy selection stays component-neutral.
 
+The app resumes the last Dashboard or editor route on startup. Recent projects
+remain a separate File-menu history. Login and external URLs do not replace the
+saved route. Project access is checked before opening a saved editor; deleted or
+inaccessible projects open Dashboard after login is confirmed. Restoring an editor
+viewport is best-effort: slow initialization or metadata failures do not navigate
+away from the project.
+
 ## NAS updates and releases
 
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by
