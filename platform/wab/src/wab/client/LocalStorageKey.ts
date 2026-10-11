@@ -18,7 +18,6 @@ export type LocalStorageKey =
   | `copy/${ProjectId}`
   | `plasmic.focused.${ProjectId}`
   | `plasmic.free-trial.${TeamId}`
-  | `plasmic.leftTabKey.${ProjectId}`
   | `plasmic.load-cache.${string}`
   | `plasmic.tours.${ProjectId}`
   | `${typeof PLEXUS_STORAGE_KEY}.${ProjectId}`
@@ -43,9 +42,6 @@ export const copyFromProjectKey = (projectId: ProjectId): LocalStorageKey =>
 
 export const focusPreferenceKey = (projectId: ProjectId): LocalStorageKey =>
   `plasmic.focused.${projectId}`;
-
-export const leftTabKey = (projectId: ProjectId): LocalStorageKey =>
-  `plasmic.leftTabKey.${projectId}`;
 
 export const tourSeenForProjectKey = (projectId: ProjectId): LocalStorageKey =>
   `plasmic.tours.${projectId}`;

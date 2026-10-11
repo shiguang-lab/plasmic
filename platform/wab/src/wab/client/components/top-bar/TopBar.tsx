@@ -1,12 +1,16 @@
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
+import {
+  EditorBrandLink,
+  EditorIconAction,
+  TopBarChrome,
+} from "@/wab/client/components/top-bar/TopBarChrome";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 /** @format */
 
-import { PublicLink } from "@/wab/client/components/PublicLink";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import {
   MenuBuilder,
@@ -31,7 +35,6 @@ import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
-import PlasmicTopBar from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
@@ -55,7 +58,7 @@ import {
   getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
-import { Button, Menu, Popover, Tooltip, notification, theme } from "antd";
+import { Button, Menu, Popover, Tooltip, notification } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -70,7 +73,6 @@ interface TopBarProps {
 
 function _TopBar({ preview }: TopBarProps) {
   const { t } = useI18n();
-  const { token } = theme.useToken();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
   const appCtx = useAppCtx();
@@ -486,7 +488,8 @@ function _TopBar({ preview }: TopBarProps) {
 
   return (
     <>
-      <PlasmicTopBar
+      <TopBarChrome
+        projectReady
         root={{
           ref: topBarRef,
           className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isWindowsDesktop ? styles.desktopWindows : ""} ${isObserver ? "topbar--isObserver" : ""}`,
@@ -530,10 +533,10 @@ function _TopBar({ preview }: TopBarProps) {
                   </div>
                 }
               >
-                <Button
+                <EditorIconAction
+                  action="Published versions"
                   className="editor-history-action"
                   type="text"
-                  aria-label={t("Published versions")}
                   title={t("Published versions")}
                   disabled={
                     !appCtx.selfInfo ||
@@ -542,11 +545,6 @@ function _TopBar({ preview }: TopBarProps) {
                     }) === "hidden"
                   }
                   aria-expanded={versionsOpen}
-                  icon={
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 4v5h5 M3 9a9 9 0 1 1-1 7 M12 7v5l4 2" />
-                    </svg>
-                  }
                 />
               </Popover>
             </>
@@ -569,15 +567,11 @@ function _TopBar({ preview }: TopBarProps) {
                           </TextAndShortcut>
                         }
                       >
-                        <Button
-                          aria-label={t("Undo")}
+                        <EditorIconAction
+                          action="Undo"
+
                           type="text"
                           className="editor-icon-action"
-                          icon={
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M9 5L4 10l5 5 M4 10h10a6 6 0 0 1 0 12" />
-                            </svg>
-                          }
                           disabled={!canUndo}
                           onClick={() => spawn(studioCtx.undo())}
                         />
@@ -589,15 +583,11 @@ function _TopBar({ preview }: TopBarProps) {
                           </TextAndShortcut>
                         }
                       >
-                        <Button
-                          aria-label={t("Redo")}
+                        <EditorIconAction
+                          action="Redo"
+
                           type="text"
                           className="editor-icon-action"
-                          icon={
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M15 5l5 5-5 5 M20 10H10a6 6 0 0 0 0 12" />
-                            </svg>
-                          }
                           disabled={!canRedo}
                           onClick={() => spawn(studioCtx.redo())}
                         />
@@ -616,19 +606,15 @@ function _TopBar({ preview }: TopBarProps) {
                         )
                   }
                 >
-                  <Button
+                  <EditorIconAction
+                    action="Comments"
                     type="text"
                     className="editor-icon-action"
                     disabled={!studioCtx.showComments()}
-                    aria-label={t("Comments")}
+
                     aria-pressed={studioCtx.showCommentsPanel}
                     data-test-id="top-comment-icon"
                     onClick={() => studioCtx.toggleCommentsPanel()}
-                    icon={
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      </svg>
-                    }
                   />
                 </Tooltip>
                 <Tooltip
@@ -641,25 +627,20 @@ function _TopBar({ preview }: TopBarProps) {
                     </TextAndShortcut>
                   }
                 >
-                  <Button
+                  <EditorIconAction
+                    action="Preview"
                     type="text"
                     className="editor-icon-action"
                     disabled={
                       !studioCtx.currentArena || studioCtx.currentArenaEmpty
                     }
-                    aria-label={t("Preview")}
+
                     data-test-id="enter-live-mode-btn"
                     onClick={() => {
                       void studioCtx.changeUnsafe(() =>
                         studioCtx.toggleDevControls(),
                       );
                     }}
-                    icon={
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <rect x="2" y="3" width="20" height="14" rx="2" />
-                        <path d="M8 21h8 M12 17v4" />
-                      </svg>
-                    }
                   />
                 </Tooltip>
                 <LivePopOutButton iconOnly />
@@ -668,16 +649,11 @@ function _TopBar({ preview }: TopBarProps) {
                   trigger={["hover", "focus"]}
                   title={t("Share project")}
                 >
-                  <Button
+                  <EditorIconAction
+                    action="Share project"
                     type="text"
                     className="editor-icon-action"
                     onClick={openShareDialog}
-                    aria-label={t("Share project")}
-                    icon={
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6 M16 6l-4-4-4 4 M12 2v13" />
-                      </svg>
-                    }
                   />
                 </Tooltip>
                 {!studioCtx.contentEditorMode && (
@@ -704,39 +680,7 @@ function _TopBar({ preview }: TopBarProps) {
         // Projects outside an org (e.g. in a playground) have no trial.
         freeTrial={team ? { team } : { render: () => null }}
         logoLink={{
-          render: (props) => (
-            <Tooltip title={brand.logoTooltip ?? t("Back to dashboard")}>
-              <PublicLink
-                {...props}
-                className={`${props.className ?? ""} ${styles.logoLink}`}
-                href={brand.logoHref ?? APP_ROUTES.dashboard.fill({})}
-              >
-                {brand.logoImgSrc ? (
-                  <img
-                    src={brand.logoImgSrc}
-                    alt={brand.logoTooltip ?? t("Back to dashboard")}
-                  />
-                ) : (
-                  <>
-                    <svg
-                      className="editor-brand-mark"
-                      style={{ fill: token.colorPrimary }}
-                      viewBox="0 0 32 32"
-                      aria-hidden="true"
-                    >
-                      <path d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z" />
-                    </svg>
-                    <span
-                      className="editor-brand-label"
-                      style={{ color: token.colorText }}
-                    >
-                      Plasmic
-                    </span>
-                  </>
-                )}
-              </PublicLink>
-            </Tooltip>
-          ),
+          render: (props) => <EditorBrandLink {...props} brand={brand} />,
         }}
         projectTitle={{
           render: () => (

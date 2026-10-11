@@ -45,14 +45,14 @@ const useStyles = createStyles(({ token }) => ({
 export const CanvasViewControls = observer(function CanvasViewControls({
   studioCtx,
 }: {
-  studioCtx: StudioCtx;
+  studioCtx?: StudioCtx;
 }) {
   const { t } = useI18n();
   const { styles } = useStyles();
-  const focused = studioCtx.canvasFocusActive || studioCtx.focusedMode;
+  const focused = studioCtx?.canvasFocusActive || studioCtx?.focusedMode;
   const frame =
-    studioCtx.focusedOrFirstViewCtx()?.arenaFrame() ??
-    getArenaFrames(studioCtx.currentArena)[0];
+    studioCtx?.focusedOrFirstViewCtx()?.arenaFrame() ??
+    getArenaFrames(studioCtx?.currentArena)[0];
   return (
     <Space
       size={4}
@@ -62,13 +62,16 @@ export const CanvasViewControls = observer(function CanvasViewControls({
       aria-label={t("Canvas view")}
     >
       <Button
-        disabled={studioCtx.currentArenaEmpty || !frame}
+        disabled={!studioCtx || studioCtx.currentArenaEmpty || !frame}
         icon={
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 3 7 21 M17 3 15 21 M3 9h18 M3 15h18" />
           </svg>
         }
         onClick={() => {
+          if (!studioCtx) {
+            return;
+          }
           if (isMixedArena(studioCtx.currentArena)) {
             if (focused) {
               studioCtx.returnToCanvasOverview();
@@ -82,10 +85,13 @@ export const CanvasViewControls = observer(function CanvasViewControls({
       >
         {t(focused ? "Return to overview" : "Focus canvas")}
       </Button>
-      <ZoomButton />
+      {studioCtx ? <ZoomButton /> : <Button disabled>{t("Zoom")}</Button>}
       <Button
-        disabled={studioCtx.currentArenaEmpty}
+        disabled={!studioCtx || studioCtx.currentArenaEmpty}
         onClick={() => {
+          if (!studioCtx) {
+            return;
+          }
           studioCtx.returnToCanvasOverview();
           if (studioCtx.focusedMode) {
             studioCtx.turnFocusedModeOff();

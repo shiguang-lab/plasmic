@@ -14,11 +14,11 @@ import {
   showCanvasPageNavigationNotification,
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { CanvasCommentMarkers } from "@/wab/client/components/comments/CanvasCommentMarkers";
+import { StudioLoading } from "@/wab/client/components/widgets";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { ScreenDimmer } from "@/wab/commons/components/ScreenDimmer";
 import {
   XDraggable,
   XDraggableEvent,
@@ -43,14 +43,12 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { Pt } from "@/wab/shared/geom";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
-import { Spin } from "antd";
 import $ from "jquery";
 import L from "lodash";
 import { reaction } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useMountedState, useUnmount } from "react-use";
 
 interface CanvasFrameProps {
@@ -685,13 +683,6 @@ export const CanvasFrame = observer(function CanvasFrame({
 
   return (
     <div className={styles.root} onClick={handleSelectionClick}>
-      {maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry() &&
-        createPortal(
-          <ScreenDimmer>
-            <Spin size={"large"} />
-          </ScreenDimmer>,
-          document.body,
-        )}
       <div
         className={"CanvasFrame__Container"}
         style={
@@ -716,6 +707,11 @@ export const CanvasFrame = observer(function CanvasFrame({
         }
         data-frame-id={`${arenaFrame.uid}`}
       >
+        {maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry() && (
+          <div className={styles.loadingOverlay}>
+            <StudioLoading />
+          </div>
+        )}
         <iframe
           className={cx(
             "canvas-editor__viewport",

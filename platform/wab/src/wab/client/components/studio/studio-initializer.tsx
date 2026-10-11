@@ -7,6 +7,7 @@ import {
   PreviewCtx,
   providesPreviewCtx,
 } from "@/wab/client/components/live/PreviewCtx";
+import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { Studio } from "@/wab/client/components/studio/studio";
 import { ViewEditor } from "@/wab/client/components/studio/view-editor";
 import * as widgets from "@/wab/client/components/widgets";
@@ -45,6 +46,7 @@ type StudioInitializerProps = {
 };
 type StudioInitializerState = {
   studioCtx: StudioCtx | undefined;
+  previewCtx: PreviewCtx | undefined;
 };
 class StudioInitializer_ extends React.Component<
   StudioInitializerProps,
@@ -56,6 +58,7 @@ class StudioInitializer_ extends React.Component<
     this._cleanups = [];
     this.state = {
       studioCtx: undefined,
+      previewCtx: undefined,
     };
   }
   componentWillUnmount() {
@@ -119,7 +122,7 @@ class StudioInitializer_ extends React.Component<
       inStudio: true,
     });
 
-    this.setState({ studioCtx });
+    this.setState({ studioCtx, previewCtx });
 
     const listener = (e: BeforeUnloadEvent) => {
       if (studioCtx.needsSaving()) {
@@ -203,13 +206,13 @@ class StudioInitializer_ extends React.Component<
       return null;
     }
 
-    const contents = ({
-      previewCtx,
-      studioCtx,
-    }: {
-      previewCtx: PreviewCtx;
-      studioCtx: StudioCtx;
-    }) => {
+    const contents = (
+      {
+        previewCtx,
+        studioCtx,
+      }: { previewCtx: PreviewCtx; studioCtx: StudioCtx },
+      canvasLoading = false,
+    ) => {
       const viewCtx = studioCtx.focusedViewCtx();
       const isFullPreviewMode = previewCtx.full && previewCtx.isLive;
       console.log("Rendering Studio", {
@@ -227,6 +230,7 @@ class StudioInitializer_ extends React.Component<
                     viewCtx={viewCtx}
                     studioCtx={studioCtx}
                     previewCtx={previewCtx}
+                    canvasLoading={canvasLoading}
                   />
                 </Studio>
               )}
@@ -302,7 +306,14 @@ class StudioInitializer_ extends React.Component<
       <widgets.ObserverLoadable
         loader={this.init}
         contents={contents}
-        loadingContents={() => <widgets.StudioPlaceholder />}
+        loadingContents={() => {
+          const { studioCtx, previewCtx } = this.state;
+          return studioCtx && previewCtx ? (
+            contents({ studioCtx, previewCtx }, true)
+          ) : (
+            <StudioChrome />
+          );
+        }}
       />
     );
   }

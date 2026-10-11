@@ -2,12 +2,12 @@ import { maybeConvertToHostLessProject } from "@/wab/client/code-components/code
 import { BottomModalsProvider } from "@/wab/client/components/BottomModal";
 import { showPlasmicImgModal } from "@/wab/client/components/modals/PlasmicImgModal";
 import { ShortcutsModal } from "@/wab/client/components/studio/Shortcuts";
+import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
 import {
   getCanvasPkgs,
   getLiveFrameClientJs,
   getReactWebBundle,
 } from "@/wab/client/components/studio/studio-bundles";
-import { useEditorLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -26,15 +26,6 @@ import * as React from "react";
 interface StudioProps {
   studioCtx: StudioCtx;
   children?: React.ReactNode;
-}
-
-function StudioLayout({ children }: { children?: React.ReactNode }) {
-  const { styles, cx } = useEditorLayoutStyles();
-  return (
-    <div className={cx("studio", styles.root)}>
-      <div className="studio__main-area">{children}</div>
-    </div>
-  );
 }
 
 export class Studio extends React.Component<StudioProps, {}> {

@@ -62,3 +62,10 @@
   right: 0;
   padding: 2px 4px;
 }
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #00000008;
+}

@@ -10,12 +10,14 @@ import {
   TopFrameChrome,
   useTopFrameState,
 } from "@/wab/client/components/TopFrame/TopFrameChrome";
+import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { TopFrameCopilotToolsBridge } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { buildPlasmicStudioArgsHash } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import {
   TopFrameCtxProvider,
   handleIframeLoad,
+  useTopFrameCtx,
 } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { usePreventDefaultBrowserPinchToZoomBehavior } from "@/wab/client/hooks/usePreventDefaultBrowserPinchToZoomBehavior";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
@@ -214,7 +216,7 @@ export function StudioFrame({
   useBrowserNotification();
 
   if (!project) {
-    return null;
+    return <StudioChrome />;
   }
 
   const src = new URL(getHostUrl(project, branch, appCtx.appConfig));
@@ -294,6 +296,16 @@ export function StudioFrame({
         allow="clipboard-read *; clipboard-write *"
         onLoad={handleIframeLoad}
       />
+      <StudioBootstrapChrome projectName={project.name} />
     </TopFrameCtxProvider>
+  );
+}
+
+function StudioBootstrapChrome({ projectName }: { projectName: string }) {
+  const { hostFrameApiReady } = useTopFrameCtx();
+  return hostFrameApiReady ? null : (
+    <div style={{ position: "fixed", inset: 0, zIndex: 35 }}>
+      <StudioChrome projectName={projectName} />
+    </div>
   );
 }

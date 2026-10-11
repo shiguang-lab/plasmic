@@ -7,7 +7,6 @@ import {
 } from "@/wab/client/ErrorNotifications";
 import {
   focusPreferenceKey,
-  leftTabKey,
   storageViewAsKey,
 } from "@/wab/client/LocalStorageKey";
 import { ProjectDependencyManager } from "@/wab/client/ProjectDependencyManager";
@@ -400,7 +399,6 @@ import {
 } from "@/wab/shared/site-invariants";
 import { naturalSort } from "@/wab/shared/sort";
 import {
-  LEFT_TAB_PANEL_KEYS,
   LeftTabKey,
   LeftTabUiKey,
   UiConfig,
@@ -714,11 +712,6 @@ export class StudioCtx extends WithDbCtx {
 
     this.switchRightTab(RightTabKey.style);
 
-    this.getInitialLeftTabKey()
-      .then((key) => {
-        this.switchLeftTab(key);
-      })
-      .catch((e) => console.error(e));
     this.setHostLessPkgs();
 
     this.bundler()
@@ -1049,16 +1042,6 @@ export class StudioCtx extends WithDbCtx {
       getBuiltinComponentRegistrations(),
     );
     this.installedHostLessPkgs.clear();
-  }
-
-  private async getInitialLeftTabKey() {
-    const existingLeftTabKey = await this.appCtx.api.getStorageItem(
-      this.leftTabKeyLocalStorageKey(),
-    );
-    const filteredKey = LEFT_TAB_PANEL_KEYS.find(
-      (key) => key === existingLeftTabKey,
-    );
-    return filteredKey;
   }
 
   async updateCcRegistry(pkgs: string[]) {
@@ -3298,13 +3281,6 @@ export class StudioCtx extends WithDbCtx {
   ) {
     if (tabKey) {
       this.lastLeftTabKey = tabKey;
-      this.appCtx.api
-        .addStorageItem(this.leftTabKeyLocalStorageKey(), tabKey)
-        .catch((e) => console.error(e));
-    } else {
-      this.appCtx.api
-        .removeStorageItem(this.leftTabKeyLocalStorageKey())
-        .catch((e) => console.error(e));
     }
     this._xLeftTabKey.set(tabKey);
     if (opts?.highlight) {
@@ -3820,10 +3796,6 @@ export class StudioCtx extends WithDbCtx {
 
   private mkFocusPreferenceKey = () => {
     return focusPreferenceKey(this.siteInfo.id);
-  };
-
-  private leftTabKeyLocalStorageKey = () => {
-    return leftTabKey(this.siteInfo.id);
   };
 
   /**

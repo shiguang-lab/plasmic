@@ -1,0 +1,7 @@
+{
+  "en": "- Show the real editor header, toolbar and canvas controls before project data arrives; loading is limited to the central content area.\n- Keep the right property panel hidden during loading and start with the left panel collapsed without restoring its saved state.",
+  "zh-CN": "- 项目数据到达前显示真实编辑器顶部、工具栏和画布控件，仅中间内容区域显示加载状态。\n- 加载时隐藏右侧属性面板；左侧面板进入编辑器时默认收起，不再恢复缓存的打开状态。",
+  "zh-TW": "- 專案資料到達前顯示真實編輯器頂部、工具列和畫布控制項，僅中間內容區域顯示載入狀態。\n- 載入時隱藏右側屬性面板；進入編輯器時左側面板預設收合，不再恢復快取的開啟狀態。",
+  "ja": "- プロジェクトデータの取得前に実際のヘッダー、ツールバー、キャンバス操作を表示し、読み込み表示を中央のコンテンツ領域に限定します。\n- 読み込み中は右側のプロパティパネルを非表示にし、左側のパネルは保存された開閉状態を復元せず閉じた状態で開始します。",
+  "ko": "- 프로젝트 데이터를 받기 전에 실제 헤더, 도구 모음 및 캔버스 컨트롤을 표시하며 로딩 표시는 중앙 콘텐츠 영역으로 제한합니다.\n- 로딩 중에는 오른쪽 속성 패널을 숨기고 왼쪽 패널은 저장된 열림 상태를 복원하지 않고 접힌 상태로 시작합니다."
+}

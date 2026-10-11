@@ -468,7 +468,6 @@ export function filteredApi(
     PLEXUS_STORAGE_KEY,
     "plasmic.tours.",
     "plasmic.focused.",
-    "plasmic.leftTabKey",
     "plasmic.free-trial.",
     "plasmic.load-cache.",
   ];

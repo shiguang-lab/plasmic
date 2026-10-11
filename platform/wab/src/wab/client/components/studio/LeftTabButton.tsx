@@ -9,7 +9,7 @@ import * as React from "react";
 import { CSSProperties } from "react";
 
 interface LeftTabButtonProps extends DefaultLeftTabButtonProps {
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
   dataTestId?: string;
   expanded?: boolean;
@@ -28,7 +28,7 @@ function LeftTabButton(props: LeftTabButtonProps) {
       onClick={() => {
         suppressTooltip.current = true;
         setTooltipOpen(false);
-        props.onClick();
+        props.onClick?.();
       }}
       root={{
         props: {

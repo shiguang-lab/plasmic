@@ -87,276 +87,56 @@
       }
 
       :root {
-        --studio-loading-layout: #eceef3;
-        --studio-loading-surface: #ffffff;
         --studio-loading-muted: #70778b;
         --studio-loading-border: #e6e8ef;
-        --studio-loading-fill: #d7dbe5;
       }
       :root[data-ui-appearance="dark"] {
-        --studio-loading-layout: #15161b;
-        --studio-loading-surface: #202128;
         --studio-loading-muted: #9295a7;
         --studio-loading-border: #30313b;
-        --studio-loading-fill: #373842;
       }
-      .StudioPlaceholder {
+      .studio-loading {
         display: none;
-        position: fixed;
-        inset: 0;
-        background: var(--studio-loading-layout);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 30;
+        align-items: center;
+        gap: 10px;
         color: var(--studio-loading-muted);
-        font-family:
-          Inter,
-          -apple-system,
+        font:
+          12px -apple-system,
           BlinkMacSystemFont,
           "Segoe UI",
           sans-serif;
-        transition:
-          opacity 250ms,
-          visibility 250ms;
         pointer-events: none;
       }
-      .StudioPlaceholder.fadeOut {
-        opacity: 0;
-        visibility: hidden;
-      }
-      .StudioPlaceholder.visible {
-        display: block;
-      }
-      .placeholder_topBar {
-        position: absolute;
-        z-index: 2;
-        top: 16px;
-        left: 16px;
-        right: 16px;
-        height: 48px;
+      .studio-loading.visible {
         display: flex;
-        justify-content: space-between;
-        gap: 12px;
       }
-      .placeholder_projectCapsule,
-      .placeholder_actions,
-      .placeholder_leftToolbar,
-      .placeholder_rightPanel,
-      .placeholder_canvasControls {
-        box-sizing: border-box;
-        background: var(--studio-loading-surface);
-        border: 1px solid var(--studio-loading-border);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px #00000018;
+      .studio-loading.fadeOut {
+        display: none;
       }
-      .placeholder_projectCapsule,
-      .placeholder_actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 0 12px;
-        min-width: 0;
-        overflow: hidden;
-      }
-      .placeholder_actions {
-        flex: none;
-      }
-      .plasmic-desktop-mac .placeholder_projectCapsule {
-        padding-left: 80px;
-        border-radius: 24px;
-      }
-      .plasmic-desktop-windows .placeholder_topBar {
-        right: 160px;
-      }
-      .placeholder_icon {
-        width: 29px;
-        height: 29px;
-        flex: none;
-        color: #7955d9;
-      }
-      :root[data-ui-appearance="dark"] .placeholder_icon {
-        color: #9474ff;
-      }
-      .placeholder_skeleton {
-        display: block;
-        height: 10px;
-        width: 100%;
-        border-radius: 4px;
-        background: var(--studio-loading-fill);
-        animation: placeholderPulse 2s ease-in-out infinite;
-      }
-      .placeholder_line--short {
-        width: 56px;
-      }
-      .placeholder_line--medium {
-        width: 96px;
-      }
-      .placeholder_line--long {
-        width: 144px;
-      }
-      .placeholder_button {
-        width: 64px;
-        height: 32px;
-        border-radius: 7px;
-      }
-      .placeholder_square {
+      .studio-loading__spinner {
         width: 20px;
         height: 20px;
-        flex: none;
-      }
-      .placeholder_leftToolbar {
-        position: absolute;
-        z-index: 1;
-        top: 82px;
-        left: 16px;
-        width: 56px;
-        max-height: calc(100% - 170px);
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        gap: 26px;
-        padding: 18px 5px;
-        overflow: hidden;
-      }
-      .placeholder_toolbarBottom {
-        margin-top: 14px;
-      }
-      .placeholder_panelHeader {
-        height: 48px;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--studio-loading-border);
-      }
-      .placeholder_canvasArea {
-        position: absolute;
-        inset: 0;
-        padding: 154px 356px 110px 92px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-image: radial-gradient(
-          var(--studio-loading-border) 0.75px,
-          transparent 1px
-        );
-        background-size: 20px 20px;
-      }
-      .placeholder_artboard {
-        width: 100%;
-        max-width: 720px;
-        height: min(100%, 520px);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .placeholder_artboardSurface {
-        flex: 1;
-        min-height: 0;
-        padding: 32px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        background: var(--studio-loading-surface);
-        border: 1px solid var(--studio-loading-border);
-        border-radius: 2px;
-      }
-      .placeholder_artboardContent {
-        flex: 1;
-        min-height: 0;
-        background: var(--studio-loading-layout);
-        border-radius: 6px;
-      }
-      .placeholder_artboardSurface .placeholder_skeleton {
-        max-width: 100%;
-      }
-      .placeholder_canvasControls {
-        position: absolute;
-        right: 16px;
-        bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        height: 50px;
-        padding: 6px 12px;
-      }
-      .placeholder_rightPanel {
-        position: absolute;
-        z-index: 1;
-        top: 82px;
-        right: 16px;
-        bottom: 88px;
-        width: 320px;
-        overflow: hidden;
-      }
-      .placeholder_propertyGroup {
-        padding: 24px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        border-bottom: 1px solid var(--studio-loading-border);
-      }
-      .placeholder_fieldRow {
-        display: grid;
-        grid-template-columns: 56px minmax(0, 1fr) minmax(0, 1fr);
-        gap: 12px;
-        align-items: center;
-      }
-      .placeholder_field {
-        height: 28px;
-        border: 1px solid var(--studio-loading-fill);
-        background: var(--studio-loading-layout);
         box-sizing: border-box;
-        border-radius: 5px;
+        border: 2px solid var(--studio-loading-border);
+        border-top-color: #7955d9;
+        border-radius: 50%;
+        animation: studioLoadingSpin 0.8s linear infinite;
       }
-      .placeholder_loadingStatus {
-        position: absolute;
-        z-index: 2;
-        top: 94px;
-        left: calc(50% - 132px);
-        transform: translateX(-50%);
-        padding: 8px 16px;
-        background: var(--studio-loading-surface);
-        border: 1px solid var(--studio-loading-border);
-        border-radius: 20px;
-        font-size: 12px;
+      :root[data-ui-appearance="dark"] .studio-loading__spinner {
+        border-top-color: #9474ff;
       }
-      @keyframes placeholderPulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.45;
+      @keyframes studioLoadingSpin {
+        to {
+          transform: rotate(360deg);
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        .StudioPlaceholder {
-          transition: none;
-        }
-        .placeholder_skeleton {
+        .studio-loading__spinner {
           animation: none;
-        }
-      }
-      @media (max-width: 640px) {
-        .placeholder_rightPanel {
-          display: none;
-        }
-        .placeholder_canvasArea {
-          padding-right: 20px;
-        }
-        .placeholder_loadingStatus {
-          left: 50%;
-        }
-        .placeholder_projectCapsule > .placeholder_line--short {
-          display: none;
-        }
-        .placeholder_projectCapsule > .placeholder_line--long {
-          width: 80px;
-        }
-        .placeholder_actions {
-          gap: 8px;
-          padding: 0 8px;
-        }
-        .placeholder_button {
-          width: 32px;
         }
       }
     </style>
@@ -406,115 +186,21 @@
     <a class="hidden-file-download" href="" style="display: none"
       >hidden link</a
     >
-    <div class="StudioPlaceholder" aria-busy="true">
-      <span class="placeholder_loadingStatus" role="status"
-        >Loading project…</span
-      >
-      <div class="placeholder_topBar" aria-hidden="true">
-        <div class="placeholder_projectCapsule">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="placeholder_icon"
-            fill="none"
-            viewBox="0 0 32 32"
-            aria-hidden="true"
-          >
-            <path
-              d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z"
-              fill="currentColor"
-            ></path>
-          </svg>
-          <span class="placeholder_skeleton placeholder_line--long"></span
-          ><span class="placeholder_skeleton placeholder_line--short"></span>
-        </div>
-        <div class="placeholder_actions">
-          <span class="placeholder_skeleton placeholder_square"></span
-          ><span class="placeholder_skeleton placeholder_button"></span
-          ><span class="placeholder_skeleton placeholder_button"></span>
-        </div>
-      </div>
-      <div class="placeholder_leftToolbar" aria-hidden="true">
-        <span class="placeholder_skeleton placeholder_square"></span
-        ><span class="placeholder_skeleton placeholder_square"></span
-        ><span class="placeholder_skeleton placeholder_square"></span
-        ><span class="placeholder_skeleton placeholder_square"></span
-        ><span class="placeholder_skeleton placeholder_square"></span
-        ><span
-          class="placeholder_skeleton placeholder_square placeholder_toolbarBottom"
-        ></span>
-      </div>
-      <div class="placeholder_canvasArea" aria-hidden="true">
-        <div class="placeholder_artboard">
-          <span class="placeholder_skeleton placeholder_line--medium"></span>
-          <div class="placeholder_artboardSurface">
-            <span class="placeholder_skeleton placeholder_line--long"></span>
-            <span class="placeholder_skeleton placeholder_line--medium"></span>
-            <span
-              class="placeholder_skeleton placeholder_artboardContent"
-            ></span>
-            <span class="placeholder_skeleton placeholder_line--long"></span>
-          </div>
-        </div>
-        <div class="placeholder_canvasControls">
-          <span class="placeholder_skeleton placeholder_square"></span
-          ><span class="placeholder_skeleton placeholder_line--short"></span
-          ><span class="placeholder_skeleton placeholder_square"></span>
-        </div>
-      </div>
-      <div class="placeholder_rightPanel" aria-hidden="true">
-        <div class="placeholder_panelHeader">
-          <span class="placeholder_skeleton placeholder_line--medium"></span
-          ><span class="placeholder_skeleton placeholder_square"></span>
-        </div>
-        <div class="placeholder_propertyGroup">
-          <span class="placeholder_skeleton placeholder_line--short"></span>
-          <div class="placeholder_fieldRow">
-            <span class="placeholder_skeleton placeholder_line--short"></span
-            ><span class="placeholder_skeleton placeholder_field"></span
-            ><span class="placeholder_skeleton placeholder_field"></span>
-          </div>
-          <div class="placeholder_fieldRow">
-            <span class="placeholder_skeleton placeholder_line--short"></span
-            ><span class="placeholder_skeleton placeholder_field"></span
-            ><span class="placeholder_skeleton placeholder_field"></span>
-          </div>
-        </div>
-        <div class="placeholder_propertyGroup">
-          <span class="placeholder_skeleton placeholder_line--short"></span>
-          <div class="placeholder_fieldRow">
-            <span class="placeholder_skeleton placeholder_line--short"></span
-            ><span class="placeholder_skeleton placeholder_field"></span
-            ><span class="placeholder_skeleton placeholder_field"></span>
-          </div>
-          <div class="placeholder_fieldRow">
-            <span class="placeholder_skeleton placeholder_line--short"></span
-            ><span class="placeholder_skeleton placeholder_field"></span
-            ><span class="placeholder_skeleton placeholder_field"></span>
-          </div>
-        </div>
-        <div class="placeholder_propertyGroup">
-          <span class="placeholder_skeleton placeholder_line--short"></span>
-          <div class="placeholder_fieldRow">
-            <span class="placeholder_skeleton placeholder_line--short"></span
-            ><span class="placeholder_skeleton placeholder_field"></span
-            ><span class="placeholder_skeleton placeholder_field"></span>
-          </div>
-          <div class="placeholder_fieldRow">
-            <span class="placeholder_skeleton placeholder_line--short"></span
-            ><span class="placeholder_skeleton placeholder_field"></span
-            ><span class="placeholder_skeleton placeholder_field"></span>
-          </div>
-        </div>
-      </div>
+    <div
+      id="studio-startup-loading"
+      class="studio-loading"
+      role="status"
+      aria-busy="true"
+    >
+      <span class="studio-loading__spinner" aria-hidden="true"></span>
+      <span>Loading project…</span>
     </div>
     <script>
-      function maybeShowStudioPlaceholder() {
-        if (/^\/projects\/[a-z0-9]+/.test(window.location.pathname)) {
-          document.querySelector(".StudioPlaceholder").classList.add("visible");
-        }
+      if (/^\/projects\/[a-z0-9]+/.test(window.location.pathname)) {
+        document
+          .getElementById("studio-startup-loading")
+          .classList.add("visible");
       }
-
-      maybeShowStudioPlaceholder();
     </script>
     <!--
       This HTML file is a template.

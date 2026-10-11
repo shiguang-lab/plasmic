@@ -1,3 +1,4 @@
+import { EditorIconAction } from "@/wab/client/components/top-bar/TopBarChrome";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useCodegenType } from "@/wab/client/hooks/useCodegenType";
@@ -96,17 +97,13 @@ export const CodeButton = observer(function CodeButton({
             </>
           }
         >
-          <Button
+          <EditorIconAction
+            action="Code"
             type="text"
             className="editor-icon-action"
             aria-label={uiT("Code")}
             disabled={isPlasmicLevels}
             onClick={showQuickstarts}
-            icon={
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8 6l-6 6 6 6 M16 6l6 6-6 6 M14 3l-4 18" />
-              </svg>
-            }
           />
         </Tooltip>
         {showOptions && (

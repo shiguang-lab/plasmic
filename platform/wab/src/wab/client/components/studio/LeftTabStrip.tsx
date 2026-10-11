@@ -1,3 +1,7 @@
+import {
+  EditorToolIcon,
+  EditorToolRail,
+} from "@/wab/client/components/studio/EditorToolRail";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
@@ -22,11 +26,7 @@ import Paintbrush2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Pla
 import PhotosvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PhotoSvg";
 import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
-import WarningTrianglesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
-import {
-  DefaultLeftTabStripProps,
-  PlasmicLeftTabStrip,
-} from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
+import { DefaultLeftTabStripProps } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
 import DiamondsIcon from "@/wab/client/plasmic/plasmic_kit_merge_flow/icons/PlasmicIcon__Diamonds";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
@@ -40,22 +40,6 @@ import { Popover } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { ReactNode } from "react";
-
-const toolIcon = (path: string) => (
-  <svg
-    width={20}
-    height={20}
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.6}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d={path} />
-  </svg>
-);
 
 interface LeftTabStripProps extends DefaultLeftTabStripProps {
   useVersionsCTA: boolean;
@@ -288,7 +272,7 @@ More
     lint: {
       type: "item",
       tabKey: "lint",
-      icon: <WarningTrianglesvgIcon />,
+      icon: <EditorToolIcon tool="Issues" />,
       label: t("Issues"),
       tooltip: t("Issues detected"),
       cond: canViewTab("lint"),
@@ -461,7 +445,7 @@ More
   }
 
   return (
-    <PlasmicLeftTabStrip
+    <EditorToolRail
       showAvatar={false}
       insert={{ render: () => null }}
       root={{ className: props.className, id: "left-tab-strip" }}
@@ -471,7 +455,7 @@ More
             hasLabel
             label={t("Select")}
             tooltip={t("Select")}
-            icon={toolIcon("M5 3l14 10-7 1-3 7z")}
+            icon={<EditorToolIcon tool="Select" />}
             isSelected={studioCtx.canvasTool === "select"}
             onClick={() => {
               studioCtx.setCanvasTool("select");
@@ -484,9 +468,7 @@ More
             hasLabel
             label={t("Pan")}
             tooltip={t("Pan")}
-            icon={toolIcon(
-              "M7 12V6a2 2 0 0 1 4 0v5 M11 11V4a2 2 0 0 1 4 0v7 M15 11V6a2 2 0 0 1 4 0v9c0 5-3 7-6 7-4 0-6-3-9-8a2 2 0 0 1 3-2l2 2",
-            )}
+            icon={<EditorToolIcon tool="Pan" />}
             isSelected={studioCtx.canvasTool === "pan"}
             onClick={() => {
               studioCtx.setCanvasTool("pan");
@@ -503,7 +485,7 @@ More
             hasLabel
             label={t("Insert")}
             tooltip={t("Insert")}
-            icon={toolIcon("M12 4v16 M4 12h16")}
+            icon={<EditorToolIcon tool="Insert" />}
             onClick={() => {
               studioCtx.setCanvasTool("select");
               studioCtx.tourActionEvents.dispatch({
@@ -523,9 +505,7 @@ More
             hasLabel
             label={t("Layers")}
             tooltip={t("Layers")}
-            icon={toolIcon(
-              "M2 7l10-5 10 5-10 5z M2 12l10 5 10-5 M2 17l10 5 10-5",
-            )}
+            icon={<EditorToolIcon tool="Layers" />}
             onClick={() => {
               studioCtx.showLayersPanel();
             }}
@@ -533,7 +513,7 @@ More
           {renderButtonGroup({
             assets: {
               ...mainGroups.assets,
-              icon: toolIcon("M3 3h18v18H3z M3 16l6-6 7 7 3-3 2 2 M15 7h.01"),
+              icon: <EditorToolIcon tool="Assets" />,
               items: resourceItems,
             },
           })}
@@ -542,7 +522,7 @@ More
             {
               type: "item",
               tabKey: "libraries",
-              icon: toolIcon("m16 6 4 14 M12 6v14 M8 8v12 M4 4v16"),
+              icon: <EditorToolIcon tool="Libraries" />,
               label: t("Libraries"),
               cond: canViewTab("libraries"),
             },
@@ -553,7 +533,7 @@ More
             hasLabel
             label={t("AI")}
             tooltip={t("AI assistant")}
-            icon={toolIcon("M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z")}
+            icon={<EditorToolIcon tool="AI" />}
             disabled={!studioCtx.chatCopilotEnabled()}
             isSelected={studioCtx.isCopilotChatOpen}
             onClick={() => {
@@ -568,7 +548,7 @@ More
           {renderButtonGroup({
             more: {
               ...mainGroups.more,
-              icon: toolIcon("M4 12h.01 M12 12h.01 M20 12h.01"),
+              icon: <EditorToolIcon tool="More" />,
               items: {
                 splits: mainGroups.more.items.splits,
                 expressions: mainGroups.more.items.expressions,

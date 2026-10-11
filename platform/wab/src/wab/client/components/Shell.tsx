@@ -37,8 +37,8 @@ function ShellThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-function getStudioPlaceholderElement() {
-  return document.querySelector(".StudioPlaceholder") as HTMLDivElement;
+function getStudioStartupLoadingElement() {
+  return document.getElementById("studio-startup-loading") as HTMLDivElement;
 }
 
 /**
@@ -113,7 +113,7 @@ export function main() {
   monkeyPatchConsoleLog();
 
   if (isTopFrame()) {
-    const studioPlaceholder = getStudioPlaceholderElement();
+    const studioStartupLoading = getStudioStartupLoadingElement();
 
     window.addEventListener("message", ({ data }) => {
       // Studio is ready to be shown
@@ -124,20 +124,14 @@ export function main() {
           "exposeHostFrameApi",
           "setLatestPublishedVersionData",
         ].includes(data?.path?.[0]) ||
-        // Include the PLASMIC_HOST_REGISTER message, so that we can
-        // hide the studio placeholder as soon as the host frame is registered.
-        // The skeleton is split in two phases, first the top frame,
-        // then the host frame. As the host frame can open modals, about
-        // untrusted hosts, sync code components, we don't want to have
-        // the skeleton visible in the top frame during this operations as it
-        // would hiding those modals. So we hide the skeleton as soon as the
-        // host frame is registered.
+        // The host frame takes over the central loading indicator once registered,
+        // so the startup indicator must not cover host dialogs.
         [
           FrameMessage.PlasmicHostRegister,
           FrameMessage.StudioFrameLoaded,
         ].includes(data?.type)
       ) {
-        studioPlaceholder.classList.add("fadeOut");
+        studioStartupLoading.classList.add("fadeOut");
       }
     });
 
@@ -170,17 +164,17 @@ export function Shell() {
     }
 
     return history.listen(({ location }) => {
-      const studioPlaceholder = getStudioPlaceholderElement();
+      const studioStartupLoading = getStudioStartupLoadingElement();
       const _isProjectPath = isProjectPath(location.pathname);
 
       if (_isProjectPath && !isProjectPathRef.current) {
         isProjectPathRef.current = true;
-        studioPlaceholder.classList.add("visible");
-        studioPlaceholder.classList.remove("fadeOut");
+        studioStartupLoading.classList.add("visible");
+        studioStartupLoading.classList.remove("fadeOut");
       } else if (!_isProjectPath && isProjectPathRef.current) {
         isProjectPathRef.current = false;
-        studioPlaceholder.classList.remove("visible");
-        studioPlaceholder.classList.remove("fadeOut");
+        studioStartupLoading.classList.remove("visible");
+        studioStartupLoading.classList.remove("fadeOut");
       }
     });
   }, []);

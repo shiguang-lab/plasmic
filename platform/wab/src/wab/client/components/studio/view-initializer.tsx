@@ -1,11 +1,9 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isTopFrame } from "@/wab/client/cli-routes";
 import importAndRetry from "@/wab/client/components/dynamic-import";
+import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { StudioFrame } from "@/wab/client/components/studio/studio-frame";
-import {
-  ObserverLoadable,
-  StudioPlaceholder,
-} from "@/wab/client/components/widgets";
+import { ObserverLoadable } from "@/wab/client/components/widgets";
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { observer } from "mobx-react";
@@ -70,7 +68,7 @@ function HostFrameViewInitializer({
     <ObserverLoadable
       loader={loader}
       contents={contents}
-      loadingContents={() => <StudioPlaceholder />}
+      loadingContents={() => <StudioChrome />}
     />
   );
 }

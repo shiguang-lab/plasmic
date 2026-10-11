@@ -23,6 +23,7 @@ import { AppAuthPage } from "@/wab/client/components/pages/AppAuthPage";
 import { GithubCallback } from "@/wab/client/components/pages/GithubCallback";
 import { ShiguangSignIn } from "@/wab/client/components/pages/ShiguangSignIn";
 import PromoBanner from "@/wab/client/components/PromoBanner";
+import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { AppView } from "@/wab/client/components/top-view";
 import * as widgets from "@/wab/client/components/widgets";
 import { providesAppCtx, useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -132,7 +133,7 @@ function LoggedInContainer(props: LoggedInContainerProps) {
     <React.Suspense
       fallback={
         isProjectPath(currentLocation.pathname) ? (
-          <widgets.StudioPlaceholder />
+          <StudioChrome />
         ) : (
           <widgets.Spinner />
         )

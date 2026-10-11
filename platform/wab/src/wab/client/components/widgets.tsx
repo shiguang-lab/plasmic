@@ -1021,104 +1021,11 @@ export function VerticalFillTable<T extends object>(
   );
 }
 
-export function StudioPlaceholder() {
+export function StudioLoading() {
   return (
-    <div className="StudioPlaceholder visible" aria-busy="true">
-      <span className="placeholder_loadingStatus" role="status">
-        <UiText message={"Loading project…"} />
-      </span>
-      <div className="placeholder_topBar" aria-hidden="true">
-        <div className="placeholder_projectCapsule">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="placeholder_icon"
-            fill="none"
-            viewBox="0 0 32 32"
-            aria-hidden="true"
-          >
-            <path
-              d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z"
-              fill="currentColor"
-            />
-          </svg>
-          <span className="placeholder_skeleton placeholder_line--long"></span>
-          <span className="placeholder_skeleton placeholder_line--short"></span>
-        </div>
-        <div className="placeholder_actions">
-          <span className="placeholder_skeleton placeholder_square"></span>
-          <span className="placeholder_skeleton placeholder_button"></span>
-          <span className="placeholder_skeleton placeholder_button"></span>
-        </div>
-      </div>
-      <div className="placeholder_leftToolbar" aria-hidden="true">
-        <span className="placeholder_skeleton placeholder_square"></span>
-        <span className="placeholder_skeleton placeholder_square"></span>
-        <span className="placeholder_skeleton placeholder_square"></span>
-        <span className="placeholder_skeleton placeholder_square"></span>
-        <span className="placeholder_skeleton placeholder_square"></span>
-        <span className="placeholder_skeleton placeholder_square placeholder_toolbarBottom"></span>
-      </div>
-      <div className="placeholder_canvasArea" aria-hidden="true">
-        <div className="placeholder_artboard">
-          <span className="placeholder_skeleton placeholder_line--medium"></span>
-          <div className="placeholder_artboardSurface">
-            <span className="placeholder_skeleton placeholder_line--long"></span>
-            <span className="placeholder_skeleton placeholder_line--medium"></span>
-            <span className="placeholder_skeleton placeholder_artboardContent"></span>
-            <span className="placeholder_skeleton placeholder_line--long"></span>
-          </div>
-        </div>
-        <div className="placeholder_canvasControls">
-          <span className="placeholder_skeleton placeholder_square"></span>
-          <span className="placeholder_skeleton placeholder_line--short"></span>
-          <span className="placeholder_skeleton placeholder_square"></span>
-        </div>
-      </div>
-      <div className="placeholder_rightPanel" aria-hidden="true">
-        <div className="placeholder_panelHeader">
-          <span className="placeholder_skeleton placeholder_line--medium"></span>
-          <span className="placeholder_skeleton placeholder_square"></span>
-        </div>
-        <div className="placeholder_propertyGroup">
-          <span className="placeholder_skeleton placeholder_line--short"></span>
-          <div className="placeholder_fieldRow">
-            <span className="placeholder_skeleton placeholder_line--short"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-          </div>
-          <div className="placeholder_fieldRow">
-            <span className="placeholder_skeleton placeholder_line--short"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-          </div>
-        </div>
-        <div className="placeholder_propertyGroup">
-          <span className="placeholder_skeleton placeholder_line--short"></span>
-          <div className="placeholder_fieldRow">
-            <span className="placeholder_skeleton placeholder_line--short"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-          </div>
-          <div className="placeholder_fieldRow">
-            <span className="placeholder_skeleton placeholder_line--short"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-          </div>
-        </div>
-        <div className="placeholder_propertyGroup">
-          <span className="placeholder_skeleton placeholder_line--short"></span>
-          <div className="placeholder_fieldRow">
-            <span className="placeholder_skeleton placeholder_line--short"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-          </div>
-          <div className="placeholder_fieldRow">
-            <span className="placeholder_skeleton placeholder_line--short"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-            <span className="placeholder_skeleton placeholder_field"></span>
-          </div>
-        </div>
-      </div>
+    <div className="studio-loading visible" role="status" aria-busy="true">
+      <span className="studio-loading__spinner" aria-hidden="true" />
+      <UiText message={"Loading project…"} />
     </div>
   );
 }

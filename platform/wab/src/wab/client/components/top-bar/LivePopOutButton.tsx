@@ -7,6 +7,7 @@ import {
   useFrameBgColor,
   useLivePreview,
 } from "@/wab/client/components/live/PreviewFrame";
+import { EditorIconAction } from "@/wab/client/components/top-bar/TopBarChrome";
 import { untilClosed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -192,17 +193,13 @@ const LivePopOutButton = observer(function LivePopOutButton(
   if (iconOnly) {
     return (
       <Tooltip trigger={["hover", "focus"]} title={label}>
-        <Button
+        <EditorIconAction
+          action="Open preview in new tab"
           type="text"
           className="editor-icon-action"
           aria-label={label}
           disabled={!studioCtx.currentArena || studioCtx.currentArenaEmpty}
           onClick={openLivePopup}
-          icon={
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 3h6v6 M10 14L21 3 M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            </svg>
-          }
         />
       </Tooltip>
     );
