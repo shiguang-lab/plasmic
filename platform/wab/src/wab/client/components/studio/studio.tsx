@@ -9,7 +9,9 @@ import {
 } from "@/wab/client/components/studio/studio-bundles";
 import { useEditorLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { analytics } from "@/wab/client/observability";
 import RocketsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RocketSvg";
 import { bindStudioShortcutHandlers } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
@@ -61,7 +63,10 @@ export class Studio extends React.Component<StudioProps, {}> {
       const id = mkShortId();
       notification.info({
         key: id,
-        message: "Enable image optimization for this project?",
+        message: translate(
+          getUiLocale(),
+          "Enable image optimization for this project?",
+        ),
         description: (
           <p>
             <UiText

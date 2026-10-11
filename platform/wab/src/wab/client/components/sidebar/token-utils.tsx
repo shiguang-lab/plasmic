@@ -1,4 +1,6 @@
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { DataTokenType, DataTokenValue } from "@/wab/commons/DataToken";
 import {
@@ -213,7 +215,7 @@ export const newTokenValueAllowed = (
   ));
 
   notification.error({
-    message: "Cyclic token references disallowed",
+    message: translate(getUiLocale(), "Cyclic token references disallowed"),
     description: (
       <div>
         <UiText

@@ -13,8 +13,10 @@ import {
   SpaceEdgeControls,
   SpaceEdgeType,
 } from "@/wab/client/components/canvas/HoverBox/draggable-edge";
+import { FrameSelectionBox } from "@/wab/client/components/canvas/HoverBox/FrameSelectionBox";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
 import { InlineAddButton } from "@/wab/client/components/canvas/HoverBox/InlineAddButton";
+import { MultiSelectionBox } from "@/wab/client/components/canvas/HoverBox/MultiSelectionBox";
 import { ResponsiveColumnsCanvasControls } from "@/wab/client/components/canvas/HoverBox/ResponsiveColumnsCanvasControls";
 import { SpacingVisualizer } from "@/wab/client/components/canvas/HoverBox/SpacingVisualizer";
 import { StackOfParents } from "@/wab/client/components/canvas/HoverBox/StackOfParents";
@@ -432,6 +434,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   }, [isHoveringTag]);
 
   const shouldShowHoverTag =
+    !isMultiSelection &&
     (!isKnownArenaFrame(nameableItem) ||
       isKnownArena(studioCtx.currentArena)) &&
     !spacingDragState;
@@ -959,12 +962,14 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 <CanvasOverlayToolbar viewCtx={viewCtx} />
               </div>
             )}
-            <InlineAddButton
-              elementWidth={state?.width}
-              elementHeight={state?.height}
-              dimensionsBoxWidth={dimsBoxWidth}
-              key={state?.tagUid}
-            />
+            {!isMultiSelection && (
+              <InlineAddButton
+                elementWidth={state?.width}
+                elementHeight={state?.height}
+                dimensionsBoxWidth={dimsBoxWidth}
+                key={state?.tagUid}
+              />
+            )}
           </div>
         );
       }}
@@ -1081,6 +1086,14 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
     return () => userBodyObserver.disconnect();
   }, [viewCtx, userBody]);
 
+  if (studioCtx.focusedFrames().length > 1) {
+    return studioCtx.shouldHideUIOverlay(false) ? null : (
+      <FrameSelectionBox studioCtx={studioCtx} />
+    );
+  }
+  if (viewCtx && viewCtx.focusedSelectables().length > 1) {
+    return shouldHideHoverBox ? null : <MultiSelectionBox viewCtx={viewCtx} />;
+  }
   const targets = computeHoverBoxTargets(studioCtx);
   return shouldHideHoverBox ? null : (
     <>

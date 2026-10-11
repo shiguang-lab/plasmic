@@ -1,0 +1,22 @@
+{
+  "cases": 210,
+  "viewportWidths": [
+    1600,
+    1280,
+    1100
+  ],
+  "locales": [
+    "en",
+    "zh-CN",
+    "zh-TW",
+    "ja",
+    "ko"
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "browserErrors": [],
+  "contentBounds": "passed",
+  "localAssets": "passed"
+}

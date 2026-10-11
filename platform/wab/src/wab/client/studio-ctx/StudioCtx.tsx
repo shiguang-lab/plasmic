@@ -90,6 +90,9 @@ import {
   getRootSubHostVersion,
   getRootSubReact,
 } from "@/wab/client/frame-ctx/windows";
+import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { checkDepPkgHosts } from "@/wab/client/init-ctx";
 import {
   getCopyState,
@@ -2680,7 +2683,7 @@ export class StudioCtx extends WithDbCtx {
   // Manage currently-focused frame and element
   //
 
-  private _xFocusedFrame = observable.box<ArenaFrame | undefined>();
+  private _xFocusedFrames = observable.box<ArenaFrame[]>([], { deep: false });
   private _xFocusedViewCtx = observable.box<ViewCtx | undefined>();
 
   // This only sets the high level focus for the studio, i.e. viewCtx and frame.
@@ -2694,7 +2697,7 @@ export class StudioCtx extends WithDbCtx {
     }
     this._xFocusedViewCtx.set(viewCtx);
 
-    this._xFocusedFrame.set(frame);
+    this._xFocusedFrames.set(frame ? [frame] : []);
   }
 
   focusedViewCtx() {
@@ -2715,15 +2718,38 @@ export class StudioCtx extends WithDbCtx {
   setStudioFocusOnFrame({
     frame,
     autoZoom,
+    appendToMultiSelection,
   }: {
     frame: ArenaFrame | undefined;
     autoZoom?: boolean;
+    appendToMultiSelection?: boolean;
   }) {
-    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame);
+    if (frame && appendToMultiSelection) {
+      const selected = this.focusedFrames();
+      this.setStudioFocusOnFrames(
+        selected.includes(frame)
+          ? selected.filter((item) => item !== frame)
+          : [...selected, frame],
+      );
+    } else {
+      this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame);
+    }
 
     if (frame && autoZoom) {
       this.tryZoomToFitFrame(frame, this.zoom);
     }
+  }
+
+  setStudioFocusOnFrames(frames: ArenaFrame[]) {
+    const arenaFrames = this.currentArena
+      ? getArenaFrames(this.currentArena)
+      : [];
+    const selected = uniq(frames).filter((frame) =>
+      arenaFrames.includes(frame),
+    );
+    const frame = selected[0];
+    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame);
+    this._xFocusedFrames.set(selected);
   }
 
   // Set the studio focus to focus only on the frame object, not on the root node.
@@ -3118,7 +3144,16 @@ export class StudioCtx extends WithDbCtx {
 
   /** Returns frame the StudioCtx is focused on, if only focused on frame and not selectables */
   focusedFrame() {
-    return this._xFocusedFrame.get();
+    return this.focusedFrames()[0];
+  }
+
+  focusedFrames() {
+    const arenaFrames = this.currentArena
+      ? getArenaFrames(this.currentArena)
+      : [];
+    return this._xFocusedFrames
+      .get()
+      .filter((frame) => arenaFrames.includes(frame));
   }
 
   /** Returns frame of whatever content StudioCtx is focused on */
@@ -3685,12 +3720,20 @@ export class StudioCtx extends WithDbCtx {
   //
   // Managing the "Add Drawer"
   //
-  private _isComponentStoreOpen = observable.box(false);
-  get isComponentStoreOpen() {
-    return this._isComponentStoreOpen.get();
+  private _libraryTab = observable.box<"store" | "imports">("imports");
+  get libraryTab() {
+    return this._libraryTab.get();
   }
-  setComponentStoreOpen(open: boolean) {
-    this._isComponentStoreOpen.set(open);
+  setLibraryTab(tab: "store" | "imports") {
+    this._libraryTab.set(tab);
+  }
+  openLibraries(tab: "store" | "imports") {
+    this.setLibraryTab(tab);
+    this.setShowAddDrawer(false);
+    this.switchLeftTab("libraries");
+    if (this.panelsHidden) {
+      this.togglePanels();
+    }
   }
 
   private _showAddDrawer = observable.box(false);
@@ -3701,9 +3744,6 @@ export class StudioCtx extends WithDbCtx {
     );
   }
   setShowAddDrawer(show: boolean) {
-    if (!show) {
-      this.setComponentStoreOpen(false);
-    }
     this._showInlineAddDrawer.set(false);
     this._showAddDrawer.set(show);
   }
@@ -4503,6 +4543,20 @@ export class StudioCtx extends WithDbCtx {
   }
 
   async tryZoomToFitSelection() {
+    if (this.focusedFrames().length > 1 && this.viewportCtx) {
+      const bounds = Box.mergeBBs(
+        this.focusedFrames().flatMap((frame) => {
+          const rect = this.getArenaFrameScalerRect(frame);
+          return rect ? [rect] : [];
+        }),
+      );
+      if (bounds) {
+        this.viewportCtx.zoomToScalerBox(bounds, {
+          minPadding: this.canvasZoomPadding(),
+        });
+      }
+      return;
+    }
     const focusedFrame = this.focusedFrame();
     if (focusedFrame) {
       this.tryZoomToFitFrame(focusedFrame);
@@ -5032,10 +5086,7 @@ export class StudioCtx extends WithDbCtx {
         return;
       } else if (view.focusedFrame) {
         // Focused just on the frame
-        this.setStudioFocusOnFrame({
-          frame: view.focusedFrame,
-          autoZoom: false,
-        });
+        this.setStudioFocusOnFrames(view.focusedFrames ?? [view.focusedFrame]);
       } else {
         // Focused on nothing
         this.setStudioFocusOnFrame({ frame: undefined, autoZoom: false });
@@ -5045,11 +5096,15 @@ export class StudioCtx extends WithDbCtx {
     const sc = this;
     const update = flow(function* () {
       if (type === "undo" && !sc.undoLog.canUndo()) {
-        notification.error({ message: "Cannot undo anymore." });
+        notification.error({
+          message: translate(getUiLocale(), "Cannot undo anymore."),
+        });
         return {};
       }
       if (type === "redo" && !sc.undoLog.canRedo()) {
-        notification.error({ message: "Cannot redo anymore." });
+        notification.error({
+          message: translate(getUiLocale(), "Cannot redo anymore."),
+        });
         return {};
       }
       if (sc.blockChanges) {
@@ -5249,6 +5304,7 @@ export class StudioCtx extends WithDbCtx {
     return {
       focusedArena: arena,
       focusedFrame: frame,
+      focusedFrames: this.focusedFrames().slice(),
       focusedOnFrame: !!this.focusedFrame(),
       focusedSelectable: (vc && vc.focusedSelectable()) || undefined,
       vcComponentStack: variantsStack,
@@ -5450,7 +5506,10 @@ export class StudioCtx extends WithDbCtx {
         });
       } else {
         notification.error({
-          message: "First select an element you want to insert to.",
+          message: translate(
+            getUiLocale(),
+            "First select an element you want to insert to.",
+          ),
         });
       }
       return null;
@@ -5516,7 +5575,10 @@ export class StudioCtx extends WithDbCtx {
     const [target, locs] = getTargetLoc();
     if (locs.length === 0) {
       notification.error({
-        message: "Cannot insert this at the current location.",
+        message: translate(
+          getUiLocale(),
+          "Cannot insert this at the current location.",
+        ),
       });
       return null;
     }
@@ -5677,8 +5739,12 @@ export class StudioCtx extends WithDbCtx {
   maybeWarnComponentRenaming(givenName: string, actualName: string) {
     if (actualName !== givenName) {
       notification.info({
-        message: "Component renamed",
-        description: `${givenName} is reserved or invalid; renamed to ${actualName} instead.`,
+        message: translate(getUiLocale(), "Component renamed"),
+        description: translate(
+          getUiLocale(),
+          "{part1} is reserved or invalid; renamed to {part2} instead.",
+          { part1: givenName, part2: actualName },
+        ),
       });
     }
   }
@@ -5686,8 +5752,12 @@ export class StudioCtx extends WithDbCtx {
   maybeWarnPathChange(givenPath: string, actualPath: string) {
     if (actualPath !== givenPath) {
       notification.info({
-        message: "Path changed",
-        description: `${givenPath} is reserved or invalid; renamed to ${actualPath} instead.`,
+        message: translate(getUiLocale(), "Path changed"),
+        description: translate(
+          getUiLocale(),
+          "{part1} is reserved or invalid; renamed to {part2} instead.",
+          { part1: givenPath, part2: actualPath },
+        ),
       });
     }
   }
@@ -5703,7 +5773,10 @@ export class StudioCtx extends WithDbCtx {
     for (let i = 0; i < params.length; i++) {
       if (isCatchallParam(params[i]) && i !== params.length - 1) {
         notification.error({
-          message: "Catch-all path slugs must be the last slug in the path",
+          message: translate(
+            getUiLocale(),
+            "Catch-all path slugs must be the last slug in the path",
+          ),
         });
         return;
       }
@@ -5714,11 +5787,16 @@ export class StudioCtx extends WithDbCtx {
       const hostVersion = getRootSubHostVersion();
       if (!hostVersion || lt(hostVersion, "1.0.186")) {
         notification.error({
-          message: "Catch-all routes are not supported for your host",
+          message: translate(
+            getUiLocale(),
+            "Catch-all routes are not supported for your host",
+          ),
           description: (
             <>
-              Please upgrade <code>@plasmicapp/*</code> packages in your host
-              app to the latest version.
+              <UiText
+                message="Please upgrade the {part1} packages in your host app"
+                values={{ part1: <code>@plasmicapp/*</code> }}
+              />
             </>
           ),
         });
@@ -6066,8 +6144,8 @@ export class StudioCtx extends WithDbCtx {
           // fulfilled afterwards, so we will just discard the local changes.
           const notificationKey = mkShortId();
           notification.warning({
-            message: "Failed to sync project",
-            description: `Loading latest changes...`,
+            message: translate(getUiLocale(), "Failed to sync project"),
+            description: translate(getUiLocale(), "Loading latest changes..."),
             duration: 0,
             key: notificationKey,
             closeIcon: null,
@@ -6081,9 +6159,11 @@ export class StudioCtx extends WithDbCtx {
           if (this.saveErrorState === "normal") {
             this.alertBannerState.set(AlertSpec.SaveFailed);
             showError(e, {
-              title: "Unexpected error when saving",
-              description:
-                "You are now in read-only mode.  We will keep trying to save.",
+              title: translate(getUiLocale(), "Unexpected error when saving"),
+              description: translate(
+                getUiLocale(),
+                "You are now in read-only mode. We will keep trying to save.",
+              ),
               type: "warning",
             });
           }
@@ -6099,9 +6179,11 @@ export class StudioCtx extends WithDbCtx {
       if (this.saveErrorState === "normal") {
         this.alertBannerState.set(AlertSpec.SaveFailed);
         showError(e, {
-          title: "Unexpected error when saving",
-          description:
-            "You are now in read-only mode.  We will keep trying to save.",
+          title: translate(getUiLocale(), "Unexpected error when saving"),
+          description: translate(
+            getUiLocale(),
+            "You are now in read-only mode. We will keep trying to save.",
+          ),
           type: "warning",
         });
       }
@@ -6797,8 +6879,8 @@ export class StudioCtx extends WithDbCtx {
         const e = new Error("Cannot publishing due to a failed save");
         console.error("Error ", e);
         showError(e, {
-          title: "Unexpected error when publishing",
-          description: "Reload to try again.",
+          title: translate(getUiLocale(), "Unexpected error when publishing"),
+          description: translate(getUiLocale(), "Reload to try again."),
         });
         return PublishResult.SaveFailed;
       }
@@ -6855,8 +6937,8 @@ export class StudioCtx extends WithDbCtx {
       }
       console.error("Error publishing: ", e);
       showError(e, {
-        title: "Unexpected error when publishing",
-        description: "Reload to try again.",
+        title: translate(getUiLocale(), "Unexpected error when publishing"),
+        description: translate(getUiLocale(), "Reload to try again."),
       });
       return PublishResult.UnknownError;
     }
@@ -6967,19 +7049,27 @@ export class StudioCtx extends WithDbCtx {
       };
 
       notification.warning({
-        message: "Configure this project's dynamic data source",
+        message: translate(
+          getUiLocale(),
+          "Configure this project's dynamic data source",
+        ),
         duration: 0,
         description: (
           <>
             <p>
-              This cloned project includes dynamic data from an example data
-              source! But you will probably want to use your own data source
-              instead.
+              <UiText message="This cloned project includes dynamic data from an example data source! But you will probably want to use your own data source instead." />
             </p>
             <p>
-              <a onClick={goToSettings}>Go to settings</a> to change the source
-              to your own choice, or explore other data sources (click the big
-              blue plus button and select "component packages").
+              <UiText
+                message="{settings} to choose your own data source, or explore other sources by clicking the plus button and selecting component packages."
+                values={{
+                  settings: (
+                    <a onClick={goToSettings}>
+                      <UiText message="Go to settings" />
+                    </a>
+                  ),
+                }}
+              />
             </p>
           </>
         ),
@@ -7289,13 +7379,16 @@ export class StudioCtx extends WithDbCtx {
         console.log("Failed to sync. Downloading entire bundle...");
         if (hasUnsavedChanges) {
           notification.warning({
-            message: "Failed to sync project",
-            description: `Someone else has edited the project and it wasn't possible to sync with your latest changes. Refreshing the project...`,
+            message: translate(getUiLocale(), "Failed to sync project"),
+            description: translate(
+              getUiLocale(),
+              "Someone else has edited the project and it wasn't possible to sync with your latest changes. Refreshing the project...",
+            ),
             duration: 5,
           });
         } else {
           notification.info({
-            message: "Syncing latest changes...",
+            message: translate(getUiLocale(), "Syncing latest changes..."),
             duration: 5,
           });
         }
@@ -7451,16 +7544,23 @@ export class StudioCtx extends WithDbCtx {
     if (plasmicExtensionAvailable()) {
       if (targetIsVisible && this.zoom !== 1) {
         notification.error({
-          message:
+          message: translate(
+            getUiLocale(),
             "Please set the zoom of the studio to 1, and make sure the element is in visible area of the canvas",
+          ),
         });
         return false;
       }
     } else {
       notification.warning({
-        message: "The screenshot of presets can be degraded. ",
-        description:
+        message: translate(
+          getUiLocale(),
+          "The screenshot of presets can be degraded.",
+        ),
+        description: translate(
+          getUiLocale(),
           "For better screenshot quality, please install Plasmic screenshoter Chrome extension at https://chrome.google.com/webstore/detail/plasmic-screenshoter/ekdpninpaghonjjjikcmffpgbagdjjkh?hl=en&authuser=3",
+        ),
       });
     }
     return true;

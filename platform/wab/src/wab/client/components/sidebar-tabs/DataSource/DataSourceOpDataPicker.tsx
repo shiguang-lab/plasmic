@@ -3,6 +3,7 @@ import { EnumPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentPr
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { useDataSourceOpExprBottomModals } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { JsonValue } from "@/wab/shared/core/lang";
 import { DATA_QUERY_PLURAL_CAP } from "@/wab/shared/Labels";
@@ -39,6 +40,7 @@ export function DataSourceOpDataPicker({
   allowedOps?: string[];
   "data-plasmic-prop"?: string;
 }) {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const ctx = useContext(ContextMenuContext);
   const dataSourceModals = useDataSourceOpExprBottomModals();
@@ -98,10 +100,10 @@ export function DataSourceOpDataPicker({
           return ok();
         });
       }}
-      defaultValueHint={"Pick data query"}
+      defaultValueHint={uiT("Pick data query")}
       options={[
         Object.keys(env?.$queries ?? {}).length > 0 && {
-          label: DATA_QUERY_PLURAL_CAP,
+          label: uiT(DATA_QUERY_PLURAL_CAP),
           values: Object.keys(env?.$queries ?? {}).map((k) => ({
             value: k,
             label: k,
@@ -112,11 +114,11 @@ export function DataSourceOpDataPicker({
           values: [
             {
               value: "[[new query]]",
-              label: "Add new query....",
+              label: uiT("Add new query..."),
             },
             {
               value: "[[dynamic value]]",
-              label: "Use dynamic value...",
+              label: uiT("Use dynamic value..."),
             },
           ],
         },

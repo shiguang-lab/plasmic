@@ -1,13 +1,15 @@
 import { promptPublishProj } from "@/wab/client/components/modals/UpgradeDepModal";
 import { RevisionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/RevisionsList";
 import { VersionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/VersionsList";
+import { useVersionsStyles } from "@/wab/client/components/sidebar-tabs/versions-tab/styles";
 import { Matcher } from "@/wab/client/components/view-common";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftVersionsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftVersionsPanel";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Dropdown, Menu, Spin } from "antd";
+import { Dropdown, Input, Menu, Spin } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -28,6 +30,8 @@ export const VersionsTab = observer(function VersionsTab(
   props: VersionsTabProps,
 ) {
   const studioCtx = useStudioCtx();
+  const { t } = useI18n();
+  const { styles } = useVersionsStyles();
   const [query, setQuery] = React.useState("");
   const [isPublishing, setIsPublishing] = React.useState<boolean>(false);
   const [filter, setFilter] = React.useState<VersionsFilter>("all");
@@ -64,12 +68,20 @@ export const VersionsTab = observer(function VersionsTab(
 
   return (
     <PlasmicLeftVersionsPanel
+      root={{ className: styles.root }}
       leftSearchPanel={{
-        searchboxProps: {
-          value: query,
-          onChange: (e) => setQuery(e.target.value),
-          autoFocus: true,
-        },
+        render: () => (
+          <div className={styles.search}>
+            <Input.Search
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("Search...")}
+              aria-label={t("Search")}
+              autoFocus
+              allowClear
+            />
+          </div>
+        ),
       }}
       publishButton={
         readOnly
@@ -81,7 +93,7 @@ export const VersionsTab = observer(function VersionsTab(
       list={filter}
       filterButton={{
         props: {
-          children: FilterValueToLabel[filter],
+          children: t(FilterValueToLabel[filter]),
         },
         wrap: (node) => (
           <Dropdown
@@ -92,7 +104,7 @@ export const VersionsTab = observer(function VersionsTab(
                     key={key}
                     onClick={() => setFilter(key as VersionsFilter)}
                   >
-                    {label}
+                    {t(label)}
                   </Menu.Item>
                 ))}
               </Menu>
@@ -126,8 +138,17 @@ export const VersionsTab = observer(function VersionsTab(
             }
           : {}
       }
-      versionsHeader={
-        props.useVersionsCTA
+      versionsHeader={{
+        title: null,
+        description: (
+          <div className={styles.description}>
+            <div>{t("Autosaved versions let you restore previous edits.")}</div>
+            <div>
+              {t("Published versions are snapshots for deployment and reuse.")}
+            </div>
+          </div>
+        ),
+        ...(props.useVersionsCTA
           ? {
               alert: (
                 <div>
@@ -138,8 +159,8 @@ export const VersionsTab = observer(function VersionsTab(
                 </div>
               ),
             }
-          : {}
-      }
+          : {}),
+      }}
     />
   );
 });

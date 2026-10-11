@@ -9,6 +9,8 @@ import {
 } from "@/wab/client/components/quick-modals";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { getStripePromise } from "@/wab/client/stripe";
 import {
   ApiFeatureTier,
@@ -143,7 +145,7 @@ export async function showUpsellConfirm(
   teamSettingsUrl: string,
 ): Promise<void> {
   return showTemporaryInfo({
-    title: "Payment confirmation",
+    title: translate(getUiLocale(), "Payment confirmation"),
     content: <UpsellConfirm teamSettingsUrl={teamSettingsUrl} />,
   });
 }
@@ -154,6 +156,8 @@ function UpsellForm(
     onCancel: () => void;
   },
 ) {
+  const { t: uiT } = useI18n();
+
   const {
     appCtx,
     title,
@@ -495,7 +499,13 @@ function UpsellForm(
       </div>
       {errorMsg.type !== "fatal" && !canUpdateBilling && (
         <Alert
-          message={`You have no permission to update billing for this ${ORGANIZATION_LOWER}. Please ask an ${ORGANIZATION_LOWER} administrator to do it.`}
+          message={uiT(
+            "You have no permission to update billing for this {part1}. Please ask an {part2} administrator to do it.",
+            {
+              part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+              part2: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+            },
+          )}
           type="warning"
         />
       )}
@@ -531,8 +541,8 @@ export async function maybeShowPaywall<T>(
   appCtx: AppCtx,
   action: () => Promise<MayTriggerPaywall<T>>,
   args: Omit<PromptBillingArgs, "appCtx" | "target" | "availableTiers"> = {
-    title: "Upgrade to perform this action",
-    description: "Select a new plan to upgrade.",
+    title: translate(getUiLocale(), "Upgrade to perform this action"),
+    description: translate(getUiLocale(), "Select a new plan to upgrade."),
   },
   useTopFrame = false,
 ): Promise<T> {

@@ -1,0 +1,21 @@
+{
+  "verified": [
+    "Keyboard ArrowDown/Enter switches Icons to Images without search stealing focus",
+    "Find all references opens existing sidebar modal context",
+    "Actual list shows ResourceTemplatePage using ResourceFixtureHero",
+    "Closing reference modal retains editor and resource panel",
+    "Upload progress follows selected asset type, tested with delayed icon read"
+  ],
+  "tests": {
+    "upload": 5,
+    "asset_actions": 5
+  },
+  "remaining": [
+    "PNG upload success: local S3 credentials missing",
+    "Download artifact not verified",
+    "Read-only end-to-end",
+    "Referenced deletion confirmation"
+  ],
+  "screenshot": "resources-references-dark.png",
+  "complete": false
+}

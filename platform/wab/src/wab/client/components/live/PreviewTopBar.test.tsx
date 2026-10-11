@@ -23,15 +23,23 @@ const mocks = vi.hoisted(() => ({
     toggleLiveMode: vi.fn(),
   },
   variants: [] as object[],
+  branching: true,
+  setDragRegion: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("@/wab/client/contexts/AppContexts", () => ({
+  useTopFrameApi: () => ({ setDesktopTitleBarDragRegion: mocks.setDragRegion }),
 }));
 vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   usePreviewCtx: () => mocks.preview,
 }));
 vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
-  useStudioCtx: () => ({ site: {} }),
+  useStudioCtx: () => ({ site: {}, showBranching: () => mocks.branching }),
 }));
 vi.mock("@/wab/client/components/top-bar/VariantsComboSelect", () => ({
   default: () => <button>Configured variants</button>,
+}));
+vi.mock("@/wab/client/components/top-bar/BranchSwitcher", () => ({
+  default: () => <button>Branches: main</button>,
 }));
 vi.mock("@/wab/client/components/top-bar/CodeButton", () => ({
   default: () => <button>Code</button>,
@@ -56,7 +64,10 @@ vi.mock("@/wab/shared/core/components", () => ({
 vi.mock("@/wab/shared/sort", () => ({
   naturalSort: (items: object[]) => items,
 }));
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 beforeEach(() => {
   mocks.variants = [];
   vi.clearAllMocks();
@@ -72,6 +83,21 @@ test("omits sharing and shows more only when variants exist", () => {
   mocks.variants = [{}];
   render(<PreviewTopBar />);
   expect(screen.getByRole("button", { name: "More" })).toBeTruthy();
+});
+test("keeps desktop chrome out of the browser preview", () => {
+  const { container } = render(<PreviewTopBar />);
+  expect(container.querySelector('[data-desktop-titlebar]')).toBeNull();
+  expect(mocks.setDragRegion).not.toHaveBeenCalled();
+});
+test("reserves native controls and cleans up the macOS preview drag region", () => {
+  vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
+  const { container, unmount } = render(<PreviewTopBar />);
+  expect(container.querySelector('[data-desktop-titlebar="mac"]')).toBeTruthy();
+  expect(mocks.setDragRegion).toHaveBeenCalledWith({
+    left: 0, top: 0, width: 80, height: 48,
+  });
+  unmount();
+  expect(mocks.setDragRegion).toHaveBeenLastCalledWith(null);
 });
 test("places code and back to editor in the right action section", () => {
   render(<PreviewTopBar />);
@@ -142,4 +168,15 @@ test("reopening dimensions reads current viewport and rejects fractional sizes",
       (screen.getByLabelText("Preview width") as HTMLInputElement).value,
     ).toBe("390"),
   );
+});
+
+test("shows branch switching in preview when branching is enabled", () => {
+  mocks.branching = true;
+  const view = render(<PreviewTopBar />);
+  expect(screen.getByRole("button", { name: "Branches: main" })).toBeTruthy();
+  view.unmount();
+  mocks.branching = false;
+  render(<PreviewTopBar />);
+  expect(screen.queryByRole("button", { name: "Branches: main" })).toBeNull();
+  mocks.branching = true;
 });

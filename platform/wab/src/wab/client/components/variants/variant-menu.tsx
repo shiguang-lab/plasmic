@@ -183,7 +183,7 @@ function genMoveToVariantGroupMenu(
   variant: Variant,
   onMove: (vg: VariantGroup) => void,
 ) {
-  builder.genSub(`Move to`, (push) => {
+  builder.genSub(<UiText message="Move to" />, (push) => {
     const multipleOptionVariantGroups = component.variantGroups.filter(
       (it) => !isStandaloneVariantGroup(it),
     );
@@ -237,7 +237,7 @@ function genCopyToVariantMenu(
     }
   };
 
-  builder.genSub(`Copy styles to`, (push) => {
+  builder.genSub(<UiText message="Copy styles to" />, (push) => {
     genMenuForVariant(getBaseVariant(component), push);
 
     if (isPrivateStyleVariant(fromVariant)) {
@@ -252,13 +252,16 @@ function genCopyToVariantMenu(
       });
     }
 
-    builder.genSection(`Component Interaction States`, (push2) => {
-      allComponentStyleVariants(component).forEach((v) =>
-        genMenuForVariant(v, push2),
-      );
-    });
+    builder.genSection(
+      <UiText message="Component Interaction States" />,
+      (push2) => {
+        allComponentStyleVariants(component).forEach((v) =>
+          genMenuForVariant(v, push2),
+        );
+      },
+    );
 
-    builder.genSection(`Registered Variants`, (push2) => {
+    builder.genSection(<UiText message="Registered Variants" />, (push2) => {
       allCodeComponentVariants(component).forEach((v) =>
         genMenuForVariant(v, push2),
       );
@@ -274,7 +277,10 @@ function genSetAccessTypeMenu(
 ) {
   const curAccess = group.linkedState?.accessType;
   return (
-    <Menu.SubMenu key="access" title="Set external access to">
+    <Menu.SubMenu
+      key="access"
+      title={<UiText message="Set external access to" />}
+    >
       {STATE_ACCESS_TYPES.map(
         (accessType) =>
           curAccess !== accessType && (

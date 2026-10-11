@@ -1,0 +1,104 @@
+{
+  "scope": "Local UI design only; no production requests or business mutations",
+  "consoleErrors": [],
+  "interactions": [
+    "search",
+    "workspace filter",
+    "grid/list",
+    "six project actions",
+    "duplicate fields",
+    "five share roles",
+    "workspace navigation",
+    "CMS empty state",
+    "personal space",
+    "blank/template create",
+    "settings",
+    "two layout variants"
+  ],
+  "checks": [
+    {
+      "name": "project-detail",
+      "width": 1408
+    },
+    {
+      "name": "home-light",
+      "width": 1408
+    },
+    {
+      "name": "home-dark",
+      "width": 1408
+    },
+    {
+      "name": "search-empty",
+      "width": 1408
+    },
+    {
+      "name": "project-list",
+      "width": 1408
+    },
+    {
+      "name": "project-menu",
+      "width": 1408
+    },
+    {
+      "name": "duplicate-project",
+      "width": 1408
+    },
+    {
+      "name": "space-navigator",
+      "width": 1408
+    },
+    {
+      "name": "workspace",
+      "width": 1408
+    },
+    {
+      "name": "share-workspace",
+      "width": 1408
+    },
+    {
+      "name": "workspace-data",
+      "width": 1408
+    },
+    {
+      "name": "personal-empty",
+      "width": 1408
+    },
+    {
+      "name": "create-blank",
+      "width": 1408
+    },
+    {
+      "name": "create-template",
+      "width": 1408
+    },
+    {
+      "name": "organization",
+      "width": 1408
+    },
+    {
+      "name": "settings",
+      "width": 1408
+    },
+    {
+      "name": "compact-library",
+      "width": 1408
+    },
+    {
+      "name": "responsive-1024",
+      "width": 992
+    },
+    {
+      "name": "responsive-760",
+      "width": 728
+    },
+    {
+      "name": "responsive-540",
+      "width": 508
+    },
+    {
+      "name": "responsive-320",
+      "width": 288
+    }
+  ]
+}

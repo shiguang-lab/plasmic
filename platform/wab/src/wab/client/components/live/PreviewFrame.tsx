@@ -480,13 +480,6 @@ export const PreviewFrame = observer(function PreviewFrame({
             ))}
         </div>
       </div>
-      {!previewCtx.full && (
-        <div className={styles.status} role="status">
-          {viewport.width} × {viewport.height} px
-          {previewCtx.viewport !== "desktop" &&
-            ` · ${uiT("Zoom")} ${Math.round(scale * 100)}%`}
-        </div>
-      )}
     </div>
   );
 });

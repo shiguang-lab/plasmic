@@ -269,7 +269,8 @@ export function TopFrameChrome({
     <>
       {!fullPreview &&
         rest.desktopTitleBarDragRegion &&
-        navigator.userAgent.includes("PlasmicDesktop/darwin") && (
+        (navigator.userAgent.includes("PlasmicDesktop/darwin") ||
+          navigator.userAgent.includes("PlasmicDesktop/win32")) && (
           <div
             className="desktop-titlebar-drag-region"
             aria-hidden="true"

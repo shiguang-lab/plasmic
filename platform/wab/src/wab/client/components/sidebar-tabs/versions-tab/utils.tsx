@@ -149,7 +149,7 @@ const RevertConfirmModal = ({
           type="error"
           showIcon
           className="mv-m"
-          message="Failed to load changes"
+          message={uiT("Failed to load changes")}
           description={uiT(
             "Could not fetch the differences. You can still proceed with the revert.",
           )}
@@ -198,6 +198,8 @@ export const promptVersionRevert = async (
 
   return showTemporaryPrompt<boolean>((onSubmit, onCancel) => {
     const ModalContent = () => {
+      const { t: uiT } = useI18n();
+
       const state = useAsyncStrict(async () => {
         if (!release.revisionId || !latestRevisionId) {
           return null;
@@ -211,7 +213,7 @@ export const promptVersionRevert = async (
 
       return (
         <RevertConfirmModal
-          title={`Revert to version ${release.version}`}
+          title={uiT("Revert to version {part1}", { part1: release.version })}
           description={
             <>
               <UiText
@@ -254,11 +256,10 @@ export const promptLoad = async (title: string) => {
       <Alert
         type="warning"
         showIcon
-        message={"Changes you made may not be saved."}
+        message={<UiText message="Changes you made may not be saved." />}
         className="mv-m"
         description={
-          "Consider saving your changes before loading another version.\n" +
-          "Are you sure you want to proceed?"
+          <UiText message="Consider saving your changes before loading another version. Are you sure you want to proceed?" />
         }
       />
     </ConfirmModal>

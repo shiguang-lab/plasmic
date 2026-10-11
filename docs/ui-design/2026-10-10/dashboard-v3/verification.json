@@ -1,0 +1,175 @@
+{
+  "errors": [],
+  "measurements": [
+    {
+      "id": "home",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "projects-grid",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "projects-list",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "workspace",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "templates",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "new-blank",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 778.5,
+          "top": 221.5
+        }
+      ]
+    },
+    {
+      "id": "new-template",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 844,
+          "top": 156
+        }
+      ]
+    },
+    {
+      "id": "new-ai",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 825.25,
+          "top": 174.75
+        }
+      ]
+    },
+    {
+      "id": "project-menu",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "move",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 775,
+          "top": 225
+        }
+      ]
+    },
+    {
+      "id": "delete",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 775,
+          "top": 225
+        }
+      ]
+    },
+    {
+      "id": "workspace-empty",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "search-empty",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "loading",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "load-error",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "create-error",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 778.5,
+          "top": 221.5
+        }
+      ]
+    },
+    {
+      "id": "workspace-readonly",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "switcher",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "content",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "data-sources",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    }
+  ]
+}

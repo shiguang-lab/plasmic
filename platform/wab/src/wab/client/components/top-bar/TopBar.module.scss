@@ -1,5 +1,9 @@
 .topBar.desktop {
-  padding-left: 96px;
+  padding-left: 0;
+}
+
+.topBar.desktopWindows {
+  padding-right: 144px;
 }
 
 .topBar .logoLink {
@@ -44,4 +48,25 @@
 .projectActions :global(.ant-menu) {
   border: 0;
   background: transparent;
+}
+
+.branchSwitcher {
+  margin-left: 6px;
+}
+
+.versionsPopup {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  max-width: calc(100vw - 48px);
+  height: min(640px, calc(100vh - 120px));
+  overflow: hidden;
+}
+
+.versionsPopupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 8px 12px;
+  flex-shrink: 0;
 }

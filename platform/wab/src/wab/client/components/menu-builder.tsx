@@ -144,7 +144,11 @@ export function CreateNewMenuItemContent(props: {
   return (
     <div className="flex flex-vcenter">
       <Icon icon={PlusIcon} className="mr-sm" />{" "}
-      <UiText message={"Create new"} /> {props.entity}
+      {props.entity === "data token" ? (
+        <UiText message="Create new data token" />
+      ) : (
+        <UiText message="Create new prop" />
+      )}
     </div>
   );
 }

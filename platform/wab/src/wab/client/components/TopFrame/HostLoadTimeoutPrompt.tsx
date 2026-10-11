@@ -2,7 +2,9 @@ import { HostConfig } from "@/wab/client/components/HostConfig";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { mkUuid, spawn } from "@/wab/shared/common";
 import { notification } from "antd";
@@ -23,7 +25,10 @@ export function HostLoadTimeoutPrompt({
       const key = mkUuid();
       const id = setTimeout(() => {
         notification.warning({
-          message: "Looks like the host app is taking a while to load.",
+          message: translate(
+            getUiLocale(),
+            "Looks like the host app is taking a while to load.",
+          ),
           duration: 0,
           ...(editorPerm
             ? {

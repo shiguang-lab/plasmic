@@ -1,0 +1,49 @@
+{
+  "scope": "Design 13 asset management and editor appearance access",
+  "tests": {
+    "assetManagementUploadPreviewLocales": {
+      "passed": 25,
+      "failed": 0
+    },
+    "viewMenuThemeAndAssetRegression": {
+      "passed": 12,
+      "failed": 0
+    },
+    "note": "The two batches overlap; counts are not a unique combined total."
+  },
+  "typecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit --incremental",
+    "exitCode": 0
+  },
+  "browser": {
+    "projectId": "1Tn5QZywpzJQBKpJgUnx8v",
+    "database": "Isolated Docker plasmic-ui-test-db-20261010",
+    "fixtureAssets": [
+      "ResourceFixtureHero",
+      "ResourceFixtureIcon"
+    ],
+    "verified": [
+      "Actual SVG thumbnail and 64 x 64 preview",
+      "Asset menu opens without inserting from parent card",
+      "Rename input focus remains stable",
+      "Rename saved in database revision 14 and read after reload",
+      "Keyboard undo restores prior name and redo reapplies renamed value",
+      "Original fixture name restored in database revision 18",
+      "View / Appearance switches actual editor between light and dark",
+      "Resource panel layout and controls remain consistent in both themes"
+    ],
+    "restoredPreference": "dark",
+    "screenshots": [
+      "resources-asset-menu-dark.png",
+      "resources-asset-preview-dark.png",
+      "resources-asset-management-light.png",
+      "resources-asset-management-dark.png"
+    ]
+  },
+  "remaining": [
+    "Actual upload, download and usage-aware deletion in browser",
+    "Read-only and dependency asset browser workflows",
+    "Real catalog template insert, undo, save/reopen and business bindings",
+    "All other implementation-plan completion gates"
+  ]
+}

@@ -25,7 +25,7 @@ export async function promptWrapInComponent(props: {
   const { studioCtx, component } = props;
   return showTemporaryPrompt<WrapInComponentResponse>((onSubmit, onCancel) => (
     <Modal
-      title={"Wrap in component"}
+      title={<UiText message="Wrap in component" />}
       open={true}
       footer={null}
       onCancel={() => onCancel()}

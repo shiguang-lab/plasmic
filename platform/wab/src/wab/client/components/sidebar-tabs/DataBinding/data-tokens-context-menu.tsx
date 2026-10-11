@@ -1,4 +1,5 @@
 import { CreateNewMenuItemContent } from "@/wab/client/components/menu-builder";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { DataTokenRef } from "@/wab/commons/DataToken";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
@@ -32,7 +33,10 @@ export function makeDataTokensSubMenu(opts: {
   }
 
   return (
-    <Menu.SubMenu key={"data-tokens-submenu"} title="Use data token">
+    <Menu.SubMenu
+      key={"data-tokens-submenu"}
+      title={<UiText message="Use data token" />}
+    >
       {localTokens.map((token) => (
         <Menu.Item
           key={token.uuid}
@@ -44,7 +48,12 @@ export function makeDataTokensSubMenu(opts: {
       {depGroups.map((dep) => (
         <Menu.ItemGroup
           key={dep.projectId}
-          title={`Imported from "${dep.name}"`}
+          title={
+            <UiText
+              message={'Imported from "{part1}"'}
+              values={{ part1: dep.name }}
+            />
+          }
         >
           {naturalSortByName(dep.site.dataTokens).map((token) => (
             <Menu.Item

@@ -13,7 +13,9 @@ import { DraggableInsertable } from "@/wab/client/components/studio/add-drawer/D
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { AddItemType } from "@/wab/client/definitions/insertables";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   getEventDataForTplComponent,
   trackInsertItem,
@@ -279,9 +281,12 @@ function buildPlasmicComponentMenuItems(
           key="rename"
           onClick={async () => {
             const name = await reactPrompt({
-              message: "What's the new name for this component?",
+              message: translate(
+                getUiLocale(),
+                "What's the new name for this component?",
+              ),
               actionText: "Rename",
-              placeholder: "New component name",
+              placeholder: translate(getUiLocale(), "New component name"),
               defaultValue: component.name,
             });
 
@@ -388,7 +393,10 @@ function buildCodeComponentMenuItems(
             .get(component.name);
           if (!registration) {
             notification.error({
-              message: "Code component not registered",
+              message: translate(
+                getUiLocale(),
+                "Code component not registered",
+              ),
             });
             return;
           }
@@ -413,9 +421,9 @@ function buildCodeComponentMenuItems(
                 );
               } else {
                 notification.info({
-                  message: `${getComponentDisplayName(
-                    component,
-                  )} is up to date`,
+                  message: translate(getUiLocale(), "{part1} is up to date", {
+                    part1: getComponentDisplayName(component),
+                  }),
                 });
               }
             },
@@ -645,9 +653,15 @@ function genComponentSwapMenuItem(
     (push) => {
       pushComps(studioCtx.site.components, push, true);
       for (const dep of studioCtx.site.projectDependencies) {
-        builder.genSection(`Imported from "${dep.name}"`, (_push) => {
-          pushComps(dep.site.components, _push, false);
-        });
+        builder.genSection(
+          <UiText
+            message={'Imported from "{part1}"'}
+            values={{ part1: dep.name }}
+          />,
+          (_push) => {
+            pushComps(dep.site.components, _push, false);
+          },
+        );
       }
     },
   );

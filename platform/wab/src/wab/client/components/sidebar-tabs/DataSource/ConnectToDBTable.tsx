@@ -24,8 +24,9 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   StudioCtx,
   providesStudioCtx,
@@ -94,7 +95,7 @@ export function ConnectToDBTable({
   onSubmit: (val: ConnectionData) => void;
   onCancel: () => void;
 }) {
-  const { t: uiT } = useI18n();
+  const { t: uiT, label } = useI18n();
   const studioCtx = useStudioCtx();
   const [selectedFormOption, setSelectedFormOption] = React.useState<
     FormType | undefined
@@ -208,12 +209,15 @@ export function ConnectToDBTable({
         <LabeledItemRow label={uiT("Form Type")} tooltip={formTypeDescription}>
           <ChoicePropEditor
             attr="formType"
-            options={formOptions}
+            options={formOptions.map((option) => ({
+              ...option,
+              label: label(option.label),
+            }))}
             value={selectedFormOption}
             onChange={(value) => {
               setSelectedFormOption(value);
             }}
-            defaultValueHint={"Select the form type..."}
+            defaultValueHint={uiT("Select the form type...")}
             valueSetState={
               selectedFormOption !== undefined ? "isSet" : undefined
             }
@@ -504,7 +508,7 @@ function FormDataConnectionBottomModal({
   component?: Component;
   tpl: TplComponent;
 }) {
-  const { t: uiT } = useI18n();
+  const { t: uiT, label } = useI18n();
   const studioCtx = useStudioCtx();
   const [draft, setDraft] = React.useState(lookupSpec);
   const [opDraft, setOpDraft] = React.useState<DataSourceOpExpr | undefined>(
@@ -538,13 +542,16 @@ function FormDataConnectionBottomModal({
   const makeQueryFromDraft = async () => {
     if (!sourceId) {
       notification.error({
-        message: `Missing required fields: Integration`,
+        message: translate(
+          getUiLocale(),
+          "Missing required fields: Integration",
+        ),
       });
       return;
     }
     if (!isString(tableId) || !tableSchema || !sourceMeta) {
       notification.error({
-        message: `Missing required fields: Table`,
+        message: translate(getUiLocale(), "Missing required fields: Table"),
       });
       return undefined;
     }
@@ -558,7 +565,10 @@ function FormDataConnectionBottomModal({
     } else {
       if (!draft?.lookupValue) {
         notification.error({
-          message: `Missing required fields: Lookup value`,
+          message: translate(
+            getUiLocale(),
+            "Missing required fields: Lookup value",
+          ),
         });
         return undefined;
       }
@@ -663,7 +673,10 @@ function FormDataConnectionBottomModal({
           >
             <ChoicePropEditor
               attr="formType"
-              options={formOptions}
+              options={formOptions.map((option) => ({
+                ...option,
+                label: label(option.label),
+              }))}
               value={selectedFormOption}
               onChange={(newFormOption) => {
                 setSelectedFormOption(newFormOption);
@@ -672,7 +685,7 @@ function FormDataConnectionBottomModal({
                   lookupValue: undefined,
                 });
               }}
-              defaultValueHint={"Select the form type..."}
+              defaultValueHint={uiT("Select the form type...")}
               valueSetState={
                 selectedFormOption !== undefined ? "isSet" : undefined
               }

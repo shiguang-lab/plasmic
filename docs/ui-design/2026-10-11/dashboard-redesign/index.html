@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plasmic Dashboard · 项目工作台设计</title><style>
+:root{color-scheme:light dark}body{background:light-dark(#faf9fc,#19181d);color:light-dark(#292631,#eeeaf5);font:15px/1.8 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;max-width:1220px;margin:40px auto;padding:0 24px}h1{font-size:30px;font-weight:500}h2{font-size:22px;font-weight:500;margin-top:38px}h3{font-size:16px;font-weight:500}p,li{color:light-dark(#65616f,#b9b2c7)}a{color:light-dark(#7254cf,#c1a8f4)}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid light-dark(#e1dce9,#403846);padding:14px 12px}th{font-weight:500}.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:25px}img{width:100%;display:block;border-radius:9px;border:1px solid light-dark(#e1dce9,#403846)}.lead img{margin:20px 0}.note{padding:16px 20px;background:light-dark(#eeebf5,#302839);border-radius:10px}@media(max-width:700px){.gallery{grid-template-columns:1fr}.table-wrap{overflow:auto}body{padding:0 16px}}
+</style></head><body>
+<h1>Dashboard：与编辑器一致的项目工作台</h1>
+<p>2026-10-11 · 推荐「项目工作台」，同时提供「空间浏览」 · <a href="preview.html">查看可交互方案</a> · <a href="verification.json">设计检查结果</a></p>
+<div class="note">本次交付是 UI 设计与本地交互样稿。依据当前仓库、当天已部署 Dashboard 的可见入口，以及上一轮功能审计；没有提交项目创建、邀请或权限变更。两个项目名称沿用已有设计审计，不代表重新查询后的项目更新时间。业务表单最终必须使用当前权限、配置和服务返回值。</div>
+<h2>设计判断</h2>
+<p>这里应是一款面向创作者的生产力产品。用户的首要任务是找到已有作品、开始新项目、进入所属工作区；团队管理和数据连接依然重要，但不应抢占首页的视觉中心。界面的专业感来自清晰的层级与可预测的操作，不需要统计大屏、彩色指标卡或业务管理表格。</p>
+<p>沿用当前编辑器的实际 P 标志、浮动品牌胶囊与右侧操作胶囊、12px 面板圆角、紫色主行动与选中状态，以及深色背景／面板／分隔线的层次。Dashboard 的导航与内容重新组织，但不另造品牌或一套窗口框架。品牌图形直接取自 DefaultLayout 的现有路径。</p>
+<p>「项目工作台」将永久展开的文字侧栏收为 62px 导航轨，左侧“空间”入口展开组织与工作区树。中间按实际工作区组织项目，右侧显示选中项目的摘要、打开与复制；其余操作收进菜单；点击封面查看详情，点击名称或“打开编辑器”继续编辑。不会为查看信息而加载编辑器，也不会增加一套业务数据。</p>
+<p>「空间浏览」取消初始详情栏，以工作区集合为主体；查看某个项目时才展开详情。两种方案共享品牌和资源层级，区别是持续上下文操作与内容优先浏览。创建变为右侧抽屉，保留背景中的工作区上下文，继续使用原名称、目标工作区和空白／模板流程。</p>
+<p>参考 <a href="https://help.figma.com/hc/en-us/articles/30926159906967-FD4B-Tour-the-file-browser-and-customize-your-profile">Figma 文件浏览器</a>的内容浏览与上下文组织，以及 <a href="https://docs.pen.dev/">pen.dev</a>紧凑、克制的工具外观。实际查看本机 Figma 文件浏览器和 pen.dev 编辑器；后者的编辑器结构不是其 Dashboard 功能证据。借鉴布局语言，不照搬通知、收藏、回收站、社区或 AI 会话。</p>
+<h2>布局收紧</h2><p>导航轨与内容面板按内容决定高度，取消 435／700／800px 的固定最小高度和导航底部的填充间隙。右侧不再纵向铺开六个操作，以摘要和两项行动为主；完整六项项目操作仍可从更多菜单进入。左右顶部胶囊等高，距离窗口边缘均为 16px。空间导航集中到左侧，不在品牌旁重复设置切换器。</p><h2>推荐 UI</h2>
+<section class="lead"><h3>项目工作台 · 浅色</h3><a href="home-light.png"><img src="home-light.png" alt="项目工作台浅色完整设计"></a><h3>项目工作台 · 深色</h3><a href="home-dark.png"><img src="home-dark.png" alt="项目工作台深色完整设计"></a></section>
+<h2>信息架构与交互</h2>
+<ol><li>浮动顶部只保留当前编辑器的品牌与窗口按钮，移除重复且含糊的“项目空间”下拉；文档与账户胶囊右对齐，并与品牌胶囊等高。应用导航变成紧凑轨道；所有项目、个人空间、组织与工作区仍可直接访问，左侧“空间”入口提供完整名称与层级。</li><li>项目集合按现有 Workspace 分组，不引入文件夹或新的持久化层级。个人试验场单独呈现空态，创建入口直接指定该空间。</li><li>项目封面选中后展示右侧详情：名称、组织、工作区、修改时间与打开、复制及更多操作菜单。名称点击仍可直接打开；列表的名称用于选择，右侧明确提供打开编辑器按钮。收起详情后浏览区占满剩余宽度。</li><li>创建使用右侧抽屉；保留名称、目标工作区、空白／模板和原校验，工作区内创建保持目标上下文。模板必须来自真实工作区或配置，不因 Admin Templates 的项目名而将其当作模板。</li><li>组织页继续按工作区承载项目及 CMS；工作区保留项目／数据源标签、分享、重命名、移动、删除；账户保留全部现有设置分组。</li><li>窄窗口将详情移至项目集合下方，导航轨改成横向；创建抽屉自适应为窄屏浮层。五种分享角色、复制名称与目的地、项目操作均保留。</li></ol>
+<h2>功能对照：不能因视觉简化而删除</h2>
+<div class="table-wrap"><table><thead><tr><th>功能范围</th><th>设计入口与实施契约</th><th>现有依据</th></tr></thead><tbody>
+<tr><td>项目浏览</td><td>所有项目、我的试验场、组织与工作区；搜索、最近修改／名称排序、工作区筛选、网格／列表；加载、无结果、失败重试延续现有组件。</td><td>AllProjectsPage、ProjectsFilter、DashboardLayout</td></tr>
+<tr><td>项目创建</td><td>新建、空白／模板入口共用 NewProjectModal；名称、目标工作区、模板选择及提交校验全部保留。只展示有编辑权限的目标工作区；切换目标后更新可用模板。样稿模板区域示意集合位置，未假设账户模板数量。</td><td>NewProjectModal</td></tr>
+<tr><td>项目操作</td><td>打开、重命名、配置、复制（名称＋目的地）、移动、设置／取消工作区模板、删除；按照原权限显示。特殊分支“从 Dashboard 移除”和 demo 下载仍保留其条件入口，不全员开放。</td><td>ProjectListItem</td></tr>
+<tr><td>组织与工作区</td><td>组织创建、成员与项目数量、新建工作区、组织设置；工作区重命名、分享、移动到其他组织和删除。工作区内项目创建传递原作用域，不扩大访问权限。</td><td>TeamPage、WorkspaceSection、dashboard-actions</td></tr>
+<tr><td>分享与成员</td><td>邮箱邀请、查看者、评论者、内容编辑者、设计者、开发者；组织继承、所有者及原有角色修改／撤销访问流程保留。画面中的一个成员不等于在线人数。</td><td>WorkspaceSection、TeamSettings、既有分享控件</td></tr>
+<tr><td>数据与内容</td><td>工作区的数据源标签保留 CMS 创建、打开、编辑、操作菜单；外部数据源按 enableDataQueries 与既有连接集合显示，保留创建、编辑、复制、删除及所有者权限。默认样稿展示实见 CMS 空态，没有虚构已连接数据库。</td><td>WorkspaceDataSources、DataSource、DatabaseListItem</td></tr>
+<tr><td>组织管理</td><td>成员管理、邀请、方案／计费和试用、Studio UI 配置及组织删除继续放组织设置；保留原所有权转移与付费校验。组织页展示入口，详情沿用原流程。</td><td>TeamSettings、TeamPage、TeamMenu</td></tr>
+<tr><td>账户与帮助</td><td>设置、退出；账户管理、外观与语言、令牌创建／复制／撤销、可信托管应用添加／删除；文档与组织支持入口。组织支持只在组织上下文显示，不给个人试验场虚构专属支持。</td><td>DefaultLayout、DefaultTeamLayout、SettingsPage、SettingsContainer</td></tr>
+</tbody></table></div>
+<h2>能落地的增加项与边界</h2>
+<div class="table-wrap"><table><thead><tr><th>项目</th><th>数据及成本</th><th>本次呈现</th></tr></thead><tbody>
+<tr><td>选中项目详情</td><td>直接读取当前项目与工作区列表已有 name、updatedAt、workspace／team 数据。前端选中状态不写入 Studio 模型；操作仍按原权限门控。</td><td>工作台初始选中一个项目以展示交互，点击另一封面同步详情。空间浏览默认不展开详情。</td></tr>
+<tr><td>空间分组与导航轨</td><td>对现有项目按 workspaceId 分组，沿用既有团队与工作区集合。没有新增文件夹层级。</td><td>组织／工作区完整名称在空间弹层展示；导航轨提供项目、个人与组织入口，以及“空间”导航弹层。</td></tr>
+<tr><td>名称封面</td><td>使用现有 name 前端排版；当前 ApiProject 无缩略图字段。</td><td>不展示虚构画布截图、页面数量、在线成员或发布状态。</td></tr>
+<tr><td>视图偏好</td><td>可按设备保存网格／列表与详情栏展开状态，现有业务模型无需变更。</td><td>样稿记忆页面、浏览视图与详情选择。</td></tr>
+<tr><td>创建抽屉</td><td>改变 NewProjectModal 的呈现容器，复用表单、作用域和 API，不增加新的创建类型。</td><td>空白／模板共用一个抽屉流程。</td></tr>
+</tbody></table></div>
+<p>不加入未经验证的最近访问、收藏、通知、实时在线状态、统一资产中心或发布成功标签。“最近修改”使用 updatedAt，不解释成“最近打开”。Admin Templates 是已有项目名，其名称本身不能证明它已被设置为模板。</p>
+<h2>完整状态与另一种布局</h2>
+<div class="gallery">
+<article><h3>切换项目 · 同步详情</h3><a href="project-detail.png"><img src="project-detail.png" alt="选中另一项目更新详情"></a></article>
+<article><h3>完整空间导航</h3><a href="space-navigator.png"><img src="space-navigator.png" alt="组织与工作区导航弹层"></a></article>
+<article><h3>空间浏览 · 内容优先方向</h3><a href="compact-library.png"><img src="compact-library.png" alt="空间浏览方案"></a></article>
+<article><h3>列表视图</h3><a href="project-list.png"><img src="project-list.png" alt="项目列表"></a></article>
+<article><h3>工作区</h3><a href="workspace.png"><img src="workspace.png" alt="工作区项目"></a></article>
+<article><h3>组织 · 工作区分组</h3><a href="organization.png"><img src="organization.png" alt="组织工作区分组"></a></article>
+<article><h3>新建 · 空白起点</h3><a href="create-blank.png"><img src="create-blank.png" alt="空白项目创建"></a></article>
+<article><h3>新建 · 模板集合位置</h3><a href="create-template.png"><img src="create-template.png" alt="模板选择区域示意"></a></article>
+<article><h3>项目操作</h3><a href="project-menu.png"><img src="project-menu.png" alt="项目菜单"></a></article>
+<article><h3>复制 · 名称与目标</h3><a href="duplicate-project.png"><img src="duplicate-project.png" alt="复制项目表单"></a></article>
+<article><h3>工作区分享</h3><a href="share-workspace.png"><img src="share-workspace.png" alt="完整角色分享表单"></a></article>
+<article><h3>数据源 · CMS 空态</h3><a href="workspace-data.png"><img src="workspace-data.png" alt="CMS 空态"></a></article>
+<article><h3>个人试验场 · 空态</h3><a href="personal-empty.png"><img src="personal-empty.png" alt="个人创作空态"></a></article>
+<article><h3>搜索无结果</h3><a href="search-empty.png"><img src="search-empty.png" alt="搜索无结果"></a></article>
+<article><h3>设置 · 保留原有功能分组</h3><a href="settings.png"><img src="settings.png" alt="账户设置分组"></a></article>
+<article><h3>1024px 窄窗口</h3><a href="responsive-1024.png"><img src="responsive-1024.png" alt="窄窗口适配"></a></article>
+</div>
+<h2>视觉规范与验证范围</h2>
+<p>16px 窗口留白、48px 浮动品牌区域、62px 导航轨、12px 结构面板圆角；正文 14px、辅助 12px、标题 28px；详情栏 258px（窄窗口 230px），控件 7px 圆角。深色关键色沿用既有设计系统：背景 #15161b、面板 #202128、内容表面 #272831、分隔线 #373842、主色 #9474ff；浅色遵循同一角色层级。此稿对齐当前编辑器的实际品牌和窗口语言；原项目操作权限与菜单契约仍由业务代码负责。</p>
+<p>执行 verify.cjs 检查本地交互和图片渲染，包括实际品牌标志、两个顶部胶囊及其边距／垂直对齐、无重复顶部空间切换器、详情菜单六项操作、选中项目同步详情、空间导航、搜索筛选、网格／列表、完整项目菜单、复制字段、五种分享角色、空白／模板入口、组织／工作区／账户导航与 1024／760／540／320px 适配。检查结果见 verification.json。UI 样稿不等于后端流程验收；未运行业务应用构建，未声称已上线。没有修改正在开发中的 Dashboard 源码。</p>
+</body></html>

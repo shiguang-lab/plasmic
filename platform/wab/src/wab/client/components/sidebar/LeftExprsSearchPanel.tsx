@@ -11,6 +11,7 @@ import {
   getTextWithScrolling,
   truncate,
 } from "@/wab/client/components/view-common";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicLeftExprsSearchPanel } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftExprsSearchPanel";
 import {
@@ -424,6 +425,7 @@ const getUsedExprTypes = (exprs: ExpressionItem[]): ExprTypeValue[] => {
 };
 
 const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
+  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [groupBy, setGroupBy] = React.useState<"none" | "component" | "type">(
@@ -563,7 +565,7 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
         searchboxProps: {
           value: searchQuery,
           onChange: (e) => setSearchQuery(e.target.value),
-          placeholder: "Search expressions...",
+          placeholder: uiT("Search expressions..."),
           autoFocus: true,
         },
       }}

@@ -394,13 +394,20 @@ export class ViewOps {
       (tpl && this.isRootNodeOfFrame(tpl))
     ) {
       // We should nudge the frame instead
-      const frame = this.viewCtx().arenaFrame();
+      const frames = this.studioCtx().focusedFrames().length
+        ? this.studioCtx().focusedFrames()
+        : [this.viewCtx().arenaFrame()];
       const prop = ["left", "right"].includes(dir) ? "left" : "top";
-      if (frame[prop] != null) {
-        const cur = frame[prop] as number;
-        const amount =
-          1 * (large ? 10 : 1) * (["left", "up"].includes(dir) ? -1 : 1);
-        frame[prop] = cur + amount;
+      for (const frame of frames) {
+        if (this.studioCtx().isPositionManagedFrame(frame)) {
+          continue;
+        }
+        if (frame[prop] != null) {
+          const cur = frame[prop] as number;
+          const amount =
+            1 * (large ? 10 : 1) * (["left", "up"].includes(dir) ? -1 : 1);
+          frame[prop] = cur + amount;
+        }
       }
       return;
     }

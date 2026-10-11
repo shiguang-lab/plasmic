@@ -1,0 +1,108 @@
+{
+  "overall": "Not accepted as functionally complete",
+  "baseline": "Current working tree compared with Git HEAD, plus native UI verification in the already-open local Studio. Original binary was not run side by side.",
+  "project": "UI interaction acceptance / 1Tn5QZywpzJQBKpJgUnx8v",
+  "limitations": [
+    "Current UI shows the anonymous sign-up banner and zero reusable components in the navigator. Installation, dependency upgrade, saved reusable component insertion and export were not verified end to end.",
+    "No business model edits, component installation, dependency removal or publishing were performed."
+  ],
+  "findings": [
+    {
+      "priority": "P1",
+      "status": "native-reproduced",
+      "capability": "Arena search",
+      "evidence": "Searching Custom arena 1 in Pages navigation crashed the Studio tree: TypeError newChildren is not iterable. Stack: boldSnippets -> Matcher.boldSnippets -> ArenaTreeRow.",
+      "source": "platform/wab/src/wab/client/components/view-common.tsx:148",
+      "attribution": "Matcher and Arenas UiText header are also present in HEAD; failure is not proven newly introduced by UI changes.",
+      "suggestion": "Handle React elements without children in search highlighting and cover localized header/arena searches."
+    },
+    {
+      "priority": "P1",
+      "status": "confirmed-behavior-change",
+      "capability": "Global resource search",
+      "evidence": "Same query plasmic-resource shows No matching resources found under Components and finds plasmic-resource-upload-acceptance.png under Assets. HEAD did not apply the new category filter before query results.",
+      "source": "platform/wab/src/wab/client/components/insert-panel/InsertPanel.tsx:472",
+      "suggestion": "Search across all categories with category/source labels; keep current-category browsing when query is empty."
+    },
+    {
+      "priority": "P2",
+      "status": "source-confirmed",
+      "capability": "Installed versus component-store discovery",
+      "evidence": "Old InsertPanelTabGroup displayed familyKeyToLabel (Installed / Component store). New category Select flattens groups into only section labels. Installation handlers remain but their origin/state grouping is lost.",
+      "source": "platform/wab/src/wab/client/components/insert-panel/InsertPanel.tsx:914",
+      "suggestion": "Restore installed/store grouping within the Components panel; retain installation status and actions."
+    },
+    {
+      "priority": "P2",
+      "status": "native-reproduced",
+      "capability": "Navigation from More",
+      "evidence": "Clicking #proj-nav-button opens left Pages panel but More remains expanded. ArenaSwitcher has no onNavigate callback to dismiss its enclosing More.",
+      "source": "platform/wab/src/wab/client/components/top-bar/TopBar.tsx:474",
+      "suggestion": "Dismiss More after opening navigation and focus the left search field."
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "Page navigation",
+      "status": "native-verified",
+      "evidence": "Search Page2, ArrowDown and Enter switched URL to arena_type=page, loaded desktop/mobile frames and Page2 inspector."
+    },
+    {
+      "name": "Custom arena navigation",
+      "status": "native-verified",
+      "evidence": "Clicked Custom arena 1 and returned to Pages overviewCustom arena; URL and canvas changed correctly. Empty arena kept new page/component entries."
+    },
+    {
+      "name": "Pages / Components / Arenas listing",
+      "status": "native-verified",
+      "evidence": "Current navigator lists 2 arenas, 5 pages, 0 components."
+    },
+    {
+      "name": "Create page/component/arena, rename, delete, folders",
+      "status": "source-retained-not-mutated",
+      "evidence": "NavigationDropdown plus menu and ArenaContextMenu/FolderContextMenu actions remain."
+    },
+    {
+      "name": "Component installation",
+      "status": "source-retained-runtime-unverified",
+      "evidence": "AddItemType.installable -> DragInsertManager.install, success/failure, switch arena/component handlers remain. Fake package install refreshes projectDependencies and selected section."
+    },
+    {
+      "name": "Component display/search",
+      "status": "partial",
+      "evidence": "Registered, reusable, installed dependency and store item builders remain. Source grouping is lost; query now category-limited. No populated reusable-component project tested."
+    },
+    {
+      "name": "Component insertion/presets/drag",
+      "status": "source-retained-runtime-unverified",
+      "evidence": "tryInsertTplItem, showPresetsModal, DraggableInsertable and tracked onDragEnd paths remain. Dnd tests cover list-item drop semantics, not a full real package install/insert flow."
+    },
+    {
+      "name": "Dependency import/upgrade/removal",
+      "status": "source-retained-runtime-unverified",
+      "evidence": "More -> nested More -> Imported projects -> ProjectDependenciesPanel. Same isLoggedIn/canViewTab gates as baseline."
+    },
+    {
+      "name": "Resource assets",
+      "status": "native-search-and-unit-verified",
+      "evidence": "Existing image found in Assets search. Asset action, upload and permission cases tested."
+    },
+    {
+      "name": "Viewport controls",
+      "status": "native-partial",
+      "evidence": "Focus/return overview and zoom controls remain; empty arena correctly disables Zoom/Fit. Full focus/overview/pan/undo/save matrix not rerun."
+    }
+  ],
+  "verification": {
+    "command": "vitest run ResourceUpload.test.tsx ResourceAssetActions.test.tsx InsertPanelWrapper.test.tsx Dnd.test.ts view-common.test.ts",
+    "result": "5 files, 42 tests passed",
+    "warning": "jsdom pseudo-element computedStyle warnings were logged. Passing existing tests did not detect the native arena-search crash.",
+    "screenshot": "editor-audit-arena-search-error.png"
+  },
+  "recommendedOrder": [
+    "Fix arena search crash",
+    "Restore global resource search and installed/store grouping",
+    "Validate a real installed component package through install -> list -> search -> click/drag insert -> props/slots -> preview -> undo/redo -> save/reopen",
+    "Finish page/arena/component create/rename/folder/delete flows and More dismissal"
+  ]
+}

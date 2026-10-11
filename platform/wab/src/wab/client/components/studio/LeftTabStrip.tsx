@@ -15,7 +15,6 @@ import ComponentsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Plasm
 import ComponentssvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ComponentsSvg";
 import DevicessvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DevicesSvg";
 import DotsHorizontalCirclesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DotsHorizontalCircleSvg";
-import DownloadsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DownloadSvg";
 import FigmasvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FigmaSvg";
 import FontFamily2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FontFamily2Svg";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
@@ -141,7 +140,6 @@ Settings
   Project Settings
   Custom Fonts
   Responsive Breakpoints
-  Imported Projects
   Published Versions
 
 More
@@ -246,13 +244,6 @@ More
           icon: <SplitSvgIcon />,
           label: t("Split content"),
           cond: isLoggedIn && canViewTab("splits"),
-        },
-        imports: {
-          type: "item",
-          tabKey: "imports",
-          icon: <DownloadsvgIcon />,
-          label: t("Imported projects"),
-          cond: isLoggedIn && canViewTab("imports"),
         },
         versions: {
           type: "item",
@@ -363,9 +354,10 @@ More
           href={item.href}
           className={item.className}
           isSelected={
-            props.managementOnly &&
             item.tabKey &&
-            item.tabKey === studioCtx.leftTabKey
+            item.tabKey === studioCtx.leftTabKey &&
+            (props.managementOnly ||
+              (!studioCtx.showAddDrawer() && !studioCtx.panelsHidden))
           }
         />
       )
@@ -451,7 +443,6 @@ More
     fonts: mainGroups.settingsGroup.items.fonts,
     responsiveness: mainGroups.settingsGroup.items.responsiveness,
     themes: mainGroups.settingsGroup.items.themes,
-    imports: mainGroups.more.items.imports,
   };
   if (props.managementOnly) {
     if (mainGroups.settingsGroup.items.settings.cond === false) {
@@ -546,6 +537,18 @@ More
               items: resourceItems,
             },
           })}
+          {renderButton(
+            "libraries",
+            {
+              type: "item",
+              tabKey: "libraries",
+              icon: toolIcon("m16 6 4 14 M12 6v14 M8 8v12 M4 4v16"),
+              label: t("Libraries"),
+              cond: canViewTab("libraries"),
+            },
+            true,
+            () => setOpenGroup(undefined),
+          )}
           <LeftTabButton
             hasLabel
             label={t("AI")}

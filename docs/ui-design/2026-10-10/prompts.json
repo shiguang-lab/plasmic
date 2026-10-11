@@ -1,0 +1,75 @@
+{
+  "tool": "Built-in image_gen.imagegen",
+  "created": "2026-10-10",
+  "common": "Use case: ui-mockup. Create a polished high fidelity desktop UI design screenshot for Plasmic, a visual web application editor. Landscape 16:10, ideally 1920x1200 or larger. Flat straight-on screenshot, no monitor frame, no perspective, no presentation decorations or captions outside app. Consistent professional design system: canvas background #17181C, floating panels #25262C, controls #303139, borders #3C3D46, text #ECECF1, muted text #ADA EBC (use #ADA EBC without spaces conceptually #ADA EBC grey), accent soft violet #AEA0FF with muted violet active backgrounds. Clean modern sans serif, sharp clear Simplified Chinese UI text and English component identifiers. Compact professional tool density, generous canvas space, refined 10px panel radius, subtle shadows, opaque panels, no neon glows or excessive gradients. Inspired by pen.dev floating edge-docked controls and Figma organized properties, branded only Plasmic. Chinese product labels; business sample is 客群管理, page 客群列表. Important: dark editor chrome must surround a WHITE business page with its own subtle blue accents; never make the business page dark. Use coherent visual structure and realistic complete UI, minimal readable text, crisp recognizable icons.",
+  "screens": [
+    {
+      "id": "01-workspace",
+      "prompt": "WORKSPACE HOME. Dark full app. 220px left sidebar with Plasmic logo top, organization selector 数禾工作空间, nav 最近项目 active, 所有项目, 模板库, bottom 设置 and user avatar. Main content header 最近项目 with search field, grid/list toggle and violet 新建项目 button. Small restrained creation strip with text 描述你的想法 and AI start button, not oversized hero. Below a polished 3-column by 2-row project card grid with ACTUAL DIFFERENT miniature white admin page previews: 客群管理, 运营工作台, 审批中心, 数据报表, 表单设计, Admin Templates. Each card project name, tiny workspace and updated time, avatar and ellipsis. Selected recent 客群管理 card subtly accent bordered. Clear visual hierarchy and roomy but efficient layout.",
+      "reference": null
+    },
+    {
+      "id": "02-new-project",
+      "prompt": "NEW PROJECT DIALOG state over a dimmed workspace dashboard. Centered substantial modal with title 新建项目 and close X. Three top tabs 描述需求 (active), 使用模板, 空白项目. A large clean prompt area contains 创建一个客群管理后台，包含筛选、列表和详情抽屉. Beneath show optional chips React, Ant Design 6, 桌面端. Smaller project name field 客群管理 and location 数禾工作空间 / Prototypes. Bottom unobtrusive 取消 and clear violet 创建并进入画布. Right third of modal a calm preview sketch of a white admin page labeled 页面预览, not an illustration. Dark opaque dialog readable, no fictional numbers.",
+      "reference": null
+    },
+    {
+      "id": "03-editor",
+      "prompt": "STANDARD EDITOR, definitive hero design. Dark infinite workspace. Top-left compact floating island with Plasmic, 客群管理 chevron, tiny 已保存. Top-right island with undo/redo icons, 预览, 分享 and ellipsis. Narrow left rail icons selection, insert, layers, assets, AI. Left floating panel 240px wide with 页面 / 图层 tabs, dropdown 客群列表, search, meaningful tree PageRoot > AppShell > SearchForm > AllGroupsTable selected > CreateGroupDrawer. Center large white business page artboard about 60% width, title above 客群列表 · Desktop, viewport 1440 × 1024. Business page compact left sidebar 经营 OS, 客群管理 active, main header 客群列表, filters 市场 MX, 状态 全部, 关键词, 查询 and 重置. Tabs 全部客群 and 我负责的, blue 新建客群 button. Detailed table with 客群名称, 类型, 状态, 更新时间, 操作, six realistic rows. Table selected with thin violet outline; small floating toolbar above table with Table, 编辑内容, AI 修改, ellipsis. Right floating properties panel 280px wide with AllGroupsTable, tabs 设计 active / 交互 / 数据. Sections Table: size middle, bordered off; 布局: width 填充, height 自动, padding 16; 外观 collapsed; 高级属性 collapsed. Bottom center compact floating AI composer shows target chip AllGroupsTable, placeholder 描述你想修改的内容…, attachment and send. Bottom-right zoom capsule 75% and fit icon. Dock all overlays outside important business content, sophisticated calm composition.",
+      "reference": null
+    },
+    {
+      "id": "04-assets",
+      "prompt": "RESOURCE INSERTION state of same dark Plasmic editor. Top-left Plasmic 客群管理 已保存; right 预览 分享 ellipsis. Left floating resource panel expanded 330px wide with title 插入资源, search 搜索组件、模板和素材, tabs 组件 active / 模板 / 素材. library dropdown Ant Design 6. Show recently used Button, Table, Form with small actual component previews, then categorized neat two-column component gallery: Input, Select, DatePicker, Card, Tabs, Drawer. Center white 客群列表 admin page with filters and table. A dashed violet insertion guide BETWEEN filters and table clearly shows where a new Card will be inserted, small label 插入到 AppShell. Right properties panel compact current parent AppShell and content slot. Resource cards show English actual component names, clear hierarchy, no dragged hand illustration. Bottom AI composer minimized to compact pill.",
+      "reference": "03-editor.png"
+    },
+    {
+      "id": "05-ai-edit",
+      "prompt": "AI EDITING state same dark Plasmic editor. Left floating wide 300px AI conversation panel with tabs AI / 图层, concise user message 在表格中增加负责人列，并放在状态后面. Assistant task card 修改 AllGroupsTable with checklist 读取组件结构 complete, 添加负责人列 complete, 检查布局 in progress; bottom 可停止, no technical tokens. Center WHITE admin business page table with thin violet activity outline, visibly added 负责人 column between 状态 and 更新时间. Tiny area badge 正在检查布局. Right properties panel still visible, tabs 设计 / 交互 / 数据, table props. Bottom center floating composer target chip AllGroupsTable, input 下一步想修改什么？ and square stop control. Top project island and preview/share. No huge full-screen shimmer, no glowing beams. Clear distinction between user-owned page and AI overlay. Professional production-quality UI.",
+      "reference": "03-editor.png"
+    },
+    {
+      "id": "06-preview-review",
+      "prompt": "PREVIEW AND REVIEW page of Plasmic. Dark thin top toolbar only: 返回编辑 at left, page selector 客群列表, center device controls 桌面 / 平板 / 手机 and width 1440, right 评论 toggle active and 分享. NO property inspector or layers. Large crisp white business page displaying 客群列表, filters and table; business 新建客群 form DRAWER open on its right portion with title 新建客群, fields 客群名称, 类型, 负责人, footer 取消 and 创建. Outside the business preview at far right, a dark review sidebar 280px titled 评论 with two anchored comments. One from 林悦 says 负责人字段建议设为必填, reply text box and 解决 action; second comment collapsed. Small numbered purple comment pins on form field and table header. Clear separation between business drawer white and review panel dark. Comfortable layout, precise restrained typography.",
+      "reference": "03-editor.png"
+    },
+    {
+      "id": "07-share-publish",
+      "prompt": "SHARE AND DELIVERY dialog of Plasmic editor. Dark editor and white business canvas dimmed behind a crisp center-right large dialog titled 分享与交付. Header tabs 分享预览 active / 导出 / 发布. Active content section 访问权限 with project member avatars and permission rows 可查看, 可评论. Link section labeled 预览链接 with plausible abbreviated studio.plasmic… URL and 复制链接 button. Choice 最新保存版本 selected versus 固定版本 with concise helper 最新修改会更新此链接. Lower separate block 邀请协作者 with email field and 邀请 button, no sensitive real address. Footer 关闭. A subtle left-side menu or tab descriptions clarify export and publish without displaying all complex settings at once. No automatic public access, default 项目成员可访问. Maintain refined dark surfaces and violet main action.",
+      "reference": "03-editor.png"
+    },
+    {
+      "id": "08-settings",
+      "prompt": "SETTINGS page, dark Plasmic full application. Narrow sidebar Plasmic and 返回工作台, settings navigation 外观 active, 语言, AI 连接, 账户. Main panel title 外观与偏好. Appearance section three attractive preview tiles 深色 selected, 浅色, 跟随系统, miniature editor representations. Below 工作区 settings with toggles 记住面板布局 on, 显示选区工具条 on, 减少动态效果 off. Canvas background swatch row 深灰 selected and neutral shades. UI density selector 标准 selected / 紧凑. Right small live preview of editor with DARK chrome and WHITE artboard. Bottom subdued 设置自动保存. Plenty of negative space but real polished settings UI, consistent card edge and type. No huge marketing text.",
+      "reference": "03-editor.png"
+    },
+    {
+      "id": "09-editor-light",
+      "prompt": "LIGHT MODE counterpart of STANDARD EDITOR, override chrome palette to neutral light: canvas background #ECEEF2, floating panels white, controls #F2F3F6, border #D9DBE3, text #252630, muted #666978, violet #7257D6. Same layout and business white artboard. Top-left floating Plasmic 客群管理 已保存, top-right 预览 分享. Left floating page/layers tree with AllGroupsTable selected, center white 客群列表 business page filters six-row table and selection outline. Right properties 设计 / 交互 / 数据, size middle, bordered off, layout width 填充. Bottom floating AI composer target AllGroupsTable. Crisp soft neutral contrast separating white page and white panels from grey workspace. No dark surfaces except text. Matching dark editor geometry.",
+      "reference": "03-editor.png"
+    }
+  ],
+  "canvasRevision": {
+    "common": "Edit this Plasmic UI concept. Keep its dark charcoal and soft violet design system, logo, Chinese UI typography, white admin business pages and professional flat screenshot quality. Landscape 16:10. CRITICAL: replace the single giant page layout with a genuinely INFINITE SPATIAL CANVAS extending continuously across the entire window UNDER floating edge panels. No central bounded page viewer. Visible fine sparse dot grid on charcoal, large clear gutters BETWEEN white artboards, neighboring artboards partly clipped at viewport edges. Artboards have labels ABOVE them in canvas space. Overlays are edge-docked floating islands with 12px inset, do not form full-height fixed columns. No perspective or device frame. This is one screenshot, not a collage of app windows.",
+    "screens": [
+      {
+        "id": "10-canvas-overview",
+        "prompt": "DEFAULT MULTI-ARTBOARD OVERVIEW at 35% zoom. Four distinct WHITE desktop page artboards fully visible in a 2 by 2 spatial arrangement, each about 330px by 235px in the screenshot, with at least 70px of dark dot-grid gutter between them and significant workspace around them. Labels 客群列表, 客群圈选器, 新建一次性客群, 客群详情, each with 1440 × 1024 above artboard. Top two grouped under discreet canvas section heading 客群管理流程. A partial fifth white mobile artboard at far right implies canvas continues. Top left floating project island Plasmic / 客群管理 / 已保存. Top right floating undo, 预览, 分享. Left slim tool strip plus SMALL floating 200px wide page list panel ending halfway down screen with four page names. Right SMALL floating 210px wide inspector ending halfway down, titled 画布 with arrangement and background settings, NOT an object inspector. Bottom center small AI bar tagged 当前画布. Bottom right capsule 35% and 适合全部. Page content realistic miniature admin UI with different table, query builder, form, detail layouts. Make multiple page silhouettes and free space unmistakable. Main artboards occupy center 65%, not one enormous page.",
+        "reference": "03-editor.png"
+      },
+      {
+        "id": "11-canvas-focused",
+        "prompt": "FOCUSED EDIT state at 70% zoom of SAME spatial infinite canvas. Main WHITE 客群列表 artboard centered at 60% of window width with 40px charcoal dot-grid margin all sides, no fit-to-window rectangle. A clearly visible portion of neighboring 客群圈选器 artboard cut off to RIGHT, and TOP EDGE of another artboard 新建一次性客群 visible at BOTTOM, separated by broad dotted charcoal gutters. Left floating layers panel 210px wide with AllGroupsTable selected, right floating property inspector 230px wide 设计/交互/数据 and English size, bordered, width controls. Main white admin page filters, table selected violet outline and contextual edit toolbar. Bottom compact AI composer targets AllGroupsTable. Top floating project and actions. Visible 返回总览 button near bottom zoom 70%. Panels don't consume canvas layout; canvas behind edges persists. White business page fully distinguishable from dark workspace.",
+        "reference": "03-editor.png"
+      },
+      {
+        "id": "12-canvas-focus-mode",
+        "prompt": "DISTRACTION-FREE CANVAS OVERVIEW state. BOTH layers and property panels collapsed completely. Most of screenshot is continuous dark dot-grid canvas. Four white desktop business artboards with names 客群列表, 客群圈选器, 新建一次性客群, 客群详情 arranged loosely in two rows with generous 100px dark gaps; one slim mobile artboard beside them partially visible. Several artboards can be partially clipped by viewport to show endless space. Top-left tiny floating project capsule Plasmic / 客群管理, top right tiny 恢复面板 and 预览. Left only short floating vertical select, hand, plus tool strip. Bottom center AI collapsed to small pill AI 修改当前画布. Bottom right small zoom capsule 45% and fit-all. No sidebars, no large chat panel, no property inspector. Large canvas layout not presentation slides. Each business artboard contains different realistic white admin UI. Preserve spacious spatial arrangement and consistent page labels.",
+        "reference": "03-editor.png"
+      }
+    ]
+  },
+  "supersededScreens": {
+    "03-editor": "Replaced in gallery by 10-canvas-overview, 11-canvas-focused and 12-canvas-focus-mode. Retained as generation reference."
+  }
+}

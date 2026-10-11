@@ -9,7 +9,8 @@ import {
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
 import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import {
   DefaultTeamPageProps,
   PlasmicTeamPage,
@@ -49,7 +50,9 @@ function TeamPage_(props: TeamPageProps, ref: HTMLElementRefOf<"div">) {
       const response = await appCtx.api.joinTeam({ teamId, inviteId });
       if (!response.status) {
         notification.error({
-          message: `Not able to join ${ORGANIZATION_LOWER}`,
+          message: translate(getUiLocale(), "Not able to join {part1}", {
+            part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+          }),
           description: response.reason,
           duration: 0,
         });

@@ -4,25 +4,12 @@ import {
   reactConfirm,
   reactPrompt,
 } from "@/wab/client/components/quick-modals";
-import BranchSectionHeader from "@/wab/client/components/sidebar-tabs/ProjectPanel/BranchSectionHeader";
-import FolderItem from "@/wab/client/components/sidebar-tabs/ProjectPanel/FolderItem";
-import {
-  HEADER_HEIGHT,
-  ROW_HEIGHT,
-} from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationRows";
-import styles from "@/wab/client/components/sidebar-tabs/ProjectPanel/ProjectPanelTop.module.scss";
+import { promptBranchVersion } from "@/wab/client/components/sidebar-tabs/ProjectPanel/BranchVersionDialog";
 import { Matcher } from "@/wab/client/components/view-common";
-import { Spinner } from "@/wab/client/components/widgets";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import PlasmicBranchPanel from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicBranchPanel";
-import { DefaultFolderItemProps } from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicFolderItem";
-import PlasmicSearchInput from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput";
-import {
-  StudioCtx,
-  calculateNextVersionKey,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { testIds } from "@/wab/client/test-ids";
 import {
   ApiBranch,
@@ -31,15 +18,66 @@ import {
   MainBranchId,
 } from "@/wab/shared/ApiSchema";
 import { validateBranchName } from "@/wab/shared/ApiSchemaUtil";
-import { assert, ensure, spawnWrapper, withoutNils } from "@/wab/shared/common";
+import { assert, ensure, spawnWrapper } from "@/wab/shared/common";
 import { APP_ROUTES, SEARCH_PARAM_BRANCH } from "@/wab/shared/route/app-routes";
-import { Menu, Tooltip, notification } from "antd";
+import {
+  BranchesOutlined,
+  CheckOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
+import {
+  Alert,
+  Button,
+  Dropdown,
+  Empty,
+  Input,
+  Menu,
+  Spin,
+  Tooltip,
+  notification,
+} from "antd";
+import { createStyles } from "antd-style";
 import { trimStart } from "lodash";
 import { observer } from "mobx-react";
-import React, { ReactNode, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useDebounce } from "react-use";
-import { VariableSizeList } from "react-window";
 import useSWR, { mutate } from "swr";
+
+const useStyles = createStyles(({ token }) => ({
+  root: { width: "100%", minWidth: 0 },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 8,
+  },
+  loading: { display: "flex", justifyContent: "center", padding: 32 },
+  list: { maxHeight: "min(400px, 50vh)", overflowY: "auto", marginTop: 8 },
+  section: { padding: 8, fontSize: 12, color: token.colorTextSecondary },
+  row: { display: "flex", alignItems: "center", gap: 4 },
+  branch: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+    height: 36,
+    textAlign: "left",
+    '&[aria-pressed="true"]': {
+      background: token.colorPrimaryBg,
+      color: token.colorPrimaryText,
+    },
+  },
+  name: {
+    flex: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+}));
 
 export const BranchPanelTop = observer(React.forwardRef(BranchPanelTop_));
 
@@ -47,41 +85,50 @@ function BranchPanelTop_(
   { onClose }: { onClose: () => void },
   outerRef: React.Ref<HTMLDivElement>,
 ) {
+  const { t, label } = useI18n();
+  const { styles } = useStyles();
   const topFrameApi = useTopFrameApi();
   const studioCtx = useStudioCtx();
   const projectId = studioCtx.siteInfo.id;
   const api = studioCtx.appCtx.api;
-  const { data: branchesResponse } = useSWR<ListBranchesResponse>(
+  const {
+    data: branchesResponse,
+    error: branchesError,
+    mutate: reloadBranches,
+  } = useSWR<ListBranchesResponse>(
     apiKey(`listBranchesForProject`, projectId),
     () => api.listBranchesForProject(projectId),
     { revalidateOnMount: true, focusThrottleInterval: 0, dedupingInterval: 0 },
   );
 
-  const { data: unpublishedChangesResponse } = useSWR(
-    calculateNextVersionKey(studioCtx),
-    async () => ({
-      mainHasUnpublishedChanges: await studioCtx.branchHasUnpublishedChanges({
-        branchId: null,
-      }),
-    }),
-    { revalidateOnMount: true, focusThrottleInterval: 0, dedupingInterval: 0 },
-  );
-
-  const searchInputRef = studioCtx.projectSearchInputRef;
   const [queryMatcher, setQueryMatcher] = useState(mkMatcher());
   const [query, setQuery] = useState("");
-  const listRef = useRef<VariableSizeList>(null);
-  const [renamingItem, setRenamingItem] = useState<
-    ApiBranch | MainBranchId | undefined
-  >();
   const [fetchingData, setFetchingData] = useState(false);
 
   useDebounce(() => setQueryMatcher(mkMatcher(query)), 200, [query]);
 
-  if (!branchesResponse || !unpublishedChangesResponse || fetchingData) {
+  if (branchesError) {
     return (
-      <div className={styles.root} ref={outerRef} {...testIds.projectPanel}>
-        <Spinner />
+      <Alert
+        type="error"
+        showIcon
+        message={t("Unable to load branches")}
+        action={
+          <Button
+            onClick={() => {
+              void reloadBranches();
+            }}
+          >
+            {t("Retry")}
+          </Button>
+        }
+      />
+    );
+  }
+  if (!branchesResponse || fetchingData) {
+    return (
+      <div className={styles.loading} ref={outerRef}>
+        <Spin />
       </div>
     );
   }
@@ -113,22 +160,10 @@ function BranchPanelTop_(
 
   const shownActiveBranches = queryBranches([undefined, ...activeBranches]);
   const shownArchivedBranches = queryBranches(archivedBranches);
-  const items = withoutNils([
-    shownActiveBranches.length > 0 ? { label: "Active Branches" } : undefined,
-    ...shownActiveBranches,
-    shownArchivedBranches.length > 0
-      ? { label: "Archived Branches" }
-      : undefined,
-    ...shownArchivedBranches,
-  ]);
-
-  const dismissSearch = () => {
-    setQuery("");
-  };
-
   async function promptBranchName(defaultValue: string) {
     const name = await reactPrompt({
-      message: "Name for branch",
+      message: t("Branch name"),
+      actionText: t(defaultValue ? "Rename" : "Create new branch"),
       placeholder: "feat/branchname",
       defaultValue,
       rules: [
@@ -139,7 +174,7 @@ function BranchPanelTop_(
               allBranches.filter((b) => b.name !== defaultValue),
             );
             if (msg) {
-              throw new Error(msg);
+              throw new Error(label(msg));
             }
           },
         },
@@ -169,23 +204,19 @@ function BranchPanelTop_(
 
   async function checkMainCommitted() {
     const hasCommits = studioCtx.releases.length > 0;
-    if (!hasCommits || unpublishedChangesResponse?.mainHasUnpublishedChanges) {
-      if (
-        await reactConfirm({
-          title: "Publish the main branch",
-          message:
-            "Branches must start from a published version, and the main branch has unpublished changes. Publish a version first in order to start the branch from the most recent changes.",
-          confirmLabel: "Publish a version first",
-          cancelLabel: hasCommits ? "Use last published version" : "Cancel",
-        })
-      ) {
+    if (
+      !hasCommits ||
+      (await studioCtx.branchHasUnpublishedChanges({ branchId: null }))
+    ) {
+      const choice = await promptBranchVersion(hasCommits);
+      if (choice === "save") {
+        if (studioCtx.dbCtx().branchInfo) {
+          await studioCtx.switchToBranch(undefined);
+        }
         await topFrameApi.setShowPublishModal(true);
-        onClose();
         return false;
       }
-      if (!hasCommits) {
-        return false;
-      }
+      return choice === "use-last";
     }
     assert(
       hasCommits,
@@ -201,17 +232,10 @@ function BranchPanelTop_(
     });
     setFetchingData(false);
     if (hasUnpublishedChanges) {
-      if (
-        await reactConfirm({
-          title: "Publish latest changes",
-          message:
-            "The branch you selected has some unpublished changes. Would you like to publish the latest changes before creating a new branch it?",
-          confirmLabel: "Publish a version first",
-          cancelLabel: "Use last published version",
-        })
-      ) {
+      const choice = await promptBranchVersion(true);
+      if (choice === "save") {
         if (sourceBranchId !== studioCtx.branchInfo()?.id) {
-          studioCtx.switchToBranch(
+          await studioCtx.switchToBranch(
             ensure(
               allBranches.find((branch) => branch.id === sourceBranchId),
               () => `Couldn't find branch ${sourceBranchId}`,
@@ -219,9 +243,9 @@ function BranchPanelTop_(
           );
         }
         await topFrameApi.setShowPublishModal(true);
-        onClose();
         return false;
       }
+      return choice === "use-last";
     }
     return true;
   }
@@ -230,7 +254,7 @@ function BranchPanelTop_(
     onClose();
     if (studioCtx.appCtx.appConfig.disableBranching) {
       return notification.error({
-        message: "Branch creation in maintenance",
+        message: t("Branch creation in maintenance"),
         duration: 0,
         description: (
           <>
@@ -279,177 +303,133 @@ function BranchPanelTop_(
     return newBranch;
   }
 
+  const canManage = studioCtx.canEditProject() && !studioCtx.isLiveMode;
+  const renderBranch = ({
+    branch,
+    nameWithQueryHighlighting,
+  }: ReturnType<typeof queryBranches>[number]) => {
+    const selected = branch?.id === focusedBranch?.id;
+    const onSwitch = async () => {
+      if (!selected) {
+        if (
+          studioCtx.isLiveMode &&
+          APP_ROUTES.projectPreview.parse(
+            studioCtx.appCtx.history.location.pathname,
+          )
+        ) {
+          const hashParams = new URLSearchParams(
+            trimStart(studioCtx.appCtx.history.location.hash, "#"),
+          );
+          hashParams.set(SEARCH_PARAM_BRANCH, branch?.name || MainBranchId);
+          studioCtx.appCtx.history.push({ hash: `#${hashParams.toString()}` });
+        } else {
+          await studioCtx.switchToBranch(branch);
+        }
+      }
+      onClose();
+    };
+    return (
+      <div key={branch?.id ?? MainBranchId} className={styles.row}>
+        <Button
+          type="text"
+          className={styles.branch}
+          aria-pressed={selected}
+          aria-label={branch?.name ?? "main"}
+          title={branch?.name ?? "main"}
+          onClick={spawnWrapper(onSwitch)}
+        >
+          <BranchesOutlined />
+          <span className={styles.name}>{nameWithQueryHighlighting}</span>
+          {selected && <CheckOutlined />}
+        </Button>
+        {canManage && (
+          <Dropdown
+            trigger={["click"]}
+            popupRender={getBranchMenuRenderer({
+              t,
+              branch,
+              studioCtx,
+              onClose,
+              onSwitch,
+              onRename: async () => {
+                if (branch) {
+                  await onRename(branch);
+                }
+              },
+              onDuplicate: async () => {
+                await handleCreateBranch(branch?.id);
+              },
+              onToggleProtectionMainBranch: async () => {
+                await api.setMainBranchProtection(
+                  projectId,
+                  !studioCtx.siteInfo.isMainBranchProtected,
+                );
+                await studioCtx.refreshSiteInfo();
+                studioCtx.handleBranchProtectionAlert();
+              },
+            })}
+          >
+            <Button
+              type="text"
+              icon={<MoreOutlined />}
+              aria-label={`${t("Branch actions")}: ${branch?.name ?? "main"}`}
+            />
+          </Dropdown>
+        )}
+      </div>
+    );
+  };
   return (
     <div className={styles.root} ref={outerRef} {...testIds.projectPanel}>
-      <PlasmicBranchPanel
-        style={{ zIndex: 0 }}
-        plusButton={{
-          props: {
-            tooltip: "Create new branch",
-            onClick: async () => {
+      <div className={styles.header}>
+        <strong>{t("Branches")}</strong>
+        {canManage && (
+          <Button
+            type="text"
+            icon={<PlusOutlined />}
+            onClick={spawnWrapper(async () => {
               await handleCreateBranch();
-            },
-          },
-        }}
-        searchInput={{
-          wrap: () => (
-            <PlasmicSearchInput
-              overrides={{
-                searchInput: {
-                  autoFocus: true,
-                  ref: searchInputRef,
-                  value: query,
-                  onChange: (e) => setQuery(e.target.value),
-                  onKeyUp: (e) => {
-                    if (e.key === "Escape") {
-                      if (query.trim().length === 0) {
-                        onClose();
-                      } else {
-                        dismissSearch();
-                      }
-                    }
-                  },
-                },
-
-                clearFieldIcon: {
-                  style: { display: query ? "block" : "none" },
-                  onClick: () => dismissSearch(),
-                },
-              }}
-            />
-          ),
-        }}
-      >
-        <VariableSizeList
-          key={items.map((item) => ("type" in item ? "r" : "h")).join("")}
-          ref={listRef}
-          itemData={{
-            items,
-            renamingItem,
-            setQuery,
-            setRenamingItem,
-            focusedBranch,
-          }}
-          itemCount={items.length}
-          itemSize={(index) =>
-            "type" in items[index] ? ROW_HEIGHT : HEADER_HEIGHT
-          }
-          width="100%"
-          height={window.innerHeight * 0.4}
-          overscanCount={2}
-        >
-          {({
-            data: {
-              items: _items,
-              renamingItem: _renamingItem,
-              setRenamingItem: _setRenamingItem,
-              focusedBranch: _focusedBranch,
-              setQuery: _setQuery,
-            },
-            index,
-            style,
-          }) => {
-            const currentItem = _items[index] as {
-              label?: ReactNode;
-              branch?: ApiBranch;
-              nameWithQueryHighlighting: ReactNode;
-              type?: DefaultFolderItemProps["type"];
-            };
-
-            if (!currentItem.type) {
-              return (
-                <BranchSectionHeader style={style}>
-                  {currentItem.label}
-                </BranchSectionHeader>
-              );
-            }
-
-            const branch = currentItem.branch;
-            const onSwitch = async () => {
-              dismissSearch();
-              if (
-                studioCtx.isLiveMode &&
-                APP_ROUTES.projectPreview.parse(
-                  studioCtx.appCtx.history.location.pathname,
-                )
-              ) {
-                // Avoid navigating back to dev mode
-                const hashParams = new URLSearchParams(
-                  trimStart(studioCtx.appCtx.history.location.hash, "#"),
-                );
-                hashParams.set(
-                  SEARCH_PARAM_BRANCH,
-                  branch?.name || MainBranchId,
-                );
-                studioCtx.appCtx.history.push({
-                  hash: `#${hashParams.toString()}`,
-                });
-              } else {
-                studioCtx.switchToBranch(branch);
-              }
-              onClose();
-            };
-
-            return (
-              <FolderItem
-                style={style}
-                type={currentItem.type}
-                isSelected={branch === _focusedBranch}
-                cleanName={branch?.name ?? "main"}
-                name={currentItem.nameWithQueryHighlighting}
-                renaming={_renamingItem === (branch ?? MainBranchId)}
-                menu={getBranchMenuRenderer({
-                  branch: branch,
-                  onRename: async () => {
-                    assert(branch, "Should not be able to rename main branch");
-                    await onRename(branch);
-                  },
-                  onSwitch,
-                  onDuplicate: async () => {
-                    if (await handleCreateBranch(branch?.id)) {
-                      dismissSearch();
-                    }
-                  },
-                  studioCtx,
-                  onClose,
-                  onToggleProtectionMainBranch: async () => {
-                    await api.setMainBranchProtection(
-                      projectId,
-                      !studioCtx.siteInfo.isMainBranchProtected,
-                    );
-                    await studioCtx.refreshSiteInfo();
-                    notification.success({
-                      message: `Main branch is now ${
-                        studioCtx.siteInfo.isMainBranchProtected
-                          ? "protected"
-                          : "unprotected"
-                      }`,
-                    });
-                    studioCtx.handleBranchProtectionAlert();
-                  },
-                })}
-                renamingDisabled
-                onRename={spawnWrapper(async (newName) => {
-                  assert(branch, "Renaming should be disabled for main branch");
-                  _setRenamingItem(undefined);
-                  await api.updateBranch(projectId, branch.id, {
-                    name: newName,
-                  });
-                })}
-                onClick={onSwitch}
-                tooltipActions={
-                  currentItem.type === "page" ? "Page settings" : undefined
-                }
-              />
-            );
-          }}
-        </VariableSizeList>
-      </PlasmicBranchPanel>
+            })}
+          >
+            {t("Create new branch")}
+          </Button>
+        )}
+      </div>
+      <Input
+        autoFocus
+        allowClear
+        prefix={<SearchOutlined />}
+        placeholder={t("Search branches")}
+        aria-label={t("Search branches")}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      <div className={styles.list}>
+        {shownActiveBranches.length > 0 && (
+          <>
+            <div className={styles.section}>{t("Active Branches")}</div>
+            {shownActiveBranches.map(renderBranch)}
+          </>
+        )}
+        {shownArchivedBranches.length > 0 && (
+          <>
+            <div className={styles.section}>{t("Archived Branches")}</div>
+            {shownArchivedBranches.map(renderBranch)}
+          </>
+        )}
+        {!shownActiveBranches.length && !shownArchivedBranches.length && (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={t("No branches found")}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
 function getBranchMenuRenderer({
+  t,
   branch: _branch,
   studioCtx,
   onRename,
@@ -457,6 +437,7 @@ function getBranchMenuRenderer({
   onDuplicate,
   onToggleProtectionMainBranch,
 }: {
+  t: ReturnType<typeof useI18n>["t"];
   branch: ApiBranch | undefined;
   onClose: () => void;
   onRename: () => Promise<void>;
@@ -505,7 +486,11 @@ function getBranchMenuRenderer({
                   values={{
                     part1: (
                       <strong>
-                        {isMainBranchProtected ? "Unprotect" : "Protect"}
+                        <UiText
+                          message={
+                            isMainBranchProtected ? "Unprotect" : "Protect"
+                          }
+                        />
                       </strong>
                     ),
                   }}
@@ -565,7 +550,9 @@ function getBranchMenuRenderer({
               }}
             >
               <strong>
-                {branch.status === "active" ? "Archive" : "Unarchive"}
+                <UiText
+                  message={branch.status === "active" ? "Archive" : "Unarchive"}
+                />
               </strong>{" "}
               <UiText message={"branch"} />
             </Menu.Item>,
@@ -574,7 +561,7 @@ function getBranchMenuRenderer({
               onClick={async () => {
                 if (
                   await reactConfirm({
-                    title: `Delete branch`,
+                    title: t("Delete branch"),
                     message: (
                       <>
                         <p>
@@ -588,7 +575,8 @@ function getBranchMenuRenderer({
                         </p>
                       </>
                     ),
-                    confirmLabel: "Delete",
+                    confirmLabel: t("Delete"),
+                    cancelLabel: t("Cancel"),
                   })
                 ) {
                   if (studioCtx.dbCtx().branchInfo?.id === branch.id) {
@@ -621,8 +609,12 @@ function getBranchMenuRenderer({
 
 function showBranchPermissionError(action: "create" | "delete") {
   notification.error({
-    message: "Permission denied",
-    description: `You do not have permission to ${action} branches in this project.`,
+    message: <UiText message="Permission denied" />,
+    description: (
+      <UiText message={action === "create"
+        ? "You do not have permission to create branches in this project."
+        : "You do not have permission to delete branches in this project."} />
+    ),
   });
 }
 

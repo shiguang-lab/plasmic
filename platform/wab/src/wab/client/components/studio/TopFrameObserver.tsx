@@ -13,6 +13,8 @@ import {
   HostFrameApi,
 } from "@/wab/client/frame-ctx/host-frame-api";
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   StudioAppUser,
   StudioCtx,
@@ -59,8 +61,11 @@ export interface TopFrameObserverProps {
 
 function notifyMentionedResourceGone() {
   notification.info({
-    message: "That resource no longer exists",
-    description: "It may have been deleted since it was mentioned.",
+    message: translate(getUiLocale(), "That resource no longer exists"),
+    description: translate(
+      getUiLocale(),
+      "It may have been deleted since it was mentioned.",
+    ),
   });
 }
 
@@ -165,9 +170,12 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
             studioCtx.site.flags.tagPrefix = undefined;
           }
           notification.info({
-            message: `Localization is now ${
-              studioCtx.site.flags.usePlasmicTranslation ? "on" : "off"
-            }`,
+            message: translate(
+              getUiLocale(),
+              studioCtx.site.flags.usePlasmicTranslation
+                ? "Localization is now enabled"
+                : "Localization is now disabled",
+            ),
           });
           return ok();
         });

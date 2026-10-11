@@ -44,8 +44,9 @@ import { Matcher } from "@/wab/client/components/view-common";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import AnimationEnterSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__AnimationEnterSvg";
 import PlasmicLeftAnimationSequencesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftAnimationSequencesPanel";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -445,7 +446,9 @@ export const AnimationSequencesPanel = observer(
           DEVFLAGS.presetAnimationsProjectId,
         );
       } catch (e) {
-        showError(e, { title: "Error importing preset animations." });
+        showError(e, {
+          title: translate(getUiLocale(), "Error importing preset animations."),
+        });
       }
     };
 
@@ -462,7 +465,9 @@ export const AnimationSequencesPanel = observer(
       );
 
       notification.success({
-        message: `Duplicated "${sequence.name}"`,
+        message: translate(getUiLocale(), 'Duplicated "{part1}"', {
+          part1: sequence.name,
+        }),
       });
     };
 

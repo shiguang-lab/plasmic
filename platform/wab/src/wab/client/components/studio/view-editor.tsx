@@ -23,6 +23,11 @@ import { Spotlight } from "@/wab/client/components/canvas/Spotlight";
 import { VariantsBar } from "@/wab/client/components/canvas/VariantsBar";
 import { CanvasArenaShell } from "@/wab/client/components/canvas/canvas-arena";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import {
+  getMarqueeFrames,
+  selectAllInCanvas,
+  selectMarquee,
+} from "@/wab/client/components/canvas/marquee-selection";
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
 import { getMergedTextArg } from "@/wab/client/components/canvas/view-ops";
 import { CommentsDialogs } from "@/wab/client/components/comments/CommentsDialogs";
@@ -32,6 +37,8 @@ import { ComponentPresetsModal } from "@/wab/client/components/insert-panel/Comp
 import InsertPanelWrapper from "@/wab/client/components/insert-panel/InsertPanelWrapper";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { makeFrameSizeMenu } from "@/wab/client/components/menus/FrameSizeMenu";
+import { FrameSelectionPanel } from "@/wab/client/components/sidebar-tabs/FrameSelectionPanel";
+import { MultiSelectionPanel } from "@/wab/client/components/sidebar-tabs/MultiSelectionPanel";
 import {
   ComponentOrPageTab,
   StyleTab,
@@ -143,7 +150,7 @@ interface ViewEditorProps {
   viewCtx: ViewCtx | undefined;
   previewCtx: PreviewCtx;
 }
-type ViewEditorState = {};
+type ViewEditorState = { marqueeBox?: Box };
 
 class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private canvasClipper: HTMLElement | null = null;
@@ -152,6 +159,16 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private canvasScaler = createRef<HTMLDivElement>();
   private onClipperScrollListener: (() => void) | null = null;
   private dragState?: DragState;
+  private marquee?: {
+    start: Pt;
+    box: Box;
+    isDragging: boolean;
+    viewCtx?: ViewCtx;
+    append: boolean;
+    click: () => void;
+    captureTarget?: Element;
+    pointerId?: number;
+  };
   private measureToolTargets?: {
     targetDom?: JQuery;
     targetPt?: Pt;
@@ -164,6 +181,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
   constructor(props: ViewEditorProps) {
     super(props);
+    this.state = {};
     dbg.viewEditor = this;
   }
 
@@ -244,6 +262,8 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     this.registerListener("pointerup", (e) =>
       this.handleMouseUp(e, this.viewCtx()),
     );
+    this.registerListener("pointercancel", this.cancelMarquee);
+    window.addEventListener("blur", this.cancelMarquee);
 
     // We need to make sure the wheel handler uses {passive: false} so that we
     // can call preventDefault / stopPropagation on it, to prevent the
@@ -418,6 +438,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     this.resizeObserver.observe(canvasScaler);
 
     this.focusResetListener = this.props.studioCtx.focusReset.add(() => {
+      this.cancelMarquee();
       if (this.dragState) {
         this.endDrag();
       }
@@ -431,6 +452,20 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     canvasClipper.addEventListener("scroll", this.onClipperScrollListener);
 
     const shortcutHandlers = {
+      SELECT_ALL: (e: KeyboardEvent) => {
+        const sc = this.props.studioCtx;
+        if (
+          !this.isFocusedOnCanvas() ||
+          !sc.isDevMode ||
+          sc.isInteractiveMode ||
+          this.viewCtx()?.viewOps.isEditing()
+        ) {
+          return false;
+        }
+        e.preventDefault();
+        spawn(sc.changeUnsafe(() => selectAllInCanvas(sc)));
+        return true;
+      },
       NAV_PARENT: (e: KeyboardEvent) =>
         this.focusDefaultFrame() ||
         this.handleHotkeyIfCanvasFocused(e, async () =>
@@ -843,6 +878,8 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
     this.unbindShortcutHandlers?.();
     this.unregisterListeners();
+    window.removeEventListener("blur", this.cancelMarquee);
+    this.clearMarquee();
 
     this.resizeObserver?.disconnect();
     if (this.focusResetListener) {
@@ -1035,6 +1072,28 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       return;
     }
 
+    const eventTarget = e.target as HTMLElement;
+    if (
+      [
+        this.canvasClipper,
+        this.canvas.current,
+        this.canvasScaler.current,
+      ].includes(eventTarget) ||
+      eventTarget.classList.contains("canvas-editor__canvas-clipper-grid")
+    ) {
+      this.startMarquee(e, undefined, () => {
+        spawn(
+          this.props.studioCtx.changeUnsafe(() => {
+            this.props.studioCtx.setStudioFocusOnFrame({
+              frame: undefined,
+              autoZoom: false,
+            });
+          }),
+        );
+      });
+      return;
+    }
+
     const r = this.extractEventTarget(e, focusedVc);
     if (!r) {
       return;
@@ -1091,16 +1150,16 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const internalElements = targetVc.canvasCtx.$wabInternalElements();
     if (internalElements.find((elm) => $target.is(elm))) {
       // Clicked on the empty space between root and frame
-      targetVc.change(() => {
-        targetVc.setStudioFocusByTpl(null);
-        targetVc.canvasCtx.clearRange();
-        targetVc.studioCtx.setStudioFocusOnFrame({
-          frame: targetVc.arenaFrame(),
-          autoZoom: false,
-        });
-      });
-      // We allow potentially dragging the frame by using this empty space
-      this.dragState = makeSpeculativeDragState();
+      this.startMarquee(e, targetVc, () =>
+        targetVc.change(() => {
+          targetVc.setStudioFocusByTpl(null);
+          targetVc.canvasCtx.clearRange();
+          targetVc.studioCtx.setStudioFocusOnFrame({
+            frame: targetVc.arenaFrame(),
+            autoZoom: false,
+          });
+        }),
+      );
       this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
       return;
     }
@@ -1138,6 +1197,20 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const focusable = targetVc
       .getViewOps()
       .getFinalFocusable(closest, { deepSelect }).val;
+
+    if (
+      focusable instanceof ValNode &&
+      targetVc.getViewOps().isRootNodeOfFrame(focusable.tpl)
+    ) {
+      this.startMarquee(e, targetVc, () => {
+        targetVc.getViewOps().tryFocusDomElt(closest, {
+          appendToMultiSelection: e.shiftKey,
+          deepSelect,
+          exact: false,
+        });
+      });
+      return;
+    }
 
     if (e.shiftKey || !focusable || !focusedSelectables.includes(focusable)) {
       const focusedSelectable = targetVc.getViewOps().tryFocusDomElt(closest, {
@@ -1197,6 +1270,23 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         )
       : new Pt(e.clientX, e.clientY);
     this.props.studioCtx.setCursorClientPt(clientPt);
+
+    if (this.marquee) {
+      if (
+        this.props.studioCtx.isPanMode() ||
+        this.props.studioCtx.freestyleState()
+      ) {
+        this.cancelMarquee();
+      } else {
+        this.marquee.box = Box.spanning(this.marquee.start, clientPt);
+        this.marquee.isDragging ||=
+          clientPt.dist(this.marquee.start) >= minDragPx;
+        if (this.marquee.isDragging) {
+          this.setState({ marqueeBox: this.marquee.box });
+        }
+      }
+      return;
+    }
 
     if (this.props.studioCtx.dragInsertState()) {
       await this.props.studioCtx.changeUnsafe(() => {
@@ -1332,6 +1422,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
   private handleDragEscape = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
+      this.cancelMarquee();
       if (this.dragState) {
         this.endDrag();
       }
@@ -1461,6 +1552,55 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   };
 
   private handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
+    if (this.marquee) {
+      const marquee = this.marquee;
+      const end =
+        isCanvasIframeEvent(e) && vc
+          ? frameToClientPt(new Pt(e.clientX, e.clientY), vc)
+          : new Pt(e.clientX, e.clientY);
+      marquee.box = Box.spanning(marquee.start, end);
+      this.clearMarquee();
+      this.setState({ marqueeBox: undefined });
+      if (marquee.isDragging) {
+        const sc = this.props.studioCtx;
+        const frames = !marquee.viewCtx
+          ? getMarqueeFrames(sc, marquee.box)
+          : [];
+        if (frames.length) {
+          spawn(
+            sc.changeUnsafe(() =>
+              sc.setStudioFocusOnFrames(
+                marquee.append ? [...sc.focusedFrames(), ...frames] : frames,
+              ),
+            ),
+          );
+          return;
+        }
+        const targetVc =
+          marquee.viewCtx ??
+          this.props.studioCtx.viewCtxs
+            .filter((viewCtx) => viewCtx.isVisible())
+            .reduce<ViewCtx | undefined>((best, viewCtx) => {
+              const overlapArea = (candidate: ViewCtx | undefined) => {
+                const overlap =
+                  candidate &&
+                  Box.fromRect(
+                    candidate.canvasCtx.viewport().getBoundingClientRect(),
+                  ).intersection(marquee.box);
+                return overlap ? overlap.width() * overlap.height() : 0;
+              };
+              return overlapArea(viewCtx) > overlapArea(best) ? viewCtx : best;
+            }, undefined);
+        if (targetVc) {
+          selectMarquee(targetVc, marquee.box, marquee.append);
+        } else if (!marquee.append) {
+          marquee.click();
+        }
+      } else {
+        marquee.click();
+      }
+      return;
+    }
     if (this.props.studioCtx.isPanning()) {
       this.props.studioCtx.endPanning();
       e.preventDefault(); // avoid generating a paste event on Linux
@@ -1481,6 +1621,58 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       this.endDrag();
     }
   }
+
+  private startMarquee(
+    e: MouseEvent,
+    viewCtx: ViewCtx | undefined,
+    click: () => void,
+  ) {
+    maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
+    const start =
+      isCanvasIframeEvent(e) && viewCtx
+        ? frameToClientPt(new Pt(e.clientX, e.clientY), viewCtx)
+        : new Pt(e.clientX, e.clientY);
+    const captureTarget = e.target as Element;
+    const pointerId =
+      "pointerId" in e && typeof e.pointerId === "number"
+        ? e.pointerId
+        : undefined;
+    this.marquee = {
+      start,
+      box: start.toZeroBox(),
+      isDragging: false,
+      viewCtx,
+      append: e.shiftKey,
+      click,
+      captureTarget,
+      pointerId,
+    };
+    if (pointerId !== undefined) {
+      captureTarget.setPointerCapture(pointerId);
+    }
+    document.addEventListener("keydown", this.handleDragEscape);
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  private clearMarquee() {
+    const marquee = this.marquee;
+    this.marquee = undefined;
+    if (
+      marquee?.pointerId !== undefined &&
+      marquee.captureTarget?.hasPointerCapture(marquee.pointerId)
+    ) {
+      marquee.captureTarget.releasePointerCapture(marquee.pointerId);
+    }
+    document.removeEventListener("keydown", this.handleDragEscape);
+  }
+
+  private cancelMarquee = () => {
+    if (this.marquee) {
+      this.clearMarquee();
+      this.setState({ marqueeBox: undefined });
+    }
+  };
 
   private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
     if (
@@ -1776,6 +1968,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         true,
       );
       doc.addEventListener("pointerup", (e) => this.handleMouseUp(e, vc));
+      doc.addEventListener("pointercancel", this.cancelMarquee);
       doc.addEventListener("pointermove", (e) =>
         spawn(this.handleMouseMove(e, vc)),
       );
@@ -1863,35 +2056,6 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 "canvas-editor__canvas-container__focus_mode":
                   studioCtx.focusedMode,
               })}
-              onPointerDown={(e) => {
-                if (
-                  !studioCtx.isInteractiveMode &&
-                  !studioCtx.isPanMode() &&
-                  e.button === 0 &&
-                  ((e.target instanceof Element &&
-                    e.target.matches(".canvas-editor__canvas")) ||
-                    $(e.target).parents().is(".canvas-editor__frames"))
-                ) {
-                  // Make sure that the onBlur events are called before resetting
-                  // the focus.
-                  maybeInstance(document.activeElement, HTMLElement, (ae) =>
-                    ae.blur(),
-                  );
-                  spawn(
-                    studioCtx.changeUnsafe(() =>
-                      studioCtx.setStudioFocusOnFrame(
-                        // By clicking the empty area on the canvas, it will select
-                        // the current frame if using focused mode, otherwise
-                        // it'll just clear selection
-                        {
-                          frame: undefined,
-                          autoZoom: false,
-                        },
-                      ),
-                    ),
-                  );
-                }
-              }}
               // Handle drag-n-drop files into blank canvas
               onDrop={async (e) => this.handleDrop(e)}
               // Prevents the file from being loaded in a new tab when dropped
@@ -1965,6 +2129,17 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                         )}
                         <MeasureTool />
                         <FreestyleBox />
+                        {this.state.marqueeBox && studioCtx.viewportCtx && (
+                          <div
+                            className="canvas-editor__marquee"
+                            style={{
+                              ...studioCtx.viewportCtx
+                                .clientToScaler(this.state.marqueeBox)
+                                .rect(),
+                              borderWidth: 1 / studioCtx.zoom,
+                            }}
+                          />
+                        )}
                         <input
                           className="hidden-image-selector"
                           type="file"
@@ -2017,10 +2192,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 <CanvasAiComposer studioCtx={studioCtx} />
               )}
             </div>
-            <RightPane
-              studioCtx={studioCtx}
-              disabled={(this.viewCtx()?.focusedTpls().length ?? 0) > 1}
-            />
+            <RightPane studioCtx={studioCtx} />
             <FloatingWindowLayer>
               <CommentsDialogs studioCtx={studioCtx} />
             </FloatingWindowLayer>
@@ -2059,15 +2231,17 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
 export const ViewEditor = observer(ViewEditor_);
 
-const RightPane = observer(function RightPane(props: {
-  studioCtx: StudioCtx;
-  disabled?: boolean;
-}) {
-  const { studioCtx, disabled } = props;
+const RightPane = observer(function RightPane(props: { studioCtx: StudioCtx }) {
+  const { studioCtx } = props;
 
   const [hover, setHover] = React.useState(false);
 
   const focusedViewCtx = studioCtx.focusedViewCtx();
+  const isFrameSelection = studioCtx.focusedFrames().length > 1;
+  const selectionCount = isFrameSelection
+    ? studioCtx.focusedFrames().length
+    : (focusedViewCtx?.focusedSelectables().length ?? 0);
+  const isMultiSelection = selectionCount > 1;
   const focusedOrFirstViewCtx = studioCtx.focusedOrFirstViewCtx();
   const selectedTpl = focusedViewCtx?.focusedTpl();
   const selectionTitle = selectedTpl
@@ -2126,14 +2300,14 @@ const RightPane = observer(function RightPane(props: {
   }
 
   React.useEffect(() => {
-    if (tabs.length === 1) {
+    if (tabs.length === 1 && !isMultiSelection) {
       studioCtx.switchRightTab(tabs[0].key as RightTabKey);
     }
-  }, [tabs.length]);
+  }, [tabs.length, isMultiSelection]);
 
   const showCommentsPanel =
     studioCtx.showComments() && studioCtx.showCommentsPanel;
-  if (tabs.length === 0 && !showCommentsPanel) {
+  if (tabs.length === 0 && !showCommentsPanel && !isFrameSelection) {
     return null;
   }
 
@@ -2148,35 +2322,52 @@ const RightPane = observer(function RightPane(props: {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {disabled && !studioCtx.showCommentsPanel && (
-        <div className="canvas-editor__disable-right-pane" />
-      )}
       {showCommentsPanel ? (
         <CommentsTab />
       ) : (
         <>
           <div className="editor-panel-header">
-            <strong className="editor-panel-title" title={inspectorTitle}>
-              {inspectorTitle}
+            <strong
+              className="editor-panel-title"
+              title={isMultiSelection ? undefined : inspectorTitle}
+            >
+              {isMultiSelection ? (
+                <UiText
+                  message={
+                    isFrameSelection
+                      ? "{count} artboards selected"
+                      : "{count} layers selected"
+                  }
+                  values={{ count: selectionCount }}
+                />
+              ) : (
+                inspectorTitle
+              )}
             </strong>
           </div>
-          <Tabs
-            className="editor-inspector-tabs"
-            activeKey={studioCtx.rightTabKey}
-            onChange={(tabKey) =>
-              studioCtx.switchRightTab(tabKey as RightTabKey)
-            }
-            destroyOnHidden
-            items={tabs.map((tab) => ({
-              key: tab.key,
-              label: tab.name,
-              children: (
-                <div className="vlist-scrollable-descendant">
-                  {tab.contents()}
-                </div>
-              ),
-            }))}
-          />
+          {isFrameSelection ? (
+            <FrameSelectionPanel studioCtx={studioCtx} />
+          ) : isMultiSelection && focusedViewCtx ? (
+            <MultiSelectionPanel viewCtx={focusedViewCtx} />
+          ) : (
+            <Tabs
+              className="editor-inspector-tabs"
+              activeKey={studioCtx.rightTabKey}
+              onChange={(tabKey) =>
+                studioCtx.switchRightTab(tabKey as RightTabKey)
+              }
+              destroyOnHidden
+              items={tabs.map((tab) => ({
+                key: tab.key,
+                label: tab.name,
+                children: (
+                  <div className="vlist-scrollable-descendant">
+                    {tab.contents()}
+                  </div>
+                ),
+              }))}
+            />
+          )}
         </>
       )}
     </DevContainer>,

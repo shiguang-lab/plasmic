@@ -486,7 +486,7 @@ const SizeControl = observer(function SizeRow(props: {
         isTplComponent(tpl)
           ? {
               value: "default",
-              label: "Default",
+              label: uiT("Default"),
             }
           : undefined,
       ])

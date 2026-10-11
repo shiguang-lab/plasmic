@@ -2,7 +2,7 @@ import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import type { UsageSummary } from "@/wab/client/operations/delete-resources";
 import { zIndex } from "@/wab/client/z-index";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
@@ -129,9 +129,11 @@ export async function confirm(opts: {
             autoFocus
             data-test-id="confirm"
           >
-            {confirmLabel ?? "Confirm"}
+            <UiLabel text={confirmLabel ?? "Confirm"} />
           </Button>
-          <Button onClick={() => onCancel()}>{cancelLabel ?? "Cancel"}</Button>
+          <Button onClick={() => onCancel()}>
+            <UiLabel text={cancelLabel ?? "Cancel"} />
+          </Button>
         </Form.Item>
       </Form>
     </Modal>
@@ -295,7 +297,7 @@ export async function reactPrompt(opts: ReactPromptOpts) {
             htmlType="submit"
             data-test-id="prompt-submit"
           >
-            {actionText ?? "Submit"}
+            {actionText ?? <UiText message="Submit" />}
           </Button>
           <Button onClick={() => onCancel()}>
             <UiText message={"Cancel"} />
@@ -325,7 +327,11 @@ export async function deleteStudioElementConfirm(
       <>
         {usages.map(({ element, summary }) => (
           <p>
-            {element.name ? <strong>{element.name}</strong> : "It"}{" "}
+            {element.name ? (
+              <strong>{element.name}</strong>
+            ) : (
+              <UiText message="It" />
+            )}{" "}
             <UiText message={"is still being used in:"} />
             <ul>
               {makeUsageControl(
@@ -370,7 +376,7 @@ const makeUsageControl = (usageName: string, names?: Array<string>) => {
   }
   return (
     <li key={usageName}>
-      {usageName}:{" "}
+      <UiLabel text={usageName} />:{" "}
       <span className="asset-usage-items">
         {joinReactNodes(
           names.map((name, i) => <code key={i}>{name}</code>),

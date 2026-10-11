@@ -1,0 +1,78 @@
+[
+  [
+    "projects",
+    "项目首页 · 默认网格"
+  ],
+  [
+    "list",
+    "项目首页 · 列表视图"
+  ],
+  [
+    "org",
+    "组织 · 工作区资源分组"
+  ],
+  [
+    "workspace",
+    "工作区 · 项目浏览"
+  ],
+  [
+    "data",
+    "工作区 · CMS 空态"
+  ],
+  [
+    "playground",
+    "个人试验场 · 首次创建"
+  ],
+  [
+    "playground-data",
+    "个人试验场 · 数据源"
+  ],
+  [
+    "new-project",
+    "轻量创建入口"
+  ],
+  [
+    "new-project-workspace",
+    "工作区内创建 · 保留上下文"
+  ],
+  [
+    "project-menu",
+    "项目上下文操作"
+  ],
+  [
+    "rename",
+    "项目名称编辑"
+  ],
+  [
+    "duplicate",
+    "复制 · 名称与目标工作区"
+  ],
+  [
+    "workspace-menu",
+    "工作区操作"
+  ],
+  [
+    "share",
+    "工作区分享"
+  ],
+  [
+    "share-roles",
+    "完整五种邀请角色"
+  ],
+  [
+    "sort",
+    "两种原有排序"
+  ],
+  [
+    "filter",
+    "按工作区筛选"
+  ],
+  [
+    "search-empty",
+    "搜索无结果"
+  ],
+  [
+    "account-menu",
+    "账户菜单"
+  ]
+]

@@ -51,7 +51,9 @@ function CanvasHeader_(props: {
   frame: ArenaFrame;
 }) {
   const { studioCtx, frame, arena } = props;
-  const isFocused = studioCtx.focusedContentFrame() === frame;
+  const isFocused =
+    studioCtx.focusedFrames().includes(frame) ||
+    studioCtx.focusedContentFrame() === frame;
   const isFocusedFrame = studioCtx.focusedViewCtx()?.arenaFrame() === frame;
   const shouldShowFrameConfigButton =
     !studioCtx.focusedMode && (!isComponentArena(arena) || isFocusedFrame);
@@ -89,7 +91,11 @@ function CanvasHeader_(props: {
           }
           e.stopPropagation();
           await studioCtx.changeUnsafe(() =>
-            studioCtx.setStudioFocusOnFrame({ frame: frame, autoZoom: false }),
+            studioCtx.setStudioFocusOnFrame({
+              frame,
+              autoZoom: false,
+              appendToMultiSelection: e.shiftKey,
+            }),
           );
         }}
       >

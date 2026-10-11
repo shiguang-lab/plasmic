@@ -1,0 +1,35 @@
+{
+  "projectId": "1Tn5QZywpzJQBKpJgUnx8v",
+  "source": "Local code generation API via the actual CLI API client",
+  "browserBuild": "passed",
+  "serverBuild": "passed",
+  "render": [
+    {
+      "page": "Page1",
+      "htmlBytes": 250,
+      "contentVerified": true
+    },
+    {
+      "page": "Page2",
+      "htmlBytes": 250,
+      "contentVerified": true
+    },
+    {
+      "page": "Page3",
+      "htmlBytes": 250,
+      "contentVerified": true
+    },
+    {
+      "page": "Page4",
+      "htmlBytes": 250,
+      "contentVerified": true
+    }
+  ],
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@plasmicapp/react-web": "1.0.39"
+  },
+  "artifact": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-ui-code-acceptance-072plfd8/generated-source.zip",
+  "scope": "Four simple acceptance pages; authenticated CLI sync and complex business component exports remain to be verified."
+}

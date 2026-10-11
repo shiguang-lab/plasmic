@@ -7,6 +7,8 @@ import {
   ensureWebsiteVersionSaved,
   publishCurrentWebsite,
 } from "@/wab/client/components/TopFrame/TopBar/publish-website";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 /** @format */
 
 import { apiKey } from "@/wab/client/api";
@@ -695,8 +697,11 @@ export const PublishFlowDialogWrapper = observer(
           });
         } else {
           notification.warning({
-            message: "The latest publish failed",
-            description: `An error occurred when publishing. Please try again!`,
+            message: translate(getUiLocale(), "The latest publish failed"),
+            description: translate(
+              getUiLocale(),
+              "An error occurred when publishing. Please try again!",
+            ),
           });
         }
       }

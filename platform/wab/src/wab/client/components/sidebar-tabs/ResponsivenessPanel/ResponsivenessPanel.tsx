@@ -6,8 +6,9 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { useResponsiveBreakpoints } from "@/wab/client/hooks/useResponsiveBreakpoints";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import PlasmicButton from "@/wab/client/plasmic/PlasmicButton";
 import PlasmicIcon__Plus from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import PlasmicIcon__Trash2 from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
@@ -53,18 +54,23 @@ function MissingFrameWarning_({
   variant?: Variant;
   iconClassName?: string;
 }) {
+  const { t: uiT } = useI18n();
+
   const studioCtx = useStudioCtx();
 
   return (
     <Popconfirm
-      title={`There are no page ${FRAMES_LOWER} corresponding to this breakpoint yet.`}
+      title={uiT(
+        "There are no page {part1} corresponding to this breakpoint yet.",
+        { part1: translateUiLabel(getUiLocale(), FRAMES_LOWER) },
+      )}
       overlayStyle={{ maxWidth: 250 }}
       placement={"top"}
       cancelButtonProps={{
         style: { display: "none" },
       }}
       trigger={["click"]}
-      okText={`Add matching ${FRAME_LOWER}`}
+      okText={uiT("Add matching artboard")}
       onConfirm={() =>
         studioCtx.changeUnsafe(() =>
           studioCtx.siteOps().addMatchingArenaFrame(variant),
@@ -448,8 +454,8 @@ export function ResponsivenessPanel_() {
                               );
                             })
                           }
-                          cancelText="No"
-                          okText="Yes"
+                          cancelText={uiT("No")}
+                          okText={uiT("Yes")}
                         >
                           <Icon
                             icon={PlasmicIcon__Trash2}

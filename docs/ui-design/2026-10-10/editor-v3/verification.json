@@ -1,0 +1,274 @@
+{
+  "method": "Offline DOM execution only; no network or browser rendering",
+  "views": {
+    "focused": {
+      "title": "01 · 选中组件 · Plasmic 编辑器 V3",
+      "routeCount": 23,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "overview": {
+      "title": "02 · 页面与画板组 · Plasmic 编辑器 V3",
+      "routeCount": 35,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "library": {
+      "title": "03 · 插入与已安装组件 · Plasmic 编辑器 V3",
+      "routeCount": 38,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "search": {
+      "title": "04 · 全局资源搜索 · Plasmic 编辑器 V3",
+      "routeCount": 31,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "store": {
+      "title": "05 · 组件商店 · Plasmic 编辑器 V3",
+      "routeCount": 46,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "installed": {
+      "title": "06 · 安装完成 · Plasmic 编辑器 V3",
+      "routeCount": 46,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "manage": {
+      "title": "07 · 库与依赖管理 · Plasmic 编辑器 V3",
+      "routeCount": 53,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "resources": {
+      "title": "08 · 设计资源 · Plasmic 编辑器 V3",
+      "routeCount": 30,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "view": {
+      "title": "09 · 视图与缩放 · Plasmic 编辑器 V3",
+      "routeCount": 32,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "delivery": {
+      "title": "10 · 发布与代码 · Plasmic 编辑器 V3",
+      "routeCount": 30,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "light": {
+      "title": "11 · 浅色主题 · Plasmic 编辑器 V3",
+      "routeCount": 23,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "readonly": {
+      "title": "12 · 只读与权限 · Plasmic 编辑器 V3",
+      "routeCount": 23,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "left",
+        "inspector"
+      ]
+    },
+    "component": {
+      "title": "13 · 项目组件编辑 · Plasmic 编辑器 V3",
+      "routeCount": 35,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "history": {
+      "title": "14 · 历史与项目设置 · Plasmic 编辑器 V3",
+      "routeCount": 33,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "comments": {
+      "title": "15 · 协作评论 · Plasmic 编辑器 V3",
+      "routeCount": 25,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "issues": {
+      "title": "16 · 问题检查 · Plasmic 编辑器 V3",
+      "routeCount": 22,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "inspector"
+      ]
+    },
+    "share": {
+      "title": "17 · 分享权限 · Plasmic 编辑器 V3",
+      "routeCount": 27,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "code": {
+      "title": "18 · 代码交付 · Plasmic 编辑器 V3",
+      "routeCount": 26,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    },
+    "preview": {
+      "title": "19 · 页面预览 · Plasmic 编辑器 V3",
+      "routeCount": 5,
+      "common": []
+    },
+    "navigation": {
+      "title": "20 · 当前文档导航 · Plasmic 编辑器 V3",
+      "routeCount": 26,
+      "common": [
+        "world",
+        "project",
+        "actions",
+        "rail",
+        "viewport",
+        "composer",
+        "left",
+        "inspector"
+      ]
+    }
+  }
+}

@@ -382,7 +382,7 @@ const fileUploaderAcceptConfig = {
     dropText: "Drop image to upload",
   },
   svg: { inputAccept: ".svg", dropText: "Drop SVG to upload" },
-};
+} as const;
 
 export type FileUploaderAccept = keyof typeof fileUploaderAcceptConfig;
 
@@ -415,7 +415,7 @@ export function FileUploader(props: FileUploaderProps) {
             })}
           >
             <Icon icon={UploadSvgIcon} size={24} />
-            <span>{dropText}</span>
+            <span>{uiT(dropText)}</span>
           </div>
         )}
         <input

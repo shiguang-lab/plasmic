@@ -161,7 +161,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
         <LabeledItemRow label={uiT("Value")}>
           {selectedTokenType === "code" ? (
             <CodeEditor
-              title={token.name || "Data Token Value"}
+              title={token.name || uiT("Data Token Value")}
               value={value}
               onChange={(val) => {
                 if (!isNil(val)) {

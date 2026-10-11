@@ -6,7 +6,8 @@ import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultTeamSettingsProps,
@@ -140,13 +141,19 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
               })
             ) {
               notification.error({
-                message: `Upgrade this ${ORGANIZATION_LOWER} before transferring ownership.`,
+                message: translate(
+                  getUiLocale(),
+                  "Upgrade this {part1} before transferring ownership.",
+                  {
+                    part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+                  },
+                ),
               });
               return;
             }
             // Confirm user is trying to transfer "owner" to another member.
             const confirm = await reactConfirm({
-              title: `Transfer ownership`,
+              title: translate(getUiLocale(), "Transfer ownership"),
               message: (
                 <>
                   <UiText

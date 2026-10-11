@@ -1,5 +1,6 @@
 import { Modal } from "@/wab/client/components/widgets/Modal";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import "@graphiql/plugin-explorer/dist/style.css";
 import type { CrudSorting } from "@pankod/refine-core";
@@ -161,7 +162,6 @@ import { isDynamicValue } from "@/wab/shared/dynamic-bindings";
 import { tryEvalExpr } from "@/wab/shared/eval";
 import {
   A_DATA_SOURCE_LOWER,
-  DATA_QUERY_CAP,
   DATA_SOURCE_CAP,
   DATA_SOURCE_LOWER,
   DATA_SOURCE_OPERATION_LOWER,
@@ -826,6 +826,7 @@ const DataSourceOpExprFormAndPreview = observer(
     exprCtx: ExprCtx;
     interaction?: Interaction;
   }) {
+    const { t: uiT } = useI18n();
     const {
       value,
       sourceType,
@@ -964,9 +965,11 @@ const DataSourceOpExprFormAndPreview = observer(
           );
         } else {
           notification.error({
-            message: `Missing required fields: ${missingRequiredArgs.join(
-              ", ",
-            )}`,
+            message: translate(
+              getUiLocale(),
+              "Missing required fields: {part1}",
+              { part1: missingRequiredArgs.join(", ") },
+            ),
           });
         }
         setGettingOpId(false);
@@ -1117,16 +1120,16 @@ const DataSourceOpExprFormAndPreview = observer(
                   startIcon={<Icon icon={SearchIcon} />}
                   {...(missingRequiredArgs.length > 0
                     ? {
-                        tooltip: `Missing required fields: ${missingRequiredArgs.join(
-                          ", ",
-                        )}`,
+                        tooltip: uiT("Missing required fields: {part1}", {
+                          part1: missingRequiredArgs.join(", "),
+                        }),
                       }
                     : {})}
                 >
                   {opMeta?.type === "read" ? (
                     <UiText message={"Preview"} />
                   ) : isExecuting || executeQueue.length > 0 ? (
-                    "Executing..."
+                    uiT("Executing...")
                   ) : (
                     <UiText message={"Execute"} />
                   )}
@@ -1493,7 +1496,8 @@ export function DataSourceOpDraftForm(props: {
                 placeholder={
                   maybes(opName)((name) =>
                     sourceMeta.ops.find((op) => op.name === name),
-                  )((opm) => opm.label ?? opm.name)() ?? "Select an operation"
+                  )((opm) => opm.label ?? opm.name)() ??
+                  uiT("Select an operation")
                 }
                 onChange={(newOpName) => {
                   onChange({
@@ -1816,7 +1820,9 @@ export function DataSourceOpDraftForm(props: {
                   <LabeledItemRow
                     label={uiT("Query group")}
                     key={"cacheKey"}
-                    tooltip={`Assign this query to a query group. Then from interactions, you can refresh entire query groups.`}
+                    tooltip={uiT(
+                      "Assign this query to a query group. Then from interactions, you can refresh entire query groups.",
+                    )}
                   >
                     <TemplatedTextEditorWithMenuIndicator
                       value={cacheKey}
@@ -2088,10 +2094,11 @@ function DataSourceOpDataPreview(props: {
       } catch (err) {
         const sourceMeta = source && getDataSourceMeta(source.source);
         notification.error({
-          message: `Operation "${
-            sourceMeta?.ops.find((op) => op.name === opExpr.opName)?.label ??
-            opExpr.opName
-          }" failed`,
+          message: translate(getUiLocale(), 'Operation "{part1}" failed', {
+            part1:
+              sourceMeta?.ops.find((op) => op.name === opExpr.opName)?.label ??
+              opExpr.opName,
+          }),
           description: err.message,
         });
       }
@@ -2223,7 +2230,7 @@ function DataSourceOpDataPreview(props: {
                       rowKey={"id"}
                       columns={[
                         {
-                          title: "Field Name",
+                          title: uiT("Field Name"),
                           dataIndex: "id",
                           key: "name",
                         },
@@ -3351,6 +3358,7 @@ const InputToggleWrapper = observer(function InputToggleWrapper({
   children: React.ReactNode;
   "data-plasmic-prop"?: string;
 }) {
+  const { label } = useI18n();
   return (
     <div className="flex-col gap-sm flex-align-start fill-width">
       <StyleToggleButtonGroup
@@ -3362,8 +3370,8 @@ const InputToggleWrapper = observer(function InputToggleWrapper({
           <StyleToggleButton
             key={op.value}
             value={op.value}
-            label={op.label}
-            tooltip={op.tooltip}
+            label={label(op.label)}
+            tooltip={op.tooltip ? label(op.tooltip) : undefined}
             showLabel
             noIcon
             data-plasmic-prop={`${dataPlasmicProp}-${op.value}`}
@@ -3492,7 +3500,7 @@ export function DataSourceOpDataPreviewModal(props: {
   const { title, expr, env, onClose, opType, exprCtx } = props;
   return (
     <Modal
-      title={title ?? `${DATA_QUERY_CAP} result`}
+      title={title ?? <UiText message="Data query result" />}
       onCancel={(e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -3604,7 +3612,9 @@ export function DataSourcePicker({
           placeholder={
             isLoading
               ? uiT("Loading")
-              : `Select ${A_DATA_SOURCE_LOWER} from your workspace to use`
+              : uiT("Select {part1} from your workspace to use", {
+                  part1: translateUiLabel(getUiLocale(), A_DATA_SOURCE_LOWER),
+                })
           }
           valueSetState={sourceId ? "isSet" : undefined}
           isDisabled={disabled || isLoading}

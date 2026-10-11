@@ -38,8 +38,9 @@ import {
   useDataSource,
   useTopFrameApi,
 } from "@/wab/client/contexts/AppContexts";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -498,6 +499,8 @@ export function VariableEditor(props: {
   variableTypes?: StateVariableType[];
   attr: string;
 }) {
+  const { t: uiT } = useI18n();
+
   const {
     component,
     studioCtx,
@@ -545,7 +548,9 @@ export function VariableEditor(props: {
       {justAddedState && (
         <SidebarModal
           show
-          title={`New ${VARIABLE_LOWER}`}
+          title={uiT("New {part1}", {
+            part1: translateUiLabel(getUiLocale(), VARIABLE_LOWER),
+          })}
           onClose={() => {
             setJustAddedState(undefined);
             // we need to wait for the transition between modals end
@@ -705,7 +710,7 @@ export function InteractionExprEditor(props: {
           const invalidCodeMessage = validateInteractionCode(runValue);
           if (invalidCodeMessage) {
             notification.error({
-              message: "Invalid run code",
+              message: translate(getUiLocale(), "Invalid run code"),
               description: invalidCodeMessage,
             });
             return;
@@ -731,7 +736,7 @@ export function InteractionExprEditor(props: {
             setHidePreview(false);
           } catch (err) {
             notification.error({
-              message: "Failed to run this action",
+              message: translate(getUiLocale(), "Failed to run this action"),
               description: err.message,
             });
           }
@@ -1122,10 +1127,12 @@ export async function promptForParamName(
   component: Component,
 ): Promise<string | undefined> {
   let name = await reactPrompt({
-    message: `Enter name for a new prop for "${getComponentDisplayName(
-      component,
-    )}":`,
-    placeholder: "Prop name",
+    message: translate(
+      getUiLocale(),
+      'Enter name for a new prop for "{part1}":',
+      { part1: getComponentDisplayName(component) },
+    ),
+    placeholder: translate(getUiLocale(), "Prop name"),
     actionText: "Confirm",
   });
   if (!name) {
@@ -1136,7 +1143,7 @@ export async function promptForParamName(
   const validName = tplMgr.getUniqueParamName(component, name);
   if (validName !== name) {
     notification.info({
-      message: "New prop created",
+      message: translate(getUiLocale(), "New prop created"),
       description: (
         <>
           <UiText

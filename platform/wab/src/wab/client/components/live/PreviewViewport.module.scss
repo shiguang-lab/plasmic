@@ -12,18 +12,6 @@
   inset: 0;
 }
 
-.status {
-  flex: 0 0 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--preview-surface);
-  color: var(--preview-muted);
-  border-top: 1px solid var(--preview-border);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
 .controls {
   display: flex;
   align-items: center;

@@ -1,0 +1,38 @@
+{
+  "projectId": "1Tn5QZywpzJQBKpJgUnx8v",
+  "environment": "isolated local UI interaction acceptance",
+  "verified": [
+    "Real file chooser PNG upload shows Asset uploaded and actual thumbnail",
+    "Asset preview shows 64 x 48",
+    "Saved status appears after upload",
+    "Reloaded editor retains uploaded PNG asset",
+    "Clicking PNG card inserts image into Page1 and property panel shows actual asset reference and 64 x 48 source dimensions",
+    "Saved status appears after insertion",
+    "Reloaded live Preview displays uploaded image; DOM natural dimensions are 64 x 48"
+  ],
+  "liveImage": {
+    "src": "http://127.0.0.1:8334/assets/0cdc5791920f6d8c719b8e10f32d7ecb.png",
+    "naturalWidth": 64,
+    "naturalHeight": 48,
+    "complete": true
+  },
+  "localConfiguration": {
+    "defaultHostUrl": "http://localhost:3003/static/host.html",
+    "imgOptimizerHost": "",
+    "scope": "Isolated test database only; original asset URL rendering path"
+  },
+  "screenshots": [
+    "resources-png-reopened-dark.png",
+    "resources-png-preview-dark.png",
+    "resources-png-inserted-dark.png",
+    "resources-png-live-preview.png"
+  ],
+  "remaining": [
+    "PNG insertion Undo/Redo after reload",
+    "Download artifact",
+    "Read-only E2E",
+    "Multiple templates across categories and rows",
+    "Complex template runtime contracts"
+  ],
+  "complete": false
+}

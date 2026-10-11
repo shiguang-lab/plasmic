@@ -1,141 +1,431 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ui-appearance="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title data-ui-message="Sign in to Plasmic">Sign in to Plasmic</title>
+    <script>
+      (() => {
+        let preference = "system";
+        try {
+          preference =
+            localStorage.getItem("shiguang.ui.appearance") || "system";
+        } catch {}
+        document.documentElement.dataset.uiAppearance =
+          preference === "light" || preference === "dark"
+            ? preference
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.platform =
+          navigator.userAgent.includes("PlasmicDesktop/darwin")
+            ? "mac"
+            : "other";
+      })();
+    </script>
     <style>
       :root {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: #1d2536;
-        background: #f7f8fa;
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "PingFang SC",
+          "Microsoft YaHei",
+          sans-serif;
+        color-scheme: dark;
+        --bg: #15161b;
+        --panel: #202128;
+        --surface: #272831;
+        --border: #373842;
+        --text: #edeef5;
+        --muted: #9295a7;
+        --accent: #9474ff;
+        --accent-soft: #37304e;
+        --green: #64c5a1;
+        --red: #ff8d95;
+        --page-inset: clamp(40px, 4.5vw, 72px);
+        --card-inset: clamp(20px, 2.25vw, 36px);
+        color: var(--text);
+        background: var(--bg);
+      }
+      :root[data-ui-appearance="light"] {
+        color-scheme: light;
+        --bg: #eceef4;
+        --panel: #fff;
+        --surface: #f6f7fb;
+        --border: #d6dae5;
+        --text: #252936;
+        --muted: #68738a;
+        --accent: #7852df;
+        --accent-soft: #eee8ff;
+        --green: #208669;
+        --red: #bd3b4b;
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 24px;
       }
-      .login-content {
-        width: min(520px, 100%);
-        text-align: center;
-      }
-      .logo {
-        width: 56px;
-        height: 34px;
-        display: block;
-        margin: 0 auto 24px;
-      }
-      .eyebrow {
-        margin: 0 0 10px;
-        color: #929baa;
-        font-size: 11px;
-        line-height: 16px;
-        letter-spacing: 1.3px;
-      }
-      h1 {
-        font-size: 22px;
-        font-weight: 650;
-        line-height: 1.4;
-        letter-spacing: -0.4px;
-        margin: 0 0 12px;
-      }
+      h1,
+      h2,
       p {
-        font-size: 13px;
-        color: #758094;
-        line-height: 1.75;
         margin: 0;
       }
-      .status {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        margin: 24px 0;
-        color: #9099a8;
-        font-size: 12px;
-      }
-      .spinner {
-        width: 14px;
-        height: 14px;
-        border: 2px solid #e8edf4;
-        border-top-color: #1677ff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+      button {
+        font: inherit;
+        color: inherit;
       }
       button {
-        font:
-          500 13px/1 -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
         cursor: pointer;
-        height: 34px;
-        padding: 0 13px;
-        border: 1px solid #e2e6ed;
-        border-radius: 7px;
-        background: #fff;
-        color: #4d586b;
-        transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 40px;
+        padding: 7px 13px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
       }
       button:hover {
-        background: #f7f8fa;
+        filter: brightness(1.08);
       }
       button.primary {
-        background: #1677ff;
-        border-color: #1677ff;
+        background: var(--accent);
+        border-color: var(--accent);
         color: white;
       }
-      button.primary:hover {
-        background: #0966e8;
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
       }
       button:focus-visible {
-        outline: 3px solid #1677ff40;
-        outline-offset: 2px;
+        outline: 2px solid var(--accent);
+        outline-offset: 4px;
       }
-      button:disabled {
-        opacity: 0.45;
-        cursor: default;
+      [hidden] {
+        display: none !important;
+      }
+      .icon {
+        width: 18px;
+        height: 18px;
+        flex: none;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .window-drag-region {
+        position: fixed;
+        inset: 0 0 auto;
+        height: 52px;
+        -webkit-app-region: drag;
+        z-index: 3;
+      }
+      .chrome-brand {
+        position: absolute;
+        top: 12px;
+        left: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        z-index: 4;
+        -webkit-app-region: drag;
+      }
+      .chrome-brand svg {
+        width: 22px;
+        height: 22px;
+        fill: var(--accent);
+      }
+      :root[data-platform="mac"] .chrome-brand {
+        left: 16px;
+        top: 16px;
+        height: 48px;
+        padding: 0 16px 0 80px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--panel);
+      }
+      :root[data-platform="mac"] .window-drag-region {
+        height: 80px;
+      }
+      .auth-settings {
+        position: absolute;
+        right: calc(var(--page-inset) + var(--card-inset));
+        top: 72px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 4;
+        color: var(--muted);
+        font-size: 12px;
+        -webkit-app-region: no-drag;
+      }
+      :root[data-platform="mac"] .auth-settings {
+        top: 16px;
+        right: 16px;
+        height: 48px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--panel);
+      }
+      .settings-dropdown { position: relative; }
+      .settings-trigger {
+        height: 34px;
+        background: transparent;
+        border-color: transparent;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .settings-trigger[aria-expanded="true"] { background: var(--surface); }
+      .settings-menu {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        min-width: 180px;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        box-shadow: 0 12px 32px #0003;
+      }
+      .settings-menu button {
+        width: 100%;
+        justify-content: space-between;
+        border: 0;
+        background: transparent;
+        padding: 9px 12px;
+        font-size: 13px;
+        text-align: left;
+      }
+      .settings-menu button:hover, .settings-menu button:focus-visible {
+        background: var(--surface);
+      }
+      .settings-menu button[aria-checked="true"] { color: var(--accent); }
+      .settings-menu button[aria-checked="true"]::after { content: "✓"; }
+      .auth-layout {
+        min-height: 100vh;
+        padding: 130px var(--page-inset) 120px;
+        display: grid;
+        grid-template-columns: minmax(0, 740px) minmax(360px, 448px);
+        justify-content: space-between;
+        align-items: center;
+        gap: clamp(48px, 6vw, 96px);
+      }
+      .hero h1 {
+        font-size: clamp(30px, 2.375vw, 38px);
+        line-height: 1.4;
+        letter-spacing: -1px;
+        font-weight: 600;
+      }
+      .hero h1 span {
+        display: block;
+      }
+      .hero > p {
+        color: var(--muted);
+        font-size: 16px;
+        margin: 14px 0 28px;
+      }
+      .app-preview {
+        aspect-ratio: 1.6;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        box-shadow: 0 28px 60px #0002;
+      }
+      .app-preview img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      :root[data-ui-appearance="dark"] .preview-light,
+      :root[data-ui-appearance="light"] .preview-dark {
+        display: none;
+      }
+      .hero-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        margin-top: 20px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .hero-footer span {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .hero-footer .icon {
+        width: 15px;
+        height: 15px;
+        color: var(--accent);
+      }
+      .auth-card {
+        padding: 24px var(--card-inset) 0;
+        min-height: 606px;
+      }
+      .auth-body {
+        min-height: 408px;
+      }
+      .auth-card h2 {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        margin-bottom: 12px;
+        line-height: 1.5;
+      }
+      .auth-description {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.8;
+        min-height: 44px;
+      }
+      .auth-description[role="alert"] {
+        color: var(--red);
+      }
+      .auth-support {
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+      }
+      .support-label {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 14px;
+      }
+      .benefit-row,
+      .login-step {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-height: 44px;
+        margin-top: 16px;
+      }
+      .benefit-row > .icon {
+        width: 34px;
+        height: 34px;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        color: var(--accent);
+        background: var(--panel);
+      }
+      .benefit-row strong,
+      .login-step strong {
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .benefit-row p,
+      .login-step p {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.6;
+      }
+      .step-marker {
+        width: 30px;
+        height: 30px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        background: var(--panel);
+        color: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        font-size: 12px;
+      }
+      .step-marker .icon {
+        width: 15px;
+        height: 15px;
+      }
+      .step-state {
+        font-size: 11px;
+        color: var(--muted);
+        margin-left: auto;
+        white-space: nowrap;
+      }
+      .login-step.current .step-marker {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .login-step.current .step-state {
+        color: var(--accent);
+      }
+      .login-step.complete .step-marker {
+        color: var(--green);
+        border-color: var(--green);
+      }
+      .login-step.complete .step-state {
+        color: var(--green);
+      }
+      .auth-subline {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 18px 0 24px;
+        line-height: 1.7;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .spinner {
+        height: 15px;
+        width: 15px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        flex: none;
+        animation: spin 1s linear infinite;
+      }
+      .route-card {
+        border-left: 2px solid var(--accent);
+        padding: 8px 12px;
+        margin: 18px 0 24px;
+        color: var(--muted);
+        font-size: 12px;
+        background: var(--panel);
       }
       .actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
-        margin-top: 24px;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 174px;
       }
-      .hint {
-        margin: 24px 0 16px;
-        font-size: 12px;
-        color: #929baa;
-      }
-      button.back {
-        height: 24px;
-        padding: 0 8px;
-        border: 0;
-        color: #8590a2;
-        background: none;
-        font-weight: 400;
-        font-size: 12px;
-      }
-      button.back:hover {
-        color: #1677ff;
-      }
-      #link {
-        margin-top: 14px;
+      .actions > button {
         width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #e8ebf0;
-        border-radius: 6px;
-        background: #f9fafc;
-        color: #667085;
-        font:
-          11px/1.5 ui-monospace,
-          monospace;
+        flex-shrink: 0;
+      }
+      .actions .back {
+        font-size: 12px;
+        color: var(--muted);
+        background: transparent;
+        border-color: transparent;
+      }
+      .action-note {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.7;
+        text-align: center;
+        min-height: 19px;
+      }
+      .action-note.copied {
+        color: var(--green);
+      }
+      #settings-error {
+        position: absolute;
+        top: 44px;
+        right: 0;
+        max-width: 320px;
+        color: var(--red);
+        font-size: 12px;
       }
       @keyframes spin {
         to {
@@ -147,177 +437,623 @@
           animation: none;
         }
       }
-      [hidden] {
-        display: none !important;
+      @media (max-height: 850px) {
+        .auth-layout {
+          padding-top: 110px;
+          padding-bottom: 40px;
+        }
+        .auth-card {
+          min-height: 536px;
+          padding-top: 16px;
+        }
+        .auth-body {
+          min-height: 368px;
+        }
+        .auth-support {
+          margin-top: 14px;
+          padding-top: 14px;
+        }
+        .support-label {
+          margin-bottom: 10px;
+        }
+        .benefit-row,
+        .login-step {
+          margin-top: 12px;
+          min-height: 40px;
+        }
+        .auth-subline,
+        .route-card {
+          margin-bottom: 18px;
+        }
+        .actions {
+          gap: 8px;
+          min-height: 152px;
+        }
+        .actions .back {
+          height: 28px;
+        }
+        .hero > p {
+          margin-bottom: 20px;
+        }
+      }
+      @media (max-width: 850px) {
+        .auth-layout {
+          grid-template-columns: 1fr;
+          padding-top: 140px;
+          gap: 36px;
+        }
+        .hero {
+          max-width: 740px;
+        }
+        .auth-card {
+          width: min(448px, 100%);
+          justify-self: center;
+        }
+        .auth-settings {
+          right: var(--page-inset);
+        }
+        .auth-body {
+          min-height: 0;
+        }
+        .actions {
+          margin-top: 20px;
+        }
+        .hero h1 {
+          font-size: 30px;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="login-content">
-      <svg class="logo" viewBox="0 0 80 48" aria-hidden="true">
-        <defs>
-          <linearGradient id="brand">
-            <stop stop-color="#f44ab4" />
-            <stop offset="1" stop-color="#8956ff" />
-          </linearGradient>
-        </defs>
-        <g fill="none" stroke="url(#brand)" stroke-width="7">
-          <path d="M7 43a33 33 0 0 1 66 0" />
-          <path d="M20 43a20 20 0 0 1 40 0" />
-          <path d="M33 43a7 7 0 0 1 14 0" />
-        </g>
-      </svg>
-      <p class="eyebrow" data-ui-message="PLASMIC">PLASMIC</p>
-      <h1 id="title" data-ui-message="Sign in to Plasmic">
-        Sign in to Plasmic
-      </h1>
-      <p
-        id="message"
-        role="status"
-        data-ui-message="Use your Shiguang account to access your projects and workspace."
-      >
-        Use your Shiguang account to access your projects and workspace.
-      </p>
-      <div class="status" id="status" hidden>
-        <span id="spinner" class="spinner" aria-hidden="true"></span
-        ><span id="status-label" data-ui-message="Connecting">Connecting</span>
-      </div>
-      <div class="actions">
-        <button
-          id="sign-in"
-          class="primary"
-          data-ui-message="Sign in with Shiguang"
-        >
-          Sign in with Shiguang</button
-        ><button
-          id="open"
-          class="primary"
-          hidden
-          disabled
-          data-ui-message="Open browser"
-        >
-          Open browser</button
-        ><button id="retry" class="primary" hidden data-ui-message="Try again">
-          Try again</button
-        ><button id="copy" hidden data-ui-message="Copy sign-in link">
-          Copy sign-in link
+    <div class="window-drag-region" aria-hidden="true"></div>
+    <div class="chrome-brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path
+          d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z"
+        /></svg
+      >Plasmic
+    </div>
+    <div class="auth-settings">
+      <div class="settings-dropdown">
+        <button id="language" class="settings-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="language-menu" data-ui-message="Language" data-ui-attribute="aria-label">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7" /></svg>
+          <span id="language-label">Follow system</span>
         </button>
+        <div id="language-menu" class="settings-menu" role="menu" data-ui-message="Language" data-ui-attribute="aria-label" hidden>
+          <button role="menuitemradio" data-value="system" data-ui-message="Follow system">Follow system</button>
+          <button role="menuitemradio" data-value="en">English</button>
+          <button role="menuitemradio" data-value="zh-CN">简体中文</button>
+          <button role="menuitemradio" data-value="zh-TW">繁體中文</button>
+          <button role="menuitemradio" data-value="ja">日本語</button>
+          <button role="menuitemradio" data-value="ko">한국어</button>
+        </div>
       </div>
-      <input
-        id="link"
-        data-ui-message="Sign-in link"
-        data-ui-attribute="aria-label"
-        aria-label="Sign-in link"
-        readonly
-        hidden
-      />
-      <p
-        class="hint"
-        id="hint"
-        data-ui-message="Your browser will open when you sign in."
-      >
-        Your browser will open when you sign in.
-      </p>
-      <p
-        class="hint"
-        id="waiting-hint"
-        hidden
-        data-ui-message="You will return to the app automatically after authorization. Keep this window open until sign-in completes."
-      >
-        You will return to the app automatically after authorization. Keep this
-        window open until sign-in completes.
-      </p>
-      <button id="cancel" class="back" hidden data-ui-message="Cancel sign-in">
-        Cancel sign-in
-      </button>
+      <div class="settings-dropdown">
+        <button id="appearance" class="settings-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="appearance-menu">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v14H3z M8 22h8 M12 18v4" /></svg>
+          <span id="appearance-label">Follow system</span>
+        </button>
+        <div id="appearance-menu" class="settings-menu" role="menu" hidden>
+          <button role="menuitemradio" data-value="system" data-ui-message="Follow system">Follow system</button>
+          <button role="menuitemradio" data-value="light" data-ui-message="Light appearance">Light appearance</button>
+          <button role="menuitemradio" data-value="dark" data-ui-message="Dark appearance">Dark appearance</button>
+        </div>
+      </div>
+      <p id="settings-error" role="alert" hidden></p>
+    </div>
+    <main class="auth-layout">
+      <section class="hero">
+        <h1>
+          <span data-ui-message="From idea to product,"
+            >From idea to product,</span
+          ><span data-ui-message="on one canvas.">on one canvas.</span>
+        </h1>
+        <p
+          data-ui-message="Design pages, connect interactions, and see every step."
+        >
+          Design pages, connect interactions, and see every step.
+        </p>
+        <div class="app-preview">
+          <img
+            class="preview-dark"
+            src="/static/desktop/login-canvas-dark.png"
+            data-ui-message="Example multi-page canvas workspace"
+            data-ui-attribute="alt"
+          /><img
+            class="preview-light"
+            src="/static/desktop/login-canvas-light.png"
+            data-ui-message="Example multi-page canvas workspace"
+            data-ui-attribute="alt"
+          />
+        </div>
+        <div class="hero-footer">
+          <span
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M2 7l10-5 10 5-10 5z M2 12l10 5 10-5 M2 17l10 5 10-5"
+              /></svg
+            ><span data-ui-message="Multi-page canvas"
+              >Multi-page canvas</span
+            ></span
+          ><span
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+              /></svg
+            ><span data-ui-message="Real components"
+              >Real components</span
+            ></span
+          ><span
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3h18v14H9l-6 4z" /></svg
+            ><span data-ui-message="Preview and collaborate"
+              >Preview and collaborate</span
+            ></span
+          >
+        </div>
+      </section>
+      <section class="auth-card">
+        <div class="auth-body">
+          <h2 id="title">Sign in to Plasmic</h2>
+          <p id="message" class="auth-description" role="status"></p>
+          <div id="benefits" class="auth-support">
+            <p
+              data-ui-message="Sign in and continue creating"
+              class="support-label"
+            >
+              Sign in and continue creating
+            </p>
+            <div class="benefit-row">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 7V5h6l2 2h10v13H3z" />
+              </svg>
+              <div>
+                <strong data-ui-message="Continue your projects and pages"
+                  >Continue your projects and pages</strong
+                >
+                <p
+                  data-ui-message="Find your projects in your workspace and pick up where you left off."
+                >
+                  Find your projects in your workspace and pick up where you
+                  left off.
+                </p>
+              </div>
+            </div>
+            <div class="benefit-row">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+                />
+              </svg>
+              <div>
+                <strong data-ui-message="Start with components and templates"
+                  >Start with components and templates</strong
+                >
+                <p
+                  data-ui-message="Build usable pages with real, reusable components."
+                >
+                  Build usable pages with real, reusable components.
+                </p>
+              </div>
+            </div>
+            <div class="benefit-row">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 3h18v14H9l-6 4z" />
+              </svg>
+              <div>
+                <strong data-ui-message="Share previews and collect feedback"
+                  >Share previews and collect feedback</strong
+                >
+                <p
+                  data-ui-message="Review with your team and keep your design moving forward."
+                >
+                  Review with your team and keep your design moving forward.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div id="steps" class="auth-support" hidden>
+            <p id="steps-label" class="support-label"></p>
+            <div class="login-step" data-step="0">
+              <span class="step-marker"
+                ><span class="step-number">1</span
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12l5 5L20 6" /></svg
+              ></span>
+              <div>
+                <strong data-ui-message="Open your browser"
+                  >Open your browser</strong
+                >
+                <p data-ui-message="Continue in your default browser">
+                  Continue in your default browser
+                </p>
+              </div>
+              <span class="step-state"></span>
+            </div>
+            <div class="login-step" data-step="1">
+              <span class="step-marker"
+                ><span class="step-number">2</span
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12l5 5L20 6" /></svg
+              ></span>
+              <div>
+                <strong data-ui-message="Complete sign-in"
+                  >Complete sign-in</strong
+                >
+                <p data-ui-message="Finish signing in in your browser">
+                  Finish signing in in your browser
+                </p>
+              </div>
+              <span class="step-state"></span>
+            </div>
+            <div class="login-step" data-step="2">
+              <span class="step-marker"
+                ><span class="step-number">3</span
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12l5 5L20 6" /></svg
+              ></span>
+              <div>
+                <strong data-ui-message="Return to your workspace"
+                  >Return to your workspace</strong
+                >
+                <p
+                  data-ui-message="Return to the app automatically and continue your work"
+                >
+                  Return to the app automatically and continue your work
+                </p>
+              </div>
+              <span class="step-state"></span>
+            </div>
+          </div>
+          <div id="status" class="auth-subline">
+            <span id="spinner" class="spinner" hidden></span
+            ><span id="browser-hint"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 4h18v16H3z M3 9h18 M6 6.5h.01 M9 6.5h.01"
+                /></svg></span
+            ><span id="status-label"></span>
+          </div>
+          <p id="return-note" class="route-card" hidden></p>
+        </div>
+        <div class="actions">
+          <button id="sign-in" class="primary">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14 M13 6l6 6-6 6" /></svg
+            ><span data-ui-message="Sign in">Sign in</span></button
+          ><button id="open" class="primary" hidden disabled>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 4h18v16H3z M3 9h18 M6 6.5h.01 M9 6.5h.01" /></svg
+            ><span id="open-label"></span></button
+          ><button id="retry" class="primary" hidden>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14 M13 6l6 6-6 6" /></svg
+            ><span data-ui-message="Try again">Try again</span></button
+          ><button id="success" class="primary" hidden disabled>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14 M13 6l6 6-6 6" /></svg
+            ><span data-ui-message="Returning to workspace"
+              >Returning to workspace</span
+            ></button
+          ><button id="copy" hidden>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M9 15l6-6 M8 16l-2 2a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0 M16 8l2-2a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0"
+              /></svg
+            ><span id="copy-label"></span></button
+          ><button
+            data-ui-message="Cancel sign-in"
+            id="cancel"
+            class="back"
+            hidden
+          >
+            Cancel sign-in
+          </button>
+          <p id="hint" class="action-note" role="status"></p>
+        </div>
+      </section>
     </main>
     <script src="/static/desktop/renderer-i18n.js"></script>
     <script>
-      const api = window.desktopUnifiedLogin;
-      const { t, subscribe } = window.desktopUiI18n;
-      let latestState = { phase: "idle" };
-      function render(state) {
-        latestState = state;
-        const idle = state.phase === "idle",
-          failed = state.phase === "error",
-          waiting = state.phase === "waiting";
-        document.getElementById("title").textContent = t(
-          idle
-            ? "Sign in to Plasmic"
-            : failed
-              ? "Sign-in incomplete"
-              : state.phase === "success"
-                ? "Signed in"
-                : waiting
-                  ? "Continue sign-in in your browser"
-                  : "Opening browser",
-        );
-        document.getElementById("message").textContent = t(
-          idle
-            ? "Use your Shiguang account to access your projects and workspace."
-            : failed
-              ? state.uiMessage?.key || "Sign-in failed. Please try again."
-              : waiting
-                ? state.message ||
-                  "Complete Shiguang authorization in your browser to return to the desktop app."
-                : state.phase === "success"
-                  ? "Returning to your workspace."
-                  : "Please wait while your default browser opens.",
-          state.uiMessage?.values,
-        );
-        document.getElementById("status").hidden = idle || failed;
-        document.getElementById("sign-in").hidden = !idle;
-        document.getElementById("hint").hidden = !idle;
-        document.getElementById("waiting-hint").hidden = idle || failed;
-        document.getElementById("cancel").hidden =
-          idle || state.phase === "success";
-        document.getElementById("status-label").textContent = t(
-          state.phase === "success"
-            ? "Returning to workspace"
-            : waiting
-              ? "Waiting for browser authorization"
-              : "Connecting",
-        );
-        if (!waiting || !state.copied) {
-          document.getElementById("link").hidden = true;
-          document.getElementById("link").value = "";
-        }
-        document.getElementById("open").hidden =
-          idle || failed || state.phase === "success";
-        document.getElementById("open").disabled = !waiting;
-        document.getElementById("retry").hidden = !failed;
-        document.getElementById("copy").hidden = !waiting;
-        if (state.copied) {
-          const link = document.getElementById("link");
-          link.hidden = false;
-          link.value = state.authorizationUrl;
-          document.getElementById("message").textContent = t(
-            "Sign-in link copied. Paste it into your browser to continue authorization.",
-          );
-        }
-      }
-      subscribe(() => render(latestState));
-      api.onStatus(render);
-      api.command("status").then(render);
-      for (const [id, command] of [
-        ["sign-in", "sign-in"],
-        ["open", "open-browser"],
-        ["retry", "retry"],
-        ["cancel", "cancel"],
-        ["copy", "copy-link"],
-      ]) {
-        document.getElementById(id).addEventListener("click", async () => {
+      (() => {
+        const api = window.desktopUnifiedLogin;
+        const environment = window.desktopEnvironment;
+        const { t, subscribe } = window.desktopUiI18n;
+        const element = (id) => document.getElementById(id);
+        let latestState = { phase: "idle" };
+        let statusRevision = 0;
+        let commandRevision = 0;
+        const media = matchMedia("(prefers-color-scheme: dark)");
+        function readPreference(key, allowed) {
           try {
-            render(await api.command(command));
-          } catch (error) {
-            render({
-              phase: "error",
-              message: error.message,
-              uiMessage: { key: "Sign-in failed. Please try again." },
-            });
+            const stored = localStorage.getItem(key);
+            return allowed.includes(stored) ? stored : "system";
+          } catch {
+            return "system";
+          }
+        }
+        function renderAppearance() {
+          const preference = readPreference("shiguang.ui.appearance", [
+            "dark",
+            "light",
+            "system",
+          ]);
+          const appearance =
+            preference === "system"
+              ? media.matches
+                ? "dark"
+                : "light"
+              : preference;
+          document.documentElement.dataset.uiAppearance = appearance;
+          renderPreference("appearance", preference);
+          void environment.setUiAppearance(appearance).catch(() => {});
+        }
+        function render(state) {
+          latestState = state;
+          const idle = state.phase === "idle",
+            failed = state.phase === "error",
+            waiting = state.phase === "waiting",
+            success = state.phase === "success";
+          const expired = idle && state.sessionExpired;
+          const key = state.uiMessage?.key;
+          const timedOut =
+            failed && key === "Sign-in timed out. Please try again.";
+          const denied =
+            failed &&
+            ["Shiguang sign-in was cancelled", "Sign-in cancelled"].includes(
+              key,
+            );
+          element("title").textContent = t(
+            expired
+              ? "Please sign in again"
+              : idle
+                ? "Sign in to Plasmic"
+                : timedOut
+                  ? "Sign-in timed out"
+                  : failed
+                    ? "Sign-in incomplete"
+                    : success
+                      ? "Signed in"
+                      : waiting
+                        ? "Continue sign-in in your browser"
+                        : "Opening browser",
+          );
+          element("message").setAttribute("role", failed ? "alert" : "status");
+          element("message").textContent = t(
+            expired
+              ? "Your session has expired. Sign in again to return to your previous page."
+              : idle
+                ? "Continue your projects and bring your ideas to life on the canvas."
+                : timedOut
+                  ? "This sign-in has timed out. Please start again."
+                  : denied
+                    ? "This sign-in was cancelled. You can start again."
+                    : failed
+                      ? "We couldn’t complete sign-in. Please try again."
+                      : success
+                        ? "Returning to your workspace."
+                        : waiting
+                          ? state.copied
+                            ? "Link copied. Paste it into your browser to continue signing in."
+                            : "Complete sign-in and you’ll return here automatically."
+                          : "Please wait while your default browser opens.",
+          );
+          element("benefits").hidden = !idle || expired;
+          element("steps").hidden = idle && !expired;
+          element("steps-label").textContent = t(
+            failed
+              ? "Start again and follow these steps"
+              : "Sign in in three steps",
+          );
+          const active = success
+            ? 3
+            : waiting
+              ? 1
+              : state.phase === "opening"
+                ? 0
+                : -1;
+          for (const step of document.querySelectorAll(".login-step")) {
+            const i = Number(step.dataset.step),
+              complete = i < active;
+            step.classList.toggle("complete", complete);
+            step.classList.toggle("current", i === active);
+            step.querySelector(".step-number").hidden = complete;
+            step
+              .querySelector(".step-marker .icon")
+              .toggleAttribute("hidden", !complete);
+            step.querySelector(".step-state").textContent = t(
+              complete
+                ? "Completed"
+                : i === active
+                  ? "In progress"
+                  : "Not started",
+            );
+          }
+          element("return-note").hidden = !expired;
+          element("return-note").textContent = t(
+            "After signing in, you’ll return to your previous page.",
+          );
+          element("status").hidden = expired;
+          element("spinner").hidden = idle || failed;
+          element("browser-hint").hidden = !idle && !failed;
+          element("status-label").textContent = t(
+            idle
+              ? "Sign in in your browser, then return to the app automatically."
+              : timedOut
+                ? "The previous sign-in link has expired."
+                : failed
+                  ? "Start a new sign-in attempt to continue."
+                  : success
+                    ? "Returning to workspace"
+                    : waiting
+                      ? "Waiting for sign-in to complete"
+                      : "Opening your default browser…",
+          );
+          element("sign-in").hidden = !idle;
+          element("open").hidden = idle || failed || success;
+          element("open").disabled = !waiting;
+          element("open-label").textContent = t(
+            waiting ? "Reopen browser" : "Opening browser…",
+          );
+          element("retry").hidden = !failed;
+          element("success").hidden = !success;
+          element("copy").hidden = !waiting;
+          element("copy-label").textContent = t(
+            state.copied ? "Copy sign-in link again" : "Copy sign-in link",
+          );
+          element("cancel").hidden = idle || success;
+          element("cancel").textContent = t(
+            failed ? "Back to sign-in" : "Cancel sign-in",
+          );
+          element("hint").classList.toggle(
+            "copied",
+            Boolean(waiting && state.copied),
+          );
+          element("hint").textContent = t(
+            waiting
+              ? state.copied
+                ? "Link copied"
+                : "Browser didn’t open? Copy the link and open it manually."
+              : idle
+                ? "New here? Click Sign in to create an account in your browser."
+                : failed
+                  ? ""
+                  : "Keep this window open.",
+          );
+          renderPreference("language", readPreference("shiguang.ui.language", [
+            "system",
+            "en",
+            "zh-CN",
+            "zh-TW",
+            "ja",
+            "ko",
+          ]));
+          renderAppearance();
+        }
+        subscribe(() => render(latestState));
+        api.onStatus((state) => {
+          statusRevision++;
+          render(state);
+        });
+        void api.command("status").then((state) => {
+          if (statusRevision === 0 && commandRevision === 0) render(state);
+        });
+        for (const [id, command] of [
+          ["sign-in", "sign-in"],
+          ["open", "open-browser"],
+          ["retry", "retry"],
+          ["cancel", "cancel"],
+          ["copy", "copy-link"],
+        ]) {
+          element(id).addEventListener("click", async () => {
+            const commandId = ++commandRevision;
+            const statusAtStart = statusRevision;
+            element(id).disabled = true;
+            try {
+              const state = await api.command(command);
+              if (
+                commandId === commandRevision &&
+                statusAtStart === statusRevision
+              )
+                render(state);
+            } catch {
+              if (
+                commandId === commandRevision &&
+                statusAtStart === statusRevision
+              )
+                render({ phase: "error" });
+            } finally {
+              element(id).disabled =
+                id === "open" && latestState.phase !== "waiting";
+            }
+          });
+        }
+        function renderPreference(id, value) {
+          const items = element(id + "-menu").querySelectorAll("[data-value]");
+          for (const item of items) {
+            const selected = item.dataset.value === value;
+            item.setAttribute("aria-checked", String(selected));
+            if (selected) element(id + "-label").textContent = item.textContent;
+          }
+        }
+        function closeMenus() {
+          for (const id of ["language", "appearance"]) {
+            element(id + "-menu").hidden = true;
+            element(id).setAttribute("aria-expanded", "false");
+          }
+        }
+        for (const id of ["language", "appearance"]) {
+          const trigger = element(id), menu = element(id + "-menu");
+          function openMenu() {
+            closeMenus();
+            menu.hidden = false;
+            trigger.setAttribute("aria-expanded", "true");
+            menu.querySelector('[aria-checked="true"]').focus();
+          }
+          trigger.addEventListener("click", () => {
+            if (menu.hidden) openMenu();
+            else closeMenus();
+          });
+          trigger.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              openMenu();
+            }
+          });
+          menu.addEventListener("keydown", (event) => {
+            const items = [...menu.querySelectorAll("[data-value]")];
+            const index = items.indexOf(document.activeElement);
+            if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+              event.preventDefault();
+              const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1
+                : (index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+              items[next].focus();
+            }
+          });
+          menu.addEventListener("click", async (event) => {
+            const item = event.target.closest("[data-value]");
+            if (!item) return;
+            closeMenus();
+            trigger.focus();
+            element("settings-error").hidden = true;
+            try {
+              localStorage.setItem("shiguang.ui." + id, item.dataset.value);
+              if (id === "language") {
+                window.desktopUiI18n.setSnapshot(await environment.setUiLocale(item.dataset.value));
+              } else renderAppearance();
+            } catch {
+              element("settings-error").textContent = t(id === "language"
+                ? "Unable to save language preference on this device."
+                : "Unable to save appearance preference on this device.");
+              element("settings-error").hidden = false;
+              render(latestState);
+            }
+          });
+        }
+        document.addEventListener("click", (event) => {
+          if (!event.target.closest(".settings-dropdown")) closeMenus();
+        });
+        document.addEventListener("focusin", (event) => {
+          if (!event.target.closest(".settings-dropdown")) closeMenus();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            const active = document.querySelector('.settings-trigger[aria-expanded="true"]');
+            closeMenus();
+            active?.focus();
           }
         });
-      }
+        media.addEventListener("change", renderAppearance);
+        window.addEventListener("storage", (event) => {
+          if (event.key === "shiguang.ui.appearance" || event.key === null)
+            renderAppearance();
+          if (event.key === "shiguang.ui.language" || event.key === null)
+            void environment
+              .getUiMessages()
+              .then(window.desktopUiI18n.setSnapshot);
+        });
+        render(latestState);
+      })();
     </script>
   </body>
 </html>

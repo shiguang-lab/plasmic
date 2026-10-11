@@ -1,0 +1,24 @@
+{
+  "projectId": "1Tn5QZywpzJQBKpJgUnx8v",
+  "environment": "isolated local UI interaction acceptance",
+  "verified": [
+    "SVG file chooser upload adds asset card",
+    "Delete unused uploaded asset removes card",
+    "Command-Z restores deleted asset card",
+    "Command-Shift-Z removes restored asset card",
+    "PNG upload failure displays Failed to upload asset",
+    "PNG upload success, thumbnail, preview dimensions and save/reopen verified",
+    "PNG insertion and saved live Preview verified"
+  ],
+  "unverified": {
+    "download_file": "Download menu clicked; browser download event timed out; file not verified",
+    "referenced_asset_deletion": "Not exercised"
+  },
+  "checks": {
+    "vitest": "3 files, 11 tests passed; jsdom pseudo-element computedStyle warnings",
+    "typescript": "tsc --incremental exit 0"
+  },
+  "screenshot": "resources-upload-failure-dark.png",
+  "complete": false,
+  "latestEvidence": "resource-png-upload-acceptance.json"
+}

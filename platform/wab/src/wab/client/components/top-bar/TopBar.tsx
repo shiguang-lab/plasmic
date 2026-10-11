@@ -1,3 +1,5 @@
+import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
+import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import { useI18n } from "@/wab/client/i18n";
@@ -16,6 +18,8 @@ import {
 } from "@/wab/client/components/studio/Avatar";
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
 import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
+import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
+import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import CodeButton from "@/wab/client/components/top-bar/CodeButton";
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
 import PublishButton from "@/wab/client/components/top-bar/PublishButton";
@@ -55,6 +59,7 @@ import { Button, Menu, Popover, Tooltip, notification, theme } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
+import { useInteractOutside } from "react-aria";
 import useSWR from "swr";
 
 export const outlineModes = ["blocks", "inlines", "all"];
@@ -73,6 +78,39 @@ function _TopBar({ preview }: TopBarProps) {
   const topFrameApi = useTopFrameApi();
   const { openShareDialog } = useShareDialog();
   const [projectOpen, setProjectOpen] = React.useState(false);
+  const [versionsOpen, setVersionsOpen] = React.useState(false);
+  const versionsPanelRef = React.useRef<HTMLDivElement>(null);
+  useInteractOutside({
+    ref: versionsPanelRef,
+    isDisabled: !versionsOpen,
+    onInteractOutside: (event) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest(
+          ".editor-history-action, .ant-dropdown, .ant-modal-content, .ant-select-dropdown, .ant-picker-dropdown",
+        )
+      ) {
+        return;
+      }
+      setVersionsOpen(false);
+    },
+  });
+  const { useVersionsCTA, dismissVersionsCTA } =
+    useVersionsPublishNotice(studioCtx);
+  React.useEffect(() => {
+    const close = () => setVersionsOpen(false);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        close();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener(plasmicIFrameMouseDownEvent, close);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener(plasmicIFrameMouseDownEvent, close);
+    };
+  }, []);
   React.useEffect(() => {
     const close = () => setProjectOpen(false);
     document.addEventListener(plasmicIFrameMouseDownEvent, close);
@@ -107,12 +145,14 @@ function _TopBar({ preview }: TopBarProps) {
     return () => document.removeEventListener("keydown", closeOnEscape, true);
   }, [projectOpen]);
   const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
+  const isWindowsDesktop = navigator.userAgent.includes("PlasmicDesktop/win32");
+  const hasWindowOverlay = isMacDesktop || isWindowsDesktop;
   const topBarRef = React.useRef<HTMLDivElement>(null);
   const leftRef = React.useRef<HTMLDivElement>(null);
   const rightRef = React.useRef<HTMLDivElement>(null);
 
   React.useLayoutEffect(() => {
-    if (!isMacDesktop) {
+    if (!hasWindowOverlay) {
       return;
     }
     const root = ensure(topBarRef.current, "Top bar is mounted");
@@ -160,7 +200,7 @@ function _TopBar({ preview }: TopBarProps) {
       mutationObserver.disconnect();
       spawn(topFrameApi.setDesktopTitleBarDragRegion(null));
     };
-  }, [isMacDesktop, topFrameApi]);
+  }, [hasWindowOverlay, topFrameApi]);
   const { data } = useSWR("top-bar-config", async () => {
     const [team, canEditUiConfig] = await Promise.all([
       topFrameApi.getCurrentTeam(),
@@ -449,43 +489,66 @@ function _TopBar({ preview }: TopBarProps) {
       <PlasmicTopBar
         root={{
           ref: topBarRef,
-          className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isObserver ? "topbar--isObserver" : ""}`,
+          className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isWindowsDesktop ? styles.desktopWindows : ""} ${isObserver ? "topbar--isObserver" : ""}`,
         }}
         left={{
-          props: { ref: leftRef },
+          props: {
+            ref: leftRef,
+            style: isMacDesktop
+              ? { paddingLeft: 80, borderRadius: 24 }
+              : undefined,
+          },
           wrapChildren: (children) => (
             <>
               {children}
               <span className="editor-history-divider" aria-hidden="true" />
-              <Tooltip title={t("Published versions")}>
+              <Popover
+                arrow={false}
+                trigger="click"
+                placement="bottomLeft"
+                align={{ offset: [0, 8] }}
+                open={versionsOpen}
+                onOpenChange={(open) => {
+                  setVersionsOpen(open);
+                  if (open) {
+                    setProjectOpen(false);
+                    studioCtx.setShowAddDrawer(false);
+                  }
+                }}
+                content={
+                  <div ref={versionsPanelRef} className={styles.versionsPopup}>
+                    <div className={styles.versionsPopupHeader}>
+                      <strong>{t("Published versions")}</strong>
+                      <PanelCloseButton
+                        onClick={() => setVersionsOpen(false)}
+                      />
+                    </div>
+                    <VersionsTab
+                      useVersionsCTA={useVersionsCTA}
+                      dismissVersionsCTA={dismissVersionsCTA}
+                    />
+                  </div>
+                }
+              >
                 <Button
                   className="editor-history-action"
                   type="text"
                   aria-label={t("Published versions")}
+                  title={t("Published versions")}
                   disabled={
                     !appCtx.selfInfo ||
                     getLeftTabPermission(uiConfig, "versions", {
                       isContentCreator: studioCtx.contentEditorMode,
                     }) === "hidden"
                   }
-                  onClick={() => {
-                    spawn(
-                      studioCtx.changeUnsafe(() => {
-                        studioCtx.setShowAddDrawer(false);
-                        if (studioCtx.panelsHidden) {
-                          studioCtx.togglePanels();
-                        }
-                        studioCtx.switchLeftTab("versions");
-                      }),
-                    );
-                  }}
+                  aria-expanded={versionsOpen}
                   icon={
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M3 4v5h5 M3 9a9 9 0 1 1-1 7 M12 7v5l4 2" />
                     </svg>
                   }
                 />
-              </Tooltip>
+              </Popover>
             </>
           ),
         }}
@@ -738,11 +801,17 @@ function _TopBar({ preview }: TopBarProps) {
         }}
         arenaSegment={{ render: () => null }}
         arenaSeparator={{ render: () => null }}
-        branchSeparator={{
-          wrap: (n) => (studioCtx.showBranching() ? n : null),
-        }}
-        branchSegment={{
-          wrap: (n) => (studioCtx.showBranching() ? n : null),
+        branchSeparator={{ render: () => null }}
+        branchSegment={{ render: () => null }}
+        saveIndicator={{
+          wrap: (indicator) => (
+            <>
+              {studioCtx.showBranching() && (
+                <BranchSwitcher className={styles.branchSwitcher} />
+              )}
+              {indicator}
+            </>
+          ),
         }}
         publishButton={{
           render: preview ? undefined : () => null,

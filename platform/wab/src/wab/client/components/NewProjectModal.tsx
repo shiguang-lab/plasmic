@@ -1,4 +1,6 @@
-import { Modal } from "@/wab/client/components/widgets/Modal";
+import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
+import { useTrackOpenModal } from "@/wab/client/components/widgets/open-modals";
+import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import {
   useAllProjectsData,
   useAppCtx,
@@ -27,6 +29,8 @@ import {
   Space,
   Tabs,
   Typography,
+  Drawer,
+  theme,
 } from "antd";
 import { createStyles } from "antd-style";
 import { union, uniqBy } from "lodash";
@@ -57,6 +61,9 @@ const NewProjectModal = observer(function NewProjectModal({
   workspaceId,
   onCancel,
 }: NewProjectModalProps) {
+  useTrackOpenModal(true);
+  const { token } = theme.useToken();
+  const { styles: productStyles } = useProductThemeStyles(token);
   const { t } = useI18n();
   const appCtx = useAppCtx();
   const history = useHistory();
@@ -171,13 +178,34 @@ const NewProjectModal = observer(function NewProjectModal({
   };
 
   return (
-    <Modal
+    <Drawer
+      className={productStyles.root}
+      placement="right"
+      styles={{
+        wrapper: {
+          top: 80,
+          right: 16,
+          bottom: 16,
+          height: "calc(100% - 96px)",
+          maxWidth: "calc(100vw - 32px)",
+        },
+        section: {
+          borderRadius: token.borderRadiusLG,
+          border: `1px solid ${token.colorBorder}`,
+        },
+        footer: { textAlign: "right" },
+      }}
+      drawerRender={(node) => (
+        <ModalScope allowKeyCombos={["esc"]} style={{ height: "100%" }}>
+          {node}
+        </ModalScope>
+      )}
       open
       title={t("New project")}
-      width={760}
-      onCancel={onCancel}
-      closable={!creating}
-      maskClosable={!creating}
+      size="min(440px, 100vw)"
+      onClose={onCancel}
+      closable={creating ? false : { placement: "end" }}
+      mask={{ closable: !creating }}
       keyboard={!creating}
       footer={
         <Space>
@@ -209,7 +237,7 @@ const NewProjectModal = observer(function NewProjectModal({
         disabled={creating}
       >
         <Row gutter={16}>
-          <Col xs={24} sm={14}>
+          <Col span={24}>
             <Form.Item
               name="name"
               label={t("Name")}
@@ -224,7 +252,7 @@ const NewProjectModal = observer(function NewProjectModal({
               <Input autoFocus maxLength={200} />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={10}>
+          <Col span={24}>
             <Form.Item
               name="workspaceId"
               label={t("Workspace")}
@@ -309,7 +337,7 @@ const NewProjectModal = observer(function NewProjectModal({
                   >
                     <Row gutter={[12, 12]}>
                       {templates.map((template) => (
-                        <Col xs={24} sm={12} key={template.tag}>
+                        <Col span={24} key={template.tag}>
                           <Card
                             className={cx(
                               styles.card,
@@ -348,7 +376,7 @@ const NewProjectModal = observer(function NewProjectModal({
           },
         ]}
       />
-    </Modal>
+    </Drawer>
   );
 });
 

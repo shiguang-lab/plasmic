@@ -1,12 +1,13 @@
 import ListItem from "@/wab/client/components/ListItem";
 import { DataSourceOpExprSummary } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { ERROR_ICON, NOT_RENDERED_ICON } from "@/wab/client/icons";
 import TreeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Tree";
 import UnlockIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Unlock";
 import ResponsivenessIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Responsiveness";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { makeVariantName } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
 import { isPageComponent } from "@/wab/shared/core/components";
@@ -104,17 +105,13 @@ function renderIssueListItem(
 const SCREEN_VARIANT_OVERRIDE_INSTRUCTIONS = (
   <>
     <p>
-      Only Design tab (CSS) overrides are allowed in responsive variants. Do not
-      override text content or attributes/props in responsive variants.
+      <UiText message="Only Design tab (CSS) overrides are allowed in responsive variants. Do not override text content or attributes/props in responsive variants." />
     </p>
     <p>
-      If you set non-CSS overrides in your responsive variant, the base variant
-      will flash onto the screen first before your overrides, leading to a
-      jarring and slow user experience.
+      <UiText message="If you set non-CSS overrides in your responsive variant, the base variant will flash onto the screen first before your overrides, leading to a jarring and slow user experience." />
     </p>
     <p>
-      If you need different content or attributes/props to appear in different
-      breakpoints, consider using conditional visibility.
+      <UiText message="If you need different content or attributes/props to appear in different breakpoints, consider using conditional visibility." />
     </p>
     <p>
       <a
@@ -133,12 +130,10 @@ const SCREEN_VARIANT_OVERRIDE_INSTRUCTIONS = (
 const INVALID_DOM_NESTING_INSTRUCTIONS = (
   <>
     <p>
-      HTML forbids certain nested elements, such as links within links, buttons
-      within links, divs within paragraphs, etc.
+      <UiText message="HTML forbids certain nested elements, such as links within links, buttons within links, divs within paragraphs, etc." />
     </p>
     <p>
-      The browser will try to unnest these illegal nestings, causing the final
-      page to appear broken. Avoid these nestings!
+      <UiText message="The browser will try to unnest these illegal nestings, causing the final page to appear broken. Avoid these nestings!" />
     </p>
     <p>
       <a
@@ -156,25 +151,24 @@ const INVALID_DOM_NESTING_INSTRUCTIONS = (
 
 const INVISIBLE_ELEMENT_INSTRUCTIONS = (
   <>
-    <p>It looks like this element is invisible in all variants.</p>
     <p>
-      Every element that is invisible still adds to the total weight of the page
-      sent down to the browser.
+      <UiText message="It looks like this element is invisible in all variants." />
+    </p>
+    <p>
+      <UiText message="Every element that is invisible still adds to the total weight of the page sent down to the browser." />
     </p>
   </>
 );
 
 const PROP_ALLOWED_VALUES_INSTRUCTIONS = (
   <p>
-    A choice prop changed its allowed values, and the current prop value is not
-    valid.
+    <UiText message="A choice prop changed its allowed values, and the current prop value is not valid." />
   </p>
 );
 
 const LINKED_PROP_DRIFT_INSTRUCTIONS = (
   <p>
-    This prop is linked to a component prop whose type no longer matches.
-    Re-link it, or update the component prop to match.
+    <UiText message="This prop is linked to a component prop whose type no longer matches. Re-link it, or update the component prop to match." />
   </p>
 );
 
@@ -188,13 +182,13 @@ const UnprotectedDataQueryInstructions = ({
   return (
     <>
       <p>
-        This data operations has a lower role than the default role set in the
-        project.
+        <UiText message="This data operations has a lower role than the default role set in the project." />
       </p>
       <p>
-        This may be unprotected data, change the operation minimum role from{" "}
-        {currentRole} to {expectedRole} so that it matches the project auth
-        settings.
+        <UiText
+          message="This may be unprotected data. Change the operation minimum role from {currentRole} to {expectedRole} so that it matches the project auth settings."
+          values={{ currentRole, expectedRole }}
+        />
       </p>
     </>
   );
@@ -207,32 +201,49 @@ const ScreenVariantOverrideLintIssueRow = observer(
     const { issue } = props;
     const studioCtx = useStudioCtx();
     const content = (
-      <>
-        <TplLink component={issue.component} tpl={issue.tpl} /> overrides{" "}
-        {issue.prop.type === "attr"
-          ? `attribute ${issue.prop.attr}`
-          : issue.prop.type === "arg"
-            ? `prop ${issue.prop.param.variable.name}`
-            : "text content"}{" "}
-        in responsive variant{" "}
-        {issue.vs.variants.length === 1 ? (
-          <strong>
-            {makeVariantName({
-              variant: issue.vs.variants[0],
-              site: studioCtx.site,
-            })}
-          </strong>
-        ) : (
-          `combination ${issue.vs.variants
-            .map((v) => (
+      <UiText
+        message="{element} overrides {property} in responsive variant {variant}."
+        values={{
+          element: <TplLink component={issue.component} tpl={issue.tpl} />,
+          property:
+            issue.prop.type === "attr" ? (
+              <UiText
+                message="attribute {name}"
+                values={{ name: issue.prop.attr }}
+              />
+            ) : issue.prop.type === "arg" ? (
+              <UiText
+                message="prop {name}"
+                values={{ name: issue.prop.param.variable.name }}
+              />
+            ) : (
+              <UiText message="text content" />
+            ),
+          variant:
+            issue.vs.variants.length === 1 ? (
               <strong>
-                {makeVariantName({ variant: v, site: studioCtx.site })}
+                {makeVariantName({
+                  variant: issue.vs.variants[0],
+                  site: studioCtx.site,
+                })}
               </strong>
-            ))
-            .join(", ")}`
-        )}
-        .
-      </>
+            ) : (
+              <UiText
+                message="combination {variants}"
+                values={{
+                  variants: joinReactNodes(
+                    issue.vs.variants.map((v) => (
+                      <strong key={v.uuid}>
+                        {makeVariantName({ variant: v, site: studioCtx.site })}
+                      </strong>
+                    )),
+                    ", ",
+                  ),
+                }}
+              />
+            ),
+        }}
+      />
     );
     return renderIssueListItem(
       content,
@@ -251,18 +262,24 @@ const InvalidDomNestingLintIssueRow = observer(
   }) {
     const { issue } = props;
     const content = (
-      <>
-        <TplLink component={issue.component} tpl={issue.descendantTpl} /> inside{" "}
-        <TplLink
-          component={
-            ("ancestorComponent" in issue
-              ? issue.ancestorComponent
-              : undefined) ?? issue.component
-          }
-          tpl={issue.ancestorTpl}
-        />{" "}
-        may render incorrectly.
-      </>
+      <UiText
+        message="{descendant} inside {ancestor} may render incorrectly."
+        values={{
+          descendant: (
+            <TplLink component={issue.component} tpl={issue.descendantTpl} />
+          ),
+          ancestor: (
+            <TplLink
+              component={
+                ("ancestorComponent" in issue
+                  ? issue.ancestorComponent
+                  : undefined) ?? issue.component
+              }
+              tpl={issue.ancestorTpl}
+            />
+          ),
+        }}
+      />
     );
 
     return renderIssueListItem(
@@ -282,10 +299,12 @@ const InvisibleElementLintIssueRow = observer(
   }) {
     const { issue } = props;
     const content = (
-      <>
-        <TplLink component={issue.component} tpl={issue.tpl} /> is always
-        invisible.
-      </>
+      <UiText
+        message="{element} is always invisible."
+        values={{
+          element: <TplLink component={issue.component} tpl={issue.tpl} />,
+        }}
+      />
     );
     return renderIssueListItem(
       content,
@@ -303,10 +322,12 @@ const ChoicePropValuesLintIssueRow = observer(
   }) {
     const { issue } = props;
     const content = (
-      <>
-        <TplLink component={issue.component} tpl={issue.tpl} /> prop value is
-        not allowed
-      </>
+      <UiText
+        message="{element} prop value is not allowed"
+        values={{
+          element: <TplLink component={issue.component} tpl={issue.tpl} />,
+        }}
+      />
     );
     return renderIssueListItem(
       content,
@@ -324,11 +345,13 @@ const LinkedPropDriftLintIssueRow = observer(
   }) {
     const { issue } = props;
     const content = (
-      <>
-        <TplLink component={issue.component} tpl={issue.tpl} />{" "}
-        <UiText message={"prop"} /> <strong>{issue.propName}</strong> no longer
-        matches the linked component prop
-      </>
+      <UiText
+        message="{element} prop {prop} no longer matches the linked component prop"
+        values={{
+          element: <TplLink component={issue.component} tpl={issue.tpl} />,
+          prop: <strong>{issue.propName}</strong>,
+        }}
+      />
     );
     return renderIssueListItem(
       content,
@@ -346,18 +369,22 @@ const UnprotectedDataQuerytLintIssueRow = observer(
   }) {
     const { issue } = props;
     const content = (
-      <>
-        {issue.tpl ? (
-          <TplLink component={issue.component} tpl={issue.tpl} />
-        ) : (
-          <>
-            <ComponentLink component={issue.component} />
-            {" data queries "}
-          </>
-        )}{" "}
-        unprotected query
-        <DataSourceOpExprSummary expr={issue.expr} />
-      </>
+      <UiText
+        message="{owner} has an unprotected query {query}"
+        values={{
+          owner: issue.tpl ? (
+            <TplLink component={issue.component} tpl={issue.tpl} />
+          ) : (
+            <UiText
+              message="{component} data queries"
+              values={{
+                component: <ComponentLink component={issue.component} />,
+              }}
+            />
+          ),
+          query: <DataSourceOpExprSummary expr={issue.expr} />,
+        }}
+      />
     );
     return renderIssueListItem(
       content,
@@ -390,10 +417,18 @@ const TplLink = observer(function TplLink(props: {
         </>
       ) : isTplSlot(tpl) ? (
         <>
-          Slot target <strong>{tpl.param.variable.name}</strong>
+          <UiText
+            message="Slot target {name}"
+            values={{ name: <strong>{tpl.param.variable.name}</strong> }}
+          />
         </>
       ) : (
-        <>{capitalizeFirst(summarizeTpl(tpl))} element</>
+        <UiText
+          message="{part1} element"
+          values={{
+            part1: <UiLabel text={capitalizeFirst(summarizeTpl(tpl))} />,
+          }}
+        />
       )}
     </a>
   );

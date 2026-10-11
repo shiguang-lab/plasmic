@@ -9,8 +9,9 @@ import Button from "@/wab/client/components/widgets/Button";
 import { MetadataTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { DELETE_ACTION } from "@/wab/shared/Labels";
@@ -105,7 +106,7 @@ export const ComponentMetaDataPropsSection = observer(
             const metaKeyAndValue = await promptForMetadata(component);
             if (!metaKeyAndValue) {
               notification.error({
-                message: "Fill key and value",
+                message: translate(getUiLocale(), "Fill key and value"),
                 description: (
                   <>
                     <UiText message={"You should fill both key and value."} />
@@ -117,7 +118,7 @@ export const ComponentMetaDataPropsSection = observer(
             const validKey = toVarName(metaKeyAndValue.key);
             if (metaKeyAndValue.key !== validKey) {
               notification.info({
-                message: "Key changed to be valid",
+                message: translate(getUiLocale(), "Key changed to be valid"),
                 description: (
                   <>
                     <UiText
@@ -135,7 +136,7 @@ export const ComponentMetaDataPropsSection = observer(
             await studioCtx.changeUnsafe(() => {
               if (metaKeyAndValue.key in component.metadata) {
                 notification.error({
-                  message: "Existing key",
+                  message: translate(getUiLocale(), "Existing key"),
                   description: (
                     <>
                       <UiText
@@ -214,7 +215,7 @@ const MetadataRow = observer(function MetadataRow(props: {
             const validKey = toVarName(newKey);
             if (newKey !== validKey) {
               notification.info({
-                message: "Key changed to be valid",
+                message: translate(getUiLocale(), "Key changed to be valid"),
                 description: (
                   <>
                     <UiText
@@ -234,7 +235,7 @@ const MetadataRow = observer(function MetadataRow(props: {
                 if (newKey !== metadataKey) {
                   if (newKey in component.metadata) {
                     notification.error({
-                      message: "Existing key",
+                      message: translate(getUiLocale(), "Existing key"),
                       description: (
                         <>
                           <UiText

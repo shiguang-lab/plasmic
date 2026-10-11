@@ -3,7 +3,9 @@ import {
   MenuItemContent,
 } from "@/wab/client/components/menu-builder";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -71,34 +73,40 @@ export function makeFrameMenu({
           .siteOps()
           .moveFrameToArena(originArena, frame, destinationArena),
       );
-    builder.genSub(`Move to ${ARENA_LOWER}...`, (push) => {
-      for (const it of otherArenas) {
-        push(
-          <Menu.Item key={it.uid} onClick={onClickToMoveToArena(it)}>
-            <MenuItemContent>{it.name}</MenuItemContent>
-          </Menu.Item>,
-        );
-      }
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      builder.genSection(undefined, (push) => {
-        push(
-          <Menu.Item
-            onClick={() =>
-              viewCtx.studioCtx.changeUnsafe(() =>
-                onClickToMoveToArena(
-                  viewCtx.studioCtx.tplMgr().addArena(frame.name),
-                ),
-              )
-            }
-            key={`new-${ARENA_LOWER}`}
-          >
-            <MenuItemContent>
-              <UiText message={"New"} /> {<UiLabel text={ARENA_LOWER} />}
-            </MenuItemContent>
-          </Menu.Item>,
-        );
-      });
-    });
+    builder.genSub(
+      <UiText
+        message="Move to {part1}..."
+        values={{ part1: translateUiLabel(getUiLocale(), ARENA_LOWER) }}
+      />,
+      (push) => {
+        for (const it of otherArenas) {
+          push(
+            <Menu.Item key={it.uid} onClick={onClickToMoveToArena(it)}>
+              <MenuItemContent>{it.name}</MenuItemContent>
+            </Menu.Item>,
+          );
+        }
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        builder.genSection(undefined, (push) => {
+          push(
+            <Menu.Item
+              onClick={() =>
+                viewCtx.studioCtx.changeUnsafe(() =>
+                  onClickToMoveToArena(
+                    viewCtx.studioCtx.tplMgr().addArena(frame.name),
+                  ),
+                )
+              }
+              key={`new-${ARENA_LOWER}`}
+            >
+              <MenuItemContent>
+                <UiText message={"New"} /> {<UiLabel text={ARENA_LOWER} />}
+              </MenuItemContent>
+            </Menu.Item>,
+          );
+        });
+      },
+    );
   }
 
   if (_canCreateComponentFromFrame) {
@@ -157,7 +165,12 @@ export function makeFrameMenu({
         <Menu.Item
           onClick={async () => {
             const response = await reactConfirm({
-              title: "Delete " + FRAME_LOWER,
+              title: (
+                <UiText
+                  message="Delete {part1}"
+                  values={{ part1: <UiLabel text={FRAME_LOWER} /> }}
+                />
+              ),
               message: (
                 <>
                   <UiText
@@ -180,8 +193,13 @@ export function makeFrameMenu({
           key={`delete-global-variant-artboard`}
         >
           <MenuItemContent>
-            <UiText message={"Delete"} /> {<UiLabel text={FRAME_LOWER} />} for{" "}
-            <strong>{globalVariant.name}</strong>
+            <UiText
+              message="Delete {frame} for {variant}"
+              values={{
+                frame: <UiLabel text={FRAME_LOWER} />,
+                variant: <strong>{globalVariant.name}</strong>,
+              }}
+            />
           </MenuItemContent>
         </Menu.Item>,
       );

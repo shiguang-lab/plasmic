@@ -1,0 +1,74 @@
+[
+  {
+    "id": "entry",
+    "title": "登录入口",
+    "phase": "idle",
+    "note": "品牌紧接窗口按钮，设置位于内容区右上角，与窗口操作行分开；右侧从标题开始，展示项目、组件模板与协作价值。"
+  },
+  {
+    "id": "opening",
+    "title": "正在打开浏览器",
+    "phase": "opening",
+    "note": "主动作固定位置显示进行中，避免重复发起。"
+  },
+  {
+    "id": "waiting",
+    "title": "等待登录完成",
+    "phase": "waiting",
+    "note": "重新打开浏览器、复制登录链接和取消，与现有操作一致。"
+  },
+  {
+    "id": "copied",
+    "title": "登录链接已复制",
+    "phase": "waiting + copied",
+    "note": "显示复制结果，不展示内部授权地址。"
+  },
+  {
+    "id": "success",
+    "title": "登录成功",
+    "phase": "success",
+    "note": "自动返回原目标页面，不增加第二次确认。"
+  },
+  {
+    "id": "denied",
+    "title": "登录未完成",
+    "phase": "error / access_denied",
+    "note": "此次登录已取消，可以重新开始。"
+  },
+  {
+    "id": "timeout",
+    "title": "等待超时",
+    "phase": "error / timeout",
+    "note": "区分等待超时，重试会发起新的登录。"
+  },
+  {
+    "id": "network-error",
+    "title": "连接异常",
+    "phase": "error / connection",
+    "note": "检查连接后重试；不误导为密码错误。"
+  },
+  {
+    "id": "session-expired",
+    "title": "会话过期",
+    "phase": "idle / session recovery",
+    "note": "显示原目标页；只承诺返回路由，不声称未保存编辑已恢复。"
+  },
+  {
+    "id": "account",
+    "title": "App 内账户页",
+    "phase": "signed in",
+    "note": "展示个人信息与登录状态，管理账户进入浏览器。"
+  },
+  {
+    "id": "entry-light",
+    "title": "登录入口 · 浅色对照",
+    "phase": "idle / light",
+    "note": "同一结构与控件位置，仅切换主题。"
+  },
+  {
+    "id": "entry-windows",
+    "title": "登录入口 · Windows 窗口操作",
+    "phase": "idle / windows",
+    "note": "右上角最小化、最大化、关闭；设置位于窗口操作行下方，背景连续无标题栏。"
+  }
+]

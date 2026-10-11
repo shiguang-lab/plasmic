@@ -3,37 +3,45 @@ import { ProjectDependencyData } from "@/wab/client/ProjectDependencyManager";
 import { openNewTab } from "@/wab/client/cli-routes";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
+import { promptImportProject } from "@/wab/client/components/modals/ImportProjectModal";
 import {
   promptDeleteDep,
   promptUpgradeDep,
   promptUpgradeDeps,
 } from "@/wab/client/components/modals/UpgradeDepModal";
-import {
-  reactConfirm,
-  reactPrompt,
-} from "@/wab/client/components/quick-modals";
+import { reactConfirm } from "@/wab/client/components/quick-modals";
+import { shouldShowHostLessPackage } from "@/wab/client/components/studio/add-drawer/AddDrawer";
+import { useLibraryPanelStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import IconButton from "@/wab/client/components/widgets/IconButton";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
-import PlasmicLeftImportsPanel, {
-  PlasmicLeftImportsPanel__VariantsArgs,
-} from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftImportsPanel";
-import AlertIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
+import SearchIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
+import { getLeafProjectIdForHostLessPackageMeta } from "@/wab/shared/core/project-deps";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
+import { DEVFLAGS } from "@/wab/shared/devflags";
 import { ProjectDependency } from "@/wab/shared/model/classes";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { extractProjectIdFromUrlOrId, getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Menu, Tooltip, notification } from "antd";
+import {
+  Avatar,
+  Button,
+  Empty,
+  Input,
+  Menu,
+  Tag,
+  Tooltip,
+  notification,
+} from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -47,6 +55,27 @@ function isDevUser(studioCtx: StudioCtx) {
   );
 }
 
+function dependencyDisplayName(
+  studioCtx: StudioCtx,
+  dependency: ProjectDependency,
+) {
+  if (!isHostLessPackage(dependency.site)) {
+    return dependency.name;
+  }
+  const catalog =
+    studioCtx.appCtx.appConfig.hostLessComponents ??
+    DEVFLAGS.hostLessComponents ??
+    [];
+  return (
+    catalog.find(
+      (meta) =>
+        getLeafProjectIdForHostLessPackageMeta(meta) === dependency.projectId &&
+        meta.onlyShownIn !== "old" &&
+        shouldShowHostLessPackage(studioCtx, meta),
+    )?.name ?? dependency.name
+  );
+}
+
 const DependencyItem = observer(function DependencyItem(props: {
   studioCtx: StudioCtx;
   matcher: Matcher;
@@ -54,7 +83,9 @@ const DependencyItem = observer(function DependencyItem(props: {
   readOnly?: boolean;
 }) {
   const { studioCtx, matcher, data, readOnly } = props;
+  const { t } = useI18n();
   const isHostLessPkg = isHostLessPackage(data.model.site);
+  const displayName = dependencyDisplayName(studioCtx, data.model);
 
   const renderMenu = () => {
     const builder = new MenuBuilder();
@@ -89,9 +120,11 @@ const DependencyItem = observer(function DependencyItem(props: {
 
               if (hostLessDependents.length > 0) {
                 notification.error({
-                  message: `Cannot remove package, the package is a dependency of the following packages: ${hostLessDependents.join(
-                    ",",
-                  )}`,
+                  message: translate(
+                    getUiLocale(),
+                    "Cannot remove package, the package is a dependency of the following packages: {part1}",
+                    { part1: hostLessDependents.join(",") },
+                  ),
                 });
                 return;
               }
@@ -123,74 +156,79 @@ const DependencyItem = observer(function DependencyItem(props: {
     <WithContextMenu
       overlay={renderMenu}
       key={data.model.pkgId}
-      className={"SidebarSectionListItem hover-outline"}
+      className="project-library-row"
     >
-      <Tooltip title={data.model.pkgId}>
-        <label className={"flex-fill"}>
-          {matcher.boldSnippets(
-            isHostLessPkg
-              ? `Package ${data.model.name}`
-              : `${data.model.name} v${data.model.version}`,
-          )}
-        </label>
-      </Tooltip>
-      {(!isHostLessPkg || isDevUser(studioCtx)) &&
-        !readOnly &&
-        data.latestPkgVersionMeta &&
-        data.latestPkgVersionMeta.version !== data.model.version && (
-          <Tooltip
-            title={`Newer version ${data.latestPkgVersionMeta.version} exists. Click to update.`}
-          >
-            <IconButton
-              onClick={async () => {
-                const { pkg: latest, depPkgs } =
-                  await studioCtx.appCtx.api.getPkgVersion(
-                    data.model.pkgId,
-                    data.latestPkgVersionMeta?.version,
+      <Avatar className="project-library-avatar" shape="square" aria-hidden>
+        {displayName.slice(0, 1).toUpperCase()}
+      </Avatar>
+      <div className="project-library-info">
+        <Tooltip title={data.model.name}>
+          <div className="project-library-name">
+            {matcher.boldSnippets(displayName)}
+          </div>
+        </Tooltip>
+        <div className="project-library-meta">
+          <span>{t(isHostLessPkg ? "Code library" : "Shared project")}</span>
+          {data.model.version && <span>{`v${data.model.version}`}</span>}
+        </div>
+        {(!isHostLessPkg || isDevUser(studioCtx)) &&
+          !readOnly &&
+          data.latestPkgVersionMeta &&
+          data.latestPkgVersionMeta.version !== data.model.version && (
+            <div className="project-library-update">
+              <Button
+                type="link"
+                size="small"
+                onClick={async () => {
+                  const { pkg: latest, depPkgs } =
+                    await studioCtx.appCtx.api.getPkgVersion(
+                      data.model.pkgId,
+                      data.latestPkgVersionMeta?.version,
+                    );
+
+                  const { projectDependency } = unbundleProjectDependency(
+                    studioCtx.bundler(),
+                    latest,
+                    depPkgs,
                   );
 
-                const { projectDependency } = unbundleProjectDependency(
-                  studioCtx.bundler(),
-                  latest,
-                  depPkgs,
-                );
+                  const answer = await promptUpgradeDep({
+                    studioCtx: studioCtx,
+                    targetDep: projectDependency,
+                  });
 
-                const answer = await promptUpgradeDep({
-                  studioCtx: studioCtx,
-                  targetDep: projectDependency,
-                });
-
-                if (answer) {
-                  await studioCtx.projectDependencyManager.upgradeProjectDeps([
-                    projectDependency,
-                  ]);
-                }
-              }}
-            >
-              <Icon icon={AlertIcon} />
-            </IconButton>
-          </Tooltip>
-        )}
-
-      <IFrameAwareDropdownMenu menu={renderMenu}>
-        <div
-          className="SidebarSectionListItem__actionIcon pointer"
-          onClick={swallowClick}
-        >
-          {VERT_MENU_ICON}
-        </div>
-      </IFrameAwareDropdownMenu>
+                  if (answer) {
+                    await studioCtx.projectDependencyManager.upgradeProjectDeps(
+                      [projectDependency],
+                    );
+                  }
+                }}
+              >
+                {t("View update")}
+              </Button>
+              <Tag color="gold">{t("New version available")}</Tag>
+            </div>
+          )}
+      </div>
+      {(!readOnly ||
+        ((!isHostLessPkg || isDevUser(studioCtx)) &&
+          data.latestPkgVersionMeta?.pkg?.projectId)) && (
+        <IFrameAwareDropdownMenu menu={renderMenu}>
+          <button
+            type="button"
+            className="project-library-menu"
+            aria-label={t("Manage {name}", { name: displayName })}
+          >
+            {VERT_MENU_ICON}
+          </button>
+        </IFrameAwareDropdownMenu>
+      )}
     </WithContextMenu>
   );
 });
 
 export async function importProjectWithPrompt(sc: StudioCtx) {
-  const rawProjectUrlOrId = await reactPrompt({
-    message: `Enter the ID or URL of the project you want to import.`,
-    actionText: "Import",
-    placeholder: "4zXYeWKYisHVeJAByWgxCM",
-    defaultValue: undefined,
-  });
+  const rawProjectUrlOrId = await promptImportProject();
 
   if (!rawProjectUrlOrId) {
     return;
@@ -204,7 +242,9 @@ export async function importProjectWithPrompt(sc: StudioCtx) {
       await trySwitchScreenVariant(sc, dependency);
     }
   } catch (e) {
-    showError(e, { title: "Error importing project." });
+    showError(e, {
+      title: translate(getUiLocale(), "Error importing project."),
+    });
   }
 }
 
@@ -282,8 +322,15 @@ async function trySwitchScreenVariant(
           )}
         </div>
       ),
-      confirmLabel: `Switch to breakpoints from "${dependency.name}"`,
-      cancelLabel: `Keep using my existing breakpoints`,
+      confirmLabel: translate(
+        getUiLocale(),
+        'Switch to breakpoints from "{part1}"',
+        { part1: dependency.name },
+      ),
+      cancelLabel: translate(
+        getUiLocale(),
+        "Keep using my existing breakpoints",
+      ),
     });
   }
 
@@ -298,18 +345,26 @@ async function trySwitchScreenVariant(
 
 function _ProjectDependenciesPanel() {
   const sc = useStudioCtx();
+  const { t } = useI18n();
+  const { styles } = useLibraryPanelStyles();
   const [query, setQuery] = React.useState("");
-  const [state, setState] =
-    React.useState<PlasmicLeftImportsPanel__VariantsArgs["state"]>();
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  const readOnly = sc.getLeftTabPermission("imports") === "readable";
+  const readOnly =
+    sc.getLeftTabPermission("imports") !== "writable" ||
+    sc.getLeftTabPermission("libraries") !== "writable" ||
+    !sc.canSave();
   const matcher = new Matcher(query);
 
   // Function called when a user clicks the "+" icon
   // Create the list of dependencies
   const renderItems = () => {
     const items = sc.projectDependencyManager.getDependencies();
-    const filteredItems = items.filter((d) => matcher.matches(d.model.name));
+    const filteredItems = items.filter(
+      (d) =>
+        matcher.matches(d.model.name) ||
+        matcher.matches(dependencyDisplayName(sc, d.model)),
+    );
 
     return filteredItems.map((entry) => (
       <DependencyItem
@@ -333,52 +388,77 @@ function _ProjectDependenciesPanel() {
 
   const rendered = renderItems();
   return (
-    <PlasmicLeftImportsPanel
-      leftSearchPanel={{
-        searchboxProps: {
-          value: query,
-          onChange: (e) => setQuery(e.target.value),
-          autoFocus: true,
-        },
-      }}
-      importButton={
-        readOnly
-          ? { render: () => null }
-          : {
-              props: {
-                onClick: () => spawn(importProjectWithPrompt(sc)),
-                "data-test-id": "import-btn",
-              },
-            }
-      }
-      refreshButton={
-        readOnly
-          ? { render: () => null }
-          : {
-              onClick: () => {
-                setState("refreshing");
-                spawn(sc.projectDependencyManager.refreshDeps());
-                setState(undefined);
-              },
-              "data-test-id": "check-for-updates-btn",
-            }
-      }
-      updateButton={
-        readOnly
-          ? { render: () => null }
-          : {
-              onClick: () =>
-                spawn(updateProjectsWithPrompt(sc, dependenciesWithUpdates)),
-            }
-      }
-      state={state}
-      withUpdateAll={dependenciesWithUpdates.length > 1}
-      content={
-        <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
-          {rendered}
-        </Scrollbar>
-      }
-    />
+    <div className={`${styles.root} project-libraries`}>
+      <div className="project-library-search">
+        <Input
+          prefix={<Icon icon={SearchIcon} />}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          allowClear
+          autoFocus
+          placeholder={t("Search project libraries")}
+          aria-label={t("Search project libraries")}
+        />
+      </div>
+      {!readOnly && (
+        <div className="project-library-actions">
+          <Button
+            onClick={() => spawn(importProjectWithPrompt(sc))}
+            data-test-id="import-btn"
+          >
+            {t("Import project")}
+          </Button>
+          <Button
+            type="text"
+            loading={refreshing}
+            disabled={refreshing}
+            onClick={async () => {
+              setRefreshing(true);
+              try {
+                await sc.projectDependencyManager.refreshDeps();
+              } catch (error) {
+                showError(error, { title: t("Failed to check for updates") });
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            data-test-id="check-for-updates-btn"
+          >
+            {t("Check for updates")}
+          </Button>
+        </div>
+      )}
+      <div className="project-library-summary">
+        <span>{t("Added to current project")}</span>
+        <span>
+          {t("{count} libraries", {
+            count: sc.projectDependencyManager.getDependencies().length,
+          })}
+        </span>
+      </div>
+      {!readOnly && dependenciesWithUpdates.length > 1 && (
+        <Button
+          className="project-library-update-all"
+          onClick={() =>
+            spawn(updateProjectsWithPrompt(sc, dependenciesWithUpdates))
+          }
+        >
+          {t("Update all")}
+        </Button>
+      )}
+      <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
+        {rendered.length ? (
+          rendered
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={t(
+              query ? "No matching libraries" : "No imported projects",
+            )}
+          />
+        )}
+      </Scrollbar>
+    </div>
   );
 }
 

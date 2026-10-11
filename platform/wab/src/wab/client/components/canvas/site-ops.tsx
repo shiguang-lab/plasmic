@@ -13,7 +13,9 @@ import {
   ResizableImage,
   maybeUploadImage,
 } from "@/wab/client/dom-utils";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { deleteComponent } from "@/wab/client/operations/delete-component";
 import { deleteComponentState } from "@/wab/client/operations/delete-component-state";
 import {
@@ -355,13 +357,17 @@ export class SiteOps {
         return true;
       } else {
         notification.error({
-          message: `You cannot paste an artboard for "${newFrame.container.component.name}" here.`,
+          message: translate(
+            getUiLocale(),
+            'You cannot paste an artboard for "{part1}" here.',
+            { part1: newFrame.container.component.name },
+          ),
         });
         return false;
       }
     } else if (isPageArena(arena)) {
       notification.error({
-        message: `You cannot paste an artboard here.`,
+        message: translate(getUiLocale(), "You cannot paste an artboard here."),
       });
       return false;
     }
@@ -536,10 +542,16 @@ export class SiteOps {
           implicitUsages.map((usage) => usage.component),
         );
         notification.error({
-          message: "Cannot delete variant group",
-          description: `It is referenced in ${components
-            .map((c) => getComponentDisplayName(c))
-            .join(", ")}.`,
+          message: translate(getUiLocale(), "Cannot delete variant group"),
+          description: translate(
+            getUiLocale(),
+            "It is referenced in {part1}.",
+            {
+              part1: components
+                .map((c) => getComponentDisplayName(c))
+                .join(", "),
+            },
+          ),
         });
         return;
       }
@@ -912,10 +924,11 @@ export class SiteOps {
 
     if (badTransitiveDepsNames.length > 0) {
       notification.error({
-        message: `Multiple versions of the projects: ${badTransitiveDepsNames.join(
-          ", ",
-        )} detected.
-        Before duplicating this ${componentType}, make sure all imported projects use the same version.`,
+        message: translate(
+          getUiLocale(),
+          "Multiple versions of the projects: {part1} detected. Before duplicating this {part2}, make sure all imported projects use the same version.",
+          { part1: badTransitiveDepsNames.join(", "), part2: componentType },
+        ),
       });
       return;
     }
@@ -1123,10 +1136,12 @@ export class SiteOps {
     if (result.isErr()) {
       notification.error({
         message: update.accessType
-          ? `Cannot set access type to "${update.accessType}"`
+          ? translate(getUiLocale(), 'Cannot set access type to "{type}"', {
+              type: update.accessType,
+            })
           : update.initialValue !== undefined
-            ? "Cannot set initial value"
-            : "Cannot update variable",
+            ? translate(getUiLocale(), "Cannot set initial value")
+            : translate(getUiLocale(), "Cannot update variable"),
         description: result.error.message,
       });
     }
@@ -1159,7 +1174,9 @@ export class SiteOps {
       const key = mkUuid();
       notification.error({
         key,
-        message: `Cannot delete ${DATA_QUERY_LOWER}`,
+        message: translate(getUiLocale(), "Cannot delete {part1}", {
+          part1: translateUiLabel(getUiLocale(), DATA_QUERY_LOWER),
+        }),
         description: (
           <>
             <UiText message={"It is referenced in the current component."} />{" "}
@@ -1229,7 +1246,9 @@ export class SiteOps {
       const key = mkUuid();
       notification.error({
         key,
-        message: `Cannot delete ${SERVER_QUERY_LOWER}`,
+        message: translate(getUiLocale(), "Cannot delete {part1}", {
+          part1: translateUiLabel(getUiLocale(), SERVER_QUERY_LOWER),
+        }),
         description: (
           <>
             <UiText message={"It is referenced in the current component."} />{" "}
@@ -1293,7 +1312,7 @@ export class SiteOps {
       } else {
         notification.error({
           key,
-          message: "Cannot delete variant group",
+          message: translate(getUiLocale(), "Cannot delete variant group"),
           description: result.error.message,
         });
       }
@@ -1313,7 +1332,7 @@ export class SiteOps {
       const key = mkUuid();
       notification.error({
         key,
-        message: "Cannot delete variant group",
+        message: translate(getUiLocale(), "Cannot delete variant group"),
         description: result.error.message,
       });
     }
@@ -1340,7 +1359,7 @@ export class SiteOps {
       } else {
         notification.error({
           key,
-          message: "Cannot delete variant",
+          message: translate(getUiLocale(), "Cannot delete variant"),
           description: result.error.message,
         });
       }
@@ -1381,8 +1400,12 @@ export class SiteOps {
           const key = mkUuid();
           notification.error({
             key,
-            message: "Cannot delete variant group",
-            description: `Please note that in order for the "${component.name}" component to function properly, the "${group.param.variable.name}" variant must exist.`,
+            message: translate(getUiLocale(), "Cannot delete variant group"),
+            description: translate(
+              getUiLocale(),
+              'Please note that in order for the "{part1}" component to function properly, the "{part2}" variant must exist.',
+              { part1: component.name, part2: group.param.variable.name },
+            ),
           });
           return;
         }
@@ -1425,7 +1448,7 @@ export class SiteOps {
         const key = mkUuid();
         notification.error({
           key,
-          message: "Cannot delete variant group",
+          message: translate(getUiLocale(), "Cannot delete variant group"),
           description: result.error.message,
         });
       }
@@ -1486,7 +1509,10 @@ export class SiteOps {
 
       notification.error({
         key,
-        message: "Unable to change variant group type to single-choice",
+        message: translate(
+          getUiLocale(),
+          "Unable to change variant group type to single-choice",
+        ),
         description: (
           <>
             <p>
@@ -1559,22 +1585,35 @@ export class SiteOps {
 
     if (refCompsAndPresets.length > 0) {
       notification.error({
-        message: `A page component cannot be instantiated.`,
-        description: `${getComponentDisplayName(
-          component,
-        )} is still being used by ${L.uniq(
-          refCompsAndPresets.map((c) => getComponentDisplayName(c)),
-        ).join(", ")}.`,
+        message: translate(
+          getUiLocale(),
+          "A page component cannot be instantiated.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "{part1} is still being used by {part2}.",
+          {
+            part1: getComponentDisplayName(component),
+            part2: L.uniq(
+              refCompsAndPresets.map((c) => getComponentDisplayName(c)),
+            ).join(", "),
+          },
+        ),
       });
 
       return;
     }
     if (this.site.pageWrapper === component) {
       notification.error({
-        message: `A page component cannot be instantiated.`,
-        description: `${getComponentDisplayName(
-          component,
-        )} is still being used as the default page wrapper.`,
+        message: translate(
+          getUiLocale(),
+          "A page component cannot be instantiated.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "{part1} is still being used as the default page wrapper.",
+          { part1: getComponentDisplayName(component) },
+        ),
       });
 
       return;

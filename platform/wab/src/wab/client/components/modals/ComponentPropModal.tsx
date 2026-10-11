@@ -17,7 +17,8 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { createComponentProp } from "@/wab/client/operations/create-component-prop";
 import { updateComponentProp } from "@/wab/client/operations/update-component-prop";
@@ -246,7 +247,9 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
       const key = mkUuid();
       notification.warning({
         key,
-        message: `Review ${component.name} prop usage`,
+        message: translate(getUiLocale(), "Review {part1} prop usage", {
+          part1: component.name,
+        }),
         description: (
           <>
             <p>{`There ${issuesPlural} with existing ${newParamName} props on ${componentsPlural}: ${componentNames}.`}</p>
@@ -495,7 +498,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
               paramType !== "eventHandler" && (
                 <PropValueEditorWithMenu
                   attr="default-value"
-                  label={paramName || "New prop"}
+                  label={paramName || uiT("New prop")}
                   propType={ensure(
                     propEditorType,
                     "propEditorType should only be undefined if paramType equals eventHandler",
@@ -513,7 +516,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
               paramType !== "eventHandler" && (
                 <PropValueEditorWithMenu
                   attr="preview-value"
-                  label={paramName || "New prop"}
+                  label={paramName || uiT("New prop")}
                   propType={ensure(
                     propEditorType,
                     "propEditorType should only be undefined if paramType equals eventHandler",
@@ -555,7 +558,9 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
       <Modal
         open
         footer={null}
-        title={`New ${COMPONENT_PROP_CAP}`}
+        title={uiT("New {part1}", {
+          part1: translateUiLabel(getUiLocale(), COMPONENT_PROP_CAP),
+        })}
         onCancel={() => onFinish()}
       >
         {modalContent}
@@ -567,8 +572,10 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
         show={visible}
         title={
           existingParam
-            ? `Edit ${existingParam.variable.name}`
-            : `New ${COMPONENT_PROP_CAP}`
+            ? uiT("Edit {name}", { name: existingParam.variable.name })
+            : uiT("New {part1}", {
+                part1: translateUiLabel(getUiLocale(), COMPONENT_PROP_CAP),
+              })
         }
         onClose={() => onFinish()}
       >

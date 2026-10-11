@@ -1,4 +1,4 @@
-import { UiText } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UserError } from "@/wab/shared/UserError";
@@ -57,13 +57,22 @@ export function showError(
   const info = deriveErrorInfo();
   const newCount = 1 + (errorMessageCounters.get(info.title) || 0);
   errorMessageCounters.set(title, newCount);
-  const occurrences = newCount > 1 ? ` (${newCount} occurrences)` : "";
 
   notification.open({
     type: info.type,
     key: info.title,
-    message: info.title + occurrences,
-    description: description ?? info.description,
+    message: (
+      <>
+        <UiLabel text={info.title} />
+        {newCount > 1 && (
+          <UiText
+            message=" ({count} occurrences)"
+            values={{ count: newCount }}
+          />
+        )}
+      </>
+    ),
+    description: <UiLabel text={description ?? info.description ?? ""} />,
     duration: info.type === "warning" ? 10 : 0,
     onClose: () => {
       errorMessageCounters.delete(title);

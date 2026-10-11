@@ -10,6 +10,8 @@ import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { Matcher } from "@/wab/client/components/view-common";
 import { SimpleReorderableList } from "@/wab/client/components/widgets/SimpleReorderableList";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftSettingsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSettingsPanel";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -250,9 +252,11 @@ const ContextRow = observer(function ContextRow_(props: {
 
             if (hostLessDependents.length > 0) {
               notification.error({
-                message: `Cannot remove package, the package is a dependency of the following packages: ${hostLessDependents.join(
-                  ",",
-                )}`,
+                message: translate(
+                  getUiLocale(),
+                  "Cannot remove package, the package is a dependency of the following packages: {part1}",
+                  { part1: hostLessDependents.join(",") },
+                ),
               });
               return;
             }
@@ -283,7 +287,9 @@ const ContextRow = observer(function ContextRow_(props: {
   return (
     <>
       <SidebarModal
-        title={componentName + " props"}
+        title={
+          <UiText message="{name} props" values={{ name: componentName }} />
+        }
         show={isVisible}
         onClose={() => setIsVisible(false)}
       >

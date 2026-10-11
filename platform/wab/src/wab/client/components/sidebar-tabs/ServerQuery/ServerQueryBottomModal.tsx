@@ -2,9 +2,10 @@ import { useBottomModalActions } from "@/wab/client/components/BottomModal";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ServerQueryOpExprFormAndPreview } from "@/wab/client/components/sidebar-tabs/ServerQuery/ServerQueryOpPicker";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { SERVER_QUERY_LOWER } from "@/wab/shared/Labels";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { ExprCtx } from "@/wab/shared/core/exprs";
@@ -83,7 +84,7 @@ export function useServerQueryBottomModals() {
       } & ServerQueryOpExprBottomModalContentProps,
     ) => {
       modalActions.open(queryKey, {
-        title: title || `Configure ${SERVER_QUERY_LOWER}`,
+        title: title || translate(getUiLocale(), "Configure server query"),
         "data-test-id": "server-query-bottom-modal",
         children: <ServerQueryOpExprBottomModalContent {...props} />,
       });

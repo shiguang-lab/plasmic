@@ -28,7 +28,7 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
       <FullRow>
         <LabeledStyleSelectItem
           styleName={"list-style-type"}
-          tooltip={`List Style Type`}
+          tooltip={uiT("List Style Type")}
           label={uiT("Type")}
           textRight={false}
           selectOpts={{
@@ -130,12 +130,12 @@ function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
       <FullRow>
         <LabeledStyleSelectItem
           styleName={"list-style-position"}
-          tooltip={`List Style Position`}
+          tooltip={uiT("List Style Position")}
           label={uiT("Position")}
           textRight={false}
           selectOpts={{
             options: [
-              { value: "outside", label: "Outside" },
+              { value: "outside", label: uiT("Outside") },
               { value: "inside", label: uiT("Inside") },
             ],
           }}

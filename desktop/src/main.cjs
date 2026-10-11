@@ -207,10 +207,19 @@ async function startDesktop() {
     title: "Plasmic",
     icon: appIcon,
     show: false,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#15161b",
     ...(process.platform === "darwin"
-      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 16, y: 16 } }
-      : {}),
+      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 32, y: 33 } }
+      : process.platform === "win32"
+        ? {
+            titleBarStyle: "hidden",
+            titleBarOverlay: {
+              color: "#15161b",
+              symbolColor: "#edeef5",
+              height: 40,
+            },
+          }
+        : {}),
     webPreferences: {
       session: desktopSession,
       preload: path.join(__dirname, "preload.cjs"),
@@ -226,6 +235,32 @@ async function startDesktop() {
   mainWindow.webContents.setUserAgent(
     `${mainWindow.webContents.getUserAgent()} PlasmicDesktop/${process.platform}`,
   );
+  const appearanceWindow = mainWindow;
+  if (process.platform === "darwin") {
+    const alignWindowButtons = () => {
+      if (!appearanceWindow.isDestroyed() && !appearanceWindow.isFullScreen()) {
+        appearanceWindow.setWindowButtonPosition({ x: 32, y: 33 });
+      }
+    };
+    for (const event of ["show", "resize", "resized", "restore", "leave-full-screen"]) {
+      appearanceWindow.on(event, () => setImmediate(alignWindowButtons));
+    }
+  }
+  const syncWindowAppearance = (appearance) => {
+    if (appearanceWindow.isDestroyed()) return;
+    const dark = appearance === "dark";
+    appearanceWindow.setBackgroundColor(dark ? "#15161b" : "#eceef4");
+    if (process.platform === "win32") {
+      appearanceWindow.setTitleBarOverlay({
+        color: dark ? "#15161b" : "#eceef4",
+        symbolColor: dark ? "#edeef5" : "#252936",
+        height: 40,
+      });
+    }
+  };
+  syncWindowAppearance(desktopAppearance.snapshot());
+  const stopAppearance = desktopAppearance.subscribe(syncWindowAppearance);
+  mainWindow.once("closed", stopAppearance);
   unifiedAuth = new UnifiedAuthWindow(
     mainWindow,
     config.studioOrigin,

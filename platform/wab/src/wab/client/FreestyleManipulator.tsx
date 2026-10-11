@@ -452,31 +452,49 @@ export function resizeRect(
 }
 
 export class DragMoveFrameManager {
-  private state: ManipState;
+  private states: { frame: ArenaFrame; state: ManipState }[] = [];
   private _aborted = false;
   constructor(
     private studioCtx: StudioCtx,
-    private frame: ArenaFrame,
+    frame: ArenaFrame,
     private startingClientPt: Pt,
   ) {
     studioCtx.startUnlogged();
-    mkFreestyleManipForFocusedFrame(studioCtx, frame).match(
-      (manipulator) => {
-        this.state = manipulator.start();
-      },
-      () => {
-        this._aborted = false;
-      },
-    );
+    const selected = studioCtx.focusedFrames();
+    const frames = selected.includes(frame) ? selected : [frame];
+    for (const item of frames) {
+      if (studioCtx.isPositionManagedFrame(item)) {
+        this._aborted = true;
+        break;
+      }
+      mkFreestyleManipForFocusedFrame(studioCtx, item).match(
+        (manipulator) =>
+          this.states.push({ frame: item, state: manipulator.start() }),
+        () => {
+          this._aborted = true;
+        },
+      );
+    }
+    if (this._aborted) {
+      this.endDrag();
+    }
   }
 
   async drag(clientPt: Pt, modifiers: ModifierStates) {
     if (!this._aborted) {
       const maybeAborted = await this.studioCtx.change<ManipulatorAbortedError>(
-        () =>
-          mkFreestyleManipForFocusedFrame(this.studioCtx, this.frame).map(
-            (manipulator) =>
-              manipulator.move(this.state, {
+        () => {
+          const manipulators = this.states.map(({ frame }) =>
+            mkFreestyleManipForFocusedFrame(this.studioCtx, frame),
+          );
+          for (const manipulator of manipulators) {
+            if (manipulator.isErr()) {
+              return err(manipulator.error);
+            }
+          }
+          this.states.forEach(({ state }, index) => {
+            manipulators[index].map((manipulator) =>
+              manipulator.move(state, {
                 deltaFrameX:
                   (clientPt.x - this.startingClientPt.x) / this.studioCtx.zoom,
                 deltaFrameY:
@@ -486,7 +504,10 @@ export class DragMoveFrameManager {
                 altKey: modifiers.altKey,
                 ctrlKey: modifiers.ctrlKey,
               }),
-          ),
+            );
+          });
+          return ok();
+        },
       );
       maybeAborted.match(
         () => {},

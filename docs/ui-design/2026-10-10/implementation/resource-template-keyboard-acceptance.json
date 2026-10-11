@@ -1,0 +1,25 @@
+{
+  "verified": [
+    "Keyboard Enter opens template preview",
+    "Cancel retains resource panel",
+    "Same template can be selected and previewed twice by keyboard",
+    "Five existing canvas pages retained; Saved indicator unchanged"
+  ],
+  "implementation": [
+    "Controlled preview state shared with card click",
+    "Select owning category and scroll to preview row",
+    "Combobox selectedItem null makes repeated selections actions"
+  ],
+  "checks": {
+    "tests": "2 files, 5 passed",
+    "typescript": "tsc --incremental exit 0"
+  },
+  "remaining": [
+    "Multiple templates across sections and virtual rows",
+    "Read-only E2E",
+    "Complex template execution",
+    "PNG upload success",
+    "Download artifact"
+  ],
+  "complete": false
+}

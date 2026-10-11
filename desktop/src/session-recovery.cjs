@@ -14,7 +14,8 @@ function createSessionRecovery({ session, studioOrigin, auth }) {
     }
     if (pending) return pending;
     const current = new URL(auth.window.webContents.getURL());
-    if (current.origin !== studioOrigin || current.pathname === AUTH_PATH) return;
+    if (current.origin !== studioOrigin || current.pathname === AUTH_PATH)
+      return;
     pending = (async () => {
       // A resource permission failure also uses 401. Only IAM can confirm that
       // the shared login session has expired; never clear a valid session.
@@ -34,13 +35,17 @@ function createSessionRecovery({ session, studioOrigin, auth }) {
       }
       if (!expired || auth.window.isDestroyed()) return;
       const destination = new URL(auth.window.webContents.getURL());
-      if (destination.origin !== studioOrigin || destination.pathname === AUTH_PATH) return;
+      if (
+        destination.origin !== studioOrigin ||
+        destination.pathname === AUTH_PATH
+      )
+        return;
       const login = new URL("/login", studioOrigin);
       login.searchParams.set(
         "continueTo",
         destination.pathname + destination.search + destination.hash,
       );
-      await auth.show(login.toString());
+      await auth.show(login.toString(), { sessionExpired: true });
     })();
     try {
       await pending;

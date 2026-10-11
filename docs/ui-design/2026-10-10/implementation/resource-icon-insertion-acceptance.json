@@ -1,0 +1,20 @@
+{
+  "verified": [
+    "ResourceFixtureIcon card inserts actual SVG into Page1",
+    "Property panel shows asset reference and 64x64 source dimensions",
+    "Keyboard undo restores Page1 and page property panel"
+  ],
+  "storagePreparation": {
+    "source": "deploy/compose.yml pinned SeaweedFS digest",
+    "dockerRunSession": 87116,
+    "bind": "127.0.0.1:8333",
+    "status": "Private S3 upload and authorized GET 200; existing deployment image delivery GET 200; backend and real browser PNG upload verified"
+  },
+  "remaining": [
+    "Asset save/reopen and Preview after insertion",
+    "Download artifact",
+    "Read-only E2E"
+  ],
+  "complete": false,
+  "latestEvidence": "resource-png-upload-acceptance.json"
+}

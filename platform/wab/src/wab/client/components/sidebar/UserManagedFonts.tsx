@@ -3,8 +3,9 @@ import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftFontsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftFontsPanel";
 import AlertIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
@@ -13,7 +14,7 @@ import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { arrayRemove } from "@/wab/shared/collections";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Menu, notification, Tooltip } from "antd";
+import { Menu, Tooltip, notification } from "antd";
 import * as _ from "lodash";
 import { observer } from "mobx-react";
 import React from "react";
@@ -100,9 +101,12 @@ function _UserManagedFontsPanel(props: {}) {
 
   const addFontFamily = async () => {
     const newFont = await reactPrompt({
-      message: `Enter the font-family to use. Plasmic will allow you to use this font in design even if this font is not installed locally.`,
+      message: translate(
+        getUiLocale(),
+        "Enter the font-family to use. Plasmic will allow you to use this font in design even if this font is not installed locally.",
+      ),
       actionText: "Add",
-      placeholder: "Font family...",
+      placeholder: translate(getUiLocale(), "Font family..."),
       defaultValue: undefined,
     });
 
@@ -111,7 +115,11 @@ function _UserManagedFontsPanel(props: {}) {
     }
     if (sc.site.userManagedFonts.find((f) => f === newFont)) {
       notification.warning({
-        message: `${newFont} is already in the fonts list`,
+        message: translate(
+          getUiLocale(),
+          "{part1} is already in the fonts list",
+          { part1: newFont },
+        ),
       });
 
       return;

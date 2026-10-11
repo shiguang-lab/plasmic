@@ -175,7 +175,12 @@ export function useVariableRow({
       <SidebarModal
         show={valueModalVisible}
         onClose={() => setValueModalVisible(false)}
-        title={`Edit "${state.param.variable.name}" values`}
+        title={
+          <UiText
+            message={'Edit "{part1}" values'}
+            values={{ part1: state.param.variable.name }}
+          />
+        }
       >
         <div style={{ padding: "20px 20px 20px 15px" }}>
           <VariableValueEditor

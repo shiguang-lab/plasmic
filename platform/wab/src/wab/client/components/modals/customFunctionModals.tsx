@@ -6,7 +6,9 @@ import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import TrashsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__TrashSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { cachedExprsInSite } from "@/wab/shared/cached-selectors";
@@ -94,7 +96,10 @@ async function promptRemapCustomFunction(props: {
       <div className="flex flex-vcenter">
         <Select
           type="bordered"
-          placeholder={"Replace with another function..."}
+          placeholder={translate(
+            getUiLocale(),
+            "Replace with another function...",
+          )}
           onChange={async (value) => {
             if (value) {
               const newFn = ensure(
@@ -104,7 +109,11 @@ async function promptRemapCustomFunction(props: {
               const newName = getCustomFunctionDisplayName(newFn);
               if (
                 await reactConfirm({
-                  message: `Replace all uses of "${fnDisplay}" with "${newName}"?`,
+                  message: translate(
+                    getUiLocale(),
+                    'Replace all uses of "{part1}" with "{part2}"?',
+                    { part1: fnDisplay, part2: newName },
+                  ),
                 })
               ) {
                 onSubmit(newFn);

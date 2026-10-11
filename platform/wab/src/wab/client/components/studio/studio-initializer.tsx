@@ -14,6 +14,8 @@ import { AlertSpec } from "@/wab/client/components/widgets/plasmic/AlertBanner";
 import { providesViewCtx } from "@/wab/client/contexts/StudioContexts";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { checkRootSubHostVersion } from "@/wab/client/frame-ctx/windows";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { initStudioCtx } from "@/wab/client/init-view-ctx";
 import "@/wab/client/moment-config";
 import "@/wab/client/react-global-hook/globalHook"; // Run once studio loads to inject our hook
@@ -191,8 +193,11 @@ class StudioInitializer_ extends React.Component<
   render() {
     if (!isHostFrame()) {
       notification.error({
-        message: "Unknown URL",
-        description: "Please make sure you are accessing a valid URL",
+        message: translate(getUiLocale(), "Unknown URL"),
+        description: translate(
+          getUiLocale(),
+          "Please make sure you are accessing a valid URL",
+        ),
         duration: 0,
       });
       return null;

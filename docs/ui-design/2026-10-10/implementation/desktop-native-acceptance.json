@@ -1,0 +1,33 @@
+{
+  "scope": "Native MCP settings page with actual Electron, IPC and McpIntegrations using isolated test profiles. This does not verify the full packaged Desktop application or IAM login.",
+  "electronVersion": "44.5.1",
+  "source": "desktop/src/mcp-settings.html",
+  "harness": "desktop/tests/ui-appearance-native.cjs",
+  "checks": [
+    {
+      "appearance": "dark",
+      "profile": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-native-ui-6mhEHz",
+      "configFileExists": true,
+      "plasmicEntryRemoved": true,
+      "selectedAfterDisable": false,
+      "screenshot": "desktop-mcp-dark.png",
+      "visibleFeedback": "配置已更新，请重启客户端或刷新其 MCP 配置。",
+      "focusAfterOperation": "Codex CLI switch"
+    },
+    {
+      "appearance": "light",
+      "profile": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-native-ui-Sk5Hrl",
+      "configFileExists": true,
+      "plasmicEntryRemoved": true,
+      "selectedAfterDisable": false,
+      "screenshot": "desktop-mcp-light.png",
+      "visibleFeedback": "配置已更新，请重启客户端或刷新其 MCP 配置。",
+      "focusAfterOperation": "Codex CLI switch"
+    }
+  ],
+  "remaining": [
+    "Full Desktop startup and packaged renderer",
+    "IAM-authenticated editor flow",
+    "Native update dialog runtime and narrow-window rendering"
+  ]
+}

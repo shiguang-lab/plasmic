@@ -23,6 +23,7 @@ import { observable } from "mobx";
 export interface ViewStateSnapshot {
   focusedArena?: AnyArena | null;
   focusedFrame?: ArenaFrame;
+  focusedFrames?: ArenaFrame[];
   focusedOnFrame: boolean;
   focusedSelectable?: Selectable;
   nextFocusedTpl?: TplNode;
@@ -177,6 +178,7 @@ export class UndoLog {
       if (
         prev.focusedArena !== next.focusedArena ||
         prev.focusedFrame !== next.focusedFrame ||
+        !L.isEqual(prev.focusedFrames ?? [], next.focusedFrames ?? []) ||
         prev.focusedOnFrame !== next.focusedOnFrame
       ) {
         return false;

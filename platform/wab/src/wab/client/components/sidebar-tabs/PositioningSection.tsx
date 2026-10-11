@@ -24,7 +24,7 @@ import { AlignItemsControls } from "@/wab/client/components/style-controls/align
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { isStylePropSet } from "@/wab/client/utils/style-utils";
 import {
   Axis,
@@ -179,8 +179,8 @@ export const PositioningPanelSection = observer(
                   <StyleToggleButton
                     key={button.label}
                     showLabel
-                    label={button.label}
-                    tooltip={button.tooltip}
+                    label={<UiLabel text={button.label} />}
+                    tooltip={<UiLabel text={button.tooltip} />}
                     value={button.value}
                     children={null}
                     noIcon

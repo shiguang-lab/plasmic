@@ -9,6 +9,7 @@ import { PopoverFrame } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import Button from "@/wab/client/components/widgets/Button";
 import { ConnectorLine } from "@/wab/client/components/widgets/ConnectorLine";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   getPropTypeDefaultValue,
   getPropTypeType,
@@ -235,18 +236,23 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
                 ...controlExtras,
                 item: evaluatedValue,
               },
-            ) ?? "Configure..."}
+            ) ?? <UiText message="Configure..." />}
           </Button>
           <PopoverFrame
             show={shouldShowModal}
-            title={`Edit ${
-              objectNameFunc?.(
-                evaluatedValue,
-                componentPropValues,
-                ccContextData,
-                controlExtras,
-              ) ?? "Object"
-            }`}
+            title={
+              <UiText
+                message="Edit {name}"
+                values={{
+                  name: objectNameFunc?.(
+                    evaluatedValue,
+                    componentPropValues,
+                    ccContextData,
+                    controlExtras,
+                  ) ?? <UiText message="Object" />,
+                }}
+              />
+            }
             valuePath={controlExtras.path}
             onClose={() => {
               setShowModal(false);

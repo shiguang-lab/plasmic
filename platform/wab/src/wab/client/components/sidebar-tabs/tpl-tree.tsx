@@ -18,7 +18,8 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   EXPANDER_COLLAPSED_ICON,
@@ -130,16 +131,28 @@ import { transformDataTokensToDisplay } from "@/wab/shared/eval/expression-parse
 import { INTERACTIVE_CAP, REPEATED_CAP } from "@/wab/shared/Labels";
 
 function RepIcon() {
+  const { t: uiT } = useI18n();
+
   return (
-    <Tooltip title={`${REPEATED_CAP} element`}>
+    <Tooltip
+      title={uiT("{part1} element", {
+        part1: translateUiLabel(getUiLocale(), REPEATED_CAP),
+      })}
+    >
       <Icon icon={RepeatingsvgIcon} />
     </Tooltip>
   );
 }
 
 function ActionIcon() {
+  const { t: uiT } = useI18n();
+
   return (
-    <Tooltip title={`${INTERACTIVE_CAP} element`}>
+    <Tooltip
+      title={uiT("{part1} element", {
+        part1: translateUiLabel(getUiLocale(), INTERACTIVE_CAP),
+      })}
+    >
       <Icon icon={BoltIcon} />
     </Tooltip>
   );
@@ -491,9 +504,11 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     return (
       <Tooltip
         title={
-          item.locked || props.ancestorLocked
-            ? "Unlock to enable editing from canvas"
-            : "Lock to disable editing from canvas"
+          item.locked || props.ancestorLocked ? (
+            <UiText message="Unlock to enable editing from canvas" />
+          ) : (
+            <UiText message="Lock to disable editing from canvas" />
+          )
         }
       >
         <div
@@ -1436,7 +1451,9 @@ export class TreeDndManager {
     }
 
     if (this.draggedItems.some((item) => item.node.parent == null)) {
-      notification.warning({ message: "The root node is not movable" });
+      notification.warning({
+        message: translate(getUiLocale(), "The root node is not movable"),
+      });
       return;
     }
 
@@ -1936,7 +1953,7 @@ const TplVisibilityToggle = observer(function TplVisibilityToggle(props: {
   } = props;
   const [menuShown, setMenuShown] = React.useState(false);
   const elt = (
-    <Tooltip title={isHidden ? "Unhide" : "Hide"}>
+    <Tooltip title={<UiText message={isHidden ? "Unhide" : "Hide"} />}>
       <div
         className={cx({
           "tpltree__label__action-icon": true,

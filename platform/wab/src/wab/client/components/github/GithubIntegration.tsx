@@ -16,8 +16,9 @@ import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import GatsbyIcon from "@/wab/commons/images/gatsby.svg";
 import NextjsIcon from "@/wab/commons/images/nextjs.svg";
@@ -422,9 +423,14 @@ function GithubIntegration(props: GithubIntegrationProps) {
           const sure =
             key !== "react" ||
             (await reactConfirm({
-              message:
+              message: translate(
+                getUiLocale(),
                 "Are you sure you want to use plain React? If you are trying to directly publish the site, pages/routes will not work out of the box. You'll need to manually add your own routing system using something like react-router.",
-              title: "Framework needed to support pages",
+              ),
+              title: translate(
+                getUiLocale(),
+                "Framework needed to support pages",
+              ),
             }));
           if (sure) {
             setFramework(key as GitSyncPlatform);

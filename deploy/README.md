@@ -81,6 +81,13 @@ After the workflow succeeds, run `node desktop/scripts/publish.mjs desktop-v<ver
 to pull and deploy it on NAS. This also configures the route and service on an existing
 deployment. See [desktop releases](../desktop/README.md#nas-updates-and-releases).
 
+## Product branding
+
+Studio uses `platform/wab/public/favicon.svg` and `favicon.ico`. The mark matches
+Studio's editor and dashboard. Shiguang Website uses the same mark in
+`ZhijieMark` and `/assets/plasmic-app-mark.png`; the desktop OAuth registration's
+`logoUrl` points to that PNG.
+
 ## Shared hosting package
 
 Upstream commit cfd0a4c76d8669f191c27eebb7c78626b48b7532 moved the hosting

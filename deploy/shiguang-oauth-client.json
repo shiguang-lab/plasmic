@@ -12,6 +12,6 @@
   "requiredEntitlements": [
     "plasmic:access"
   ],
-  "logoUrl": "/assets/plasmic-app.png",
+  "logoUrl": "/assets/plasmic-app-mark.png",
   "appCallbackUrl": "plasmic-desktop://oauth/callback"
 }

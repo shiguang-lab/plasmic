@@ -2,6 +2,7 @@ import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { createAddComponentPreset } from "@/wab/client/components/studio/add-drawer/AddDrawer";
 import AddDrawerItem from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
@@ -14,6 +15,8 @@ import * as React from "react";
  * Opened via `StudioCtx.showPresetsModal`.
  */
 export const ComponentPresetsModal = observer(function ComponentPresetsModal() {
+  const { t: uiT } = useI18n();
+
   const studioCtx = useStudioCtx();
   const component = studioCtx.getPresetsModalComponent();
   if (!component) {
@@ -27,7 +30,9 @@ export const ComponentPresetsModal = observer(function ComponentPresetsModal() {
     <Modal
       visible
       footer={null}
-      title={`Component templates for ${getComponentDisplayName(component)}`}
+      title={uiT("Component templates for {part1}", {
+        part1: getComponentDisplayName(component),
+      })}
       onCancel={onClose}
     >
       <ul

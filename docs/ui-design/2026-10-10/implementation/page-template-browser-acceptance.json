@@ -1,0 +1,62 @@
+{
+  "scope": "Design 12 page template real catalog browser workflow",
+  "environment": "Isolated Docker plasmic-ui-test-db-20261010, local Studio 3003",
+  "fixture": {
+    "projectId": "th9KHVa1hTtjGGPeNTn5wP",
+    "componentName": "ResourceTemplatePage",
+    "publishedVersion": "0.0.1"
+  },
+  "targetProjectId": "1Tn5QZywpzJQBKpJgUnx8v",
+  "productionFixes": [
+    "Stop mouse, wheel and keyboard events from template preview portals dismissing the resource panel before action",
+    "Do not reenter the current arena after page template creation; retain newly selected artboard",
+    "Keep asset preview wheel events inside its dialog"
+  ],
+  "tests": {
+    "command": "vitest run --project studio TemplatePreview.test.tsx PageTemplateModel.test.ts ResourceAssetActions.test.tsx",
+    "passed": 8,
+    "failed": 0,
+    "coverage": "Actual dismiss hook with native Modal mouse/wheel events, outside dismissal, real template model copying and asset operations"
+  },
+  "typecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit --incremental",
+    "exitCode": 0
+  },
+  "browserVerified": [
+    "Published local source project read through real package API",
+    "Catalog thumbnail and native preview",
+    "Explicit create generates one real Page and matching mixed arena artboard",
+    "New artboard selected and property panel follows new page",
+    "Undo removes page and overview artboard together",
+    "Redo restores page and artboard identities",
+    "Save, database readback and browser reload retain template text, color and image",
+    "Original four artboard coordinates unchanged",
+    "Light/dark catalog layout, contents and controls consistent"
+  ],
+  "modelReadback": {
+    "revision": 21,
+    "templatePageCount": 1,
+    "matchingCustomArtboardCount": 1,
+    "pageUuid": "pO5syvKYrsKQ",
+    "frameUuid": "MTXjkKeu8tYp",
+    "oldCoordinatesPreserved": true,
+    "textStyleAndImageReferenceVerified": true,
+    "identicalImageDeduplicatedAgainstExistingAsset": true,
+    "redoRevision": 23,
+    "redoPreservesPageAndFrameIdentity": true
+  },
+  "screenshots": [
+    "resources-page-template-catalog-dark.png",
+    "resources-page-template-catalog-light.png",
+    "resources-page-template-preview-dark.png",
+    "resources-page-template-reopened-dark.png"
+  ],
+  "remaining": [
+    "Complex business template data/events/Slots runtime behavior",
+    "Template network failure and repeated submit end-to-end",
+    "Read-only template browser workflow",
+    "Resource upload/download/deletion browser workflows",
+    "Other implementation plan completion gates"
+  ],
+  "state": "Acceptance template catalog and one inserted page remain in isolated test project; original theme restored to dark"
+}

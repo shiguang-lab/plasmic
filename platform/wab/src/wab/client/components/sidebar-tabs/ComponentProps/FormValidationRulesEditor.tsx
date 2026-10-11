@@ -206,7 +206,7 @@ export function FormValidationRulesEditor(
         <SidebarModal
           show
           onClose={() => setShowModal(false)}
-          title={`Configure Rules`}
+          title={<UiText message="Configure Rules" />}
         >
           <div className="p-m pr-xxlg overflow-hidden">
             <div className="flex-col fill-height fill-width gap-m">

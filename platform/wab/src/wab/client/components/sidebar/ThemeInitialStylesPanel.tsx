@@ -83,10 +83,10 @@ const ThemeInitialStylesPanel = observer(
               { value: AddItemKey.vstack, label: uiT("Vertical stack") },
               { value: AddItemKey.grid, label: uiT("Grid") },
               { value: AddItemKey.section, label: uiT("Section") },
-              { value: AddItemKey.columns, label: "Responsive column" },
-              { value: AddItemKey.box, label: "Free container" },
+              { value: AddItemKey.columns, label: uiT("Responsive column") },
+              { value: AddItemKey.box, label: uiT("Free container") },
             ],
-            placeholder: "Pick an element type to configure",
+            placeholder: uiT("Pick an element type to configure"),
             onChange: (newKey) => {
               if (!newKey) {
                 setAddItemKey(undefined);

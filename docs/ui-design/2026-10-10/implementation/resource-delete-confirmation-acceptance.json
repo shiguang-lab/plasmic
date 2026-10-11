@@ -1,0 +1,17 @@
+{
+  "verified": [
+    "Deletion prompt identifies actual referenced page ResourceTemplatePage",
+    "Cancel retains ResourceFixtureHero and rendered template page",
+    "Cancel retains resource panel, Images category and asset card",
+    "Wrapper/native Modal regression confirms outside dismissal resumes after modal close"
+  ],
+  "tests": "InsertPanelWrapper.test.tsx: 1 passed",
+  "typecheck": "tsc --incremental exit 0",
+  "remaining": [
+    "Confirmed deletion of referenced asset with undo",
+    "PNG upload success",
+    "Download file verification",
+    "Read-only end-to-end"
+  ],
+  "complete": false
+}

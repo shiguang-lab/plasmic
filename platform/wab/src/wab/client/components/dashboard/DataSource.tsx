@@ -3,7 +3,9 @@ import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboa
 import { confirmDeleteDataSource } from "@/wab/client/components/data-source-ui";
 import { Matcher } from "@/wab/client/components/view-common";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   DefaultDataSourceProps,
   PlasmicDataSource,
@@ -54,7 +56,11 @@ function DataSource_(
             workspaceId: response.workspace.id,
           });
           notification.success({
-            message: `Integration ${source.name} moved to ${response.workspace.name}`,
+            message: translate(
+              getUiLocale(),
+              "Integration {part1} moved to {part2}",
+              { part1: source.name, part2: response.workspace.name },
+            ),
           });
           await onUpdate();
         }}

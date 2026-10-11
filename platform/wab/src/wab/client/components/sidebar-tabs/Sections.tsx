@@ -1203,7 +1203,7 @@ const MissingPositionClassSection = observer(
         <div className="panel-row mt-lg">
           <Alert
             type="warning"
-            message="Not able to style code component"
+            message={<UiText message="Not able to style code component" />}
             description={
               <p>
                 <UiText

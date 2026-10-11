@@ -80,7 +80,7 @@ export async function promptUpgradeDeps(props: {
   const { studioCtx, targetDeps } = props;
   return showTemporaryPrompt<UpgradeDepResponse>((onSubmit, onCancel) => (
     <Modal
-      title={`Upgrade imported projects`}
+      title={<UiText message="Upgrade imported projects" />}
       open={true}
       footer={null}
       onCancel={() => onCancel()}
@@ -133,7 +133,12 @@ export async function promptUpgradeDep(props: {
   );
   return showTemporaryPrompt<UpgradeDepResponse>((onSubmit, onCancel) => (
     <Modal
-      title={`Upgrade imported project "${targetDep.name}"`}
+      title={
+        <UiText
+          message={'Upgrade imported project "{part1}"'}
+          values={{ part1: targetDep.name }}
+        />
+      }
       open={true}
       footer={null}
       onCancel={() => onCancel()}
@@ -175,7 +180,12 @@ export async function promptDeleteDep(props: {
   );
   return showTemporaryPrompt<DeleteDepResponse>((onSubmit, onCancel) => (
     <Modal
-      title={`Remove imported project "${curDep.name}"?`}
+      title={
+        <UiText
+          message={'Remove imported project "{part1}"?'}
+          values={{ part1: curDep.name }}
+        />
+      }
       open={true}
       footer={null}
       onCancel={() => onCancel()}
@@ -276,7 +286,9 @@ function PublishContent(props: {
           <Alert
             type="warning"
             showIcon
-            message="The new version you're publishing contains potentially breaking changes, as some things have been removed or renamed."
+            message={uiT(
+              "The new version you're publishing contains potentially breaking changes, as some things have been removed or renamed.",
+            )}
           />
         </p>
       )}
@@ -333,7 +345,7 @@ function PublishContent(props: {
 export async function promptPublishProj(props: { studioCtx: StudioCtx }) {
   return showTemporaryPrompt<PublishProjResponse>((onSubmit, onCancel) => (
     <Modal
-      title="Publish a new version"
+      title={<UiText message="Publish a new version" />}
       open={true}
       footer={null}
       onCancel={() => onCancel()}
@@ -353,6 +365,8 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
   targetDep?: ProjectDependency;
   heading: React.ReactElement;
 }) {
+  const { t: uiT } = useI18n();
+
   const { studioCtx, curDep, targetDep, heading } = props;
   const site = studioCtx.site;
   const diffs = targetDep
@@ -582,7 +596,7 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
         <Alert
           type="warning"
           showIcon
-          message={"Some things you are using have been removed!"}
+          message={uiT("Some things you are using have been removed!")}
           className="mv-m"
           description={
             isHostLessPackage(curDep.site) ? (

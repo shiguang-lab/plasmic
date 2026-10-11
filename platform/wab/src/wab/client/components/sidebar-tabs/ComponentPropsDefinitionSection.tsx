@@ -11,7 +11,9 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem";
 import { SimpleReorderableList } from "@/wab/client/components/widgets/SimpleReorderableList";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
@@ -259,6 +261,8 @@ const PropFolderRow = observer(function PropFolderRow(props: {
   draggable?: boolean;
   dragHandleProps?: DraggableProvidedDragHandleProps;
 }) {
+  const { t: uiT } = useI18n();
+
   const { studioCtx, component, viewCtx, node, draggable, dragHandleProps } =
     props;
   const { openNewPropModal, expandedFolders, toggleFolderExpanded } =
@@ -275,7 +279,11 @@ const PropFolderRow = observer(function PropFolderRow(props: {
         dragHandleProps={dragHandleProps}
         showActions
         actions={
-          <Tooltip title={`Add ${COMPONENT_PROP_LOWER} to folder`}>
+          <Tooltip
+            title={uiT("Add {part1} to folder", {
+              part1: translateUiLabel(getUiLocale(), COMPONENT_PROP_LOWER),
+            })}
+          >
             <IconLinkButton
               onClick={(e) => {
                 e.stopPropagation();
@@ -410,7 +418,7 @@ function makeParamMenu(
         {<UiLabel text={CONFIGURE_ACTION} />}
       </Menu.Item>
       {canChangeParamExportType(component, param) && (
-        <Menu.SubMenu title="Set code export type to">
+        <Menu.SubMenu title={<UiText message="Set code export type to" />}>
           {[
             ParamExportType.External,
             ParamExportType.Internal,
@@ -434,15 +442,19 @@ function makeParamMenu(
             const usages = findPropUsages(component, param);
             if (usages?.length > 0) {
               const confirmed = await confirm({
-                title: "Confirm deletion",
-                message: `Prop "${
-                  param.displayName ?? param.variable.name
-                }" is still being used by ${component.name} in ${
-                  usages.length
-                } ${
-                  usages.length > 1 ? "different locations" : "location"
-                }. Are you sure you want to delete it?`,
-                confirmLabel: "Delete",
+                title: translate(getUiLocale(), "Confirm deletion"),
+                message: translate(
+                  getUiLocale(),
+                  usages.length === 1
+                    ? 'Prop "{name}" is still being used by {component} in {count} location. Are you sure you want to delete it?'
+                    : 'Prop "{name}" is still being used by {component} in {count} locations. Are you sure you want to delete it?',
+                  {
+                    name: param.displayName ?? param.variable.name,
+                    component: component.name,
+                    count: usages.length,
+                  },
+                ),
+                confirmLabel: translate(getUiLocale(), "Delete"),
               });
               if (!confirmed) {
                 return;

@@ -9,8 +9,9 @@ import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { LocalizationConfig } from "@/wab/shared/localization";
@@ -40,9 +41,11 @@ export const EnableLocalizationModal = observer(
 
     return (
       <Modal
-        title={`${
-          isLocalizationEnabled ? "Disable" : "Enable"
-        } localization for this project?`}
+        title={uiT(
+          isLocalizationEnabled
+            ? "Disable localization for this project?"
+            : "Enable localization for this project?",
+        )}
         open
         onCancel={() => onDone()}
         footer={null}
@@ -140,7 +143,9 @@ async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
   const projectTeam = appCtx.teams.find((team) => team.id === project.teamId);
   if (!projectTeam) {
     notification.error({
-      message: `This action requires an ${ORGANIZATION_LOWER}`,
+      message: translate(getUiLocale(), "This action requires an {part1}", {
+        part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+      }),
     });
     return false;
   }
@@ -156,8 +161,8 @@ async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
       team: projectTeam,
       initialTier: tiers.find((tier) => tier.id === projectTeam.featureTierId),
     },
-    title: "Upgrade to perform this action",
-    description: "Select a new plan to upgrade.",
+    title: translate(getUiLocale(), "Upgrade to perform this action"),
+    description: translate(getUiLocale(), "Select a new plan to upgrade."),
   });
   if (!promptResult) {
     // User canceled
@@ -165,7 +170,10 @@ async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
   } else if (promptResult.type === "fail") {
     // Show errors
     notification.warning({
-      message: `Issue with payment, please try again.`,
+      message: translate(
+        getUiLocale(),
+        "Issue with payment, please try again.",
+      ),
       description: promptResult.errorMsg,
     });
     return false;

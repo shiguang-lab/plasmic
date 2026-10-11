@@ -35,7 +35,9 @@ import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
 import ThemeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Theme";
 import PlasmicLeftMixinsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftMixinsPanel";
@@ -185,6 +187,8 @@ export interface MixinPopupProps {
 const iconClass = "mixin-fg custom-svg-icon--lg monochrome-exempt";
 
 export const MixinPopup = observer(function MixinPopup(props: MixinPopupProps) {
+  const { t: uiT } = useI18n();
+
   const { studioCtx, mixin, themeTag } = props;
   // Only the default typography style (no specific tag) is restricted to
   // typography-only props; tag styles (e.g. ul/ol) keep all their panels.
@@ -207,7 +211,9 @@ export const MixinPopup = observer(function MixinPopup(props: MixinPopupProps) {
                   studioCtx.tplMgr().renameMixin(mixin, name),
                 )
               }
-              placeholder={`(unnamed ${MIXIN_LOWER})`}
+              placeholder={uiT("(unnamed {part1})", {
+                part1: translateUiLabel(getUiLocale(), MIXIN_LOWER),
+              })}
               autoFocus={props.autoFocusTitle}
               selectAllOnFocus={true}
               fontSize="xlarge"
@@ -380,9 +386,14 @@ function _MixinsPanel() {
 
     if (badTransitiveDeps.length > 0) {
       notification.error({
-        message: `Before duplicating this ${MIXIN_LOWER} you have to update your imported projects: ${badTransitiveDeps
-          .map((dep) => dep.name)
-          .join(", ")}`,
+        message: translate(
+          getUiLocale(),
+          "Before duplicating this {part1} you have to update your imported projects: {part2}",
+          {
+            part1: translateUiLabel(getUiLocale(), MIXIN_LOWER),
+            part2: badTransitiveDeps.map((dep) => dep.name).join(", "),
+          },
+        ),
       });
       return;
     }

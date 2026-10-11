@@ -136,7 +136,7 @@ export const LEFT_TAB_PANEL_KEYS = [
   "themes",
   "images",
   "responsiveness",
-  "imports",
+  "libraries",
   "versions",
   "settings",
   "splits",
@@ -150,6 +150,9 @@ export type LeftTabKey = (typeof LEFT_TAB_PANEL_KEYS)[number];
 /** These are extra left tab UI parts that can be configured.  */
 export const LEFT_TAB_UI_KEYS = [
   ...LEFT_TAB_PANEL_KEYS,
+
+  // Access to imported projects within the Libraries panel.
+  "imports",
 
   // sections in the images panel can be selectively configured
   "imagesSection",
@@ -421,6 +424,7 @@ const LEFT_TAB_CONTENT_CREATOR_DEFAULT: Record<LeftTabUiKey, UiAccess> = {
   imagesSection: "writable",
   responsiveness: "hidden",
   imports: "hidden",
+  libraries: "hidden",
   versions: "writable",
   settings: "hidden",
   splits: "writable",

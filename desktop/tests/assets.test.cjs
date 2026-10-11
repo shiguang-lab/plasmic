@@ -303,5 +303,16 @@ test("Unified login intermediate page is bundled and never goes to the NAS or SP
     new Request(config.studioOrigin + "/desktop/unified-login"),
   );
   assert.equal(response.headers.get("Cache-Control"), "no-store");
-  assert.match(await response.text(), /Open browser/);
+  assert.match(await response.text(), /Continue your projects and pages/);
+  for (const theme of ["dark", "light"]) {
+    const image = await auth(
+      new Request(
+        config.studioOrigin + "/static/desktop/login-canvas-" + theme + ".png",
+      ),
+    );
+    assert.equal(image.status, 200);
+    assert.equal(image.headers.get("Content-Type"), "image/png");
+    assert.equal(image.headers.get("X-Plasmic-Desktop-Asset"), "local");
+    assert((await image.arrayBuffer()).byteLength > 0);
+  }
 });

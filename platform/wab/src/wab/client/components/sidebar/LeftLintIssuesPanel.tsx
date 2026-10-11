@@ -7,8 +7,9 @@ import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Textbox from "@/wab/client/components/widgets/Textbox";
-import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { getInvalidDomNesting } from "@/wab/client/lint-invalid-nesting-dom";
 import {
   getLintIssueIcon,
@@ -149,14 +150,15 @@ const SiteIssuesList = observer(function SiteIssuesList() {
 
             const invalidDomNesting = getInvalidDomNesting(viewCtx);
             notification.info({
-              message: "Finished deep inspection",
-              description: `Found ${
-                invalidDomNesting.length || "no"
-              } DOM nesting issues. ${
+              message: translate(getUiLocale(), "Finished deep inspection"),
+              description:
                 invalidDomNesting.length > 0
-                  ? "These are merged into the main list of issues."
-                  : ""
-              }`,
+                  ? translate(
+                      getUiLocale(),
+                      "Found {count} DOM nesting issues. These are merged into the main list of issues.",
+                      { count: invalidDomNesting.length },
+                    )
+                  : translate(getUiLocale(), "No DOM nesting issues found."),
             });
             setDomIssues(invalidDomNesting);
           }}
@@ -226,7 +228,8 @@ const SiteIssuesList = observer(function SiteIssuesList() {
               } else {
                 return (
                   <div>
-                    {getLintIssueIcon(group)} {getLintIssueTypeName(group)}
+                    {getLintIssueIcon(group)}{" "}
+                    <UiLabel text={getLintIssueTypeName(group) ?? ""} />
                   </div>
                 );
               }

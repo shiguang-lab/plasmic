@@ -1,0 +1,65 @@
+body{overflow:hidden}
+.desktop{width:1600px;height:1000px;position:relative;background:var(--bg);color:var(--text)}
+.window-drag-region{position:absolute;inset:0 0 auto;height:52px;-webkit-app-region:drag;z-index:8}
+.window-controls{position:absolute;display:flex;z-index:9;-webkit-app-region:no-drag}
+.window-controls.mac{left:16px;top:12px;gap:0}
+.window-controls.mac button{width:24px;height:24px;min-height:24px;padding:6px;border:0;background:transparent}
+.window-controls.mac button span{display:block;flex:none;width:12px;height:12px;border-radius:50%}
+.window-controls.mac button:nth-child(1) span{background:#ff625a}
+.window-controls.mac button:nth-child(2) span{background:#ffbd2e}
+.window-controls.mac button:nth-child(3) span{background:#29c941}
+.window-controls.windows{right:8px;top:6px;gap:0}
+.window-controls.windows button{width:44px;height:36px;min-height:36px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--muted);font-size:20px}
+.window-controls.windows button:hover{background:var(--surface)}
+.window-controls.windows .close-window:hover{background:#c54343;color:#fff}
+.auth-layout{position:absolute;left:72px;right:72px;top:130px;bottom:120px;display:grid;grid-template-columns:740px 448px;justify-content:space-between;align-items:center;gap:60px}
+.chrome-brand{position:absolute;left:108px;top:12px;height:24px;display:flex;align-items:center;z-index:9;-webkit-app-region:drag}
+.chrome-brand .logo{font-size:15px;font-weight:600;gap:8px}
+.chrome-brand .logo svg{width:22px;height:22px}
+.platform-windows .chrome-brand{left:24px}
+.auth-settings{position:absolute;right:108px;top:72px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12px;z-index:9;-webkit-app-region:no-drag}
+.auth-settings button{font-size:12px;height:34px;min-height:34px}
+.hero h1{font-size:38px;line-height:1.4;letter-spacing:-1px;font-weight:600}
+.hero>p{color:var(--muted);font-size:16px;margin-top:14px;margin-bottom:28px}
+.app-preview{height:462.5px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--panel);box-shadow:0 28px 60px #0002}
+.app-preview img{display:block;width:100%;height:100%;object-fit:contain}
+.hero-footer{display:flex;gap:24px;margin-top:20px;color:var(--muted);font-size:12px}
+.hero-footer span{display:flex;align-items:center;gap:7px}
+.hero-footer .icon{width:15px;height:15px;color:var(--accent)}
+.auth-card{height:582px;position:relative;padding:36px;background:transparent}
+.auth-body{position:absolute;inset:24px 36px 168px}
+.auth-card h2{font-size:28px;font-weight:600;letter-spacing:-.4px;margin-bottom:12px}
+.auth-description{color:var(--muted);font-size:14px;line-height:1.8;min-height:44px}
+.auth-support{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+.support-label{font-size:11px;color:var(--muted);margin-bottom:14px}
+.benefit-row,.login-step{display:flex;align-items:center;gap:13px;min-height:44px;margin-top:16px}
+.benefit-row>.icon{width:34px;height:34px;padding:8px;border:1px solid var(--border);border-radius:9px;color:var(--accent);background:var(--panel)}
+.benefit-row strong,.login-step strong{font-size:13px;font-weight:500}
+.benefit-row p,.login-step p{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6}
+.step-marker{width:30px;height:30px;flex:none;display:grid;place-items:center;background:var(--panel);color:var(--muted);border:1px solid var(--border);border-radius:50%;font-size:12px}
+.step-marker .icon{width:15px;height:15px}
+.step-state{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.login-step.current .step-marker{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.login-step.current .step-state{color:var(--accent)}
+.login-step.complete .step-marker{color:var(--green);border-color:#64c5a140;background:#64c5a115}
+.login-step.complete .step-state{color:var(--green)}
+.auth-subline{font-size:12px;color:var(--muted);margin-top:18px;line-height:1.7;display:flex;align-items:center;gap:9px}
+.auth-actions{position:absolute;left:36px;right:36px;top:432px;height:150px;display:flex;flex-direction:column;gap:12px}
+.auth-actions>button{width:100%;height:40px;flex-shrink:0}
+.auth-actions .cancel{font-size:12px;color:var(--muted);background:transparent;border-color:transparent}
+.action-note{font-size:11px;color:var(--muted);line-height:1.7;text-align:center;min-height:19px}
+.loading{height:15px;width:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;flex:none}
+.route-card{display:flex;align-items:center;gap:12px;border-left:2px solid var(--accent);padding:8px 12px;margin-top:18px;color:var(--muted);font-size:12px;background:var(--panel)}
+.route-card strong{font-weight:500;color:var(--text)}
+.feedback{color:var(--green);display:flex;gap:8px;align-items:center;justify-content:center}
+.desktop .app-sidebar{top:0;padding-top:64px}
+.desktop .app-header{top:0;-webkit-app-region:no-drag}
+.desktop .app-content{top:80px}
+.identity-card{padding:28px}
+.identity-avatar{width:54px;height:54px;font-size:18px}
+.identity-card .setting-row p{font-size:13px}
+.identity-card .setting-row{padding:20px 0}
+.identity-card .value{text-align:right;font-size:13px;color:var(--muted)}
+.identity-card .badge{font-size:12px}
+.account-note{margin:20px 0;color:var(--muted);font-size:13px;line-height:1.8}
+.auth-account-actions{display:flex;gap:12px;margin-top:22px}

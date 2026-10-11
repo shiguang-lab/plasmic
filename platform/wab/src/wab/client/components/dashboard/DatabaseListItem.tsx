@@ -6,7 +6,9 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { ClickStopper } from "@/wab/client/components/widgets";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { PlasmicDatabaseListItem } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDatabaseListItem";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
@@ -138,7 +140,11 @@ function DatabaseListItem_(
                         workspaceId: response.workspace.id,
                       });
                       notification.info({
-                        message: `CMS moved to ${response.workspace.name}.`,
+                        message: translate(
+                          getUiLocale(),
+                          "CMS moved to {part1}.",
+                          { part1: response.workspace.name },
+                        ),
                       });
                       onUpdate();
                     }}
@@ -159,7 +165,10 @@ function DatabaseListItem_(
                     onClick={async () => {
                       await appCtx.api.cloneCmsDatabase(database.id);
                       notification.info({
-                        message: `CMS schema duplicated successfully.`,
+                        message: translate(
+                          getUiLocale(),
+                          "CMS schema duplicated successfully.",
+                        ),
                       });
                       onUpdate();
                     }}
@@ -179,7 +188,7 @@ function DatabaseListItem_(
                     key="delete"
                     onClick={async () => {
                       const confirm = await reactConfirm({
-                        title: `Delete CMS Database`,
+                        title: translate(getUiLocale(), "Delete CMS Database"),
                         message: (
                           <>
                             <UiText

@@ -127,7 +127,10 @@ export function ContentEditorConfigModal(props: {
               prefKeys={uniqBy(
                 [
                   // The "plume" key gates both Plume and Plexus components
-                  { value: "plume", label: "Plasmic Customizable Components" },
+                  {
+                    value: "plume",
+                    label: uiT("Plasmic Customizable Components"),
+                  },
                   ...(appCtx.appConfig.hostLessComponents ?? []).map((pkg) => ({
                     value: pkg.codeName ?? "",
                     label: pkg.name,
@@ -647,6 +650,8 @@ function leftTabKeyToLabel(key: LeftTabUiKey) {
       return "Responsive breakpoints";
     case "imports":
       return "Imported projects";
+    case "libraries":
+      return "Libraries";
     case "versions":
       return "Published versions";
     case "settings":

@@ -21,8 +21,9 @@ import {
   InvalidArgsBadge,
   InvalidArgsSummary,
 } from "@/wab/client/components/widgets/InvalidArgs";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -472,7 +473,10 @@ export const ServerQueryOpDraftForm = observer(
         });
       } catch (error) {
         notification.error({
-          message: "Failed to install custom function",
+          message: translate(
+            getUiLocale(),
+            "Failed to install custom function",
+          ),
           description: (error as any).message,
         });
       } finally {

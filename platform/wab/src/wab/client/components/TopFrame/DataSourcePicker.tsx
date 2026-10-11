@@ -6,7 +6,9 @@ import IconButton from "@/wab/client/components/widgets/IconButton";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import RefreshsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RefreshSvg";
 import { ApiProject, WorkspaceId } from "@/wab/shared/ApiSchema";
 import {
@@ -41,6 +43,8 @@ export function DataSourcePicker({
   onCanceled,
   project,
 }: DataSourcePickerProps) {
+  const { t: uiT } = useI18n();
+
   const appCtx = useAppCtx();
 
   const thisProjectsWorkspace =
@@ -63,7 +67,9 @@ export function DataSourcePicker({
     <>
       <Modal
         open
-        title={`Select ${DATA_SOURCE_LOWER}`}
+        title={uiT("Select {part1}", {
+          part1: translateUiLabel(getUiLocale(), DATA_SOURCE_LOWER),
+        })}
         onCancel={onCanceled}
         footer={null}
         onOk={() =>
@@ -118,7 +124,15 @@ export function DataSourcePicker({
                           setSelectedSourceId(selectedId ?? undefined);
                         }
                       }}
-                      placeholder={`Select ${A_DATA_SOURCE_LOWER} from your workspace to use`}
+                      placeholder={uiT(
+                        "Select {part1} from your workspace to use",
+                        {
+                          part1: translateUiLabel(
+                            getUiLocale(),
+                            A_DATA_SOURCE_LOWER,
+                          ),
+                        },
+                      )}
                       isDisabled={isValidating}
                       type="bordered"
                       className="flex-fill"

@@ -23,6 +23,7 @@ function createDesktopI18n(directory, systemLanguages) {
       ),
     snapshot: () => ({ locale, messages: packs[locale] }),
     setLocale: (value) => {
+      if (value === "system") value = resolveUiLocale(value, systemLanguages);
       if (!Object.hasOwn(packs, value)) throw new Error("Invalid UI language");
       if (locale === value) return;
       locale = value;

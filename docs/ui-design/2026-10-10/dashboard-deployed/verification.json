@@ -1,0 +1,90 @@
+{
+  "scope": "Static design rendering and observed-label assertions only; not application/backend tests",
+  "errors": [],
+  "checks": [
+    {
+      "id": "projects",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "org",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "workspace",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "playground",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "data",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "new-project",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "project-menu",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "duplicate",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "workspace-menu",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "share",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "share-roles",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "sort",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "search-empty",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    },
+    {
+      "id": "account-menu",
+      "width": 1600,
+      "height": 1000,
+      "overflow": []
+    }
+  ]
+}

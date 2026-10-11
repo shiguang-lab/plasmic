@@ -13,7 +13,7 @@ import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import {
   ApiPermission,
@@ -124,7 +124,9 @@ export function TeamMenu(props: TeamMenuProps) {
               appCtx.api.getTeamMeta(team.id),
             );
             const confirm = await reactConfirm({
-              title: `Delete ${ORGANIZATION_LOWER}`,
+              title: translate(getUiLocale(), "Delete {part1}", {
+                part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+              }),
               message: (
                 <>
                   <p>
@@ -298,7 +300,7 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
         <Menu.Item
           onClick={async () => {
             const confirm = await reactConfirm({
-              title: `Delete workspace`,
+              title: translate(getUiLocale(), "Delete workspace"),
               message: (
                 <>
                   <p>
@@ -390,7 +392,14 @@ async function promptTeam(
       >
         <Form.Item
           name="select"
-          label={`Select a destination ${ORGANIZATION_LOWER}:`}
+          label={
+            <UiText
+              message="Select a destination {part1}:"
+              values={{
+                part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
+              }}
+            />
+          }
         >
           <Select name="select" autoFocus type="bordered">
             {teams.map((t) => (
@@ -545,7 +554,9 @@ export async function promptWorkspace({
           {confirmButtonMessage === "Duplicate" && (
             <Form.Item
               name="name"
-              label={"Enter a name for the duplicated project"}
+              label={
+                <UiText message="Enter a name for the duplicated project" />
+              }
             >
               <Textbox
                 name="name"
@@ -637,8 +648,8 @@ export async function promptNewWorkspace(
   teamId: TeamId,
 ) {
   const name = await reactPrompt({
-    message: `Enter the name for your new workspace`,
-    placeholder: "Workspace name",
+    message: translate(getUiLocale(), "Enter the name for your new workspace"),
+    placeholder: translate(getUiLocale(), "Workspace name"),
     actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {
@@ -670,8 +681,11 @@ export async function promptNewDatabase(
   workspaceId: WorkspaceId,
 ) {
   const name = await reactPrompt({
-    message: `Enter the name for your new CMS database`,
-    placeholder: "Database name",
+    message: translate(
+      getUiLocale(),
+      "Enter the name for your new CMS database",
+    ),
+    placeholder: translate(getUiLocale(), "Database name"),
     actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {
@@ -691,8 +705,8 @@ export async function promptNewTable(
   databaseId: CmsDatabaseId,
 ) {
   const name = await reactPrompt({
-    message: `Enter the name for your new CMS table`,
-    placeholder: "Table name",
+    message: translate(getUiLocale(), "Enter the name for your new CMS table"),
+    placeholder: translate(getUiLocale(), "Table name"),
     actionText: translate(getUiLocale(), "Add"),
   });
   if (!name) {

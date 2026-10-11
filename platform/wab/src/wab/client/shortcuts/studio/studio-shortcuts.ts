@@ -156,6 +156,10 @@ export const MISC_SHORTCUT_GROUP = mkShortcutGroup("Misc", {
 });
 
 export const SELECTION_SHORTCUT_GROUP = mkShortcutGroup("Selection", {
+  SELECT_ALL: {
+    combos: "mod+a",
+    description: "Select all artboards or layers in the current editing scope",
+  },
   NAV_PARENT: {
     combos: "shift+enter",
     description: "Select parent",

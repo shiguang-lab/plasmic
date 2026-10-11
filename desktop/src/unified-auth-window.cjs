@@ -11,12 +11,12 @@ class UnifiedAuthWindow {
     window.once("closed", () => this.abort?.abort("window-closed"));
   }
   publish(status) {
-    this.status = status;
+    this.status = { ...status, sessionExpired: Boolean(this.sessionExpired) };
     if (!this.window.isDestroyed()) {
-      this.window.webContents.send("desktop:auth-status", status);
+      this.window.webContents.send("desktop:auth-status", this.status);
     }
   }
-  async show(loginUrl) {
+  async show(loginUrl, { sessionExpired = false } = {}) {
     if (this.navigation) return this.navigation;
     const current = new URL(loginUrl || this.window.webContents.getURL());
     if (current.pathname !== AUTH_PATH) {
@@ -34,6 +34,7 @@ class UnifiedAuthWindow {
           : this.studioOrigin + "/";
     }
     if (!this.abort) {
+      this.sessionExpired = sessionExpired;
       this.publish({ phase: "idle" });
     }
     this.navigation = (async () => {

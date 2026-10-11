@@ -9,8 +9,9 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import GLogo from "@/wab/commons/images/g-logo.png";
 import {
   ApiDataSource,
@@ -253,7 +254,7 @@ export function DataSourceModal({
 
         if (!isValidValuesData(values)) {
           notification.error({
-            message: "Missing required data",
+            message: translate(getUiLocale(), "Missing required data"),
           });
           return { result: { connected: false } };
         }
@@ -275,7 +276,7 @@ export function DataSourceModal({
         // Don't test the same successful connection twice
         if (successfulConnections[key]) {
           notification.success({
-            message: "Connection successful",
+            message: translate(getUiLocale(), "Connection successful"),
           });
           return { result: { connected: true } };
         }
@@ -292,9 +293,11 @@ export function DataSourceModal({
               connectionOptions.sslmode === "require"
             ) {
               notification.error({
-                message: "Connection failed",
-                description:
+                message: translate(getUiLocale(), "Connection failed"),
+                description: translate(
+                  getUiLocale(),
                   "SSL is required for this connection. Please enable SSL in connection options and try again.",
+                ),
               });
             } else {
               form.setFieldsValue({
@@ -307,20 +310,22 @@ export function DataSourceModal({
                 },
               });
               notification.warning({
-                message: "Connection failed",
-                description:
+                message: translate(getUiLocale(), "Connection failed"),
+                description: translate(
+                  getUiLocale(),
                   "SSL is not enabled for this connection. Add ssl:true and sslmode:require to connection options and try again.",
+                ),
               });
             }
           } else {
             notification.error({
-              message: "Connection failed",
+              message: translate(getUiLocale(), "Connection failed"),
               description: connectionTest.result.error,
             });
           }
         } else {
           notification.success({
-            message: "Connection successful",
+            message: translate(getUiLocale(), "Connection successful"),
           });
           setSuccessfulConnections((prev) => ({
             ...prev,
@@ -331,7 +336,7 @@ export function DataSourceModal({
         return connectionTest;
       } catch (err) {
         notification.error({
-          message: "Connection failed",
+          message: translate(getUiLocale(), "Connection failed"),
           description: err.message,
         });
         return { result: { connected: false } };
@@ -347,8 +352,8 @@ export function DataSourceModal({
       onCancel={() => onDone()}
       title={
         editingDataSource === "new"
-          ? `New ${DATA_SOURCE_LOWER}`
-          : `${DATA_SOURCE_CAP} settings`
+          ? uiT("New data source")
+          : uiT("Data source settings")
       }
       footer={null}
       closable={false}
@@ -428,15 +433,18 @@ export function DataSourceModal({
             } catch (err) {
               setIsLoading(false);
               notification.error({
-                message: `Error while ${
-                  editingDataSource === "new" ? "creating" : "updating"
-                } ${DATA_SOURCE_LOWER}`,
+                message: translate(
+                  getUiLocale(),
+                  editingDataSource === "new"
+                    ? "Error creating data source"
+                    : "Error updating data source",
+                ),
                 description: err.message,
               });
             }
           } else {
             notification.error({
-              message: "Missing required data",
+              message: translate(getUiLocale(), "Missing required data"),
             });
           }
         }}
@@ -627,8 +635,11 @@ function CredentialsAndSettingsSection(props: {
     const strSizeLimit = 500 * 1024; // 500KB
     if (val.length > strSizeLimit) {
       notification.error({
-        message: "Value is too long",
-        description: "Please provide a value up to 500KB characters long",
+        message: translate(getUiLocale(), "Value is too long"),
+        description: translate(
+          getUiLocale(),
+          "Please provide a value up to 500KB characters long",
+        ),
       });
       return;
     }
@@ -939,9 +950,9 @@ function PostgresConnectionStringImportButton(props: {
         disabled={isDisabled}
         onClick={async () => {
           const connectionString = await reactPrompt({
-            message: "What's the connection string?",
+            message: translate(getUiLocale(), "What's the connection string?"),
             actionText: "Import",
-            placeholder: "Connection string",
+            placeholder: translate(getUiLocale(), "Connection string"),
           });
           if (!connectionString) {
             return;

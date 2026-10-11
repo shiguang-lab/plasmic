@@ -1,0 +1,13 @@
+{
+  "url": "http://127.0.0.1:8334/assets/7716d2a4fc931be03ad8d3f6cc443a84.png",
+  "authenticatedGetStatus": 200,
+  "publicGetStatus": 200,
+  "width": 64,
+  "height": 48,
+  "bytes": 228,
+  "mimeType": "image/png",
+  "browserUploadVerified": true,
+  "environment": "isolated local UI interaction acceptance",
+  "delivery": "Existing deployment hash-only image delivery rule; private S3 bucket remains private",
+  "backendHealthVerified": true
+}

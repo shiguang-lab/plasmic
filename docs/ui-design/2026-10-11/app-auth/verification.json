@@ -1,0 +1,1186 @@
+{
+  "screenCount": 12,
+  "browserErrors": [],
+  "sharedLayout": "passed",
+  "contentBounds": "passed",
+  "localStateLinks": "passed",
+  "independentPasswordFields": 0,
+  "layouts": {
+    "entry": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "opening": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "waiting": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "copied": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "success": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "denied": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "timeout": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "network-error": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "session-expired": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 625.5625,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "account": {
+      "shared": {},
+      "brand": null,
+      "settings": null,
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": null,
+      "supportRows": 0,
+      "standaloneStatusIcons": 0,
+      "headingColor": null,
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 0,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 232,
+          "y": 80,
+          "w": 1368,
+          "h": 920
+        },
+        {
+          "x": 509,
+          "y": 220,
+          "w": 850,
+          "h": 583.890625
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "entry-light": {
+      "shared": {
+        "brand": {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 108,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 16,
+        "y": 12,
+        "w": 72,
+        "h": 24
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(37, 42, 56)",
+      "foregroundColor": "rgb(37, 42, 56)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 24
+        },
+        {
+          "x": 108,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    },
+    "entry-windows": {
+      "shared": {
+        "brand": {
+          "x": 24,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        "settings": {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        "hero": {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        "card": {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        },
+        "actions": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 150
+        },
+        "primary": {
+          "x": 1116,
+          "y": 646,
+          "w": 376,
+          "h": 40
+        }
+      },
+      "brand": {
+        "x": 24,
+        "y": 12,
+        "w": 85.890625,
+        "h": 24
+      },
+      "settings": {
+        "x": 1280,
+        "y": 72,
+        "w": 212,
+        "h": 34
+      },
+      "controls": {
+        "x": 1460,
+        "y": 6,
+        "w": 132,
+        "h": 36
+      },
+      "settingsDrag": "no-drag",
+      "supportRows": 3,
+      "standaloneStatusIcons": 0,
+      "headingColor": "rgb(237, 238, 245)",
+      "foregroundColor": "rgb(237, 238, 245)",
+      "textBottom": 611.953125,
+      "actionsTop": 646,
+      "boundaries": [
+        {
+          "x": 1460,
+          "y": 6,
+          "w": 132,
+          "h": 36
+        },
+        {
+          "x": 24,
+          "y": 12,
+          "w": 85.890625,
+          "h": 24
+        },
+        {
+          "x": 1280,
+          "y": 72,
+          "w": 212,
+          "h": 34
+        },
+        {
+          "x": 72,
+          "y": 168.5625,
+          "w": 740,
+          "h": 672.875
+        },
+        {
+          "x": 1080,
+          "y": 214,
+          "w": 448,
+          "h": 582
+        }
+      ],
+      "providerCopy": false,
+      "titleBars": 0,
+      "windowControls": 3,
+      "dragRegion": "rgba(0, 0, 0, 0)",
+      "brokenImages": 0,
+      "passwordFields": 0
+    }
+  }
+}

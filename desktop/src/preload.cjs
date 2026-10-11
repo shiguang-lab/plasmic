@@ -17,9 +17,9 @@ if (window.top === window) {
       const stored = window.localStorage.getItem("shiguang.ui.language");
       return ipcRenderer.invoke(
         "desktop:ui-locale",
-        ["en", "zh-CN", "zh-TW", "ja", "ko"].includes(stored)
+        ["system", "en", "zh-CN", "zh-TW", "ja", "ko"].includes(stored)
           ? stored
-          : undefined,
+          : "system",
       );
     },
     onUiLocale: (callback) => {

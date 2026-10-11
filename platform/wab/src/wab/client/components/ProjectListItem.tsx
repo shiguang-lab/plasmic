@@ -10,22 +10,26 @@ import { ClickStopper } from "@/wab/client/components/widgets";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { PlasmicProjectListItem } from "@/wab/client/plasmic/plasmic_kit/PlasmicProjectListItem";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { Stated } from "@/wab/commons/components/Stated";
 import { ApiPermission, ApiProject, WorkspaceId } from "@/wab/shared/ApiSchema";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
-import { ensure } from "@/wab/shared/common";
+import { cx, ensure } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import {
   getAccessLevelToParent,
   getAccessLevelToResource,
 } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { MoreOutlined } from "@ant-design/icons";
-import { Dropdown, Menu, notification } from "antd";
+import {
+  ArrowUpOutlined,
+  CopyOutlined,
+  FileOutlined,
+  MoreOutlined,
+} from "@ant-design/icons";
+import { Button, Dropdown, Menu, notification } from "antd";
 import React from "react";
 
 interface ProjectListItemProps {
@@ -38,11 +42,23 @@ interface ProjectListItemProps {
   workspaces?: boolean;
   matcher?: Matcher;
   showWorkspace?: boolean;
+  onSelect?: () => void;
+  selected?: boolean;
+  presentation?: "card" | "details";
 }
 
 function ProjectListItem(props: ProjectListItemProps) {
-  const { project, perms, onUpdate, workspaces, matcher, showWorkspace } =
-    props;
+  const {
+    project,
+    perms,
+    onUpdate,
+    workspaces,
+    matcher,
+    showWorkspace,
+    onSelect,
+    selected,
+    presentation,
+  } = props;
   const { t, locale } = useI18n();
   const appCtx = useAppCtx();
   const history = useHistory();
@@ -70,19 +86,67 @@ function ProjectListItem(props: ProjectListItemProps) {
     [appCtx.workspaces],
   );
 
+  const duplicateProject = async () => {
+    const response = await promptMoveToWorkspace(
+      appCtx,
+      null,
+      false,
+      "Duplicate",
+      project.name,
+    );
+    if (response === undefined) {
+      return;
+    }
+
+    const { projectId: newProjectId } = await appCtx.app.withSpinner(
+      appCtx.api.cloneProject(
+        project.id,
+        response.result === "workspace"
+          ? {
+              workspaceId: response.workspace.id,
+              name: response.name,
+            }
+          : undefined,
+      ),
+    );
+
+    history.push(
+      APP_ROUTES.project.fill({
+        projectId: newProjectId,
+      }),
+    );
+  };
+
+  const openProject = () =>
+    history.push(APP_ROUTES.project.fill({ projectId: project.id }));
   return (
     <>
       <div
-        className={styles.projectCard}
-        onClick={() => {
-          history.push(
-            APP_ROUTES.project.fill({
-              projectId: project.id,
-            }),
-          );
-        }}
+        className={cx(
+          styles.projectCard,
+          props.className,
+          selected && styles.projectSelected,
+          presentation === "details" && styles.projectDetails,
+        )}
+        onClick={
+          presentation === "details" ? undefined : (onSelect ?? openProject)
+        }
       >
-        <div className={styles.thumbnail} />
+        {presentation !== "details" && (
+          <button
+            type="button"
+            className={styles.thumbnail}
+            aria-label={t("Project details") + ": " + project.name}
+            onClick={(event) => {
+              event.stopPropagation();
+              (onSelect ?? openProject)();
+            }}
+            aria-pressed={selected}
+          >
+            <FileOutlined aria-hidden />
+            <span>{project.name}</span>
+          </button>
+        )}
         <div className={styles.content}>
           <div className={styles.header}>
             <div onClick={(e) => e.stopPropagation()}>
@@ -141,39 +205,7 @@ function ProjectListItem(props: ProjectListItemProps) {
                         {t("Configure project")}
                       </Menu.Item>
                     )}
-                    <Menu.Item
-                      onClick={async () => {
-                        const response = await promptMoveToWorkspace(
-                          appCtx,
-                          null,
-                          false,
-                          "Duplicate",
-                          project.name,
-                        );
-                        if (response === undefined) {
-                          return;
-                        }
-
-                        const { projectId: newProjectId } =
-                          await appCtx.app.withSpinner(
-                            appCtx.api.cloneProject(
-                              project.id,
-                              response.result === "workspace"
-                                ? {
-                                    workspaceId: response.workspace.id,
-                                    name: response.name,
-                                  }
-                                : undefined,
-                            ),
-                          );
-
-                        history.push(
-                          APP_ROUTES.project.fill({
-                            projectId: newProjectId,
-                          }),
-                        );
-                      }}
-                    >
+                    <Menu.Item onClick={duplicateProject}>
                       {t("Duplicate project")}
                     </Menu.Item>
                     {DEVFLAGS.demo && (
@@ -304,6 +336,8 @@ function ProjectListItem(props: ProjectListItemProps) {
                 placement="bottomRight"
               >
                 <button
+                  type="button"
+                  aria-label={t("More")}
                   className={styles.menuButton}
                   onClick={(e) => e.preventDefault()}
                 >
@@ -312,7 +346,20 @@ function ProjectListItem(props: ProjectListItemProps) {
               </Dropdown>
             </div>
           </div>
+          {presentation === "details" && (
+            <PublicLink
+              className={styles.openProject}
+              href={APP_ROUTES.project.fill({ projectId: project.id })}
+            >
+              <ArrowUpOutlined aria-hidden />
+              {t("Open project")}
+            </PublicLink>
+          )}
           <div className={styles.meta}>
+            {presentation === "details" &&
+              accessLevelRank(workspaceAccessLevel) >=
+                accessLevelRank("viewer") &&
+              project.teamName && <span>{project.teamName}</span>}
             <span>
               {t("Updated {date}", {
                 date: new Intl.DateTimeFormat(locale, {
@@ -348,6 +395,25 @@ function ProjectListItem(props: ProjectListItemProps) {
                 </span>
               )}
           </div>
+          {presentation === "details" ? (
+            <Button
+              icon={<CopyOutlined aria-hidden />}
+              onClick={duplicateProject}
+            >
+              {t("Duplicate project")}
+            </Button>
+          ) : (
+            onSelect && (
+              <PublicLink
+                className={styles.openProjectLink}
+                href={APP_ROUTES.project.fill({ projectId: project.id })}
+                onClick={(event) => event.stopPropagation()}
+              >
+                {t("Open project")}
+                <ArrowUpOutlined aria-hidden />
+              </PublicLink>
+            )
+          )}
         </div>
       </div>
       {configProjectId && (

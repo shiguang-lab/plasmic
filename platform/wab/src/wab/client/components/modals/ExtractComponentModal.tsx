@@ -30,7 +30,7 @@ export async function promptExtractComponent(props: {
 }) {
   return showTemporaryPrompt<ExtractComponentResponse>((onSubmit, onCancel) => (
     <Modal
-      title="Create new component"
+      title={<UiText message="Create new component" />}
       footer={null}
       open={true}
       onCancel={() => onCancel()}

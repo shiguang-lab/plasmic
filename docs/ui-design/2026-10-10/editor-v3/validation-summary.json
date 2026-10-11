@@ -1,0 +1,14 @@
+{
+  "crashFix": {
+    "cause": "Search highlighting recursively spread null children from a childless React element.",
+    "unitTests": "28 passed: view-common.test.ts",
+    "typecheck": "tsc --noEmit --incremental passed in platform/wab",
+    "nativeRegression": "Search Custom arena 1, ArrowDown and Enter successfully opened the arena."
+  },
+  "proposal": {
+    "states": 19,
+    "validation": "Offline DOM navigation validation and native SVG/PNG design-board inspection. HTML browser rendering not verified because local file navigation was blocked.",
+    "scope": "Design proposal only; production layout not replaced.",
+    "pending": "Real install, insert, save, reopen lifecycle requires an editable project with installed component libraries."
+  }
+}

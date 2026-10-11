@@ -14,7 +14,8 @@ import {
 import { AttributesTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
@@ -600,7 +601,11 @@ function InteractionModal({
                   param.defaultExpr = newExpr;
                 } else {
                   notification.error({
-                    message: `Cannot set that as the default value for ${param.variable.name}`,
+                    message: translate(
+                      getUiLocale(),
+                      "Cannot set that as the default value for {part1}",
+                      { part1: param.variable.name },
+                    ),
                   });
                 }
               } else {

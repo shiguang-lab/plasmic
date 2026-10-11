@@ -108,6 +108,19 @@ function createAssetHandler({
       return new Response("Invalid path", { status: 400 });
     }
     const cors = { "Access-Control-Allow-Origin": "*" };
+    if (
+      studio &&
+      authPagePath &&
+      /^\/static\/desktop\/login-canvas-(dark|light)\.png$/.test(pathname)
+    ) {
+      return fileResponse(
+        path.join(
+          path.dirname(authPagePath),
+          "images",
+          path.basename(pathname),
+        ),
+      );
+    }
     if (bridgePath && pathname === "/static/desktop/editor-bridge.js") {
       return fileResponse(bridgePath);
     }

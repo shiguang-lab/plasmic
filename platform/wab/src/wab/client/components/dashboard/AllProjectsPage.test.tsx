@@ -1,4 +1,6 @@
 import AllProjectsPage from "@/wab/client/components/dashboard/AllProjectsPage";
+import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
+import { createMemoryHistory } from "history";
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
@@ -41,9 +43,20 @@ vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (message: string) => message }),
 }));
 vi.mock("@/wab/client/components/ProjectListItem", () => ({
-  default: ({ project }: { project: { name: string } }) => (
-    <button>{project.name}</button>
-  ),
+  default: ({
+    project,
+    presentation,
+    onSelect,
+  }: {
+    project: { name: string };
+    presentation?: string;
+    onSelect?: () => void;
+  }) =>
+    presentation === "details" ? (
+      <div>Details for {project.name}</div>
+    ) : (
+      <button onClick={onSelect}>{project.name}</button>
+    ),
 }));
 vi.mock("@/wab/client/components/NewProjectModal", () => ({
   default: () => <div>Project creation dialog</div>,
@@ -55,11 +68,25 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+function renderProjects() {
+  const history = createMemoryHistory();
+  render(
+    <HistoryProvider history={history}>
+      <AllProjectsPage />
+    </HistoryProvider>,
+  );
+  return history;
+}
+
 it("keeps workspace filtering and search when changing the project display", async () => {
-  render(<AllProjectsPage />);
+  renderProjects();
   expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
   fireEvent.mouseDown(screen.getByLabelText("Workspace"));
-  fireEvent.click(await screen.findByText("Workspace two"));
+  fireEvent.click(
+    await screen.findByText("Workspace two", {
+      selector: ".ant-select-item-option-content",
+    }),
+  );
   expect(screen.queryByRole("button", { name: "Alpha" })).toBeNull();
   expect(screen.getByRole("button", { name: "Beta" })).toBeInTheDocument();
   fireEvent.click(screen.getByText("List", { exact: true }));
@@ -74,7 +101,7 @@ it("keeps workspace filtering and search when changing the project display", asy
 
 it("shows a retry action rather than an endless loading state after a request failure", () => {
   mocks.failed = true;
-  render(<AllProjectsPage />);
+  renderProjects();
   expect(screen.getByText("Failed to load projects")).toBeInTheDocument();
   expect(
     screen.queryByRole("status", { name: "Loading projects…" }),
@@ -84,7 +111,25 @@ it("shows a retry action rather than an endless loading state after a request fa
 });
 
 it("opens the shared creation dialog from the workbench", () => {
-  render(<AllProjectsPage />);
+  renderProjects();
   fireEvent.click(screen.getByRole("button", { name: "New project" }));
   expect(screen.getByText("Project creation dialog")).toBeInTheDocument();
+});
+
+it("selects and closes project details without mutating business data", () => {
+  renderProjects();
+  expect(screen.getByText("Details for Beta")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Alpha" }));
+  expect(screen.getByText("Details for Alpha")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  expect(
+    screen.queryByRole("complementary", { name: "Project details" }),
+  ).toBeNull();
+  expect(mocks.retry).not.toHaveBeenCalled();
+});
+
+it("keeps workspace grouping links on their existing routes", () => {
+  const history = renderProjects();
+  fireEvent.click(screen.getByRole("link", { name: "Workspace one" }));
+  expect(history.location.pathname).toBe("/workspaces/workspace1");
 });

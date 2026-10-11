@@ -4,6 +4,7 @@ const os = require("node:os");
 const path = require("node:path");
 const Module = require("node:module");
 const assert = require("node:assert/strict");
+const { once } = require("node:events");
 const config = require("../desktop.config.json");
 const profile = fs.mkdtempSync(
   path.join(os.tmpdir(), "plasmic-unified-startup-"),
@@ -115,6 +116,40 @@ app
       .executeJavaScript("window.desktopUnifiedLogin.command('status')")
       .then((status) => assert.equal(status.phase, "idle"));
     assert.equal(opened, undefined, "Startup must not open the system browser");
+    if (process.platform === "darwin") {
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      const chrome = await win.webContents.executeJavaScript(`(() => {
+        const brand = document.querySelector('.chrome-brand');
+        const rect = brand.getBoundingClientRect();
+        return { left: rect.left, top: rect.top, height: rect.height,
+          paddingLeft: getComputedStyle(brand).paddingLeft };
+      })()`);
+      assert.deepEqual(chrome, { left: 16, top: 16, height: 48, paddingLeft: "80px" });
+      const bounds = win.getBounds();
+      const resized = once(win, "resize");
+      win.setSize(bounds.width + 40, bounds.height);
+      await resized;
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      const minimized = once(win, "minimize");
+      win.minimize();
+      await minimized;
+      const restored = once(win, "restore");
+      win.restore();
+      await restored;
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      const enteredFullScreen = once(win, "enter-full-screen");
+      win.setFullScreen(true);
+      await enteredFullScreen;
+      const leftFullScreen = once(win, "leave-full-screen");
+      win.setFullScreen(false);
+      await leftFullScreen;
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      win.setBounds(bounds);
+      console.log("PASS: Native window buttons stay aligned after resize, restore and fullscreen");
+    }
     assert.equal(
       await win.webContents.executeJavaScript(
         "document.getElementById('sign-in').hidden",
@@ -123,7 +158,7 @@ app
     );
     assert.equal(
       await win.webContents.executeJavaScript(
-        "document.getElementById('status').hidden",
+        "document.getElementById('spinner').hidden",
       ),
       true,
     );
@@ -153,17 +188,20 @@ app
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
       for (const [id, key] of [
-        ["title", "Sign in to Plasmic"],
+        ["title", "Please sign in again"],
         [
           "message",
-          "Use your Shiguang account to access your projects and workspace.",
+          "Your session has expired. Sign in again to return to your previous page.",
         ],
-        ["sign-in", "Sign in with Shiguang"],
-        ["hint", "Your browser will open when you sign in."],
+        ["sign-in", "Sign in"],
+        [
+          "hint",
+          "New here? Click Sign in to create an account in your browser.",
+        ],
       ]) {
         assert.equal(
           await win.webContents.executeJavaScript(
-            `document.getElementById(${JSON.stringify(id)}).textContent`,
+            `document.getElementById(${JSON.stringify(id)}).textContent.trim()`,
           ),
           pack[key],
         );
@@ -205,20 +243,20 @@ app
     for (let attempt = 0; attempt < 100; attempt++) {
       if (
         (await win.webContents.executeJavaScript(
-          'document.getElementById("sign-in").textContent',
-        )) === zhPack["Sign in with Shiguang"]
+          'document.getElementById("sign-in").textContent.trim()',
+        )) === zhPack["Sign in"]
       )
         break;
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
     for (const [id, key] of [
-      ["sign-in", "Sign in with Shiguang"],
-      ["open", "Open browser"],
+      ["sign-in", "Sign in"],
+      ["open", "Opening browser…"],
       ["retry", "Try again"],
     ]) {
       assert.equal(
         await win.webContents.executeJavaScript(
-          `document.getElementById(${JSON.stringify(id)}).textContent`,
+          `document.getElementById(${JSON.stringify(id)}).textContent.trim()`,
         ),
         zhPack[key],
       );
@@ -234,6 +272,21 @@ app
       'localStorage.setItem("shiguang.ui.language", "en")',
     );
     await win.webContents.executeJavaScript(
+      `document.getElementById("appearance").click(); document.getElementById("appearance-menu").querySelector('[data-value="light"]').click()`,
+    );
+    assert.equal(
+      await win.webContents.executeJavaScript(
+        "document.documentElement.dataset.uiAppearance",
+      ),
+      "light",
+    );
+    assert.equal(
+      await win.webContents.executeJavaScript(
+        'localStorage.getItem("shiguang.ui.appearance")',
+      ),
+      "light",
+    );
+    await win.webContents.executeJavaScript(
       'window.desktopEnvironment.setUiLocale("en")',
     );
     console.log(
@@ -246,7 +299,7 @@ app
       await win.webContents.executeJavaScript(`(() => {
       const root = document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
       const dialog = root.querySelector("dialog");
-      return { open: dialog.open, modal: dialog.matches(":modal"), background: getComputedStyle(dialog).backgroundColor, title: root.getElementById("status").textContent };
+      return { open: dialog.open, modal: dialog.matches(":modal"), background: getComputedStyle(dialog).backgroundColor, title: root.getElementById("status").textContent.trim() };
     })()`),
       {
         open: true,
@@ -271,7 +324,7 @@ app
     for (let i = 0; i < 100 && !opened; i++) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    assert(opened, "Clicking Sign in with Shiguang must start authorization");
+    assert(opened, "Clicking Sign in must start authorization");
     assert.equal(opened.origin, "https://shiguanglab.com");
     assert.equal(opened.searchParams.get("client_id"), "plasmicapp");
     assert.equal(opened.searchParams.get("code_challenge_method"), "S256");

@@ -1,0 +1,21 @@
+{
+  "verified": [
+    "Single search above resource tabs",
+    "Empty search results retain Downshift list node",
+    "Clear search restores category, asset card and search focus",
+    "Templates show actual acceptance catalog and template-specific instruction",
+    "Assets show asset-specific instruction"
+  ],
+  "checks": {
+    "interaction_regressions": "4 files, 14 passed",
+    "locales": "15 passed",
+    "typescript": "tsc --incremental exit 0"
+  },
+  "remaining": [
+    "New layout light-theme acceptance",
+    "Read-only end-to-end",
+    "PNG upload success",
+    "Download artifact"
+  ],
+  "complete": false
+}

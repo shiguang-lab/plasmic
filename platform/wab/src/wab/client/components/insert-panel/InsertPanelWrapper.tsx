@@ -85,7 +85,7 @@ const InsertPanelWrapper = observer(function InsertPanelWrapper_() {
             top: 82,
             zIndex: 30,
             width: studioCtx.leftPaneWidth,
-            height: "calc(100% - 154px)",
+            height: "calc(100% - 170px)",
             maxWidth: "calc(100vw - 96px)",
           }}
         >

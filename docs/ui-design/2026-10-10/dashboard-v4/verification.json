@@ -1,0 +1,278 @@
+{
+  "errors": [],
+  "measurements": [
+    {
+      "id": "home",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "projects-grid",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "projects-list",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "workspace",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "templates",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "new-blank",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 763.25,
+          "top": 236.75,
+          "left": 550,
+          "right": 1050
+        }
+      ]
+    },
+    {
+      "id": "new-template",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 799.75,
+          "top": 200.25,
+          "left": 450,
+          "right": 1150
+        }
+      ]
+    },
+    {
+      "id": "new-ai",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 791.890625,
+          "top": 208.09375,
+          "left": 550,
+          "right": 1050
+        }
+      ]
+    },
+    {
+      "id": "project-menu",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 699,
+          "top": 411,
+          "left": 535,
+          "right": 773
+        }
+      ]
+    },
+    {
+      "id": "move",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 632.140625,
+          "top": 367.84375,
+          "left": 550,
+          "right": 1050
+        }
+      ]
+    },
+    {
+      "id": "delete",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 592.140625,
+          "top": 407.84375,
+          "left": 550,
+          "right": 1050
+        }
+      ]
+    },
+    {
+      "id": "workspace-empty",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "search-empty",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "loading",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "load-error",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "create-error",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 794.25,
+          "top": 205.75,
+          "left": 550,
+          "right": 1050
+        }
+      ]
+    },
+    {
+      "id": "workspace-readonly",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "switcher",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 573.5,
+          "top": 368,
+          "left": 16,
+          "right": 254
+        }
+      ]
+    },
+    {
+      "id": "content",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "data-sources",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "personal",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": []
+    },
+    {
+      "id": "team-menu",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 609.5,
+          "top": 368,
+          "left": 16,
+          "right": 254
+        }
+      ]
+    },
+    {
+      "id": "workspace-menu",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 458.5,
+          "top": 134,
+          "left": 1217,
+          "right": 1455
+        }
+      ]
+    },
+    {
+      "id": "account-menu",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 348.5,
+          "top": 107,
+          "left": 16,
+          "right": 254
+        }
+      ]
+    },
+    {
+      "id": "help-menu",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 895,
+          "top": 809,
+          "left": 16,
+          "right": 254
+        }
+      ]
+    },
+    {
+      "id": "duplicate",
+      "width": 1600,
+      "height": 1000,
+      "contentOverflow": false,
+      "dialogs": [
+        {
+          "bottom": 672.640625,
+          "top": 327.34375,
+          "left": 550,
+          "right": 1050
+        }
+      ]
+    }
+  ]
+}

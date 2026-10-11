@@ -12,123 +12,321 @@
 
   > div {
     min-height: 0;
-    height: calc(100% - 56px);
+    height: calc(100% - 80px);
     flex: 1;
   }
 
-  .headerWrapper,
-  .layoutWrapper {
-    max-width: none;
+  .applicationHeader.applicationHeader {
+    height: 80px;
+    padding: 16px;
+    background: var(--ui-bg);
+    border: 0;
   }
 
   .headerWrapper {
-    padding-left: 16px;
-    padding-right: 16px;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    height: 48px;
+    background: transparent;
+    border: 0;
+    justify-content: space-between;
+  }
+
+  .brandLink {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    flex-shrink: 0;
+    padding: 0 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: 24px;
+    background: var(--ui-surface);
+  }
+
+  .headerActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 48px;
+    padding: 0 7px;
+    border: 1px solid var(--ui-border);
+    border-radius: 24px;
+    background: var(--ui-surface);
+
+    > div:empty {
+      display: none;
+    }
+  }
+
+  .headerAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
   }
 
   .layoutWrapper {
+    max-width: none;
     height: 100%;
-    align-items: stretch;
+    padding: 0 16px 16px;
+    align-items: flex-start;
+    gap: 16px;
   }
 
   .sidebar {
     position: relative;
     top: auto;
     bottom: auto;
-    width: 220px;
-    height: 100%;
-    padding: 12px;
-    overflow: hidden;
-  }
-
-  .navigation {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-
-    > :global([data-overlayscrollbars-viewport]) {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 4px;
-    }
+    width: 62px;
+    height: auto;
+    padding: 6px 4px;
+    border: 1px solid var(--ui-border);
+    border-radius: 31px;
+    overflow: visible;
   }
 
   .navigationFooter {
     flex-shrink: 0;
-    padding-top: 12px;
+    padding-top: 4px;
+    gap: 4px;
   }
 
   .main {
     flex: 1;
+    height: auto;
+    min-width: 0;
+    max-height: 100%;
     margin-left: 0;
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
     overflow: hidden;
 
     :global(.plasmic_page_wrapper) {
       height: auto;
       min-height: 0;
     }
-
     > :global([data-overlayscrollbars-viewport]) {
       display: flex;
       flex-direction: column;
       align-items: stretch;
-
       > * {
         width: 100%;
         max-width: none;
       }
     }
   }
+
+  .dashboardContent {
+    height: auto;
+    overflow: visible;
+  }
+  .projects {
+    max-width: none;
+  }
+  .teamHeader:global(.__wab_instance) {
+    top: 0;
+  }
 }
 
-.applicationLayout .dashboardContent {
-  height: auto;
-  overflow: visible;
-}
-
-.applicationLayout .projects {
-  max-width: none;
-}
-
-.applicationLayout .teamHeader:global(.__wab_instance) {
-  top: 0;
-}
-
-.applicationLayout.desktopLayout {
+.applicationLayout.desktopLayout,
+.applicationLayout.windowsLayout {
   .applicationHeader {
     -webkit-app-region: drag;
-
     a,
     button,
     [role="button"] {
       -webkit-app-region: no-drag;
     }
   }
-
-  .headerWrapper {
-    padding-left: 96px;
-  }
+}
+.applicationLayout.desktopLayout .brandLink {
+  padding-left: 80px;
+}
+.applicationLayout.windowsLayout .headerWrapper {
+  padding-right: 144px;
 }
 
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.railItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 2px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--ui-muted);
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+  &:hover {
+    background: var(--ui-hover);
+    color: var(--ui-text);
+  }
+}
+.railSelected {
+  background: var(--ui-selected);
+  color: var(--ui-accent);
+}
+.spacesMenu {
+  width: 260px;
+  max-width: calc(100vw - 80px);
+  max-height: 70vh;
+  overflow: auto;
+}
+.projectBrowser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.withDetails {
+  grid-template-columns: minmax(0, 1fr) 258px;
+}
+.projectLibrary {
+  min-width: 0;
+}
+.projectGroup + .projectGroup {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ui-border);
+}
+.groupHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  > a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ui-text);
+  }
+  > span:last-child {
+    font-size: 12px;
+    color: var(--ui-muted);
+  }
+}
+.detailPanel {
+  min-width: 0;
+  border-left: 1px solid var(--ui-border);
+  padding-left: 24px;
+}
+.projectCard.projectSelected {
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 0 2px var(--ui-selected);
+}
+.projectCard.projectDetails {
+  border: 0;
+  border-radius: 0;
+  cursor: default;
+  overflow: visible;
+  &:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .content {
+    padding: 16px 0;
+    gap: 18px;
+  }
+  .title {
+    font-size: 18px;
+  }
+  .meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+.openProject {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 7px;
+  background: var(--ui-accent);
+  color: #fff;
+  &:hover {
+    color: #fff;
+  }
+}
+.openProjectLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ui-accent);
+}
+
+@media (max-width: 1050px) {
+  .withDetails {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 20px;
+  }
+  .detailPanel {
+    padding-left: 20px;
+  }
+}
+@media (max-width: 800px) {
+  .withDetails {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .detailPanel {
+    border-left: 0;
+    border-top: 1px solid var(--ui-border);
+    padding: 20px 0 0;
+  }
+}
 @media (max-width: 768px) {
   .applicationLayout {
     height: auto;
     min-height: 100vh;
     overflow: visible;
-
     > div {
       height: auto;
     }
-
+    .layoutWrapper {
+      flex-direction: column;
+    }
     .sidebar {
       width: 100%;
-      height: auto;
+      flex-direction: row;
+      align-items: center;
     }
-
-    .navigation {
-      flex: none;
+    .navigationFooter {
+      flex-direction: row;
+      padding-top: 0;
+      margin-left: auto;
     }
+    .main {
+      width: 100%;
+      max-height: none;
+    }
+  }
+  .rail {
+    flex-direction: row;
+  }
+  .railItem {
+    min-width: 54px;
+    width: auto;
   }
 }
 
@@ -154,7 +352,7 @@
   color: inherit;
 
   &:hover {
-    transform: translateY(-4px);
+    transform: none;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     border-color: var(--ui-accent, #d0d0d0);
   }
@@ -162,10 +360,25 @@
   .thumbnail {
     width: 100%;
     aspect-ratio: 16/9;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    border: 0;
+    color: var(--ui-text);
+    background: var(--ui-hover);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    overflow-wrap: anywhere;
     position: relative;
     border-bottom: 1px solid var(--ui-border, #eaeaea);
-    /* For real thumbnails: background-image, background-size: cover */
+    > span:last-child {
+      font-size: 18px;
+      font-weight: 500;
+    }
   }
 
   .content {
@@ -186,9 +399,8 @@
     font-size: 16px;
     color: var(--ui-text, #111);
     margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .menuButton {
@@ -222,5 +434,20 @@
     border-radius: 4px;
     font-size: 12px;
     color: var(--ui-muted, #666);
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ui-text);
+
+  svg {
+    width: 22px;
+    height: 22px;
+    fill: var(--ui-accent);
   }
 }

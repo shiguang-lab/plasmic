@@ -26,7 +26,8 @@ export const CanvasArtboardSelectionHandle = observer(
       [],
     );
     const hoverBoxObj = studioCtx.hoverBoxControlledObj;
-    const isFocused = hoverBoxObj === frame;
+    const isFocused =
+      studioCtx.focusedFrames().includes(frame) || hoverBoxObj === frame;
     const isProminent =
       !isFocused && studioCtx.focusedViewCtx()?.arenaFrame() === frame;
     const _gridSpacing = parseInt(getGlobalCssVariableValue(gridSpacing));

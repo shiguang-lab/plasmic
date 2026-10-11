@@ -1,18 +1,40 @@
 import { confirm } from "@/wab/client/components/quick-modals";
+import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+import React from "react";
 
 export async function promptDeleteComponent(
   itemType,
   itemName,
   commentCount = 0,
 ) {
-  const commentLabel = commentCount > 1 ? "comments" : "comment";
   return confirm({
-    title: "Confirm deletion",
+    title: <UiText message="Confirm deletion" />,
     confirmLabel: "Delete",
-    message: `Are you sure you want to delete ${itemType} ${itemName}${
-      commentCount > 0
-        ? `? It currently contains ${commentCount} unresolved ${commentLabel}.`
-        : "?"
-    }`,
+    message: (
+      <>
+        <UiText
+          message="Are you sure you want to delete {type} {name}?"
+          values={{
+            type: translateUiLabel(getUiLocale(), itemType),
+            name: itemName,
+          }}
+        />
+        {commentCount > 0 && (
+          <>
+            {" "}
+            <UiText
+              message={
+                commentCount === 1
+                  ? "It currently contains {count} unresolved comment."
+                  : "It currently contains {count} unresolved comments."
+              }
+              values={{ count: commentCount }}
+            />
+          </>
+        )}
+      </>
+    ),
   });
 }

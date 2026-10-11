@@ -1,0 +1,7 @@
+{
+  "en": "- Redesign the project dashboard, project details and creation panel while retaining existing actions and permissions.\n- Align desktop window controls with the shared header capsules and keep their position after resizing and fullscreen transitions.\n- Refresh sign-in, editor dialogs, libraries, branch and version controls, and canvas selection.\n- Unify product logos and favicon, improve localization and recover failed project loading.",
+  "zh-CN": "- 重新设计项目首页、项目详情与新建面板，保留现有操作和权限。\n- 统一顶部胶囊与桌面窗口按钮布局，修复缩放和全屏切换后的按钮定位。\n- 更新登录页、编辑器弹窗、组件库、分支与版本入口及画布选择操作。\n- 统一产品 Logo 和 favicon，完善多语言并优化项目加载失败后的恢复。",
+  "zh-TW": "- 重新設計專案首頁、專案詳情與新增面板，保留現有操作和權限。\n- 統一頂部膠囊與桌面視窗按鈕配置，修正縮放和全螢幕切換後的按鈕定位。\n- 更新登入頁、編輯器對話框、元件庫、分支與版本入口及畫布選取操作。\n- 統一產品 Logo 和 favicon，完善多語言並改善專案載入失敗後的恢復。",
+  "ja": "- 既存の操作と権限を維持し、プロジェクト一覧、詳細、作成パネルを再設計します。\n- ウィンドウボタンを共通ヘッダーに合わせ、サイズ変更と全画面切り替え後の位置を修正します。\n- ログイン画面、エディターのダイアログ、ライブラリ、ブランチとバージョン操作、キャンバス選択を更新します。\n- 製品ロゴと favicon を統一し、多言語表示とプロジェクト読み込み失敗時の復旧を改善します。",
+  "ko": "- 기존 작업과 권한을 유지하면서 프로젝트 목록, 상세 정보 및 생성 패널을 새롭게 구성합니다.\n- 창 버튼을 공통 헤더에 맞추고 크기 변경 및 전체 화면 전환 후 위치를 수정합니다.\n- 로그인 화면, 편집기 대화상자, 라이브러리, 브랜치 및 버전 기능과 캔버스 선택을 개선합니다.\n- 제품 로고와 favicon을 통일하고 다국어 표시 및 프로젝트 로딩 실패 시 복구를 개선합니다."
+}

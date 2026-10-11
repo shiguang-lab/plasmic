@@ -18,7 +18,9 @@ import {
   makeAllLegacyQueriesMigrationPrompt,
   makeLegacyQueryMigrationPrompt,
 } from "@/wab/client/copilot/query-migration";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { SparklesSvgIcon } from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SparklesSvg";
 import {
@@ -84,6 +86,8 @@ const DataQueryRow = observer(
     viewCtx: ViewCtx;
     isDeprecated: boolean;
   }) => {
+    const { t: uiT } = useI18n();
+
     const studioCtx = viewCtx.studioCtx;
     const showMigrateItem =
       isDeprecated && studioCtx.queryMigrationCopilotEnabled();
@@ -226,7 +230,9 @@ const DataQueryRow = observer(
                 <DataSourceOpValuePreview
                   expr={query.op}
                   env={env}
-                  title={`Query data results for "${query.name}"`}
+                  title={uiT('Query data results for "{part1}"', {
+                    part1: query.name,
+                  })}
                   exprCtx={exprCtx}
                 />
               </PlasmicDataSourceContextProvider>
@@ -247,6 +253,8 @@ function ComponentQueriesSection_(props: {
   viewCtx: ViewCtx;
   isDeprecated: boolean;
 }) {
+  const { t: uiT } = useI18n();
+
   const { component, viewCtx, isDeprecated } = props;
   const studioCtx = useStudioCtx();
 
@@ -308,7 +316,10 @@ function ComponentQueriesSection_(props: {
           )}
           <IconLinkButton
             id="data-queries-add-btn"
-            tooltip={`Add ${DATA_QUERY_LOWER} to ${componentType}`}
+            tooltip={uiT("Add {part1} to {part2}", {
+              part1: translateUiLabel(getUiLocale(), DATA_QUERY_LOWER),
+              part2: componentType,
+            })}
             onClick={handleAddDataQuery}
           >
             <Icon icon={PlusIcon} />
@@ -336,6 +347,8 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
   tpl: TplComponent;
   viewCtx: ViewCtx;
 }) {
+  const { t: uiT } = useI18n();
+
   const { tpl, viewCtx } = props;
   const component = tryGetTplOwnerComponent(tpl) ?? null;
   const exprCtx: ExprCtx = {
@@ -365,7 +378,7 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
   return (
     <LabeledListItem
       label={name}
-      subtitle={"Fetcher"}
+      subtitle={<UiText message="Fetcher" />}
       withSubtitle
       onClick={() => {
         viewCtx.setStudioFocusByTpl(tpl);
@@ -379,7 +392,9 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
             <DataSourceOpValuePreview
               expr={dataOpExpr}
               env={env}
-              title={`Query data results for fetcher "${name}"`}
+              title={uiT('Query data results for fetcher "{part1}"', {
+                part1: name,
+              })}
               exprCtx={exprCtx}
             />
           </div>

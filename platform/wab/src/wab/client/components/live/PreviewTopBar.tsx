@@ -19,6 +19,8 @@ import {
   PreviewViewportMode,
 } from "@/wab/client/components/live/preview-viewport";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import CodeButton from "@/wab/client/components/top-bar/CodeButton";
 import VariantsComboSelect from "@/wab/client/components/top-bar/VariantsComboSelect";
 import { Icon, SvgIcon } from "@/wab/client/components/widgets/Icon";
@@ -26,7 +28,7 @@ import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { spawn } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import {
   isCodeComponent,
   isFrameComponent,
@@ -76,6 +78,17 @@ const useStyles = createStyles(({ token }) => ({
     gap: 16,
     minWidth: 0,
     "@media (max-width: 600px)": { gap: 8 },
+  },
+  desktopTopBar: {
+    "&&": {
+      margin: 16,
+      minHeight: 48,
+      padding: "5px 16px 5px 80px",
+      border: `1px solid ${token.colorBorder}`,
+      borderRadius: 24,
+      background: token.colorBgContainer,
+      "& .ant-segmented": { height: 36, padding: 2 },
+    },
   },
   centerSection: {
     display: "flex",
@@ -211,8 +224,33 @@ export const PreviewTopBar = observer(function PreviewTopBar({
 }: {
   dimensions?: { width: number; height: number };
 }) {
-  const { styles } = useStyles();
+  const { styles, cx } = useStyles();
   const { t } = useI18n();
+  const topFrameApi = useTopFrameApi();
+  const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
+  const topBarRef = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    if (!isMacDesktop) {
+      return;
+    }
+    const root = ensure(topBarRef.current, "Preview top bar is mounted");
+    const update = () => {
+      const bounds = root.getBoundingClientRect();
+      spawn(topFrameApi.setDesktopTitleBarDragRegion({
+        left: bounds.left,
+        top: bounds.top,
+        width: 80,
+        height: 48,
+      }));
+    };
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(root);
+    update();
+    return () => {
+      resizeObserver.disconnect();
+      spawn(topFrameApi.setDesktopTitleBarDragRegion(null));
+    };
+  }, [isMacDesktop, topFrameApi]);
   const previewCtx = usePreviewCtx();
   const studioCtx = useStudioCtx();
 
@@ -296,7 +334,9 @@ export const PreviewTopBar = observer(function PreviewTopBar({
 
   return (
     <div
-      className={styles.topBar}
+      ref={topBarRef}
+      className={cx(styles.topBar, isMacDesktop && styles.desktopTopBar)}
+      data-desktop-titlebar={isMacDesktop ? "mac" : undefined}
       onKeyDownCapture={(event) => {
         if (
           event.key === "Escape" &&
@@ -316,6 +356,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
           </svg>
           <span>Plasmic</span>
         </div>
+        {studioCtx.showBranching() && <BranchSwitcher />}
         <Select
           variant="outlined"
           className={styles.pageSelect}

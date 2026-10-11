@@ -20,7 +20,14 @@ import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Dropdown, Layout } from "antd";
+import { Button, Dropdown, Layout, Popover } from "antd";
+import {
+  AppstoreOutlined,
+  BookOutlined,
+  ExperimentOutlined,
+  FolderOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import * as _ from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -48,6 +55,7 @@ function DefaultLayout_(
     "DefaultLayout requires appCtx to contain user information",
   );
 
+  const [spacesOpen, setSpacesOpen] = React.useState(false);
   const teams = appCtx.getAllTeams();
   const workspaces = _.sortBy(appCtx.workspaces, (w) => w.name);
 
@@ -70,6 +78,31 @@ function DefaultLayout_(
   const brand =
     appCtx.appConfig.brands?.[team?.id ?? ""] ?? appCtx.appConfig.brands?.[""];
 
+  const navigationTeams = teams.map((navigationTeam) => (
+    <React.Fragment key={navigationTeam.id}>
+      <NavSeparator />
+      <NavTeamSection
+        name={navigationTeam.name}
+        href={APP_ROUTES.org.fill({ teamId: navigationTeam.id })}
+        selected={team?.id === navigationTeam.id}
+        freeTrial={navigationTeam.onTrial}
+      >
+        {workspaces
+          .filter((w) => w.team.id === navigationTeam.id)
+          .map((w) => (
+            <NavWorkspaceButton
+              key={w.id}
+              name={w.name}
+              href={APP_ROUTES.workspace.fill({
+                workspaceId: w.id,
+              })}
+              selected={workspace?.id === w.id}
+            />
+          ))}
+      </NavTeamSection>
+    </React.Fragment>
+  ));
+
   return (
     <PlasmicDefaultLayout
       {...rest}
@@ -82,6 +115,8 @@ function DefaultLayout_(
             layout.root,
             navigator.userAgent.includes("PlasmicDesktop/darwin") &&
               styles.desktopLayout,
+            navigator.userAgent.includes("PlasmicDesktop/win32") &&
+              styles.windowsLayout,
           ),
         },
       }}
@@ -90,18 +125,95 @@ function DefaultLayout_(
         props: { className: cx(styles.applicationHeader, layout.header) },
       }}
       headerWrapper={{ className: styles.headerWrapper }}
+      headerActions={{
+        wrap: (node) => (
+          <div className={styles.headerActions}>
+            {node}
+            <Dropdown
+              menu={userMenu}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
+              <Button
+                type="text"
+                className={styles.headerAction}
+                data-test-id="btn-dashboard-user"
+                aria-label={userInfo.displayName}
+              >
+                <Avatar size="small" user={userInfo} />
+              </Button>
+            </Dropdown>
+          </div>
+        ),
+      }}
       wrapper={{
         as: Layout,
         props: { className: cx(styles.layoutWrapper, layout.wrapper) },
       }}
       sidebar={{ className: cx(styles.sidebar, layout.sidebar) }}
       nav={{
-        as: Scrollbar,
-        props: {
-          element: "nav",
-          scrollX: false,
-          className: styles.navigation,
-        },
+        render: () => (
+          <nav className={styles.rail} aria-label={t("All projects")}>
+            <PublicLink
+              className={cx(
+                styles.railItem,
+                rest.navigation === "allProjects" && styles.railSelected,
+              )}
+              href={APP_ROUTES.allProjects.fill({})}
+              aria-label={t("All projects")}
+            >
+              <AppstoreOutlined aria-hidden />
+              <span>{t("Projects")}</span>
+            </PublicLink>
+            <PublicLink
+              className={cx(
+                styles.railItem,
+                rest.navigation === "myProjects" && styles.railSelected,
+              )}
+              href={APP_ROUTES.playground.fill({})}
+              aria-label={t("My Playground")}
+            >
+              <ExperimentOutlined aria-hidden />
+              <span>{t("My Playground")}</span>
+            </PublicLink>
+            {!rest.hideTeams && (
+              <Popover
+                trigger="click"
+                placement="rightTop"
+                open={spacesOpen}
+                onOpenChange={setSpacesOpen}
+                content={
+                  <div
+                    className={cx(styles.spacesMenu, layout.sidebar)}
+                    onClick={(event) => {
+                      if (
+                        event.target instanceof Element &&
+                        event.target.closest("a")
+                      )
+                        setSpacesOpen(false);
+                    }}
+                  >
+                    {navigationTeams}
+                  </div>
+                }
+              >
+                <button
+                  type="button"
+                  className={cx(
+                    styles.railItem,
+                    (spacesOpen || !!team) && styles.railSelected,
+                  )}
+                  aria-label={t("Spaces")}
+                  aria-expanded={spacesOpen}
+                  onClick={() => setSpacesOpen(!spacesOpen)}
+                >
+                  <FolderOutlined aria-hidden />
+                  <span>{t("Spaces")}</span>
+                </button>
+              </Popover>
+            )}
+          </nav>
+        ),
       }}
       navFooter={{ className: styles.navigationFooter }}
       main={{
@@ -114,6 +226,7 @@ function DefaultLayout_(
       }}
       headerLogoLink={{
         as: PublicLink,
+        wrap: (node) => <div className={styles.brandLink}>{node}</div>,
         props: brand.logoHref
           ? {
               href: brand.logoHref,
@@ -125,56 +238,50 @@ function DefaultLayout_(
           ? {
               render: () => <img src={brand.logoImgSrc} />,
             }
-          : undefined
+          : {
+              render: () => (
+                <span className={styles.brand}>
+                  <svg viewBox="0 0 32 32" aria-hidden="true">
+                    <path d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z" />
+                  </svg>
+                  Plasmic
+                </span>
+              ),
+            }
       }
       freeTrial={freeTrial ?? { render: () => null }}
-      teams={teams.map((navigationTeam) => (
-        <React.Fragment key={navigationTeam.id}>
-          <NavSeparator />
-          <NavTeamSection
-            name={navigationTeam.name}
-            href={APP_ROUTES.org.fill({ teamId: navigationTeam.id })}
-            selected={team?.id === navigationTeam.id}
-            freeTrial={navigationTeam.onTrial}
-          >
-            {workspaces
-              .filter((w) => w.team.id === navigationTeam.id)
-              .map((w) => (
-                <NavWorkspaceButton
-                  key={w.id}
-                  name={w.name}
-                  href={APP_ROUTES.workspace.fill({
-                    workspaceId: w.id,
-                  })}
-                  selected={workspace?.id === w.id}
-                />
-              ))}
-          </NavTeamSection>
-        </React.Fragment>
-      ))}
       upgradeButton={upgradeButton ?? { render: () => null }}
       helpButton={helpButton ?? { children: t("Help") }}
-      allProjectsButton={{ children: t("All projects") }}
-      myProjectsButton={{ children: t("My Playground") }}
-      documentationButton={{ children: t("Documentation") }}
-      newTeamButton={{
-        children: t("New organization"),
-        onClick: async () => {
-          await promptNewTeam(appCtx, history);
-        },
-      }}
-      userButton={{
-        props: {
-          children: userInfo.displayName,
-          "data-test-id": "btn-dashboard-user",
-        },
-        wrap: (node) => (
-          <Dropdown menu={userMenu} placement="topLeft" trigger={["click"]}>
-            {node}
-          </Dropdown>
+      documentationButton={{
+        render: () => (
+          <a
+            className={styles.railItem}
+            href="https://docs.plasmic.app/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("Documentation")}
+          >
+            <BookOutlined aria-hidden />
+            <span>{t("Documentation")}</span>
+          </a>
         ),
       }}
-      avatar={<Avatar size="small" user={userInfo} />}
+      newTeamButton={{
+        render: () => (
+          <button
+            type="button"
+            className={styles.railItem}
+            aria-label={t("New organization")}
+            onClick={async () => {
+              await promptNewTeam(appCtx, history);
+            }}
+          >
+            <PlusOutlined aria-hidden />
+            <span>{t("Create")}</span>
+          </button>
+        ),
+      }}
+      userButton={{ render: () => null }}
     />
   );
 }

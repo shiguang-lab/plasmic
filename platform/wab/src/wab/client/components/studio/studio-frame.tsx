@@ -18,8 +18,9 @@ import {
   handleIframeLoad,
 } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { usePreventDefaultBrowserPinchToZoomBehavior } from "@/wab/client/hooks/usePreventDefaultBrowserPinchToZoomBehavior";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
 import { useBrowserNotification } from "@/wab/client/utils/useBrowserNotification";
@@ -190,9 +191,11 @@ export function StudioFrame({
         }
         if (e.statusCode === 403) {
           notification.error({
-            message: "Could not open project",
-            description:
+            message: translate(getUiLocale(), "Could not open project"),
+            description: translate(
+              getUiLocale(),
               "This project does not exist or you do not have access to it.",
+            ),
           });
           return;
         }

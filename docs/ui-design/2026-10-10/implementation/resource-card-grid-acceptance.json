@@ -1,0 +1,28 @@
+{
+  "changes": [
+    "Page templates, section templates and assets use same two-column sizing and virtual row grouping",
+    "Compact component icons retain three columns",
+    "Template tooltip describes preview; asset tooltip describes insert"
+  ],
+  "browser": {
+    "template": "Acceptance page",
+    "cardWidth": 148.5,
+    "rowWidth": 318,
+    "cardHeight": 96,
+    "preview": "Opened then closed via scoped dialog close; resource panel and Templates tab retained"
+  },
+  "checks": {
+    "regressions": "2 files, 8 tests passed",
+    "typescript": "tsc --incremental exit 0"
+  },
+  "remaining": [
+    "Multiple template rows and keyboard traversal",
+    "Grid light-theme verification",
+    "Asset drag/drop end-to-end",
+    "Read-only flow",
+    "Complex business templates",
+    "PNG upload success",
+    "Download artifact"
+  ],
+  "complete": false
+}

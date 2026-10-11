@@ -19,7 +19,9 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import Trash2Icon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
@@ -107,14 +109,14 @@ function renderTypeSpecificSubform(
         <div className={"flex-row gap-sm"}>
           <Form.Item
             {...COLUMN_ITEM_PROPS}
-            label={"Min chars"}
+            label={<UiText message="Min chars" />}
             name={[...fieldPath, "minChars"]}
           >
             <InputNumber />
           </Form.Item>
           <Form.Item
             {...COLUMN_ITEM_PROPS}
-            label={"Max chars"}
+            label={<UiText message="Max chars" />}
             name={[...fieldPath, "maxChars"]}
           >
             <InputNumber />
@@ -150,19 +152,25 @@ function renderModelFieldForm(
   return (
     <div className={"vlist-gap-xlg"}>
       <Form.Item
-        label={"Name"}
+        label={<UiText message="Name" />}
         name={[...fieldPath, "identifier"]}
         help={
           <>
-            Unique name for this field.{" "}
-            <strong>Cannot be renamed without discarding data.</strong>
+            <UiText message="Unique name for this field." />{" "}
+            <strong>
+              <UiText message="Cannot be renamed without discarding data." />
+            </strong>
           </>
         }
         required
       >
         <Textbox styleType={"bordered"} />
       </Form.Item>
-      <Form.Item label={"Type"} name={[...fieldPath, "type"]} required>
+      <Form.Item
+        label={<UiText message="Type" />}
+        name={[...fieldPath, "type"]}
+        required
+      >
         <Select
           type={"bordered"}
           onChange={(value) => {
@@ -218,7 +226,10 @@ function renderModelFieldForm(
             })}
           >
             {getFieldValue([...fullFieldPath, "type"]) === CmsMetaType.REF && (
-              <Form.Item label={"Model"} name={[...fieldPath, "tableId"]}>
+              <Form.Item
+                label={<UiText message="Model" />}
+                name={[...fieldPath, "tableId"]}
+              >
                 <Select>
                   {database.tables.map((table) => (
                     <Select.Option value={table.id}>{table.name}</Select.Option>
@@ -230,7 +241,7 @@ function renderModelFieldForm(
               getFieldValue([...fullFieldPath, "type"]),
             ) && (
               <Form.Item
-                label={"Nested fields"}
+                label={<UiText message="Nested fields" />}
                 help={"Nested objects should have these fields"}
               >
                 <ModelFields
@@ -246,7 +257,10 @@ function renderModelFieldForm(
         )}
       </Form.Item>
       {selectedType === CmsMetaType.ENUM && (
-        <Form.Item label={"Options"} name={[...fieldPath, "options"]}>
+        <Form.Item
+          label={<UiText message="Options" />}
+          name={[...fieldPath, "options"]}
+        >
           <FieldOptions fieldsPath={[...fieldPath, "options"]} />
         </Form.Item>
       )}
@@ -254,7 +268,7 @@ function renderModelFieldForm(
         {!NESTED_TYPES.includes(selectedType) && (
           <Form.Item
             {...COLUMN_ITEM_PROPS}
-            label={"Required"}
+            label={<UiText message="Required" />}
             name={[...fieldPath, "required"]}
           >
             <ValueSwitch />
@@ -262,7 +276,7 @@ function renderModelFieldForm(
         )}
         <Form.Item
           {...COLUMN_ITEM_PROPS}
-          label={"Hidden"}
+          label={<UiText message="Hidden" />}
           name={[...fieldPath, "hidden"]}
         >
           <ValueSwitch />
@@ -272,15 +286,15 @@ function renderModelFieldForm(
         <div className={"flex-row gap-sm"}>
           <Form.Item
             {...COLUMN_ITEM_PROPS}
-            label={"Localized"}
+            label={<UiText message="Localized" />}
             name={[...fieldPath, "localized"]}
           >
             <ValueSwitch
               disabled={form.getFieldValue([...fullFieldPath, "unique"])}
               tooltip={
-                form.getFieldValue([...fullFieldPath, "unique"])
-                  ? "Unique fields cannot be localized."
-                  : undefined
+                form.getFieldValue([...fullFieldPath, "unique"]) ? (
+                  <UiText message="Unique fields cannot be localized." />
+                ) : undefined
               }
             />
           </Form.Item>
@@ -288,15 +302,15 @@ function renderModelFieldForm(
             ALLOWED_UNIQUE_TYPES.includes(selectedType) && (
               <Form.Item
                 {...COLUMN_ITEM_PROPS}
-                label={"Unique"}
+                label={<UiText message="Unique" />}
                 name={[...fieldPath, "unique"]}
               >
                 <ValueSwitch
                   disabled={form.getFieldValue([...fullFieldPath, "localized"])}
                   tooltip={
-                    form.getFieldValue([...fullFieldPath, "localized"])
-                      ? "Localized fields cannot be unique."
-                      : undefined
+                    form.getFieldValue([...fullFieldPath, "localized"]) ? (
+                      <UiText message="Localized fields cannot be unique." />
+                    ) : undefined
                   }
                 />
               </Form.Item>
@@ -304,7 +318,7 @@ function renderModelFieldForm(
         </div>
       )}
       <Form.Item
-        label={"Helper text"}
+        label={<UiText message="Helper text" />}
         name={[...fieldPath, "helperText"]}
         help={
           "Text to display beneath this input with helpful information. Explain to content editors how the field is used and how it should be set."
@@ -313,7 +327,7 @@ function renderModelFieldForm(
         <Textbox styleType={"bordered"} />
       </Form.Item>
       <Form.Item
-        label={"Label"}
+        label={<UiText message="Label" />}
         name={[...fieldPath, "label"]}
         help={"Override the default label for this field."}
       >
@@ -509,7 +523,7 @@ export function CmsModelDetails_(
                     setShowSettingsModal(true);
                   }}
                 >
-                  Configure settings
+                  <UiText message="Configure settings" />
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
@@ -520,20 +534,31 @@ export function CmsModelDetails_(
                     });
                     await mutateTable(databaseId, tableId);
                     notification.success({
-                      message: `Successfully ${
-                        !table.isArchived ? "archived" : "unarchived"
-                      } model`,
+                      message: translate(
+                        getUiLocale(),
+                        !table.isArchived
+                          ? "Model archived successfully"
+                          : "Model unarchived successfully",
+                      ),
                     });
                   }}
                 >
-                  {!table.isArchived ? "Archive" : "Unarchive"} model
+                  <UiText
+                    message={
+                      !table.isArchived ? "Archive model" : "Unarchive model"
+                    }
+                  />
                 </Menu.Item>
                 <Menu.Item
                   key="delete"
                   onClick={async () => {
                     const confirmed = await confirm({
-                      title: "Delete model",
-                      message: `Are you sure you want to delete model "${table.name}"?`,
+                      title: translate(getUiLocale(), "Delete model"),
+                      message: translate(
+                        getUiLocale(),
+                        'Are you sure you want to delete model "{part1}"?',
+                        { part1: table.name },
+                      ),
                     });
                     if (confirmed) {
                       await api.deleteCmsTable(tableId);
@@ -544,7 +569,7 @@ export function CmsModelDetails_(
                     }
                   }}
                 >
-                  Delete model
+                  <UiText message="Delete model" />
                 </Menu.Item>
               </Menu>
             ),
@@ -573,7 +598,11 @@ export function CmsModelDetails_(
                 <Textbox styleType={["bordered", "white"]} />
               </Form.Item>
               <Form.Item
-                label={<strong>Unique identifier</strong>}
+                label={
+                  <strong>
+                    <UiText message="Unique identifier" />
+                  </strong>
+                }
                 name={"identifier"}
                 help={"Unique name for this model in APIs"}
               >
@@ -710,7 +739,7 @@ function ModelFields({
                   );
                 }}
               >
-                Add field
+                <UiText message="Add field" />
               </Button>
             </div>
           </>
@@ -743,7 +772,7 @@ function FieldOptions({ fieldsPath }: { fieldsPath: any[] }) {
                 handles.add("");
               }}
             >
-              Add option
+              <UiText message="Add option" />
             </Button>
           </>
         );
@@ -757,6 +786,8 @@ function ModelSettingsModal(props: {
   tableId: CmsTableId;
   onClose: () => void;
 }) {
+  const { t: uiT } = useI18n();
+
   const { onClose, databaseId, tableId } = props;
   const table = useCmsTable(databaseId, tableId);
   const api = useApi();
@@ -764,7 +795,7 @@ function ModelSettingsModal(props: {
   const mutateTable = useMutateTable();
   return (
     <Modal
-      title={`${table?.name} Settings`}
+      title={uiT("{part1} Settings", { part1: table?.name ?? "" })}
       footer={null}
       open={true}
       onCancel={onClose}
@@ -783,23 +814,28 @@ function ModelSettingsModal(props: {
             });
             await mutateTable(databaseId, tableId);
             setSaving(false);
-            spawn(message.success("Model settings have been saved."));
+            spawn(
+              message.success(
+                translate(getUiLocale(), "Model settings have been saved."),
+              ),
+            );
             onClose();
           }}
           disabled={saving}
         >
           <Form.Item
-            label="Preview URL"
+            label={uiT("Preview URL")}
             name="previewUrl"
             extra={
               <>
-                A url for previewing entries from this model. The url can
-                reference model fields within <code>[brackets]</code>, and they
-                will be substituted with the values from the entry you are
-                looking at. For example,{" "}
-                <code>https://preview.mysite.com/blogs/[slug]</code> will have{" "}
-                <code>[slug]</code> filled in with the "slug" field on the model
-                entry.
+                <UiText
+                  message="A URL for previewing entries from this model. Fields in {brackets} are replaced with values from the current entry. For example, {url} replaces {slug} with the entry's slug field."
+                  values={{
+                    brackets: <code>[brackets]</code>,
+                    url: <code>https://preview.mysite.com/blogs/[slug]</code>,
+                    slug: <code>[slug]</code>,
+                  }}
+                />
               </>
             }
             rules={[
@@ -825,10 +861,9 @@ function ModelSettingsModal(props: {
           >
             <Input />
           </Form.Item>
-          <Form.Item label="Publish Webhooks">
+          <Form.Item label={uiT("Publish Webhooks")}>
             <p>
-              You can specify webhooks that are triggered whenever a CMS entry
-              is published.
+              <UiText message="You can specify webhooks that are triggered whenever a CMS entry is published." />
             </p>
             <Form.List name={["webhooks"]}>
               {(fields, handles) => (
@@ -848,7 +883,7 @@ function ModelSettingsModal(props: {
                       })
                     }
                   >
-                    Add webhook
+                    <UiText message="Add webhook" />
                   </Button>
                 </div>
               )}
@@ -974,7 +1009,7 @@ function WebhookForm(props: {
                   type={"link"}
                   onClick={() => handles.add()}
                 >
-                  Add header
+                  <UiText message="Add header" />
                 </Button>
               </div>
             )}

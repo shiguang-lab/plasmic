@@ -1,0 +1,59 @@
+{
+  "scope": "Editor designs 12 and 13: resource interactions and stable infinite canvas coordinates",
+  "tests": {
+    "passed": 45,
+    "failed": 0,
+    "files": [
+      {
+        "name": "wab/shared/TplMgr.test.ts",
+        "passed": 15
+      },
+      {
+        "name": "wab/shared/page-overview.test.ts",
+        "passed": 1
+      },
+      {
+        "name": "wab/client/studio-ctx/ViewportCtx.test.ts",
+        "passed": 18
+      },
+      {
+        "name": "wab/client/components/insert-panel/ResourceUpload.test.tsx",
+        "passed": 4
+      },
+      {
+        "name": "wab/client/components/studio/add-drawer/PageTemplate.test.ts",
+        "passed": 4
+      },
+      {
+        "name": "wab/client/components/studio/add-drawer/PageTemplateModel.test.ts",
+        "passed": 1
+      },
+      {
+        "name": "wab/client/components/studio/add-drawer/TemplatePreview.test.tsx",
+        "passed": 2
+      }
+    ]
+  },
+  "typecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit --incremental",
+    "exitCode": 0
+  },
+  "frontend": "Rsbuild watcher rebuilt ViewportCtx.ts successfully",
+  "browser": {
+    "state": "Anonymous, four existing page artboards, dark theme, template panel opens and has empty catalog",
+    "screenshot": "resources-templates-current-dark.png"
+  },
+  "verifiedModel": "Actual replaceWithPageTemplate, SiteOps, TplMgr, image/text/styles copying, model invariants, Bundler page/artboard identity",
+  "remaining": [
+    "Authenticated real catalog insertion, undo, save and reopen in browser",
+    "Actual file upload through authenticated browser",
+    "Template business data, slots and event bindings",
+    "Light theme resource screenshots",
+    "Page creation pending/error feedback end-to-end"
+  ],
+  "positionPersistence": {
+    "verification": "Bundler save/reopen preserves existing artboard at (120, 80)",
+    "passed": 1,
+    "failed": 0
+  }
+}

@@ -17,8 +17,9 @@ import { ServerQueriesTooltip } from "@/wab/client/components/widgets/DetailedTo
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -228,14 +229,17 @@ function ServerQueriesSection_(props: {
             ).join(", ")})`,
         );
         notification.success({
-          message: `Copied ${
-            names.length === 1 ? "query" : "queries"
-          }: ${names.join(", ")}`,
+          message: translate(getUiLocale(), "Copied {part1}: {part2}", {
+            part1: names.length === 1 ? "query" : "queries",
+            part2: names.join(", "),
+          }),
           description:
             warnings.length > 0
-              ? `References component ${warnings.join(
-                  ", ",
-                )} that may not exist or differ in this component.`
+              ? translate(
+                  getUiLocale(),
+                  "References component {names} that may not exist or differ in this component.",
+                  { names: warnings.join(", ") },
+                )
               : undefined,
         });
         return ok();
@@ -303,7 +307,10 @@ function ServerQueriesSection_(props: {
             <IconLinkButton
               id="server-queries-add-btn"
               aria-label={uiT("Add data query")}
-              tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
+              tooltip={uiT("Add {part1} to {part2}", {
+                part1: translateUiLabel(getUiLocale(), SERVER_QUERY_LOWER),
+                part2: componentType,
+              })}
             >
               <Icon icon={PlusIcon} />
             </IconLinkButton>
@@ -312,7 +319,10 @@ function ServerQueriesSection_(props: {
           <IconLinkButton
             id="server-queries-add-btn"
             aria-label={uiT("Add data query")}
-            tooltip={`Add ${SERVER_QUERY_LOWER} to ${componentType}`}
+            tooltip={uiT("Add {part1} to {part2}", {
+              part1: translateUiLabel(getUiLocale(), SERVER_QUERY_LOWER),
+              part2: componentType,
+            })}
             onClick={handleAddBlankQuery}
           >
             <Icon icon={PlusIcon} />

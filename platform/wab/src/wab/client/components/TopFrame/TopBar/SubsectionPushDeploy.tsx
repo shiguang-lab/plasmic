@@ -11,8 +11,9 @@ import Button from "@/wab/client/components/widgets/Button";
 import GitJobStep from "@/wab/client/components/widgets/GitJobStep";
 import Select from "@/wab/client/components/widgets/Select";
 import { AsyncFnReturn } from "@/wab/client/hooks/useAsyncStrict";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   DefaultSubsectionPushDeployProps,
   PlasmicSubsectionPushDeploy,
@@ -114,7 +115,10 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
 
   const removeProjectRepository = async () => {
     const confirmed = await confirm({
-      message: `Are you sure you want to remove this GitHub connection?`,
+      message: translate(
+        getUiLocale(),
+        "Are you sure you want to remove this GitHub connection?",
+      ),
     });
     if (confirmed) {
       await appCtx.api.deleteProjectRepository(
@@ -155,10 +159,12 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
           props: {
             onClick: async () =>
               (await reactConfirm({
-                title: "Remove GitHub configuration?",
-                message:
+                title: translate(getUiLocale(), "Remove GitHub configuration?"),
+                message: translate(
+                  getUiLocale(),
                   "This will stop triggering updates to the GitHub repo.",
-                confirmLabel: "Remove",
+                ),
+                confirmLabel: translate(getUiLocale(), "Remove"),
               })) && setVisibleEnableBlock(false, false, block),
           },
         }}

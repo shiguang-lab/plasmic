@@ -7,6 +7,7 @@ import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegex
 import { CopilotActivityOverlay } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { absorbEditingCanvasEvent } from "@/wab/client/components/canvas/canvas-interactions";
+import { selectAllInCanvas } from "@/wab/client/components/canvas/marquee-selection";
 import {
   absorbLinkClick,
   closestTaggedNonTextDomElt,
@@ -280,6 +281,17 @@ export const CanvasFrame = observer(function CanvasFrame({
         ctx.$html().get(0),
         STUDIO_SHORTCUTS,
         {
+          SELECT_ALL: () => {
+            if (
+              !studioCtx.isDevMode ||
+              studioCtx.isInteractiveMode ||
+              viewCtx().viewOps.isEditing()
+            ) {
+              return false;
+            }
+            spawn(studioCtx.changeUnsafe(() => selectAllInCanvas(studioCtx)));
+            return true;
+          },
           TOGGLE_INTERACTIVE_MODE: () => {
             studioCtx.isInteractiveMode = false;
           },
@@ -394,17 +406,26 @@ export const CanvasFrame = observer(function CanvasFrame({
       }),
     );
   }, [studioCtx]);
-  const handleArenaHandleClick = useCallback(() => {
-    if (studioCtx.isInteractiveMode) {
-      return;
-    }
-    spawn(
-      studioCtx.change(() => {
-        studioCtx.setStudioFocusOnlyOnFrame(arenaFrame);
-        return ok();
-      }),
-    );
-  }, [studioCtx]);
+  const handleArenaHandleClick = useCallback(
+    (e?: React.MouseEvent<HTMLElement>) => {
+      if (studioCtx.isInteractiveMode) {
+        return;
+      }
+      if (!e?.shiftKey && studioCtx.focusedFrames().includes(arenaFrame)) {
+        return;
+      }
+      spawn(
+        studioCtx.change(() => {
+          studioCtx.setStudioFocusOnFrame({
+            frame: arenaFrame,
+            appendToMultiSelection: e?.shiftKey,
+          });
+          return ok();
+        }),
+      );
+    },
+    [studioCtx],
+  );
 
   const dragMoveManager = useRef<DragMoveFrameManager | undefined>(undefined);
 

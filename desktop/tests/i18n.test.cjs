@@ -56,6 +56,8 @@ test("native menus share system resolution and change captions without altering 
     calls,
     Array.from({ length: 5 }, () => ["execute", { name: "save", input: {} }]),
   );
+  locale.setLocale("system");
+  assert.equal(locale.snapshot().locale, "zh-TW");
   assert.throws(() => locale.setLocale("__proto__"), /Invalid UI language/);
   assert.equal(locale.t("__proto__"), "__proto__");
 });
@@ -155,7 +157,7 @@ test("desktop preload restores the existing Studio preference and follows system
   for (const preference of [null, "system", "unsupported"]) {
     stored = preference;
     await exposed.desktopEnvironment.getUiMessages();
-    assert.deepEqual(calls.pop(), ["desktop:ui-locale", undefined]);
+    assert.deepEqual(calls.pop(), ["desktop:ui-locale", "system"]);
   }
   await exposed.desktopEnvironment.setUiLocale("zh-CN");
   assert.deepEqual(calls.pop(), ["desktop:ui-locale", "zh-CN"]);
@@ -209,7 +211,7 @@ test("a delayed initial locale cannot overwrite a newer language change", async 
   );
 });
 
-test("desktop sign-in states and parameterized authorization failures follow every language", async (t) => {
+test("desktop sign-in states follow every language without exposing authorization diagnostics", async (t) => {
   const { DesktopUnifiedLogin } = require("../src/unified-login.cjs");
   const { errorMessage } = require("../src/ui-error.cjs");
   const login = new DesktopUnifiedLogin({
@@ -226,9 +228,18 @@ test("desktop sign-in states and parameterized authorization failures follow eve
   const locale = i18n(["en-US"]);
   const dom = new JSDOM(
     fs.readFileSync(path.join(__dirname, "../src/unified-login.html"), "utf8"),
-    { runScripts: "outside-only" },
+    {
+      runScripts: "outside-only",
+      url: "https://studio.example/desktop/unified-login",
+    },
   );
   t.after(() => dom.window.close());
+  dom.window.matchMedia = () => ({ matches: true, addEventListener() {} });
+  dom.window.desktopEnvironment = {
+    setUiAppearance: async () => {},
+    getUiMessages: async () => locale.snapshot(),
+    onUiLocale: () => {},
+  };
   let render;
   dom.window.desktopUnifiedLogin = {
     onStatus: (callback) => {
@@ -239,9 +250,10 @@ test("desktop sign-in states and parameterized authorization failures follow eve
   dom.window.eval(
     fs.readFileSync(path.join(__dirname, "../src/renderer-i18n.js"), "utf8"),
   );
-  dom.window.eval(
-    dom.window.document.querySelector("script:not([src])").textContent,
-  );
+  for (const script of dom.window.document.querySelectorAll(
+    "script:not([src])",
+  ))
+    dom.window.eval(script.textContent);
   await new Promise((resolve) => setImmediate(resolve));
   const element = (id) => dom.window.document.getElementById(id);
   for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
@@ -251,7 +263,7 @@ test("desktop sign-in states and parameterized authorization failures follow eve
       [
         "idle",
         "Sign in to Plasmic",
-        "Use your Shiguang account to access your projects and workspace.",
+        "Continue your projects and bring your ideas to life on the canvas.",
       ],
       [
         "opening",
@@ -261,7 +273,7 @@ test("desktop sign-in states and parameterized authorization failures follow eve
       [
         "waiting",
         "Continue sign-in in your browser",
-        "Complete Shiguang authorization in your browser to return to the desktop app.",
+        "Complete sign-in and you’ll return here automatically.",
       ],
       ["success", "Signed in", "Returning to your workspace."],
     ]) {
@@ -276,10 +288,14 @@ test("desktop sign-in states and parameterized authorization failures follow eve
     });
     assert.equal(
       element("message").textContent,
-      locale.t("Shiguang authorization returned {status}", { status: 503 }),
+      locale.t("We couldn’t complete sign-in. Please try again."),
+    );
+    assert.doesNotMatch(
+      element("message").textContent,
+      /Shiguang|拾光|503|ERR_/i,
     );
     assert.equal(element("retry").hidden, false);
-    assert.equal(element("retry").textContent, locale.t("Try again"));
+    assert.equal(element("retry").textContent.trim(), locale.t("Try again"));
     render({
       phase: "error",
       message: "net::ERR_CONNECTION_REFUSED",
@@ -290,7 +306,7 @@ test("desktop sign-in states and parameterized authorization failures follow eve
     });
     assert.equal(
       element("message").textContent,
-      locale.t("Sign-in failed. Please try again."),
+      locale.t("We couldn’t complete sign-in. Please try again."),
     );
   }
 });

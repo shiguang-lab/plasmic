@@ -1,3 +1,5 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   isKnownNamedState,
   isKnownRenderExpr,
@@ -225,11 +227,15 @@ export function useStudioOps(
           $$$(slotElements[pos]).tryRemove({ deep: true });
         } else {
           notification.error({
-            message: "Invalid child index",
+            message: translate(getUiLocale(), "Invalid child index"),
             description:
               slotElements.length > 0
-                ? "Index should be between 0 and " + (slotElements.length - 1)
-                : "Slot is empty",
+                ? translate(
+                    getUiLocale(),
+                    "Index should be between 0 and {max}",
+                    { max: slotElements.length - 1 },
+                  )
+                : translate(getUiLocale(), "Slot is empty"),
             duration: 0,
           });
         }
@@ -442,7 +448,7 @@ function ButtonAction<P>({
               .then(ensureOk)
               .catch((error) => {
                 notification.error({
-                  message: "Component action failed",
+                  message: translate(getUiLocale(), "Component action failed"),
                   description: error.message,
                 });
                 reportError(error);

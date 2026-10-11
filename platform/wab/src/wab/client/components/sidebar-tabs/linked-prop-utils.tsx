@@ -1,7 +1,9 @@
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import LinkIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Link";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -77,7 +79,7 @@ export async function reconcileLinkedProp(opts: {
   const multiChanged = isMultiChoiceType(outerParam.type) !== multi;
 
   const confirmed = await reactConfirm({
-    title: "Update linked prop",
+    title: translate(getUiLocale(), "Update linked prop"),
     message: (
       <div>
         <p>
@@ -129,7 +131,7 @@ export async function reconcileLinkedProp(opts: {
         )}
       </div>
     ),
-    confirmLabel: "Update",
+    confirmLabel: translate(getUiLocale(), "Update"),
   });
   if (!confirmed) {
     return;
@@ -187,12 +189,15 @@ export function notifyLinkedPropDrift(
   const key = `linked-prop-drift-${innerParam.uuid}`;
   notification.warning({
     key,
-    message: "Linked props out of sync",
+    message: translate(getUiLocale(), "Linked props out of sync"),
     description: (
       <>
-        <p>{`This change left ${issues.length} linked prop${
-          issues.length > 1 ? "s" : ""
-        } out of sync on: ${componentNames.join(", ")}.`}</p>
+        <p>
+          <UiText
+            message="This change left {count} linked props out of sync on: {names}."
+            values={{ count: issues.length, names: componentNames.join(", ") }}
+          />
+        </p>
         <a
           onClick={() => {
             studioCtx.switchLeftTab("lint", { highlight: true });

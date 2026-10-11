@@ -3971,20 +3971,35 @@ $color-stops-width: 100%
   margin-left: auto
   border-left: 1px solid $sand6
 
+.canvas-editor__multi-selection
+  position: absolute
+  transform-origin: top left
+  border: 1px solid $selectionControlsColor
+  pointer-events: none
+  z-index: 10
+
+.canvas-editor__multi-selection-label, .canvas-editor__multi-selection-dimensions
+  position: absolute
+  background: $selectionControlsColor
+  color: white
+  font-size: 11px
+  line-height: 20px
+  padding: 0 6px
+  border-radius: 3px
+  white-space: nowrap
+
+.canvas-editor__multi-selection-label
+  bottom: calc(100% + 4px)
+  left: -1px
+
+.canvas-editor__multi-selection-dimensions
+  top: calc(100% + 4px)
+  left: 50%
+  transform: translateX(-50%)
+
 .canvas-editor__right-pane .tab-content
   overflow: hidden
   min-height: 0
-
-.canvas-editor__disable-right-pane
-  position: absolute
-  top: 0
-  bottom: 0
-  left: 0
-  right: 0
-  background: $sand3
-  opacity: 30%
-  cursor: not-allowed
-  z-index: 100
 
 .canvas-editor__top-pane
   flex: 1
@@ -4202,6 +4217,13 @@ $color-stops-width: 100%
   pointer-events: none // drops go to the canvas/artboards
 .canvas-editor__hoverbox-scroller
   position: absolute
+.canvas-editor__marquee
+  position: absolute
+  pointer-events: none
+  z-index: 100
+  box-sizing: border-box
+  border: 1px solid $selectionControlsColor
+  background: color-mix(in srgb, $selectionControlsColor 12%, transparent)
 .hidden-image-selector
   display: none
 .pane-content
