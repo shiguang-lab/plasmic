@@ -10,11 +10,6 @@ import panelHeader from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftPaneHeader.
 import searchPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftSearchPanel.module.css";
 import versionsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftVersionsPanel.module.css";
 import panelTextbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
-import navButton from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavButton.module.css";
-import separator from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavSeparator.module.css";
-import navTeam from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavTeamButton.module.css";
-import navSection from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavTeamSection.module.css";
-import navWorkspace from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavWorkspaceButton.module.css";
 import teamPageHeader from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamPageHeader.module.css";
 import teamSettings from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamSettings.module.css";
 import workspaceSection from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicWorkspaceSection.module.css";
@@ -112,7 +107,6 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
     color: token.colorText,
     background: token.colorBgLayout,
     fontFamily: token.fontFamily,
-    "& > div": { marginTop: 80 },
     [`& .${workspaceSection.header}, & .${teamPageHeader.root}, & .${teamSettings.header}`]:
       {
         background: token.colorBgContainer,
@@ -136,33 +130,23 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
     height: 80,
     lineHeight: "normal",
     padding: 0,
-    "&&": { background: token.colorBgLayout, height: 80, padding: 16 },
+    "&&": {
+      background: token.colorBgLayout,
+      height: 80,
+      padding: 16,
+    },
   },
   wrapper: {
     background: token.colorBgLayout,
     flexDirection: "row",
     minHeight: 0,
   },
-  sidebar: {
+  headerActions: {
+    padding: "0 8px",
+    border: `1px solid ${token.colorBorder}`,
+    borderRadius: token.borderRadiusLG,
     background: token.colorBgContainer,
-
-    color: token.colorText,
-    "& [data-plasmic-name=nav]": { background: "transparent" },
-    [`& .${navButton.slotTargetChildren}, & .${navTeam.slotTargetName}, & .${navWorkspace.slotTargetName}`]:
-      { color: token.colorText },
-    [`& .${navButton.slotTargetStartIcon}, & .${navWorkspace.slotTargetIcon}`]:
-      { color: token.colorTextSecondary },
-    [`& .${navButton.root}:hover, & .${navTeam.root}:hover, & .${navWorkspace.root}:hover`]:
-      { background: token.colorFillSecondary },
-    [`& .${navButton.rootselected}, & .${navTeam.rootselected}, & .${navWorkspace.rootselected}`]:
-      { background: token.colorPrimaryBg },
-    [`& .${navSection.root}`]: { background: "transparent" },
-    [`& .${separator.freeBox}`]: { background: token.colorBorderSecondary },
-    "& a, & button": { color: token.colorTextSecondary },
-    "& a:hover, & button:hover": {
-      color: token.colorText,
-      background: token.colorFillSecondary,
-    },
+    boxShadow: token.boxShadowSecondary,
   },
   main: { background: token.colorBgContainer, color: token.colorText },
 }));
@@ -274,11 +258,12 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     [`& .canvas-editor__top-bar .${topBar.left}`]: {
       flexShrink: 1,
       minWidth: 0,
+      paddingInline: 12,
+      borderRadius: 24,
     },
     [`& .canvas-editor__top-bar .${topBar.right}`]: { flexShrink: 0 },
-    "& .editor-brand-mark": { fill: token.colorPrimary },
-    "& .editor-brand-label": { color: token.colorText },
     [`& .canvas-editor__top-bar .${topBar.freeBox___7MgoJ}`]: {
+      paddingLeft: 0,
       paddingRight: 0,
     },
     [`& .canvas-editor__top-bar .${topBar.titleSegment}`]: {
@@ -984,6 +969,9 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         borderColor: token.colorBorder,
         color: token.colorText,
       },
+    "& .canvas-editor__canvas-container": {
+      background: token.colorBgLayout,
+    },
     "& .canvas-editor__canvas-scrollbar": {
       backgroundColor: token.colorBgLayout,
       backgroundImage: `radial-gradient(circle, ${token.colorBorder} 0.75px, transparent 1px)`,
@@ -1002,12 +990,34 @@ export const useAuthenticatedLayoutStyles = createStyles(({ token }) => ({
     color: token.colorText,
     fontFamily: token.fontFamily,
     "& .normal-layout__top-bar": {
-      height: 56,
-      background: token.colorBgContainer,
-      borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      height: 80,
+      padding: 16,
+      background: token.colorBgLayout,
+      WebkitAppRegion: "drag",
+      "& a, & button, & [role=button]": { WebkitAppRegion: "no-drag" },
     },
     "& .normal-layout-content": { paddingInline: 24 },
-    "& .normal-layout-content--top-bar": { alignItems: "center" },
+    "& .normal-layout-content--top-bar": {
+      alignItems: "center",
+      paddingInline: 0,
+      maxWidth: "none",
+    },
+    "& .normal-layout__brand": {
+      display: "flex",
+      alignItems: "center",
+      height: 48,
+      padding: navigator.userAgent.includes("PlasmicDesktop/darwin")
+        ? "0 12px 0 80px"
+        : "0 12px",
+      border: `1px solid ${token.colorBorder}`,
+      borderRadius: 24,
+      background: token.colorBgContainer,
+    },
+    "& .normal-layout__top-bar-right": {
+      paddingRight: navigator.userAgent.includes("PlasmicDesktop/win32")
+        ? 144
+        : 0,
+    },
   },
 }));
 
@@ -1359,9 +1369,31 @@ export const useProjectBrowserStyles = createStyles(({ token }) => ({
     background: token.colorBgContainer,
   },
   toolbar: { margin: "24px 0" },
+  workspaceTabs: {
+    "& > .ant-tabs-nav": {
+      margin: 0,
+      padding: "12px 26px",
+      background: token.colorBgContainer,
+    },
+    "& > .ant-tabs-nav .ant-tabs-tab": { padding: "12px 0" },
+    "& > .ant-tabs-nav .ant-tabs-extra-content": { marginLeft: 24 },
+    "@media (max-width: 900px)": {
+      "& > .ant-tabs-nav": { flexWrap: "wrap", gap: 12 },
+      "& > .ant-tabs-nav .ant-tabs-extra-content": {
+        width: "100%",
+        marginLeft: 0,
+      },
+    },
+  },
+  workspaceContent: { padding: 26 },
+  workspaceEmpty: {
+    padding: "32px 0",
+    color: token.colorTextSecondary,
+    textAlign: "center",
+  },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(min(220px, 100%), 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(0, min(320px, 100%)))",
     gap: 20,
     [`& .${dashboard.thumbnail}`]: {
       background: token.colorFillSecondary,
@@ -1376,6 +1408,8 @@ export const useProjectBrowserStyles = createStyles(({ token }) => ({
     },
     [`& .${dashboard.thumbnail}`]: {
       width: 120,
+      height: 112,
+      padding: 12,
       flexShrink: 0,
       borderBottom: 0,
       borderRight: `1px solid ${token.colorBorderSecondary}`,

@@ -1,5 +1,6 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { AddTrustedHostModal } from "@/wab/client/components/AddTrustedHostModal";
+import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import SettingsContainer from "@/wab/client/components/pages/plasmic/SettingsContainer";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -47,11 +48,10 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
     <>
       {documentTitle(t("Settings"))}
       <PlasmicSettingsPage
-        root={{ ref }}
+        root={{ ref, className: dashboard.dashboardContent }}
         {...rest}
         defaultLayout={{
-          render: ({ children }) => <>{children}</>,
-          children: (
+          render: () => (
             <>
               {showHostModal && (
                 <AddTrustedHostModal

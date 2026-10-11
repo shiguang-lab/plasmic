@@ -6,6 +6,7 @@
   "You do not have permission to delete branches in this project.": "이 프로젝트에서 브랜치를 삭제할 권한이 없습니다.",
   "You do not have permission to comment on this project.": "이 프로젝트에 댓글을 작성할 권한이 없습니다.",
   "Failed to load projects": "프로젝트를 불러오지 못했습니다",
+  "Couldn't refresh projects. Showing the last loaded projects.": "프로젝트를 새로 고치지 못했습니다. 마지막으로 불러온 프로젝트를 표시합니다.",
   "All workspaces": "모든 워크스페이스",
   "Loading projects…": "프로젝트 로딩 중…",
   "Failed to create project": "프로젝트 생성에 실패했습니다",
@@ -3356,6 +3357,7 @@
   "Enter the name for your new CMS database": "새 CMS 데이터베이스의 이름 입력",
   "Database name": "데이터베이스 이름",
   "Enter the name for your new CMS table": "새 CMS 테이블의 이름 입력",
+  "New CMS table": "새 CMS 테이블",
   "Table name": "테이블 이름",
   "Configure host app for {part1}": "{part1}의 호스트 앱 설정",
   "Replace all instances of \"{part1}\" with \"{part2}\"?": "\"{part1}\"의 모든 인스턴스를 \"{part2}\"(으)로 바꾸시겠어요?",
@@ -3595,5 +3597,6 @@
   "Edit models": "모델 편집",
   "Unable to load this page": "페이지를 불러오지 못했습니다",
   "Please try again. If the problem persists, try again later.": "다시 시도해 주세요. 문제가 계속되면 잠시 후 다시 시도해 주세요.",
-  "Failed to load workspace": "워크스페이스를 불러오지 못했습니다"
+  "Failed to load workspace": "워크스페이스를 불러오지 못했습니다",
+  "No organizations yet.": "아직 조직이 없습니다."
 }

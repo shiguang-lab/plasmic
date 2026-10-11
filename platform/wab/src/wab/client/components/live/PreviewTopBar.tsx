@@ -13,17 +13,18 @@ import { observer } from "mobx-react";
 import React, { useState } from "react";
 import { MdScreenRotation } from "react-icons/md";
 
+import { BrandLink } from "@/wab/client/components/BrandLink";
 import {
   DEVICE_VIEWPORTS,
   isViewportDimension,
   PreviewViewportMode,
 } from "@/wab/client/components/live/preview-viewport";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import CodeButton from "@/wab/client/components/top-bar/CodeButton";
 import VariantsComboSelect from "@/wab/client/components/top-bar/VariantsComboSelect";
 import { Icon, SvgIcon } from "@/wab/client/components/widgets/Icon";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
@@ -50,11 +51,13 @@ const useStyles = createStyles(({ token }) => ({
     gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
     alignItems: "center",
     gap: 24,
-    minHeight: 64,
+    minHeight: 48,
     flexShrink: 0,
-    padding: "12px 24px",
+    margin: 16,
+    padding: "5px 12px",
     background: token.colorBgContainer,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    border: `1px solid ${token.colorBorder}`,
+    borderRadius: 24,
     color: token.colorText,
     position: "relative",
     zIndex: 100,
@@ -69,7 +72,7 @@ const useStyles = createStyles(({ token }) => ({
       gridTemplateColumns: "minmax(0, 1fr) auto",
       gap: 12,
     },
-    "@media (max-width: 600px)": { padding: "12px", columnGap: 8 },
+    "@media (max-width: 600px)": { columnGap: 8 },
     "@media (max-width: 420px)": { gridTemplateColumns: "1fr" },
   },
   leftSection: {
@@ -81,12 +84,7 @@ const useStyles = createStyles(({ token }) => ({
   },
   desktopTopBar: {
     "&&": {
-      margin: 16,
-      minHeight: 48,
-      padding: "5px 16px 5px 80px",
-      border: `1px solid ${token.colorBorder}`,
-      borderRadius: 24,
-      background: token.colorBgContainer,
+      paddingLeft: 80,
       "& .ant-segmented": { height: 36, padding: 2 },
     },
   },
@@ -109,16 +107,6 @@ const useStyles = createStyles(({ token }) => ({
     flexShrink: 0,
     "@media (max-width: 600px)": { gap: 8 },
     "@media (max-width: 420px)": { gridRow: 2, gridColumn: 1 },
-  },
-  logo: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    fontWeight: 600,
-    fontSize: 18,
-    flexShrink: 0,
-    "& svg": { fill: token.colorPrimary, width: 28, height: 28 },
-    "@media (max-width: 600px)": { "& span": { display: "none" } },
   },
   codeControls: {
     display: "flex",
@@ -236,12 +224,14 @@ export const PreviewTopBar = observer(function PreviewTopBar({
     const root = ensure(topBarRef.current, "Preview top bar is mounted");
     const update = () => {
       const bounds = root.getBoundingClientRect();
-      spawn(topFrameApi.setDesktopTitleBarDragRegion({
-        left: bounds.left,
-        top: bounds.top,
-        width: 80,
-        height: 48,
-      }));
+      spawn(
+        topFrameApi.setDesktopTitleBarDragRegion({
+          left: bounds.left,
+          top: bounds.top,
+          width: 80,
+          height: 48,
+        }),
+      );
     };
     const resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(root);
@@ -350,12 +340,15 @@ export const PreviewTopBar = observer(function PreviewTopBar({
       }}
     >
       <div className={styles.leftSection}>
-        <div className={styles.logo}>
-          <svg viewBox="0 0 32 32" aria-hidden="true">
-            <path d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z" />
-          </svg>
-          <span>Plasmic</span>
-        </div>
+        <BrandLink
+          brand={
+            studioCtx.getCurrentUiConfig().brand ??
+            studioCtx.appCtx.appConfig.brands?.[
+              studioCtx.siteInfo.teamId ?? ""
+            ] ??
+            studioCtx.appCtx.appConfig.brands?.[""]
+          }
+        />
         {studioCtx.showBranching() && <BranchSwitcher />}
         <Select
           variant="outlined"

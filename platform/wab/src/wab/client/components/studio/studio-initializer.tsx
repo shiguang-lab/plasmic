@@ -11,7 +11,9 @@ import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { Studio } from "@/wab/client/components/studio/studio";
 import { ViewEditor } from "@/wab/client/components/studio/view-editor";
 import * as widgets from "@/wab/client/components/widgets";
+import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { AlertSpec } from "@/wab/client/components/widgets/plasmic/AlertBanner";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { providesViewCtx } from "@/wab/client/contexts/StudioContexts";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { checkRootSubHostVersion } from "@/wab/client/frame-ctx/windows";
@@ -306,6 +308,7 @@ class StudioInitializer_ extends React.Component<
       <widgets.ObserverLoadable
         loader={this.init}
         contents={contents}
+        failureContents={(retry) => <StudioInitializationError retry={retry} />}
         loadingContents={() => {
           const { studioCtx, previewCtx } = this.state;
           return studioCtx && previewCtx ? (
@@ -319,3 +322,15 @@ class StudioInitializer_ extends React.Component<
   }
 }
 export const StudioInitializer = observer(StudioInitializer_);
+
+function StudioInitializationError({ retry }: { retry: () => void }) {
+  const topFrameApi = useTopFrameApi();
+  React.useEffect(() => {
+    spawn(topFrameApi.setStudioReady());
+  }, [topFrameApi]);
+  return (
+    <StudioChrome>
+      <LoadingError onRetry={retry} />
+    </StudioChrome>
+  );
+}

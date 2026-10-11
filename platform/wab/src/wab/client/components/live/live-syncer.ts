@@ -494,7 +494,7 @@ export function createCodeComponentModule(
   };
 }
 
-function createGlobalContextsModules(
+export function createGlobalContextsModules(
   contexts: CodeComponent[],
   globalContextsBundle: GlobalContextBundle,
 ) {
@@ -927,7 +927,10 @@ export const createProjectOutput = computedFn(
 
 export const createComponentOutput = computedFn(
   function createComponentOutput(
-    studioCtx: StudioCtx,
+    studioCtx: {
+      site: Site;
+      siteInfo: Pick<StudioCtx["siteInfo"], "appAuthProvider">;
+    },
     component: Component,
     projectConfig: ProjectConfig,
     forceRootDisabled: boolean,

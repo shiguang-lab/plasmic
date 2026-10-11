@@ -321,6 +321,7 @@ const DEFAULT_DEVFLAGS = {
   defaultHostUrl:
     process.env.REACT_APP_DEFAULT_HOST_URL ||
     "https://host.plasmicdev.com/static/host.html",
+  dashboardCanvasPreview: false,
   enablePlasmicHosting: true,
   previewOrigin: process.env.PREVIEW_ORIGIN || "",
   // Used to invalidate etag cacheing mechanism altogether

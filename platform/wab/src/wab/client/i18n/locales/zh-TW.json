@@ -6,6 +6,7 @@
   "You do not have permission to delete branches in this project.": "你沒有在此專案中刪除分支的權限。",
   "You do not have permission to comment on this project.": "你沒有此專案的評論權限。",
   "Failed to load projects": "專案載入失敗",
+  "Couldn't refresh projects. Showing the last loaded projects.": "專案重新整理失敗，目前顯示上次載入的專案。",
   "All workspaces": "所有工作空間",
   "Loading projects…": "正在載入專案…",
   "Failed to create project": "建立專案失敗",
@@ -3356,6 +3357,7 @@
   "Enter the name for your new CMS database": "輸入新 CMS 資料庫的名稱",
   "Database name": "資料庫名稱",
   "Enter the name for your new CMS table": "輸入新 CMS 資料表的名稱",
+  "New CMS table": "新增 CMS 表",
   "Table name": "資料表名稱",
   "Configure host app for {part1}": "設定 {part1} 的宿主應用程式",
   "Replace all instances of \"{part1}\" with \"{part2}\"?": "將所有「{part1}」實例取代為「{part2}」？",
@@ -3595,5 +3597,6 @@
   "Edit models": "編輯模型",
   "Unable to load this page": "頁面載入失敗",
   "Please try again. If the problem persists, try again later.": "請重試。如果問題持續，請稍後再試。",
-  "Failed to load workspace": "工作區載入失敗"
+  "Failed to load workspace": "工作區載入失敗",
+  "No organizations yet.": "尚無組織。"
 }

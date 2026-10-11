@@ -1,7 +1,7 @@
+import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
 import {
-  EditorBrandLink,
   EditorIconAction,
   TopBarChrome,
 } from "@/wab/client/components/top-bar/TopBarChrome";
@@ -680,7 +680,7 @@ function _TopBar({ preview }: TopBarProps) {
         // Projects outside an org (e.g. in a playground) have no trial.
         freeTrial={team ? { team } : { render: () => null }}
         logoLink={{
-          render: (props) => <EditorBrandLink {...props} brand={brand} />,
+          render: (props) => <BrandLink {...props} brand={brand} />,
         }}
         projectTitle={{
           render: () => (

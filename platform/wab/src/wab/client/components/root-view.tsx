@@ -85,6 +85,7 @@ const LoggedInPages = {
     import("./pages/TeamCreation").then((m) => ({ default: m.TeamCreation })),
   ),
   TeamPage: React.lazy(() => import("./dashboard/TeamPage")),
+  OrganizationsPage: React.lazy(() => import("./dashboard/OrganizationsPage")),
   TeamSettingsPage: React.lazy(() => import("./dashboard/TeamSettingsPage")),
   ViewInitializer: React.lazy(() => import("./studio/view-initializer")),
   WorkspacePage: React.lazy(() => import("./dashboard/WorkspacePage")),
@@ -287,6 +288,15 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                                   key={teamId}
                                   teamId={teamId}
                                 />
+                              </DashboardLayout>
+                            ),
+                          }),
+                          switchCase({
+                            exact: true,
+                            route: APP_ROUTES.organizations,
+                            render: () => (
+                              <DashboardLayout>
+                                <LoggedInPages.OrganizationsPage />
                               </DashboardLayout>
                             ),
                           }),

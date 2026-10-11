@@ -34,6 +34,7 @@ export type TopFrameFullApi = {
   TopFrameApi;
 
 export interface TopFrameApi {
+  setStudioReady(): Promise<void>;
   pushLocation(path?: string, query?: string, hash?: string): void;
   replaceLocation(path?: string, query?: string, hash?: string): void;
   registerLocationListener(listener: Listener): () => void;

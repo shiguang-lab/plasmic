@@ -1,6 +1,7 @@
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
-import { WorkspaceId } from "@/wab/shared/ApiSchema";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
+import { WorkspaceId } from "@/wab/shared/ApiSchema";
+import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 
@@ -8,27 +9,28 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   push: vi.fn(),
   cancel: vi.fn(),
+  loading: false,
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAppCtx: () => ({
     personalWorkspace: { id: "personal" },
-    selfInfo: { email: "tester@example.test" },
+    selfInfo: { id: "tester", email: "tester@example.test" },
     appConfig: {},
     workspaces: [
-      { id: "personal", name: "Personal" },
-      { id: "read-only", name: "Read only" },
+      { id: "personal", name: "Personal", team: { id: "personal-team" } },
+      { id: "read-only", name: "Read only", team: { id: "other-team" } },
+    ],
+    perms: [
+      { userId: "tester", teamId: "personal-team", accessLevel: "owner" },
+      { userId: "tester", teamId: "other-team", accessLevel: "viewer" },
     ],
     starters: { templateAndExampleSections: [], appSections: [] },
     api: { createProject: mocks.create },
   }),
   useAllProjectsData: () => ({
-    data: { projects: [], perms: [] },
+    data: mocks.loading ? undefined : { projects: [], perms: [] },
     mutate: vi.fn(),
   }),
-}));
-vi.mock("@/wab/shared/perms", () => ({
-  getAccessLevelToResource: ({ resource }: { resource: { id: string } }) =>
-    resource.id === "personal" ? "editor" : "viewer",
 }));
 vi.mock("@/wab/client/route/HistoryProvider", () => ({
   useHistory: () => ({ push: mocks.push }),
@@ -38,6 +40,7 @@ vi.mock("@/wab/client/i18n", () => ({
 }));
 afterEach(() => {
   cleanup();
+  mocks.loading = false;
   vi.clearAllMocks();
 });
 
@@ -59,6 +62,8 @@ it("keeps the creation drawer in the modal focus and shortcut lifecycle", () => 
 it("still requires a name and creates a blank project in the selected workspace", async () => {
   mocks.create.mockResolvedValue({ project: { id: "new1" } });
   render(<NewProjectModal onCancel={mocks.cancel} />);
+  expect(screen.getByText("My Playground")).toBeInTheDocument();
+  expect(screen.queryByText("personal", { exact: true })).toBeNull();
   await vi.waitFor(() =>
     expect(
       (screen.getByRole("button", { name: "Create" }) as HTMLButtonElement)
@@ -79,6 +84,14 @@ it("still requires a name and creates a blank project in the selected workspace"
     }),
   );
   expect(mocks.push).toHaveBeenCalledWith("/projects/new1");
+});
+
+it("shows the destination name while project data is loading", () => {
+  mocks.loading = true;
+  render(<NewProjectModal onCancel={mocks.cancel} />);
+  expect(screen.getByText("My Playground")).toBeInTheDocument();
+  expect(screen.queryByText("personal", { exact: true })).toBeNull();
+  expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
 });
 
 it("does not offer read-only destinations or create from an unselected template", async () => {

@@ -1,3 +1,5 @@
+import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
+import { PersonalWorkspaceTabs } from "@/wab/client/components/dashboard/PersonalWorkspaceTabs";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import SettingsContainer from "@/wab/client/components/pages/plasmic/SettingsContainer";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
@@ -13,13 +15,9 @@ import { PlasmicTeamPage } from "@/wab/client/plasmic/plasmic_kit_dashboard/Plas
 import { PlasmicTeamPageHeader } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamPageHeader";
 import { PlasmicTeamSettings } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamSettings";
 import { PlasmicWorkspaceSection } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicWorkspaceSection";
-import { useLocation } from "@/wab/client/route/HistoryProvider";
+import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import {
-  AppstoreOutlined,
-  BarsOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -84,10 +82,30 @@ export function WorkspacePageLoading({
 }) {
   const { t } = useI18n();
   const { hash } = useLocation();
+  const history = useHistory();
+  const { styles } = useProjectBrowserStyles();
   const tab =
     new URLSearchParams(hash.slice(1)).get("tab") === "dataSources"
       ? "dataSources"
       : "projects";
+  if (personalWorkspace) {
+    return (
+      <PersonalWorkspaceTabs
+        activeKey={tab}
+        onChange={(key) => history.push(`#tab=${key}`)}
+        toolbar={
+          <Flex align="center" wrap gap={12}>
+            {tab === "projects" && <PillSkeleton />}
+            <LoadingProjectFilters />
+          </Flex>
+        }
+      >
+        <div className={styles.workspaceContent}>
+          {tab === "projects" ? <ProjectCardsSkeleton /> : <RowsSkeleton />}
+        </div>
+      </PersonalWorkspaceTabs>
+    );
+  }
   return (
     <PlasmicWorkspaceSection
       personalWorkspace={personalWorkspace}
@@ -234,6 +252,13 @@ export function DashboardPageLoading() {
     APP_ROUTES.orgSettings.parse(pathname)?.teamId ??
     APP_ROUTES.org.parse(pathname)?.teamId;
   const team = appCtx?.getAllTeams().find((item) => item.id === teamId);
+  if (APP_ROUTES.organizations.parse(pathname)) {
+    return (
+      <section className={styles.root}>
+        <RowsSkeleton />
+      </section>
+    );
+  }
   if (APP_ROUTES.settings.parse(pathname)) {
     return (
       <SettingsContainer
@@ -321,9 +346,7 @@ export function DashboardPageLoading() {
         <Typography.Title level={2} style={{ margin: 0 }}>
           {t("All projects")}
         </Typography.Title>
-        <Button disabled type="primary" icon={<PlusOutlined />}>
-          {t("New project")}
-        </Button>
+        <NewProjectButton disabled />
       </Flex>
       <div className={styles.toolbar}>
         <LoadingProjectFilters allWorkspaces />

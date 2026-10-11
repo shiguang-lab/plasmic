@@ -38,6 +38,7 @@ export const APP_ROUTES = {
   copilot: route("/copilot"),
   allProjects: route("/projects"),
   playground: route("/playground"),
+  organizations: route("/orgs"),
   workspace: route("/workspaces/:workspaceId"),
 
   //

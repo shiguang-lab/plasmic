@@ -537,9 +537,10 @@ function registerAdditional(loader) {
       type: "slot",
       displayName: "Items",
       allowedComponents: ["plasmic-antd6-descriptions-item"],
+      allowRootWrapper: false,
       hidePlaceholder: true,
       hidden: (ps) => ps.items != null,
-      description: "Editable label/value fields. This slot is not rendered when native items are set.",
+      description: "Only direct Descriptions.Item children are allowed. Edit each field's label and content inside its Item. This slot is not rendered when native items are set.",
       defaultValue: [{
         type: "component",
         name: "plasmic-antd6-descriptions-item",

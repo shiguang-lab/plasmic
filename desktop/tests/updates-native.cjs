@@ -31,23 +31,26 @@ app
     const canvasOrigin = "https://canvas.update.test";
     window.webContents.session.protocol.handle("https", (request) => {
       const url = new URL(request.url);
-      if (url.pathname === "/renderer-i18n.js")
+      if (url.pathname === "/renderer-i18n.js") {
         return new Response(rendererI18n, {
           headers: { "Content-Type": "application/javascript; charset=utf-8" },
         });
-      if (url.pathname === "/update-ui.js")
+      }
+      if (url.pathname === "/update-ui.js") {
         return new Response(updateUi, {
           headers: { "Content-Type": "application/javascript; charset=utf-8" },
         });
-      if (url.pathname === "/update-dialog.js")
+      }
+      if (url.pathname === "/update-dialog.js") {
         return new Response(updateDialog, {
           headers: { "Content-Type": "application/javascript; charset=utf-8" },
         });
+      }
       const isStudio = url.origin === studioOrigin;
       const content = isStudio
         ? url.pathname === "/delayed"
           ? ""
-          : `<aside style="width:220px"><nav>Projects</nav><footer>Settings</footer></aside><main>Workspace</main>`
+          : `<aside style="width:72px;padding:6px 4px;box-sizing:border-box"><nav>Projects</nav><footer style="display:flex;flex-direction:column;padding:4px 0 0"><button>Create</button></footer></aside><main>Workspace</main>`
         : `<script>
           setTimeout(() => {
           const frame = document.createElement("iframe");
@@ -91,7 +94,9 @@ app
       window.focus();
       window.webContents.focus();
       for (let attempt = 0; attempt < 20; attempt++) {
-        if (await evaluate("document.hasFocus()")) return;
+        if (await evaluate("document.hasFocus()")) {
+          return;
+        }
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
       assert.fail("The native fixture must gain focus before keyboard checks");
@@ -164,6 +169,32 @@ app
         visible: true,
       },
     );
+    for (const phase of [
+      "available",
+      "downloading",
+      "downloaded",
+      "installing",
+    ]) {
+      await evaluate(
+        `window.updateStatus({ phase: ${JSON.stringify(phase)}, version: "0.0.7", percent: 42 }); new Promise(resolve => setTimeout(resolve, 300))`,
+      );
+      const geometry = await evaluate(`(() => {
+        const control = document.getElementById("plasmic-desktop-update");
+        const button = control.querySelector("button").getBoundingClientRect();
+        const footer = control.parentElement.getBoundingClientRect();
+        const bounds = control.getBoundingClientRect();
+        return { horizontal: Math.abs(button.left + button.width / 2 - footer.left - footer.width / 2), vertical: Math.abs(button.top + button.height / 2 - bounds.top - bounds.height / 2), icon: control.querySelector("svg").dataset.icon };
+      })()`);
+      assert(
+        geometry.horizontal < 1,
+        `${phase} must be centered in the narrow dashboard footer`,
+      );
+      assert(geometry.vertical < 1, `${phase} must be vertically centered`);
+      if (phase === "downloaded") {
+        assert.equal(geometry.icon, "download");
+      }
+    }
+    await evaluate("window.updateStatus(window.fixtureStatus)");
     const releaseNotes = JSON.parse(
       await fs.readFile(
         path.join(__dirname, "../release-notes/0.0.42.json"),
@@ -251,6 +282,14 @@ app
       ),
       "Keyboard focus must expand the footer icon label",
     );
+    assert(
+      await evaluate(`(() => {
+      const button = document.querySelector(".update-action").getBoundingClientRect();
+      const footer = document.querySelector("aside > footer").getBoundingClientRect();
+      return Math.abs(button.left + button.width / 2 - footer.left - footer.width / 2) < 1;
+    })()`),
+      "The expanded update label must remain centered",
+    );
     assert.equal(
       await evaluate(
         `document.querySelector(".update-tooltip").matches(":popover-open")`,
@@ -318,8 +357,9 @@ app
         (await editor.executeJavaScript(
           `document.querySelector("#plasmic-desktop-update")?.dataset.phase === "downloaded"`,
         ))
-      )
+      ) {
         break;
+      }
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
     assert(editor, "Bundled editor frame did not load");
@@ -346,7 +386,7 @@ app
       await editor.executeJavaScript(
         `document.querySelector(".update-action svg").dataset.icon`,
       ),
-      "restart",
+      "download",
     );
     await focusWindow();
     await editor.executeJavaScript(
@@ -485,6 +525,8 @@ app
     process.exitCode = 1;
   })
   .finally(async () => {
-    if (root) await fs.rm(root, { recursive: true, force: true });
+    if (root) {
+      await fs.rm(root, { recursive: true, force: true });
+    }
     app.exit(process.exitCode || 0);
   });

@@ -6,6 +6,7 @@
   "You do not have permission to delete branches in this project.": "このプロジェクトでブランチを削除する権限がありません。",
   "You do not have permission to comment on this project.": "このプロジェクトにコメントする権限がありません。",
   "Failed to load projects": "プロジェクトの読み込みに失敗しました",
+  "Couldn't refresh projects. Showing the last loaded projects.": "プロジェクトを更新できませんでした。前回読み込んだプロジェクトを表示しています。",
   "All workspaces": "すべてのワークスペース",
   "Loading projects…": "プロジェクトを読み込み中…",
   "Failed to create project": "プロジェクトの作成に失敗しました",
@@ -3356,6 +3357,7 @@
   "Enter the name for your new CMS database": "新しい CMS データベースの名前を入力",
   "Database name": "データベース名",
   "Enter the name for your new CMS table": "新しい CMS テーブルの名前を入力",
+  "New CMS table": "CMS テーブルを作成",
   "Table name": "テーブル名",
   "Configure host app for {part1}": "{part1} のホストアプリを設定",
   "Replace all instances of \"{part1}\" with \"{part2}\"?": "「{part1}」のすべてのインスタンスを「{part2}」に置き換えますか？",
@@ -3595,5 +3597,6 @@
   "Edit models": "モデルを編集",
   "Unable to load this page": "ページを読み込めませんでした",
   "Please try again. If the problem persists, try again later.": "再試行してください。問題が解決しない場合は、しばらくしてからお試しください。",
-  "Failed to load workspace": "ワークスペースを読み込めませんでした"
+  "Failed to load workspace": "ワークスペースを読み込めませんでした",
+  "No organizations yet.": "組織はまだありません。"
 }

@@ -3,6 +3,8 @@ import {
   WorkspaceMenu,
 } from "@/wab/client/components/dashboard/dashboard-actions";
 import DatabaseListItem from "@/wab/client/components/dashboard/DatabaseListItem";
+import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
+import { PersonalWorkspaceTabs } from "@/wab/client/components/dashboard/PersonalWorkspaceTabs";
 import ProjectsFilter, {
   ProjectsFilterProps,
 } from "@/wab/client/components/dashboard/ProjectsFilter";
@@ -25,7 +27,7 @@ import {
   DefaultWorkspaceSectionProps,
   PlasmicWorkspaceSection,
 } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicWorkspaceSection";
-import { useHistory } from "@/wab/client/route/HistoryProvider";
+import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { Stated } from "@/wab/commons/components/Stated";
@@ -42,11 +44,14 @@ import {
   filterDirectResourcePerms,
   getAccessLevelToResource,
 } from "@/wab/shared/perms";
-import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
+import {
+  AppstoreOutlined,
+  BarsOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, Flex, Segmented } from "antd";
+import { Alert, Button, Flex, Segmented, Typography } from "antd";
 import * as _ from "lodash";
-import { trimStart } from "lodash";
 import * as React from "react";
 
 interface WorkspaceSectionProps extends Omit<
@@ -102,20 +107,19 @@ function WorkspaceSection_(
   ).length;
 
   const history = useHistory();
+  const { hash } = useLocation();
 
   const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
-  const hashParams = new URLSearchParams(
-    trimStart(history.location.hash ?? "", "#"),
-  );
+  const hashParams = new URLSearchParams(hash.slice(1));
   const tabFromHash = hashParams.get("tab") ?? "";
   const openTab = ["projects", "dataSources"].includes(tabFromHash)
     ? (tabFromHash as "projects" | "dataSources")
     : "projects";
 
-  const updateTab = (tab: "projects" | "dataSources") => {
+  const updateTab = (tab: string) => {
     const params = new URLSearchParams();
     params.set("tab", tab);
-    appCtx.router.history.push(`#${params.toString()}`);
+    history.push(`#${params.toString()}`);
   };
 
   const [asyncData, fetchAsyncData] = useAsyncFnStrict(async () => {
@@ -153,204 +157,260 @@ function WorkspaceSection_(
 
   const showTabs = !rest.inTeamPage;
 
+  const projectFilters = (
+    <Flex align="center" wrap gap={12}>
+      {filterProps && <ProjectsFilter {...filterProps} />}
+      <Segmented
+        aria-label={t("View")}
+        value={projectView}
+        onChange={setProjectView}
+        options={[
+          {
+            value: "grid",
+            label: t("Grid"),
+            icon: <AppstoreOutlined aria-hidden />,
+          },
+          {
+            value: "list",
+            label: t("List"),
+            icon: <BarsOutlined aria-hidden />,
+          },
+        ]}
+      />
+    </Flex>
+  );
+  const projectList = (
+    <div className={cx(styles.grid, projectView === "list" && styles.list)}>
+      {projects.map((project) => (
+        <ProjectListItem
+          key={project.id}
+          project={project}
+          perms={perms}
+          onUpdate={onUpdate}
+          workspaces={true}
+          matcher={matcher}
+        />
+      ))}
+    </div>
+  );
+  const noProjectsText = matcher.hasQuery()
+    ? t("No projects matching query.")
+    : t("This workspace has no projects.");
+  const dataSourcesContent = asyncData.value ? (
+    <WorkspaceDataSources
+      workspaceId={workspace.id}
+      appCtx={appCtx}
+      dataSources={asyncData.value.dataSources}
+      readOnly={asyncData.value.readOnly}
+      workspaceAccessLevel={workspaceAccessLevel}
+      matcher={matcher}
+      onUpdate={async () => {
+        await fetchAsyncData();
+      }}
+    />
+  ) : asyncData.error ? (
+    <Alert
+      type="error"
+      showIcon
+      title={t("Failed to load data sources")}
+      action={
+        <Button size="small" onClick={() => void fetchAsyncData()}>
+          {t("Retry")}
+        </Button>
+      }
+    />
+  ) : (
+    <RowsSkeleton />
+  );
+
   return (
     <>
-      <PlasmicWorkspaceSection
-        {...rest}
-        root={{ ref }}
-        h3={{ children: t("Content Management Systems (CMS)") }}
-        editableName={{
-          render: (props) => (
-            <InlineEdit
-              render={({ editing, onStart, onDone }) =>
-                editing ? (
-                  <div className={props.className} style={{ width: 300 }}>
-                    <Stated defaultValue={false}>
-                      {(submitting, setSubmitting) => (
-                        <OnClickAway onDone={onDone}>
-                          <Textbox
-                            autoFocus
-                            selectAllOnFocus
-                            defaultValue={workspace.name}
-                            onEdit={async (name) => {
-                              if (name) {
-                                setSubmitting(true);
-                                await maybeShowPaywall(
-                                  appCtx,
-                                  async () =>
-                                    await appCtx.api.updateWorkspace(
-                                      workspace.id,
-                                      {
-                                        name,
-                                      },
-                                    ),
-                                );
-                                await onUpdate();
-                                await appCtx.reloadAppCtx();
-                                setSubmitting(false);
-                              }
-                              onDone();
-                            }}
-                            onEscape={onDone}
-                            onBlur={onDone}
-                            disabled={submitting}
-                          />
-                        </OnClickAway>
-                      )}
-                    </Stated>
-                  </div>
+      {rest.personalWorkspace ? (
+        <div ref={ref} className={rest.className}>
+          <PersonalWorkspaceTabs
+            activeKey={openTab}
+            onChange={updateTab}
+            toolbar={
+              <Flex align="center" wrap gap={12}>
+                {openTab === "projects" &&
+                  accessLevelRank(workspaceAccessLevel) >=
+                    accessLevelRank("editor") && (
+                    <NewProjectButton
+                      onClick={() => setShowNewProjectModal(true)}
+                    />
+                  )}
+                {projectFilters}
+              </Flex>
+            }
+          >
+            {openTab === "projects" ? (
+              <div className={styles.workspaceContent}>
+                {projects.length ? (
+                  projectList
                 ) : (
-                  <EditableResourceName
-                    {...props}
-                    {...{
-                      name: matcher.boldSnippets(
-                        workspace.name,
-                        "yellow-snippet",
-                      ),
-                      onEdit: onStart,
-                    }}
-                  />
-                )
-              }
-            />
-          ),
-        }}
-        numMembers={numMembers}
-        accessLevel={
-          accessLevelRank(workspaceAccessLevel) < accessLevelRank("editor")
-            ? "cantEdit"
-            : undefined
-        }
-        newProjectButton={{
-          children: t("New project"),
-          onClick: () => setShowNewProjectModal(true),
-        }}
-        newCmsButton={{
-          children: t("New CMS"),
-          onClick: () =>
-            spawn(promptNewDatabase(appCtx, history, workspace.id)),
-        }}
-        newCmsButton2={{
-          children: t("New CMS"),
-          onClick: () =>
-            spawn(promptNewDatabase(appCtx, history, workspace.id)),
-        }}
-        shareButton={{
-          resource: { type: "workspace", resource: workspace },
-          perms,
-          reloadPerms: onUpdate,
-        }}
-        moreButton={{
-          props: {
-            menu: (
-              <WorkspaceMenu
-                appCtx={appCtx}
-                workspace={workspace}
-                perms={perms}
-                onUpdate={onUpdate}
-                redirectOnDelete={!rest.inTeamPage}
-                projectCount={projects.length}
-              />
-            ),
-          },
-        }}
-        projectsFilter={{
-          render: () => (
-            <Flex align="center" wrap gap={12}>
-              {filterProps && <ProjectsFilter {...filterProps} />}
-              <Segmented
-                aria-label={t("View")}
-                value={projectView}
-                onChange={setProjectView}
-                options={[
-                  {
-                    value: "grid",
-                    label: t("Grid"),
-                    icon: <AppstoreOutlined aria-hidden />,
-                  },
-                  {
-                    value: "list",
-                    label: t("List"),
-                    icon: <BarsOutlined aria-hidden />,
-                  },
-                ]}
-              />
-            </Flex>
-          ),
-        }}
-        noProjects={!projects.length && (!showTabs || openTab === "projects")}
-        noProjectsText={
-          matcher.hasQuery()
-            ? t("No projects matching query.")
-            : t("This workspace has no projects.")
-        }
-        canUseCms={
-          !showTabs && (appCtx.appConfig.content || databases.length > 0)
-        }
-        canUseCmsAndDataSources={showTabs ? openTab : undefined}
-        projectsTab={{
-          children: t("Projects"),
-          onClick: () => updateTab("projects"),
-        }}
-        dataSourcesTab={{
-          children: t("Data sources"),
-          onClick: () => updateTab("dataSources"),
-        }}
-        // If empty, just show default contents (No CMSes indicator)
-        databases={databasesList.length > 0 ? databasesList : undefined}
-        overrides={{
-          databases: {
-            render: () => databasesList,
-          },
-        }}
-        dataSources={{
-          render: () =>
-            asyncData.value ? (
-              <WorkspaceDataSources
-                workspaceId={workspace.id}
-                appCtx={appCtx}
-                dataSources={asyncData.value.dataSources}
-                readOnly={asyncData.value.readOnly}
-                workspaceAccessLevel={workspaceAccessLevel}
-                matcher={matcher}
-                onUpdate={async () => {
-                  await fetchAsyncData();
-                }}
-              />
-            ) : asyncData.error ? (
-              <Alert
-                type="error"
-                showIcon
-                title={t("Failed to load data sources")}
-                action={
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      void fetchAsyncData();
-                    }}
-                  >
-                    {t("Retry")}
-                  </Button>
+                  <div className={styles.workspaceEmpty}>{noProjectsText}</div>
+                )}
+              </div>
+            ) : (
+              <Flex vertical gap={16} className={styles.workspaceContent}>
+                <Flex align="center" justify="space-between" gap={12}>
+                  <Typography.Title level={5} style={{ margin: 0 }}>
+                    {t("Content Management Systems (CMS)")}
+                  </Typography.Title>
+                  {accessLevelRank(workspaceAccessLevel) >=
+                    accessLevelRank("editor") && (
+                    <Button
+                      type="text"
+                      icon={<PlusOutlined aria-hidden />}
+                      onClick={() =>
+                        spawn(promptNewDatabase(appCtx, history, workspace.id))
+                      }
+                    >
+                      {t("New CMS")}
+                    </Button>
+                  )}
+                </Flex>
+                {databasesList}
+                {dataSourcesContent}
+              </Flex>
+            )}
+          </PersonalWorkspaceTabs>
+        </div>
+      ) : (
+        <PlasmicWorkspaceSection
+          {...rest}
+          root={{ ref }}
+          h3={{ children: t("Content Management Systems (CMS)") }}
+          editableName={{
+            render: (props) => (
+              <InlineEdit
+                render={({ editing, onStart, onDone }) =>
+                  editing ? (
+                    <div className={props.className} style={{ width: 300 }}>
+                      <Stated defaultValue={false}>
+                        {(submitting, setSubmitting) => (
+                          <OnClickAway onDone={onDone}>
+                            <Textbox
+                              autoFocus
+                              selectAllOnFocus
+                              defaultValue={workspace.name}
+                              onEdit={async (name) => {
+                                if (name) {
+                                  setSubmitting(true);
+                                  await maybeShowPaywall(
+                                    appCtx,
+                                    async () =>
+                                      await appCtx.api.updateWorkspace(
+                                        workspace.id,
+                                        {
+                                          name,
+                                        },
+                                      ),
+                                  );
+                                  await onUpdate();
+                                  await appCtx.reloadAppCtx();
+                                  setSubmitting(false);
+                                }
+                                onDone();
+                              }}
+                              onEscape={onDone}
+                              onBlur={onDone}
+                              disabled={submitting}
+                            />
+                          </OnClickAway>
+                        )}
+                      </Stated>
+                    </div>
+                  ) : (
+                    <EditableResourceName
+                      {...props}
+                      {...{
+                        name: matcher.boldSnippets(
+                          workspace.name,
+                          "yellow-snippet",
+                        ),
+                        onEdit: onStart,
+                      }}
+                    />
+                  )
                 }
               />
-            ) : (
-              <RowsSkeleton />
             ),
-        }}
-      >
-        <div className={cx(styles.grid, projectView === "list" && styles.list)}>
-          {projects.map((project) => (
-            <ProjectListItem
-              key={project.id}
-              project={project}
-              perms={perms}
-              onUpdate={onUpdate}
-              workspaces={true}
-              matcher={matcher}
-            />
-          ))}
-        </div>
-      </PlasmicWorkspaceSection>
+          }}
+          numMembers={numMembers}
+          accessLevel={
+            accessLevelRank(workspaceAccessLevel) < accessLevelRank("editor")
+              ? "cantEdit"
+              : undefined
+          }
+          newProjectButton={{
+            render: (props) => (
+              <NewProjectButton
+                className={props.className}
+                onClick={() => setShowNewProjectModal(true)}
+              />
+            ),
+          }}
+          newCmsButton={{
+            children: t("New CMS"),
+            onClick: () =>
+              spawn(promptNewDatabase(appCtx, history, workspace.id)),
+          }}
+          newCmsButton2={{
+            children: t("New CMS"),
+            onClick: () =>
+              spawn(promptNewDatabase(appCtx, history, workspace.id)),
+          }}
+          shareButton={{
+            resource: { type: "workspace", resource: workspace },
+            perms,
+            reloadPerms: onUpdate,
+          }}
+          moreButton={{
+            props: {
+              menu: (
+                <WorkspaceMenu
+                  appCtx={appCtx}
+                  workspace={workspace}
+                  perms={perms}
+                  onUpdate={onUpdate}
+                  redirectOnDelete={!rest.inTeamPage}
+                  projectCount={projects.length}
+                />
+              ),
+            },
+          }}
+          projectsFilter={{
+            render: () => projectFilters,
+          }}
+          noProjects={!projects.length && (!showTabs || openTab === "projects")}
+          noProjectsText={noProjectsText}
+          canUseCms={
+            !showTabs && (appCtx.appConfig.content || databases.length > 0)
+          }
+          canUseCmsAndDataSources={showTabs ? openTab : undefined}
+          projectsTab={{
+            children: t("Projects"),
+            onClick: () => updateTab("projects"),
+          }}
+          dataSourcesTab={{
+            children: t("Data sources"),
+            onClick: () => updateTab("dataSources"),
+          }}
+          // If empty, just show default contents (No CMSes indicator)
+          databases={databasesList.length > 0 ? databasesList : undefined}
+          overrides={{
+            databases: {
+              render: () => databasesList,
+            },
+          }}
+          dataSources={{
+            render: () => dataSourcesContent,
+          }}
+        >
+          {projectList}
+        </PlasmicWorkspaceSection>
+      )}
       {showNewProjectModal && (
         <NewProjectModal
           onCancel={() => setShowNewProjectModal(false)}

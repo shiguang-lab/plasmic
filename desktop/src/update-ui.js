@@ -5,8 +5,9 @@
     isMain
       ? !window.desktopUpdates
       : window.parent !== window.top || location.origin !== canvasOrigin
-  )
+  ) {
     return;
+  }
 
   const { t, setSnapshot, snapshot, subscribe } = window.desktopUiI18n;
   let latestStatus;
@@ -31,11 +32,16 @@
         event.origin !== canvasOrigin ||
         event.source !== editorFrame()?.contentWindow ||
         event.data?.channel !== "plasmic-desktop-update-command"
-      )
+      ) {
         return;
+      }
       const command = event.data.command;
-      if (!["status", "open"].includes(command)) return;
-      if (command === "status") sendLocale();
+      if (!["status", "open"].includes(command)) {
+        return;
+      }
+      if (command === "status") {
+        sendLocale();
+      }
       if (command === "status" && latestStatus) {
         sendStatus(latestStatus);
         return;
@@ -44,12 +50,15 @@
     });
   } else {
     window.addEventListener("message", (event) => {
-      if (event.origin !== studioOrigin || event.source !== window.parent)
+      if (event.origin !== studioOrigin || event.source !== window.parent) {
         return;
-      if (event.data?.channel === "plasmic-desktop-update-status")
+      }
+      if (event.data?.channel === "plasmic-desktop-update-status") {
         render(event.data.status);
-      if (event.data?.channel === "plasmic-desktop-ui-locale")
+      }
+      if (event.data?.channel === "plasmic-desktop-ui-locale") {
         setSnapshot(event.data.localization);
+      }
     });
   }
 
@@ -66,10 +75,7 @@
     #plasmic-desktop-update .update-label { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-align: center; opacity: 0; transition: opacity 80ms 140ms; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
     #plasmic-desktop-update[data-placement=rail] .update-action { position: absolute; left: 8px; z-index: 1; }
     #plasmic-desktop-update[data-placement=rail] .update-action:popover-open { position: fixed; inset: auto; margin: 0; }
-    aside > footer:has(> #plasmic-desktop-update:not([hidden])) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; }
-    aside > footer:has(> #plasmic-desktop-update:not([hidden])) > :not(#plasmic-desktop-update):not([data-test-id=btn-dashboard-user]) { grid-column: 1 / -1; }
-    aside > footer:has(> #plasmic-desktop-update:not([hidden])) > [data-test-id=btn-dashboard-user] { grid-column: 1; min-width: 0; }
-    #plasmic-desktop-update[data-placement=footer] { grid-column: 2; width: auto; height: 28px; margin: 0 8px 0 0; justify-self: end; justify-content: flex-start; }
+    #plasmic-desktop-update[data-placement=footer] { width: 100%; }
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open), #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-action { grid-template-columns: 1fr; }
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open) .update-icon, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-icon { opacity: 0; transform: scale(.9); }
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open) .update-label, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-label { opacity: 1; }
@@ -139,7 +145,9 @@
       "downloaded",
       "installing",
     ].includes(phase);
-    if (control.hidden) hideTooltip();
+    if (control.hidden) {
+      hideTooltip();
+    }
     const states = {
       available: ["Preparing…", t("Preparing update {version}", { version })],
       downloading: [
@@ -166,9 +174,7 @@
     button.setAttribute("aria-busy", String(busy));
     icon.innerHTML = ["downloading", "installing"].includes(phase)
       ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${(progress * 37.7) / 100} 37.7" transform="rotate(-90 8 8)"/>` : `<path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/>`}</svg>`
-      : phase === "downloaded"
-        ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="restart"><path d="M13 6a5 5 0 1 0 .2 3.5M13 2v4H9"/></svg>`
-        : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="download"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg>`;
+      : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="download"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg>`;
     if (phase === "downloading") {
       control.setAttribute("role", "progressbar");
       control.setAttribute("tabindex", "0");
@@ -184,8 +190,9 @@
         "aria-valuemin",
         "aria-valuemax",
         "aria-valuenow",
-      ])
+      ]) {
         control.removeAttribute(attr);
+      }
     }
   };
   async function runCommand(action) {
@@ -219,12 +226,14 @@
     if (uiDocument !== observedDocument) {
       observer.disconnect();
       observer.observe(document, { childList: true, subtree: true });
-      if (uiDocument !== document)
+      if (uiDocument !== document) {
         observer.observe(uiDocument, { childList: true, subtree: true });
+      }
       observedDocument = uiDocument;
     }
-    if (uiDocument.head && style.parentElement !== uiDocument.head)
+    if (uiDocument.head && style.parentElement !== uiDocument.head) {
       uiDocument.head.append(style);
+    }
     const strip = uiDocument.getElementById("left-tab-strip");
     const footer = uiDocument.querySelector("aside > footer");
     const parent = strip?.lastElementChild || footer;
@@ -233,10 +242,15 @@
       control.remove();
       return;
     }
-    if (control.parentElement === parent) return;
+    if (control.parentElement === parent) {
+      return;
+    }
     control.dataset.placement = strip ? "rail" : "footer";
-    if (strip) parent.insertBefore(control, parent.lastElementChild);
-    else parent.append(control);
+    if (strip) {
+      parent.insertBefore(control, parent.lastElementChild);
+    } else {
+      parent.append(control);
+    }
   }
   const observer = new MutationObserver(place);
   document.addEventListener("load", place, true);
@@ -244,13 +258,18 @@
   if (isMain) {
     subscribe(() => {
       sendLocale();
-      if (latestStatus) render(latestStatus);
+      if (latestStatus) {
+        render(latestStatus);
+      }
     });
     window.desktopUpdates.onStatus(sendStatus);
   }
-  if (!isMain)
+  if (!isMain) {
     subscribe(() => {
-      if (latestStatus) render(latestStatus);
+      if (latestStatus) {
+        render(latestStatus);
+      }
     });
+  }
   void runCommand("status");
 })();

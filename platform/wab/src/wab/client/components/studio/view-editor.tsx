@@ -2051,7 +2051,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           <DevContainer className="canvas-editor__top-bar" showControls={true}>
             <TopBar />
             {!this.props.studioCtx.isLiveMode &&
-              !this.props.studioCtx.isDocs && <TopFrameObserver />}
+              !this.props.studioCtx.isDocs && (
+                <TopFrameObserver studioReady={!canvasLoading} />
+              )}
           </DevContainer>
 
           <div className="canvas-editor__hsplit">

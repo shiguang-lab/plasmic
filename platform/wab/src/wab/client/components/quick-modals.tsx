@@ -8,7 +8,7 @@ import { zIndex } from "@/wab/client/z-index";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { FRAMES_CAP, FRAME_LOWER, MIXINS_CAP } from "@/wab/shared/Labels";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
-import { Form } from "antd";
+import { Form, Input } from "antd";
 import { Rule } from "antd/lib/form";
 import React from "react";
 import ReactDOM from "react-dom";
@@ -254,6 +254,7 @@ function HardConfirmForm(props: {
 }
 
 export type ReactPromptOpts = {
+  title?: React.ReactNode;
   message: React.ReactNode;
   defaultValue?: string;
   placeholder?: string;
@@ -262,18 +263,40 @@ export type ReactPromptOpts = {
 };
 
 export async function reactPrompt(opts: ReactPromptOpts) {
-  const { message, defaultValue, actionText, placeholder, rules } = opts;
   return showTemporaryPrompt<string | undefined>((onSubmit, onCancel) => (
+    <ReactPromptForm {...opts} onSubmit={onSubmit} onCancel={onCancel} />
+  ));
+}
+
+function ReactPromptForm({
+  title,
+  message,
+  defaultValue,
+  actionText,
+  placeholder,
+  rules,
+  onSubmit,
+  onCancel,
+}: ReactPromptOpts & {
+  onSubmit: (value: string | undefined) => void;
+  onCancel: () => void;
+}) {
+  const [form] = Form.useForm<{ input?: string }>();
+  return (
     <Modal
-      title={null}
+      title={title}
       open={true}
-      footer={null}
+      width={400}
       onCancel={onCancel}
-      closable={false}
+      onOk={() => form.submit()}
+      okText={actionText ?? <UiText message="Submit" />}
+      cancelText={<UiText message="Cancel" />}
       wrapClassName="prompt-modal"
       zIndex={zIndex.quickModal}
     >
       <Form
+        form={form}
+        initialValues={{ input: defaultValue }}
         onFinish={(e) => {
           onSubmit(e.input ?? defaultValue ?? undefined);
         }}
@@ -281,31 +304,16 @@ export async function reactPrompt(opts: ReactPromptOpts) {
         layout="vertical"
       >
         <Form.Item name="input" label={message} rules={rules}>
-          <Textbox
+          <Input
             name="input"
-            defaultValue={defaultValue}
             placeholder={placeholder}
-            styleType={["bordered"]}
             autoFocus
             data-test-id="prompt"
           />
         </Form.Item>
-        <Form.Item style={{ margin: 0 }}>
-          <Button
-            className="mr-sm"
-            type="primary"
-            htmlType="submit"
-            data-test-id="prompt-submit"
-          >
-            {actionText ?? <UiText message="Submit" />}
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
-        </Form.Item>
       </Form>
     </Modal>
-  ));
+  );
 }
 
 interface StudioElement {

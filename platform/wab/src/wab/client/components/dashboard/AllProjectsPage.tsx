@@ -1,6 +1,7 @@
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
 import { PublicLink } from "@/wab/client/components/PublicLink";
+import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
 import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
@@ -16,19 +17,9 @@ import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import {
   AppstoreOutlined,
   BarsOutlined,
-  CloseOutlined,
   FolderOutlined,
-  PlusOutlined,
 } from "@ant-design/icons";
-import {
-  Alert,
-  Button,
-  Empty,
-  Flex,
-  Segmented,
-  Select,
-  Typography,
-} from "antd";
+import { Alert, Button, Empty, Flex, Segmented, Select } from "antd";
 import { groupBy } from "lodash";
 import * as React from "react";
 
@@ -40,9 +31,6 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
     const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
     const [workspace, setWorkspace] = React.useState<string>("all");
     const [view, setView] = React.useState("grid");
-    const [selectedProjectId, setSelectedProjectId] = React.useState<
-      string | null
-    >();
     const {
       data: projectsData,
       error: loadError,
@@ -60,10 +48,6 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
       [],
     );
 
-    const selectedProject =
-      selectedProjectId === undefined
-        ? projects[0]
-        : projects.find((project) => project.id === selectedProjectId);
     const groups = groupBy(
       projects,
       (project) => project.workspaceId ?? "shared",
@@ -72,24 +56,13 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
     return (
       <section ref={ref} className={styles.root}>
         {documentTitle(t("All projects"))}
-        <Flex justify="space-between" align="center" wrap gap={16}>
-          <Typography.Title level={2} style={{ margin: 0 }}>
-            {t("All projects")}
-          </Typography.Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined aria-hidden />}
-            onClick={() => setShowNewProjectModal(true)}
-          >
-            {t("New project")}
-          </Button>
-        </Flex>
         <Flex
           align="center"
           justify="space-between"
           wrap
           gap={12}
           className={styles.toolbar}
+          style={{ marginTop: 0 }}
         >
           <Flex align="center" wrap gap={12}>
             <ProjectsFilter {...filterProps} />
@@ -107,33 +80,41 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
               ]}
             />
           </Flex>
-          <Segmented
-            aria-label={t("View")}
-            value={view}
-            onChange={setView}
-            options={[
-              {
-                value: "grid",
-                label: t("Grid"),
-                icon: <AppstoreOutlined aria-hidden />,
-              },
-              {
-                value: "list",
-                label: t("List"),
-                icon: <BarsOutlined aria-hidden />,
-              },
-            ]}
-          />
+          <Flex align="center" wrap gap={12}>
+            <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+            <Segmented
+              aria-label={t("View")}
+              value={view}
+              onChange={setView}
+              options={[
+                {
+                  value: "grid",
+                  label: t("Grid"),
+                  icon: <AppstoreOutlined aria-hidden />,
+                },
+                {
+                  value: "list",
+                  label: t("List"),
+                  icon: <BarsOutlined aria-hidden />,
+                },
+              ]}
+            />
+          </Flex>
         </Flex>
-        {loadError && (
+        {loadError && (projectsData || !isValidating) && (
           <Alert
-            type="error"
+            type={projectsData ? "warning" : "error"}
             showIcon
-            title={t("Failed to load projects")}
+            title={t(
+              projectsData
+                ? "Couldn't refresh projects. Showing the last loaded projects."
+                : "Failed to load projects",
+            )}
             action={
               <Button
                 size="small"
-                loading={isValidating}
+                disabled={isValidating}
+                aria-busy={isValidating}
                 onClick={() => {
                   void updateProjectsData((current) => current, {
                     revalidate: true,
@@ -141,12 +122,12 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
                   });
                 }}
               >
-                {t("Retry")}
+                {t(isValidating ? "Loading…" : "Retry")}
               </Button>
             }
           />
         )}
-        {!projectsData && !loadError ? (
+        {!projectsData && (!loadError || isValidating) ? (
           <ProjectCardsSkeleton view={view} />
         ) : !projectsData ? null : projects.length === 0 ? (
           <Empty
@@ -160,18 +141,11 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
             }
           >
             {!matcher.hasQuery() && (
-              <Button onClick={() => setShowNewProjectModal(true)}>
-                {t("New project")}
-              </Button>
+              <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
             )}
           </Empty>
         ) : (
-          <div
-            className={cx(
-              dashboard.projectBrowser,
-              selectedProject && dashboard.withDetails,
-            )}
-          >
+          <div className={dashboard.projectBrowser}>
             <div className={dashboard.projectLibrary}>
               {Object.entries(groups).map(
                 ([workspaceId, workspaceProjects]) => {
@@ -223,8 +197,6 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
                             workspaces
                             matcher={matcher}
                             showWorkspace
-                            selected={project.id === selectedProject?.id}
-                            onSelect={() => setSelectedProjectId(project.id)}
                           />
                         ))}
                       </div>
@@ -232,58 +204,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
                   );
                 },
               )}
-              {workspace === "all" &&
-                !matcher.hasQuery() &&
-                appCtx.personalWorkspace &&
-                !projectsData.projects.some(
-                  (project) =>
-                    project.workspaceId === appCtx.personalWorkspace?.id,
-                ) && (
-                  <section className={dashboard.projectGroup}>
-                    <div className={dashboard.groupHeading}>
-                      <PublicLink href={APP_ROUTES.playground.fill({})}>
-                        <FolderOutlined aria-hidden />
-                        {t("My Playground")}
-                      </PublicLink>
-                    </div>
-                    <Button
-                      icon={<PlusOutlined aria-hidden />}
-                      onClick={() => setShowNewProjectModal(true)}
-                    >
-                      {t("New project")}
-                    </Button>
-                  </section>
-                )}
             </div>
-            {selectedProject && (
-              <aside
-                className={dashboard.detailPanel}
-                aria-label={t("Project details")}
-              >
-                <Flex align="center" justify="space-between">
-                  <Typography.Text type="secondary">
-                    {t("Project details")}
-                  </Typography.Text>
-                  <Button
-                    type="text"
-                    icon={<CloseOutlined aria-hidden />}
-                    aria-label={t("Close")}
-                    onClick={() => setSelectedProjectId(null)}
-                  />
-                </Flex>
-                <ProjectListItem
-                  key={selectedProject.id}
-                  project={selectedProject}
-                  perms={projectsData.perms}
-                  onUpdate={async () => {
-                    await updateProjectsData();
-                  }}
-                  workspaces
-                  showWorkspace
-                  presentation="details"
-                />
-              </aside>
-            )}
           </div>
         )}
         {showNewProjectModal && (

@@ -1,4 +1,4 @@
-import { PublicLink } from "@/wab/client/components/PublicLink";
+import { BrandLink } from "@/wab/client/components/BrandLink";
 import {
   AnonymousAvatar,
   AvatarGallery,
@@ -9,9 +9,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { MessageKey } from "@/wab/client/i18n/locales";
 import { PlasmicPublishButton } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicPublishButton";
 import PlasmicTopBar from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { UiConfig } from "@/wab/shared/ui-config-utils";
-import { Button, ButtonProps, Tooltip, theme } from "antd";
+import { Button, ButtonProps } from "antd";
 import * as React from "react";
 
 const actionPaths = {
@@ -76,48 +74,6 @@ export const EditorViewButton = React.forwardRef<
   );
 });
 
-export function EditorBrandLink({
-  brand = {},
-  ...props
-}: React.ComponentProps<"a"> & { brand?: UiConfig["brand"] }) {
-  const { t } = useI18n();
-  const { token } = theme.useToken();
-  return (
-    <Tooltip title={brand.logoTooltip ?? t("Back to dashboard")}>
-      <PublicLink
-        {...props}
-        className={`${props.className ?? ""} ${styles.logoLink}`}
-        href={brand.logoHref ?? APP_ROUTES.dashboard.fill({})}
-        aria-label={brand.logoTooltip ?? t("Back to dashboard")}
-      >
-        {brand.logoImgSrc ? (
-          <img
-            src={brand.logoImgSrc}
-            alt={brand.logoAlt ?? brand.logoTooltip ?? t("Back to dashboard")}
-          />
-        ) : (
-          <>
-            <svg
-              className="editor-brand-mark"
-              style={{ fill: token.colorPrimary }}
-              viewBox="0 0 32 32"
-              aria-hidden="true"
-            >
-              <path d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z" />
-            </svg>
-            <span
-              className="editor-brand-label"
-              style={{ color: token.colorText }}
-            >
-              Plasmic
-            </span>
-          </>
-        )}
-      </PublicLink>
-    </Tooltip>
-  );
-}
-
 // The data-free header is also the header used by the initialized editor.
 // Project-aware callers supply title, menus, permissions, and event handlers.
 export function TopBarChrome({
@@ -159,10 +115,7 @@ export function TopBarChrome({
       }}
       logoLink={{
         render: (linkProps) => (
-          <EditorBrandLink
-            {...linkProps}
-            brand={appCtx?.appConfig.brands?.[""]}
-          />
+          <BrandLink {...linkProps} brand={appCtx?.appConfig.brands?.[""]} />
         ),
       }}
       projectTitle={{

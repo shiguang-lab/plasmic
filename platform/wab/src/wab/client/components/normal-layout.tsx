@@ -3,16 +3,16 @@ import {
   NonAuthComponent,
   NonAuthComponentProps,
 } from "@/wab/client/app-ctx";
+import { BrandLink } from "@/wab/client/components/BrandLink";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { HelpButton } from "@/wab/client/components/top-bar/HelpButton";
 import { useAuthenticatedLayoutStyles } from "@/wab/client/components/ui/layout-styles";
-import * as widgets from "@/wab/client/components/widgets";
 import { InlineIcon } from "@/wab/client/components/widgets";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { UiText } from "@/wab/client/i18n/UiText";
-import MarkFullColorIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__MarkFullColor";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
@@ -29,6 +29,9 @@ class NormalLayoutComponent extends React.Component<
   NormalLayoutComponentProps,
   {}
 > {
+  static contextType = AppCtxContext;
+  declare context: React.ContextType<typeof AppCtxContext>;
+
   render() {
     const { topBar } = this.props;
     return (
@@ -42,9 +45,9 @@ class NormalLayoutComponent extends React.Component<
             <div
               className={"normal-layout-content normal-layout-content--top-bar"}
             >
-              <widgets.PlainLink href={"/"} className={"home-logo"}>
-                <MarkFullColorIcon className="normal-layout__mark" />
-              </widgets.PlainLink>
+              <div className="normal-layout__brand">
+                <BrandLink brand={this.context?.appConfig.brands?.[""]} />
+              </div>
 
               {topBar}
             </div>

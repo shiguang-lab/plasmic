@@ -2593,13 +2593,6 @@ a.btn-link
 input[type="checkbox"]:checked + .checkbox__repr
   visibility: visible
 
-.home-logo
-  width: 32px
-  height: 32px
-  margin-top: 12px
-  padding-top: 4px
-  filter: brightness(80%)
-
 .rotated--90
   transform: rotate(-90deg)
 .rotated--45
@@ -2706,10 +2699,6 @@ input[type="checkbox"]:checked + .checkbox__repr
   flex-direction: row
   align-items: center
   height: 100%
-.normal-layout__mark
-  height: 32px
-  width: 32px
-
 .id-summary__container
   cursor: pointer
 .id-summary
@@ -5078,6 +5067,8 @@ $resizer_size: 8px
 .ant-notification
   // Bump up default ant-notification so it displays over popover
   z-index: 1031
+  // Notifications overlap the desktop titlebar's native dragging region.
+  -webkit-app-region: no-drag
 
 .mixin__popup__content__panel
   margin: 0px 0px

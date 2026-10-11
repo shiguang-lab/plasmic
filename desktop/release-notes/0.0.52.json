@@ -1,0 +1,7 @@
+{
+  "en": "- Show multi-page canvas thumbnails with local caching and serialized rendering.\n- Improve project cards, list previews, loading skeletons and error handling.\n- Simplify organization and workspace navigation and separate the panels.\n- Fix settings content, responsive width and scrolling.\n- Align new-project buttons and improve startup and update visuals.",
+  "zh-CN": "- 显示多页面画布缩略图，采用本地缓存和串行渲染。\n- 优化项目卡片、列表预览、骨架加载和异常处理。\n- 精简组织与工作区导航，并分隔左右区域。\n- 修复设置页内容、响应式宽度和滚动。\n- 统一新建项目按钮，优化启动和更新样式。",
+  "zh-TW": "- 顯示多頁面畫布縮圖，採用本機快取和循序渲染。\n- 改善專案卡片、列表預覽、骨架載入和錯誤處理。\n- 精簡組織與工作區導覽，並分隔左右區域。\n- 修正設定頁內容、響應式寬度和捲動。\n- 統一新增專案按鈕，改善啟動和更新樣式。",
+  "ja": "- ローカルキャッシュと直列レンダリングで複数ページのキャンバスサムネイルを表示。\n- プロジェクトカード、リストプレビュー、スケルトン表示、エラー処理を改善。\n- 組織とワークスペースのナビゲーションを簡素化し、左右のパネルを分離。\n- 設定ページの内容、レスポンシブ幅、スクロールを修正。\n- 新規プロジェクトボタンを統一し、起動と更新の表示を改善。",
+  "ko": "- 로컬 캐시와 순차 렌더링으로 여러 페이지의 캔버스 썸네일을 표시합니다.\n- 프로젝트 카드, 목록 미리보기, 스켈레톤 로딩 및 오류 처리를 개선합니다.\n- 조직과 작업 공간 탐색을 간소화하고 좌우 패널을 분리합니다.\n- 설정 페이지의 콘텐츠, 반응형 너비 및 스크롤을 수정합니다.\n- 새 프로젝트 버튼을 통일하고 시작 및 업데이트 화면을 개선합니다."
+}

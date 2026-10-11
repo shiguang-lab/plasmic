@@ -10,14 +10,13 @@ import {
   TopFrameChrome,
   useTopFrameState,
 } from "@/wab/client/components/TopFrame/TopFrameChrome";
-import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
+import { useStudioStartup } from "@/wab/client/components/studio/StudioChrome";
 import { TopFrameCopilotToolsBridge } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { buildPlasmicStudioArgsHash } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import {
   TopFrameCtxProvider,
   handleIframeLoad,
-  useTopFrameCtx,
 } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { usePreventDefaultBrowserPinchToZoomBehavior } from "@/wab/client/hooks/usePreventDefaultBrowserPinchToZoomBehavior";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
@@ -213,21 +212,36 @@ export function StudioFrame({
     spawn(fetchProject());
   }, [projectId, setProject, fetchProjectCount]);
 
-  const { topFrameApi, ...topFrameChromeProps } = useTopFrameState({
-    appCtx,
-    project,
-    forceUpdate,
-  });
+  const { topFrameApi, studioReady, ...topFrameChromeProps } = useTopFrameState(
+    {
+      appCtx,
+      project,
+      forceUpdate,
+    },
+  );
+
+  const updateStartup = useStudioStartup();
+  React.useLayoutEffect(() => {
+    updateStartup({
+      projectName: project?.name,
+      ready: studioReady,
+      hidden: untrustedHost || topFrameChromeProps.studioModalOpen,
+    });
+  }, [
+    updateStartup,
+    project?.name,
+    studioReady,
+    untrustedHost,
+    topFrameChromeProps.studioModalOpen,
+  ]);
 
   useBrowserNotification();
 
-  if (!project) {
-    return <StudioChrome />;
-  }
+  const src = project
+    ? new URL(getHostUrl(project, branch, appCtx.appConfig))
+    : undefined;
 
-  const src = new URL(getHostUrl(project, branch, appCtx.appConfig));
-
-  if (untrustedHost) {
+  if (untrustedHost && src && project) {
     const hostOrigin = src.origin;
     return (
       <Modal open footer={null} title={uiT("Project is hosted by another app")}>
@@ -275,43 +289,39 @@ export function StudioFrame({
   }
 
   // We send the params via a hash parameter so that the host server cannot see them.
-  src.hash = studioArgsHash;
+  if (src) {
+    src.hash = studioArgsHash;
+  }
 
   return (
     <TopFrameCtxProvider projectId={projectId} topFrameApi={topFrameApi}>
-      {!untrustedHost && (
-        <HostLoadTimeoutPrompt project={project} editorPerm={editorPerm} />
+      {project && src && (
+        <>
+          {!untrustedHost && (
+            <HostLoadTimeoutPrompt project={project} editorPerm={editorPerm} />
+          )}
+          <TopFrameChrome
+            appCtx={appCtx}
+            pathname={location.pathname}
+            project={project}
+            refreshProjectAndPerms={refreshProjectAndPerms}
+            isRefreshingProjectData={isRefreshingProjectData}
+            editorPerm={editorPerm}
+            perms={perms}
+            refreshStudio={refreshStudio}
+            topFrameApi={topFrameApi}
+            refreshBranchData={refreshBranchData}
+            {...topFrameChromeProps}
+          />
+          <TopFrameCopilotToolsBridge />
+          <iframe
+            className={"studio-frame"}
+            src={src.toString()}
+            allow="clipboard-read *; clipboard-write *"
+            onLoad={handleIframeLoad}
+          />
+        </>
       )}
-      <TopFrameChrome
-        appCtx={appCtx}
-        pathname={location.pathname}
-        project={project}
-        refreshProjectAndPerms={refreshProjectAndPerms}
-        isRefreshingProjectData={isRefreshingProjectData}
-        editorPerm={editorPerm}
-        perms={perms}
-        refreshStudio={refreshStudio}
-        topFrameApi={topFrameApi}
-        refreshBranchData={refreshBranchData}
-        {...topFrameChromeProps}
-      />
-      <TopFrameCopilotToolsBridge />
-      <iframe
-        className={"studio-frame"}
-        src={src.toString()}
-        allow="clipboard-read *; clipboard-write *"
-        onLoad={handleIframeLoad}
-      />
-      <StudioBootstrapChrome projectName={project.name} />
     </TopFrameCtxProvider>
-  );
-}
-
-function StudioBootstrapChrome({ projectName }: { projectName: string }) {
-  const { hostFrameApiReady } = useTopFrameCtx();
-  return hostFrameApiReady ? null : (
-    <div style={{ position: "fixed", inset: 0, zIndex: 35 }}>
-      <StudioChrome projectName={projectName} />
-    </div>
   );
 }

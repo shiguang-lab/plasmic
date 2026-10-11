@@ -11,7 +11,9 @@ const appCtx = vitest.hoisted(() => ({
   workspaces: [
     { id: "workspace", team: { id: "org" } },
     { id: "other", team: { id: "org" } },
+    { id: "personal-workspace", team: { id: "personal" } },
   ],
+  personalWorkspace: { id: "personal-workspace" },
   personalTeam: { id: "personal" },
   getAllTeams: () => [{ id: "org" }],
 }));
@@ -26,17 +28,22 @@ vitest.mock("@/wab/client/components/dashboard/DashboardPageLoading", () => ({
 vitest.mock("@/wab/client/components/widgets", () => ({
   Spinner: () => <div role="status">Loading</div>,
 }));
+vitest.mock("@/wab/client/components/dashboard/SpacesNavigation", () => ({
+  SpacesNavigation: () => <aside aria-label="Spaces">Organizations tree</aside>,
+}));
 vitest.mock("@/wab/client/components/dashboard/DefaultTeamLayout", () => ({
   default: ({ team, workspace, navigation, children }) => (
     <div>
-      <header>Dashboard</header>
-      <nav
-        data-team={team?.id}
-        data-workspace={workspace?.id}
-        data-navigation={navigation}
-      >
-        Sidebar
-      </nav>
+      <header>
+        Dashboard
+        <nav
+          data-team={team?.id}
+          data-workspace={workspace?.id}
+          data-navigation={navigation}
+        >
+          Dashboard navigation
+        </nav>
+      </header>
       <main>{children}</main>
     </div>
   ),
@@ -83,20 +90,24 @@ it("keeps dashboard chrome mounted across routes and confines lazy loading to ma
       />
     </HistoryProvider>,
   );
-  const sidebar = screen.getByRole("navigation");
+  const navigation = screen.getByRole("navigation");
   const header = screen.getByRole("banner");
   const main = screen.getByRole("main");
-  expect(sidebar.dataset.navigation).toBe("allProjects");
+  expect(navigation.dataset.navigation).toBe("allProjects");
 
   act(() => history.push("/orgs/org"));
-  expect(sidebar.dataset.team).toBe("org");
+  expect(navigation.dataset.team).toBe("org");
+  expect(navigation.dataset.navigation).toBe("spaces");
+  const spaces = screen.getByRole("complementary", { name: "Spaces" });
+  expect(main.contains(spaces)).toBe(true);
 
   act(() => history.push("/workspaces/workspace"));
-  expect(screen.getByRole("navigation")).toBe(sidebar);
+  expect(screen.getByRole("navigation")).toBe(navigation);
   expect(screen.getByRole("banner")).toBe(header);
   expect(screen.getByRole("main")).toBe(main);
   expect(main.contains(screen.getByRole("status"))).toBe(true);
-  expect(sidebar.dataset.workspace).toBe("workspace");
+  expect(navigation.dataset.workspace).toBe("workspace");
+  expect(screen.getByRole("complementary", { name: "Spaces" })).toBe(spaces);
   await act(async () =>
     ensure(
       finishLoading,
@@ -106,13 +117,17 @@ it("keeps dashboard chrome mounted across routes and confines lazy loading to ma
   expect(screen.getByText("Workspace content")).toBeTruthy();
 
   act(() => history.push("/workspaces/other"));
-  expect(screen.getByRole("navigation")).toBe(sidebar);
-  expect(sidebar.dataset.workspace).toBe("other");
+  expect(screen.getByRole("navigation")).toBe(navigation);
+  expect(navigation.dataset.workspace).toBe("other");
   act(() => history.push(APP_ROUTES.playground.fill({})));
-  expect(sidebar.dataset.team).toBe("personal");
-  expect(sidebar.dataset.navigation).toBe("myProjects");
+  expect(navigation.dataset.team).toBe("personal");
+  expect(navigation.dataset.navigation).toBe("myProjects");
+  expect(screen.queryByRole("complementary", { name: "Spaces" })).toBeNull();
+  act(() => history.push("/workspaces/personal-workspace"));
+  expect(navigation.dataset.navigation).toBe("myProjects");
+  expect(screen.queryByRole("complementary", { name: "Spaces" })).toBeNull();
   act(() => history.push(APP_ROUTES.allProjects.fill({})));
-  expect(screen.getByRole("navigation")).toBe(sidebar);
-  expect(sidebar.dataset.team).toBeUndefined();
-  expect(sidebar.dataset.workspace).toBeUndefined();
+  expect(screen.getByRole("navigation")).toBe(navigation);
+  expect(navigation.dataset.team).toBeUndefined();
+  expect(navigation.dataset.workspace).toBeUndefined();
 });

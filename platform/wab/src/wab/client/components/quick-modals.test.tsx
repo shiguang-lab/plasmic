@@ -5,23 +5,9 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
-import { act, fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
-vi.mock("@/wab/client/components/widgets/Modal", () => ({
-  Modal: ({
-    title,
-    children,
-  }: {
-    title: React.ReactNode;
-    children: React.ReactNode;
-  }) => (
-    <div role="dialog">
-      {title}
-      {children}
-    </div>
-  ),
-}));
 vi.mock("@/wab/client/components/widgets/Button", () => ({
   default: ({
     children,
@@ -125,4 +111,43 @@ it("updates metadata field placeholders without translating the component name",
   await expect(
     ensure(result, "The metadata prompt must be open"),
   ).resolves.toBeUndefined();
+});
+
+it("validates a creation name before submitting from the dialog footer", async () => {
+  let result: Promise<string | undefined> | undefined;
+  act(() => {
+    result = reactPrompt({
+      title: <UiText message="New organization" />,
+      message: <UiText message="Name" />,
+      actionText: <UiText message="Create" />,
+      rules: [{ required: true, whitespace: true, message: "Required" }],
+    });
+  });
+  expect(
+    screen.getByRole("dialog").getAttribute("aria-labelledby"),
+  ).toBeTruthy();
+  expect(screen.getByText("New organization")).toBeTruthy();
+  const input = screen.getByRole("textbox", { name: "Name" });
+  fireEvent.change(input, { target: { value: "   " } });
+  fireEvent.click(screen.getByRole("button", { name: "Create" }));
+  await waitFor(() => expect(screen.getByText("Required")).toBeTruthy());
+  expect(screen.getByRole("dialog")).toBeTruthy();
+  fireEvent.change(input, { target: { value: "Design Team" } });
+  fireEvent.click(screen.getByRole("button", { name: "Create" }));
+  await expect(
+    ensure(result, "The creation prompt must be open"),
+  ).resolves.toBe("Design Team");
+  expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+it("cancels a creation prompt with its close button", async () => {
+  let result: Promise<string | undefined> | undefined;
+  act(() => {
+    result = reactPrompt({ title: "New organization", message: "Name" });
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  await expect(
+    ensure(result, "The creation prompt must be open"),
+  ).resolves.toBeUndefined();
+  expect(screen.queryByRole("dialog")).toBeNull();
 });

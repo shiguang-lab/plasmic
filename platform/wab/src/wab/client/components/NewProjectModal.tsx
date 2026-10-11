@@ -1,11 +1,11 @@
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { useTrackOpenModal } from "@/wab/client/components/widgets/open-modals";
-import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import {
   useAllProjectsData,
   useAppCtx,
 } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
+import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { ProjectId, WorkspaceId } from "@/wab/shared/ApiSchema";
 import { updateExtraDataJson } from "@/wab/shared/ApiSchemaUtil";
@@ -20,6 +20,7 @@ import {
   Button,
   Card,
   Col,
+  Drawer,
   Empty,
   Form,
   Input,
@@ -29,7 +30,6 @@ import {
   Space,
   Tabs,
   Typography,
-  Drawer,
   theme,
 } from "antd";
 import { createStyles } from "antd-style";
@@ -86,12 +86,11 @@ const NewProjectModal = observer(function NewProjectModal({
   const destination = Form.useWatch("workspaceId", form);
   const workspaces = appCtx.workspaces.filter(
     (workspace) =>
-      projectsData &&
       accessLevelRank(
         getAccessLevelToResource(
           { type: "workspace", resource: workspace },
           appCtx.selfInfo,
-          projectsData.perms,
+          appCtx.perms,
         ),
       ) >= accessLevelRank("editor"),
   );
@@ -209,11 +208,16 @@ const NewProjectModal = observer(function NewProjectModal({
       keyboard={!creating}
       footer={
         <Space>
-          <Button onClick={onCancel} disabled={creating}>
+          <Button
+            onClick={onCancel}
+            disabled={creating}
+            autoInsertSpace={false}
+          >
             {t("Cancel")}
           </Button>
           <Button
             type="primary"
+            autoInsertSpace={false}
             loading={creating}
             disabled={
               !projectsData ||
@@ -262,7 +266,10 @@ const NewProjectModal = observer(function NewProjectModal({
                 loading={!projectsData}
                 options={workspaces.map((workspace) => ({
                   value: workspace.id,
-                  label: workspace.name,
+                  label:
+                    workspace.id === appCtx.personalWorkspace?.id
+                      ? t("My Playground")
+                      : workspace.name,
                 }))}
               />
             </Form.Item>

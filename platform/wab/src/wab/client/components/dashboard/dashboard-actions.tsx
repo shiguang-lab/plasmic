@@ -622,17 +622,21 @@ export async function promptWorkspace({
 
 export async function promptNewTeam(appCtx: AppCtx, history: History) {
   const name = await reactPrompt({
-    message: translate(
-      getUiLocale(),
-      "Enter the name for your new organization",
-    ),
-    placeholder: translate(getUiLocale(), "Organization name"),
-    actionText: translate(getUiLocale(), "Add"),
+    title: <UiText message="New organization" />,
+    message: <UiText message="Name" />,
+    actionText: <UiText message="Create" />,
+    rules: [
+      {
+        required: true,
+        whitespace: true,
+        message: <UiText message="Required" />,
+      },
+    ],
   });
   if (!name) {
     return;
   }
-  const { team } = await appCtx.api.createTeam(name);
+  const { team } = await appCtx.api.createTeam(name.trim());
   await appCtx.reloadAppCtx();
   // Redirect to the team page immediately
   history.push(
@@ -648,9 +652,16 @@ export async function promptNewWorkspace(
   teamId: TeamId,
 ) {
   const name = await reactPrompt({
-    message: translate(getUiLocale(), "Enter the name for your new workspace"),
-    placeholder: translate(getUiLocale(), "Workspace name"),
-    actionText: translate(getUiLocale(), "Add"),
+    title: <UiText message="New workspace" />,
+    message: <UiText message="Name" />,
+    actionText: <UiText message="Create" />,
+    rules: [
+      {
+        required: true,
+        whitespace: true,
+        message: <UiText message="Required" />,
+      },
+    ],
   });
   if (!name) {
     return;
@@ -659,7 +670,7 @@ export async function promptNewWorkspace(
     appCtx,
     async () =>
       await appCtx.api.createWorkspace({
-        name,
+        name: name.trim(),
         teamId,
       }),
     {
@@ -681,17 +692,23 @@ export async function promptNewDatabase(
   workspaceId: WorkspaceId,
 ) {
   const name = await reactPrompt({
-    message: translate(
-      getUiLocale(),
-      "Enter the name for your new CMS database",
-    ),
-    placeholder: translate(getUiLocale(), "Database name"),
-    actionText: translate(getUiLocale(), "Add"),
+    title: <UiText message="New CMS" />,
+    message: <UiText message="Name" />,
+    actionText: <UiText message="Create" />,
+    rules: [
+      {
+        required: true,
+        whitespace: true,
+        message: <UiText message="Required" />,
+      },
+    ],
   });
   if (!name) {
     return;
   }
-  const database = await appCtx.api.createDatabase(workspaceId, { name });
+  const database = await appCtx.api.createDatabase(workspaceId, {
+    name: name.trim(),
+  });
   history.push(
     APP_ROUTES.cmsRoot.fill({
       databaseId: database.id,
@@ -705,16 +722,23 @@ export async function promptNewTable(
   databaseId: CmsDatabaseId,
 ) {
   const name = await reactPrompt({
-    message: translate(getUiLocale(), "Enter the name for your new CMS table"),
-    placeholder: translate(getUiLocale(), "Table name"),
-    actionText: translate(getUiLocale(), "Add"),
+    title: <UiText message="New CMS table" />,
+    message: <UiText message="Name" />,
+    actionText: <UiText message="Create" />,
+    rules: [
+      {
+        required: true,
+        whitespace: true,
+        message: <UiText message="Required" />,
+      },
+    ],
   });
   if (!name) {
     return;
   }
   const table = await appCtx.api.createCmsTable(databaseId, {
-    name,
-    identifier: name,
+    name: name.trim(),
+    identifier: name.trim(),
   });
   history.push(
     APP_ROUTES.model.fill({

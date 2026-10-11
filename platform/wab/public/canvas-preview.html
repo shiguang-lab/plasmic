@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script>
+      // Keep React instrumentation inside this disposable realm.
+      window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+        supportsFiber: true,
+        renderers: new Map(),
+        inject: function (renderer) {
+          this.renderers.set(1, renderer);
+          return 1;
+        },
+        onCommitFiberRoot: function () {},
+        onCommitFiberUnmount: function () {},
+        __PlasmicPreambleVersion: "1",
+      };
+    </script>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-root"></div>
+    <script src="<%= staticUrl %>/static/sub/build/client.<%= commitHash %>.js"></script>
+  </body>
+</html>

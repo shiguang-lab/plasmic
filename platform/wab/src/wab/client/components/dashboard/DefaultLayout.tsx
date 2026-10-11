@@ -1,7 +1,5 @@
+import { BrandLink } from "@/wab/client/components/BrandLink";
 import { PublicLink } from "@/wab/client/components/PublicLink";
-import NavSeparator from "@/wab/client/components/dashboard/NavSeparator";
-import NavTeamSection from "@/wab/client/components/dashboard/NavTeamSection";
-import NavWorkspaceButton from "@/wab/client/components/dashboard/NavWorkspaceButton";
 import { promptNewTeam } from "@/wab/client/components/dashboard/dashboard-actions";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
@@ -25,13 +23,13 @@ import {
 } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Dropdown, Layout, Popover, Skeleton } from "antd";
-import * as _ from "lodash";
+import { Button, Dropdown, Layout, Segmented, Skeleton, Tooltip } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 
-export type DefaultLayoutProps = DefaultDefaultLayoutProps &
+export type DefaultLayoutProps = Omit<DefaultDefaultLayoutProps, "navigation"> &
   PlasmicDefaultLayout__OverridesType & {
+    navigation?: "allProjects" | "myProjects" | "spaces";
     /** Currently active team, if any. */
     team?: ApiTeam;
     /** Currently active workspace, if any. */
@@ -42,16 +40,19 @@ function DefaultLayout_(
   props: DefaultLayoutProps,
   ref: HTMLElementRefOf<"div">,
 ) {
-  const { team, workspace, freeTrial, upgradeButton, ...rest } = props;
+  const {
+    team,
+    workspace: _workspace,
+    navigation: activeTab,
+    freeTrial,
+    upgradeButton,
+    ...rest
+  } = props;
   const { t } = useI18n();
   const { styles: layout, cx } = useApplicationLayoutStyles();
   const history = useHistory();
   const appCtx = React.useContext(AppCtxContext);
   const userInfo = appCtx?.selfInfo;
-
-  const [spacesOpen, setSpacesOpen] = React.useState(false);
-  const teams = appCtx?.getAllTeams() ?? [];
-  const workspaces = _.sortBy(appCtx?.workspaces ?? [], (w) => w.name);
 
   useBrowserNotification();
 
@@ -77,30 +78,58 @@ function DefaultLayout_(
     appCtx?.appConfig.brands?.[team?.id ?? ""] ??
     appCtx?.appConfig.brands?.[""];
 
-  const navigationTeams = teams.map((navigationTeam) => (
-    <React.Fragment key={navigationTeam.id}>
-      <NavSeparator />
-      <NavTeamSection
-        name={navigationTeam.name}
-        href={APP_ROUTES.org.fill({ teamId: navigationTeam.id })}
-        selected={team?.id === navigationTeam.id}
-        freeTrial={navigationTeam.onTrial}
-      >
-        {workspaces
-          .filter((w) => w.team.id === navigationTeam.id)
-          .map((w) => (
-            <NavWorkspaceButton
-              key={w.id}
-              name={w.name}
-              href={APP_ROUTES.workspace.fill({
-                workspaceId: w.id,
-              })}
-              selected={workspace?.id === w.id}
-            />
-          ))}
-      </NavTeamSection>
-    </React.Fragment>
-  ));
+  const activeNavigation =
+    activeTab ?? (team && !rest.hideTeams ? "spaces" : "");
+  const navigation = (
+    <Segmented
+      aria-label={t("Spaces")}
+      className={styles.navigation}
+      value={activeNavigation}
+      onChange={(value) => {
+        history.push(
+          value === "allProjects"
+            ? APP_ROUTES.allProjects.fill({})
+            : value === "myProjects"
+              ? APP_ROUTES.playground.fill({})
+              : APP_ROUTES.organizations.fill({}),
+        );
+      }}
+      options={[
+        {
+          value: "allProjects",
+          label: (
+            <span className={styles.navigationLabel}>
+              <AppstoreOutlined aria-hidden />
+              {t("Projects")}
+            </span>
+          ),
+        },
+        {
+          value: "myProjects",
+          label: (
+            <span className={styles.navigationLabel}>
+              <ExperimentOutlined aria-hidden />
+              {t("My Playground")}
+            </span>
+          ),
+        },
+        ...(!rest.hideTeams
+          ? [
+              {
+                value: "spaces",
+                disabled: !appCtx,
+                label: (
+                  <span className={styles.navigationLabel}>
+                    <FolderOutlined aria-hidden />
+                    {t("Spaces")}
+                  </span>
+                ),
+              },
+            ]
+          : []),
+      ]}
+    />
+  );
 
   return (
     <PlasmicDefaultLayout
@@ -126,7 +155,29 @@ function DefaultLayout_(
       headerWrapper={{ className: styles.headerWrapper }}
       headerActions={{
         wrap: (node) => (
-          <div className={styles.headerActions}>
+          <div className={cx(styles.headerActions, layout.headerActions)}>
+            {navigation}
+            <span className={styles.headerDivider} aria-hidden />
+            <Tooltip
+              title={t("New organization")}
+              arrow={false}
+              styles={{ container: { textAlign: "center" } }}
+            >
+              <Button
+                type="text"
+                className={cx(styles.headerAction, styles.headerCreate)}
+                aria-label={t("New organization")}
+                icon={<PlusOutlined aria-hidden />}
+                disabled={!appCtx}
+                onClick={async () => {
+                  if (appCtx) {
+                    await promptNewTeam(appCtx, history);
+                  }
+                }}
+              >
+                {t("New organization")}
+              </Button>
+            </Tooltip>
             {node}
             {userInfo ? (
               <Dropdown
@@ -153,130 +204,28 @@ function DefaultLayout_(
         as: Layout,
         props: { className: cx(styles.layoutWrapper, layout.wrapper) },
       }}
-      sidebar={{ className: cx(styles.sidebar, layout.sidebar) }}
-      nav={{
-        render: () => (
-          <nav className={styles.rail} aria-label={t("All projects")}>
-            <PublicLink
-              className={cx(
-                styles.railItem,
-                rest.navigation === "allProjects" && styles.railSelected,
-              )}
-              href={APP_ROUTES.allProjects.fill({})}
-              aria-label={t("All projects")}
-            >
-              <AppstoreOutlined aria-hidden />
-              <span>{t("Projects")}</span>
-            </PublicLink>
-            <PublicLink
-              className={cx(
-                styles.railItem,
-                rest.navigation === "myProjects" && styles.railSelected,
-              )}
-              href={APP_ROUTES.playground.fill({})}
-              aria-label={t("My Playground")}
-              title={t("My Playground")}
-            >
-              <ExperimentOutlined aria-hidden />
-              <span>{t("My Playground")}</span>
-            </PublicLink>
-            {!rest.hideTeams && (
-              <Popover
-                trigger="click"
-                placement="rightTop"
-                open={spacesOpen}
-                onOpenChange={setSpacesOpen}
-                content={
-                  <div
-                    className={cx(styles.spacesMenu, layout.sidebar)}
-                    onClick={(event) => {
-                      if (
-                        event.target instanceof Element &&
-                        event.target.closest("a")
-                      ) {
-                        setSpacesOpen(false);
-                      }
-                    }}
-                  >
-                    {navigationTeams}
-                  </div>
-                }
-              >
-                <button
-                  type="button"
-                  className={cx(
-                    styles.railItem,
-                    (spacesOpen || !!team) && styles.railSelected,
-                  )}
-                  aria-label={t("Spaces")}
-                  aria-expanded={spacesOpen}
-                  disabled={!appCtx}
-                  onClick={() => setSpacesOpen(!spacesOpen)}
-                >
-                  <FolderOutlined aria-hidden />
-                  <span>{t("Spaces")}</span>
-                </button>
-              </Popover>
-            )}
-          </nav>
-        ),
-      }}
-      navFooter={{ className: styles.navigationFooter }}
+      sidebar={{ render: () => null }}
       main={{
         as: Scrollbar,
         props: {
           element: "main",
           scrollX: false,
-          className: cx(styles.main, layout.main),
+          className: cx(
+            styles.main,
+            layout.main,
+            activeTab === "spaces" && styles.spacesMain,
+          ),
         },
       }}
       headerLogoLink={{
-        as: PublicLink,
-        wrap: (node) => <div className={styles.brandLink}>{node}</div>,
-        props: brand?.logoHref
-          ? {
-              href: brand.logoHref,
-            }
-          : {},
-      }}
-      headerLogo={
-        brand?.logoImgSrc
-          ? {
-              render: () => <img src={brand.logoImgSrc} />,
-            }
-          : {
-              render: () => (
-                <span className={styles.brand}>
-                  <svg viewBox="0 0 32 32" aria-hidden="true">
-                    <path d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z" />
-                  </svg>
-                  Plasmic
-                </span>
-              ),
-            }
-      }
-      freeTrial={freeTrial ?? { render: () => null }}
-      upgradeButton={upgradeButton ?? { render: () => null }}
-      helpButton={{ render: () => null }}
-      documentationButton={{ render: () => null }}
-      newTeamButton={{
         render: () => (
-          <button
-            type="button"
-            className={styles.railItem}
-            aria-label={t("New organization")}
-            disabled={!appCtx}
-            onClick={async () => {
-              if (appCtx) {
-                await promptNewTeam(appCtx, history);
-              }
-            }}
-          >
-            <PlusOutlined aria-hidden />
-            <span>{t("Create")}</span>
-          </button>
+          <div className={styles.brandLink}>
+            <BrandLink brand={brand} />
+          </div>
         ),
       }}
+      freeTrial={freeTrial ?? { render: () => null }}
+      upgradeButton={upgradeButton ?? { render: () => null }}
       userButton={{ render: () => null }}
     />
   );

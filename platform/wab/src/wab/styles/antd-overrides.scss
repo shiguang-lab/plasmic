@@ -57,18 +57,6 @@
   box-shadow: none;
 }
 
-.ant-btn-primary:disabled {
-  background-color: #04a4f4;
-  border-color: #04a4f4;
-  opacity: 0.5;
-  color: #fff;
-  &:hover {
-    background-color: #04a4f4;
-    border-color: #04a4f4;
-    color: #fff;
-  }
-}
-
 .tag-select .ant-select.textboxlike .ant-select-selector,
 .labeled-item .ant-select.textboxlike .ant-select-selector,
 [data-plasmic-role="labeled-item"] .ant-select.textboxlike .ant-select-selector,

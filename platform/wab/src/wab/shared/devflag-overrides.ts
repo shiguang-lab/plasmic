@@ -1,6 +1,7 @@
 import type { DevFlagsType } from "@/wab/shared/devflags";
 
 export const DEFAULT_DEVFLAG_OVERRIDES: Partial<DevFlagsType> = {
+  dashboardCanvasPreview: true,
   enablePlasmicHosting: false,
   showCopilot: false,
 };

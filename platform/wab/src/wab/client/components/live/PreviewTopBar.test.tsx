@@ -1,11 +1,13 @@
 import { PreviewTopBar } from "@/wab/client/components/live/PreviewTopBar";
+import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import {
   cleanup,
   fireEvent,
-  render,
+  render as renderWithTestingLibrary,
   screen,
   waitFor,
 } from "@testing-library/react";
+import { createMemoryHistory } from "history";
 import React from "react";
 const mocks = vi.hoisted(() => ({
   preview: {
@@ -33,7 +35,13 @@ vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   usePreviewCtx: () => mocks.preview,
 }));
 vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
-  useStudioCtx: () => ({ site: {}, showBranching: () => mocks.branching }),
+  useStudioCtx: () => ({
+    site: {},
+    siteInfo: {},
+    appCtx: { appConfig: {} },
+    getCurrentUiConfig: () => ({}),
+    showBranching: () => mocks.branching,
+  }),
 }));
 vi.mock("@/wab/client/components/top-bar/VariantsComboSelect", () => ({
   default: () => <button>Configured variants</button>,
@@ -75,6 +83,14 @@ beforeEach(() => {
   mocks.preview.height = 900;
   mocks.preview.studioCtx.site.components = [];
 });
+function render(children: React.ReactNode) {
+  const history = createMemoryHistory();
+  return renderWithTestingLibrary(children, {
+    wrapper: ({ children: content }) => (
+      <HistoryProvider history={history}>{content}</HistoryProvider>
+    ),
+  });
+}
 test("omits sharing and shows more only when variants exist", () => {
   const view = render(<PreviewTopBar />);
   expect(screen.queryByRole("button", { name: "More" })).toBeNull();
@@ -86,7 +102,7 @@ test("omits sharing and shows more only when variants exist", () => {
 });
 test("keeps desktop chrome out of the browser preview", () => {
   const { container } = render(<PreviewTopBar />);
-  expect(container.querySelector('[data-desktop-titlebar]')).toBeNull();
+  expect(container.querySelector("[data-desktop-titlebar]")).toBeNull();
   expect(mocks.setDragRegion).not.toHaveBeenCalled();
 });
 test("reserves native controls and cleans up the macOS preview drag region", () => {
@@ -94,7 +110,10 @@ test("reserves native controls and cleans up the macOS preview drag region", () 
   const { container, unmount } = render(<PreviewTopBar />);
   expect(container.querySelector('[data-desktop-titlebar="mac"]')).toBeTruthy();
   expect(mocks.setDragRegion).toHaveBeenCalledWith({
-    left: 0, top: 0, width: 80, height: 48,
+    left: 0,
+    top: 0,
+    width: 80,
+    height: 48,
   });
   unmount();
   expect(mocks.setDragRegion).toHaveBeenLastCalledWith(null);

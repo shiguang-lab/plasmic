@@ -6,6 +6,7 @@
   "You do not have permission to delete branches in this project.": "You do not have permission to delete branches in this project.",
   "You do not have permission to comment on this project.": "You do not have permission to comment on this project.",
   "Failed to load projects": "Failed to load projects",
+  "Couldn't refresh projects. Showing the last loaded projects.": "Couldn't refresh projects. Showing the last loaded projects.",
   "All workspaces": "All workspaces",
   "Loading projects…": "Loading projects…",
   "Failed to create project": "Failed to create project",
@@ -3356,6 +3357,7 @@
   "Enter the name for your new CMS database": "Enter the name for your new CMS database",
   "Database name": "Database name",
   "Enter the name for your new CMS table": "Enter the name for your new CMS table",
+  "New CMS table": "New CMS table",
   "Table name": "Table name",
   "Configure host app for {part1}": "Configure host app for {part1}",
   "Replace all instances of \"{part1}\" with \"{part2}\"?": "Replace all instances of \"{part1}\" with \"{part2}\"?",
@@ -3595,5 +3597,6 @@
   "Edit models": "Edit models",
   "Unable to load this page": "Unable to load this page",
   "Please try again. If the problem persists, try again later.": "Please try again. If the problem persists, try again later.",
-  "Failed to load workspace": "Failed to load workspace"
+  "Failed to load workspace": "Failed to load workspace",
+  "No organizations yet.": "No organizations yet."
 }

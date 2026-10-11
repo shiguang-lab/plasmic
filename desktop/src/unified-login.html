@@ -126,14 +126,20 @@
       }
       .chrome-brand {
         position: absolute;
-        top: 12px;
-        left: 24px;
-        height: 24px;
+        top: 16px;
+        left: 16px;
+        height: 48px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--panel);
         display: flex;
         align-items: center;
         gap: 8px;
         font-weight: 600;
         font-size: 15px;
+        line-height: 22px;
+        white-space: nowrap;
         z-index: 4;
         -webkit-app-region: drag;
       }
@@ -143,13 +149,7 @@
         fill: var(--accent);
       }
       :root[data-platform="mac"] .chrome-brand {
-        left: 16px;
-        top: 16px;
-        height: 48px;
-        padding: 0 16px 0 80px;
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        background: var(--panel);
+        padding-left: 80px;
       }
       :root[data-platform="mac"] .window-drag-region {
         height: 80px;
@@ -175,7 +175,9 @@
         border-radius: 24px;
         background: var(--panel);
       }
-      .settings-dropdown { position: relative; }
+      .settings-dropdown {
+        position: relative;
+      }
       .settings-trigger {
         height: 34px;
         background: transparent;
@@ -183,7 +185,9 @@
         font-size: 12px;
         color: var(--muted);
       }
-      .settings-trigger[aria-expanded="true"] { background: var(--surface); }
+      .settings-trigger[aria-expanded="true"] {
+        background: var(--surface);
+      }
       .settings-menu {
         position: absolute;
         top: calc(100% + 12px);
@@ -204,11 +208,16 @@
         font-size: 13px;
         text-align: left;
       }
-      .settings-menu button:hover, .settings-menu button:focus-visible {
+      .settings-menu button:hover,
+      .settings-menu button:focus-visible {
         background: var(--surface);
       }
-      .settings-menu button[aria-checked="true"] { color: var(--accent); }
-      .settings-menu button[aria-checked="true"]::after { content: "✓"; }
+      .settings-menu button[aria-checked="true"] {
+        color: var(--accent);
+      }
+      .settings-menu button[aria-checked="true"]::after {
+        content: "✓";
+      }
       .auth-layout {
         min-height: 100vh;
         padding: 130px var(--page-inset) 120px;
@@ -515,12 +524,35 @@
     </div>
     <div class="auth-settings">
       <div class="settings-dropdown">
-        <button id="language" class="settings-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="language-menu" data-ui-message="Language" data-ui-attribute="aria-label">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7" /></svg>
+        <button
+          id="language"
+          class="settings-trigger"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-controls="language-menu"
+          data-ui-message="Language"
+          data-ui-attribute="aria-label"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 9l7 7 7-7" />
+          </svg>
           <span id="language-label">Follow system</span>
         </button>
-        <div id="language-menu" class="settings-menu" role="menu" data-ui-message="Language" data-ui-attribute="aria-label" hidden>
-          <button role="menuitemradio" data-value="system" data-ui-message="Follow system">Follow system</button>
+        <div
+          id="language-menu"
+          class="settings-menu"
+          role="menu"
+          data-ui-message="Language"
+          data-ui-attribute="aria-label"
+          hidden
+        >
+          <button
+            role="menuitemradio"
+            data-value="system"
+            data-ui-message="Follow system"
+          >
+            Follow system
+          </button>
           <button role="menuitemradio" data-value="en">English</button>
           <button role="menuitemradio" data-value="zh-CN">简体中文</button>
           <button role="menuitemradio" data-value="zh-TW">繁體中文</button>
@@ -529,14 +561,40 @@
         </div>
       </div>
       <div class="settings-dropdown">
-        <button id="appearance" class="settings-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="appearance-menu">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v14H3z M8 22h8 M12 18v4" /></svg>
+        <button
+          id="appearance"
+          class="settings-trigger"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-controls="appearance-menu"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 4h18v14H3z M8 22h8 M12 18v4" />
+          </svg>
           <span id="appearance-label">Follow system</span>
         </button>
         <div id="appearance-menu" class="settings-menu" role="menu" hidden>
-          <button role="menuitemradio" data-value="system" data-ui-message="Follow system">Follow system</button>
-          <button role="menuitemradio" data-value="light" data-ui-message="Light appearance">Light appearance</button>
-          <button role="menuitemradio" data-value="dark" data-ui-message="Dark appearance">Dark appearance</button>
+          <button
+            role="menuitemradio"
+            data-value="system"
+            data-ui-message="Follow system"
+          >
+            Follow system
+          </button>
+          <button
+            role="menuitemradio"
+            data-value="light"
+            data-ui-message="Light appearance"
+          >
+            Light appearance
+          </button>
+          <button
+            role="menuitemradio"
+            data-value="dark"
+            data-ui-message="Dark appearance"
+          >
+            Dark appearance
+          </button>
         </div>
       </div>
       <p id="settings-error" role="alert" hidden></p>
@@ -920,14 +978,17 @@
                   ? ""
                   : "Keep this window open.",
           );
-          renderPreference("language", readPreference("shiguang.ui.language", [
-            "system",
-            "en",
-            "zh-CN",
-            "zh-TW",
-            "ja",
-            "ko",
-          ]));
+          renderPreference(
+            "language",
+            readPreference("shiguang.ui.language", [
+              "system",
+              "en",
+              "zh-CN",
+              "zh-TW",
+              "ja",
+              "ko",
+            ]),
+          );
           renderAppearance();
         }
         subscribe(() => render(latestState));
@@ -983,7 +1044,8 @@
           }
         }
         for (const id of ["language", "appearance"]) {
-          const trigger = element(id), menu = element(id + "-menu");
+          const trigger = element(id),
+            menu = element(id + "-menu");
           function openMenu() {
             closeMenus();
             menu.hidden = false;
@@ -1005,8 +1067,15 @@
             const index = items.indexOf(document.activeElement);
             if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
               event.preventDefault();
-              const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1
-                : (index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+              const next =
+                event.key === "Home"
+                  ? 0
+                  : event.key === "End"
+                    ? items.length - 1
+                    : (index +
+                        (event.key === "ArrowDown" ? 1 : -1) +
+                        items.length) %
+                      items.length;
               items[next].focus();
             }
           });
@@ -1019,12 +1088,16 @@
             try {
               localStorage.setItem("shiguang.ui." + id, item.dataset.value);
               if (id === "language") {
-                window.desktopUiI18n.setSnapshot(await environment.setUiLocale(item.dataset.value));
+                window.desktopUiI18n.setSnapshot(
+                  await environment.setUiLocale(item.dataset.value),
+                );
               } else renderAppearance();
             } catch {
-              element("settings-error").textContent = t(id === "language"
-                ? "Unable to save language preference on this device."
-                : "Unable to save appearance preference on this device.");
+              element("settings-error").textContent = t(
+                id === "language"
+                  ? "Unable to save language preference on this device."
+                  : "Unable to save appearance preference on this device.",
+              );
               element("settings-error").hidden = false;
               render(latestState);
             }
@@ -1038,7 +1111,9 @@
         });
         document.addEventListener("keydown", (event) => {
           if (event.key === "Escape") {
-            const active = document.querySelector('.settings-trigger[aria-expanded="true"]');
+            const active = document.querySelector(
+              '.settings-trigger[aria-expanded="true"]',
+            );
             closeMenus();
             active?.focus();
           }

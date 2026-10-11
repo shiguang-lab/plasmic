@@ -65,6 +65,21 @@ it("uses the data-source layout for a pending integration tab", () => {
     screen.queryByRole("status", { name: "Loading projects…" }),
   ).toBeNull();
 });
+it("keeps personal workspace filters in the top tab bar while content is loading", () => {
+  const { container } = setup("/playground#tab=dataSources");
+  expect(screen.queryByText("My Playground")).toBeNull();
+  expect(
+    screen.getByRole("tab", { name: "Data sources", selected: true }),
+  ).toBeTruthy();
+  expect(
+    container
+      .querySelector(".ant-tabs-nav")
+      ?.contains(screen.getByPlaceholderText("Search…")),
+  ).toBe(true);
+  expect(
+    screen.getByRole("tabpanel").querySelector(".ant-skeleton"),
+  ).toBeTruthy();
+});
 it("renders known project headings and the complete toolbar without application data", () => {
   setup("/projects", false);
   expect(screen.getByRole("heading", { name: "All projects" })).toBeTruthy();

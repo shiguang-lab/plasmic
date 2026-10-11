@@ -2,7 +2,7 @@ import { createStyles } from "antd-style";
 
 export const useSettingsStyles = createStyles(({ token }) => ({
   root: {
-    width: "100%", maxWidth: 1040, padding: "32px 40px 48px", boxSizing: "border-box", userSelect: "text", color: token.colorText,
+    width: "100%", minWidth: 0, padding: "32px 40px 48px", boxSizing: "border-box", userSelect: "text", color: token.colorText,
     "& h1": { fontSize: 28, lineHeight: 1.3, fontWeight: 600, margin: "0 0 8px" },
     "& h2": { fontSize: 16, lineHeight: 1.5, fontWeight: 600, margin: 0 },
     "& p": { color: token.colorTextSecondary, fontSize: 13, lineHeight: 1.6, margin: "6px 0 0" },

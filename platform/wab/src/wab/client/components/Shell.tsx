@@ -3,11 +3,11 @@ import {
   AntdConfigProvider,
   configureAntdStatics,
 } from "@/wab/client/antd-theme";
-import { isProjectPath, isTopFrame } from "@/wab/client/cli-routes";
+import { isTopFrame } from "@/wab/client/cli-routes";
 import { initClientFlags } from "@/wab/client/client-dev-flags";
 import { Root } from "@/wab/client/components/root-view";
+import { StudioStartupBoundary } from "@/wab/client/components/studio/StudioChrome";
 import { ENV } from "@/wab/client/env";
-import { FrameMessage } from "@/wab/client/frame-ctx/frame-message-types";
 import {
   HostFrameCtxProvider,
   useHostFrameCtxIfHostFrame,
@@ -35,10 +35,6 @@ function ShellThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AntdConfigProvider>
   );
-}
-
-function getStudioStartupLoadingElement() {
-  return document.getElementById("studio-startup-loading") as HTMLDivElement;
 }
 
 /**
@@ -113,28 +109,6 @@ export function main() {
   monkeyPatchConsoleLog();
 
   if (isTopFrame()) {
-    const studioStartupLoading = getStudioStartupLoadingElement();
-
-    window.addEventListener("message", ({ data }) => {
-      // Studio is ready to be shown
-      // if any of these messages is triggered
-      if (
-        [
-          "addStorageListener",
-          "exposeHostFrameApi",
-          "setLatestPublishedVersionData",
-        ].includes(data?.path?.[0]) ||
-        // The host frame takes over the central loading indicator once registered,
-        // so the startup indicator must not cover host dialogs.
-        [
-          FrameMessage.PlasmicHostRegister,
-          FrameMessage.StudioFrameLoaded,
-        ].includes(data?.type)
-      ) {
-        studioStartupLoading.classList.add("fadeOut");
-      }
-    });
-
     ReactDOM.render(<Shell />, appContainerElement);
   } else {
     ReactDOM.render(
@@ -154,36 +128,17 @@ export function Shell() {
     hostFrameCtx ? hostFrameCtx.history : createBrowserHistory(),
   );
 
-  const isProjectPathRef = React.useRef(
-    isProjectPath(history.location.pathname),
-  );
-
-  React.useEffect(() => {
-    if (hostFrameCtx) {
-      return;
-    }
-
-    return history.listen(({ location }) => {
-      const studioStartupLoading = getStudioStartupLoadingElement();
-      const _isProjectPath = isProjectPath(location.pathname);
-
-      if (_isProjectPath && !isProjectPathRef.current) {
-        isProjectPathRef.current = true;
-        studioStartupLoading.classList.add("visible");
-        studioStartupLoading.classList.remove("fadeOut");
-      } else if (!_isProjectPath && isProjectPathRef.current) {
-        isProjectPathRef.current = false;
-        studioStartupLoading.classList.remove("visible");
-        studioStartupLoading.classList.remove("fadeOut");
-      }
-    });
-  }, []);
-
   return (
     <HistoryProvider history={history}>
       <ShellThemeProvider>
         <OverlayProvider style={{ width: "100%", height: "100%" }}>
-          <Root />
+          {hostFrameCtx ? (
+            <Root />
+          ) : (
+            <StudioStartupBoundary>
+              <Root />
+            </StudioStartupBoundary>
+          )}
         </OverlayProvider>
       </ShellThemeProvider>
     </HistoryProvider>

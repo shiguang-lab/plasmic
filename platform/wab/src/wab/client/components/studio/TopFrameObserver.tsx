@@ -57,6 +57,7 @@ import { LocalizationConfig } from "@/wab/shared/localization";
 
 export interface TopFrameObserverProps {
   preview?: boolean;
+  studioReady?: boolean;
 }
 
 function notifyMentionedResourceGone() {
@@ -96,6 +97,7 @@ function trackArtboardFileDrags(studioCtx: StudioCtx): () => void {
 
 export const TopFrameObserver = observer(function _TopFrameObserver({
   preview,
+  studioReady = true,
 }: TopFrameObserverProps) {
   const hostFrameCtx = useHostFrameCtx();
   const studioCtx = useStudioCtx();
@@ -303,6 +305,12 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
   React.useEffect(() => {
     hostFrameCtx.onHostFrameApiReady(hostFrameApi);
   }, [hostFrameApi]);
+
+  React.useEffect(() => {
+    if (studioReady) {
+      spawn(topFrameApi.setStudioReady());
+    }
+  }, [studioReady, topFrameApi]);
 
   React.useEffect(() => trackArtboardFileDrags(studioCtx), [studioCtx]);
   React.useEffect(

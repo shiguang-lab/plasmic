@@ -1,19 +1,14 @@
-import EditableResourceName from "@/wab/client/components/EditableResourceName";
+import { reportError } from "@/wab/client/ErrorNotifications";
 import { HostConfig } from "@/wab/client/components/HostConfig";
-import { PublicLink } from "@/wab/client/components/PublicLink";
 import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboard-actions";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
+import { ProjectPreview } from "@/wab/client/components/dashboard/preview/ProjectPreview";
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
-import { ClickStopper } from "@/wab/client/components/widgets";
-import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
-import { InlineEdit } from "@/wab/commons/components/InlineEdit";
-import { OnClickAway } from "@/wab/commons/components/OnClickAway";
-import { Stated } from "@/wab/commons/components/Stated";
 import { ApiPermission, ApiProject, WorkspaceId } from "@/wab/shared/ApiSchema";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
 import { cx, ensure } from "@/wab/shared/common";
@@ -23,13 +18,8 @@ import {
   getAccessLevelToResource,
 } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import {
-  ArrowUpOutlined,
-  CopyOutlined,
-  FileOutlined,
-  MoreOutlined,
-} from "@ant-design/icons";
-import { Button, Dropdown, Menu, notification } from "antd";
+import { EditOutlined, FileOutlined, MoreOutlined } from "@ant-design/icons";
+import { Dropdown, Input, Menu, notification } from "antd";
 import React from "react";
 
 interface ProjectListItemProps {
@@ -42,28 +32,94 @@ interface ProjectListItemProps {
   workspaces?: boolean;
   matcher?: Matcher;
   showWorkspace?: boolean;
-  onSelect?: () => void;
-  selected?: boolean;
-  presentation?: "card" | "details";
+}
+
+function ProjectTitle({
+  name,
+  children,
+}: {
+  name: string;
+  children: React.ReactNode;
+}) {
+  const container = React.useRef<HTMLSpanElement>(null);
+  const text = React.useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = React.useState(0);
+  React.useLayoutEffect(() => {
+    const measure = () =>
+      setOverflow(
+        Math.max(
+          0,
+          (text.current?.scrollWidth ?? 0) -
+            (container.current?.clientWidth ?? 0),
+        ),
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (container.current) {
+      observer.observe(container.current);
+    }
+    if (text.current) {
+      observer.observe(text.current);
+    }
+    return () => observer.disconnect();
+  }, [name, children]);
+  return (
+    <span
+      ref={container}
+      className={cx(styles.title, overflow > 0 && styles.overflowingTitle)}
+      title={name}
+      style={
+        {
+          "--title-travel": `${-overflow}px`,
+          "--title-duration": `${Math.max(3, overflow / 30 + 2)}s`,
+        } as React.CSSProperties
+      }
+    >
+      <span ref={text}>{children}</span>
+    </span>
+  );
 }
 
 function ProjectListItem(props: ProjectListItemProps) {
-  const {
-    project,
-    perms,
-    onUpdate,
-    workspaces,
-    matcher,
-    showWorkspace,
-    onSelect,
-    selected,
-    presentation,
-  } = props;
+  const { project, perms, onUpdate, workspaces, matcher, showWorkspace } =
+    props;
   const { t, locale } = useI18n();
   const appCtx = useAppCtx();
   const history = useHistory();
   const appOps = ensure(appCtx.ops, "Unexpected nullish AppOps");
   const [configProjectId, setConfigProjectId] = React.useState<string>();
+  const [editing, setEditing] = React.useState(false);
+  const [draftName, setDraftName] = React.useState(project.name);
+  const [submitting, setSubmitting] = React.useState(false);
+  const editingSession = React.useRef(false);
+  const saving = React.useRef(false);
+  const finishEditing = () => {
+    editingSession.current = false;
+    setEditing(false);
+  };
+  const saveName = async () => {
+    if (!editingSession.current || saving.current) {
+      return;
+    }
+    const name = draftName.trim();
+    if (!name || name === project.name) {
+      finishEditing();
+      return;
+    }
+    saving.current = true;
+    setSubmitting(true);
+    try {
+      await appOps.renameSite(project.id, name);
+      project.name = name;
+      finishEditing();
+      await onUpdate?.();
+    } catch (error) {
+      reportError(error as Error);
+    } finally {
+      saving.current = false;
+      setSubmitting(false);
+    }
+  };
 
   const projectAccessLevel = getAccessLevelToResource(
     { type: "project", resource: project },
@@ -122,78 +178,77 @@ function ProjectListItem(props: ProjectListItemProps) {
   return (
     <>
       <div
-        className={cx(
-          styles.projectCard,
-          props.className,
-          selected && styles.projectSelected,
-          presentation === "details" && styles.projectDetails,
-        )}
-        onClick={
-          presentation === "details" ? undefined : (onSelect ?? openProject)
-        }
+        className={cx(styles.projectCard, props.className)}
+        role="link"
+        tabIndex={0}
+        aria-label={t("Open project") + ": " + project.name}
+        onClick={editing ? undefined : openProject}
+        onKeyDown={(event) => {
+          if (event.target === event.currentTarget && event.key === "Enter") {
+            event.preventDefault();
+            openProject();
+          }
+        }}
       >
-        {presentation !== "details" && (
-          <button
-            type="button"
-            className={styles.thumbnail}
-            aria-label={t("Project details") + ": " + project.name}
-            onClick={(event) => {
-              event.stopPropagation();
-              (onSelect ?? openProject)();
-            }}
-            aria-pressed={selected}
-          >
-            <FileOutlined aria-hidden />
-            <span>{project.name}</span>
-          </button>
-        )}
+        <div className={styles.thumbnail} aria-hidden>
+          {DEVFLAGS.dashboardCanvasPreview && appCtx.selfInfo?.id ? (
+            <ProjectPreview
+              userId={appCtx.selfInfo.id}
+              projectId={project.id}
+              updatedAt={new Date(project.updatedAt).toISOString()}
+            />
+          ) : (
+            <>
+              <FileOutlined />
+              <ProjectTitle name={project.name}>{project.name}</ProjectTitle>
+            </>
+          )}
+        </div>
         <div className={styles.content}>
           <div className={styles.header}>
-            <div onClick={(e) => e.stopPropagation()}>
-              <InlineEdit
-                render={({ onDone, editing, onStart }) =>
-                  editing ? (
-                    <div style={{ width: "100%" }}>
-                      <ClickStopper preventDefault>
-                        <Stated defaultValue={false}>
-                          {(submitting, setSubmitting) => (
-                            <OnClickAway onDone={onDone}>
-                              <Textbox
-                                autoFocus
-                                selectAllOnFocus
-                                defaultValue={project.name}
-                                onEdit={async (val) => {
-                                  setSubmitting(true);
-                                  await appOps.renameSite(project.id, val);
-                                  project.name = val;
-                                  setSubmitting(false);
-                                  onDone();
-                                }}
-                                onEscape={onDone}
-                                onBlur={onDone}
-                                disabled={submitting}
-                              />
-                            </OnClickAway>
-                          )}
-                        </Stated>
-                      </ClickStopper>
-                    </div>
-                  ) : (
-                    <EditableResourceName
-                      className={styles.title}
-                      {...(accessLevelRank(projectAccessLevel) <
-                      accessLevelRank("content")
-                        ? { cantEdit: true }
-                        : {})}
-                      onEdit={onStart}
-                      name={
-                        matcher?.boldSnippets(project.name, "yellow-snippet") ||
-                        project.name
-                      }
-                    />
-                  )
-                }
-              />
+            <div className={styles.nameRow}>
+              {editing ? (
+                <Input
+                  className={styles.nameInput}
+                  aria-label={t("Rename project")}
+                  autoFocus
+                  onFocus={(event) => event.target.select()}
+                  value={draftName}
+                  disabled={submitting}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  onPressEnter={() => void saveName()}
+                  onBlur={() => void saveName()}
+                  onKeyDown={(event) => {
+                    event.stopPropagation();
+                    if (event.key === "Escape") {
+                      finishEditing();
+                    }
+                  }}
+                />
+              ) : (
+                <ProjectTitle name={project.name}>
+                  {matcher?.boldSnippets(project.name, "yellow-snippet") ||
+                    project.name}
+                </ProjectTitle>
+              )}
+              {!editing &&
+                accessLevelRank(projectAccessLevel) >=
+                  accessLevelRank("content") && (
+                  <button
+                    type="button"
+                    className={cx(styles.menuButton, styles.editButton)}
+                    aria-label={t("Rename project")}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setDraftName(project.name);
+                      editingSession.current = true;
+                      setEditing(true);
+                    }}
+                  >
+                    <EditOutlined />
+                  </button>
+                )}
             </div>
             <div onClick={(e) => e.stopPropagation()}>
               <Dropdown
@@ -346,20 +401,7 @@ function ProjectListItem(props: ProjectListItemProps) {
               </Dropdown>
             </div>
           </div>
-          {presentation === "details" && (
-            <PublicLink
-              className={styles.openProject}
-              href={APP_ROUTES.project.fill({ projectId: project.id })}
-            >
-              <ArrowUpOutlined aria-hidden />
-              {t("Open project")}
-            </PublicLink>
-          )}
           <div className={styles.meta}>
-            {presentation === "details" &&
-              accessLevelRank(workspaceAccessLevel) >=
-                accessLevelRank("viewer") &&
-              project.teamName && <span>{project.teamName}</span>}
             <span>
               {t("Updated {date}", {
                 date: new Intl.DateTimeFormat(locale, {
@@ -395,25 +437,6 @@ function ProjectListItem(props: ProjectListItemProps) {
                 </span>
               )}
           </div>
-          {presentation === "details" ? (
-            <Button
-              icon={<CopyOutlined aria-hidden />}
-              onClick={duplicateProject}
-            >
-              {t("Duplicate project")}
-            </Button>
-          ) : (
-            onSelect && (
-              <PublicLink
-                className={styles.openProjectLink}
-                href={APP_ROUTES.project.fill({ projectId: project.id })}
-                onClick={(event) => event.stopPropagation()}
-              >
-                {t("Open project")}
-                <ArrowUpOutlined aria-hidden />
-              </PublicLink>
-            )
-          )}
         </div>
       </div>
       {configProjectId && (

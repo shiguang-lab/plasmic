@@ -13,8 +13,6 @@ const useSkeletonStyles = createStyles(({ token }) => ({
     borderColor: token.colorBorderSecondary,
   },
   thumbnail: {
-    width: "100%",
-    aspectRatio: "16 / 9",
     background: token.colorFillSecondary,
   },
   line: {
@@ -78,13 +76,19 @@ export function ProjectCardsSkeleton({ view = "grid" }: { view?: string }) {
         >
           <div className={cx(dashboard.thumbnail, styles.thumbnail)} />
           <div className={dashboard.content}>
-            <Skeleton.Input
-              active
-              size="small"
-              className={styles.line}
-              style={{ height: 14, width: "100%" }}
-            />
-            <Flex align="center" justify="space-between">
+            <div className={dashboard.header}>
+              <Skeleton.Input
+                active
+                size="small"
+                className={styles.line}
+                style={{ height: 14, width: "100%" }}
+              />
+            </div>
+            <Flex
+              align="center"
+              justify="space-between"
+              className={dashboard.meta}
+            >
               <Skeleton.Avatar active size={24} />
               <PillSkeleton width={80} height={22} />
             </Flex>

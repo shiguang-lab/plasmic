@@ -562,6 +562,7 @@ export function useTopFrameState({
   const history = useHistory();
   const currentLocation = useLocation();
 
+  const [studioReady, setStudioReady] = React.useState(false);
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
     React.useState<{ revisionId: string; version: string }>();
   const [revisionNum, setRevisionNum] = React.useState(0);
@@ -678,6 +679,7 @@ export function useTopFrameState({
         return unregister;
       },
 
+      setStudioReady: asyncWrapper(() => setStudioReady(true)),
       setDocumentTitle: async (val: string) => {
         document.title = val;
       },
@@ -783,6 +785,7 @@ export function useTopFrameState({
   );
 
   return {
+    studioReady,
     topFrameApi,
     latestPublishedVersionData,
     revisionNum,

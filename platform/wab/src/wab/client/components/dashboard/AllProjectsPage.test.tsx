@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   failed: false,
   loading: false,
   cached: false,
+  validating: false,
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAllProjectsData: () => ({
@@ -36,9 +37,11 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
             ],
           },
     error: mocks.failed ? new Error("Unavailable") : undefined,
+    isValidating: mocks.validating,
     mutate: mocks.retry,
   }),
   useAppCtx: () => ({
+    personalWorkspace: { id: "personal", name: "My Playground" },
     workspaces: [
       { id: "workspace1", name: "Workspace one" },
       { id: "workspace2", name: "Workspace two" },
@@ -49,20 +52,9 @@ vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (message: string) => message }),
 }));
 vi.mock("@/wab/client/components/ProjectListItem", () => ({
-  default: ({
-    project,
-    presentation,
-    onSelect,
-  }: {
-    project: { name: string };
-    presentation?: string;
-    onSelect?: () => void;
-  }) =>
-    presentation === "details" ? (
-      <div>Details for {project.name}</div>
-    ) : (
-      <button onClick={onSelect}>{project.name}</button>
-    ),
+  default: ({ project }: { project: { name: string } }) => (
+    <button>{project.name}</button>
+  ),
 }));
 vi.mock("@/wab/client/components/NewProjectModal", () => ({
   default: () => <div>Project creation dialog</div>,
@@ -73,6 +65,7 @@ afterEach(() => {
   mocks.failed = false;
   mocks.loading = false;
   mocks.cached = false;
+  mocks.validating = false;
   vi.clearAllMocks();
 });
 
@@ -118,18 +111,62 @@ it("shows a retry action rather than an endless loading state after a request fa
   expect(mocks.retry).toHaveBeenCalledTimes(1);
 });
 
-it("keeps cached projects and details visible alongside a refresh error", () => {
+it("keeps cached projects visible alongside a refresh error", () => {
   mocks.failed = true;
   mocks.cached = true;
   renderProjects();
-  expect(screen.getByText("Failed to load projects")).toBeInTheDocument();
+  expect(screen.queryByText("Failed to load projects")).toBeNull();
+  expect(screen.getByRole("alert")).toHaveClass("ant-alert-warning");
+  expect(
+    screen.getByText(
+      "Couldn't refresh projects. Showing the last loaded projects.",
+    ),
+  ).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
-  expect(screen.getByText("Details for Beta")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(mocks.retry).toHaveBeenCalledWith(expect.any(Function), {
     revalidate: true,
     throwOnError: false,
   });
+});
+
+it("replaces the initial failure with content skeletons while retrying", () => {
+  mocks.failed = true;
+  mocks.validating = true;
+  renderProjects();
+  expect(
+    screen.getByRole("status", { name: "Loading projects…" }),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(document.querySelector(".ant-spin")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Alpha" })).toBeNull();
+});
+
+it("keeps loaded content during background refresh without a floating spinner", () => {
+  mocks.cached = true;
+  mocks.validating = true;
+  renderProjects();
+  expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("status", { name: "Loading projects…" }),
+  ).toBeNull();
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(document.querySelector(".ant-spin")).toBeNull();
+});
+
+it("keeps the cached refresh warning and disables retry without a spinner", () => {
+  mocks.failed = true;
+  mocks.cached = true;
+  mocks.validating = true;
+  renderProjects();
+  expect(screen.getByRole("alert")).toHaveClass("ant-alert-warning");
+  expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Loading…" })).toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
+  expect(document.querySelector(".ant-spin")).toBeNull();
 });
 
 it("opens the shared creation dialog from the workbench", () => {
@@ -138,16 +175,17 @@ it("opens the shared creation dialog from the workbench", () => {
   expect(screen.getByText("Project creation dialog")).toBeInTheDocument();
 });
 
-it("selects and closes project details without mutating business data", () => {
+it("renders the project library without a selected details pane", () => {
   renderProjects();
-  expect(screen.getByText("Details for Beta")).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Alpha" }));
-  expect(screen.getByText("Details for Alpha")).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Close" }));
-  expect(
-    screen.queryByRole("complementary", { name: "Project details" }),
-  ).toBeNull();
-  expect(mocks.retry).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Beta" })).toBeInTheDocument();
+  expect(screen.queryByRole("complementary")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Open project" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "All projects" })).toBeNull();
+  expect(screen.queryByText("My Playground")).toBeNull();
+  expect(screen.getAllByRole("button", { name: "New project" })).toHaveLength(
+    1,
+  );
 });
 
 it("keeps workspace grouping links on their existing routes", () => {
@@ -159,7 +197,8 @@ it("keeps workspace grouping links on their existing routes", () => {
 it("keeps the real toolbar while projects load and lets the user choose the list layout", () => {
   mocks.loading = true;
   renderProjects();
-  expect(screen.getByRole("heading", { name: "All projects" })).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: "All projects" })).toBeNull();
+  expect(screen.getByRole("button", { name: "New project" })).toBeTruthy();
   expect(screen.getByLabelText("Workspace")).toBeTruthy();
   expect(
     screen.getByRole("status", { name: "Loading projects…" }),
