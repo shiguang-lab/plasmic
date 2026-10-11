@@ -3586,5 +3586,11 @@
   "Code components for common interface controls.": "按鈕、表單等通用介面控制項的程式碼元件。",
   "Collections of reusable visual components.": "可重複使用的視覺元件集合。",
   "Code components for product-specific features.": "用於特定產品功能的程式碼元件。",
-  "Icon components and assets.": "圖示元件與圖示資源。"
+  "Icon components and assets.": "圖示元件與圖示資源。",
+  "CMS ID": "CMS ID",
+  "Public Token": "公開權杖",
+  "Secret Token": "私密權杖",
+  "Locales": "語言地區",
+  "Edit content": "編輯內容",
+  "Edit models": "編輯模型"
 }

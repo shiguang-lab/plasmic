@@ -50,6 +50,39 @@ it("updates Ant Design and antd-style together, while auth keeps its original th
   );
   expect(probe.dataset.antdBg).toBe("#fff");
   expect(probe.dataset.styleBg).toBe(probe.dataset.antdBg);
+  expect(document.documentElement.dataset.uiAppearance).toBe("dark");
+  expect(
+    document.documentElement.style.getPropertyValue("--studio-loading-layout"),
+  ).toBe("#15161b");
+});
+
+it("keeps the document dark through lazy route loading and independent legacy roots", () => {
+  setAppearancePreference("dark");
+  function PendingPage(): React.ReactElement {
+    throw new Promise(vi.fn());
+  }
+  const shell = render(
+    <AntdConfigProvider productUI>
+      <div className="root">
+        <React.Suspense fallback={<div data-testid="route-loading" />}>
+          <PendingPage />
+        </React.Suspense>
+      </div>
+    </AntdConfigProvider>,
+  );
+  const modal = render(
+    <AntdConfigProvider productUI={false}>
+      <div>Legacy controls</div>
+    </AntdConfigProvider>,
+  );
+  expect(screen.getByTestId("route-loading")).toBeTruthy();
+  expect(document.documentElement.dataset.uiAppearance).toBe("dark");
+  expect(
+    document.documentElement.style.getPropertyValue("--studio-loading-layout"),
+  ).toBe("#15161b");
+  modal.unmount();
+  expect(document.documentElement.dataset.uiAppearance).toBe("dark");
+  shell.unmount();
 });
 it.each([
   "/login",

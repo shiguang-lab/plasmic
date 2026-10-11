@@ -10,7 +10,7 @@ import {
 import { isCmsTextLike } from "@/wab/client/components/cms/utils";
 import Combobox from "@/wab/client/components/plexus/Combobox";
 import MenuItem from "@/wab/client/components/plexus/MenuItem";
-import { FileUploader, Spinner } from "@/wab/client/components/widgets";
+import { FileUploader } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import "@/wab/client/components/widgets/ColorPicker/Pickr.overrides.scss";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
@@ -48,6 +48,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Skeleton,
   notification,
 } from "antd";
 import { FormItemProps } from "antd/lib/form";
@@ -680,7 +681,9 @@ export function CmsRichTextInput({
 }) {
   const { disabled } = useContentEntryFormContext();
   return (
-    <React.Suspense fallback={<Spinner />}>
+    <React.Suspense
+      fallback={<Skeleton.Input active block style={{ height: 160 }} />}
+    >
       <LazyRichTextEditor
         value={value ?? ""}
         onChange={ensure(

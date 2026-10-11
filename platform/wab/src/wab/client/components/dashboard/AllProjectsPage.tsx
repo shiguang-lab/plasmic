@@ -1,24 +1,24 @@
-import { PublicLink } from "@/wab/client/components/PublicLink";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { groupBy } from "lodash";
-import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
+import { PublicLink } from "@/wab/client/components/PublicLink";
 import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
+import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
+import { ProjectCardsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import {
   useAllProjectsData,
   useAppCtx,
 } from "@/wab/client/contexts/AppContexts";
 import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
 import { useI18n } from "@/wab/client/i18n";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import {
   AppstoreOutlined,
   BarsOutlined,
-  PlusOutlined,
   CloseOutlined,
   FolderOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import {
   Alert,
@@ -27,9 +27,9 @@ import {
   Flex,
   Segmented,
   Select,
-  Skeleton,
   Typography,
 } from "antd";
+import { groupBy } from "lodash";
 import * as React from "react";
 
 const AllProjectsPage = React.forwardRef<HTMLDivElement>(
@@ -142,17 +142,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
           />
         )}
         {!projectsData && !loadError ? (
-          <div
-            className={styles.grid}
-            role="status"
-            aria-label={t("Loading projects…")}
-          >
-            {[0, 1, 2].map((key) => (
-              <div className={styles.loadingCard} key={key}>
-                <Skeleton active paragraph={{ rows: 3 }} />
-              </div>
-            ))}
-          </div>
+          <ProjectCardsSkeleton view={view} />
         ) : !projectsData ? null : projects.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}

@@ -3586,5 +3586,11 @@
   "Code components for common interface controls.": "Code components for common interface controls.",
   "Collections of reusable visual components.": "Collections of reusable visual components.",
   "Code components for product-specific features.": "Code components for product-specific features.",
-  "Icon components and assets.": "Icon components and assets."
+  "Icon components and assets.": "Icon components and assets.",
+  "CMS ID": "CMS ID",
+  "Public Token": "Public Token",
+  "Secret Token": "Secret Token",
+  "Locales": "Locales",
+  "Edit content": "Edit content",
+  "Edit models": "Edit models"
 }

@@ -16,8 +16,12 @@ const appCtx = vitest.hoisted(() => ({
   getAllTeams: () => [{ id: "org" }],
 }));
 
-vitest.mock("@/wab/client/contexts/AppContexts", () => ({
-  useAppCtx: () => appCtx,
+vitest.mock("@/wab/client/contexts/AppContexts", async () => {
+  const { createContext } = await import("react");
+  return { useAppCtx: () => appCtx, AppCtxContext: createContext(appCtx) };
+});
+vitest.mock("@/wab/client/components/dashboard/DashboardPageLoading", () => ({
+  DashboardPageLoading: () => <div role="status">Workspace skeleton</div>,
 }));
 vitest.mock("@/wab/client/components/widgets", () => ({
   Spinner: () => <div role="status">Loading</div>,

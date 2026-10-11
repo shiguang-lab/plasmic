@@ -3,7 +3,8 @@ import { useUiAppearance } from "@/wab/client/ui-theme";
 import { AsyncState } from "@/wab/client/hooks/useAsyncStrict";
 import { languageOptions, useI18n } from "@/wab/client/i18n";
 import { ApiTrustedHost, PersonalApiToken } from "@/wab/shared/ApiSchema";
-import { Button, Select } from "antd";
+import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
+import { Button, Select, Skeleton } from "antd";
 import * as React from "react";
 
 interface SettingsContainerProps {
@@ -20,7 +21,7 @@ interface SettingsContainerProps {
   onNewTrustedHost: () => void;
 }
 
-export default function SettingsContainer(props: SettingsContainerProps) {
+export default function SettingsContainer(props: Partial<SettingsContainerProps>) {
   const { t, preference, setLanguagePreference } = useI18n();
   const { styles, cx } = useSettingsStyles();
   const { preference: appearance, setAppearancePreference } = useUiAppearance();
@@ -38,9 +39,9 @@ export default function SettingsContainer(props: SettingsContainerProps) {
         <div className={styles.account} data-settings-row>
           <div className={styles.profile}>
             <div className={styles.avatar} aria-hidden="true">
-              {props.avatarImgUrl ? <img src={props.avatarImgUrl} alt="" /> : props.name.slice(0, 2).toUpperCase()}
+              {props.avatarImgUrl ? <img src={props.avatarImgUrl} alt="" /> : props.name ? props.name.slice(0, 2).toUpperCase() : <Skeleton.Avatar active size={44} />}
             </div>
-            <div><strong>{props.name}</strong><div className={styles.email}>{props.email}</div></div>
+            <div>{props.name ? <strong>{props.name}</strong> : <Skeleton.Input active size="small" style={{ width: 140 }} />}<div className={styles.email}>{props.email ?? <Skeleton.Input active size="small" style={{ width: 200, height: 14 }} />}</div></div>
           </div>
           <Button href="https://shiguanglab.com/account" target="_blank" rel="noreferrer">{t("Manage Shiguang account")}</Button>
         </div>
@@ -89,16 +90,16 @@ export default function SettingsContainer(props: SettingsContainerProps) {
       <section className={styles.card} aria-labelledby="tokens-heading">
         <div className={styles.sectionHeader} data-settings-row>
           <div><h2 id="tokens-heading">{t("Personal access tokens")}</h2><p>{t("Use tokens to connect tools and integrations to your account.")}</p></div>
-          <Button onClick={props.onNewToken}>{t("New token")}</Button>
+          <Button disabled={!props.onNewToken} onClick={props.onNewToken}>{t("New token")}</Button>
         </div>
-        {props.tokensState.loading ? <p role="status">{t("Loading…")}</p> : props.tokensState.error ? <p role="alert" className={styles.error}>{t("Unable to load access tokens.")}</p> : !props.tokensState.value?.length ? <div className={styles.empty}>{t("No access tokens yet.")}</div> : (
+        {!props.tokensState || (props.tokensState.loading && !props.tokensState.value) ? <div role="status" aria-label={t("Personal access tokens")}><RowsSkeleton /></div> : props.tokensState.error ? <p role="alert" className={styles.error}>{t("Unable to load access tokens.")}</p> : !props.tokensState.value?.length ? <div className={styles.empty}>{t("No access tokens yet.")}</div> : (
           <ul className={styles.list}>
             {props.tokensState.value.map((token) => (
               <li key={token.token}>
                 <code className={styles.token}>{token.token}</code>
                 <div className={styles.actions}>
-                  <Button onClick={(e) => props.onCopyToken(e, token.token)}>{t(props.copiedToken === token.token ? "Copied" : "Copy")}</Button>
-                  <Button danger onClick={() => props.onDeleteToken(token.token)}>{t("Revoke")}</Button>
+                  <Button onClick={(e) => props.onCopyToken?.(e, token.token)}>{t(props.copiedToken === token.token ? "Copied" : "Copy")}</Button>
+                  <Button danger onClick={() => props.onDeleteToken?.(token.token)}>{t("Revoke")}</Button>
                 </div>
               </li>
             ))}
@@ -109,14 +110,14 @@ export default function SettingsContainer(props: SettingsContainerProps) {
       <section className={styles.card} aria-labelledby="hosts-heading">
         <div className={styles.sectionHeader} data-settings-row>
           <div><h2 id="hosts-heading">{t("Trusted host apps")}</h2><p>{t("Allow custom app hosts from domains you trust.")}</p></div>
-          <Button onClick={props.onNewTrustedHost}>{t("Add URL")}</Button>
+          <Button disabled={!props.onNewTrustedHost} onClick={props.onNewTrustedHost}>{t("Add URL")}</Button>
         </div>
-        {!props.hostsState || props.hostsState === "loading" ? <p role="status">{t("Loading…")}</p> : props.hostsState === "error" ? <p role="alert" className={styles.error}>{t("Unable to load trusted hosts.")}</p> : !props.hostsState.length ? <div className={styles.empty}>{t("No trusted hosts yet.")}</div> : (
+        {!props.hostsState || props.hostsState === "loading" ? <div role="status" aria-label={t("Trusted host apps")}><RowsSkeleton /></div> : props.hostsState === "error" ? <p role="alert" className={styles.error}>{t("Unable to load trusted hosts.")}</p> : !props.hostsState.length ? <div className={styles.empty}>{t("No trusted hosts yet.")}</div> : (
           <ul className={styles.list}>
             {props.hostsState.map((host) => (
               <li key={host.id}>
                 <span className={styles.host}>{host.hostUrl}</span>
-                <Button danger onClick={() => props.onDeleteTrustedHost(host)}>{t("Delete")}</Button>
+                <Button danger onClick={() => props.onDeleteTrustedHost?.(host)}>{t("Delete")}</Button>
               </li>
             ))}
           </ul>

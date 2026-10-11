@@ -1,5 +1,6 @@
 import { ensureIsTopFrame } from "@/wab/client/cli-routes";
 import { ENV } from "@/wab/client/env";
+import { getUiAppearance } from "@/wab/client/ui-theme";
 import { encodeUriParams } from "@/wab/commons/urls";
 import { ensure } from "@/wab/shared/common";
 import { DevFlagsType } from "@/wab/shared/devflags";
@@ -55,6 +56,8 @@ export function buildPlasmicStudioArgsHash(
     ),
   ]);
   params.push([keyStudioHash, ENV.COMMITHASH]);
+  // Seed the injected Studio document before its live appearance subscription.
+  params.push(["uiAppearance", getUiAppearance()]);
 
   return `#${encodeUriParams(params)}`;
 }

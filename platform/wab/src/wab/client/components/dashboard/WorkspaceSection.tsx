@@ -13,6 +13,7 @@ import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
+import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
@@ -43,7 +44,7 @@ import {
 } from "@/wab/shared/perms";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, Flex, Segmented, Skeleton } from "antd";
+import { Alert, Button, Flex, Segmented } from "antd";
 import * as _ from "lodash";
 import { trimStart } from "lodash";
 import * as React from "react";
@@ -333,7 +334,7 @@ function WorkspaceSection_(
                 }
               />
             ) : (
-              <Skeleton active paragraph={{ rows: 3 }} />
+              <RowsSkeleton />
             ),
         }}
       >

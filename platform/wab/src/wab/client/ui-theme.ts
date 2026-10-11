@@ -18,7 +18,15 @@ function readPreference(): AppearancePreference {
 }
 
 let preference = readPreference();
-let inheritedAppearance: UiAppearance | undefined;
+const studioArgs = (window as Window & { __PlasmicStudioArgs?: string })
+  .__PlasmicStudioArgs;
+const startupAppearance = studioArgs
+  ? new URLSearchParams(studioArgs.replace(/^#/, "?")).get("uiAppearance")
+  : undefined;
+let inheritedAppearance: UiAppearance | undefined =
+  startupAppearance === "dark" || startupAppearance === "light"
+    ? startupAppearance
+    : undefined;
 function syncDesktopAppearance() {
   if (window.top !== window) {
     return;
@@ -32,12 +40,12 @@ function syncDesktopAppearance() {
   ).desktopEnvironment;
   void desktop?.setUiAppearance?.(getUiAppearance());
 }
-syncDesktopAppearance();
 const notify = () => {
   document.documentElement.dataset.uiAppearance = getUiAppearance();
   syncDesktopAppearance();
   listeners.forEach((listener) => listener());
 };
+notify();
 export function subscribeUiAppearance(listener: () => void) {
   listeners.add(listener);
   return () => {

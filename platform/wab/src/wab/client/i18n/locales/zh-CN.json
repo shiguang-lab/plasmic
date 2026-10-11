@@ -3586,5 +3586,11 @@
   "Code components for common interface controls.": "按钮、表单等通用界面控件的代码组件。",
   "Collections of reusable visual components.": "可复用的可视化组件集合。",
   "Code components for product-specific features.": "用于特定产品功能的代码组件。",
-  "Icon components and assets.": "图标组件和图标资源。"
+  "Icon components and assets.": "图标组件和图标资源。",
+  "CMS ID": "CMS ID",
+  "Public Token": "公开令牌",
+  "Secret Token": "私密令牌",
+  "Locales": "语言区域",
+  "Edit content": "编辑内容",
+  "Edit models": "编辑模型"
 }

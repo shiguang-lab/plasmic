@@ -3586,5 +3586,11 @@
   "Code components for common interface controls.": "버튼, 폼 등 공통 UI 컨트롤용 코드 컴포넌트.",
   "Collections of reusable visual components.": "재사용 가능한 시각적 컴포넌트 모음.",
   "Code components for product-specific features.": "특정 제품 기능용 코드 컴포넌트.",
-  "Icon components and assets.": "아이콘 컴포넌트와 리소스."
+  "Icon components and assets.": "아이콘 컴포넌트와 리소스.",
+  "CMS ID": "CMS ID",
+  "Public Token": "공개 토큰",
+  "Secret Token": "비밀 토큰",
+  "Locales": "로케일",
+  "Edit content": "콘텐츠 편집",
+  "Edit models": "모델 편집"
 }

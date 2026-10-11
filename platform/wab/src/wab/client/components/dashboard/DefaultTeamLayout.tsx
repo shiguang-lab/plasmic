@@ -1,8 +1,6 @@
 import DefaultLayout, {
   DefaultLayoutProps,
 } from "@/wab/client/components/dashboard/DefaultLayout";
-import { useI18n } from "@/wab/client/i18n";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
 
@@ -13,7 +11,6 @@ function DefaultTeamLayout_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { team, ...rest } = props;
-  const { t } = useI18n();
 
   return (
     <DefaultLayout
@@ -21,17 +18,6 @@ function DefaultTeamLayout_(
       {...rest}
       team={team}
       freeTrial={team ? { team } : undefined}
-      helpButton={
-        // Support is per org, so the playground (personal team) has none.
-        !team || team.personalTeamOwnerId
-          ? { render: () => null }
-          : {
-              props: {
-                children: t("Help"),
-                href: APP_ROUTES.orgSupport.fill({ teamId: team.id }),
-              },
-            }
-      }
     />
   );
 }

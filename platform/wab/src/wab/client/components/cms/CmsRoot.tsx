@@ -1,4 +1,5 @@
 import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
+import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -10,7 +11,7 @@ import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { CmsDatabaseId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, Skeleton } from "antd";
+import { Alert, Button } from "antd";
 import * as React from "react";
 
 export interface CmsRootProps extends DefaultCmsRootProps {
@@ -24,28 +25,26 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
   const { database, error, mutate } = useCmsDatabase(databaseId);
   if (!database) {
     return (
-      <div className={styles.loading}>
-        {error ? (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to load content library")}
-            action={
-              <Button
-                onClick={() => {
-                  void mutate();
-                }}
-              >
-                {t("Retry")}
-              </Button>
-            }
-          />
-        ) : (
-          <div role="status" aria-label={t("Loading content library…")}>
-            <Skeleton active paragraph={{ rows: 6 }} />
-          </div>
-        )}
-      </div>
+      <CmsLoadingShell
+        content={
+          error ? (
+            <Alert
+              type="error"
+              showIcon
+              title={t("Failed to load content library")}
+              action={
+                <Button
+                  onClick={() => {
+                    void mutate();
+                  }}
+                >
+                  {t("Retry")}
+                </Button>
+              }
+            />
+          ) : undefined
+        }
+      />
     );
   }
   return (

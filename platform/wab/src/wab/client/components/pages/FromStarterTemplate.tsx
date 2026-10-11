@@ -1,8 +1,11 @@
 import { AppCtx } from "@/wab/client/app-ctx";
-import { Spinner } from "@/wab/client/components/widgets";
+import { DashboardLayout } from "@/wab/client/components/dashboard/DashboardLayout";
+import { ProjectCardsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
+import { useI18n } from "@/wab/client/i18n";
 import { WorkspaceId } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { Typography } from "antd";
 import * as React from "react";
 
 export function FromStarterTemplate(props: {
@@ -16,6 +19,8 @@ export function FromStarterTemplate(props: {
 }) {
   const { appCtx, projectId, baseProjectId, name, path, workspaceId, version } =
     props;
+
+  const { t } = useI18n();
 
   React.useEffect(() => {
     const createProject = async () => {
@@ -52,5 +57,14 @@ export function FromStarterTemplate(props: {
     }
   }, [projectId, baseProjectId, appCtx, name]);
 
-  return <Spinner />;
+  return (
+    <DashboardLayout>
+      <section style={{ padding: 24 }}>
+        <Typography.Title level={2}>
+          {name ?? t("New project")}
+        </Typography.Title>
+        <ProjectCardsSkeleton />
+      </section>
+    </DashboardLayout>
+  );
 }

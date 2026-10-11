@@ -4,8 +4,8 @@ import { useI18n } from "@/wab/client/i18n";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import uniqBy from "lodash/uniqBy";
 // This file is owned by you, feel free to edit as you see fit.
+import { DashboardPageLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
-import { Spinner } from "@/wab/client/components/widgets";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
   useAsyncFnStrict,
@@ -51,7 +51,7 @@ function MyPlayground_(props: MyPlaygroundProps, ref: HTMLElementRefOf<"div">) {
     return (
       <>
         {documentTitle(t("My Playground"))}
-        <Spinner />
+        <DashboardPageLoading />
       </>
     );
   }

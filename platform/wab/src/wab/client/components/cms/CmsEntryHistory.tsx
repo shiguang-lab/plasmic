@@ -9,6 +9,10 @@ import {
   useMutateRow,
 } from "@/wab/client/components/cms/cms-contexts";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
+import {
+  FormSkeleton,
+  RowsSkeleton,
+} from "@/wab/client/components/widgets/ContentSkeletons";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
@@ -24,7 +28,6 @@ import {
   Empty,
   Flex,
   Form,
-  Skeleton,
   Tag,
   Typography,
   message,
@@ -95,7 +98,7 @@ export function CmsEntryHistory(props: {
           />
         ) : (
           <div role="status" aria-label={t("Loading revision history…")}>
-            <Skeleton active />
+            <RowsSkeleton rows={5} />
           </div>
         )}
       </div>
@@ -241,7 +244,7 @@ export function EntryRevisionView() {
           />
         ) : (
           <div role="status" aria-label={t("Loading revision…")}>
-            <Skeleton active />
+            <FormSkeleton />
           </div>
         )}
       </div>

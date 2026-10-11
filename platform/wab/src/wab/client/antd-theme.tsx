@@ -53,7 +53,7 @@ export function AntdConfigProvider({
   }, [locale]);
   const currentTheme = productUI ? productTheme(appearance) : antdTheme;
   const { styles } = useProductThemeStyles(theme.getDesignToken(currentTheme));
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!productUI) {
       return;
     }
@@ -72,11 +72,12 @@ export function AntdConfigProvider({
       }
     };
   }, [productUI, styles.root]);
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     ConfigProvider.config({ theme: currentTheme });
-    const token = theme.getDesignToken(currentTheme);
+    // Document/loading colors follow the selected appearance even on auth
+    // routes and in independent modal roots that use the legacy control theme.
+    const token = theme.getDesignToken(productTheme(appearance));
     const root = document.documentElement;
-    root.dataset.uiAppearance = productUI ? appearance : "light";
     for (const [name, value] of Object.entries({
       layout: token.colorBgLayout,
       surface: token.colorBgContainer,

@@ -59,7 +59,8 @@ it("preserves account, token, copy and trusted-host actions", () => {
 });
 it("renders loading and failure states", () => {
   setup({ tokensState: { loading: true, retry: vitest.fn() }, hostsState: "error" });
-  expect(screen.getByRole("status").textContent).toBe("Loading…");
+  expect(screen.getByRole("status", { name: "Personal access tokens" }).querySelector(".ant-skeleton")).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Preferences" })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe("Unable to load trusted hosts.");
 });
 it("shows a persistence error if the device cannot store the preference", () => {
@@ -96,4 +97,21 @@ it("applies and persists all appearance choices without changing the language", 
   expect(localStorage.getItem(APPEARANCE_STORAGE_KEY)).toBe("system");
   expect(document.documentElement.dataset.uiAppearance).toBe(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   expect(localStorage.getItem("shiguang.ui.language")).toBe("en");
+});
+
+
+it("shows known settings and usable preferences before the account resource is ready", () => {
+  render(<AntdConfigProvider><SettingsContainer /></AntdConfigProvider>);
+  expect(screen.getByRole("heading", { name: "Account" })).toBeTruthy();
+  expect(screen.getByLabelText("Appearance")).toBeTruthy();
+  expect(screen.getByLabelText("Language")).toBeTruthy();
+  expect(screen.getByRole("link", { name: "Manage Shiguang account" })).toBeTruthy();
+  expect(screen.getAllByRole("status")).toHaveLength(2);
+  expect(screen.getByRole("button", { name: "New token" }).hasAttribute("disabled")).toBe(true);
+});
+
+it("preserves loaded tokens while refreshing in the background", () => {
+  setup({ tokensState: { loading: true, value: [{ token: "existing-token", createdDate: new Date() }], retry: vitest.fn() } });
+  expect(screen.getByText("existing-token")).toBeTruthy();
+  expect(screen.queryByRole("status")).toBeNull();
 });

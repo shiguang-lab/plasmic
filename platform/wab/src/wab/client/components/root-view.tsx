@@ -1,17 +1,19 @@
 import { Api } from "@/wab/client/api";
 import {
   AppCtx,
-  loadAppCtx,
   NonAuthCtx,
   NonAuthCtxContext,
+  loadAppCtx,
   useNonAuthCtx,
   withHostFrameCache,
 } from "@/wab/client/app-ctx";
 import {
+  Router,
   getLoginRouteWithContinuation,
   isProjectPath,
-  Router,
 } from "@/wab/client/cli-routes";
+import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
+import PromoBanner from "@/wab/client/components/PromoBanner";
 import { DashboardLayout } from "@/wab/client/components/dashboard/DashboardLayout";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { shouldUpsellRedirect } from "@/wab/client/components/dashboard/useUpsellQueryParam";
@@ -22,10 +24,13 @@ import {
 import { AppAuthPage } from "@/wab/client/components/pages/AppAuthPage";
 import { GithubCallback } from "@/wab/client/components/pages/GithubCallback";
 import { ShiguangSignIn } from "@/wab/client/components/pages/ShiguangSignIn";
-import PromoBanner from "@/wab/client/components/PromoBanner";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { AppView } from "@/wab/client/components/top-view";
 import * as widgets from "@/wab/client/components/widgets";
+import {
+  FormSkeleton,
+  RowsSkeleton,
+} from "@/wab/client/components/widgets/ContentSkeletons";
 import { providesAppCtx, useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useHostFrameCtxIfHostFrame } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { analytics } from "@/wab/client/observability";
@@ -34,14 +39,14 @@ import { Redirect, RedirectAsync } from "@/wab/client/route/Redirect";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import {
-  promisifyMethods,
   PromisifyMethods,
+  promisifyMethods,
 } from "@/wab/commons/promisify-methods";
+import { accessLevelRank } from "@/wab/shared/EntUtil";
 import { FastBundler } from "@/wab/shared/bundler";
 import { ensure, hackyCast, spawn } from "@/wab/shared/common";
 import { StarterSectionConfig } from "@/wab/shared/devflags";
 import { BASE_URL } from "@/wab/shared/discourse/config";
-import { accessLevelRank } from "@/wab/shared/EntUtil";
 import { noopFn } from "@/wab/shared/functions";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { getMaximumTierFromTeams } from "@/wab/shared/pricing/pricing-utils";
@@ -135,7 +140,7 @@ function LoggedInContainer(props: LoggedInContainerProps) {
         isProjectPath(currentLocation.pathname) ? (
           <StudioChrome />
         ) : (
-          <widgets.Spinner />
+          <ApplicationPageLoading />
         )
       }
     >
@@ -357,9 +362,11 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                                 );
                               }
                               return (
-                                <LoggedInPages.TeamSettingsPage
-                                  teamId={teamId}
-                                />
+                                <DashboardLayout>
+                                  <LoggedInPages.TeamSettingsPage
+                                    teamId={teamId}
+                                  />
+                                </DashboardLayout>
                               );
                             },
                           }),
@@ -388,7 +395,9 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                             exact: true,
                             route: APP_ROUTES.settings,
                             render: () => (
-                              <LoggedInPages.SettingsPage appCtx={appCtx} />
+                              <DashboardLayout>
+                                <LoggedInPages.SettingsPage appCtx={appCtx} />
+                              </DashboardLayout>
                             ),
                           }),
                           switchCase<{}>({
@@ -397,9 +406,13 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                             render: () =>
                               selfInfo.isAdmin ? (
                                 <NormalLayout appCtx={appCtx}>
-                                  <LoggedInPages.AdminPage
-                                    nonAuthCtx={nonAuthCtx}
-                                  />
+                                  <React.Suspense
+                                    fallback={<RowsSkeleton rows={6} avatar />}
+                                  >
+                                    <LoggedInPages.AdminPage
+                                      nonAuthCtx={nonAuthCtx}
+                                    />
+                                  </React.Suspense>
                                 </NormalLayout>
                               ) : (
                                 <Redirect to="/" />
@@ -411,9 +424,11 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                             render: () =>
                               selfInfo.isAdmin ? (
                                 <NormalLayout appCtx={appCtx}>
-                                  <LoggedInPages.ImportProjectsFromProd
-                                    nonAuthCtx={nonAuthCtx}
-                                  />
+                                  <React.Suspense fallback={<FormSkeleton />}>
+                                    <LoggedInPages.ImportProjectsFromProd
+                                      nonAuthCtx={nonAuthCtx}
+                                    />
+                                  </React.Suspense>
                                 </NormalLayout>
                               ) : (
                                 <Redirect to="/" />
@@ -530,7 +545,9 @@ export function Root() {
 
   console.log("Rendering app");
   if (!nonAuthCtx) {
-    return null;
+    return isProjectPath(history.location.pathname) ? null : (
+      <ApplicationPageLoading />
+    );
   }
 
   const loader = async () => {
@@ -576,6 +593,13 @@ export function Root() {
           <widgets.Loadable
             key={loaderKey}
             loader={loader}
+            loadingContents={() =>
+              isProjectPath(history.location.pathname) ? (
+                <widgets.Spinner />
+              ) : (
+                <ApplicationPageLoading />
+              )
+            }
             contents={(appCtx: /*TWZ*/ AppCtx) => {
               return providesAppCtx(appCtx)(
                 <NonAuthCtxContext.Provider value={nonAuthCtx}>

@@ -81,7 +81,7 @@
     position: relative;
     top: auto;
     bottom: auto;
-    width: 62px;
+    width: 72px;
     height: auto;
     padding: 6px 4px;
     border: 1px solid var(--ui-border);
@@ -97,7 +97,8 @@
 
   .main {
     flex: 1;
-    height: auto;
+    height: 100%;
+    min-height: 0;
     min-width: 0;
     max-height: 100%;
     margin-left: 0;
@@ -173,6 +174,12 @@
   text-decoration: none;
   overflow-wrap: anywhere;
   cursor: pointer;
+  > span {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   svg {
     width: 16px;
     height: 16px;
@@ -318,6 +325,7 @@
     }
     .main {
       width: 100%;
+      height: auto;
       max-height: none;
     }
   }

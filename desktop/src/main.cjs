@@ -72,6 +72,13 @@ function isUnifiedLogin(url) {
   return parsed.origin === AUTH_ORIGIN && parsed.pathname === "/login";
 }
 function protectWindow(win) {
+  const syncBackground = (appearance) => {
+    if (!win.isDestroyed()) {
+      win.setBackgroundColor(appearance === "dark" ? "#15161b" : "#eceef4");
+    }
+  };
+  syncBackground(desktopAppearance.snapshot());
+  win.once("closed", desktopAppearance.subscribe(syncBackground));
   for (const eventName of ["will-navigate", "will-redirect"]) {
     win.webContents.on(eventName, (event, url) => {
       if (win === mainWindow && isUnifiedLogin(url)) {
@@ -103,6 +110,7 @@ function protectWindow(win) {
     return {
       action: "allow",
       overrideBrowserWindowOptions: {
+        backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef4",
         webPreferences: {
           session: win.webContents.session,
           nodeIntegration: false,
@@ -249,7 +257,6 @@ async function startDesktop() {
   const syncWindowAppearance = (appearance) => {
     if (appearanceWindow.isDestroyed()) return;
     const dark = appearance === "dark";
-    appearanceWindow.setBackgroundColor(dark ? "#15161b" : "#eceef4");
     if (process.platform === "win32") {
       appearanceWindow.setTitleBarOverlay({
         color: dark ? "#15161b" : "#eceef4",

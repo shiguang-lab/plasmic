@@ -21,7 +21,7 @@ it.each([
   (stored, matches, expected) => {
     const root = { dataset: {} as Record<string, string> };
     const media = { matches, addEventListener: vi.fn() };
-    const run = new Function("window", "document", "localStorage", script);
+    const run = new Function("window", "document", "localStorage", "maybeParams", script);
     run(
       { matchMedia: () => media, addEventListener: vi.fn() },
       { documentElement: root },
@@ -35,7 +35,7 @@ it.each([false, true])(
   "follows the system when storage is unavailable (dark: %s)",
   (matches) => {
     const root = { dataset: {} as Record<string, string> };
-    new Function("window", "document", "localStorage", script)(
+    new Function("window", "document", "localStorage", "maybeParams", script)(
       {
         matchMedia: () => ({ matches, addEventListener: vi.fn() }),
         addEventListener: vi.fn(),
@@ -50,6 +50,35 @@ it.each([false, true])(
     expect(root.dataset.uiAppearance).toBe(matches ? "dark" : "light");
   },
 );
+
+it.each(["dark", "light"])(
+  "paints the inherited host appearance %s before accessing host storage",
+  (appearance) => {
+    const root = { dataset: {} as Record<string, string> };
+    const getItem = vi.fn(() => {
+      throw new Error("Host storage unavailable");
+    });
+    new Function("window", "document", "localStorage", "maybeParams", script)(
+      { matchMedia: () => ({ matches: appearance !== "dark" }) },
+      { documentElement: root },
+      { getItem },
+      new URLSearchParams({ uiAppearance: appearance }),
+    );
+    expect(root.dataset.uiAppearance).toBe(appearance);
+    expect(getItem).not.toHaveBeenCalled();
+  },
+);
+
+it("ignores an invalid inherited appearance and resolves the stored preference", () => {
+  const root = { dataset: {} as Record<string, string> };
+  new Function("window", "document", "localStorage", "maybeParams", script)(
+    { matchMedia: () => ({ matches: false }) },
+    { documentElement: root },
+    { getItem: () => "dark" },
+    new URLSearchParams({ uiAppearance: "invalid" }),
+  );
+  expect(root.dataset.uiAppearance).toBe("dark");
+});
 
 it("tracks system changes while retaining the host's inherited appearance", async () => {
   let onChange: () => void = () => {};

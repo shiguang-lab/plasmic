@@ -16,7 +16,7 @@ import MarkFullColorIcon from "@/wab/client/plasmic/plasmic_kit_design_system/Pl
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { Dropdown, Menu } from "antd";
+import { Dropdown, Menu, Skeleton } from "antd";
 import * as React from "react";
 import { ReactNode } from "react";
 
@@ -114,4 +114,25 @@ export class NormalLayout extends AppComponent {
       </>
     );
   }
+}
+
+export function NormalLayoutLoading({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthenticatedLayout
+      topBar={
+        <div className="normal-layout__top-bar-right">
+          <HelpButton />
+          <div className="normal-layout__user">
+            <Skeleton.Avatar active size={32} shape="circle" />
+          </div>
+        </div>
+      }
+    >
+      {children}
+    </AuthenticatedLayout>
+  );
 }

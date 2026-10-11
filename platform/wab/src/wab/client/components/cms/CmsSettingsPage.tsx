@@ -7,6 +7,7 @@ import {
 import Button from "@/wab/client/components/widgets/Button";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultCmsSettingsPageProps,
@@ -26,6 +27,7 @@ function CmsSettingsPage_(
   props: CmsSettingsPageProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t } = useI18n();
   const match = useMatchedRoute(APP_ROUTES.cmsSettings);
   const { database } = useCmsDatabase(match?.pathParams.databaseId);
   const api = useApi();
@@ -109,12 +111,15 @@ function CmsSettingsPage_(
         }}
         content={
           <div className="vlist-gap-xlg fill-width">
-            <Form.Item name={"databaseId"} label={<strong>CMS ID</strong>}>
+            <Form.Item
+              name={"databaseId"}
+              label={<strong>{t("CMS ID")}</strong>}
+            >
               <CopiableCode text={databaseId} name={"databaseId"} />
             </Form.Item>
             <Form.Item
               name={"publicToken"}
-              label={<strong>Public Token</strong>}
+              label={<strong>{t("Public Token")}</strong>}
             >
               <CopiableCode
                 text={database?.publicToken ?? ""}
@@ -123,7 +128,7 @@ function CmsSettingsPage_(
             </Form.Item>
             <Form.Item
               name={"secretToken"}
-              label={<strong>Secret Token</strong>}
+              label={<strong>{t("Secret Token")}</strong>}
             >
               <CopiableCode
                 hide
@@ -131,7 +136,7 @@ function CmsSettingsPage_(
                 name={"secretToken"}
               />
             </Form.Item>
-            <Form.Item label={<strong>Locales</strong>}>
+            <Form.Item label={<strong>{t("Locales")}</strong>}>
               <Form.List name={["extraData", "locales"]}>
                 {(fields, handles) => (
                   <div className={"vlist-gap-xlg"}>

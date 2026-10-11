@@ -14,11 +14,7 @@ import {
 } from "@/wab/client/components/pages/admin/AdminCtx";
 import { AdminImportProjectsFromProd } from "@/wab/client/components/pages/admin/AdminImportProjectsFromProd";
 import { AdminTeamsView } from "@/wab/client/components/pages/admin/AdminTeamsView";
-import {
-  LinkButton,
-  SearchBox,
-  Spinner,
-} from "@/wab/client/components/widgets";
+import { LinkButton, SearchBox } from "@/wab/client/components/widgets";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { downloadBlob, getUploadedFile } from "@/wab/client/dom-utils";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
@@ -39,6 +35,7 @@ import {
   Input,
   InputNumber,
   notification,
+  Skeleton,
   Table,
   TablePaginationConfig,
   Tabs,
@@ -472,7 +469,7 @@ function DevFlagControls() {
               autoFocus={false}
             />
           ) : (
-            <Spinner />
+            <Skeleton.Input active block style={{ height: 1050 }} />
           )}
         </div>
         <Button loading={submitting} htmlType={"submit"}>

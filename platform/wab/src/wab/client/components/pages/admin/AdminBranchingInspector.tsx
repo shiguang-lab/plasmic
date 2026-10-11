@@ -11,7 +11,7 @@ import {
 import { PkgVersionInfoMeta } from "@/wab/shared/SharedApi";
 import { assert, ensure } from "@/wab/shared/common";
 import "@xyflow/react/dist/style.css";
-import { Button, Descriptions, Input, notification } from "antd";
+import { Button, Descriptions, Input, Skeleton, notification } from "antd";
 import { keyBy, maxBy, uniq } from "lodash";
 import moment from "moment";
 
@@ -314,7 +314,9 @@ export function AdminBranchingInspector() {
         </div>
       )}
       <div style={{ marginTop: 32 }}>
-        <React.Suspense>
+        <React.Suspense
+          fallback={<Skeleton.Input active block style={{ height: "60vh" }} />}
+        >
           <div
             style={{
               width: "100%",

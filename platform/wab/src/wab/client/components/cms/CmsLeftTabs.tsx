@@ -1,5 +1,6 @@
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCmsLeftTabsProps,
   PlasmicCmsLeftTabs,
@@ -16,6 +17,7 @@ export type CmsLeftTabsProps = DefaultCmsLeftTabsProps;
 
 function CmsLeftTabs_(props: CmsLeftTabsProps, ref: HTMLElementRefOf<"div">) {
   const appCtx = useAppCtx();
+  const { t } = useI18n();
   const match = useMatchedRoute<{
     databaseId: CmsDatabaseId;
     tableId: CmsTableId;
@@ -52,7 +54,7 @@ function CmsLeftTabs_(props: CmsLeftTabsProps, ref: HTMLElementRefOf<"div">) {
               tableId: match.pathParams.tableId,
             })
           : APP_ROUTES.cmsContentRoot.fill(params),
-        tooltip: "Edit content",
+        tooltip: t("Edit content"),
         "data-test-id": "cmsContent",
       }}
       schemaButton={{
@@ -62,7 +64,7 @@ function CmsLeftTabs_(props: CmsLeftTabsProps, ref: HTMLElementRefOf<"div">) {
               tableId: match.pathParams.tableId,
             })
           : APP_ROUTES.cmsSchemaRoot.fill(params),
-        tooltip: "Edit models",
+        tooltip: t("Edit models"),
         "data-test-id": "cmsModels",
       }}
       settingsButton={{

@@ -6,7 +6,7 @@ import { promptNewTeam } from "@/wab/client/components/dashboard/dashboard-actio
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { useApplicationLayoutStyles } from "@/wab/client/components/ui/layout-styles";
-import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultDefaultLayoutProps,
@@ -16,18 +16,16 @@ import {
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { useBrowserNotification } from "@/wab/client/utils/useBrowserNotification";
 import { ApiTeam, ApiWorkspace } from "@/wab/shared/ApiSchema";
-import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Dropdown, Layout, Popover } from "antd";
 import {
   AppstoreOutlined,
-  BookOutlined,
   ExperimentOutlined,
   FolderOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
+import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Button, Dropdown, Layout, Popover, Skeleton } from "antd";
 import * as _ from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -44,20 +42,16 @@ function DefaultLayout_(
   props: DefaultLayoutProps,
   ref: HTMLElementRefOf<"div">,
 ) {
-  const { team, workspace, freeTrial, upgradeButton, helpButton, ...rest } =
-    props;
+  const { team, workspace, freeTrial, upgradeButton, ...rest } = props;
   const { t } = useI18n();
   const { styles: layout, cx } = useApplicationLayoutStyles();
   const history = useHistory();
-  const appCtx = useAppCtx();
-  const userInfo = ensure(
-    appCtx.selfInfo,
-    "DefaultLayout requires appCtx to contain user information",
-  );
+  const appCtx = React.useContext(AppCtxContext);
+  const userInfo = appCtx?.selfInfo;
 
   const [spacesOpen, setSpacesOpen] = React.useState(false);
-  const teams = appCtx.getAllTeams();
-  const workspaces = _.sortBy(appCtx.workspaces, (w) => w.name);
+  const teams = appCtx?.getAllTeams() ?? [];
+  const workspaces = _.sortBy(appCtx?.workspaces ?? [], (w) => w.name);
 
   useBrowserNotification();
 
@@ -71,12 +65,17 @@ function DefaultLayout_(
           </PublicLink>
         ),
       },
-      { key: "sign-out", label: t("Sign Out"), onClick: () => appCtx.logout() },
+      {
+        key: "sign-out",
+        label: t("Sign Out"),
+        onClick: () => appCtx?.logout(),
+      },
     ],
   };
 
   const brand =
-    appCtx.appConfig.brands?.[team?.id ?? ""] ?? appCtx.appConfig.brands?.[""];
+    appCtx?.appConfig.brands?.[team?.id ?? ""] ??
+    appCtx?.appConfig.brands?.[""];
 
   const navigationTeams = teams.map((navigationTeam) => (
     <React.Fragment key={navigationTeam.id}>
@@ -129,20 +128,24 @@ function DefaultLayout_(
         wrap: (node) => (
           <div className={styles.headerActions}>
             {node}
-            <Dropdown
-              menu={userMenu}
-              placement="bottomRight"
-              trigger={["click"]}
-            >
-              <Button
-                type="text"
-                className={styles.headerAction}
-                data-test-id="btn-dashboard-user"
-                aria-label={userInfo.displayName}
+            {userInfo ? (
+              <Dropdown
+                menu={userMenu}
+                placement="bottomRight"
+                trigger={["click"]}
               >
-                <Avatar size="small" user={userInfo} />
-              </Button>
-            </Dropdown>
+                <Button
+                  type="text"
+                  className={styles.headerAction}
+                  data-test-id="btn-dashboard-user"
+                  aria-label={userInfo.displayName}
+                >
+                  <Avatar size="small" user={userInfo} />
+                </Button>
+              </Dropdown>
+            ) : (
+              <Skeleton.Avatar active size={32} shape="circle" />
+            )}
           </div>
         ),
       }}
@@ -172,6 +175,7 @@ function DefaultLayout_(
               )}
               href={APP_ROUTES.playground.fill({})}
               aria-label={t("My Playground")}
+              title={t("My Playground")}
             >
               <ExperimentOutlined aria-hidden />
               <span>{t("My Playground")}</span>
@@ -189,8 +193,9 @@ function DefaultLayout_(
                       if (
                         event.target instanceof Element &&
                         event.target.closest("a")
-                      )
+                      ) {
                         setSpacesOpen(false);
+                      }
                     }}
                   >
                     {navigationTeams}
@@ -205,6 +210,7 @@ function DefaultLayout_(
                   )}
                   aria-label={t("Spaces")}
                   aria-expanded={spacesOpen}
+                  disabled={!appCtx}
                   onClick={() => setSpacesOpen(!spacesOpen)}
                 >
                   <FolderOutlined aria-hidden />
@@ -227,14 +233,14 @@ function DefaultLayout_(
       headerLogoLink={{
         as: PublicLink,
         wrap: (node) => <div className={styles.brandLink}>{node}</div>,
-        props: brand.logoHref
+        props: brand?.logoHref
           ? {
               href: brand.logoHref,
             }
           : {},
       }}
       headerLogo={
-        brand.logoImgSrc
+        brand?.logoImgSrc
           ? {
               render: () => <img src={brand.logoImgSrc} />,
             }
@@ -251,29 +257,19 @@ function DefaultLayout_(
       }
       freeTrial={freeTrial ?? { render: () => null }}
       upgradeButton={upgradeButton ?? { render: () => null }}
-      helpButton={helpButton ?? { children: t("Help") }}
-      documentationButton={{
-        render: () => (
-          <a
-            className={styles.railItem}
-            href="https://docs.plasmic.app/"
-            target="_blank"
-            rel="noreferrer"
-            aria-label={t("Documentation")}
-          >
-            <BookOutlined aria-hidden />
-            <span>{t("Documentation")}</span>
-          </a>
-        ),
-      }}
+      helpButton={{ render: () => null }}
+      documentationButton={{ render: () => null }}
       newTeamButton={{
         render: () => (
           <button
             type="button"
             className={styles.railItem}
             aria-label={t("New organization")}
+            disabled={!appCtx}
             onClick={async () => {
-              await promptNewTeam(appCtx, history);
+              if (appCtx) {
+                await promptNewTeam(appCtx, history);
+              }
             }}
           >
             <PlusOutlined aria-hidden />

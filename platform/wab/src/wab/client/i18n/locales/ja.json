@@ -3586,5 +3586,11 @@
   "Code components for common interface controls.": "ボタンやフォームなど、汎用 UI のコードコンポーネント。",
   "Collections of reusable visual components.": "再利用できるビジュアルコンポーネントのセット。",
   "Code components for product-specific features.": "製品固有の機能に使うコードコンポーネント。",
-  "Icon components and assets.": "アイコンコンポーネントと素材。"
+  "Icon components and assets.": "アイコンコンポーネントと素材。",
+  "CMS ID": "CMS ID",
+  "Public Token": "公開トークン",
+  "Secret Token": "秘密トークン",
+  "Locales": "ロケール",
+  "Edit content": "コンテンツを編集",
+  "Edit models": "モデルを編集"
 }

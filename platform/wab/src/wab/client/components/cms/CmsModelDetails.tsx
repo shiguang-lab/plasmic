@@ -12,8 +12,8 @@ import {
 import { confirm } from "@/wab/client/components/quick-modals";
 import PlasmicWebhookHeader from "@/wab/client/components/webhooks/plasmic/plasmic_kit_continuous_deployment/PlasmicWebhookHeader";
 import PlasmicWebhooksItem from "@/wab/client/components/webhooks/plasmic/plasmic_kit_continuous_deployment/PlasmicWebhooksItem";
-import { Spinner } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
+import { FormSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
@@ -475,7 +475,7 @@ export function CmsModelDetails_(
     React.useState<undefined | string>(undefined);
 
   if (!database || !table) {
-    return null;
+    return <FormSkeleton />;
   }
 
   return (
@@ -801,7 +801,7 @@ function ModelSettingsModal(props: {
       onCancel={onClose}
     >
       {!table ? (
-        <Spinner />
+        <FormSkeleton />
       ) : (
         <Form
           initialValues={table.settings ?? undefined}

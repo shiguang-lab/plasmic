@@ -7,6 +7,7 @@ import {
   useCmsTable,
   useMutateTableRows,
 } from "@/wab/client/components/cms/cms-contexts";
+import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultCmsEntriesListProps } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsEntriesList";
@@ -18,16 +19,7 @@ import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { naturalSort } from "@/wab/shared/sort";
 import { PlusOutlined } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import {
-  Alert,
-  Button,
-  Empty,
-  Flex,
-  Input,
-  Select,
-  Skeleton,
-  Typography,
-} from "antd";
+import { Alert, Button, Empty, Flex, Input, Select, Typography } from "antd";
 import fastStringify from "fast-stringify";
 import { debounce } from "lodash";
 import * as React from "react";
@@ -159,18 +151,6 @@ function CmsEntriesList_(
 
   React.useEffect(() => () => debouncedSetQuery.cancel(), [debouncedSetQuery]);
 
-  if (!rows || !table) {
-    return (
-      <div
-        className={cx(styles.entries, className)}
-        role="status"
-        aria-label={t("Loading content entries…")}
-      >
-        <Skeleton active />
-      </div>
-    );
-  }
-
   const createEntry = async () => {
     setCreating(true);
     setCreateError(false);
@@ -195,13 +175,14 @@ function CmsEntriesList_(
     <section ref={ref} className={cx(styles.entries, className)}>
       <Flex align="center" justify="space-between" gap={8}>
         <Typography.Text strong ellipsis>
-          {table.name}
+          {table?.name}
         </Typography.Text>
         <Button
           aria-label={t("Add new entry")}
           data-test-id="addEntryButton"
           icon={<PlusOutlined aria-hidden />}
           loading={creating}
+          disabled={!table || !rows}
           onClick={() => {
             void createEntry();
           }}
@@ -241,7 +222,11 @@ function CmsEntriesList_(
         />
       )}
       <div className={styles.entryList}>
-        {sortedAndFilteredRows.length ? (
+        {!rows || !table ? (
+          <div role="status" aria-label={t("Loading content entries…")}>
+            <RowsSkeleton rows={5} />
+          </div>
+        ) : sortedAndFilteredRows.length ? (
           sortedAndFilteredRows.map((row) => (
             <CmsEntryItem table={table} row={row} key={row.id} />
           ))

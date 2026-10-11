@@ -63,6 +63,9 @@ it("filters actual entries and distinguishes loading, empty and no matches", asy
     "aria-label",
     "Loading content entries…",
   );
+  expect(screen.getByText("Articles")).toBeTruthy();
+  expect(screen.getByLabelText("Search content entries")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Add new entry" })).toBeDisabled();
   rerender(<CmsEntriesList rows={[]} />);
   expect(screen.getByText("No content entries yet")).toBeTruthy();
   rerender(<CmsEntriesList rows={rows} />);

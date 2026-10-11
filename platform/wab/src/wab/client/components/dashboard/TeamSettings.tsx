@@ -2,8 +2,8 @@ import {
   getTeamMenuItems,
   TeamMenu,
 } from "@/wab/client/components/dashboard/dashboard-actions";
+import { TeamSettingsLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
@@ -20,7 +20,7 @@ import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, notification, Skeleton } from "antd";
+import { Alert, Button, notification } from "antd";
 import * as React from "react";
 
 interface TeamSettingsProps extends DefaultTeamSettingsProps {
@@ -31,7 +31,6 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
   const { teamId, ...rest } = props;
   const appCtx = useAppCtx();
   const { t } = useI18n();
-  const { styles } = useProjectBrowserStyles();
   const selfInfo = ensure(appCtx.selfInfo, "Unexpected nullish selfInfo");
 
   const {
@@ -62,7 +61,7 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
 
   if (!data) {
     return (
-      <div className={styles.root}>
+      <>
         {loadError ? (
           <Alert
             type="error"
@@ -72,10 +71,12 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
           />
         ) : (
           <div role="status" aria-label={t("Loading team settings…")}>
-            <Skeleton active paragraph={{ rows: 6 }} />
+            <TeamSettingsLoading
+              name={appCtx.teams.find((team) => team.id === teamId)?.name}
+            />
           </div>
         )}
-      </div>
+      </>
     );
   }
 

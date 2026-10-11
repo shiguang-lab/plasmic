@@ -15,6 +15,9 @@ import separator from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavSepa
 import navTeam from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavTeamButton.module.css";
 import navSection from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavTeamSection.module.css";
 import navWorkspace from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavWorkspaceButton.module.css";
+import teamPageHeader from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamPageHeader.module.css";
+import teamSettings from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamSettings.module.css";
+import workspaceSection from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicWorkspaceSection.module.css";
 import actionButton from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
 import insertPanel from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicInsertPanel.module.css";
 import listBottomFade from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicListBottomFade.module.css";
@@ -110,6 +113,12 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
     background: token.colorBgLayout,
     fontFamily: token.fontFamily,
     "& > div": { marginTop: 80 },
+    [`& .${workspaceSection.header}, & .${teamPageHeader.root}, & .${teamSettings.header}`]:
+      {
+        background: token.colorBgContainer,
+        color: token.colorText,
+        borderColor: token.colorBorderSecondary,
+      },
     "--ui-surface": token.colorBgContainer,
     "--ui-bg": token.colorBgLayout,
     "--ui-border": token.colorBorder,
@@ -1372,11 +1381,5 @@ export const useProjectBrowserStyles = createStyles(({ token }) => ({
       borderRight: `1px solid ${token.colorBorderSecondary}`,
     },
     [`& .${dashboard.content}`]: { flex: 1, minWidth: 0 },
-  },
-  loadingCard: {
-    padding: 24,
-    borderRadius: token.borderRadiusLG,
-    background: token.colorBgContainer,
-    border: `1px solid ${token.colorBorderSecondary}`,
   },
 }));

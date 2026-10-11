@@ -15,7 +15,12 @@ function setup() {
   webContents.setWindowOpenHandler = (callback) => {
     handle = callback;
   };
-  const windowForTest = { webContents };
+  const windowForTest = Object.assign(new EventEmitter(), {
+    webContents,
+    isDestroyed: () => false,
+    setBackgroundColor: (value) => { windowForTest.background = value; },
+  });
+  const appearance = require("../src/ui-appearance.cjs").createDesktopAppearance();
   const filename = require.resolve("../src/main.cjs");
   vm.runInNewContext(
     fs.readFileSync(filename, "utf8") +
@@ -35,7 +40,7 @@ function setup() {
           return config;
         }
         if (name === "./ui-appearance.cjs") {
-          return require("../src/ui-appearance.cjs");
+          return { createDesktopAppearance: () => appearance };
         }
         if (name === "./open-browser.cjs") {
           return { openBrowser: (url) => browserUrls.push(url) };
@@ -56,6 +61,8 @@ function setup() {
     externalUrls,
     loginUrls,
     webContents,
+    windowForTest,
+    appearance,
   };
 }
 
@@ -71,6 +78,28 @@ test("full preview opens in the default browser and denies creating an Electron 
   }
   assert.equal(s.externalUrls.length, 0);
   assert.equal(s.loginUrls.length, 0);
+});
+
+test("navigation and internal popup windows share the selected native background", () => {
+  const s = setup();
+  const popupUrl = config.studioOrigin + "/static/popup.html";
+  assert.equal(s.windowForTest.background, "#15161b");
+  assert.equal(s.handle(popupUrl).overrideBrowserWindowOptions.backgroundColor, "#15161b");
+  s.appearance.set("light");
+  assert.equal(s.windowForTest.background, "#eceef4");
+  assert.equal(s.handle(popupUrl).overrideBrowserWindowOptions.backgroundColor, "#eceef4");
+  const child = Object.assign(new EventEmitter(), {
+    webContents: Object.assign(new EventEmitter(), { setWindowOpenHandler() {} }),
+    isDestroyed: () => false,
+    setBackgroundColor: (value) => { child.background = value; },
+  });
+  s.webContents.emit("did-create-window", child);
+  assert.equal(child.background, "#eceef4");
+  s.appearance.set("dark");
+  assert.equal(child.background, "#15161b");
+  child.emit("closed");
+  s.appearance.set("light");
+  assert.equal(child.background, "#15161b");
 });
 
 test("embedded preview navigation stays in the editor and other internal windows retain their policy", () => {

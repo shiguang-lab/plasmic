@@ -61,6 +61,12 @@ export function StudioFrame({
 }) {
   const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
+  // Keep the startup snapshot stable; live theme changes use the frame bridge
+  // and must not navigate/reload the host by changing its hash.
+  const studioArgsHash = React.useMemo(
+    () => buildPlasmicStudioArgsHash(appCtx.appConfigOverrides),
+    [appCtx.appConfigOverrides],
+  );
   const forceUpdate = useForceUpdate();
   const [project, setProject] = React.useState<ApiProject>();
   const [branch, setBranch] = React.useState<ApiBranch>();
@@ -269,7 +275,7 @@ export function StudioFrame({
   }
 
   // We send the params via a hash parameter so that the host server cannot see them.
-  src.hash = buildPlasmicStudioArgsHash(appCtx.appConfigOverrides);
+  src.hash = studioArgsHash;
 
   return (
     <TopFrameCtxProvider projectId={projectId} topFrameApi={topFrameApi}>

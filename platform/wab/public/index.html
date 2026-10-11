@@ -21,6 +21,11 @@
         "(prefers-color-scheme: dark)",
       );
       function applyStartupAppearance() {
+        const inherited = maybeParams?.get("uiAppearance");
+        if (inherited === "dark" || inherited === "light") {
+          document.documentElement.dataset.uiAppearance = inherited;
+          return;
+        }
         let preference = "system";
         try {
           const stored = localStorage.getItem("shiguang.ui.appearance");
@@ -87,12 +92,23 @@
       }
 
       :root {
+        color-scheme: light;
+        --studio-loading-layout: #eceef3;
+        --studio-loading-surface: #ffffff;
         --studio-loading-muted: #70778b;
         --studio-loading-border: #e6e8ef;
+        background-color: var(--studio-loading-layout);
       }
       :root[data-ui-appearance="dark"] {
+        color-scheme: dark;
+        --studio-loading-layout: #15161b;
+        --studio-loading-surface: #202128;
         --studio-loading-muted: #9295a7;
         --studio-loading-border: #30313b;
+      }
+      body {
+        margin: 0;
+        background-color: var(--studio-loading-layout);
       }
       .studio-loading {
         display: none;

@@ -17,6 +17,7 @@ import {
 } from "@/wab/client/components/cms/cms-contexts";
 import { isCmsTextLike } from "@/wab/client/components/cms/utils";
 import { confirm } from "@/wab/client/components/quick-modals";
+import { FormSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -54,7 +55,6 @@ import {
   Drawer,
   Form,
   Menu,
-  Skeleton,
   Tooltip,
   message,
   notification,
@@ -166,7 +166,11 @@ function CmsEntryDetails_(
           />
         ) : (
           <div role="status" aria-label={t("Loading content entry…")}>
-            <Skeleton active />
+            <FormSkeleton
+              labels={table?.schema.fields
+                .filter((field) => !field.hidden)
+                .map((field) => field.label || field.identifier)}
+            />
           </div>
         )}
       </div>

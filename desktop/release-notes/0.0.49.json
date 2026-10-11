@@ -1,0 +1,7 @@
+{
+  "en": "- Keep dark appearance consistent during navigation, startup and native window transitions.\n- Show real page navigation, headings and controls immediately; use content-shaped skeletons for cards, lists, forms, charts and capsules while data loads.",
+  "zh-CN": "- 页面切换、启动及原生窗口过渡时保持暗色主题，消除白色背景闪烁。\n- 立即显示真实导航、标题及已知控件；卡片、列表、表单、图表和胶囊仅在数据加载区域显示对应形状的骨架。",
+  "zh-TW": "- 頁面切換、啟動及原生視窗過渡時保持暗色主題，消除白色背景閃爍。\n- 立即顯示真實導覽、標題及已知控制項；卡片、清單、表單、圖表和膠囊僅在資料載入區域顯示對應形狀的骨架。",
+  "ja": "- ページ切り替え、起動、ネイティブウィンドウの遷移中もダークテーマを維持し、白い背景のちらつきを解消します。\n- ナビゲーション、見出し、既知の操作をすぐに表示し、データ取得中のカード、リスト、フォーム、グラフ、カプセルには同じ形のスケルトンを表示します。",
+  "ko": "- 페이지 전환, 시작 및 네이티브 창 전환 중에도 다크 테마를 유지하여 흰색 배경 깜박임을 없앱니다.\n- 탐색 메뉴, 제목 및 알려진 컨트롤을 즉시 표시하고 데이터 로딩 영역의 카드, 목록, 폼, 차트 및 캡슐에는 같은 형태의 스켈레톤을 표시합니다."
+}

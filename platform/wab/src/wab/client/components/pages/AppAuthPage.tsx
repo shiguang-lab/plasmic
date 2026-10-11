@@ -1,12 +1,12 @@
 import { useAppAuthPubConfig } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { IntakeFlowForm } from "@/wab/client/components/pages/IntakeFlowForm";
-import { Spinner } from "@/wab/client/components/widgets";
+import { PillSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { getShiguangSignInUrl } from "@/wab/shared/shiguang-auth";
 import { getPublicUrl } from "@/wab/shared/urls";
-import { Button } from "antd";
+import { Button, Skeleton } from "antd";
 import React from "react";
 
 /** Authorization for a published app; user authentication belongs to Shiguang. */
@@ -28,7 +28,14 @@ export function AppAuthPage() {
     "code_challenge_method",
   ];
   if (loading) {
-    return <Spinner />;
+    return (
+      <IntakeFlowForm>
+        <p>
+          <Skeleton.Input active style={{ width: 280 }} />
+        </p>
+        <PillSkeleton width={96} height={32} />
+      </IntakeFlowForm>
+    );
   }
   if (!config || required.some((key) => !params.get(key))) {
     return (

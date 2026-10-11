@@ -32,3 +32,27 @@ it("syncs external preference changes through the same appearance source", () =>
   expect(getUiAppearance()).toBe("light");
   expect(setUiAppearance).toHaveBeenLastCalledWith("light");
 });
+
+it("retains the startup host appearance until the live frame bridge connects", async () => {
+  vi.resetModules();
+  Object.defineProperty(window, "__PlasmicStudioArgs", {
+    configurable: true,
+    value: "#origin=https%3A%2F%2Fstudio.example&uiAppearance=dark",
+  });
+  localStorage.setItem("shiguang.ui.appearance", "light");
+  try {
+    const hostTheme = await import("@/wab/client/ui-theme");
+    expect(hostTheme.getUiAppearance()).toBe("dark");
+    expect(document.documentElement.dataset.uiAppearance).toBe("dark");
+    window.dispatchEvent(
+      new StorageEvent("storage", { key: "shiguang.ui.appearance" }),
+    );
+    expect(hostTheme.getUiAppearance()).toBe("dark");
+    hostTheme.setUiAppearance("light");
+    expect(hostTheme.getUiAppearance()).toBe("light");
+    expect(localStorage.getItem("shiguang.ui.appearance")).toBe("light");
+  } finally {
+    Reflect.deleteProperty(window, "__PlasmicStudioArgs");
+    vi.resetModules();
+  }
+});

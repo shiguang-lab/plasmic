@@ -10,6 +10,7 @@ import {
 import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Skeleton } from "antd";
 import * as React from "react";
 
 export type CmsTopBarProps = DefaultCmsTopBarProps;
@@ -24,6 +25,9 @@ function CmsTopBar_(props: CmsTopBarProps, ref: HTMLElementRefOf<"div">) {
       root={{ ref }}
       cmsNameValue={database?.name}
       cmsName={{
+        ...(database
+          ? {}
+          : { render: () => <Skeleton.Input active style={{ width: 200 }} /> }),
         value: database?.name,
         onChange: async (newName) => {
           await api.updateCmsDatabase(database!.id, { name: newName });

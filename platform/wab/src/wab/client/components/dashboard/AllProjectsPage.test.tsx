@@ -1,34 +1,39 @@
 import AllProjectsPage from "@/wab/client/components/dashboard/AllProjectsPage";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
-import { createMemoryHistory } from "history";
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { createMemoryHistory } from "history";
 import * as React from "react";
 
-const mocks = vi.hoisted(() => ({ retry: vi.fn(), failed: false }));
+const mocks = vi.hoisted(() => ({
+  retry: vi.fn(),
+  failed: false,
+  loading: false,
+}));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAllProjectsData: () => ({
-    data: mocks.failed
-      ? undefined
-      : {
-          perms: [],
-          projects: [
-            {
-              id: "alpha",
-              name: "Alpha",
-              workspaceId: "workspace1",
-              workspaceName: "Workspace one",
-              updatedAt: "2026-10-01",
-            },
-            {
-              id: "beta",
-              name: "Beta",
-              workspaceId: "workspace2",
-              workspaceName: "Workspace two",
-              updatedAt: "2026-10-02",
-            },
-          ],
-        },
+    data:
+      mocks.failed || mocks.loading
+        ? undefined
+        : {
+            perms: [],
+            projects: [
+              {
+                id: "alpha",
+                name: "Alpha",
+                workspaceId: "workspace1",
+                workspaceName: "Workspace one",
+                updatedAt: "2026-10-01",
+              },
+              {
+                id: "beta",
+                name: "Beta",
+                workspaceId: "workspace2",
+                workspaceName: "Workspace two",
+                updatedAt: "2026-10-02",
+              },
+            ],
+          },
     error: mocks.failed ? new Error("Unavailable") : undefined,
     mutate: mocks.retry,
   }),
@@ -65,6 +70,7 @@ vi.mock("@/wab/client/components/NewProjectModal", () => ({
 afterEach(() => {
   cleanup();
   mocks.failed = false;
+  mocks.loading = false;
   vi.clearAllMocks();
 });
 
@@ -132,4 +138,19 @@ it("keeps workspace grouping links on their existing routes", () => {
   const history = renderProjects();
   fireEvent.click(screen.getByRole("link", { name: "Workspace one" }));
   expect(history.location.pathname).toBe("/workspaces/workspace1");
+});
+
+it("keeps the real toolbar while projects load and lets the user choose the list layout", () => {
+  mocks.loading = true;
+  renderProjects();
+  expect(screen.getByRole("heading", { name: "All projects" })).toBeTruthy();
+  expect(screen.getByLabelText("Workspace")).toBeTruthy();
+  expect(
+    screen.getByRole("status", { name: "Loading projects…" }),
+  ).toBeTruthy();
+  fireEvent.click(screen.getByRole("radio", { name: /List/ }));
+  expect(screen.getByRole("radio", { name: /List/ })).toBeChecked();
+  expect(
+    screen.getByRole("status", { name: "Loading projects…" }),
+  ).toBeTruthy();
 });

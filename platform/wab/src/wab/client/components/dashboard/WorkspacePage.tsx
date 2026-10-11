@@ -1,4 +1,5 @@
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
+import { DashboardPageLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
@@ -15,7 +16,6 @@ import { Redirect } from "@/wab/client/route/Redirect";
 import { WorkspaceId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Skeleton } from "antd";
 import { uniqBy } from "lodash";
 import * as React from "react";
 
@@ -68,13 +68,16 @@ function WorkspacePage_(
   if (!data) {
     return (
       <>
-        {documentTitle(t("Loading workspace…"))}
+        {documentTitle(
+          appCtx.workspaces.find((workspace) => workspace.id === workspaceId)
+            ?.name ?? t("Workspace"),
+        )}
         <div
           className={styles.dashboardContent}
           role="status"
           aria-label={t("Loading workspace…")}
         >
-          <Skeleton active paragraph={{ rows: 6 }} />
+          <DashboardPageLoading />
         </div>
       </>
     );

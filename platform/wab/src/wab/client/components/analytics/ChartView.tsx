@@ -5,11 +5,12 @@ import {
   useChartData,
 } from "@/wab/client/components/analytics/useChartData";
 import { getEventLabel } from "@/wab/client/components/analytics/utils";
+import { ChartSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultChartViewProps } from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicChartView";
 import { ensure } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, Card, Empty, Skeleton, theme } from "antd";
+import { Alert, Button, Card, Empty, theme } from "antd";
 import { sortBy, uniqBy } from "lodash";
 import moment from "moment";
 import * as React from "react";
@@ -196,7 +197,7 @@ function ChartView_(props: ChartViewProps, ref: HTMLElementRefOf<"div">) {
           />
         ) : chartData.isLoading ? (
           <div role="status" aria-label={t("Loading analytics…")}>
-            <Skeleton active paragraph={{ rows: 6 }} />
+            <ChartSkeleton />
           </div>
         ) : chartData.paywall ? (
           <Empty description={t("Analytics requires an upgraded plan")} />

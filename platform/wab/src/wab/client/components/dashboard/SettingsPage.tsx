@@ -50,6 +50,7 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
         root={{ ref }}
         {...rest}
         defaultLayout={{
+          render: ({ children }) => <>{children}</>,
           children: (
             <>
               {showHostModal && (

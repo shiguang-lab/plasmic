@@ -15,9 +15,25 @@ vi.mock("@/wab/client/route/HistoryProvider", () => ({
   useLocation: () => ({ pathname: "/cms/db1/content" }),
 }));
 vi.mock("@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsRoot", () => ({
-  PlasmicCmsRoot: () => <div>Content library ready</div>,
+  PlasmicCmsRoot: (props) =>
+    props.cmsContentPage?.render ? (
+      props.cmsContentPage.render()
+    ) : (
+      <div>Content library ready</div>
+    ),
 }));
+beforeEach(() => {
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+    },
+  );
+});
 afterEach(() => {
+  vi.unstubAllGlobals();
   cleanup();
   vi.clearAllMocks();
 });
