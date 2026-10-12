@@ -22,7 +22,11 @@ async function authorize(req: Request) {
 export async function localAiStatus(req: Request, res: Response) {
   await authorize(req);
   const config = getLocalAiConfig();
-  res.json({ configured: !!config, model: config?.model ?? null });
+  res.json({
+    configured: !!config,
+    model: config?.model ?? null,
+    pageGenerationEnabled: !!req.devflags.enableLocalAiPageGeneration,
+  });
 }
 
 export async function localAiStep(req: Request, res: Response) {
@@ -31,9 +35,17 @@ export async function localAiStep(req: Request, res: Response) {
   if (
     !parsed.success ||
     parsed.data.binding.projectId !== req.params.projectId ||
-    JSON.stringify(req.body).length > 1000000
+    !parsed.data.binding.componentUuid ||
+    JSON.stringify(req.body).length >
+      (parsed.data.binding.mode === "page" ? 2000000 : 1000000)
   ) {
     throw new BadRequestError("Invalid local AI editing request.");
+  }
+  if (
+    parsed.data.binding.mode === "page" &&
+    !req.devflags.enableLocalAiPageGeneration
+  ) {
+    throw new ForbiddenError("AI page generation is disabled.");
   }
   if (res.destroyed || req.aborted) {
     return;
@@ -53,14 +65,12 @@ export async function localAiStep(req: Request, res: Response) {
   } catch {
     // Provider errors can echo credentials or request data. Keep them out of Web responses.
     if (!controller.signal.aborted) {
-      res
-        .status(502)
-        .json({
-          error: {
-            message:
-              "AI service request failed. Check the server model configuration or try again.",
-          },
-        });
+      res.status(502).json({
+        error: {
+          message:
+            "AI service request failed. Check the server model configuration or try again.",
+        },
+      });
     }
   } finally {
     res.off("close", abort);

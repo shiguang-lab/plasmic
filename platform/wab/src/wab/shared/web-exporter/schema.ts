@@ -163,8 +163,25 @@ export function projectSchema() {
         }),
       )
       .optional(),
-    pageFrames: z.array(z.object({ componentUuid: z.string(), frameUuid: z.string(), width: z.number(), height: z.number() })).optional().describe("Native Page arena viewports, including variant previews."),
-    devicePresets: z.array(z.object({ name: z.string(), width: z.number(), height: z.number() })).optional().describe("Studio device size presets; use Desktop unless another viewport is requested."),
+    pageFrames: z
+      .array(
+        z.object({
+          componentUuid: z.string(),
+          frameUuid: z.string(),
+          width: z.number(),
+          height: z.number(),
+        }),
+      )
+      .optional()
+      .describe("Native Page arena viewports, including variant previews."),
+    devicePresets: z
+      .array(
+        z.object({ name: z.string(), width: z.number(), height: z.number() }),
+      )
+      .optional()
+      .describe(
+        "Studio device size presets; use Desktop unless another viewport is requested.",
+      ),
     screenBreakpoints: z
       .array(screenBreakpointSchema())
       .optional()
@@ -213,7 +230,10 @@ export function componentSchema() {
   return z.object({
     __type: z.literal("Component"),
     name: z.string().describe("Component name."),
-    description: z.string().optional().describe("Registered component usage guidance, when available."),
+    description: z
+      .string()
+      .optional()
+      .describe("Registered component usage guidance, when available."),
     uuid: z.string().describe("Component UUID."),
     type: z
       .enum(["plain", "page", "code", "frame"])
@@ -225,11 +245,40 @@ export function componentSchema() {
       .string()
       .optional()
       .describe("Imported project id, present only for imported components."),
-    codeComponent: z.object({
-      importPath: z.string(),
-      importName: z.string().nullish().describe("Named import when registered; may be absent for a default import."),
-      defaultExport: z.boolean(),
-    }).optional().describe("Registered implementation import identity; not a source download or a guarantee of the target project's npm export."),
+    codeComponent: z
+      .object({
+        importPath: z.string(),
+        importName: z
+          .string()
+          .nullish()
+          .describe(
+            "Named import when registered; may be absent for a default import.",
+          ),
+        defaultExport: z.boolean(),
+      })
+      .optional()
+      .describe(
+        "Registered implementation import identity; not a source download or a guarantee of the target project's npm export.",
+      ),
+    refActions: z
+      .array(
+        z.object({
+          name: z.string(),
+          displayName: z.string().optional(),
+          args: z
+            .array(
+              z.object({
+                name: z.string(),
+                displayName: z.string().optional(),
+              }),
+            )
+            .optional(),
+        }),
+      )
+      .optional()
+      .describe(
+        "Registered ref action names and ordered argument names. Call on $refs.<instanceName>; omitted args means the signature is unavailable.",
+      ),
     props: z
       .array(propSchema())
       .describe(
@@ -354,7 +403,12 @@ export function dataQuerySchema() {
       .array(dataQueryArgSchema())
       .optional()
       .describe("Function call arguments, present when kind is `function`."),
-    unavailableArgs: z.array(z.string()).optional().describe("Function argument names whose expression cannot be represented in the inline read format; these values remain unknown."),
+    unavailableArgs: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "Function argument names whose expression cannot be represented in the inline read format; these values remain unknown.",
+      ),
   });
 }
 export type DataQueryJson = z.infer<ReturnType<typeof dataQuerySchema>>;
@@ -487,7 +541,12 @@ export function propSchema() {
   return z.object({
     __type: z.literal("Prop"),
     name: z.string().describe("Prop name."),
-    description: z.string().optional().describe("Prop usage guidance from the component contract, when available."),
+    description: z
+      .string()
+      .optional()
+      .describe(
+        "Prop usage guidance from the component contract, when available.",
+      ),
     uuid: z.string().describe("Prop UUID."),
     type: z
       .string()

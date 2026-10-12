@@ -6,7 +6,8 @@ export const localEditBindingSchema = z
     branchId: z.string().nullable(),
     sessionId: z.string().min(1),
     changeCounter: z.number().int().nonnegative(),
-    componentUuid: z.string().min(1),
+    componentUuid: z.string().min(1).nullable(),
+    mode: z.enum(["page"]).optional(),
     frameUuid: z.string().nullable().optional(),
     elementUuids: z.array(z.string().min(1)).max(30),
   })
@@ -23,10 +24,25 @@ export const localEditToolNames = [
   "deleteElement",
   "executeBatch",
 ] as const;
+export const pageEditToolNames = [
+  ...localEditToolNames,
+  "createState",
+  "updateState",
+  "deleteState",
+  "createInteraction",
+  "copyElement",
+  "moveElement",
+  "setPageViewport",
+] as const;
+export function localEditLimits(binding: LocalEditBinding) {
+  return binding.mode === "page"
+    ? { steps: 48, taskMs: 720000 }
+    : { steps: 12, taskMs: 180000 };
+}
 export const localEditCallSchema = z
   .object({
     id: z.string().min(1),
-    name: z.enum(localEditToolNames),
+    name: z.enum(pageEditToolNames),
     input: z.record(z.unknown()),
   })
   .strict();
@@ -48,7 +64,7 @@ export const localEditRequestSchema = z
     binding: localEditBindingSchema,
     prompt: z.string().trim().min(1).max(10000),
     resources: z.string().max(600000),
-    history: z.array(localEditStepSchema).max(12),
+    history: z.array(localEditStepSchema).max(48),
   })
   .strict();
 export type LocalEditRequest = z.infer<typeof localEditRequestSchema>;

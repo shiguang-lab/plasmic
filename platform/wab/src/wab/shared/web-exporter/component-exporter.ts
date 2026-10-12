@@ -7,14 +7,22 @@ import {
 } from "@/wab/shared/Variants";
 import { paramToVarName, toVarName } from "@/wab/shared/codegen/util";
 import { assert, switchType, withoutNils } from "@/wab/shared/common";
-import { exprLeavesToInterpolations, exprToDataQueryArg, exprToInterpolatedString } from "@/wab/shared/copilot/dynamic-value-input";
-import { customFunctionId } from "@/wab/shared/core/query-ids";
+import {
+  exprLeavesToInterpolations,
+  exprToDataQueryArg,
+  exprToInterpolatedString,
+} from "@/wab/shared/copilot/dynamic-value-input";
 import {
   isPageComponent,
   tryGetVariantGroupValueFromArg,
 } from "@/wab/shared/core/components";
-import { deserCompositeExpr, stripParens, tryExtractJson } from "@/wab/shared/core/exprs";
+import {
+  deserCompositeExpr,
+  stripParens,
+  tryExtractJson,
+} from "@/wab/shared/core/exprs";
 import { JsonValue } from "@/wab/shared/core/lang";
+import { customFunctionId } from "@/wab/shared/core/query-ids";
 import { renderRichTextChildren } from "@/wab/shared/core/rich-text-util";
 import {
   UpdateVariableOperations,
@@ -70,10 +78,10 @@ import {
   isKnownObjectPath,
   isKnownPageHref,
   isKnownPropParam,
-  isKnownStateParam,
-  isKnownStateChangeHandlerParam,
   isKnownRawText,
   isKnownRenderExpr,
+  isKnownStateChangeHandlerParam,
+  isKnownStateParam,
   isKnownStyleTokenRef,
   isKnownTemplatedString,
   isKnownTplRef,
@@ -87,7 +95,10 @@ import {
   isOptionsType,
   normalizeToChoiceObjects,
 } from "@/wab/shared/model/model-util";
-import { countQueryReferences, findQueryInvalidationRefs } from "@/wab/shared/refactoring";
+import {
+  countQueryReferences,
+  findQueryInvalidationRefs,
+} from "@/wab/shared/refactoring";
 import {
   TplVisibility,
   getVariantSettingVisibility,
@@ -146,7 +157,9 @@ function serializeExprValue(expr: Expr): JsonValue | undefined {
   return switchType(expr)
     .when(ImageAssetRef, (imageAssetRef) => imageAssetRef.asset.dataUri || "")
     .when(StyleTokenRef, (styleTokenRef) => styleTokenRef.token.uuid)
-    .when(CompositeExpr, (compositeExpr) => exprLeavesToInterpolations(deserCompositeExpr(compositeExpr)))
+    .when(CompositeExpr, (compositeExpr) =>
+      exprLeavesToInterpolations(deserCompositeExpr(compositeExpr)),
+    )
     .when([CustomCode, ObjectPath, TemplatedString], (valueExpr) => {
       // Static values keep their typed JSON value, dynamic bindings render as `{{ jsExpr }}`.
       const jsonValue = tryExtractJson(valueExpr);
@@ -970,55 +983,128 @@ export function buildComponentResource(
   const variantSettings = buildVariantOverrides(component);
   const interactions = buildComponentInteractions(component);
   const dataQueries: DataQueryJson[] = component.serverQueries.map((query) => {
-    const identity = { __type: "DataQuery" as const, name: query.name, uuid: query.uuid, reference: `$q.${toVarName(query.name)}` };
+    const identity = {
+      __type: "DataQuery" as const,
+      name: query.name,
+      uuid: query.uuid,
+      reference: `$q.${toVarName(query.name)}`,
+    };
     if (!query.op) {
       return { ...identity, kind: "empty" };
     }
     return switchType(query.op)
-      .when(CustomCode, (op): DataQueryJson => ({ ...identity, kind: "customCode", code: op.code }))
+      .when(CustomCode, (op): DataQueryJson => ({
+        ...identity,
+        kind: "customCode",
+        code: op.code,
+      }))
       .when(CustomFunctionExpr, (op): DataQueryJson => {
-        const args = op.args.map((arg) => exprToDataQueryArg(arg.argType.argName, arg.expr));
-        const unavailableArgs = op.args.filter((_, index) => args[index] === undefined).map((arg) => arg.argType.argName);
-        return { ...identity, kind: "function", ...(op.func ? { functionId: customFunctionId(op.func) } : {}), args: withoutNils(args), ...(unavailableArgs.length ? { unavailableArgs } : {}) };
-      }).result();
+        const args = op.args.map((arg) =>
+          exprToDataQueryArg(arg.argType.argName, arg.expr),
+        );
+        const unavailableArgs = op.args
+          .filter((_, index) => args[index] === undefined)
+          .map((arg) => arg.argType.argName);
+        return {
+          ...identity,
+          kind: "function",
+          ...(op.func ? { functionId: customFunctionId(op.func) } : {}),
+          args: withoutNils(args),
+          ...(unavailableArgs.length ? { unavailableArgs } : {}),
+        };
+      })
+      .result();
   });
-  const references = component.dataQueries.length ? countQueryReferences(component, component.dataQueries, findQueryInvalidationRefs(opts.site)) : undefined;
-  const legacyDataQueries: LegacyDataQueryJson[] = component.dataQueries.map((query) => ({
-    __type: "LegacyDataQuery", name: query.name, uuid: query.uuid, reference: `$queries.${toVarName(query.name)}`,
-    references: references?.get(query) ?? 0, migratable: false,
-    migrationBlockers: [query.op ? "Integration configuration is not included in model reads; inspect it before assessing migration." : "The query has no operation configured yet."],
-    ...(query.op ? { op: {
-      __type: "DataSourceOp" as const, sourceId: query.op.sourceId, opId: query.op.opId, opName: query.op.opName,
-      ...(query.op.roleId ? { roleId: query.op.roleId } : {}),
-      ...(query.op.cacheKey ? { cacheKey: exprToInterpolatedString(query.op.cacheKey) } : {}),
-      args: Object.entries(query.op.templates).map(([name, template]) => ({
-        __type: "DataSourceOpArg" as const, name, fieldType: template.fieldType,
-        value: dataSourceTemplateToString(template, { component, projectFlags: getProjectFlags(opts.site), inStudio: true }),
-      })),
-    } } : {}),
-  }));
+  const references = component.dataQueries.length
+    ? countQueryReferences(
+        component,
+        component.dataQueries,
+        findQueryInvalidationRefs(opts.site),
+      )
+    : undefined;
+  const legacyDataQueries: LegacyDataQueryJson[] = component.dataQueries.map(
+    (query) => ({
+      __type: "LegacyDataQuery",
+      name: query.name,
+      uuid: query.uuid,
+      reference: `$queries.${toVarName(query.name)}`,
+      references: references?.get(query) ?? 0,
+      migratable: false,
+      migrationBlockers: [
+        query.op
+          ? "Integration configuration is not included in model reads; inspect it before assessing migration."
+          : "The query has no operation configured yet.",
+      ],
+      ...(query.op
+        ? {
+            op: {
+              __type: "DataSourceOp" as const,
+              sourceId: query.op.sourceId,
+              opId: query.op.opId,
+              opName: query.op.opName,
+              ...(query.op.roleId ? { roleId: query.op.roleId } : {}),
+              ...(query.op.cacheKey
+                ? { cacheKey: exprToInterpolatedString(query.op.cacheKey) }
+                : {}),
+              args: Object.entries(query.op.templates).map(
+                ([name, template]) => ({
+                  __type: "DataSourceOpArg" as const,
+                  name,
+                  fieldType: template.fieldType,
+                  value: dataSourceTemplateToString(template, {
+                    component,
+                    projectFlags: getProjectFlags(opts.site),
+                    inStudio: true,
+                  }),
+                }),
+              ),
+            },
+          }
+        : {}),
+    }),
+  );
   return {
     __type: "Component",
     name: component.name,
-    ...(component.codeComponentMeta?.description ? { description: component.codeComponentMeta.description } : {}),
+    ...(component.codeComponentMeta?.description
+      ? { description: component.codeComponentMeta.description }
+      : {}),
     uuid: component.uuid,
     type: component.type as ComponentJson["type"],
     ...(pageMeta ? { pageMeta } : {}),
     ...(fromProject ? { fromProject } : {}),
-    ...(component.codeComponentMeta ? { codeComponent: {
-      importPath: component.codeComponentMeta.importPath,
-      importName: component.codeComponentMeta.importName,
-      defaultExport: component.codeComponentMeta.defaultExport,
-    } } : {}),
+    ...(component.codeComponentMeta
+      ? {
+          codeComponent: {
+            importPath: component.codeComponentMeta.importPath,
+            importName: component.codeComponentMeta.importName,
+            defaultExport: component.codeComponentMeta.defaultExport,
+          },
+        }
+      : {}),
+    ...(component.codeComponentMeta?.refActions.length
+      ? {
+          refActions: component.codeComponentMeta.refActions.map((name) => ({
+            name,
+          })),
+        }
+      : {}),
     props: buildComponentProps(component),
     variants: buildComponentVariantDefs(component),
-    variantGroups: component.variantGroups.map(group => ({uuid: group.uuid, name: group.param.variable.name, multi: group.multi, variants: group.variants.map(variant => ({__type: "Variant" as const, uuid: variant.uuid, name: variant.name}))})),
+    variantGroups: component.variantGroups.map((group) => ({
+      uuid: group.uuid,
+      name: group.param.variable.name,
+      multi: group.multi,
+      variants: group.variants.map((variant) => ({
+        __type: "Variant" as const,
+        uuid: variant.uuid,
+        name: variant.name,
+      })),
+    })),
     ...(states.length > 0 ? { states } : {}),
     ...(interactions.length > 0 ? { interactions } : {}),
     ...(dataQueries.length ? { dataQueries } : {}),
-    ...(legacyDataQueries.length
-      ? { legacyDataQueries }
-      : {}),
+    ...(legacyDataQueries.length ? { legacyDataQueries } : {}),
     baseVariantTplTree: component.tplTree
       ? tplToHtml(component.tplTree, opts.site)
       : "",

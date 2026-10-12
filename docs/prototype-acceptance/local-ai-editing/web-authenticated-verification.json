@@ -1,0 +1,38 @@
+{
+  "projectUrl": "https://studio.plasmic.shiguanglab.com/projects/f1Z6sEJ9WnC7QuDScTMQ8E/-/Custom-arena-1?arena_type=custom&arena=Custom+arena+1&copilot_chat=true",
+  "projectId": "f1Z6sEJ9WnC7QuDScTMQ8E",
+  "componentUuid": "_DaLfFhf_T0W",
+  "titleUuid": "bvJfexL0-E2H",
+  "savedRevision": 6,
+  "baseline": [
+    "{\n  \"elementUuid\": \"OzWwNdYPa24V\",\n  \"componentUuid\": \"_DaLfFhf_T0W\",\n  \"html\": \"<h1 data-plasmic-name=\\\"AcceptanceTitle\\\">Before Web Acceptance</h1>\",\n  \"location\": \"append\"\n}",
+    "{\"__type\":\"OutputResult\",\"results\":[{\"__type\":\"Element\",\"baseVariantTplTree\":\"<div id=\\\"OzWwNdYPa24V\\\" style=\\\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\\\"></div>\"}]}",
+    "{\"__type\":\"OutputResult\",\"results\":[{\"__type\":\"Element\",\"baseVariantTplTree\":\"<div id=\\\"OzWwNdYPa24V\\\" style=\\\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\\\">\\n  <h1 id=\\\"bvJfexL0-E2H\\\" label=\\\"AcceptanceTitle\\\">Before Web Acceptance</h1>\\n</div>\"}]}"
+  ],
+  "savedEdit": [
+    "{\n  \"text\": \"Saved Web Acceptance\",\n  \"componentUuid\": \"_DaLfFhf_T0W\",\n  \"elementUuid\": \"bvJfexL0-E2H\"\n}",
+    "{\"__type\":\"OutputResult\",\"results\":[{\"__type\":\"Element\",\"baseVariantTplTree\":\"<div id=\\\"OzWwNdYPa24V\\\" style=\\\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\\\">\\n  <h1 id=\\\"bvJfexL0-E2H\\\" label=\\\"AcceptanceTitle\\\">Before Web Acceptance</h1>\\n</div>\"}]}",
+    "{\"__type\":\"OutputResult\",\"results\":[{\"__type\":\"Element\",\"baseVariantTplTree\":\"<div id=\\\"OzWwNdYPa24V\\\" style=\\\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\\\">\\n  <h1 id=\\\"bvJfexL0-E2H\\\" label=\\\"AcceptanceTitle\\\">Saved Web Acceptance</h1>\\n</div>\"}]}"
+  ],
+  "checks": [
+    {
+      "name": "AI edit saved and reopened",
+      "passed": true,
+      "revision": 6
+    },
+    {
+      "name": "AI undo saved and reopened",
+      "passed": true,
+      "revision": 8
+    }
+  ],
+  "undoEdit": [
+    "{\n  \"componentUuid\": \"_DaLfFhf_T0W\",\n  \"text\": \"Undo Web Acceptance\",\n  \"elementUuid\": \"bvJfexL0-E2H\"\n}",
+    "{\"__type\":\"OutputResult\",\"results\":[{\"__type\":\"Element\",\"baseVariantTplTree\":\"<div id=\\\"OzWwNdYPa24V\\\" style=\\\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\\\">\\n  <h1 id=\\\"bvJfexL0-E2H\\\" label=\\\"AcceptanceTitle\\\">Saved Web Acceptance</h1>\\n</div>\"}]}",
+    "{\"__type\":\"OutputResult\",\"results\":[{\"__type\":\"Element\",\"baseVariantTplTree\":\"<div id=\\\"OzWwNdYPa24V\\\" style=\\\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\\\">\\n  <h1 id=\\\"bvJfexL0-E2H\\\" label=\\\"AcceptanceTitle\\\">Undo Web Acceptance</h1>\\n</div>\"}]}"
+  ],
+  "undoEditRevision": 7,
+  "undoSavedRevision": 8,
+  "passed": true,
+  "kind": "Authenticated Chrome Web, real provider and native Studio tools"
+}

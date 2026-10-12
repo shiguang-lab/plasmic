@@ -105,7 +105,8 @@ it("pins context, records actual edits, validates and confirms save", async () =
 });
 
 it("confirms the saved revision after undoing the latest edit", async () => {
-  const transport = vi.fn()
+  const transport = vi
+    .fn()
     .mockResolvedValueOnce({ text: "Editing", calls: [call] })
     .mockResolvedValueOnce({ text: "Done", calls: [] });
   const { tools, session } = fixture(transport);
@@ -114,12 +115,14 @@ it("confirms the saved revision after undoing the latest edit", async () => {
   await session.undo(task, task.records[0]);
   expect(task.records[0].undone).toBe(true);
   expect(task.savedRevision).toBe(7);
-  expect(tools._executeLocal.mock.calls.slice(-2).map(([r]) => r.name))
-    .toEqual(["undo", "save"]);
+  expect(tools._executeLocal.mock.calls.slice(-2).map(([r]) => r.name)).toEqual(
+    ["undo", "save"],
+  );
 });
 
 it("does not claim that an undo was saved when persistence fails", async () => {
-  const transport = vi.fn()
+  const transport = vi
+    .fn()
     .mockResolvedValueOnce({ text: "Editing", calls: [call] })
     .mockResolvedValueOnce({ text: "Done", calls: [] });
   const { tools, session } = fixture(transport);
@@ -127,7 +130,10 @@ it("does not claim that an undo was saved when persistence fails", async () => {
   const original = tools._executeLocal.getMockImplementation();
   tools._executeLocal.mockImplementation(async (r, signal) =>
     r.name === "save"
-      ? { success: false, error: { type: "EXECUTION_FAILED", message: "Save failed" } }
+      ? {
+          success: false,
+          error: { type: "EXECUTION_FAILED", message: "Save failed" },
+        }
       : ((await original?.(r, signal)) ?? { success: true, output: "{}" }),
   );
   const task = session.tasks[0];
@@ -242,4 +248,95 @@ it("stops on a failed tool without saving or claiming completion", async () => {
   expect(tools._executeLocal.mock.calls.some(([r]) => r.name === "save")).toBe(
     false,
   );
+});
+
+it("creates and pins one new routed page before invoking the model", async () => {
+  const transport = vi.fn().mockResolvedValue({ text: "Done", calls: [] });
+  const { tools, session } = fixture(transport);
+  const original = tools._executeLocal.getMockImplementation();
+  tools._executeLocal.mockImplementation(async (r, signal) => {
+    if (r.name === "createComponent") {
+      return {
+        success: true,
+        output: JSON.stringify({
+          binding: {
+            ...(r.binding as LocalEditBinding),
+            componentUuid: "generated",
+            changeCounter: 1,
+          },
+          changed: true,
+          result: JSON.stringify({ results: [] }),
+          before: "No page",
+          after: "New page",
+        }),
+      };
+    }
+    return (await original?.(r, signal)) ?? { success: true, output: "{}" };
+  });
+  await session.run("Build a list", binding, {
+    name: "RecordsPage",
+    path: "/records",
+  });
+  expect(tools._executeLocal.mock.calls[0][0]).toMatchObject({
+    binding: {
+      componentUuid: null,
+      mode: "page",
+      elementUuids: [],
+      frameUuid: null,
+    },
+    name: "createComponent",
+    input: { type: "page", name: "RecordsPage", path: "/records" },
+  });
+  expect(tools._executeLocal.mock.calls.map(([r]) => r.name)).toEqual([
+    "createComponent",
+    "navigate",
+    "read",
+    "read",
+    "validate",
+    "save",
+  ]);
+  expect(transport.mock.calls[0][0].binding).toMatchObject({
+    componentUuid: "generated",
+    mode: "page",
+    elementUuids: [],
+  });
+  expect(session.tasks[0]).toMatchObject({
+    status: "completed",
+    savedRevision: 7,
+    records: [
+      { name: "createComponent", before: "No page", after: "New page" },
+    ],
+  });
+});
+
+it("retains page creation as an undoable record when stopped before navigation", async () => {
+  const transport = vi.fn();
+  const { tools, session } = fixture(transport);
+  tools._executeLocal.mockImplementation(async (r) => {
+    session.stop();
+    return {
+      success: true,
+      output: JSON.stringify({
+        binding: {
+          ...(r.binding as LocalEditBinding),
+          componentUuid: "generated",
+          changeCounter: 1,
+        },
+        changed: true,
+        result: "{}",
+        before: "Before",
+        after: "After",
+      }),
+    };
+  });
+  await session.run("Build", undefined, {
+    name: "RecordsPage",
+    path: "/records",
+  });
+  expect(session.tasks[0]).toMatchObject({
+    status: "stopped",
+    records: [{ name: "createComponent" }],
+  });
+  expect(tools._executeLocal).toHaveBeenCalledOnce();
+  expect(transport).not.toHaveBeenCalled();
 });

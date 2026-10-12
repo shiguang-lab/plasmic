@@ -8,6 +8,7 @@ import {
   LocalEditToolResult,
   localEditBindingSchema,
   localEditCallSchema,
+  localEditLimits,
 } from "@/wab/shared/copilot/local-edit";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 
@@ -37,6 +38,8 @@ export type EditTask = {
     status: "running" | "completed" | "failed";
   }[];
 };
+export type PageGenerationOptions = { name: string; path: string };
+
 type Transport = (
   request: LocalEditRequest,
   signal: AbortSignal,
@@ -147,7 +150,34 @@ export class LocalEditSession {
       throw error;
     }
   }
-  async run(prompt: string, pinned?: LocalEditBinding) {
+  private record(
+    task: EditTask,
+    name: string,
+    input: Record<string, unknown>,
+    output: LocalEditToolResult,
+    id = crypto.randomUUID(),
+  ) {
+    if (output.changed) {
+      this.update(task, {
+        records: [
+          ...task.records,
+          {
+            id,
+            name,
+            input,
+            before: output.before ?? "",
+            after: output.after ?? "",
+            binding: output.binding,
+          },
+        ],
+      });
+    }
+  }
+  async run(
+    prompt: string,
+    pinned?: LocalEditBinding,
+    page?: PageGenerationOptions,
+  ) {
     if (this.busy || !prompt.trim()) {
       return;
     }
@@ -175,17 +205,38 @@ export class LocalEditSession {
         throw new Error("Open an editable current project to use AI.");
       }
       task.binding =
-        pinned ??
+        (!page ? pinned : undefined) ??
         localEditBindingSchema.parse({
           projectId: context.projectId,
           branchId: context.branchId,
           sessionId: context.sessionId,
           changeCounter: context.changeCounter,
-          componentUuid: context.componentUuid,
-          frameUuid: context.frameUuid,
-          elementUuids: context.selectedElementUuids,
+          componentUuid: page ? null : context.componentUuid,
+          frameUuid: page ? null : context.frameUuid,
+          elementUuids: page ? [] : context.selectedElementUuids,
+          ...(page ? { mode: "page" } : {}),
         });
+      if (page) {
+        checkStopped();
+        this.update(task, { phase: "Creating page" });
+        const input = {
+          type: "page",
+          name: page.name.trim(),
+          path: page.path.trim(),
+        };
+        const created = await this.scoped(task, "createComponent", input);
+        this.record(task, "createComponent", input, created);
+        checkStopped();
+        await this.scoped(task, "navigate", {
+          componentUuid: created.binding.componentUuid,
+        });
+        checkStopped();
+      }
       const binding = ensure(task.binding, "Editing scope is missing.");
+      ensure(
+        binding.componentUuid,
+        "Open a page or select an element before editing.",
+      );
       const readInput = binding.elementUuids.length
         ? {
             elements: binding.elementUuids.map((elementUuid) => ({
@@ -203,7 +254,7 @@ export class LocalEditSession {
             (resource.baseVariantTplTree
               ? new DOMParser()
                   .parseFromString(resource.baseVariantTplTree, "text/html")
-                  .body.firstElementChild?.getAttribute("data-plasmic-name")
+                  .body.firstElementChild?.getAttribute("label")
               : undefined);
           return name ? [name] : [];
         },
@@ -231,9 +282,10 @@ export class LocalEditSession {
         { signature: string; output: string }
       >();
       const started = Date.now();
-      for (let stepIndex = 0; stepIndex < 12; stepIndex++) {
+      const limits = localEditLimits(binding);
+      for (let stepIndex = 0; stepIndex < limits.steps; stepIndex++) {
         checkStopped();
-        if (Date.now() - started > 180000) {
+        if (Date.now() - started > limits.taskMs) {
           throw new Error(
             "AI task reached its time limit. Completed changes are retained.",
           );
@@ -285,27 +337,13 @@ export class LocalEditSession {
                     : "Editing selection",
           });
           const output = await this.scoped(task, call.name, call.input);
-          if (output.changed) {
-            this.update(task, {
-              records: [
-                ...task.records,
-                {
-                  id: call.id,
-                  name: call.name,
-                  input: call.input,
-                  before: output.before ?? "",
-                  after: output.after ?? "",
-                  binding: output.binding,
-                },
-              ],
-            });
-          }
+          this.record(task, call.name, call.input, output, call.id);
           completed.set(call.id, { signature, output: output.result });
           step.results.push({ id: call.id, output: output.result });
           checkStopped();
         }
         history.push(step);
-        if (stepIndex === 11) {
+        if (stepIndex === limits.steps - 1) {
           throw new Error(
             "AI task reached its step limit. Completed changes are retained.",
           );

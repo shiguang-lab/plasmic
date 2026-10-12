@@ -6,14 +6,16 @@ import {
 } from "@/wab/shared/Variants";
 import { generateSiteFromBundle } from "@/wab/shared/__testonly__/site-tests-utils";
 import { Bundle } from "@/wab/shared/bundler";
+import {
+  mkCustomFunctionExpr,
+  mkServerQuery,
+} from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { ensure } from "@/wab/shared/common";
 import {
   codeToDynExpr,
   interpolatedStringToTemplatedString,
   objectLiteralToExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
-import { mkServerQuery, mkCustomFunctionExpr } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
-import { mkDataSourceOpExpr, mkDataSourceTemplate } from "@/wab/shared/data-sources-meta/data-sources";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { codeLit, customCode } from "@/wab/shared/core/exprs";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
@@ -21,6 +23,10 @@ import { mkImageAsset } from "@/wab/shared/core/image-assets";
 import { mkParam, mkVar } from "@/wab/shared/core/lang";
 import { mkRuleSet } from "@/wab/shared/core/styles";
 import { TplTagType, mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
+import {
+  mkDataSourceOpExpr,
+  mkDataSourceTemplate,
+} from "@/wab/shared/data-sources-meta/data-sources";
 import {
   CodeComponentMeta,
   ComponentDataQuery,
@@ -43,9 +49,7 @@ import {
   tplToHtml,
 } from "@/wab/shared/web-exporter/component-exporter";
 import { jsonToXml } from "@/wab/shared/web-exporter/json-to-xml";
-import {
-  componentSchema,
-} from "@/wab/shared/web-exporter/schema";
+import { componentSchema } from "@/wab/shared/web-exporter/schema";
 
 describe("Component Serialization", () => {
   const site = generateSiteFromBundle(_bundle as [string, Bundle][]);
@@ -67,25 +71,63 @@ describe("Component Serialization", () => {
       name: "Descriptions",
       type: ComponentType.Code,
       tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }),
-      params: [mkParam({ paramType: "prop", name: "items", type: typeFactory.any(), description: "Separate labels from values", defaultExpr: codeLit([]) })],
+      params: [
+        mkParam({
+          paramType: "prop",
+          name: "items",
+          type: typeFactory.any(),
+          description: "Separate labels from values",
+          defaultExpr: codeLit([]),
+        }),
+      ],
       codeComponentMeta: new CodeComponentMeta({
-        importPath: "antd", defaultExport: false, importName: "Descriptions",
-        displayName: "Descriptions", description: "Grouped read-only fields",
-        section: null, thumbnailUrl: null, classNameProp: null, refProp: null,
-        defaultStyles: null, defaultDisplay: null, isHostLess: true,
-        isContext: false, isAttachment: false, providesData: false,
-        hasRef: false, isRepeatable: true, subtreePrefetchingConfig: null,
-        styleSections: null, helpers: null, defaultSlotContents: {},
-        variants: {}, refActions: [],
+        importPath: "antd",
+        defaultExport: false,
+        importName: "Descriptions",
+        displayName: "Descriptions",
+        description: "Grouped read-only fields",
+        section: null,
+        thumbnailUrl: null,
+        classNameProp: null,
+        refProp: null,
+        defaultStyles: null,
+        defaultDisplay: null,
+        isHostLess: true,
+        isContext: false,
+        isAttachment: false,
+        providesData: false,
+        hasRef: false,
+        isRepeatable: true,
+        subtreePrefetchingConfig: null,
+        styleSections: null,
+        helpers: null,
+        defaultSlotContents: {},
+        variants: {},
+        refActions: ["submit"],
       }),
     });
     const result = buildComponentResource(component, { site });
     expect(componentSchema().parse(result)).toMatchObject({
       description: "Grouped read-only fields",
-      codeComponent: { importPath: "antd", importName: "Descriptions", defaultExport: false },
-      props: [{ name: "items", description: "Separate labels from values", type: "any", default: [] }],
+      refActions: [{ name: "submit" }],
+      codeComponent: {
+        importPath: "antd",
+        importName: "Descriptions",
+        defaultExport: false,
+      },
+      props: [
+        {
+          name: "items",
+          description: "Separate labels from values",
+          type: "any",
+          default: [],
+        },
+      ],
     });
-    ensure(component.codeComponentMeta, "Expected registered component metadata").description = null;
+    ensure(
+      component.codeComponentMeta,
+      "Expected registered component metadata",
+    ).description = null;
     component.params[0].description = null;
     const withoutGuidance = buildComponentResource(component, { site });
     expect(withoutGuidance).not.toHaveProperty("description");
@@ -312,11 +354,39 @@ describe("Component Serialization", () => {
     });
 
     it("preserves nested dynamic rules and initial values in editable prop readbacks", () => {
-      const inner = mkComponent({name: "Form", type: ComponentType.Plain, tplTree: baseVariant => mkTplTagX("div", {baseVariant})});
-      const param = mkParam({name: "initialValues", type: typeFactory.any(), paramType: "prop"});
+      const inner = mkComponent({
+        name: "Form",
+        type: ComponentType.Plain,
+        tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }),
+      });
+      const param = mkParam({
+        name: "initialValues",
+        type: typeFactory.any(),
+        paramType: "prop",
+      });
       inner.params.push(param);
-      const host = mkComponent({name: "Host", type: ComponentType.Plain, tplTree: baseVariant => mkTplTagX("div", {baseVariant})});
-      const instance = mkTplComponentX({component: inner, baseVariant: getBaseVariant(host), args: {initialValues: objectLiteralToExpr(JSON.stringify({expiry: "{{ Number($ctx.query?.expiry||14) }}", rules: [{ruleType: "advanced", custom: "{{ (_rule,value)=>Number.isInteger(value) }}"}]}))!}});
+      const host = mkComponent({
+        name: "Host",
+        type: ComponentType.Plain,
+        tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }),
+      });
+      const instance = mkTplComponentX({
+        component: inner,
+        baseVariant: getBaseVariant(host),
+        args: {
+          initialValues: objectLiteralToExpr(
+            JSON.stringify({
+              expiry: "{{ Number($ctx.query?.expiry||14) }}",
+              rules: [
+                {
+                  ruleType: "advanced",
+                  custom: "{{ (_rule,value)=>Number.isInteger(value) }}",
+                },
+              ],
+            }),
+          )!,
+        },
+      });
       const output = tplToHtml(instance, site);
       expect(output).toContain("initialValues");
       expect(output).toContain("{{ Number($ctx.query?.expiry||14) }}");
@@ -380,54 +450,125 @@ describe("Component Serialization", () => {
   describe("data queries", () => {
     it("reads real modern and legacy definitions, bindings and registration identity without mutating the model", () => {
       const component = mkComponent({
-        name: "WithQueries", type: ComponentType.Plain,
+        name: "WithQueries",
+        type: ComponentType.Plain,
         tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }),
       });
-      const functionOp = mkCustomFunctionExpr("fetch", ["url"], [{ name: "url", code: "$ctx.params.api" }]);
+      const functionOp = mkCustomFunctionExpr(
+        "fetch",
+        ["url"],
+        [{ name: "url", code: "$ctx.params.api" }],
+      );
       functionOp.func.namespace = "plasmic";
       component.serverQueries.push(
         mkServerQuery("Users", customCode("(await $$.fetch('/api/users'))")),
         mkServerQuery("People", functionOp),
         mkServerQuery("Unconfigured", null),
       );
-      component.dataQueries.push(new ComponentDataQuery({
-        uuid: "dq1", name: "Get Users",
-        op: mkDataSourceOpExpr({ sourceId: "src1", opId: "op1", opName: "getList", roleId: "role1", templates: {
-          resource: mkDataSourceTemplate({ fieldType: "string", value: "users", bindings: null }),
-          filter: mkDataSourceTemplate({ fieldType: "string", value: "__binding__", bindings: { __binding__: customCode("$state.filter") } }),
-        } }),
-      }));
-      const originalOps = [...component.serverQueries.map((query) => query.op), component.dataQueries[0].op];
-      const result = componentSchema().parse(buildComponentResource(component, { site }));
+      component.dataQueries.push(
+        new ComponentDataQuery({
+          uuid: "dq1",
+          name: "Get Users",
+          op: mkDataSourceOpExpr({
+            sourceId: "src1",
+            opId: "op1",
+            opName: "getList",
+            roleId: "role1",
+            templates: {
+              resource: mkDataSourceTemplate({
+                fieldType: "string",
+                value: "users",
+                bindings: null,
+              }),
+              filter: mkDataSourceTemplate({
+                fieldType: "string",
+                value: "__binding__",
+                bindings: { __binding__: customCode("$state.filter") },
+              }),
+            },
+          }),
+        }),
+      );
+      const originalOps = [
+        ...component.serverQueries.map((query) => query.op),
+        component.dataQueries[0].op,
+      ];
+      const result = componentSchema().parse(
+        buildComponentResource(component, { site }),
+      );
       expect(result.dataQueries).toMatchObject([
-        { name: "Users", reference: "$q.users", kind: "customCode", code: "((await $$.fetch('/api/users')))" },
-        { name: "People", reference: "$q.people", kind: "function", functionId: "plasmic.fetch", args: [{ name: "url", value: "{{ $ctx.params.api }}" }] },
+        {
+          name: "Users",
+          reference: "$q.users",
+          kind: "customCode",
+          code: "((await $$.fetch('/api/users')))",
+        },
+        {
+          name: "People",
+          reference: "$q.people",
+          kind: "function",
+          functionId: "plasmic.fetch",
+          args: [{ name: "url", value: "{{ $ctx.params.api }}" }],
+        },
         { name: "Unconfigured", kind: "empty" },
       ]);
-      expect(result.legacyDataQueries).toMatchObject([{ name: "Get Users", reference: "$queries.getUsers", migratable: false,
-        op: { sourceId: "src1", roleId: "role1", args: [{ name: "resource", value: "users" }, { name: "filter", value: "{{ ($state.filter) }}" }] },
-      }]);
+      expect(result.legacyDataQueries).toMatchObject([
+        {
+          name: "Get Users",
+          reference: "$queries.getUsers",
+          migratable: false,
+          op: {
+            sourceId: "src1",
+            roleId: "role1",
+            args: [
+              { name: "resource", value: "users" },
+              { name: "filter", value: "{{ ($state.filter) }}" },
+            ],
+          },
+        },
+      ]);
       expect(result.legacyDataQueries?.[0].migrationBlockers).toHaveLength(1);
       expect(result.legacyDataQueries?.[0].op).not.toHaveProperty("baseUrl");
-      expect([...component.serverQueries.map((query) => query.op), component.dataQueries[0].op]).toEqual(originalOps);
+      expect([
+        ...component.serverQueries.map((query) => query.op),
+        component.dataQueries[0].op,
+      ]).toEqual(originalOps);
       const xml = jsonToXml(result, true);
       expect(xml).toContain('reference="$q.users"');
       expect(xml).toContain('reference="$queries.getUsers"');
     });
 
     it("omits definitions for query-free components", () => {
-      const component = mkComponent({ name: "NoQueries", type: ComponentType.Plain, tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }) });
+      const component = mkComponent({
+        name: "NoQueries",
+        type: ComponentType.Plain,
+        tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }),
+      });
       const result = buildComponentResource(component, { site });
       expect(result.dataQueries).toBeUndefined();
       expect(result.legacyDataQueries).toBeUndefined();
       expect(result.codeComponent).toBeUndefined();
     });
     it("reports function arguments that cannot be represented instead of silently treating them as empty", () => {
-      const component = mkComponent({ name: "AssetQuery", type: ComponentType.Plain, tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }) });
-      const op = mkCustomFunctionExpr("load", ["asset"], [{ name: "asset", code: "null" }]);
-      op.args[0].expr = new ImageAssetRef({ asset: mkImageAsset({ name: "logo", type: ImageAssetType.Picture }) });
+      const component = mkComponent({
+        name: "AssetQuery",
+        type: ComponentType.Plain,
+        tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }),
+      });
+      const op = mkCustomFunctionExpr(
+        "load",
+        ["asset"],
+        [{ name: "asset", code: "null" }],
+      );
+      op.args[0].expr = new ImageAssetRef({
+        asset: mkImageAsset({ name: "logo", type: ImageAssetType.Picture }),
+      });
       component.serverQueries.push(mkServerQuery("Asset", op));
-      expect(buildComponentResource(component, { site }).dataQueries).toMatchObject([{ kind: "function", args: [], unavailableArgs: ["asset"] }]);
+      expect(
+        buildComponentResource(component, { site }).dataQueries,
+      ).toMatchObject([
+        { kind: "function", args: [], unavailableArgs: ["asset"] },
+      ]);
     });
   });
 });

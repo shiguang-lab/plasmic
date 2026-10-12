@@ -1,4 +1,8 @@
 import { tokenTypes } from "@/wab/commons/StyleToken";
+import {
+  localEditBindingSchema,
+  pageEditToolNames,
+} from "@/wab/shared/copilot/local-edit";
 import type { JsonValue } from "@/wab/shared/core/lang";
 import {
   interactionActionSchema,
@@ -9,7 +13,6 @@ import {
   readResultSchema,
 } from "@/wab/shared/web-exporter/schema";
 import { z } from "zod";
-import { localEditBindingSchema, localEditToolNames } from "@/wab/shared/copilot/local-edit";
 
 const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([
@@ -151,10 +154,15 @@ const EDIT_TOOL_META = {
   },
   setPageViewport: {
     toolName: "setPageViewport",
-    title: "Use one device preset for all page previews",
+    title: "Set page preview device preset",
     description:
-      "Set the project's shared Page arena columns to a single Studio device preset (Desktop by default), removing other device columns. Keeps page definitions and variant rows. Custom variant frames use the same size. Does not change page CSS; update fixed root constraints separately.",
-    inputSchema: z.object({ preset: uuid.default("Desktop") }).strict(),
+      "Set Page arena columns to a single Studio device preset (Desktop by default), removing other device columns. Supply componentUuid to change only that page; omission changes all pages. Keeps page definitions and variant rows. Custom variant frames use the same size. Does not change page CSS; update fixed root constraints separately.",
+    inputSchema: z
+      .object({
+        preset: uuid.default("Desktop"),
+        componentUuid: uuid.optional(),
+      })
+      .strict(),
     outputSchema: resources,
   },
   deleteBreakpoint: {
@@ -841,15 +849,28 @@ export const PROTOTYPE_TOOL_META = {
   executeLocalEdit: {
     toolName: "executeLocalEdit",
     title: "Execute a scoped local AI operation",
-    description: "Execute an existing Studio tool against a pinned project, branch, editor session, change counter and subtree. Reject stale context and writes outside the subtree.",
-    inputSchema: z.object({
-      binding: localEditBindingSchema,
-      name: z.enum([...localEditToolNames, "validate", "save", "undo"]),
-      input: z.record(z.unknown()),
-    }).strict(),
+    description:
+      "Execute an existing Studio tool against a pinned project, branch, editor session, change counter and subtree. Reject stale context and writes outside the subtree.",
+    inputSchema: z
+      .object({
+        binding: localEditBindingSchema,
+        name: z.enum([
+          ...pageEditToolNames,
+          "createComponent",
+          "navigate",
+          "validate",
+          "save",
+          "undo",
+        ]),
+        input: z.record(z.unknown()),
+      })
+      .strict(),
     outputSchema: z.object({
-      result: z.string(), binding: localEditBindingSchema, changed: z.boolean(),
-      before: z.string().optional(), after: z.string().optional(),
+      result: z.string(),
+      binding: localEditBindingSchema,
+      changed: z.boolean(),
+      before: z.string().optional(),
+      after: z.string().optional(),
     }),
   },
   executeBatch: {

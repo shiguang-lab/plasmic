@@ -58,6 +58,7 @@ it("requires editor permission and returns only public model status", async () =
   expect(res.json).toHaveBeenCalledWith({
     configured: true,
     model: "fixture-model",
+    pageGenerationEnabled: false,
   });
   expect(JSON.stringify(vi.mocked(res.json).mock.calls)).not.toContain(
     state.config.apiKey,
@@ -120,4 +121,22 @@ it("does not start the model if the client disconnected during authorization", a
   });
   await localAiStep(req, res);
   expect(state.generate).not.toHaveBeenCalled();
+});
+
+it("gates whole-page requests separately and rejects an uncreated page", async () => {
+  const { req, res } = fixture();
+  req.body = { ...body, binding: { ...body.binding, mode: "page" } };
+  await expect(localAiStep(req, res)).rejects.toThrow(
+    "page generation is disabled",
+  );
+  expect(state.generate).not.toHaveBeenCalled();
+  req.devflags.enableLocalAiPageGeneration = true;
+  state.generate.mockResolvedValue({ text: "Done", calls: [] });
+  await localAiStep(req, res);
+  expect(state.generate).toHaveBeenCalledOnce();
+  req.body = {
+    ...body,
+    binding: { ...body.binding, mode: "page", componentUuid: null },
+  };
+  await expect(localAiStep(req, res)).rejects.toThrow("Invalid");
 });

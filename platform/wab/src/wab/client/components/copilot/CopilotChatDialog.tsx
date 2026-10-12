@@ -5,7 +5,7 @@ import {
 } from "@/wab/client/copilot/local-edit-session";
 import { useI18n } from "@/wab/client/i18n";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
-import { Alert, Button, Input, Space, Tag } from "antd";
+import { Alert, Button, Input, Radio, Space, Tag } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -79,10 +79,14 @@ export function CopilotChatDialog({
     [project.id],
   );
   const tasks = React.useSyncExternalStore(session.subscribe, session.snapshot);
+  const [mode, setMode] = React.useState<"local" | "page">("local");
+  const [pageName, setPageName] = React.useState("");
+  const [pagePath, setPagePath] = React.useState("");
   const [draft, setDraft] = React.useState("");
   const [status, setStatus] = React.useState<{
     configured: boolean;
     model: string | null;
+    pageGenerationEnabled?: boolean;
   }>();
   const [error, setError] = React.useState<string>();
   const consumed = React.useRef<CopilotChatOpenOpts>();
@@ -90,12 +94,11 @@ export function CopilotChatDialog({
   React.useEffect(() => {
     const controller = new AbortController();
     if (enabled) {
-      void localAiFetch<{ configured: boolean; model: string | null }>(
-        project.id,
-        "status",
-        undefined,
-        controller.signal,
-      )
+      void localAiFetch<{
+        configured: boolean;
+        model: string | null;
+        pageGenerationEnabled?: boolean;
+      }>(project.id, "status", undefined, controller.signal)
         .then(setStatus)
         .catch((reason) => {
           if (!controller.signal.aborted) {
@@ -110,6 +113,7 @@ export function CopilotChatDialog({
   }, [project.id, enabled, session]);
   React.useEffect(() => {
     if (chatOpenOpts?.prompt && consumed.current !== chatOpenOpts) {
+      setMode("local");
       setDraft(chatOpenOpts.prompt);
       draftBinding.current = chatOpenOpts.localEditBinding;
       if (status?.configured && !session.running) {
@@ -121,13 +125,28 @@ export function CopilotChatDialog({
     }
   }, [chatOpenOpts, status, session]);
   const lastTask = tasks.at(-1);
-  const lastRecord = tasks
-    .flatMap((task) => task.records)
-    .at(-1);
+  const lastRecord = tasks.flatMap((task) => task.records).at(-1);
+  const pageEnabled =
+    appCtx.appConfig.enableLocalAiPageGeneration &&
+    status?.pageGenerationEnabled;
+  const validPage =
+    pageEnabled &&
+    /^[A-Z][A-Za-z0-9]*$/.test(pageName.trim()) &&
+    /^\/[A-Za-z0-9/_-]*$/.test(pagePath.trim());
   const send = () => {
     if (draft.trim() && !session.running && status?.configured) {
       consumed.current = chatOpenOpts;
-      void session.run(draft, draftBinding.current);
+      if (mode === "page") {
+        if (!validPage) {
+          return;
+        }
+        void session.run(draft, undefined, {
+          name: pageName.trim(),
+          path: pagePath.trim(),
+        });
+      } else {
+        void session.run(draft, draftBinding.current);
+      }
       draftBinding.current = undefined;
       setDraft("");
     }
@@ -248,14 +267,16 @@ export function CopilotChatDialog({
                   <summary>{t("After")}</summary>
                   <pre>{record.after}</pre>
                 </details>
-                  {record === lastRecord && !record.undone && !session.running && (
-                  <Button
-                    size="small"
-                    onClick={() => void session.undo(task, record)}
-                  >
-                    {t("Undo")}
-                  </Button>
-                )}
+                {record === lastRecord &&
+                  !record.undone &&
+                  !session.running && (
+                    <Button
+                      size="small"
+                      onClick={() => void session.undo(task, record)}
+                    >
+                      {t("Undo")}
+                    </Button>
+                  )}
               </details>
             ))}
             {task.savedRevision !== undefined && (
@@ -284,6 +305,45 @@ export function CopilotChatDialog({
         ))}
       </div>
       <div className={styles.composer}>
+        {pageEnabled && (
+          <Radio.Group
+            value={mode}
+            onChange={(event) => setMode(event.target.value)}
+            disabled={session.running}
+            style={{ marginBottom: 12 }}
+          >
+            <Radio.Button value="local">{t("Edit current scope")}</Radio.Button>
+            <Radio.Button value="page" data-test-id="local-ai-page-mode">
+              {t("Generate new page")}
+            </Radio.Button>
+          </Radio.Group>
+        )}
+        {mode === "page" && (
+          <Space
+            direction="vertical"
+            style={{ width: "100%", marginBottom: 12 }}
+          >
+            <Input
+              data-test-id="local-ai-page-name"
+              aria-label={t("New page name")}
+              placeholder="RecordsPage"
+              value={pageName}
+              onChange={(event) => setPageName(event.target.value)}
+              disabled={session.running}
+            />
+            <Input
+              data-test-id="local-ai-page-path"
+              aria-label={t("New page route")}
+              placeholder="/records"
+              value={pagePath}
+              onChange={(event) => setPagePath(event.target.value)}
+              disabled={session.running}
+            />
+            <small>
+              {t("Use a PascalCase page name and a route starting with /.")}
+            </small>
+          </Space>
+        )}
         <Input.TextArea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -305,7 +365,12 @@ export function CopilotChatDialog({
           ) : (
             <Button
               type="primary"
-              disabled={!draft.trim() || !status?.configured || !enabled}
+              disabled={
+                !draft.trim() ||
+                !status?.configured ||
+                !enabled ||
+                (mode === "page" && !validPage)
+              }
               onClick={send}
             >
               {t("Send AI request")}

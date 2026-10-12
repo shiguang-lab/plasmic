@@ -14,7 +14,10 @@ import {
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
-const config = vi.hoisted(() => ({ enableLocalAiEditing: true }));
+const config = vi.hoisted(() => ({
+  enableLocalAiEditing: true,
+  enableLocalAiPageGeneration: false,
+}));
 const state = vi.hoisted(() => ({
   session: undefined as LocalEditSession | undefined,
   configured: true,
@@ -31,6 +34,7 @@ vi.mock("@/wab/client/copilot/local-edit-session", async (original) => {
     localAiFetch: async () => ({
       configured: state.configured,
       model: "fixture-model",
+      pageGenerationEnabled: true,
     }),
   };
 });
@@ -39,6 +43,7 @@ beforeEach(() => {
   state.session = new LocalEditSession("project");
   state.configured = true;
   config.enableLocalAiEditing = true;
+  config.enableLocalAiPageGeneration = false;
 });
 function mount() {
   const onClose = vi.fn();
@@ -92,4 +97,33 @@ it("closing the panel stops its current task", () => {
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   expect(stop).toHaveBeenCalled();
   expect(onClose).toHaveBeenCalled();
+});
+
+it("requires a page identity and submits generation without the selection binding", async () => {
+  config.enableLocalAiPageGeneration = true;
+  const run = vi
+    .spyOn(state.session as LocalEditSession, "run")
+    .mockResolvedValue();
+  mount();
+  fireEvent.click(
+    await screen.findByRole("radio", { name: "Generate new page" }),
+  );
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "Describe what you want to change…" }),
+    { target: { value: "Query table and drawers" } },
+  );
+  const send = screen.getByRole("button", { name: "Send AI request" });
+  expect(send).toBeDisabled();
+  fireEvent.change(screen.getByRole("textbox", { name: "New page name" }), {
+    target: { value: "RecordsPage" },
+  });
+  fireEvent.change(screen.getByRole("textbox", { name: "New page route" }), {
+    target: { value: "/records" },
+  });
+  expect(send).not.toBeDisabled();
+  fireEvent.click(send);
+  expect(run).toHaveBeenCalledWith("Query table and drawers", undefined, {
+    name: "RecordsPage",
+    path: "/records",
+  });
 });

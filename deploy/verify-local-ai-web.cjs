@@ -47,7 +47,8 @@ let browser;
     }
   });
   const projectUrl = base + "/projects/" + projectId;
-  const composer = page.frameLocator("iframe.studio-frame").getByTestId("canvas-ai-composer");
+  const composer = page.frameLocator("iframe.studio-frame")
+    .frameLocator("iframe.__wab_studio-frame").getByTestId("canvas-ai-composer");
   async function open() {
     await page.goto(projectUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForFunction(() => !!window.PLASMIC_AI_TOOLS, undefined, { timeout: 120000 });
@@ -70,7 +71,7 @@ let browser;
     const resource = (await call("read", { componentUuids: [definition.uuid] })).results[0];
     const target = await page.evaluate((html) => {
       const doc = new DOMParser().parseFromString(html, "text/html");
-      const node = doc.querySelector('[data-plasmic-name="AcceptanceTitle"]');
+      const node = doc.querySelector('[label="AcceptanceTitle"]');
       return node && { uuid: node.id, text: node.textContent };
     }, resource.baseVariantTplTree);
     assert(target?.uuid && target.text === expected, "Title readback mismatch: " + JSON.stringify(target));
@@ -107,7 +108,7 @@ let browser;
   const undoTask = await edit("Undo " + marker);
   const record = undoTask.getByTestId("local-ai-change");
   await record.locator("summary").first().click();
-  await record.getByRole("button", { name: /^(Undo|撤销|撤銷)$/ }).click();
+  await record.getByRole("button").click();
   await page.waitForFunction(() => {
     const task = [...document.querySelectorAll('[data-test-id="local-ai-task"]')].at(-1);
     return task && task.querySelector('[data-ai-undone="true"]') &&

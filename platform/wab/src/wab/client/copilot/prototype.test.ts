@@ -1,9 +1,9 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
-import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
+import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
@@ -51,94 +51,435 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it("creates one page, scopes state and interactions, and preserves other page viewports", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const existing = await createPage("Existing");
+    studioCtx.appCtx.appConfig.enableLocalAiPageGeneration = true;
+    const context = await call("getEditorContext");
+    let binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: null as string | null,
+      elementUuids: [],
+      mode: "page",
+    };
+    const edit = async (name: string, input: Record<string, unknown>) => {
+      const result = await call("executeLocalEdit", { binding, name, input });
+      binding = result.binding;
+      return result;
+    };
+    const created = await edit("createComponent", {
+      name: "Generated",
+      type: "page",
+      path: "/generated",
+    });
+    const page = ensure(
+      studioCtx.site.components.find((c) => c.uuid === binding.componentUuid),
+      "New page missing",
+    );
+    expect(created.changed).toBe(true);
+    await expect(
+      edit("createComponent", {
+        name: "Another",
+        type: "page",
+        path: "/another",
+      }),
+    ).rejects.toThrow("exactly one");
+    await expect(
+      edit("createState", {
+        componentUuid: existing.uuid,
+        name: "wrong",
+        variableType: "boolean",
+        initialValue: false,
+      }),
+    ).rejects.toThrow("outside");
+    await edit("createState", {
+      componentUuid: page.uuid,
+      name: "createOpen",
+      variableType: "boolean",
+      initialValue: false,
+    });
+    await edit("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<button data-plasmic-name="CreateRecord">Create</button>',
+    });
+    const button = ensure(
+      flattenTpls(page.tplTree).find(
+        (tpl) => "name" in tpl && tpl.name === "CreateRecord",
+      ),
+      "Button missing",
+    );
+    const wired = await edit("createInteraction", {
+      componentUuid: page.uuid,
+      elementUuid: button.uuid,
+      eventName: "onClick",
+      name: "OpenCreate",
+      action: {
+        actionName: "updateVariable",
+        variable: ["createOpen"],
+        operation: "NewValue",
+        value: "{{ true }}",
+      },
+    });
+    expect(wired.after).toContain("OpenCreate");
+    const readback = (await call("read", { componentUuids: [page.uuid] }))
+      .results[0];
+    expect(readback.states).toHaveLength(1);
+    expect(readback.interactions).toHaveLength(1);
+    await edit("undo", {});
+    expect(
+      (await call("read", { componentUuids: [page.uuid] })).results[0]
+        .interactions ?? [],
+    ).toHaveLength(0);
+    const untouched = studioCtx.site.pageArenas
+      .find((arena) => arena.component === existing)
+      ?.matrix.rows.map((row) =>
+        row.cols.map((col) => [
+          col.frame.uuid,
+          col.frame.width,
+          col.frame.height,
+        ]),
+      );
+    await expect(
+      edit("setPageViewport", { preset: "Desktop" }),
+    ).rejects.toThrow("required");
+    await edit("setPageViewport", {
+      componentUuid: page.uuid,
+      preset: "Desktop",
+    });
+    expect(
+      studioCtx.site.pageArenas
+        .find((arena) => arena.component === existing)
+        ?.matrix.rows.map((row) =>
+          row.cols.map((col) => [
+            col.frame.uuid,
+            col.frame.width,
+            col.frame.height,
+          ]),
+        ),
+    ).toEqual(untouched);
+    studioCtx.copilotActivity.dispose();
+  });
+
+  it("gates creation and can undo the native new-page transaction", async () => {
+    const { studioCtx, call } = fixture();
+    studioCtx.createViewStateUndoRecord();
+    const context = await call("getEditorContext");
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: null,
+      elementUuids: [],
+      mode: "page",
+    };
+    const request = {
+      binding,
+      name: "createComponent",
+      input: { name: "Generated", type: "page", path: "/generated" },
+    };
+    await expect(call("executeLocalEdit", request)).rejects.toThrow("disabled");
+    studioCtx.appCtx.appConfig.enableLocalAiPageGeneration = true;
+    const created = await call("executeLocalEdit", request);
+    const undone = await call("executeLocalEdit", {
+      binding: created.binding,
+      name: "undo",
+      input: {},
+    });
+    expect(undone.binding.componentUuid).toBeNull();
+    expect(studioCtx.site.components).toHaveLength(0);
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("keeps local JSON results independent of an external MCP XML session", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("OutputFormat");
     const context = await call("getEditorContext");
-    const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId,
-      changeCounter: context.changeCounter, componentUuid: page.uuid, elementUuids: [] };
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: page.uuid,
+      elementUuids: [],
+    };
     studioCtx.setPreferredAiOutputFormat("xml");
-    const result = await call("executeLocalEdit", { binding, name: "read", input: { componentUuids: [page.uuid] } });
+    const result = await call("executeLocalEdit", {
+      binding,
+      name: "read",
+      input: { componentUuids: [page.uuid] },
+    });
     expect(JSON.parse(result.result).results[0].name).toBe("OutputFormat");
     expect(studioCtx.preferredAiOutputFormat()).toBe("xml");
-    const jsonContext = await COPILOT_TOOLS.getEditorContext.execute(studioCtx, {}, { outputFormat: "json" });
+    const jsonContext = await COPILOT_TOOLS.getEditorContext.execute(
+      studioCtx,
+      {},
+      { outputFormat: "json" },
+    );
     expect(JSON.parse(jsonContext).projectId).toBe(binding.projectId);
     studioCtx.copilotActivity.dispose();
   });
   it("rejects a scoped commit if human editing occurred during async HTML preparation", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("ConcurrentEdit");
-    await call("insertHtml", { componentUuid: page.uuid, html: '<p data-plasmic-name="Title">Before</p>' });
-    const title = ensure(flattenTpls(page.tplTree).find((tpl) => "name" in tpl && tpl.name === "Title"), "Title missing");
-    const context = await call("getEditorContext");
-    const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId,
-      changeCounter: context.changeCounter, componentUuid: page.uuid, elementUuids: [] };
-    let entered = () => {}; let release = () => {};
-    const started = new Promise<void>((resolve) => { entered = resolve; });
-    const paused = new Promise<void>((resolve) => { release = resolve; });
-    const original = htmlImporter.htmlToTpl;
-    const spy = vi.spyOn(htmlImporter, "htmlToTpl").mockImplementationOnce(async (...args) => {
-      const result = await original(...args); entered(); await paused; return result;
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<p data-plasmic-name="Title">Before</p>',
     });
-    const pending = call("executeLocalEdit", { binding, name: "insertHtml", input: { componentUuid: page.uuid, html: "<p>AI insertion</p>" } });
+    const title = ensure(
+      flattenTpls(page.tplTree).find(
+        (tpl) => "name" in tpl && tpl.name === "Title",
+      ),
+      "Title missing",
+    );
+    const context = await call("getEditorContext");
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: page.uuid,
+      elementUuids: [],
+    };
+    let entered = () => {};
+    let release = () => {};
+    const started = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const paused = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const original = htmlImporter.htmlToTpl;
+    const spy = vi
+      .spyOn(htmlImporter, "htmlToTpl")
+      .mockImplementationOnce(async (...args) => {
+        const result = await original(...args);
+        entered();
+        await paused;
+        return result;
+      });
+    const pending = call("executeLocalEdit", {
+      binding,
+      name: "insertHtml",
+      input: { componentUuid: page.uuid, html: "<p>AI insertion</p>" },
+    });
     await started;
-    await call("changeElement", { componentUuid: page.uuid, elementUuid: title.uuid, text: "Human edit" });
-    release(); await expect(pending).rejects.toThrow("design changed");
-    const result = JSON.stringify(await call("read", { componentUuids: [page.uuid] }));
-    expect(result).toContain("Human edit"); expect(result).not.toContain("AI insertion");
-    spy.mockRestore(); studioCtx.copilotActivity.dispose();
+    await call("changeElement", {
+      componentUuid: page.uuid,
+      elementUuid: title.uuid,
+      text: "Human edit",
+    });
+    release();
+    await expect(pending).rejects.toThrow("design changed");
+    const result = JSON.stringify(
+      await call("read", { componentUuids: [page.uuid] }),
+    );
+    expect(result).toContain("Human edit");
+    expect(result).not.toContain("AI insertion");
+    spy.mockRestore();
+    studioCtx.copilotActivity.dispose();
   });
   it("pins scoped edits, keeps identities, and rejects outside or stale writes", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("ScopedEditing");
-    await call("insertHtml", { componentUuid: page.uuid,
-      html: '<section data-plasmic-name="EditRegion"><p data-plasmic-name="Title">Before</p></section><p data-plasmic-name="Outside">Untouched</p>' });
-    const region = ensure(flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "EditRegion"), "Region missing");
-    const title = ensure(flattenTpls(region).find((t) => "name" in t && t.name === "Title"), "Title missing");
-    const outside = ensure(flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "Outside"), "Outside missing");
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<section data-plasmic-name="EditRegion"><p data-plasmic-name="Title">Before</p></section><p data-plasmic-name="Outside">Untouched</p>',
+    });
+    const region = ensure(
+      flattenTpls(page.tplTree).find(
+        (t) => "name" in t && t.name === "EditRegion",
+      ),
+      "Region missing",
+    );
+    const title = ensure(
+      flattenTpls(region).find((t) => "name" in t && t.name === "Title"),
+      "Title missing",
+    );
+    const outside = ensure(
+      flattenTpls(page.tplTree).find(
+        (t) => "name" in t && t.name === "Outside",
+      ),
+      "Outside missing",
+    );
     const context = await call("getEditorContext");
-    const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId,
-      changeCounter: context.changeCounter, componentUuid: page.uuid, elementUuids: [region.uuid] };
-    const beforeOutside = JSON.stringify((await call("read", { elements: [{ componentUuid: page.uuid, elementUuid: outside.uuid }] })).results);
-    const edit = (name: string, input: Record<string, unknown>, guard = binding) => call("executeLocalEdit", { binding: guard, name, input });
-    await expect(edit("changeElement", { componentUuid: page.uuid, elementUuid: outside.uuid, text: "Wrong" })).rejects.toThrow("outside");
-    await expect(edit("deleteElement", { componentUuid: page.uuid, elementUuid: region.uuid })).rejects.toThrow("pinned root");
-    await expect(edit("insertHtml", { componentUuid: page.uuid, elementUuid: region.uuid, location: "before", html: "<p>Outside</p>" })).rejects.toThrow("pinned root");
-    for (const patch of [{ projectId: "other" }, { branchId: "other" }, { sessionId: "other" }]) {
-      await expect(edit("changeElement", { componentUuid: page.uuid, elementUuid: title.uuid, text: "Wrong" }, { ...binding, ...patch })).rejects.toThrow("session changed");
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: page.uuid,
+      elementUuids: [region.uuid],
+    };
+    const beforeOutside = JSON.stringify(
+      (
+        await call("read", {
+          elements: [{ componentUuid: page.uuid, elementUuid: outside.uuid }],
+        })
+      ).results,
+    );
+    const edit = (
+      name: string,
+      input: Record<string, unknown>,
+      guard = binding,
+    ) => call("executeLocalEdit", { binding: guard, name, input });
+    await expect(
+      edit("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: outside.uuid,
+        text: "Wrong",
+      }),
+    ).rejects.toThrow("outside");
+    await expect(
+      edit("deleteElement", {
+        componentUuid: page.uuid,
+        elementUuid: region.uuid,
+      }),
+    ).rejects.toThrow("pinned root");
+    await expect(
+      edit("insertHtml", {
+        componentUuid: page.uuid,
+        elementUuid: region.uuid,
+        location: "before",
+        html: "<p>Outside</p>",
+      }),
+    ).rejects.toThrow("pinned root");
+    for (const patch of [
+      { projectId: "other" },
+      { branchId: "other" },
+      { sessionId: "other" },
+    ]) {
+      await expect(
+        edit(
+          "changeElement",
+          { componentUuid: page.uuid, elementUuid: title.uuid, text: "Wrong" },
+          { ...binding, ...patch },
+        ),
+      ).rejects.toThrow("session changed");
     }
     const count = studioCtx.undoLog._log.length;
-    const result = await edit("executeBatch", { operations: [
-      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: title.uuid, text: "After" } },
-      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: region.uuid, styles: { padding: "24px" } } },
-    ] });
+    const result = await edit("executeBatch", {
+      operations: [
+        {
+          name: "changeElement",
+          input: {
+            componentUuid: page.uuid,
+            elementUuid: title.uuid,
+            text: "After",
+          },
+        },
+        {
+          name: "changeElement",
+          input: {
+            componentUuid: page.uuid,
+            elementUuid: region.uuid,
+            styles: { padding: "24px" },
+          },
+        },
+      ],
+    });
     expect(result.changed).toBe(true);
-    expect(result.before).toContain("Before"); expect(result.after).toContain("After");
+    expect(result.before).toContain("Before");
+    expect(result.after).toContain("After");
     expect(flattenTpls(region).find((t) => t.uuid === title.uuid)).toBe(title);
     expect(studioCtx.undoLog._log.length).toBe(count + 1);
-    expect(JSON.stringify((await call("read", { elements: [{ componentUuid: page.uuid, elementUuid: outside.uuid }] })).results)).toBe(beforeOutside);
-    await expect(edit("changeElement", { componentUuid: page.uuid, elementUuid: title.uuid, text: "Stale" })).rejects.toThrow("design changed");
+    expect(
+      JSON.stringify(
+        (
+          await call("read", {
+            elements: [{ componentUuid: page.uuid, elementUuid: outside.uuid }],
+          })
+        ).results,
+      ),
+    ).toBe(beforeOutside);
+    await expect(
+      edit("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: title.uuid,
+        text: "Stale",
+      }),
+    ).rejects.toThrow("design changed");
     await edit("undo", {}, result.binding);
-    expect(JSON.stringify(await call("read", { elements: [{ componentUuid: page.uuid, elementUuid: title.uuid }] }))).toContain("Before");
+    expect(
+      JSON.stringify(
+        await call("read", {
+          elements: [{ componentUuid: page.uuid, elementUuid: title.uuid }],
+        }),
+      ),
+    ).toContain("Before");
     studioCtx.copilotActivity.dispose();
   });
 
   it("rolls back a scoped batch and rejects global operations", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("ScopedRollback");
-    await call("insertHtml", { componentUuid: page.uuid, html: '<p data-plasmic-name="Title">Original</p>' });
-    const title = ensure(flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "Title"), "Title missing");
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<p data-plasmic-name="Title">Original</p>',
+    });
+    const title = ensure(
+      flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "Title"),
+      "Title missing",
+    );
     const context = await call("getEditorContext");
-    const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId, changeCounter: context.changeCounter, componentUuid: page.uuid, elementUuids: [] };
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: page.uuid,
+      elementUuids: [],
+    };
     const before = await call("read", { componentUuids: [page.uuid] });
-    await expect(call("executeLocalEdit", { binding, name: "executeBatch", input: { operations: [
-      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: title.uuid, text: "Should roll back" } },
-      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: title.uuid, props: { invalid: true } } },
-    ] } })).rejects.toThrow("component instance");
+    await expect(
+      call("executeLocalEdit", {
+        binding,
+        name: "executeBatch",
+        input: {
+          operations: [
+            {
+              name: "changeElement",
+              input: {
+                componentUuid: page.uuid,
+                elementUuid: title.uuid,
+                text: "Should roll back",
+              },
+            },
+            {
+              name: "changeElement",
+              input: {
+                componentUuid: page.uuid,
+                elementUuid: title.uuid,
+                props: { invalid: true },
+              },
+            },
+          ],
+        },
+      }),
+    ).rejects.toThrow("component instance");
     expect(await call("read", { componentUuids: [page.uuid] })).toEqual(before);
-    await expect(call("executeLocalEdit", { binding, name: "executeBatch", input: { operations: [
-      { name: "createState", input: { componentUuid: page.uuid, name: "Global", type: "boolean", value: true } },
-    ] } })).rejects.toThrow();
+    await expect(
+      call("executeLocalEdit", {
+        binding,
+        name: "executeBatch",
+        input: {
+          operations: [
+            {
+              name: "createState",
+              input: {
+                componentUuid: page.uuid,
+                name: "Global",
+                type: "boolean",
+                value: true,
+              },
+            },
+          ],
+        },
+      }),
+    ).rejects.toThrow();
     studioCtx.copilotActivity.dispose();
   });
   it("reads configured query definitions with edit permission denied and leaves design state unchanged", async () => {
@@ -148,10 +489,28 @@ describe("AI prototype editor tools", () => {
     const query = mkServerQuery("Records", op);
     runInAction(() => page.serverQueries.push(query));
     vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
-    expect((await call("identify", { model: "test", client: "test", skill: "plasmic", outputFormat: "json" })).canEdit).toBe(false);
+    expect(
+      (
+        await call("identify", {
+          model: "test",
+          client: "test",
+          skill: "plasmic",
+          outputFormat: "json",
+        })
+      ).canEdit,
+    ).toBe(false);
     const history = studioCtx.undoLog._log.length;
     const result = await call("read", { componentUuids: [page.uuid] });
-    expect(result.results[0].dataQueries).toEqual([{ __type: "DataQuery", name: "Records", uuid: query.uuid, reference: "$q.records", kind: "customCode", code: op.code }]);
+    expect(result.results[0].dataQueries).toEqual([
+      {
+        __type: "DataQuery",
+        name: "Records",
+        uuid: query.uuid,
+        reference: "$q.records",
+        kind: "customCode",
+        code: op.code,
+      },
+    ]);
     expect(page.serverQueries).toEqual([query]);
     expect(studioCtx.undoLog._log).toHaveLength(history);
     studioCtx.copilotActivity.dispose();

@@ -3628,5 +3628,11 @@
   "Revealing element": "正在定位元素",
   "Execution progress": "执行进度",
   "Current selection": "当前选区",
-  "Stopping": "正在停止"
+  "Stopping": "正在停止",
+  "Edit current scope": "编辑当前范围",
+  "Generate new page": "生成新页面",
+  "New page name": "新页面名称",
+  "New page route": "新页面路由",
+  "Use a PascalCase page name and a route starting with /.": "页面名称使用 PascalCase，路由以 / 开头。",
+  "Creating page": "正在创建页面"
 }

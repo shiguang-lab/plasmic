@@ -3628,5 +3628,11 @@
   "Revealing element": "요소 표시 중",
   "Execution progress": "실행 진행 상황",
   "Current selection": "현재 선택 영역",
-  "Stopping": "중지 중"
+  "Stopping": "중지 중",
+  "Edit current scope": "현재 범위 편집",
+  "Generate new page": "새 페이지 생성",
+  "New page name": "새 페이지 이름",
+  "New page route": "새 페이지 경로",
+  "Use a PascalCase page name and a route starting with /.": "페이지 이름은 PascalCase를 사용하고 경로는 /로 시작하세요.",
+  "Creating page": "페이지 생성 중"
 }

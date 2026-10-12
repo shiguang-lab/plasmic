@@ -3628,5 +3628,11 @@
   "Revealing element": "Revealing element",
   "Execution progress": "Execution progress",
   "Current selection": "Current selection",
-  "Stopping": "Stopping"
+  "Stopping": "Stopping",
+  "Edit current scope": "Edit current scope",
+  "Generate new page": "Generate new page",
+  "New page name": "New page name",
+  "New page route": "New page route",
+  "Use a PascalCase page name and a route starting with /.": "Use a PascalCase page name and a route starting with /.",
+  "Creating page": "Creating page"
 }
