@@ -204,6 +204,7 @@ export class LocalEditSession {
       if (!context.canEdit || context.projectId !== this.projectId) {
         throw new Error("Open an editable current project to use AI.");
       }
+      let modelContext = page ? undefined : context;
       task.binding =
         (!page ? pinned : undefined) ??
         localEditBindingSchema.parse({
@@ -230,6 +231,30 @@ export class LocalEditSession {
         await this.scoped(task, "navigate", {
           componentUuid: created.binding.componentUuid,
         });
+        checkStopped();
+        const observed =
+          PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
+            JSON.parse(await this.raw("getEditorContext", {})),
+          );
+        if (
+          !observed.canEdit ||
+          observed.projectId !== created.binding.projectId ||
+          observed.branchId !== created.binding.branchId ||
+          observed.sessionId !== created.binding.sessionId ||
+          observed.changeCounter !== created.binding.changeCounter
+        ) {
+          throw new Error(
+            "The editor context changed while creating the page. Start a new request.",
+          );
+        }
+        // The canvas may still be mounting. Never send the previous page's
+        // selection as generation context; the new binding remains authoritative.
+        if (observed.componentUuid === created.binding.componentUuid) {
+          modelContext = observed;
+          this.update(task, {
+            binding: { ...created.binding, frameUuid: observed.frameUuid },
+          });
+        }
         checkStopped();
       }
       const binding = ensure(task.binding, "Editing scope is missing.");
@@ -275,7 +300,7 @@ export class LocalEditSession {
           response: previous.messages.join("\n").slice(-2000),
           status: previous.status,
         }));
-      const resources = `${initial.result}\n${overview.result}\nEditor context at submission:\n${JSON.stringify(context)}\nRecent conversation (context only):\n${JSON.stringify(recent)}`;
+      const resources = `${initial.result}\n${overview.result}\nEditor context at submission:\n${JSON.stringify(modelContext ?? null)}\nRecent conversation (context only):\n${JSON.stringify(recent)}`;
       const history: LocalEditStep[] = [];
       const completed = new Map<
         string,
@@ -283,6 +308,7 @@ export class LocalEditSession {
       >();
       const started = Date.now();
       const limits = localEditLimits(binding);
+      let rejectedCalls = 0;
       for (let stepIndex = 0; stepIndex < limits.steps; stepIndex++) {
         checkStopped();
         if (Date.now() - started > limits.taskMs) {
@@ -311,7 +337,7 @@ export class LocalEditSession {
           break;
         }
         const step: LocalEditStep = { text: response.text, calls, results: [] };
-        for (const call of calls) {
+        for (const [callIndex, call] of calls.entries()) {
           checkStopped();
           const signature = JSON.stringify([call.name, call.input]);
           const previous = completed.get(call.id);
@@ -336,10 +362,51 @@ export class LocalEditSession {
                     ? "Reading context"
                     : "Editing selection",
           });
-          const output = await this.scoped(task, call.name, call.input);
-          this.record(task, call.name, call.input, output, call.id);
-          completed.set(call.id, { signature, output: output.result });
-          step.results.push({ id: call.id, output: output.result });
+          try {
+            const output = await this.scoped(task, call.name, call.input);
+            this.record(task, call.name, call.input, output, call.id);
+            completed.set(call.id, { signature, output: output.result });
+            step.results.push({ id: call.id, output: output.result });
+          } catch (error) {
+            checkStopped();
+            if (binding.mode !== "page" || ++rejectedCalls > 3) {
+              throw error;
+            }
+            // A failed/rolled-back call is repairable only while the original
+            // editor epoch and design counter remain unchanged. Never rebase.
+            const current =
+              PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
+                JSON.parse(await this.raw("getEditorContext", {})),
+              );
+            const pinnedScope = ensure(
+              task.binding,
+              "Editing scope is missing.",
+            );
+            if (
+              !current.canEdit ||
+              current.projectId !== pinnedScope.projectId ||
+              current.branchId !== pinnedScope.branchId ||
+              current.sessionId !== pinnedScope.sessionId ||
+              current.changeCounter !== pinnedScope.changeCounter
+            ) {
+              throw error;
+            }
+            const result = JSON.stringify({
+              error: error instanceof Error ? error.message : String(error),
+            });
+            completed.set(call.id, { signature, output: result });
+            step.results.push({ id: call.id, output: result });
+            for (const skipped of calls.slice(callIndex + 1)) {
+              step.results.push({
+                id: skipped.id,
+                output: JSON.stringify({
+                  error:
+                    "Skipped after a rejected tool call. Read the error and replan.",
+                }),
+              });
+            }
+            break;
+          }
           checkStopped();
         }
         history.push(step);

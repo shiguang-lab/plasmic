@@ -250,64 +250,96 @@ it("stops on a failed tool without saving or claiming completion", async () => {
   );
 });
 
-it("creates and pins one new routed page before invoking the model", async () => {
-  const transport = vi.fn().mockResolvedValue({ text: "Done", calls: [] });
-  const { tools, session } = fixture(transport);
-  const original = tools._executeLocal.getMockImplementation();
-  tools._executeLocal.mockImplementation(async (r, signal) => {
-    if (r.name === "createComponent") {
-      return {
-        success: true,
-        output: JSON.stringify({
-          binding: {
-            ...(r.binding as LocalEditBinding),
-            componentUuid: "generated",
+it.each([true, false])(
+  "pins the new page without leaking the previous selection (canvas ready=%s)",
+  async (ready) => {
+    const transport = vi.fn().mockResolvedValue({ text: "Done", calls: [] });
+    const { tools, session } = fixture(transport);
+    const original = tools._executeLocal.getMockImplementation();
+    tools._executeLocal.mockImplementation(async (r, signal) => {
+      if (r.name === "createComponent") {
+        const originalContext = await tools.getEditorContext({});
+        if (!originalContext.success) {
+          throw new Error("Context missing");
+        }
+        tools.getEditorContext.mockResolvedValue({
+          success: true,
+          output: JSON.stringify({
+            ...JSON.parse(originalContext.output),
+            componentUuid: ready ? "generated" : "page",
+            frameUuid: ready ? "generated-frame" : "previous-frame",
             changeCounter: 1,
-          },
-          changed: true,
-          result: JSON.stringify({ results: [] }),
-          before: "No page",
-          after: "New page",
-        }),
-      };
-    }
-    return (await original?.(r, signal)) ?? { success: true, output: "{}" };
-  });
-  await session.run("Build a list", binding, {
-    name: "RecordsPage",
-    path: "/records",
-  });
-  expect(tools._executeLocal.mock.calls[0][0]).toMatchObject({
-    binding: {
-      componentUuid: null,
+            selectedElementUuids: [],
+          }),
+        });
+        return {
+          success: true,
+          output: JSON.stringify({
+            binding: {
+              ...(r.binding as LocalEditBinding),
+              componentUuid: "generated",
+              changeCounter: 1,
+            },
+            changed: true,
+            result: JSON.stringify({ results: [] }),
+            before: "No page",
+            after: "New page",
+          }),
+        };
+      }
+      return (await original?.(r, signal)) ?? { success: true, output: "{}" };
+    });
+    await session.run("Build a list", binding, {
+      name: "RecordsPage",
+      path: "/records",
+    });
+    expect(tools._executeLocal.mock.calls[0][0]).toMatchObject({
+      binding: {
+        componentUuid: null,
+        mode: "page",
+        elementUuids: [],
+        frameUuid: null,
+      },
+      name: "createComponent",
+      input: { type: "page", name: "RecordsPage", path: "/records" },
+    });
+    expect(tools._executeLocal.mock.calls.map(([r]) => r.name)).toEqual([
+      "createComponent",
+      "navigate",
+      "read",
+      "read",
+      "validate",
+      "save",
+    ]);
+    expect(transport.mock.calls[0][0].binding).toMatchObject({
+      componentUuid: "generated",
       mode: "page",
       elementUuids: [],
-      frameUuid: null,
-    },
-    name: "createComponent",
-    input: { type: "page", name: "RecordsPage", path: "/records" },
-  });
-  expect(tools._executeLocal.mock.calls.map(([r]) => r.name)).toEqual([
-    "createComponent",
-    "navigate",
-    "read",
-    "read",
-    "validate",
-    "save",
-  ]);
-  expect(transport.mock.calls[0][0].binding).toMatchObject({
-    componentUuid: "generated",
-    mode: "page",
-    elementUuids: [],
-  });
-  expect(session.tasks[0]).toMatchObject({
-    status: "completed",
-    savedRevision: 7,
-    records: [
-      { name: "createComponent", before: "No page", after: "New page" },
-    ],
-  });
-});
+    });
+    expect(transport.mock.calls[0][0].binding.frameUuid).toBe(
+      ready ? "generated-frame" : null,
+    );
+    if (ready) {
+      expect(transport.mock.calls[0][0].resources).toContain(
+        '"componentUuid":"generated"',
+      );
+    } else {
+      expect(transport.mock.calls[0][0].resources).toContain(
+        "Editor context at submission:\nnull",
+      );
+    }
+    expect(transport.mock.calls[0][0].resources).not.toContain(
+      '"componentUuid":"page"',
+    );
+    expect(session.tasks[0]).toMatchObject({
+      status: "completed",
+      savedRevision: 7,
+      records: [
+        { name: "createComponent", before: "No page", after: "New page" },
+      ],
+    });
+  },
+);
 
 it("retains page creation as an undoable record when stopped before navigation", async () => {
   const transport = vi.fn();
@@ -339,4 +371,126 @@ it("retains page creation as an undoable record when stopped before navigation",
   });
   expect(tools._executeLocal).toHaveBeenCalledOnce();
   expect(transport).not.toHaveBeenCalled();
+});
+
+it("returns rejected page arguments to the model and skips dependent calls without relaxing validation", async () => {
+  const bad = {
+    id: "bad",
+    name: "getEditorContext",
+    input: { reason: "Inspect" },
+  };
+  const transport = vi
+    .fn()
+    .mockResolvedValueOnce({
+      text: "Reading",
+      calls: [bad, { ...call, id: "skip" }],
+    })
+    .mockResolvedValueOnce({ text: "Corrected", calls: [call] })
+    .mockResolvedValueOnce({ text: "Done", calls: [] });
+  const { tools, session } = fixture(transport);
+  const original = tools._executeLocal.getMockImplementation();
+  tools._executeLocal.mockImplementation(async (r, signal) =>
+    r.name === "getEditorContext"
+      ? {
+          success: false,
+          error: {
+            type: "EXECUTION_FAILED",
+            message: "Unrecognized key: reason",
+          },
+        }
+      : ((await original?.(r, signal)) ?? { success: true, output: "{}" }),
+  );
+  await session.run("Build interactions", {
+    ...binding,
+    mode: "page",
+    elementUuids: [],
+  });
+  const results = transport.mock.calls[1][0].history[0].results;
+  expect(JSON.parse(results[0].output)).toEqual({
+    error: "Unrecognized key: reason",
+  });
+  expect(JSON.parse(results[1].output).error).toContain("Skipped");
+  expect(
+    tools._executeLocal.mock.calls.filter(([r]) => r.name === "changeElement"),
+  ).toHaveLength(1);
+  expect(session.tasks[0]).toMatchObject({
+    status: "completed",
+    savedRevision: 7,
+    records: [{ id: "edit-1" }],
+  });
+});
+
+it.each([
+  { projectId: "other" },
+  { branchId: "other" },
+  { sessionId: "other" },
+  { changeCounter: 1 },
+  { canEdit: false },
+])(
+  "never repairs a rejected page call after the editor context changes: %j",
+  async (patch) => {
+    const transport = vi.fn().mockResolvedValue({
+      text: "Read",
+      calls: [
+        { id: "bad", name: "getEditorContext", input: { reason: "Inspect" } },
+      ],
+    });
+    const { tools, session } = fixture(transport);
+    const context = await tools.getEditorContext({});
+    if (!context.success) {
+      throw new Error("Context fixture failed");
+    }
+    tools._getLocalContext.mockResolvedValueOnce(context).mockResolvedValue({
+      success: true,
+      output: JSON.stringify({ ...JSON.parse(context.output), ...patch }),
+    });
+    const original = tools._executeLocal.getMockImplementation();
+    tools._executeLocal.mockImplementation(async (r, signal) =>
+      r.name === "getEditorContext"
+        ? {
+            success: false,
+            error: { type: "EXECUTION_FAILED", message: "Rejected input" },
+          }
+        : ((await original?.(r, signal)) ?? { success: true, output: "{}" }),
+    );
+    await session.run("Build", { ...binding, mode: "page", elementUuids: [] });
+    expect(transport).toHaveBeenCalledOnce();
+    expect(session.tasks[0]).toMatchObject({
+      status: "failed",
+      error: "Rejected input",
+      records: [],
+    });
+    expect(
+      tools._executeLocal.mock.calls.some(([r]) => r.name === "save"),
+    ).toBe(false);
+  },
+);
+
+it("stops a page task after the repair budget is exhausted", async () => {
+  const transport = vi.fn(
+    async (request: LocalEditRequest): Promise<LocalEditResponse> => ({
+      text: "Read",
+      calls: [
+        {
+          id: "bad-" + request.history.length,
+          name: "getEditorContext",
+          input: { reason: "Inspect" },
+        },
+      ],
+    }),
+  );
+  const { tools, session } = fixture(transport);
+  const original = tools._executeLocal.getMockImplementation();
+  tools._executeLocal.mockImplementation(async (r, signal) =>
+    r.name === "getEditorContext"
+      ? {
+          success: false,
+          error: { type: "EXECUTION_FAILED", message: "Rejected input" },
+        }
+      : ((await original?.(r, signal)) ?? { success: true, output: "{}" }),
+  );
+  await session.run("Build", { ...binding, mode: "page", elementUuids: [] });
+  expect(transport).toHaveBeenCalledTimes(4);
+  expect(session.tasks[0].status).toBe("failed");
+  expect(session.tasks[0].records).toHaveLength(0);
 });

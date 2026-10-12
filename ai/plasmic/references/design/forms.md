@@ -69,3 +69,9 @@ For authored CSS-grid rows, record optional Form layout expectations as `layout:
 ## Focused form edits
 
 For a local field/validation/layout change, inspect the entire affected owning Form and relevant hidden branches against the current requirement, preserving unrelated Pages. Check control ownership, values/rules, submit/ref actions and actual error/save/reopen behavior. Run the full-project verifier only with a complete reviewed inventory and overview; do not trim the overview or claim a full-project pass from a partial check. Full regeneration continues to require the complete inventory gate above.
+
+### Event and ref signatures
+
+Read the component's registered `refActions` and ordered `args` before invoking a Form ref. `args: []` means no parameters; missing `args` means the signature is unknown. Ref keys use camelCase node names, such as `$refs.createForm` for `CreateForm`. A footer calls the verified submit action; only the validated Form event performs the business mutation.
+
+Function events and render-slot Props expose native `args` names and types. Use the returned submit argument and lexical row variables; do not invent a data context for them.
