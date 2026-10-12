@@ -553,6 +553,12 @@ export function propSchema() {
       .describe(
         'Prop type, e.g. "text", "boolean", "number", "href", "enum", or a variant-group options string.',
       ),
+    args: z
+      .array(z.object({ name: z.string(), type: z.string() }))
+      .optional()
+      .describe(
+        "Ordered native event or render-slot arguments; render-slot arguments are lexical variables inside its content.",
+      ),
     options: z
       .array(
         z.object({

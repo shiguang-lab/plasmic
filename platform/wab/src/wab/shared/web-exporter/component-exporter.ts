@@ -74,12 +74,14 @@ import {
   isKnownExprText,
   isKnownFunctionArg,
   isKnownFunctionExpr,
+  isKnownFunctionType,
   isKnownImageAssetRef,
   isKnownObjectPath,
   isKnownPageHref,
   isKnownPropParam,
   isKnownRawText,
   isKnownRenderExpr,
+  isKnownRenderFuncType,
   isKnownStateChangeHandlerParam,
   isKnownStateParam,
   isKnownStyleTokenRef,
@@ -582,6 +584,15 @@ function buildComponentProps(component: Component): PropJson[] {
             ? "enum"
             : getParamType(component, param),
       };
+      if (
+        isKnownFunctionType(param.type) ||
+        isKnownRenderFuncType(param.type)
+      ) {
+        prop.args = param.type.params.map((arg) => ({
+          name: arg.argName,
+          type: getParamType(component, arg),
+        }));
+      }
       if (options) {
         prop.options = options;
       }

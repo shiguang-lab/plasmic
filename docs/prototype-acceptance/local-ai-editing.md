@@ -16,6 +16,10 @@
 
 局部模式保留原有选区或当前页范围，只允许节点修改、插入和删除。整页模式额外允许原生状态、交互、复制、移动和该页 viewport 工具。所有模型修改通过 Studio 的事务、范围检查、修改计数、撤销和保存流程执行。停止会终止未开始的调用，已经提交的事务保留在修改记录中。
 
-整页模式同时要求前后端 `enableLocalAiPageGeneration` devflag；默认关闭。AI 配置保留在服务端，Web 只读取可用状态和模型名称。局部任务最多 12 轮、3 分钟；整页任务最多 48 轮、12 分钟。工具读取沿用现有 MCP 模型和组件契约，包含注册 ref 动作的名称及可用的参数签名。
+整页模式同时要求前后端 `enableLocalAiPageGeneration` devflag；默认关闭。AI 配置保留在服务端，Web 只读取可用状态和模型名称。局部任务最多 12 轮、3 分钟；整页任务最多 48 轮、12 分钟。工具读取沿用现有 MCP 模型和组件契约，包含注册 ref 动作的名称及可用的参数签名，以及事件与 render slot 的原生参数。
 
 验收场景为查询表格、新建抽屉及详情抽屉。复用已安装的 Admin Templates、Ant Design 6、Overseas 和 React UI。Form 负责字段值和校验；列表使用原型内存数据。模型结构校验和保存成功不代表 Preview 的视觉或交互验收成功，实际运行证据另行记录。
+
+## 可重复执行的 Web 验收
+
+`deploy/verify-local-ai-web.cjs` 使用浏览器内置入口和公开 Studio 工具，可通过 `PLASMIC_VERIFY_PAGE_GENERATION=1` 追加整页场景。需提供 `STUDIO_ORIGIN`、独立验收项目 `PLASMIC_PROJECT_ID` 和私有 IAM `SG_SESSION` 或 `PLASMIC_STORAGE_STATE`；使用现有服务器的 AI 配置。脚本创建独立测试页面并复用模板库，报告及截图输出到 `PLASMIC_REPORT_DIR`。不要提交登录态文件或密钥。脚本不能用受控 API/编辑器响应替代真实运行结果。

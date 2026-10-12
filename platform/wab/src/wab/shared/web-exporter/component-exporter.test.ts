@@ -134,6 +134,49 @@ describe("Component Serialization", () => {
     expect(withoutGuidance.props?.[0]).not.toHaveProperty("description");
   });
 
+  it("reads ordered event arguments and row render scope from native param types", () => {
+    const component = mkComponent({
+      name: "InteractiveContract",
+      type: ComponentType.Plain,
+      tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, attrs: {} }),
+      params: [
+        mkParam({
+          name: "onFinish",
+          paramType: "prop",
+          type: typeFactory.func(typeFactory.arg("values", typeFactory.any())),
+        }),
+        mkParam({
+          name: "render",
+          paramType: "slot",
+          type: typeFactory.renderFunc({
+            allowed: [],
+            allowRootWrapper: undefined,
+            params: [
+              typeFactory.arg("cell", typeFactory.any()),
+              typeFactory.arg("row", typeFactory.any()),
+              typeFactory.arg("index", typeFactory.num()),
+            ],
+          }),
+        }),
+      ],
+    });
+    const props = componentSchema().parse(
+      buildComponentResource(component, { site }),
+    ).props;
+    expect(props.find((prop) => prop.name === "onFinish")).toMatchObject({
+      type: "func",
+      args: [{ name: "values", type: "any" }],
+    });
+    expect(props.find((prop) => prop.name === "render")).toMatchObject({
+      type: "slot",
+      args: [
+        { name: "cell", type: "any" },
+        { name: "row", type: "any" },
+        { name: "index", type: "number" },
+      ],
+    });
+  });
+
   it("serializes variant attr overrides without overwriting tpl ids", () => {
     const component = mkComponent({
       name: "VariantAttrs",

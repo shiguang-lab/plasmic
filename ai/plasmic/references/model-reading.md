@@ -41,3 +41,7 @@ Descriptions.Item 转为 items，保留 key/span、顺序、绑定、条件/重�
 MCP 的组件 metadata 不是源码下载接口。完整读取可提供 codeComponent 的注册 importPath/importName/defaultExport，用于定位实现；它不证明目标工程具有同名 npm 导出。实现依据按可访问的宿主源码、目标已安装包源码/类型、组件提供方的版本化源码或官方文档取得；记录路径或链接及版本。注册名不等于 npm import。源码无法取得时，用已验证的公开契约完成可确认部分并列出具体未知项，不能假设外部 Agent 拥有本平台仓库。查询定义不等于生产 API/凭据；原型未连接的业务接口仍按需求和目标服务契约处理。
 
 只读解读只需说明模型与注册契约，不需要建立目标工程或取得无关 npm 包。模板解释从 catalog 选定来源后读取对应实时组件及嵌套内容；catalog 的 Slots/版本是索引记录，需要核对。
+
+完整组件读取中的 `refActions` 给出已注册动作名；Web Studio 有实时注册信息时还返回按顺序排列的 `args` 参数名称。`args: []` 表示无参数，缺少 `args` 表示签名未知。不要把仅有动作名当成完整调用契约。实例 ref 的键使用生成代码的 camelCase 节点名，例如 `CreateForm` 对应 `$refs.createForm`；表单页脚应调用已确认的 submit 动作，并由 Form 的验证通过事件执行业务修改。
+
+函数事件及 render slot 的 Prop 读取包含原生类型声明的 `args`，按调用顺序给出参数名称和类型。Form 的提交数据使用已读取的事件参数名；Table 的行模板使用已读取的 render slot 局部变量。不要把这些变量猜成 `$ctx.row` 或自行创建新的数据上下文。
