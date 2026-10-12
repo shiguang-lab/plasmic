@@ -59,6 +59,7 @@ export type HostFrameApi = {
   executeCopilotToolCall(
     toolName: string,
     toolArgs: Record<string, unknown>,
+    outputFormat?: AiOutputFormat,
   ): Promise<CopilotToolCallResult>;
   /** Store the AI agent's preferred copilot tool output format on StudioCtx. */
   setPreferredAiOutputFormat(format: AiOutputFormat): Promise<void>;

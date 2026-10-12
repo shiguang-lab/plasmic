@@ -19,21 +19,20 @@ function ShareButton(props: ShareButtonProps) {
   return (
     <>
       <PlasmicShareButton {...rest} onClick={() => setModal(true)} />
-      {modal && (
-        <Modal
-          open={true}
-          onCancel={() => setModal(false)}
-          modalRender={() => (
-            <ShareDialogContent
-              className="ant-modal-content"
-              resource={resource}
-              perms={perms}
-              closeDialog={() => setModal(false)}
-              reloadPerms={reloadPerms}
-            />
-          )}
+      <Modal
+        open={modal}
+        onCancel={() => setModal(false)}
+        footer={null}
+        width={500}
+        styles={{ container: { padding: 0 } }}
+      >
+        <ShareDialogContent
+          resource={resource}
+          perms={perms}
+          closeDialog={() => setModal(false)}
+          reloadPerms={reloadPerms}
         />
-      )}
+      </Modal>
     </>
   );
 }

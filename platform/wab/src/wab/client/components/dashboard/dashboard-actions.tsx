@@ -207,6 +207,7 @@ interface WorkspaceMenuProps {
   onUpdate: () => Promise<void>;
   redirectOnDelete?: boolean;
   projectCount: number | undefined;
+  onShare: () => void;
 }
 
 export function WorkspaceMenu(props: WorkspaceMenuProps) {
@@ -218,6 +219,7 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
     onUpdate,
     redirectOnDelete,
     projectCount,
+    onShare,
     ...rest
   } = props;
 
@@ -235,6 +237,9 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
 
   return (
     <Menu {...rest}>
+      <Menu.Item key="share" onClick={onShare}>
+        <UiText message="Share" />
+      </Menu.Item>
       {accessLevelRank(teamAccessLevel) >= accessLevelRank("editor") &&
         workspace.team.featureTier?.editContentCreatorMode && (
           <Menu.Item

@@ -235,8 +235,104 @@ npm install https://studio.plasmic.shiguanglab.com/static/packages/shiguang-lab-
 Studio exposes `window.PLASMIC_AI_TOOLS` on an open, authorized project after its
 host frame connects. Connect an AI client through the Desktop MCP and install
 the thin [`plasmic` skill](../ai/plasmic/README.md). The AI client's
-model generates designs; this does not enable the official cloud Copilot chat.
-No model key is stored in the NAS deployment.
+model generates designs through the same Studio operations used by the built-in Web assistant.
+
+### Built-in Web local editing
+
+Enable `enableLocalAiEditing` through the existing server devflag configuration;
+it defaults to false. Reload Studio after enabling it. The canvas composer and
+AI shortcut open the same browser assistant. No Electron, Desktop MCP process,
+local RPC socket or App login is required.
+
+Configure an OpenAI-compatible service in the server's `PLASMIC_SECRETS_FILE`:
+
+```json
+{
+  "localAiEditing": {
+    "baseUrl": "https://YOUR_AI_SERVICE/v1",
+    "apiKey": "YOUR_SERVER_SIDE_KEY",
+    "model": "YOUR_TOOL_CALLING_MODEL"
+  }
+}
+```
+
+Preserve other fields in that file, keep it outside Git, and restrict its file
+permissions. `PLASMIC_AI_BASE_URL`, `PLASMIC_AI_API_KEY` and `PLASMIC_AI_MODEL`
+override those three fields. Use HTTPS except for local HTTP test services.
+The browser status endpoint returns configuration status and model name only.
+
+The assistant binds the project, branch, editor session, change counter, page,
+artboard and selected subtree at submission. Read, selection and scroll tools
+use the existing Studio contracts. Local writes permit element changes,
+insertion and deletion; related operations can form one atomic `executeBatch`.
+Plain native text uses `changeElement.text`, preserving node identity. Reads
+show the existing blue activity scan, edits the purple scan, and selection uses
+the native selection outline. Registered component contracts remain English.
+
+Stale context and out-of-scope writes are rejected again inside the transaction,
+after asynchronous HTML preparation. The assistant and external MCP share the
+browser edit queue. Local JSON responses do not change an external agent's
+preferred XML serialization. Stop aborts the model request and skips queued
+operations; an already executing transaction completes or rolls back normally.
+Completed edits remain in Studio and may already have been automatically saved.
+
+The browser panel records progress, actual before/after subtree models, errors
+and confirmed saved revisions. It checks model structure before explicitly
+confirming save; it does not claim visual or Preview interaction acceptance.
+Undo is available for the latest unchanged transaction and refuses to overwrite
+intervening edits. Task history is retained in browser memory while navigating
+or reopening the panel; reload clears it. Reloading or closing the editor stops
+execution, and continuing requires a new request with fresh context. The local
+editing scope does not create pages, install libraries, change global tokens,
+connect business APIs or publish designs.
+
+The model loop has a 12-step limit, a 90-second provider request timeout and a
+three-minute task budget. Provider requests are not automatically retried;
+duplicate tool-call identities within a task reuse the recorded result.
+Provider error bodies are not returned to the browser because they may contain
+credentials or request data.
+
+For comparison, pen.dev exposes current document/selection state plus native
+read/write operations through its [editor tools](https://docs.pen.dev/for-developers/pen-cli).
+Figma exposes [page selection](https://developers.figma.com/docs/plugins/api/PageNode/#selection)
+and [viewport operations](https://developers.figma.com/docs/plugins/api/figma-viewport/).
+The Web assistant follows this separation of view operations and document
+mutations using Studio's own tools and selection contracts.
+
+Implementation verification on 2026-10-12: 94 tests in ten relevant suites,
+targeted ESLint, Studio and Preview production builds passed. Browser testing
+used the production dialog with controlled editor/API fixtures; a separate
+live-provider test completed selection, text editing and summary against
+synthetic tool results. [Verification data](../docs/prototype-acceptance/local-ai-editing/verification.json)
+and [browser fixture screenshot](../docs/prototype-acceptance/local-ai-editing/web-completed-fixture.png)
+record those boundaries. Authenticated project save/reopen through the new Web
+UI has not been verified. Full WAB typecheck reports nine diagnostics in
+unchanged files and no diagnostics in the changed files; it is not a passing
+repository typecheck. Deployment and authenticated persistence acceptance are
+separate checks from this implementation verification.
+
+The authenticated Web acceptance runner uses the built-in AI composer and the
+actual configured model. It creates a separate acceptance page in the specified
+project, verifies an edit after save/reopen, then verifies a second edit after
+undo/save/reopen. It checks the original node UUID and persisted text and writes
+screenshots and a machine-readable report. It does not use Desktop or mocked
+editor/model responses:
+
+```sh
+PLASMIC_ENV_FILE=/private/path/acceptance.env \
+PLASMIC_PROJECT_ID=<acceptance-project-id> \
+PLASMIC_PLAYWRIGHT_PATH=<installed-playwright-module-path> \
+PLASMIC_REPORT_DIR=./local-ai-web-report \
+node deploy/verify-local-ai-web.cjs
+```
+
+The private env file supplies `STUDIO_ORIGIN` and an IAM-issued `SG_SESSION`.
+Alternatively use `STUDIO_ORIGIN` with a private `PLASMIC_STORAGE_STATE` file.
+The target must run the AI changes with `enableLocalAiEditing` enabled and the
+server model configured. `PLASMIC_E2E_DEVFLAGS=1` uses the existing test flags;
+it does not bypass authentication or project permissions. The created page is
+retained for inspection. A passing runner report is required before claiming
+authenticated persistence acceptance.
 
 Tools read the installed component contracts and use Studio's model operations,
 permissions, transaction rollback and undo. Use Ant Design 6 registered props;

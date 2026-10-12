@@ -1,10 +1,14 @@
-import { AntdConfigProvider } from "@/wab/client/antd-theme";
+import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
+import { Tooltip as ProductTooltip } from "@/wab/client/components/plexus/Tooltip";
+import tooltipStyles from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
+import styleTooltipStyles from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
+import { ensure } from "@/wab/shared/common";
 import {
   setAppearancePreference,
   usesProductTheme,
 } from "@/wab/client/ui-theme";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { theme } from "antd";
+import { Popover, Tooltip, theme } from "antd";
 import { useTheme } from "antd-style";
 import * as React from "react";
 import { createPortal } from "react-dom";
@@ -21,6 +25,62 @@ function ThemeProbe() {
   );
 }
 afterEach(cleanup);
+it("keeps generated tooltip content readable through theme changes", async () => {
+  setAppearancePreference("dark");
+  render(
+    <AntdConfigProvider productUI>
+      <ProductTooltip
+        trigger={<button>Manage organization</button>}
+        content="Organization settings"
+        showArrow
+      />
+      {createPortal(
+        <div className={styleTooltipStyles.floatingWindow} data-testid="style-tooltip">
+          <div className={styleTooltipStyles.slotTargetChildren}>Style help</div>
+        </div>,
+        document.body,
+      )}
+    </AntdConfigProvider>,
+  );
+  act(() => screen.getByRole("button", { name: "Manage organization" }).focus());
+  const content = await screen.findByText("Organization settings");
+  const foreground = ensure(
+    content.closest(`.${tooltipStyles.slotTargetContent}`),
+    "Expected the generated tooltip content slot",
+  );
+  const background = ensure(
+    content.closest(`.${tooltipStyles.freeBox}`),
+    "Expected the generated tooltip surface",
+  );
+  expect(document.querySelector(`.${tooltipStyles.overlayArrow}`)).toBeNull();
+  for (const appearance of ["dark", "light"] as const) {
+    act(() => setAppearancePreference(appearance));
+    const token = theme.getDesignToken(productTheme(appearance));
+    const probe = document.createElement("div");
+    probe.style.color = token.colorTextLightSolid;
+    probe.style.backgroundColor = token.colorBgSpotlight;
+    document.body.appendChild(probe);
+    const expected = getComputedStyle(probe);
+    expect(getComputedStyle(foreground).color).toBe(expected.color);
+    expect(getComputedStyle(background).backgroundColor).toBe(expected.backgroundColor);
+    const styleTooltip = screen.getByTestId("style-tooltip");
+    expect(getComputedStyle(styleTooltip).backgroundColor).toBe(expected.backgroundColor);
+    expect(getComputedStyle(styleTooltip.children[0]).color).toBe(expected.color);
+    probe.remove();
+  }
+});
+
+it("disables Ant Design tooltip and popover arrows in the shared provider", () => {
+  render(
+    <AntdConfigProvider productUI>
+      <Tooltip title="Tooltip help" open><button>Tooltip trigger</button></Tooltip>
+      <Popover content="Detailed help" open><button>Popover trigger</button></Popover>
+    </AntdConfigProvider>,
+  );
+  expect(screen.getByText("Tooltip help")).toBeTruthy();
+  expect(screen.getByText("Detailed help")).toBeTruthy();
+  expect(document.querySelector(".ant-tooltip-arrow, .ant-popover-arrow")).toBeNull();
+});
 it("updates Ant Design and antd-style together, while auth keeps its original theme", () => {
   setAppearancePreference("dark");
   const { rerender } = render(

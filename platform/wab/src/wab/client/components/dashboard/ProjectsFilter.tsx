@@ -7,15 +7,17 @@ export interface ProjectsFilterProps {
   setQuery: (query: string) => void;
   orderBy: string;
   setOrderBy: (orderBy: string | null) => void;
+  disabled?: boolean;
 }
 
 const ProjectsFilter = React.forwardRef<HTMLDivElement, ProjectsFilterProps>(
-  function ProjectsFilter({ query, setQuery, orderBy, setOrderBy }, ref) {
+  function ProjectsFilter({ query, setQuery, orderBy, setOrderBy, disabled }, ref) {
     const { t } = useI18n();
     return (
       <div ref={ref}>
         <Space wrap>
           <Input.Search
+            disabled={disabled}
             aria-label={t("Search…")}
             placeholder={t("Search…")}
             allowClear
@@ -24,6 +26,7 @@ const ProjectsFilter = React.forwardRef<HTMLDivElement, ProjectsFilterProps>(
             style={{ width: 240, maxWidth: "100%" }}
           />
           <Select
+            disabled={disabled}
             aria-label={t("Order by")}
             value={orderBy}
             onChange={setOrderBy}

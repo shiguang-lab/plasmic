@@ -10,7 +10,12 @@ export function NewProjectButton(props: {
 }) {
   const { t } = useI18n();
   return (
-    <Button {...props} type="primary" icon={<PlusOutlined aria-hidden />}>
+    <Button
+      {...props}
+      color="primary"
+      variant="text"
+      icon={<PlusOutlined aria-hidden />}
+    >
       {t("New project")}
     </Button>
   );

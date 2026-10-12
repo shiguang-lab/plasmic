@@ -1,5 +1,6 @@
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
+import { localAiStatus, localAiStep } from "@/wab/server/routes/local-ai";
 import * as Sentry from "@sentry/node";
 import * as bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -1262,6 +1263,8 @@ export function addMainAppServerRoutes(
    * Self routes
    */
   app.get("/api/v1/app-config", getAppConfig);
+  app.get("/api/v1/projects/:projectId/ai/edit/status", withNext(localAiStatus));
+  app.post("/api/v1/projects/:projectId/ai/edit/step", withNext(localAiStep));
   app.get("/api/v1/app-ctx", withNext(getAppCtx));
 
   /**

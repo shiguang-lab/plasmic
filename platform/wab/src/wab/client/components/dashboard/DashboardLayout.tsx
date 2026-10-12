@@ -2,7 +2,7 @@ import { DashboardPageLoading } from "@/wab/client/components/dashboard/Dashboar
 import DefaultTeamLayout from "@/wab/client/components/dashboard/DefaultTeamLayout";
 import { SpacesNavigation } from "@/wab/client/components/dashboard/SpacesNavigation";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
-import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
+import { SpacesNavigationSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
@@ -59,9 +59,7 @@ export const DashboardLayout = observer(function DashboardLayout({
           {appCtx ? (
             <SpacesNavigation team={team} workspace={workspace} />
           ) : (
-            <aside className={styles.spacesNavigation}>
-              <RowsSkeleton />
-            </aside>
+            <SpacesNavigationSkeleton />
           )}
           <Scrollbar scrollX={false} className={styles.spacesDetail}>
             {content}

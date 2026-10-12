@@ -22,7 +22,11 @@ import { createMemoryHistory } from "history";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
-const team = mock<ApiTeam>({ id: "org" as TeamId, name: "Organization" });
+const team = mock<ApiTeam>({ id: "org" as TeamId, name: "Example organization" });
+const otherTeam = mock<ApiTeam>({
+  id: "other-org" as TeamId,
+  name: "Other organization",
+});
 const workspace = mock<ApiWorkspace>({
   id: "workspace" as WorkspaceId,
   name: "Workspace",
@@ -30,9 +34,10 @@ const workspace = mock<ApiWorkspace>({
 });
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAppCtx: () => ({
-    getAllTeams: () => [team],
+    getAllTeams: () => [team, otherTeam],
     workspaces: [
       workspace,
+      { id: "other-workspace", name: "Other workspace", team: otherTeam },
       { id: "personal", name: "Personal", team: { id: "private" } },
     ],
   }),
@@ -74,18 +79,25 @@ it("shows organizations and workspaces without project leaves or the personal wo
   expect(screen.queryByText("Project")).toBeNull();
   expect(screen.queryByText("Personal")).toBeNull();
   expect(screen.queryByText("Private project")).toBeNull();
+  expect(screen.queryByText("Organizations")).toBeNull();
+  expect(screen.getAllByText("Organization")).toHaveLength(2);
+  expect(screen.getByText("Other workspace")).toBeVisible();
+  const tree = screen.getByRole("tree");
+  expect(tree.closest(".ant-tree")).toHaveClass("ant-tree-show-line");
+  expect(tree.querySelector(".ant-tree-switcher-icon")).toBeNull();
+  expect(tree.querySelector(".ant-tree-switcher-line-icon")).toBeNull();
   expect(
     screen.getByText("Workspace").closest(".ant-tree-node-content-wrapper"),
   ).toHaveClass("ant-tree-node-selected");
-  fireEvent.click(screen.getByText("Organization"));
+  fireEvent.click(screen.getByText(team.name));
   expect(history.location.pathname).toBe("/orgs/org");
   expect(
-    screen.getByText("Organization").closest(".ant-tree-node-content-wrapper"),
+    screen.getByText(team.name).closest(".ant-tree-node-content-wrapper"),
   ).toHaveClass("ant-tree-node-selected");
   fireEvent.click(screen.getByText("Workspace"));
   expect(history.location.pathname).toBe("/workspaces/workspace");
   act(() => history.back());
   expect(
-    screen.getByText("Organization").closest(".ant-tree-node-content-wrapper"),
+    screen.getByText(team.name).closest(".ant-tree-node-content-wrapper"),
   ).toHaveClass("ant-tree-node-selected");
 });

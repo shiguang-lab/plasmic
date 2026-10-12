@@ -1,5 +1,7 @@
 import { ensure } from "@/wab/shared/common";
 
+export const SELF_HOSTED = process.env.PLASMIC_SELF_HOSTED === "1";
+
 /**
  * Environment variables defined at build-time in rsbuild.config.ts.
  */

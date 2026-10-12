@@ -107,12 +107,53 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
     color: token.colorText,
     background: token.colorBgLayout,
     fontFamily: token.fontFamily,
-    [`& .${workspaceSection.header}, & .${teamPageHeader.root}, & .${teamSettings.header}`]:
+    [`& .${dashboard.dashboardContent} .${workspaceSection.root}:last-child`]: {
+      borderBottom: 0,
+    },
+    // Resource headers share one content-driven height, including route skeletons.
+    [`&& .${workspaceSection.header}, && .${teamPageHeader.root}, && .${teamSettings.header}`]:
       {
         background: token.colorBgContainer,
         color: token.colorText,
         borderColor: token.colorBorderSecondary,
+        boxSizing: "border-box",
+        minHeight: 64,
+        height: "auto",
+        padding: "12px 24px",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: 12,
+        top: 0,
       },
+    [`& .${teamPageHeader.freeBox__nhPk}, & .${workspaceSection.freeBox__sKiL}`]: {
+      padding: 0,
+      minWidth: 0,
+      flex: "1 1 160px",
+    },
+    [`& .${teamPageHeader.freeBox__hp5G2}, & .${workspaceSection.actions}`]: {
+      minWidth: 0,
+      maxWidth: "100%",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: 8,
+    },
+    [`& .${teamPageHeader.filter}, & .${workspaceSection.projectsFilter}`]: {
+      minWidth: 0,
+      maxWidth: "100%",
+      "& .ant-space, & .ant-space-item": { maxWidth: "100%" },
+    },
+    [`&& .${teamSettings.header}`]: {
+      position: "relative",
+      top: "auto",
+    },
+    "@media (max-width: 768px)": {
+      [`&& .${workspaceSection.header}, && .${teamPageHeader.root}, && .${teamSettings.header}`]:
+        { paddingInline: 16 },
+      [`& .${teamPageHeader.freeBox__hp5G2}`]: {
+        justifyContent: "flex-start",
+      },
+    },
     "--ui-surface": token.colorBgContainer,
     "--ui-bg": token.colorBgLayout,
     "--ui-border": token.colorBorder,
@@ -1364,28 +1405,58 @@ export const useLibraryPanelStyles = createStyles(({ token }) => ({
 
 export const useProjectBrowserStyles = createStyles(({ token }) => ({
   root: {
-    padding: 26,
+    minWidth: 0,
     color: token.colorText,
     background: token.colorBgContainer,
   },
-  toolbar: { margin: "24px 0" },
-  workspaceTabs: {
-    "& > .ant-tabs-nav": {
-      margin: 0,
-      padding: "12px 26px",
-      background: token.colorBgContainer,
-    },
-    "& > .ant-tabs-nav .ant-tabs-tab": { padding: "12px 0" },
-    "& > .ant-tabs-nav .ant-tabs-extra-content": { marginLeft: 24 },
-    "@media (max-width: 900px)": {
-      "& > .ant-tabs-nav": { flexWrap: "wrap", gap: 12 },
-      "& > .ant-tabs-nav .ant-tabs-extra-content": {
-        width: "100%",
-        marginLeft: 0,
-      },
-    },
+  toolbar: {
+    boxSizing: "border-box",
+    minHeight: 64,
+    padding: "12px 24px",
+    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    "& > *": { minWidth: 0, maxWidth: "100%" },
+    "& .ant-space, & .ant-space-item": { maxWidth: "100%" },
+    "@media (max-width: 768px)": { paddingInline: 16 },
   },
-  workspaceContent: { padding: 26 },
+  workspaceTabs: {
+    minWidth: 0,
+    containerType: "inline-size",
+    containerName: "workspace-tabs",
+  },
+  workspaceNavigation: {
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    gap: 24,
+    minHeight: 48,
+    padding: "0 24px",
+    background: token.colorBgContainer,
+    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    "&& > .ant-tabs-nav": {
+      margin: 0,
+      flex: 1,
+      minWidth: 0,
+      alignSelf: "stretch",
+      "&::before": { borderBottom: 0 },
+    },
+    "&& > .ant-tabs-nav .ant-tabs-tab": { padding: "12px 0" },
+    "@container workspace-tabs (max-width: 960px)": {
+      flexDirection: "column",
+      alignItems: "stretch",
+      gap: 8,
+      paddingBottom: 12,
+    },
+    "@media (max-width: 768px)": { paddingInline: 16 },
+  },
+  workspaceToolbar: {
+    minWidth: 0,
+    maxWidth: "100%",
+    "& .ant-space, & .ant-space-item": { maxWidth: "100%" },
+  },
+  workspaceContent: {
+    padding: 24,
+    "@media (max-width: 768px)": { padding: 16 },
+  },
   workspaceEmpty: {
     padding: "32px 0",
     color: token.colorTextSecondary,

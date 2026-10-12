@@ -441,6 +441,7 @@ const DEFAULT_DEVFLAGS = {
   hiddenQuickstartPlatforms: ensureType<string[]>([]),
   showCopilot: true,
   enableChatCopilot: false,
+  enableLocalAiEditing: false,
   enableQueryMigrationCopilot: false,
   chatCopilotModelProviderOpts: {
     provider: "VertexAnthropic",

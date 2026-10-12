@@ -372,12 +372,12 @@ function PlasmicShareDialogContent__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "resourceType", "team")
-              ? "Organization members"
+              ? uiT("Organization members")
               : hasVariant($state, "resourceType", "workspace")
-              ? "Workspace members"
+              ? uiT("Workspace members")
               : hasVariant($state, "resourceType", "project")
-              ? "Share this project"
-              : "Who can open this Plasmic project?"}
+              ? uiT("Share this project")
+              : uiT("Who can open this Plasmic project?")}
           </div>
           <ActionMenuButton
             data-plasmic-name={"projectActionMenu"}
@@ -934,7 +934,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   ),
                 })}
               >
-                {"as"}
+                {uiT("as")}
               </div>
               <div
                 className={classNames("all", sty.freeBox__elohb, {
@@ -1676,8 +1676,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                 })}
               >
                 {hasVariant($state, "resourceType", "team")
-                  ? "Anyone with the link can join the team as"
-                  : "Everyone else"}
+                  ? uiT("Anyone with the link can join the team as")
+                  : uiT("Everyone else")}
               </div>
             </div>
             <Select

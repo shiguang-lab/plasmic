@@ -91,6 +91,8 @@ export function AntdConfigProvider({
   return (
     <ConfigProvider
       theme={currentTheme}
+      tooltip={{ arrow: false }}
+      popover={{ arrow: false }}
       locale={
         { en: enUS, "zh-CN": zhCN, "zh-TW": zhTW, ja: jaJP, ko: koKR }[locale]
       }
@@ -120,7 +122,6 @@ export function productTheme(appearance: UiAppearance): ThemeConfig {
       colorBorderSecondary: dark ? "#30313b" : "#e6e8ef",
       borderRadius: 8,
       borderRadiusLG: 12,
-      controlHeight: 36,
       fontSize: 14,
       fontFamily: antdTheme.token?.fontFamily,
     },

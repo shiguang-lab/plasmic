@@ -37,5 +37,5 @@ export function Tooltip(props: TooltipProps) {
   // By default, we are just piping all TooltipProps here, but feel free
   // to do whatever works for you.
 
-  return <PlasmicTooltip {...props} />;
+  return <PlasmicTooltip {...props} showArrow={false} />;
 }

@@ -645,17 +645,6 @@ function _TopBar({ preview }: TopBarProps) {
                 </Tooltip>
                 <LivePopOutButton iconOnly />
                 <span className="editor-action-divider" />
-                <Tooltip
-                  trigger={["hover", "focus"]}
-                  title={t("Share project")}
-                >
-                  <EditorIconAction
-                    action="Share project"
-                    type="text"
-                    className="editor-icon-action"
-                    onClick={openShareDialog}
-                  />
-                </Tooltip>
                 {!studioCtx.contentEditorMode && (
                   <CodeButton showOptions={false} />
                 )}
@@ -716,6 +705,17 @@ function _TopBar({ preview }: TopBarProps) {
               align={{ offset: [0, 8] }}
               content={
                 <div className={`${styles.projectActions} ${popupStyles.root}`}>
+                  <Menu selectable={false}>
+                    <Menu.Item
+                      key="share"
+                      onClick={() => {
+                        setProjectOpen(false);
+                        openShareDialog();
+                      }}
+                    >
+                      {t("Share project")}
+                    </Menu.Item>
+                  </Menu>
                   {menu?.()}
                   <LeftTabStrip
                     useVersionsCTA={false}
@@ -806,7 +806,7 @@ function _TopBar({ preview }: TopBarProps) {
         }
         zoomButton={preview ? {} : { render: () => null }}
         viewButton={{ render: preview ? undefined : () => null }}
-        shareButton={{ wrap: preview ? undefined : () => null }}
+        shareButton={{ wrap: () => null }}
         commentButton={{
           wrap: preview && studioCtx.showComments() ? undefined : () => null,
           props: {

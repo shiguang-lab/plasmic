@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-12",
+  "unitTests": {
+    "files": 10,
+    "passed": 94
+  },
+  "lint": "passed",
+  "studioProductionBuild": "passed",
+  "previewProductionBuild": "passed",
+  "browser": {
+    "kind": "Production dialog with controlled editor and API fixtures",
+    "passed": true,
+    "checks": [
+      "submit",
+      "pinned scope",
+      "select",
+      "edit",
+      "execution progress",
+      "change record",
+      "save confirmation",
+      "stop without late writes",
+      "no browser errors"
+    ]
+  },
+  "liveModel": {
+    "model": "gemini-3.8-flash",
+    "kind": "Actual configured provider with synthetic design/tool results",
+    "completed": true,
+    "tools": [
+      "selectElement",
+      "changeElement"
+    ],
+    "textResult": "After"
+  },
+  "typecheck": {
+    "passed": false,
+    "diagnosticsInUnchangedFiles": 9,
+    "diagnosticsInChangedFiles": 0
+  },
+  "authenticatedProjectSaveReopenThroughWebUi": "not verified",
+  "publishedToNas": false,
+  "apiKeyInBrowserBundles": false
+}

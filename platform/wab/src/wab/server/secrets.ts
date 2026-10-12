@@ -12,6 +12,7 @@ import fs from "fs";
 import * as os from "os";
 
 interface Secrets {
+  localAiEditing?: { baseUrl: string; apiKey: string; model: string };
   google?: {
     /** AKA consumer key */
     clientId: string;

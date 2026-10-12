@@ -35,7 +35,7 @@ export type CopilotTool<
   execute: (
     studioCtx: StudioCtx,
     input: z.input<TInput>,
-    opts?: { prettify?: boolean },
+    opts?: { prettify?: boolean; outputFormat?: AiOutputFormat },
   ) => Promise<string>;
 };
 
@@ -64,7 +64,7 @@ export function defineCopilotTool<
       const output = meta.outputSchema.parse(
         await execute(studioCtx, parsedInput),
       );
-      return studioCtx.preferredAiOutputFormat() === "xml"
+      return meta.toolName !== "executeLocalEdit" && (opts?.outputFormat ?? studioCtx.preferredAiOutputFormat()) === "xml"
         ? jsonToXml(output, prettify)
         : JSON.stringify(output, null, prettify ? 2 : undefined);
     },

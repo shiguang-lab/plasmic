@@ -1,11 +1,32 @@
+import shareDialog from "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent.module.css";
+import iconButton from "@/wab/client/plasmic/PlasmicIconButton.module.css";
+import actionMenu from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
 import textbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
 import select from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect.module.css";
+import tooltip from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
+import styleTooltip from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
 import type { GlobalToken } from "antd";
 import { createStyles } from "antd-style";
 
 // These tokens belong to the product's generated UI library. Scoped binding
 // keeps the shared application/editor palette out of business iframe documents.
 export const productPalette = (token: GlobalToken) => ({
+  [`& .${shareDialog.root}`]: {
+    boxShadow: "none",
+  },
+  // Primary actions need a solid foreground independent of the surface token.
+  [`& .${actionMenu.slotTargetChildrentype_primary}, & .${iconButton.slotTargetChildrentype_primary}, & .${iconButton.roottype_primary}:hover .${iconButton.slotTargetChildrentype_primary}, & .${iconButton.roottype_primary}:active .${iconButton.slotTargetChildrentype_primary}`]: {
+    color: token.colorTextLightSolid,
+  },
+  // Tooltip foregrounds must stay paired with their backgrounds; the shared
+  // white palette token also serves ordinary surfaces and changes in dark mode.
+  [`& .${tooltip.freeBox}, & .${styleTooltip.floatingWindow}`]: {
+    background: token.colorBgSpotlight,
+    color: token.colorTextLightSolid,
+  },
+  [`& .${tooltip.slotTargetContent}, & .${styleTooltip.slotTargetChildren}`]: {
+    color: token.colorTextLightSolid,
+  },
   "& .labeled-item__label": { color: token.colorText },
   "& .btn-link": { color: token.colorText },
   "& .btn-link:disabled": { color: token.colorTextDisabled },

@@ -19,6 +19,7 @@ const E2E_DEVFLAGS: Partial<DevFlagsType> = {
 
   // copilot-chat.spec.ts — the chat UI is gated behind this.
   enableChatCopilot: true,
+  enableLocalAiEditing: true,
   // Backstop behind the `noCopilotApi` fixture: if a request ever escapes,
   // it must not reach a real model. Deliberately invalid.
   chatCopilotModelProviderOpts: {

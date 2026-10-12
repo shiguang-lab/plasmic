@@ -1,14 +1,20 @@
+import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
+import { CmsDatabasesSkeleton, TeamMembersSkeleton, WorkspaceDataSourcesSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
+import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
+import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
+import { Redirect } from "@/wab/client/route/Redirect";
 import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
-import { PersonalWorkspaceTabs } from "@/wab/client/components/dashboard/PersonalWorkspaceTabs";
+import { WorkspaceTabs } from "@/wab/client/components/dashboard/WorkspaceTabs";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import SettingsContainer from "@/wab/client/components/pages/plasmic/SettingsContainer";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import {
   PillSkeleton,
   ProjectCardsSkeleton,
-  RowsSkeleton,
+  ProjectGroupsSkeleton,
 } from "@/wab/client/components/widgets/ContentSkeletons";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
+import { SELF_HOSTED } from "@/wab/client/env";
 import { useI18n } from "@/wab/client/i18n";
 import { PlasmicEditableResourceName } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicEditableResourceName";
 import { PlasmicTeamPage } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamPage";
@@ -17,12 +23,13 @@ import { PlasmicTeamSettings } from "@/wab/client/plasmic/plasmic_kit_dashboard/
 import { PlasmicWorkspaceSection } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicWorkspaceSection";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
+import { AppstoreOutlined, BarsOutlined, MoreOutlined, PlusOutlined, SettingOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
   Descriptions,
   Flex,
+  Empty,
   Input,
   Segmented,
   Select,
@@ -33,24 +40,17 @@ import * as React from "react";
 
 function LoadingProjectFilters({
   allWorkspaces = false,
+  showView = true,
 }: {
   allWorkspaces?: boolean;
+  showView?: boolean;
 }) {
   const { t } = useI18n();
+  const { props: filterProps } = useProjectsFilter(undefined, undefined);
   return (
     <Flex align="center" wrap justify="space-between" gap={12}>
       <Flex align="center" wrap gap={12}>
-        <Input.Search
-          disabled
-          placeholder={t("Search…")}
-          style={{ width: 240 }}
-        />
-        <Select
-          disabled
-          value="updatedAt"
-          style={{ minWidth: 150 }}
-          options={[{ value: "updatedAt", label: t("Last modified") }]}
-        />
+        <ProjectsFilter {...filterProps} disabled />
         {allWorkspaces && (
           <Select
             disabled
@@ -60,13 +60,18 @@ function LoadingProjectFilters({
           />
         )}
       </Flex>
-      <Segmented
-        disabled
-        options={[
-          { value: "grid", label: t("Grid"), icon: <AppstoreOutlined /> },
-          { value: "list", label: t("List"), icon: <BarsOutlined /> },
-        ]}
-      />
+      {showView && (
+        <Flex align="center" wrap gap={12}>
+          {allWorkspaces && <NewProjectButton disabled />}
+          <Segmented
+            disabled
+            options={[
+              { value: "grid", label: t("Grid"), icon: <AppstoreOutlined /> },
+              { value: "list", label: t("List"), icon: <BarsOutlined /> },
+            ]}
+          />
+        </Flex>
+      )}
     </Flex>
   );
 }
@@ -80,31 +85,37 @@ export function WorkspacePageLoading({
   inTeamPage?: boolean;
   personalWorkspace?: boolean;
 }) {
-  const { t } = useI18n();
   const { hash } = useLocation();
   const history = useHistory();
   const { styles } = useProjectBrowserStyles();
+  const { t } = useI18n();
+  const appCtx = React.useContext(AppCtxContext);
   const tab =
     new URLSearchParams(hash.slice(1)).get("tab") === "dataSources"
       ? "dataSources"
       : "projects";
-  if (personalWorkspace) {
-    return (
-      <PersonalWorkspaceTabs
+  const workspaceTabs = (
+      <WorkspaceTabs
         activeKey={tab}
         onChange={(key) => history.push(`#tab=${key}`)}
         toolbar={
           <Flex align="center" wrap gap={12}>
-            {tab === "projects" && <PillSkeleton />}
-            <LoadingProjectFilters />
+            {tab === "projects" ? <NewProjectButton disabled /> : (
+              <Button disabled color="primary" variant="text" icon={<PlusOutlined aria-hidden />}>
+                {t(appCtx?.appConfig.enableDataQueries ? "New data source" : "New CMS")}
+              </Button>
+            )}
+            <LoadingProjectFilters showView={tab === "projects"} />
           </Flex>
         }
       >
         <div className={styles.workspaceContent}>
-          {tab === "projects" ? <ProjectCardsSkeleton /> : <RowsSkeleton />}
+          {tab === "projects" ? <ProjectCardsSkeleton /> : <WorkspaceDataSourcesSkeleton />}
         </div>
-      </PersonalWorkspaceTabs>
-    );
+      </WorkspaceTabs>
+  );
+  if (personalWorkspace) {
+    return workspaceTabs;
   }
   return (
     <PlasmicWorkspaceSection
@@ -115,18 +126,16 @@ export function WorkspacePageLoading({
         render: (props) => (
           <PlasmicEditableResourceName
             className={props.className}
-            name={name ?? <Skeleton.Input active style={{ width: 240 }} />}
+            name={name ?? <Skeleton.Input active size="small" style={{ width: 180, minWidth: 0, height: 16 }} />}
             editButton={{ render: () => null }}
           />
         ),
       }}
-      newProjectButton={{ render: () => <PillSkeleton /> }}
+      newProjectButton={{ render: () => inTeamPage ? <NewProjectButton disabled /> : null }}
       shareButton={{
-        render: () => (personalWorkspace ? null : <PillSkeleton width={80} />),
+        render: () => null,
       }}
-      projectsFilter={{ render: () => <LoadingProjectFilters /> }}
-      projectsTab={{ children: t("Projects") }}
-      dataSourcesTab={{ children: t("Data sources") }}
+      projectsFilter={{ render: () => null }}
       numMembers={
         <Skeleton.Input
           active
@@ -135,13 +144,18 @@ export function WorkspacePageLoading({
         />
       }
       moreButton={{
-        render: () => (personalWorkspace ? null : <PillSkeleton width={36} />),
+        render: () => <Button type="text" disabled aria-label={t("More")} icon={<MoreOutlined aria-hidden />} />,
       }}
       overrides={{
-        databases: { render: () => <RowsSkeleton /> },
-        dataSources: { render: () => <RowsSkeleton /> },
+        projectsSection:
+          !inTeamPage
+            ? {
+                render: () => workspaceTabs,
+              }
+            : undefined,
+        databases: { render: () => <CmsDatabasesSkeleton /> },
+        dataSources: { render: () => <WorkspaceDataSourcesSkeleton /> },
       }}
-      newCmsButton2={{ render: () => <PillSkeleton /> }}
       cmsSection={{ render: () => null }}
     >
       <ProjectCardsSkeleton />
@@ -151,13 +165,15 @@ export function WorkspacePageLoading({
 
 export function TeamSettingsLoading({ name }: { name?: string }) {
   const { t } = useI18n();
+  const { styles: members, cx } = useMembersStyles();
   return (
     <PlasmicTeamSettings
-      teamName={name ?? <Skeleton.Input active style={{ width: 220 }} />}
-      teamMenuButton={{ render: () => <PillSkeleton width={36} /> }}
+      teamName={name ?? <Skeleton.Input active size="small" style={{ width: 180, minWidth: 0, height: 16 }} />}
+      teamMenuButton={{ render: () => <Button disabled type="text" aria-label={t("More")} icon={<MoreOutlined aria-hidden />} /> }}
+      navSeparator={SELF_HOSTED ? { render: () => null } : undefined}
       memberList={{
         render: ({ className }) => (
-          <section className={className} style={{ padding: 24 }}>
+          <section className={cx(members.root, className)}>
             <Flex vertical gap={16}>
               <Flex align="center" justify="space-between" wrap gap={12}>
                 <Typography.Title level={4} style={{ margin: 0 }}>
@@ -170,25 +186,27 @@ export function TeamSettingsLoading({ name }: { name?: string }) {
               <Flex gap={12} wrap>
                 <Input.Search
                   disabled
+                  aria-label={t("Search members")}
                   placeholder={t("Search members")}
-                  style={{ width: 280, maxWidth: "100%" }}
+                  className={members.search}
                 />
                 <Select
                   disabled
                   value="all"
-                  style={{ minWidth: 180 }}
+                  aria-label={t("Filter by role")}
+                  className={members.filter}
                   options={[{ value: "all", label: t("All Roles") }]}
                 />
               </Flex>
             </Flex>
             <div role="status" aria-label={t("Loading team settings…")}>
-              <RowsSkeleton avatar />
+              <TeamMembersSkeleton />
             </div>
           </section>
         ),
       }}
       teamBilling={{
-        render: ({ className }) => (
+        render: ({ className }) => SELF_HOSTED ? null : (
           <Flex className={className} vertical gap={24} style={{ padding: 24 }}>
             <Typography.Title level={4} style={{ margin: 0 }}>
               {t("Billing")}
@@ -253,9 +271,18 @@ export function DashboardPageLoading() {
     APP_ROUTES.org.parse(pathname)?.teamId;
   const team = appCtx?.getAllTeams().find((item) => item.id === teamId);
   if (APP_ROUTES.organizations.parse(pathname)) {
+    const firstTeam = appCtx?.getAllTeams()[0];
+    if (firstTeam) {
+      return <Redirect to={APP_ROUTES.org.fill({ teamId: firstTeam.id })} />;
+    }
     return (
-      <section className={styles.root}>
-        <RowsSkeleton />
+      <section className={dashboard.spacesEmpty}>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={appCtx ? t("No organizations yet.") : <Skeleton.Input active size="small" style={{ width: 180, height: 22 }} />}
+        >
+          <Button disabled type="primary" icon={<PlusOutlined aria-hidden />}>{t("New organization")}</Button>
+        </Empty>
       </section>
     );
   }
@@ -284,7 +311,7 @@ export function DashboardPageLoading() {
                     className={props.className}
                     name={
                       team?.name ?? (
-                        <Skeleton.Input active style={{ width: 240 }} />
+                        <Skeleton.Input active size="small" style={{ width: 180, minWidth: 0, height: 16 }} />
                       )
                     }
                     editButton={{ render: () => null }}
@@ -306,10 +333,10 @@ export function DashboardPageLoading() {
                 />
               }
               newWorkspaceButton={{
-                render: () => <PillSkeleton width={140} />,
+                render: () => <Button disabled type="text" icon={<PlusOutlined aria-hidden />}>{t("New workspace")}</Button>,
               }}
-              settingsButton={{ render: () => <PillSkeleton width={36} /> }}
-              filter={{ render: () => <LoadingProjectFilters /> }}
+              settingsButton={{ render: () => <Button disabled type="text" icon={<SettingOutlined aria-hidden />}>{t("Manage organization")}</Button> }}
+              filter={{ render: () => <LoadingProjectFilters showView={false} /> }}
             />
           ),
         }}
@@ -331,7 +358,10 @@ export function DashboardPageLoading() {
   if (workspaceId || APP_ROUTES.playground.parse(pathname)) {
     return (
       <WorkspacePageLoading
-        personalWorkspace={!!APP_ROUTES.playground.parse(pathname)}
+        personalWorkspace={
+          !!APP_ROUTES.playground.parse(pathname) ||
+          (!!workspaceId && workspaceId === appCtx?.personalWorkspace?.id)
+        }
         name={
           workspaceId
             ? appCtx?.workspaces.find((item) => item.id === workspaceId)?.name
@@ -342,16 +372,12 @@ export function DashboardPageLoading() {
   }
   return (
     <section className={styles.root}>
-      <Flex align="center" justify="space-between" gap={16}>
-        <Typography.Title level={2} style={{ margin: 0 }}>
-          {t("All projects")}
-        </Typography.Title>
-        <NewProjectButton disabled />
-      </Flex>
       <div className={styles.toolbar}>
         <LoadingProjectFilters allWorkspaces />
       </div>
-      <ProjectCardsSkeleton />
+      <div className={styles.workspaceContent}>
+        <ProjectGroupsSkeleton />
+      </div>
     </section>
   );
 }

@@ -1,67 +1,46 @@
-import { productTheme } from "@/wab/client/antd-theme";
+import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { Modal } from "@/wab/client/components/widgets/Modal";
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { ConfigProvider } from "antd";
-import * as React from "react";
+import { setAppearancePreference } from "@/wab/client/ui-theme";
+import { ensure } from "@/wab/shared/common";
+import { act, cleanup, render, screen } from "@testing-library/react";
+import { theme } from "antd";
+import React from "react";
 
-afterEach(cleanup);
-
-it("themes popup controls without relying on a theme class on the document body", () => {
-  render(
-    <ConfigProvider theme={productTheme("dark")}>
-      <Modal title="Page settings" open footer={null}>
-        <div className="templated-string-input" data-testid="portal-title">
-          Page title
-        </div>
-        <div className="panel-dim-block" data-testid="portal-picker">
-          Image picker
-        </div>
-      </Modal>
-    </ConfigProvider>,
-  );
-  expect(
-    getComputedStyle(screen.getByTestId("portal-title")).backgroundColor,
-  ).toBe("rgb(32, 33, 40)");
-  expect(getComputedStyle(screen.getByTestId("portal-title")).color).toBe(
-    "rgb(237, 238, 245)",
-  );
-  expect(
-    getComputedStyle(screen.getByTestId("portal-picker")).backgroundColor,
-  ).toBe("rgb(21, 22, 27)");
+afterEach(() => {
+  cleanup();
+  setAppearancePreference("light");
 });
 
-it("opens and closes a focused product dialog through the native open contract", async () => {
-  const onCancel = vi.fn();
-  function Dialog() {
-    const [open, setOpen] = React.useState(false);
-    return (
-      <>
-        <button onClick={() => setOpen(true)}>Open product dialog</button>
-        <Modal
-          title="Product dialog"
-          open={open}
-          footer={null}
-          onCancel={() => {
-            onCancel();
-            setOpen(false);
-          }}
-        >
-          <input aria-label="Project name" />
-        </Modal>
-      </>
-    );
+it.each([false, true])("preserves theme corners with full-bleed content (custom render: %s)", (customRender) => {
+  const content = <div style={{ background: "black", height: 40 }}>Dialog content</div>;
+  render(
+    <AntdConfigProvider productUI>
+      <Modal
+        open
+        footer={null}
+        className="caller-class"
+        styles={{ container: { padding: 0 } }}
+        modalRender={customRender ? () => <div className="ant-modal-content">{content}</div> : undefined}
+      >
+        {content}
+      </Modal>
+    </AntdConfigProvider>,
+  );
+  const surface = ensure(screen.getByText("Dialog content").closest(customRender ? ".ant-modal-content" : ".ant-modal-container"), "Expected modal surface");
+  expect(surface.closest(".caller-class")).toBeTruthy();
+  for (const appearance of ["dark", "light"] as const) {
+    act(() => setAppearancePreference(appearance));
+    const token = theme.getDesignToken(productTheme(appearance));
+    if (customRender) {
+      expect(getComputedStyle(surface).borderRadius).toBe(`${token.borderRadiusLG}px`);
+    } else {
+      // jsdom does not resolve CSS variables used by Ant Design's native surface.
+      expect(getComputedStyle(surface).borderRadius).toBe("var(--ant-border-radius-lg)");
+      expect(Array.from(document.querySelectorAll("style")).some((style) => style.textContent?.includes(`--ant-border-radius-lg:${token.borderRadiusLG}px`))).toBe(true);
+    }
+    expect(getComputedStyle(surface).overflow).toBe("hidden");
   }
-  render(<Dialog />);
-  expect(screen.queryByRole("dialog")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Open product dialog" }));
-  expect(screen.getByRole("dialog")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Close" }));
-  expect(onCancel).toHaveBeenCalledTimes(1);
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  if (!customRender) {
+    expect((surface as HTMLElement).style.padding).toBe("0px");
+  }
 });

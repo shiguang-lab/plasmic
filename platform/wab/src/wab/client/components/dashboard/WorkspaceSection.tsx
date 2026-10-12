@@ -4,18 +4,22 @@ import {
 } from "@/wab/client/components/dashboard/dashboard-actions";
 import DatabaseListItem from "@/wab/client/components/dashboard/DatabaseListItem";
 import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
-import { PersonalWorkspaceTabs } from "@/wab/client/components/dashboard/PersonalWorkspaceTabs";
+import { WorkspaceTabs } from "@/wab/client/components/dashboard/WorkspaceTabs";
 import ProjectsFilter, {
   ProjectsFilterProps,
 } from "@/wab/client/components/dashboard/ProjectsFilter";
 import WorkspaceDataSources from "@/wab/client/components/dashboard/WorkspaceDataSources";
 import EditableResourceName from "@/wab/client/components/EditableResourceName";
+import { DataSourceModal } from "@/wab/client/components/modals/DataSourceModal";
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
-import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
+import { WorkspaceDataSourcesSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
+import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { Modal } from "@/wab/client/components/widgets/Modal";
+import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
@@ -47,10 +51,11 @@ import {
 import {
   AppstoreOutlined,
   BarsOutlined,
+  DownOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, Flex, Segmented, Typography } from "antd";
+import { Alert, Button, Dropdown, Flex, Segmented } from "antd";
 import * as _ from "lodash";
 import * as React from "react";
 
@@ -110,6 +115,9 @@ function WorkspaceSection_(
   const { hash } = useLocation();
 
   const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
+  const [showShareModal, setShowShareModal] = React.useState(false);
+  const [showNewDataSourceModal, setShowNewDataSourceModal] =
+    React.useState(false);
   const hashParams = new URLSearchParams(hash.slice(1));
   const tabFromHash = hashParams.get("tab") ?? "";
   const openTab = ["projects", "dataSources"].includes(tabFromHash)
@@ -156,11 +164,48 @@ function WorkspaceSection_(
   ));
 
   const showTabs = !rest.inTeamPage;
+  const canCreate =
+    accessLevelRank(workspaceAccessLevel) >= accessLevelRank("editor");
+  const newCms = () => spawn(promptNewDatabase(appCtx, history, workspace.id));
+  const newDataSourceButton =
+    canCreate &&
+    (appCtx.appConfig.enableDataQueries ? (
+      <Dropdown
+        trigger={["click"]}
+        menu={{
+          items: [
+            { key: "cms", label: t("New CMS"), onClick: newCms },
+            {
+              key: "integration",
+              label: t("Integrations"),
+              onClick: () => setShowNewDataSourceModal(true),
+            },
+          ],
+        }}
+      >
+        <Button
+          color="primary"
+          variant="text"
+          icon={<PlusOutlined aria-hidden />}
+        >
+          {t("New data source")} <DownOutlined aria-hidden />
+        </Button>
+      </Dropdown>
+    ) : (
+      <Button
+        color="primary"
+        variant="text"
+        icon={<PlusOutlined aria-hidden />}
+        onClick={newCms}
+      >
+        {t("New CMS")}
+      </Button>
+    ));
 
   const projectFilters = (
     <Flex align="center" wrap gap={12}>
       {filterProps && <ProjectsFilter {...filterProps} />}
-      <Segmented
+      {openTab === "projects" && <Segmented
         aria-label={t("View")}
         value={projectView}
         onChange={setProjectView}
@@ -176,7 +221,7 @@ function WorkspaceSection_(
             icon: <BarsOutlined aria-hidden />,
           },
         ]}
-      />
+      />}
     </Flex>
   );
   const projectList = (
@@ -220,67 +265,59 @@ function WorkspaceSection_(
       }
     />
   ) : (
-    <RowsSkeleton />
+    <WorkspaceDataSourcesSkeleton />
+  );
+  const dataSourcesList = (
+    <Flex vertical gap={16} className={styles.workspaceContent}>
+      {asyncData.value &&
+        !databases.length &&
+        !asyncData.value.dataSources.length && (
+          <div className={styles.workspaceEmpty}>
+            {t(
+              matcher.hasQuery()
+                ? "No matching resources found"
+                : "No entries have been created yet.",
+            )}
+          </div>
+        )}
+      {databasesList}
+      {dataSourcesContent}
+    </Flex>
+  );
+  const workspaceTabs = (
+    <WorkspaceTabs
+      activeKey={openTab}
+      onChange={updateTab}
+      toolbar={
+        <Flex align="center" wrap gap={12}>
+          {canCreate && openTab === "projects" && (
+            <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+          )}
+          {openTab === "dataSources" && newDataSourceButton}
+          {projectFilters}
+        </Flex>
+      }
+    >
+      {openTab === "projects" ? (
+        <div className={styles.workspaceContent}>
+          {projects.length ? projectList : (
+            <div className={styles.workspaceEmpty}>{noProjectsText}</div>
+          )}
+        </div>
+      ) : dataSourcesList}
+    </WorkspaceTabs>
   );
 
   return (
     <>
       {rest.personalWorkspace ? (
         <div ref={ref} className={rest.className}>
-          <PersonalWorkspaceTabs
-            activeKey={openTab}
-            onChange={updateTab}
-            toolbar={
-              <Flex align="center" wrap gap={12}>
-                {openTab === "projects" &&
-                  accessLevelRank(workspaceAccessLevel) >=
-                    accessLevelRank("editor") && (
-                    <NewProjectButton
-                      onClick={() => setShowNewProjectModal(true)}
-                    />
-                  )}
-                {projectFilters}
-              </Flex>
-            }
-          >
-            {openTab === "projects" ? (
-              <div className={styles.workspaceContent}>
-                {projects.length ? (
-                  projectList
-                ) : (
-                  <div className={styles.workspaceEmpty}>{noProjectsText}</div>
-                )}
-              </div>
-            ) : (
-              <Flex vertical gap={16} className={styles.workspaceContent}>
-                <Flex align="center" justify="space-between" gap={12}>
-                  <Typography.Title level={5} style={{ margin: 0 }}>
-                    {t("Content Management Systems (CMS)")}
-                  </Typography.Title>
-                  {accessLevelRank(workspaceAccessLevel) >=
-                    accessLevelRank("editor") && (
-                    <Button
-                      type="text"
-                      icon={<PlusOutlined aria-hidden />}
-                      onClick={() =>
-                        spawn(promptNewDatabase(appCtx, history, workspace.id))
-                      }
-                    >
-                      {t("New CMS")}
-                    </Button>
-                  )}
-                </Flex>
-                {databasesList}
-                {dataSourcesContent}
-              </Flex>
-            )}
-          </PersonalWorkspaceTabs>
+          {workspaceTabs}
         </div>
       ) : (
         <PlasmicWorkspaceSection
           {...rest}
           root={{ ref }}
-          h3={{ children: t("Content Management Systems (CMS)") }}
           editableName={{
             render: (props) => (
               <InlineEdit
@@ -344,44 +381,44 @@ function WorkspaceSection_(
               : undefined
           }
           newProjectButton={{
-            render: (props) => (
-              <NewProjectButton
-                className={props.className}
-                onClick={() => setShowNewProjectModal(true)}
-              />
-            ),
+            render: (props) =>
+              showTabs ? (
+                null
+              ) : (
+                <NewProjectButton
+                  className={props.className}
+                  onClick={() => setShowNewProjectModal(true)}
+                />
+              ),
           }}
           newCmsButton={{
             children: t("New CMS"),
             onClick: () =>
               spawn(promptNewDatabase(appCtx, history, workspace.id)),
           }}
-          newCmsButton2={{
-            children: t("New CMS"),
-            onClick: () =>
-              spawn(promptNewDatabase(appCtx, history, workspace.id)),
-          }}
           shareButton={{
-            resource: { type: "workspace", resource: workspace },
-            perms,
-            reloadPerms: onUpdate,
+            render: () => null,
           }}
           moreButton={{
-            props: {
-              menu: (
-                <WorkspaceMenu
-                  appCtx={appCtx}
-                  workspace={workspace}
-                  perms={perms}
-                  onUpdate={onUpdate}
-                  redirectOnDelete={!rest.inTeamPage}
-                  projectCount={projects.length}
-                />
-              ),
-            },
+            render: () => (
+              <MenuButton
+                aria-label={t("More")}
+                menu={
+                  <WorkspaceMenu
+                    appCtx={appCtx}
+                    workspace={workspace}
+                    perms={perms}
+                    onUpdate={onUpdate}
+                    redirectOnDelete={!rest.inTeamPage}
+                    projectCount={projects.length}
+                    onShare={() => setShowShareModal(true)}
+                  />
+                }
+              />
+            ),
           }}
           projectsFilter={{
-            render: () => projectFilters,
+            render: () => null,
           }}
           noProjects={!projects.length && (!showTabs || openTab === "projects")}
           noProjectsText={noProjectsText}
@@ -389,17 +426,13 @@ function WorkspaceSection_(
             !showTabs && (appCtx.appConfig.content || databases.length > 0)
           }
           canUseCmsAndDataSources={showTabs ? openTab : undefined}
-          projectsTab={{
-            children: t("Projects"),
-            onClick: () => updateTab("projects"),
-          }}
-          dataSourcesTab={{
-            children: t("Data sources"),
-            onClick: () => updateTab("dataSources"),
-          }}
           // If empty, just show default contents (No CMSes indicator)
           databases={databasesList.length > 0 ? databasesList : undefined}
           overrides={{
+            projectsSection:
+              showTabs
+                ? { render: () => workspaceTabs }
+                : undefined,
             databases: {
               render: () => databasesList,
             },
@@ -411,10 +444,36 @@ function WorkspaceSection_(
           {projectList}
         </PlasmicWorkspaceSection>
       )}
+      <Modal
+        open={showShareModal}
+        onCancel={() => setShowShareModal(false)}
+        footer={null}
+        width={500}
+        styles={{ container: { padding: 0 } }}
+      >
+        <ShareDialogContent
+          resource={{ type: "workspace", resource: workspace }}
+          perms={perms}
+          reloadPerms={onUpdate}
+          closeDialog={() => setShowShareModal(false)}
+        />
+      </Modal>
       {showNewProjectModal && (
         <NewProjectModal
           onCancel={() => setShowNewProjectModal(false)}
           workspaceId={workspace.id}
+        />
+      )}
+      {showNewDataSourceModal && (
+        <DataSourceModal
+          appCtx={appCtx}
+          workspaceId={workspace.id}
+          editingDataSource="new"
+          canEdit
+          onDone={() => setShowNewDataSourceModal(false)}
+          onUpdate={async () => {
+            await fetchAsyncData();
+          }}
         />
       )}
     </>

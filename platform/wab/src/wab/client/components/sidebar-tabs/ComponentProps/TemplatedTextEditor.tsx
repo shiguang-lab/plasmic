@@ -1089,7 +1089,6 @@ function CaretUI({ top, left }: CaretUIProps) {
     >
       <Tooltip
         title={uiT("Insert dynamic value here")}
-        classNames={{ root: "show-ant-tooltip-arrow" }}
         open={hover && isFocused}
       >
         <div className="custom-caret" />

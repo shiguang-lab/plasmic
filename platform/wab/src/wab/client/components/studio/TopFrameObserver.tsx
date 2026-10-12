@@ -239,6 +239,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
       async executeCopilotToolCall(
         toolName: string,
         toolArgs: Record<string, unknown>,
+        outputFormat?: AiOutputFormat,
       ): Promise<CopilotToolCallResult> {
         const copilotTool = COPILOT_TOOLS[toolName];
 
@@ -253,7 +254,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         }
 
         try {
-          const output = await copilotTool.execute(studioCtx, toolArgs);
+          const output = await copilotTool.execute(studioCtx, toolArgs, { outputFormat });
           return { success: true, output };
         } catch (err) {
           return {

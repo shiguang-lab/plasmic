@@ -5,6 +5,7 @@ import WorkspaceSection from "@/wab/client/components/dashboard/WorkspaceSection
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { SELF_HOSTED } from "@/wab/client/env";
 import {
   useAsyncFnStrict,
   useAsyncStrict,
@@ -126,6 +127,9 @@ function TeamPageContent_(
   ).length;
 
   React.useEffect(() => {
+    if (SELF_HOSTED) {
+      return;
+    }
     const storageKey = freeTrialKey(team.id);
     const hasFreeTrialStorage = async () => {
       const firstTimeRender = !(await appCtx.api.getStorageItem(storageKey));

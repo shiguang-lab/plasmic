@@ -3,6 +3,7 @@ import {
   TeamMenu,
 } from "@/wab/client/components/dashboard/dashboard-actions";
 import { TeamSettingsLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
+import { SELF_HOSTED } from "@/wab/client/env";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
@@ -39,12 +40,23 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
     retry: refetchData,
   } = useAsyncStrict(async () => {
     // needs to fetch subscription before team, because getSubscription will check the subscription status
-    const subscriptionResp = await appCtx.api.getSubscription(teamId);
+    const subscriptionResp = SELF_HOSTED
+      ? undefined
+      : await appCtx.api.getSubscription(teamId);
     const team = await appCtx.api.getTeam(teamId);
+    if (SELF_HOSTED) {
+      return {
+        ...team,
+        tiers: [],
+        subscription: undefined,
+        canStartFreeTrial: false,
+        isWhiteLabeled: !!team.team.whiteLabelInfo,
+      };
+    }
     const { meta } = await appCtx.api.getTeamMeta(teamId);
     const featureTiers = await appCtx.api.listCurrentFeatureTiers();
     const subscription =
-      subscriptionResp.type === "success"
+      subscriptionResp?.type === "success"
         ? { subscription: subscriptionResp.subscription }
         : {};
 
@@ -102,6 +114,9 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
       root={{ ref }}
       {...rest}
       teamName={team.name}
+      navSeparator={
+        SELF_HOSTED || data.isWhiteLabeled ? { render: () => null } : undefined
+      }
       teamMenuButton={
         teamMenuItems.length > 0
           ? {
@@ -199,7 +214,7 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
         },
       }}
       teamBilling={
-        data.isWhiteLabeled
+        SELF_HOSTED || data.isWhiteLabeled
           ? {
               render: () => null,
             }

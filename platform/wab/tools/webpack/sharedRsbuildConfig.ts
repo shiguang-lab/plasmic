@@ -49,8 +49,11 @@ export function mkSharedRsbuildConfig(opts: {
             process: [require.resolve("process/browser")],
             Buffer: ["buffer", "Buffer"],
           }),
-          new DefinePlugin(
-            mkDefinePluginOptsForEnv({
+          new DefinePlugin({
+            "process.env.PLASMIC_SELF_HOSTED": JSON.stringify(
+              process.env.PLASMIC_SELF_HOSTED ?? "",
+            ),
+            ...mkDefinePluginOptsForEnv({
               NODE_ENV: REQUIRED_VAR,
               COMMITHASH: commitHash,
               STATIC_URL: OPTIONAL_VAR,
@@ -62,7 +65,7 @@ export function mkSharedRsbuildConfig(opts: {
               SENTRY_PROJECT_ID: OPTIONAL_VAR,
               STRIPE_PUBLISHABLE_KEY: OPTIONAL_VAR,
             }),
-          ),
+          }),
         ],
       },
     },

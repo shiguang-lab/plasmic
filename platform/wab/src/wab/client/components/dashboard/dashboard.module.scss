@@ -189,8 +189,16 @@
   background: var(--ui-surface);
   padding: 20px 12px;
   :global(.ant-tree) {
-    margin-top: 12px;
     background: transparent;
+  }
+  :global(.ant-tree-switcher) {
+    pointer-events: none;
+  }
+  :global(.ant-tree-indent) {
+    display: none;
+  }
+  .spaceOrganizationNode > :global(.ant-tree-switcher) {
+    display: none;
   }
   :global(.ant-tree-node-content-wrapper) {
     display: flex;
@@ -199,6 +207,8 @@
     padding: 4px 8px;
   }
   :global(.ant-tree-title) {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -206,6 +216,22 @@
   :global(.ant-tree-iconEle) {
     flex-shrink: 0;
     margin-right: 4px;
+  }
+}
+.spaceOrganization {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  :global(.ant-tag) {
+    flex-shrink: 0;
+    margin: 0;
+    font-size: 11px;
+    line-height: 18px;
   }
 }
 .spacesDetail {

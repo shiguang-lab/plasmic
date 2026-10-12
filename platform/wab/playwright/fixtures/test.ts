@@ -31,6 +31,10 @@ export const testModels = base.extend<TestFixtures>({
         attempted.push(route.request().url());
         await route.abort("failed");
       });
+      await page.route("**/api/v1/projects/*/ai/edit/step", async (route) => {
+        attempted.push(route.request().url());
+        await route.abort("failed");
+      });
       await use();
       expect(
         attempted,

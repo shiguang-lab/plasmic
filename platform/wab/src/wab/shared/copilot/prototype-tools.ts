@@ -9,6 +9,7 @@ import {
   readResultSchema,
 } from "@/wab/shared/web-exporter/schema";
 import { z } from "zod";
+import { localEditBindingSchema, localEditToolNames } from "@/wab/shared/copilot/local-edit";
 
 const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([
@@ -270,11 +271,12 @@ const EDIT_TOOL_META = {
     toolName: "changeElement",
     title: "Change element name, props or layout",
     description:
-      "Modify an existing element in a local page/component. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Rejected props roll back the entire call. For text or slot content use insertHtml replace on that text element or its slot child.",
+      "Modify an existing element in a local page/component. text updates plain native text without replacing its identity; rich or bound text requires its existing editing contract. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Rejected props roll back the entire call. For text or slot content use insertHtml replace on that text element or its slot child.",
     inputSchema: z
       .object({
         ...element,
         name: z.string().trim().min(1).optional(),
+        text: z.string().max(100000).optional(),
         props: z.record(jsonValue).optional(),
         resetProps: z.array(uuid).min(1).optional(),
         styles: z.record(z.string().nullable()).optional(),
@@ -488,6 +490,10 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({}).strict(),
     outputSchema: z.object({
       projectName: z.string(),
+      projectId: uuid,
+      branchId: uuid.nullable(),
+      sessionId: uuid,
+      changeCounter: z.number().int().nonnegative(),
       componentUuid: uuid.nullable(),
       frameUuid: uuid.nullable(),
       selectedElementUuids: z.array(uuid),
@@ -832,6 +838,20 @@ export const prototypeMutationSchema = z.discriminatedUnion("name", [
 export type PrototypeMutation = z.infer<typeof prototypeMutationSchema>;
 export const PROTOTYPE_TOOL_META = {
   ...EDIT_TOOL_META,
+  executeLocalEdit: {
+    toolName: "executeLocalEdit",
+    title: "Execute a scoped local AI operation",
+    description: "Execute an existing Studio tool against a pinned project, branch, editor session, change counter and subtree. Reject stale context and writes outside the subtree.",
+    inputSchema: z.object({
+      binding: localEditBindingSchema,
+      name: z.enum([...localEditToolNames, "validate", "save", "undo"]),
+      input: z.record(z.unknown()),
+    }).strict(),
+    outputSchema: z.object({
+      result: z.string(), binding: localEditBindingSchema, changed: z.boolean(),
+      before: z.string().optional(), after: z.string().optional(),
+    }),
+  },
   executeBatch: {
     toolName: "executeBatch",
     title: "Apply one atomic edit transaction",

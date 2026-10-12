@@ -52,7 +52,6 @@ import {
   MergeSrcDst,
   ProjectId,
 } from "@/wab/shared/ApiSchema";
-import { canUseChatCopilot } from "@/wab/shared/billing/billing-util";
 import { assert, asyncWrapper, mkUuid, spawn } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { LocalizationConfig } from "@/wab/shared/localization";
@@ -158,14 +157,6 @@ export function TopFrameChrome({
   const fullPreview = !!APP_ROUTES.projectFullPreview.parse(
     location.pathname,
     false,
-  );
-  const projectTeam = appCtx
-    .getAllTeams()
-    .find((team) => team.id === project.teamId);
-  const canStartNewChat = canUseChatCopilot(
-    appCtx.selfInfo?.email,
-    projectTeam,
-    appCtx.appConfig,
   );
 
   React.useEffect(() => {
@@ -420,9 +411,7 @@ export function TopFrameChrome({
                   project={project}
                   chatOpenOpts={rest.copilotChatOpenOpts}
                   studioModalOpen={rest.studioModalOpen}
-                  canStartNewChat={canStartNewChat}
                   onClose={() => topFrameApi.toggleCopilotChat()}
-                  onPlanReady={refreshProjectAndPerms}
                 />
               )}
             </FloatingWindowLayer>

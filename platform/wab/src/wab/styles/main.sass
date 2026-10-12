@@ -417,8 +417,8 @@ input[type="text"].textbox--unset, textarea.textbox-unset, .select-dropdown__but
 .ant-tooltip
   pointer-events: none
 
-// Background comes from the colorBgSpotlight token, so the arrow matches too.
-.ant-tooltip-inner
+// Background comes from the colorBgSpotlight token.
+.ant-tooltip-container
   min-height: 0
 
 .preset-preview-tooltip
@@ -429,11 +429,6 @@ input[type="text"].textbox--unset, textarea.textbox-unset, .select-dropdown__but
 .preset-preview-tooltip-outer
   max-width: 550px
   max-height: 400px
-
-.ant-tooltip .ant-tooltip-arrow
-  display: none
-.ant-tooltip.show-ant-tooltip-arrow .ant-tooltip-arrow
-  display: initial
 
 .ant-select.textboxlike
   display: flex

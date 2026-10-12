@@ -3,6 +3,7 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { promptTeamUpgrade } from "@/wab/client/components/modals/PricingModal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { SELF_HOSTED } from "@/wab/client/env";
 import {
   DefaultFreeTrialProps,
   PlasmicFreeTrial,
@@ -48,6 +49,9 @@ export interface FreeTrialProps extends DefaultFreeTrialProps {
 function FreeTrial_(props: FreeTrialProps, ref: HTMLElementRefOf<"a">) {
   const { team, ...rest } = props;
   const appCtx = useAppCtx();
+  if (SELF_HOSTED) {
+    return null;
+  }
   // Show the banner if the org is on a trial, or one just ended.
   const recentlyEnded = recentlyEndedTrial(appCtx, team);
 

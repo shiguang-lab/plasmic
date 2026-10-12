@@ -2,6 +2,7 @@ import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { Flex, Skeleton } from "antd";
+import { FolderOutlined } from "@ant-design/icons";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -17,6 +18,8 @@ const useSkeletonStyles = createStyles(({ token }) => ({
   },
   line: {
     width: "100%",
+    flex: 1,
+    minWidth: 0,
     "& .ant-skeleton-input": { width: "100%", height: 14, minWidth: 0 },
   },
   row: {
@@ -58,7 +61,7 @@ export function PillSkeleton({
   );
 }
 
-export function ProjectCardsSkeleton({ view = "grid" }: { view?: string }) {
+export function ProjectCardsSkeleton({ view = "grid", showWorkspace = false }: { view?: string; showWorkspace?: boolean }) {
   const { t } = useI18n();
   const { styles: layout, cx } = useProjectBrowserStyles();
   const { styles } = useSkeletonStyles();
@@ -83,18 +86,36 @@ export function ProjectCardsSkeleton({ view = "grid" }: { view?: string }) {
                 className={styles.line}
                 style={{ height: 14, width: "100%" }}
               />
+              <Skeleton.Button active size="small" style={{ width: 28, minWidth: 28, height: 28 }} />
             </div>
             <Flex
               align="center"
               justify="space-between"
               className={dashboard.meta}
             >
-              <Skeleton.Avatar active size={24} />
-              <PillSkeleton width={80} height={22} />
+              <Skeleton.Input active size="small" style={{ width: 136, minWidth: 0, height: 14 }} />
+              {showWorkspace && <Skeleton.Input active size="small" style={{ width: 80, minWidth: 80, height: 22 }} />}
             </Flex>
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+export function ProjectGroupsSkeleton({ view = "grid" }: { view?: string }) {
+  return (
+    <div className={dashboard.projectBrowser}>
+      <div className={dashboard.projectLibrary}>
+        <section className={dashboard.projectGroup}>
+          <div className={dashboard.groupHeading} aria-hidden="true">
+            <FolderOutlined />
+            <Skeleton.Input active size="small" style={{ width: 140, height: 22 }} />
+            <Skeleton.Input active size="small" style={{ width: 24, minWidth: 24, height: 14 }} />
+          </div>
+          <ProjectCardsSkeleton view={view} showWorkspace />
+        </section>
+      </div>
     </div>
   );
 }

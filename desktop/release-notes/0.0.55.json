@@ -1,0 +1,7 @@
+{
+  "en": "- Add built-in AI editing for selected elements and the current page, with progress, stopping, change records and undo when enabled by the administrator.\n- Improve workspace navigation, project lists, organization settings and loading states.\n- Align menus, dialogs, tooltips and shortcut badges with the active appearance.\n- Refresh the application icon.",
+  "zh-CN": "- 增加内置 AI 局部编辑，管理员启用后支持选区与当前页面编辑、执行进度、停止、修改记录和撤销。\n- 优化工作区导航、项目列表、组织设置和加载状态。\n- 统一菜单、弹窗、提示和快捷键标识的主题样式。\n- 更新应用图标。",
+  "zh-TW": "- 新增內建 AI 局部編輯，管理員啟用後支援選取範圍與目前頁面編輯、執行進度、停止、變更記錄和復原。\n- 改善工作區導覽、專案列表、組織設定和載入狀態。\n- 統一選單、對話框、提示和快捷鍵標示的主題樣式。\n- 更新應用程式圖示。",
+  "ja": "- 管理者が有効にした場合、選択要素と現在のページを編集する内蔵 AI を追加。進捗表示、停止、変更履歴、元に戻す操作に対応。\n- ワークスペースのナビゲーション、プロジェクト一覧、組織設定、読み込み表示を改善。\n- メニュー、ダイアログ、ツールチップ、ショートカット表示のテーマを統一。\n- アプリケーションアイコンを更新。",
+  "ko": "- 관리자가 활성화하면 선택한 요소와 현재 페이지를 편집하는 내장 AI를 추가합니다. 진행 상태, 중지, 변경 기록 및 실행 취소를 지원합니다.\n- 작업 공간 탐색, 프로젝트 목록, 조직 설정 및 로딩 상태를 개선합니다.\n- 메뉴, 대화 상자, 도구 설명 및 단축키 표시의 테마를 통일합니다.\n- 앱 아이콘을 업데이트합니다."
+}

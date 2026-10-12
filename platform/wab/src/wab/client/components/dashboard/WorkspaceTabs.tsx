@@ -3,7 +3,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { Tabs } from "antd";
 import * as React from "react";
 
-export function PersonalWorkspaceTabs({
+export function WorkspaceTabs({
   activeKey,
   onChange,
   toolbar,
@@ -21,7 +21,12 @@ export function PersonalWorkspaceTabs({
       className={styles.workspaceTabs}
       activeKey={activeKey}
       onChange={onChange}
-      tabBarExtraContent={{ right: toolbar }}
+      renderTabBar={(props, DefaultTabBar) => (
+        <div className={styles.workspaceNavigation}>
+          <DefaultTabBar {...props} />
+          <div className={styles.workspaceToolbar}>{toolbar}</div>
+        </div>
+      )}
       items={[
         {
           key: "projects",

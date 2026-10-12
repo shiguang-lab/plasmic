@@ -7,8 +7,8 @@ import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { FolderOutlined, TeamOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import type { TreeDataNode } from "antd";
-import { Tree, Typography } from "antd";
-import { sortBy, uniq } from "lodash";
+import { Tag, Tree } from "antd";
+import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 
@@ -26,20 +26,15 @@ export const SpacesNavigation = observer(function SpacesNavigation({
   const workspaceKey = workspace
     ? APP_ROUTES.workspace.fill({ workspaceId: workspace.id })
     : undefined;
-  const [expandedKeys, setExpandedKeys] = React.useState<React.Key[]>([]);
-  React.useEffect(() => {
-    setExpandedKeys((current) =>
-      uniq([
-        ...current,
-        ...(teamKey ? [teamKey] : []),
-        ...(workspaceKey ? [workspaceKey] : []),
-      ]),
-    );
-  }, [teamKey, workspaceKey]);
-
   const treeData: TreeDataNode[] = appCtx.getAllTeams().map((item) => ({
     key: APP_ROUTES.org.fill({ teamId: item.id }),
-    title: <strong title={item.name}>{item.name}</strong>,
+    className: styles.spaceOrganizationNode,
+    title: (
+      <span className={styles.spaceOrganization}>
+        <strong title={item.name}>{item.name}</strong>
+        <Tag>{t("Organization")}</Tag>
+      </span>
+    ),
     icon: <TeamOutlined aria-hidden />,
     children: sortBy(
       appCtx.workspaces.filter((space) => space.team.id === item.id),
@@ -59,14 +54,14 @@ export const SpacesNavigation = observer(function SpacesNavigation({
       className={styles.spacesNavigation}
       aria-label={t("Spaces")}
     >
-      <Typography.Text type="secondary">{t("Organizations")}</Typography.Text>
       <Tree
         aria-label={t("Spaces")}
         blockNode
         showIcon
+        showLine={{ showLeafIcon: false }}
+        switcherIcon={null}
         treeData={treeData}
-        expandedKeys={expandedKeys}
-        onExpand={setExpandedKeys}
+        expandedKeys={treeData.map((node) => node.key)}
         selectedKeys={workspaceKey ? [workspaceKey] : teamKey ? [teamKey] : []}
         onSelect={(keys) => {
           if (keys.length) {

@@ -6,7 +6,7 @@ import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
-import { ProjectCardsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
+import { ProjectGroupsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import {
   useAllProjectsData,
   useAppCtx,
@@ -62,7 +62,6 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
           wrap
           gap={12}
           className={styles.toolbar}
-          style={{ marginTop: 0 }}
         >
           <Flex align="center" wrap gap={12}>
             <ProjectsFilter {...filterProps} />
@@ -101,112 +100,114 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
             />
           </Flex>
         </Flex>
-        {loadError && (projectsData || !isValidating) && (
-          <Alert
-            type={projectsData ? "warning" : "error"}
-            showIcon
-            title={t(
-              projectsData
-                ? "Couldn't refresh projects. Showing the last loaded projects."
-                : "Failed to load projects",
-            )}
-            action={
-              <Button
-                size="small"
-                disabled={isValidating}
-                aria-busy={isValidating}
-                onClick={() => {
-                  void updateProjectsData((current) => current, {
-                    revalidate: true,
-                    throwOnError: false,
-                  });
-                }}
-              >
-                {t(isValidating ? "Loading…" : "Retry")}
-              </Button>
-            }
-          />
-        )}
-        {!projectsData && (!loadError || isValidating) ? (
-          <ProjectCardsSkeleton view={view} />
-        ) : !projectsData ? null : projects.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              matcher.hasQuery()
-                ? t("No projects matching query.")
-                : t(
-                    'You have no projects. Create a new one by hitting "New project".',
-                  )
-            }
-          >
-            {!matcher.hasQuery() && (
-              <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
-            )}
-          </Empty>
-        ) : (
-          <div className={dashboard.projectBrowser}>
-            <div className={dashboard.projectLibrary}>
-              {Object.entries(groups).map(
-                ([workspaceId, workspaceProjects]) => {
-                  const groupWorkspace = appCtx.workspaces.find(
-                    (item) => item.id === workspaceId,
-                  );
-                  const label =
-                    workspaceId === appCtx.personalWorkspace?.id
-                      ? t("My Playground")
-                      : (groupWorkspace?.name ?? t("Shared projects"));
-                  return (
-                    <section
-                      className={dashboard.projectGroup}
-                      key={workspaceId}
-                    >
-                      <div className={dashboard.groupHeading}>
-                        {groupWorkspace ? (
-                          <PublicLink
-                            href={
-                              workspaceId === appCtx.personalWorkspace?.id
-                                ? APP_ROUTES.playground.fill({})
-                                : APP_ROUTES.workspace.fill({
-                                    workspaceId: groupWorkspace.id,
-                                  })
-                            }
-                          >
-                            <FolderOutlined aria-hidden />
-                            {label}
-                          </PublicLink>
-                        ) : (
-                          <span>{label}</span>
-                        )}
-                        <span>{workspaceProjects.length}</span>
-                      </div>
-                      <div
-                        className={cx(
-                          styles.grid,
-                          view === "list" && styles.list,
-                        )}
-                      >
-                        {workspaceProjects.map((project) => (
-                          <ProjectListItem
-                            key={project.id}
-                            project={project}
-                            perms={projectsData.perms}
-                            onUpdate={async () => {
-                              await updateProjectsData();
-                            }}
-                            workspaces
-                            matcher={matcher}
-                            showWorkspace
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  );
-                },
+        <div className={styles.workspaceContent}>
+          {loadError && (projectsData || !isValidating) && (
+            <Alert
+              type={projectsData ? "warning" : "error"}
+              showIcon
+              title={t(
+                projectsData
+                  ? "Couldn't refresh projects. Showing the last loaded projects."
+                  : "Failed to load projects",
               )}
+              action={
+                <Button
+                  size="small"
+                  disabled={isValidating}
+                  aria-busy={isValidating}
+                  onClick={() => {
+                    void updateProjectsData((current) => current, {
+                      revalidate: true,
+                      throwOnError: false,
+                    });
+                  }}
+                >
+                  {t(isValidating ? "Loading…" : "Retry")}
+                </Button>
+              }
+            />
+          )}
+          {!projectsData && (!loadError || isValidating) ? (
+            <ProjectGroupsSkeleton view={view} />
+          ) : !projectsData ? null : projects.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                matcher.hasQuery()
+                  ? t("No projects matching query.")
+                  : t(
+                      'You have no projects. Create a new one by hitting "New project".',
+                    )
+              }
+            >
+              {!matcher.hasQuery() && (
+                <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+              )}
+            </Empty>
+          ) : (
+            <div className={dashboard.projectBrowser}>
+              <div className={dashboard.projectLibrary}>
+                {Object.entries(groups).map(
+                  ([workspaceId, workspaceProjects]) => {
+                    const groupWorkspace = appCtx.workspaces.find(
+                      (item) => item.id === workspaceId,
+                    );
+                    const label =
+                      workspaceId === appCtx.personalWorkspace?.id
+                        ? t("My Playground")
+                        : (groupWorkspace?.name ?? t("Shared projects"));
+                    return (
+                      <section
+                        className={dashboard.projectGroup}
+                        key={workspaceId}
+                      >
+                        <div className={dashboard.groupHeading}>
+                          {groupWorkspace ? (
+                            <PublicLink
+                              href={
+                                workspaceId === appCtx.personalWorkspace?.id
+                                  ? APP_ROUTES.playground.fill({})
+                                  : APP_ROUTES.workspace.fill({
+                                      workspaceId: groupWorkspace.id,
+                                    })
+                              }
+                            >
+                              <FolderOutlined aria-hidden />
+                              {label}
+                            </PublicLink>
+                          ) : (
+                            <span>{label}</span>
+                          )}
+                          <span>{workspaceProjects.length}</span>
+                        </div>
+                        <div
+                          className={cx(
+                            styles.grid,
+                            view === "list" && styles.list,
+                          )}
+                        >
+                          {workspaceProjects.map((project) => (
+                            <ProjectListItem
+                              key={project.id}
+                              project={project}
+                              perms={projectsData.perms}
+                              onUpdate={async () => {
+                                await updateProjectsData();
+                              }}
+                              workspaces
+                              matcher={matcher}
+                              showWorkspace
+                            />
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  },
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
         {showNewProjectModal && (
           <NewProjectModal
             workspaceId={appCtx.personalWorkspace?.id}

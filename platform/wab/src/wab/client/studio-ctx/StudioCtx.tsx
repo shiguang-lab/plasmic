@@ -197,7 +197,6 @@ import {
 } from "@/wab/shared/Variants";
 import { AddItemKey } from "@/wab/shared/add-item-keys";
 import type { ServerToClientEvents } from "@/wab/shared/api/socket";
-import { canUseChatCopilot } from "@/wab/shared/billing/billing-util";
 import { BoundedCache } from "@/wab/shared/bounded-cache";
 import {
   Bundle,
@@ -1719,6 +1718,7 @@ export class StudioCtx extends WithDbCtx {
   /** Observable list of ViewCtxs */
   viewCtxs = observable.array<ViewCtx>();
   readonly copilotActivity = new CopilotActivity();
+  readonly aiSessionId = mkShortId();
 
   private frame2ViewCtx = computedFn(
     () =>
@@ -3664,15 +3664,7 @@ export class StudioCtx extends WithDbCtx {
   // Copilot
   //
   chatCopilotEnabled(): boolean {
-    if (!this.canEditProject() || !this.appCtx.appConfig.enableChatCopilot) {
-      return false;
-    }
-
-    return canUseChatCopilot(
-      this.appCtx.selfInfo?.email,
-      this.appCtx.teams.find((t) => t.id === this.siteInfo.teamId),
-      this.appCtx.appConfig,
-    );
+    return this.canEditProject() && this.appCtx.appConfig.enableLocalAiEditing;
   }
 
   queryMigrationCopilotEnabled(): boolean {

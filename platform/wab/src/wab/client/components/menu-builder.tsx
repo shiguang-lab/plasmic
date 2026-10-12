@@ -7,6 +7,7 @@ import { MaybeWrap, joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { ensure, filterFalsy } from "@/wab/shared/common";
 import type { MenuProps } from "antd";
 import { Menu, Tooltip } from "antd";
+import { createStyles } from "antd-style";
 import L from "lodash";
 import React from "react";
 
@@ -153,16 +154,31 @@ export function CreateNewMenuItemContent(props: {
   );
 }
 
+const useKeyboardShortcutStyles = createStyles(({ token }) => ({
+  root: {
+    "&.shortcut-combo": {
+      background: token.colorBgContainer,
+      color: token.colorText,
+      border: `1px solid ${token.colorBorderSecondary}`,
+      boxShadow: "none",
+      padding: "2px 5px",
+      minWidth: 18,
+      textAlign: "center",
+    },
+  },
+}));
+
 export function KeyboardShortcut(props: {
   children?: string;
   tooltip?: React.ReactNode;
 }) {
+  const { styles } = useKeyboardShortcutStyles();
   return props.children ? (
     <MaybeWrap
       cond={!!props.tooltip}
       wrapper={(x) => <Tooltip title={props.tooltip}>{x}</Tooltip>}
     >
-      <div className="shortcut-combo inline-block">
+      <div className={`shortcut-combo inline-block ${styles.root}`}>
         {normalizeCombo(props.children)}
       </div>
     </MaybeWrap>

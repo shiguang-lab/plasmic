@@ -6,6 +6,7 @@ import {
   showUpsellConfirm,
 } from "@/wab/client/components/modals/PricingModal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { SELF_HOSTED } from "@/wab/client/env";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { ApiTeam } from "@/wab/shared/ApiSchema";
@@ -23,6 +24,7 @@ export function shouldUpsellRedirect(
 ): string | undefined {
   const { pathname, search } = location;
   if (
+    SELF_HOSTED ||
     !new URLSearchParams(search).has(UPSELL_QUERY_PARAM) ||
     APP_ROUTES.orgSettings.parse(pathname, false)
   ) {
@@ -47,6 +49,9 @@ export function useUpsellQueryParam(team: ApiTeam) {
   const search = useLocation().search;
 
   useAsyncStrict(async () => {
+    if (SELF_HOSTED) {
+      return;
+    }
     const tierName = new URLSearchParams(search).get(UPSELL_QUERY_PARAM);
     if (!tierName) {
       return;

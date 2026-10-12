@@ -17,7 +17,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { createStyles } from "antd-style";
+import { useMemberStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import moment from "moment";
 import * as React from "react";
 
@@ -38,21 +38,7 @@ const roles = [
   { value: "commenter", label: "Commenter" },
   { value: "viewer", label: "Viewer" },
 ] as const;
-const useMemberStyles = createStyles(({ token }) => ({
-  root: {
-    padding: 16,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-    color: token.colorText,
-  },
-  identity: {
-    flex: 1,
-    minWidth: 180,
-    maxWidth: "100%",
-    wordBreak: "break-word",
-  },
-  role: { minWidth: 150 },
-  detail: { minWidth: 130 },
-}));
+
 
 const TeamMemberListItem = React.forwardRef<
   HTMLDivElement,

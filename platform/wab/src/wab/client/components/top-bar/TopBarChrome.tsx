@@ -17,8 +17,6 @@ const actionPaths = {
   Redo: "M15 5l5 5-5 5 M20 10H10a6 6 0 0 0 0 12",
   Comments: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   Preview: "M8 21h8 M12 17v4",
-  "Share project":
-    "M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6 M16 6l-4-4-4 4 M12 2v13",
   Code: "M8 6l-6 6 6 6 M16 6l6 6-6 6 M14 3l-4 18",
   "Published versions": "M3 4v5h5 M3 9a9 9 0 1 1-1 7 M12 7v5l4 2",
   "Open preview in new tab":
@@ -163,7 +161,6 @@ export function TopBarChrome({
             <EditorIconAction action="Preview" disabled />
             <EditorIconAction action="Open preview in new tab" disabled />
             <span className="editor-action-divider" />
-            <EditorIconAction action="Share project" disabled />
             <EditorIconAction action="Code" disabled />
             <EditorViewButton disabled />
             <PlasmicPublishButton

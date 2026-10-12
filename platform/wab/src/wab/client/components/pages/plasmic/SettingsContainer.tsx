@@ -3,7 +3,6 @@ import { useUiAppearance } from "@/wab/client/ui-theme";
 import { AsyncState } from "@/wab/client/hooks/useAsyncStrict";
 import { languageOptions, useI18n } from "@/wab/client/i18n";
 import { ApiTrustedHost, PersonalApiToken } from "@/wab/shared/ApiSchema";
-import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { Button, Select, Skeleton } from "antd";
 import * as React from "react";
 
@@ -19,6 +18,26 @@ interface SettingsContainerProps {
   hostsState: "loading" | "error" | ApiTrustedHost[] | undefined;
   onDeleteTrustedHost: (host: ApiTrustedHost) => void;
   onNewTrustedHost: () => void;
+}
+
+function SettingsListSkeleton({ tokens = false }: { tokens?: boolean }) {
+  const { styles } = useSettingsStyles();
+  const { t } = useI18n();
+  return (
+    <ul className={styles.list} aria-hidden="true">
+      {[0, 1, 2].map((key) => (
+        <li key={key}>
+          <Skeleton.Input active size="small" style={{ width: tokens ? 200 : 240, minWidth: 0, maxWidth: "100%", height: 20 }} />
+          {tokens ? (
+            <div className={styles.actions}>
+              <Button disabled>{t("Copy")}</Button>
+              <Button disabled danger>{t("Revoke")}</Button>
+            </div>
+          ) : <Button disabled danger>{t("Delete")}</Button>}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export default function SettingsContainer(props: Partial<SettingsContainerProps>) {
@@ -92,7 +111,7 @@ export default function SettingsContainer(props: Partial<SettingsContainerProps>
           <div><h2 id="tokens-heading">{t("Personal access tokens")}</h2><p>{t("Use tokens to connect tools and integrations to your account.")}</p></div>
           <Button disabled={!props.onNewToken} onClick={props.onNewToken}>{t("New token")}</Button>
         </div>
-        {!props.tokensState || (props.tokensState.loading && !props.tokensState.value) ? <div role="status" aria-label={t("Personal access tokens")}><RowsSkeleton /></div> : props.tokensState.error ? <p role="alert" className={styles.error}>{t("Unable to load access tokens.")}</p> : !props.tokensState.value?.length ? <div className={styles.empty}>{t("No access tokens yet.")}</div> : (
+        {!props.tokensState || (props.tokensState.loading && !props.tokensState.value) ? <div role="status" aria-label={t("Personal access tokens")}><SettingsListSkeleton tokens /></div> : props.tokensState.error ? <p role="alert" className={styles.error}>{t("Unable to load access tokens.")}</p> : !props.tokensState.value?.length ? <div className={styles.empty}>{t("No access tokens yet.")}</div> : (
           <ul className={styles.list}>
             {props.tokensState.value.map((token) => (
               <li key={token.token}>
@@ -112,7 +131,7 @@ export default function SettingsContainer(props: Partial<SettingsContainerProps>
           <div><h2 id="hosts-heading">{t("Trusted host apps")}</h2><p>{t("Allow custom app hosts from domains you trust.")}</p></div>
           <Button disabled={!props.onNewTrustedHost} onClick={props.onNewTrustedHost}>{t("Add URL")}</Button>
         </div>
-        {!props.hostsState || props.hostsState === "loading" ? <div role="status" aria-label={t("Trusted host apps")}><RowsSkeleton /></div> : props.hostsState === "error" ? <p role="alert" className={styles.error}>{t("Unable to load trusted hosts.")}</p> : !props.hostsState.length ? <div className={styles.empty}>{t("No trusted hosts yet.")}</div> : (
+        {!props.hostsState || props.hostsState === "loading" ? <div role="status" aria-label={t("Trusted host apps")}><SettingsListSkeleton /></div> : props.hostsState === "error" ? <p role="alert" className={styles.error}>{t("Unable to load trusted hosts.")}</p> : !props.hostsState.length ? <div className={styles.empty}>{t("No trusted hosts yet.")}</div> : (
           <ul className={styles.list}>
             {props.hostsState.map((host) => (
               <li key={host.id}>

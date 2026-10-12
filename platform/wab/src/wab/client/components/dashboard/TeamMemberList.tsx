@@ -9,7 +9,7 @@ import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Button, Empty, Flex, Input, Select, Typography } from "antd";
-import { createStyles } from "antd-style";
+import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import { sortBy } from "lodash";
 import * as React from "react";
 
@@ -23,15 +23,7 @@ interface TeamMemberListProps extends DefaultTeamMemberListProps {
   disabled?: boolean;
 }
 
-const useMembersStyles = createStyles(({ token }) => ({
-  root: {
-    color: token.colorText,
-    background: token.colorBgContainer,
-    padding: 24,
-  },
-  search: { width: 280, maxWidth: "100%" },
-  filter: { minWidth: 180 },
-}));
+
 
 function TeamMemberList_(
   props: TeamMemberListProps,

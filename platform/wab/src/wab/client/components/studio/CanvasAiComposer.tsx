@@ -119,10 +119,33 @@ export const CanvasAiComposer = observer(function CanvasAiComposer({
     ? ((isKnownTplComponent(selected) || isKnownTplTag(selected)) &&
         selected.name) ||
       summarizeTpl(selected)
-    : t("Current canvas");
-  // CopilotChatDialog is a public stub. Do not send prompts to a dialog that
-  // cannot render a response, even when a project enables its copilot flag.
-  const unavailable = t("AI editing is not available in this build.");
+    : studioCtx.focusedViewCtx()?.currentComponent().name || t("Current page");
+  const enabled = studioCtx.appCtx.appConfig.enableLocalAiEditing;
+  const unavailable = t("Local AI editing is disabled.");
+  const open = () => {
+    const componentUuid = studioCtx.focusedViewCtx()?.currentComponent().uuid;
+    if (!componentUuid || !enabled) {
+      return;
+    }
+    void studioCtx.appCtx.topFrameApi?.openCopilotChat({
+      prompt: draft.trim(),
+      mode: undefined,
+      localEditBinding: {
+        projectId: studioCtx.siteInfo.id,
+        branchId: studioCtx.dbCtx().branchInfo?.id ?? null,
+        sessionId: studioCtx.aiSessionId,
+        changeCounter: studioCtx._changeCounter,
+        componentUuid,
+        frameUuid: studioCtx.focusedViewCtx()?.arenaFrame().uuid ?? null,
+        elementUuids:
+          studioCtx
+            .focusedViewCtx()
+            ?.focusedTpls()
+            .flatMap((tpl) => (tpl ? [tpl.uuid] : [])) ?? [],
+      },
+    });
+    setDraft("");
+  };
   return (
     <div
       className={styles.root}
@@ -140,32 +163,39 @@ export const CanvasAiComposer = observer(function CanvasAiComposer({
         variant="borderless"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
+        onPressEnter={(event) => {
+          if (!event.nativeEvent.isComposing) {
+            open();
+          }
+        }}
         aria-label={t("Describe what you want to change…")}
         placeholder={t("Describe what you want to change…")}
         aria-describedby="canvas-ai-availability"
       />
-      <Tooltip title={unavailable}>
+      <Tooltip title={!enabled ? unavailable : t("Open AI assistant")}>
         <span className={styles.action}>
           <Button
             type="primary"
-            disabled
-            aria-label={t("Add AI context")}
+            disabled={!enabled}
+            onClick={open}
+            aria-label={t("Open AI assistant")}
             icon={icon("M12 4v16 M4 12h16")}
           />
         </span>
       </Tooltip>
-      <Tooltip title={unavailable}>
+      <Tooltip title={!enabled ? unavailable : undefined}>
         <span className={styles.action}>
           <Button
             type="primary"
-            disabled
+            disabled={!enabled || !draft.trim()}
+            onClick={open}
             aria-label={t("Send AI request")}
             icon={icon("M3 3l18 9-18 9 4-9z M7 12h14")}
           />
         </span>
       </Tooltip>
       <span id="canvas-ai-availability" className={styles.availability}>
-        {unavailable}
+        {enabled ? t("AI edits the current selection or page.") : unavailable}
       </span>
     </div>
   );
