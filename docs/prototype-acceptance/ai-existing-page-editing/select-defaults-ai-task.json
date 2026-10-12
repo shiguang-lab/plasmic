@@ -1,0 +1,34 @@
+{
+  "changes": [
+    {
+      "input": {
+        "operations": [
+          {
+            "input": {
+              "componentUuid": "jAcMpWlXKv1M",
+              "elementUuid": "B99HrW2iL9kk",
+              "resetProps": [
+                "suffixIcon"
+              ]
+            },
+            "name": "changeElement"
+          },
+          {
+            "input": {
+              "componentUuid": "jAcMpWlXKv1M",
+              "elementUuid": "Eaq2mGi60DQ5",
+              "resetProps": [
+                "suffixIcon"
+              ]
+            },
+            "name": "changeElement"
+          }
+        ]
+      },
+      "name": "更改: executeBatch"
+    }
+  ],
+  "operations": "执行进度read · 已完成read · 已完成read · 已完成selectElement · 已完成executeBatch · 已完成read · 已完成validate · 已完成save · 已完成",
+  "savedRevision": 65,
+  "status": "completed"
+}

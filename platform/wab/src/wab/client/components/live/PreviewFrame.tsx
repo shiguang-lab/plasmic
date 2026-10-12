@@ -12,6 +12,7 @@ import {
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { scriptExec } from "@/wab/client/dom-utils";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { isComponentArena } from "@/wab/shared/Arenas";
@@ -51,6 +52,8 @@ interface LivePreview {
 }
 
 export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
+  const topFrameApi = useTopFrameApi();
+  const full = previewCtx.full;
   const frameRef = React.useRef<Window | null>(null);
   const [frameLoaded, setFrameLoaded] = React.useState(false);
 
@@ -200,7 +203,21 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       return;
     }
 
-    const doc = frameRef.current.document;
+    const win = frameRef.current;
+    const doc = win.document;
+    const onRendered = (event: MessageEvent) => {
+      if (
+        event.source === win &&
+        event.data?.source === "plasmic-live" &&
+        (event.data.type === "rendered" || event.data.type === "error")
+      ) {
+        win.removeEventListener("message", onRendered);
+        spawn(topFrameApi.setStudioReady());
+      }
+    };
+    if (full) {
+      win.addEventListener("message", onRendered);
+    }
     const dispose = pushPreviewModules(doc, previewCtx, { lazy: false });
 
     // If previewCtx has a hash, scroll frame to it.
@@ -209,9 +226,18 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     }
 
     return () => {
+      win.removeEventListener("message", onRendered);
       dispose();
     };
-  }, [frameRef.current, frameLoaded, isInstalling, usedPkgs, installedPkgs]);
+  }, [
+    frameRef.current,
+    frameLoaded,
+    isInstalling,
+    usedPkgs,
+    installedPkgs,
+    full,
+    topFrameApi,
+  ]);
 
   // This effect scrolls when the component or hash changes.
   React.useEffect(() => {

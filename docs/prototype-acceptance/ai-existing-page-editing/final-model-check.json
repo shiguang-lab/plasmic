@@ -1,0 +1,18 @@
+{
+  "revision": 65,
+  "componentUuid": "jAcMpWlXKv1M",
+  "nodes": 63,
+  "originalNodes": 53,
+  "interactions": 11,
+  "originalInteractions": 11,
+  "preservedOriginalNodes": true,
+  "preservedOriginalInteractions": true,
+  "allNodesPreservedAfterDefaultReset": true,
+  "recordsUnchanged": true,
+  "otherPageUnchanged": true,
+  "defaultResetProperties": [
+    "CategorySelect.suffixIcon",
+    "CreateCategorySelect.suffixIcon"
+  ],
+  "sha256": "40d9741cd7675ad3584fc1e1b97df08208efb3cad70afa9448938a34b36d423b"
+}

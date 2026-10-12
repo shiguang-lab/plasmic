@@ -1,6 +1,5 @@
 import { PropValuePath } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import PlasmicPopoverFrame from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicPopoverFrame";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { zIndex } from "@/wab/client/z-index";
@@ -362,18 +361,6 @@ function PopoverFrameShell() {
       }
     },
   });
-
-  React.useEffect(() => {
-    const onHide = () => {
-      if (!lastFrame?.persistOnInteractOutside) {
-        dispatch({ type: "popAll" });
-      }
-    };
-    document.addEventListener(plasmicIFrameMouseDownEvent, onHide);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, onHide);
-    };
-  }, [dispatch, lastFrame]);
 
   // Current page index (0-based, represents which frame is visible)
   const currentPageIndex = Math.max(0, stack.length - 1);

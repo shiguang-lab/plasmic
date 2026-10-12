@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
       // The editor host paints its inherited appearance before loading host code.
       // Canvas/preview documents keep their authored backgrounds.
@@ -49,6 +51,77 @@
   </head>
   <body>
     <div class="app-root"></div>
+    <main class="host-ready" hidden>
+      <style>
+        .host-ready { --bg:#eceef3; --surface:#fff; --text:#24262e; --muted:#656979; --border:#dcdde5; --accent:#7052d4; box-sizing:border-box; min-height:100vh; padding:64px 24px; background:var(--bg); color:var(--text); font:15px/1.65 system-ui,sans-serif; }
+        .host-ready[data-appearance="dark"] { --bg:#15161b; --surface:#22232b; --text:#f1f1f5; --muted:#a6a9b8; --border:#363843; --accent:#aa91ff; color-scheme:dark; }
+        .host-ready * { box-sizing:border-box; }
+        .host-ready .content { max-width:960px; margin:auto; }
+        .host-ready .brand { color:var(--accent); font-weight:700; letter-spacing:.04em; }
+        .host-ready h1 { font-size:clamp(28px,4vw,40px); line-height:1.2; margin:20px 0 12px; }
+        .host-ready .subtitle { color:var(--muted); margin-bottom:32px; }
+        .host-ready .steps { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+        .host-ready section { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; }
+        .host-ready .number { color:var(--accent); font-weight:700; }
+        .host-ready img { width:650px; max-width:100%; display:block; margin:20px auto 0; border:1px solid var(--border); border-radius:10px; }
+        .host-ready input { width:100%; padding:14px; margin:12px 0; color:var(--text); background:var(--bg); border:1px solid var(--border); border-radius:8px; font:13px/1.5 ui-monospace,monospace; }
+        .host-ready button, .host-ready a { display:inline-block; border:1px solid var(--border); border-radius:8px; padding:9px 16px; color:var(--text); background:var(--bg); font:inherit; cursor:pointer; text-decoration:none; }
+        .host-ready button:hover, .host-ready a:hover { border-color:var(--accent); }
+        .host-ready a { margin-top:24px; color:var(--accent); }
+        @media(max-width:680px) { .host-ready { padding:32px 16px; } .host-ready .steps { grid-template-columns:1fr; } }
+      </style>
+      <div class="content">
+        <div class="brand">Plasmic Studio</div>
+        <h1 data-message="hostReady.title"></h1>
+        <p class="subtitle" data-message="hostReady.subtitle"></p>
+        <div class="steps">
+          <section><span class="number">01</span><p data-message="hostReady.configure"></p><img src="/static/host-configure-project.<%= commitHash %>.png" /></section>
+          <section><span class="number">02</span><p data-message="hostReady.connect"></p><input readonly aria-label="App host URL" /><button type="button" data-message="hostReady.copy"></button></section>
+        </div>
+        <a data-message="hostReady.openStudio"></a>
+      </div>
+    </main>
+    <script>
+      // Only the standalone built-in host shows onboarding. Editor and business
+      // frames continue to mount the CanvasHost without these theme styles.
+      const ready = document.querySelector(".host-ready");
+      if (window.parent === window && studioParams.get("canvas") !== "true" && studioParams.get("live") !== "true") {
+        ready.hidden = false;
+        const dictionaries = <%= JSON.stringify(hostReadyMessages).replace(/</g, "\\u003c") %>;
+        const resolveLocale = <%= resolveUiLocale %>;
+        const media = window.matchMedia("(prefers-color-scheme: dark)");
+        function readPreference(key) {
+          try { return localStorage.getItem(key); } catch { return null; }
+        }
+        function updateReady() {
+          const inherited = studioParams.get("uiAppearance");
+          const appearance = inherited === "dark" || inherited === "light" ? inherited : readPreference("shiguang.ui.appearance");
+          ready.dataset.appearance = appearance === "dark" || appearance === "light" ? appearance : media.matches ? "dark" : "light";
+          const language = studioParams.get("uiLocale") || readPreference("shiguang.ui.language");
+          const locale = resolveLocale(dictionaries[language] ? language : "system", navigator.languages);
+          const messages = dictionaries[locale];
+          document.documentElement.lang = locale;
+          document.title = messages["hostReady.title"];
+          ready.querySelectorAll("[data-message]").forEach(element => { element.textContent = messages[element.dataset.message]; });
+          ready.querySelector("img").alt = messages["hostReady.imageAlt"];
+        }
+        updateReady();
+        media.addEventListener("change", updateReady);
+        window.addEventListener("storage", updateReady);
+        window.addEventListener("languagechange", updateReady);
+        const hostUrl = new URL(location.href);
+        hostUrl.hash = "";
+        ready.querySelector("input").value = hostUrl.href;
+        ready.querySelector("button").addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(hostUrl.href);
+            const language = document.documentElement.lang;
+            ready.querySelector("button").textContent = dictionaries[language]["hostReady.copied"];
+          } catch { ready.querySelector("input").select(); }
+        });
+        ready.querySelector("a").href = <%= JSON.stringify(studioUrl) %>;
+      }
+    </script>
     <script src="/static/sub/build/client.<%= commitHash %>.js"></script>
   </body>
 </html>

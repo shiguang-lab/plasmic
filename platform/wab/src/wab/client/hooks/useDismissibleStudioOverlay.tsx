@@ -1,7 +1,4 @@
-import {
-  plasmicIFrameMouseDownEvent,
-  plasmicIFrameWheelEvent,
-} from "@/wab/client/definitions/events";
+import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { isContextMenuDescendant, isDescendant } from "@/wab/client/dom-utils";
 import { RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -67,7 +64,6 @@ export function useDismissibleStudioOverlay({
     document.addEventListener("wheel", _onDismiss);
     document.addEventListener("contextmenu", _onDismiss);
     document.addEventListener(plasmicIFrameWheelEvent, _onDismiss);
-    document.addEventListener(plasmicIFrameMouseDownEvent, _onDismiss);
   }, []);
 
   const removeListeners = useCallback(() => {
@@ -77,7 +73,6 @@ export function useDismissibleStudioOverlay({
     document.removeEventListener("mousedown", _onDismiss);
     document.removeEventListener("contextmenu", _onDismiss);
     document.removeEventListener(plasmicIFrameWheelEvent, _onDismiss);
-    document.removeEventListener(plasmicIFrameMouseDownEvent, _onDismiss);
   }, []);
 
   return useEffect(() => {

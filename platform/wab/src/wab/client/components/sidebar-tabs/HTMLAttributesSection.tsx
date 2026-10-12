@@ -6,11 +6,7 @@ import HandlerSection from "@/wab/client/components/sidebar-tabs/StateManagement
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
-import {
-  IconLinkButton,
-  PopupFocuser,
-  useOnIFrameMouseDown,
-} from "@/wab/client/components/widgets";
+import { IconLinkButton, PopupFocuser } from "@/wab/client/components/widgets";
 import { AttributesTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
@@ -481,9 +477,6 @@ function AddHtmlAttrButton(props: {
   );
   const [showing, setShowing] = React.useState(false);
   const selectRef = React.useRef<RefSelectProps>(null);
-  useOnIFrameMouseDown(() => {
-    setShowing(false);
-  });
   return (
     <Popover
       trigger={["click"]}

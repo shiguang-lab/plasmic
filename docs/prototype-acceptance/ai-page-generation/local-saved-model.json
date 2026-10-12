@@ -1,0 +1,993 @@
+{
+  "source": "Native authenticated GET /api/v1/projects/:projectId, revisions 37 and 39",
+  "generatedRevision": 37,
+  "savedRevision": 39,
+  "preservation": {
+    "nodeUuids": true,
+    "interactionUuids": true,
+    "stateBundleIds": true
+  },
+  "model": {
+    "componentUuid": "jAcMpWlXKv1M",
+    "pageName": "RecordsWebAcceptancePage",
+    "route": "/records-web-acceptance",
+    "nodes": [
+      {
+        "uuid": "ZLAJDFHhRPEM",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {
+            "display": "flex",
+            "flex-direction": "column",
+            "position": "relative",
+            "width": "stretch",
+            "height": "stretch"
+          }
+        ]
+      },
+      {
+        "uuid": "2g9lJgKwfxOa",
+        "name": "AppShell",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "width": "100%",
+            "height": "100vh",
+            "max-width": "100%",
+            "object-fit": "cover",
+            "min-height": "0px",
+            "max-height": "100vh"
+          }
+        ]
+      },
+      {
+        "uuid": "1ut8yZlhWOuJ",
+        "name": "PageContainer",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px"
+          }
+        ]
+      },
+      {
+        "uuid": "0poSJGz_xMJb",
+        "name": "SearchForm",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "width": "100%",
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "8eqqbXpvMKzj",
+        "name": "KeywordFilterItem",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "IJTdi6BkLcyt",
+        "name": "KeywordInput",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "5iMZecsSsEgL",
+        "name": "OwnerFilterItem",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "ZkdHzy9GFaqy",
+        "name": "OwnerSelect",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "KG5rnWvRpsOk",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "Ov72AzBMUO89",
+        "name": "StatusFilterItem",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "enubH_2EcIGS",
+        "name": "StatusSelect",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "zwHDGnyht2iD",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "TuyV7IJpXHmB",
+        "name": "ListCard",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "ZtkXiMZW6EDw",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "AN17zCTjrYAk",
+        "name": "CreateButton",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "RaFRbIIHJCXx",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "JHR8Zm3W0OHW",
+        "name": "PlusIcon",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "font-size": "16px",
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "eUvYsLNLt0lu",
+        "name": "Table",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "MUmrPXcRLjjR",
+        "name": "NameColumn",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "FNQjK4_YHwLr",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "GzRPXJU_IjTk",
+        "name": "OwnerColumn",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "5y7SplAldNgU",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "nOVw95Wjs6zY",
+        "name": "StatusColumn",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "xig9kWOfyMwr",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "5kqqU8l3SWTY",
+        "name": "StatusBadge",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "pbFUd8iVhLj-",
+        "name": "ActionsColumn",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "0NpkVRtMfaoF",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "wodWeOVL_Eu7",
+        "name": "DetailButton",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "r5o45MLxH7m9",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "TMgTwpSL65kF",
+        "name": "CreateDrawer",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "kX2TdZaw3pPv",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "kIqqMAOJeQhY",
+        "name": "CreateForm",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "display": "flex",
+            "flex-direction": "column",
+            "position": "relative",
+            "width": "100%",
+            "height": "wrap",
+            "max-width": "100%",
+            "padding-left": "8px",
+            "padding-right": "8px",
+            "padding-bottom": "8px",
+            "padding-top": "8px",
+            "justify-content": "flex-start",
+            "align-items": "flex-start",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "p1fjYDTBM4bW",
+        "name": "NameFormItem",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "width": "100%",
+            "margin-bottom": "24px",
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "rj-QEVkEWcc_",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "qj1c33KnuCSm",
+        "name": "CreateNameInput",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "2nzx24mBCQXA",
+        "name": "OwnerFormItem",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "width": "100%",
+            "margin-bottom": "24px",
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "2pMdXW7k345D",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "TolPE-dJcTtj",
+        "name": "CreateOwnerInput",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "iHoiNrZNxQ2-",
+        "name": "StatusFormItem",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "width": "100%",
+            "margin-bottom": "24px",
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "E_xIrRB3Ple1",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "eJeChgxaAUEO",
+        "name": "CreateStatusSelect",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "G9mnVdPtVItU",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "xpxQdrA_6IfO",
+        "name": "CreateDrawerFooter",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "Lw6ADfSeHAp_",
+        "name": "CancelCreateButton",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "3b3soZDFJ1OU",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "2xrgnKCYV8l-",
+        "name": "SubmitCreateButton",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "P-EEvl2pTOCf",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "_NB5roY3k1p7",
+        "name": "DetailDrawer",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "V99Iu_Gb8Kna",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      },
+      {
+        "uuid": "ReR35Q2XElsS",
+        "name": "DetailDescriptions",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "gvXj6H5r-jM7",
+        "name": "DetailDrawerFooter",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          }
+        ]
+      },
+      {
+        "uuid": "ypvNhRYRb0_3",
+        "name": "CloseDetailButton",
+        "type": "TplComponent",
+        "styles": [
+          {
+            "max-width": "100%",
+            "object-fit": "cover"
+          }
+        ]
+      },
+      {
+        "uuid": "2T14BBh6xXsT",
+        "name": null,
+        "type": "TplTag",
+        "styles": [
+          {}
+        ]
+      }
+    ],
+    "interactions": [
+      {
+        "uuid": "5bLjoUCf2klQ",
+        "name": "HandleSearch",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.appliedFilters = {\n  keyword: (values && values.keyword) ? String(values.keyword).trim() : \"\",\n  owner: (values && values.owner) || null,\n  status: (values && values.status) || null\n};\n$state.currentPage = 1;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "xBF8xOGyL_cH",
+        "name": "HandleReset",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.appliedFilters = {\n  keyword: \"\",\n  owner: null,\n  status: null\n};\n$state.currentPage = 1;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "16qJf9-6hB-7",
+        "name": "OpenCreateDrawer",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.createDrawerOpen = true;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "lCS_GdaZYYtG",
+        "name": "OpenDetailDrawer",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "(const rowData = (typeof row !== \"undefined\" && row) ? row : ((typeof currentItem !== \"undefined\" && currentItem) ? currentItem : {});\n$state.selectedRecord = rowData;\n$state.detailDrawerOpen = true;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "TDUIR51WVLF9",
+        "name": "HandleTableChange",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "(if (pagination) {\n  if (pagination.current !== undefined) {\n    $state.currentPage = pagination.current;\n  }\n  if (pagination.pageSize !== undefined) {\n    $state.pageSize = pagination.pageSize;\n  }\n})",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "GAJv5HweoXpC",
+        "name": "HandleCreateFormFinish",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "(const newRecord = {\n  id: String(Date.now()),\n  name: values ? values.name : \"\",\n  owner: values ? values.owner : \"\",\n  status: values && values.status ? values.status : \"启用\"\n};\n$state.records = [\n  newRecord,\n  ...$state.records\n];\n$refs.searchForm.reset();\n$state.currentPage = 1;\n$state.createDrawerOpen = false)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "1KMnETo64pKR",
+        "name": "CancelCreate",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.createDrawerOpen = false;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "6f8F-1y1KTL1",
+        "name": "SubmitCreateRecord",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($refs.createForm.submit();)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "PL3TNvVT3wde",
+        "name": "HandleCreateDrawerOpenChange",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.createDrawerOpen = open;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "ssVRxugfRRCH",
+        "name": "CloseDetailDrawer",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.detailDrawerOpen = false;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "98ZyT5_a6s7g",
+        "name": "HandleDetailDrawerOpenChange",
+        "action": "customFunction",
+        "args": [
+          {
+            "__type": "NameArg",
+            "name": "customFunction",
+            "expr": {
+              "__type": "FunctionExpr",
+              "argNames": [],
+              "bodyExpr": {
+                "__type": "CustomCode",
+                "code": "($state.detailDrawerOpen = open;)",
+                "fallback": null
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "states": [
+      {
+        "bundleId": "QOM0N5e_prkV",
+        "type": "boolean",
+        "param": "createDrawerOpen",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "false",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "Qe7TdYwo6rQA",
+        "type": "boolean",
+        "param": "detailDrawerOpen",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "false",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "HHP484t-ZkAy",
+        "type": "number",
+        "param": "currentPage",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "1",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "Pov012iBE2hA",
+        "type": "number",
+        "param": "pageSize",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "20",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "VRYnh1WsKtFL",
+        "type": "object",
+        "param": "appliedFilters",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "{\"keyword\":\"\",\"owner\":null,\"status\":null}",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "rvz7A_YCpE6Y",
+        "type": "object",
+        "param": "selectedRecord",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "{\"owner\":\"\",\"status\":\"\",\"name\":\"\"}",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "nTpDiHhL8k9t",
+        "type": "array",
+        "param": "records",
+        "initial": {
+          "__type": "CustomCode",
+          "code": "[{\"id\":\"01\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 01\"},{\"name\":\"\\u8bb0\\u5f55 02\",\"status\":\"\\u505c\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"id\":\"02\"},{\"id\":\"03\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 03\",\"status\":\"\\u542f\\u7528\"},{\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 04\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"id\":\"04\"},{\"name\":\"\\u8bb0\\u5f55 05\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"05\",\"status\":\"\\u542f\\u7528\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 06\",\"id\":\"06\",\"status\":\"\\u505c\\u7528\"},{\"id\":\"07\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 07\"},{\"id\":\"08\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 08\"},{\"status\":\"\\u542f\\u7528\",\"id\":\"09\",\"name\":\"\\u8bb0\\u5f55 09\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"id\":\"10\",\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 10\"},{\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 11\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"11\"},{\"id\":\"12\",\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 12\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"13\",\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 13\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 14\",\"id\":\"14\"},{\"name\":\"\\u8bb0\\u5f55 15\",\"id\":\"15\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"id\":\"16\",\"name\":\"\\u8bb0\\u5f55 16\"},{\"id\":\"17\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 17\",\"status\":\"\\u542f\\u7528\"},{\"status\":\"\\u505c\\u7528\",\"id\":\"18\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 18\"},{\"id\":\"19\",\"name\":\"\\u8bb0\\u5f55 19\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"id\":\"20\",\"name\":\"\\u8bb0\\u5f55 20\"},{\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 21\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"21\"},{\"id\":\"22\",\"name\":\"\\u8bb0\\u5f55 22\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\"},{\"id\":\"23\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 23\"},{\"name\":\"\\u8bb0\\u5f55 24\",\"status\":\"\\u505c\\u7528\",\"id\":\"24\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\"},{\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 25\",\"id\":\"25\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"id\":\"26\",\"name\":\"\\u8bb0\\u5f55 26\"},{\"id\":\"27\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 27\",\"status\":\"\\u542f\\u7528\"},{\"name\":\"\\u8bb0\\u5f55 28\",\"id\":\"28\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 29\",\"id\":\"29\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 30\",\"status\":\"\\u505c\\u7528\",\"id\":\"30\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 31\",\"id\":\"31\"},{\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 32\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"id\":\"32\"},{\"name\":\"\\u8bb0\\u5f55 33\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"33\",\"status\":\"\\u542f\\u7528\"},{\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 34\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"id\":\"34\"},{\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"35\",\"name\":\"\\u8bb0\\u5f55 35\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"id\":\"36\",\"name\":\"\\u8bb0\\u5f55 36\",\"status\":\"\\u505c\\u7528\"},{\"name\":\"\\u8bb0\\u5f55 37\",\"status\":\"\\u542f\\u7528\",\"id\":\"37\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"id\":\"38\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 38\"},{\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 39\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"39\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"name\":\"\\u8bb0\\u5f55 40\",\"id\":\"40\"},{\"id\":\"41\",\"name\":\"\\u8bb0\\u5f55 41\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"id\":\"42\",\"name\":\"\\u8bb0\\u5f55 42\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\"},{\"name\":\"\\u8bb0\\u5f55 43\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"43\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 44\",\"status\":\"\\u505c\\u7528\",\"id\":\"44\"},{\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 45\",\"id\":\"45\"},{\"id\":\"46\",\"name\":\"\\u8bb0\\u5f55 46\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\"},{\"id\":\"47\",\"name\":\"\\u8bb0\\u5f55 47\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"status\":\"\\u505c\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 48\",\"id\":\"48\"},{\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 49\",\"id\":\"49\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\"},{\"id\":\"50\",\"status\":\"\\u505c\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 50\"},{\"name\":\"\\u8bb0\\u5f55 51\",\"id\":\"51\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"status\":\"\\u542f\\u7528\"},{\"id\":\"52\",\"status\":\"\\u505c\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 52\"},{\"status\":\"\\u542f\\u7528\",\"name\":\"\\u8bb0\\u5f55 53\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"id\":\"53\"},{\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"status\":\"\\u505c\\u7528\",\"id\":\"54\",\"name\":\"\\u8bb0\\u5f55 54\"},{\"id\":\"55\",\"name\":\"\\u8bb0\\u5f55 55\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"status\":\"\\u542f\\u7528\"},{\"status\":\"\\u505c\\u7528\",\"id\":\"56\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\",\"name\":\"\\u8bb0\\u5f55 56\"},{\"id\":\"57\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 57\",\"status\":\"\\u542f\\u7528\"},{\"status\":\"\\u505c\\u7528\",\"id\":\"58\",\"name\":\"\\u8bb0\\u5f55 58\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\"},{\"id\":\"59\",\"status\":\"\\u542f\\u7528\",\"owner\":\"\\u8d1f\\u8d23\\u4eba1\",\"name\":\"\\u8bb0\\u5f55 59\"},{\"status\":\"\\u505c\\u7528\",\"id\":\"60\",\"name\":\"\\u8bb0\\u5f55 60\",\"owner\":\"\\u8d1f\\u8d23\\u4eba2\"}]",
+          "fallback": null
+        }
+      },
+      {
+        "bundleId": "xn6oHNqKMfcX",
+        "type": "text",
+        "tplNode": "2g9lJgKwfxOa",
+        "param": "AppShell direction"
+      },
+      {
+        "bundleId": "dw28zBgTb508",
+        "type": "text",
+        "tplNode": "2g9lJgKwfxOa",
+        "param": "AppShell language"
+      },
+      {
+        "bundleId": "GKv_uZX7iFKv",
+        "type": "text",
+        "tplNode": "2g9lJgKwfxOa",
+        "param": "AppShell appSource"
+      },
+      {
+        "bundleId": "t28AuGiAASTo",
+        "type": "text",
+        "tplNode": "2g9lJgKwfxOa",
+        "param": "AppShell selectedMenuKey"
+      },
+      {
+        "bundleId": "DkK9_k3VJUJ9",
+        "type": "boolean",
+        "tplNode": "2g9lJgKwfxOa",
+        "param": "AppShell collapsed"
+      },
+      {
+        "bundleId": "zqSFCJ85nBiS",
+        "type": "object",
+        "tplNode": "0poSJGz_xMJb",
+        "param": "SearchForm values"
+      },
+      {
+        "bundleId": "OsZoYVAg8RL1",
+        "type": "boolean",
+        "tplNode": "0poSJGz_xMJb",
+        "param": "SearchForm collapsed"
+      },
+      {
+        "bundleId": "7n9LEtXoNXcw",
+        "type": "text",
+        "tplNode": "IJTdi6BkLcyt",
+        "param": "KeywordInput value"
+      },
+      {
+        "bundleId": "Dbet_S1ZLsQF",
+        "type": "object",
+        "tplNode": "ZkdHzy9GFaqy",
+        "param": "OwnerSelect value"
+      },
+      {
+        "bundleId": "OEvtSpyt92kf",
+        "type": "object",
+        "tplNode": "enubH_2EcIGS",
+        "param": "StatusSelect value"
+      },
+      {
+        "bundleId": "WVxnp-0ICEFg",
+        "type": "array",
+        "tplNode": "eUvYsLNLt0lu",
+        "param": "Table selectedRowKeys"
+      },
+      {
+        "bundleId": "YBSfBpx5K-4f",
+        "type": "boolean",
+        "tplNode": "TMgTwpSL65kF",
+        "param": "CreateDrawer open 2"
+      },
+      {
+        "bundleId": "NssOSYFoCrGM",
+        "type": "object",
+        "tplNode": "kIqqMAOJeQhY",
+        "param": "CreateForm value"
+      },
+      {
+        "bundleId": "nKyQgJUZ_oiE",
+        "type": "boolean",
+        "tplNode": "kIqqMAOJeQhY",
+        "param": "CreateForm isSubmitting"
+      },
+      {
+        "bundleId": "3tBAMB7Q3kwh",
+        "type": "text",
+        "tplNode": "qj1c33KnuCSm",
+        "param": "CreateNameInput value"
+      },
+      {
+        "bundleId": "B8GQEwZ6pkvq",
+        "type": "text",
+        "tplNode": "TolPE-dJcTtj",
+        "param": "CreateOwnerInput value"
+      },
+      {
+        "bundleId": "4abmKpmjDhA8",
+        "type": "object",
+        "tplNode": "eJeChgxaAUEO",
+        "param": "CreateStatusSelect value"
+      },
+      {
+        "bundleId": "WlYka_cTpCWr",
+        "type": "boolean",
+        "tplNode": "_NB5roY3k1p7",
+        "param": "DetailDrawer open 2"
+      }
+    ]
+  }
+}

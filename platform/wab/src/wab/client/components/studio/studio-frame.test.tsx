@@ -5,7 +5,7 @@ import { StudioFrame } from "@/wab/client/components/studio/studio-frame";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
-import { ApiProject, ApiTrustedHost } from "@/wab/shared/ApiSchema";
+import { ApiProject, ApiTrustedHost, ProjectId } from "@/wab/shared/ApiSchema";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
@@ -46,7 +46,7 @@ it("preserves the visible skeleton through metadata, host registration and dialo
   appCtx.appConfigOverrides = {};
   appCtx.history.replace("/projects/project");
   const project = mock<ApiProject>({
-    id: "project",
+    id: "project" as ProjectId,
     name: "Project",
     defaultAccessLevel: "viewer",
   });

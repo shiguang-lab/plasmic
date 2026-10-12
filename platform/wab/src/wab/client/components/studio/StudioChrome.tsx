@@ -1,4 +1,5 @@
 import { parseProjectLocation } from "@/wab/client/cli-routes";
+import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { EditorToolRail } from "@/wab/client/components/studio/EditorToolRail";
 import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
@@ -34,7 +35,8 @@ export function StudioStartupBoundary({
   children: React.ReactNode;
 }) {
   const location = useLocation();
-  const projectId = parseProjectLocation(location)?.projectId;
+  const projectLocation = parseProjectLocation(location);
+  const projectId = projectLocation?.projectId;
   const [state, setState] = React.useState<
     StudioStartupState & { projectId?: string }
   >({
@@ -50,6 +52,9 @@ export function StudioStartupBoundary({
   }, []);
   React.useLayoutEffect(() => {
     document.getElementById("studio-startup-loading")?.classList.add("fadeOut");
+    document
+      .getElementById("preview-startup-loading")
+      ?.classList.add("fadeOut");
   }, []);
   return (
     <>
@@ -65,9 +70,13 @@ export function StudioStartupBoundary({
             visibility: state.hidden ? "hidden" : "visible",
           }}
         >
-          <StudioChromeContent projectName={state.projectName}>
-            {state.failure}
-          </StudioChromeContent>
+          {projectLocation?.isPreview ? (
+            <PreviewLoading>{state.failure}</PreviewLoading>
+          ) : (
+            <StudioChromeContent projectName={state.projectName}>
+              {state.failure}
+            </StudioChromeContent>
+          )}
         </div>
       )}
     </>
@@ -84,13 +93,18 @@ export function StudioChrome({
   children?: React.ReactNode;
 }) {
   const update = React.useContext(StudioStartupContext);
+  const location = useLocation();
+  const isPreview = parseProjectLocation(location)?.isPreview;
   React.useLayoutEffect(() => {
     if (update && children) {
       update({ failure: children });
       return () => update({ failure: undefined });
     }
+    return undefined;
   }, [update, children]);
-  return update ? null : (
+  return update ? null : isPreview ? (
+    <PreviewLoading>{children}</PreviewLoading>
+  ) : (
     <StudioChromeContent projectName={projectName}>
       {children}
     </StudioChromeContent>

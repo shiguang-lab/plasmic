@@ -9,7 +9,6 @@ import { useI18n } from "@/wab/client/i18n";
 import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
 import { FigmaModalContent } from "@/wab/client/components/studio/FigmaModalContent";
 import LeftTabButton from "@/wab/client/components/studio/LeftTabButton";
-import { useOnIFrameMouseDown } from "@/wab/client/components/widgets";
 import { DataTokenIcon } from "@/wab/client/icons";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
@@ -43,8 +42,6 @@ import { ReactNode } from "react";
 
 interface LeftTabStripProps extends DefaultLeftTabStripProps {
   useVersionsCTA: boolean;
-  managementOnly?: boolean;
-  onNavigate?: () => void;
 }
 
 export interface NavMenuItem {
@@ -70,8 +67,10 @@ export interface NavMenuGroup {
 const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
   const { styles: popupStyles } = useEditorPopupStyles();
-  const [openGroup, setOpenGroup] = React.useState<string>();
-  useOnIFrameMouseDown(React.useCallback(() => setOpenGroup(undefined), []));
+  const studioCtx = useStudioCtx();
+  const openGroup = studioCtx.leftTabGroup;
+  const setOpenGroup = (group: string | undefined) =>
+    studioCtx.setLeftTabGroup(group);
   React.useEffect(() => {
     if (!openGroup) {
       return;
@@ -92,7 +91,6 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
     return () => document.removeEventListener("keydown", close, true);
   }, [openGroup]);
   const topFrameApi = useTopFrameApi();
-  const studioCtx = useStudioCtx();
   const isLoggedIn = studioCtx.appCtx.selfInfo != null;
   const contentEditorMode = studioCtx.contentEditorMode;
   const hasGlobalContexts = studioCtx.site.globalContexts.length > 0;
@@ -323,11 +321,10 @@ More
               }
               studioCtx.setShowAddDrawer(false);
               onClick?.();
-              props.onNavigate?.();
             })
           }
           expanded={
-            !props.managementOnly && item.tabKey
+            item.tabKey
               ? studioCtx.leftTabKey === item.tabKey &&
                 !studioCtx.showAddDrawer() &&
                 !studioCtx.panelsHidden
@@ -340,8 +337,8 @@ More
           isSelected={
             item.tabKey &&
             item.tabKey === studioCtx.leftTabKey &&
-            (props.managementOnly ||
-              (!studioCtx.showAddDrawer() && !studioCtx.panelsHidden))
+            !studioCtx.showAddDrawer() &&
+            !studioCtx.panelsHidden
           }
         />
       )
@@ -363,16 +360,10 @@ More
                 overlayClassName={"sidebar-popover"}
                 open={openGroup === key}
                 onOpenChange={(open) => {
-                  setOpenGroup((current) =>
-                    open ? key : current === key ? undefined : current,
-                  );
-                  if (open && !props.managementOnly) {
-                    spawn(
-                      studioCtx.changeUnsafe(() => {
-                        studioCtx.setShowAddDrawer(false);
-                        studioCtx.switchLeftTab(undefined);
-                      }),
-                    );
+                  if (open) {
+                    setOpenGroup(key);
+                  } else if (studioCtx.leftTabGroup === key) {
+                    setOpenGroup(undefined);
                   }
                 }}
                 content={
@@ -404,7 +395,6 @@ More
                     hasLabel
                     tooltip={item.title}
                     data-test-tabkey={key}
-                    onClick={() => {}}
                     expanded={openGroup === key}
                     isSelected={
                       openGroup === key ||
@@ -428,22 +418,6 @@ More
     responsiveness: mainGroups.settingsGroup.items.responsiveness,
     themes: mainGroups.settingsGroup.items.themes,
   };
-  if (props.managementOnly) {
-    if (mainGroups.settingsGroup.items.settings.cond === false) {
-      return null;
-    }
-    return (
-      <div className="editor-management-menu">
-        {renderButtonGroup({
-          settingsGroup: {
-            ...mainGroups.settingsGroup,
-            items: { settings: mainGroups.settingsGroup.items.settings },
-          },
-        })}
-      </div>
-    );
-  }
-
   return (
     <EditorToolRail
       showAvatar={false}
@@ -538,6 +512,7 @@ More
             isSelected={studioCtx.isCopilotChatOpen}
             onClick={() => {
               if (studioCtx.chatCopilotEnabled()) {
+                setOpenGroup(undefined);
                 spawn(topFrameApi.toggleCopilotChat());
               }
             }}
@@ -550,6 +525,7 @@ More
               ...mainGroups.more,
               icon: <EditorToolIcon tool="More" />,
               items: {
+                settings: mainGroups.settingsGroup.items.settings,
                 splits: mainGroups.more.items.splits,
                 expressions: mainGroups.more.items.expressions,
                 figma: mainGroups.more.items.figma,

@@ -1,0 +1,7 @@
+{
+  "revision": 63,
+  "formText": "新建记录\n名称\n负责人\n状态\n启用\n取消\n创建",
+  "categoryFormRemoved": true,
+  "categoryTableRetained": true,
+  "initialRecords": 60
+}

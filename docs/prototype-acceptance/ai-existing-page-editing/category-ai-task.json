@@ -1,0 +1,113 @@
+{
+  "changes": [
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "initialValue": {
+          "category": null,
+          "keyword": "",
+          "owner": null,
+          "status": null
+        },
+        "stateUuid": "f9dLxhK8lXyn"
+      },
+      "name": "更改: updateState",
+      "undone": false
+    },
+    {
+      "input": {
+        "action": {
+          "actionName": "customFunction",
+          "code": "$state.appliedFilters = {\n  keyword: (values && values.keyword) ? String(values.keyword).trim() : \"\",\n  owner: (values && values.owner) || null,\n  status: (values && values.status) || null,\n  category: (values && values.category) || null\n};\n$state.currentPage = 1;"
+        },
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "0poSJGz_xMJb",
+        "interactionUuid": "5bLjoUCf2klQ",
+        "name": "HandleSearch"
+      },
+      "name": "更改: updateInteraction",
+      "undone": false
+    },
+    {
+      "input": {
+        "action": {
+          "actionName": "customFunction",
+          "code": "$state.appliedFilters = {\n  keyword: \"\",\n  owner: null,\n  status: null,\n  category: null\n};\n$state.currentPage = 1;"
+        },
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "0poSJGz_xMJb",
+        "interactionUuid": "xBF8xOGyL_cH",
+        "name": "HandleReset"
+      },
+      "name": "更改: updateInteraction",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "Ov72AzBMUO89",
+        "html": "<plasmic-component data-plasmic-component=\"plasmicOverseasSearchFormItem\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"CategoryFilter\" data-props='{\"name\":\"category\",\"label\":\"类别\",\"span\":6}' style=\"max-width: 100%; width: 100%\">\n  <slot name=\"children\">\n    <plasmic-component data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CategorySelect\" data-props='{\"options\":[{\"value\":\"重点\",\"label\":\"重点\"},{\"value\":\"普通\",\"label\":\"普通\"},{\"value\":\"未分类\",\"label\":\"未分类\"}],\"size\":\"medium\",\"allowClear\":true}' style=\"max-width: 100%; width: 100%\">\n      <slot name=\"placeholder\">\n        <span>请选择</span>\n      </slot>\n      <slot name=\"children\"></slot>\n      <slot name=\"suffixIcon\"></slot>\n    </plasmic-component>\n  </slot>\n  <slot name=\"labelContent\"></slot>\n  <slot name=\"help\"></slot>\n</plasmic-component>",
+        "location": "after"
+      },
+      "name": "更改: insertHtml",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "eUvYsLNLt0lu",
+        "props": {
+          "data": "{{ { data: $state.records.filter(r => (!($state.appliedFilters.keyword && $state.appliedFilters.keyword.trim()) || r.name.includes($state.appliedFilters.keyword.trim())) && (!$state.appliedFilters.owner || r.owner === $state.appliedFilters.owner) && (!$state.appliedFilters.status || r.status === $state.appliedFilters.status) && (!$state.appliedFilters.category || (r.category || \"未分类\") === $state.appliedFilters.category)) } }}"
+        }
+      },
+      "name": "更改: changeElement",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "nOVw95Wjs6zY",
+        "html": "<plasmic-component data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CategoryColumn\" data-props='{\"dataIndex\":\"category\",\"width\":140,\"displayType\":\"custom\"}' style=\"max-width: 100%\">\n  <slot name=\"title\">\n    <span>类别</span>\n  </slot>\n  <slot name=\"render\">\n    <span>{{ (row && row.category) ? row.category : \"未分类\" }}</span>\n  </slot>\n</plasmic-component>",
+        "location": "after"
+      },
+      "name": "更改: insertHtml",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "ReR35Q2XElsS",
+        "props": {
+          "items": "{{ [ { key: \"name\", label: \"名称\", children: $state.selectedRecord ? $state.selectedRecord.name : \"-\" }, { key: \"owner\", label: \"负责人\", children: $state.selectedRecord ? $state.selectedRecord.owner : \"-\" }, { key: \"status\", label: \"状态\", children: $state.selectedRecord ? $state.selectedRecord.status : \"-\" }, { key: \"category\", label: \"类别\", children: $state.selectedRecord ? ($state.selectedRecord.category || \"未分类\") : \"-\" } ] }}"
+        }
+      },
+      "name": "更改: changeElement",
+      "undone": false
+    }
+  ],
+  "messages": [
+    "修改当前已有的 RecordsWebAcceptancePage，保留当前页面、已有节点 UUID、原有60条记录、原有名称/负责人/状态列和交互，不要新建页面。先读取实际页面、状态、事件步骤 UUID 和相关已注册组件 Props/Slots。为页面新增“类别”能力：筛选区增加 CategoryFilter（字段 category），选项为“重点”“普通”“未分类”，可清除。沿用现有 SearchForm，类别仅在点击查询后应用，和名称/负责人/状态组合筛选；查询与重置回到第1页，重置清空全部筛选且恢复原始列表。原有记录没有 category 时按“未分类”处理，保留原有数据不批量重写。表格在状态列后、操作列前增加类别列，详情抽屉增加类别展示，同样使用“未分类”兜底。复用原生组件、现有记录状态和现有事件，通过修改已有交互步骤完成，不要追加重复的查询/重置事件。保持 AppShell 的16px页面边距及现有布局规范。完成后读回检查并保存。此任务先不改新建抽屉，下一步再补新建字段。",
+    "固定编辑范围: RecordsWebAcceptancePage",
+    "我将先读取相关注册组件（SearchFormItem、Select、TableColumn、Descriptions 等）的属性与插槽规范，以及当前页面的详细结构。",
+    "我将先读取当前页面 `RecordsWebAcceptancePage` 的完整定义，包括现有状态、模板树与交互步骤。",
+    "我将更新私有状态 `appliedFilters` 的初始值，为其补充 `category: null` 字段。",
+    "我将更新 `SearchForm` 的 `onSearch` 交互步骤（UUID: `5bLjoUCf2klQ`），在应用筛选条件时纳入 `category`，并在点击查询时重置当前页码为 1。",
+    "我将更新 `SearchForm` 的 `onReset` 交互步骤（UUID: `xBF8xOGyL_cH`），在重置时清空所有筛选条件（包括将 `category` 设为 `null`），并将当前页码重置为 1。",
+    "我将先选中搜索表单中的“状态”筛选节点（StatusFilterItem），然后插入新的“类别”筛选节点（CategoryFilter）。",
+    "我将在搜索表单的“状态”筛选后插入“类别”筛选项（CategoryFilter）。",
+    "我将移除不适用的 `object-fit` 样式并重新插入“类别”筛选项。",
+    "我将选中表格组件（Table），并更新其 `data` 属性以加入“类别”过滤逻辑。",
+    "我将更新表格组件的数据源绑定表达式，支持类别组合筛选并在缺省类别时按“未分类”处理。",
+    "我将选中表格的状态列（StatusColumn），并在其后插入类别列（CategoryColumn）。",
+    "我将在状态列后插入类别列（CategoryColumn），并在单元格渲染中对缺失类别使用“未分类”兜底。",
+    "我将更新详情抽屉中 DetailDescriptions 的 `items` 属性，增加“类别”项并对缺失类别使用“未分类”兜底。",
+    "我将重新读取页面组件以进行最终核对检查。",
+    "已完成对现有 `RecordsWebAcceptancePage` 页面“类别”功能的扩展修改。\n\n### 变更总结\n\n1. **状态更新**：\n   - 更新私有状态 `appliedFilters` 的初始值，补充 `category: null` 字段。\n   - 保留原有 60 条记录及其他所有状态不受影响。\n\n2. **筛选区扩展**：\n   - 在 `SearchForm` 的状态筛选项后新增 `CategoryFilter`（字段名 `category`，标签“类别”，占用栅格 `span: 6`）。\n   - 内嵌 `CategorySelect`，提供“重点”、“普通”、“未分类”三个选项，支持 `allowClear: true` 清除。\n\n3. **查询与重置事件更新**：\n   - 更新已有的 `HandleSearch` 交互步骤（UUID: `5bLjoUCf2klQ`）：在提交筛选时将 `category` 计入 `appliedFilters`，并将页码重置为第 1 页。\n   - 更新已有的 `HandleReset` 交互步骤（UUID: `xBF8xOGyL_cH`）：重置时将 `category` 恢复为 `null`，恢复全部初始记录，并将页码重置为第 1 页。\n   - 未新增重复的交互事件。\n\n4. **表格数据过滤与列展示**：\n   - 更新表格的 `data` 数据绑定表达式，组合名称、负责人、状态和类别筛选；对历史未设置 `category` 字段的数据使用 `(r.category || \"未分类\")` 进行判定，不修改底层 60 条原始数据。\n   - 在状态列（StatusColumn）之后、操作列（ActionsColumn）之前插入类别列（CategoryColumn），单元格自定义渲染采用 `{{ (row && row.category) ? row.category : \"未分类\" }}` 兜底显示。\n\n5. **详情抽屉展示**：\n   - 更新 `DetailDescriptions` 的 `items` 属性，在状态项之后增加类别展示，同样使用 `$state.selectedRecord ? ($state.selectedRecord.category || \"未分类\") : \"-\"` 进行兜底展示。\n   - 新建抽屉及其表单保持未改动状态，供下一步操作拓展。",
+    "已保存版本 51。",
+    "已检查模型结构；尚未验证视觉布局和交互。"
+  ],
+  "operations": "执行进度read · 已完成read · 已完成read · 已完成getEditorContext · 失败getEditorContext · 已完成read · 已完成updateState · 已完成updateInteraction · 已完成updateInteraction · 已完成selectElement · 已完成insertHtml · 失败insertHtml · 已完成selectElement · 已完成changeElement · 已完成selectElement · 已完成insertHtml · 已完成changeElement · 已完成read · 已完成validate · 已完成save · 已完成",
+  "prompt": "修改当前已有的 RecordsWebAcceptancePage，保留当前页面、已有节点 UUID、原有60条记录、原有名称/负责人/状态列和交互，不要新建页面。先读取实际页面、状态、事件步骤 UUID 和相关已注册组件 Props/Slots。为页面新增“类别”能力：筛选区增加 CategoryFilter（字段 category），选项为“重点”“普通”“未分类”，可清除。沿用现有 SearchForm，类别仅在点击查询后应用，和名称/负责人/状态组合筛选；查询与重置回到第1页，重置清空全部筛选且恢复原始列表。原有记录没有 category 时按“未分类”处理，保留原有数据不批量重写。表格在状态列后、操作列前增加类别列，详情抽屉增加类别展示，同样使用“未分类”兜底。复用原生组件、现有记录状态和现有事件，通过修改已有交互步骤完成，不要追加重复的查询/重置事件。保持 AppShell 的16px页面边距及现有布局规范。完成后读回检查并保存。此任务先不改新建抽屉，下一步再补新建字段。",
+  "savedRevision": 51,
+  "status": "completed"
+}

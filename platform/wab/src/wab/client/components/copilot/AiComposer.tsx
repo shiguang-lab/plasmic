@@ -1,0 +1,345 @@
+import {
+  AiAttachmentList,
+  AiAttachmentPicker,
+  useAiAttachments,
+} from "@/wab/client/components/copilot/AiAttachments";
+import { AiModelSelect } from "@/wab/client/components/copilot/AiModelSelect";
+import { useI18n } from "@/wab/client/i18n";
+import { StopOutlined } from "@ant-design/icons";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Button, Input, Tooltip } from "antd";
+import { createStyles } from "antd-style";
+import * as React from "react";
+
+interface AiComposerProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  attachmentState: ReturnType<typeof useAiAttachments>;
+  scope: string;
+  models?: string[];
+  model?: string | null;
+  onModelChange: (model: string) => void;
+  disabled?: boolean;
+  canSubmit: boolean;
+  running?: boolean;
+  onStop?: () => void;
+  stopDisabled?: boolean;
+  placeholder?: string;
+  availability?: string;
+  ariaLabel?: string;
+  testId?: string;
+  inputTestId?: string;
+}
+
+const useStyles = createStyles(({ token }) => ({
+  root: {
+    position: "relative",
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "8px 10px",
+    display: "grid",
+    gridTemplateColumns: "auto auto minmax(0, 1fr) auto",
+    alignItems: "center",
+    gap: 8,
+    background: token.colorBgContainer,
+    color: token.colorText,
+    border: `1px solid ${token.colorBorder}`,
+    borderRadius: 28,
+    boxShadow: token.boxShadowSecondary,
+    "& svg[data-ai-composer-icon]": {
+      width: 18,
+      height: 18,
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: 1.6,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+    },
+    "&:has(textarea:focus)": {
+      borderColor: token.colorPrimary,
+      boxShadow: "none",
+    },
+    "& .ant-input": {
+      minWidth: 0,
+      padding: "8px 0",
+      lineHeight: "20px",
+      resize: "none",
+      overflow: "hidden",
+      fontSize: 13,
+      background: "transparent",
+    },
+    "& .ant-input:focus, & .ant-input:focus-visible": {
+      outline: "none",
+      boxShadow: "none",
+    },
+    "&[data-expanded=true]": {
+      borderRadius: 20,
+      gridTemplateColumns: "auto minmax(60px, 1fr) minmax(0, auto)",
+      "& [data-composer-part=input]": { gridColumn: "1 / -1", gridRow: 1 },
+      "& [data-composer-part=attachments]": { gridColumn: 1, gridRow: 2 },
+      "& [data-composer-part=scope]": { gridColumn: 2, gridRow: 2 },
+      "& [data-composer-part=actions]": { gridColumn: 3, gridRow: 2 },
+    },
+  },
+  scope: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "4px 7px",
+    borderRadius: 6,
+    background: token.colorPrimaryBg,
+    color: token.colorPrimaryText,
+    fontSize: 12,
+    maxWidth: "min(120px, 100%)",
+    boxSizing: "border-box",
+    justifySelf: "start",
+    minWidth: 0,
+    flexShrink: 1,
+    "& span": {
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+    "& svg": { flexShrink: 0, width: 14, height: 14 },
+  },
+  input: { minWidth: 0, maxHeight: 160, gridColumn: 3, gridRow: 1 },
+  attachmentList: { gridColumn: "1 / -1", minWidth: 0 },
+  measurement: {
+    position: "absolute",
+    visibility: "hidden",
+    pointerEvents: "none",
+    whiteSpace: "pre",
+    fontSize: 13,
+  },
+  actions: {
+    width: "100%",
+    maxWidth: 184,
+    justifySelf: "end",
+    justifyContent: "flex-end",
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    minWidth: 0,
+  },
+  action: {
+    display: "inline-flex",
+    flexShrink: 0,
+    "& .ant-btn": {
+      width: 36,
+      height: 36,
+      padding: 0,
+      boxShadow: "none",
+      borderRadius: "50%",
+    },
+    "& .ant-btn:disabled": {
+      background: token.colorPrimary,
+      color: "#fff",
+      borderColor: "transparent",
+      opacity: 0.4,
+    },
+  },
+  availability: {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    clipPath: "inset(50%)",
+    whiteSpace: "nowrap",
+    border: 0,
+  },
+}));
+
+function icon(path: string) {
+  return (
+    <svg data-ai-composer-icon="" viewBox="0 0 24 24" aria-hidden="true">
+      <path d={path} />
+    </svg>
+  );
+}
+
+export function AiComposer({
+  value,
+  onChange,
+  onSubmit,
+  attachmentState,
+  scope,
+  models,
+  model,
+  onModelChange,
+  disabled = false,
+  canSubmit,
+  running = false,
+  onStop,
+  stopDisabled,
+  placeholder,
+  availability,
+  ariaLabel,
+  testId,
+  inputTestId,
+}: AiComposerProps) {
+  const { t } = useI18n();
+  const { styles } = useStyles();
+  const availabilityId = React.useId();
+  const locked = disabled || running;
+  const ready =
+    !locked && canSubmit && !!value.trim() && !attachmentState.reading;
+  const submit = () => {
+    if (ready) {
+      onSubmit();
+    }
+  };
+  const [expanded, setExpanded] = React.useState(false);
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const measurementRef = React.useRef<HTMLSpanElement>(null);
+  React.useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) {
+      return;
+    }
+    const measure = () => {
+      if (value.includes("\n")) {
+        setExpanded(true);
+        return;
+      }
+      if (!root.clientWidth) {
+        setExpanded(false);
+        return;
+      }
+      const parts = ["attachments", "scope", "actions"].map((part) =>
+        root.querySelector<HTMLElement>(`[data-composer-part=${part}]`),
+      );
+      const style = getComputedStyle(root);
+      const compactWidth =
+        root.clientWidth -
+        parseFloat(style.paddingLeft) -
+        parseFloat(style.paddingRight) -
+        3 * parseFloat(style.columnGap) -
+        parts.reduce((width, part) => width + (part?.offsetWidth ?? 0), 0);
+      setExpanded(
+        compactWidth < 80 ||
+          (measurementRef.current?.offsetWidth ?? 0) > compactWidth,
+      );
+    };
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(root);
+    root
+      .querySelectorAll<HTMLElement>(
+        "[data-composer-part=scope], [data-composer-part=actions]",
+      )
+      .forEach((part) => resizeObserver.observe(part));
+    return () => resizeObserver.disconnect();
+  }, [value]);
+  return (
+    <div
+      ref={rootRef}
+      data-expanded={expanded}
+      className={styles.root}
+      role="group"
+      aria-label={ariaLabel}
+      data-test-id={testId}
+      onPaste={!locked ? attachmentState.onPaste : undefined}
+      onDragOver={!locked ? attachmentState.onDragOver : undefined}
+      onDrop={!locked ? attachmentState.onDrop : undefined}
+    >
+      <span className={styles.action} data-composer-part="attachments">
+        <AiAttachmentPicker state={attachmentState} disabled={locked} />
+      </span>
+      <Tooltip title={scope}>
+        <div className={styles.scope} data-composer-part="scope">
+          {icon("M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z")}
+          <span>{scope}</span>
+        </div>
+      </Tooltip>
+      <Scrollbar
+        className={styles.input}
+        scrollX={false}
+        defer={false}
+        data-composer-part="input"
+      >
+        <Input.TextArea
+          autoSize={{ minRows: 1 }}
+          variant="borderless"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing
+            ) {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          aria-label={t("Describe changes or a new page…")}
+          placeholder={placeholder ?? t("Describe changes or a new page…")}
+          disabled={disabled || running}
+          data-test-id={inputTestId}
+          aria-describedby={availabilityId}
+        />
+      </Scrollbar>
+      <div className={styles.actions} data-composer-part="actions">
+        {model && (
+          <AiModelSelect
+            models={models ?? []}
+            model={model}
+            disabled={locked}
+            onChange={onModelChange}
+          />
+        )}
+        <Tooltip
+          title={
+            running ? t("Stop AI task") : (availability ?? t("Send AI request"))
+          }
+        >
+          <span className={styles.action}>
+            {running ? (
+              <Button
+                aria-label={t("Stop AI task")}
+                icon={<StopOutlined />}
+                onClick={onStop}
+                disabled={stopDisabled}
+              />
+            ) : (
+              <Button
+                type="primary"
+                disabled={!ready}
+                onClick={submit}
+                aria-label={t("Send AI request")}
+                icon={icon("M12 19V5 M5 12l7-7 7 7")}
+              />
+            )}
+          </span>
+        </Tooltip>
+      </div>
+      {(attachmentState.attachments.length > 0 || attachmentState.error) && (
+        <div className={styles.attachmentList}>
+          <AiAttachmentList
+            attachments={attachmentState.attachments}
+            error={attachmentState.error}
+            disabled={locked || attachmentState.reading}
+            onRemove={(index) =>
+              attachmentState.setAttachments(
+                attachmentState.attachments.filter((_, i) => i !== index),
+              )
+            }
+          />
+        </div>
+      )}
+      <span
+        ref={measurementRef}
+        className={styles.measurement}
+        aria-hidden="true"
+      >
+        {value}
+      </span>
+      <span id={availabilityId} className={styles.availability}>
+        {availability ?? t("AI edits the current selection or page.")}
+      </span>
+    </div>
+  );
+}

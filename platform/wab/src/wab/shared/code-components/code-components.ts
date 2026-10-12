@@ -639,7 +639,7 @@ interface SiteCtx {
   observeComponents(components: Component[]): boolean;
   getRootSubReact(): typeof React;
   tplMgr(): TplMgr;
-  getPlumeSite(): Site | undefined;
+  getPlumeSite(): Promise<Site | undefined>;
 }
 
 export interface CodeComponentSyncCallbackFns {
@@ -1715,7 +1715,7 @@ async function fixMissingDefaultComponents(
   if (missingDefaultComponents.size > 0 && !isHostLessPackage(ctx.site)) {
     // We only need to add the missing default components for real projects;
     // sites that are hostless packages don't need to
-    const plumeSite = ctx.getPlumeSite();
+    const plumeSite = await ctx.getPlumeSite();
     await ctx.change(
       () => {
         missingDefaultComponents.forEach((missingComponents, kind) => {

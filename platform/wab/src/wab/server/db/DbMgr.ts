@@ -2253,12 +2253,6 @@ export class DbMgr implements MigrationDbMgr {
       }
 
       const selfLevel = await this._getActorAccessLevelToProject(project);
-      const msg = `${await this.describeActor()} tried to ${action} project ${projectId}, but their access level ${humanLevel(
-        selfLevel,
-      )} didn't meet required level ${humanLevel(requireLevel)}. ${
-        suggestion ?? ""
-      }`;
-
       const satisfied =
         accessLevelRank(selfLevel) >= accessLevelRank(requireLevel) ||
         isUnownedProject(project); // project with no owner and public can be edited
@@ -2267,7 +2261,11 @@ export class DbMgr implements MigrationDbMgr {
           "Project ID and/or tokens are incorrect (and/or user has insufficient permissions)",
         );
       }
-      checkPermissions(satisfied, msg);
+      if (!satisfied) {
+        checkPermissions(false, `${await this.describeActor()} tried to ${action} project ${projectId}, but their access level ${humanLevel(
+          selfLevel,
+        )} didn't meet required level ${humanLevel(requireLevel)}. ${suggestion ?? ""}`);
+      }
     },
     (projectId, requireLevel, _action, _suggestion, includeDeleted) =>
       JSON.stringify([projectId, requireLevel, includeDeleted]),
@@ -5438,12 +5436,13 @@ export class DbMgr implements MigrationDbMgr {
     const levels =
       await this._getActorAccessLevelToResources(taggedResourceIds);
 
-    const actor = await this.describeActor();
     for (const id of taggedResourceIds.ids) {
+      if (levels[id] && accessLevelRank(levels[id]) >= accessLevelRank(requireLevel)) {
+        continue;
+      }
       checkPermissions(
-        !!levels[id] &&
-          accessLevelRank(levels[id]) >= accessLevelRank(requireLevel),
-        `${actor} tried to ${action} ${
+        false,
+        `${await this.describeActor()} tried to ${action} ${
           taggedResourceIds.type === "team"
             ? ORGANIZATION_LOWER
             : taggedResourceIds.type

@@ -43,6 +43,7 @@ import {
   isTplTag,
   isTplTextBlock,
   tplChildren,
+  tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
 import { PLASMIC_DISPLAY_NONE, normProp } from "@/wab/shared/css";
 import { dataSourceTemplateToString } from "@/wab/shared/data-sources-meta/data-sources";
@@ -722,12 +723,12 @@ function buildFallbackableExprJson(
  * included only for "Run code" (customFunction) steps; other actions are
  * listed for visibility but their structured args are not decomposed.
  */
-function buildComponentInteractions(component: Component): InteractionJson[] {
+function buildComponentInteractions(component: Component, root = component.tplTree): InteractionJson[] {
   const result: InteractionJson[] = [];
   if (!component.tplTree) {
     return result;
   }
-  for (const tpl of flattenTpls(component.tplTree)) {
+  for (const tpl of flattenTpls(root)) {
     if (!isTplTag(tpl) && !isTplComponent(tpl)) {
       continue;
     }
@@ -1128,8 +1129,10 @@ export function buildElementResource(
   tpl: TplNode,
   opts: { site: Site },
 ): ElementJson {
+  const component = tryGetTplOwnerComponent(tpl);
   return {
     __type: "Element",
     baseVariantTplTree: tplToHtml(tpl, opts.site),
+    ...(component ? { interactions: buildComponentInteractions(component, tpl) } : {}),
   };
 }

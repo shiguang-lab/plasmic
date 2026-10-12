@@ -1,0 +1,9 @@
+{
+  "kind": "Local authenticated Web, real model",
+  "status": "Interrupted by development reload",
+  "evidence": "Native page creation was saved. Five model-step requests completed with HTTP 200 (14741, 11928, 8979, 17846, 23057 ms). The development server rebuilt host/locale source and the dialog returned to an empty task list and default local-edit mode.",
+  "pageName": "RecordsAcceptancePage",
+  "scope": "Independent local acceptance database",
+  "cleanup": "Pending native cleanup of the interrupted blank test page",
+  "nextValidation": "Existing CI=1 frontend option disables automatic reload during acceptance"
+}

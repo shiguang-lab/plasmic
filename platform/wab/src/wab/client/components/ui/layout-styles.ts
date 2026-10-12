@@ -35,6 +35,17 @@ import textboxLike from "@/wab/client/plasmic/plasmic_kit_style_controls/Plasmic
 import topBar from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar.module.css";
 import { productPalette } from "@/wab/client/product-ui-theme.styles";
 import { createStyles } from "antd-style";
+import type { GlobalToken } from "antd";
+
+export const editorPanelHeaderStyle = (token: GlobalToken) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "0 12px",
+  height: 48,
+  flexShrink: 0,
+  borderBottom: `1px solid ${token.colorBorderSecondary}`,
+} as const);
 
 // Popovers render outside the editor root, so generated controls need the same
 // palette at the portal boundary as their counterparts inside the editor.
@@ -530,15 +541,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       {
         color: token.colorText,
       },
-    "& .editor-panel-header": {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "0 12px",
-      height: 48,
-      flexShrink: 0,
-      borderBottom: `1px solid ${token.colorBorderSecondary}`,
-    },
+    "& .editor-panel-header": editorPanelHeaderStyle(token),
     "& .editor-issues-panel": {
       display: "flex",
       flexDirection: "column",
@@ -1287,11 +1290,7 @@ export const useResourcePanelStyles = createStyles(({ token }) => ({
       fontSize: token.fontSizeSM,
       flexShrink: 0,
     },
-    "& .resource-panel-heading": {
-      padding: "0 12px",
-      height: 48,
-      flexShrink: 0,
-    },
+    "& .resource-panel-heading": editorPanelHeaderStyle(token),
     "& .resource-panel-sections": { padding: "8px 12px", flexShrink: 0 },
     "& .resource-panel-content > div:last-child": { minHeight: 0 },
     [`& .${listBottomFade.root}`]: {

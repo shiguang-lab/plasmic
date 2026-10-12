@@ -107,3 +107,49 @@ it("keeps compact canvas placeholders from inheriting Antd's default input dimen
     style.remove();
   }
 });
+
+it.each(["preview", "preview-full"])(
+  "uses preview loading without a startup boundary for %s",
+  (mode) => {
+    const { container } = setup(`/projects/project/${mode}/home`);
+    expect(screen.getByText("Loading preview…")).toBeTruthy();
+    expect(container.querySelectorAll(".preview-loading__page")).toHaveLength(
+      3,
+    );
+    expect(container.querySelector(".canvas-editor, .ant-skeleton")).toBeNull();
+  },
+);
+
+it.each([
+  ["/projects/project/preview/home", "preview-startup-loading"],
+  ["/projects/project/preview-full/home", "preview-startup-loading"],
+  ["/projects/project/preview-full", "preview-startup-loading"],
+  ["/projects/project", "studio-startup-loading"],
+  ["/projects/project/-/preview-full", "studio-startup-loading"],
+])(
+  "selects the correct bootstrap loading screen for %s before React starts",
+  (pathname, expected) => {
+    const html = readFileSync(
+      resolve(process.cwd(), "public/index.html"),
+      "utf8",
+    );
+    const script = html
+      .split("<script>")
+      .find((part) =>
+        part.includes('getElementById("preview-startup-loading")'),
+      )
+      ?.split("</script>")[0];
+    expect(script).toBeTruthy();
+    const shown: string[] = [];
+    const bootstrapDocument = {
+      getElementById: (id: string) => ({
+        classList: { add: () => shown.push(id) },
+      }),
+    };
+    new Function("window", "document", script ?? "")(
+      { location: { pathname } },
+      bootstrapDocument,
+    );
+    expect(shown).toEqual([expected]);
+  },
+);

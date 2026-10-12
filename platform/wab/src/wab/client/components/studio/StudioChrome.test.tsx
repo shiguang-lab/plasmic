@@ -26,9 +26,9 @@ function ReadyCanvas({ ready }: { ready: boolean }) {
   return <div>Real canvas</div>;
 }
 
-function setup(children: React.ReactNode) {
+function setup(children: React.ReactNode, path = "/projects/project") {
   const history = createMemoryHistory({
-    initialEntries: ["/projects/project"],
+    initialEntries: [path],
   });
   const view = (content: React.ReactNode) => (
     <HistoryProvider history={history}>
@@ -122,4 +122,35 @@ it("starts loading for a new project but not for arena or slug changes within a 
   expect(screen.queryByRole("status")).toBeNull();
   act(() => history.push("/projects/project"));
   expect(screen.getByRole("status")).toBeTruthy();
+});
+
+it.each(["preview", "preview-full"])(
+  "uses preview loading throughout %s startup and removes it when ready",
+  (mode) => {
+    const { rerender } = setup(
+      <ApplicationPageLoading />,
+      `/projects/project/${mode}/home`,
+    );
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    expect(screen.getByText("Loading preview…")).toBeTruthy();
+    expect(
+      document.querySelector(".canvas-editor, .studio-loading, .ant-skeleton"),
+    ).toBeNull();
+    rerender(<StudioChrome />);
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    rerender(<ReadyCanvas ready />);
+    expect(screen.queryByRole("status")).toBeNull();
+  },
+);
+
+it("shows preview startup failures with retry without editor chrome", () => {
+  const retry = vi.fn();
+  setup(
+    <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />,
+    "/projects/project/preview-full/home",
+  );
+  expect(screen.queryByRole("status")).toBeNull();
+  expect(document.querySelector(".canvas-editor")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(retry).toHaveBeenCalledOnce();
 });

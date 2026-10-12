@@ -10,27 +10,15 @@ vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
     hostFrameApi: { refreshSiteInfo: mocks.refreshSiteInfo },
   }),
 }));
-vi.mock("@/wab/client/components/widgets/Modal", () => ({
-  Modal: ({
-    children,
-    open,
-    onCancel,
-  }: {
-    children: React.ReactNode;
-    open: boolean;
-    onCancel: () => void;
-  }) =>
-    open ? (
-      <div role="dialog">
-        <button onClick={onCancel}>Dismiss</button>
-        {children}
-      </div>
-    ) : null,
-}));
 vi.mock("@/wab/client/components/widgets/plasmic/ShareDialogContent", () => ({
-  default: (props: object) => {
+  default: (props: { closeDialog: () => void }) => {
     mocks.content(props);
-    return <div>Existing permission controls</div>;
+    return (
+      <div>
+        Existing permission controls
+        <button onClick={props.closeDialog}>Dismiss</button>
+      </div>
+    );
   },
 }));
 afterEach(cleanup);
@@ -60,4 +48,36 @@ test("opens the original standalone permission dialog without delivery tabs", ()
   );
   fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
   expect(close).toHaveBeenCalledWith(false);
+});
+
+test("uses the native mask to dismiss and ignores dialog content and body events", () => {
+  const close = vi.fn().mockResolvedValue(undefined);
+  const props = {
+    project: { id: "project" } as React.ComponentProps<
+      typeof ShareModal
+    >["project"],
+    perms: [],
+    showShareModal: true,
+    setShowShareModal: close,
+    refreshProjectAndPerms: vi.fn(),
+  };
+  const { rerender } = render(<ShareModal {...props} />);
+  const click = (target: Element) => {
+    fireEvent.mouseDown(target);
+    fireEvent.mouseUp(target);
+    fireEvent.click(target);
+  };
+  click(screen.getByText("Existing permission controls"));
+  expect(close).not.toHaveBeenCalled();
+  click(document.body);
+  expect(close).not.toHaveBeenCalled();
+  const maskArea = screen.getByRole("dialog").closest(".ant-modal-wrap");
+  if (!maskArea) {
+    throw new Error("Missing native modal mask area");
+  }
+  click(maskArea);
+  expect(close).toHaveBeenCalledExactlyOnceWith(false);
+  rerender(<ShareModal {...props} showShareModal={false} />);
+  click(document.body);
+  expect(close).toHaveBeenCalledTimes(1);
 });

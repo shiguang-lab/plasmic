@@ -27,16 +27,31 @@ afterEach(() => {
 describe("prototype browser bridge", () => {
   it("does not execute a stopped local operation waiting in the shared MCP queue", async () => {
     let release = () => {};
-    const paused = new Promise<void>((resolve) => { release = resolve; });
-    frame.hostFrameApi.executeCopilotToolCall.mockImplementationOnce(async () => { await paused; return { success: true, output: "{}" }; });
+    const paused = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    frame.hostFrameApi.executeCopilotToolCall.mockImplementationOnce(
+      async () => {
+        await paused;
+        return { success: true, output: "{}" };
+      },
+    );
     const rendered = render(<TopFrameCopilotToolsBridge />);
     const tools = window.PLASMIC_AI_TOOLS;
-    if (!tools) {throw new Error("Bridge missing");}
+    if (!tools) {
+      throw new Error("Bridge missing");
+    }
     const first = tools.read({});
     const controller = new AbortController();
     const local = tools._executeLocal({}, controller.signal);
-    await waitFor(() => expect(frame.hostFrameApi.executeCopilotToolCall).toHaveBeenCalledTimes(1));
-    controller.abort(); release(); await first;
+    await waitFor(() =>
+      expect(frame.hostFrameApi.executeCopilotToolCall).toHaveBeenCalledTimes(
+        1,
+      ),
+    );
+    controller.abort();
+    release();
+    await first;
     expect(await local).toMatchObject({ success: false });
     expect(frame.hostFrameApi.executeCopilotToolCall).toHaveBeenCalledTimes(1);
     rendered.unmount();

@@ -1,0 +1,205 @@
+{
+  "date": "2026-10-12T14:09:03.094Z",
+  "projectId": "f1Z6sEJ9WnC7QuDScTMQ8E",
+  "checks": [
+    {
+      "name": "authorized editor ready",
+      "passed": true
+    },
+    {
+      "name": "native edit and save",
+      "passed": true,
+      "revision": 71,
+      "nodeUuid": "7Rg0FydgbuZ6"
+    },
+    {
+      "name": "authorized editor ready",
+      "passed": true
+    },
+    {
+      "name": "saved text and node identity survive reopen",
+      "passed": true
+    },
+    {
+      "name": "saved page renders in full Preview",
+      "passed": true
+    },
+    {
+      "name": "temporary acceptance page removed and saved",
+      "passed": true
+    },
+    {
+      "name": "original Records page props, states, identities and interactions unchanged",
+      "passed": true
+    },
+    {
+      "name": "component library Preview renders records",
+      "passed": true
+    },
+    {
+      "name": "shared runtime initializes once per destination window",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "runtimeInitializations": [
+    {
+      "url": "http://localhost:3003/projects/f1Z6sEJ9WnC7QuDScTMQ8E/-/RecordsWebAcceptancePage?arena_type=page&arena=jAcMpWlXKv1M",
+      "count": 0,
+      "hasRuntime": false
+    },
+    {
+      "url": "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html",
+      "count": 0,
+      "hasRuntime": false
+    },
+    {
+      "url": "https://m.stripe.network/inner.html",
+      "count": 0,
+      "hasRuntime": false
+    },
+    {
+      "url": "http://localhost:3005/static/host.html",
+      "count": 1,
+      "hasRuntime": true
+    },
+    {
+      "url": "about:blank",
+      "count": 0,
+      "hasRuntime": false
+    },
+    {
+      "url": "about:blank",
+      "count": 1,
+      "hasRuntime": true
+    },
+    {
+      "url": "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html",
+      "count": 0,
+      "hasRuntime": false
+    },
+    {
+      "url": "https://m.stripe.network/inner.html",
+      "count": 0,
+      "hasRuntime": false
+    },
+    {
+      "url": "http://localhost:3005/static/host.html",
+      "count": 1,
+      "hasRuntime": true
+    }
+  ],
+  "libraryResponses": [
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"930ff2aa087188261d841af3374a97611895bfcd8eb39338ccbdf0ba6f60d945\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"e9066e7e9b9f86ad304de889d8577451eb7dc6918844c6c813bfa14b41314386\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"cdba1a8a45e9b4f70efde426e0c5a1bb3f507a89c1feaf9b1449158a9ebd05cd\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"22e2e62a09c519b89b16c78cac7da9256364d6bbd6895c015a95ec6bd35d955d\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"930ff2aa087188261d841af3374a97611895bfcd8eb39338ccbdf0ba6f60d945\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"e9066e7e9b9f86ad304de889d8577451eb7dc6918844c6c813bfa14b41314386\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"cdba1a8a45e9b4f70efde426e0c5a1bb3f507a89c1feaf9b1449158a9ebd05cd\""
+    },
+    {
+      "url": "http://localhost:3003/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+      "status": 200,
+      "cacheControl": "private, no-cache",
+      "etag": "\"22e2e62a09c519b89b16c78cac7da9256364d6bbd6895c015a95ec6bd35d955d\""
+    }
+  ],
+  "testPage": {
+    "__type": "Component",
+    "name": "PerformanceAcceptancemv5bvq2s",
+    "uuid": "1glSJ8egcFh6",
+    "type": "page",
+    "pageMeta": {
+      "__type": "PageMeta",
+      "path": "/performance-acceptance-mv-5-bvle-9"
+    },
+    "props": [],
+    "variants": [],
+    "variantGroups": [],
+    "baseVariantTplTree": "<div id=\"BjNmKDZlECQD\" style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\">\n  <h1 id=\"7Rg0FydgbuZ6\" label=\"AcceptanceTitle\">Saved optimization acceptance</h1>\n</div>"
+  },
+  "previewText": "",
+  "previewFrames": [
+    {
+      "url": "http://localhost:3003/projects/f1Z6sEJ9WnC7QuDScTMQ8E/preview-full/records-web-acceptance",
+      "text": "",
+      "runtimeInitializations": 0
+    },
+    {
+      "url": "http://localhost:3005/static/host.html",
+      "text": "",
+      "runtimeInitializations": 1
+    },
+    {
+      "url": "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html",
+      "text": "",
+      "runtimeInitializations": 0
+    },
+    {
+      "url": "https://m.stripe.network/inner.html",
+      "text": "",
+      "runtimeInitializations": 0
+    },
+    {
+      "url": "about:blank",
+      "text": "",
+      "runtimeInitializations": 0
+    },
+    {
+      "url": "about:blank",
+      "text": "",
+      "runtimeInitializations": 1
+    },
+    {
+      "url": "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html",
+      "text": "",
+      "runtimeInitializations": 0
+    },
+    {
+      "url": "http://localhost:3005/static/host.html",
+      "text": "业\n业务管理平台\n记录管理\n业务管理平台\n当地时间：2026-10-12 22:09:27\nPAKORA\n管\n管理员\n名称\n负责人\n请选择\n状态\n请选择\n查 询\n重 置\n展开\n记录列表\n新建\n名称\n\t负责人\t状态\t类别\t操作\n\n名称\n\t\n负责人\n\t\n状态\n\t\n类别\n\t\n操作\n\n\n记录 01\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 02\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 03\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 04\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 05\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 06\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 07\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 08\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 09\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 10\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 11\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 12\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 13\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 14\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 15\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 16\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 17\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 18\n\t负责人2\t停用\t未分类\t\n详情\n\n\n记录 19\n\t负责人1\t启用\t未分类\t\n详情\n\n\n记录 20\n\t负责人2\t停用\t未分类\t\n详情\n1\n2\n3\n20 / page",
+      "runtimeInitializations": 1
+    },
+    {
+      "url": "https://m.stripe.network/inner.html",
+      "text": "",
+      "runtimeInitializations": 0
+    }
+  ],
+  "success": true
+}

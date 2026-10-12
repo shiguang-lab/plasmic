@@ -29,7 +29,7 @@ it("shares one counted region for overlapping requests on the same node", () => 
     request: { mode: "read", status: "running" },
   });
   expect(currentActivity(activity.requests)?.status).toBe("running");
-  vi.advanceTimersByTime(1600);
+  vi.advanceTimersByTime(2000);
   expect(activity.regions[0]).toMatchObject({
     key,
     count: 1,
@@ -67,7 +67,7 @@ it("does not let stale cleanup remove a new reference or double completion relea
   expect(activity.requests[0].status).toBe("success");
   vi.advanceTimersByTime(1500);
   const second = activity.begin("edit", [target]);
-  vi.advanceTimersByTime(100);
+  vi.advanceTimersByTime(500);
   expect(activity.regions[0]).toMatchObject({
     count: 1,
     request: { mode: "edit", status: "running" },
@@ -93,7 +93,7 @@ it("keeps fast calls visible without delaying completion, and expires each reque
     "success",
     "running",
   ]);
-  vi.advanceTimersByTime(1000);
+  vi.advanceTimersByTime(1400);
   expect(activity.requests.map((r) => r.mode)).toEqual(["edit"]);
   finishEdit("error");
   expect(activity.requests[0].status).toBe("error");
@@ -108,11 +108,66 @@ it("keeps long operations active and cancels pending cleanup when Studio closes"
   vi.advanceTimersByTime(10000);
   expect(activity.requests[0].status).toBe("running");
   finish("success");
+  expect(activity.requests[0]).toMatchObject({
+    status: "success",
+    scanning: false,
+  });
   vi.advanceTimersByTime(399);
   expect(activity.requests).toHaveLength(1);
   activity.dispose();
   finish("error");
   expect(activity.requests).toHaveLength(0);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it.each([
+  ["read", "success"],
+  ["read", "error"],
+  ["edit", "success"],
+  ["edit", "error"],
+] as const)("keeps fast %s scans moving for at least 1.6 seconds even after %s", (mode, status) => {
+  vi.useFakeTimers();
+  const activity = new CopilotActivity();
+  const finish = activity.begin(mode, [{ componentUuid: "page", label: "Page" }]);
+  vi.advanceTimersByTime(20);
+  finish(status);
+  expect(activity.requests[0]).toMatchObject({ status, scanning: true });
+  vi.advanceTimersByTime(1579);
+  expect(activity.requests[0].scanning).toBe(true);
+  vi.advanceTimersByTime(1);
+  expect(activity.requests[0]).toMatchObject({ status, scanning: false });
+  vi.advanceTimersByTime(399);
+  expect(activity.requests).toHaveLength(1);
+  vi.advanceTimersByTime(1);
+  expect(activity.requests).toHaveLength(0);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it("keeps a newer completed scan moving while an older error shows its static result", () => {
+  vi.useFakeTimers();
+  const activity = new CopilotActivity();
+  const target = { componentUuid: "page", label: "Page" };
+  const first = activity.begin("read", [target]);
+  first("error");
+  vi.advanceTimersByTime(1500);
+  const second = activity.begin("edit", [target]);
+  second("success");
+  vi.advanceTimersByTime(100);
+  expect(activity.regions[0]).toMatchObject({
+    count: 2,
+    request: { status: "error", scanning: false },
+    scanning: true,
+  });
+  vi.advanceTimersByTime(400);
+  expect(activity.regions[0]).toMatchObject({
+    count: 1,
+    request: { mode: "edit", status: "success" },
+    scanning: true,
+  });
+  vi.advanceTimersByTime(1100);
+  expect(activity.regions[0].scanning).toBe(false);
+  vi.advanceTimersByTime(400);
+  expect(activity.regions).toHaveLength(0);
   expect(vi.getTimerCount()).toBe(0);
 });
 

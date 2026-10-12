@@ -3,11 +3,7 @@ import {
   useSource,
 } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import {
-  IconLinkButton,
-  PopupFocuser,
-  useOnIFrameMouseDown,
-} from "@/wab/client/components/widgets";
+import { IconLinkButton, PopupFocuser } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import { PageQueryParamsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -374,9 +370,6 @@ export function AddQueryParamButton({
   const [value, setValue] = React.useState<string>("");
   const [showing, setShowing] = React.useState(false);
   const inputRef = React.useRef<InputRef>(null);
-  useOnIFrameMouseDown(() => {
-    setShowing(false);
-  });
   return (
     <Popover
       trigger={["click"]}

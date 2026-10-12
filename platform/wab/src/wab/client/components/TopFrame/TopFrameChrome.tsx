@@ -1,3 +1,4 @@
+import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
 import { HostConfig } from "@/wab/client/components/HostConfig";
@@ -11,6 +12,7 @@ import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame
 import ShareModal from "@/wab/client/components/TopFrame/TopBar/ShareModal";
 import UpsellModal from "@/wab/client/components/TopFrame/TopBar/UpsellModal";
 import { AppAuthSettingsModal } from "@/wab/client/components/app-auth/AppAuthSettings";
+import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
 import { MergeModalWrapper } from "@/wab/client/components/merge/MergeFlow";
@@ -24,6 +26,7 @@ import { FloatingWindowLayer } from "@/wab/client/components/widgets/FloatingWin
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
+import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import {
   TopFrameApi,
   TopFrameApiArgs,
@@ -53,6 +56,7 @@ import {
   ProjectId,
 } from "@/wab/shared/ApiSchema";
 import { assert, asyncWrapper, mkUuid, spawn } from "@/wab/shared/common";
+import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
@@ -86,6 +90,7 @@ export interface TopFrameChromeProps {
   latestPublishedVersionData:
     { revisionId: string; version: string } | undefined;
   revisionNum: number;
+  leftPaneWidth: number;
   desktopTitleBarDragRegion: TopFrameApiArgs<"setDesktopTitleBarDragRegion">;
   noComponents: boolean;
   isLocalizationEnabled: boolean;
@@ -105,6 +110,7 @@ export interface TopFrameChromeProps {
   studioModalOpen: boolean;
   showCopilotChatModal: boolean;
   copilotChatOpenOpts: CopilotChatOpenOpts | undefined;
+  localAiContext: LocalAiContext | undefined;
   subjectComponentInfo:
     | {
         pathOrComponent: string;
@@ -405,11 +411,26 @@ export function TopFrameChrome({
                 onCancel={() => topFrameApi.setShowAppAuthModal(false)}
               />
             )}
+            {hostFrameApiReady &&
+              editorPerm &&
+              rest.localAiContext &&
+              !rest.showCopilotChatModal &&
+              !fullPreview && (
+                <CanvasAiComposer
+                  appCtx={appCtx}
+                  projectId={project.id}
+                  context={rest.localAiContext}
+                  onSubmit={topFrameApi.openCopilotChat}
+                  hiddenByModal={rest.studioModalOpen}
+                />
+              )}
             <FloatingWindowLayer>
               {hostFrameApiReady && rest.showCopilotChatModal && editorPerm && (
                 <CopilotChat
+                  width={rest.leftPaneWidth}
                   project={project}
                   chatOpenOpts={rest.copilotChatOpenOpts}
+                  context={rest.localAiContext}
                   studioModalOpen={rest.studioModalOpen}
                   onClose={() => topFrameApi.toggleCopilotChat()}
                 />
@@ -555,6 +576,8 @@ export function useTopFrameState({
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
     React.useState<{ revisionId: string; version: string }>();
   const [revisionNum, setRevisionNum] = React.useState(0);
+  const [leftPaneWidth, setLeftPaneWidth] =
+    React.useState(LEFT_PANE_INIT_WIDTH);
   const [desktopTitleBarDragRegion, setDesktopTitleBarDragRegion] =
     React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegion">>(null);
   const [deliveryTab, setDeliveryTab] = React.useState<DeliveryTab | null>(
@@ -593,6 +616,7 @@ export function useTopFrameState({
     CopilotChatOpenOpts | undefined
   >(undefined);
 
+  const [localAiContext, setLocalAiContext] = React.useState<LocalAiContext>();
   const showCopilotChatModal = React.useMemo(() => {
     const searchParams = new URLSearchParams(currentLocation.search);
     return searchParams.get(SEARCH_PARAM_COPILOT_CHAT) === "true";
@@ -674,6 +698,7 @@ export function useTopFrameState({
       },
       setDesktopTitleBarDragRegion: asyncWrapper(setDesktopTitleBarDragRegion),
       setPrimitiveValues: async (vals) => {
+        setLeftPaneWidth(vals.leftPaneWidth);
         setNoComponents(vals.noComponents);
         setRevisionNum(vals.revisionNum);
         setIsLocalizationEnabled(vals.isLocalizationEnabled);
@@ -733,6 +758,10 @@ export function useTopFrameState({
         }
         forceUpdate();
       },
+      setLocalAiContext: asyncWrapper(setLocalAiContext),
+      onFrameInteraction: asyncWrapper((event) =>
+        dispatchFrameInteraction(document, event),
+      ),
       onFileDragEventInHost: asyncWrapper((event) =>
         fileDragMonitor.onRemoteEvent(event),
       ),
@@ -778,6 +807,7 @@ export function useTopFrameState({
     topFrameApi,
     latestPublishedVersionData,
     revisionNum,
+    leftPaneWidth,
     desktopTitleBarDragRegion,
     noComponents,
     subjectComponentInfo,
@@ -801,6 +831,7 @@ export function useTopFrameState({
     studioModalOpen,
     showCopilotChatModal,
     copilotChatOpenOpts,
+    localAiContext,
     defaultPageRoleId,
     setDefaultPageRoleId,
     onboardingTour,

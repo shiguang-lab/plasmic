@@ -1,4 +1,8 @@
-import { localAiStatus, localAiStep } from "@/wab/server/routes/local-ai";
+import {
+  localAiIntent,
+  localAiStatus,
+  localAiStep,
+} from "@/wab/server/routes/local-ai";
 import { LocalEditRequest } from "@/wab/shared/copilot/local-edit";
 import express from "express";
 import type { Request, Response } from "express-serve-static-core";
@@ -9,6 +13,7 @@ const state = vi.hoisted(() => ({
   authorize: vi.fn(),
   user: vi.fn(),
   generate: vi.fn(),
+  intent: vi.fn(),
   config: { model: "fixture-model", apiKey: "never-return-this" },
 }));
 vi.mock("@/wab/server/routes/util", () => ({
@@ -17,7 +22,9 @@ vi.mock("@/wab/server/routes/util", () => ({
 }));
 vi.mock("@/wab/server/copilot/local-edit", () => ({
   generateLocalEditStep: state.generate,
+  resolveLocalAiIntent: state.intent,
   getLocalAiConfig: () => state.config,
+  getLocalAiModels: async () => ["fixture-model", "alternate-model"],
 }));
 
 const body: LocalEditRequest = {
@@ -72,6 +79,7 @@ it("requires editor permission and returns only public model status", async () =
   expect(res.json).toHaveBeenCalledWith({
     configured: true,
     model: "fixture-model",
+    models: ["fixture-model", "alternate-model"],
     pageGenerationEnabled: false,
   });
   expect(JSON.stringify(vi.mocked(res.json).mock.calls)).not.toContain(
@@ -280,4 +288,42 @@ it("completes a real HTTP response through a shorter idle proxy", async () => {
       new Promise<void>((resolve) => proxy.close(() => resolve())),
     ]);
   }
+});
+
+it("authorizes automatic intent and enforces the page generation flag", async () => {
+  const { req, res } = fixture();
+  req.body = { prompt: "Create a new records page", hasCurrentPage: true };
+  await expect(localAiIntent(req, res)).rejects.toThrow("disabled");
+  expect(state.intent).not.toHaveBeenCalled();
+  req.devflags.enableLocalAiPageGeneration = true;
+  state.intent.mockResolvedValue({
+    mode: "page",
+    name: "RecordsPage",
+    path: "/records",
+  });
+  await localAiIntent(req, res);
+  expect(state.authorize).toHaveBeenCalledWith(
+    "project",
+    "editor",
+    "edit with AI",
+  );
+  expect(res.json).toHaveBeenCalledWith({
+    mode: "page",
+    name: "RecordsPage",
+    path: "/records",
+  });
+});
+it("rejects invalid intent requests and hides provider errors", async () => {
+  const { req, res } = fixture();
+  req.devflags.enableLocalAiPageGeneration = true;
+  req.body = { prompt: "" };
+  await expect(localAiIntent(req, res)).rejects.toThrow("Invalid");
+  expect(state.intent).not.toHaveBeenCalled();
+  req.body = { prompt: "Create page", hasCurrentPage: false };
+  state.intent.mockRejectedValue(new Error("secret provider details"));
+  await localAiIntent(req, res);
+  expect(res.status).toHaveBeenCalledWith(502);
+  expect(JSON.stringify(vi.mocked(res.json).mock.calls)).not.toContain(
+    "secret provider details",
+  );
 });

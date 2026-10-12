@@ -77,10 +77,12 @@ const ActivityRegion = observer(function ActivityRegion({
   viewCtx,
   request,
   target,
+  scanning,
 }: {
   viewCtx: ViewCtx;
   request: CanvasActivity;
   target: ActivityTarget;
+  scanning: boolean;
 }) {
   const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
@@ -146,6 +148,7 @@ const ActivityRegion = observer(function ActivityRegion({
       className={classNames(styles.region, themeStyles.root)}
       data-mode={request.mode}
       data-status={request.status}
+      data-scanning={scanning}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}
       aria-hidden="true"
       style={{ ...region.bounds, borderWidth: 2 / zoom }}
@@ -182,12 +185,13 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
                 getArenaName(studioCtx.currentArena) === target.canvasName)) &&
             (!target.frameUuid || target.frameUuid === frame.uuid),
         )
-        .map(({ key, request, target }) => (
+        .map(({ key, request, target, scanning }) => (
           <ActivityRegion
             key={key}
             viewCtx={viewCtx}
             request={request}
             target={target}
+            scanning={scanning}
           />
         ))}
     </>

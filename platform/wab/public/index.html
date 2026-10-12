@@ -25,6 +25,9 @@
         background-color: var(--studio-loading-layout);
       }
     </style>
+    <style>
+      <%= previewLoadingCss %>
+    </style>
     <meta name="robots" content="noindex" />
     <script>
       if (navigator.userAgent.includes("PlasmicDesktop/darwin")) {
@@ -551,8 +554,95 @@
       </div>
       <span class="studio-loading__label">Loading project…</span>
     </div>
+    <div
+      id="preview-startup-loading"
+      class="preview-loading"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading preview…"
+    >
+      <div class="preview-loading__content">
+        <% for (let page = 0; page < 3; page++) { %>
+        <div class="preview-loading__page" aria-hidden="true">
+          <div class="preview-loading__header">
+            <span
+              class="preview-loading__placeholder preview-loading__logo"
+            ></span
+            ><span
+              class="preview-loading__placeholder preview-loading__action"
+            ></span>
+          </div>
+          <div class="preview-loading__body">
+            <div class="preview-loading__nav">
+              <span class="preview-loading__placeholder"></span
+              ><span class="preview-loading__placeholder"></span
+              ><span class="preview-loading__placeholder"></span
+              ><span class="preview-loading__placeholder"></span
+              ><span class="preview-loading__placeholder"></span>
+            </div>
+            <div class="preview-loading__main">
+              <span
+                class="preview-loading__placeholder preview-loading__heading"
+              ></span
+              ><span
+                class="preview-loading__placeholder preview-loading__description"
+              ></span>
+              <div class="preview-loading__filters">
+                <span class="preview-loading__placeholder"></span
+                ><span class="preview-loading__placeholder"></span
+                ><span class="preview-loading__placeholder"></span>
+              </div>
+              <div class="preview-loading__table">
+                <div class="preview-loading__row">
+                  <span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span>
+                </div>
+                <div class="preview-loading__row">
+                  <span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span>
+                </div>
+                <div class="preview-loading__row">
+                  <span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span>
+                </div>
+                <div class="preview-loading__row">
+                  <span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span>
+                </div>
+                <div class="preview-loading__row">
+                  <span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span>
+                </div>
+                <div class="preview-loading__row">
+                  <span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span
+                  ><span class="preview-loading__placeholder"></span>
+                </div>
+              </div>
+              <span
+                class="preview-loading__placeholder preview-loading__pagination"
+              ></span>
+            </div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
     <script>
-      if (/^\/projects\/[a-z0-9]+/.test(window.location.pathname)) {
+      if (
+        /^\/projects\/[^/]+\/preview(?:-full)?(?:\/|$)/.test(
+          window.location.pathname,
+        )
+      ) {
+        document
+          .getElementById("preview-startup-loading")
+          .classList.add("visible");
+      } else if (/^\/projects\/[a-z0-9]+/.test(window.location.pathname)) {
         document
           .getElementById("studio-startup-loading")
           .classList.add("visible");

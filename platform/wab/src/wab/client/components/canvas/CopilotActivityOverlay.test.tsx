@@ -55,7 +55,7 @@ it("renders a single persistent scan DOM node until its last reference expires",
   expect(region?.getAttribute("data-mode")).toBe("edit");
   act(() => {
     edit("error");
-    vi.advanceTimersByTime(1600);
+    vi.advanceTimersByTime(2000);
   });
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
   expect(region?.getAttribute("data-status")).toBe("running");
@@ -65,6 +65,49 @@ it("renders a single persistent scan DOM node until its last reference expires",
   });
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(0);
   activity.dispose();
+});
+
+it("keeps a completed read animating before showing its static completion", () => {
+  vi.useFakeTimers();
+  vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+  const { studioCtx } = fakeStudioCtx();
+  const component = mock<Component>({ uuid: "page", type: "page" });
+  const frame = mock<IArenaFrame>({
+    width: 1440,
+    height: 1024,
+    _height: observable.box(1024),
+    container: mock<TplComponent>({ component }),
+  });
+  const viewCtx = mock<ViewCtx>();
+  viewCtx.arenaFrame.mockReturnValue(frame);
+  Object.defineProperty(viewCtx, "studioCtx", {
+    value: mock<StudioCtx>({ zoom: 1 }),
+  });
+  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
+  const finish = studioCtx.copilotActivity.begin("read", [
+    { componentUuid: "page", label: "Page" },
+  ]);
+  const { container } = render(
+    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
+  );
+  const region = container.querySelector("[data-copilot-target]");
+  act(() => finish("success"));
+  expect(region?.getAttribute("data-status")).toBe("success");
+  expect(region?.getAttribute("data-scanning")).toBe("true");
+  act(() => {
+    vi.advanceTimersByTime(1599);
+  });
+  expect(region?.getAttribute("data-scanning")).toBe("true");
+  act(() => {
+    vi.advanceTimersByTime(1);
+  });
+  expect(region?.getAttribute("data-scanning")).toBe("false");
+  expect(container.querySelector("[data-copilot-target]")).toBe(region);
+  act(() => {
+    vi.advanceTimersByTime(400);
+  });
+  expect(container.querySelector("[data-copilot-target]")).toBeNull();
+  studioCtx.copilotActivity.dispose();
 });
 
 function rect(
@@ -142,7 +185,7 @@ it("shows localized operation status from real activity completion", async () =>
   expect(screen.getByRole("status").textContent).toContain(
     "操作失败 · OrdersTable",
   );
-  await act(() => vi.advanceTimersByTime(1600));
+  await act(() => vi.advanceTimersByTime(2000));
   expect(screen.queryByRole("status")).toBeNull();
   studioCtx.copilotActivity.dispose();
   setUiLocale("en");

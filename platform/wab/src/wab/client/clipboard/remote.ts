@@ -20,6 +20,7 @@ export async function pasteRemote(
 ): Promise<PasteResult> {
   const viewCtx = ensureViewCtxOrThrowUserError(studioCtx);
   const extraInfo = await buildCopyStateExtraInfo(studioCtx, copyState);
+  const plumeSite = await studioCtx.getPlumeSite();
 
   return {
     handled: true,
@@ -30,7 +31,7 @@ export async function pasteRemote(
           studioCtx.site,
           extraInfo,
           getBaseVariant(currentComponent),
-          studioCtx.getPlumeSite(),
+          plumeSite,
           currentComponent,
           viewCtx.viewOps.adaptTplNodeForPaste,
         );

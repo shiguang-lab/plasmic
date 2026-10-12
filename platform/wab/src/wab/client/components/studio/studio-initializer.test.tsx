@@ -98,10 +98,12 @@ it("shows shared editor controls before project data, then preserves the project
     releaseProject = () => resolve(studioCtx);
   });
   vi.mocked(initStudioCtx).mockReturnValue(projectData);
+  let releaseMetadata!: () => void;
+  const metadata = new Promise<void>((resolve) => { releaseMetadata = resolve; });
   vi.spyOn(
     studioCtx.projectDependencyManager,
     "refreshDeps",
-  ).mockResolvedValue();
+  ).mockReturnValue(metadata);
   vi.mocked(syncCodeComponentsAndHandleErrors).mockReturnValue(dependencies);
   vi.spyOn(studioCtx, "startListeningForSocketEvents").mockResolvedValue();
   vi.spyOn(
@@ -158,6 +160,7 @@ it("shows shared editor controls before project data, then preserves the project
     expect(screen.getByTestId("editor-shell")).toBe(shell);
     expect(screen.getByText("Project menu open")).toBeTruthy();
   } finally {
+    releaseMetadata();
     cleanup();
     studioCtx.dispose();
   }
@@ -186,9 +189,10 @@ it("keeps dashboard navigation available without constructing a project context"
   ).toBe(true);
   expect(
     screen
-      .getByRole("button", { name: "Share project" })
+      .getByRole("button", { name: "Project menu" })
       .hasAttribute("disabled"),
   ).toBe(true);
+  expect(screen.queryByRole("button", { name: "Share project" })).toBeNull();
   fireEvent.click(screen.getByRole("link", { name: "Back to dashboard" }));
   expect(appCtx.history.location.pathname).toBe(APP_ROUTES.dashboard.fill({}));
   expect(api.getProjects).not.toHaveBeenCalled();

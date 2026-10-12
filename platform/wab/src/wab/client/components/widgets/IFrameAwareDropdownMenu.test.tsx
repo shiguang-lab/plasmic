@@ -1,7 +1,6 @@
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { MenuItemContent } from "@/wab/client/components/menu-builder";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import {
   cleanup,
@@ -59,7 +58,9 @@ it("a canvas iframe click closes the menu without pulling focus back", async () 
   await waitFor(() => expect(changed).toHaveBeenLastCalledWith(true));
   const canvasFocus = screen.getByRole("textbox", { name: "Canvas focus" });
   canvasFocus.focus();
-  fireEvent(document, new Event(plasmicIFrameMouseDownEvent));
+  fireEvent.mouseDown(document.body);
+  fireEvent.mouseUp(document.body);
+  fireEvent.click(document.body);
   await waitFor(() => expect(changed).toHaveBeenLastCalledWith(false));
   expect(document.activeElement).toBe(canvasFocus);
 });

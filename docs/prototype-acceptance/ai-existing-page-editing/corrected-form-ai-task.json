@@ -1,0 +1,62 @@
+{
+  "changes": [
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "p1fjYDTBM4bW",
+        "props": {
+          "rules": [
+            {
+              "message": "请输入名称",
+              "ruleType": "required"
+            },
+            {
+              "message": "请输入名称",
+              "ruleType": "whitespace"
+            },
+            {
+              "length": 2,
+              "message": "名称长度为2至40个字符",
+              "ruleType": "min"
+            },
+            {
+              "length": 40,
+              "message": "名称长度为2至40个字符",
+              "ruleType": "max"
+            }
+          ]
+        }
+      },
+      "name": "更改: changeElement",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "iHoiNrZNxQ2-",
+        "html": "<plasmic-component data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CategoryFormItem\" data-props='{\"name\":\"category\",\"rules\":[{\"ruleType\":\"required\",\"message\":\"请选择类别\"}]}' style=\"width: 100%; margin-bottom: 24px; max-width: 100%\">\n  <slot name=\"label\">\n    <span>类别</span>\n  </slot>\n  <slot name=\"children\">\n    <plasmic-component data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CreateCategorySelect\" data-props='{\"options\":[{\"value\":\"重点\",\"label\":\"重点\"},{\"value\":\"普通\",\"label\":\"普通\"}],\"size\":\"medium\"}' style=\"max-width: 100%; width: 100%\">\n      <slot name=\"placeholder\">\n        <span>请选择</span>\n      </slot>\n      <slot name=\"children\"></slot>\n      <slot name=\"suffixIcon\"></slot>\n    </plasmic-component>\n  </slot>\n  <slot name=\"tooltip\"></slot>\n</plasmic-component>",
+        "location": "after"
+      },
+      "name": "更改: insertHtml",
+      "undone": false
+    },
+    {
+      "input": {
+        "action": {
+          "actionName": "customFunction",
+          "code": "const newRecord = {\n  id: String(Date.now()),\n  name: (values && values.name) ? String(values.name).trim() : \"\",\n  owner: values ? values.owner : \"\",\n  status: (values && values.status) ? values.status : \"启用\",\n  category: (values && values.category) ? values.category : \"\"\n};\n$state.records = [\n  newRecord,\n  ...$state.records\n];\n$refs.searchForm.reset();\n$state.currentPage = 1;\n$state.createDrawerOpen = false;"
+        },
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "kIqqMAOJeQhY",
+        "interactionUuid": "GAJv5HweoXpC",
+        "name": "HandleCreateFormFinish"
+      },
+      "name": "更改: updateInteraction",
+      "undone": false
+    }
+  ],
+  "operations": "执行进度read · 已完成read · 已完成read · 已完成changeElement · 已完成insertHtml · 失败Dropped styles not applicable to TplComponent uuid=8N520hdOXXXu (base variant): object-fit.; Dropped styles not applicable to TplComponent uuid=H5PEvd9YkuG4 (base variant): object-fit.insertHtml · 已完成updateInteraction · 已完成read · 已完成validate · 已完成save · 已完成",
+  "prompt": "编辑当前已有 RecordsWebAcceptancePage，恢复新建类别字段和校验，保留已有筛选、表格与详情，不新建页面。先读取当前页面及实际使用的已安装组件契约；不要读取其他本地页面，不要添加 reason 等额外参数，不要选中隐藏表单或改初始抽屉开关。只做三项修改，并分别提交三个原生修改，便于本轮连续撤销验收：1）NameFormItem 的 rules 设为 [{\"ruleType\":\"required\",\"message\":\"请输入名称\"},{\"ruleType\":\"whitespace\",\"message\":\"请输入名称\"},{\"ruleType\":\"min\",\"length\":2,\"message\":\"名称长度为2至40个字符\"},{\"ruleType\":\"max\",\"length\":40,\"message\":\"名称长度为2至40个字符\"}]。这是组件真实规则形状，min/max 使用 length，不能写 ruleType:length 或原生 Antd min/max 字段。2）在 CreateForm 新增 CategoryFormItem 和 CreateCategorySelect，字段名 category、中文标签类别、重点/普通选项、无预选，原生 required 规则提示请选择类别。3）按实际 interactionUuid 更新已有 onFinish，把 category 和 trim 后的 name 保存到新记录，保留 prepend 一次、$refs.searchForm.reset()、currentPage=1、关闭新建抽屉。取消/X/Esc 不新增记录，destroyOnHidden 保持原值，重新打开为空，60条原始记录不改。此次只改这三项，不做组件默认样式清理。最后读回并保存。",
+  "savedRevision": 60,
+  "status": "completed"
+}

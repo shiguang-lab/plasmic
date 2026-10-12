@@ -403,29 +403,29 @@ function PlasmicAlertBanner__RenderFunc(props: {
             {hasVariant($state, "state", "welcomeGuest")
               ? <UiText message={"Welcome to Plasmic!"} />
               : hasVariant($state, "state", "protectedMainBranch")
-              ? "The main branch is currently protected."
+              ? <UiText message={"The main branch is currently protected."} />
               : hasVariant($state, "state", "invariantError")
-              ? "Could not save your project."
+              ? <UiText message={"Could not save your project."} />
               : hasVariant($state, "state", "watch")
-              ? "You are in watch mode"
+              ? <UiText message={"You are in watch mode"} />
               : hasVariant($state, "state", "permError")
-              ? "Sorry, we're not able to save."
+              ? <UiText message={"Sorry, we're not able to save."} />
               : hasVariant($state, "state", "unlogged")
-              ? "You are not logged in."
+              ? <UiText message={"You are not logged in."} />
               : hasVariant($state, "state", "outOfDate")
-              ? "An update to Plasmic is available."
+              ? <UiText message={"An update to Plasmic is available."} />
               : hasVariant($state, "state", "authError")
-              ? "You are no longer logged in."
+              ? <UiText message={"You are no longer logged in."} />
               : hasVariant($state, "state", "notChrome")
-              ? "Sorry, you're using an unsupported browser."
+              ? <UiText message={"Sorry, you're using an unsupported browser."} />
               : hasVariant($state, "state", "viewOld")
-              ? "You are viewing a read-only version."
+              ? <UiText message={"You are viewing a read-only version."} />
               : hasVariant($state, "state", "saveFailed")
-              ? "We're having trouble saving this project."
+              ? <UiText message={"We're having trouble saving this project."} />
               : hasVariant($state, "state", "concurrentEdit")
-              ? "Someone else has edited the project,"
+              ? <UiText message={"Someone else has edited the project,"} />
               : hasVariant($state, "state", "readOnly")
-              ? "You only have read permission to this project."
+              ? <UiText message={"You only have read permission to this project."} />
               : "This is bold text."}
           </div>
           <div
@@ -498,31 +498,31 @@ function PlasmicAlertBanner__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "state", "welcomeGuest")
-              ? "Sign up or log in to edit and save this project."
+              ? <UiText message={"Sign up or log in to edit and save this project."} />
               : hasVariant($state, "state", "protectedMainBranch")
-              ? "Switch to a different branch to edit project content."
+              ? <UiText message={"Switch to a different branch to edit project content."} />
               : hasVariant($state, "state", "invariantError")
-              ? "The last action you took resulted in an invalid state. We're looking into it!"
+              ? <UiText message={"The last action you took resulted in an invalid state. We're looking into it!"} />
               : hasVariant($state, "state", "watch")
-              ? "You can see the project while others make changes, but you cannot edit it."
+              ? <UiText message={"You can see the project while others make changes, but you cannot edit it."} />
               : hasVariant($state, "state", "permError")
-              ? "Please reload the project."
+              ? <UiText message={"Please reload the project."} />
               : hasVariant($state, "state", "unlogged")
-              ? "You can explore and make changes, but they won't be saved."
+              ? <UiText message={"You can explore and make changes, but they won't be saved."} />
               : hasVariant($state, "state", "outOfDate")
-              ? "Please reload the project."
+              ? <UiText message={"Please reload the project."} />
               : hasVariant($state, "state", "authError")
-              ? "Please try logging in again."
+              ? <UiText message={"Please try logging in again."} />
               : hasVariant($state, "state", "notChrome")
-              ? "Right now, Plasmic Studio only works well with Chrome. We're working on it!"
+              ? <UiText message={"Right now, Plasmic Studio only works well with Chrome. We're working on it!"} />
               : hasVariant($state, "state", "viewOld")
-              ? "To return to edit mode, reload the project"
+              ? <UiText message={"To return to edit mode, reload the project"} />
               : hasVariant($state, "state", "saveFailed")
-              ? "We'll keep trying, but know that your changes may not be saved. "
+              ? <UiText message={"We'll keep trying, but know that your changes may not be saved. "} />
               : hasVariant($state, "state", "concurrentEdit")
-              ? "so this is a stale version. Would you like to watch for new changes?"
+              ? <UiText message={"so this is a stale version. Would you like to watch for new changes?"} />
               : hasVariant($state, "state", "readOnly")
-              ? "You can make a copy of this project for yourself. Any changes to this project won't be saved."
+              ? <UiText message={"You can make a copy of this project for yourself. Any changes to this project won't be saved."} />
               : "This is normal text"}
           </div>
         </div>
@@ -650,7 +650,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
               ),
             })}
           >
-            {hasVariant($state, "state", "concurrentEdit") ? "Watch" : <UiText message={"Button"} />}
+            {hasVariant($state, "state", "concurrentEdit") ? <UiText message={"Watch"} /> : <UiText message={"Button"} />}
           </div>
         </Button>
       ) : null}
@@ -801,25 +801,25 @@ function PlasmicAlertBanner__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "state", "welcomeGuest")
-                ? "Sign up / Log in"
+                ? <UiText message={"Sign up / Log in"} />
                 : hasVariant($state, "state", "invariantError")
-                ? "Reload Project"
+                ? <UiText message={"Reload Project"} />
                 : hasVariant($state, "state", "watch")
-                ? "Leave watch mode"
+                ? <UiText message={"Leave watch mode"} />
                 : hasVariant($state, "state", "permError")
-                ? "Reload Project"
+                ? <UiText message={"Reload Project"} />
                 : hasVariant($state, "state", "unlogged")
-                ? "Sign up / Log in"
+                ? <UiText message={"Sign up / Log in"} />
                 : hasVariant($state, "state", "outOfDate")
-                ? "Reload Project"
+                ? <UiText message={"Reload Project"} />
                 : hasVariant($state, "state", "authError")
-                ? "Reload Project"
+                ? <UiText message={"Reload Project"} />
                 : hasVariant($state, "state", "viewOld")
-                ? "Back to current version"
+                ? <UiText message={"Back to current version"} />
                 : hasVariant($state, "state", "concurrentEdit")
-                ? "Reload Project"
+                ? <UiText message={"Reload Project"} />
                 : hasVariant($state, "state", "readOnly")
-                ? "Copy Project"
+                ? <UiText message={"Copy Project"} />
                 : <UiText message={"Button"} />}
             </div>
           </Button>

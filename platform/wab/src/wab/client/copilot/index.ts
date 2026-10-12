@@ -16,6 +16,7 @@ import { createVariant } from "@/wab/client/operations/create-variant";
 import { createVariantGroup } from "@/wab/client/operations/create-variant-group";
 import { deleteComponent } from "@/wab/client/operations/delete-component";
 import { deleteComponentState } from "@/wab/client/operations/delete-component-state";
+import { deleteInteraction } from "@/wab/client/operations/delete-interaction";
 import { deleteStyleToken } from "@/wab/client/operations/delete-style-token";
 import { deleteTpl } from "@/wab/client/operations/delete-tpl";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
@@ -25,6 +26,7 @@ import { setComponentInstanceProp } from "@/wab/client/operations/set-component-
 import { setStyleTokenVariantedValue } from "@/wab/client/operations/set-style-token-varianted-value";
 import { setTplStyles } from "@/wab/client/operations/set-tpl-styles";
 import { updateComponentState } from "@/wab/client/operations/update-component-state";
+import { updateInteraction } from "@/wab/client/operations/update-interaction";
 import { selectionPath } from "@/wab/client/selection-context";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { formatWIError } from "@/wab/client/web-importer/errors";
@@ -35,6 +37,7 @@ import {
   getArenaType,
   getArenaUuidOrName,
   getFrameHeight,
+  isDedicatedArena,
 } from "@/wab/shared/Arenas";
 import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
@@ -52,7 +55,11 @@ import {
   defineCopilotTool as defineTool,
 } from "@/wab/shared/copilot/copilot-tool-types";
 import { interpolatedStringToCodeExpr } from "@/wab/shared/copilot/dynamic-value-input";
-import { LocalEditBinding } from "@/wab/shared/copilot/local-edit";
+import {
+  LocalEditBinding,
+  componentEditToolNames,
+  localEditTools,
+} from "@/wab/shared/copilot/local-edit";
 import {
   PROTOTYPE_TOOL_META as meta,
   prototypeMutationSchema,
@@ -79,6 +86,8 @@ import {
   ancestorsUp,
   clone,
   flattenTpls,
+  getAllEventHandlersOfAttrType,
+  getAllEventHandlersOfParamType,
   isTplImage,
   isTplTextBlock,
   tplChildren,
@@ -90,6 +99,7 @@ import {
   Component,
   RawText,
   TplNode,
+  isKnownEventHandler,
   isKnownRawText,
   isKnownRenderExpr,
   isKnownTplComponent,
@@ -1117,6 +1127,51 @@ async function prepareMutation(
       };
       break;
     }
+    case "updateInteraction":
+    case "deleteInteraction": {
+      const input = operation.input;
+      const tpl = findElement(component, input.elementUuid);
+      const handler = ensure(
+        [
+          ...getAllEventHandlersOfAttrType(component, tpl),
+          ...getAllEventHandlersOfParamType(component, tpl),
+        ].find(
+          (entry) =>
+            isKnownEventHandler(entry.expr) &&
+            entry.expr.interactions.some(
+              (step) => step.uuid === input.interactionUuid,
+            ),
+        ),
+        "Interaction not found on the target element",
+      );
+      assert(isKnownEventHandler(handler.expr), "Expected an event handler");
+      const eventHandler = handler.expr;
+      const interaction = ensure(
+        eventHandler.interactions.find(
+          (step) => step.uuid === input.interactionUuid,
+        ),
+        "Interaction not found",
+      );
+      apply = () => {
+        assert(
+          findElement(component, tpl.uuid) === tpl &&
+            eventHandler.interactions.includes(interaction),
+          "Element or interaction removed during batch",
+        );
+        if (operation.name === "updateInteraction") {
+          ensureOk(updateInteraction(component, interaction, operation.input));
+        } else {
+          ensureOk(
+            deleteInteraction({
+              tpl,
+              eventHandlerKey: handler.eventHandlerKey,
+              interaction,
+            }),
+          );
+        }
+      };
+      break;
+    }
     case "createVariantGroup": {
       const input = operation.input;
       apply = () => {
@@ -1205,7 +1260,7 @@ function localRoots(studio: StudioCtx, binding: LocalEditBinding) {
 }
 
 function localSnapshot(studio: StudioCtx, binding: LocalEditBinding) {
-  if (binding.mode === "page") {
+  if (!binding.elementUuids.length) {
     return JSON.stringify(
       componentResult(studio, localRoots(studio, binding).component),
     );
@@ -1334,10 +1389,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           const candidate = findComponent(studio, uuid);
           assert(
             isCodeComponent(candidate) ||
-              (binding.mode === "page" &&
-                !studio.site.components.includes(candidate)) ||
+              !studio.site.components.includes(candidate) ||
               (uuid === component.uuid && !binding.elementUuids.length),
-            "Read the pinned subtree or a registered component contract.",
+            "Read the pinned subtree or an installed component contract.",
           );
         }
         for (const target of parsed.elements ?? []) {
@@ -1393,43 +1447,38 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           : [{ name: input.name, input: input.input }];
       const operations = rawOperations.map((raw) => {
         const op = prototypeMutationSchema.parse(raw);
-        if (
-          binding.mode === "page" &&
-          [
-            "createState",
-            "updateState",
-            "deleteState",
-            "createInteraction",
-            "copyElement",
-            "moveElement",
-            "setPageViewport",
-          ].includes(op.name)
-        ) {
-          assert("componentUuid" in op.input, "Target page is required");
+        assert(
+          localEditTools(binding).some((name) => name === op.name),
+          "Tool is not allowed in the pinned scope. State and viewport edits require a whole-component scope.",
+        );
+        assert("componentUuid" in op.input, "Target component is required");
+        if (componentEditToolNames.some((name) => name === op.name)) {
           inScope(
-            ensure(op.input.componentUuid, "Target page is required"),
-            "elementUuid" in op.input ? op.input.elementUuid : undefined,
+            ensure(op.input.componentUuid, "Target component is required"),
           );
-          if (op.name === "copyElement" || op.name === "moveElement") {
-            inScope(op.input.componentUuid, op.input.targetUuid);
-          }
           return op;
         }
-        if (
-          op.name !== "changeElement" &&
-          op.name !== "insertHtml" &&
-          op.name !== "deleteElement"
-        ) {
-          throw new Error(
-            "Local editing only permits element changes, insertion and deletion.",
-          );
+        const elementUuid =
+          "elementUuid" in op.input ? op.input.elementUuid : undefined;
+        assert(
+          elementUuid || op.name === "insertHtml",
+          "Target element is required",
+        );
+        inScope(
+          ensure(op.input.componentUuid, "Target component is required"),
+          elementUuid,
+        );
+        if (op.name === "copyElement" || op.name === "moveElement") {
+          inScope(op.input.componentUuid, op.input.targetUuid);
         }
-        inScope(op.input.componentUuid, op.input.elementUuid);
-        const isRoot = roots.some((root) => root.uuid === op.input.elementUuid);
+        const isRoot = roots.some(
+          (root) => root.uuid === (elementUuid ?? component.tplTree.uuid),
+        );
         assert(
           !(
             isRoot &&
             (op.name === "deleteElement" ||
+              op.name === "moveElement" ||
               (op.name === "insertHtml" &&
                 ["replace", "before", "after"].includes(op.input.location)))
           ),
@@ -1736,6 +1785,16 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     (studio, input) =>
       runMutation(studio, { name: "createInteraction", input }),
   ),
+  updateInteraction: defineCopilotTool(
+    meta.updateInteraction,
+    (studio, input) =>
+      runMutation(studio, { name: "updateInteraction", input }),
+  ),
+  deleteInteraction: defineCopilotTool(
+    meta.deleteInteraction,
+    (studio, input) =>
+      runMutation(studio, { name: "deleteInteraction", input }),
+  ),
   createStyleToken: defineCopilotTool(meta.createStyleToken, (studio, input) =>
     runMutation(studio, { name: "createStyleToken", input }),
   ),
@@ -1867,7 +1926,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
                 height: getFrameHeight(vc.arenaFrame()),
               }
             : null,
-      componentUuid: vc?.currentComponent()?.uuid ?? null,
+      componentUuid:
+        vc?.currentComponent()?.uuid ??
+        (isDedicatedArena(studio.currentArena)
+          ? studio.currentArena.component.uuid
+          : null),
       frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
       selectedElementUuids:
         vc?.focusedTpls().flatMap((node) => (node ? [node.uuid] : [])) ?? [],

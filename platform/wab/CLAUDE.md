@@ -31,6 +31,7 @@ pnpm build
 
 ## Conventions
 
+- Use `Scrollbar` from `@shiguang2/components/esm/scrollbar` for UI scroll regions. Use the existing `VirtualListScrollbar` wrapper for virtualized lists and trees. Do not create native scrolling regions with `overflow: auto` / `overflow: scroll` or implement custom scrollbars; follow the root UI scroll container requirements.
 - Check `src/wab/shared/common.ts` before writing a helper. It is the shared
   grab-bag — `ensure`, `assert`, `withoutNils`, `maybe`, `only`, `tuple`,
   `spawn`, and map/set helpers like `xGroupBy` — and `src/wab/commons/` and

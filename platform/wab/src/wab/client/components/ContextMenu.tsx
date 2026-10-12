@@ -1,9 +1,6 @@
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import styles from "@/wab/client/components/ContextMenu.module.scss";
-import {
-  plasmicIFrameMouseDownEvent,
-  plasmicIFrameWheelEvent,
-} from "@/wab/client/definitions/events";
+import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { hasAncestorElement } from "@/wab/client/dom-utils";
 import { ensure } from "@/wab/shared/common";
 import { Dropdown } from "antd";
@@ -129,7 +126,6 @@ export default class ContextMenu extends React.Component<ContextMenuProps, {}> {
     document.addEventListener("click", this.onClick, { capture: true });
     document.addEventListener("wheel", this.onWheel);
     document.addEventListener(plasmicIFrameWheelEvent, this.onWheel);
-    document.addEventListener(plasmicIFrameMouseDownEvent, this.props.onHide);
   }
 
   componentWillUnmount() {
@@ -139,10 +135,6 @@ export default class ContextMenu extends React.Component<ContextMenuProps, {}> {
     document.removeEventListener("wheel", this.onWheel);
     document.removeEventListener("click", this.onClick, { capture: true });
     document.removeEventListener(plasmicIFrameWheelEvent, this.onWheel);
-    document.removeEventListener(
-      plasmicIFrameMouseDownEvent,
-      this.props.onHide,
-    );
   }
 
   // We need to do this because in React 17, something in rc-dropdown stops propagating the click events.

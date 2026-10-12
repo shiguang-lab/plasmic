@@ -3,7 +3,10 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { observable } from "mobx";
 import React from "react";
-const mocks = vi.hoisted(() => ({ ctx: undefined as any }));
+const mocks = vi.hoisted(() => ({
+  ctx: undefined as any,
+  toggleAi: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
   useStudioCtx: () => mocks.ctx,
 }));
@@ -11,7 +14,7 @@ vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (text: string) => text }),
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
-  useTopFrameApi: () => ({}),
+  useTopFrameApi: () => ({ toggleCopilotChat: mocks.toggleAi }),
 }));
 vi.mock("@/wab/client/components/quick-modals", () => ({
   showTemporaryInfo: vi.fn(),
@@ -19,9 +22,7 @@ vi.mock("@/wab/client/components/quick-modals", () => ({
 vi.mock("@/wab/client/components/studio/FigmaModalContent", () => ({
   FigmaModalContent: () => null,
 }));
-vi.mock("@/wab/client/components/widgets", () => ({
-  useOnIFrameMouseDown: vi.fn(),
-}));
+vi.mock("@/wab/client/components/widgets", () => ({}));
 vi.mock("@/wab/client/components/ui/layout-styles", () => ({
   useEditorPopupStyles: () => ({ styles: { root: "popup" } }),
 }));
@@ -42,12 +43,22 @@ vi.mock("@/wab/client/components/studio/LeftTabButton", () => ({
   ),
 }));
 beforeEach(() => {
+  mocks.toggleAi.mockClear();
   mocks.ctx = observable({
     appCtx: { selfInfo: {} },
     site: { globalContexts: [] },
     fontManager: { missingUsedFonts: () => [] },
     contentEditorMode: false,
     leftTabKey: undefined as string | undefined,
+    leftTabGroup: undefined as string | undefined,
+    setLeftTabGroup(group: string | undefined) {
+      this.leftTabGroup = group;
+      if (group) {
+        this.drawer = false;
+        this.leftTabKey = undefined;
+        this.isCopilotChatOpen = false;
+      }
+    },
     panelsHidden: false,
     drawer: true,
     canvasTool: "select",
@@ -65,6 +76,10 @@ beforeEach(() => {
     changeUnsafe: async (fn: () => any) => fn(),
     switchLeftTab(tab: string | undefined) {
       this.leftTabKey = tab;
+      if (tab) {
+        this.leftTabGroup = undefined;
+        this.isCopilotChatOpen = false;
+      }
     },
     togglePanels() {
       this.panelsHidden = !this.panelsHidden;
@@ -73,6 +88,36 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+it("opens Project settings from More when global contexts are available", async () => {
+  mocks.ctx.site.globalContexts.push({});
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  expect(screen.queryByRole("button", { name: "Project settings" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "More" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Project settings" }),
+  );
+  expect(mocks.ctx.leftTabKey).toBe("settings");
+  expect(mocks.ctx.drawer).toBe(false);
+  expect(screen.getByRole("button", { name: "More" })).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+});
+it.each([false, true])(
+  "hides Project settings when unavailable (hidden permission: %s)",
+  async (hidden) => {
+    if (hidden) {
+      mocks.ctx.site.globalContexts.push({});
+      mocks.ctx.config = { leftTabs: { settings: "hidden" } };
+    }
+    render(<LeftTabStrip useVersionsCTA={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    await screen.findByRole("button", { name: "Expressions" });
+    expect(
+      screen.queryByRole("button", { name: "Project settings" }),
+    ).toBeNull();
+  },
+);
 it("places an independent Libraries entry after Assets and toggles its drawer", () => {
   render(<LeftTabStrip useVersionsCTA={false} />);
   const labels = screen
@@ -114,4 +159,20 @@ it("restores hidden panels when opening Libraries and honors hidden entry permis
   mocks.ctx.config = { leftTabs: { libraries: "hidden" } };
   render(<LeftTabStrip useVersionsCTA={false} />);
   expect(screen.queryByRole("button", { name: "Libraries" })).toBeNull();
+});
+
+it("opening More closes AI and clicking AI closes More", async () => {
+  mocks.ctx.isCopilotChatOpen = true;
+  mocks.ctx.chatCopilotEnabled = () => true;
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "More" }));
+  await screen.findByRole("button", { name: "Expressions" });
+  expect(mocks.ctx.isCopilotChatOpen).toBe(false);
+  expect(mocks.ctx.leftTabGroup).toBe("more");
+  fireEvent.click(screen.getByRole("button", { name: "AI" }));
+  expect(mocks.toggleAi).toHaveBeenCalledOnce();
+  expect(screen.getByRole("button", { name: "More" })).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
 });

@@ -1,6 +1,5 @@
 import { FramePanel } from "@/wab/client/components/sidebar-tabs/frame-tab";
 import { getGlobalCssVariableValue } from "@/wab/client/components/studio/GlobalCssVariables";
-import { useOnIFrameMouseDown } from "@/wab/client/components/widgets";
 import { useScaledElementRef } from "@/wab/client/hooks/useScaledElementRef";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -34,12 +33,6 @@ export const CanvasConfigButton = observer(function CanvasConfigButton_(props: {
     extraTransformation: props.contained ? "" : "rotate(90deg)",
     disableScaling: props.contained,
   });
-
-  const onIFrameClick = React.useCallback(() => {
-    setVisible(false);
-  }, [setVisible]);
-
-  useOnIFrameMouseDown(onIFrameClick);
 
   return (
     <Popover

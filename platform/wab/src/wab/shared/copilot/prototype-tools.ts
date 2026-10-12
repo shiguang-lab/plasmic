@@ -1,7 +1,7 @@
 import { tokenTypes } from "@/wab/commons/StyleToken";
 import {
   localEditBindingSchema,
-  pageEditToolNames,
+  localEditToolNames,
 } from "@/wab/shared/copilot/local-edit";
 import type { JsonValue } from "@/wab/shared/core/lang";
 import {
@@ -339,6 +339,27 @@ const EDIT_TOOL_META = {
         action: interactionActionSchema(),
       })
       .strict(),
+    outputSchema: resources,
+  },
+  updateInteraction: {
+    toolName: "updateInteraction",
+    title: "Update a prototype interaction",
+    description:
+      "Update an existing event step by its interaction UUID from read. Preserves the step identity, event signature and sibling steps. Renaming rewrites $steps references; action replaces the existing action instead of appending a duplicate. Unsupported action replacements are rejected.",
+    inputSchema: z.object({
+      ...element,
+      interactionUuid: uuid,
+      name: uuid.optional(),
+      action: interactionActionSchema().optional(),
+    }).strict(),
+    outputSchema: resources,
+  },
+  deleteInteraction: {
+    toolName: "deleteInteraction",
+    title: "Delete a prototype interaction",
+    description:
+      "Remove an event step by its interaction UUID from read. Rejects deletion when sibling steps reference its result. Removes the event handler when its last step is deleted. Undo restores the step and handler.",
+    inputSchema: z.object({ ...element, interactionUuid: uuid }).strict(),
     outputSchema: resources,
   },
   createStyleToken: {
@@ -770,6 +791,14 @@ export const prototypeMutationSchema = z.discriminatedUnion("name", [
       input: EDIT_TOOL_META.createStyleToken.inputSchema,
     })
     .strict(),
+  z.object({
+    name: z.literal("updateInteraction"),
+    input: EDIT_TOOL_META.updateInteraction.inputSchema,
+  }).strict(),
+  z.object({
+    name: z.literal("deleteInteraction"),
+    input: EDIT_TOOL_META.deleteInteraction.inputSchema,
+  }).strict(),
   z
     .object({
       name: z.literal("copyElement"),
@@ -855,7 +884,7 @@ export const PROTOTYPE_TOOL_META = {
       .object({
         binding: localEditBindingSchema,
         name: z.enum([
-          ...pageEditToolNames,
+          ...localEditToolNames,
           "createComponent",
           "navigate",
           "validate",

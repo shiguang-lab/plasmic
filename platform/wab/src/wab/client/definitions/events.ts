@@ -1,5 +1,4 @@
 export const plasmicIFrameWheelEvent = "plasmicIFrameWheelEvent";
-export const plasmicIFrameMouseDownEvent = "plasmicIFrameMouseDownEvent";
 export const plasmicCanvasTransformEvent = "plasmicCanvasTransformEvent";
 
 function createCustomEvent<T>(name: string) {

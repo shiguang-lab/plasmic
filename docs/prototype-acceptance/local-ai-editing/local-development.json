@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-12",
+  "studioOrigin": "http://localhost:3003",
+  "backendOrigin": "http://127.0.0.1:3004",
+  "canvasOrigin": "http://localhost:3005",
+  "projectId": "f1Z6sEJ9WnC7QuDScTMQ8E",
+  "identity": "Native personal API credential in the isolated local database; user verified by existing IAM directory",
+  "checks": {
+    "authSelfHTTP": 200,
+    "localAiStatusHTTP": 200,
+    "configuredModel": "gemini-3.8-flash",
+    "pageGenerationEnabled": true,
+    "concurrentNativeLibraryRequests": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "initialTitleAfterReopen": "Saved Web Acceptance",
+    "firstGenerationAttempt": "Failed after native page creation and viewport edit; native undo saved; retained actual UI evidence",
+    "pageGenerationSavedRevision": 42
+  },
+  "launcher": "pnpm dev:web",
+  "launcherChecks": [
+    "Source services started through existing concurrently runner",
+    "Stopping launcher stopped all three services",
+    "Restart loaded updated server route source"
+  ],
+  "phase2Acceptance": "Functional scene checks, pagination round trip, cleanup undo/redo persistence, editor reopen and original old-tab host recovery passed",
+  "hostRecoveryEvidence": "../ai-page-generation/local-host-recovery.json"
+}

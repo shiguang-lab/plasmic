@@ -2,6 +2,7 @@ import { Api } from "@/wab/client/api";
 import { MergeModalContext } from "@/wab/client/components/TopFrame/TopFrameChrome";
 import { TopBarPromptBillingArgs } from "@/wab/client/components/modals/PricingModal";
 import type { RemoteFileDragEvent } from "@/wab/client/file-drag/file-drag-monitor";
+import type { FrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import type { UiLocale } from "@/wab/client/i18n";
 import { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
@@ -40,6 +41,7 @@ export interface TopFrameApi {
   registerLocationListener(listener: Listener): () => void;
 
   setPrimitiveValues(vals: {
+    leftPaneWidth: number;
     noComponents: boolean;
     revisionNum: number;
     isLocalizationEnabled: boolean;
@@ -95,6 +97,11 @@ export interface TopFrameApi {
   setOnboardingTour(val: TopFrameTourState): Promise<void>;
   toggleCopilotChat(): Promise<void>;
   openCopilotChat(opts: CopilotChatOpenOpts): Promise<void>;
+  setLocalAiContext(
+    context:
+      import("@/wab/shared/copilot/local-edit").LocalAiContext | undefined,
+  ): Promise<void>;
+  onFrameInteraction(event: FrameInteraction): Promise<void>;
   onFileDragEventInHost(event: RemoteFileDragEvent): Promise<void>;
 }
 

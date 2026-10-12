@@ -1,0 +1,248 @@
+{
+  "date": "2026-10-12",
+  "method": "Manual CUA interactions in authenticated local Web with actual provider; no controlled model responses",
+  "studioOrigin": "http://localhost:3003",
+  "previewUrl": "http://localhost:3003/projects/f1Z6sEJ9WnC7QuDScTMQ8E/preview-full/records-web-acceptance",
+  "projectId": "f1Z6sEJ9WnC7QuDScTMQ8E",
+  "componentUuid": "jAcMpWlXKv1M",
+  "model": "gemini-3.8-flash",
+  "generatedRevision": 37,
+  "spacingRevision": 38,
+  "savedRevision": 39,
+  "scope": "One generated record management page; prototype in-memory records",
+  "templateMechanism": "Composed editable registered components using installed design templates as references",
+  "checks": {
+    "queryDraftRows": 20,
+    "submittedKeywordRows": [
+      "记录 03负责人1启用详情"
+    ],
+    "resetRows": 20,
+    "page2FirstRow": "记录 21\n\t负责人1\t启用\t\n详情",
+    "resetFromPage2FirstRow": "记录 01\n\t负责人1\t启用\t\n详情",
+    "detail01": "记录详情\n名称\t记录 01\n负责人\t负责人1\n状态\t启用\n关闭",
+    "detail02": "记录详情\n名称\t记录 02\n负责人\t负责人2\n状态\t停用\n关闭",
+    "requiredErrors": [
+      "请输入名称",
+      "请输入负责人"
+    ],
+    "whitespaceErrors": [
+      "请输入名称",
+      "请输入负责人"
+    ],
+    "cancelReopenInputs": [
+      {
+        "placeholder": "请输入名称",
+        "value": ""
+      },
+      {
+        "placeholder": "请输入负责人",
+        "value": ""
+      },
+      {
+        "placeholder": null,
+        "value": ""
+      }
+    ],
+    "xReopenInputs": [
+      {
+        "placeholder": "请输入名称",
+        "value": ""
+      },
+      {
+        "placeholder": "请输入负责人",
+        "value": ""
+      },
+      {
+        "placeholder": null,
+        "value": ""
+      }
+    ],
+    "ownerStatusFilterRows": [
+      "记录 02负责人2停用详情",
+      "记录 04负责人2停用详情",
+      "记录 06负责人2停用详情",
+      "记录 08负责人2停用详情",
+      "记录 10负责人2停用详情",
+      "记录 12负责人2停用详情",
+      "记录 14负责人2停用详情",
+      "记录 16负责人2停用详情",
+      "记录 18负责人2停用详情",
+      "记录 20负责人2停用详情",
+      "记录 22负责人2停用详情",
+      "记录 24负责人2停用详情",
+      "记录 26负责人2停用详情",
+      "记录 28负责人2停用详情",
+      "记录 30负责人2停用详情",
+      "记录 32负责人2停用详情",
+      "记录 34负责人2停用详情",
+      "记录 36负责人2停用详情",
+      "记录 38负责人2停用详情",
+      "记录 40负责人2停用详情"
+    ],
+    "ownerStatusFilterPages": [
+      "1",
+      "2"
+    ],
+    "escReopenInputs": [
+      {
+        "placeholder": "请输入名称",
+        "value": ""
+      },
+      {
+        "placeholder": "请输入负责人",
+        "value": ""
+      },
+      {
+        "placeholder": null,
+        "value": ""
+      }
+    ],
+    "createSuccess": {
+      "first": "Web验收新记录\n\t验收负责人\t启用\t\n详情",
+      "queryDraft": "名称\n负责人\n请选择\n状态\n请选择\n查 询\n重 置",
+      "rows": 20
+    },
+    "newRecordDetails": "记录详情\n名称\tWeb验收新记录\n负责人\t验收负责人\n状态\t启用\n关闭",
+    "pageSize50Rows": 50,
+    "pageSize100Rows": 61,
+    "newRecordOccurrencesAt100": 1,
+    "pageSize20Rows": 20,
+    "reopened": {
+      "openDrawers": 0,
+      "rowCount": 20,
+      "firstRow": "记录 01\n\t负责人1\t启用\t\n详情"
+    },
+    "fullPreviewReady": {
+      "loadingOverlay": 0,
+      "businessRows": 20
+    },
+    "paginationRoundTrip": {
+      "from20To100": {
+        "selected": "100 / page",
+        "rows": 60
+      },
+      "from100To20": {
+        "selected": "20 / page",
+        "rows": 20,
+        "pages": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    },
+    "paginationRoundTripMethod": "Opened the menu with ArrowDown, verified the active option, selected with Enter, then read selected caption and rendered row count",
+    "cleanupUndo": {
+      "savedRevision": 41,
+      "restoredDraftUuid": "aDI9RUH-PSnu",
+      "restoredDraft": true,
+      "screenshot": "local-undo-restored-draft.jpg"
+    },
+    "cleanupRedo": {
+      "savedRevision": 42,
+      "failedDraftAbsent": true,
+      "acceptancePageGraphUnchanged": true,
+      "localPages": [
+        "LocalEditAcceptance",
+        "RecordsWebAcceptancePage"
+      ]
+    },
+    "finalEditorReopen": {
+      "saved": true,
+      "failedDraftPresent": false,
+      "phase1PagePresent": true,
+      "phase2PagePresent": true,
+      "savedRevision": 42,
+      "method": "Opened the saved project URL in a new browser tab",
+      "screenshot": "local-final-editor.jpg"
+    },
+    "oldTabReload": "One existing tab remained at about:blank in the host iframe; fresh project reopen succeeded"
+  },
+  "geometry": {
+    "card": {
+      "clientHeight": 1510,
+      "gap": "normal",
+      "h": 1512,
+      "overflowY": "visible",
+      "padding": "0px",
+      "scrollHeight": 1510,
+      "w": 1169,
+      "x": 255,
+      "y": 162
+    },
+    "container": {
+      "clientHeight": 1594,
+      "gap": "16px",
+      "h": 1594,
+      "overflowY": "visible",
+      "padding": "0px",
+      "scrollHeight": 1594,
+      "w": 1169,
+      "x": 255,
+      "y": 80
+    },
+    "document": {
+      "clientHeight": 1024,
+      "scrollHeight": 1024
+    },
+    "main": {
+      "clientHeight": 960,
+      "gap": "normal",
+      "h": 960,
+      "overflowY": "auto",
+      "padding": "16px",
+      "scrollHeight": 1626,
+      "w": 1201,
+      "x": 239,
+      "y": 64
+    },
+    "outer": {
+      "left": 16,
+      "right": 16,
+      "sectionGap": 16,
+      "top": 16
+    },
+    "search": {
+      "clientHeight": 64,
+      "gap": "normal",
+      "h": 66,
+      "overflowY": "visible",
+      "padding": "16px 20px 0px",
+      "scrollHeight": 64,
+      "w": 1169,
+      "x": 255,
+      "y": 80
+    },
+    "table": null,
+    "viewport": {
+      "height": 1024,
+      "width": 1440
+    }
+  },
+  "screenshot": "local-spacing-fixed.jpg",
+  "modelReadback": "local-saved-model.json",
+  "spacingBefore": {
+    "shellPadding": 16,
+    "businessContainerPadding": 20,
+    "outerGap": 36
+  },
+  "verificationCommands": {
+    "targetedVitest": {
+      "files": 5,
+      "tests": 49,
+      "passed": 49
+    },
+    "resources": {
+      "tests": 8,
+      "passed": 8
+    },
+    "eslint": "Passed for changed AI instructions and Preview readiness files",
+    "typecheck": {
+      "diagnostics": 0,
+      "previousDiagnostics": 9,
+      "exitCode": 0
+    }
+  },
+  "finalSavedRevision": 42,
+  "hostRecoveryEvidence": "local-host-recovery.json"
+}

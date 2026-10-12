@@ -1,4 +1,4 @@
-import { isProjectPath } from "@/wab/client/cli-routes";
+import { isProjectPath, parseProjectLocation } from "@/wab/client/cli-routes";
 import AnalyticsHeader from "@/wab/client/components/analytics/AnalyticsHeader";
 import { ANALYTICS_EVENTS } from "@/wab/client/components/analytics/utils";
 import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
@@ -34,10 +34,11 @@ import * as React from "react";
 export function ApplicationPageLoading({
   failure,
 }: { failure?: React.ReactNode } = {}) {
-  const { pathname, search } = useLocation();
+  const location = useLocation();
+  const { pathname, search } = location;
   const { t } = useI18n();
   const params = new URLSearchParams(search);
-  if (isProjectPath(pathname)) {
+  if (isProjectPath(pathname) || parseProjectLocation(location)?.isPreview) {
     return <StudioChrome>{failure}</StudioChrome>;
   }
   if (failure) {

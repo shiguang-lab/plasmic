@@ -14,7 +14,7 @@ $parent-stack-hover-color: #f60;
     pointer-events: inherit;
   }
 
-  & > * {
+  & > :global(.node-outline-tag) {
     position: relative !important;
     bottom: unset !important;
   }

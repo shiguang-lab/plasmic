@@ -58,6 +58,9 @@ body {
 }
 
 .__wab_root--page-stretch {
+  // Global contexts may add a DOM wrapper around the authored page root.
+  // Stretch the wrapper horizontally so the page retains the canvas width.
+  flex-direction: column;
   align-items: stretch;
   height: auto;
 }

@@ -317,7 +317,7 @@ export async function updateHostlessPackage(
           globalThis,
           getBuiltinComponentRegistrations(),
         ),
-        getPlumeSite: () => plumeSite,
+        getPlumeSite: async () => plumeSite,
         getRootSubReact: () => React,
         site,
         tplMgr: () => tplMgr,

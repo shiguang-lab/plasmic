@@ -5,6 +5,7 @@ import {
   CopyRspackPlugin,
   RspackPluginInstance,
 } from "@rspack/core";
+import { readFileSync } from "fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import { homepage } from "./package.json";
@@ -28,6 +29,19 @@ const backendHost: string = process.env.BACKEND_HOST ?? "localhost";
 const publicUrl: string =
   process.env.PUBLIC_URL ?? (isProd ? homepage : `http://localhost:${port}`);
 const staticUrl: string = process.env.STATIC_URL ?? publicUrl;
+const devApiUser = process.env.PLASMIC_DEV_API_USER;
+const devApiToken = process.env.PLASMIC_DEV_API_TOKEN;
+if (
+  !isProd &&
+  (devApiUser || devApiToken) &&
+  (!devApiUser ||
+    !devApiToken ||
+    !["127.0.0.1", "localhost", "::1"].includes(bindHost))
+) {
+  throw new Error(
+    "Local API credentials require both values and a loopback bind host.",
+  );
+}
 
 console.log(`Starting rsbuild...
 - commitHash: ${commitHash}
@@ -136,10 +150,31 @@ const appConfig = defineConfig({
   server: {
     host: bindHost,
     port,
+    ...(!isProd && devApiToken
+      ? {
+          cors: {
+            origin: [
+              publicUrl,
+              new URL(
+                process.env.REACT_APP_DEFAULT_HOST_URL ??
+                  "http://localhost:3005/static/host.html",
+              ).origin,
+            ],
+          },
+        }
+      : {}),
     proxy: {
       "/api": {
         target: `http://${backendHost}:${backendPort}`,
         ws: true,
+        ...(!isProd && devApiUser && devApiToken
+          ? {
+              headers: {
+                "x-plasmic-api-user": devApiUser,
+                "x-plasmic-api-token": devApiToken,
+              },
+            }
+          : {}),
       },
     },
   },
@@ -219,6 +254,14 @@ const appConfig = defineConfig({
           inject: false,
           templateParameters: {
             commitHash,
+            studioUrl: publicUrl,
+            hostReadyMessages: Object.fromEntries(
+              ["en", "zh-CN", "zh-TW", "ja", "ko"].map((locale) => [
+                locale,
+                Object.fromEntries(Object.entries(require(`./src/wab/client/i18n/locales/${locale}.json`)).filter(([key]) => key.startsWith("hostReady."))),
+              ]),
+            ),
+            resolveUiLocale: require("./src/wab/client/i18n/locale-resolution.cjs").resolveUiLocale.toString(),
           },
         }),
         new HtmlWebpackPlugin({
@@ -234,6 +277,7 @@ const appConfig = defineConfig({
               inject: true,
               template: "./public/index.html",
               templateParameters: {
+                previewLoadingCss: readFileSync(new URL("./src/wab/client/components/live/PreviewLoading.css", import.meta.url), "utf8"),
                 staticUrl,
               },
             },

@@ -1,3 +1,4 @@
+import addCommentMarker from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
 import shareDialog from "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent.module.css";
 import iconButton from "@/wab/client/plasmic/PlasmicIconButton.module.css";
 import actionMenu from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
@@ -5,12 +6,17 @@ import textbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css"
 import select from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect.module.css";
 import tooltip from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
 import styleTooltip from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
+import leftSettingsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSettingsPanel.module.css";
 import type { GlobalToken } from "antd";
 import { createStyles } from "antd-style";
 
 // These tokens belong to the product's generated UI library. Scoped binding
 // keeps the shared application/editor palette out of business iframe documents.
 export const productPalette = (token: GlobalToken) => ({
+  [`& .${leftSettingsPanel.root}`]: {
+    background: token.colorBgContainer,
+    color: token.colorText,
+  },
   [`& .${shareDialog.root}`]: {
     boxShadow: "none",
   },
@@ -27,6 +33,22 @@ export const productPalette = (token: GlobalToken) => ({
   [`& .${tooltip.slotTargetContent}, & .${styleTooltip.slotTargetChildren}`]: {
     color: token.colorTextLightSolid,
   },
+  [`& .${addCommentMarker.svg}`]: {
+    color: token.colorTextLightSolid,
+  },
+  "& .CanvasFrame__Config": {
+    background: token.colorBgElevated,
+    color: token.colorTextSecondary,
+  },
+  "& .CanvasFrame__Config:hover": {
+    background: token.colorFillSecondary,
+    color: token.colorText,
+  },
+  "& .PreselectBox .node-outline-tag": {
+    background: token.colorBgElevated,
+    boxShadow: token.boxShadowTertiary,
+  },
+  "& .PreselectBox .node-outline-tag > *": { opacity: 1 },
   "& .labeled-item__label": { color: token.colorText },
   "& .btn-link": { color: token.colorText },
   "& .btn-link:disabled": { color: token.colorTextDisabled },

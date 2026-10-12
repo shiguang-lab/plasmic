@@ -29,8 +29,8 @@ it("renders settings content through the page wrapper and retains account action
     api: mock<AppCtx["api"]>({
       getTrustedHostsList: vi.fn().mockResolvedValue({ trustedHosts: [] }),
     }),
-    ops: mock<NonNullable<AppCtx["ops"]>>({ createPersonalApiToken }),
   });
+  appCtx.ops = mock<NonNullable<AppCtx["ops"]>>({ createPersonalApiToken });
   render(
     <AntdConfigProvider productUI>
       <AppCtxContext.Provider value={appCtx}>

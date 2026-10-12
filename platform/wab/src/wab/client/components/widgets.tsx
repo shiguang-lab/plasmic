@@ -6,7 +6,6 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { Textbox, TextboxRef } from "@/wab/client/components/widgets/Textbox";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import {
   useFocusOnDisplayed,
   useToggleDisplayed,
@@ -780,15 +779,6 @@ export function InlineIcon({ children }: { children: ReactNode }) {
 
 export type MenuMaker = (onMenuClicked: () => void) => React.ReactNode;
 
-export function useOnIFrameMouseDown(handler: () => void) {
-  React.useEffect(() => {
-    document.addEventListener(plasmicIFrameMouseDownEvent, handler);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, handler);
-    };
-  }, [handler]);
-}
-
 /**
  * antd 5 mounts popup content while it is still display:none, so autoFocus and
  * focusing from onOpenChange are no-ops. Render this inside the popup content
@@ -858,12 +848,6 @@ export const IFrameAwareDropdownMenu = (props: {
     document.addEventListener("keydown", closeOnEscape, true);
     return () => document.removeEventListener("keydown", closeOnEscape, true);
   }, [menuVisible, setMenuVisible]);
-
-  const onIFrameClick = React.useCallback(() => {
-    setMenuVisible(false);
-  }, [setMenuVisible]);
-
-  useOnIFrameMouseDown(onIFrameClick);
 
   const renderScrollableMenu = (menu: ReactNode) =>
     productUI ? (

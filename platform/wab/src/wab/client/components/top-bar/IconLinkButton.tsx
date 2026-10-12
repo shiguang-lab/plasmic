@@ -2,7 +2,6 @@ import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import * as widgets from "@/wab/client/components/widgets";
 import { PlainLinkButtonProps } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { Dropdown, Tooltip } from "antd";
@@ -45,20 +44,6 @@ export function IconLinkButton(props: IconLinkButtonProps) {
     (v) => setShowingDropdown(v),
     [],
   );
-
-  React.useEffect(() => {
-    const handler = () => {
-      setShowingTooltip(false);
-      setShowingDropdown(false);
-    };
-    if (menu) {
-      document.addEventListener(plasmicIFrameMouseDownEvent, handler);
-      return () => {
-        document.removeEventListener(plasmicIFrameMouseDownEvent, handler);
-      };
-    }
-    return;
-  });
 
   const buttonContent = (
     <>

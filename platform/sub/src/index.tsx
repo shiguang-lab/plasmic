@@ -13,6 +13,9 @@ import { StudioControlsProvider } from "./studio-controls-provider";
 export function renderHostScaffold() {
   const appRoot = document.querySelector(".app-root");
   if (appRoot) {
+    if (document.querySelector(".host-ready:not([hidden])")) {
+      return;
+    }
     const root = createRoot(appRoot);
     return root.render(<PlasmicCanvasHost />);
   }

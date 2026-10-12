@@ -1,6 +1,15 @@
 import type { User } from "@/wab/server/entities/Entities";
 import { UserId } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
+import { AsyncLocalStorage } from "node:async_hooks";
+
+// Share in-flight and completed lookups only within one HTTP request. A later
+// request must observe current IAM state, including revoked access.
+const directoryCache = new AsyncLocalStorage<Map<string, Promise<User[]>>>();
+
+export function withShiguangDirectoryCache<T>(callback: () => T): T {
+  return directoryCache.run(new Map(), callback);
+}
 
 async function directoryRequest(path: string, body: object) {
   const base = ensure(
@@ -30,6 +39,23 @@ export async function getShiguangUsers(
   ids: readonly string[],
 ): Promise<User[]> {
   const uniqueIds = [...new Set(ids)];
+  const cache = directoryCache.getStore();
+  const key = JSON.stringify(uniqueIds);
+  const cached = cache?.get(key);
+  if (cached) {
+    return cached;
+  }
+  const result = loadShiguangUsers(uniqueIds);
+  cache?.set(key, result);
+  try {
+    return await result;
+  } catch (error) {
+    cache?.delete(key);
+    throw error;
+  }
+}
+
+async function loadShiguangUsers(uniqueIds: string[]): Promise<User[]> {
   const users: User[] = [];
   for (let i = 0; i < uniqueIds.length; i += 200) {
     const requested = uniqueIds.slice(i, i + 200);

@@ -14,7 +14,7 @@ const tools = {
   Libraries: "m16 6 4 14 M12 6v14 M8 8v12 M4 4v16",
   AI: "M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z",
   Issues: "M12 3 2 21h20z M12 9v5 M12 17h.01",
-  More: "M4 12h.01 M12 12h.01 M20 12h.01",
+  More: "",
 } satisfies Partial<Record<MessageKey, string>>;
 export function EditorToolIcon({ tool }: { tool: keyof typeof tools }) {
   if (tool === "Issues") {
@@ -32,7 +32,15 @@ export function EditorToolIcon({ tool }: { tool: keyof typeof tools }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d={tools[tool]} />
+      {tool === "More" ? (
+        <g fill="currentColor" stroke="none">
+          <circle cx={5} cy={12} r={2} />
+          <circle cx={12} cy={12} r={2} />
+          <circle cx={19} cy={12} r={2} />
+        </g>
+      ) : (
+        <path d={tools[tool]} />
+      )}
     </svg>
   );
 }

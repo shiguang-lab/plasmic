@@ -80,8 +80,7 @@
   background: var(--scan-color);
 }
 
-[data-status="error"] .scan,
-[data-status="success"] .scan {
+[data-scanning="false"] .scan {
   animation: none;
   opacity: 0.2;
 }

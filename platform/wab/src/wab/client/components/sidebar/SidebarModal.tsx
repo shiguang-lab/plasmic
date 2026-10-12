@@ -1,7 +1,6 @@
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import { UiLabel } from "@/wab/client/i18n/UiText";
 import ArrowLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowLeft";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
@@ -336,18 +335,6 @@ function SidebarModalShell() {
       }
     },
   });
-
-  React.useEffect(() => {
-    const onHide = () => {
-      if (!lastFrame?.persistOnInteractOutside) {
-        dispatch({ type: "popAll" });
-      }
-    };
-    document.addEventListener(plasmicIFrameMouseDownEvent, onHide);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, onHide);
-    };
-  }, [dispatch, lastFrame]);
 
   // We transition modal content left and right, so that when you pop
   // up a new modal, the existing modal shifts left and the new modal

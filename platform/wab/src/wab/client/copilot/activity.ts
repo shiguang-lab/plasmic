@@ -16,13 +16,18 @@ export interface CanvasActivity {
   mode: "read" | "edit";
   targets: ActivityTarget[];
   status: "running" | "success" | "error";
+  scanning: boolean;
 }
+
+const MIN_SCAN_MS = 1600;
+const COMPLETION_MS = 400;
 
 export interface ActivityRegion {
   key: string;
   target: ActivityTarget;
   request: CanvasActivity;
   count: number;
+  scanning: boolean;
 }
 
 /** Prefer an active edit/read over the completion of another request. */
@@ -76,6 +81,7 @@ export class CopilotActivity {
         "Active node has no requests",
       ),
       count: node.requests.length,
+      scanning: node.requests.some((request) => request.scanning),
     }));
   }
 
@@ -85,6 +91,7 @@ export class CopilotActivity {
       mode,
       targets,
       status: "running",
+      scanning: true,
     };
     const started = Date.now();
     let finished = false;
@@ -101,9 +108,19 @@ export class CopilotActivity {
       runInAction(() => {
         this.requests[index] = { ...request, status };
       });
-      // Fast local reads must still be visible, without delaying tool responses.
-      const timer = setTimeout(
-        () => {
+      // Report the result immediately; only the canvas animation has a minimum duration.
+      const stopScan = () => {
+        const currentIndex = this.requests.findIndex((r) => r.id === request.id);
+        if (currentIndex < 0) {
+          return;
+        }
+        runInAction(() => {
+          this.requests[currentIndex] = {
+            ...this.requests[currentIndex],
+            scanning: false,
+          };
+        });
+        const timer = setTimeout(() => {
           this.timers.delete(timer);
           runInAction(() => {
             const current = this.requests.find((r) => r.id === request.id);
@@ -111,10 +128,19 @@ export class CopilotActivity {
               this.requests.remove(current);
             }
           });
-        },
-        Math.max(400, 1600 - (Date.now() - started)),
-      );
-      this.timers.add(timer);
+        }, COMPLETION_MS);
+        this.timers.add(timer);
+      };
+      const remaining = MIN_SCAN_MS - (Date.now() - started);
+      if (remaining > 0) {
+        const timer = setTimeout(() => {
+          this.timers.delete(timer);
+          stopScan();
+        }, remaining);
+        this.timers.add(timer);
+      } else {
+        stopScan();
+      }
     };
   }
 

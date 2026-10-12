@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import $ from "jquery";
 import React, { cloneElement, ReactElement, useRef } from "react";
 import { useInteractOutside } from "react-aria";
@@ -46,13 +44,6 @@ export function useOnClickAwayExcept(
     [getAllowedContainers, callback],
   );
   useEvent("click", listener as EventListener, document);
-
-  React.useEffect(() => {
-    document.addEventListener(plasmicIFrameMouseDownEvent, callback);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, callback);
-    };
-  }, [callback]);
 }
 
 export function OnClickAwayExcept(props: {
@@ -81,13 +72,6 @@ export function useOnClickAwayIfNotAllowed(
     [isAllowed, callback],
   );
   useEvent("click", listener as EventListener, document);
-
-  React.useEffect(() => {
-    document.addEventListener(plasmicIFrameMouseDownEvent, callback);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, callback);
-    };
-  }, [callback]);
 }
 
 export function OnClickAwayIfNotAllowed(props: {
@@ -118,7 +102,6 @@ export function useInteractOutsideWithCommonExceptions(
   },
 ) {
   const lastPointerDown = useRef<PointerEvent | undefined>(undefined);
-  const onInteractOutside = opts.onInteractOutside;
   useInteractOutside({
     ...opts,
     onInteractOutside: (e) => {
@@ -157,18 +140,4 @@ export function useInteractOutsideWithCommonExceptions(
       }
     },
   });
-
-  // Clicking on plasmic iframe always counts as outside interaction
-  const callback = React.useCallback(
-    (e: Event) => {
-      onInteractOutside?.(e as any);
-    },
-    [onInteractOutside],
-  );
-  React.useEffect(() => {
-    document.addEventListener(plasmicIFrameMouseDownEvent, callback);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, callback);
-    };
-  }, [callback]);
 }

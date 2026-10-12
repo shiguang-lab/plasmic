@@ -64,14 +64,17 @@ export function checkRootSubHostVersion() {
 }
 
 export async function initRootCanvasPkgs() {
-  scriptExec(
-    window.parent,
-    await withTimeout(
+  if (!(window.parent as any).__CanvasPkgs) {
+    const source = await withTimeout(
       getCanvasPkgs(),
       "Couldn't get canvasPkgs.",
       3 * 60 * 1000,
-    ),
-  );
+    );
+    // Another initialization may have finished while the bundle was loading.
+    if (!(window.parent as any).__CanvasPkgs) {
+      scriptExec(window.parent, source);
+    }
+  }
   rootSub = {
     ...rootSub,
     ...(window.parent as any).__CanvasPkgs,

@@ -29,7 +29,6 @@ import { HighlightInteractionRequest } from "@/wab/shared/code-components/code-c
 import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
-import { useOnIFrameMouseDown } from "@/wab/client/components/widgets";
 import { DefaultInteractionsSectionProps } from "@/wab/client/plasmic/plasmic_kit_state_management/PlasmicInteractionsSection";
 import { mkDefaultInteraction } from "@/wab/client/state-management/interactions-meta";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -249,7 +248,6 @@ const AddHandlerFunctionButton = observer(
     const { tpl, onSelect } = props;
     const options = getAllEventHandlerOptions(tpl);
     const [showing, setShowing] = React.useState(false);
-    useOnIFrameMouseDown(() => setShowing(false));
     return (
       <Select
         aria-label={uiT("Add event handler")}

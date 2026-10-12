@@ -140,8 +140,9 @@ class StudioInitializer_ extends React.Component<
     studioCtx.finishedLoading();
 
     if (!appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
-      //ensure plume is available
-      await studioCtx.projectDependencyManager.refreshDeps();
+      // Version metadata and insertable templates are not needed to paint the
+      // current page. Component sync awaits Plume only for missing defaults.
+      spawn(studioCtx.projectDependencyManager.refreshDeps());
       await syncCodeComponentsAndHandleErrors(studioCtx);
     }
 

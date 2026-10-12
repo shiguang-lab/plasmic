@@ -17,6 +17,7 @@
     "db:setup": "cd platform/wab && pnpm db:setup",
     "deps": "lerna list --include-dependencies --scope",
     "dev": "cd platform/wab && pnpm dev",
+    "dev:web": "node deploy/local-web.mjs",
     "dev:reset": "pnpm setup && pnpm db:reset && pnpm dev",
     "format": "prettier --write",
     "lint": "eslint --fix",

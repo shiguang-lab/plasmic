@@ -69,7 +69,11 @@ export class ProjectDependencyManager {
   insertableSiteScreenVariant: Variant | undefined;
 
   // Stores the Site of the Plume project
-  plumeSite: Site | undefined;
+  private _plumeSite = observable.box<Site | undefined>(undefined, { deep: false });
+  get plumeSite() {
+    return this._plumeSite.get();
+  }
+  private _plumeSitePromise: Promise<Site> | undefined;
 
   // Tracks Component, Mixin, StyleToken, Theme, ImageAsset and global VariantGroup to
   // the ProjectDependency it was imported from
@@ -94,6 +98,13 @@ export class ProjectDependencyManager {
    * - We could add some logic to know when to refresh
    **/
   private async _fetchData(force?: boolean) {
+    await Promise.all([
+      this._fetchDependencyMetadata(force),
+      this.ensurePlumeSite(),
+    ]);
+  }
+
+  private async _fetchDependencyMetadata(force?: boolean) {
     // Get PkgVersionMeta of all project dependencies
     const data = await Promise.all(
       L.map(L.values(this._dependencyMap), async (dep) => {
@@ -109,13 +120,28 @@ export class ProjectDependencyManager {
     );
     await this._sc.changeUnsafe(() => {
       data.forEach((d) => {
-        this._dependencyMap[d.pkgId].latestPkgVersionMeta =
-          d.latestPkgVersionMeta;
+        const dep = this._dependencyMap[d.pkgId];
+        if (dep) {
+          dep.latestPkgVersionMeta = d.latestPkgVersionMeta;
+        }
       });
     });
+  }
 
-    // We no longer plan to make any updates to plume site. So its unnecessary to re-fetch it if it has already been fetched.
-    if (!this.plumeSite) {
+  async ensurePlumeSite(): Promise<Site> {
+    if (this.plumeSite) {
+      return this.plumeSite;
+    }
+    if (!this._plumeSitePromise) {
+      this._plumeSitePromise = this._loadPlumeSite().catch((error) => {
+        this._plumeSitePromise = undefined;
+        throw error;
+      });
+    }
+    return this._plumeSitePromise;
+  }
+
+  private async _loadPlumeSite(): Promise<Site> {
       const bundler = new FastBundler();
       // Get Plume site
       const plumePkg = await this._sc.appCtx.api.getPlumePkg();
@@ -124,8 +150,9 @@ export class ProjectDependencyManager {
         plumePkg.pkg,
         plumePkg.depPkgs,
       ).projectDependency.site;
-      this.plumeSite = this.inlineAssets(plumeSite);
-    }
+      const inlinedSite = this.inlineAssets(plumeSite);
+      this._plumeSite.set(inlinedSite);
+      return inlinedSite;
   }
 
   /**

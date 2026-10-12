@@ -1,5 +1,4 @@
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import {
   cleanup,
   fireEvent,
@@ -202,7 +201,9 @@ test("canvas iframe interactions close the branch panel", async () => {
   const trigger = screen.getByRole("button", { name: "Branches: main" });
   fireEvent.click(trigger);
   await screen.findByRole("textbox", { name: "Search branches" });
-  fireEvent(document, new Event(plasmicIFrameMouseDownEvent));
+  fireEvent.mouseDown(document.body);
+  fireEvent.mouseUp(document.body);
+  fireEvent.click(document.body);
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
 });
 

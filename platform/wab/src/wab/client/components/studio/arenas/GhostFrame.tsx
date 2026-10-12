@@ -1,6 +1,5 @@
 import sty from "@/wab/client/components/studio/arenas/GhostFrame.module.sass";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import {
   useScaledElementRef,
   useZoomStyledRef,
@@ -8,16 +7,28 @@ import {
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { cx, mkShortId } from "@/wab/shared/common";
 import { Dropdown, Popover, Tooltip } from "antd";
+import { createStyles } from "antd-style";
 import { isString } from "lodash";
 import React, {
   useCallback,
-  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+
+const useStyles = createStyles(({ token }) => ({
+  root: {
+    backgroundColor: token.colorFillTertiary,
+    borderColor: token.colorBorder,
+    color: token.colorTextSecondary,
+    "&:hover": {
+      backgroundColor: token.colorFillSecondary,
+      color: token.colorText,
+    },
+  },
+}));
 
 const GHOST_FRAME_MIN_DIM = 80;
 const GHOST_FRAME_MAX_DIM = 1200;
@@ -42,6 +53,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
   },
   ref: React.Ref<GhostFrameRef>,
 ) {
+  const { styles } = useStyles();
   const {
     tooltip,
     children,
@@ -83,13 +95,6 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
 
   useImperativeHandle(ref, () => ({ closeMenu }), [closeMenu]);
 
-  useEffect(() => {
-    document.addEventListener(plasmicIFrameMouseDownEvent, closeMenu);
-    return () => {
-      document.removeEventListener(plasmicIFrameMouseDownEvent, closeMenu);
-    };
-  }, []);
-
   useLayoutEffect(() => {
     const getMenuOverlay = document.querySelector(`.${menuOverlayClassName}`);
     if (showMenu) {
@@ -103,7 +108,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
   let content = (
     <button
       ref={plusButtonRef}
-      className={cx(sty.root, className)}
+      className={cx(sty.root, styles.root, className)}
       style={{
         ...style,
         height,

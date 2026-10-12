@@ -38,6 +38,12 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 - When searching files, you should almost never look through node_modules/ files and other gitignored files unless you have a explicit reason to.
 - When you review a pull request or a diff, these files are the conventions to review it against.
 
+## UI scroll containers
+
+- All application UI scroll regions, including panels, dialogs, lists, and AI assistant history or details, must use the shared `Scrollbar` component. Do not build scroll containers with plain elements and `overflow: auto` / `overflow: scroll`, draw custom scrollbars, or add a parallel scrolling implementation.
+- Reuse existing wrappers that integrate `Scrollbar` when required by virtualized content. Layout containers may clip content with `overflow: hidden`, but scrolling belongs to `Scrollbar`.
+- When adding or modifying a scroll region, verify bounded height, flex sizing, scroll direction, and that the shared component owns scrolling without a nested native scroll container. Check this requirement during code review.
+
 ## Studio property panel and component contracts
 
 - Localize Studio and Desktop UI labels through the shared UI language packs. Keep English source wording for upstream UI. Component property names, slot names, descriptions, help text, enum captions and registered action labels must retain their English registration wording across UI languages. Business page content retains its configured language. Language selection must not translate persisted prop names, node names, component contracts, or force a locale in canvas components.

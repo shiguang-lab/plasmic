@@ -807,6 +807,9 @@ export function elementSchema() {
     baseVariantTplTree: z
       .string()
       .describe("The element's subtree as HTML markup."),
+    interactions: z.array(interactionSchema()).optional().describe(
+      "Native event steps owned by this subtree, including UUIDs for editing existing interactions.",
+    ),
   });
 }
 export type ElementJson = z.infer<ReturnType<typeof elementSchema>>;

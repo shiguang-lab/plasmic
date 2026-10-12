@@ -1,0 +1,14 @@
+{
+  "revision": 65,
+  "rows": 21,
+  "firstRow": "记录 01\n\t负责人1\t启用\t未分类\t\n详情",
+  "openDialogs": 0,
+  "categoryFilterArrow": true,
+  "createCategoryArrow": true,
+  "formText": "新建记录\n名称\n负责人\n状态\n启用\n类别\n请选择\n取消\n创建",
+  "legacyClassProbe": {
+    "selector": ".ant-select-arrow",
+    "matched": false,
+    "note": "Ant Design 6 renders the native icon under ant-select-suffix."
+  }
+}

@@ -1,7 +1,4 @@
-import {
-  PopupFocuser,
-  useOnIFrameMouseDown,
-} from "@/wab/client/components/widgets";
+import { PopupFocuser } from "@/wab/client/components/widgets";
 import { useI18n } from "@/wab/client/i18n";
 import { PageHref } from "@/wab/shared/model/classes";
 import { Popover, RefSelectProps, Select } from "antd";
@@ -27,9 +24,6 @@ export function HrefQueryPopover({
   );
   const [showing, setShowing] = React.useState(false);
   const selectRef = React.useRef<RefSelectProps>(null);
-  useOnIFrameMouseDown(() => {
-    setShowing(false);
-  });
   return (
     <Popover
       trigger={["click"]}

@@ -7,32 +7,44 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { mkUuid, spawn } from "@/wab/shared/common";
-import { notification } from "antd";
+import { Button, notification } from "antd";
 import * as React from "react";
 
 /** This component displays a prompt if the host isn't loading. */
 export function HostLoadTimeoutPrompt({
   project,
   editorPerm,
+  refreshStudio,
 }: {
   project: ApiProject;
   editorPerm: boolean;
+  refreshStudio: () => Promise<void>;
 }) {
   const { hostConnected } = useTopFrameCtx();
   const appCtx = useAppCtx();
   React.useEffect(() => {
     if (!!project && !hostConnected) {
       const key = mkUuid();
-      const id = setTimeout(() => {
+      const showWarning = () => {
         notification.warning({
-          message: translate(
+          key,
+          title: translate(
             getUiLocale(),
             "Looks like the host app is taking a while to load.",
           ),
           duration: 0,
+          actions: (
+            <Button
+              onClick={() => {
+                notification.destroy(key);
+                spawn(refreshStudio());
+              }}
+            >
+              <UiText message={"Reload"} />
+            </Button>
+          ),
           ...(editorPerm
             ? {
-                key,
                 description: (
                   <p>
                     <UiText
@@ -68,13 +80,27 @@ export function HostLoadTimeoutPrompt({
               }
             : {}),
         });
-      }, 10000);
+      };
+      // Browsers may pause nested host frames in a background tab. Give the
+      // host a full foreground loading interval before reporting a timeout.
+      let id: ReturnType<typeof setTimeout> | undefined;
+      const scheduleWarning = () => {
+        clearTimeout(id);
+        if (document.visibilityState === "hidden") {
+          notification.destroy(key);
+          return;
+        }
+        id = setTimeout(showWarning, 10000);
+      };
+      document.addEventListener("visibilitychange", scheduleWarning);
+      scheduleWarning();
       return () => {
         clearTimeout(id);
+        document.removeEventListener("visibilitychange", scheduleWarning);
         notification.destroy(key);
       };
     }
     return () => {};
-  }, [project, editorPerm, hostConnected]);
+  }, [project, editorPerm, hostConnected, refreshStudio]);
   return null;
 }

@@ -36,6 +36,7 @@ test.each([["antd6", "overseas", "react-ui"], ["react-ui"]])(
       })),
     );
     const modules = await getSortedHostLessPkgs(packages, "-v2");
+    expect(modules.filter(([, source]) => source.includes("window.initializations++"))).toHaveLength(1);
     for (let frame = 0; frame < 2; frame++) {
       const window = {
         initializations: 0,
@@ -52,6 +53,10 @@ test.each([["antd6", "overseas", "react-ui"], ["react-ui"]])(
           (runtime) => runtime === window.__CanvasPkgs.Antd6,
         ),
       ).toBe(true);
+      for (const [, source] of modules) {
+        runInNewContext(source, { window });
+      }
+      expect(window.initializations).toBe(1);
     }
   },
 );

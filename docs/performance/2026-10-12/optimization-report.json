@@ -1,0 +1,1536 @@
+{
+  "date": "2026-10-12T14:13:02.571Z",
+  "scope": "Local Web implementation and real Chromium validation; online and installed Desktop are not deployed by this task",
+  "projectId": "f1Z6sEJ9WnC7QuDScTMQ8E",
+  "page": "RecordsWebAcceptancePage",
+  "browser": {
+    "engine": "Playwright Chromium",
+    "viewport": {
+      "width": 1600,
+      "height": 1100
+    },
+    "measurements": "Fresh browser context per run; one pre-load to warm HTTP/code caches, then navigation measured with CPU tracing disabled",
+    "server": "Same local ports, database and IAM relay; CI=1 disables HMR and lazy compilation in both controlled variants",
+    "readiness": "Editor right property pane visible; captured canvas iframe contains first record; loading overlay absent",
+    "limitations": [
+      "Shared workspace received unrelated UI changes during the session. API/IAM, returned model bytes and runtime checks provide additional evidence independent of chrome layout.",
+      "Three samples per variant; IAM relay/network jitter remains.",
+      "Browser first-load cold run after optimization has no newly controlled cold baseline."
+    ]
+  },
+  "changes": [
+    {
+      "name": "Request-scoped IAM deduplication",
+      "contract": "AsyncLocalStorage shares matching user batches within one HTTP request; later requests refresh IAM state; failed lookups evicted; permission error identities formatted only on denial."
+    },
+    {
+      "name": "Non-blocking dependency metadata",
+      "contract": "Latest version checks and immutable Plume template load run in parallel in the background; component sync and remote paste await Plume only when required; template arrival is observable."
+    },
+    {
+      "name": "Permission-preserving browser artifact cache",
+      "contract": "private, no-cache plus immutable artifact digest ETag; authorization still runs before Express can return 304."
+    },
+    {
+      "name": "Single shared runtime bootstrap",
+      "contract": "A sorted registration batch includes one runtime source. Each destination window guards initialization; host root rechecks after async fetch to avoid concurrent or repeated execution."
+    }
+  ],
+  "load": {
+    "before": [
+      {
+        "run": "controlled-before-1",
+        "elapsedMs": 9173,
+        "ready": true,
+        "errors": [],
+        "firstRecordPresentAtReady": true,
+        "api": [
+          {
+            "path": "/api/v1/latest-bundle-version",
+            "startMs": 307,
+            "durationMs": 228,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-config",
+            "startMs": 538,
+            "durationMs": 267,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/auth/self",
+            "startMs": 538,
+            "durationMs": 278,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-ctx",
+            "startMs": 538,
+            "durationMs": 305,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hosts",
+            "startMs": 883,
+            "durationMs": 253,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+            "startMs": 883,
+            "durationMs": 1656,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+            "startMs": 2540,
+            "durationMs": 2511,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 3272,
+            "durationMs": 2539,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+            "startMs": 6465,
+            "durationMs": 442,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+            "startMs": 6465,
+            "durationMs": 453,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+            "startMs": 6465,
+            "durationMs": 487,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+            "startMs": 6465,
+            "durationMs": 508,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+            "startMs": 6465,
+            "durationMs": 799,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+            "startMs": 6135,
+            "durationMs": 1154,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+            "startMs": 6135,
+            "durationMs": 1186,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+            "startMs": 6136,
+            "durationMs": 1234,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+            "startMs": 6135,
+            "durationMs": 1260,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+            "startMs": 6493,
+            "durationMs": 945,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+            "startMs": 6466,
+            "durationMs": 1205,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+            "startMs": 6493,
+            "durationMs": 1205,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+            "startMs": 6493,
+            "durationMs": 1206,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+            "startMs": 6466,
+            "durationMs": 1484,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+            "startMs": 6493,
+            "durationMs": 1491,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/users/382914060758286339",
+            "startMs": 7430,
+            "durationMs": 763,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+            "startMs": 6494,
+            "durationMs": 1709,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 6465,
+            "durationMs": 1960,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/plume-pkg",
+            "startMs": 8206,
+            "durationMs": 224,
+            "status": 200
+          }
+        ],
+        "libraryEncodedNetworkBytes": 2070143
+      },
+      {
+        "run": "controlled-before-2",
+        "elapsedMs": 10246,
+        "ready": true,
+        "errors": [],
+        "firstRecordPresentAtReady": true,
+        "api": [
+          {
+            "path": "/api/v1/latest-bundle-version",
+            "startMs": 452,
+            "durationMs": 292,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-config",
+            "startMs": 746,
+            "durationMs": 336,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-ctx",
+            "startMs": 746,
+            "durationMs": 383,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/auth/self",
+            "startMs": 746,
+            "durationMs": 398,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hosts",
+            "startMs": 1208,
+            "durationMs": 278,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+            "startMs": 1208,
+            "durationMs": 1784,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+            "startMs": 3004,
+            "durationMs": 801,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 3916,
+            "durationMs": 2992,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+            "startMs": 7566,
+            "durationMs": 483,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+            "startMs": 7565,
+            "durationMs": 503,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+            "startMs": 7565,
+            "durationMs": 528,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+            "startMs": 7566,
+            "durationMs": 569,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+            "startMs": 7240,
+            "durationMs": 1159,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+            "startMs": 7566,
+            "durationMs": 838,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+            "startMs": 7241,
+            "durationMs": 1196,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+            "startMs": 7240,
+            "durationMs": 1231,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+            "startMs": 7240,
+            "durationMs": 1259,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+            "startMs": 7595,
+            "durationMs": 1024,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+            "startMs": 7566,
+            "durationMs": 1295,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+            "startMs": 7594,
+            "durationMs": 1291,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+            "startMs": 7595,
+            "durationMs": 1293,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+            "startMs": 7567,
+            "durationMs": 1534,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+            "startMs": 7595,
+            "durationMs": 1551,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/users/382914060758286339",
+            "startMs": 8609,
+            "durationMs": 716,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+            "startMs": 7595,
+            "durationMs": 1743,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 7566,
+            "durationMs": 1972,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/plume-pkg",
+            "startMs": 9339,
+            "durationMs": 205,
+            "status": 200
+          }
+        ],
+        "libraryEncodedNetworkBytes": 2070143
+      },
+      {
+        "run": "controlled-before-3",
+        "elapsedMs": 9481,
+        "ready": true,
+        "errors": [],
+        "firstRecordPresentAtReady": true,
+        "api": [
+          {
+            "path": "/api/v1/latest-bundle-version",
+            "startMs": 327,
+            "durationMs": 242,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-config",
+            "startMs": 572,
+            "durationMs": 276,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/auth/self",
+            "startMs": 572,
+            "durationMs": 290,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-ctx",
+            "startMs": 572,
+            "durationMs": 313,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hosts",
+            "startMs": 920,
+            "durationMs": 257,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+            "startMs": 920,
+            "durationMs": 1770,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+            "startMs": 2692,
+            "durationMs": 779,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 3392,
+            "durationMs": 2734,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+            "startMs": 6767,
+            "durationMs": 485,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+            "startMs": 6766,
+            "durationMs": 495,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+            "startMs": 6766,
+            "durationMs": 504,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+            "startMs": 6767,
+            "durationMs": 533,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+            "startMs": 6767,
+            "durationMs": 807,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+            "startMs": 6470,
+            "durationMs": 1139,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+            "startMs": 6470,
+            "durationMs": 1196,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+            "startMs": 6470,
+            "durationMs": 1229,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+            "startMs": 6470,
+            "durationMs": 1248,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+            "startMs": 6794,
+            "durationMs": 1002,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+            "startMs": 6768,
+            "durationMs": 1249,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+            "startMs": 6793,
+            "durationMs": 1249,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+            "startMs": 6794,
+            "durationMs": 1251,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+            "startMs": 6768,
+            "durationMs": 1490,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+            "startMs": 6794,
+            "durationMs": 1493,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+            "startMs": 6794,
+            "durationMs": 1708,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 6767,
+            "durationMs": 1959,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/plume-pkg",
+            "startMs": 8505,
+            "durationMs": 226,
+            "status": 200
+          }
+        ],
+        "libraryEncodedNetworkBytes": 2070143
+      }
+    ],
+    "after": [
+      {
+        "run": "controlled-after-1",
+        "elapsedMs": 4087,
+        "ready": true,
+        "errors": [],
+        "firstRecordPresentAtReady": true,
+        "api": [
+          {
+            "path": "/api/v1/latest-bundle-version",
+            "startMs": 335,
+            "durationMs": 278,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-config",
+            "startMs": 615,
+            "durationMs": 253,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/auth/self",
+            "startMs": 615,
+            "durationMs": 261,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-ctx",
+            "startMs": 615,
+            "durationMs": 285,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hosts",
+            "startMs": 942,
+            "durationMs": 261,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+            "startMs": 942,
+            "durationMs": 292,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+            "startMs": 1236,
+            "durationMs": 298,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 1979,
+            "durationMs": 422,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+            "startMs": 2999,
+            "durationMs": 0,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+            "startMs": 2999,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+            "startMs": 2999,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+            "startMs": 3000,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+            "startMs": 3000,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+            "startMs": 3031,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+            "startMs": 3031,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+            "startMs": 3032,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+            "startMs": 3032,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+            "startMs": 3032,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/plume-pkg",
+            "startMs": 3032,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+            "startMs": 2701,
+            "durationMs": 705,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+            "startMs": 3000,
+            "durationMs": 407,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+            "startMs": 3000,
+            "durationMs": 421,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 3000,
+            "durationMs": 474,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+            "startMs": 2701,
+            "durationMs": 791,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+            "startMs": 2701,
+            "durationMs": 815,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+            "startMs": 2701,
+            "durationMs": 831,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/end-user/app/f1Z6sEJ9WnC7QuDScTMQ8E/roles",
+            "startMs": 3732,
+            "durationMs": 216,
+            "status": 200
+          }
+        ],
+        "libraryEncodedNetworkBytes": 1180
+      },
+      {
+        "run": "controlled-after-2",
+        "elapsedMs": 4233,
+        "ready": true,
+        "errors": [],
+        "firstRecordPresentAtReady": true,
+        "api": [
+          {
+            "path": "/api/v1/latest-bundle-version",
+            "startMs": 377,
+            "durationMs": 279,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-config",
+            "startMs": 658,
+            "durationMs": 276,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-ctx",
+            "startMs": 658,
+            "durationMs": 300,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/auth/self",
+            "startMs": 658,
+            "durationMs": 307,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hosts",
+            "startMs": 1008,
+            "durationMs": 269,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+            "startMs": 1008,
+            "durationMs": 301,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+            "startMs": 1311,
+            "durationMs": 304,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 2009,
+            "durationMs": 434,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+            "startMs": 3068,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+            "startMs": 3068,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+            "startMs": 3068,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+            "startMs": 3068,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+            "startMs": 3068,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+            "startMs": 3100,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+            "startMs": 3100,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+            "startMs": 3101,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+            "startMs": 3101,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+            "startMs": 3101,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/plume-pkg",
+            "startMs": 3101,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+            "startMs": 2768,
+            "durationMs": 630,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+            "startMs": 3069,
+            "durationMs": 389,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+            "startMs": 3069,
+            "durationMs": 416,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+            "startMs": 2768,
+            "durationMs": 777,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+            "startMs": 2768,
+            "durationMs": 812,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+            "startMs": 2768,
+            "durationMs": 833,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 3068,
+            "durationMs": 540,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/end-user/app/f1Z6sEJ9WnC7QuDScTMQ8E/roles",
+            "startMs": 3782,
+            "durationMs": 266,
+            "status": 200
+          }
+        ],
+        "libraryEncodedNetworkBytes": 1180
+      },
+      {
+        "run": "controlled-after-3",
+        "elapsedMs": 4425,
+        "ready": true,
+        "errors": [],
+        "firstRecordPresentAtReady": true,
+        "api": [
+          {
+            "path": "/api/v1/latest-bundle-version",
+            "startMs": 334,
+            "durationMs": 288,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-config",
+            "startMs": 623,
+            "durationMs": 260,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/app-ctx",
+            "startMs": 623,
+            "durationMs": 282,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/auth/self",
+            "startMs": 623,
+            "durationMs": 290,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hosts",
+            "startMs": 942,
+            "durationMs": 247,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+            "startMs": 942,
+            "durationMs": 272,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+            "startMs": 1216,
+            "durationMs": 275,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 1955,
+            "durationMs": 487,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+            "startMs": 3120,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+            "startMs": 3120,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+            "startMs": 3120,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+            "startMs": 3120,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+            "startMs": 3120,
+            "durationMs": 2,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+            "startMs": 3153,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+            "startMs": 3153,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+            "startMs": 3153,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+            "startMs": 3153,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+            "startMs": 3154,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/plume-pkg",
+            "startMs": 3154,
+            "durationMs": 1,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+            "startMs": 2791,
+            "durationMs": 770,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+            "startMs": 3121,
+            "durationMs": 468,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+            "startMs": 3121,
+            "durationMs": 481,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+            "startMs": 2791,
+            "durationMs": 934,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+            "startMs": 3121,
+            "durationMs": 605,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+            "startMs": 2790,
+            "durationMs": 964,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+            "startMs": 2790,
+            "durationMs": 1010,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/end-user/app/f1Z6sEJ9WnC7QuDScTMQ8E/roles",
+            "startMs": 3996,
+            "durationMs": 146,
+            "status": 200
+          },
+          {
+            "path": "/api/v1/users/382914060758286339",
+            "startMs": 4416,
+            "durationMs": 319,
+            "status": 200
+          }
+        ],
+        "libraryEncodedNetworkBytes": 1180
+      }
+    ],
+    "medianBeforeMs": 9481,
+    "medianAfterMs": 4233,
+    "reductionPercent": 55.4,
+    "optimizedCold": {
+      "run": "optimized-cold-final",
+      "elapsedMs": 5200,
+      "ready": true,
+      "errors": [],
+      "firstRecordPresentAtReady": true,
+      "api": [
+        {
+          "path": "/api/v1/latest-bundle-version",
+          "startMs": 653,
+          "durationMs": 577,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/app-ctx",
+          "startMs": 1244,
+          "durationMs": 301,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/auth/self",
+          "startMs": 1244,
+          "durationMs": 306,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/app-config",
+          "startMs": 1244,
+          "durationMs": 311,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/hosts",
+          "startMs": 1616,
+          "durationMs": 278,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/projects?query=%22byIds%22&projectIds=%5B%22f1Z6sEJ9WnC7QuDScTMQ8E%22%5D",
+          "startMs": 1615,
+          "durationMs": 320,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/ai/edit/status",
+          "startMs": 1939,
+          "durationMs": 281,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E",
+          "startMs": 2722,
+          "durationMs": 472,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+          "startMs": 3460,
+          "durationMs": 564,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+          "startMs": 3460,
+          "durationMs": 849,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+          "startMs": 3460,
+          "durationMs": 871,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+          "startMs": 3460,
+          "durationMs": 896,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%220.1.0%22&meta=true",
+          "startMs": 3834,
+          "durationMs": 560,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%221.12.0%22&meta=true",
+          "startMs": 3833,
+          "durationMs": 570,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%221.4.0%22&meta=true",
+          "startMs": 3834,
+          "durationMs": 572,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true",
+          "startMs": 3834,
+          "durationMs": 607,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/comments/f1Z6sEJ9WnC7QuDScTMQ8E",
+          "startMs": 3834,
+          "durationMs": 608,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%220.0.1%22&meta=true",
+          "startMs": 3834,
+          "durationMs": 672,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/pkg",
+          "startMs": 3835,
+          "durationMs": 814,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/projects/f1Z6sEJ9WnC7QuDScTMQ8E/revs/unpublished",
+          "startMs": 3835,
+          "durationMs": 820,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0?version=%22latest%22&meta=true",
+          "startMs": 3869,
+          "durationMs": 793,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5?version=%22latest%22&meta=true",
+          "startMs": 3869,
+          "durationMs": 836,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%22latest%22&meta=true",
+          "startMs": 3869,
+          "durationMs": 853,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/45f57c2c-38ef-4bb0-8351-8143f15d402d?version=%22latest%22&meta=true",
+          "startMs": 3869,
+          "durationMs": 922,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/end-user/app/f1Z6sEJ9WnC7QuDScTMQ8E/roles",
+          "startMs": 4666,
+          "durationMs": 245,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/plume-pkg",
+          "startMs": 3869,
+          "durationMs": 1052,
+          "status": 200
+        },
+        {
+          "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec?version=%22latest%22&meta=true",
+          "startMs": 3869,
+          "durationMs": 1057,
+          "status": 200
+        }
+      ],
+      "libraryEncodedNetworkBytes": 2070296
+    }
+  },
+  "serverReplay": {
+    "before": [
+      {
+        "totalMs": 3776,
+        "iamRequests": 15,
+        "sqlQueries": 62,
+        "serializedResponseBytes": 5891253
+      },
+      {
+        "totalMs": 2962,
+        "iamRequests": 15,
+        "sqlQueries": 62,
+        "serializedResponseBytes": 5891253
+      }
+    ],
+    "after": [
+      {
+        "totalMs": 1136,
+        "iamRequests": 1,
+        "sqlQueries": 62,
+        "serializedResponseBytes": 5891253
+      },
+      {
+        "totalMs": 348,
+        "iamRequests": 1,
+        "sqlQueries": 62,
+        "serializedResponseBytes": 5891253
+      }
+    ],
+    "note": "Actual API token authentication, database transaction, normal ACL and source route; fetch and SQL calls instrumented. Same model response bytes in both variants."
+  },
+  "cache": {
+    "medianBeforeLibraryEncodedBytes": 2070143,
+    "medianAfterLibraryEncodedBytes": 1180,
+    "note": "Network byte counts include response headers. Browser exposes cached 304 revalidation as a successful 200 response; backend logs below confirm 304.",
+    "observed304": [
+      {
+        "time": "2026-10-12T14:08:35.371Z",
+        "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:08:35.610Z",
+        "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:08:35.638Z",
+        "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:08:35.661Z",
+        "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:14.687Z",
+        "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:14.824Z",
+        "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:14.848Z",
+        "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:14.937Z",
+        "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:20.529Z",
+        "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:20.710Z",
+        "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:20.781Z",
+        "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:20.827Z",
+        "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:26.992Z",
+        "path": "/api/v1/hostless-libraries/antd-icons/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:27.388Z",
+        "path": "/api/v1/hostless-libraries/overseas/canvas?version=1.4.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:27.427Z",
+        "path": "/api/v1/hostless-libraries/react-ui/canvas?version=0.1.0",
+        "status": 304
+      },
+      {
+        "time": "2026-10-12T14:09:27.463Z",
+        "path": "/api/v1/hostless-libraries/antd6/canvas?version=1.12.0",
+        "status": 304
+      }
+    ]
+  },
+  "verification": {
+    "unitTests": {
+      "passed": 58,
+      "groups": [
+        "IAM assertions, request isolation/concurrency and failure retry",
+        "Artifact version selection, actual Express conditional GET, revoked-permission denial",
+        "Project and multi-resource ACL allow/deny",
+        "Team permission retention",
+        "Runtime ordering, one bootstrap per batch/window, concurrent host initialization",
+        "Parallel dependency/Plume load, reactive arrival and retry",
+        "Component metadata contracts and server registrations",
+        "Preview readiness callbacks",
+        "Initializer ready without awaiting dependency version metadata",
+        "Persistent Studio startup chrome, preview loading, project navigation and error recovery"
+      ],
+      "filesPassed": 13
+    },
+    "typecheck": {
+      "command": "node --max-old-space-size=16384 node_modules/typescript/lib/tsc.js --incremental --pretty false",
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "note": "Existing warnings only; no errors"
+    },
+    "browserAcceptance": {
+      "file": "optimization-acceptance.json",
+      "success": true,
+      "checks": [
+        {
+          "name": "authorized editor ready",
+          "passed": true
+        },
+        {
+          "name": "native edit and save",
+          "passed": true,
+          "revision": 71,
+          "nodeUuid": "7Rg0FydgbuZ6"
+        },
+        {
+          "name": "authorized editor ready",
+          "passed": true
+        },
+        {
+          "name": "saved text and node identity survive reopen",
+          "passed": true
+        },
+        {
+          "name": "saved page renders in full Preview",
+          "passed": true
+        },
+        {
+          "name": "temporary acceptance page removed and saved",
+          "passed": true
+        },
+        {
+          "name": "original Records page props, states, identities and interactions unchanged",
+          "passed": true
+        },
+        {
+          "name": "component library Preview renders records",
+          "passed": true
+        },
+        {
+          "name": "shared runtime initializes once per destination window",
+          "passed": true
+        }
+      ]
+    },
+    "previewInteractions": {
+      "checks": [
+        {
+          "name": "search submits native form and filters rows",
+          "passed": true
+        },
+        {
+          "name": "reset restores rows",
+          "passed": true
+        },
+        {
+          "name": "detail drawer opens and closes",
+          "passed": true
+        },
+        {
+          "name": "create drawer cancel leaves data unchanged",
+          "passed": true
+        },
+        {
+          "name": "pagination renders next records",
+          "passed": true
+        },
+        {
+          "name": "reset returns to first page",
+          "passed": true
+        }
+      ],
+      "errors": []
+    },
+    "permissions": {
+      "checks": [
+        {
+          "name": "authenticated artifact read",
+          "status": 200,
+          "expected": 200,
+          "passed": true
+        },
+        {
+          "name": "anonymous access to private project denied",
+          "status": 403,
+          "expected": 403,
+          "passed": true
+        },
+        {
+          "name": "invalid API credentials rejected even with matching artifact ETag",
+          "status": 401,
+          "expected": 401,
+          "passed": true
+        },
+        {
+          "name": "public library remains accessible anonymously",
+          "status": 200,
+          "expected": 200,
+          "passed": true
+        },
+        {
+          "name": "project viewer token can read branches",
+          "status": 200,
+          "expected": 200,
+          "passed": true
+        },
+        {
+          "name": "viewer token cannot save a valid project revision",
+          "status": 403,
+          "expected": 403,
+          "passed": true
+        },
+        {
+          "name": "denied save does not advance revision",
+          "passed": true,
+          "revision": 70
+        }
+      ]
+    },
+    "resolvedFailure": {
+      "file": "platform/wab/src/wab/client/components/studio/studio-initializer.test.tsx",
+      "test": "keeps dashboard navigation available without constructing a project context",
+      "fix": "Assert the current Project menu is disabled during loading and the standalone Share project button is absent. Dashboard navigation and absence of project API requests remain checked.",
+      "result": "Both initializer tests passed; all 58 related regression tests passed."
+    },
+    "lastLocalChecks": {
+      "time": "2026-10-12T14:20:09.747Z",
+      "regressionTests": 58,
+      "testFiles": 13,
+      "typecheckExitCode": 0,
+      "lintExitCode": 0,
+      "diffCheckExitCode": 0,
+      "releaseValidation": {
+        "date": "2026-10-13",
+        "changedTestsPassed": 260,
+        "changedTestFiles": 33,
+        "desktopTestsPassed": 162,
+        "resourceGatesPassed": 58,
+        "typecheckExitCode": 0
+      }
+    }
+  }
+}

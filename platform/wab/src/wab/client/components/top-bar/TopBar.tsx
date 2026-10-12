@@ -6,7 +6,6 @@ import {
   TopBarChrome,
 } from "@/wab/client/components/top-bar/TopBarChrome";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
-import { plasmicIFrameMouseDownEvent } from "@/wab/client/definitions/events";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 /** @format */
@@ -20,7 +19,6 @@ import {
   AnonymousAvatar,
   AvatarGallery,
 } from "@/wab/client/components/studio/Avatar";
-import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
 import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
@@ -50,7 +48,6 @@ import {
 } from "@/wab/shared/core/components";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { pruneUnusedImageAssets } from "@/wab/shared/prune-site";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { naturalSort } from "@/wab/shared/sort";
 import {
   canEditProjectConfig,
@@ -107,17 +104,9 @@ function _TopBar({ preview }: TopBarProps) {
       }
     };
     document.addEventListener("keydown", onKeyDown);
-    document.addEventListener(plasmicIFrameMouseDownEvent, close);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener(plasmicIFrameMouseDownEvent, close);
     };
-  }, []);
-  React.useEffect(() => {
-    const close = () => setProjectOpen(false);
-    document.addEventListener(plasmicIFrameMouseDownEvent, close);
-    return () =>
-      document.removeEventListener(plasmicIFrameMouseDownEvent, close);
   }, []);
   React.useEffect(() => {
     if (!projectOpen) {
@@ -222,7 +211,7 @@ function _TopBar({ preview }: TopBarProps) {
   const menu = canEditProjectConfig(uiConfig)
     ? () => {
         const builder = new MenuBuilder();
-        builder.genSection(undefined, (push) => {
+        builder.genSection(undefined, () => {
           builder.genSection(undefined, (push2) => {
             if (
               studioCtx.canEditProject() &&
@@ -717,11 +706,6 @@ function _TopBar({ preview }: TopBarProps) {
                     </Menu.Item>
                   </Menu>
                   {menu?.()}
-                  <LeftTabStrip
-                    useVersionsCTA={false}
-                    managementOnly
-                    onNavigate={() => setProjectOpen(false)}
-                  />
                 </div>
               }
             >

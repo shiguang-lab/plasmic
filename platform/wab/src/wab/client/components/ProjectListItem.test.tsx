@@ -249,7 +249,7 @@ it("cancels editing on Escape and keeps failed edits available for retry", async
 it("enables marquee only for overflowing names and updates it after a rename", () => {
   vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(100);
   vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockImplementation(
-    function () {
+    function (this: HTMLElement) {
       return this.textContent === "Short" ? 80 : 280;
     },
   );

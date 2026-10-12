@@ -1,0 +1,35 @@
+{
+  "revision": 64,
+  "rows": 21,
+  "firstRow": "记录 01\n\t负责人1\t启用\t未分类\t\n详情",
+  "pages": [
+    "业务管理平台",
+    "",
+    "1",
+    "2",
+    "3",
+    "",
+    "20 / page"
+  ],
+  "openDialogs": 0,
+  "formText": "新建记录\n名称\n负责人\n状态\n启用\n类别\n请选择\n取消\n创建",
+  "fields": [
+    {
+      "id": "name",
+      "value": ""
+    },
+    {
+      "id": "owner",
+      "value": ""
+    },
+    {
+      "id": "status",
+      "value": ""
+    },
+    {
+      "id": "category",
+      "value": ""
+    }
+  ],
+  "validationText": "新建记录\n名称\n名称长度为2至40个字符\n负责人\n状态\n启用\n类别\n请选择\n请选择类别\n取消\n创建"
+}

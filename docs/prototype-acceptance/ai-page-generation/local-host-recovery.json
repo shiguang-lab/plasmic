@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-12",
+  "studioOrigin": "http://localhost:3003",
+  "canvasOrigin": "http://localhost:3005",
+  "projectId": "f1Z6sEJ9WnC7QuDScTMQ8E",
+  "originalTabId": "1308301723",
+  "observations": {
+    "backgroundStartup": "Old tab resumed canvas initialization after activation in the browser tab bar",
+    "hostUnavailable": "Paused the managed local HTTP host process while reloading the original editor; native warning and Reload button appeared",
+    "nativeRecovery": "Pressed Reload in the same original tab before resuming the HTTP host; new host registration and HostFrameApi exposure completed",
+    "temporaryServicePauseRestored": true
+  },
+  "checks": {
+    "startupLoadingStatuses": 0,
+    "savedStatuses": 1,
+    "tableBodyRows": 20,
+    "query03BodyRows": 1,
+    "detailRecord": "记录 03",
+    "createDrawerOpened": true,
+    "cancelBodyRows": 20,
+    "queryInputAfterReset": "",
+    "drawersAfterCancel": 0,
+    "returnedToEditor": true
+  },
+  "modelReadback": {
+    "revision": 42,
+    "componentUuid": "jAcMpWlXKv1M",
+    "referencedObjects": 810,
+    "pageGraphUnchanged": true,
+    "pageGraphSHA256": "90add697a85bb836b1e375dc73e2cf23b461c311699800534f5a263758a4b441"
+  },
+  "verificationCommands": {
+    "typecheck": {
+      "command": "platform/wab/node_modules/.bin/tsc --incremental",
+      "exitCode": 0,
+      "diagnostics": 0,
+      "previousDiagnostics": 9
+    },
+    "vitest": {
+      "files": 5,
+      "tests": 24,
+      "passed": 24
+    },
+    "eslint": {
+      "errors": 0,
+      "existingWarnings": 3
+    },
+    "canvasSass": {
+      "exitCode": 0,
+      "servedCssContainsColumnDirection": true
+    }
+  },
+  "screenshots": {
+    "stalledHost": "local-host-reload-prompt.jpg",
+    "recoveredEditor": "local-host-recovered.jpg",
+    "recoveredPrototype": "local-host-recovered-preview.jpg"
+  },
+  "releaseActions": {
+    "commit": false,
+    "tag": false,
+    "deployment": false
+  },
+  "canvasLayout": {
+    "observedPageWidthBefore": 239,
+    "canvasWidth": 1440,
+    "problem": "The flex root stretched global context wrappers vertically and allowed their width to shrink to the sidebar",
+    "change": "Use column direction for the existing page-stretch canvas root so align-items: stretch applies horizontally",
+    "pageWidthAfter": 1440,
+    "mainWidthAfter": 1201,
+    "tableWidthAfter": 1127,
+    "rootFlexDirectionAfter": "column",
+    "visibleScreenshotConfirmed": true
+  }
+}

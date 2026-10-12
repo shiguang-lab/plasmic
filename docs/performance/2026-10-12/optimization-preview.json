@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "name": "search submits native form and filters rows",
+      "passed": true
+    },
+    {
+      "name": "reset restores rows",
+      "passed": true
+    },
+    {
+      "name": "detail drawer opens and closes",
+      "passed": true
+    },
+    {
+      "name": "create drawer cancel leaves data unchanged",
+      "passed": true
+    },
+    {
+      "name": "pagination renders next records",
+      "passed": true
+    },
+    {
+      "name": "reset returns to first page",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

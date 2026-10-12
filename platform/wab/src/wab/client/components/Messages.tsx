@@ -100,8 +100,8 @@ export function showSaveErrorRecoveredNotice() {
   const key = L.uniqueId();
   notification.info({
     key,
-    message: "Info",
-    description: <span>{SAVE_ERROR_RECOVERED_EXPLANATION}</span>,
+    message: <UiText message="info" />,
+    description: <span><UiText message={SAVE_ERROR_RECOVERED_EXPLANATION} /></span>,
     duration: 0,
   });
 }

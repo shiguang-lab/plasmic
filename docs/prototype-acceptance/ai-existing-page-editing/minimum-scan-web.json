@@ -1,0 +1,45 @@
+{
+  "minimumScanMs": 1600,
+  "completionFeedbackMs": 400,
+  "toolResultNotDelayed": true,
+  "web": "http://localhost:3003",
+  "page": "RecordsWebAcceptancePage",
+  "observed": [
+    {
+      "animation": "src-wab-client-components-canvas-CopilotActivityOverlay-module__copilotScan-ETEmPS",
+      "mode": "read",
+      "rect": {
+        "height": 797.528076171875,
+        "width": 1121.52392578125
+      },
+      "scanning": "true",
+      "status": "success",
+      "text": "读取完成 · RecordsWebAcceptancePage"
+    },
+    {
+      "animation": "src-wab-client-components-canvas-CopilotActivityOverlay-module__copilotScan-ETEmPS",
+      "mode": "read",
+      "rect": {
+        "height": 797.528076171875,
+        "width": 1121.52392578125
+      },
+      "scanning": "true",
+      "status": "success",
+      "text": "读取完成 · Project"
+    }
+  ],
+  "task": [
+    {
+      "changes": 0,
+      "status": "stopped",
+      "text": "只读取当前页面结构，说明查询表格、新建抽屉和详情抽屉的组成。不要修改、创建或删除任何内容。已停止固定编辑范围: RecordsWebAcceptancePage执行进度read · 已完成read · 已完成"
+    }
+  ],
+  "checks": {
+    "testFiles": 2,
+    "testsPassed": 16,
+    "wabTypecheck": "passed",
+    "eslint": "passed"
+  },
+  "screenshot": "minimum-scan-web.jpg"
+}

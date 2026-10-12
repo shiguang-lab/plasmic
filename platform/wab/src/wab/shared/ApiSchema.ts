@@ -1930,6 +1930,7 @@ export interface CopilotChatOpenOpts {
   prompt: string;
   mode: CopilotChatMode;
   localEditBinding?: import("@/wab/shared/copilot/local-edit").LocalEditBinding;
+  attachments?: import("@/wab/shared/copilot/local-edit").LocalAiAttachment[];
 }
 
 export type QueryCopilotChatUiStreamRequest = {

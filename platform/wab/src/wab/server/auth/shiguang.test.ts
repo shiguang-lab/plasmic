@@ -5,6 +5,7 @@ import {
 import {
   getShiguangUserByEmail,
   getShiguangUsers,
+  withShiguangDirectoryCache,
 } from "@/wab/server/auth/shiguang-directory";
 import type { Response as ExpressResponse, Request } from "express";
 import { generateKeyPairSync, sign } from "node:crypto";
@@ -141,5 +142,38 @@ describe("canonical user directory", () => {
       vi.fn(async () => new Response(null, { status: 503 })),
     );
     await expect(getShiguangUsers([profile.id])).rejects.toThrow("503");
+  });
+
+  it("shares concurrent and repeated lookups within a request, but refreshes the next request", async () => {
+    const fetchMock = vi.fn(async () => Response.json({ users: [profile] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await withShiguangDirectoryCache(async () => {
+      const [first, concurrent] = await Promise.all([
+        getShiguangUsers([profile.id]),
+        getShiguangUsers([profile.id, profile.id]),
+      ]);
+      expect(first).toEqual(concurrent);
+      expect(await getShiguangUsers([profile.id])).toEqual(first);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+    fetchMock.mockResolvedValueOnce(Response.json({ users: [{ ...profile, state: "STATE_DISABLED" }] }));
+    const next = await withShiguangDirectoryCache(() => getShiguangUsers([profile.id]));
+    expect(next[0].state).toBe("STATE_DISABLED");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await getShiguangUsers([profile.id]);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("isolates overlapping requests and retries failed directory lookups", async () => {
+    const fetchMock = vi.fn(async () => Response.json({ users: [profile] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await Promise.all([0, 1].map(() => withShiguangDirectoryCache(() => getShiguangUsers([profile.id]))));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 503 }));
+    await withShiguangDirectoryCache(async () => {
+      await expect(getShiguangUsers([profile.id])).rejects.toThrow("503");
+      expect(await getShiguangUsers([profile.id])).toHaveLength(1);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 });

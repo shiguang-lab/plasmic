@@ -1,0 +1,82 @@
+{
+  "changes": [
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "p1fjYDTBM4bW",
+        "props": {
+          "rules": [
+            {
+              "message": "请输入名称",
+              "ruleType": "required"
+            },
+            {
+              "message": "请输入名称",
+              "ruleType": "whitespace"
+            },
+            {
+              "max": 40,
+              "message": "名称长度为2至40个字符",
+              "min": 2,
+              "ruleType": "length"
+            }
+          ]
+        }
+      },
+      "name": "更改: changeElement",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "iHoiNrZNxQ2-",
+        "html": "<plasmic-component data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CategoryFormItem\" data-props='{\"name\":\"category\",\"rules\":[{\"ruleType\":\"required\",\"message\":\"请选择类别\"}]}' style=\"width: 100%; margin-bottom: 24px; max-width: 100%\">\n  <slot name=\"label\">\n    <span>类别</span>\n  </slot>\n  <slot name=\"children\">\n    <plasmic-component data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CreateCategorySelect\" data-props='{\"options\":[{\"value\":\"重点\",\"label\":\"重点\"},{\"value\":\"普通\",\"label\":\"普通\"}],\"size\":\"medium\",\"allowClear\":true}' style=\"max-width: 100%; width: 100%\">\n      <slot name=\"placeholder\">\n        <span>请选择类别</span>\n      </slot>\n      <slot name=\"children\"></slot>\n      <slot name=\"suffixIcon\"></slot>\n    </plasmic-component>\n  </slot>\n  <slot name=\"tooltip\"></slot>\n</plasmic-component>",
+        "location": "after"
+      },
+      "name": "更改: insertHtml",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "dcIYGA3-5sNH",
+        "styles": {
+          "objectFit": null
+        }
+      },
+      "name": "更改: changeElement",
+      "undone": false
+    },
+    {
+      "input": {
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "11IOj3Gb-tp-",
+        "styles": {
+          "objectFit": null
+        }
+      },
+      "name": "更改: changeElement",
+      "undone": false
+    },
+    {
+      "input": {
+        "action": {
+          "actionName": "customFunction",
+          "code": "const newRecord = {\n  id: String(Date.now()),\n  name: (values && values.name) ? String(values.name).trim() : \"\",\n  category: (values && values.category) ? values.category : \"\",\n  owner: (values && values.owner) ? values.owner : \"\",\n  status: (values && values.status) ? values.status : \"启用\"\n};\n$state.records = [\n  newRecord,\n  ...$state.records\n];\nif ($refs.createForm && $refs.createForm.resetFields) {\n  $refs.createForm.resetFields();\n}\nif ($refs.searchForm && $refs.searchForm.reset) {\n  $refs.searchForm.reset();\n}\n$state.appliedFilters = {\n  keyword: \"\",\n  owner: null,\n  status: null,\n  category: null\n};\n$state.currentPage = 1;\n$state.createDrawerOpen = false;"
+        },
+        "componentUuid": "jAcMpWlXKv1M",
+        "elementUuid": "kIqqMAOJeQhY",
+        "interactionUuid": "GAJv5HweoXpC",
+        "name": "HandleCreateFormFinish"
+      },
+      "name": "更改: updateInteraction",
+      "undone": false
+    }
+  ],
+  "operations": "执行进度read · 已完成read · 已完成read · 已完成queryElements · 已完成read · 已完成read · 已完成read · 失败Read the pinned subtree or an installed component contract.getEditorContext · 失败[\n  {\n    \"code\": \"unrecognized_keys\",\n    \"keys\": [\n      \"reason\"\n    ],\n    \"path\": [],\n    \"message\": \"Unrecognized key(s) in object: 'reason'\"\n  }\n]getEditorContext · 已完成selectElement · 失败Element is not rendered in the current canvaschangeElement · 已完成insertHtml · 已完成changeElement · 已完成changeElement · 已完成updateInteraction · 已完成read · 已完成validate · 已完成save · 已完成",
+  "prompt": "继续编辑当前已有 RecordsWebAcceptancePage，保留已有类别筛选、类别表格列和详情类别展示，以及所有已有节点和事件 UUID，不新建页面。先读取当前页面和 Form/FormItem/Select 的真实注册契约。在 CreateForm 新增 CategoryFormItem 和 CreateCategorySelect：字段名 category，中文标签“类别”，可选“重点”“普通”，不预选，原生必填校验，缺失提示“请选择类别”。沿用原有名称/负责人/状态字段；名称保留必填和纯空白拦截，并增加2至40字符长度校验，提示“名称长度为2至40个字符”，不要只限制输入长度。按实际 interactionUuid 修改已有 onFinish 步骤，把 category 与 trim 后的 name 存入新记录，保留 prepend一次、重置筛选与分页、关闭抽屉的行为；不追加重复提交事件。让新记录的类别自然出现在现有表格、查询结果和详情中。取消/X/Esc 不新增记录，重开表单为空，初始抽屉保持关闭，60条原始记录不改。独立修改尽量合并成一个 executeBatch 原生事务，便于撤销验收；不要复制导出树中的 object-fit 默认样式。最后读回修改后的字段、规则和交互，校验模型并保存。",
+  "savedRevision": 56,
+  "status": "completed",
+  "acceptancePassed": false,
+  "runtimeFailure": "The length rule was not a supported Plasmic FormItem rule type; name a did not show a length error. Corrected with ruleType min/max and length."
+}

@@ -44,7 +44,6 @@ import {
   StyleTab,
   StyleTabContext,
 } from "@/wab/client/components/sidebar-tabs/style-tab";
-import { CanvasAiComposer } from "@/wab/client/components/studio/CanvasAiComposer";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { FocusedModeToolbar } from "@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar";
 import { GlobalCssVariables } from "@/wab/client/components/studio/GlobalCssVariables";
@@ -60,12 +59,14 @@ import { DropdownButton } from "@/wab/client/components/widgets/DropdownButton";
 import { FloatingWindowLayer } from "@/wab/client/components/widgets/FloatingWindow";
 import { AlertBanner } from "@/wab/client/components/widgets/plasmic/AlertBanner";
 import { clientToFramePt, frameToClientPt } from "@/wab/client/coords";
-import {
-  plasmicIFrameMouseDownEvent,
-  plasmicIFrameWheelEvent,
-} from "@/wab/client/definitions/events";
+import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { isArrowKey } from "@/wab/client/dom";
 import { getElementBounds, isCanvasIframeEvent } from "@/wab/client/dom-utils";
+import {
+  dispatchFrameInteraction,
+  isForwardedFrameInteraction,
+  trackFrameInteractions,
+} from "@/wab/client/frame-ctx/frame-interactions";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
@@ -221,14 +222,20 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     return false;
   }
 
+  private releaseFrameInteractions: (() => void)[] = [];
   private listeners: [keyof HTMLElementEventMap, any][] = [];
   private registerListener<K extends keyof HTMLElementEventMap>(
     event: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
   ) {
-    this.listeners.push(tuple(event, listener));
-    document.body.addEventListener(event, listener, options);
+    const handle = (e: HTMLElementEventMap[K]) => {
+      if (!isForwardedFrameInteraction(e)) {
+        listener.call(document.body, e);
+      }
+    };
+    this.listeners.push(tuple(event, handle));
+    document.body.addEventListener(event, handle, options);
   }
   private unregisterListeners() {
     for (const [key, listener] of this.listeners) {
@@ -250,6 +257,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     if (!canvasClipper || !canvas || !canvasScaler) {
       unexpected();
     }
+
+    this.releaseFrameInteractions.push(
+      trackFrameInteractions(canvasClipper, (interaction) =>
+        dispatchFrameInteraction(document, interaction),
+      ),
+    );
 
     // Ensure focus on this page, since we are being loaded in an iframe.
     window.focus();
@@ -879,6 +892,8 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
     this.unbindShortcutHandlers?.();
     this.unregisterListeners();
+    this.releaseFrameInteractions.forEach((release) => release());
+    this.releaseFrameInteractions = [];
     window.removeEventListener("blur", this.cancelMarquee);
     this.clearMarquee();
 
@@ -1022,12 +1037,6 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     // Dispatch Plasmic events if the original event happened inside an iframe
     if (isCanvasIframeEvent(e)) {
       this.props.studioCtx.setWatchPlayerId(null);
-      // Mousedown on the canvas frame may not blur a focused top frame element.
-      // Manually focus this window (studio frame) to ensure the top frame focus
-      // is on the studio iframe.
-      window.focus();
-      // Dispatch custom mousedown event for other handlers.
-      document.dispatchEvent(new Event(plasmicIFrameMouseDownEvent));
     }
 
     // Panning has a higher precedence than anything else.
@@ -1962,6 +1971,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       const vc = studioCtx.createViewCtx(frame, canvasCtx);
       const doc = canvasCtx.$doc().get(0);
 
+      this.releaseFrameInteractions.push(
+        trackFrameInteractions(doc, (interaction) =>
+          dispatchFrameInteraction(document, interaction),
+        ),
+      );
+
       // Select before user components can respond to a pointer press.
       doc.addEventListener(
         "pointerdown",
@@ -2031,14 +2046,6 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         })}
       >
         {viewCtx && <CanvasOverlayToolbar viewCtx={viewCtx} fallback />}
-        {!studioCtx.isInteractiveMode && viewCtx?.hasShownHiddenContent && (
-          <AutoOpenBanner
-            onHide={() => {
-              viewCtx.hideShownHiddenContent();
-            }}
-            className="banner-bottom"
-          />
-        )}
         {studioCtx.currentArena && (
           <>
             <InsertPanelWrapper />
@@ -2199,7 +2206,15 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 <CanvasViewControls studioCtx={studioCtx} />
               )}
               {studioCtx.showDevControls && (
-                <CanvasAiComposer studioCtx={studioCtx} />
+                <>
+                  {!studioCtx.isInteractiveMode &&
+                    viewCtx?.hasShownHiddenContent && (
+                      <AutoOpenBanner
+                        className="canvas-editor__bottom-banner"
+                        onHide={() => viewCtx.hideShownHiddenContent()}
+                      />
+                    )}
+                </>
               )}
             </div>
             {!canvasLoading && <RightPane studioCtx={studioCtx} />}

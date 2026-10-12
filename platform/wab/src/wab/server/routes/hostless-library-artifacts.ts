@@ -23,7 +23,10 @@ export async function getHostlessLibraryCanvas(req: Request, res: Response) {
     throw new NotFoundError("Component library version has no code artifact");
   }
   res.setHeader("Content-Type", "application/javascript; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
+  // Revalidate access on every load while allowing the browser to reuse the
+  // pinned artifact body. Express returns 304 for a matching authorized ETag.
+  res.setHeader("Cache-Control", "private, no-cache");
+  res.setHeader("ETag", `"${artifact.artifact.digest}"`);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.send(artifact.artifact.canvas);
 }

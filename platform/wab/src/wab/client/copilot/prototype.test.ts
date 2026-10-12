@@ -51,6 +51,211 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it("reads installed design contracts in existing-page mode without widening write scope", async () => {
+    const librarySite = createSite();
+    const library = mkComponent({
+      name: "InstalledForm",
+      type: ComponentType.Plain,
+      tplTree: mkTplTagX("div"),
+    });
+    librarySite.components.push(library);
+    const site = createSite();
+    site.projectDependencies.push(
+      new ProjectDependency({
+        name: "Forms",
+        pkgId: "forms-pkg",
+        projectId: "forms-project",
+        version: "1.0.0",
+        uuid: "forms-dependency",
+        site: librarySite,
+      }),
+    );
+    const { studioCtx, call, createPage } = fixture(site);
+    studioCtx.tplMgr().ensureBaseVariantSetting(library.tplTree);
+    const page = await createPage("ContractConsumer");
+    const other = await createPage("UnrelatedPage");
+    const context = await call("getEditorContext");
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: page.uuid,
+      elementUuids: [page.tplTree.uuid],
+    };
+    const history = studioCtx.undoLog._log.length;
+    const result = await call("executeLocalEdit", {
+      binding,
+      name: "read",
+      input: { componentUuids: [library.uuid] },
+    });
+    expect(JSON.parse(result.result).results[0]).toMatchObject({
+      name: "InstalledForm",
+      uuid: library.uuid,
+    });
+    await expect(
+      call("executeLocalEdit", {
+        binding,
+        name: "read",
+        input: { componentUuids: [other.uuid] },
+      }),
+    ).rejects.toThrow("pinned subtree");
+    await expect(
+      call("executeLocalEdit", {
+        binding,
+        name: "changeElement",
+        input: {
+          componentUuid: library.uuid,
+          elementUuid: library.tplTree.uuid,
+          styles: { padding: "16px" },
+        },
+      }),
+    ).rejects.toThrow("outside");
+    expect(studioCtx.undoLog._log.length).toBe(history);
+    expect(studioCtx._changeCounter).toBe(binding.changeCounter);
+    studioCtx.copilotActivity.dispose();
+  });
+  it("edits existing page state and event steps with stable identities and native undo", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage("ExistingEditing");
+    const other = await createPage("OtherEditing");
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: '<button data-plasmic-name="CreateRecord">Create</button>',
+    });
+    const button = ensure(
+      flattenTpls(page.tplTree).find(
+        (tpl) => "name" in tpl && tpl.name === "CreateRecord",
+      ),
+      "Button missing",
+    );
+    const context = await call("getEditorContext");
+    let binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: page.uuid,
+      elementUuids: [] as string[],
+    };
+    const edit = async (name: string, input: Record<string, unknown>) => {
+      const result = await call("executeLocalEdit", { binding, name, input });
+      binding = result.binding;
+      return result;
+    };
+    await edit("createState", {
+      componentUuid: page.uuid,
+      name: "createOpen",
+      variableType: "boolean",
+      initialValue: false,
+    });
+    const readPage = async () =>
+      (await call("read", { componentUuids: [page.uuid] })).results[0];
+    const state = (await readPage()).states.find(
+      (entry: { name: string }) => entry.name === "createOpen",
+    );
+    expect(state).toBeTruthy();
+    const changedState = await edit("updateState", {
+      componentUuid: page.uuid,
+      stateUuid: state.uuid,
+      initialValue: true,
+    });
+    expect(changedState.before).toContain('"initialValue":false');
+    expect(changedState.after).toContain('"initialValue":true');
+    await edit("undo", {});
+    await edit("createInteraction", {
+      componentUuid: page.uuid,
+      elementUuid: button.uuid,
+      eventName: "onClick",
+      name: "OpenCreate",
+      action: {
+        actionName: "customFunction",
+        code: "$state.createOpen = true",
+      },
+    });
+    const step = (await readPage()).interactions[0];
+    const subtree = await edit("read", {
+      elements: [{ componentUuid: page.uuid, elementUuid: button.uuid }],
+    });
+    expect(JSON.parse(subtree.result).results[0].interactions[0].uuid).toBe(
+      step.uuid,
+    );
+    await edit("updateInteraction", {
+      componentUuid: page.uuid,
+      elementUuid: button.uuid,
+      interactionUuid: step.uuid,
+      name: "ToggleCreate",
+      action: {
+        actionName: "customFunction",
+        code: "$state.createOpen = !$state.createOpen",
+      },
+    });
+    expect((await readPage()).interactions[0]).toMatchObject({
+      uuid: step.uuid,
+      name: "ToggleCreate",
+      code: "$state.createOpen = !$state.createOpen",
+    });
+    await expect(
+      edit("updateInteraction", {
+        componentUuid: other.uuid,
+        elementUuid: other.tplTree.uuid,
+        interactionUuid: step.uuid,
+        name: "Wrong",
+      }),
+    ).rejects.toThrow("outside");
+    await expect(
+      edit("updateInteraction", {
+        componentUuid: page.uuid,
+        elementUuid: page.tplTree.uuid,
+        interactionUuid: step.uuid,
+        name: "Wrong",
+      }),
+    ).rejects.toThrow("not found");
+    await edit("deleteInteraction", {
+      componentUuid: page.uuid,
+      elementUuid: button.uuid,
+      interactionUuid: step.uuid,
+    });
+    expect((await readPage()).interactions).toBeUndefined();
+    await edit("undo", {});
+    expect((await readPage()).interactions[0].uuid).toBe(step.uuid);
+    expect(
+      flattenTpls(page.tplTree).find((tpl) => tpl.uuid === button.uuid),
+    ).toBe(button);
+    const selected = { ...binding, elementUuids: [button.uuid] };
+    await expect(
+      call("executeLocalEdit", {
+        binding: selected,
+        name: "createState",
+        input: {
+          componentUuid: page.uuid,
+          name: "outsideState",
+          variableType: "boolean",
+          initialValue: false,
+        },
+      }),
+    ).rejects.toThrow("whole-component");
+    await expect(
+      call("executeLocalEdit", {
+        binding: selected,
+        name: "executeBatch",
+        input: {
+          operations: [
+            {
+              name: "updateState",
+              input: {
+                componentUuid: page.uuid,
+                stateUuid: state.uuid,
+                initialValue: true,
+              },
+            },
+          ],
+        },
+      }),
+    ).rejects.toThrow("whole-component");
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("creates one page, scopes state and interactions, and preserves other page viewports", async () => {
     const { studioCtx, call, createPage } = fixture();
     const existing = await createPage("Existing");
@@ -339,6 +544,24 @@ describe("AI prototype editor tools", () => {
         elementUuid: region.uuid,
       }),
     ).rejects.toThrow("pinned root");
+    for (const name of ["copyElement", "moveElement"]) {
+      await expect(
+        edit(name, {
+          componentUuid: page.uuid,
+          elementUuid: title.uuid,
+          targetUuid: outside.uuid,
+          location: "after",
+        }),
+      ).rejects.toThrow("outside");
+      await expect(
+        edit(name, {
+          componentUuid: page.uuid,
+          elementUuid: outside.uuid,
+          targetUuid: title.uuid,
+          location: "after",
+        }),
+      ).rejects.toThrow("outside");
+    }
     await expect(
       edit("insertHtml", {
         componentUuid: page.uuid,
@@ -468,18 +691,17 @@ describe("AI prototype editor tools", () => {
         input: {
           operations: [
             {
-              name: "createState",
+              name: "createStyleToken",
               input: {
-                componentUuid: page.uuid,
                 name: "Global",
-                type: "boolean",
-                value: true,
+                type: "Color",
+                value: "#000000",
               },
             },
           ],
         },
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow("not allowed");
     studioCtx.copilotActivity.dispose();
   });
   it("reads configured query definitions with edit permission denied and leaves design state unchanged", async () => {
@@ -642,6 +864,24 @@ describe("AI prototype editor tools", () => {
     const { studioCtx, call } = fixture();
     studioCtx.blockChanges = true;
     expect(await call("getEditorContext")).toMatchObject({ canEdit: false });
+    studioCtx.copilotActivity.dispose();
+  });
+  it("binds an open page before a canvas or element is focused", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage("OpenPage");
+    vi.spyOn(studioCtx, "currentArena", "get").mockReturnValue(
+      ensure(
+        studioCtx.site.pageArenas.find((arena) => arena.component === page),
+        "Page arena missing",
+      ),
+    );
+    vi.spyOn(studioCtx, "focusedViewCtx").mockReturnValue(undefined);
+    expect(await call("getEditorContext")).toMatchObject({
+      componentUuid: page.uuid,
+      selectedElementUuids: [],
+      path: [],
+      mode: "edit",
+    });
     studioCtx.copilotActivity.dispose();
   });
   it.each(["live", "interactive"])(

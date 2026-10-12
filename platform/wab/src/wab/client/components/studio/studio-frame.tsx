@@ -13,6 +13,7 @@ import {
 import { useStudioStartup } from "@/wab/client/components/studio/StudioChrome";
 import { TopFrameCopilotToolsBridge } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { buildPlasmicStudioArgsHash } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import {
   TopFrameCtxProvider,
@@ -70,6 +71,10 @@ export function StudioFrame({
   const [project, setProject] = React.useState<ApiProject>();
   const [branch, setBranch] = React.useState<ApiBranch>();
   const [editorPerm, setEditorPerm] = React.useState(false);
+  useLocalAiStatus(
+    projectId,
+    editorPerm && appCtx.appConfig.enableLocalAiEditing,
+  );
   const [untrustedHost, setUntrustedHost] = React.useState(false);
   const [perms, setPerms] = React.useState<ApiPermission[]>([]);
   const [fetchProjectCount, setFetchProjectCount] = React.useState(0);
@@ -298,7 +303,11 @@ export function StudioFrame({
       {project && src && (
         <>
           {!untrustedHost && (
-            <HostLoadTimeoutPrompt project={project} editorPerm={editorPerm} />
+            <HostLoadTimeoutPrompt
+              project={project}
+              editorPerm={editorPerm}
+              refreshStudio={refreshStudio}
+            />
           )}
           <TopFrameChrome
             appCtx={appCtx}

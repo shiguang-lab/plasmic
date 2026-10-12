@@ -8,6 +8,7 @@ import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
+import { trackFrameInteractions } from "@/wab/client/frame-ctx/frame-interactions";
 import {
   CopilotToolCallResult,
   HostFrameApi,
@@ -42,8 +43,13 @@ import {
   isPageComponent,
   isReusableComponent,
 } from "@/wab/shared/core/components";
+import { summarizeTpl } from "@/wab/shared/core/tpls";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
-import { Component } from "@/wab/shared/model/classes";
+import {
+  Component,
+  isKnownTplComponent,
+  isKnownTplTag,
+} from "@/wab/shared/model/classes";
 import { notification } from "antd";
 import { sortBy } from "lodash";
 import { autorun, computed } from "mobx";
@@ -254,7 +260,9 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         }
 
         try {
-          const output = await copilotTool.execute(studioCtx, toolArgs, { outputFormat });
+          const output = await copilotTool.execute(studioCtx, toolArgs, {
+            outputFormat,
+          });
           return { success: true, output };
         } catch (err) {
           return {
@@ -313,6 +321,21 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
     }
   }, [studioReady, topFrameApi]);
 
+  React.useEffect(
+    () =>
+      trackFrameInteractions(document, (event, source) => {
+        // The canvas viewport forwards these locally before selection cancels them.
+        if (
+          source.target instanceof Element &&
+          source.target.closest(".canvas-editor__canvas-clipper")
+        ) {
+          return;
+        }
+        spawn(topFrameApi.onFrameInteraction(event));
+      }),
+    [topFrameApi],
+  );
+
   React.useEffect(() => trackArtboardFileDrags(studioCtx), [studioCtx]);
   React.useEffect(
     () =>
@@ -370,8 +393,45 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
 
     const disposes = filterFalsy([
       autorun(() => {
+        if (
+          preview ||
+          !studioCtx.showDevControls ||
+          !studioCtx.canEditProject()
+        ) {
+          spawn(topFrameApi.setLocalAiContext(undefined));
+          return;
+        }
+        const view = studioCtx.focusedViewCtx();
+        const selected = view?.focusedTpl();
+        const component = view?.currentComponent();
+        spawn(
+          topFrameApi.setLocalAiContext({
+            scope: selected
+              ? ((isKnownTplComponent(selected) || isKnownTplTag(selected)) &&
+                  selected.name) ||
+                summarizeTpl(selected)
+              : component?.name,
+            binding: component
+              ? {
+                  projectId: studioCtx.siteInfo.id,
+                  branchId: studioCtx.dbCtx().branchInfo?.id ?? null,
+                  sessionId: studioCtx.aiSessionId,
+                  changeCounter: studioCtx._changeCounter,
+                  componentUuid: component.uuid,
+                  frameUuid: view?.arenaFrame().uuid ?? null,
+                  elementUuids:
+                    view
+                      ?.focusedTpls()
+                      .flatMap((tpl) => (tpl ? [tpl.uuid] : [])) ?? [],
+                }
+              : undefined,
+          }),
+        );
+      }),
+      autorun(() => {
         spawn(
           topFrameApi.setPrimitiveValues({
+            leftPaneWidth: studioCtx.leftPaneWidth,
             noComponents: noComponents.get(),
             revisionNum: studioCtx.revisionNum,
             isLocalizationEnabled: !!studioCtx.site.flags.usePlasmicTranslation,

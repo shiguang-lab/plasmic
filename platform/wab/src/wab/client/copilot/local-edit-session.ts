@@ -1,11 +1,15 @@
 import type { PlasmicAiTools } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { ensure } from "@/wab/shared/common";
 import {
+  LocalAiAttachment,
+  LocalAiDraft,
+  LocalAiIntentRequest,
   LocalEditBinding,
   LocalEditRequest,
   LocalEditResponse,
   LocalEditStep,
   LocalEditToolResult,
+  localAiIntentSchema,
   localEditBindingSchema,
   localEditCallSchema,
   localEditLimits,
@@ -19,11 +23,14 @@ export type EditRecord = {
   before: string;
   after: string;
   binding: LocalEditBinding;
+  undoBinding?: LocalEditBinding;
   undone?: boolean;
 };
 export type EditTask = {
   id: string;
   prompt: string;
+  attachments: LocalAiAttachment[];
+  model?: string;
   status: "running" | "completed" | "stopped" | "failed";
   phase: string;
   messages: string[];
@@ -36,6 +43,7 @@ export type EditTask = {
     id: string;
     name: string;
     status: "running" | "completed" | "failed";
+    error?: string;
   }[];
 };
 export type PageGenerationOptions = { name: string; path: string };
@@ -47,8 +55,8 @@ type Transport = (
 
 export async function localAiFetch<T>(
   projectId: string,
-  action: "status" | "step",
-  body?: LocalEditRequest,
+  action: "status" | "step" | "intent",
+  body?: LocalEditRequest | LocalAiIntentRequest,
   signal?: AbortSignal,
 ): Promise<T> {
   const response = await fetch(
@@ -71,6 +79,27 @@ export async function localAiFetch<T>(
 /** Browser-only task state. Site data and undo history stay owned by Studio. */
 export class LocalEditSession {
   tasks: EditTask[] = [];
+  private _draft: LocalAiDraft = { prompt: "", attachments: [] };
+  get draft() {
+    return this._draft;
+  }
+  set draft(draft: LocalAiDraft) {
+    this._draft = draft;
+    this.tasks = [...this.tasks];
+    this.listeners.forEach((listener) => listener());
+  }
+  private _selectedModel?: string;
+  get selectedModel() {
+    return this._selectedModel;
+  }
+  set selectedModel(model: string | undefined) {
+    if (model === this._selectedModel) {
+      return;
+    }
+    this._selectedModel = model;
+    this.tasks = [...this.tasks];
+    this.listeners.forEach((listener) => listener());
+  }
   private listeners = new Set<() => void>();
   private controller?: AbortController;
   private busy = false;
@@ -146,6 +175,7 @@ export class LocalEditSession {
       return output;
     } catch (error) {
       operation.status = "failed";
+      operation.error = error instanceof Error ? error.message : String(error);
       this.update(task, { operations: [...task.operations] });
       throw error;
     }
@@ -176,7 +206,9 @@ export class LocalEditSession {
   async run(
     prompt: string,
     pinned?: LocalEditBinding,
-    page?: PageGenerationOptions,
+    target?: PageGenerationOptions | "auto",
+    attachments: LocalAiAttachment[] = [],
+    model?: string,
   ) {
     if (this.busy || !prompt.trim()) {
       return;
@@ -187,6 +219,8 @@ export class LocalEditSession {
     const task: EditTask = {
       id: crypto.randomUUID(),
       prompt: prompt.trim(),
+      attachments: [...attachments],
+      model,
       status: "running",
       phase: "Reading context",
       messages: [],
@@ -203,6 +237,26 @@ export class LocalEditSession {
       );
       if (!context.canEdit || context.projectId !== this.projectId) {
         throw new Error("Open an editable current project to use AI.");
+      }
+      let page = target === "auto" ? undefined : target;
+      if (target === "auto") {
+        this.update(task, { phase: "Thinking" });
+        const intent = localAiIntentSchema.parse(
+          await localAiFetch(
+            this.projectId,
+            "intent",
+            {
+              prompt: task.prompt,
+              hasCurrentPage: !!context.componentUuid,
+              ...(model ? { model } : {}),
+            },
+            controller.signal,
+          ),
+        );
+        checkStopped();
+        if (intent.mode === "page") {
+          page = { name: intent.name, path: intent.path };
+        }
       }
       let modelContext = page ? undefined : context;
       task.binding =
@@ -304,7 +358,7 @@ export class LocalEditSession {
       const history: LocalEditStep[] = [];
       const completed = new Map<
         string,
-        { signature: string; output: string }
+        { signature: string; output: string; failed?: boolean }
       >();
       const started = Date.now();
       const limits = localEditLimits(binding);
@@ -321,6 +375,8 @@ export class LocalEditSession {
           {
             binding: ensure(task.binding, "Editing scope is missing."),
             prompt: task.prompt,
+            attachments: task.attachments,
+            ...(model ? { model } : {}),
             resources,
             history,
           },
@@ -357,6 +413,9 @@ export class LocalEditSession {
                 "AI reused a tool call identity with different arguments.",
               );
             }
+            if (previous.failed) {
+              throw new Error(JSON.parse(previous.output).error);
+            }
             step.results.push({ id: call.id, output: previous.output });
             continue;
           }
@@ -379,7 +438,7 @@ export class LocalEditSession {
             step.results.push({ id: call.id, output: output.result });
           } catch (error) {
             checkStopped();
-            if (binding.mode !== "page" || ++rejectedCalls > 3) {
+            if (++rejectedCalls > 3) {
               throw error;
             }
             // A failed/rolled-back call is repairable only while the original
@@ -404,7 +463,7 @@ export class LocalEditSession {
             const result = JSON.stringify({
               error: error instanceof Error ? error.message : String(error),
             });
-            completed.set(call.id, { signature, output: result });
+            completed.set(call.id, { signature, output: result, failed: true });
             step.results.push({ id: call.id, output: result });
             for (const skipped of calls.slice(callIndex + 1)) {
               step.results.push({
@@ -468,12 +527,22 @@ export class LocalEditSession {
       // The executor rejects this unless this exact transaction is still last.
       const output: LocalEditToolResult = JSON.parse(
         await this.raw("executeLocalEdit", {
-          binding: record.binding,
+          binding: record.undoBinding ?? record.binding,
           name: "undo",
           input: {},
         }),
       );
       record.undone = true;
+      // Mutations within one pinned task are contiguous: concurrent human edits
+      // abort the task. Advance only its next undo guard from the actual undo
+      // result; a later human edit still fails the executor's counter check.
+      const previous = task.records.filter((entry) => !entry.undone).at(-1);
+      if (previous) {
+        previous.undoBinding = {
+          ...previous.binding,
+          changeCounter: output.binding.changeCounter,
+        };
+      }
       this.update(task, {
         binding: output.binding,
         records: [...task.records],

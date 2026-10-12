@@ -1,0 +1,45 @@
+{
+  "checks": [
+    {
+      "name": "authenticated artifact read",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "anonymous access to private project denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "name": "invalid API credentials rejected even with matching artifact ETag",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "name": "public library remains accessible anonymously",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "project viewer token can read branches",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "viewer token cannot save a valid project revision",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "name": "denied save does not advance revision",
+      "passed": true,
+      "revision": 70
+    }
+  ]
+}

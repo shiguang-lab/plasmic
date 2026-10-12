@@ -1,0 +1,7 @@
+{
+  "en": "- Load the editor faster with request-scoped IAM lookup reuse, parallel dependency loading and cached component library artifacts.\n- Initialize shared component runtimes once per window.\n- Improve editor startup, host recovery and Preview loading.\n- Refine the built-in AI composer, attachments, model selection and page editing workflow.\n- Align editor navigation, panels, overlays and localized labels.",
+  "zh-CN": "- 通过请求内 IAM 查询复用、依赖并行加载及组件库缓存，加快编辑器加载。\n- 共享组件运行时在每个窗口仅初始化一次。\n- 优化编辑器启动、宿主恢复和预览加载。\n- 完善内置 AI 输入框、附件、模型选择与页面编辑流程。\n- 统一编辑器导航、面板、浮层及多语言文案。",
+  "zh-TW": "- 透過請求內 IAM 查詢重用、相依項目平行載入及元件庫快取，加快編輯器載入。\n- 共用元件執行環境在每個視窗僅初始化一次。\n- 改善編輯器啟動、宿主復原和預覽載入。\n- 完善內建 AI 輸入區、附件、模型選擇與頁面編輯流程。\n- 統一編輯器導覽、面板、浮層及多語言文案。",
+  "ja": "- リクエスト内の IAM 検索再利用、依存関係の並列読み込み、コンポーネントライブラリのキャッシュでエディターの読み込みを高速化。\n- 共有ランタイムを各ウィンドウで一度だけ初期化。\n- エディター起動、ホスト復旧、プレビューの読み込みを改善。\n- 内蔵 AI の入力欄、添付ファイル、モデル選択、ページ編集を改善。\n- ナビゲーション、パネル、オーバーレイ、多言語ラベルを統一。",
+  "ko": "- 요청 내 IAM 조회 재사용, 의존성 병렬 로딩 및 구성 요소 라이브러리 캐시로 편집기 로딩을 개선합니다.\n- 공유 런타임을 창마다 한 번만 초기화합니다.\n- 편집기 시작, 호스트 복구 및 미리보기 로딩을 개선합니다.\n- 내장 AI 입력, 첨부 파일, 모델 선택 및 페이지 편집 흐름을 개선합니다.\n- 탐색, 패널, 오버레이 및 다국어 문구를 정리합니다."
+}

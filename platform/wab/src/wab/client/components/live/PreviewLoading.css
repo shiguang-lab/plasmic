@@ -1,0 +1,191 @@
+.preview-loading {
+  --preview-loading-layout: #eceef3;
+  --preview-loading-surface: #fff;
+  --preview-loading-muted: #70778b;
+  --preview-loading-border: #e6e8ef;
+  --preview-loading-fill: #d8dbe4;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px max(24px, 8vw);
+  box-sizing: border-box;
+  background: var(--preview-loading-layout);
+  color: var(--preview-loading-muted);
+  font:
+    14px -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+[data-ui-appearance="dark"] .preview-loading {
+  --preview-loading-layout: #15161b;
+  --preview-loading-surface: #202128;
+  --preview-loading-muted: #9295a7;
+  --preview-loading-border: #30313b;
+  --preview-loading-fill: #3b3d48;
+}
+.preview-loading__content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  width: min(100%, 1440px);
+}
+.preview-loading__page {
+  display: flex;
+  flex-direction: column;
+  height: clamp(240px, 38vh, 400px);
+  overflow: hidden;
+  border: 1px solid var(--preview-loading-border);
+  border-radius: 8px;
+  background: var(--preview-loading-surface);
+}
+.preview-loading__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--preview-loading-border);
+}
+.preview-loading__logo {
+  width: 24%;
+  height: 8px;
+}
+.preview-loading__action {
+  width: 12%;
+  height: 16px;
+}
+.preview-loading__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.preview-loading__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 16%;
+  flex-shrink: 0;
+  padding: 18px 10px;
+  border-right: 1px solid var(--preview-loading-border);
+}
+.preview-loading__nav > span {
+  width: 100%;
+  height: 8px;
+}
+.preview-loading__nav > span:nth-child(even) {
+  width: 72%;
+}
+.preview-loading__main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+  padding: 18px 14px;
+}
+.preview-loading__heading {
+  width: 60%;
+  height: 16px;
+}
+.preview-loading__description {
+  width: 58%;
+  height: 8px;
+}
+.preview-loading__filters,
+.preview-loading__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.preview-loading__filters {
+  margin: 4px 0;
+}
+.preview-loading__filters > span {
+  height: 22px;
+}
+.preview-loading__table {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.preview-loading__row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--preview-loading-border);
+}
+.preview-loading__row > span {
+  width: 84%;
+  height: 8px;
+}
+.preview-loading__pagination {
+  width: 32%;
+  height: 8px;
+  align-self: flex-end;
+}
+.preview-loading__placeholder {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--preview-loading-border) 25%,
+    var(--preview-loading-fill) 37%,
+    var(--preview-loading-border) 63%
+  );
+  background-size: 400% 100%;
+  animation: preview-loading-shimmer 1.4s ease infinite;
+}
+.preview-loading__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@keyframes preview-loading-shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
+@media (max-width: 720px) {
+  .preview-loading {
+    padding: 16px;
+  }
+  .preview-loading__content {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 460px;
+  }
+  .preview-loading__page:not(:first-child) {
+    display: none;
+  }
+  .preview-loading__nav {
+    display: none;
+  }
+  .preview-loading__main {
+    padding: 24px;
+  }
+  .preview-loading__filters,
+  .preview-loading__row {
+    gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-loading__placeholder {
+    animation: none;
+  }
+}
+#preview-startup-loading {
+  display: none;
+}
+#preview-startup-loading.visible {
+  display: flex;
+}
+#preview-startup-loading.fadeOut {
+  display: none;
+}
