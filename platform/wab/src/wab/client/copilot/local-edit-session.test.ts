@@ -1,5 +1,8 @@
 import type { PlasmicAiTools } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
-import { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import {
+  LocalEditSession,
+  localAiFetch,
+} from "@/wab/client/copilot/local-edit-session";
 import {
   LocalEditBinding,
   LocalEditCall,
@@ -493,4 +496,22 @@ it("stops a page task after the repair budget is exhausted", async () => {
   expect(transport).toHaveBeenCalledTimes(4);
   expect(session.tasks[0].status).toBe("failed");
   expect(session.tasks[0].records).toHaveLength(0);
+});
+
+it("surfaces a provider error even after keepalive headers committed HTTP 200", async () => {
+  const fetchMock = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(
+      new Response('\n\n{"error":{"message":"AI service request failed."}}', {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  try {
+    await expect(localAiFetch("project", "step")).rejects.toThrow(
+      "AI service request failed.",
+    );
+  } finally {
+    fetchMock.mockRestore();
+  }
 });

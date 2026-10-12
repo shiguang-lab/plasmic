@@ -57,22 +57,44 @@ export async function localAiStep(req: Request, res: Response) {
     }
   };
   res.on("close", abort);
+  // JSON permits leading whitespace. Keep the single JSON response alive
+  // through idle proxies while the provider is composing a page.
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.setHeader("Content-Encoding", "identity");
+  const heartbeat = setInterval(() => {
+    if (!controller.signal.aborted && !res.destroyed && !res.writableEnded) {
+      res.write("\n");
+    }
+  }, 10000);
+  const finish = (result: unknown, status = 200) => {
+    if (res.headersSent) {
+      res.end(JSON.stringify(result));
+    } else {
+      res.status(status).json(result);
+    }
+  };
   try {
     const result = await generateLocalEditStep(parsed.data, controller.signal);
     if (!controller.signal.aborted) {
-      res.json(result);
+      finish(result);
     }
   } catch {
     // Provider errors can echo credentials or request data. Keep them out of Web responses.
     if (!controller.signal.aborted) {
-      res.status(502).json({
-        error: {
-          message:
-            "AI service request failed. Check the server model configuration or try again.",
+      finish(
+        {
+          error: {
+            message:
+              "AI service request failed. Check the server model configuration or try again.",
+          },
         },
-      });
+        502,
+      );
     }
   } finally {
+    clearInterval(heartbeat);
     res.off("close", abort);
   }
 }

@@ -62,7 +62,7 @@ export async function localAiFetch<T>(
     },
   );
   const result = await response.json();
-  if (!response.ok) {
+  if (!response.ok || result.error) {
     throw new Error(result.error?.message ?? "AI request failed.");
   }
   return result as T;
@@ -324,9 +324,19 @@ export class LocalEditSession {
             resources,
             history,
           },
-          controller.signal,
+          AbortSignal.any([
+            controller.signal,
+            AbortSignal.timeout(
+              Math.max(1, limits.taskMs - (Date.now() - started)),
+            ),
+          ]),
         );
         checkStopped();
+        if (Date.now() - started > limits.taskMs) {
+          throw new Error(
+            "AI task reached its time limit. Completed changes are retained.",
+          );
+        }
         const calls = response.calls.map((call) =>
           localEditCallSchema.parse(call),
         );

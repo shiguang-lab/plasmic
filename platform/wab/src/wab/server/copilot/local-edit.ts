@@ -142,7 +142,10 @@ export async function generateLocalEditStep(
     tools,
     maxOutputTokens: request.binding.mode === "page" ? 8192 : 4096,
     maxRetries: 0,
-    abortSignal: AbortSignal.any([signal, AbortSignal.timeout(90000)]),
+    abortSignal: AbortSignal.any([
+      signal,
+      AbortSignal.timeout(request.binding.mode === "page" ? 240000 : 90000),
+    ]),
   });
   return {
     text: result.text,

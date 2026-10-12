@@ -1,0 +1,80 @@
+{
+  "kind": "Authenticated Chrome Web, real model",
+  "version": "0.0.79",
+  "model": "gemini-3.8-flash",
+  "status": "failed",
+  "taskText": "生成中文记录管理页，验收查询表格、新建抽屉、详情抽屉。先读取已安装 Admin Templates 的 StandardListPage、SearchTableSection、DrawerFormSection、DrawerDetailSection 及实际组件契约，用一个 AppShell 和已有 Antd6/Overseas/React UI 可编辑节点组成页面。独立页面菜单记录管理指向本页路由。列表初始60条记录，名称为记录 01至记录 60，负责人为负责人1、负责人2轮流，状态为启用或停用，使用原型内存数据。三个 SearchForm 查询字段为名称关键词、负责人、状态；默认四列网格，查询和重置在第四列。查询提交后才筛选，查询和重置回到第一页。Table 默认每页20条，可切到50、100。业务按钮新建打开标题为新建记录的Drawer；字段名称、负责人、状态，名称和负责人必填且拒绝空格。名称和负责人输入占位符分别为请输入名称、请输入负责人，状态默认启用。原生Form owns字段值，Form.Item规则读取模板中的实际ruleType结构；页脚取消在左、创建在右，通过原生Form ref submit校验，onFinish一次把记录添加到列表首行、重置查询并关闭。取消、X、Esc不提交，重新打开为空白。每行只有详情按钮，打开标题为记录详情的Drawer，用Descriptions显示当前行名称、负责人、状态，关闭后可打开另一行。两个Drawer初始关闭，编辑器选中揭示不改变业务状态。使用Desktop预览尺寸，英文PascalCase节点名；仅操作当前新页面，完成后读回状态与交互。\n\n失败\n\n固定编辑范围: RecordsAcceptancePage\n\nFailed to fetch\n执行进度\n更改: createComponent\n更改: setPageViewport\n\n已完成的修改会保留，并可能已自动保存。",
+  "operations": "执行进度createComponent · 已完成navigate · 已完成read · 已完成read · 已完成getEditorContext · 失败getEditorContext · 已完成read · 已完成setPageViewport · 已完成read · 已完成read · 已完成read · 已完成read · 失败read · 已完成read · 已完成",
+  "records": [
+    {
+      "type": "page",
+      "name": "RecordsAcceptancePage",
+      "path": "/records-acceptance"
+    },
+    {
+      "__type": "OutputResult",
+      "results": [
+        {
+          "__type": "Component",
+          "name": "RecordsAcceptancePage",
+          "uuid": "nNB9pZa5dFPs",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/records-acceptance"
+          },
+          "props": [],
+          "variants": [],
+          "variantGroups": [],
+          "baseVariantTplTree": "<div id=\"BjBJ6oVTAXpr\" style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\"></div>"
+        }
+      ]
+    },
+    {
+      "preset": "Desktop",
+      "componentUuid": "nNB9pZa5dFPs"
+    },
+    {
+      "__type": "OutputResult",
+      "results": [
+        {
+          "__type": "Component",
+          "name": "RecordsAcceptancePage",
+          "uuid": "nNB9pZa5dFPs",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/records-acceptance"
+          },
+          "props": [],
+          "variants": [],
+          "variantGroups": [],
+          "baseVariantTplTree": "<div id=\"BjBJ6oVTAXpr\" style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\"></div>"
+        }
+      ]
+    },
+    {
+      "__type": "OutputResult",
+      "results": [
+        {
+          "__type": "Component",
+          "name": "RecordsAcceptancePage",
+          "uuid": "nNB9pZa5dFPs",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/records-acceptance"
+          },
+          "props": [],
+          "variants": [],
+          "variantGroups": [],
+          "baseVariantTplTree": "<div id=\"BjBJ6oVTAXpr\" style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\"></div>"
+        }
+      ]
+    }
+  ],
+  "failureEvidence": {
+    "transport": "Public model-step requests disconnected after 60 seconds (NAS web access logs: HTTP 499); server, Web and Preview health checks remained healthy.",
+    "cleanup": "Native Studio Undo reverted viewport and page creation. Reload confirmed Saved Web Acceptance still renders, Studio reports saved, and the native undo stack is empty."
+  }
+}

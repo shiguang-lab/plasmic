@@ -261,7 +261,10 @@ let browser;
     await composer
       .getByRole("button", { name: /Open AI assistant|打开 AI 助手/ })
       .click();
-    await page.getByTestId("local-ai-page-mode").click();
+    await page
+      .getByTestId("local-ai-page-mode")
+      .locator("xpath=ancestor::label")
+      .click();
     await page.getByTestId("local-ai-page-name").fill(sceneName);
     await page.getByTestId("local-ai-page-path").fill(route);
     await page

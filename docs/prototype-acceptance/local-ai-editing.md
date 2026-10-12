@@ -23,3 +23,5 @@
 ## 可重复执行的 Web 验收
 
 `deploy/verify-local-ai-web.cjs` 使用浏览器内置入口和公开 Studio 工具，可通过 `PLASMIC_VERIFY_PAGE_GENERATION=1` 追加整页场景。需提供 `STUDIO_ORIGIN`、独立验收项目 `PLASMIC_PROJECT_ID` 和私有 IAM `SG_SESSION` 或 `PLASMIC_STORAGE_STATE`；使用现有服务器的 AI 配置。脚本创建独立测试页面并复用模板库，报告及截图输出到 `PLASMIC_REPORT_DIR`。不要提交登录态文件或密钥。脚本不能用受控 API/编辑器响应替代真实运行结果。
+
+模型 step 响应仍为一个 JSON 文档。服务在等待期间每 10 秒写入合法 JSON 空白，并关闭代理缓冲与压缩转换，避免空闲连接超时。权限及请求校验在保活前完成；客户端断开后取消模型并清理定时器。已经发送响应头后的服务失败使用 JSON error，Web 会检查响应体错误。局部模型请求最长 90 秒，整页请求最长 240 秒；Web 同时执行每项任务的整体时限。
