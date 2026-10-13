@@ -163,7 +163,7 @@ jobs:
             exit 1
           fi
       - name: Validate installers and generate public JSON
-        run: node desktop/scripts/build-distribution.mjs --from installers
+        run: node desktop/scripts/build-distribution.mjs --from installers --tag "$RELEASE_TAG"
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-distribution

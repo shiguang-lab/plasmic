@@ -7,6 +7,8 @@ on:
       - 'docs/search-form.md'
       - 'scripts/build-plasmic-resources.mjs'
       - 'scripts/plasmic-cli-artifact.mjs'
+      - 'scripts/release-*.mjs'
+      - '.github/workflows/publish-*.yml'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
       - 'desktop/scripts/publish-plasmic-resources.mjs'
@@ -18,6 +20,8 @@ on:
       - 'docs/search-form.md'
       - 'scripts/build-plasmic-resources.mjs'
       - 'scripts/plasmic-cli-artifact.mjs'
+      - 'scripts/release-*.mjs'
+      - '.github/workflows/publish-*.yml'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
       - 'desktop/scripts/publish-plasmic-resources.mjs'
@@ -42,5 +46,6 @@ jobs:
         run: python3 -m unittest discover -s ai/plasmic/scripts -p 'test_*.py'
       - name: Verify resource packaging and publication
         run: |
+          node --test scripts/release-plan.test.mjs
           npm --prefix packages/plasmic-cli test
           node --test desktop/tests/plasmic-resources.test.cjs

@@ -188,3 +188,21 @@ test("publishing requires release notes in all five languages", async () => {
     );
   }
 });
+
+test("linked Studio releases validate the explicit Desktop tag", async (t) => {
+  const { spawnSync } = require("node:child_process");
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-linked-release-"));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const version = require("../package.json").version;
+  const run = (tag) => spawnSync(process.execPath, [
+    path.join(__dirname, "../scripts/build-distribution.mjs"),
+    "--from", path.join(root, "missing-installers"), "--output", path.join(root, "output"), "--tag", tag,
+  ], { encoding: "utf8", env: { ...process.env, GITHUB_REF_NAME: "0.0.83" } });
+  const wrong = run("desktop-v999.0.0");
+  assert.notEqual(wrong.status, 0);
+  assert.match(wrong.stderr, /Desktop tag must match/);
+  const linked = run(`desktop-v${version}`);
+  assert.notEqual(linked.status, 0);
+  assert.doesNotMatch(linked.stderr, /Desktop tag must match/);
+  assert.match(linked.stderr, /ENOENT/);
+});

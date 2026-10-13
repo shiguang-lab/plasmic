@@ -97,7 +97,7 @@ if (
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   const { values } = parseArgs({
-    options: { from: { type: "string" }, output: { type: "string" } },
+    options: { from: { type: "string" }, output: { type: "string" }, tag: { type: "string" } },
   });
   const metadata = JSON.parse(
     await readFile(path.join(desktop, "package.json"), "utf8"),
@@ -106,8 +106,8 @@ if (
     await readFile(path.join(desktop, "desktop.config.json"), "utf8"),
   );
   if (
-    process.env.GITHUB_REF_NAME &&
-    process.env.GITHUB_REF_NAME !== `desktop-v${metadata.version}`
+    values.tag &&
+    values.tag !== `desktop-v${metadata.version}`
   ) {
     throw new Error("Desktop tag must match package.json version");
   }
