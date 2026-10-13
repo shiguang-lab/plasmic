@@ -142,7 +142,10 @@ test(
     await new Promise((resolve) => {
       child.stderr.on("data", (chunk) => {
         stderr += chunk;
-        if (stderr.includes("仍在处理，已等待 2 秒")) {
+        const waiting = /\[资源下载\][^\n]*仍在处理，已等待 (\d+) 秒/.exec(
+          stderr,
+        );
+        if (waiting && Number(waiting[1]) >= 2) {
           resolve();
         }
       });
