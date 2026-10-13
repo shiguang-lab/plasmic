@@ -321,8 +321,12 @@ The server provides these tools:
 
 | Tool                             | Function                                                                                    |
 | -------------------------------- | ------------------------------------------------------------------------------------------- |
-| `get_app_state`                  | Read readiness, project, focused artboard, selection/editing scope and exact editor schemas |
-| `list_projects` / `open_design`  | List accessible NAS projects and open a design                                              |
+| `get_app_state`                  | Read readiness, org/workspace/project, focused artboard, selection/editing scope and exact editor schemas |
+| `get_org` / `list_orgs`           | Read an organization by ID or list accessible organizations with an optional name query      |
+| `create_org` / `open_org`         | Create an organization or open its dashboard                                                |
+| `create_workspace` / `list_workspaces` / `open_workspace` | Create, list or open workspaces; lists can be scoped to an organization |
+| `create_project`                 | Create an empty project in a workspace or the account's personal workspace                  |
+| `list_projects` / `open_design`  | List accessible NAS projects, optionally in a workspace, and open a design                   |
 | `read_skill` / `get_style`       | Editing workflow and local palette/spacing presets                                          |
 | `execute` / `execute_batch`      | Validated edits; a batch rolls back completely on failure and is one undo step              |
 | `snapshot_layout`                | Rendered desktop/mobile geometry and image load status                                      |
@@ -335,6 +339,33 @@ The server provides these tools:
 | `vectorize_image`                | Local raster tracing to SVG paths                                                           |
 | `make_vector`                    | SVG paths and union/intersection/subtraction/xor geometry                                   |
 | `generate_image`                 | Configured Images generation/edit/background service                                        |
+
+Organization tools use `orgId`; the platform stores organizations as Teams and
+returns its existing `team`/`teams`, permissions and member fields. `get_org`
+reads a single organization by ID. `list_orgs` accepts an optional `query` for
+case-insensitive name matching. `create_org` requires `name`; the platform also
+creates the organization's default workspace.
+
+`create_workspace` requires `orgId` and `name`, with optional `description`.
+`list_workspaces` accepts optional `orgId`; omitting it lists all accessible
+workspaces. `open_workspace` requires `workspaceId`. Workspace creation reports
+plan restrictions as errors even when the API returns HTTP 200.
+
+Resolve the design target as Team → Workspace → Project. Look up requested names
+or IDs in each selected parent's scope and reuse a unique match. If an item is
+missing or ambiguous, show the scoped list for selection or authorized creation.
+`list_projects({workspaceId})` lists only that Workspace's projects; omitting
+the ID lists all accessible projects. Resolve the Project before `open_design`,
+then verify its identity, readiness and edit permission before design writes.
+
+`create_project` requires `name`, with optional `workspaceId`, and creates a
+private project. Without a workspace ID, the platform uses the account's
+personal workspace. It returns `project` and `rev`; call `open_design` with
+`project.id` to open the editor. Creation and query tools do not navigate or
+save the active design. `open_org` and `open_workspace` check access before
+saving the active editable design and opening their dashboard; a failed save
+prevents navigation. All management tools use the signed-in Desktop session
+and the platform's existing permission checks.
 
 `execute` supports `identify`, `read`, `createComponent`, `insertHtml`,
 `changeElement`, `deleteElement`, `createState`, `createInteraction`,

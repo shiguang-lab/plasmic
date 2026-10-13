@@ -1,4 +1,10 @@
+import {
+  CmsDetailsLayout,
+  CmsSettingsLayout,
+} from "@/wab/client/components/cms/CmsDetailsLayout";
 import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
+import { CmsModelsListLayout } from "@/wab/client/components/cms/CmsModelsList";
+import { CmsTopBarChrome } from "@/wab/client/components/cms/CmsTopBar";
 import {
   FormSkeleton,
   PillSkeleton,
@@ -8,13 +14,11 @@ import { useI18n } from "@/wab/client/i18n";
 import { PlasmicCmsContentPage } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsContentPage";
 import { PlasmicCmsLeftTabs } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsLeftTabs";
 import { PlasmicCmsModelContent } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelContent";
-import { PlasmicCmsModelsList } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelsList";
 import { PlasmicCmsRoot } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsRoot";
 import { PlasmicCmsSchemaPage } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsSchemaPage";
-import { PlasmicCmsSettingsPage } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsSettingsPage";
-import { PlasmicCmsTopBar } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsTopBar";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Flex, Input, Select, Skeleton } from "antd";
 import * as React from "react";
 
@@ -23,16 +27,14 @@ export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
   const { styles, cx } = useCmsLayoutStyles();
   const modelsList = {
     render: ({ className }: { className?: string }) => (
-      <PlasmicCmsModelsList
+      <CmsModelsListLayout
         className={className}
         isSchemaMode={schema}
         searchInput={{ disabled: true, value: "" }}
-        addModelButton={{
-          render: () => <PillSkeleton width={32} height={32} />,
-        }}
+        addAction={<PillSkeleton width={32} height={32} />}
       >
         <RowsSkeleton rows={5} />
-      </PlasmicCmsModelsList>
+      </CmsModelsListLayout>
     ),
   };
   if (schema) {
@@ -41,9 +43,9 @@ export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
         cmsModelsList={modelsList}
         cmsModelDetails={{
           render: ({ className }) => (
-            <div className={className}>
+            <CmsDetailsLayout className={className}>
               <FormSkeleton />
-            </div>
+            </CmsDetailsLayout>
           ),
         }}
       />
@@ -75,19 +77,19 @@ export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
                       { value: "last-created", label: t("Last created") },
                     ]}
                   />
-                  <RowsSkeleton rows={5} />
+                  <Scrollbar scrollX={false} className={styles.entryList}>
+                    <RowsSkeleton rows={5} />
+                  </Scrollbar>
                 </section>
               ),
             }}
             entryDetail={{
               render: ({ className: detailClassName }) => (
-                <section
-                  className={detailClassName}
-                  role="status"
-                  aria-label={t("Loading content entries…")}
-                >
-                  <FormSkeleton />
-                </section>
+                <CmsDetailsLayout className={detailClassName}>
+                  <div role="status" aria-label={t("Loading content entries…")}>
+                    <FormSkeleton />
+                  </div>
+                </CmsDetailsLayout>
               ),
             }}
           />
@@ -112,7 +114,7 @@ export function CmsLoadingShell({ content }: { content?: React.ReactNode }) {
   const body =
     content ??
     (activeTab === "settings" ? (
-      <PlasmicCmsSettingsPage
+      <CmsSettingsLayout
         details={{ render: () => <Skeleton.Input active size="small" /> }}
         duplicateButton={{ disabled: true }}
         saveButton={{ disabled: true }}
@@ -136,12 +138,9 @@ export function CmsLoadingShell({ content }: { content?: React.ReactNode }) {
       activeTab={activeTab}
       cmsTopBar={{
         render: ({ className }) => (
-          <PlasmicCmsTopBar
-            className={className}
-            cmsName={{
-              render: () => <Skeleton.Input active style={{ width: 200 }} />,
-            }}
-          />
+          <CmsTopBarChrome className={className}>
+            <Skeleton.Input active style={{ width: 200 }} />
+          </CmsTopBarChrome>
         ),
       }}
       cmsLeftTabs={{

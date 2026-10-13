@@ -6,6 +6,7 @@ import {
   PlasmicMessagePartPopoverContent__OverridesType,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicMessagePartPopoverContent";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 export interface MessagePartPopoverContentProps extends DefaultMessagePartPopoverContentProps {
@@ -16,7 +17,18 @@ function MessagePartPopoverContent_(
   props: MessagePartPopoverContentProps,
   ref: HTMLElementRefOf<"div">,
 ) {
-  return <PlasmicMessagePartPopoverContent root={{ ref }} {...props} />;
+  return (
+    <PlasmicMessagePartPopoverContent
+      root={{
+        as: Scrollbar,
+        ref,
+        className: "studio-scrollbar",
+        style: { overflow: "hidden" },
+        props: { scrollX: false },
+      }}
+      {...props}
+    />
+  );
 }
 
 const MessagePartPopoverContent = React.forwardRef(MessagePartPopoverContent_);

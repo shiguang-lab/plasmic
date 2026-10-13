@@ -38,6 +38,7 @@ Map actual behavior rather than matching tool names.
 | Capability | Plasmic status |
 | --- | --- |
 | App/project discovery and permission checks | Implemented; authenticated MCP accepted |
+| Organization queries/creation, workspace lists/creation, dashboard navigation and project creation | Implemented; controller and stdio/RPC tests cover schemas, permissions, plan restrictions and navigation saves; authenticated NAS acceptance pending |
 | Read editable hierarchy and component contracts | Implemented; accepted |
 | Insert/update/replace/delete nodes | Implemented via validated Studio operations; core edits accepted |
 | State bindings and event interactions | Implemented; real preview increment accepted |

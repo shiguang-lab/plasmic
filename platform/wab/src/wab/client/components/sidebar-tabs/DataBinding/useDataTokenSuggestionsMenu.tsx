@@ -87,6 +87,7 @@ export function useDataTokenSuggestionsMenu(
       style={{
         width: anchorWidth,
         minWidth: 240,
+        maxHeight: 200,
         ...overlayProps.style,
         // This is to avoid downshift dev-logs every render
         ...(isMenuOpen ? undefined : { display: "none" }),
@@ -96,7 +97,6 @@ export function useDataTokenSuggestionsMenu(
         {...getMenuProps({
           "data-test-id": "data-token-suggestions",
           className: "m0 p0",
-          style: { maxHeight: 200, overflowY: "auto" },
           // Clicking in the list must not blur the input
           onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
         } as any)}

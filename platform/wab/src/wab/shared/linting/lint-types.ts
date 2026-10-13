@@ -57,6 +57,8 @@ export interface ChoicePropValuesLintIssue extends BaseLintIssue {
   component: Component;
   tpl: TplNode;
   propName: string;
+  value: unknown;
+  allowedValues: unknown[];
 }
 
 export interface UnprotectedDataQueryLintIssue extends BaseLintIssue {

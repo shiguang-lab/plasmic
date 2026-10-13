@@ -5,6 +5,7 @@ import ReferenceItem from "@/wab/client/components/sidebar/ReferenceItem";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { TokenEditModal } from "@/wab/client/components/sidebar/TokenEditModal";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { UiText } from "@/wab/client/i18n/UiText";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
@@ -249,8 +250,9 @@ export const FindReferencesModal = observer(
         }
         onClose={() => props.onClose()}
       >
-        <PlasmicFindReferencesModal>
+        <PlasmicFindReferencesModal root={{ style: { overflow: "hidden" } }}>
           <VariableSizeList
+            outerElementType={VirtualListScrollbar}
             height={height}
             itemSize={itemSizer}
             itemData={items}

@@ -311,9 +311,9 @@ export function CmsListInput(props: any) {
       {(items, handles) => {
         return (
           <>
-            {!disabled && (
-              <Form.Item label={label}>
-                <div style={{ marginBottom: 8, display: "flex", gap: 8 }}>
+            <Form.Item label={label}>
+              <div style={{ marginBottom: 8, display: "flex", gap: 8 }}>
+                {!disabled && (
                   <Button
                     withIcons={"startIcon"}
                     startIcon={<Icon icon={PlusIcon} />}
@@ -324,70 +324,68 @@ export function CmsListInput(props: any) {
                     {" "}
                     <UiText message={"Add item"} />{" "}
                   </Button>
-                  {items.length > 1 && (
-                    <>
-                      <Button
-                        onClick={() => {
-                          setExpandedKeys(
-                            items.map((item) => String(item.key)),
-                          );
+                )}
+                {items.length > 1 && (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setExpandedKeys(items.map((item) => String(item.key)));
+                      }}
+                      type="secondary"
+                    >
+                      <UiText message={"Expand all"} />
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setExpandedKeys([]);
+                      }}
+                      type="secondary"
+                    >
+                      <UiText message={"Collapse all"} />
+                    </Button>
+                  </>
+                )}
+              </div>
+              <Collapse
+                activeKey={expandedKeys}
+                onChange={(keys) => setExpandedKeys(keys)}
+              >
+                {items.map(({ key, name, ...restField }) => {
+                  const subtype: CmsTypeObject = {
+                    type: CmsMetaType.OBJECT,
+                    fields: typeMeta.fields,
+                  };
+                  return (
+                    <Collapse.Panel
+                      key={key}
+                      header={
+                        <CmsListItemHeader
+                          index={name}
+                          itemCount={items.length}
+                          disabled={disabled}
+                          onMove={handles.move}
+                          onRemove={handles.remove}
+                        />
+                      }
+                    >
+                      <ContentEntryFormContext.Provider
+                        value={{
+                          disabled,
+                          typeMeta: subtype,
+                          database,
+                          name: [name],
+                          directlyInsideList: true,
                         }}
-                        type="secondary"
                       >
-                        <UiText message={"Expand all"} />
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setExpandedKeys([]);
-                        }}
-                        type="secondary"
-                      >
-                        <UiText message={"Collapse all"} />
-                      </Button>
-                    </>
-                  )}
-                </div>
-                <Collapse
-                  activeKey={expandedKeys}
-                  onChange={(keys) => setExpandedKeys(keys)}
-                >
-                  {items.map(({ key, name, ...restField }) => {
-                    const subtype: CmsTypeObject = {
-                      type: CmsMetaType.OBJECT,
-                      fields: typeMeta.fields,
-                    };
-                    return (
-                      <Collapse.Panel
-                        key={key}
-                        header={
-                          <CmsListItemHeader
-                            index={name}
-                            itemCount={items.length}
-                            disabled={disabled}
-                            onMove={handles.move}
-                            onRemove={handles.remove}
-                          />
-                        }
-                      >
-                        <ContentEntryFormContext.Provider
-                          value={{
-                            disabled,
-                            typeMeta: subtype,
-                            database,
-                            name: [name],
-                            directlyInsideList: true,
-                          }}
-                        >
-                          <Form.Item noStyle name={[name]} {...restField}>
-                            <CmsObjectInput />
-                          </Form.Item>
-                        </ContentEntryFormContext.Provider>
-                      </Collapse.Panel>
-                    );
-                  })}
-                </Collapse>
-              </Form.Item>
-            )}
+                        <Form.Item noStyle name={[name]} {...restField}>
+                          <CmsObjectInput />
+                        </Form.Item>
+                      </ContentEntryFormContext.Provider>
+                    </Collapse.Panel>
+                  );
+                })}
+              </Collapse>
+            </Form.Item>
           </>
         );
       }}
@@ -674,6 +672,7 @@ export function CmsColorInput(props: {
       container: colorPickerRef.current!,
       showAlways: !disabled,
       inline: !disabled,
+      disabled,
       theme: "nano",
       default: value ?? "#ffffff",
       components: {
@@ -742,14 +741,14 @@ export function CmsRichTextInput({
 }
 
 export function CmsEnumInput(props: any) {
-  const { typeMeta } = useContentEntryFormContext();
+  const { typeMeta, disabled } = useContentEntryFormContext();
 
   if (typeMeta.type !== CmsMetaType.ENUM) {
     return null;
   }
 
   return (
-    <Select {...props} type={"bordered"}>
+    <Select {...props} isDisabled={disabled} type={"bordered"}>
       <Select.Option value={undefined}>
         <UiText message={"Unset"} />
       </Select.Option>

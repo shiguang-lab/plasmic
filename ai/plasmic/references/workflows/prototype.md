@@ -1,6 +1,10 @@
 # Product prototype workflow
 
-Use for creating or revising editable designs. Read Desktop readiness and live operation schemas, identify the session and require `canEdit` before mutations. Explain/review-only tasks use inspect. Missing MCP capabilities do not authorize private design APIs or platform implementation.
+Use for creating or revising editable designs. Resolve the target project before checking editor readiness; Studio mutations require `canEdit`. Explain/review-only tasks use inspect. Missing MCP capabilities do not authorize private design APIs or platform implementation.
+
+## Target project
+
+Resolve Team → Workspace → Project through [project management](../desktop-management.md) before reading libraries or editing. Find named resources first and reuse a unique match. For missing or ambiguous targets, show the scoped list and offer existing or new choices. Open the chosen Project, reread its identity/schemas, and require `canEdit` before design edits. Reuse an already established target when the requested scope still matches.
 
 ## Scope and selected references
 
@@ -24,6 +28,6 @@ Use the requested platforms/viewport. For PC-only generation use the live Deskto
 
 Run relevant source-derived structural gates from the selected references against public readbacks: route/menu coverage, intended component/Slot ownership, information groups and Forms where applicable. A focused edit does not require rebuilding unrelated pages or expecting unrelated existing content to match a new design inventory. Full regeneration retains full-project gates.
 
-Use [rendered inspection](../desktop-inspection.md) for screenshots, geometry and real Preview interactions at the actual viewport. Exercise required default/hidden states, Tabs, overlays, errors, processing and navigation. Inspect changed labels, content and long/empty values. Record identity, viewport, concrete observations and pass/fail; a list of captures is not visual review. `validate` proves model integrity only.
+Use [rendered inspection](../desktop-inspection.md) for screenshots, geometry and real Preview interactions at the actual viewport. Every affected standalone AppShell Page must pass [viewport shell height acceptance](../design/layout.md#viewport-shell-height-acceptance), including its model/geometry gate, shorter live Preview and post-reload height check. Exercise required default/hidden states, Tabs, overlays, errors, processing and navigation. Inspect changed labels, content and long/empty values. Record identity, viewport, concrete observations and pass/fail; a list of captures is not visual review. `validate` proves model integrity only.
 
 Save explicitly, record the available revision, reopen and reread affected models, bindings and initial closed overlays. Recheck relevant Preview behavior and images after reopen. Report sources/resource release, actual template mechanism, checks, mock/API boundaries and limitations. Saving alone does not pass acceptance; publishing requires the user's task to authorize it.

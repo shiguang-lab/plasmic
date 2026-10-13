@@ -284,9 +284,26 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
               !subsectionMeta.webhooks.enable),
           onClick: publish,
           id: "publish-flow-dialog-publish-btn",
-          ...(loadingVersion && { children: t("Loading...") }),
+          children: loadingVersion
+            ? t("Loading...")
+            : appCtx.appConfig.enablePlasmicHosting &&
+                subsectionMeta.plasmicHosting.enable
+              ? t(
+                  subsectionMeta.saveVersion.enable
+                    ? "Save version and publish website"
+                    : "Publish website",
+                )
+              : subsectionMeta.pushDeploy.enable ||
+                  subsectionMeta.webhooks.enable
+                ? t(
+                    subsectionMeta.saveVersion.enable
+                      ? "Save version and run integrations"
+                      : "Run integrations",
+                  )
+                : t("Save version"),
         }}
         startOverButton={{
+          children: t("Back to publishing settings"),
           onClick: () => {
             subsectionMeta.webhooks.setup.resetWebhookEnabled();
             resetStatus();

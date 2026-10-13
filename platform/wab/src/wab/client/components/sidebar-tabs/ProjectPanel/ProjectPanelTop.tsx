@@ -27,6 +27,7 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import {
   Alert,
   Button,
@@ -55,7 +56,7 @@ const useStyles = createStyles(({ token }) => ({
     marginBottom: 8,
   },
   loading: { display: "flex", justifyContent: "center", padding: 32 },
-  list: { maxHeight: "min(400px, 50vh)", overflowY: "auto", marginTop: 8 },
+  list: { maxHeight: "min(400px, 50vh)", minHeight: 0, marginTop: 8 },
   section: { padding: 8, fontSize: 12, color: token.colorTextSecondary },
   row: { display: "flex", alignItems: "center", gap: 4 },
   branch: {
@@ -404,7 +405,7 @@ function BranchPanelTop_(
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
-      <div className={styles.list}>
+      <Scrollbar scrollX={false} className={styles.list}>
         {shownActiveBranches.length > 0 && (
           <>
             <div className={styles.section}>{t("Active Branches")}</div>
@@ -423,7 +424,7 @@ function BranchPanelTop_(
             description={t("No branches found")}
           />
         )}
-      </div>
+      </Scrollbar>
     </div>
   );
 }
@@ -611,9 +612,13 @@ function showBranchPermissionError(action: "create" | "delete") {
   notification.error({
     message: <UiText message="Permission denied" />,
     description: (
-      <UiText message={action === "create"
-        ? "You do not have permission to create branches in this project."
-        : "You do not have permission to delete branches in this project."} />
+      <UiText
+        message={
+          action === "create"
+            ? "You do not have permission to create branches in this project."
+            : "You do not have permission to delete branches in this project."
+        }
+      />
     ),
   });
 }

@@ -7,8 +7,8 @@ type RichTextEditorProps = {
   readOnly?: boolean;
 };
 
-export function RichTextEditor(props: RichTextEditorProps) {
-  return <TinyEditor {...props} />;
+export function RichTextEditor({ readOnly, ...props }: RichTextEditorProps) {
+  return <TinyEditor {...props} disabled={readOnly} />;
 }
 
 export default RichTextEditor;

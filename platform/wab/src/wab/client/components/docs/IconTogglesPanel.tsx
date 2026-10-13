@@ -11,6 +11,7 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicIconTogglesPanel";
 import { makeAssetClassName } from "@/wab/shared/codegen/image-assets";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocalStorage } from "react-use";
@@ -36,6 +37,11 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
   return (
     <PlasmicIconTogglesPanel
       {...props}
+      body={{
+        as: Scrollbar,
+        style: { overflow: "hidden" },
+        props: { scrollX: false },
+      }}
       explanation={{
         defaultExpanded: !dismissed,
         children: <IconTogglesInfo />,

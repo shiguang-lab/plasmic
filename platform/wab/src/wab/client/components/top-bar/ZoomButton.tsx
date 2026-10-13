@@ -237,7 +237,7 @@ export const ZoomButton = observer(function ZoomButton() {
       menu={menu}
       placement="top"
       onVisibleChange={setOpen}
-      overlayStyle={{ maxHeight: "calc(100vh - 120px)", overflowY: "auto" }}
+      overlayStyle={{ maxHeight: "calc(100vh - 120px)", overflow: "hidden" }}
     >
       <PlasmicZoomButton
         root={{

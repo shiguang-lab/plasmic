@@ -4,12 +4,12 @@ This is a Next.js project bootstrapped with [`create-plasmic-app`](https://www.n
 
 Integrated with Plasmic by following the [Supabase Auth Pages](https://supabase.com/docs/guides/auth/auth-helpers/nextjs-pages) guide.
 
-- In [CustomCloudinaryControl](./components/CustomCloudinaryControl.tsx) the scripts for the Cloudinary widget are loaded and the widget is initialized. The studioDocument provided by Plasmic is used to load the script in the proper window.
-- In [Next Config](./next.config.js) the cloudinary host is added to the list of remote patterns so that cloudinary assets can be used in Next Image.
+- In [CustomCloudinaryControl](components/CustomCloudinaryControl.tsx) the scripts for the Cloudinary widget are loaded and the widget is initialized. The studioDocument provided by Plasmic is used to load the script in the proper window.
+- In [Next Config](next.config.js) the cloudinary host is added to the list of remote patterns so that cloudinary assets can be used in Next Image.
 
 ## Getting Started
 
-First, update [CustomCloudinaryControl](./components/CustomCloudinaryControl.tsx) with your cloud name and api key.
+First, update [CustomCloudinaryControl](components/CustomCloudinaryControl.tsx) with your cloud name and api key.
 
 Then run the development server:
 

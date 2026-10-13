@@ -1,9 +1,14 @@
 import {
+  CmsDetailsLayout,
+  CmsModelDetailsLayout,
+} from "@/wab/client/components/cms/CmsDetailsLayout";
+import {
   ContentEntryFormContext,
   ValueSwitch,
   renderEntryField,
   renderMaybeLocalizedInput,
 } from "@/wab/client/components/cms/CmsInputs";
+import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import {
   useCmsDatabase,
   useCmsTable,
@@ -25,10 +30,7 @@ import { translate } from "@/wab/client/i18n/locales";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import Trash2Icon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
-import {
-  DefaultCmsModelDetailsProps,
-  PlasmicCmsModelDetails,
-} from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelDetails";
+import { DefaultCmsModelDetailsProps } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelDetails";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { useBeforeNavigation } from "@/wab/client/route/useBeforeNavigation";
 import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
@@ -417,6 +419,7 @@ export function CmsModelDetails_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { t: studioUiT } = useI18n();
+  const { styles } = useCmsLayoutStyles();
 
   const api = useApi();
   const match = useMatchedRoute(APP_ROUTES.cmsModelSchema)!;
@@ -484,14 +487,18 @@ export function CmsModelDetails_(
     React.useState<undefined | string>(undefined);
 
   if (!database || !table) {
-    return <FormSkeleton />;
+    return (
+      <CmsDetailsLayout className={props.className}>
+        <FormSkeleton />
+      </CmsDetailsLayout>
+    );
   }
 
   return (
     <>
       <Form
         form={form}
-        className={"max-scrollable fill-width"}
+        className={styles.form}
         layout={"vertical"}
         initialValues={table}
         labelCol={{ span: 8 }}
@@ -510,18 +517,24 @@ export function CmsModelDetails_(
         }}
       >
         <div style={{ color: "#a00" }}>{formValidationErrorMessage}</div>
-        <PlasmicCmsModelDetails
-          root={{ ref }}
+        <CmsModelDetailsLayout
+          ref={ref}
           {...props}
           saveButton={{
-            onClick: async () => {
-              if (!computeFormValidationErrorMessage()) {
-                await updateSchema();
-                await message.success(studioUiT("Saved!"));
-              }
+            onClick: () => {
+              spawn(
+                (async () => {
+                  if (!computeFormValidationErrorMessage()) {
+                    await updateSchema();
+                    await message.success(studioUiT("Saved!"));
+                  }
+                })(),
+              );
             },
             disabled: !!formValidationErrorMessage || isSaving || !hasChanged,
-            children: isSaving ? "Saving..." : hasChanged ? "Save" : "Saved",
+            children: studioUiT(
+              isSaving ? "Saving..." : hasChanged ? "Save" : "Saved",
+            ),
           }}
           menuButton={{
             menu: () => (

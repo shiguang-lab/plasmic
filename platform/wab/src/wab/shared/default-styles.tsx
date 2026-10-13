@@ -164,7 +164,9 @@ export const getSimplifiedStyles = (
   prefs: AddItemPrefs | undefined,
 ) => {
   if (!DEVFLAGS.simplifiedLayout) {
-    return {};
+    return prefs?.[itemKey as AddItemKey]
+      ? ruleSetToStyles(prefs[itemKey as AddItemKey])
+      : {};
   }
   return getDefaultStyles(itemKey, prefs);
 };

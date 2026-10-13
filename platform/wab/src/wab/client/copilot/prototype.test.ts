@@ -3,6 +3,7 @@ import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
+import { fillVirtualSlotContents, isSlot } from "@/wab/shared/SlotUtils";
 import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
@@ -19,6 +20,7 @@ import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
 import { flattenTpls, mkSlot, mkTplTagX } from "@/wab/shared/core/tpls";
 import {
   ProjectDependency,
+  DataToken,
   isKnownTplComponent,
   isKnownTplTag,
 } from "@/wab/shared/model/classes";
@@ -2045,4 +2047,43 @@ describe("AI prototype editor tools", () => {
     vi.spyOn(studioCtx, "save").mockResolvedValue("TimedOut");
     await expect(call("save")).rejects.toThrow("did not persist");
   });
+});
+
+it("discovers text, number and expression data tokens through project read without changing their identities", async () => {
+  const site = createSite();
+  const tokens = [
+    ["TextValue", '"中文"', "string", "中文"],
+    ["NumberValue", "26", "number", "26"],
+    ["ExpressionValue", "(13 * 2)", "code", "13 * 2"],
+  ] as const;
+  site.dataTokens.push(...tokens.map(([name, value]) => new DataToken({ name, value, type: "Data", uuid: name, variantedValues: [], isRegistered: false, regKey: undefined })));
+  const { call, studioCtx } = fixture(site);
+  const before = studioCtx._changeCounter;
+  const resource = (await call("read")).results[0];
+  expect(resource.dataTokens).toEqual(tokens.map(([name, _value, type, value]) => expect.objectContaining({ name, uuid: name, type, value, reference: expect.stringContaining(name.charAt(0).toLowerCase() + name.slice(1)) })));
+  expect(studioCtx._changeCounter).toBe(before);
+  studioCtx.copilotActivity.dispose();
+});
+
+it("marks inherited slot nodes as readonly and locates their real source contract", async () => {
+  const { studioCtx, call, createPage } = fixture();
+  const source = (await call("createComponent", { name: "AuditReusable", type: "component" })).results[0];
+  await call("insertHtml", { componentUuid: source.uuid, html: '<div><slot-target name="children"><span>Inherited label</span></slot-target></div>' });
+  const page = await createPage("AuditConsumer");
+  await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="AuditReusable"></plasmic-component>' });
+  const instance = ensure(flattenTpls(page.tplTree).find(isKnownTplComponent), "instance");
+  await call("changeElement", { componentUuid: page.uuid, elementUuid: instance.uuid, resetProps: ["children"] });
+  const slotParam = ensure(instance.component.params.find(isSlot), "source slot param");
+  runInAction(() => fillVirtualSlotContents(studioCtx.tplMgr(), instance, [slotParam.tplSlot]));
+  const model = (await call("read", { componentUuids: [page.uuid] })).results[0];
+  expect(model.baseVariantTplTree).toContain('data-editable="false"');
+  expect(model.baseVariantTplTree).toContain('data-source-component="' + source.uuid + '"');
+  expect(model.baseVariantTplTree).toContain('data-source-slot="children"');
+  const sourceModel = (await call("read", { componentUuids: [source.uuid] })).results[0];
+  expect(sourceModel.baseVariantTplTree).not.toContain('data-editable="false"');
+  const sourceComponent = ensure(studioCtx.site.components.find(c => c.uuid === source.uuid), "source");
+  const span = ensure(flattenTpls(sourceComponent.tplTree).find(t => isKnownTplTag(t) && t.tag === "span"), "default span");
+  await call("changeElement", { componentUuid: source.uuid, elementUuid: span.uuid, text: "Source edited" });
+  expect((await call("read", { componentUuids: [source.uuid] })).results[0].baseVariantTplTree).toContain("Source edited");
+  studioCtx.copilotActivity.dispose();
 });

@@ -219,7 +219,13 @@ function DefaultLayout_(
       }}
       headerLogoLink={{
         render: () => (
-          <div className={styles.brandLink}>
+          <div
+            className={cx(
+              styles.brandLink,
+              navigator.userAgent.includes("PlasmicDesktop/darwin") &&
+                styles.desktopBrand,
+            )}
+          >
             <BrandLink brand={brand} />
           </div>
         ),

@@ -19,6 +19,7 @@ import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { naturalSort } from "@/wab/shared/sort";
 import { PlusOutlined } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Empty, Flex, Input, Select, Typography } from "antd";
 import fastStringify from "fast-stringify";
 import { debounce } from "lodash";
@@ -221,7 +222,7 @@ function CmsEntriesList_(
           title={t("Failed to create content entry")}
         />
       )}
-      <div className={styles.entryList}>
+      <Scrollbar scrollX={false} className={styles.entryList}>
         {!rows || !table ? (
           <div role="status" aria-label={t("Loading content entries…")}>
             <RowsSkeleton rows={5} />
@@ -240,7 +241,7 @@ function CmsEntriesList_(
             }
           />
         )}
-      </div>
+      </Scrollbar>
     </section>
   );
 }

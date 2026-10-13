@@ -316,3 +316,46 @@ test("Unified login intermediate page is bundled and never goes to the NAS or SP
     assert((await image.arrayBuffer()).byteLength > 0);
   }
 });
+test("local source builds load bundled managed registrations while all other API requests stay remote", async () => {
+  const bundled = createAssetHandler({
+    root,
+    ...config,
+    localCanvasLibraries: { antd6: "static/antd6.js" },
+    remoteFetch: () => new Response("remote", { status: 201 }),
+  });
+  for (const suffix of ["", "?version=old-pinned-version"]) {
+    const url =
+      config.studioOrigin + "/api/v1/hostless-libraries/antd6/canvas" + suffix;
+    const result = await bundled(new Request(url));
+    assert.equal(await result.text(), "window.antd6 = true;");
+    assert.equal(result.headers.get("X-Plasmic-Desktop-Asset"), "local");
+    const head = await bundled(new Request(url, { method: "HEAD" }));
+    assert.equal(await head.text(), "");
+  }
+  for (const route of [
+    "/api/v1/hostless-libraries/custom/canvas",
+    "/api/v1/hostless-libraries/antd6",
+    "/api/v1/projects",
+  ]) {
+    assert.equal(
+      (await bundled(new Request(config.studioOrigin + route))).status,
+      201,
+    );
+  }
+  const release = createAssetHandler({
+    root,
+    ...config,
+    remoteFetch: () => new Response("pinned"),
+  });
+  assert.equal(
+    await (
+      await release(
+        new Request(
+          config.studioOrigin +
+            "/api/v1/hostless-libraries/antd6/canvas?version=1",
+        ),
+      )
+    ).text(),
+    "pinned",
+  );
+});

@@ -13,6 +13,10 @@ import jaJP from "antd/locale/ja_JP";
 import koKR from "antd/locale/ko_KR";
 import zhCN from "antd/locale/zh_CN";
 import zhTW from "antd/locale/zh_TW";
+import "dayjs/locale/ja";
+import "dayjs/locale/ko";
+import "dayjs/locale/zh-cn";
+import "dayjs/locale/zh-tw";
 import * as React from "react";
 
 // Port of the antd v4 less variables from antd-overrides.less.

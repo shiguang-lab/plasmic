@@ -1594,6 +1594,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           projectId: studio.siteInfo.id,
           components: true,
           tokens: true,
+          dataTokens: true,
           screenBreakpoints: true,
           globalVariants: true,
         }),

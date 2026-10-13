@@ -11,7 +11,8 @@ export type ChoiceOptions<T extends ChoiceValue = ChoiceValue> =
 
 export interface ChoiceCore<Ctx extends any[], T extends ChoiceValue> {
   type: "choice";
-  options: MaybeContextDependentConfig<Ctx, ChoiceOptions<T>>;
+  // Undefined means choices cannot yet be determined; [] is a known empty list.
+  options: MaybeContextDependentConfig<Ctx, ChoiceOptions<T> | undefined>;
   multiSelect?: MaybeContextDependentConfig<Ctx, boolean>;
   allowSearch?: boolean;
   filterOption?: boolean;

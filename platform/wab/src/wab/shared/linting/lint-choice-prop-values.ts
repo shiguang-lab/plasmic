@@ -116,17 +116,27 @@ const lintComponent = maybeComputedFn(
           if (options && isKnownExpr(expr)) {
             const { val } = tryEvalExpr(asCode(expr, exprCtx).code, {});
 
-            if (val && !valueInOptions(options, val)) {
+            if (val !== undefined && !valueInOptions(options, val)) {
+              const allowedValues = options.flatMap((option) =>
+                isObject(option) && "values" in option
+                  ? (option.values as ChoiceObject[]).map(
+                      (choice) => choice.value,
+                    )
+                  : [
+                      isObject(option) && "value" in option
+                        ? option.value
+                        : option,
+                    ],
+              );
               issues.push({
-                key: makeIssueKey(tpl.component, tpl),
+                key: `${makeIssueKey(tpl.component, tpl)}-${arg.param.uuid}-${vs.variants.map((variant) => variant.uuid).join(",")}-${JSON.stringify([val, allowedValues])}`,
                 type: TYPE,
                 tpl,
                 component,
                 propName: arg.param.variable.name,
+                value: val,
+                allowedValues,
               });
-              // Only show one issue per variant, since there's a
-              // UI indicator next to each invalid prop
-              break;
             }
           }
         }

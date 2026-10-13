@@ -11,7 +11,7 @@ npm run dev
 ```
 
 Then open [http://localhost:3000](http://localhost:3000). To use your own project,
-replace the `id` and `token` in [`plasmic-init.ts`](./plasmic-init.ts).
+replace the `id` and `token` in [`plasmic-init.ts`](plasmic-init.ts).
 
 ## Learn More
 

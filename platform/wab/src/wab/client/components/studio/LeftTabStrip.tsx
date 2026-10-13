@@ -35,6 +35,7 @@ import {
   LeftTabUiKey,
   getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Popover } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -367,12 +368,12 @@ More
                   }
                 }}
                 content={
-                  <div
+                  <Scrollbar
+                    scrollX={false}
                     className={popupStyles.root}
                     style={{
                       minWidth: 200,
                       maxHeight: "calc(100vh - 120px)",
-                      overflowY: "auto",
                     }}
                   >
                     <div
@@ -385,7 +386,7 @@ More
                         ),
                       )}
                     </div>
-                  </div>
+                  </Scrollbar>
                 }
               >
                 <span style={{ display: "inline-flex" }}>

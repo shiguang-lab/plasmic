@@ -21,6 +21,7 @@ import {
   isTplTagOrComponent,
 } from "@/wab/shared/core/tpls";
 import { Component } from "@/wab/shared/model/classes";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocalStorage } from "react-use";
@@ -62,6 +63,11 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
   return (
     <SidebarModalProvider>
       <PlasmicComponentTogglesPanel
+        body={{
+          as: Scrollbar,
+          style: { overflow: "hidden" },
+          props: { scrollX: false },
+        }}
         explanation={{
           defaultExpanded: !dismissed,
           children: (isExpanded) =>

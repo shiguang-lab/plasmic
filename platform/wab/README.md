@@ -13,9 +13,9 @@ This includes:
 
 ## Docs
 
-Additional docs live in [`docs/`](./docs):
+Additional docs live in [`docs/`](docs):
 
-- [`docs/ICONS.md`](./docs/ICONS.md) - how to add and use SVG icons
+- [`docs/ICONS.md`](docs/ICONS.md) - how to add and use SVG icons
 
 ## Directory structure
 

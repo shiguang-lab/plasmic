@@ -1,12 +1,22 @@
 import CmsRoot from "@/wab/client/components/cms/CmsRoot";
 import { CmsDatabaseId } from "@/wab/shared/ApiSchema";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import * as React from "react";
 import { SWRConfig } from "swr";
 
 const mocks = vi.hoisted(() => ({ getDatabase: vi.fn() }));
-vi.mock("@/wab/client/contexts/AppContexts", () => ({
+vi.mock("@/wab/client/contexts/AppContexts", async () => ({
+  AppCtxContext: (await import("react")).createContext(undefined),
   useApi: () => ({ getCmsDatabase: mocks.getDatabase }),
+}));
+vi.mock("@/wab/client/components/PublicLink", () => ({
+  PublicLink: (props) => <a {...props} />,
 }));
 vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (message: string) => message }),
@@ -31,6 +41,23 @@ beforeEach(() => {
       disconnect = vi.fn();
     },
   );
+});
+
+it("updates the window title when entering a different content library", async () => {
+  mocks.getDatabase.mockImplementation(async (id) => ({
+    id,
+    name: id === "db1" ? "Audit CMS" : "Second CMS",
+    tables: [],
+  }));
+  const wrapper = ({ children }: React.PropsWithChildren) => (
+    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+  );
+  const view = render(<CmsRoot databaseId={"db1" as CmsDatabaseId} />, {
+    wrapper,
+  });
+  await waitFor(() => expect(document.title).toBe("Audit CMS - Plasmic"));
+  view.rerender(<CmsRoot databaseId={"db2" as CmsDatabaseId} />);
+  await waitFor(() => expect(document.title).toBe("Second CMS - Plasmic"));
 });
 afterEach(() => {
   vi.unstubAllGlobals();

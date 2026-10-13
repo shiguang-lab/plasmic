@@ -2,10 +2,10 @@
 
 This is an example of how to use Plasmic with custom targeting. Following the code in [Docs](https://docs.plasmic.app/learn/rendering-variations/).
 
-- In [plasmic-init](./plasmic-init.ts) it's defined the custom targetting traits `utm_source` and `browser`;
-- In [middleware](./middleware.ts) both the values of `utm_source` and `browser` are passed to `getMiddlewareResponse`;
-- In [Catch All](./pages/[[...catchall]].tsx) the `getActiveVariation` function is called to extract the variation based on the custom targetting traits.
-- In [Catch All](./pages/[[...catchall]].tsx) the `generateAllPathsWithTraits` function is called to generate all the possible paths based on the custom targetting traits.
+- In [plasmic-init](plasmic-init.ts) it's defined the custom targetting traits `utm_source` and `browser`;
+- In [middleware](middleware.ts) both the values of `utm_source` and `browser` are passed to `getMiddlewareResponse`;
+- In [Catch All](pages/[[...catchall]].tsx) the `getActiveVariation` function is called to extract the variation based on the custom targetting traits.
+- In [Catch All](pages/[[...catchall]].tsx) the `generateAllPathsWithTraits` function is called to generate all the possible paths based on the custom targetting traits.
 
 To open the corresponding Plasmic project (cloning it if you wish):
 

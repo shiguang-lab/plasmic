@@ -60,6 +60,15 @@ it("fails on invalid source rather than silently skipping scan coverage", () => 
 });
 
 it.each([
+  ["components/cms/CmsModelDetails.tsx", ["Saved", "Save", "Saving..."]],
+  [
+    "components/cms/CmsSettingsPage.tsx",
+    ["Duplicate CMS Schema", "Duplicating...", "Save"],
+  ],
+  [
+    "components/cms/CmsEntryDetails.tsx",
+    ["Auto-saved.", "Saving draft...", "Edited.", "Publish", "Publishing..."],
+  ],
   [
     "components/comments/CommentIndicatorIcon.tsx",
     ["comment", "comments", "replies"],

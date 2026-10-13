@@ -301,7 +301,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
           ),
         })}
       >
-        <div
+        {hasVariant($state, "urlValidationStatus", "invalid") && <div
           className={classNames("all", sty.freeBox__oOj3, {
             [sty.freeBoxurlValidationStatus_invalid__oOj3VmYfF]: hasVariant(
               $state,
@@ -358,8 +358,8 @@ function PlasmicHostUrlInput__RenderFunc(props: {
           >
             {<UiText message={"Please enter a valid URL."} />}
           </div>
-        </div>
-        <div
+        </div>}
+        {hasVariant($state, "urlValidationStatus", "valid") && <div
           className={classNames("all", sty.freeBox__g5LjN, {
             [sty.freeBoxurlValidationStatus_invalid__g5LjNvmYfF]: hasVariant(
               $state,
@@ -422,7 +422,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
               </span>
             </React.Fragment>
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   ) as React.ReactElement | null;

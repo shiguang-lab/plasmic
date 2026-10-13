@@ -1,6 +1,7 @@
 import sty from "@/wab/client/components/coding/CodeDisplay.module.css";
 import { useUiAppearance } from "@/wab/client/ui-theme";
 import { cx } from "@/wab/shared/common";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import Highlight, { defaultProps, Language } from "prism-react-renderer";
 import lightTheme from "prism-react-renderer/themes/github";
 import darkTheme from "prism-react-renderer/themes/vsDark";
@@ -22,18 +23,20 @@ export function CodeDisplay(props: {
       theme={appearance === "dark" ? darkTheme : lightTheme}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
-        <pre
-          className={`${className} ${sty.root} ${props.className}`}
+        <Scrollbar
+          className={cx(sty.root, props.className)}
           style={{ ...style, ...props.style }}
         >
-          {tokens.map((line, i) => (
-            <div {...getLineProps({ line, key: i })}>
-              {line.map((token, key) => (
-                <span {...getTokenProps({ token, key })} />
-              ))}
-            </div>
-          ))}
-        </pre>
+          <pre className={className} style={style}>
+            {tokens.map((line, i) => (
+              <div {...getLineProps({ line, key: i })}>
+                {line.map((token, key) => (
+                  <span {...getTokenProps({ token, key })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        </Scrollbar>
       )}
     </Highlight>
   );

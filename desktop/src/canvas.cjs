@@ -421,6 +421,21 @@ async function renderCanvas(win, input = {}) {
         throw new Error("WebP encoding is unavailable");
       webp = Buffer.from(encoded.split(",")[1], "base64");
     }
+    if (input.format === "pdf") {
+      // Print one bounded artboard, including when authored content is taller.
+      // CSS page dimensions avoid rounding mismatches at the pagination edge.
+      await preview.webContents.executeJavaScript(`(() => {
+        const style = document.createElement("style");
+        style.textContent = ${JSON.stringify(`@media print {
+          @page { size: ${width}px ${height}px; margin: 0; }
+          html, body { width: ${width}px !important; height: ${height}px !important;
+            min-height: 0 !important; max-height: ${height}px !important;
+            margin: 0 !important; padding: 0 !important; overflow: hidden !important;
+            box-sizing: border-box !important; }
+        }`)};
+        document.head.append(style);
+      })()`);
+    }
     return {
       image,
       html,
@@ -437,6 +452,7 @@ async function renderCanvas(win, input = {}) {
         input.format === "pdf"
           ? await preview.webContents.printToPDF({
               printBackground: true,
+              preferCSSPageSize: true,
               pageSize: { width: width / 96, height: height / 96 },
               margins: { top: 0, bottom: 0, left: 0, right: 0 },
             })

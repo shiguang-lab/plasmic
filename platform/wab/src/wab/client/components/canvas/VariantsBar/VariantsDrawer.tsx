@@ -1,5 +1,6 @@
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 
 import VariantRow from "@/wab/client/components/canvas/VariantsBar/VariantRow";
 import styles from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer.module.scss";
@@ -266,7 +267,12 @@ function VariantsDrawer_({
         }),
         value: query,
       }}
-      variantsList={{ ref: variantsListRef }}
+      variantsList={{
+        as: Scrollbar,
+        ref: variantsListRef,
+        style: { minHeight: 0, overflow: "hidden" },
+        props: { scrollX: false, defer: false },
+      }}
       {...props}
     >
       {groupedVariants.map(

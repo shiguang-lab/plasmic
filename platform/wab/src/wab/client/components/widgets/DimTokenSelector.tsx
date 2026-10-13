@@ -9,6 +9,7 @@ import Chip from "@/wab/client/components/widgets/Chip";
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import DropdownOverlay from "@/wab/client/components/widgets/DropdownOverlay";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { useOnContainerScroll } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -773,6 +774,7 @@ export const DimTokenSpinner = observer(
                   }}
                 >
                   <VariableSizeList
+                    outerElementType={VirtualListScrollbar}
                     ref={listRef}
                     itemData={virtualItems}
                     itemCount={virtualItems.length}

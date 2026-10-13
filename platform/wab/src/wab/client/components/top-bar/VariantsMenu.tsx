@@ -19,6 +19,7 @@ import {
 } from "@/wab/shared/Variants";
 import { ensure, mod, spawn } from "@/wab/shared/common";
 import { Variant } from "@/wab/shared/model/classes";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -233,7 +234,12 @@ function VariantsMenu_({
         placeholder: t("Search variants"),
         value: query,
       }}
-      variantsList={{ ref: variantsListRef }}
+      variantsList={{
+        as: Scrollbar,
+        ref: variantsListRef,
+        style: { minHeight: 0, overflow: "hidden" },
+        props: { scrollX: false, defer: false },
+      }}
       {...props}
     >
       {groupedVariants.map(({ variants, name }) => (

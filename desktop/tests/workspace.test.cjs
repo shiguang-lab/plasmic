@@ -369,3 +369,65 @@ test("recent-project checkpoints do not overwrite the current Dashboard route", 
     origin + "/settings",
   );
 });
+
+test("recent projects discard only confirmed unavailable entries and persist across sessions", async (t) => {
+  const { workspace, dir } = startupFixture(t);
+  workspace.remember({ url: origin + "/projects/offline", ready: true });
+  const session = {
+    fetch: async (url) => {
+      const request = new URL(url);
+      if (request.pathname === "/api/auth/session")
+        return Response.json({ authenticated: true });
+      const [id] = JSON.parse(request.searchParams.get("projectIds"));
+      if (id === "saved") return Response.json({}, { status: 404 });
+      if (id === "offline") throw new Error("offline");
+      return Response.json({ projects: [{ id }] });
+    },
+  };
+  assert.equal(await workspace.refreshRecent(session), true);
+  assert.deepEqual(
+    new DesktopWorkspace(dir, origin).recent.map((x) =>
+      workspace.projectId(x.url),
+    ),
+    ["offline", "other"],
+  );
+  assert.equal(await workspace.refreshRecent(session), false);
+});
+for (const status of [401, 503]) {
+  test(`recent projects retain history when session cannot be confirmed (${status})`, async (t) => {
+    const { workspace, dir } = startupFixture(t);
+    const before = JSON.stringify(workspace.recent);
+    assert.equal(
+      await workspace.refreshRecent({
+        fetch: async () => Response.json({ authenticated: false }, { status }),
+      }),
+      false,
+    );
+    assert.equal(
+      JSON.stringify(new DesktopWorkspace(dir, origin).recent),
+      before,
+    );
+  });
+}
+test("a stale recent menu item never opens a deleted project", async (t) => {
+  const { workspace } = startupFixture(t);
+  const menu = fileMenu({
+    workspace,
+    session: {
+      fetch: async (url) =>
+        new URL(url).pathname === "/api/auth/session"
+          ? Response.json({ authenticated: true })
+          : Response.json({ projects: [] }),
+    },
+    controller: {
+      dispatch: async () => assert.fail("Unavailable project must not open"),
+    },
+    refresh: () => {},
+    t: (x) => x,
+    dialog: { showErrorBox: () => assert.fail("Expected stale item removal") },
+  });
+  await menu.submenu
+    .find((x) => x.label === "Recent Projects")
+    .submenu[0].click();
+  assert.equal(workspace.recent.length, 0);
+});

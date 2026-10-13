@@ -26,7 +26,9 @@ function getTabItems(
   items: React.ReactNode,
 ): React.ReactElement<TabItemType>[] {
   return asArray(items).flatMap((item) => {
-    if (!React.isValidElement(item)) return [];
+    if (!React.isValidElement(item)) {
+      return [];
+    }
     return (item.type as any)?.name === AntdTabItem.name
       ? [item as React.ReactElement<TabItemType>]
       : getTabItems(item.props.children);
@@ -248,7 +250,8 @@ export function registerTabs(loader?: Registerable) {
         type: "choice",
         description:
           "The initially active tab key. Temporary canvas reveals do not change this value.",
-        options: (ps: any) => getTabItemKeys(ps.items),
+        options: (ps: any) =>
+          ps.items === undefined ? undefined : getTabItemKeys(ps.items),
       },
       animated: {
         type: "boolean",

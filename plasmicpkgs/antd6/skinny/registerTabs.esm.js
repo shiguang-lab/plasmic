@@ -14,7 +14,9 @@ const AntdTabItem = ({ children }) => {
 };
 function getTabItems(items) {
   return asArray(items).flatMap((item) => {
-    if (!React.isValidElement(item)) return [];
+    if (!React.isValidElement(item)) {
+      return [];
+    }
     return item.type?.name === AntdTabItem.name ? [item] : getTabItems(item.props.children);
   });
 }
@@ -165,7 +167,7 @@ function registerTabs(loader) {
         uncontrolledProp: "defaultActiveKey",
         type: "choice",
         description: "The initially active tab key. Temporary canvas reveals do not change this value.",
-        options: (ps) => getTabItemKeys(ps.items)
+        options: (ps) => ps.items === void 0 ? void 0 : getTabItemKeys(ps.items)
       },
       animated: {
         type: "boolean",

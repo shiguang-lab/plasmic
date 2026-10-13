@@ -1,6 +1,7 @@
 import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
+import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCmsRootProps,
@@ -48,47 +49,50 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
     );
   }
   return (
-    <Switch
-      cases={[
-        switchCase({
-          route: APP_ROUTES.cmsContentRoot,
-          render: () => (
-            <PlasmicCmsRoot
-              root={{ ref, className: styles.root }}
-              activeTab={"content"}
-              {...rest}
-            />
-          ),
-        }),
-        switchCase({
-          route: APP_ROUTES.cmsSchemaRoot,
-          render: () => (
-            <PlasmicCmsRoot
-              root={{ ref, className: styles.root }}
-              activeTab={"schema"}
-              {...rest}
-            />
-          ),
-        }),
-        switchCase({
-          route: APP_ROUTES.cmsSettings,
-          render: () => (
-            <PlasmicCmsRoot
-              root={{ ref, className: styles.root }}
-              activeTab={"settings"}
-              {...rest}
-            />
-          ),
-        }),
-        switchDefault({
-          render: () => (
-            <Redirect
-              to={APP_ROUTES.cmsContentRoot.fill({ databaseId: databaseId })}
-            />
-          ),
-        }),
-      ]}
-    />
+    <>
+      {documentTitle(database.name)}
+      <Switch
+        cases={[
+          switchCase({
+            route: APP_ROUTES.cmsContentRoot,
+            render: () => (
+              <PlasmicCmsRoot
+                root={{ ref, className: styles.root }}
+                activeTab={"content"}
+                {...rest}
+              />
+            ),
+          }),
+          switchCase({
+            route: APP_ROUTES.cmsSchemaRoot,
+            render: () => (
+              <PlasmicCmsRoot
+                root={{ ref, className: styles.root }}
+                activeTab={"schema"}
+                {...rest}
+              />
+            ),
+          }),
+          switchCase({
+            route: APP_ROUTES.cmsSettings,
+            render: () => (
+              <PlasmicCmsRoot
+                root={{ ref, className: styles.root }}
+                activeTab={"settings"}
+                {...rest}
+              />
+            ),
+          }),
+          switchDefault({
+            render: () => (
+              <Redirect
+                to={APP_ROUTES.cmsContentRoot.fill({ databaseId: databaseId })}
+              />
+            ),
+          }),
+        ]}
+      />
+    </>
   );
 }
 

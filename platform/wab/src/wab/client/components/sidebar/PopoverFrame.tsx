@@ -6,6 +6,7 @@ import { zIndex } from "@/wab/client/z-index";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import domAlign from "dom-align";
 import L from "lodash";
 import { observer } from "mobx-react";
@@ -405,7 +406,7 @@ function PopoverFrameShell() {
                 className="flex-col"
                 style={{
                   position: "absolute",
-                  overflow: "auto",
+                  overflow: "hidden",
                   top: 0,
                   width: "100%",
                   height: "100%",
@@ -416,30 +417,32 @@ function PopoverFrameShell() {
                   ),
                 }}
               >
-                <div
-                  ref={(elt) => {
-                    if (elt) {
-                      // Always attach item.element - portal will render into it
-                      if (item.element.parentElement !== elt) {
-                        elt.appendChild(item.element);
-                      }
+                <Scrollbar style={{ height: "100%" }}>
+                  <div
+                    ref={(elt) => {
+                      if (elt) {
+                        // Always attach item.element - portal will render into it
+                        if (item.element.parentElement !== elt) {
+                          elt.appendChild(item.element);
+                        }
 
-                      if (item === lastFrame) {
-                        // Check how tall the content of the popover is
-                        const titleEl = elt.querySelector(
-                          "[class*='propTitle']",
-                        );
-                        const contentEl = elt.querySelector(
-                          "[class*='contentWrap']",
-                        );
-                        if (titleEl && contentEl) {
-                          setTitleContainer(titleEl);
-                          setContentContainer(contentEl);
+                        if (item === lastFrame) {
+                          // Check how tall the content of the popover is
+                          const titleEl = elt.querySelector(
+                            "[class*='propTitle']",
+                          );
+                          const contentEl = elt.querySelector(
+                            "[class*='contentWrap']",
+                          );
+                          if (titleEl && contentEl) {
+                            setTitleContainer(titleEl);
+                            setContentContainer(contentEl);
+                          }
                         }
                       }
-                    }
-                  }}
-                />
+                    }}
+                  />
+                </Scrollbar>
               </animated.div>
             );
           })}

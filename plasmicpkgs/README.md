@@ -12,7 +12,7 @@ Development of plasmicpkgs requires an [app host](https://docs.plasmic.app/learn
 
 ## Testing
 
-Please set up Storybook tests. Refer to the [react-aria](./react-aria) package as a reference.
+Please set up Storybook tests. Refer to the [react-aria](react-aria) package as a reference.
 
 ## Build Configuration Setup
 

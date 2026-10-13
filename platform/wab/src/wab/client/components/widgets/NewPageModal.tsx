@@ -12,6 +12,7 @@ import {
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { InsertableTemplatesItem } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Tooltip } from "antd";
 import * as React from "react";
 
@@ -74,6 +75,12 @@ function NewPageModal(props: NewPageModalProps) {
 
   return (
     <PlasmicNewComponentModal
+      sections={{
+        as: Scrollbar,
+        className: "studio-scrollbar",
+        style: { minHeight: 0, overflow: "hidden" },
+        props: { scrollX: false },
+      }}
       root={{
         as: "form",
         props: {

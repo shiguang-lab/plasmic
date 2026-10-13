@@ -200,6 +200,7 @@ import {
 } from "@graphiql/react";
 import { Fetcher } from "@graphiql/toolkit";
 import { PlasmicDataSourceContextProvider } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import cx from "classnames";
 import constate from "constate";
 import { useMountedState } from "react-use";
@@ -1031,7 +1032,11 @@ const DataSourceOpExprFormAndPreview = observer(
             })}
             style={{ width: 500, flexShrink: 0 }}
           >
-            <div className="flex-col fill-width fill-height overflow-scroll p-xxlg flex-children-no-shrink">
+            <Scrollbar
+              scrollX={false}
+              className="fill-width p-xxlg"
+              style={{ flex: 1, minHeight: 0 }}
+            >
               <DataSourceOpDraftForm
                 value={draft}
                 onChange={(getNewDraft) => {
@@ -1059,7 +1064,7 @@ const DataSourceOpExprFormAndPreview = observer(
                 showQueryName={isKnownComponentDataQuery(parent)}
                 exprCtx={exprCtx}
               />
-            </div>
+            </Scrollbar>
             {!isRowSelector ? (
               <BottomModalButtons>
                 <Button
@@ -3679,13 +3684,13 @@ function GraphqlQueryField(props: {
       />
       {schemaTunnel && (
         <schemaTunnel.In>
-          <div className={"overflow-scroll fill-height"}>
+          <Scrollbar className="fill-height" scrollX={false}>
             <div className={"graphiql-container custom-gql-ui p-xlg"}>
               <div className={"fill-width"}>
                 <GqlDoc />
               </div>
             </div>
-          </div>
+          </Scrollbar>
         </schemaTunnel.In>
       )}
     </GqlProvider>

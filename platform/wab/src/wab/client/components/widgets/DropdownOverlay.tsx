@@ -4,6 +4,7 @@ import {
   DefaultDropdownOverlayProps,
   PlasmicDropdownOverlay,
 } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicDropdownOverlay";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 interface DropdownOverlayProps extends DefaultDropdownOverlayProps {
@@ -16,7 +17,13 @@ const DropdownOverlay = React.forwardRef(function DropdownOverlay(
 ) {
   return (
     <PlasmicDropdownOverlay
-      root={{ ref, className: "dropdown-overlay overflow-scroll-y" }}
+      root={{
+        as: Scrollbar,
+        ref,
+        className: "dropdown-overlay",
+        style: { maxHeight: "80vh", overflow: "hidden" },
+        props: { scrollX: false, defer: false },
+      }}
       {...props}
     />
   );

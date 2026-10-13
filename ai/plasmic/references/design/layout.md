@@ -4,9 +4,28 @@
 
 Use the live Studio Desktop device preset for PC requirements (currently 1440x1024); discover it through read.devicePresets rather than assuming a viewport. Explicit user dimensions take precedence. Keep only Desktop preview columns in Pages and one overview Arena referencing the existing routed Pages. Do not add per-page duplicate Arenas, test pages, mobile breakpoints or responsive overrides to PC-only scope.
 
-For an explicitly fixed desktop design viewport WxH, keep the preview/artboard WxH and use the required minimum width only when that fixed-width contract is intentional. For a fluid application, the Page and shell fill the available width with minWidth:0; do not turn the current screenshot width into a permanent minimum. A viewport-bound shell uses height:100vh with minHeight:0 and fills its Page root; content-driven pages use natural height. A shorter live preview must fit its real viewport without making fixed navigation scroll away. Percentage widths alone can shrink inside a theme wrapper: inspect the full ancestor sizing chain. Verify the shell starts at (0,0), fills the viewport and keeps navigation/header fixed while content scrolls.
+For an explicitly fixed desktop design viewport WxH, keep the preview/artboard WxH and use the required minimum width only when that fixed-width contract is intentional. For a fluid application, the Page and shell fill the available width with minWidth:0; do not turn the current screenshot width into a permanent minimum. A shorter live preview must fit its real viewport without making fixed navigation scroll away. Verify the shell starts at (0,0), fills the viewport and keeps navigation/header fixed while content scrolls.
+
+For a standalone application with an AppShell and internal content scrolling, set the routed Page root to height:100vh, min-height:0 and overflow:hidden. Explicitly set the shared Overseas/Antd-v6 AppShell instance to height:100% under that definite-height parent; do not retain default/auto or a fixed registration height. An explicit viewport height on the shell is also valid. Intermediate layout wrappers must preserve that height or a bounded flex chain. Inspect theme-provider wrappers as well as authored nodes. The artboard's height does not assign a height to those wrappers. Plasmic Page height:stretch selects a content-growing page mode; it is not a definite viewport height. Neither min-height:100vh nor max-height:100vh establishes the parent height needed by a percentage-height shell. Do not use stretch/auto Page height for this composition. Content-driven pages and content embedded in an existing host use their own height/scroll ownership instead.
 
 Use one bounded content region as the vertical scroll owner through the shared Scrollbar contract. Tables grow naturally with rows and pagination unless the requirement explicitly requests a bounded table viewport; do not add nested table-body scrolling or enlarge the artboard to reach pagination. Preserve horizontal scrolling and fixed columns when the actual table contract requires them. Verify flex/min-height sizing and reachability at the target viewport.
+
+### Viewport shell height acceptance
+
+Before accepting each affected standalone shell page:
+
+1. Read the saved Page model and check the root's definite viewport height, min-height:0, the shell instance's explicit fill height and the full sizing chain between them. Reject stretch/auto or a min/max-height-only root and a default/auto/fixed-pixel shared shell. Keep the business body content-sized; do not stretch cards or add blank content to make the shell appear taller.
+2. At the required artboard, compare the actual AppShell outer box, internal Layout and sidebar with the frame: top=0 and bottom=viewport height, within 1 CSS px. Reject both a shorter shell and a shell extending below the frame. Root overflow:hidden and a matching document contentHeight can conceal an oversized child; measure its actual box, including the Studio selection bounds, rather than its clipped visible portion. Record page/frame identity, viewport and measured boxes. A code component's instance style or an artboard size alone does not prove its rendered height. Check both short content and a populated long table.
+3. In real Preview, repeat at the actual shorter viewport and with overflowing content. The shell follows the viewport, navigation/header stay in place, the content region owns vertical scrolling and the last action remains reachable. A resized static screenshot does not test a different live viewport.
+4. Save, reload the project and reread the affected Page; repeat the artboard height check. Missing geometry or untested Preview scrolling remains unverified. Model validate and snapshot_layout's horizontal-overflow/image checks do not pass vertical-fill acceptance.
+
+For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scripts/verify_shell_height.py) from resourceRoot against a full read of one Page and its component-targeted snapshot_layout JSON:
+
+```sh
+python3 scripts/verify_shell_height.py page-read.json page-layout.json
+```
+
+The gate rejects an indefinite Page root, a default/auto/fixed-pixel shared shell, a missing/ambiguous shell or snapshot, and a shell/Layout/sidebar that falls short of or extends beyond the viewport edges. It checks model sizing and artboard geometry; the Preview scroll and save/reload checks above still require separate evidence. Full-project generation checks every routed shell Page separately; one passing page does not pass its siblings. Other shell libraries use their verified registrations and rendered structure with the same height acceptance criteria.
 
 ## Library and theme ownership
 

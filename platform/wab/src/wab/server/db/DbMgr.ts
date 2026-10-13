@@ -6849,9 +6849,12 @@ export class DbMgr implements MigrationDbMgr {
     await this.checkCmsDatabasePerms(databaseId, "editor");
 
     const existingDb = await this.getCmsDatabaseById(databaseId);
-    const newDb = await this.createCmsDatabase({
+    const createdDb = await this.createCmsDatabase({
       name: databaseName || `Copy of ${existingDb.name}`,
       workspaceId: existingDb.workspaceId,
+    });
+    const newDb = await this.updateCmsDatabaseById(createdDb.id, {
+      extraData: { locales: [...existingDb.extraData.locales] },
     });
 
     const tableIdMap = new Map<CmsTableId, CmsTableId>();

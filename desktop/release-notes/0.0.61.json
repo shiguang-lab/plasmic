@@ -1,0 +1,7 @@
+{
+  "en": "- Improve CMS editing, shared scrolling, themes and localized editor controls.\n- Correct table and tab property contracts, image exports and page metadata.\n- Expand Desktop MCP management, asset handling and code export.\n- Update prototype layout guidance and resource documentation.",
+  "zh-CN": "- 改善 CMS 编辑、共享滚动、主题和编辑器多语言控件。\n- 修正表格与标签页属性契约、图片导出和页面元数据。\n- 扩展 Desktop MCP 管理、资源处理与代码导出。\n- 更新原型布局指引和资源文档。",
+  "zh-TW": "- 改善 CMS 編輯、共用捲動、主題與編輯器多語言控制項。\n- 修正表格與頁籤屬性契約、圖片匯出和頁面中繼資料。\n- 擴充 Desktop MCP 管理、資源處理與程式碼匯出。\n- 更新原型版面指引和資源文件。",
+  "ja": "- CMS 編集、共通スクロール、テーマとエディターの翻訳を改善。\n- テーブルとタブのプロパティ契約、画像出力とページメタデータを修正。\n- Desktop MCP 管理、アセット処理とコード出力を拡充。\n- プロトタイプのレイアウトガイドとリソース文書を更新。",
+  "ko": "- CMS 편집, 공통 스크롤, 테마 및 편집기 번역을 개선합니다.\n- 테이블과 탭 속성 계약, 이미지 내보내기 및 페이지 메타데이터를 수정합니다.\n- Desktop MCP 관리, 자산 처리 및 코드 내보내기를 확장합니다.\n- 프로토타입 레이아웃 지침 및 리소스 문서를 업데이트합니다."
+}

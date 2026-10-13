@@ -1330,13 +1330,13 @@ exports[`Component Serialization > serializes all components 1`] = `
     <slot-target name="Trigger" id="UPso8XRDR1_Z">
       <plasmic-component id="xAjNYgiC3lOR" data-plasmic-component="button" style="max-width: 100%">
         <slot name="start">
-          <svg id="8ipusFeBg7zx" style="position: relative"></svg>
+          <svg id="8ipusFeBg7zx" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
         </slot>
         <slot name="label">
           <div id="-lZXwoVnp66e" style="padding-right: 0px">Open Drawer</div>
         </slot>
         <slot name="end">
-          <svg id="bKVZDjQ-wiq2" style="position: relative"></svg>
+          <svg id="bKVZDjQ-wiq2" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
         </slot>
       </plasmic-component>
     </slot-target>
@@ -1367,13 +1367,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
                   <div id="gxsdS8Cm-o_F" style="display: flex; flex-direction: row; position: relative; align-items: center; justify-content: flex-end; width: stretch">
                     <plasmic-component id="qrbXOGBU0xVT" data-plasmic-component="button" data-props='{"type":"Soft","color":"Muted"}'>
                       <slot name="start">
-                        <svg id="nktOfFsQUlA7" style="position: relative"></svg>
+                        <svg id="nktOfFsQUlA7" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
                       </slot>
                       <slot name="label">
                         <div id="XPrGEFLKxsFD">Close</div>
                       </slot>
                       <slot name="end">
-                        <svg id="cowl1a0YC_kS" style="position: relative"></svg>
+                        <svg id="cowl1a0YC_kS" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
                       </slot>
                     </plasmic-component>
                   </div>
@@ -1812,7 +1812,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
           <plasmic-component id="MCJmeiy0DxYy" data-plasmic-component="menuItem" data-props='{"value":"item3","label":"Item 3"}' style="width: default; height: default"></plasmic-component>
           <plasmic-component id="dVKx7FrhNXu0" data-plasmic-component="menuSection" style="max-width: 100%">
             <slot name="header">
-              <div id="ExFjEVfk4CE-">Section Header</div>
+              <div id="ExFjEVfk4CE-" data-editable="false" data-source-component="Fx3lwSohpxtr" data-source-slot="Header" data-source-element="0LyKZ_l5fTvD">Section Header</div>
             </slot>
             <slot name="items">
               <plasmic-component id="PUEG6Bp-oAIC" data-plasmic-component="menuItem" data-props='{"value":"section-item-1","label":"Section Item 1"}'></plasmic-component>
@@ -1967,13 +1967,13 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     <slot-target name="Trigger" id="ZTA2-vbNl2Ib">
       <plasmic-component id="TkoTLwYW1x8l" data-plasmic-component="button">
         <slot name="start">
-          <svg id="YCTKckfg_JVT" style="position: relative"></svg>
+          <svg id="YCTKckfg_JVT" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
         </slot>
         <slot name="label">
           <div id="eX-1aZgHHsch">Open Modal</div>
         </slot>
         <slot name="end">
-          <svg id="WoPB1jtYSfns" style="position: relative"></svg>
+          <svg id="WoPB1jtYSfns" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
         </slot>
       </plasmic-component>
     </slot-target>
@@ -2002,13 +2002,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
               <div id="bNRZ2OqSSTzq" style="display: flex; flex-direction: row; position: relative; align-items: center; justify-content: flex-end; width: stretch; padding-top: var(--token-5Dj8sI4bqV2C); padding-right: var(--token-5Dj8sI4bqV2C); padding-bottom: var(--token-5Dj8sI4bqV2C); padding-left: var(--token-5Dj8sI4bqV2C)">
                 <plasmic-component id="ssjp-JjPp06g" data-plasmic-component="button" data-props='{"color":"Muted","type":"Soft"}'>
                   <slot name="start">
-                    <svg id="eCH5euCJgz6N" style="position: relative"></svg>
+                    <svg id="eCH5euCJgz6N" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
                   </slot>
                   <slot name="label">
                     <div id="vOmPwYXaatY_" style="padding-left: 0px">Close</div>
                   </slot>
                   <slot name="end">
-                    <svg id="U3RbCec4qSGT" style="position: relative"></svg>
+                    <svg id="U3RbCec4qSGT" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
                   </slot>
                 </plasmic-component>
               </div>
@@ -2165,13 +2165,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     <slot-target name="Trigger" id="fskV7PlbGiJY">
       <plasmic-component id="4ha5hODWDKC0" data-plasmic-component="button" style="max-width: 100%">
         <slot name="start">
-          <svg id="_xaTWvRT7hOo" style="position: relative"></svg>
+          <svg id="_xaTWvRT7hOo" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
         </slot>
         <slot name="label">
           <div id="ZRF6Y-J1tOfJ">Open Popover</div>
         </slot>
         <slot name="end">
-          <svg id="KhVEFdHiMZdQ" style="position: relative"></svg>
+          <svg id="KhVEFdHiMZdQ" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
         </slot>
       </plasmic-component>
     </slot-target>
@@ -2420,7 +2420,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     </div>
     <plasmic-component id="FlMbwh2F01nU" data-plasmic-component="description" style="max-width: 100%; position: relative" data-visible-if="{{ $props.showDescription }}">
       <slot name="children">
-        <div id="-obDOc7BUc9q">Description…</div>
+        <div id="-obDOc7BUc9q" data-editable="false" data-source-component="8ANP8VyLXTfo" data-source-slot="children" data-source-element="YPfqjQoHyLnQ">Description…</div>
       </slot>
     </plasmic-component>
   </slot>
@@ -2674,7 +2674,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     </div>
     <plasmic-component id="L7lEs15kjXdC" data-plasmic-component="description" style="max-width: 100%; position: relative" data-visible-if="{{ $props.showDescription }}">
       <slot name="children">
-        <div id="-p466Ri7xkc4">Description…</div>
+        <div id="-p466Ri7xkc4" data-editable="false" data-source-component="8ANP8VyLXTfo" data-source-slot="children" data-source-element="YPfqjQoHyLnQ">Description…</div>
       </slot>
     </plasmic-component>
   </slot>
@@ -2764,7 +2764,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     </div>
     <plasmic-component id="EKssPnV6b-Lo" data-plasmic-component="description" style="max-width: 100%; position: relative" data-visible-if="{{ $props.showDescription }}">
       <slot name="children">
-        <div id="kx1CHuxJ_JC1">Description…</div>
+        <div id="kx1CHuxJ_JC1" data-editable="false" data-source-component="8ANP8VyLXTfo" data-source-slot="children" data-source-element="YPfqjQoHyLnQ">Description…</div>
       </slot>
     </plasmic-component>
   </slot>
@@ -5655,13 +5655,13 @@ exports[`Component Serialization > serializes all components 2`] = `
     <slot-target name="Trigger" id="UPso8XRDR1_Z">
       <plasmic-component id="xAjNYgiC3lOR" data-plasmic-component="button" style="max-width: 100%">
         <slot name="start">
-          <svg id="8ipusFeBg7zx" style="position: relative"></svg>
+          <svg id="8ipusFeBg7zx" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
         </slot>
         <slot name="label">
           <div id="-lZXwoVnp66e" style="padding-right: 0px">Open Drawer</div>
         </slot>
         <slot name="end">
-          <svg id="bKVZDjQ-wiq2" style="position: relative"></svg>
+          <svg id="bKVZDjQ-wiq2" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
         </slot>
       </plasmic-component>
     </slot-target>
@@ -5692,13 +5692,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
                   <div id="gxsdS8Cm-o_F" style="display: flex; flex-direction: row; position: relative; align-items: center; justify-content: flex-end; width: stretch">
                     <plasmic-component id="qrbXOGBU0xVT" data-plasmic-component="button" data-props='{"type":"Soft","color":"Muted"}'>
                       <slot name="start">
-                        <svg id="nktOfFsQUlA7" style="position: relative"></svg>
+                        <svg id="nktOfFsQUlA7" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
                       </slot>
                       <slot name="label">
                         <div id="XPrGEFLKxsFD">Close</div>
                       </slot>
                       <slot name="end">
-                        <svg id="cowl1a0YC_kS" style="position: relative"></svg>
+                        <svg id="cowl1a0YC_kS" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
                       </slot>
                     </plasmic-component>
                   </div>
@@ -6345,7 +6345,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
           <plasmic-component id="MCJmeiy0DxYy" data-plasmic-component="menuItem" data-props='{"value":"item3","label":"Item 3"}' style="width: default; height: default"></plasmic-component>
           <plasmic-component id="dVKx7FrhNXu0" data-plasmic-component="menuSection" style="max-width: 100%">
             <slot name="header">
-              <div id="ExFjEVfk4CE-">Section Header</div>
+              <div id="ExFjEVfk4CE-" data-editable="false" data-source-component="Fx3lwSohpxtr" data-source-slot="Header" data-source-element="0LyKZ_l5fTvD">Section Header</div>
             </slot>
             <slot name="items">
               <plasmic-component id="PUEG6Bp-oAIC" data-plasmic-component="menuItem" data-props='{"value":"section-item-1","label":"Section Item 1"}'></plasmic-component>
@@ -6446,13 +6446,13 @@ Join our Slack community (icon in bottom left) for help any time.</div>
     <slot-target name="Trigger" id="ZTA2-vbNl2Ib">
       <plasmic-component id="TkoTLwYW1x8l" data-plasmic-component="button">
         <slot name="start">
-          <svg id="YCTKckfg_JVT" style="position: relative"></svg>
+          <svg id="YCTKckfg_JVT" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
         </slot>
         <slot name="label">
           <div id="eX-1aZgHHsch">Open Modal</div>
         </slot>
         <slot name="end">
-          <svg id="WoPB1jtYSfns" style="position: relative"></svg>
+          <svg id="WoPB1jtYSfns" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
         </slot>
       </plasmic-component>
     </slot-target>
@@ -6481,13 +6481,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
               <div id="bNRZ2OqSSTzq" style="display: flex; flex-direction: row; position: relative; align-items: center; justify-content: flex-end; width: stretch; padding-top: var(--token-5Dj8sI4bqV2C); padding-right: var(--token-5Dj8sI4bqV2C); padding-bottom: var(--token-5Dj8sI4bqV2C); padding-left: var(--token-5Dj8sI4bqV2C)">
                 <plasmic-component id="ssjp-JjPp06g" data-plasmic-component="button" data-props='{"color":"Muted","type":"Soft"}'>
                   <slot name="start">
-                    <svg id="eCH5euCJgz6N" style="position: relative"></svg>
+                    <svg id="eCH5euCJgz6N" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
                   </slot>
                   <slot name="label">
                     <div id="vOmPwYXaatY_" style="padding-left: 0px">Close</div>
                   </slot>
                   <slot name="end">
-                    <svg id="U3RbCec4qSGT" style="position: relative"></svg>
+                    <svg id="U3RbCec4qSGT" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
                   </slot>
                 </plasmic-component>
               </div>
@@ -6742,13 +6742,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     <slot-target name="Trigger" id="fskV7PlbGiJY">
       <plasmic-component id="4ha5hODWDKC0" data-plasmic-component="button" style="max-width: 100%">
         <slot name="start">
-          <svg id="_xaTWvRT7hOo" style="position: relative"></svg>
+          <svg id="_xaTWvRT7hOo" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="Start" data-source-element="omi74nYXXVka"></svg>
         </slot>
         <slot name="label">
           <div id="ZRF6Y-J1tOfJ">Open Popover</div>
         </slot>
         <slot name="end">
-          <svg id="KhVEFdHiMZdQ" style="position: relative"></svg>
+          <svg id="KhVEFdHiMZdQ" style="position: relative" data-editable="false" data-source-component="OD5_PLaXT_1t" data-source-slot="End" data-source-element="6sD-taUBGCX5"></svg>
         </slot>
       </plasmic-component>
     </slot-target>
@@ -7078,7 +7078,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     </div>
     <plasmic-component id="FlMbwh2F01nU" data-plasmic-component="description" style="max-width: 100%; position: relative" data-visible-if="{{ $props.showDescription }}">
       <slot name="children">
-        <div id="-obDOc7BUc9q">Description…</div>
+        <div id="-obDOc7BUc9q" data-editable="false" data-source-component="8ANP8VyLXTfo" data-source-slot="children" data-source-element="YPfqjQoHyLnQ">Description…</div>
       </slot>
     </plasmic-component>
   </slot>
@@ -7442,7 +7442,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     </div>
     <plasmic-component id="L7lEs15kjXdC" data-plasmic-component="description" style="max-width: 100%; position: relative" data-visible-if="{{ $props.showDescription }}">
       <slot name="children">
-        <div id="-p466Ri7xkc4">Description…</div>
+        <div id="-p466Ri7xkc4" data-editable="false" data-source-component="8ANP8VyLXTfo" data-source-slot="children" data-source-element="YPfqjQoHyLnQ">Description…</div>
       </slot>
     </plasmic-component>
   </slot>
@@ -7599,7 +7599,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     </div>
     <plasmic-component id="EKssPnV6b-Lo" data-plasmic-component="description" style="max-width: 100%; position: relative" data-visible-if="{{ $props.showDescription }}">
       <slot name="children">
-        <div id="kx1CHuxJ_JC1">Description…</div>
+        <div id="kx1CHuxJ_JC1" data-editable="false" data-source-component="8ANP8VyLXTfo" data-source-slot="children" data-source-element="YPfqjQoHyLnQ">Description…</div>
       </slot>
     </plasmic-component>
   </slot>

@@ -150,3 +150,179 @@ test("workspace screenshots capture the editor when a project uses a custom host
   assert.deepEqual(calls, ["ready", "ready", "renderReady", "capture"]);
   controller.close();
 });
+
+test("exports transitive library CSS through authenticated codegen requests without refetching cyclic dependencies", async () => {
+  const fs = require("node:fs/promises");
+  const os = require("node:os");
+  const path = require("node:path");
+  const root = await fs.mkdtemp(
+    path.join(os.tmpdir(), "plasmic-controller-export-"),
+  );
+  const css = (id) =>
+    `@import "../${id}/plasmic.css"; /* plasmic-import: ${id}/projectcss */`;
+  const bundles = {
+    root: {
+      components: [
+        {
+          id: "page",
+          componentName: "Page",
+          skeletonModuleFileName: "Page.tsx",
+          skeletonModule: 'import "./plasmic.css"; export const page = "Page";',
+        },
+      ],
+      projectConfig: {
+        projectId: "root",
+        cssFileName: "plasmic.css",
+        cssRules: css("library"),
+      },
+    },
+    library: {
+      components: [],
+      projectConfig: {
+        projectId: "library",
+        cssFileName: "plasmic.css",
+        cssRules: css("root") + css("shared"),
+      },
+    },
+    shared: {
+      components: [],
+      projectConfig: {
+        projectId: "shared",
+        cssFileName: "plasmic.css",
+        cssRules: ":root{--theme:red}",
+      },
+    },
+  };
+  const requests = [];
+  const controller = new DesktopController(
+    () => ({
+      isDestroyed: () => false,
+      webContents: {
+        session: {
+          fetch: async (url, options) => {
+            if (url.endsWith("/resolve-sync")) {
+              return {
+                ok: true,
+                json: async () => ({
+                  projects: [
+                    { projectId: "root", componentIds: ["page", "reusable"] },
+                  ],
+                }),
+              };
+            }
+            const projectId = new URL(url).pathname.split("/")[4];
+            assert.equal(new URL(url).search, "");
+            requests.push({ projectId, body: JSON.parse(options.body) });
+            assert.equal(JSON.parse(options.body).imageOpts.scheme, "files");
+            assert.equal(options.credentials, "include");
+            assert.equal(options.bypassCustomProtocolHandlers, true);
+            return { ok: true, json: async () => bundles[projectId] };
+          },
+        },
+      },
+    }),
+    { studioOrigin: "https://studio.example" },
+  );
+  controller.ready = async () => {};
+  controller.editor = async () => ({ projectId: "root" });
+  try {
+    const result = await controller.dispatch("export_code", {
+      outputPath: path.join(root, "export"),
+      componentUuids: ["page"],
+    });
+    assert.deepEqual(
+      requests.map((request) => request.projectId),
+      ["root", "library", "shared"],
+    );
+    assert.deepEqual(
+      requests.map((request) => request.body.componentIdOrNames),
+      [["page", "reusable"], [], []],
+    );
+    assert.ok(result.files.includes("dependencies/shared/plasmic.css"));
+  } finally {
+    controller.close();
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test("downloads self-hosted pictures and includes their bytes in an export", async () => {
+  const fs = require("node:fs/promises");
+  const os = require("node:os");
+  const path = require("node:path");
+  const root = await fs.mkdtemp(
+    path.join(os.tmpdir(), "plasmic-export-image-"),
+  );
+  const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+  const requests = [];
+  const controller = new DesktopController(
+    () => ({
+      isDestroyed: () => false,
+      webContents: {
+        session: {
+          fetch: async (url, options) => {
+            if (url.endsWith("/resolve-sync")) {
+              return {
+                ok: true,
+                json: async () => ({
+                  projects: [{ projectId: "project", componentIds: ["page"] }],
+                }),
+              };
+            }
+            requests.push({ url, credentials: options.credentials });
+            if (options.method === "POST") {
+              assert.equal(JSON.parse(options.body).imageOpts.scheme, "files");
+              return {
+                ok: true,
+                json: async () => ({
+                  components: [
+                    {
+                      id: "page",
+                      componentName: "Page",
+                      skeletonModuleFileName: "Page.tsx",
+                      skeletonModule:
+                        'import image from "./image.null"; // plasmic-import: image/picture\nexport default image;',
+                    },
+                  ],
+                  imageAssets: [
+                    {
+                      id: "image",
+                      fileName: "image.jpg",
+                      blob: "https://studio.example/assets/image.jpg",
+                    },
+                    {
+                      id: "external",
+                      fileName: "external.jpg",
+                      blob: "https://assets.example/external.jpg",
+                    },
+                  ],
+                }),
+              };
+            }
+            return { ok: true, arrayBuffer: async () => bytes };
+          },
+        },
+      },
+    }),
+    { studioOrigin: "https://studio.example" },
+  );
+  controller.ready = async () => {};
+  controller.editor = async () => ({ projectId: "project" });
+  try {
+    const result = await controller.dispatch("export_code", {
+      componentUuids: ["page"],
+      outputPath: path.join(root, "export"),
+    });
+    assert.deepEqual(
+      requests.map((r) => r.credentials),
+      ["include", "include", "omit"],
+    );
+    assert.ok(result.files.includes("image.jpg"));
+    assert.deepEqual(
+      await fs.readFile(path.join(result.path, "image.jpg")),
+      bytes,
+    );
+  } finally {
+    controller.close();
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

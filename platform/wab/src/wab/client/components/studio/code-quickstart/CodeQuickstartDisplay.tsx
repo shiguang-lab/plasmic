@@ -54,7 +54,7 @@ const useCodeDeliveryStyles = createStyles(({ token }) => ({
     border: `1px solid ${token.colorBorderSecondary}`,
     borderRadius: token.borderRadiusLG,
     padding: 16,
-    "& pre": { maxWidth: "100%", overflowX: "auto", marginBottom: 12 },
+    "& [data-overlayscrollbars]": { marginBottom: 12 },
   },
 }));
 
@@ -84,7 +84,7 @@ const CodeQuickstartDisplay = React.forwardRef<
     "copied" | "failed" | undefined
   >();
   const command = framework?.platform
-    ? `npx @plasmicapp/cli auth --host ${shellQuote(window.location.origin)}\nnpx @plasmicapp/cli init --host ${shellQuote(window.location.origin)} --platform ${framework.platform}\nnpx @plasmicapp/cli sync --projects ${shellQuote(project.id)}`
+    ? `npx @plasmicapp/cli auth --host ${shellQuote(window.location.origin)}\nnpx @plasmicapp/cli init --host ${shellQuote(window.location.origin)} --platform ${framework.platform} --images-scheme files\nnpx @plasmicapp/cli sync --projects ${shellQuote(project.id)}`
     : "";
   const params = new URLSearchParams({
     projectId: project.id,

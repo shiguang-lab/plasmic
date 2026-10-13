@@ -1,4 +1,5 @@
 import { axisLockedStyle } from "@/wab/client/components/widgets/SimpleReorderableList";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { ensure } from "@/wab/shared/common";
 import React from "react";
 import {
@@ -66,6 +67,7 @@ export function SimpleReorderableVirtualList<T>(props: {
         >
           {(droppableProvided, droppableSnapshot) => (
             <FixedSizeList
+              outerElementType={VirtualListScrollbar}
               className={className}
               style={style}
               outerRef={droppableProvided.innerRef}

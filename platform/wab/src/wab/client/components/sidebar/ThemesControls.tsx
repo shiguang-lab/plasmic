@@ -1,4 +1,5 @@
 import { activateTheme } from "@/wab/client/activate-theme";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftThemesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ensure } from "@/wab/shared/common";
@@ -15,6 +16,13 @@ export const DefaultStylesPanel = observer(function DefaultStylesPanel() {
   return (
     <PlasmicLeftThemesPanel
       noThemePicker={themes.length <= 1}
+      hiliteTabs={{
+        tabs: [
+          { tabKey: "styles", content: <UiText message="Typography" /> },
+          { tabKey: "layout", content: <UiText message="Layout" /> },
+          { tabKey: "initials", content: <UiText message="Initial styles" /> },
+        ],
+      }}
       themeSelector={{
         props: {
           options: themes.map((theme) => ({

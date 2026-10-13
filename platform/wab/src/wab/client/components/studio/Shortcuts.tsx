@@ -17,6 +17,7 @@ import {
   VIEW_SHORTCUT_GROUP,
 } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Input, Tag } from "antd";
 import cn from "classnames";
 import L from "lodash";
@@ -48,7 +49,7 @@ export const ShortcutsModal = observer(
           open={open}
           onCancel={studioCtx.closeShortcutsModal}
         >
-          <div className={styles.scrollableShortcuts}>
+          <Scrollbar scrollX={false} className={styles.scrollableShortcuts}>
             <Input
               placeholder={uiT("Search shortcuts here...")}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -61,7 +62,7 @@ export const ShortcutsModal = observer(
                 searchQuery={searchQuery}
               />
             ))}
-          </div>
+          </Scrollbar>
         </Modal>
       </>
     );

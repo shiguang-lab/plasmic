@@ -5,8 +5,8 @@ import {
 } from "@/wab/shared/copilot/local-edit";
 import type { JsonValue } from "@/wab/shared/core/lang";
 import {
-  interactionActionSchema,
   NORMAL_STATE_VARIABLE_TYPES,
+  interactionActionSchema,
 } from "@/wab/shared/core/states";
 import {
   outputResultSchema,
@@ -57,7 +57,7 @@ const EDIT_TOOL_META = {
     toolName: "read",
     title: "Read project resources",
     description:
-      "Discover installed components, exact component names/UUIDs, props, slots, tokens and screen breakpoints. Defaults to project overview. Request component UUIDs for full prop contracts and editable HTML, or elements for subtrees. Imported components can be read but not edited.",
+      "Discover installed components, exact component names/UUIDs, props, slots, style tokens, data tokens and screen breakpoints. Defaults to project overview. Request component UUIDs for full prop contracts and HTML, or elements for subtrees. Nodes marked data-editable=false are inherited slot content; use data-source-component and data-source-element to read their source slot, then use its real node IDs for editing. Imported components can be read but not edited.",
     inputSchema: z
       .object({
         componentUuids: z.array(uuid).max(30).optional(),
@@ -287,7 +287,12 @@ const EDIT_TOOL_META = {
         text: z.string().max(100000).optional(),
         props: z.record(jsonValue).optional(),
         resetProps: z.array(uuid).min(1).optional(),
-        styles: z.record(z.string().nullable()).describe("CSS declarations only. Use actual CSS property names or custom --variables; do not put metadata such as reason in styles. null removes an existing declaration.").optional(),
+        styles: z
+          .record(z.string().nullable())
+          .describe(
+            "CSS declarations only. Use actual CSS property names or custom --variables; do not put metadata such as reason in styles. null removes an existing declaration.",
+          )
+          .optional(),
         variantUuids: z.array(uuid).optional(),
         visibleIf: z.string().min(1).nullable().optional(),
         repeat: z
@@ -346,12 +351,14 @@ const EDIT_TOOL_META = {
     title: "Update a prototype interaction",
     description:
       "Update an existing event step by its interaction UUID from read. Preserves the step identity, event signature and sibling steps. Renaming rewrites $steps references; action replaces the existing action instead of appending a duplicate. Unsupported action replacements are rejected.",
-    inputSchema: z.object({
-      ...element,
-      interactionUuid: uuid,
-      name: uuid.optional(),
-      action: interactionActionSchema().optional(),
-    }).strict(),
+    inputSchema: z
+      .object({
+        ...element,
+        interactionUuid: uuid,
+        name: uuid.optional(),
+        action: interactionActionSchema().optional(),
+      })
+      .strict(),
     outputSchema: resources,
   },
   deleteInteraction: {
@@ -793,14 +800,18 @@ export const prototypeMutationSchema = z.discriminatedUnion("name", [
       input: EDIT_TOOL_META.createStyleToken.inputSchema,
     })
     .strict(),
-  z.object({
-    name: z.literal("updateInteraction"),
-    input: EDIT_TOOL_META.updateInteraction.inputSchema,
-  }).strict(),
-  z.object({
-    name: z.literal("deleteInteraction"),
-    input: EDIT_TOOL_META.deleteInteraction.inputSchema,
-  }).strict(),
+  z
+    .object({
+      name: z.literal("updateInteraction"),
+      input: EDIT_TOOL_META.updateInteraction.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      name: z.literal("deleteInteraction"),
+      input: EDIT_TOOL_META.deleteInteraction.inputSchema,
+    })
+    .strict(),
   z
     .object({
       name: z.literal("copyElement"),
@@ -885,7 +896,13 @@ export const PROTOTYPE_TOOL_META = {
     inputSchema: z
       .object({
         binding: localEditBindingSchema,
-        execution: z.object({ operationId: z.string().min(1), fence: z.number().int().positive() }).strict().optional(),
+        execution: z
+          .object({
+            operationId: z.string().min(1),
+            fence: z.number().int().positive(),
+          })
+          .strict()
+          .optional(),
         name: z.enum([
           ...localEditToolNames,
           "createComponent",

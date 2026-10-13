@@ -102,7 +102,7 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
             arena={arena}
             grid={arena.customMatrix}
             onFrameLoad={onFrameLoad}
-            makeRowLabel={() => COMBINATIONS_CAP}
+            makeRowLabel={() => uiT(COMBINATIONS_CAP)}
             rowEndControls={() => (
               <VariantComboGhostFrame studioCtx={studioCtx} arena={arena} />
             )}

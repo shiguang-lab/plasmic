@@ -323,9 +323,11 @@ const ChoicePropValuesLintIssueRow = observer(
     const { issue } = props;
     const content = (
       <UiText
-        message="{element} prop value is not allowed"
+        message="{element} prop {prop} value {value} is not allowed"
         values={{
           element: <TplLink component={issue.component} tpl={issue.tpl} />,
+          prop: <code>{issue.propName}</code>,
+          value: <code>{JSON.stringify(issue.value)}</code>,
         }}
       />
     );
@@ -333,6 +335,14 @@ const ChoicePropValuesLintIssueRow = observer(
       content,
       <>
         <p>{content}</p>
+        <p>
+          <UiText
+            message="Allowed values: {values}"
+            values={{
+              values: <code>{JSON.stringify(issue.allowedValues)}</code>,
+            }}
+          />
+        </p>
         {PROP_ALLOWED_VALUES_INSTRUCTIONS}
       </>,
     );

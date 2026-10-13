@@ -87,6 +87,7 @@ import {
 import { convertToFunction } from "@/wab/shared/parser-utils";
 import { renameDataTokenInExpr } from "@/wab/shared/refactoring";
 import { smartHumanize } from "@/wab/shared/strs";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { notification } from "antd";
 import { groupBy } from "lodash";
 import { reaction } from "mobx";
@@ -929,7 +930,11 @@ export const ServerQueryOpExprFormAndPreview = observer(
             })}
             style={{ maxWidth: 500, flexShrink: 0 }}
           >
-            <div className="flex-col fill-width fill-height overflow-scroll p-xxlg flex-children-no-shrink">
+            <Scrollbar
+              scrollX={false}
+              className="fill-width p-xxlg"
+              style={{ flex: 1, minHeight: 0 }}
+            >
               <ServerQueryOpDraftForm
                 value={draft}
                 onChange={setDraft}
@@ -944,7 +949,7 @@ export const ServerQueryOpExprFormAndPreview = observer(
                 mode={mode}
                 invalidArgs={invalidArgs}
               />
-            </div>
+            </Scrollbar>
             <BottomModalButtons>
               <Button
                 id="data-source-modal-save-btn"

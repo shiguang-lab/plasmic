@@ -1,4 +1,5 @@
 import sty from "@/wab/client/components/BottomModal.module.sass";
+import { useTrackOpenModal } from "@/wab/client/components/widgets/open-modals";
 import { useConstant } from "@/wab/commons/components/ReactUtil";
 import { ensure } from "@/wab/shared/common";
 import classNames from "classnames";
@@ -31,9 +32,7 @@ interface BottomModalsFocusAction {
 }
 
 type BottomModalsAction =
-  | BottomModalsPushAction
-  | BottomModalsPopAction
-  | BottomModalsFocusAction;
+  BottomModalsPushAction | BottomModalsPopAction | BottomModalsFocusAction;
 
 export function BottomModalsProvider(props: { children?: React.ReactNode }) {
   const [state, dispatch] = React.useReducer<
@@ -134,6 +133,7 @@ const BottomModalContext = React.createContext<BottomModalConfig | undefined>(
 interface BottomModalProps {
   children?: React.ReactNode;
   title?: React.ReactNode;
+  onEscape?: () => unknown;
   "data-test-id"?: string;
 }
 
@@ -142,16 +142,28 @@ interface BottomModalConfig extends BottomModalProps {
 }
 
 export function BottomModal(props: BottomModalProps & { modalKey: string }) {
-  const { children, title, modalKey, "data-test-id": dataTestId } = props;
+  const {
+    children,
+    title,
+    onEscape,
+    modalKey,
+    "data-test-id": dataTestId,
+  } = props;
   const { dispatch } = useBottomModalsContext();
   const buttonsTunnel = React.useMemo(() => tunnel(), []);
   React.useEffect(() => {
     dispatch({
       type: "push",
       id: modalKey,
-      config: { children, title, buttonsTunnel, "data-test-id": dataTestId },
+      config: {
+        children,
+        title,
+        onEscape,
+        buttonsTunnel,
+        "data-test-id": dataTestId,
+      },
     });
-  }, [modalKey, children, title, buttonsTunnel, dataTestId]);
+  }, [modalKey, children, title, onEscape, buttonsTunnel, dataTestId]);
   React.useEffect(() => {
     return () => dispatch({ type: "pop", id: modalKey });
   }, []);
@@ -241,6 +253,7 @@ function BottomModalInternal(props: {
   const count = size(state.modals);
   const isCollapsed = state.focusedIndex == null || index > state.focusedIndex;
   const isFocused = state.focusedIndex === index;
+  useTrackOpenModal(isFocused);
   const height = canvasHeight * 0.9 - 60 * index;
   const top = isCollapsed
     ? canvasHeight - ((count - index) * 10 + 40)
@@ -248,32 +261,47 @@ function BottomModalInternal(props: {
   const animatedStyles = useSpring({ to: { top } });
 
   return (
-    <animated.div
-      className={sty.ModalRoot}
-      style={{ ...animatedStyles, height, left: 100 + leftDelta }}
-      data-test-id={dataTestId}
-      onClick={() => {
-        if (!isFocused) {
-          dispatch({ type: "focus", focusedIndex: index });
-        }
-      }}
-    >
-      <div className={sty.ModalTitleContainer}>
-        <div className={sty.ModalTitle}>{title}</div>
-        {isFocused && (
-          <div className={sty.ModalActions}>
-            <config.buttonsTunnel.Out />
+    <FocusScope autoFocus={isFocused} contain={isFocused} restoreFocus>
+      <animated.div
+        className={sty.ModalRoot}
+        style={{ ...animatedStyles, height, left: 100 + leftDelta }}
+        data-test-id={dataTestId}
+        role={isFocused ? "dialog" : undefined}
+        aria-labelledby={`bottom-modal-title-${id}`}
+        onKeyDownCapture={(event) => {
+          if (isFocused && event.key === "Escape" && !event.defaultPrevented) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (config.onEscape) {
+              config.onEscape();
+            } else {
+              dispatch({ type: "focus", focusedIndex: undefined });
+            }
+          }
+        }}
+        onClick={() => {
+          if (!isFocused) {
+            dispatch({ type: "focus", focusedIndex: index });
+          }
+        }}
+      >
+        <div className={sty.ModalTitleContainer}>
+          <div className={sty.ModalTitle} id={`bottom-modal-title-${id}`}>
+            {title}
           </div>
-        )}
-      </div>
-      <FocusScope autoFocus>
+          {isFocused && (
+            <div className={sty.ModalActions}>
+              <config.buttonsTunnel.Out />
+            </div>
+          )}
+        </div>
         <div className={sty.ModalBody}>
           <BottomModalContext.Provider value={config}>
             {children}
           </BottomModalContext.Provider>
         </div>
-      </FocusScope>
-    </animated.div>
+      </animated.div>
+    </FocusScope>
   );
 }
 

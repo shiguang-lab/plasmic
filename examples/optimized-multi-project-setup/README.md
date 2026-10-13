@@ -6,12 +6,12 @@ This is an example of a Next.js project demonstrating how to improve build times
 
 In this example, we have three Plasmic projects:
 
-- `Main project`(3QiseJHt6Z64CFRBL2oMQb) which is handled by [Main Catch-all](./pages/[[...catchall]].tsx)
+- `Main project`(3QiseJHt6Z64CFRBL2oMQb) which is handled by [Main Catch-all](pages/[[...catchall]].tsx)
 - `Blog project`(waHQepGxJhtu3k3FzFxJoR) which is handled by [
-  Blog Catch-all](./pages/blog/[[...catchall]].tsx)
-- `Library project`(8fA1adnPC4e7fBBA6AVnWN), which is used by both previous routes and used to render [CookiesPolicy](./components/CookiesPolicy.tsx)
+  Blog Catch-all](pages/blog/[[...catchall]].tsx)
+- `Library project`(8fA1adnPC4e7fBBA6AVnWN), which is used by both previous routes and used to render [CookiesPolicy](components/CookiesPolicy.tsx)
 
-The main difference from the default setup is that `initPlasmicLoader` is not called in [Plasmic-init](./plasmic-init.ts) to export the loader instance to other files. Instead, the loader is created in each file using the minimal set of projects required for that file.
+The main difference from the default setup is that `initPlasmicLoader` is not called in [Plasmic-init](plasmic-init.ts) to export the loader instance to other files. Instead, the loader is created in each file using the minimal set of projects required for that file.
 
 Plasmic automatically handles providing the necessary data to a page in your application, but when you have a single Plasmic loader instance, it will consider all the projects as a group. So, when a single project is updated, all the pages that use that loader will be invalidated and rebuilt, which can lead to slower build times.
 

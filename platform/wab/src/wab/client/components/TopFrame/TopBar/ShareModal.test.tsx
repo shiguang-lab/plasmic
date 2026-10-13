@@ -46,6 +46,21 @@ test("opens the original standalone permission dialog without delivery tabs", ()
       perms,
     }),
   );
+  const underlyingKey = vi.fn();
+  window.addEventListener("keydown", underlyingKey);
+  try {
+    fireEvent.keyDown(screen.getByRole("button", { name: "Dismiss" }), {
+      key: "Escape",
+    });
+    expect(close).toHaveBeenCalledExactlyOnceWith(false);
+    expect(underlyingKey).not.toHaveBeenCalled();
+  } finally {
+    window.removeEventListener("keydown", underlyingKey);
+  }
+  close.mockClear();
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  expect(close).toHaveBeenCalledExactlyOnceWith(false);
+  close.mockClear();
   fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
   expect(close).toHaveBeenCalledWith(false);
 });

@@ -51,7 +51,7 @@ it("copies actual CLI commands for the current Studio and keeps the project-spec
   );
   fireEvent.click(screen.getByRole("button", { name: "Copy command" }));
   expect(mocks.copy).toHaveBeenCalledWith(
-    `npx @plasmicapp/cli auth --host '${window.location.origin}'\nnpx @plasmicapp/cli init --host '${window.location.origin}' --platform nextjs\nnpx @plasmicapp/cli sync --projects 'project1'`,
+    `npx @plasmicapp/cli auth --host '${window.location.origin}'\nnpx @plasmicapp/cli init --host '${window.location.origin}' --platform nextjs --images-scheme files\nnpx @plasmicapp/cli sync --projects 'project1'`,
   );
   expect(screen.getByRole("status").textContent).toBe("Command copied");
   const guide = new URL(

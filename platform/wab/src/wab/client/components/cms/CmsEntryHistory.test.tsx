@@ -69,6 +69,15 @@ vi.mock("@/wab/client/components/quick-modals", () => ({
 vi.mock("@/wab/client/route/HistoryProvider", () => ({
   useHistory: () => ({ push: mocks.navigate }),
 }));
+vi.mock("@/wab/client/route/Switch", () => ({
+  Switch: ({
+    cases,
+  }: {
+    cases: { render: (params: object) => React.ReactNode }[];
+  }) => cases[0].render({ revisionId: "rev1" }),
+  switchCase: (config: object) => config,
+  switchDefault: (config: object) => config,
+}));
 vi.mock("@/wab/client/route/useMatchedRoute", () => ({
   useMatchedRoute: () => ({
     pathParams: {
@@ -148,6 +157,39 @@ it("retains read-only revision fields and retries failed writes using the curren
     revision: 7,
     noMerge: true,
   });
+});
+
+it("uses independent shared scroll regions for revision navigation and read-only content", async () => {
+  mocks.history.revisions = [
+    { id: "rev1", createdAt: "2026-10-13T08:14:00Z", isPublished: false },
+    { id: "rev2", createdAt: "2026-10-13T05:41:00Z", isPublished: true },
+  ];
+  const { container } = render(
+    <CmsEntryHistory
+      databaseId={"db1" as CmsDatabaseId}
+      tableId={"table1" as CmsTableId}
+      rowId={"row1" as CmsRowId}
+    />,
+  );
+  const navigation = screen.getByRole("navigation", {
+    name: "Entry revisions",
+  });
+  await waitFor(() =>
+    expect(navigation).toHaveAttribute("data-overlayscrollbars"),
+  );
+  const content = screen
+    .getByLabelText("Revision title")
+    .closest("[data-overlayscrollbars]");
+  expect(content).not.toBeNull();
+  expect(content).not.toBe(navigation);
+  expect(container.querySelectorAll("[data-overlayscrollbars]")).toHaveLength(
+    2,
+  );
+  expect(screen.getByLabelText("Revision title")).toBeDisabled();
+  expect(navigation.querySelectorAll("a")).toHaveLength(2);
+  expect(navigation.querySelector('[aria-current="page"]')).toHaveTextContent(
+    "Autosave",
+  );
 });
 
 it("retries only refresh after a successful write", async () => {

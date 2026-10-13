@@ -1,6 +1,7 @@
 import { useInspectorTheme } from "@/wab/client/components/coding/useInspectorTheme";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { tryEvalExpr } from "@/wab/shared/eval";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L, { debounce } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -119,11 +120,14 @@ export function ValuePreview({
   };
 }) {
   return (
-    <div style={{ position: "absolute" }} className={className}>
+    <Scrollbar
+      style={{ position: "absolute", overflow: "hidden" }}
+      className={className}
+    >
       <ErrorBoundary fallback={renderInspector(undefined)}>
         {renderInspector(val, opts)}
       </ErrorBoundary>
-    </div>
+    </Scrollbar>
   );
 }
 

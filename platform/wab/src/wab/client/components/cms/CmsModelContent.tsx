@@ -1,3 +1,4 @@
+import { CmsDetailsLayout } from "@/wab/client/components/cms/CmsDetailsLayout";
 import { FormSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useI18n } from "@/wab/client/i18n";
 import { Alert, Button } from "antd";
@@ -58,14 +59,11 @@ function CmsModelContent_(
         entriesList={{ rows }}
         entryDetail={{
           render: ({ className }) => (
-            <section
-              className={className}
-              style={{ flex: 1 }}
-              role="status"
-              aria-label={t("Loading content entries…")}
-            >
-              <FormSkeleton />
-            </section>
+            <CmsDetailsLayout className={className}>
+              <div role="status" aria-label={t("Loading content entries…")}>
+                <FormSkeleton />
+              </div>
+            </CmsDetailsLayout>
           ),
         }}
       />

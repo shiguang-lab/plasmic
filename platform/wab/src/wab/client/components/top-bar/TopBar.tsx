@@ -56,6 +56,7 @@ import {
   getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Menu, Popover, Tooltip, notification } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -703,7 +704,10 @@ function _TopBar({ preview }: TopBarProps) {
               placement="bottomLeft"
               align={{ offset: [0, 8] }}
               content={
-                <div className={`${styles.projectActions} ${popupStyles.root}`}>
+                <Scrollbar
+                  scrollX={false}
+                  className={`studio-scrollbar ${styles.projectActions} ${popupStyles.root}`}
+                >
                   <Menu selectable={false}>
                     <Menu.Item
                       key="share"
@@ -716,7 +720,7 @@ function _TopBar({ preview }: TopBarProps) {
                     </Menu.Item>
                   </Menu>
                   {menu?.()}
-                </div>
+                </Scrollbar>
               }
             >
               <Button

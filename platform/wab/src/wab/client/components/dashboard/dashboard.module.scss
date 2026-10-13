@@ -6,6 +6,22 @@
   margin-left: -8px;
 }
 
+.brandLink {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 12px;
+  border: 1px solid var(--ui-border);
+  border-radius: 24px;
+  background: var(--ui-surface);
+}
+
+.brandLink.desktopBrand {
+  padding-left: 80px;
+}
+
 .applicationLayout {
   height: 100vh;
   overflow: hidden;
@@ -34,17 +50,6 @@
     border: 0;
     justify-content: space-between;
     gap: 16px;
-  }
-
-  .brandLink {
-    display: flex;
-    align-items: center;
-    height: 48px;
-    flex-shrink: 0;
-    padding: 0 12px;
-    border: 1px solid var(--ui-border);
-    border-radius: 24px;
-    background: var(--ui-surface);
   }
 
   .headerActions {
@@ -138,9 +143,6 @@
       -webkit-app-region: no-drag;
     }
   }
-}
-.applicationLayout.desktopLayout .brandLink {
-  padding-left: 80px;
 }
 .applicationLayout.windowsLayout .headerWrapper {
   padding-right: 144px;

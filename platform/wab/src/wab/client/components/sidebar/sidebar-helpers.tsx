@@ -497,7 +497,7 @@ export const VerticalLabeledStyleDimItem = observer(
     });
 
     return (
-      <div className="flex flex-col" style={{ overflow: "auto" }}>
+      <div className="flex flex-col">
         <DimTokenSpinner
           value={value}
           onChange={async (val) => {

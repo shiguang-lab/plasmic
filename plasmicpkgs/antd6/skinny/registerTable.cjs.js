@@ -578,14 +578,18 @@ function registerTable(loader) {
         type: "choice",
         displayName: "Row key",
         description: "Choose a unique, stable field to identify selected rows.",
-        options: (_ps, ctx) => {
-          if (ctx?.schema) {
-            return ctx.schema.fields.map((f) => ({
+        options: (ps) => {
+          const data = ps.data;
+          if (!data || data.isLoading) {
+            return void 0;
+          }
+          if (data.schema) {
+            return data.schema.fields.map((f) => ({
               value: f.id,
               label: f.label || f.id
             }));
           }
-          return Object.keys(ctx?.data?.[0] ?? {});
+          return data.data?.length ? Object.keys(data.data[0]) : void 0;
         },
         hidden: (ps) => !ps.isSelectable
       },
@@ -593,10 +597,10 @@ function registerTable(loader) {
         type: "choice",
         displayName: "Selected row keys",
         multiSelect: (ps) => ps.isSelectable === "multiple",
-        options: (ps, ctx) => {
+        options: (ps) => {
           const key = ps.rowKey;
-          if (key && ctx?.data) {
-            return ctx.data.map((r) => r[key]);
+          if (key && ps.data?.data) {
+            return ps.data.data.map((r) => r[key]);
           }
           return [];
         },

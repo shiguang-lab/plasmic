@@ -142,6 +142,53 @@ class DesktopWorkspace {
     }
     return home;
   }
+  async refreshRecent(session) {
+    const entries = [...this.recent];
+    if (!entries.length) return false;
+    const options = {
+      bypassCustomProtocolHandlers: true,
+      credentials: "include",
+      redirect: "manual",
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+    };
+    try {
+      const login = await session.fetch(
+        this.origin + "/api/auth/session",
+        options,
+      );
+      if (!login.ok || (await login.json()).authenticated !== true)
+        return false;
+      const unavailable = await Promise.all(
+        entries.map(async (entry) => {
+          const id = this.projectId(entry.url);
+          const url = new URL("/api/v1/projects", this.origin);
+          url.searchParams.set("query", JSON.stringify("byIds"));
+          url.searchParams.set("projectIds", JSON.stringify([id]));
+          try {
+            const response = await session.fetch(url.toString(), options);
+            if ([403, 404].includes(response.status)) return id;
+            if (!response.ok) return undefined;
+            const { projects } = await response.json();
+            return Array.isArray(projects) &&
+              !projects.some((project) => project.id === id)
+              ? id
+              : undefined;
+          } catch {
+            return undefined;
+          }
+        }),
+      );
+      return this.saveRecent(
+        this.recent.filter(
+          (entry) => !unavailable.includes(this.projectId(entry.url)),
+        ),
+      );
+    } catch (error) {
+      console.warn("Cannot refresh recent desktop projects:", error.message);
+      return false;
+    }
+  }
   async capture(controller) {
     const state = await controller.state();
     return this.remember(state);
@@ -187,6 +234,7 @@ class DesktopWorkspace {
 function fileMenu({
   controller,
   workspace,
+  session,
   getWindow,
   dialog,
   refresh,
@@ -221,6 +269,9 @@ function fileMenu({
           ? workspace.recent.map((entry) => ({
               label: entry.name || workspace.projectId(entry.url),
               click: run(async () => {
+                if (await workspace.refreshRecent(session)) refresh();
+                if (!workspace.recent.some((item) => item.url === entry.url))
+                  return;
                 await controller.dispatch("open_design", {
                   projectId: workspace.projectId(entry.url),
                 });

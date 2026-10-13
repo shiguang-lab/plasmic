@@ -7,6 +7,7 @@ import {
 } from "@/wab/client/components/live/preview-viewport";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Input } from "antd";
 import React from "react";
 
@@ -39,7 +40,11 @@ export function PreviewViewportControls({
   const valid =
     isViewportDimension(Number(width)) && isViewportDimension(Number(height));
   return (
-    <div className={styles.controls} aria-label={uiT("Preview viewport")}>
+    <Scrollbar
+      scrollY={false}
+      className={styles.controls}
+      aria-label={uiT("Preview viewport")}
+    >
       <div
         className={styles.modes}
         role="group"
@@ -124,6 +129,6 @@ export function PreviewViewportControls({
           <UiText message={"Zoom"} /> {Math.round(scale * 100)}%
         </span>
       )}
-    </div>
+    </Scrollbar>
   );
 }

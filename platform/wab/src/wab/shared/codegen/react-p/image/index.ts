@@ -1,12 +1,11 @@
 import { SerializerBaseContext } from "@/wab/shared/codegen/react-p/types";
 import { jsLiteral, toVarName } from "@/wab/shared/codegen/util";
-import { ensure, maybe } from "@/wab/shared/common";
+import { maybe } from "@/wab/shared/common";
 import { ExprCtx } from "@/wab/shared/core/exprs";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
 import { ASPECT_RATIO_SCALE_FACTOR } from "@/wab/shared/core/tpls";
 import { DEVFLAGS, DevFlagsType } from "@/wab/shared/devflags";
 import { ImageAsset, TplTag } from "@/wab/shared/model/classes";
-import { last } from "lodash";
 
 export function shouldUsePlasmicImg(node: TplTag, projectFlags: DevFlagsType) {
   return node.tag === "img" && projectFlags.usePlasmicImg;
@@ -40,18 +39,8 @@ export function maybeMakePlasmicImgSrc(asset: ImageAsset, exprCtx: ExprCtx) {
     return asset.dataUri;
   }
 
-  const imgId =
-    asset.dataUri.startsWith("http") &&
-    ensure(
-      last(asset.dataUri.split("/")),
-      "A URL starting with 'http' should contain slashes",
-    );
-
   return {
-    src:
-      !imgId || imgId.endsWith(".svg")
-        ? asset.dataUri
-        : `${DEVFLAGS.imgOptimizerHost}/img-optimizer/v1/img/${imgId}`,
+    src: asset.dataUri,
     fullWidth: asset.width,
     fullHeight: asset.height,
     aspectRatio: maybe(

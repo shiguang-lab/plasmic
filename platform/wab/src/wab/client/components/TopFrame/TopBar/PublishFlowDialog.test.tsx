@@ -42,7 +42,7 @@ vi.mock(
           disabled={props.publishButton.disabled}
           onClick={props.publishButton.onClick}
         >
-          Save and publish
+          {props.publishButton.children}
         </button>
         {props.webhooksDescription.render({
           children: (
@@ -54,7 +54,7 @@ vi.mock(
   }),
 );
 
-function openDialog() {
+function openDialog(integrations = true) {
   const section = () => ({
     visible: true,
     enable: true,
@@ -65,12 +65,12 @@ function openDialog() {
   render(
     <PublishFlowDialog
       {...({
-        appCtx: { api: {} },
+        appCtx: { api: {}, appConfig: { enablePlasmicHosting: false } },
         project: { id: "project", name: "Project" },
         subsectionMeta: {
           saveVersion: section(),
-          pushDeploy: section(),
-          webhooks: section(),
+          pushDeploy: { ...section(), enable: integrations },
+          webhooks: { ...section(), enable: integrations },
           plasmicHosting: section(),
         },
         setShowCodeModal: mocks.code,
@@ -95,14 +95,18 @@ it("recovers version calculation instead of leaving publishing stuck in loading"
   await screen.findByText("Failed to load publishing settings");
   expect(
     screen
-      .getByRole("button", { name: "Save and publish" })
+      .getByRole("button", {
+        name: /Loading\.\.\.|Save version and run integrations/,
+      })
       .hasAttribute("disabled"),
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() =>
     expect(
       screen
-        .getByRole("button", { name: "Save and publish" })
+        .getByRole("button", {
+          name: /Loading\.\.\.|Save version and run integrations/,
+        })
         .hasAttribute("disabled"),
     ).toBe(false),
   );
@@ -124,5 +128,18 @@ it("retries the actual domain request after a settings failure", () => {
   openDialog();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(mocks.retryDomains).toHaveBeenCalledOnce();
-  expect(screen.queryByRole("button", { name: "Save and publish" })).toBeNull();
+  expect(
+    screen.queryByRole("button", {
+      name: /Loading\.\.\.|Save version and run integrations/,
+    }),
+  ).toBeNull();
+});
+
+it("names the version-only action without promising website publication", async () => {
+  mocks.calculate.mockResolvedValueOnce({ version: "0.0.1", changeLog: [] });
+  openDialog(false);
+  expect(
+    await screen.findByRole("button", { name: "Save version" }),
+  ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Publish website" })).toBeNull();
 });

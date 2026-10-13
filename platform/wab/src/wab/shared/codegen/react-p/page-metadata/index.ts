@@ -92,7 +92,7 @@ function serializeMetaTags(props: {
     .map((metaKey) =>
       metaKey === "title"
         ? `<title key="title">{${serializedKey}}</title>`
-        : `<meta key="${metaKey}" property="${metaKey}" content={${serializedKey}} />`,
+        : `<meta key="${metaKey}" ${metaKey.startsWith("og:") ? "property" : "name"}="${metaKey}" content={${serializedKey}} />`,
     )
     .join("\n");
 }

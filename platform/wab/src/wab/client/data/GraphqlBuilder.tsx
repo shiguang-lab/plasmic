@@ -2,6 +2,7 @@ import Button from "@/wab/client/components/widgets/Button";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { explorerPlugin } from "@graphiql/plugin-explorer";
 import { Fetcher } from "@graphiql/toolkit";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import GraphiQL from "graphiql";
 import "graphiql/graphiql.css";
 import React, { useMemo, useState } from "react";
@@ -77,7 +78,10 @@ export default function GraphiqlWithExplorer({
   const [variables, setVariables] = useState(defaultVariables);
   return (
     <div className="fill-height flex-col">
-      <div className={"fill-height overflow-scroll standard-gql-ui"}>
+      <Scrollbar
+        className="studio-scrollbar standard-gql-ui"
+        style={{ flex: 1, minHeight: 0 }}
+      >
         <GraphiQL
           forcedTheme="light"
           fetcher={fetcher}
@@ -89,7 +93,7 @@ export default function GraphiqlWithExplorer({
           plugins={[explorer]}
           variables={variables}
         />
-      </div>
+      </Scrollbar>
 
       <div className="flex-no-shrink flex flex-right pv-lg ph-xlg bt-dim">
         <Button

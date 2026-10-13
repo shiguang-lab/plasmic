@@ -15,6 +15,7 @@ import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { StarterProjectConfig } from "@/wab/shared/devflags";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import {
   Alert,
   Button,
@@ -43,7 +44,7 @@ interface NewProjectModalProps {
 }
 
 const useStyles = createStyles(({ token }) => ({
-  templates: { maxHeight: "min(420px, 45vh)", overflowY: "auto", padding: 2 },
+  templates: { maxHeight: "min(420px, 45vh)", minHeight: 0, padding: 2 },
   card: { height: "100%", cursor: "pointer", borderColor: token.colorBorder },
   selected: {
     borderColor: token.colorPrimary,
@@ -193,6 +194,7 @@ const NewProjectModal = observer(function NewProjectModal({
           border: `1px solid ${token.colorBorder}`,
         },
         footer: { textAlign: "right" },
+        body: { overflow: "hidden", padding: 0 },
       }}
       drawerRender={(node) => (
         <ModalScope allowKeyCombos={["esc"]} style={{ height: "100%" }}>
@@ -231,158 +233,164 @@ const NewProjectModal = observer(function NewProjectModal({
         </Space>
       }
     >
-      <Form
-        form={form}
-        onFinish={create}
-        layout="vertical"
-        initialValues={{
-          workspaceId: workspaceId ?? appCtx.personalWorkspace?.id,
-        }}
-        disabled={creating}
-      >
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item
-              name="name"
-              label={t("Name")}
-              rules={[
-                {
-                  required: true,
-                  whitespace: true,
-                  message: t("Enter a project name"),
-                },
-              ]}
-            >
-              <Input autoFocus maxLength={200} />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              name="workspaceId"
-              label={t("Workspace")}
-              rules={[{ required: true }]}
-            >
-              <Select
-                loading={!projectsData}
-                options={workspaces.map((workspace) => ({
-                  value: workspace.id,
-                  label:
-                    workspace.id === appCtx.personalWorkspace?.id
-                      ? t("My Playground")
-                      : workspace.name,
-                }))}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Form>
-      {loadError && (
-        <Alert
-          type="error"
-          showIcon
-          title={t("Failed to load projects")}
-          action={
-            <Button
-              size="small"
-              onClick={() => {
-                void reloadProjects();
-              }}
-            >
-              {t("Retry")}
-            </Button>
-          }
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      {error && (
-        <Alert
-          type="error"
-          showIcon
-          title={error}
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      <Tabs
-        activeKey={startingPoint}
-        onChange={(key) => {
-          if (!creating) {
-            setStartingPoint(key);
-          }
-        }}
-        items={[
-          {
-            key: "blank",
-            label: t("Blank project"),
-            children: (
-              <Typography.Paragraph type="secondary">
-                {t("Start with an empty canvas.")}
-              </Typography.Paragraph>
-            ),
-          },
-          {
-            key: "template",
-            label: t("Templates"),
-            children: (
-              <div className={styles.templates}>
-                {templates.length === 0 ? (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={t("No templates available in this workspace.")}
-                  />
-                ) : (
-                  <Radio.Group
-                    value={selectedTemplate?.tag}
-                    style={{ width: "100%" }}
-                    onChange={(event) =>
-                      setSelectedTemplate(
-                        templates.find(
-                          (template) => template.tag === event.target.value,
-                        ),
-                      )
-                    }
-                    disabled={creating}
-                  >
-                    <Row gutter={[12, 12]}>
-                      {templates.map((template) => (
-                        <Col span={24} key={template.tag}>
-                          <Card
-                            className={cx(
-                              styles.card,
-                              selectedTemplate?.tag === template.tag &&
-                                styles.selected,
-                            )}
-                            onClick={() => {
-                              if (!creating) {
-                                setSelectedTemplate(template);
-                              }
-                            }}
-                          >
-                            {template.imageUrl && (
-                              <img
-                                className={styles.image}
-                                src={template.imageUrl}
-                                alt=""
-                              />
-                            )}
-                            <Radio value={template.tag}>{template.name}</Radio>
-                            <Typography.Paragraph
-                              type="secondary"
-                              ellipsis={{ rows: 2 }}
-                              style={{ marginTop: 8, marginBottom: 0 }}
+      <Scrollbar scrollX={false} style={{ height: "100%", padding: 24 }}>
+        <Form
+          form={form}
+          onFinish={create}
+          layout="vertical"
+          initialValues={{
+            workspaceId: workspaceId ?? appCtx.personalWorkspace?.id,
+          }}
+          disabled={creating}
+        >
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="name"
+                label={t("Name")}
+                rules={[
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: t("Enter a project name"),
+                  },
+                ]}
+              >
+                <Input autoFocus maxLength={200} />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                name="workspaceId"
+                label={t("Workspace")}
+                rules={[{ required: true }]}
+              >
+                <Select
+                  loading={!projectsData}
+                  options={workspaces.map((workspace) => ({
+                    value: workspace.id,
+                    label:
+                      workspace.id === appCtx.personalWorkspace?.id
+                        ? t("My Playground")
+                        : workspace.name,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+        {loadError && (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to load projects")}
+            action={
+              <Button
+                size="small"
+                onClick={() => {
+                  void reloadProjects();
+                }}
+              >
+                {t("Retry")}
+              </Button>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        {error && (
+          <Alert
+            type="error"
+            showIcon
+            title={error}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <Tabs
+          activeKey={startingPoint}
+          onChange={(key) => {
+            if (!creating) {
+              setStartingPoint(key);
+            }
+          }}
+          items={[
+            {
+              key: "blank",
+              label: t("Blank project"),
+              children: (
+                <Typography.Paragraph type="secondary">
+                  {t("Start with an empty canvas.")}
+                </Typography.Paragraph>
+              ),
+            },
+            {
+              key: "template",
+              label: t("Templates"),
+              children: (
+                <Scrollbar scrollX={false} className={styles.templates}>
+                  {templates.length === 0 ? (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={t(
+                        "No templates available in this workspace.",
+                      )}
+                    />
+                  ) : (
+                    <Radio.Group
+                      value={selectedTemplate?.tag}
+                      style={{ width: "100%" }}
+                      onChange={(event) =>
+                        setSelectedTemplate(
+                          templates.find(
+                            (template) => template.tag === event.target.value,
+                          ),
+                        )
+                      }
+                      disabled={creating}
+                    >
+                      <Row gutter={[12, 12]}>
+                        {templates.map((template) => (
+                          <Col span={24} key={template.tag}>
+                            <Card
+                              className={cx(
+                                styles.card,
+                                selectedTemplate?.tag === template.tag &&
+                                  styles.selected,
+                              )}
+                              onClick={() => {
+                                if (!creating) {
+                                  setSelectedTemplate(template);
+                                }
+                              }}
                             >
-                              {template.description}
-                            </Typography.Paragraph>
-                          </Card>
-                        </Col>
-                      ))}
-                    </Row>
-                  </Radio.Group>
-                )}
-              </div>
-            ),
-          },
-        ]}
-      />
+                              {template.imageUrl && (
+                                <img
+                                  className={styles.image}
+                                  src={template.imageUrl}
+                                  alt=""
+                                />
+                              )}
+                              <Radio value={template.tag}>
+                                {template.name}
+                              </Radio>
+                              <Typography.Paragraph
+                                type="secondary"
+                                ellipsis={{ rows: 2 }}
+                                style={{ marginTop: 8, marginBottom: 0 }}
+                              >
+                                {template.description}
+                              </Typography.Paragraph>
+                            </Card>
+                          </Col>
+                        ))}
+                      </Row>
+                    </Radio.Group>
+                  )}
+                </Scrollbar>
+              ),
+            },
+          ]}
+        />
+      </Scrollbar>
     </Drawer>
   );
 });

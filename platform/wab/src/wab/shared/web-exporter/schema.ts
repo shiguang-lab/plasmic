@@ -316,7 +316,9 @@ export function componentSchema() {
       ),
     baseVariantTplTree: z
       .string()
-      .describe("Base-variant tpl tree as HTML markup."),
+      .describe(
+        "Base-variant tpl tree as HTML markup. Inherited slot nodes are marked data-editable=false with data-source-component, data-source-slot and data-source-element pointing to the source slot; these virtual node IDs are not editing targets.",
+      ),
     variantSettings: z
       .array(variantOverrideSchema())
       .optional()
@@ -807,9 +809,12 @@ export function elementSchema() {
     baseVariantTplTree: z
       .string()
       .describe("The element's subtree as HTML markup."),
-    interactions: z.array(interactionSchema()).optional().describe(
-      "Native event steps owned by this subtree, including UUIDs for editing existing interactions.",
-    ),
+    interactions: z
+      .array(interactionSchema())
+      .optional()
+      .describe(
+        "Native event steps owned by this subtree, including UUIDs for editing existing interactions.",
+      ),
   });
 }
 export type ElementJson = z.infer<ReturnType<typeof elementSchema>>;

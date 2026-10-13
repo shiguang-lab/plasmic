@@ -560,11 +560,20 @@ function isInternalKey(src: string) {
 
 const PLASMIC_IMAGE_LOADER: ImageLoader = {
   supportsUrl: (src) => {
-    return (src.startsWith("http") || isInternalKey(src)) && !isSvg(src);
+    return (
+      (src.startsWith(`${IMG_OPTIMIZER_HOST}/img-optimizer/v1/img/`) ||
+        isInternalKey(src)) &&
+      !isSvg(src)
+    );
   },
   transformUrl: (opts) => {
+    const src = opts.src.startsWith(
+      `${IMG_OPTIMIZER_HOST}/img-optimizer/v1/img/`,
+    )
+      ? new URL(opts.src).pathname.slice("/img-optimizer/v1/img/".length)
+      : opts.src;
     const params = [
-      `src=${encodeURIComponent(opts.src)}`,
+      `src=${encodeURIComponent(src)}`,
       opts.width ? `w=${opts.width}` : undefined,
       `q=${opts.quality ?? 75}`,
       opts.format ? `f=${opts.format}` : undefined,

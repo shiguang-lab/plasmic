@@ -2,6 +2,17 @@ const { app, ipcMain, nativeImage } = require("electron");
 const { randomUUID } = require("node:crypto");
 const { EDITOR_METHODS } = require("./mcp.cjs");
 const { canvasFrames, renderCanvas, exportCanvas } = require("./canvas.cjs");
+function validateResourceId(value, label) {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
+    throw new Error("Invalid " + label);
+  }
+}
+function resourceName(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("Name must be a non-empty string");
+  }
+  return value.trim();
+}
 class DesktopController {
   constructor(getWindow, config, waitForStartup = async () => {}) {
     this.getWindow = getWindow;
@@ -83,6 +94,8 @@ class DesktopController {
       version: require("../package.json").version,
       build: require("../renderer/desktop-assets.json").build,
       url: url.toString(),
+      orgId: url.pathname.match(/^\/orgs\/([^/]+)/)?.[1] || null,
+      workspaceId: url.pathname.match(/^\/workspaces\/([^/]+)/)?.[1] || null,
       projectId: url.pathname.match(/^\/projects\/([^/]+)/)?.[1] || null,
       ready: metadata.ready,
       editorTools: metadata.tools,
@@ -121,6 +134,46 @@ class DesktopController {
     }
     throw new Error("Design did not become ready");
   }
+  async requestStudio(path, body) {
+    const response = await this.getWindow().webContents.session.fetch(
+      this.config.studioOrigin + path,
+      {
+        bypassCustomProtocolHandlers: true,
+        credentials: "include",
+        redirect: "manual",
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+          Accept: "application/json",
+          ...(body === undefined ? {} : {
+            "Content-Type": "application/json",
+            Origin: this.config.studioOrigin,
+          }),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      },
+    );
+    if (!response.ok) {
+      throw new Error(
+        "NAS request failed: HTTP " + response.status +
+        (response.status === 401 || response.status >= 300 && response.status < 400
+          ? "; sign in to Plasmic first"
+          : response.status === 403 ? "; access denied" : ""),
+      );
+    }
+    return response.json();
+  }
+  async saveBeforeNavigation(state) {
+    if (state.ready) {
+      const identity = await this.editor("identify", {
+        model: "unknown",
+        client: "plasmic-desktop-mcp",
+        skill: "plasmic",
+      });
+      if (identity.canEdit) {
+        await this.editor("save");
+      }
+    }
+  }
   dispatch(method, input) {
     if (method === "get_app_state") {
       return this.execute(method, input);
@@ -142,6 +195,9 @@ class DesktopController {
     };
     if (
       [
+        "get_org",
+        "list_orgs",
+        "list_workspaces",
         "list_projects",
         "search_stock_images",
         "generate_image",
@@ -184,19 +240,82 @@ class DesktopController {
     ) {
       await this.waitForStartup();
     }
-    if (method === "list_projects") {
-      const response = await win.webContents.session.fetch(
-        this.config.studioOrigin + "/api/v1/projects?query=%22all%22",
-        { bypassCustomProtocolHandlers: true, credentials: "include" },
-      );
-      if (!response.ok) {
-        throw new Error(
-          "Cannot list projects; desktop login required (HTTP " +
-            response.status +
-            ")",
-        );
+    if (method === "get_org") {
+      validateResourceId(input.orgId, "orgId");
+      return this.requestStudio("/api/v1/teams/" + input.orgId);
+    }
+    if (method === "list_orgs") {
+      const query = input.query === undefined ? undefined : resourceName(input.query).toLowerCase();
+      const result = await this.requestStudio("/api/v1/teams");
+      if (query !== undefined) {
+        const teams = result.teams.filter((team) => team.name.toLowerCase().includes(query));
+        const ids = new Set(teams.map((team) => team.id));
+        return { ...result, teams, perms: result.perms.filter((perm) => ids.has(perm.teamId)) };
       }
-      return response.json();
+      return result;
+    }
+    if (method === "create_org") {
+      return this.requestStudio("/api/v1/teams", { name: resourceName(input.name) });
+    }
+    if (method === "create_workspace") {
+      validateResourceId(input.orgId, "orgId");
+      if (input.description !== undefined && typeof input.description !== "string") {
+        throw new Error("Description must be a string");
+      }
+      const result = await this.requestStudio("/api/v1/workspaces", {
+        teamId: input.orgId,
+        name: resourceName(input.name),
+        description: input.description,
+      });
+      if (result.paywall !== "pass") {
+        throw new Error("Cannot create workspace: plan restriction (" + result.paywall +
+          (result.description ? ": " + result.description : "") + ")");
+      }
+      return result.response;
+    }
+    if (method === "list_workspaces") {
+      if (input.orgId !== undefined) {
+        validateResourceId(input.orgId, "orgId");
+        return this.requestStudio("/api/v1/teams/" + input.orgId + "/workspaces");
+      }
+      return this.requestStudio("/api/v1/workspaces");
+    }
+    if (method === "create_project") {
+      if (input.workspaceId !== undefined) {
+        validateResourceId(input.workspaceId, "workspaceId");
+      }
+      return this.requestStudio("/api/v1/projects", {
+        name: resourceName(input.name),
+        workspaceId: input.workspaceId,
+      });
+    }
+    if (method === "open_org" || method === "open_workspace") {
+      const isOrg = method === "open_org";
+      const key = isOrg ? "orgId" : "workspaceId";
+      const id = input[key];
+      validateResourceId(id, key);
+      await this.requestStudio(isOrg
+        ? "/api/v1/teams/" + id + "/workspaces"
+        : "/api/v1/workspaces/" + id);
+      const url = this.config.studioOrigin + (isOrg ? "/orgs/" : "/workspaces/") + id;
+      const state = await this.state();
+      if (state.url !== url) {
+        await this.saveBeforeNavigation(state);
+        await win.loadURL(url);
+      }
+      if (win.webContents.getURL() !== url) {
+        throw new Error("The requested " + (isOrg ? "organization" : "workspace") + " page did not open");
+      }
+      return { opened: true, [key]: id, url };
+    }
+    if (method === "list_projects") {
+      const url = new URL("/api/v1/projects", this.config.studioOrigin);
+      url.searchParams.set("query", JSON.stringify(input.workspaceId === undefined ? "all" : "byWorkspace"));
+      if (input.workspaceId !== undefined) {
+        validateResourceId(input.workspaceId, "workspaceId");
+        url.searchParams.set("workspaceId", JSON.stringify(input.workspaceId));
+      }
+      return this.requestStudio(url.pathname + url.search);
     }
     if (method === "open_design") {
       if (
@@ -207,16 +326,7 @@ class DesktopController {
       }
       const state = await this.state();
       if (state.projectId !== input.projectId) {
-        if (state.ready) {
-          const identity = await this.editor("identify", {
-            model: "unknown",
-            client: "plasmic-desktop-mcp",
-            skill: "plasmic",
-          });
-          if (identity.canEdit) {
-            await this.editor("save");
-          }
-        }
+        await this.saveBeforeNavigation(state);
         await win.loadURL(
           this.config.studioOrigin + "/projects/" + input.projectId,
         );
@@ -317,11 +427,41 @@ class DesktopController {
         bypassCustomProtocolHandlers: true,
         credentials: "include",
       };
-      const response = await win.webContents.session.fetch(
-        this.config.studioOrigin +
-          "/api/v1/projects/" +
-          encodeURIComponent(identity.projectId) +
-          "/code/components?export=true",
+      const fetchBundle = async (projectId, componentIds) => {
+        const response = await win.webContents.session.fetch(
+          this.config.studioOrigin +
+            "/api/v1/projects/" +
+            encodeURIComponent(projectId) +
+            "/code/components",
+          {
+            ...options,
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Origin: this.config.studioOrigin,
+            },
+            body: JSON.stringify({
+              platform: "react",
+              version: "latest",
+              componentIdOrNames: componentIds,
+              imageOpts: { scheme: "files" },
+              stylesOpts: { scheme: "css" },
+            }),
+          },
+        );
+        if (!response.ok) {
+          throw new Error(
+            "NAS React code generation failed: HTTP " + response.status,
+          );
+        }
+        return response.json();
+      };
+      const {
+        writeCodeBundle,
+        getCssDependencyIds,
+      } = require("./code-export.cjs");
+      const resolved = await win.webContents.session.fetch(
+        this.config.studioOrigin + "/api/v1/code/resolve-sync",
         {
           ...options,
           method: "POST",
@@ -330,23 +470,67 @@ class DesktopController {
             Origin: this.config.studioOrigin,
           },
           body: JSON.stringify({
-            platform: "react",
-            version: "latest",
-            componentIdOrNames: input.componentUuids,
-            imageOpts: { scheme: "inlined" },
-            stylesOpts: { scheme: "css" },
+            projects: [
+              {
+                projectId: identity.projectId,
+                versionRange: "latest",
+                componentIdOrNames: input.componentUuids,
+              },
+            ],
+            recursive: true,
           }),
         },
       );
-      if (!response.ok) {
+      if (!resolved.ok) {
         throw new Error(
-          "NAS React code generation failed: HTTP " + response.status,
+          "React dependency resolution failed: HTTP " + resolved.status,
         );
       }
-      return require("./code-export.cjs").writeCodeBundle(
-        input.outputPath,
-        await response.json(),
+      const resolution = await resolved.json();
+      const project = resolution.projects.find(
+        (item) => item.projectId === identity.projectId,
       );
+      if (!project) {
+        throw new Error("Codegen did not resolve the active project");
+      }
+      const bundle = await fetchBundle(
+        identity.projectId,
+        project.componentIds,
+      );
+      const dependencies = [];
+      const seen = new Set([identity.projectId]);
+      const pending = [bundle];
+      for (const current of pending) {
+        for (const projectId of getCssDependencyIds(current)) {
+          if (!seen.has(projectId)) {
+            seen.add(projectId);
+            const dependency = await fetchBundle(projectId, []);
+            dependencies.push(dependency);
+            pending.push(dependency);
+          }
+        }
+      }
+      for (const current of [bundle, ...dependencies]) {
+        for (const asset of current.imageAssets || []) {
+          if (/^https?:\/\//.test(asset.blob)) {
+            const url = new URL(asset.blob);
+            const response = await win.webContents.session.fetch(url.href, {
+              bypassCustomProtocolHandlers: true,
+              credentials:
+                url.origin === this.config.studioOrigin ? "include" : "omit",
+            });
+            if (!response.ok) {
+              throw new Error(
+                `Image download failed: ${asset.fileName} (HTTP ${response.status})`,
+              );
+            }
+            asset.blob = Buffer.from(await response.arrayBuffer()).toString(
+              "base64",
+            );
+          }
+        }
+      }
+      return writeCodeBundle(input.outputPath, bundle, dependencies);
     }
     if (method === "browser") {
       return require("./browser-capture.cjs").browserCommand(input);

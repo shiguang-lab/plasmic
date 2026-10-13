@@ -86,6 +86,7 @@ export function useServerQueryBottomModals() {
       modalActions.open(queryKey, {
         title: title || translate(getUiLocale(), "Configure server query"),
         "data-test-id": "server-query-bottom-modal",
+        onEscape: props.onCancel,
         children: <ServerQueryOpExprBottomModalContent {...props} />,
       });
     },

@@ -29,8 +29,7 @@ export const useDocsLayoutStyles = createStyles(({ token }) => ({
       borderColor: token.colorBorderSecondary,
     },
     [`& .${docs.itemsContainer}`]: {
-      overflowY: "auto",
-      scrollbarColor: `${token.colorBorder} transparent`,
+      minHeight: 0,
     },
     "@media (max-width: 1100px)": { [`& .${docs.sidebar}`]: { width: 200 } },
   },

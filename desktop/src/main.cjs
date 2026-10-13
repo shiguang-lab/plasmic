@@ -188,6 +188,7 @@ async function startDesktop() {
       createAssetHandler({
         root,
         ...config,
+        localCanvasLibraries: manifest.localCanvasLibraries,
         bridgePath: path.join(__dirname, "editor-bridge.js"),
         authPagePath: path.join(__dirname, "unified-login.html"),
         updateUiPath: path.join(__dirname, "update-ui.js"),
@@ -494,6 +495,7 @@ async function startDesktop() {
       fileMenu({
         controller,
         workspace,
+        session: desktopSession,
         getWindow: () => mainWindow,
         dialog,
         refresh: buildMenu,
@@ -551,10 +553,14 @@ async function startDesktop() {
     }
     menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => {
       void capture();
+      void workspace.refreshRecent(desktopSession).then((changed) => {
+        if (changed && !win.isDestroyed()) buildMenu();
+      });
     });
     Menu.setApplicationMenu(menu);
   }
   const startupUrl = await workspace.startupUrl(desktopSession);
+  await workspace.refreshRecent(desktopSession);
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {
     buildMenu();

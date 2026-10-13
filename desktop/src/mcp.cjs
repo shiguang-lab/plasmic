@@ -63,18 +63,74 @@ const object = (properties) => ({
   properties,
   additionalProperties: false,
 });
+const resourceId = { type: "string", pattern: "^[A-Za-z0-9_-]+$" };
+const resourceName = { type: "string", pattern: "\\S" };
 const tools = [
   {
     name: "get_app_state",
     description:
-      "Read the desktop URL, active project, focused artboard, selected elements and editing scope, readiness, build identity, running operations and exact editor tool schemas. Read these contracts before execute.",
+      "Read the desktop URL, active org/workspace/project, focused artboard, selected elements and editing scope, readiness, build identity, running operations and exact editor tool schemas. Read these contracts before execute.",
     inputSchema: object({}),
+  },
+  {
+    name: "get_org",
+    description:
+      "Read an accessible NAS organization by orgId, including permissions and members. Organizations use the platform Team model; returns team, perms and members. Requires desktop login; does not navigate or save.",
+    inputSchema: { ...object({ orgId: resourceId }), required: ["orgId"] },
+  },
+  {
+    name: "list_orgs",
+    description:
+      "List NAS organizations accessible to the signed-in desktop account. Optional query filters organization names by case-insensitive substring. Returns teams and perms from the platform Team model; does not navigate or save.",
+    inputSchema: object({ query: resourceName }),
+  },
+  {
+    name: "create_org",
+    description:
+      "Create a NAS organization with the signed-in desktop account. Returns team from the platform Team model. The platform also creates its default workspace. Does not navigate; use open_org to open it.",
+    inputSchema: { ...object({ name: resourceName }), required: ["name"] },
+  },
+  {
+    name: "open_org",
+    description:
+      "Open the organization dashboard at /orgs/:orgId after checking access. Saves the current editable design before leaving it. Requires desktop login; returns opened, orgId and url.",
+    inputSchema: { ...object({ orgId: resourceId }), required: ["orgId"] },
+  },
+  {
+    name: "create_workspace",
+    description:
+      "Create a NAS workspace in orgId with a name and optional description. Requires desktop login and organization permission. Returns workspace; plan restrictions are errors. Does not navigate; use open_workspace to open it.",
+    inputSchema: {
+      ...object({ orgId: resourceId, name: resourceName, description: { type: "string" } }),
+      required: ["orgId", "name"],
+    },
+  },
+  {
+    name: "list_workspaces",
+    description:
+      "List NAS workspaces accessible to the signed-in desktop account, optionally within orgId. Preserves the platform response and permissions; does not navigate or save.",
+    inputSchema: object({ orgId: resourceId }),
+  },
+  {
+    name: "open_workspace",
+    description:
+      "Open the workspace dashboard at /workspaces/:workspaceId after checking access. Saves the current editable design before leaving it. Requires desktop login; returns opened, workspaceId and url.",
+    inputSchema: { ...object({ workspaceId: resourceId }), required: ["workspaceId"] },
+  },
+  {
+    name: "create_project",
+    description:
+      "Create an empty private NAS project with a name and optional workspaceId. Omitting workspaceId uses the account's personal workspace. Requires desktop login and workspace edit permission. Returns project and rev; does not navigate or save the active design. Use open_design with the returned project.id to open it.",
+    inputSchema: {
+      ...object({ name: resourceName, workspaceId: resourceId }),
+      required: ["name"],
+    },
   },
   {
     name: "list_projects",
     description:
-      "List NAS projects accessible to the signed-in desktop account.",
-    inputSchema: object({}),
+      "List NAS projects accessible to the signed-in desktop account, optionally within workspaceId. Returns projects and perms, including each project's workspaceId and teamId. Use the chosen workspaceId when resolving a Team → Workspace → Project target; does not navigate or save.",
+    inputSchema: object({ workspaceId: resourceId }),
   },
   {
     name: "open_design",

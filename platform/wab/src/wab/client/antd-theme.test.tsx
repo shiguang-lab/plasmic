@@ -2,6 +2,7 @@ import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { renderInspector } from "@/wab/client/components/coding/CodePreview";
 import ValueViewer from "@/wab/client/components/coding/ValueViewer";
 import { Tooltip as ProductTooltip } from "@/wab/client/components/plexus/Tooltip";
+import { setLanguagePreference } from "@/wab/client/i18n";
 import tooltipStyles from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
 import styleTooltipStyles from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
 import {
@@ -10,7 +11,7 @@ import {
 } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { Popover, Tooltip, theme } from "antd";
+import { DatePicker, Popover, Tooltip, theme } from "antd";
 import { useTheme } from "antd-style";
 import * as React from "react";
 import { createPortal } from "react-dom";
@@ -27,6 +28,27 @@ function ThemeProbe() {
   );
 }
 afterEach(cleanup);
+it.each([
+  ["zh-CN", "一", "二"],
+  ["zh-TW", "日", "一"],
+  ["ja", "日", "月"],
+  ["ko", "일", "월"],
+] as const)(
+  "uses %s date-library weekdays in product calendars",
+  (locale, firstDay, secondDay) => {
+    setLanguagePreference(locale);
+    render(
+      <AntdConfigProvider productUI>
+        <DatePicker open />
+      </AntdConfigProvider>,
+    );
+    const headers = screen
+      .getAllByRole("columnheader")
+      .map((header) => header.textContent);
+    expect(headers.slice(0, 2)).toEqual([firstDay, secondDay]);
+    expect(headers).not.toContain("Su");
+  },
+);
 it("keeps generated tooltip content readable through theme changes", async () => {
   setAppearancePreference("dark");
   render(

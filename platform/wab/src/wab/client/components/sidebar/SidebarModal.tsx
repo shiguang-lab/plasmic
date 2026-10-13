@@ -8,6 +8,7 @@ import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import domAlign from "dom-align";
 import L from "lodash";
 import { observer } from "mobx-react";
@@ -260,9 +261,13 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
             </IconButton>
           )}
         </div>
-        <div className={cx("panel-popup-content", "rel")}>
+        <Scrollbar
+          scrollX={false}
+          className={cx("panel-popup-content", "rel")}
+          style={{ minHeight: 0, overflow: "hidden" }}
+        >
           <div className="panel-popup-content-inner">{children}</div>
-        </div>
+        </Scrollbar>
       </div>
     </ModalScope>,
     element,

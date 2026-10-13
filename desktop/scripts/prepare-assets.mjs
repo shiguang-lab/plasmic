@@ -111,12 +111,27 @@ try {
     }
   }
   await configure(target);
+  const localCanvasLibraries = {};
+  if (fromIndex >= 0) {
+    const bundleDir = "static/canvas-packages/build";
+    const bundles = await readdir(path.join(target, bundleDir));
+    for (const name of ["antd6", "overseas", "react-ui"]) {
+      const matches = bundles.filter(
+        (file) => file.startsWith(`${name}-v2.`) && file.endsWith(".js"),
+      );
+      if (matches.length !== 1) {
+        throw new Error(`Expected one local canvas bundle for ${name}`);
+      }
+      localCanvasLibraries[name] = `${bundleDir}/${matches[0]}`;
+    }
+  }
   await writeFile(
     path.join(target, "desktop-assets.json"),
     JSON.stringify(
       {
         ...config,
         revision,
+        localCanvasLibraries,
         build: {
           kind: fromIndex >= 0 ? "local" : "release",
           revision,

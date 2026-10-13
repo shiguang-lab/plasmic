@@ -8,9 +8,9 @@ Since `plasmicpkgs-dev` is in the same monorepo as `@plasmicpkgs/*`, it can easi
 
 Have a test Plasmic project ready.
 
-Create a `.env` file based on [`.env.example`](./.env.example) that stores the test project's ID and token. The app host will load this project's pages.
+Create a `.env` file based on [`.env.example`](.env.example) that stores the test project's ID and token. The app host will load this project's pages.
 
-Check that the package you want to test is registered in [plasmic-init-client.tsx](./plasmic-init-client.tsx). If not, add the dependency in [package.json](./package.json) and add the registration calls.
+Check that the package you want to test is registered in [plasmic-init-client.tsx](plasmic-init-client.tsx). If not, add the dependency in [package.json](package.json) and add the registration calls.
 
 To build all `@plasmicpkgs/*`, run `pnpm lerna run build --scope="@plasmicpkgs/*"`.
 

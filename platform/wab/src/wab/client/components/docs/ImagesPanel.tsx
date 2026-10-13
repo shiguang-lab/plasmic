@@ -7,6 +7,7 @@ import {
   PlasmicImagesPanel,
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicImagesPanel";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -29,6 +30,11 @@ const ImagesPanel = observer(function ImagesPanel(props: ImagesPanelProps) {
   return (
     <PlasmicImagesPanel
       {...props}
+      componentsContainer={{
+        as: Scrollbar,
+        style: { flex: 1, minHeight: 0, height: "auto", overflow: "hidden" },
+        props: { scrollX: false },
+      }}
       searchbox={{
         value: query,
         onChange: (e) => setQuery(e.target.value),

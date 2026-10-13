@@ -1,5 +1,7 @@
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { TinyEditor } from "@/wab/client/components/TinyEditor";
+import { setLanguagePreference } from "@/wab/client/i18n";
+import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { act, cleanup, render } from "@testing-library/react";
 import type { IAllProps } from "@tinymce/tinymce-react";
@@ -22,6 +24,25 @@ vi.mock("@tinymce/tinymce-react", () => ({
   },
 }));
 afterEach(cleanup);
+
+it("uses shared language packs for rich text UI while preserving business content", () => {
+  const onChange = vi.fn();
+  render(
+    <AntdConfigProvider productUI>
+      <TinyEditor value="<p>Business 中文</p>" onChange={onChange} />
+    </AntdConfigProvider>,
+  );
+  for (const { value } of languageOptions) {
+    act(() => setLanguagePreference(value));
+    expect(editorProps.current?.init?.language).toBe(value);
+    expect(editorProps.current?.value).toBe("<p>Business 中文</p>");
+    expect(translate(value, "Bold")).toBeTruthy();
+    expect(
+      translate(value, "Rich Text Area. Press ALT-0 for help."),
+    ).toBeTruthy();
+  }
+  expect(onChange).not.toHaveBeenCalled();
+});
 
 it("updates the editable iframe theme without changing its content or replacing the editor", async () => {
   setAppearancePreference("dark");

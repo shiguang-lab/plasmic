@@ -3,6 +3,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { PlainLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { useToggleDisplayed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { PlusIcon } from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -140,6 +141,7 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
             </div>
             <div className="SwatchItemList mt-m" {...downshift.getMenuProps()}>
               <FixedSizeList
+                outerElementType={VirtualListScrollbar}
                 width={"100%"}
                 height={height + 5}
                 itemSize={hasQuery ? ROW_SIZE : GRID_SIZE}

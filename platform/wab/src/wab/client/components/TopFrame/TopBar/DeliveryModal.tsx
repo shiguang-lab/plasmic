@@ -2,6 +2,7 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
 import publish from "@/wab/client/plasmic/plasmic_kit_continuous_deployment/PlasmicPublishFlowDialog.module.css";
 import button from "@/wab/client/plasmic/PlasmicButton.module.css";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Tabs } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
@@ -14,7 +15,6 @@ export interface DeliveryNavigationProps {
 const useDeliveryStyles = createStyles(({ token }) => ({
   content: {
     maxHeight: "calc(100vh - 240px)",
-    overflowY: "auto",
     minHeight: 0,
     color: token.colorText,
     [`& .${publish.root}`]: {
@@ -82,7 +82,9 @@ export function DeliveryModal({
           disabled: busy && item.key !== tab,
           children:
             item.key === tab ? (
-              <div className={styles.content}>{children}</div>
+              <Scrollbar scrollX={false} className={styles.content}>
+                {children}
+              </Scrollbar>
             ) : null,
         }))}
       />

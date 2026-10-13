@@ -135,9 +135,7 @@ export async function ensureImageAssetContents(bundles: ImageBundle[]) {
   // case, we fetch the images here in the cli, instead of on the server.
   // If you have a lot of images, this moves the expensive / long fetch
   // from the codegen server to the cli
-  const needsFetching = bundles.filter((b) =>
-    b.blob.startsWith("https://site-assets.plasmic.app/")
-  );
+  const needsFetching = bundles.filter((b) => /^https?:\/\//.test(b.blob));
   if (needsFetching.length === 0) {
     return;
   }

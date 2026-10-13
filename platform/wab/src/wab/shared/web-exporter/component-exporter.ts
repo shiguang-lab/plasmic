@@ -1,4 +1,4 @@
-import { isSlot } from "@/wab/shared/SlotUtils";
+import { getAncestorSlotArg, isSlot } from "@/wab/shared/SlotUtils";
 import {
   isPrivateStyleVariant,
   isStandaloneVariantGroup,
@@ -90,6 +90,7 @@ import {
   isKnownTplRef,
   isKnownVarRef,
   isKnownVariantsRef,
+  isKnownVirtualRenderExpr,
 } from "@/wab/shared/model/classes";
 import {
   isAnyType,
@@ -145,11 +146,28 @@ export function tplToHtml(tpl: TplNode, site: Site): string {
 }
 
 function buildTplNode(tpl: TplNode, site: Site): XmlElement {
-  return switchType(tpl)
+  const node = switchType(tpl)
     .when(TplTag, (tag) => buildTplTag(tag, site))
     .when(TplComponent, (comp) => buildTplComponent(comp, site))
     .when(TplSlot, (slot) => buildTplSlot(slot, site))
     .result();
+  const inherited = getAncestorSlotArg(tpl);
+  if (
+    inherited &&
+    isKnownVirtualRenderExpr(inherited.arg.expr) &&
+    isSlot(inherited.arg.param)
+  ) {
+    const component = inherited.tplComponent.component;
+    const slot = inherited.arg.param.tplSlot;
+    assert(slot, "Inherited content must have a source slot");
+    Object.assign((node.attributes ??= {}), {
+      "data-editable": "false",
+      "data-source-component": component.uuid,
+      "data-source-slot": slot.param.variable.name,
+      "data-source-element": slot.uuid,
+    });
+  }
+  return node;
 }
 
 /**
@@ -723,7 +741,10 @@ function buildFallbackableExprJson(
  * included only for "Run code" (customFunction) steps; other actions are
  * listed for visibility but their structured args are not decomposed.
  */
-function buildComponentInteractions(component: Component, root = component.tplTree): InteractionJson[] {
+function buildComponentInteractions(
+  component: Component,
+  root = component.tplTree,
+): InteractionJson[] {
   const result: InteractionJson[] = [];
   if (!component.tplTree) {
     return result;
@@ -1133,6 +1154,8 @@ export function buildElementResource(
   return {
     __type: "Element",
     baseVariantTplTree: tplToHtml(tpl, opts.site),
-    ...(component ? { interactions: buildComponentInteractions(component, tpl) } : {}),
+    ...(component
+      ? { interactions: buildComponentInteractions(component, tpl) }
+      : {}),
   };
 }

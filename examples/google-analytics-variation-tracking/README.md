@@ -2,10 +2,10 @@
 
 This is an example of how to use Plasmic variations of experiments and segmentation and track it in Google Analytics. Following the code in [Docs](https://docs.plasmic.app/learn/variations-external-ids/).
 
-- In [plasmic-init](./plasmic-init.ts) it's defined the custom targetting traits `utm_source` and `browser`;
-- In [middleware](./middleware.ts) both the values of `utm_source` and `browser` are passed to `getMiddlewareResponse`;
-- In [Catch All](./pages/[[...catchall]].tsx) the `getActiveVariation` function is called to extract the variation based on the custom targetting traits.
-- In [Catch All](./pages/[[...catchall]].tsx) the `getExternalVariation` function is called to extract the external ids based on picked variation, then it's passed to Google Analytics through `<Script>` tag.
+- In [plasmic-init](plasmic-init.ts) it's defined the custom targetting traits `utm_source` and `browser`;
+- In [middleware](middleware.ts) both the values of `utm_source` and `browser` are passed to `getMiddlewareResponse`;
+- In [Catch All](pages/[[...catchall]].tsx) the `getActiveVariation` function is called to extract the variation based on the custom targetting traits.
+- In [Catch All](pages/[[...catchall]].tsx) the `getExternalVariation` function is called to extract the external ids based on picked variation, then it's passed to Google Analytics through `<Script>` tag.
 
 To open the corresponding Plasmic project (cloning it if you wish):
 

@@ -4,7 +4,7 @@ Discover exact tools and operation schemas through `get_app_state`; registration
 
 ## Read and target
 
-Start the user's signed-in Desktop, read `get_app_state` and list accessible projects, then call `execute` → `identify` with the actual model/client and skill `plasmic`. Accessible reads do not require `canEdit`; validated mutations do. `read` without a target returns an overview; full components and element subtrees use the live schema's UUID fields. Full model reading follows [model-reading](model-reading.md).
+Start the signed-in Desktop and read `get_app_state`. Follow [project management](desktop-management.md) to resolve and open the target. Then call `execute` → `identify` with the actual model/client and skill `plasmic`. Discovery needs no ready editor; `canEdit` gates Studio mutations. `read` without a target returns an overview; component/subtree reads use live UUID fields. See [model-reading](model-reading.md).
 
 `open_design` saves the current editable project before switching projects. For read-only inspection or coding, use the already open target or readable imported dependencies. Opening the target is safe when no editor is ready, or when it stays in the same project. If switching would save another editable project, finish independent reads and report that side effect; obtain explicit authorization before that switch. Do not silently persist unrelated work to obtain a read.
 
@@ -20,6 +20,7 @@ Code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME"
 
 ## Conditional capabilities
 
+- Organizations, workspaces, dashboard navigation and project creation: [project management](desktop-management.md).
 - Geometry, screenshots, Preview, temporary view positioning: [rendered inspection](desktop-inspection.md).
 - Images, SVG/vector, reference-page capture and file export: [media and export](desktop-media.md).
 - Admin component usage: [admin reference index](admin-design.md), selecting only affected regions.

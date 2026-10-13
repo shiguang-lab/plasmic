@@ -49,6 +49,9 @@ describe("DbMgr.CMS", () => {
         name: "database1",
         workspaceId: workspace.id,
       });
+      await db1().updateCmsDatabaseById(database1.id, {
+        extraData: { locales: ["zh-CN", "fr"] },
+      });
 
       const postsTable = await db1().createCmsTable({
         databaseId: database1.id,
@@ -215,6 +218,12 @@ describe("DbMgr.CMS", () => {
 
       expect(duplicatedDb.name).toEqual("database2");
       expect(duplicatedDb.workspaceId).toEqual(database1.workspaceId);
+      expect(duplicatedDb.extraData.locales).toEqual(["zh-CN", "fr"]);
+      expect(
+        (await db1().getCmsDatabaseById(duplicatedDb.id)).extraData.locales,
+      ).toEqual(["zh-CN", "fr"]);
+      expect(duplicatedDb.publicToken).not.toEqual(database1.publicToken);
+      expect(duplicatedDb.secretToken).not.toEqual(database1.secretToken);
 
       expect(duplicatedPostsTable.identifier).toEqual(postsTable.identifier);
       expect(duplicatedPostsTable.name).toEqual(postsTable.name);
@@ -930,7 +939,11 @@ describe("DbMgr.CMS", () => {
           order: [{ field: "age", dir: "asc" }],
           limit: -1,
         }),
-      ).rejects.toThrowError(new Error("limit field cannot be negative"));
+      ).rejects.toMatchObject({
+        name: "BadRequestError",
+        statusCode: 400,
+        message: "limit field cannot be negative",
+      });
 
       await expect(
         db1().queryCmsRows(people.id, {
@@ -938,7 +951,11 @@ describe("DbMgr.CMS", () => {
           order: [{ field: "age", dir: "asc" }],
           offset: -1,
         }),
-      ).rejects.toThrowError(new Error("offset field cannot be negative"));
+      ).rejects.toMatchObject({
+        name: "BadRequestError",
+        statusCode: 400,
+        message: "offset field cannot be negative",
+      });
     }));
 
   it("can publish rows", () =>

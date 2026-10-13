@@ -532,12 +532,13 @@ export class PlasmicApi {
   }
 
   private get apiHost() {
-    if (!this.auth.host || this.auth.host === DEFAULT_HOST) {
+    const host = this.auth.host || DEFAULT_HOST;
+    if (host === "https://studio.plasmic.app") {
       return "https://codegen-origin.plasmic.app";
-    } else if (this.auth.host === "https://studio.dev.plasmic.app") {
+    } else if (host === "https://studio.dev.plasmic.app") {
       return "https://codegen-origin.dev.plasmic.app";
     } else {
-      return this.auth.host;
+      return host;
     }
   }
 }

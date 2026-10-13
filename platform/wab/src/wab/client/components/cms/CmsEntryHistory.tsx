@@ -22,6 +22,7 @@ import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
 import { CmsDatabaseId, CmsRowId, CmsTableId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { formatDateMediumTimeShort } from "@/wab/shared/utils/date-utils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import {
   Alert,
   Button,
@@ -48,8 +49,8 @@ const useStyles = createStyles(({ token }) => ({
     },
   },
   list: {
-    overflow: "auto",
     minHeight: 0,
+    minWidth: 0,
     borderRight: `1px solid ${token.colorBorderSecondary}`,
     paddingRight: 16,
   },
@@ -62,7 +63,7 @@ const useStyles = createStyles(({ token }) => ({
     padding: 12,
     marginBottom: 8,
   },
-  content: { overflow: "auto", minHeight: 0, minWidth: 0, padding: 4 },
+  content: { minHeight: 0, minWidth: 0, padding: 4 },
   state: { padding: 24, color: token.colorText },
 }));
 
@@ -109,7 +110,12 @@ export function CmsEntryHistory(props: {
   }
   return (
     <div className={styles.root}>
-      <nav className={styles.list} aria-label={t("Entry revisions")}>
+      <Scrollbar
+        role="navigation"
+        scrollX={false}
+        className={styles.list}
+        aria-label={t("Entry revisions")}
+      >
         <Switch
           cases={[
             switchCase({
@@ -171,7 +177,7 @@ export function CmsEntryHistory(props: {
             switchDefault({ render: () => null }),
           ]}
         />
-      </nav>
+      </Scrollbar>
       <Switch
         cases={[
           switchCase({
@@ -251,7 +257,7 @@ export function EntryRevisionView() {
     );
   }
   return (
-    <div className={styles.content}>
+    <Scrollbar scrollX={false} className={styles.content}>
       <Flex vertical gap={16}>
         {restoreError && (
           <Alert
@@ -350,6 +356,6 @@ export function EntryRevisionView() {
           )}
         </Form>
       </Flex>
-    </div>
+    </Scrollbar>
   );
 }

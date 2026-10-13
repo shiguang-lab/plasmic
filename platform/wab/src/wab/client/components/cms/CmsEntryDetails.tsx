@@ -1,4 +1,8 @@
 import { Api } from "@/wab/client/api";
+import {
+  CmsDetailsLayout,
+  CmsEntryDetailsLayout,
+} from "@/wab/client/components/cms/CmsDetailsLayout";
 import { CmsEntryCloneModal } from "@/wab/client/components/cms/CmsEntryCloneModal";
 import { CmsEntryHistory } from "@/wab/client/components/cms/CmsEntryHistory";
 import {
@@ -22,10 +26,7 @@ import { useApi } from "@/wab/client/contexts/AppContexts";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
-import {
-  DefaultCmsEntryDetailsProps,
-  PlasmicCmsEntryDetails,
-} from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsEntryDetails";
+import { DefaultCmsEntryDetailsProps } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsEntryDetails";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { useBeforeNavigation } from "@/wab/client/route/useBeforeNavigation";
@@ -149,12 +150,11 @@ function CmsEntryDetails_(
   const { database } = useCmsDatabase(databaseId);
   const { row, error, mutate } = useCmsRow(tableId, rowId);
   const { t } = useI18n();
-  const { styles } = useCmsLayoutStyles();
   const table = useCmsTable(databaseId, tableId);
 
   if (!row || !table || !database) {
     return (
-      <div className={styles.loading}>
+      <CmsDetailsLayout ref={ref} className={props.className}>
         {error ? (
           <Alert
             type="error"
@@ -179,7 +179,7 @@ function CmsEntryDetails_(
             />
           </div>
         )}
-      </div>
+      </CmsDetailsLayout>
     );
   } else {
     return (
@@ -251,10 +251,11 @@ function CmsEntryDetailsForm_(
     database: ApiCmsDatabase;
     table: ApiCmsTable;
     row: ApiCmseRow;
-  },
+  } & CmsEntryDetailsProps,
   ref: HTMLElementRefOf<"div">,
 ) {
   const { t: studioUiT } = useI18n();
+  const { styles } = useCmsLayoutStyles();
 
   const { database, table, row, ...rest } = props;
   const api = useApi();
@@ -332,6 +333,7 @@ function CmsEntryDetailsForm_(
     if (newRow) {
       setRevision(newRow.revision);
     }
+    return newRow;
   };
 
   const history = useHistory();
@@ -376,7 +378,7 @@ function CmsEntryDetailsForm_(
   }
 
   const hasChanges = () => {
-    const { identifier, ...draftData } = form.getFieldsValue();
+    const { identifier, ...draftData } = form.getFieldsValue(true);
     return (
       row.identifier !== (identifier ?? row.identifier) ||
       (Object.keys(draftData).length > 0 &&
@@ -384,11 +386,12 @@ function CmsEntryDetailsForm_(
     );
   };
 
-  const hasPublishableChanges = () => {
-    const { identifier, ...draftData } = form.getFieldsValue();
+  const hasPublishableChanges = (publishedRow = row) => {
+    const { identifier, ...draftData } = form.getFieldsValue(true);
     return (
-      row.identifier !== (identifier ?? row.identifier) ||
-      (Object.keys(draftData).length > 0 && !dataEquals(row.data, draftData))
+      publishedRow.identifier !== (identifier ?? publishedRow.identifier) ||
+      (Object.keys(draftData).length > 0 &&
+        !dataEquals(publishedRow.data, draftData))
     );
   };
 
@@ -483,7 +486,7 @@ function CmsEntryDetailsForm_(
   }
 
   async function performSave() {
-    const { identifier, ...draftData } = form.getFieldsValue();
+    const { identifier, ...draftData } = form.getFieldsValue(true);
     try {
       setSaving(true);
       await api.updateCmsRow(row.id, {
@@ -628,7 +631,7 @@ function CmsEntryDetailsForm_(
             });
           }
         }}
-        className={"max-scrollable fill-width"}
+        className={styles.form}
       >
         {DEVFLAGS.debugCmsForms && (
           <Form.Item shouldUpdate={() => true}>
@@ -636,13 +639,13 @@ function CmsEntryDetailsForm_(
               <pre>
                 {" "}
                 <UiText message={"Data:"} />{" "}
-                {JSON.stringify(theform.getFieldsValue(), null, 2)}
+                {JSON.stringify(theform.getFieldsValue(true), null, 2)}
               </pre>
             )}
           </Form.Item>
         )}{" "}
-        <PlasmicCmsEntryDetails
-          root={{ ref }}
+        <CmsEntryDetailsLayout
+          ref={ref}
           {...rest}
           saveStatus={
             <Form.Item noStyle shouldUpdate>
@@ -656,11 +659,11 @@ function CmsEntryDetailsForm_(
                     <UiText message={"Some fields are invalid."} />
                   </span>
                 ) : isSaving ? (
-                  "Saving draft..."
+                  studioUiT("Saving draft...")
                 ) : hasUnsavedChanges ? (
-                  "Edited."
+                  studioUiT("Edited.")
                 ) : (
-                  "Auto-saved."
+                  studioUiT("Auto-saved.")
                 )
               }
             </Form.Item>
@@ -691,13 +694,13 @@ function CmsEntryDetailsForm_(
                   <Comp
                     {...ps}
                     onClick={async () => {
-                      console.log("Publish", form.getFieldsValue());
+                      console.log("Publish", form.getFieldsValue(true));
                       if (row.revision !== revision) {
                         warnConflict();
                       } else if (row && !hasFormError()) {
                         setPublishing(true);
                         const { identifier, ...draftData } =
-                          form.getFieldsValue();
+                          form.getFieldsValue(true);
                         try {
                           await api.updateCmsRow(row.id, {
                             identifier,
@@ -746,10 +749,10 @@ function CmsEntryDetailsForm_(
                     }
                     children={
                       isPublishing
-                        ? "Publishing..."
+                        ? studioUiT("Publishing...")
                         : !hasUnpublishedChanges
-                          ? "Published"
-                          : "Publish"
+                          ? studioUiT("Published")
+                          : studioUiT("Publish")
                     }
                   />
                 )}
@@ -770,8 +773,12 @@ function CmsEntryDetailsForm_(
                             content: `Unpublishing ${entryDisplayName}...`,
                           }),
                         );
+                        const { identifier, ...draftData } =
+                          form.getFieldsValue(true);
                         await api.updateCmsRow(row.id, {
+                          identifier,
                           data: null,
+                          draftData,
                           revision,
                         });
                         spawn(
@@ -781,8 +788,10 @@ function CmsEntryDetailsForm_(
                             duration: 5,
                           }),
                         );
-                        await mutateRow();
-                        setHasUnpublishedChanges(hasPublishableChanges());
+                        const unpublishedRow = await mutateRow();
+                        setHasUnpublishedChanges(
+                          hasPublishableChanges(unpublishedRow),
+                        );
                         await validateFields();
                         await triggerPublishWebhooksAndNotify(api, table);
                       }}

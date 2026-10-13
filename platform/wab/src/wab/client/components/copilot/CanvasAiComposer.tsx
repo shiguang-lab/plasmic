@@ -90,9 +90,20 @@ export function CanvasAiComposer({
         onStop={() => session.stop()}
         stopDisabled={!activeTask || !session.canStop(activeTask)}
         canSubmit={enabled && !!context.binding}
+        placeholder={
+          !context.binding
+            ? t("Create or select a page before using AI.")
+            : t("Describe changes to the current page…")
+        }
         ariaLabel={t("AI canvas editing")}
         testId="canvas-ai-composer"
-        availability={!enabled ? t("Local AI editing is disabled.") : undefined}
+        availability={
+          !enabled
+            ? t("Local AI editing is disabled.")
+            : !context.binding
+              ? t("Create or select a page before using AI.")
+              : undefined
+        }
       />
     </div>
   );

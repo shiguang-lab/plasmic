@@ -15,6 +15,7 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { assert } from "@/wab/shared/common";
 import { flattenInsertableTemplatesByType } from "@/wab/shared/devflags";
 import { InsertableTemplateComponentExtraInfo } from "@/wab/shared/insertable-templates/types";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 export type NewComponentInfo = {
@@ -56,6 +57,12 @@ function NewComponentModal(props: NewComponentModalProps) {
 
   return (
     <PlasmicNewComponentModal
+      sections={{
+        as: Scrollbar,
+        className: "studio-scrollbar",
+        style: { minHeight: 0, overflow: "hidden" },
+        props: { scrollX: false },
+      }}
       root={{
         as: "form",
         props: {
