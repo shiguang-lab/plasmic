@@ -1,0 +1,7 @@
+{
+  "en": "- Share AI conversation history within a project and restore it after reopening the editor.\n- Read streamed Markdown and reopen project-protected attachments.\n- Recover interrupted AI work, verify saved changes and use native editor undo.\n- Improve canvas selection and localized overlay controls.",
+  "zh-CN": "- 在项目中共享 AI 对话历史，重新打开编辑器后恢复记录。\n- 阅读流式 Markdown，并重新查看受项目权限保护的附件。\n- 恢复中断的 AI 工作、校验已保存的修改，并使用编辑器原生撤销。\n- 优化画布选择和浮层控件的多语言文案。",
+  "zh-TW": "- 在專案中共用 AI 對話歷史，重新開啟編輯器後還原記錄。\n- 閱讀串流 Markdown，並重新查看受專案權限保護的附件。\n- 復原中斷的 AI 工作、驗證已儲存的修改，並使用編輯器原生復原功能。\n- 改善畫布選取和浮層控制項的多語言文字。",
+  "ja": "- プロジェクト内で AI の会話履歴を共有し、エディターを開き直しても履歴を復元。\n- ストリーミング Markdown と、プロジェクト権限で保護された添付ファイルを表示。\n- 中断した AI 作業を復旧し、保存済みの変更を確認。エディターの元に戻す操作にも対応。\n- キャンバスの選択とオーバーレイ操作の多言語表示を改善。",
+  "ko": "- 프로젝트에서 AI 대화 기록을 공유하고 편집기를 다시 열어도 기록을 복원합니다.\n- 스트리밍 Markdown과 프로젝트 권한으로 보호되는 첨부 파일을 확인합니다.\n- 중단된 AI 작업을 복구하고 저장된 변경을 확인하며 편집기의 실행 취소를 사용합니다.\n- 캔버스 선택과 오버레이 컨트롤의 다국어 문구를 개선합니다."
+}
