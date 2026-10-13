@@ -13,9 +13,8 @@ export interface ActivityTarget {
 
 export interface CanvasActivity {
   id: number;
-  mode: "read" | "edit";
   targets: ActivityTarget[];
-  status: "running" | "success" | "error";
+  status: "running" | "success";
   scanning: boolean;
 }
 
@@ -30,12 +29,10 @@ export interface ActivityRegion {
   scanning: boolean;
 }
 
-/** Prefer an active edit/read over the completion of another request. */
+/** Prefer an active edit over the completion of another request. */
 export function currentActivity(requests: readonly CanvasActivity[]) {
   return (
-    findLast(requests, (r) => r.status === "running" && r.mode === "edit") ??
     findLast(requests, (r) => r.status === "running") ??
-    findLast(requests, (r) => r.status === "error") ??
     requests[requests.length - 1]
   );
 }
@@ -85,10 +82,9 @@ export class CopilotActivity {
     }));
   }
 
-  begin(mode: CanvasActivity["mode"], targets: ActivityTarget[]) {
+  begin(targets: ActivityTarget[]) {
     const request: CanvasActivity = {
       id: ++this.nextId,
-      mode,
       targets,
       status: "running",
       scanning: true,
@@ -103,6 +99,10 @@ export class CopilotActivity {
       finished = true;
       const index = this.requests.findIndex((r) => r.id === request.id);
       if (index < 0) {
+        return;
+      }
+      if (status === "error") {
+        runInAction(() => this.requests.remove(this.requests[index]));
         return;
       }
       runInAction(() => {
@@ -160,15 +160,6 @@ export function activityTargets(
       input.operations as { name: string; input: Record<string, unknown> }[]
     ).flatMap((op) => activityTargets(op.name, op.input));
   }
-  if (name === "read") {
-    const targets = [
-      ...((input.componentUuids ?? []) as string[]).map((componentUuid) => ({
-        componentUuid,
-      })),
-      ...((input.elements ?? []) as ActivityTarget[]),
-    ];
-    return targets.length ? targets : [{}];
-  }
   if (typeof input.componentUuid === "string") {
     const target = {
       componentUuid: input.componentUuid,
@@ -195,11 +186,5 @@ export function activityTargets(
 }
 
 export function activityText(request: CanvasActivity) {
-  if (request.status === "error") {
-    return "Operation failed";
-  }
-  if (request.mode === "read") {
-    return request.status === "running" ? "Reading" : "Read complete";
-  }
   return request.status === "running" ? "Editing" : "Edit complete";
 }

@@ -18,12 +18,10 @@ import React from "react";
 
 const useActivityStyles = createStyles(({ token }) => ({
   root: {
-    "--scan-color": token.colorInfo,
+    "--scan-color": token.colorPrimary,
     "--activity-surface": token.colorBgElevated,
     "--activity-label-text": token.colorTextLightSolid,
-    "&[data-mode=edit]": { "--scan-color": token.colorPrimary },
     "&[data-status=success]": { "--scan-color": token.colorSuccess },
-    "&[data-status=error]": { "--scan-color": token.colorError },
   },
 }));
 
@@ -146,7 +144,6 @@ const ActivityRegion = observer(function ActivityRegion({
   return (
     <div
       className={classNames(styles.region, themeStyles.root)}
-      data-mode={request.mode}
       data-status={request.status}
       data-scanning={scanning}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}
@@ -216,7 +213,6 @@ export const CopilotActivityStatus = observer(function CopilotActivityStatus({
   return (
     <div
       className={classNames(styles.status, themeStyles.root)}
-      data-mode={request.mode}
       data-status={request.status}
       role="status"
       aria-live="polite"

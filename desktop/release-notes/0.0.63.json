@@ -1,0 +1,7 @@
+{
+  "en": "- Improve the empty canvas with clear starting options, helpful card descriptions and responsive layouts.\n- Show AI canvas activity only for design edits; keep reads, queries and failed edits quiet.\n- Add a product design and code generation user guide.",
+  "zh-CN": "- 优化空画布提示，提供清晰的开始入口、卡片说明和自适应布局。\n- AI 画布反馈仅显示实际设计编辑；读取、查询和编辑失败保持静默。\n- 新增产品设计与代码生成使用指南。",
+  "zh-TW": "- 改善空畫布提示，提供清楚的開始入口、卡片說明與自適應版面。\n- AI 畫布回饋僅顯示實際設計編輯；讀取、查詢與編輯失敗保持靜默。\n- 新增產品設計與程式碼產生使用指南。",
+  "ja": "- 空のキャンバスに開始方法とカードの説明を追加し、画面幅に応じたレイアウトを改善。\n- AI のキャンバス表示を実際のデザイン編集に限定し、読み取り、検索、編集失敗時の表示を抑制。\n- プロダクトデザインとコード生成のユーザーガイドを追加。",
+  "ko": "- 빈 캔버스의 시작 옵션과 카드 설명을 개선하고 화면 너비에 맞는 레이아웃을 제공합니다.\n- AI 캔버스 피드백은 실제 디자인 편집에만 표시하며 읽기, 조회 및 편집 실패는 표시하지 않습니다.\n- 제품 디자인 및 코드 생성 사용자 가이드를 추가합니다."
+}

@@ -15,18 +15,18 @@ it("shares one counted region for overlapping requests on the same node", () => 
     elementUuid: "table",
     label: "Table",
   };
-  const read = activity.begin("read", [target]);
-  const edit = activity.begin("edit", [target]);
+  const first = activity.begin([target]);
+  const second = activity.begin([target]);
   expect(activity.regions).toHaveLength(1);
   expect(activity.regions[0]).toMatchObject({
     count: 2,
-    request: { mode: "edit", status: "running" },
+    request: { status: "running" },
   });
   const key = activity.regions[0].key;
-  edit("error");
+  second("success");
   expect(activity.regions[0]).toMatchObject({
     count: 2,
-    request: { mode: "read", status: "running" },
+    request: { status: "running" },
   });
   expect(currentActivity(activity.requests)?.status).toBe("running");
   vi.advanceTimersByTime(2000);
@@ -35,7 +35,7 @@ it("shares one counted region for overlapping requests on the same node", () => 
     count: 1,
     request: { status: "running" },
   });
-  read("success");
+  first("success");
   vi.advanceTimersByTime(399);
   expect(activity.regions).toHaveLength(1);
   vi.advanceTimersByTime(1);
@@ -45,12 +45,12 @@ it("shares one counted region for overlapping requests on the same node", () => 
 it("counts duplicate batch targets once and keeps separate nodes independent", () => {
   const activity = new CopilotActivity();
   const table = { componentUuid: "page", elementUuid: "table", label: "Table" };
-  activity.begin("edit", [table, table, { ...table, elementUuid: "form" }]);
+  activity.begin([table, table, { ...table, elementUuid: "form" }]);
   expect(activity.regions.map((r) => [r.target.elementUuid, r.count])).toEqual([
     ["table", 1],
     ["form", 1],
   ]);
-  activity.begin("read", [{ ...table, componentUuid: "other-page" }]);
+  activity.begin([{ ...table, componentUuid: "other-page" }]);
   expect(activity.regions).toHaveLength(3);
   activity.dispose();
   expect(activity.regions).toHaveLength(0);
@@ -60,17 +60,17 @@ it("does not let stale cleanup remove a new reference or double completion relea
   vi.useFakeTimers();
   const activity = new CopilotActivity();
   const target = { componentUuid: "page", label: "Page" };
-  const first = activity.begin("read", [target]);
+  const first = activity.begin([target]);
   first("success");
   first("error");
   expect(vi.getTimerCount()).toBe(1);
   expect(activity.requests[0].status).toBe("success");
   vi.advanceTimersByTime(1500);
-  const second = activity.begin("edit", [target]);
+  const second = activity.begin([target]);
   vi.advanceTimersByTime(500);
   expect(activity.regions[0]).toMatchObject({
     count: 1,
-    request: { mode: "edit", status: "running" },
+    request: { status: "running" },
   });
   second("success");
   activity.dispose();
@@ -81,12 +81,12 @@ it("does not let stale cleanup remove a new reference or double completion relea
 it("keeps fast calls visible without delaying completion, and expires each request separately", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const finishRead = activity.begin("read", [
+  const finishFirst = activity.begin([
     { componentUuid: "page", label: "Page" },
   ]);
-  finishRead("success");
+  finishFirst("success");
   vi.advanceTimersByTime(600);
-  const finishEdit = activity.begin("edit", [
+  const finishSecond = activity.begin([
     { componentUuid: "page", elementUuid: "table", label: "Table" },
   ]);
   expect(activity.requests.map((r) => r.status)).toEqual([
@@ -94,9 +94,9 @@ it("keeps fast calls visible without delaying completion, and expires each reque
     "running",
   ]);
   vi.advanceTimersByTime(1400);
-  expect(activity.requests.map((r) => r.mode)).toEqual(["edit"]);
-  finishEdit("error");
-  expect(activity.requests[0].status).toBe("error");
+  expect(activity.requests).toHaveLength(1);
+  finishSecond("error");
+  expect(activity.requests).toHaveLength(0);
   vi.advanceTimersByTime(600);
   expect(activity.requests).toHaveLength(0);
 });
@@ -104,7 +104,7 @@ it("keeps fast calls visible without delaying completion, and expires each reque
 it("keeps long operations active and cancels pending cleanup when Studio closes", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const finish = activity.begin("edit", [{ label: "Page" }]);
+  const finish = activity.begin([{ label: "Page" }]);
   vi.advanceTimersByTime(10000);
   expect(activity.requests[0].status).toBe("running");
   finish("success");
@@ -120,22 +120,17 @@ it("keeps long operations active and cancels pending cleanup when Studio closes"
   expect(vi.getTimerCount()).toBe(0);
 });
 
-it.each([
-  ["read", "success"],
-  ["read", "error"],
-  ["edit", "success"],
-  ["edit", "error"],
-] as const)("keeps fast %s scans moving for at least 1.6 seconds even after %s", (mode, status) => {
+it("keeps successful edit scans moving for at least 1.6 seconds", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const finish = activity.begin(mode, [{ componentUuid: "page", label: "Page" }]);
+  const finish = activity.begin([{ componentUuid: "page", label: "Page" }]);
   vi.advanceTimersByTime(20);
-  finish(status);
-  expect(activity.requests[0]).toMatchObject({ status, scanning: true });
+  finish("success");
+  expect(activity.requests[0]).toMatchObject({ status: "success", scanning: true });
   vi.advanceTimersByTime(1579);
   expect(activity.requests[0].scanning).toBe(true);
   vi.advanceTimersByTime(1);
-  expect(activity.requests[0]).toMatchObject({ status, scanning: false });
+  expect(activity.requests[0]).toMatchObject({ status: "success", scanning: false });
   vi.advanceTimersByTime(399);
   expect(activity.requests).toHaveLength(1);
   vi.advanceTimersByTime(1);
@@ -143,45 +138,27 @@ it.each([
   expect(vi.getTimerCount()).toBe(0);
 });
 
-it("keeps a newer completed scan moving while an older error shows its static result", () => {
+it("removes failed edits immediately without affecting other edits or retaining timers", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
   const target = { componentUuid: "page", label: "Page" };
-  const first = activity.begin("read", [target]);
+  const first = activity.begin([target]);
+  const second = activity.begin([target]);
+  vi.advanceTimersByTime(20);
   first("error");
-  vi.advanceTimersByTime(1500);
-  const second = activity.begin("edit", [target]);
-  second("success");
-  vi.advanceTimersByTime(100);
-  expect(activity.regions[0]).toMatchObject({
-    count: 2,
-    request: { status: "error", scanning: false },
-    scanning: true,
-  });
-  vi.advanceTimersByTime(400);
+  first("success");
   expect(activity.regions[0]).toMatchObject({
     count: 1,
-    request: { mode: "edit", status: "success" },
+    request: { status: "running" },
     scanning: true,
   });
-  vi.advanceTimersByTime(1100);
-  expect(activity.regions[0].scanning).toBe(false);
-  vi.advanceTimersByTime(400);
+  expect(vi.getTimerCount()).toBe(0);
+  second("error");
   expect(activity.regions).toHaveLength(0);
   expect(vi.getTimerCount()).toBe(0);
 });
 
-it("resolves read scopes and both source and destination of batched moves", () => {
-  expect(activityTargets("read", {})).toEqual([{}]);
-  expect(
-    activityTargets("read", {
-      componentUuids: ["page"],
-      elements: [{ componentUuid: "page", elementUuid: "table" }],
-    }),
-  ).toEqual([
-    { componentUuid: "page" },
-    { componentUuid: "page", elementUuid: "table" },
-  ]);
+it("resolves both source and destination of batched moves", () => {
   expect(
     activityTargets("executeBatch", {
       operations: [

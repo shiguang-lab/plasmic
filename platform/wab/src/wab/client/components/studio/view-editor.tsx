@@ -1,4 +1,4 @@
-import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+import { translate } from "@/wab/client/i18n/locales";
 
 import { DndAdoptee, DndMarkers, DragMoveManager } from "@/wab/client/Dnd";
 import { DragMoveFrameManager } from "@/wab/client/FreestyleManipulator";
@@ -48,6 +48,7 @@ import {
   StyleTabContext,
 } from "@/wab/client/components/sidebar-tabs/style-tab";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
+import { EmptyCanvasPrompt } from "@/wab/client/components/studio/EmptyCanvasPrompt";
 import { FocusedModeToolbar } from "@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar";
 import { GlobalCssVariables } from "@/wab/client/components/studio/GlobalCssVariables";
 import LeftPane from "@/wab/client/components/studio/LeftPane";
@@ -71,7 +72,7 @@ import {
   trackFrameInteractions,
 } from "@/wab/client/frame-ctx/frame-interactions";
 import { getUiLocale } from "@/wab/client/i18n";
-import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { shouldHandleStudioShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
@@ -87,7 +88,6 @@ import {
   isMixedArena,
   isPageArena,
 } from "@/wab/shared/Arenas";
-import { ARENAS_DESCRIPTION, ARENA_LOWER } from "@/wab/shared/Labels";
 import {
   assert,
   ensure,
@@ -1903,52 +1903,24 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         !isComponentArena(studioCtx.currentArena),
         `Component arenas cannot be empty`,
       );
+      if (!studioCtx.currentArena || isMixedArena(studioCtx.currentArena)) {
+        return (
+          <EmptyCanvasPrompt
+            studioCtx={studioCtx}
+            emptyProject={!studioCtx.currentArena}
+          />
+        );
+      }
       return (
         <div className="canvas-editor__floating-msg">
           <Alert
             message={
-              isMixedArena(studioCtx.currentArena)
-                ? translate(getUiLocale(), "This {part1} is empty.", {
-                    part1: translateUiLabel(getUiLocale(), ARENA_LOWER),
-                  })
-                : isPageArena(studioCtx.currentArena)
-                  ? translate(getUiLocale(), "This page is empty.")
-                  : translate(getUiLocale(), "This project is empty.")
+              isPageArena(studioCtx.currentArena)
+                ? translate(getUiLocale(), "This page is empty.")
+                : translate(getUiLocale(), "This project is empty.")
             }
             description={
-              !studioCtx.currentArena ||
-              isMixedArena(studioCtx.currentArena) ? (
-                <>
-                  {isMixedArena(studioCtx.currentArena) && (
-                    <p>{<UiLabel text={ARENAS_DESCRIPTION} />}</p>
-                  )}
-                  <p>
-                    <UiText
-                      message="You can create a {page} or a {component} to get started!"
-                      values={{
-                        page: (
-                          <widgets.LinkButton
-                            onClick={() =>
-                              studioCtx.siteOps().createFrameForNewPage()
-                            }
-                          >
-                            <UiText message={"new page"} />
-                          </widgets.LinkButton>
-                        ),
-                        component: (
-                          <widgets.LinkButton
-                            onClick={() =>
-                              studioCtx.siteOps().createFrameForNewComponent()
-                            }
-                          >
-                            <UiText message={"new component"} />
-                          </widgets.LinkButton>
-                        ),
-                      }}
-                    />
-                  </p>
-                </>
-              ) : isPageArena(studioCtx.currentArena) ? (
+              isPageArena(studioCtx.currentArena) ? (
                 <>
                   <p>
                     <UiText

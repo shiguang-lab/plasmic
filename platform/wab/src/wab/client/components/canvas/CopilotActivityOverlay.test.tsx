@@ -40,34 +40,33 @@ it("renders a single persistent scan DOM node until its last reference expires",
   viewCtx.arenaFrame.mockReturnValue(frame);
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
   const target = { componentUuid: "page", label: "Page" };
-  const read = activity.begin("read", [target, target]);
+  const first = activity.begin([target, target]);
   const { container } = render(
     <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
   );
   const region = container.querySelector('[data-copilot-target="page"]');
   expect(region).toBeTruthy();
-  let edit = read;
+  let second = first;
   act(() => {
-    edit = activity.begin("edit", [target]);
+    second = activity.begin([target]);
   });
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
-  expect(region?.getAttribute("data-mode")).toBe("edit");
   act(() => {
-    edit("error");
+    second("error");
     vi.advanceTimersByTime(2000);
   });
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
   expect(region?.getAttribute("data-status")).toBe("running");
   act(() => {
-    read("success");
+    first("success");
     vi.advanceTimersByTime(400);
   });
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(0);
   activity.dispose();
 });
 
-it("keeps a completed read animating before showing its static completion", () => {
+it("keeps a completed edit animating before showing its static completion", () => {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const { studioCtx } = fakeStudioCtx();
@@ -84,7 +83,7 @@ it("keeps a completed read animating before showing its static completion", () =
     value: mock<StudioCtx>({ zoom: 1 }),
   });
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
-  const finish = studioCtx.copilotActivity.begin("read", [
+  const finish = studioCtx.copilotActivity.begin([
     { componentUuid: "page", label: "Page" },
   ]);
   const { container } = render(
@@ -170,21 +169,25 @@ it("clips a table cell to its nested scrolling viewport instead of highlighting 
   expect(activityBounds([cell], 1440, 1024)).toBeUndefined();
 });
 
-it("shows localized operation status from real activity completion", async () => {
+it.each(["success", "error"] as const)("shows localized edit feedback and clears %s without failure messages", async (status) => {
   vi.useFakeTimers();
   setUiLocale("zh-CN");
   const { studioCtx } = fakeStudioCtx();
-  const finish = studioCtx.copilotActivity.begin("edit", [
+  const finish = studioCtx.copilotActivity.begin([
     { label: "OrdersTable" },
   ]);
   render(<CopilotActivityStatus studioCtx={studioCtx} />);
   expect(screen.getByRole("status").textContent).toContain(
     "正在编辑 · OrdersTable",
   );
-  await act(() => finish("error"));
-  expect(screen.getByRole("status").textContent).toContain(
-    "操作失败 · OrdersTable",
-  );
+  await act(() => finish(status));
+  if (status === "success") {
+    expect(screen.getByRole("status").textContent).toContain(
+      "编辑完成 · OrdersTable",
+    );
+  } else {
+    expect(screen.queryByRole("status")).toBeNull();
+  }
   await act(() => vi.advanceTimersByTime(2000));
   expect(screen.queryByRole("status")).toBeNull();
   studioCtx.copilotActivity.dispose();

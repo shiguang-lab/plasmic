@@ -93,6 +93,7 @@ describe("AI prototype editor tools", () => {
       elementUuids: [page.tplTree.uuid],
     };
     const history = studioCtx.undoLog._log.length;
+    const beginActivity = vi.spyOn(studioCtx.copilotActivity, "begin");
     const result = await call("executeLocalEdit", {
       binding,
       name: "read",
@@ -109,6 +110,7 @@ describe("AI prototype editor tools", () => {
         input: { componentUuids: [other.uuid] },
       }),
     ).rejects.toThrow("pinned subtree");
+    expect(beginActivity).not.toHaveBeenCalled();
     await expect(
       call("executeLocalEdit", {
         binding,
@@ -123,6 +125,7 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx.undoLog._log.length).toBe(history);
     expect(studioCtx._changeCounter).toBe(binding.changeCounter);
     studioCtx.copilotActivity.dispose();
+    beginActivity.mockRestore();
   });
   it("edits existing page state and event steps with stable identities and native undo", async () => {
     const { studioCtx, call, createPage } = fixture();
@@ -951,19 +954,57 @@ describe("AI prototype editor tools", () => {
     previewFrame.remove();
     studioCtx.copilotActivity.dispose();
   });
-  it("tracks real read/edit targets and failures without writing feedback into the site", async () => {
+  it.each(["read", "queryElements"])(
+    "keeps successful and failed %s calls silent without writing feedback into the site",
+    async (name) => {
+      const { studioCtx, call, createPage } = fixture();
+      const page = await createPage("Scan");
+      studioCtx.copilotActivity.dispose();
+      const change = vi.spyOn(studioCtx, "changeObserved");
+      const beginActivity = vi.spyOn(studioCtx.copilotActivity, "begin");
+      const selected = studioCtx.focusedViewCtx();
+      const input =
+        name === "read"
+          ? { elements: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }] }
+          : { componentUuid: page.uuid };
+      await call(name, input);
+      expect(change).not.toHaveBeenCalled();
+      expect(studioCtx.focusedViewCtx()).toBe(selected);
+      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      await expect(
+        call(
+          name,
+          name === "read"
+            ? { componentUuids: ["missing"] }
+            : { componentUuid: "missing" },
+        ),
+      ).rejects.toThrow("not found");
+      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      expect(beginActivity).not.toHaveBeenCalled();
+      await expect(call(name, { unknown: true })).rejects.toThrow();
+      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      studioCtx.copilotActivity.dispose();
+      change.mockRestore();
+      beginActivity.mockRestore();
+    },
+  );
+  it("tracks actual edits and returns failures to the agent without retaining failure feedback", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");
     studioCtx.copilotActivity.dispose();
-    const change = vi.spyOn(studioCtx, "changeObserved");
-    const selected = studioCtx.focusedViewCtx();
-    await call("read", {
-      elements: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }],
+    await call("executeBatch", {
+      operations: [
+        {
+          name: "changeElement",
+          input: {
+            componentUuid: page.uuid,
+            elementUuid: page.tplTree.uuid,
+            styles: { color: "red" },
+          },
+        },
+      ],
     });
-    expect(change).not.toHaveBeenCalled();
-    expect(studioCtx.focusedViewCtx()).toBe(selected);
     expect(studioCtx.copilotActivity.requests[0]).toMatchObject({
-      mode: "read",
       status: "success",
       targets: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }],
     });
@@ -973,15 +1014,9 @@ describe("AI prototype editor tools", () => {
         elementUuid: "missing",
       }),
     ).rejects.toThrow("not found");
-    expect(studioCtx.copilotActivity.requests[1]).toMatchObject({
-      mode: "edit",
-      status: "error",
-    });
-    const count = studioCtx.copilotActivity.requests.length;
-    await expect(call("read", { unknown: true })).rejects.toThrow();
-    expect(studioCtx.copilotActivity.requests).toHaveLength(count);
+    expect(studioCtx.copilotActivity.requests).toHaveLength(1);
+    expect(studioCtx.copilotActivity.requests[0].status).toBe("success");
     studioCtx.copilotActivity.dispose();
-    change.mockRestore();
   });
   it("organizes canvases and keeps pages while replacing device previews with Desktop", async () => {
     const { studioCtx, call, createPage } = fixture();
@@ -1300,6 +1335,8 @@ describe("AI prototype editor tools", () => {
       flattenTpls(page.tplTree).find((t) => "tag" in t && t.tag === "svg"),
       "SVG missing",
     );
+    studioCtx.copilotActivity.dispose();
+    const beginActivity = vi.spyOn(studioCtx.copilotActivity, "begin");
     const resource = await call("readVector", {
       componentUuid: page.uuid,
       elementUuid: tpl.uuid,
@@ -1332,8 +1369,11 @@ describe("AI prototype editor tools", () => {
       await expect(
         call("readVector", { componentUuid: page.uuid, elementUuid: tpl.uuid }),
       ).rejects.toThrow("not SVG");
+      expect(beginActivity).not.toHaveBeenCalled();
+      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
     } finally {
       fetcher.mockRestore();
+      beginActivity.mockRestore();
     }
   });
 

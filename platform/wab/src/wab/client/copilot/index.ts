@@ -127,28 +127,17 @@ import {
 } from "@/wab/shared/web-exporter/schema";
 import { ok } from "neverthrow";
 
-const quietTools = new Set([
-  "identify",
-  "getEditorContext",
-  "restoreEditorView",
-  "selectElement",
-  "findEmptySpace",
-  "navigate",
-  "beginCanvasInspection",
-  "endCanvasInspection",
-  "navigateCanvas",
-  "scrollElementIntoView",
-  "validate",
-  "save",
-  "undo",
-  "executeLocalEdit",
+const editTools = new Set<string>([
+  ...prototypeMutationSchema.options.map((option) => option.shape.name.value),
+  "executeBatch",
+  "installLibrary",
+  "upgradeLibrary",
 ]);
-const readTools = new Set(["read", "readVector", "queryElements"]);
 
 // Keep input/output validation and serialization in the shared tool wrapper.
 const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
   defineTool(toolMeta, async (studio, input) => {
-    if (quietTools.has(toolMeta.toolName)) {
+    if (!editTools.has(toolMeta.toolName)) {
       return execute(studio, input);
     }
     const targets = activityTargets(toolMeta.toolName, input).map((target) => {
@@ -174,10 +163,7 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
           : (target.canvasName ?? "Project"),
       };
     });
-    const finish = studio.copilotActivity.begin(
-      readTools.has(toolMeta.toolName) ? "read" : "edit",
-      targets,
-    );
+    const finish = studio.copilotActivity.begin(targets);
     try {
       const output = await execute(studio, input);
       finish("success");
@@ -1506,7 +1492,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         return op;
       });
       const finishActivity = studio.copilotActivity.begin(
-        "edit",
         operations.map((op) => {
           const tpl =
             "elementUuid" in op.input && op.input.elementUuid
