@@ -5,9 +5,21 @@ Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
 `ghcr.io/shiguang-lab/plasmic-server:<tag>`,
 `ghcr.io/shiguang-lab/plasmic-web:<tag>` and
 `ghcr.io/shiguang-lab/plasmic-preview:<tag>` for Linux amd64.
-The same stable numeric tag also runs `.github/workflows/publish-plasmic-cli.yml`,
-publishing a matching CLI version to npm and references/CLI artifacts to NAS.
+Before building, the workflow compares production inputs with the preceding Studio
+tag. Unchanged Studio inputs skip publication. Frontend or shared renderer changes
+also require a new Desktop version, five-language release notes, and
+`desktop/desktop.config.json.webImage` pinned to this Studio tag in the same commit.
+After the images succeed, the workflow records `desktop-v<version>` and calls the
+Desktop installer workflow. Backend-only changes do not release Desktop.
+
+CLI (`cli-v<version>`) and resources (`resources-v<version>`) have separate workflows
+and versions. Neither runs on a Studio or Desktop tag. CLI publication compares
+actual npm package contents; resources compare their source inputs since the preceding
+resource tag and reuse the verified, already-published npm CLI artifact.
 See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布).
+Run `node scripts/release-plan.mjs <tag>` on the release commit to inspect the plan.
+The first independent CLI/resource baseline is the last combined numeric release.
+
 The workflow publishes server/web/preview through one matrix step, with separate mode=min
 GHA caches. The server target skips frontend bundling and copies the platform runtime
 workspaces and built-in library sources plus the locally built SDK host package. The host

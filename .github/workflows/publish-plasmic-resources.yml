@@ -1,0 +1,43 @@
+name: Publish changed Plasmic resources
+on:
+  push:
+    tags: ['resources-v*']
+permissions:
+  contents: read
+concurrency:
+  group: plasmic-resources-release
+  cancel-in-progress: false
+jobs:
+  plan:
+    if: github.repository == 'shiguang-lab/plasmic'
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.plan.outputs.publish }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - id: plan
+        run: node scripts/release-plan.mjs
+  resources:
+    needs: plan
+    if: needs.plan.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: node --test desktop/tests/plasmic-resources.test.cjs
+      - run: node scripts/release-resources.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plasmic-resources-${{ github.ref_name }}
+          path: dist/plasmic-resources/
+          if-no-files-found: error

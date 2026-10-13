@@ -7,7 +7,8 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildCli, buildResources } from "../../../scripts/build-plasmic-resources.mjs";
-import { prepareRelease, publishCli, releaseVersion } from "../scripts/publish.mjs";
+import { prepareRelease, publishedCli, publishCli, releaseVersion } from "../scripts/publish.mjs";
+import { prepareResources } from "../../../scripts/release-resources.mjs";
 import { compareVersions } from "../src/protocol.mjs";
 
 test("only stable repository version tags release the CLI", () => {
@@ -98,23 +99,16 @@ async function registryFixture(t, bytes, version = "0.0.60") {
   return { output, metadata, fetchRelease };
 }
 
-test("resource-only releases reuse the published CLI version and exact bytes, with no npm publish", async (t) => {
+test("unchanged CLI skips publication without producing a resource release", async (t) => {
   const bytes = await buildCli("0.0.60");
   const options = await registryFixture(t, bytes);
-  const first = await prepareRelease({ ...options, tag: "0.0.82" });
-  const second = await prepareRelease({ ...options, tag: "0.0.83" });
-  assert.equal(second.manifest.version, "0.0.83");
-  assert.equal(second.manifest.cliVersion, "0.0.60");
-  assert.notEqual(first.manifest.releaseId, second.manifest.releaseId);
-  assert.deepEqual(first.manifest.artifacts.cli, second.manifest.artifacts.cli);
-  assert.deepEqual(await readFile(path.join(second.directory, "plasmic-cli.tgz")), bytes);
-  const result = await publishCli({
-    directory: second.directory, tag: "0.0.83", execute: true,
-    fetchRelease: options.fetchRelease,
-    runNpm: () => assert.fail("Unchanged CLI must not be published"),
-  });
-  assert.equal(result.skipped, true);
-  assert.equal(result.version, "0.0.60");
+  const built = await prepareRelease({ ...options, tag: "0.0.83" });
+  assert.equal(built.skipped, true);
+  assert.equal(built.version, "0.0.60");
+  assert.equal(built.directory, undefined);
+  const published = await publishedCli(options);
+  assert.equal(published.cliVersion, "0.0.60");
+  assert.deepEqual(published.cliArtifact, bytes);
 });
 
 for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {
@@ -137,8 +131,11 @@ for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {
     const old = await readFile(path.join(temporary, packed));
     assert.notEqual((await inspectCliArtifact(old)).contentHash, (await inspectCliArtifact(bytes)).contentHash);
     const options = await registryFixture(t, old);
+    const resources = await prepareResources({ ...options, tag: "resources-v0.0.82" });
+    assert.equal(resources.manifest.cliVersion, "0.0.60");
+    assert.deepEqual(await readFile(path.join(resources.directory, "plasmic-cli.tgz")), old);
     const built = await prepareRelease({ ...options, tag: "0.0.82" });
-    assert.equal(built.manifest.cliVersion, "0.0.82");
+    assert.equal(built.version, "0.0.82");
     let calls = 0;
     const result = await publishCli({ directory: built.directory, tag: "0.0.82", fetchRelease: options.fetchRelease,
       runNpm: (args) => { calls++; assert.ok(args.includes("publish")); return "dry run"; },

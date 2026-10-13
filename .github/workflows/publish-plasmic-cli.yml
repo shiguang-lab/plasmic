@@ -1,8 +1,8 @@
-name: Publish Plasmic resources and changed CLI
+name: Publish changed Plasmic CLI
 
 on:
   push:
-    tags: ['[0-9]*.[0-9]*.[0-9]*']
+    tags: ['cli-v*']
 
 permissions:
   contents: read
@@ -23,26 +23,15 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Verify structural and Form gates before release
-        run: python3 -m unittest discover -s ai/plasmic/scripts -p 'test_*.py'
       - name: Validate release tag and verify CLI
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          node --input-type=module -e 'import {releaseVersion} from "./packages/plasmic-cli/scripts/publish.mjs"; releaseVersion(process.env.RELEASE_TAG)'
+          node --input-type=module -e 'import {releaseVersion} from "./packages/plasmic-cli/scripts/publish.mjs"; releaseVersion(process.env.RELEASE_TAG.replace(/^cli-v/, ""))'
           npm install -g npm@latest
           npm --prefix packages/plasmic-cli test
-          node --test desktop/tests/plasmic-resources.test.cjs
-      - name: Build resources and publish CLI only when package contents change
+      - name: Publish CLI only when package contents change
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: node packages/plasmic-cli/scripts/publish.mjs --tag "$RELEASE_TAG" --execute
-      - uses: actions/upload-artifact@v4
-        with:
-          name: plasmic-resources-${{ github.ref_name }}
-          path: dist/plasmic-resources/
-          if-no-files-found: error

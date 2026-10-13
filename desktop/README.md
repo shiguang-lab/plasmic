@@ -141,14 +141,21 @@ active UI language and refreshes open release notes when that language changes.
 Release notes contain the update body only. The dialog supplies the "What's new"
 heading; do not repeat it in the Markdown file. Use `##` headings for subsections.
 
-Push the commit and tag:
+For a Studio frontend release, pin the new Studio image and bump Desktop in the
+same commit, then push only the numeric Studio tag. The Studio workflow builds the
+images before creating the Desktop tag and calling the installer workflow. Do not
+push a second Desktop tag for that linked release. A backend-only Studio release
+does not rebuild the App.
+
+For a Desktop-only change, push the commit and Desktop tag:
 
 ```sh
 git tag desktop-v0.0.23
 git push origin master desktop-v0.0.23
 ```
 
-`.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
+The workflow compares production inputs with the previous Desktop tag and skips
+unchanged releases. `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
 builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
 and Linux x64 on Linux. macOS installers and updates use only
 `darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.

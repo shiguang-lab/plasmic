@@ -1,0 +1,7 @@
+{
+  "en": "- Improve light and dark themes for canvas handles, property controls, image placeholders and configuration popovers.\n- Make configuration indicators more subtle and improve spacing in the layer tree.\n- Keep the AI panel closed when reopening the editor.\n- Refresh available AI models after reconnecting or returning to the editor, and remove the five-second model-list timeout.",
+  "zh-CN": "- 完善画布手柄、属性控件、图片占位图和配置浮层的深浅主题适配。\n- 弱化配置标记，优化图层树中标记与内容的间距。\n- 重新打开编辑器时，AI 面板默认关闭。\n- 恢复网络或返回编辑器后刷新可用模型，移除模型列表请求的五秒超时限制。",
+  "zh-TW": "- 完善畫布控制柄、屬性控制項、圖片預留位置和設定浮層的深淺主題適配。\n- 降低設定標記的視覺干擾，改善圖層樹中標記與內容的間距。\n- 重新開啟編輯器時，AI 面板預設關閉。\n- 恢復網路或返回編輯器後重新整理可用模型，移除模型清單請求的五秒逾時限制。",
+  "ja": "- キャンバスのハンドル、プロパティ、画像プレースホルダー、設定ポップアップのライト・ダークテーマを改善。\n- 設定マーカーを控えめにし、レイヤーツリーの余白を調整。\n- エディターを開き直すと AI パネルを閉じた状態で開始。\n- 再接続時やエディターに戻った際にモデル一覧を更新し、一覧取得の5秒タイムアウトを撤廃。",
+  "ko": "- 캔버스 핸들, 속성 컨트롤, 이미지 자리 표시자와 설정 팝업의 밝은 테마 및 어두운 테마를 개선합니다.\n- 설정 표시를 은은하게 바꾸고 레이어 트리의 간격을 개선합니다.\n- 편집기를 다시 열면 AI 패널이 닫힌 상태로 시작합니다.\n- 네트워크에 다시 연결하거나 편집기로 돌아오면 모델 목록을 새로 고치며, 목록 요청의 5초 제한을 제거합니다."
+}

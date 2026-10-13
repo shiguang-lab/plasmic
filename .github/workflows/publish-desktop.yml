@@ -2,13 +2,47 @@ name: Publish Desktop installers and release image
 on:
   push:
     tags: ["desktop-v*"]
+  workflow_call:
+    inputs:
+      release-tag:
+        required: true
+        type: string
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: desktop-release
   cancel-in-progress: false
 jobs:
+  plan:
+    if: github.repository == 'shiguang-lab/plasmic'
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.plan.outputs.publish }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - id: plan
+        env:
+          RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
+        run: node scripts/release-plan.mjs "$RELEASE_TAG"
+      - name: Record the linked Desktop tag
+        if: inputs.release-tag != '' && steps.plan.outputs.publish == 'true'
+        env:
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        run: |
+          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          else
+            git tag "$RELEASE_TAG"
+            git push origin "$RELEASE_TAG"
+          fi
   renderer:
+    needs: plan
+    if: needs.plan.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -18,8 +52,10 @@ jobs:
           node-version: 24
       - run: npm ci --prefix desktop
       - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if(process.env.GITHUB_REF_NAME!==`desktop-v${p.version}` || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if(process.env.RELEASE_TAG!==`desktop-v${p.version}` || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
       - name: Extract the pinned Studio image
         run: node desktop/scripts/prepare-assets.mjs
       - run: tar -czf renderer.tar.gz -C desktop renderer
@@ -85,6 +121,8 @@ jobs:
           if-no-files-found: error
   publish:
     needs: installers
+    env:
+      RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -120,7 +158,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Validate unpublished release
         run: |
-          if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:$GITHUB_REF_NAME" >/dev/null 2>&1; then
+          if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:$RELEASE_TAG" >/dev/null 2>&1; then
             echo 'Release image already exists; publish a new version.' >&2
             exit 1
           fi
@@ -140,9 +178,9 @@ jobs:
           push: true
           provenance: false
           tags: |
-            ghcr.io/shiguang-lab/plasmic-desktop-releases:${{ github.ref_name }}
+            ghcr.io/shiguang-lab/plasmic-desktop-releases:${{ inputs.release-tag || github.ref_name }}
             ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ github.ref_name }}
+            org.opencontainers.image.version=${{ inputs.release-tag || github.ref_name }}

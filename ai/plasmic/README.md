@@ -128,22 +128,26 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 ## Tag 自动发布
 
-沿用仓库的数字版本 tag，例如 `0.0.35`，不增加另一套 `cli-v*` tag。推送稳定版本 tag 同时触发现有 server/web 镜像 workflow 和新的 CLI/resources workflow；CLI 发布不需要等待镜像构建。
+四种产物使用独立入口和版本：
 
-新的 workflow 使用 GitHub-hosted Node 24 runner，顺序执行：
+| 产物 | Tag | 变更判断 |
+| --- | --- | --- |
+| Studio | `0.0.84` | 对比上一个 Studio tag 的生产输入；前端变化在镜像成功后联动 Desktop |
+| Desktop | `desktop-v0.0.59` | 对比上一个 Desktop tag；Studio 联动时自动创建，不重复手工推送 |
+| CLI | `cli-v0.0.83` | 比较实际 npm 包内容，忽略包版本和归档元数据；不变则跳过 |
+| 资源 | `resources-v0.0.84` | 对比上一个资源 tag 的 references、脚本、资源构建和协议输入 |
 
-1. 校验 tag 是无 `v` 前缀的稳定 SemVer，运行 CLI、安装包和 NAS promotion 测试。
-2. 构建本地 CLI 包，下载并校验 npm `latest` 的安装包，比较实际打包内容。比较忽略 `package.json.version`，包含运行代码、薄 skill 和其余包契约；文件顺序和归档时间不影响比较。
-3. 内容相同则保留 npm 最新 CLI 版本，并复用其原始安装包字节。内容变化或首次发布时，把 CLI 版本设为本次 tag；已有 npm 版本时，新 CLI 版本必须更大。
-4. 使用 tag 作为资源清单的 `version`，使用所选 CLI 版本作为 `cliVersion`，构建 resources 和 Actions artifact。仅新 CLI 执行 npm publish；相同版本、相同完整性且已为 latest 时跳过。
+资源第一次使用独立 tag 时，以最后一个旧数字 tag 为基线。Studio/纯 Desktop 发布均不发布 CLI 或资源；CLI 发布也不构建资源。资源发布从 npm 下载当前 latest CLI，验证完整性并复用原始字节，不包含尚未发布的本地 CLI 修改。需要新 CLI 能力的资源更新应先发布 CLI，再发布资源。
 
-例如资源版本从 `0.0.82` 更新到 `0.0.83`，CLI 可以一直保持 `0.0.81`。CLI 或薄 skill 在 `0.0.84` 变化时才发布 CLI `0.0.84`。源码 package.json 的版本用于本地开发，不要求每次 tag 手工修改。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，只在资源协议或运行能力需要新 CLI 时提高，并且不得高于清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件/安装包的 SHA-256 和大小。
+CLI 的源码 package.json 版本用于开发，发布版本来自 `cli-v` tag。资源清单的 `version` 来自 `resources-v` tag，`cliVersion` 来自 npm。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
+
+发布前在提交上运行 `node scripts/release-plan.mjs <tag>` 检查范围。Studio 前端发布必须在同一提交中更新 Desktop 版本、五语言发布说明及指向该 Studio tag 的 `webImage`；校验失败则不开始镜像构建。
 
 ### CI 必要配置
 
 - npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、workflow `publish-plasmic-cli.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
 
-Actions 负责发布 npm、构建 server/web 镜像并打包资源。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
+各自的 Actions 分别负责发布 npm、构建 Studio 镜像或打包资源。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
 
 ## 单独部署 NAS 资源
 
@@ -164,10 +168,12 @@ npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-r
 node packages/plasmic-cli/src/index.mjs skill install --dry-run
 node scripts/build-plasmic-resources.mjs --version 0.0.59
 # 默认只对 npm 做 dry-run（会查询真实 registry，不上传）：
-node packages/plasmic-cli/scripts/publish.mjs --tag 0.0.59
+node packages/plasmic-cli/scripts/publish.mjs --tag cli-v0.0.83
+# 资源仅使用已经发布并校验的 CLI：
+node scripts/release-resources.mjs --tag resources-v0.0.84
 ```
 
-CLI 发布脚本会先检查 npm 最新包并选择 CLI 版本；仅实际包内容变化才调用 npm publish。上传 npm 需要显式加 `--execute`；推送 tag 的 CI 会自动传入。Desktop App 使用自己的发布流程；CLI/resources 现在由仓库 release tag 发布，Desktop `publish:nas` 不再另外覆盖该清单。
+CLI 发布脚本仅在实际包内容变化时调用 npm publish，且要求版本递增。上传 npm 需要显式加 `--execute`；CLI tag 的 CI 会自动传入。Desktop `publish:nas` 不覆盖资源清单。
 
 本地构建目录 `dist/plasmic-resources/` 对应 NAS：
 
