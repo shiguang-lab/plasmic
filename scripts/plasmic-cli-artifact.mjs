@@ -9,9 +9,10 @@ export async function inspectCliArtifact(bytes) {
   if (bytes.length > MAX_BYTES) throw new Error("CLI artifact exceeds limit");
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-cli-inspect-"));
   try {
-    const archive = path.join(temporary, "cli.tgz");
-    await writeFile(archive, bytes);
-    const readTar = (args) => execFileSync("tar", args, { maxBuffer: MAX_BYTES });
+    // GNU tar interprets a Windows drive colon in an absolute archive as a host.
+    const archive = "cli.tgz";
+    await writeFile(path.join(temporary, archive), bytes);
+    const readTar = (args) => execFileSync("tar", args, { cwd: temporary, maxBuffer: MAX_BYTES });
     const names = readTar(["-tzf", archive]).toString("utf8").trim().split("\n").filter((name) => !name.endsWith("/")).sort();
     if (new Set(names).size !== names.length || !names.includes("package/package.json")) throw new Error("Invalid CLI package entries");
     let metadata;

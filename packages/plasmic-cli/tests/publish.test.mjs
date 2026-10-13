@@ -18,6 +18,21 @@ test("only stable repository version tags release the CLI", () => {
   assert.equal(compareVersions("0.0.34", "0.0.35"), -1);
   assert.equal(compareVersions("0.0.35", "0.0.35"), 0);
 });
+test("CLI inspection preserves all content when the temporary path contains a drive colon", async (t) => {
+  const bytes = await buildCli("0.0.60");
+  const expected = await inspectCliArtifact(bytes);
+  const temporary = await mkdtemp(path.join(tmpdir(), process.platform === "win32" ? "plasmic-cli-drive-" : "plasmic:cli-drive-"));
+  t.after(() => rm(temporary, { recursive: true, force: true }));
+  const key = process.platform === "win32" ? "TEMP" : "TMPDIR";
+  const previous = process.env[key];
+  process.env[key] = temporary;
+  try {
+    assert.deepEqual(await inspectCliArtifact(bytes), expected);
+  } finally {
+    if (previous === undefined) delete process.env[key];
+    else process.env[key] = previous;
+  }
+});
 test("npm release checks tag, registry versions and integrity before publishing or skipping", async (t) => {
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-publish-test-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
