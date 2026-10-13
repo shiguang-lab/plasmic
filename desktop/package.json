@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -35,7 +35,8 @@
     "canvas": "3.2.3",
     "electron": "44.5.1",
     "electron-builder": "26.15.3",
-    "jsdom": "26.1.0"
+    "jsdom": "26.1.0",
+    "esbuild": "0.28.2"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.0",
