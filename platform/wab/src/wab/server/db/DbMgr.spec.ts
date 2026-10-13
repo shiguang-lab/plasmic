@@ -2304,7 +2304,7 @@ describe("DbMgr organization entitlements", () => {
       expect((await sudo.getTeamById(team.id)).createdById).toBe(newOwner.id);
     }));
 
-  it("downgrades roles the new feature tier doesn't include", () =>
+  it("preserves role permissions when switching feature tiers", () =>
     withDb(async (sudo, _users, dbs, project, em) => {
       const { teamFt, proFt } = await seedTestFeatureTiers(em);
       const { team, workspace } = await getTeamAndWorkspace(dbs[0]());
@@ -2331,8 +2331,12 @@ describe("DbMgr organization entitlements", () => {
             .map((p) => p.accessLevel),
         );
       expect(await levels()).toEqual(["content", "designer", "editor"]);
+      const before = await em.find(Permission);
       await sudo.sudoUpdateTeam({ id: team.id, featureTierId: proFt.id });
-      expect(await levels()).toEqual(["commenter", "commenter", "editor"]);
+      expect(await levels()).toEqual(["content", "designer", "editor"]);
+      const after = await em.find(Permission);
+      expect(after).toHaveLength(before.length);
+      expect(after).toEqual(expect.arrayContaining(before));
     }));
 });
 

@@ -29,7 +29,8 @@ For a new database only:
 docker compose pull
 docker compose up -d db storage
 docker compose --profile init run --rm bootstrap
-docker compose up -d server preview web
+docker compose --profile init run --rm ai-bootstrap
+docker compose up -d temporal server ai-worker preview web
 ```
 
 Bootstrap runs migrations and creates business workspaces and component packages
@@ -42,6 +43,14 @@ Nginx startup.
 For an existing deployment, back up the database and assets first. Change IMAGE_TAG,
 then run migrations before starting the new server:
 
+Set a separate random `TEMPORAL_POSTGRES_PASSWORD` in the private `.env`.
+`ai-bootstrap` uses the existing database administrator to create only the
+dedicated `temporal_ai` role/databases, assign their public schemas, install
+`btree_gin` in visibility, and create the private `plasmic-ai-chat` bucket.
+It is safe to repeat and does not seed or reset application data. Temporal stays
+on the private Compose network; its health check gates AI Worker startup. The
+Node images use Debian because Temporal's native SDK requires glibc.
+
 Remove any local-image or source-file overrides from `compose.override.yml`
 before upgrading. All three services must resolve to the published GHCR tag;
 runtime source and component bundles are supplied by the release images.
@@ -50,7 +59,8 @@ runtime source and component bundles are supplied by the release images.
 docker compose pull
 docker compose stop server preview web
 docker compose run --rm server node_modules/typeorm/cli.js migration:run
-docker compose up -d server preview web
+docker compose --profile init run --rm ai-bootstrap
+docker compose up -d temporal server ai-worker preview web
 ```
 
 Component library versions also require immutable code artifacts before website

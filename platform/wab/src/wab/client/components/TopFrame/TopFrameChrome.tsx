@@ -12,6 +12,7 @@ import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame
 import ShareModal from "@/wab/client/components/TopFrame/TopBar/ShareModal";
 import UpsellModal from "@/wab/client/components/TopFrame/TopBar/UpsellModal";
 import { AppAuthSettingsModal } from "@/wab/client/components/app-auth/AppAuthSettings";
+import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
@@ -149,6 +150,13 @@ export function TopFrameChrome({
   didShowRegenerateSecretTokenModal,
   ...rest
 }: TopFrameChromeProps) {
+  React.useEffect(() => {
+    if (!appCtx.appConfig.enableLocalAiEditing) { return; }
+    const session = getLocalEditSession(project.id);
+    session.userId = appCtx.selfInfo?.id;
+    session.connect();
+    return () => session.disconnect();
+  }, [project.id, appCtx.appConfig.enableLocalAiEditing,appCtx.selfInfo?.id]);
   const selectDelivery = (tab: DeliveryTab) => {
     const setter =
       tab === "share"
@@ -425,10 +433,11 @@ export function TopFrameChrome({
                 />
               )}
             <FloatingWindowLayer>
-              {hostFrameApiReady && rest.showCopilotChatModal && editorPerm && (
+              {hostFrameApiReady && rest.showCopilotChatModal && (
                 <CopilotChat
                   width={rest.leftPaneWidth}
                   project={project}
+                  readOnly={!editorPerm}
                   chatOpenOpts={rest.copilotChatOpenOpts}
                   context={rest.localAiContext}
                   studioModalOpen={rest.studioModalOpen}

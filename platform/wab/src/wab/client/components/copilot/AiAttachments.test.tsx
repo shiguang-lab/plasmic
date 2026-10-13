@@ -37,6 +37,7 @@ it.each(["iframe", "outside", "escape"])(
     const trigger = screen.getByRole("button", {
       name: "Add files and images",
     });
+    await waitFor(() => expect(trigger.hasAttribute("disabled")).toBe(false));
     trigger.focus();
     fireEvent.click(trigger);
     await screen.findByRole("menuitem", { name: "Add reference images" });

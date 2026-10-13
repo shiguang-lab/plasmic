@@ -90,7 +90,10 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
         const label =
           tpl.name || tpl.component.name.replace("plasmic-antd6-", "");
         const open = viewCtx.canvasOverlayOpen(fullKey);
-        const action = `${open ? "Hide" : "Show"} ${label} content`;
+        const action = uiT(
+          open ? "Hide {name} content" : "Show {name} content",
+          { name: label },
+        );
         return (
           <button
             className={styles.toggle}

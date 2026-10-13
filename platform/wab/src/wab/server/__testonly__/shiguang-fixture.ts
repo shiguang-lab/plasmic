@@ -1,3 +1,4 @@
+import { startTestServer } from "@/wab/server/__testonly__/test-server";
 import { DbMgr, normalActor } from "@/wab/server/db/DbMgr";
 import { User } from "@/wab/server/entities/Entities";
 import { UserId } from "@/wab/shared/ApiSchema";
@@ -40,6 +41,35 @@ for (const email of [
   "user2@example.com",
 ]) {
   testProfile(email);
+}
+
+/** Worker processes use HTTP because Vitest's in-memory mock stays in this process. */
+export async function startTestDirectory() {
+  const token = randomUUID();
+  const server = await startTestServer("127.0.0.1", async (req, res) => {
+    if (req.headers.authorization !== `Bearer ${token}`) {
+      res.writeHead(401).end();
+      return;
+    }
+    if (req.method !== "POST" || req.url !== "/v1/identity/users/batch-get") {
+      res.writeHead(404).end();
+      return;
+    }
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) {
+      chunks.push(Buffer.from(chunk));
+    }
+    const { ids } = JSON.parse(Buffer.concat(chunks).toString());
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        users: [...new Set<string>(ids)].flatMap((id) =>
+          profiles.has(id) ? [profiles.get(id)] : [],
+        ),
+      }),
+    );
+  });
+  return { ...server, token };
 }
 
 export async function createTestUser(

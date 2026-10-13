@@ -25,9 +25,9 @@ async function latest(options) {
 function versionInfo(release) {
   return {
     cliVersion: CLI_VERSION,
-    latestCliVersion: release.manifest.version,
+    latestCliVersion: release.manifest.cliVersion,
     minCliVersion: release.manifest.minCliVersion,
-    cliUpdateAvailable: requiresNewCli(release.manifest.version),
+    cliUpdateAvailable: requiresNewCli(release.manifest.cliVersion),
     cliCompatible: !requiresNewCli(release.manifest.minCliVersion),
     cliUrl: release.cliUrl,
   };

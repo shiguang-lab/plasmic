@@ -1,5 +1,5 @@
-FROM node:24.16.0-alpine AS builder
-RUN apk add --no-cache bash git curl wget python3 py3-pip postgresql-client build-base
+FROM node:24.16.0-bookworm-slim AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends bash git curl wget python3 python3-pip postgresql-client build-essential ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 CYPRESS_INSTALL_BINARY=0
 WORKDIR /plasmic
@@ -16,8 +16,8 @@ RUN cd platform/canvas-packages && pnpm exec esbuild src/antd-icons.ts --bundle 
 RUN cd platform/canvas-packages && pnpm exec esbuild src/react-ui.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/react-ui.js
 RUN cd platform/canvas-packages && pnpm exec esbuild src/antd5.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd5.js
 
-FROM node:24.16.0-alpine AS server
-RUN apk add --no-cache bash git && corepack enable
+FROM node:24.16.0-bookworm-slim AS server
+RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 && rm -rf /var/lib/apt/lists/* && corepack enable
 WORKDIR /plasmic/platform/wab
 COPY --from=builder --chown=node:node /opt/plasmic-host /plasmic/packages/host
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
@@ -32,6 +32,7 @@ COPY --chown=node:node deploy/nas-init.ts src/wab/server/nas-init.ts
 COPY --chown=node:node deploy/nas-antd6.ts src/wab/server/nas-antd6.ts
 COPY --chown=node:node deploy/nas-icons.ts src/wab/server/nas-icons.ts
 COPY --chown=node:node deploy/nas-react-ui.ts src/wab/server/nas-react-ui.ts
+COPY --chown=node:node deploy/nas-ai-init.ts src/wab/server/nas-ai-init.ts
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node
@@ -63,7 +64,7 @@ WORKDIR /plasmic/platform/preview
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-FROM node:24.16.0-alpine AS preview
+FROM node:24.16.0-bookworm-slim AS preview
 WORKDIR /app
 COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/standalone ./
 COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/static ./preview/.next/static

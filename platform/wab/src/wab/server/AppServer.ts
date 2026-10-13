@@ -1,6 +1,7 @@
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
-import { localAiIntent, localAiStatus, localAiStep } from "@/wab/server/routes/local-ai";
+import { localAiStatus } from "@/wab/server/routes/local-ai";
+import { aiChatHistory, aiChatEvents, aiChatSend, aiChatClaim, aiChatReceipt, aiChatStop, aiChatAttachment, aiChatHeartbeat, aiChatReconcile, aiChatRunSnapshot, aiChatUndo } from "@/wab/server/routes/ai-chat";
 import * as Sentry from "@sentry/node";
 import * as bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -1266,8 +1267,17 @@ export function addMainAppServerRoutes(
    */
   app.get("/api/v1/app-config", getAppConfig);
   app.get("/api/v1/projects/:projectId/ai/edit/status", withNext(localAiStatus));
-  app.post("/api/v1/projects/:projectId/ai/edit/step", withNext(localAiStep));
-  app.post("/api/v1/projects/:projectId/ai/edit/intent", withNext(localAiIntent));
+  app.get("/api/v1/projects/:projectId/ai/chat", withNext(aiChatHistory));
+  app.get("/api/v1/projects/:projectId/ai/chat/events", withNext(aiChatEvents));
+  app.get("/api/v1/projects/:projectId/ai/chat/runs/:runId", withNext(aiChatRunSnapshot));
+  app.post("/api/v1/projects/:projectId/ai/chat", withNext(aiChatSend));
+  app.post("/api/v1/projects/:projectId/ai/chat/claim", withNext(aiChatClaim));
+  app.post("/api/v1/projects/:projectId/ai/chat/tools/:operationId/receipt", withNext(aiChatReceipt));
+  app.post("/api/v1/projects/:projectId/ai/chat/tools/:operationId/heartbeat", withNext(aiChatHeartbeat));
+  app.post("/api/v1/projects/:projectId/ai/chat/runs/:runId/stop", withNext(aiChatStop));
+  app.post("/api/v1/projects/:projectId/ai/chat/runs/:runId/reconcile", withNext(aiChatReconcile));
+  app.post("/api/v1/projects/:projectId/ai/chat/runs/:runId/undo", withNext(aiChatUndo));
+  app.get("/api/v1/projects/:projectId/ai/chat/attachments/:attachmentId", withNext(aiChatAttachment));
   app.get("/api/v1/app-ctx", withNext(getAppCtx));
 
   /**

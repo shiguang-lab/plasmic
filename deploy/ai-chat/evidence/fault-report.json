@@ -1,0 +1,28 @@
+{
+  "projectId": "9ebuBz8SEDHpNbYDaSjWoT",
+  "checks": [
+    {
+      "name": "worker crash",
+      "status": "failed",
+      "error": "Model stream interrupted. Partial output is retained; start a new request.",
+      "upstreamRequests": 1,
+      "retained": true
+    },
+    {
+      "name": "upstream stream failure",
+      "status": "failed",
+      "retained": true
+    },
+    {
+      "name": "offline reconnect and stop",
+      "retained": true,
+      "status": "stopped"
+    },
+    {
+      "name": "historical node tag",
+      "nameSnapshot": "AcceptanceTitle",
+      "located": true,
+      "designCounterUnchanged": true
+    }
+  ]
+}

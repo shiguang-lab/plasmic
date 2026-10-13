@@ -3683,5 +3683,12 @@
   "Describe what you need. AI can edit the current selection or page, or create a new page.": "描述你的需求，AI 会修改当前选区或页面，也可以创建新页面。",
   "Describe changes or a new page…": "描述想修改的内容，或要创建的页面…",
   "AI model": "AI 模型",
-  "The AI service returned an invalid status. Update the server and reload the assistant.": "AI 服务返回的状态无效。请更新后端服务并重新打开助手。"
+  "The AI service returned an invalid status. Update the server and reload the assistant.": "AI 服务返回的状态无效。请更新后端服务并重新打开助手。",
+  "Load earlier messages": "加载更早的消息",
+  "Verify saved design": "核对已保存的设计",
+  "Retry in current editor": "在当前编辑器中重试",
+  "Changes undone in the current editor.": "已在当前编辑器中撤销修改。",
+  "Saved revision {revision} verified. Start a new request from the current editor.": "已核对保存版本 {revision}。请从当前编辑器开始新的请求。",
+  "Hide {name} content": "收起 {name} 内容",
+  "Show {name} content": "展开 {name} 内容"
 }

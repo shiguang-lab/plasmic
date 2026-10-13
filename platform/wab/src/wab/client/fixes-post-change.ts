@@ -132,7 +132,7 @@ export function fixupForChanges(
 
 function fixupComponentUpdatedAt(summary: ChangeSummary) {
   for (const component of summary.updatedComponents) {
-    component.updatedAt = Date.now();
+    component.updatedAt = Math.max(Date.now(), (component.updatedAt ?? 0) + 1);
   }
 }
 

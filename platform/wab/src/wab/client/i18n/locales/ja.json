@@ -3683,5 +3683,12 @@
   "Describe what you need. AI can edit the current selection or page, or create a new page.": "要望を入力してください。AI は現在の選択範囲やページを編集したり、新しいページを作成できます。",
   "Describe changes or a new page…": "変更内容や作成したいページを入力…",
   "AI model": "AI モデル",
-  "The AI service returned an invalid status. Update the server and reload the assistant.": "AI サービスの状態が無効です。サーバーを更新してアシスタントを再読み込みしてください。"
+  "The AI service returned an invalid status. Update the server and reload the assistant.": "AI サービスの状態が無効です。サーバーを更新してアシスタントを再読み込みしてください。",
+  "Load earlier messages": "以前のメッセージを読み込む",
+  "Verify saved design": "保存済みデザインを確認",
+  "Retry in current editor": "現在のエディターで再試行",
+  "Changes undone in the current editor.": "現在のエディターで変更を元に戻しました。",
+  "Saved revision {revision} verified. Start a new request from the current editor.": "保存済みリビジョン {revision} を確認しました。現在のエディターから新しいリクエストを開始してください。",
+  "Hide {name} content": "{name} の内容を非表示",
+  "Show {name} content": "{name} の内容を表示"
 }

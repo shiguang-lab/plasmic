@@ -1,3 +1,4 @@
+import { CanvasClickTracker } from "@/wab/client/components/canvas/canvas-clicks";
 import {
   TEST_GLOBAL_VARIANT,
   buildValTree,
@@ -5,6 +6,7 @@ import {
   renderStateForTests,
 } from "@/wab/__testonly__/tpls";
 import { FocusHeuristics } from "@/wab/client/focus-heuristics";
+import { Selectable } from "@/wab/shared/core/selection";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
@@ -399,6 +401,47 @@ describe("FocusHeuristics", function () {
           curFocused: leaf,
         }).focusTarget,
       ).toBe(nested.children[1]);
+    });
+
+    it("six rapid completed clicks descend three levels and Command still selects the leaf", () => {
+      evalTpl({ tplTree: Tpls.mkTplTag("div", [
+        Tpls.mkTplTag("section", [Tpls.mkTplTag("div", [
+          Tpls.mkTplTag("div", [Tpls.mkTplTag("span")]),
+        ])]),
+      ]) });
+      const outer = valTree.children[0];
+      const inner = outer.children[0];
+      const nested = inner.children[0];
+      const leaf = nested.children[0];
+      const tracker = new CanvasClickTracker();
+      const frame = {};
+      const event = {
+        button: 0, screenX: 100, screenY: 200,
+        metaKey: false, ctrlKey: false, altKey: false, shiftKey: false,
+      };
+      const fh = getHeuristics();
+      let current: Selectable | null = null;
+      const selected = Array.from({ length: 6 }, (_, index) => {
+        tracker.start(event, frame, index * 80);
+        current = fh.bestFocusTarget(leaf, { exact: false, curFocused: current }).focusTarget;
+        if (tracker.finish(event, index * 80 + 20)) {
+          current = fh.bestFocusTarget(leaf, {
+            exact: false, curFocused: current, drillDown: true,
+          }).focusTarget;
+        }
+        return current;
+      });
+      expect(selected).toEqual([outer, inner, inner, nested, nested, leaf]);
+      tracker.start(event, frame, 600);
+      tracker.finish(event, 620);
+      const command = { ...event, metaKey: true };
+      tracker.start(command, frame, 680);
+      expect(fh.bestFocusTarget(leaf, {
+        exact: false, curFocused: outer, deepSelect: true,
+      }).focusTarget).toBe(leaf);
+      expect(tracker.finish(command, 700)).toBe(false);
+      tracker.start(event, frame, 760);
+      expect(tracker.finish(event, 780)).toBe(false);
     });
 
     it("clicking outside the entered layout selects the branch at the common parent", () => {

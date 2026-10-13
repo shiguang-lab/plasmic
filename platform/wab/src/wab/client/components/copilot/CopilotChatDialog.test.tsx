@@ -82,7 +82,7 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
 it("renders a working Web composer and submits once through the session", async () => {
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")
-    .mockResolvedValue();
+    .mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
   mount();
   const input = screen.getByRole("textbox");
   fireEvent.change(
@@ -92,7 +92,7 @@ it("renders a working Web composer and submits once through the session", async 
   await screen.findByRole("button", {
     name: "Remove attachment requirements.md",
   });
-  fireEvent.change(input, { target: { value: "Change the title" } });
+  fireEvent.input(input, { target: { innerText: "Change the title" } });
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Send AI request" }),
@@ -107,7 +107,7 @@ it("renders a working Web composer and submits once through the session", async 
     [{ type: "text", name: "requirements.md", text: "A table" }],
     "fixture-model",
   );
-  expect(input).toHaveValue("");
+  expect(input).toHaveProperty("innerText", "");
 });
 it("shows configuration state without enabling an unavailable model", async () => {
   state.configured = false;
@@ -119,11 +119,11 @@ it("shows configuration state without enabling an unavailable model", async () =
     screen.getByRole("button", { name: "Send AI request" }),
   ).toBeDisabled();
 });
-it("closing the panel stops its current task", () => {
+it("closing the panel leaves its current task running", () => {
   const stop = vi.spyOn(state.session as LocalEditSession, "stop");
   const { onClose } = mount();
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
-  expect(stop).toHaveBeenCalled();
+  expect(stop).not.toHaveBeenCalled();
   expect(onClose).toHaveBeenCalled();
 });
 it("keeps a rejected tool's actual error in execution progress", () => {
@@ -132,9 +132,9 @@ it("keeps a rejected tool's actual error in execution progress", () => {
   }
   state.session.tasks = [
     {
-      id: "rejected",
+      id: "rejected", authorId: "author", createdAt: "2026-10-13T00:00:00Z", files: [], parts: [],
+      binding: { projectId: "project", branchId: null, sessionId: "session", changeCounter: 0, componentUuid: "page", elementUuids: [] },
       prompt: "Edit form",
-      attachments: [],
       status: "failed",
       phase: "Failed",
       messages: [],
@@ -160,15 +160,15 @@ it("submits natural language with automatic targeting and no mode or identity fi
   config.enableLocalAiPageGeneration = true;
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")
-    .mockResolvedValue();
+    .mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
   mount();
   await screen.findByText("fixture-model");
   expect(screen.queryByRole("radio")).not.toBeInTheDocument();
   expect(
     screen.queryByRole("textbox", { name: "New page name" }),
   ).not.toBeInTheDocument();
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Create a new records page at /records" },
+  fireEvent.input(screen.getByRole("textbox"), {
+    target: { innerText: "Create a new records page at /records" },
   });
   fireEvent.keyDown(screen.getByRole("textbox"), {
     key: "Enter",
@@ -193,7 +193,7 @@ it("submits natural language with automatic targeting and no mode or identity fi
 it("uses the chosen model and remembers it when reopening the panel", async () => {
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")
-    .mockResolvedValue();
+    .mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
   const first = mount();
   await screen.findByText("fixture-model");
   fireEvent.mouseDown(screen.getByRole("combobox", { name: "AI model" }));
@@ -206,8 +206,8 @@ it("uses the chosen model and remembers it when reopening the panel", async () =
     maxHeight: "240px",
   });
   fireEvent.click(alternate);
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Change title" },
+  fireEvent.input(screen.getByRole("textbox"), {
+    target: { innerText: "Change title" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Send AI request" }));
   expect(run).toHaveBeenCalledWith(
@@ -249,15 +249,15 @@ it("shares the canvas draft and attachments across panel close and reopen", () =
     attachments: [{ type: "text", name: "requirements.md", text: "A table" }],
   };
   const first = mount();
-  expect(screen.getByRole("textbox")).toHaveValue("Canvas draft");
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Canvas draft");
   expect(screen.getByText("requirements.md")).toBeTruthy();
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Continue in panel" },
+  fireEvent.input(screen.getByRole("textbox"), {
+    target: { innerText: "Continue in panel" },
   });
   first.unmount();
   expect(session.draft.prompt).toBe("Continue in panel");
   mount();
-  expect(screen.getByRole("textbox")).toHaveValue("Continue in panel");
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Continue in panel");
   expect(screen.getByText("requirements.md")).toBeTruthy();
 });
 
@@ -267,7 +267,7 @@ it("accepts a request from the canvas, starts it once and clears the shared draf
     { type: "text" as const, name: "requirements.md", text: "A table" },
   ];
   session.draft = { prompt: "Canvas request", attachments };
-  const run = vi.spyOn(session, "run").mockResolvedValue();
+  const run = vi.spyOn(session, "run").mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
   mount({ prompt: "Canvas request", mode: undefined, attachments });
   await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
   expect(run).toHaveBeenCalledWith(
@@ -337,7 +337,7 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
 it("switches top-frame modes without losing attachments, scope, model or multiline drafts", async () => {
   const rendered = render(<AiModes />);
   const input = screen.getByRole("textbox");
-  fireEvent.change(input, { target: { value: "Change padding\nand spacing" } });
+  fireEvent.input(input, { target: { innerText: "Change padding\nand spacing" } });
   expect(
     screen.getByRole("group", { name: "AI canvas editing" }),
   ).toHaveAttribute("data-expanded", "true");
@@ -354,33 +354,33 @@ it("switches top-frame modes without losing attachments, scope, model or multili
   expect(state.session?.selectedModel).toBe("alternate-model");
   fireEvent.click(screen.getByRole("button", { name: "Open panel" }));
   expect(screen.queryByRole("group", { name: "AI canvas editing" })).toBeNull();
-  expect(screen.getByRole("textbox")).toHaveValue(
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText",
     "Change padding\nand spacing",
   );
   expect(screen.getByText("requirements.md")).toBeTruthy();
   expect(screen.getByText("StatusFilter")).toBeTruthy();
   expect(screen.getByText("alternate-model")).toBeTruthy();
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Continue in panel" },
+  fireEvent.input(screen.getByRole("textbox"), {
+    target: { innerText: "Continue in panel" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   expect(screen.queryByRole("region", { name: "AI assistant" })).toBeNull();
-  expect(screen.getByRole("textbox")).toHaveValue("Continue in panel");
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Continue in panel");
   expect(screen.getByText("requirements.md")).toBeTruthy();
   expect(screen.getByText("alternate-model")).toBeTruthy();
   rendered.rerender(
     <AiModes context={{ ...selection, scope: "SearchButton" }} />,
   );
   expect(screen.getByText("SearchButton")).toBeTruthy();
-  expect(screen.getByRole("textbox")).toHaveValue("Continue in panel");
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Continue in panel");
 });
 
 it("submits from the top-frame entry into panel mode once with the selected node binding", async () => {
   const session = state.session as LocalEditSession;
-  const run = vi.spyOn(session, "run").mockResolvedValue();
+  const run = vi.spyOn(session, "run").mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
   render(<AiModes />);
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Change padding" },
+  fireEvent.input(screen.getByRole("textbox"), {
+    target: { innerText: "Change padding" },
   });
   fireEvent.keyDown(screen.getByRole("textbox"), {
     key: "Enter",
@@ -404,5 +404,5 @@ it("submits from the top-frame entry into panel mode once with the selected node
   expect(screen.getByRole("region", { name: "AI assistant" })).toBeTruthy();
   expect(session.draft).toEqual({ prompt: "", attachments: [] });
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
-  expect(screen.getByRole("textbox")).toHaveValue("");
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "");
 });

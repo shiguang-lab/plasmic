@@ -1,0 +1,24 @@
+{
+  "studio": {
+    "command": "CI=1 PLASMIC_SELF_HOSTED=1 PUBLIC_URL=http://localhost:3003 STATIC_URL=http://localhost:3003 node node_modules/@rsbuild/core/bin/rsbuild.js build",
+    "exitCode": 0
+  },
+  "preview": {
+    "command": "CI=1 PLASMIC_SELF_HOSTED=1 PUBLIC_URL=http://localhost:3003 STATIC_URL=http://localhost:3003 node node_modules/@rsbuild/core/bin/rsbuild.js build --config rsbuild.preview.config.ts",
+    "exitCode": 0
+  },
+  "typecheck": {
+    "command": "NODE_OPTIONS=--max-old-space-size=16384 node node_modules/typescript/bin/tsc --noEmit --incremental",
+    "exitCode": 0
+  },
+  "eslint": {
+    "exitCode": 0,
+    "warnings": 10
+  },
+  "faultHarness": {
+    "exitCode": 0
+  },
+  "accessHarness": {
+    "exitCode": 0
+  }
+}

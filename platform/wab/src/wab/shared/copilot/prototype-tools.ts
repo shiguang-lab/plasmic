@@ -287,7 +287,7 @@ const EDIT_TOOL_META = {
         text: z.string().max(100000).optional(),
         props: z.record(jsonValue).optional(),
         resetProps: z.array(uuid).min(1).optional(),
-        styles: z.record(z.string().nullable()).optional(),
+        styles: z.record(z.string().nullable()).describe("CSS declarations only. Use actual CSS property names or custom --variables; do not put metadata such as reason in styles. null removes an existing declaration.").optional(),
         variantUuids: z.array(uuid).optional(),
         visibleIf: z.string().min(1).nullable().optional(),
         repeat: z
@@ -522,6 +522,8 @@ const EDIT_TOOL_META = {
       projectId: uuid,
       branchId: uuid.nullable(),
       sessionId: uuid,
+      revision: z.number().int().nonnegative().optional(),
+      componentName: z.string().nullable().optional(),
       changeCounter: z.number().int().nonnegative(),
       componentUuid: uuid.nullable(),
       frameUuid: uuid.nullable(),
@@ -883,6 +885,7 @@ export const PROTOTYPE_TOOL_META = {
     inputSchema: z
       .object({
         binding: localEditBindingSchema,
+        execution: z.object({ operationId: z.string().min(1), fence: z.number().int().positive() }).strict().optional(),
         name: z.enum([
           ...localEditToolNames,
           "createComponent",

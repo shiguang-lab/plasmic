@@ -4,7 +4,6 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { buildResources } from "../../scripts/build-plasmic-resources.mjs";
 import { artifactUrl, compareVersions, feedUrl, validateManifest, verifyArtifact } from "../../packages/plasmic-cli/src/protocol.mjs";
 import { nasConfig } from "./nas-config.mjs";
 
@@ -13,13 +12,11 @@ const config = await nasConfig();
 const { values } = parseArgs({ options: { from: { type: "string" }, version: { type: "string" } } });
 const version = values.version || process.env.GITHUB_REF_NAME;
 compareVersions(version, version);
-let release;
-if (values.from) {
-  const output = path.resolve(values.from);
-  const manifest = validateManifest(JSON.parse(await readFile(path.join(output, "latest.json"), "utf8")));
-  if (manifest.version !== version) throw new Error("NAS artifact version does not match release tag");
-  release = { output, manifest, directory: path.join(output, "releases", manifest.releaseId) };
-} else release = await buildResources(undefined, version);
+if (!values.from) throw new Error("NAS resource publication requires --from with the verified CI artifact");
+const output = path.resolve(values.from);
+const manifest = validateManifest(JSON.parse(await readFile(path.join(output, "latest.json"), "utf8")));
+if (manifest.version !== version) throw new Error("NAS resource version does not match release tag");
+const release = { output, manifest, directory: path.join(output, "releases", manifest.releaseId) };
 for (const artifact of Object.values(release.manifest.artifacts)) verifyArtifact(await readFile(path.join(release.directory, artifact.file)), artifact);
 const staging = `${config.nasDeployDir}/desktop-updates/.plasmic-upload-${randomUUID()}`;
 const quote = (value) => "'" + value.replaceAll("'", "'\\''") + "'";

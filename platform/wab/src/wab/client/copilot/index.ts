@@ -44,7 +44,7 @@ import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { getBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import { paramToVarName } from "@/wab/shared/codegen/util";
-import { assert, asyncTimeout, ensure } from "@/wab/shared/common";
+import { assert, asyncTimeout, ensure, withTimeout } from "@/wab/shared/common";
 import { getComponentArenaBaseFrame } from "@/wab/shared/component-arenas";
 import {
   GlobalVariantFrame,
@@ -93,6 +93,8 @@ import {
   tplChildren,
 } from "@/wab/shared/core/tpls";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
+import { isValidStyleProp } from "@/wab/shared/core/style-props";
+import { normProp } from "@/wab/shared/css";
 import { parseDataUrlToSvgXml } from "@/wab/shared/data-urls";
 import { Pt } from "@/wab/shared/geom";
 import {
@@ -865,6 +867,13 @@ async function prepareMutation(
     }
     case "changeElement": {
       const input = operation.input;
+      const cssStyle = document.createElement("div").style;
+      for (const [property,value] of Object.entries(input.styles ?? {})) {
+        const prop = normProp(property);
+        cssStyle.setProperty(prop,"initial");
+        assert(value === null || isValidStyleProp(prop) || cssStyle.getPropertyValue(prop) === "initial",`Unsupported CSS property: ${property}`);
+        cssStyle.removeProperty(prop);
+      }
       assert(
         input.name !== undefined ||
           input.text !== undefined ||
@@ -1289,18 +1298,28 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           "Page generation requires a whole page scope.",
         );
       }
-      const finish = (
+      const persistentMutation = input.execution && !["read", "queryElements", "getEditorContext", "selectElement", "scrollElementIntoView", "navigate", "validate", "save"].includes(input.name);
+      if (persistentMutation) {
+        await studio.save();
+        assert(!studio.hasUnsavedChanges(), "Save existing changes before AI editing.");
+        assertLocalBinding(studio, binding);
+        studio.aiSaveReceipt = { operationId: ensure(input.execution, "Execution identity is required").operationId, fence: ensure(input.execution, "Execution identity is required").fence, sessionId: binding.sessionId };
+      }
+      try {
+      const finish = async (
         result: string,
         before?: string,
         after?: string,
         nextBinding = binding,
-      ) => ({
-        result,
-        before,
-        after,
-        changed: studio._changeCounter !== binding.changeCounter,
-        binding: { ...nextBinding, changeCounter: studio._changeCounter },
-      });
+      ) => {
+        const output = { result, before, after, changed: studio._changeCounter !== binding.changeCounter, binding: { ...nextBinding, changeCounter: studio._changeCounter } };
+        if (persistentMutation && output.changed) {
+          ensure(studio.aiSaveReceipt, "Execution receipt is missing").result = output;
+          await studio.save();
+          assert(!studio.hasUnsavedChanges(), "AI changes could not be saved. Verify the design before retrying.");
+        }
+        return output;
+      };
       if (input.name === "undo") {
         const result = await COPILOT_TOOLS.undo.execute(
           studio,
@@ -1315,7 +1334,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         const removed =
           binding.mode === "page" &&
           !studio.site.components.some((c) => c.uuid === binding.componentUuid);
-        return finish(
+        return await finish(
           result,
           undefined,
           undefined,
@@ -1354,7 +1373,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           created.__type === "Component",
           "Created page resource is missing",
         );
-        return finish(JSON.stringify(result), before, JSON.stringify(result), {
+        return await finish(JSON.stringify(result), before, JSON.stringify(result), {
           ...binding,
           componentUuid: created.uuid,
         });
@@ -1364,7 +1383,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         binding.mode === "page" &&
         binding.componentUuid === null
       ) {
-        return finish(
+        return await finish(
           await COPILOT_TOOLS.save.execute(
             studio,
             {},
@@ -1439,7 +1458,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           "Unknown local tool",
         ).execute(studio, input.input, { outputFormat: "json" });
         assertLocalBinding(studio, binding);
-        return finish(result);
+        return await finish(result);
       }
       const rawOperations =
         input.name === "executeBatch"
@@ -1545,6 +1564,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       } catch (error) {
         finishActivity("error");
         throw error;
+      }
+      } finally {
+        if (persistentMutation && !studio.hasUnsavedChanges()) { studio.aiSaveReceipt = undefined; }
       }
     },
   ),
@@ -1895,6 +1917,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       projectId: studio.siteInfo.id,
       branchId: studio.dbCtx().branchInfo?.id ?? null,
       sessionId: studio.aiSessionId,
+      revision: studio.dbCtx().revisionNum,
+      componentName: vc?.currentComponent()?.name ?? (isDedicatedArena(studio.currentArena) ? studio.currentArena.component.name : null),
       changeCounter: studio._changeCounter,
       editorView:
         studio.currentArena && studio.viewportCtx
@@ -2008,6 +2032,13 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const component = findComponent(studio, input.componentUuid);
       const tpl = findElement(component, input.elementUuid);
       const frames = getArenaFrames(studio.currentArena);
+      const focusedFrame = input.frameUuid
+        ? frames.find((frame) => frame.uuid === input.frameUuid)
+        : studio.focusedViewCtx()?.arenaFrame() ?? studio.focusedFrame();
+      if (focusedFrame && frames.includes(focusedFrame) && focusedFrame.container.component === component) {
+        const focusedView = studio.tryGetViewCtxForFrame(focusedFrame) ?? await withTimeout(studio.awaitViewCtxForFrame(focusedFrame), "Timed out waiting for the selected canvas", 30000);
+        await focusedView.awaitSync();
+      }
       const candidates = studio.viewCtxs.filter(
         (vc) =>
           frames.includes(vc.arenaFrame()) &&
@@ -2015,7 +2046,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           vc.renderState.tpl2fullKeys(tpl).length > 0,
       );
       const vc =
-        candidates.find((candidate) => candidate === studio.focusedViewCtx()) ??
+        candidates.find((candidate) => candidate === studio.focusedViewCtx() || candidate.arenaFrame() === focusedFrame) ??
         (candidates.length === 1 ? candidates[0] : undefined);
       assert(
         vc,

@@ -1,4 +1,7 @@
-import { createTestUser } from "@/wab/server/__testonly__/shiguang-fixture";
+import {
+  createTestUser,
+  startTestDirectory,
+} from "@/wab/server/__testonly__/shiguang-fixture";
 import { runAppServer } from "@/wab/server/app-backend-real";
 import { closeDbConnections, ensureDbConnection } from "@/wab/server/db/DbCon";
 import { initDb } from "@/wab/server/db/DbInitUtil";
@@ -33,7 +36,7 @@ export async function withDb(
             email: `yang${num}@test.com`,
             displayName: `Yang${
               num === 1 ? "one" : num === 2 ? "two" : num === 3 ? "three" : num
-            }`,
+            } Zhang`,
             createTeam: true,
           });
           return user;
@@ -143,46 +146,58 @@ export async function createBackend(
   process.env.DISABLE_BWRAP = "1";
   process.env.CODEGEN_HOST = `http://localhost:${port}`;
 
-  return await withEnvOverrides(
-    {
-      BACKEND_PORT: port,
-    },
-    async () => {
-      const server = await runAppServer({
-        databaseUri: dburi,
-        port: port,
-        host: `http://localhost:${port}`,
-        production: false,
-        integrationSessionSecret: "secret",
-        mailFrom: "",
-        mailUserOps: "",
-        mailBcc: "",
-        terminationGracePeriodMs: 5000,
-        keepAliveTimeoutMs: 60000,
-        genericWorkerPoolSize: 1,
-        loaderWorkerPoolSize: 1,
-      });
+  const directory = await startTestDirectory();
+  try {
+    return await withEnvOverrides(
+      {
+        BACKEND_PORT: port,
+        SG_IDENTITY_API_URL: directory.url,
+        SG_IDENTITY_API_TOKEN: directory.token,
+      },
+      async () => {
+        const server = await runAppServer({
+          databaseUri: dburi,
+          port: port,
+          host: `http://localhost:${port}`,
+          production: false,
+          integrationSessionSecret: "secret",
+          mailFrom: "",
+          mailUserOps: "",
+          mailBcc: "",
+          terminationGracePeriodMs: 5000,
+          keepAliveTimeoutMs: 60000,
+          genericWorkerPoolSize: 1,
+          loaderWorkerPoolSize: 1,
+        });
 
-      return {
-        host: `http://localhost:${port}`,
-        cleanup: async () => {
-          try {
-            await new Promise<void>((resolve, reject) => {
-              server.close((err) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve();
-                }
+        return {
+          host: `http://localhost:${port}`,
+          cleanup: async () => {
+            try {
+              await new Promise<void>((resolve, reject) => {
+                server.close((err) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve();
+                  }
+                });
               });
-            });
-          } finally {
-            await closeDbConnections();
-          }
-        },
-      };
-    },
-  );
+            } finally {
+              try {
+                await closeDbConnections();
+              } finally {
+                await directory.dispose();
+              }
+            }
+          },
+        };
+      },
+    );
+  } catch (error) {
+    await directory.dispose();
+    throw error;
+  }
 }
 
 async function withEnvOverrides<T>(

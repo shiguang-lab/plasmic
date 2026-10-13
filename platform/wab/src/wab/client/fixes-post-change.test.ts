@@ -12,7 +12,9 @@ import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { ok } from "neverthrow";
 
 describe("Fixes post change", () => {
+  afterEach(() => vi.restoreAllMocks());
   it("updates component.updatedAt", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
     const { studioCtx } = fakeStudioCtx();
     const component = studioCtx.addComponent("Button", {
       type: ComponentType.Plain,

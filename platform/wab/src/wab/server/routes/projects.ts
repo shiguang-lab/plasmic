@@ -1,3 +1,6 @@
+import { getUser } from "@/wab/server/routes/util";
+import { receipt as recordAiReceipt, lockRun as lockAiRun, emitTask as emitAiTask } from "@/wab/server/copilot/ai-store";
+import { aiReceiptSchema } from "@/wab/shared/copilot/ai-chat";
 import { addOrUpsertTokens } from "@/wab/commons/StyleToken";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
@@ -1302,6 +1305,17 @@ export async function saveProjectRev(req: Request, res: Response) {
       req.params.projectBranchId,
     );
 
+    const aiReceipt = req.body.aiReceipt;
+    if (aiReceipt) {
+      const parsed = aiReceiptSchema.safeParse({ sessionId: aiReceipt.sessionId, fence: aiReceipt.fence, result: aiReceipt.result });
+      if (!parsed.success || typeof aiReceipt.operationId !== "string") { throw new BadRequestError("Invalid AI save receipt."); }
+      await recordAiReceipt(projectId, getUser(req).id, aiReceipt.operationId, parsed.data, ensure(req.txMgr,"Save transaction is required"));
+      const [previous] = await ensure(req.txMgr,"Save transaction is required").query(`SELECT "savedRevisionId" FROM ai_tool_call WHERE id=$1`,[aiReceipt.operationId]);
+      if (previous?.savedRevisionId) {
+        const rev = ensure(await mgr.tryGetProjectRevById(projectId,previous.savedRevisionId),"Saved AI revision is missing");
+        return commitTransaction({ project: await mgr.getProjectById(projectId), rev });
+      }
+    }
     const project = await mgr.getProjectById(projectId);
 
     if (project.isMainBranchProtected && !branchId) {
@@ -1401,6 +1415,13 @@ export async function saveProjectRev(req: Request, res: Response) {
       branchId,
     });
 
+    if (aiReceipt) {
+      await ensure(req.txMgr,"Save transaction is required").query(`UPDATE ai_tool_call SET "savedRevisionId"=$2 WHERE id=$1`,[aiReceipt.operationId,rev.id]);
+      const [{ runId }] = await ensure(req.txMgr,"Save transaction is required").query(`SELECT "runId" FROM ai_tool_call WHERE id=$1`,[aiReceipt.operationId]);
+      const run = await lockAiRun(runId,ensure(req.txMgr,"Save transaction is required"));
+      run.task.savedRevision = rev.revision;
+      await emitAiTask(ensure(req.txMgr,"Save transaction is required"),run.task);
+    }
     if (req.body.incremental) {
       const partial = await (async () => {
         const bundle = getBundle({ data }, await getLastBundleVersion());

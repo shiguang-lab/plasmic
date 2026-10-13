@@ -29,6 +29,7 @@ export type ClientToServerEvents = {
  * All events from clients are forwarded (this may not be true in the future).
  */
 export type ServerToClientEvents = {
+  aiChat: MessageHandler<import("@/wab/shared/copilot/ai-chat").AiEvent>;
   connect: MessageHandler<{}>;
   disconnect: MessageHandler<{}>;
   initServerInfo: MessageHandler<InitServerInfo>;

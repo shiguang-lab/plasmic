@@ -1,4 +1,4 @@
-name: Publish Plasmic CLI and package resources
+name: Publish Plasmic resources and changed CLI
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
           npm install -g npm@latest
           npm --prefix packages/plasmic-cli test
           node --test desktop/tests/plasmic-resources.test.cjs
-      - name: Publish versioned CLI to npm
+      - name: Build resources and publish CLI only when package contents change
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}

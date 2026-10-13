@@ -44,6 +44,16 @@ vi.mock(
   }),
 );
 
+// The header shell is outside these action tests; keep the real action buttons.
+vi.mock("@/wab/client/components/BrandLink", () => ({ BrandLink: () => null }));
+vi.mock("@/wab/client/components/studio/Avatar", () => ({
+  AnonymousAvatar: () => null,
+  AvatarGallery: () => null,
+}));
+vi.mock("@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar", () => ({
+  default: () => null,
+}));
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(

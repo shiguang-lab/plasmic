@@ -24,6 +24,8 @@ x-server: &server
     AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
     AWS_REGION: us-east-1
     S3_ENDPOINT: http://storage:8333
+    AI_CHAT_BUCKET: plasmic-ai-chat
+    TEMPORAL_ADDRESS: temporal:7233
     AWS_ENDPOINT_URL: http://storage:8333
     AWS_ENDPOINT_URL_S3: http://storage:8333
     SITE_ASSETS_BUCKET: plasmic-site-assets
@@ -94,6 +96,13 @@ services:
     command: [src/wab/server/nas-init.ts]
     environment:
       <<: *env
+  ai-bootstrap:
+    <<: *server
+    profiles: [init]
+    command: [src/wab/server/nas-ai-init.ts]
+    environment:
+      <<: *env
+      TEMPORAL_POSTGRES_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD:?set TEMPORAL_POSTGRES_PASSWORD}
   server:
     <<: *server
     restart: unless-stopped
@@ -109,6 +118,37 @@ services:
       timeout: 5s
       start_period: 90s
       retries: 20
+  temporal:
+    image: temporalio/auto-setup:1.29.1
+    restart: unless-stopped
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_SEEDS: db
+      POSTGRES_USER: temporal_ai
+      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD:?set TEMPORAL_POSTGRES_PASSWORD}
+      DBNAME: temporal_ai
+      VISIBILITY_DBNAME: temporal_ai_visibility
+      SKIP_DB_CREATE: "true"
+      ENABLE_ES: "false"
+    healthcheck:
+      test: [CMD, temporal, operator, cluster, health, --address, "temporal:7233"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
+    depends_on:
+      db: { condition: service_healthy }
+  ai-worker:
+    <<: *server
+    restart: unless-stopped
+    command: [src/wab/server/copilot/ai-worker.ts]
+    environment:
+      <<: *env
+      SOCKET_HOST: http://server:3004
+    depends_on:
+      server: { condition: service_healthy }
+      temporal: { condition: service_healthy }
   preview:
     image: ghcr.io/shiguang-lab/plasmic-preview:${IMAGE_TAG:?set IMAGE_TAG}
     init: true

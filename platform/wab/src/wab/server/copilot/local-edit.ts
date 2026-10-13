@@ -204,6 +204,7 @@ export function localEditMessages(request: LocalEditRequest): ModelMessage[] {
 export async function generateLocalEditStep(
   request: LocalEditRequest,
   signal: AbortSignal,
+  onText?: (text: string) => Promise<void>,
 ): Promise<LocalEditResponse> {
   const config = getLocalAiConfig();
   if (!config) {
@@ -249,11 +250,13 @@ export async function generateLocalEditStep(
       streamError = error;
     },
   });
-  await result.consumeStream({
-    onError: (error) => {
-      streamError = error;
-    },
-  });
+  for await (const chunk of result.fullStream) {
+    if (chunk.type === "text-delta") {
+      await onText?.(chunk.text);
+    } else if (chunk.type === "error") {
+      streamError = chunk.error;
+    }
+  }
   abortSignal.throwIfAborted();
   if (streamError) {
     throw streamError;

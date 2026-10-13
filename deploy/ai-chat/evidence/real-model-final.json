@@ -1,0 +1,26 @@
+{
+  "projectId": "qJ7LYLwULwvL8uosN9Mu5G",
+  "runId": "951cc8a6-7401-411d-93d3-d8d0e19b9c98",
+  "model": "gemini-3.8-flash",
+  "status": "completed",
+  "savedRevision": 7,
+  "nativeOperationCount": 25,
+  "allNativeOperationsExecutedOnce": true,
+  "savedMutationAckDropped": true,
+  "previewInitial": "Counter: 0",
+  "previewAfterClick": "Counter: 1",
+  "files": [
+    {
+      "id": "03fa687d-30e2-4f65-9104-7fec7bb7eb17",
+      "name": "local-acceptance.md",
+      "size": 92,
+      "sha256": "c37bb17ad41d534af69ecdbf61f13422432b6c9a7ee6094dfc1d052995faa870"
+    },
+    {
+      "id": "f4f1d11f-c742-46e8-811b-8c27ed140770",
+      "name": "local-acceptance.png",
+      "size": 150,
+      "sha256": "ded5bba2d1df2dc7e4aa04c9b15d5239995900b2249ef1919785bcc1627754c5"
+    }
+  ]
+}

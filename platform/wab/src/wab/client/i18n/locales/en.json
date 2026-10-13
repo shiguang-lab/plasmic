@@ -3683,5 +3683,12 @@
   "Describe what you need. AI can edit the current selection or page, or create a new page.": "Describe what you need. AI can edit the current selection or page, or create a new page.",
   "Describe changes or a new page…": "Describe changes or a new page…",
   "AI model": "AI model",
-  "The AI service returned an invalid status. Update the server and reload the assistant.": "The AI service returned an invalid status. Update the server and reload the assistant."
+  "The AI service returned an invalid status. Update the server and reload the assistant.": "The AI service returned an invalid status. Update the server and reload the assistant.",
+  "Load earlier messages": "Load earlier messages",
+  "Verify saved design": "Verify saved design",
+  "Retry in current editor": "Retry in current editor",
+  "Changes undone in the current editor.": "Changes undone in the current editor.",
+  "Saved revision {revision} verified. Start a new request from the current editor.": "Saved revision {revision} verified. Start a new request from the current editor.",
+  "Hide {name} content": "Hide {name} content",
+  "Show {name} content": "Show {name} content"
 }

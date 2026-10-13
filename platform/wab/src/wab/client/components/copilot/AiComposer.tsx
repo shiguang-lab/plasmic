@@ -7,7 +7,7 @@ import { AiModelSelect } from "@/wab/client/components/copilot/AiModelSelect";
 import { useI18n } from "@/wab/client/i18n";
 import { StopOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Input, Tooltip } from "antd";
+import { Button, Tooltip } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -39,7 +39,7 @@ const useStyles = createStyles(({ token }) => ({
     boxSizing: "border-box",
     padding: "8px 10px",
     display: "grid",
-    gridTemplateColumns: "auto auto minmax(0, 1fr) auto",
+    gridTemplateColumns: "auto minmax(0, 1fr) auto",
     alignItems: "center",
     gap: 8,
     background: token.colorBgContainer,
@@ -56,33 +56,21 @@ const useStyles = createStyles(({ token }) => ({
       strokeLinecap: "round",
       strokeLinejoin: "round",
     },
-    "&:has(textarea:focus)": {
+    "&:has([contenteditable]:focus)": {
       borderColor: token.colorPrimary,
-      boxShadow: "none",
-    },
-    "& .ant-input": {
-      minWidth: 0,
-      padding: "8px 0",
-      lineHeight: "20px",
-      resize: "none",
-      overflow: "hidden",
-      fontSize: 13,
-      background: "transparent",
-    },
-    "& .ant-input:focus, & .ant-input:focus-visible": {
-      outline: "none",
       boxShadow: "none",
     },
     "&[data-expanded=true]": {
       borderRadius: 20,
-      gridTemplateColumns: "auto minmax(60px, 1fr) minmax(0, auto)",
+      gridTemplateColumns: "auto minmax(0, 1fr)",
       "& [data-composer-part=input]": { gridColumn: "1 / -1", gridRow: 1 },
       "& [data-composer-part=attachments]": { gridColumn: 1, gridRow: 2 },
-      "& [data-composer-part=scope]": { gridColumn: 2, gridRow: 2 },
-      "& [data-composer-part=actions]": { gridColumn: 3, gridRow: 2 },
+      "& [data-composer-part=actions]": { gridColumn: 2, gridRow: 2 },
     },
   },
   scope: {
+    float: "left",
+    marginRight: 8,
     display: "inline-flex",
     alignItems: "center",
     gap: 5,
@@ -91,6 +79,7 @@ const useStyles = createStyles(({ token }) => ({
     background: token.colorPrimaryBg,
     color: token.colorPrimaryText,
     fontSize: 12,
+    lineHeight: "20px",
     maxWidth: "min(120px, 100%)",
     boxSizing: "border-box",
     justifySelf: "start",
@@ -103,7 +92,33 @@ const useStyles = createStyles(({ token }) => ({
     },
     "& svg": { flexShrink: 0, width: 14, height: 14 },
   },
-  input: { minWidth: 0, maxHeight: 160, gridColumn: 3, gridRow: 1 },
+  input: { minWidth: 0, maxHeight: 160, gridColumn: 2, gridRow: 1 },
+  content: {
+    display: "flow-root",
+    padding: "4px 0",
+    fontSize: 13,
+    lineHeight: "28px",
+  },
+  editor: {
+    minHeight: 28,
+    whiteSpace: "pre-wrap",
+    overflowWrap: "anywhere",
+    outline: "none",
+    "&[data-empty=true]": {
+      position: "relative",
+      overflow: "hidden",
+      "&::before": {
+        content: "attr(data-placeholder)",
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        color: token.colorTextPlaceholder,
+        pointerEvents: "none",
+      },
+    },
+  },
   attachmentList: { gridColumn: "1 / -1", minWidth: 0 },
   measurement: {
     position: "absolute",
@@ -193,7 +208,14 @@ export function AiComposer({
   };
   const [expanded, setExpanded] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const editorRef = React.useRef<HTMLDivElement>(null);
   const measurementRef = React.useRef<HTMLSpanElement>(null);
+  React.useLayoutEffect(() => {
+    const editor = editorRef.current;
+    if (editor && editor.innerText !== value) {
+      editor.innerText = value;
+    }
+  }, [value]);
   React.useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) {
@@ -248,39 +270,61 @@ export function AiComposer({
       <span className={styles.action} data-composer-part="attachments">
         <AiAttachmentPicker state={attachmentState} disabled={locked} />
       </span>
-      <Tooltip title={scope}>
-        <div className={styles.scope} data-composer-part="scope">
-          {icon("M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z")}
-          <span>{scope}</span>
-        </div>
-      </Tooltip>
       <Scrollbar
         className={styles.input}
         scrollX={false}
         defer={false}
         data-composer-part="input"
       >
-        <Input.TextArea
-          autoSize={{ minRows: 1 }}
-          variant="borderless"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              !event.shiftKey &&
-              !event.nativeEvent.isComposing
-            ) {
-              event.preventDefault();
-              submit();
+        <div className={styles.content}>
+          <Tooltip title={scope}>
+            <span
+              className={styles.scope}
+              data-composer-part="scope"
+              contentEditable={false}
+            >
+              {icon("M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z")}
+              <span>{scope}</span>
+            </span>
+          </Tooltip>
+          <div
+            ref={editorRef}
+            className={styles.editor}
+            role="textbox"
+            aria-multiline="true"
+            contentEditable={locked ? false : "plaintext-only"}
+            aria-disabled={locked}
+            tabIndex={locked ? -1 : 0}
+            data-empty={!value}
+            data-placeholder={
+              placeholder ?? t("Describe changes or a new page…")
             }
-          }}
-          aria-label={t("Describe changes or a new page…")}
-          placeholder={placeholder ?? t("Describe changes or a new page…")}
-          disabled={disabled || running}
-          data-test-id={inputTestId}
-          aria-describedby={availabilityId}
-        />
+            onInput={(event) => {
+              if (!locked) {
+                const editor = event.currentTarget;
+                // Browsers leave a lone <br> after deleting all editable text.
+                onChange(
+                  editor.innerText === "\n" && !editor.textContent
+                    ? ""
+                    : editor.innerText,
+                );
+              }
+            }}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault();
+                submit();
+              }
+            }}
+            aria-label={t("Describe changes or a new page…")}
+            data-test-id={inputTestId}
+            aria-describedby={availabilityId}
+          />
+        </div>
       </Scrollbar>
       <div className={styles.actions} data-composer-part="actions">
         {model && (

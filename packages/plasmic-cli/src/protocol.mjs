@@ -39,10 +39,12 @@ export function resourcePath(name) {
 }
 export function validateManifest(manifest) {
   if (!manifest || manifest.schemaVersion !== 1 || !/^\d+\.\d+\.\d+$/.test(manifest.version) ||
+      !/^\d+\.\d+\.\d+$/.test(manifest.cliVersion) ||
       !/^\d+\.\d+\.\d+$/.test(manifest.minCliVersion) || manifest.releaseId !== releaseId(manifest)) {
     throw new Error("Invalid resource manifest or release checksum");
   }
-  if (compareVersions(manifest.minCliVersion, manifest.version) > 0) throw new Error("Required CLI version exceeds release version");
+  if (compareVersions(manifest.minCliVersion, manifest.cliVersion) > 0) throw new Error("Required CLI version exceeds published CLI version");
+  compareVersions(manifest.version, manifest.version);
   const files = new Map();
   if (!Array.isArray(manifest.files) || !manifest.files.length) throw new Error("Empty resource manifest");
   for (const file of manifest.files) {

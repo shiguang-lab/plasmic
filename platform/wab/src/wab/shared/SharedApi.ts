@@ -495,6 +495,7 @@ export abstract class SharedApi {
   saveProjectRevChanges(
     projectId: string,
     rev: {
+      aiReceipt?: { operationId: string; sessionId: string; fence: number; result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult };
       revisionNum: number;
       data: string;
       modelVersion: number;

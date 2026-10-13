@@ -18,7 +18,7 @@ function fixture(text = "first release") {
   files.push(...[...new Set(Object.values(MODE_REFERENCES).flat())].map((path) => ({ path, content: text + path })));
   const bytes = gzipSync(JSON.stringify({ schemaVersion: 1, files }));
   const manifest = {
-    schemaVersion: 1, version: CLI_VERSION, minCliVersion: CLI_VERSION,
+    schemaVersion: 1, version: CLI_VERSION, cliVersion: CLI_VERSION, minCliVersion: CLI_VERSION,
     entrypoints: { guide: files[0].path, prototype: files[1].path, codegen: files[2].path, inspect: files[4].path },
     files: files.map((file) => ({ path: file.path, sha256: sha256(file.content), size: Buffer.byteLength(file.content) })),
     artifacts: { resources: { file: "resources.json.gz", size: bytes.length, sha256: sha256(bytes) }, cli: { file: "plasmic-cli.tgz", size: 1, sha256: sha256("x") } },
@@ -99,7 +99,7 @@ test("changed and missing cached files and corrupt local manifests are repaired 
 test("newer required CLI returns the immutable install URL and does not select resources", async (t) => {
   const options = await setup(t);
   options.state.manifest.minCliVersion = "99.0.0";
-  options.state.manifest.version = "99.0.0";
+  options.state.manifest.cliVersion = "99.0.0";
   options.state.manifest.releaseId = releaseId(options.state.manifest);
   const status = await checkCliVersion(options);
   assert.equal(status.cliVersion, CLI_VERSION);
@@ -113,7 +113,7 @@ test("newer required CLI returns the immutable install URL and does not select r
 test("compatible newer CLI is reported while resources can still update", async (t) => {
   const options = await setup(t);
   const newerVersion = CLI_VERSION.replace(/\d+$/, (patch) => String(Number(patch) + 1));
-  options.state.manifest.version = newerVersion;
+  options.state.manifest.cliVersion = newerVersion;
   options.state.manifest.releaseId = releaseId(options.state.manifest);
   const status = await checkCliVersion(options);
   assert.equal(status.cliUpdateAvailable, true);
@@ -121,6 +121,35 @@ test("compatible newer CLI is reported while resources can still update", async 
   const context = await resolveContext("prototype", options);
   assert.equal(context.latestCliVersion, newerVersion);
   assert.equal(context.cliVersion, CLI_VERSION);
+});
+test("new resource versions update references without reporting a CLI upgrade", async (t) => {
+  const options = await setup(t);
+  const first = await resolveContext("prototype", options);
+  Object.assign(options.state, fixture("changed reference"));
+  options.state.manifest.version = "10.0.0";
+  options.state.manifest.releaseId = releaseId(options.state.manifest);
+  const status = await checkReferences(options);
+  assert.equal(status.version, "10.0.0");
+  assert.equal(status.latestCliVersion, CLI_VERSION);
+  assert.equal(status.cliUpdateAvailable, false);
+  assert.equal(status.updateAvailable, true);
+  const context = await resolveContext("prototype", options);
+  assert.equal(context.updated, true);
+  assert.notEqual(context.releaseId, first.releaseId);
+  assert.match(await readFile(context.mustRead[2], "utf8"), /changed reference/);
+  assert.equal(context.cliUpdateAvailable, false);
+});
+test("manifest validates the CLI minimum against cliVersion independently of the resource version", () => {
+  const manifest = fixture().manifest;
+  manifest.version = "0.0.1";
+  manifest.releaseId = releaseId(manifest);
+  assert.equal(validateManifest(manifest), manifest);
+  manifest.cliVersion = "0.0.1";
+  manifest.releaseId = releaseId(manifest);
+  assert.throws(() => validateManifest(manifest), /Required CLI version exceeds published CLI version/);
+  delete manifest.cliVersion;
+  manifest.releaseId = releaseId(manifest);
+  assert.throws(() => validateManifest(manifest), /Invalid resource manifest/);
 });
 test("path traversal, duplicates, manifest tampering and missing entrypoints are rejected", () => {
   for (const mutate of [
@@ -164,7 +193,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
   await run(npm, ["install", "--global", "--prefix", prefix, "--ignore-scripts", "--no-audit", "--no-fund", path.join(built.directory, "plasmic-cli.tgz")]);
   const binary = path.join(prefix, process.platform === "win32" ? "plasmickit.cmd" : "bin/plasmickit");
-  assert.equal((await run(binary, ["--version"])).stdout.trim(), "0.0.60");
+  assert.equal((await run(binary, ["--version"])).stdout.trim(), CLI_VERSION);
   const agentHome = path.join(temporary, "agent-home");
   await mkdir(path.join(agentHome, ".codex"), { recursive: true });
   const installEnv = { ...process.env, HOME: agentHome, USERPROFILE: agentHome, CODEX_HOME: path.join(agentHome, ".codex"), CLAUDE_CONFIG_DIR: path.join(agentHome, ".claude"), XDG_CONFIG_HOME: path.join(agentHome, ".config"), XDG_DATA_HOME: path.join(agentHome, ".local/share"), APPDATA: path.join(agentHome, "AppData/Roaming"), ProgramData: path.join(agentHome, "ProgramData") };
@@ -186,8 +215,8 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   t.after(() => { server.closeAllConnections(); return new Promise((resolve) => server.close(resolve)); });
   const args = ["--feed", `http://127.0.0.1:${server.address().port}`, "--home", path.join(temporary, "cache")];
   const versions = JSON.parse((await run(binary, ["version", "check", ...args])).stdout);
-  assert.equal(versions.cliVersion, "0.0.60");
-  assert.equal(versions.latestCliVersion, "0.0.60");
+  assert.equal(versions.cliVersion, CLI_VERSION);
+  assert.equal(versions.latestCliVersion, CLI_VERSION);
   assert.equal(versions.cliUpdateAvailable, false);
   for (const mode of ["inspect", "prototype", "codegen"]) {
     const context = JSON.parse((await run(binary, ["context", "resolve", "--mode", mode, ...args])).stdout);

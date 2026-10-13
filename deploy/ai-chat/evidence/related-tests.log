@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 /Users/yanxianliang/shiguang/plasmic/platform/wab
+
+
+ Test Files  16 passed (16)
+      Tests  204 passed (204)
+   Start at  09:10:05
+   Duration  81.57s (transform 11.98s, setup 14.95s, import 40.68s, tests 21.39s, environment 2.63s)
+

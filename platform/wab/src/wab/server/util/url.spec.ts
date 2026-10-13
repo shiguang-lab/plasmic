@@ -2,7 +2,7 @@
 import {
   setupSsrfTestServers,
   SsrfTestServers,
-  startInternalTestServer,
+  startTestServer,
   TestServer,
 } from "@/wab/server/__testonly__/test-server";
 import { fetchUntrusted, UnsafeUrlError } from "@/wab/server/util/url";
@@ -47,117 +47,42 @@ describe("fetchUntrusted", () => {
   });
 });
 
-// These tests are skipped if these services go down or respond too slowly.
-describe("fetchUntrusted - e2e test with external redirect service", () => {
-  const REDIRECT_SERVICES = [
-    "https://httpbin.org",
-    "https://nghttp2.org/httpbin",
-  ];
-
-  function redirectTo(redirectService: string, targetUrl: string) {
-    return `${redirectService}/redirect-to?url=${encodeURIComponent(
-      targetUrl,
-    )}&status_code=302`;
-  }
-
-  // Do our best to ignore transient failures and fail on real ones.
-  const TRANSIENT_NETWORK_CODES = new Set([
-    "ECONNABORTED", // axios timeout
-    "ETIMEDOUT",
-    "ECONNRESET",
-    "ECONNREFUSED",
-    "ENOTFOUND",
-    "EAI_AGAIN",
-    "EHOSTUNREACH",
-    "ENETUNREACH",
-    "EPIPE",
-    "ERR_NETWORK",
-    "ERR_CANCELED",
-  ]);
-
-  function isTransientNetworkError(error: unknown): boolean {
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      typeof (error as { code?: unknown }).code === "string" &&
-      TRANSIENT_NETWORK_CODES.has((error as { code: string }).code)
-    );
-  }
-
-  let internalServer: TestServer | undefined;
-
+describe("fetchUntrusted - two-hop redirect boundary", () => {
+  let ssrf: SsrfTestServers;
+  let firstHop: TestServer;
   beforeEach(async () => {
-    internalServer = await startInternalTestServer((_req, res) => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("INTERNAL ONLY");
+    ssrf = await setupSsrfTestServers();
+    firstHop = await startTestServer("127.0.0.1", (_req, res) => {
+      res.writeHead(302, { Location: ssrf.externalBadServer.url });
+      res.end();
     });
   });
-
   afterEach(async () => {
-    await internalServer?.dispose();
+    await firstHop.dispose();
+    await ssrf.dispose();
   });
 
   it("follows redirect with fetch but fails with fetchUntrusted", async () => {
-    for (const redirectService of REDIRECT_SERVICES) {
-      // Craft URL with 2 redirect hops (external -> external -> internal)
-      const url = redirectTo(
-        redirectService,
-        redirectTo(redirectService, internalServer!.url),
-      );
-
-      try {
-        const response = await fetch(url, {
-          signal: AbortSignal.timeout(5000),
-        });
-        // If the initial fetch succeeds, verify we hit our internal server.
-        expect(await response.text()).toBe("INTERNAL ONLY");
-      } catch (e) {
-        // If the initial fetch fails, we try the next redirect service.
-        console.warn(`Skipping ${redirectService}`, e);
-        continue;
-      }
-      const requestsAfterFetch = internalServer!.requestCount();
-      expect(requestsAfterFetch).toBeGreaterThan(0);
-
-      // fetchUntrusted should reject the second redirect. The timeout bounds each redirect
-      // hop to avoid hanging if the service degrades between the above fetch and this.
-      let redirectCount = 0;
-      let unsafeError: UnsafeUrlError | undefined;
-      let skipReason: unknown;
-      try {
-        const res = await fetchUntrusted({
-          method: "GET",
-          url,
-          timeout: 5000,
-          beforeRedirect: () => {
-            ++redirectCount;
-          },
-        });
-        skipReason = `resolved with status ${res.status} instead of redirecting`;
-      } catch (e) {
-        if (e instanceof UnsafeUrlError) {
-          unsafeError = e;
-        } else if (isTransientNetworkError(e)) {
-          skipReason = e;
-        } else {
-          throw e;
-        }
-      }
-
-      // No matter how the redirect service behaves, fetchUntrusted shouldn't
-      // reach the internal server.
-      expect(internalServer!.requestCount()).toBe(requestsAfterFetch);
-
-      if (unsafeError) {
-        expect(redirectCount).toBe(2);
-        return;
-      }
-
-      // The service answered the fetch but degraded before fetchUntrusted.
-      console.warn(`Skipping ${redirectService}`, skipReason);
-    }
-
-    console.warn("url.spec.ts - ALL REDIRECT SERVICES SKIPPED");
-  }, 30000);
+    const response = await fetch(firstHop.url, {
+      signal: AbortSignal.timeout(5000),
+    });
+    expect(await response.text()).toBe("INTERNAL ONLY");
+    const requestsAfterFetch = ssrf.internalServer.requestCount();
+    expect(requestsAfterFetch).toBeGreaterThan(0);
+    let redirectCount = 0;
+    await expect(
+      fetchUntrusted({
+        method: "GET",
+        url: firstHop.url,
+        timeout: 5000,
+        beforeRedirect: () => {
+          ++redirectCount;
+        },
+      }),
+    ).rejects.toThrow(UnsafeUrlError);
+    expect(ssrf.internalServer.requestCount()).toBe(requestsAfterFetch);
+    expect(redirectCount).toBe(2);
+    expect(firstHop.requestCount()).toBe(2);
+    expect(ssrf.externalBadServer.requestCount()).toBe(2);
+  });
 });

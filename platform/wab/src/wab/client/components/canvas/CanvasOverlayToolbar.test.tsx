@@ -1,4 +1,5 @@
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
+import { setLanguagePreference } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
@@ -7,10 +8,22 @@ import { mkParam } from "@/wab/shared/core/lang";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { observable } from "mobx";
 import * as React from "react";
 import { vi } from "vitest";
+
+beforeEach(() => act(() => setLanguagePreference("zh-CN")));
+afterEach(() => {
+  cleanup();
+  act(() => setLanguagePreference("en"));
+});
 
 test("one icon toggles effective auto-open state per instance without writing component props", () => {
   const base = mkBaseVariant();

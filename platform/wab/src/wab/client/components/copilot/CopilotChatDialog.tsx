@@ -1,7 +1,7 @@
 import {
-  AiAttachmentList,
   useAiAttachments,
 } from "@/wab/client/components/copilot/AiAttachments";
+import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
@@ -11,7 +11,7 @@ import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { useI18n } from "@/wab/client/i18n";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Tag } from "antd";
+import { Alert, Button, Image, Tag } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -24,6 +24,7 @@ export interface CopilotChatDialogProps {
   chatOpenOpts?: CopilotChatOpenOpts;
   onClose: () => void;
   hiddenByModal: boolean;
+  readOnly?: boolean;
 }
 
 const useStyles = createStyles(({ token }) => ({
@@ -77,8 +78,9 @@ export function CopilotChatDialog({
   chatOpenOpts,
   onClose,
   hiddenByModal,
+  readOnly = false,
 }: CopilotChatDialogProps) {
-  const { t, label } = useI18n();
+  const { t, label, locale } = useI18n();
   const { styles } = useStyles();
   const appCtx = useAppCtx();
   const enabled = appCtx.appConfig.enableLocalAiEditing;
@@ -100,7 +102,6 @@ export function CopilotChatDialog({
   );
   const { data: status, error } = useLocalAiStatus(project.id, enabled);
   const consumed = React.useRef<CopilotChatOpenOpts>();
-  React.useEffect(() => () => session.stop(), [session]);
   React.useEffect(() => {
     if (status) {
       const selected = session.selectedModel;
@@ -117,7 +118,7 @@ export function CopilotChatDialog({
         prompt: chatOpenOpts.prompt,
         attachments: chatOpenOpts.attachments ?? [],
       };
-      if (status?.configured && !session.running) {
+      if (!readOnly && status?.configured && !session.running) {
         consumed.current = chatOpenOpts;
         void session.run(
           chatOpenOpts.prompt,
@@ -129,7 +130,6 @@ export function CopilotChatDialog({
           chatOpenOpts.attachments,
           model ?? status.model ?? undefined,
         );
-        session.draft = { prompt: "", attachments: [] };
       }
     }
   }, [chatOpenOpts, status, session, model, session.running]);
@@ -143,7 +143,7 @@ export function CopilotChatDialog({
     status?.pageGenerationEnabled;
   const send = () => {
     if (
-      enabled &&
+      enabled && !readOnly &&
       draft.trim() &&
       !session.running &&
       status?.configured &&
@@ -157,7 +157,6 @@ export function CopilotChatDialog({
         attachmentState.attachments,
         model,
       );
-      session.draft = { prompt: "", attachments: [] };
     }
   };
   return (
@@ -170,12 +169,7 @@ export function CopilotChatDialog({
     >
       <div className={styles.header}>
         <strong>{t("AI assistant")}</strong>
-        <PanelCloseButton
-          onClick={() => {
-            session.stop();
-            onClose();
-          }}
-        />
+        <PanelCloseButton onClick={onClose} />
       </div>
       <Scrollbar scrollX={false} className={styles.history}>
         <div className={styles.historyContent} aria-live="polite">
@@ -191,6 +185,8 @@ export function CopilotChatDialog({
             />
           )}
           {error && <Alert type="error" message={label(error.message)} />}
+          {session.error && <Alert type="error" message={label(session.error)} />}
+          {session.before && <Button onClick={() => void session.loadEarlier()}>{t("Load earlier messages")}</Button>}
           {!tasks.length && (
             <p>
               {t(
@@ -211,7 +207,12 @@ export function CopilotChatDialog({
               <p>
                 <strong>{task.prompt}</strong>
               </p>
-              <AiAttachmentList attachments={task.attachments ?? []} />
+              <small>{task.authorName ?? task.authorId} · {task.model} · {new Date(task.createdAt).toLocaleString(locale)}</small>
+              {task.files?.map((file) => {
+                const url = `/api/v1/projects/${encodeURIComponent(project.id)}/ai/chat/attachments/${file.id}`;
+                return <div key={file.id}>{file.mediaType.startsWith("image/") && <Image src={`${url}?preview=1`} preview={{ src: url }} width={100} alt={file.name} />}<a href={url} download={file.name}>{file.name}</a></div>;
+              })}
+              {task.nodes?.map((node) => <Tag key={node.uuid} onClick={() => void session.locate(task,node.uuid)} style={{ cursor: "pointer" }}>{node.name}</Tag>)}
               <Tag
                 color={
                   task.status === "failed"
@@ -233,9 +234,14 @@ export function CopilotChatDialog({
                 </p>
               )}
               {task.messages.map((message, index) => (
-                <p key={index}>{message}</p>
+                <AiMarkdown key={index}>{message}</AiMarkdown>
               ))}
+              {task.parts?.flatMap((part,index) => part.type === "result" && part.text !== task.phase && part.text !== task.error
+                ? [<p key={`result-${index}`}>{part.status === "verified" ? t("Saved revision {revision} verified. Start a new request from the current editor.",{revision:part.revision ?? ""}) : label(part.text)}</p>]
+                : [])}
               {task.error && <Alert type="error" message={task.error} />}
+              {task.needsReconciliation && session.canStop(task) && <Button onClick={() => void session.reconcile(task)}>{t("Verify saved design")}</Button>}
+              {(task.status === "failed" || task.status === "stopped") && !task.needsReconciliation && session.canStop(task) && <Button disabled={session.running} onClick={() => void session.retry(task)}>{t("Retry in current editor")}</Button>}
               {!!task.operations.length && (
                 <details
                   className={styles.details}
@@ -287,7 +293,7 @@ export function CopilotChatDialog({
                   </details>
                   {record === lastRecord &&
                     !record.undone &&
-                    !session.running && (
+                    !session.running && session.canUndo(record) && (
                       <Button
                         size="small"
                         onClick={() => void session.undo(task, record)}
@@ -340,12 +346,12 @@ export function CopilotChatDialog({
           onModelChange={(value) => {
             session.selectedModel = value;
           }}
-          disabled={!enabled}
+          disabled={!enabled || readOnly}
           canSubmit={!!status?.configured}
           running={session.running}
           onStop={() => session.stop()}
           stopDisabled={
-            lastTask?.status !== "running" || lastTask.phase === "Stopping"
+            lastTask?.status !== "running" || !session.canStop(lastTask) || lastTask.phase === "Stopping"
           }
           placeholder={t(
             pageEnabled

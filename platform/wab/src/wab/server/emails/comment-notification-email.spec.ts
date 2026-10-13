@@ -163,7 +163,7 @@ describe("sendUserNotificationEmail", () => {
           from: config.mailFrom,
           to: users[0].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangtwo Z.",
+          subject: "New activity in My Project from Yangtwo Zhang",
           html: expect.any(String), // Already tested above
         });
       },
@@ -256,7 +256,7 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[0].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangtwo Z.",
+          subject: "New activity in My Project from Yangtwo Zhang",
           html: expect.any(String), // Already tested above
         });
       },
@@ -347,7 +347,7 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[0].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangtwo Z.",
+          subject: "New activity in My Project from Yangtwo Zhang",
           html: expect.any(String), // Already tested above
         });
       },
@@ -430,7 +430,7 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[0].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangtwo Z.",
+          subject: "New activity in My Project from Yangtwo Zhang",
           html: expect.any(String), // Already tested above
         });
       },
@@ -518,7 +518,7 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[0].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangtwo Z.",
+          subject: "New activity in My Project from Yangtwo Zhang",
           html: expect.any(String), // Already tested above
         });
       },
@@ -872,7 +872,7 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[0].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangthree Z. and others",
+          subject: "New activity in My Project from Yangthree Zhang and others",
           html: expect.any(String), // Already tested above
         });
       },
@@ -1014,14 +1014,14 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[1].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangone Z.",
+          subject: "New activity in My Project from Yangone Zhang",
           html: expect.any(String), // Already tested above
         });
         expect(call2).toEqual({
           from: config.mailFrom,
           to: users[1].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project 2 from Yangone Z.",
+          subject: "New activity in My Project 2 from Yangone Zhang",
           html: expect.any(String), // Already tested above
         });
       },
@@ -1177,14 +1177,14 @@ View in Plasmic${FOOTER_TEXT}`,
           from: config.mailFrom,
           to: users[1].email,
           bcc: req.config.mailBcc,
-          subject: "New activity in My Project from Yangone Z.",
+          subject: "New activity in My Project from Yangone Zhang",
           html: expect.any(String), // Already tested above
         });
         expect(call2).toEqual({
           from: config.mailFrom,
           to: users[1].email,
           bcc: req.config.mailBcc,
-          subject: `New activity in My Project (feat/branch) from Yangone Z.`,
+          subject: `New activity in My Project (feat/branch) from Yangone Zhang`,
           html: expect.any(String), // Already tested above
         });
       },

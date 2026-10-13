@@ -67,9 +67,9 @@ export function addSocketRoutes(app: express.Application, config: Config) {
     res.json({});
   });
 
-  app.post("/api/v1/projects/broadcast", (req, res) => {
+  app.post("/api/v1/projects/broadcast", express.json({ limit: "4mb" }), async (req, res) => {
     const payload = req.body as BroadcastPayload;
-    projectsIo.broadcast(payload);
+    await projectsIo.broadcast(payload);
     res.json({});
   });
 

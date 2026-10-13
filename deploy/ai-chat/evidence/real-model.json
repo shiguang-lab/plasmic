@@ -1,0 +1,48 @@
+{
+  "projectId": "9ebuBz8SEDHpNbYDaSjWoT",
+  "runId": "b5163cc3-e92e-42e8-839d-ab0f04ac6d64",
+  "model": "gemini-3.8-flash",
+  "status": "completed",
+  "savedMutationAckDropped": true,
+  "nativeOperationCounts": {
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:0": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:1": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:2": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:3": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:4": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:5": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:6": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:7": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:8": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:9": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:10": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:11": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:12": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:13": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:14": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:15": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:16": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:17": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:18": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:19": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:20": 1,
+    "b5163cc3-e92e-42e8-839d-ab0f04ac6d64:21": 1
+  },
+  "previewInitial": "Durable AI Acceptance 20261013\nCounter: 0\nIncrease Counter",
+  "previewIncrement": true,
+  "undoPersisted": true,
+  "savedRevision": 9,
+  "historicalUndoButtons": 0,
+  "files": [
+    {
+      "name": "local-acceptance.md",
+      "status": 200,
+      "size": 92
+    },
+    {
+      "name": "local-acceptance.png",
+      "status": 200,
+      "size": 150
+    }
+  ]
+}

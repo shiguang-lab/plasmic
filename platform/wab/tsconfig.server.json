@@ -1,6 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs"
+    "module": "commonjs",
+    // Server SDKs resolve their published dependencies and React peers together.
+    // The Studio-only local host declaration paths must not redirect SSR imports.
+    "paths": {
+      "@/*": ["./src/*"],
+      "src/*": ["./src/*"]
+    }
   }
 }

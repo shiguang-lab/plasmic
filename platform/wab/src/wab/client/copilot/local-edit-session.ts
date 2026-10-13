@@ -1,572 +1,336 @@
 import type { PlasmicAiTools } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { ensure } from "@/wab/shared/common";
-import {
-  LocalAiAttachment,
-  LocalAiDraft,
-  LocalAiIntentRequest,
-  LocalEditBinding,
-  LocalEditRequest,
-  LocalEditResponse,
-  LocalEditStep,
-  LocalEditToolResult,
-  localAiIntentSchema,
-  localEditBindingSchema,
-  localEditCallSchema,
-  localEditLimits,
-} from "@/wab/shared/copilot/local-edit";
+import { LocalAiAttachment, LocalAiDraft, LocalEditBinding, LocalEditToolResult } from "@/wab/shared/copilot/local-edit";
+import { applyAiEvent } from "@/wab/shared/copilot/ai-chat";
+import type { AiEvent, AiTask, AiToolCall, EditRecord } from "@/wab/shared/copilot/ai-chat";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
+import { io, Socket } from "socket.io-client";
 
-export type EditRecord = {
-  id: string;
-  name: string;
-  input: Record<string, unknown>;
-  before: string;
-  after: string;
-  binding: LocalEditBinding;
-  undoBinding?: LocalEditBinding;
-  undone?: boolean;
-};
-export type EditTask = {
-  id: string;
-  prompt: string;
-  attachments: LocalAiAttachment[];
-  model?: string;
-  status: "running" | "completed" | "stopped" | "failed";
-  phase: string;
-  messages: string[];
-  records: EditRecord[];
-  binding?: LocalEditBinding;
-  error?: string;
-  savedRevision?: number;
-  scopeLabel?: string;
-  operations: {
-    id: string;
-    name: string;
-    status: "running" | "completed" | "failed";
-    error?: string;
-  }[];
-};
+export type EditTask = AiTask;
+export type { EditRecord } from "@/wab/shared/copilot/ai-chat";
 export type PageGenerationOptions = { name: string; path: string };
 
-type Transport = (
-  request: LocalEditRequest,
-  signal: AbortSignal,
-) => Promise<LocalEditResponse>;
-
-export async function localAiFetch<T>(
-  projectId: string,
-  action: "status" | "step" | "intent",
-  body?: LocalEditRequest | LocalAiIntentRequest,
-  signal?: AbortSignal,
-): Promise<T> {
-  const response = await fetch(
-    `/api/v1/projects/${encodeURIComponent(projectId)}/ai/edit/${action}`,
-    {
-      method: body ? "POST" : "GET",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-      signal,
-    },
-  );
+export async function localAiFetch<T>(projectId: string, action: "status"): Promise<T> {
+  return aiChatRequest<T>(`/api/v1/projects/${encodeURIComponent(projectId)}/ai/edit/${action}`);
+}
+export async function aiChatRequest<T>(url: string, body?: unknown): Promise<T> {
+  const response = await fetch(url,{ method: body === undefined ? "GET" : "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
   const result = await response.json();
-  if (!response.ok || result.error) {
-    throw new Error(result.error?.message ?? "AI request failed.");
-  }
+  if (!response.ok) { throw new Error(typeof result.error === "string" ? result.error : result.error?.message ?? "AI request failed."); }
   return result as T;
 }
 
-/** Browser-only task state. Site data and undo history stay owned by Studio. */
-export class LocalEditSession {
-  tasks: EditTask[] = [];
-  private _draft: LocalAiDraft = { prompt: "", attachments: [] };
-  get draft() {
-    return this._draft;
-  }
-  set draft(draft: LocalAiDraft) {
-    this._draft = draft;
-    this.tasks = [...this.tasks];
-    this.listeners.forEach((listener) => listener());
-  }
-  private _selectedModel?: string;
-  get selectedModel() {
-    return this._selectedModel;
-  }
-  set selectedModel(model: string | undefined) {
-    if (model === this._selectedModel) {
-      return;
-    }
-    this._selectedModel = model;
-    this.tasks = [...this.tasks];
-    this.listeners.forEach((listener) => listener());
-  }
-  private listeners = new Set<() => void>();
-  private controller?: AbortController;
-  private busy = false;
-  constructor(
-    readonly projectId: string,
-    private getTools: () => PlasmicAiTools | undefined = () =>
-      window.PLASMIC_AI_TOOLS,
-    private transport: Transport = (request, signal) =>
-      localAiFetch(projectId, "step", request, signal),
-  ) {}
-  subscribe = (listener: () => void) => {
-    this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
-  };
-  snapshot = () => this.tasks;
-  get running() {
-    return this.busy;
-  }
-  private update(task: EditTask, patch: Partial<EditTask>) {
-    Object.assign(task, patch);
-    this.tasks = [...this.tasks];
-    this.listeners.forEach((listener) => listener());
-  }
-  stop() {
-    this.controller?.abort();
-    const task = this.tasks.at(-1);
-    if (this.controller && task?.status === "running") {
-      this.update(task, { phase: "Stopping" });
+/** A continuous cursor never advances over an event that has not been applied. */
+export class AiEventCursor {
+  seq = 0;
+  private pending = new Map<number,AiEvent>();
+  reset(seq: number) { this.seq = seq; this.pending.forEach((_event,key) => { if (key <= seq) { this.pending.delete(key); } }); }
+  accept(event: AiEvent, apply: (event: AiEvent) => void) {
+    if (event.seq <= this.seq) { return; }
+    this.pending.set(event.seq,event);
+    while (this.pending.has(this.seq+1)) {
+      const next = ensure(this.pending.get(this.seq+1),"Missing queued event");
+      this.pending.delete(++this.seq);
+      apply(next);
     }
   }
-  private async raw(
-    name: keyof typeof PROTOTYPE_TOOL_META,
-    input: Record<string, unknown>,
-  ) {
-    const tools = ensure(this.getTools(), "The editor session has closed.");
-    const result =
-      name === "executeLocalEdit"
-        ? await tools._executeLocal(input, this.controller?.signal)
-        : name === "getEditorContext"
-          ? await tools._getLocalContext()
-          : await tools[name](input);
-    if (!result.success) {
-      throw new Error(result.error.message);
-    }
-    return result.output;
-  }
-  private async scoped(
-    task: EditTask,
-    name: string,
-    input: Record<string, unknown>,
-  ): Promise<LocalEditToolResult> {
-    const operation: EditTask["operations"][number] = {
-      id: crypto.randomUUID(),
-      name,
-      status: "running",
-    };
-    this.update(task, { operations: [...task.operations, operation] });
-    try {
-      const output: LocalEditToolResult = JSON.parse(
-        await this.raw("executeLocalEdit", {
-          binding: ensure(task.binding, "Editing scope is missing."),
-          name,
-          input,
-        }),
-      );
-      operation.status = "completed";
-      this.update(task, {
-        binding: output.binding,
-        operations: [...task.operations],
-      });
-      return output;
-    } catch (error) {
-      operation.status = "failed";
-      operation.error = error instanceof Error ? error.message : String(error);
-      this.update(task, { operations: [...task.operations] });
-      throw error;
-    }
-  }
-  private record(
-    task: EditTask,
-    name: string,
-    input: Record<string, unknown>,
-    output: LocalEditToolResult,
-    id = crypto.randomUUID(),
-  ) {
-    if (output.changed) {
-      this.update(task, {
-        records: [
-          ...task.records,
-          {
-            id,
-            name,
-            input,
-            before: output.before ?? "",
-            after: output.after ?? "",
-            binding: output.binding,
-          },
-        ],
-      });
-    }
-  }
-  async run(
-    prompt: string,
-    pinned?: LocalEditBinding,
-    target?: PageGenerationOptions | "auto",
-    attachments: LocalAiAttachment[] = [],
-    model?: string,
-  ) {
-    if (this.busy || !prompt.trim()) {
-      return;
-    }
-    this.busy = true;
-    const controller = new AbortController();
-    this.controller = controller;
-    const task: EditTask = {
-      id: crypto.randomUUID(),
-      prompt: prompt.trim(),
-      attachments: [...attachments],
-      model,
-      status: "running",
-      phase: "Reading context",
-      messages: [],
-      records: [],
-      operations: [],
-    };
-    this.tasks = [...this.tasks.slice(-19), task];
-    this.update(task, {});
-    const checkStopped = () => controller.signal.throwIfAborted();
-    try {
-      checkStopped();
-      const context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
-        JSON.parse(await this.raw("getEditorContext", {})),
-      );
-      if (!context.canEdit || context.projectId !== this.projectId) {
-        throw new Error("Open an editable current project to use AI.");
-      }
-      let page = target === "auto" ? undefined : target;
-      if (target === "auto") {
-        this.update(task, { phase: "Thinking" });
-        const intent = localAiIntentSchema.parse(
-          await localAiFetch(
-            this.projectId,
-            "intent",
-            {
-              prompt: task.prompt,
-              hasCurrentPage: !!context.componentUuid,
-              ...(model ? { model } : {}),
-            },
-            controller.signal,
-          ),
-        );
-        checkStopped();
-        if (intent.mode === "page") {
-          page = { name: intent.name, path: intent.path };
-        }
-      }
-      let modelContext = page ? undefined : context;
-      task.binding =
-        (!page ? pinned : undefined) ??
-        localEditBindingSchema.parse({
-          projectId: context.projectId,
-          branchId: context.branchId,
-          sessionId: context.sessionId,
-          changeCounter: context.changeCounter,
-          componentUuid: page ? null : context.componentUuid,
-          frameUuid: page ? null : context.frameUuid,
-          elementUuids: page ? [] : context.selectedElementUuids,
-          ...(page ? { mode: "page" } : {}),
-        });
-      if (page) {
-        checkStopped();
-        this.update(task, { phase: "Creating page" });
-        const input = {
-          type: "page",
-          name: page.name.trim(),
-          path: page.path.trim(),
-        };
-        const created = await this.scoped(task, "createComponent", input);
-        this.record(task, "createComponent", input, created);
-        checkStopped();
-        await this.scoped(task, "navigate", {
-          componentUuid: created.binding.componentUuid,
-        });
-        checkStopped();
-        const observed =
-          PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
-            JSON.parse(await this.raw("getEditorContext", {})),
-          );
-        if (
-          !observed.canEdit ||
-          observed.projectId !== created.binding.projectId ||
-          observed.branchId !== created.binding.branchId ||
-          observed.sessionId !== created.binding.sessionId ||
-          observed.changeCounter !== created.binding.changeCounter
-        ) {
-          throw new Error(
-            "The editor context changed while creating the page. Start a new request.",
-          );
-        }
-        // The canvas may still be mounting. Never send the previous page's
-        // selection as generation context; the new binding remains authoritative.
-        if (observed.componentUuid === created.binding.componentUuid) {
-          modelContext = observed;
-          this.update(task, {
-            binding: { ...created.binding, frameUuid: observed.frameUuid },
-          });
-        }
-        checkStopped();
-      }
-      const binding = ensure(task.binding, "Editing scope is missing.");
-      ensure(
-        binding.componentUuid,
-        "Open a page or select an element before editing.",
-      );
-      const readInput = binding.elementUuids.length
-        ? {
-            elements: binding.elementUuids.map((elementUuid) => ({
-              componentUuid: binding.componentUuid,
-              elementUuid,
-            })),
-          }
-        : { componentUuids: [binding.componentUuid] };
-      checkStopped();
-      const initial = await this.scoped(task, "read", readInput);
-      const scopeNames = JSON.parse(initial.result).results.flatMap(
-        (resource: { name?: string; baseVariantTplTree?: string }) => {
-          const name =
-            resource.name ??
-            (resource.baseVariantTplTree
-              ? new DOMParser()
-                  .parseFromString(resource.baseVariantTplTree, "text/html")
-                  .body.firstElementChild?.getAttribute("label")
-              : undefined);
-          return name ? [name] : [];
-        },
-      );
-      this.update(task, { scopeLabel: scopeNames.join(", ") || undefined });
-      checkStopped();
-      const overview = await this.scoped(task, "read", {});
-      const recent = this.tasks
-        .filter(
-          (previous) =>
-            previous !== task &&
-            previous.binding?.componentUuid === binding.componentUuid &&
-            previous.binding?.sessionId === binding.sessionId,
-        )
-        .slice(-3)
-        .map((previous) => ({
-          request: previous.prompt,
-          response: previous.messages.join("\n").slice(-2000),
-          status: previous.status,
-        }));
-      const resources = `${initial.result}\n${overview.result}\nEditor context at submission:\n${JSON.stringify(modelContext ?? null)}\nRecent conversation (context only):\n${JSON.stringify(recent)}`;
-      const history: LocalEditStep[] = [];
-      const completed = new Map<
-        string,
-        { signature: string; output: string; failed?: boolean }
-      >();
-      const started = Date.now();
-      const limits = localEditLimits(binding);
-      let rejectedCalls = 0;
-      for (let stepIndex = 0; stepIndex < limits.steps; stepIndex++) {
-        checkStopped();
-        if (Date.now() - started > limits.taskMs) {
-          throw new Error(
-            "AI task reached its time limit. Completed changes are retained.",
-          );
-        }
-        this.update(task, { phase: "Thinking" });
-        const response = await this.transport(
-          {
-            binding: ensure(task.binding, "Editing scope is missing."),
-            prompt: task.prompt,
-            attachments: task.attachments,
-            ...(model ? { model } : {}),
-            resources,
-            history,
-          },
-          AbortSignal.any([
-            controller.signal,
-            AbortSignal.timeout(
-              Math.max(1, limits.taskMs - (Date.now() - started)),
-            ),
-          ]),
-        );
-        checkStopped();
-        if (Date.now() - started > limits.taskMs) {
-          throw new Error(
-            "AI task reached its time limit. Completed changes are retained.",
-          );
-        }
-        const calls = response.calls.map((call) =>
-          localEditCallSchema.parse(call),
-        );
-        if (response.text) {
-          this.update(task, { messages: [...task.messages, response.text] });
-        }
-        if (!calls.length) {
-          break;
-        }
-        const step: LocalEditStep = { text: response.text, calls, results: [] };
-        for (const [callIndex, call] of calls.entries()) {
-          checkStopped();
-          const signature = JSON.stringify([call.name, call.input]);
-          const previous = completed.get(call.id);
-          if (previous) {
-            if (previous.signature !== signature) {
-              throw new Error(
-                "AI reused a tool call identity with different arguments.",
-              );
-            }
-            if (previous.failed) {
-              throw new Error(JSON.parse(previous.output).error);
-            }
-            step.results.push({ id: call.id, output: previous.output });
-            continue;
-          }
-          this.update(task, {
-            phase:
-              call.name === "selectElement"
-                ? "Selecting element"
-                : call.name === "scrollElementIntoView"
-                  ? "Revealing element"
-                  : ["read", "queryElements", "getEditorContext"].includes(
-                        call.name,
-                      )
-                    ? "Reading context"
-                    : "Editing selection",
-          });
-          try {
-            const output = await this.scoped(task, call.name, call.input);
-            this.record(task, call.name, call.input, output, call.id);
-            completed.set(call.id, { signature, output: output.result });
-            step.results.push({ id: call.id, output: output.result });
-          } catch (error) {
-            checkStopped();
-            if (++rejectedCalls > 3) {
-              throw error;
-            }
-            // A failed/rolled-back call is repairable only while the original
-            // editor epoch and design counter remain unchanged. Never rebase.
-            const current =
-              PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
-                JSON.parse(await this.raw("getEditorContext", {})),
-              );
-            const pinnedScope = ensure(
-              task.binding,
-              "Editing scope is missing.",
-            );
-            if (
-              !current.canEdit ||
-              current.projectId !== pinnedScope.projectId ||
-              current.branchId !== pinnedScope.branchId ||
-              current.sessionId !== pinnedScope.sessionId ||
-              current.changeCounter !== pinnedScope.changeCounter
-            ) {
-              throw error;
-            }
-            const result = JSON.stringify({
-              error: error instanceof Error ? error.message : String(error),
-            });
-            completed.set(call.id, { signature, output: result, failed: true });
-            step.results.push({ id: call.id, output: result });
-            for (const skipped of calls.slice(callIndex + 1)) {
-              step.results.push({
-                id: skipped.id,
-                output: JSON.stringify({
-                  error:
-                    "Skipped after a rejected tool call. Read the error and replan.",
-                }),
-              });
-            }
-            break;
-          }
-          checkStopped();
-        }
-        history.push(step);
-        if (stepIndex === limits.steps - 1) {
-          throw new Error(
-            "AI task reached its step limit. Completed changes are retained.",
-          );
-        }
-      }
-      checkStopped();
-      this.update(task, { phase: "Checking structure" });
-      const validation = JSON.parse(
-        (await this.scoped(task, "validate", {})).result,
-      );
-      if (!validation.valid) {
-        throw new Error(validation.errors.join("; "));
-      }
-      checkStopped();
-      if (task.records.length) {
-        this.update(task, { phase: "Saving changes" });
-        const saved = JSON.parse((await this.scoped(task, "save", {})).result);
-        this.update(task, { savedRevision: saved.revision });
-      }
-      checkStopped();
-      this.update(task, { status: "completed", phase: "Completed" });
-    } catch (error) {
-      this.update(task, {
-        status: controller.signal.aborted ? "stopped" : "failed",
-        phase: controller.signal.aborted ? "Stopped" : "Failed",
-        error: controller.signal.aborted
-          ? undefined
-          : error instanceof Error
-            ? error.message
-            : String(error),
-      });
-    } finally {
-      this.busy = false;
-      this.controller = undefined;
-      this.update(task, {});
-    }
-  }
-  async undo(task: EditTask, record: EditRecord) {
-    if (this.busy || record.undone) {
-      return;
-    }
-    this.busy = true;
-    this.update(task, {});
-    try {
-      // The executor rejects this unless this exact transaction is still last.
-      const output: LocalEditToolResult = JSON.parse(
-        await this.raw("executeLocalEdit", {
-          binding: record.undoBinding ?? record.binding,
-          name: "undo",
-          input: {},
-        }),
-      );
-      record.undone = true;
-      // Mutations within one pinned task are contiguous: concurrent human edits
-      // abort the task. Advance only its next undo guard from the actual undo
-      // result; a later human edit still fails the executor's counter check.
-      const previous = task.records.filter((entry) => !entry.undone).at(-1);
-      if (previous) {
-        previous.undoBinding = {
-          ...previous.binding,
-          changeCounter: output.binding.changeCounter,
-        };
-      }
-      this.update(task, {
-        binding: output.binding,
-        records: [...task.records],
-        savedRevision: undefined,
-      });
-      const saved = JSON.parse((await this.scoped(task, "save", {})).result);
-      this.update(task, { savedRevision: saved.revision });
-    } catch (error) {
-      this.update(task, {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      this.busy = false;
-      this.update(task, {});
-    }
-  }
+  get gap() { return this.pending.size > 0; }
 }
 
-const sessions = new Map<string, LocalEditSession>();
+/** Top-frame input state and native executor. Orchestration belongs to Temporal. */
+export class LocalEditSession {
+  tasks: AiTask[] = [];
+  error?: string;
+  before?: string;
+  private _userId?: string;
+  get userId() { return this._userId; }
+  set userId(value: string | undefined) {
+    if (value === this._userId) { return; }
+    this.generation++;
+    this._userId = value;
+    this._draft = {prompt: "",attachments: []}; this._selectedModel = undefined;
+    this.tasks = []; this.receipts.clear(); this.localRecords.clear(); this.editorSessionId = undefined;
+    this.error = undefined; this.before = undefined; this.cursor = new AiEventCursor(); this.buffer = []; this.missingRuns.clear();
+    this.notify();
+  }
+  private _draft: LocalAiDraft = { prompt: "", attachments: [] };
+  get draft() { return this._draft; }
+  set draft(value: LocalAiDraft) { this._draft = value; this.notify(); }
+  private _selectedModel?: string;
+  get selectedModel() { return this._selectedModel; }
+  set selectedModel(value: string | undefined) { if (value === this._selectedModel) { return; } this._selectedModel = value; this.notify(); }
+  private listeners = new Set<() => void>();
+  private cursor = new AiEventCursor();
+  private socket?: Socket;
+  private timer?: ReturnType<typeof setInterval>;
+  private connected = false;
+  private generation = 0;
+  private syncing = false;
+  private executing = false;
+  private sending = false;
+  private undoing = false;
+  private executionController?: AbortController;
+  private stoppedRuns = new Set<string>();
+  private booting = false;
+  private buffer: AiEvent[] = [];
+  private receipts = new Map<string,{ sessionId: string; fence: number; result?: LocalEditToolResult; error?: string; uncertain?: boolean }>();
+  private executed = new Set<string>();
+  private localRecords = new Set<string>();
+  private editorSessionId?: string;
+  constructor(readonly projectId: string, private getTools: () => PlasmicAiTools | undefined = () => window.PLASMIC_AI_TOOLS) {}
+  subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+  snapshot = () => this.tasks;
+  get running() { return this.sending || this.undoing || this.tasks.some((task) => task.status === "running"); }
+  canUndo(record: EditRecord) { return this.localRecords.has(record.id) && record.binding.sessionId === this.editorSessionId; }
+  canStop(task: AiTask) { return task.authorId === this.userId; }
+  private notify() { this.tasks = [...this.tasks]; this.listeners.forEach((listener) => listener()); }
+  private apply = (task: AiTask) => {
+    const index = this.tasks.findIndex((t) => t.id === task.id);
+    if (index >= 0 && (this.tasks[index].seq ?? 0) > (task.seq ?? 0)) { return; }
+    if (index < 0) { this.tasks.push(task); } else { this.tasks[index] = task; }
+    this.tasks.sort((a,b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+    this.notify();
+  };
+  private loadingRuns = new Set<string>();
+  private missingRuns = new Set<string>();
+  private applyEvent = (event: AiEvent) => {
+    const task = this.tasks.find((candidate) => candidate.id === event.runId);
+    const next = applyAiEvent(task,event);
+    if (next) { this.apply(next); return; }
+    this.missingRuns.add(event.runId);
+    this.fetchRun(event.runId);
+  };
+  private fetchRun(runId: string) {
+    if (this.loadingRuns.has(runId)) { return; }
+    this.loadingRuns.add(runId);
+    const generation = this.generation;
+    void aiChatRequest<AiTask>(this.url(`/runs/${runId}`)).then((task) => {
+      if (generation !== this.generation) { return; }
+      this.apply(task); this.missingRuns.delete(runId);
+    })
+      .catch((error) => { if (generation === this.generation) { this.error = error.message; this.notify(); } })
+      .finally(() => { this.loadingRuns.delete(runId); });
+  }
+  connect() {
+    if (this.connected) { return; }
+    this.connected = true;
+    this.generation++;
+    this.syncing = false;
+    const generation = this.generation;
+    this.booting = true;
+    this.socket = io({ path: "/api/v1/socket", transports: ["websocket"] });
+    this.socket.on("connect",() => {
+      this.socket?.emit("subscribe",{ namespace: "projects", projectIds: [this.projectId], studio: false });
+      void this.sync();
+    });
+    this.socket.on("aiChat",(event: AiEvent) => {
+      if (generation !== this.generation) { return; }
+      if (event.projectId !== this.projectId) { return; }
+      if (this.booting) { this.buffer.push(event); return; }
+      this.cursor.accept(event,this.applyEvent);
+      if (this.cursor.gap) { void this.sync(); }
+    });
+    void this.initialize();
+    this.timer = setInterval(() => { void this.sync(); void this.executePending(); },1000);
+  }
+  disconnect() {
+    this.connected = false;
+    this.generation++;
+    this.editorSessionId = undefined;
+    if (this.timer) { clearInterval(this.timer); }
+    this.timer = undefined; this.socket?.close(); this.socket = undefined;
+  }
+  private url(suffix = "") { return `/api/v1/projects/${encodeURIComponent(this.projectId)}/ai/chat${suffix}`; }
+  private async initialize() {
+    const generation = this.generation;
+    try {
+      const page = await aiChatRequest<{ tasks: AiTask[]; seq: number; before?: string }>(this.url());
+      if (!this.connected || generation !== this.generation) { return; }
+      this.tasks = page.tasks; this.before = page.before; this.cursor.reset(page.seq);
+      this.booting = false;
+      for (const event of this.buffer) { this.cursor.accept(event,this.applyEvent); }
+      this.buffer = []; this.notify(); await this.sync();
+    } catch (error) { if (generation === this.generation) { this.error = error instanceof Error ? error.message : String(error); this.booting = false; this.notify(); } }
+  }
+  async loadEarlier() {
+    if (!this.before) { return; }
+    const generation = this.generation;
+    const page = await aiChatRequest<{ tasks: AiTask[]; before?: string }>(this.url(`?before=${encodeURIComponent(this.before)}`));
+    if (generation !== this.generation) { return; }
+    for (const task of page.tasks) { if (!this.tasks.some((t) => t.id === task.id)) { this.apply(task); } }
+    this.before = page.before; this.notify();
+  }
+  private async sync() {
+    if (!this.connected || this.booting || this.syncing) { return; }
+    this.syncing = true;
+    const generation = this.generation;
+    try {
+      let page: AiEvent[];
+      do {
+        page = await aiChatRequest<AiEvent[]>(this.url(`/events?afterSeq=${this.cursor.seq}`));
+        if (generation !== this.generation) { return; }
+        for (const event of page) { this.cursor.accept(event,this.applyEvent); }
+      } while (page.length === 100 && this.connected);
+      this.missingRuns.forEach((runId) => this.fetchRun(runId));
+      if (this.error) { this.error = undefined; this.notify(); }
+    } catch (error) { if (generation === this.generation) { this.error = error instanceof Error ? error.message : String(error); this.notify(); } }
+    finally { if (generation === this.generation) { this.syncing = false; } }
+  }
+  private async raw(name: "getEditorContext" | "executeLocalEdit", input: Record<string,unknown>, signal?: AbortSignal) {
+    const tools = ensure(this.getTools(),"The editor session has closed.");
+    const result = name === "getEditorContext" ? await tools._getLocalContext() : await tools._executeLocal(input,signal);
+    if (!result.success) { throw new Error(result.error.message); }
+    return result.output;
+  }
+  async run(prompt: string, pinned?: LocalEditBinding, target?: PageGenerationOptions | "auto", attachments: LocalAiAttachment[] = [], model?: string) {
+    if (this.running || !prompt.trim()) { return; }
+    this.sending = true; this.notify();
+    const author = this.userId;
+    const clientRequestId = crypto.randomUUID();
+    try {
+      const context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+      if (!context.canEdit || context.projectId !== this.projectId) { throw new Error("Open an editable current project to use AI."); }
+      const binding = pinned ?? { projectId: this.projectId, branchId: context.branchId, sessionId: context.sessionId, changeCounter: context.changeCounter, componentUuid: context.componentUuid, elementUuids: context.selectedElementUuids, frameUuid: context.frameUuid };
+      const body = { clientRequestId, prompt, binding, target, attachments, model, context: JSON.stringify(context) };
+      // Transport retry keeps the same identity, including the initial placeholder.
+      let task: AiTask;
+      try { task = await aiChatRequest<AiTask>(this.url(),body); }
+      catch { task = await aiChatRequest<AiTask>(this.url(),body); }
+      if (this.userId !== author) { return; }
+      this.apply(task);
+      this.draft = { prompt: "", attachments: [] };
+    } catch (error) { this.error = error instanceof Error ? error.message : String(error); this.notify(); }
+    finally { this.sending = false; this.notify(); }
+  }
+  stop() {
+    const task = this.tasks.find((t) => t.status === "running");
+    if (task && this.canStop(task)) {
+      const generation = this.generation;
+      this.stoppedRuns.add(task.id); this.executionController?.abort();
+      void aiChatRequest<AiTask>(this.url(`/runs/${task.id}/stop`),{}).then((next) => { if (generation === this.generation) { this.apply(next); } }).catch((error) => { if (generation === this.generation) { this.error = error.message; this.notify(); } });
+    }
+  }
+  private async executePending() {
+    if (!this.connected || this.executing || !this.getTools()) { return; }
+    this.executing = true;
+    const author = this.userId;
+    try {
+      // Retry receipts before acquiring more work. The operation is never executed twice.
+      for (const [id,ack] of this.receipts) {
+        await aiChatRequest(this.url(`/tools/${encodeURIComponent(id)}/receipt`),ack);
+        this.receipts.delete(id);
+      }
+      const context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+      if (this.editorSessionId !== context.sessionId) { this.editorSessionId = context.sessionId; this.notify(); }
+      if (!this.tasks.some((t) => t.status === "running")) { return; }
+      if (!context.canEdit || context.projectId !== this.projectId) { return; }
+      const { call } = await aiChatRequest<{ call?: AiToolCall }>(this.url("/claim"),{ sessionId: context.sessionId });
+      if (this.userId !== author || !call || this.executed.has(call.id)) { return; }
+      this.executed.add(call.id);
+      const ack: { sessionId: string; fence: number; result?: LocalEditToolResult; error?: string; uncertain?: boolean } = { sessionId: context.sessionId, fence: call.fence };
+      const controller = new AbortController(); this.executionController = controller;
+      const heartbeat = setInterval(() => {
+        void aiChatRequest(this.url(`/tools/${encodeURIComponent(call.id)}/heartbeat`),{ sessionId: context.sessionId, fence: call.fence }).catch(() => undefined);
+      },5000);
+      try {
+        if (this.stoppedRuns.has(call.runId)) { controller.abort(); }
+        controller.signal.throwIfAborted();
+        ack.result = JSON.parse(await this.raw("executeLocalEdit",{ binding: call.binding, name: call.name, input: call.input, execution: { operationId: call.id, fence: call.fence } },controller.signal));
+        if (ack.result?.changed && this.userId === author) { this.localRecords.add(call.id); }
+      } catch (error) {
+        ack.error = error instanceof Error ? error.message : String(error);
+        try {
+          const current = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+          ack.uncertain = current.changeCounter !== call.binding.changeCounter;
+        } catch { ack.uncertain = true; }
+      }
+      finally { clearInterval(heartbeat); this.executionController = undefined; }
+      if (this.userId !== author) { return; }
+      this.receipts.set(call.id,ack);
+      await aiChatRequest(this.url(`/tools/${encodeURIComponent(call.id)}/receipt`),ack);
+      this.receipts.delete(call.id);
+    } catch { /* Offline work waits; an uncertain dispatched operation is never repeated. */ }
+    finally { this.executing = false; }
+  }
+  async locate(task: AiTask, uuid: string) {
+    try {
+      const context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+      if (context.branchId !== task.binding.branchId) { throw new Error("Open the message's branch to locate this node."); }
+      const tools = ensure(this.getTools(),"The editor session has closed.");
+      const componentUuid = task.nodes?.find((node) => node.uuid === uuid)?.page ?? task.binding.componentUuid;
+      const navigation = await tools.navigate({ componentUuid });
+      if (!navigation.success) { throw new Error(navigation.error.message); }
+      for (const name of ["selectElement","scrollElementIntoView"] as const) {
+        const result = await tools[name]({ componentUuid, elementUuid: uuid });
+        if (!result.success) { throw new Error(result.error.message); }
+      }
+    } catch (error) { this.error = error instanceof Error ? error.message : String(error); this.notify(); }
+  }
+  async reconcile(task: AiTask) {
+    const generation = this.generation;
+    try {
+      const context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+      const binding = { projectId: context.projectId,branchId: context.branchId,sessionId: context.sessionId,changeCounter: context.changeCounter,componentUuid: context.componentUuid,elementUuids: context.selectedElementUuids,frameUuid: context.frameUuid };
+      const next = await aiChatRequest<AiTask>(this.url(`/runs/${task.id}/reconcile`),{ binding,revision: ensure(context.revision,"Saved design revision is missing") });
+      if (generation === this.generation) { this.apply(next); }
+    } catch (error) { this.error = error instanceof Error ? error.message : String(error); this.notify(); }
+  }
+  async retry(task: AiTask) {
+    if (this.running || task.needsReconciliation || !this.canStop(task)) { return; }
+    try {
+      const tools = ensure(this.getTools(),"The editor session has closed.");
+      let context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+      if (context.branchId !== task.binding.branchId) { throw new Error("Open the message's branch before retrying."); }
+      if (task.binding.componentUuid) {
+        const navigated = await tools.navigate({componentUuid:task.binding.componentUuid});
+        if (!navigated.success) { throw new Error(navigated.error.message); }
+        const checked = await tools.read(task.binding.elementUuids.length
+          ? {elements:task.binding.elementUuids.map((elementUuid)=>({componentUuid:task.binding.componentUuid,elementUuid}))}
+          : {componentUuids:[task.binding.componentUuid]});
+        if (!checked.success) { throw new Error(checked.error.message); }
+        context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(JSON.parse(await this.raw("getEditorContext",{})));
+      }
+      const { readAiAttachment } = await import("@/wab/client/components/copilot/AiAttachments");
+      const attachments: LocalAiAttachment[] = [];
+      for (const file of task.files) {
+        const response = await fetch(this.url(`/attachments/${file.id}`),{credentials:"same-origin"});
+        if (!response.ok) { throw new Error("Attachment is not accessible."); }
+        attachments.push(await readAiAttachment(new File([await response.blob()],file.name,{type:file.mediaType})));
+      }
+      const binding = {...task.binding,sessionId:context.sessionId,changeCounter:context.changeCounter,frameUuid:context.frameUuid};
+      this.draft = {prompt:task.prompt,attachments};
+      await this.run(task.prompt,task.binding.componentUuid ? binding : undefined,task.binding.componentUuid ? undefined : "auto",attachments,this.selectedModel ?? task.model);
+    } catch (error) { this.error = error instanceof Error ? error.message : String(error); this.notify(); }
+  }
+  async undo(task: AiTask, record: EditRecord) {
+    if (this.running || record.undone || !this.canUndo(record)) { return; }
+    const generation = this.generation;
+    this.undoing = true; this.notify();
+    let operation: AiToolCall | undefined;
+    try {
+      operation = await aiChatRequest<AiToolCall>(this.url(`/runs/${task.id}/undo`),{recordId:record.id,clientRequestId:crypto.randomUUID()});
+      if (operation.status !== "completed") {
+        const output: LocalEditToolResult = JSON.parse(await this.raw("executeLocalEdit",{binding:operation.binding,name:"undo",input:operation.input,execution:{operationId:operation.id,fence:operation.fence}}));
+        const ack = {sessionId:operation.binding.sessionId,fence:operation.fence,result:output};
+        this.receipts.set(operation.id,ack);
+        await aiChatRequest(this.url(`/tools/${encodeURIComponent(operation.id)}/receipt`),ack);
+        this.receipts.delete(operation.id);
+      }
+      const next = await aiChatRequest<AiTask>(this.url(`/runs/${task.id}`));
+      if (generation === this.generation) { this.apply(next); }
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : String(error);
+      if (operation && !this.receipts.has(operation.id)) {
+        const ack = {sessionId:operation.binding.sessionId,fence:operation.fence,error:this.error,uncertain:true};
+        this.receipts.set(operation.id,ack);
+      }
+    } finally { this.undoing = false; this.notify(); }
+  }
+
+}
+const sessions = new Map<string,LocalEditSession>();
 export function getLocalEditSession(projectId: string) {
   let session = sessions.get(projectId);
-  if (!session) {
-    session = new LocalEditSession(projectId);
-    sessions.set(projectId, session);
-  }
+  if (!session) { session = new LocalEditSession(projectId); sessions.set(projectId,session); }
   return session;
 }

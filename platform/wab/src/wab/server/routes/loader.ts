@@ -628,6 +628,7 @@ export async function genLoaderHtmlBundleSandboxed(
     // The env the OTel auto-instrumentation and Cloud Profiler need. Already
     // allowlisted here, so the sandbox never sees the rest of process.env.
     const sandboxEnv = {
+      TS_NODE_PROJECT: "tsconfig.server.json",
       ...pickBy(
         process.env,
         (value, key) =>
@@ -679,7 +680,7 @@ export async function genLoaderHtmlBundleSandboxed(
       process.env.DISABLE_BWRAP === "1"
         ? await execa(cmd[0], [...cmd.slice(1), payload], {
             reject: false,
-            env: { ...process.env, ...profilerEnv },
+            env: { ...process.env, ...sandboxEnv },
           })
         : await execa("bwrap", bwrapArgs, { reject: false });
     if (stderr.trim().length > 0 && exitCode === 0) {

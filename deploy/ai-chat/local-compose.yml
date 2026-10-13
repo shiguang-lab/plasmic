@@ -1,0 +1,27 @@
+name: plasmic-ai-local
+services:
+  temporal:
+    image: temporalio/auto-setup:1.29.1
+    restart: unless-stopped
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_SEEDS: host.docker.internal
+      POSTGRES_USER: temporal_ai
+      POSTGRES_PWD: local-temporal-ai
+      DBNAME: temporal_ai
+      VISIBILITY_DBNAME: temporal_ai_visibility
+      SKIP_DB_CREATE: "true"
+      ENABLE_ES: "false"
+    ports: ["127.0.0.1:7233:7233"]
+  storage:
+    image: chrislusf/seaweedfs:4.17
+    restart: unless-stopped
+    command: [mini, "-dir=/data", "-ip=storage", "-ip.bind=0.0.0.0"]
+    environment:
+      AWS_ACCESS_KEY_ID: local-ai-storage
+      AWS_SECRET_ACCESS_KEY: local-ai-storage-secret
+    volumes: [ai-storage:/data]
+    ports: ["127.0.0.1:8333:8333"]
+volumes:
+  ai-storage:

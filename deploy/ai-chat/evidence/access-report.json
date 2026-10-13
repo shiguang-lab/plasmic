@@ -1,0 +1,13 @@
+{
+  "projectId": "9ebuBz8SEDHpNbYDaSjWoT",
+  "historyAccess": [
+    200,
+    200,
+    403
+  ],
+  "outsiderFileAccess": 403,
+  "canonicalEvent": true,
+  "revokedSocketDisconnected": true,
+  "revokedHistoryAccess": 403,
+  "fixturePermissionRestored": true
+}

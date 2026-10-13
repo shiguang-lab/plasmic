@@ -6,8 +6,10 @@ on:
       - 'ai/plasmic/**'
       - 'docs/search-form.md'
       - 'scripts/build-plasmic-resources.mjs'
+      - 'scripts/plasmic-cli-artifact.mjs'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
+      - 'desktop/scripts/publish-plasmic-resources.mjs'
       - '.github/workflows/*plasmic*.yml'
   push:
     branches: [master, main]
@@ -15,8 +17,10 @@ on:
       - 'ai/plasmic/**'
       - 'docs/search-form.md'
       - 'scripts/build-plasmic-resources.mjs'
+      - 'scripts/plasmic-cli-artifact.mjs'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
+      - 'desktop/scripts/publish-plasmic-resources.mjs'
       - '.github/workflows/*plasmic*.yml'
 
 permissions:

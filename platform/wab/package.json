@@ -63,7 +63,8 @@
     "storybook:build": "NODE_ENV=development NODE_OPTIONS='--max-old-space-size=12288' storybook build",
     "storybook:start": "http-server storybook-static --port 6006",
     "storybook:test": "test-storybook --maxWorkers=2",
-    "storybook:test:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"pnpm storybook:build && pnpm storybook:start\" \"playwright install && wait-on tcp:127.0.0.1:6006 && pnpm storybook:test\""
+    "storybook:test:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"pnpm storybook:build && pnpm storybook:start\" \"playwright install && wait-on tcp:127.0.0.1:6006 && pnpm storybook:test\"",
+    "ai-worker": "bash tools/run.bash src/wab/server/copilot/ai-worker.ts"
   },
   "author": "Plasmic Team",
   "gitHead": "14cfee473c6a27212c54d536a8bd531c84e9fb68",
@@ -208,6 +209,11 @@
     "@stripe/react-stripe-js": "6.8.2",
     "@stripe/stripe-js": "9.14.0",
     "@supabase/supabase-js": "2.38.4",
+    "@temporalio/activity": "1.24.0",
+    "@temporalio/client": "1.24.0",
+    "@temporalio/common": "1.24.0",
+    "@temporalio/worker": "1.24.0",
+    "@temporalio/workflow": "1.24.0",
     "@tinymce/tinymce-react": "^4.3.2",
     "@ts-rest/core": "3.52.1",
     "@ts-rest/express": "3.52.1",

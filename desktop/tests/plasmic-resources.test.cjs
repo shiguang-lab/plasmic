@@ -56,3 +56,20 @@ test("NAS promotion verifies downloads, is idempotent and keeps latest on failed
   await assert.rejects(promoteResources(root, built.output, built.manifest), /immutable release is corrupt/);
   assert.equal(await fs.readFile(path.join(root, "latest.json"), "utf8"), latest);
 });
+
+test("NAS promotes a new resource version while preserving the independent CLI version and bytes", async (t) => {
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-independent-release-test-"));
+  t.after(() => fs.rm(temporary, { recursive: true, force: true }));
+  const { buildResources } = await import("../../scripts/build-plasmic-resources.mjs");
+  const first = await buildResources(path.join(temporary, "incoming"), "0.0.82");
+  const bytes = await fs.readFile(path.join(first.directory, "plasmic-cli.tgz"));
+  const second = await buildResources(first.output, "0.0.83", { cliVersion: first.manifest.cliVersion, cliArtifact: bytes });
+  const root = path.join(temporary, "nas");
+  await promoteResources(root, first.output, first.manifest);
+  await promoteResources(root, second.output, second.manifest);
+  const latest = JSON.parse(await fs.readFile(path.join(root, "latest.json"), "utf8"));
+  assert.equal(latest.version, "0.0.83");
+  assert.equal(latest.cliVersion, first.manifest.cliVersion);
+  assert.notEqual(latest.releaseId, first.manifest.releaseId);
+  assert.deepEqual(await fs.readFile(path.join(root, "releases", latest.releaseId, "plasmic-cli.tgz")), bytes);
+});

@@ -10,7 +10,6 @@ import { absorbEditingCanvasEvent } from "@/wab/client/components/canvas/canvas-
 import { selectAllInCanvas } from "@/wab/client/components/canvas/marquee-selection";
 import {
   absorbLinkClick,
-  closestTaggedNonTextDomElt,
   showCanvasPageNavigationNotification,
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { CanvasCommentMarkers } from "@/wab/client/components/comments/CanvasCommentMarkers";
@@ -120,7 +119,6 @@ export const CanvasFrame = observer(function CanvasFrame({
     () => ensure(maybeViewCtx(), () => "Expected viewCtx to exist"),
     [maybeViewCtx],
   );
-  const canvasCtx = useCallback(() => viewCtx().canvasCtx, [viewCtx]);
 
   const needsToRecreateVc = createdVc && !maybeViewCtx();
 
@@ -182,38 +180,6 @@ export const CanvasFrame = observer(function CanvasFrame({
         studioCtx.handleWheel(e, topClientX, topClientY);
       };
 
-      const handleDoubleClick = (e: MouseEvent) => {
-        if (
-          studioCtx.isLiveMode ||
-          studioCtx.isInteractiveMode ||
-          viewCtx().viewOps.isEditing(e.target as HTMLElement)
-        ) {
-          // If we're in interactive mode or currently editing the event target,
-          // then let the browser handle the interaction
-          return;
-        }
-
-        const target = e.target as HTMLElement;
-        const actualTarget = isCanvasOverlay($(target))
-          ? (canvasCtx().getActualTargetUnderCanvasOverlay(
-              e.clientX,
-              e.clientY,
-            ) ?? target)
-          : target;
-
-        const $target = $(actualTarget as HTMLElement);
-        if (!(
-          $target.is(canvasCtx().$userBody()) || $target.is(canvasCtx().$html())
-        )) {
-          const closest = closestTaggedNonTextDomElt($target, viewCtx(), {
-            excludeNonSelectable: true,
-          });
-          viewCtx().viewOps.deepFocusElement(closest);
-        }
-        e.preventDefault();
-        e.stopPropagation();
-      };
-
       const handleKeyUp = (e: JQuery.KeyUpEvent) => {
         if (studioCtx.isInteractiveMode) {
           return;
@@ -264,6 +230,7 @@ export const CanvasFrame = observer(function CanvasFrame({
       const html = ctx.$html().get(0);
       const absorbedEvents = [
         "click",
+        "dblclick",
         "mouseup",
         "mouseover",
         "mouseout",
@@ -271,7 +238,6 @@ export const CanvasFrame = observer(function CanvasFrame({
       for (const event of absorbedEvents) {
         html.addEventListener(event, absorbEvent, true);
       }
-      html.addEventListener("dblclick", handleDoubleClick, true);
       html.addEventListener("click", absorbPreviewLink);
       ctx.$html().on("keydown", handleKeyDown).on("keyup", handleKeyUp);
 
@@ -328,7 +294,6 @@ export const CanvasFrame = observer(function CanvasFrame({
         for (const event of absorbedEvents) {
           html.removeEventListener(event, absorbEvent, true);
         }
-        html.removeEventListener("dblclick", handleDoubleClick, true);
         html.removeEventListener("click", absorbPreviewLink);
         unbindShortcutHandlers();
         ctx.$html().get(0).removeEventListener("wheel", onWheel);

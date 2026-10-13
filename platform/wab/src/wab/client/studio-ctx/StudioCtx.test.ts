@@ -74,11 +74,11 @@ function mockTeam(overrides: Partial<ApiTeam>): ApiTeam {
 }
 
 describe("chatCopilotEnabled", () => {
-  function setup(team: ApiTeam) {
+  function setup(team: ApiTeam, enabled = true) {
     return fakeStudioCtx({
       teams: [team],
       siteInfo: { teamId: TEAM_ID },
-      devFlagOverrides: { enableChatCopilot: true },
+      devFlagOverrides: { enableLocalAiEditing: enabled },
     });
   }
 
@@ -92,24 +92,24 @@ describe("chatCopilotEnabled", () => {
     expect(studioCtx.chatCopilotEnabled()).toBe(true);
   });
 
-  it("allows paid plans but rejects trials and free teams", () => {
-    expect(
-      setup(
-        mockTeam({ featureTierId: "paid" as FeatureTierId }),
-      ).studioCtx.chatCopilotEnabled(),
-    ).toBe(true);
-    expect(
-      setup(
-        mockTeam({ featureTierId: "paid" as FeatureTierId, onTrial: true }),
-      ).studioCtx.chatCopilotEnabled(),
-    ).toBe(false);
-    expect(setup(mockTeam({})).studioCtx.chatCopilotEnabled()).toBe(false);
-    expect(
-      setup(
-        mockTeam({ featureTierId: DEVFLAGS.freeTier.id }),
-      ).studioCtx.chatCopilotEnabled(),
-    ).toBe(false);
-  });
+  it.each([
+    {
+      name: "paid",
+      team: mockTeam({ featureTierId: "paid" as FeatureTierId }),
+    },
+    {
+      name: "trial",
+      team: mockTeam({ featureTierId: "paid" as FeatureTierId, onTrial: true }),
+    },
+    { name: "without a tier", team: mockTeam({}) },
+    { name: "free", team: mockTeam({ featureTierId: DEVFLAGS.freeTier.id }) },
+  ])(
+    "uses the local AI feature flag independently of the $name plan",
+    ({ team }) => {
+      expect(setup(team).studioCtx.chatCopilotEnabled()).toBe(true);
+      expect(setup(team, false).studioCtx.chatCopilotEnabled()).toBe(false);
+    },
+  );
 
   it.each(["viewer", "commenter", "content", "editor"] as const)(
     "checks project access for %s",

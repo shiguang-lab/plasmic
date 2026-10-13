@@ -4695,6 +4695,7 @@ export class StudioCtx extends WithDbCtx {
     await api.closeSocket();
 
     const eventListeners: ServerToClientEvents = {
+      aiChat: () => undefined,
       connect: async () => {
         // upon connection, subscribe to changes for argument projects
         await api.emit("subscribe", {
@@ -5986,11 +5987,13 @@ export class StudioCtx extends WithDbCtx {
 
   blockChanges = false;
 
+  aiSaveReceipt?: { operationId: string; sessionId: string; fence: number; result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult };
   async save() {
     return this.asyncSaver();
   }
 
   private async trySave(preferIncremental = true): Promise<SaveResult> {
+    if (this.aiSaveReceipt && !this.aiSaveReceipt.result) { return SaveResult.SkipUpToDate; }
     const branchId = this.dbCtx().branchInfo?.id;
     if (!branchId && this.siteInfo.isMainBranchProtected) {
       return SaveResult.TriedEditProtectedMain;
@@ -6064,6 +6067,7 @@ export class StudioCtx extends WithDbCtx {
         await withTimeout(
           this.appCtx.api.saveProjectRevChanges(this.siteInfo.id, {
             revisionNum: this.dbCtx().revisionNum + 1,
+            aiReceipt: this.aiSaveReceipt,
             data: JSON.stringify(changesBundle),
             modelVersion: this.dbCtx().modelVersion,
             hostlessDataVersion: this.dbCtx().hostlessDataVersion,

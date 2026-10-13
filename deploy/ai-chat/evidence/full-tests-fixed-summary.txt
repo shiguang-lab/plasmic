@@ -1,0 +1,18 @@
+WAB full suite — 2026-10-13
+Working directory: platform/wab
+Exit status: 0
+Command: CI=1 WAB_TEST_DATABASE_URI=postgres://wab:SEKRET@localhost:5432/wab WAB_TEST_SUPER_DATABASE_URI=postgres://superwab:SEKRET@localhost:5432/wab AI_CHAT_INTEGRATION_DB=postgres://wab:SEKRET@localhost:5432/wab_ai_test AI_CHAT_BUCKET=plasmic-ai-chat-integration S3_ENDPOINT=http://127.0.0.1:8333 AWS_ACCESS_KEY_ID=local-ai-storage AWS_SECRET_ACCESS_KEY=local-ai-storage-secret node node_modules/vitest/vitest.mjs run
+
+Test Files  398 passed | 1 skipped (399)
+      Tests  3390 passed | 15 skipped (3405)
+   Start at  09:35:26
+   Duration  361.67s (transform 79.31s, setup 207.00s, import 469.03s, tests 324.65s, environment 53.31s)
+
+No new skip, only, or weakened assertions. The 11 PostgreSQL/private S3 integration tests ran. Existing skipped cases remain unchanged.
+
+Post-fix checks (exit status 0):
+- NODE_OPTIONS=--max-old-space-size=16384 node node_modules/typescript/bin/tsc --noEmit (platform/wab)
+- ESLint on the 13 changed TypeScript files (repository root); 0 errors, 54 existing warnings
+- CI=1 PLASMIC_SELF_HOSTED=1 PUBLIC_URL=http://localhost:3003 STATIC_URL=http://localhost:3003 NODE_OPTIONS=--max-old-space-size=16384 node node_modules/@rsbuild/core/bin/rsbuild.js build (platform/wab)
+- Same build environment: node node_modules/@rsbuild/core/bin/rsbuild.js build --config rsbuild.preview.config.ts (platform/wab)
+- git diff --check

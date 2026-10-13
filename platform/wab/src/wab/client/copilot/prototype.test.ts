@@ -51,6 +51,13 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it("rejects model metadata disguised as CSS without changing the design",async () => {
+    const {call,createPage,studioCtx}=fixture();
+    const component=await createPage();
+    const counter=studioCtx._changeCounter;
+    await expect(call("changeElement",{componentUuid:component.uuid,elementUuid:component.tplTree.uuid,styles:{reason:"Explain a change"}})).rejects.toThrow("Unsupported CSS property: reason");
+    expect(studioCtx._changeCounter).toBe(counter);
+  });
   it("reads installed design contracts in existing-page mode without widening write scope", async () => {
     const librarySite = createSite();
     const library = mkComponent({

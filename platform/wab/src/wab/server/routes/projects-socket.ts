@@ -130,7 +130,22 @@ export class ProjectsSocket {
       ?.forEach((socket) => socket.disconnect(true));
   }
 
-  broadcast(payload: BroadcastPayload) {
+  async broadcast(payload: BroadcastPayload) {
+    if (payload.type === "aiChat") {
+      const { projectId, seq } = payload.message;
+      const [event] = await getConnection().query(`SELECT "projectId",seq,payload FROM ai_event WHERE "projectId"=$1 AND seq=$2`, [projectId,seq]);
+      if (!event) { throw new Error("AI event is not committed"); }
+      const sockets = await this.io.in(`projects/${projectId}`).fetchSockets();
+      for (const socket of sockets) {
+        const user = socket.handshake["user"];
+        if (user && await verifyProjectPermissions(user,[projectId])) {
+          socket.emit("aiChat",{projectId: event.projectId,seq: event.seq,...event.payload});
+        } else {
+          socket.disconnect(true);
+        }
+      }
+      return;
+    }
     if (payload.room) {
       this.io.in(payload.room).emit(payload.type, payload.message);
     } else {

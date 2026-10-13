@@ -22,6 +22,7 @@ import RichTextToolbar from "@/wab/client/components/canvas/RichText/RichTextToo
 import { Spotlight } from "@/wab/client/components/canvas/Spotlight";
 import { VariantsBar } from "@/wab/client/components/canvas/VariantsBar";
 import { CanvasArenaShell } from "@/wab/client/components/canvas/canvas-arena";
+import { CanvasClickTracker } from "@/wab/client/components/canvas/canvas-clicks";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import {
   getMarqueeFrames,
@@ -161,6 +162,8 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private canvasScaler = createRef<HTMLDivElement>();
   private onClipperScrollListener: (() => void) | null = null;
   private dragState?: DragState;
+  private canvasClicks = new CanvasClickTracker();
+  private pendingCanvasClick?: { viewCtx: ViewCtx; target: JQuery };
   private marquee?: {
     start: Pt;
     box: Box;
@@ -1015,6 +1018,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     e: MouseEvent,
     focusedVc: ViewCtx | undefined | null,
   ) {
+    this.pendingCanvasClick = undefined;
     if (
       (e.target as HTMLElement).closest(
         ".canvas-editor__canvas-scrollbar .os-scrollbar",
@@ -1201,6 +1205,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
     this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
 
+    this.canvasClicks.start(e, targetVc);
+    this.pendingCanvasClick = { viewCtx: targetVc, target: closest };
+
     const focusedSelectables = targetVc.focusedSelectables();
     const directSelect = PLATFORM === "osx" ? e.metaKey : e.ctrlKey;
     const deepSelect = directSelect && !e.altKey;
@@ -1248,6 +1255,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   );
 
   private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
+    this.canvasClicks.move(e);
     if (
       this.props.studioCtx.isLiveMode ||
       this.props.studioCtx.isInteractiveMode
@@ -1441,6 +1449,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
   private endDrag() {
     const s = ensure(this.dragState, () => "Expected dragState to exist");
+    if (s.isDragging) {
+      this.canvasClicks.reset();
+      this.pendingCanvasClick = undefined;
+    }
     if (s.dragMoveManager) {
       s.dragMoveManager.endDrag();
     }
@@ -1562,6 +1574,26 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   };
 
   private handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
+    const click = this.pendingCanvasClick;
+    this.pendingCanvasClick = undefined;
+    if (
+      !click || this.props.studioCtx.isLiveMode ||
+      this.props.studioCtx.isInteractiveMode ||
+      this.props.studioCtx.freestyleState()
+    ) {
+      this.canvasClicks.reset();
+    }
+    const drillDown = this.canvasClicks.finish(e);
+    const finishClick = () => {
+      if (
+        drillDown && click && !this.props.studioCtx.isLiveMode &&
+        !this.props.studioCtx.isInteractiveMode &&
+        !this.props.studioCtx.freestyleState() &&
+        !click.viewCtx.viewOps.isEditing(e.target as HTMLElement)
+      ) {
+        click.viewCtx.viewOps.deepFocusElement(click.target);
+      }
+    };
     if (this.marquee) {
       const marquee = this.marquee;
       const end =
@@ -1572,6 +1604,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       this.clearMarquee();
       this.setState({ marqueeBox: undefined });
       if (marquee.isDragging) {
+        this.canvasClicks.reset();
         const sc = this.props.studioCtx;
         const frames = !marquee.viewCtx
           ? getMarqueeFrames(sc, marquee.box)
@@ -1608,6 +1641,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         }
       } else {
         marquee.click();
+        finishClick();
       }
       return;
     }
@@ -1629,6 +1663,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const s = this.dragState;
     if (s) {
       this.endDrag();
+    }
+    if (!s?.isDragging) {
+      finishClick();
     }
   }
 
@@ -1678,6 +1715,8 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   }
 
   private cancelMarquee = () => {
+    this.canvasClicks.reset();
+    this.pendingCanvasClick = undefined;
     if (this.marquee) {
       this.clearMarquee();
       this.setState({ marqueeBox: undefined });

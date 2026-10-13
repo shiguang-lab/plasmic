@@ -1,0 +1,23 @@
+
+/Users/yanxianliang/shiguang/plasmic/platform/wab/src/wab/client/components/TopFrame/TopFrameChrome.tsx
+  270:18  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+/Users/yanxianliang/shiguang/plasmic/platform/wab/src/wab/client/copilot/prototype.test.ts
+  459:25  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+  460:25  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+/Users/yanxianliang/shiguang/plasmic/platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx
+  1023:28  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+/Users/yanxianliang/shiguang/plasmic/platform/wab/src/wab/server/AppServer.ts
+   450:3   warning  'opts' is defined but never used. Allowed unused args must match /^_/u                           @typescript-eslint/no-unused-vars
+   691:37  warning  'app' is defined but never used. Allowed unused args must match /^_/u                            @typescript-eslint/no-unused-vars
+   691:63  warning  Unexpected empty function 'addWhiteLabelRoutes'                                                  @typescript-eslint/no-empty-function
+  1045:9   warning  'sensitiveRateLimiter' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  1847:10  warning  'captcha' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+
+/Users/yanxianliang/shiguang/plasmic/platform/wab/src/wab/server/routes/projects.ts
+  567:21  warning  'id' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 10 problems (0 errors, 10 warnings)
+

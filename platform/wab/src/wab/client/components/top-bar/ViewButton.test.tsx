@@ -15,10 +15,17 @@ const { getStudioCtx } = vi.hoisted(() => ({ getStudioCtx: vi.fn() }));
 vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
   useStudioCtx: () => getStudioCtx(),
 }));
-vi.mock("@/wab/shared/Arenas", () => ({ isDedicatedArena: () => true }));
-vi.mock("@/wab/shared/devflags", () => ({
-  DEVFLAGS: { contentEditorMode: false },
+vi.mock("@/wab/shared/Arenas", async (original) => ({
+  ...(await original<typeof import("@/wab/shared/Arenas")>()),
+  isDedicatedArena: () => true,
 }));
+vi.mock("@/wab/shared/devflags", async (original) => {
+  const actual = await original<typeof import("@/wab/shared/devflags")>();
+  return {
+    ...actual,
+    DEVFLAGS: { ...actual.DEVFLAGS, contentEditorMode: false },
+  };
+});
 vi.mock("@/wab/client/shortcuts/studio/studio-shortcuts", () => ({
   getComboForAction: () => "",
 }));
@@ -59,6 +66,16 @@ vi.mock("@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewButton", () => ({
       {props.root.props["aria-label"]}
     </button>
   ),
+}));
+
+// The header shell is outside these action tests; keep the real action buttons.
+vi.mock("@/wab/client/components/BrandLink", () => ({ BrandLink: () => null }));
+vi.mock("@/wab/client/components/studio/Avatar", () => ({
+  AnonymousAvatar: () => null,
+  AvatarGallery: () => null,
+}));
+vi.mock("@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar", () => ({
+  default: () => null,
 }));
 
 function context(shown: boolean) {

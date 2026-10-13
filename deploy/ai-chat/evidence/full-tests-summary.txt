@@ -1,0 +1,27 @@
+FAIL  |studio| src/wab/client/components/top-bar/LivePopOutButton.test.tsx [ src/wab/client/components/top-bar/LivePopOutButton.test.tsx ]
+FAIL  |studio| src/wab/client/components/top-bar/ViewButton.test.tsx [ src/wab/client/components/top-bar/ViewButton.test.tsx ]
+FAIL  |studio| src/wab/client/fixes-post-change.test.ts > Fixes post change > updates component.updatedAt
+FAIL  |studio| src/wab/client/studio-ctx/StudioCtx.test.ts > chatCopilotEnabled > inherits an enterprise tier without a child Stripe customer
+FAIL  |studio| src/wab/client/studio-ctx/StudioCtx.test.ts > chatCopilotEnabled > allows paid plans but rejects trials and free teams
+FAIL  |studio| src/wab/client/studio-ctx/StudioCtx.test.ts > chatCopilotEnabled > checks project access for content
+FAIL  |studio| src/wab/client/studio-ctx/StudioCtx.test.ts > chatCopilotEnabled > checks project access for editor
+FAIL  |studio| src/wab/client/components/canvas/CanvasOverlayToolbar.test.tsx > one icon toggles effective auto-open state per instance without writing component props
+FAIL  |server| src/wab/server/db/DbMgr.spec.ts > DbMgr organization entitlements > downgrades roles the new feature tier doesn't include
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > can send a comment notification email (with markdown support)
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > can send a reply notification email
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > can send a reaction notification email
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > can send a mention notification email
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > can send a resolution notification
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > can send comment, reply, reaction, resolution, and mention notifications in the same email
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > sends a separate email for each project
+FAIL  |server| src/wab/server/emails/comment-notification-email.spec.ts > sendUserNotificationEmail > sends a separate email for each branch of the same project
+FAIL  |server| src/wab/server/routes/loader.spec.ts > loader > resolves component as HTML
+FAIL  |server| src/wab/server/routes/loader.spec.ts > loader > resolves component as HTML with hydration
+FAIL  |server| src/wab/server/routes/loader.spec.ts > loader > responds 404 if component does not exist
+FAIL  |server| src/wab/server/routes/loader.spec.ts > loader > sets a valid preview HTML ETag for non-Latin-1 component names
+FAIL  |server| src/wab/server/util/url.spec.ts > fetchUntrusted - e2e test with external redirect service > follows redirect with fetch but fails with fetchUntrusted
+
+Test Files  9 failed | 387 passed | 2 skipped (398)
+Tests  20 failed | 3333 passed | 26 skipped (3379)
+Start at  07:55:01
+Duration  514.66s (transform 160.80s, setup 274.78s, import 652.67s, tests 496.57s, environment 66.54s)

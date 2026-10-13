@@ -30,6 +30,10 @@ if (
 const env = {
   ...process.env,
   ...config,
+  AI_CHAT_BUCKET: config.AI_CHAT_BUCKET ?? "plasmic-ai-chat",
+  S3_ENDPOINT: config.S3_ENDPOINT ?? "http://127.0.0.1:8333",
+  AWS_ACCESS_KEY_ID: config.AWS_ACCESS_KEY_ID ?? "local-ai-storage",
+  AWS_SECRET_ACCESS_KEY: config.AWS_SECRET_ACCESS_KEY ?? "local-ai-storage-secret",
   NODE_ENV: "development",
   BIND_HOST: "127.0.0.1",
   HOSTSERVER_PORT: "3005",
@@ -44,10 +48,11 @@ const child = spawn(
     "concurrently",
     "--kill-others",
     "--names",
-    "backend,host,frontend",
+    "backend,host,frontend,ai-worker",
     "pnpm backend",
     "pnpm host-server",
     "pnpm start",
+    "pnpm ai-worker",
   ],
   { cwd: path.join(root, "platform", "wab"), env, stdio: "inherit" },
 );

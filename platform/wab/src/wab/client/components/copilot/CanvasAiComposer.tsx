@@ -44,6 +44,7 @@ export function CanvasAiComposer({
   React.useSyncExternalStore(session.subscribe, session.snapshot);
   const enabled = appCtx.appConfig.enableLocalAiEditing;
   const { data: status } = useLocalAiStatus(projectId, enabled);
+  const activeTask = session.tasks.find((task) => task.status === "running");
   const attachmentState = useAiAttachments(
     session.draft.attachments,
     (attachments) => {
@@ -85,6 +86,9 @@ export function CanvasAiComposer({
           session.selectedModel = model;
         }}
         disabled={!enabled}
+        running={session.running}
+        onStop={() => session.stop()}
+        stopDisabled={!activeTask || !session.canStop(activeTask)}
         canSubmit={enabled && !!context.binding}
         ariaLabel={t("AI canvas editing")}
         testId="canvas-ai-composer"

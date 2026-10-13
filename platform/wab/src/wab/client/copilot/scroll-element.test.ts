@@ -29,11 +29,13 @@ async function fixture() {
     "Frame missing",
   );
   const vc = mockDeepAuto<ViewCtx>();
+  vc.awaitSync.mockResolvedValue(undefined);
   vc.arenaFrame.mockReturnValue(frame);
   vc.renderState.tpl2fullKeys.mockReturnValue(["first", "second"]);
   vc.renderState.fullKey2val.mockReturnValue({} as any);
   studioCtx.viewCtxs.push(vc);
   vi.spyOn(studioCtx, "focusedViewCtx").mockReturnValue(vc);
+  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(vc);
   vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
   const selection = vi.spyOn(studioCtx, "setStudioFocusOnFrame");
   const change = vi.spyOn(studioCtx, "changeObserved");

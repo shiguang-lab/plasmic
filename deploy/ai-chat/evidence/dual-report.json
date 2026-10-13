@@ -1,0 +1,15 @@
+{
+  "projectId": "9ebuBz8SEDHpNbYDaSjWoT",
+  "events": [
+    45,
+    46
+  ],
+  "checks": [
+    "dual browser historical messages",
+    "completed status",
+    "saved design reopen",
+    "outsider 403",
+    "collaborator live events",
+    "explicit stop"
+  ]
+}

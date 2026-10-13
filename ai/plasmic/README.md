@@ -7,7 +7,7 @@
 ```text
 packages/plasmic-cli/skill/plasmic/SKILL.md  薄入口的唯一维护源
 packages/plasmic-cli/src/                  CLI 运行代码，无外部运行依赖
-packages/plasmic-cli/scripts/publish.mjs   tag / npm 版本与完整性检查、发布
+packages/plasmic-cli/scripts/publish.mjs   CLI 内容比较、资源构建与按需 npm 发布
 ai/plasmic/references/guide.md             资源总入口
 ai/plasmic/references/workflows/           inspect / prototype / codegen 工作流
 ai/plasmic/references/model-reading.md     只读解读与 coding 共用的模型读取契约
@@ -18,8 +18,8 @@ ai/plasmic/references/                     设计规范与 MCP 契约
 ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与绑定规范
 ai/plasmic/references/templates/admin/     素材库目录和官方 UiConfig 的唯一维护源
 ai/plasmic/scripts/                        结构、Slot、模型比较检查
-scripts/build-plasmic-resources.mjs        构建资源与同版本 CLI 安装包
-.github/workflows/publish-plasmic-cli.yml  新 tag 自动发布 npm 并打包资源
+scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI 安装包
+.github/workflows/publish-plasmic-cli.yml  新 tag 打包资源，CLI 内容变化时发布 npm
 ```
 
 根目录不再放置 `skills/`。CLI 直接读取包内 `skill/plasmic/SKILL.md` 安装，无生成副本或复制构建步骤。`docs/search-form.md` 是组件契约的源文件，构建时进入 `references/search-form.md`；测试脚本不进入资源 bundle。
@@ -81,7 +81,7 @@ plasmickit context resolve --mode codegen
 plasmickit references path
 ```
 
-`version check` 查询 NAS 当前发布清单，返回正在运行的 `cliVersion`、NAS 发布的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
+`version check` 查询 NAS 当前发布清单；清单的 `version` 是资源版本，`cliVersion` 是所附 npm 包版本。CLI 升级判断只比较 `cliVersion`。命令返回正在运行的 `cliVersion`、NAS 发布的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
 
 `context resolve` 每次读取 NAS 的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流，通过后台索引按受影响区域选读；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
 
@@ -103,9 +103,9 @@ plasmickit references path
 node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
 ```
 
-版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；不会发布或切换 NAS 清单。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
+版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换 NAS 清单，也不替代正式发布的 npm 内容比较。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
 
-正式发布沿用下文的 tag 流程：提交本次规范文件，推送新数字 tag，等待 CLI workflow 成功，从该次 workflow 下载同版本 `plasmic-resources-<tag>` artifact，再通过 `publish:resources --from ... --version ...` 部署到 NAS。该数字 tag 还会触发现有 server/web 镜像 workflow；它不是仅触发 references 的专用 tag。NAS 部署必须使用该次 CI 产物，不要重新构建并覆盖已发布版本。
+正式发布沿用下文的 tag 流程：提交本次规范文件，推送新数字 tag，等待资源 workflow 成功，从该次 workflow 下载资源版本对应的 `plasmic-resources-<tag>` artifact，再通过 `publish:resources --from ... --version ...` 部署到 NAS。仅 references 或资源脚本变化时复用 npm 最新 CLI 的版本和原始安装包，不发布新的 npm 版本。该数字 tag 还会触发现有 server/web 镜像 workflow；它不是仅触发 references 的专用 tag。NAS 部署必须使用该次 CI 产物，不要重新构建并覆盖已发布版本。
 
 NAS 部署成功后，客户端执行：
 
@@ -133,11 +133,11 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 新的 workflow 使用 GitHub-hosted Node 24 runner，顺序执行：
 
 1. 校验 tag 是无 `v` 前缀的稳定 SemVer，运行 CLI、安装包和 NAS promotion 测试。
-2. 在临时包目录把 CLI `package.json.version` 设置为 tag，再构建 CLI 和资源清单。仓库文件不被改写。
-3. 查询 npm 包版本、`latest` 和 `dist.integrity`；拒绝回退、tag 与产物版本不一致，以及同版本不同内容。相同版本、相同完整性且已为 latest 时幂等跳过。
-4. 发布同版本 public npm 包，等待 registry 同步并核对版本和完整性，再保存同一份 CLI/资源到 Actions artifact。
+2. 构建本地 CLI 包，下载并校验 npm `latest` 的安装包，比较实际打包内容。比较忽略 `package.json.version`，包含运行代码、薄 skill 和其余包契约；文件顺序和归档时间不影响比较。
+3. 内容相同则保留 npm 最新 CLI 版本，并复用其原始安装包字节。内容变化或首次发布时，把 CLI 版本设为本次 tag；已有 npm 版本时，新 CLI 版本必须更大。
+4. 使用 tag 作为资源清单的 `version`，使用所选 CLI 版本作为 `cliVersion`，构建 resources 和 Actions artifact。仅新 CLI 执行 npm publish；相同版本、相同完整性且已为 latest 时跳过。
 
-CLI 和资源清单的 `version` 都等于 release tag；源码 package.json 的版本用于本地开发，不要求每次 tag 手工修改。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，只在资源协议或运行能力需要新 CLI 时提高，避免纯 reference 更新强迫升级。资源目录仍使用内容哈希 `releaseId`，记录所有文件/安装包的 SHA-256 和大小。
+例如资源版本从 `0.0.82` 更新到 `0.0.83`，CLI 可以一直保持 `0.0.81`。CLI 或薄 skill 在 `0.0.84` 变化时才发布 CLI `0.0.84`。源码 package.json 的版本用于本地开发，不要求每次 tag 手工修改。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，只在资源协议或运行能力需要新 CLI 时提高，并且不得高于清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件/安装包的 SHA-256 和大小。
 
 ### CI 必要配置
 
@@ -147,12 +147,12 @@ Actions 负责发布 npm、构建 server/web 镜像并打包资源。NAS 部署�
 
 ## 单独部署 NAS 资源
 
-从成功的 CLI workflow 下载 `plasmic-resources-<tag>` artifact，解压到一个目录。该目录包含 `latest.json` 和 `releases/<releaseId>/`。部署直接使用这份产物，使 NAS CLI 安装包与 npm 发布包保持相同字节；不要重新打包已经发布的版本。
+从成功的资源 workflow 下载 `plasmic-resources-<tag>` artifact，解压到一个目录。该目录包含 `latest.json` 和 `releases/<releaseId>/`。部署必须通过 `--from` 直接使用这份产物，使 NAS CLI 安装包与 npm 发布包保持相同字节；部署脚本不会本地重新构建。
 
 ```sh
 # 首次配置 nginx 和只读更新卷：
 npm --prefix desktop run setup:nas-updates
-# 发布下载并解压的同版本产物：
+# 发布下载并解压的资源版本对应产物：
 npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-resources --version 0.0.38
 ```
 
@@ -167,7 +167,7 @@ node scripts/build-plasmic-resources.mjs --version 0.0.59
 node packages/plasmic-cli/scripts/publish.mjs --tag 0.0.59
 ```
 
-实际发布 npm 需要显式加 `--execute`；推送 tag 的 CI 会自动传入。Desktop App 使用自己的发布流程；CLI/resources 现在由仓库 release tag 发布，Desktop `publish:nas` 不再另外覆盖该清单。
+CLI 发布脚本会先检查 npm 最新包并选择 CLI 版本；仅实际包内容变化才调用 npm publish。上传 npm 需要显式加 `--execute`；推送 tag 的 CI 会自动传入。Desktop App 使用自己的发布流程；CLI/resources 现在由仓库 release tag 发布，Desktop `publish:nas` 不再另外覆盖该清单。
 
 本地构建目录 `dist/plasmic-resources/` 对应 NAS：
 

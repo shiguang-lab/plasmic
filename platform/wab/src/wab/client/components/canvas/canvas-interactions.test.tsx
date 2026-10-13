@@ -9,6 +9,7 @@ it.each(["edit", "interactive", "live", "text"])(
   (mode) => {
     const click = vi.fn();
     const pointer = vi.fn();
+    const doubleClick = vi.fn();
     const viewCtx = {
       studioCtx: {
         isLiveMode: mode === "live",
@@ -20,16 +21,19 @@ it.each(["edit", "interactive", "live", "text"])(
     document.body.append(container);
     const absorb = (event: Event) => absorbEditingCanvasEvent(event, viewCtx);
     container.addEventListener("click", absorb, true);
+    container.addEventListener("dblclick", absorb, true);
     const view = render(
-      <button onClick={click} onPointerDown={pointer}>
+      <button onClick={click} onPointerDown={pointer} onDoubleClick={doubleClick}>
         Canvas image
       </button>,
       { container },
     );
     fireEvent.pointerDown(view.getByRole("button"));
     fireEvent.click(view.getByRole("button"));
+    fireEvent.doubleClick(view.getByRole("button"));
     expect(pointer).toHaveBeenCalledOnce();
     expect(click).toHaveBeenCalledTimes(mode === "edit" ? 0 : 1);
+    expect(doubleClick).toHaveBeenCalledTimes(mode === "edit" ? 0 : 1);
     view.unmount();
     container.remove();
   },

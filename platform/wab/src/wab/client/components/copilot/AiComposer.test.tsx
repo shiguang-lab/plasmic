@@ -52,13 +52,13 @@ it("preserves the scope, removes attachments and blocks submission while unavail
     screen.getByRole("button", { name: "Remove attachment requirements.md" }),
   );
   expect(screen.queryByText("requirements.md")).toBeNull();
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Change title" },
+  fireEvent.input(screen.getByRole("textbox"), {
+    target: { innerText: "Change title" },
   });
   fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
   expect(submit).not.toHaveBeenCalled();
   rerender(<Composer running />);
-  expect(screen.getByRole("textbox")).toBeDisabled();
+  expect(screen.getByRole("textbox")).toHaveAttribute("contenteditable", "false");
   expect(screen.getByRole("combobox", { name: "AI model" })).toBeDisabled();
   expect(screen.queryByRole("button", { name: "Send AI request" })).toBeNull();
   fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
@@ -113,14 +113,46 @@ it("expands in narrow containers and for overflowing text, then returns to compa
   const root = screen.getByRole("group", { name: "Composer" });
   const input = screen.getByRole("textbox");
   expect(root).toHaveAttribute("data-expanded", "false");
-  fireEvent.change(input, {
-    target: { value: "Long description ".repeat(20) },
+  fireEvent.input(input, {
+    target: { innerText: "Long description ".repeat(20) },
   });
   expect(root).toHaveAttribute("data-expanded", "true");
-  fireEvent.change(input, { target: { value: "Short" } });
+  fireEvent.input(input, { target: { innerText: "Short" } });
   expect(root).toHaveAttribute("data-expanded", "false");
   width = 277;
-  fireEvent.change(input, { target: { value: "" } });
+  fireEvent.input(input, { target: { innerText: "" } });
   expect(root).toHaveAttribute("data-expanded", "true");
   expect(screen.getByText("StatusFilter")).toBeTruthy();
+});
+
+it("keeps the node prefix beside the editable content in multiline mode", () => {
+  render(<Composer />);
+  const input = screen.getByRole("textbox");
+  const prefix = screen.getByText("StatusFilter").closest("[data-composer-part=scope]");
+  expect(prefix).toHaveAttribute("contenteditable", "false");
+  expect(prefix?.parentElement).toBe(input.parentElement);
+  expect(input).toHaveAttribute("contenteditable", "plaintext-only");
+  fireEvent.input(input, { target: { innerText: "Change title\nand description" } });
+  expect(screen.getByRole("group", { name: "Composer" })).toHaveAttribute("data-expanded", "true");
+  expect(input).toHaveProperty("innerText", "Change title\nand description");
+  expect(prefix?.parentElement).toBe(input.parentElement);
+  fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
+  fireEvent.keyDown(input, { key: "Enter", isComposing: true });
+  expect(submit).not.toHaveBeenCalled();
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(submit).toHaveBeenCalledTimes(1);
+  fireEvent.input(input, { target: { innerText: "" } });
+  expect(input).toHaveAttribute("data-empty", "true");
+  expect(prefix).toBeInTheDocument();
+});
+
+it("treats the browser's lone line break after deletion as empty content", () => {
+  render(<Composer />);
+  const input = screen.getByRole("textbox");
+  fireEvent.input(input, { target: { innerText: "Change title" } });
+  input.replaceChildren(document.createElement("br"));
+  fireEvent.input(input, { target: { innerText: "\n" } });
+  expect(input).toHaveAttribute("data-empty", "true");
+  expect(input).toHaveProperty("innerText", "");
+  expect(screen.getByRole("button", { name: "Send AI request" })).toBeDisabled();
 });
