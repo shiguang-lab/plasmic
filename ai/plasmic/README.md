@@ -85,6 +85,8 @@ plasmickit references path
 
 `context resolve` 每次读取 NAS 的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流，通过后台索引按受影响区域选读；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
 
+资源命令在 stderr 实时输出友好的阶段提示，版本检查显示当前版本和最新版本，资源无需更新且缓存完整时直接提示当前已是最新版本；需要加载时显示下载与哈希校验进度。正常加载不展示缓存保存、更新协调和工作流入口等内部步骤。下载显示已接收字节与实际进度，阶段持续超过两秒时定期显示等待时长；失败提示标明当前阶段。stdout 仅输出最终 JSON，阶段内失败时，错误 JSON 包含失败阶段 `stage`。AI 应使用运行工具的增量输出能力转述阶段变化；工具若只在退出后返回日志，CLI 无法保证中途显示，AI 应说明仍在等待，不能编造进度。工作流入口就绪只代表文件可供阅读，Agent 仍需读取返回的 `mustRead`。
+
 缓存默认位于 `~/.cache/plasmic/`：`releases/<releaseId>/` 保存版本，`current.json` 原子切换当前版本。`PLASMIC_RESOURCE_HOME` / `--home` 设置缓存目录；`PLASMIC_RESOURCE_URL` / `--feed` 设置资源源（HTTPS；loopback 测试允许 HTTP）。`path` 仅供显式离线检查，不能证明缓存最新。NAS 不可达或校验失败时停止依赖任务。更新以目录锁防止交叉写入；异常退出留下 `.update-lock` 时，确认没有更新进程后删除锁再执行。
 
 ## 管理后台模板规范
@@ -135,9 +137,9 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 | Studio | `0.0.84` | 对比上一个 Studio tag 的生产输入；前端变化在镜像成功后联动 Desktop |
 | Desktop | `desktop-v0.0.59` | 对比上一个 Desktop tag；Studio 联动时自动创建，不重复手工推送 |
 | CLI | `cli-v0.0.83` | 比较实际 npm 包内容，忽略包版本和归档元数据；不变则跳过 |
-| 资源 | `resources-v0.0.84` | 对比上一个资源 tag 的 references、脚本、资源构建和协议输入 |
+| 资源 | `resources-v0.0.84` | 对比上一个资源 tag 的 references、脚本、资源构建和 CLI 包输入 |
 
-资源第一次使用独立 tag 时，以最后一个旧数字 tag 为基线。Studio/纯 Desktop 发布均不发布 CLI 或资源；CLI 发布也不构建资源。资源发布从 npm 下载当前 latest CLI，验证完整性并复用原始字节，不包含尚未发布的本地 CLI 修改。需要新 CLI 能力的资源更新应先发布 CLI，再发布资源。
+资源第一次使用独立 tag 时，以最后一个旧数字 tag 为基线。Studio/纯 Desktop 发布均不发布 CLI 或资源；CLI 发布也不构建资源。资源发布从 npm 下载当前 latest CLI，验证完整性并复用原始字节，不包含尚未发布的本地 CLI 修改。CLI 包变化也视为资源发布输入变化：先发布 CLI，再推送新资源 tag 并部署该次 CI 产物，更新 NAS 清单中的 `cliVersion` 和 CLI 安装包，使版本检查与 npm latest 一致。
 
 CLI 的源码 package.json 版本用于开发，发布版本来自 `cli-v` tag。资源清单的 `version` 来自 `resources-v` tag，`cliVersion` 来自 npm。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
 
