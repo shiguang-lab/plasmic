@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Check overlay footer inventories against full public MCP component readbacks.
 
-See references/design/overlays.md. Only inventoried owning components are checked.
+See references/libraries/antd_v6/compositions/modal-drawer.md.
+This gate targets Antd-v6 contracts; only inventoried owning components are checked.
 Effects are independently reviewed expectations, not inferred from button labels.
 Expressions are never executed; unresolved visibility requires runtime evidence.
 """

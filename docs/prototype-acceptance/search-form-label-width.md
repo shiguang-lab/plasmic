@@ -16,4 +16,4 @@ REQ075 客群列表：项目 `2DdvqnozKTQgbqsQAu4c4X`，页面 `S2fCQS6U6wJM`，
 - 真实交互预览采用桌面自适应窗口，实际视口 **1600×872**。点击展开后，五个标签栏全部为 72×32px，首列上下行控件起点一致。[预览截图](search-form-label-width/preview-configured.png)按 1440px 输出，检查标签完整单行、下拉箭头和“收起”状态；几何断言来自实际预览 DOM。
 - 从图层树选择 queryForm，属性面板显示 **Label width = 72**，输入控件可编辑。见 [属性面板](search-form-label-width/property-panel.png)。
 
-源代码仍使用 `Form.labelCol.flex` 实现标签宽度，没有按页面硬编码组件默认值。源码及用法见 [SearchForm](../../plasmicpkgs/overseas/src/SearchForm.tsx)、[注册定义](../../plasmicpkgs/overseas/src/registerSearchForm.tsx)、[使用文档](../search-form.md)。当前模型、量测、截图、MCP 操作和原生同步记录位于 `desktop/desktop-report/req075-regeneration/label-width-*`。
+源代码仍使用 `Form.labelCol.flex` 实现标签宽度，没有按页面硬编码组件默认值。源码及用法见 [SearchForm](../../plasmicpkgs/overseas/src/SearchForm.tsx)、[注册定义](../../plasmicpkgs/overseas/src/registerSearchForm.tsx)、[使用文档](../../ai/plasmic/references/libraries/overseas/components/search-form.md)。当前模型、量测、截图、MCP 操作和原生同步记录位于 `desktop/desktop-report/req075-regeneration/label-width-*`。

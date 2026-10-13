@@ -2,7 +2,7 @@
 
 Use before requirement-driven generation, regeneration or an audit of page/navigation scope. The source inventory is a task artifact, not another component prop schema and not UI content.
 
-Keep business-specific page counts, entity names, routes, menu trees, field dictionaries and approved layout decisions in that task's inventory. Do not promote them into this skill's defaults or add branches keyed by a requirement ID. Examples illustrate a mechanism only; a new requirement must produce a new inventory from its own sources. This skill targets editable Ant Design PC prototypes in Plasmic; other product/platform requirements need their own applicable design rules, not forced reuse of the admin defaults.
+Keep business-specific page counts, entity names, routes, menu trees, field dictionaries and approved layout decisions in that task's inventory. Do not promote them into this skill's defaults or add branches keyed by a requirement ID. Examples illustrate a mechanism only; a new requirement must produce a new inventory from its own sources. Select design rules for the actual product/platform and [component library](libraries/index.md); do not force the current admin or Antd-v6 defaults onto another scope.
 
 ## Source and scope
 

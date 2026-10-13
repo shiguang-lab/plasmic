@@ -1,0 +1,23 @@
+# SearchForm + Tabs + Table
+
+Applies to [Overseas](../index.md) query/shell components and [Ant Design v6](../../antd_v6/index.md) controls, Tabs and Table. Read [React UI](../../react_ui/index.md) only when its ActionGroup is used. Select these libraries through the [library index](../../index.md) before applying this recipe.
+
+Read component rules only for the affected parts: [SearchForm](../components/search-form.md), [Tabs](../../antd_v6/components/tabs.md), [Table](../../antd_v6/components/table.md), [Pagination](../../antd_v6/components/pagination.md), [Dropdown](../../antd_v6/components/dropdown.md), [ActionGroup](../../react_ui/components/action-group.md), [Tooltip](../../antd_v6/components/tooltip.md) and [Badge](../../antd_v6/components/badge.md). This file owns query/list composition and cross-region acceptance.
+
+## Query and list structure
+
+Query → list toolbar/Tabs → Table → pagination. Every list query region uses the registered Overseas SearchForm and its real editable Item/control nodes. Keep applied filters separate from drafts; use the SearchForm contract for submitted/reset values and page-one updates. Derive filters from the current requirement.
+
+Business actions such as create, import or launch belong to an editable business toolbar, distinct from SearchForm's query/reset/expand controls. When that toolbar is displayed above a SearchForm, align its actions to the content region's left edge using normal flex flow (`justify-content: flex-start`), with an 8px action gap and 16px separation from the filter row. The button's outer left edge aligns with the SearchForm's inner content edge, not with the label glyphs or the input after labelWidth. Do not push a lone business action to the far right. This is the admin query-region convention; page-header actions, Modal footers and the SearchForm's own action column retain their respective component/layout contracts. Preserve an explicitly approved ordering of toolbar and filters, and derive actions and permissions from the current requirement.
+
+Use Tabs for scopes such as All/Mine. Each Tab content Slot owns its Table, pagination and state; put a shared primary action in Tabs extra and keep one primary page action. Use [Card edge ownership](../../antd_v6/components/card.md#card-ownership) where Tabs and Table share a surface. Preserve identical column definitions for comparable All/Mine tables.
+
+## Pagination and scrolling
+
+Default page size 20 with options 20/50/100 unless the requirement says otherwise. Sample rows and total must agree, ideally at least three pages for pagination testing. Let the Table grow naturally; scroll the AppShell content region to reach pagination. For a Table inside a Modal, bound and scroll the Modal content region instead of the Table body, keeping the title and footer reachable. Verify 20/50/100 rows, expanded/collapsed filters and All/Mine scopes: the whole business region moves vertically while shell navigation stays fixed, with no second Table body scrollbar. Do not force a tall empty card; leave bottom spacing 16px once.
+
+## Region acceptance
+
+Inventory every SearchForm by Page/Tab, including inactive Tabs, and run its component acceptance. Record business-action placement independently of the generated output; measure the business button’s outer left edge against the filter content edge within 1 CSS pixel. Exercise query/reset separately from business actions; actions must reach their intended destination with required permission/disabled behavior.
+
+Combine the relevant component checks in real Preview: default and changed page sizes, expanded/collapsed filters, both scope-switch directions, longest values, overflow Tooltips, fixed-right operations and horizontal scrolling. Verify that the shell stays fixed and the single content scroll owner reaches pagination. Save/reopen and reread changed props/Slots/bindings. Record model, geometry, screenshot and interaction outcomes separately; unvisited Tabs or unmeasured criteria remain unverified. Correct generation input and delivered models together when a rule fails.

@@ -4,6 +4,8 @@ For admin prototype design or revision, read this reference and [the catalog](te
 
 ## Select by scenario
 
+The current catalog uses Ant Design 6, Overseas, React UI and Ant Design Icons. Match its live source dependencies to the target's scopes from the [library index](libraries/index.md). A same-named component from v5 or another library is not an interchangeable template dependency. Do not install/migrate a different library solely to fit this catalog; when the selected library has no compatible template, use its verified components and matching rules.
+
 Derive page inventory, data scopes and required behavior from the current requirement first. Match catalog `useWhen`, `avoidWhen`, `kind`, `nestedTemplates` and `compositions`. Record the selected component names, source project/version, destination page and changes needed in the task plan outside the UI. If no template fits, record the unmet scenario and compose from existing registered components; do not force a list template onto a dashboard or invent an unpublished template.
 
 | Scenario | Template composition |

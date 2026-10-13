@@ -5,7 +5,7 @@
 - 缩略图卡片：<http://127.0.0.1:3106/>
 - 交互预览：<http://127.0.0.1:3106/?preview>
 - Plasmic 本地组件 Host：<http://127.0.0.1:3106/?host>
-- SearchForm 交互预览：<http://127.0.0.1:3106/?search-form>（字段、Slot、折叠、查询/重置、校验及插入/修改/删除演示）。组件设计与生成规则见 [SearchForm](../../../docs/search-form.md)。
+- SearchForm 交互预览：<http://127.0.0.1:3106/?search-form>（字段、Slot、折叠、查询/重置、校验及插入/修改/删除演示）。组件设计与生成规则见 [SearchForm](../../../ai/plasmic/references/libraries/overseas/components/search-form.md)。
 
 预览服务运行后，在仓库根目录执行 `node plasmicpkgs/overseas/preview/verify-search-form.mjs` 进行浏览器验收。使用 WAB 已安装的 Playwright，默认打开本机 Google Chrome；其它环境用 PLASMIC_BROWSER_PATH 指定 Chromium 可执行文件。截图保存至 `desktop/desktop-report/search-form/runtime.png`。
 

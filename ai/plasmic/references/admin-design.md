@@ -1,22 +1,23 @@
 # Admin design reference index
 
-Use this index to select references for the affected regions. Read only those references before composing or reviewing that region; a small edit does not require unrelated rules. Live component registrations and the current requirement define Props, Slots, values and behavior.
+Start with [library and API selection](libraries/index.md). Identify the project's actual imported libraries and used registrations before choosing component rules. Reuse the user's chosen libraries, existing host shell and verified contracts; shared display names do not imply identical Props, Slots, defaults or behavior across libraries/versions.
 
-Reuse registered Antd6 Flex, Row/Col, Space and Card; use the existing AppShell for standalone pages. Read [admin templates](admin-templates.md) and the [catalog](templates/admin/catalog.json) when selecting or composing templates. Keep one shell per standalone page and current-project business bindings.
-
-| Affected region | Read before working on it |
+| Affected area | Read |
 | --- | --- |
-| Shell, viewport, scrolling or Card surfaces | [Layout](design/layout.md) |
-| Supporting text, read-only fields, metrics or headings | [Information hierarchy](design/information.md) |
-| Creation, copy or renaming of editable nodes | [Node naming](design/naming.md) |
-| Filters, Tabs, Tables, pagination or overflow | [Queries and lists](design/lists.md) and the live [SearchForm contract](search-form.md) when used |
-| Buttons, navigation, feedback or confirmation | [Actions](design/actions.md) |
-| Modal/Drawer structure, dismissal or footer | [Overlays](design/overlays.md) and [Actions](design/actions.md) |
-| Editable fields, Form validation or Modal/Drawer forms | [Forms](design/forms.md) and [Overlays](design/overlays.md) |
-| Record detail heading and return navigation | [Detail headers](design/detail.md) |
+| A specific registered component | Its matching library index and component document |
+| Shell, sizing, alignment, overflow, scrolling, responsive layouts or surfaces | [Shared layout](design/layout.md), then the chosen library's layout/shell/surface rules |
+| Supporting text, read-only fields, metrics or headings | Selected library's typography, information/metric components and applicable composition |
+| Queries, scopes, tables, pagination or overflow | Selected libraries' query, table, pagination and overflow components; a composition with matching participants |
+| Actions, navigation, feedback or confirmation | Selected library's action/feedback contracts and matching action-bar recipe |
+| Editable fields and validation | Selected library's Form/field contracts and applicable form-layout/gate rules |
+| Overlay structure, dismissal or footer | Selected library's overlay/close contracts and matching recipe |
+| Detail heading and return navigation | Selected components' navigation/icon contracts and matching detail-header recipe |
+| Node creation, copying or renaming | [Node naming](design/naming.md) |
+| Library icons | [Icon selection](design/icons.md), then the actual icon-library scope |
+| Keyboard, focus, accessible names or readable feedback | [Shared accessibility](design/accessibility.md), then the affected component contracts |
 
-These are admin design conventions adapted from pen-antd-kit; they do not supply component identifiers or replace the actual registration. Explicit user-approved designs take precedence over defaults. Business language remains configured; Studio labels remain English.
+Read [admin templates](admin-templates.md) and [the catalog](templates/admin/catalog.json) when selecting or composing templates. A template's declared/source libraries must match the selected project components; the current catalog is not a default library choice for every project. When it does not fit, compose from the chosen registered library rather than install another library just to use that template. Keep one shell per standalone page and current-project business bindings.
 
-Run the applicable structural gates and real Preview checks described in the selected references. For design edits, save/reopen and reread the changed model; read-only reviews do not save or alter designs. Model validation and screenshots answer different questions; neither alone proves behavior. Keep source inventories and evidence outside the product UI.
+Explicit approved designs and current component contracts define the task. Business language remains configured; persisted registrations/Props/Slots retain their identities. Read only affected rules. Run only gates applicable to the selected library/API scope and independently reviewed inventory, then check real Preview behavior. Model validity and screenshots answer different questions. Save/reopen and reread after edits; read-only reviews do not mutate designs. Keep inventories/evidence outside the product UI.
 
-Component wrapper or editor runtime work additionally uses [engineering verification](engineering/component-contracts.md). Do not turn an ordinary design task into platform development when a capability is unavailable.
+Wrapper or editor-runtime work additionally uses [shared engineering verification](engineering/component-contracts.md). Do not turn an ordinary design task into platform development when a capability is unavailable.

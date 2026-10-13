@@ -16,7 +16,7 @@ function headingIds(content) {
   );
 }
 
-// Validate actual release resources, including generated references/search-form.md.
+// Validate actual release resources and their component/composition references.
 export function validateReferences(files, entrypoints) {
   const resources = new Map(files.map((file) => [file.path, file.content]));
   const edges = new Map();

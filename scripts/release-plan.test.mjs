@@ -57,7 +57,8 @@ test("Desktop is independent and CLI changes refresh the resource feed's CLI art
   assert.deepEqual(products(["ai/plasmic/scripts/verify_slots.py"]), [
     "resources",
   ]);
-  assert.deepEqual(products(["docs/search-form.md"]), ["resources"]);
+  assert.deepEqual(products(["ai/plasmic/references/libraries/overseas/components/search-form.md"]), ["resources"]);
+  assert.deepEqual(products(["scripts/validate-plasmic-component-coverage.mjs"]), ["resources"]);
 });
 test("documentation, tests, and workflow changes alone do not release products", () => {
   assert.deepEqual(

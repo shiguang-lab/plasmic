@@ -6,7 +6,7 @@ Use for creating or revising editable designs. Read Desktop readiness and live o
 
 Read the actual requirement and target project before changing it. For requirement-driven generation or route/menu changes, read [requirement alignment](../requirement-alignment.md) and freeze source-derived acceptance inputs outside the UI. Previous generated output is reference evidence, not the requirement.
 
-For admin composition read the [admin reference index](../admin-design.md), [template workflow](../admin-templates.md) and [catalog](../templates/admin/catalog.json). Select templates by scenario or record why none fits. Load only the index's references applicable to the affected regions before building them. Explicit regeneration/stability work also reads [reproducibility](../reproducibility.md).
+Read the [library index](../libraries/index.md) first. Identify actual project imports, registration keys and implementation/API versions; record the selected scopes and unknowns. Read only matching component rules and recipes whose participating libraries fit. Missing coverage uses verified live contracts and shared rules, never another major's defaults. For admin work read the [admin index](../admin-design.md), [template workflow](../admin-templates.md) and [catalog](../templates/admin/catalog.json); choose a template only when its scenario and library scope fit. Stability work also reads [reproducibility](../reproducibility.md).
 
 ## Build and bind
 
@@ -16,9 +16,9 @@ Create routed Pages, use registered components and preserve native editable Slot
 
 `data-props` is JSON, not JSX. Dynamic values use supported `{{ expression }}` bindings. Discover real render-prop scopes before binding cells. Batches are atomic; discover newly created IDs in separate calls before using them. Preserve business UUIDs and interactions when moving existing nodes; remove obsolete structure only within the authorized change.
 
-Build structure and behavior together: local state, events, query/reset, pagination, Tabs, forms, navigation and overlays as actually required. Keep draft/applied filters and temporary editor reveal distinct. [Actions](../design/actions.md) covers navigation/feedback; [forms](../design/forms.md) covers real validation/ref submission; [overlays](../design/overlays.md) covers dismissal and the generation gate; [lists](../design/lists.md) covers native filter/Table contracts. Record simulated processing in the plan, not implementation notes in the UI. Remove unused imported demo Slot content before acceptance.
+Build structure and behavior together: local state, query/reset, pagination, scopes, forms, navigation and overlays as actually required. Keep drafts/applied values and temporary editor reveal distinct. Use the selected library's component rules and applicable compositions/gates; preserve real Slots and handlers. Record simulated processing in the plan, not the UI, and remove unused demo Slot content before acceptance.
 
-Use the requested platforms/viewport. For PC-only generation use the live Desktop preset, routed Pages and at most one overview Arena referencing them; do not add per-page duplicate Arenas or mobile layouts. [Layout](../design/layout.md) defines viewport, shell and scrolling ownership. For library icons read [icons](../design/icons.md).
+Use the requested platforms/viewport. For PC-only generation use the live Desktop preset, routed Pages and at most one overview Arena referencing them; do not add per-page duplicate Arenas or mobile layouts. [Layout](../design/layout.md) defines viewport, shell and scrolling ownership. For library icons read [icon selection](../design/icons.md).
 
 ## Verify the affected scope
 

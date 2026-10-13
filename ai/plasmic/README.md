@@ -12,8 +12,14 @@ ai/plasmic/references/guide.md             资源总入口
 ai/plasmic/references/workflows/           inspect / prototype / codegen 工作流
 ai/plasmic/references/model-reading.md     只读解读与 coding 共用的模型读取契约
 ai/plasmic/references/codegen/             项目工程、交互与验收规范
-ai/plasmic/references/design/              按受影响区域选读的后台设计规则
-ai/plasmic/references/engineering/         仅平台/组件实现任务使用的验证规则
+ai/plasmic/references/design/              通用布局、键盘焦点、命名和图标选择规则
+ai/plasmic/references/libraries/index.md   按项目真实组件库和 API 版本选择规范
+ai/plasmic/references/libraries/antd_v6/   Ant Design 6 的组件与组合规范
+ai/plasmic/references/libraries/antd_v5/   Ant Design 5 已注册组件的独立规范
+ai/plasmic/references/libraries/overseas/  Overseas 组件库规范
+ai/plasmic/references/libraries/react_ui/  React UI 组件库规范
+ai/plasmic/references/libraries/antd_icons/  Ant Design Icons 组件库规范
+ai/plasmic/references/engineering/         仅平台/组件实现任务使用的通用验证规则
 ai/plasmic/references/                     设计规范与 MCP 契约
 ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与绑定规范
 ai/plasmic/references/templates/admin/     素材库目录和官方 UiConfig 的唯一维护源
@@ -22,7 +28,13 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 .github/workflows/publish-plasmic-cli.yml  新 tag 打包资源，CLI 内容变化时发布 npm
 ```
 
-根目录不再放置 `skills/`。CLI 直接读取包内 `skill/plasmic/SKILL.md` 安装，无生成副本或复制构建步骤。`docs/search-form.md` 是组件契约的源文件，构建时进入 `references/search-form.md`；测试脚本不进入资源 bundle。
+根目录不再放置 `skills/`。CLI 直接读取包内 `skill/plasmic/SKILL.md` 安装，无生成副本或复制构建步骤。通过 `references/libraries/index.md` 先匹配项目真实组件库和 API 版本，再读该库的组件索引。每个库/API 范围独立维护 `components/` 与适用的 `compositions/`；Antd 按官方主组件维度维护文档，Form.Item、RangePicker、Descriptions.Item、列、分组等子组件和变体放入父组件小节，不另建文件。标题使用库的主组件名称，文档和索引保留覆盖的 Studio 注册名称及 key。业务组件沿用这一粒度，SearchForm.Item 在 SearchForm 文档内维护。构建器直接打包 references，无组件文档生成副本；测试脚本不进入资源 bundle。
+
+设计前通过 MCP 核对 imported project、注册 key、importPath 和可确认的实现版本；Studio 发布版本、wrapper npm 版本和底层 UI 版本分别记录。组合规范声明参与库，静态检查脚本只用于其已支持的库契约。没有匹配规范时依据真实实现、注册和通用设计规则完成可确认部分，明确缺少的规范覆盖；不回退套用 Antd 6，也不为适配模板切换目标组件库。组件库使用 `antd_v6`、`antd_v5`、`overseas`、`react_ui`、`antd_icons` 这样的单层目录名。目录标识注册组件库，底层依赖版本记入库索引的依赖说明，不追加到目录名。新增组件库时增加独立目录和索引、验证对应组件及依赖后接入总索引；不创建空版本占位或版本间重定向。
+
+通用布局维护尺寸与伸缩、对齐、间距归属、内容溢出、响应式范围、吸附和滚动原则；各库的 Flex/Grid/Space/Layout 等文档维护真实 Props/Slots。组合文件维护实际区域关系和跨组件交互，不重复父组件或通用布局规则。
+
+在已准备依赖的仓库根目录运行 `node scripts/validate-plasmic-component-coverage.mjs`，通过各库真实 `registerAll` 核对主组件归属、全部注册 key、最终显示名及图标目录。资源构建会额外检查组件文档与库索引的一致性，再校验链接、标题锚点、可达性和阅读预算。源码覆盖检查不替代组件运行或设计交付验收。
 
 ## 安装和使用
 

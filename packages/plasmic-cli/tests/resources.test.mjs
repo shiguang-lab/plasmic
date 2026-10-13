@@ -420,7 +420,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   assert.ok(readingBytes.codegen < 24576);
   for (const destination of [
     "missing.md",
-    "design/forms.md#missing-heading",
+    "libraries/antd_v6/components/form.md#missing-heading",
     "../../outside.md",
   ]) {
     const changed = files.map((file) =>
@@ -445,7 +445,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
     () =>
       validateReferences(
         files.map((file) =>
-          file.path === "references/design/forms.md"
+          file.path === "references/libraries/antd_v6/components/form.md"
             ? { ...file, content: file.content + "x".repeat(20480) }
             : file,
         ),

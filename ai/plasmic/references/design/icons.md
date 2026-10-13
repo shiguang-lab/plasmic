@@ -1,7 +1,7 @@
-# Registered library icons
+# Icon selection
 
-Read when adding/changing icons in an editable prototype. Install Ant Design Icons through Component Store → Icons and confirm its imported library and specific icon registration in `read`. The top-level Icons entry is for project SVG assets; do not change it or inject the library into every host/project.
+Choose icons from the library actually selected for the project, using [library selection](../libraries/index.md) to find its matching icon/API scope. Read the real icon registration and the owning control's supported icon Slot/prop before insertion; do not assume a generic Icon/name wrapper or a particular Button prop exists.
 
-Use independently registered `@ant-design/icons` components, such as `plasmic-antd-icon-PlusOutlined`, through Button's real icon Slot and iconPlacement. A trigger with two icons uses the leading action icon in icon and a separate dropdown indicator beside the text. Inherit color through currentColor; do not use a generic Icon/name wrapper, copied SVG paths, new project SVG assets or Unicode characters to imitate available library icons.
+Use independently editable registered icon nodes when available. Do not imitate available library icons with Unicode characters, copied paths or newly uploaded SVGs. Project SVG assets remain project assets; do not confuse their management entry with a component-library installation. Install a required icon library only within the task's chosen library scope and edit authorization.
 
-Verify actual nodes, placement, inherited color and dropdown behavior in the delivered page, then save/reopen and reread.
+Inherit color through supported theme/currentColor behavior. Verify actual nodes, placement, accessible action names and related interactions in editor/Preview, then save/reopen and reread after edits. Library-specific registration prefixes and installation instructions live in the selected library index.

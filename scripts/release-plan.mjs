@@ -30,7 +30,7 @@ export function affectedProducts(files) {
   };
   for (const file of files) {
     if (
-      /^(ai\/plasmic\/(references|scripts)\/.*\.(md|py|json)|docs\/search-form\.md)$/.test(
+      /^ai\/plasmic\/(references|scripts)\/.*\.(md|py|json)$/.test(
         file,
       ) &&
       !path.basename(file).startsWith("test_")
@@ -41,6 +41,7 @@ export function affectedProducts(files) {
       file === "scripts/build-plasmic-resources.mjs" ||
       file === "scripts/release-resources.mjs" ||
       file === "scripts/validate-plasmic-references.mjs" ||
+      file === "scripts/validate-plasmic-component-coverage.mjs" ||
       file === "packages/plasmic-cli/src/protocol.mjs"
     ) {
       result.resources = true;

@@ -8,6 +8,7 @@ import { parseArgs } from "node:util";
 import { CLI_VERSION, MIN_CLI_VERSION, compareVersions, releaseId, resourcePath, sha256, unpackResources, validateManifest } from "../packages/plasmic-cli/src/protocol.mjs";
 import { inspectCliArtifact } from "./plasmic-cli-artifact.mjs";
 import { validateReferences } from "./validate-plasmic-references.mjs";
+import { validateComponentReferences } from "./validate-plasmic-component-coverage.mjs";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export async function buildCli(version = CLI_VERSION) {
@@ -56,10 +57,10 @@ export async function buildResources(output = path.join(repo, "dist/plasmic-reso
   }
   await visit("references");
   await visit("scripts");
-  files.push({ path: "references/search-form.md", content: await readFile(path.join(repo, "docs/search-form.md"), "utf8") });
   files.sort((a, b) => a.path.localeCompare(b.path));
   const entrypoints = { guide: "references/guide.md", inspect: "references/workflows/inspect.md", prototype: "references/workflows/prototype.md", codegen: "references/workflows/codegen.md" };
   validateReferences(files, entrypoints);
+  validateComponentReferences(files);
   const resources = gzipSync(JSON.stringify({ schemaVersion: 1, files }));
   const cli = cliArtifact || await buildCli(cliVersion);
   if ((await inspectCliArtifact(cli)).version !== cliVersion) throw new Error("CLI artifact version does not match cliVersion");

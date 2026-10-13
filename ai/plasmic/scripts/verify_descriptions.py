@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Check independently inventoried read-only groups against public MCP models.
 
+This gate targets the Antd-v6 registration contracts.
+See references/libraries/antd_v6/index.md for applicability.
+
 Expect {"pages": [{"componentUuid": "...", "groups": [{"name": "Summary",
 "container": "InformationCard", "title": "Basic information", "column": 2,
 "items": [{"key": "name", "label": "Name", "children": "Example"}]}]}]}.

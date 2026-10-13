@@ -1,6 +1,6 @@
 # SearchForm 验收
 
-实现契约见 [Overseas SearchForm](../search-form.md)。参考源为 `/Users/yanxianliang/overseas/fintechgrowthui/src/components/search-form.tsx`。
+实现契约见 [Overseas SearchForm](../../ai/plasmic/references/libraries/overseas/components/search-form.md)。参考源为 `/Users/yanxianliang/overseas/fintechgrowthui/src/components/search-form.tsx`。
 
 ## 代码与运行态
 

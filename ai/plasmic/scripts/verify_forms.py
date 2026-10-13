@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Check a source-derived business field inventory against public MCP readbacks.
 
+Component-specific checks target the Antd-v6/Overseas registration contracts.
+See references/libraries/antd_v6/index.md for gate applicability.
+
 Expect {"pages": [{"componentUuid": "...", "forms": [{"name": "Form", "fields":
 [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name",
 "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}.
