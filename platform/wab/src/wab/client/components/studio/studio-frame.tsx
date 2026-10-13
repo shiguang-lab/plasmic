@@ -298,39 +298,46 @@ export function StudioFrame({
     src.hash = studioArgsHash;
   }
 
+  if (!project || !src) {
+    return null;
+  }
+
   return (
-    <TopFrameCtxProvider projectId={projectId} topFrameApi={topFrameApi}>
-      {project && src && (
-        <>
-          {!untrustedHost && (
-            <HostLoadTimeoutPrompt
-              project={project}
-              editorPerm={editorPerm}
-              refreshStudio={refreshStudio}
-            />
-          )}
-          <TopFrameChrome
-            appCtx={appCtx}
-            pathname={location.pathname}
+    <TopFrameCtxProvider
+      key={projectId}
+      projectId={projectId}
+      topFrameApi={topFrameApi}
+      initialBranchId={branch?.id}
+    >
+      <>
+        {!untrustedHost && (
+          <HostLoadTimeoutPrompt
             project={project}
-            refreshProjectAndPerms={refreshProjectAndPerms}
-            isRefreshingProjectData={isRefreshingProjectData}
             editorPerm={editorPerm}
-            perms={perms}
             refreshStudio={refreshStudio}
-            topFrameApi={topFrameApi}
-            refreshBranchData={refreshBranchData}
-            {...topFrameChromeProps}
           />
-          <TopFrameCopilotToolsBridge />
-          <iframe
-            className={"studio-frame"}
-            src={src.toString()}
-            allow="clipboard-read *; clipboard-write *"
-            onLoad={handleIframeLoad}
-          />
-        </>
-      )}
+        )}
+        <TopFrameChrome
+          appCtx={appCtx}
+          pathname={location.pathname}
+          project={project}
+          refreshProjectAndPerms={refreshProjectAndPerms}
+          isRefreshingProjectData={isRefreshingProjectData}
+          editorPerm={editorPerm}
+          perms={perms}
+          refreshStudio={refreshStudio}
+          topFrameApi={topFrameApi}
+          refreshBranchData={refreshBranchData}
+          {...topFrameChromeProps}
+        />
+        <TopFrameCopilotToolsBridge />
+        <iframe
+          className={"studio-frame"}
+          src={src.toString()}
+          allow="clipboard-read *; clipboard-write *"
+          onLoad={handleIframeLoad}
+        />
+      </>
     </TopFrameCtxProvider>
   );
 }

@@ -676,6 +676,10 @@ export class StudioCtx extends WithDbCtx {
   }
 
   studioIsVisible = false;
+  private initialRouteLoaded = observable.box(false);
+  get initialRouteReady() {
+    return this.initialRouteLoaded.get();
+  }
   latestVariantCreated: Variant | undefined = undefined;
   latestVariantGroupCreated: VariantGroup | undefined = undefined;
 
@@ -2210,6 +2214,7 @@ export class StudioCtx extends WithDbCtx {
 
     const location = this.appCtx.history.location;
     await this.handleRouteChange(location);
+    this.initialRouteLoaded.set(true);
 
     // 'prompt' is prefilled from marketing site AI landing page, which opens up
     // Plasmic AI chat and auto-submits the prompt.

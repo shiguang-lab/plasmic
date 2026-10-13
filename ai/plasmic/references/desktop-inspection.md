@@ -2,7 +2,7 @@
 
 Read when observing geometry, screenshots or real Preview behavior. Use live tool schemas; view changes must not become saved business state.
 
-`snapshot_layout` provides rendered geometry and image sources, not editable model IDs. Its observations are bounded (currently 2,000 elements); it checks horizontal overflow and image loading. Pin a component when supported without changing the active arena/selection. Obtain node UUIDs separately through `read`.
+`snapshot_layout` provides rendered geometry and image sources, not editable model IDs. Its observations are bounded (currently 2,000 elements); it checks horizontal overflow and image loading. For batch acceptance call `snapshot_layout` with each Page's `componentUuid` directly: it pins a background canvas without changing the active arena/selection, so preceding it with `navigate` is unnecessary. Obtain node UUIDs separately through `read`. A metadata timeout alone does not establish that page unloading caused a renderer hang; retain Desktop version, operation/stage timing and project identity before diagnosing or retrying.
 
 `get_screenshot` normally produces clean static artboard pixels without editor chrome/placeholders. Prefer an explicit `frameUuid` for ambiguous canvases. Width resizes the selected static snapshot, not a live responsive viewport; record source viewport and resizing. Workspace mode captures the visible editor and may support a crop rect; discover permitted target combinations. Identify the page using its title/breadcrumb and a unique business-body element from the readback, not width alone. Static screenshots do not execute interactions.
 

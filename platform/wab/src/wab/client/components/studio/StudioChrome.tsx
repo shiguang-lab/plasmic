@@ -37,6 +37,9 @@ export function StudioStartupBoundary({
   const location = useLocation();
   const projectLocation = parseProjectLocation(location);
   const projectId = projectLocation?.projectId;
+  const [startupLoading] = React.useState(() =>
+    document.getElementById("studio-startup-loading"),
+  );
   const [state, setState] = React.useState<
     StudioStartupState & { projectId?: string }
   >({
@@ -51,11 +54,28 @@ export function StudioStartupBoundary({
     setState((prev) => ({ ...prev, ...patch }));
   }, []);
   React.useLayoutEffect(() => {
-    document.getElementById("studio-startup-loading")?.classList.add("fadeOut");
+    // Keep the HTML skeleton in place: replacing or moving its animated nodes
+    // restarts the shimmer when React takes over the first paint.
+    const visible =
+      !!projectId &&
+      !projectLocation?.isPreview &&
+      !state.ready &&
+      !state.hidden &&
+      !state.failure;
+    startupLoading?.classList.add("studio-loading--managed", "visible");
+    startupLoading?.classList.toggle("fadeOut", !visible);
     document
       .getElementById("preview-startup-loading")
       ?.classList.add("fadeOut");
-  }, []);
+    return () => startupLoading?.classList.add("fadeOut");
+  }, [
+    startupLoading,
+    projectId,
+    projectLocation?.isPreview,
+    state.ready,
+    state.hidden,
+    state.failure,
+  ]);
   return (
     <>
       <StudioStartupContext.Provider value={update}>
@@ -73,7 +93,10 @@ export function StudioStartupBoundary({
           {projectLocation?.isPreview ? (
             <PreviewLoading>{state.failure}</PreviewLoading>
           ) : (
-            <StudioChromeContent projectName={state.projectName}>
+            <StudioChromeContent
+              projectName={state.projectName}
+              loading={!startupLoading}
+            >
               {state.failure}
             </StudioChromeContent>
           )}
@@ -114,9 +137,11 @@ export function StudioChrome({
 function StudioChromeContent({
   projectName,
   children,
+  loading = true,
 }: {
   projectName?: string;
   children?: React.ReactNode;
+  loading?: boolean;
 }) {
   return (
     <StudioLayout>
@@ -140,9 +165,9 @@ function StudioChromeContent({
             <div className="canvas-editor__canvas-container">
               {children ? (
                 <div style={{ padding: 24 }}>{children}</div>
-              ) : (
+              ) : loading ? (
                 <StudioLoading />
-              )}
+              ) : null}
               <CanvasViewControls />
             </div>
           </div>

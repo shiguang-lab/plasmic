@@ -28,6 +28,8 @@ Use the requested platforms/viewport. For PC-only generation use the live Deskto
 
 Run relevant source-derived structural gates from the selected references against public readbacks: route/menu coverage, intended component/Slot ownership, information groups and Forms where applicable. A focused edit does not require rebuilding unrelated pages or expecting unrelated existing content to match a new design inventory. Full regeneration retains full-project gates.
 
+For full-project acceptance use the [unified verifier](../verification.md): supply reviewed inventories, collect overview/full Pages and targeted layouts once, and aggregate the existing gates. Missing expectations remain unverified; runtime and save/reopen evidence are separate.
+
 Use [rendered inspection](../desktop-inspection.md) for screenshots, geometry and real Preview interactions at the actual viewport. Every affected standalone AppShell Page must pass [viewport shell height acceptance](../design/layout.md#viewport-shell-height-acceptance), including its model/geometry gate, shorter live Preview and post-reload height check. Exercise required default/hidden states, Tabs, overlays, errors, processing and navigation. Inspect changed labels, content and long/empty values. Record identity, viewport, concrete observations and pass/fail; a list of captures is not visual review. `validate` proves model integrity only.
 
 Save explicitly, record the available revision, reopen and reread affected models, bindings and initial closed overlays. Recheck relevant Preview behavior and images after reopen. Report sources/resource release, actual template mechanism, checks, mock/API boundaries and limitations. Saving alone does not pass acceptance; publishing requires the user's task to authorize it.

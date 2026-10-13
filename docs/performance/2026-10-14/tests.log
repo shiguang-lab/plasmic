@@ -1,0 +1,20 @@
+
+ RUN  v4.1.10 /Users/yanxianliang/shiguang/plasmic/platform/wab
+
+Error: Could not parse CSS stylesheet
+    at exports.createStylesheet (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/helpers/stylesheets.js:37:21)
+    at HTMLStyleElementImpl._updateAStyleBlock (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/nodes/HTMLStyleElement-impl.js:68:5)
+    at HTMLStyleElementImpl._childTextContentChangeSteps (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/nodes/HTMLStyleElement-impl.js:36:12)
+    at HTMLStyleElementImpl._insert (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/nodes/Node-impl.js:824:14)
+    at HTMLStyleElementImpl._preInsert (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/nodes/Node-impl.js:758:10)
+    at HTMLStyleElementImpl._append (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/nodes/Node-impl.js:864:17)
+    at HTMLStyleElementImpl.appendChild (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/nodes/Node-impl.js:600:17)
+    at HTMLStyleElement.appendChild (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/jsdom@22.1.0/node_modules/jsdom/lib/jsdom/living/generated/Node.js:411:60)
+    at StyleSheet.insert (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/@emotion+sheet@1.4.0/node_modules/@emotion/sheet/dist/emotion-sheet.development.cjs.js:141:11)
+    at Array.finalizingPlugins (/Users/yanxianliang/shiguang/plasmic/platform/node_modules/.pnpm/@emotion+cache@11.14.0/node_modules/@emotion/cache/dist/emotion-cache.development.cjs.js:556:24) @container workspace-tabs (max-width: 960px){.acss-kglru7{-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;-webkit-align-items:stretch;-webkit-box-align:stretch;-ms-flex-align:stretch;align-items:stretch;gap:8px;padding-bottom:12px;}}
+
+ Test Files  6 passed (6)
+      Tests  50 passed (50)
+   Start at  07:36:20
+   Duration  29.00s (transform 40.45s, setup 9.81s, import 92.36s, tests 19.26s, environment 1.81s)
+

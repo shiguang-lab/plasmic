@@ -4,7 +4,7 @@
 Component-specific checks target the Antd-v6/Overseas registration contracts.
 See references/libraries/antd_v6/index.md for gate applicability.
 
-Expect {"pages": [{"componentUuid": "...", "forms": [{"name": "Form", "fields":
+Expect {"pages": [{"path": "/records", "forms": [{"name": "Form", "fields":
 [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name",
 "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}.
 Rules are matched by their specified keys. Omit tooltip when none is expected.
@@ -17,6 +17,9 @@ Optional form layout specifies container, columns, columnGap and paired rows
 All project Pages and business Forms must be inventoried, including empty-form Pages.
 Standalone controls require {nodeName, reason} entries in page.standaloneControls.
 This checks the saved component contract, not runtime validation or geometry.
+Pages select by exact path, unique name or componentUuid from overview. When
+multiple selectors are supplied they must agree; omit project-specific UUIDs
+from reusable inventories. Missing or ambiguous selectors never fall back silently.
 """
 import argparse
 import json
@@ -127,6 +130,28 @@ def scan_ownership(root, page):
     return errors
 
 
+def resolve_pages(planned, inventory):
+    """Bind reviewed selectors to current Page identities without modifying input."""
+    resolved = []
+    for page in planned:
+        selectors = {key: page[key] for key in ("path", "name", "componentUuid") if key in page}
+        if not selectors or any(not isinstance(value, str) or not value.strip() for value in selectors.values()):
+            raise ValueError("Page requires a nonempty path, name or componentUuid selector")
+        matches = inventory
+        for key, value in selectors.items():
+            matches = [model for model in matches if (
+                model.get("pageMeta", {}).get("path") if key == "path" else
+                model.get("uuid") if key == "componentUuid" else model.get("name")
+            ) == value]
+        if len(matches) != 1 or not matches[0].get("uuid"):
+            raise ValueError(f"Expected one Page matching {selectors}; found {len(matches)} (missing, ambiguous or conflicting selectors)")
+        resolved.append({**page, "componentUuid": matches[0]["uuid"]})
+    ids = [page["componentUuid"] for page in resolved]
+    if len(ids) != len(set(ids)):
+        raise ValueError("Page selectors resolve to duplicate component UUIDs")
+    return resolved
+
+
 def check(expectations, overview, readback):
     errors = []
     checked = 0
@@ -136,6 +161,10 @@ def check(expectations, overview, readback):
     if len(projects) != 1:
         errors.append({"error": "Exactly one public MCP Project overview required"})
     inventory = [m for m in projects[0].get("components", []) if m.get("type") == "page"] if len(projects) == 1 else []
+    try:
+        planned = resolve_pages(planned, inventory)
+    except ValueError as error:
+        return {"passed": False, "checkedFields": 0, "errors": errors + [{"error": str(error)}]}
     expected_ids = [p.get("componentUuid") for p in planned]
     if not planned or len(set(expected_ids)) != len(expected_ids) or not all(expected_ids):
         errors.append({"error": "Nonempty unique source-derived Page inventory required"})

@@ -17,11 +17,39 @@ import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { mkSlot, mkTplTag } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import { SEARCH_PARAM_COMMENT } from "@/wab/shared/route/app-routes";
+import { waitFor } from "@testing-library/react";
 import { ok } from "neverthrow";
 
 import _bundle from "@/wab/shared/web-exporter/bundles/starter-project-desktop-first.json";
 
 const TEAM_ID = "team123" as TeamId;
+
+it("keeps startup pending until the initial route has resolved, including an empty project", async () => {
+  const { studioCtx, appCtx } = fakeStudioCtx();
+  let finish: () => void = vi.fn();
+  const comments = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const waitForComments = vi
+    .spyOn(studioCtx.commentsCtx, "waitForInitialCommentsLoad")
+    .mockReturnValue(comments);
+  try {
+    appCtx.history.replace(
+      `/projects/${studioCtx.siteInfo.id}?${SEARCH_PARAM_COMMENT}=thread`,
+    );
+    expect(studioCtx.currentArena).toBeNull();
+    expect(studioCtx.initialRouteReady).toBe(false);
+    await waitFor(() => expect(waitForComments).toHaveBeenCalled());
+    expect(studioCtx.initialRouteReady).toBe(false);
+    finish();
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    expect(getArenaFrames(studioCtx.currentArena)).toEqual([]);
+  } finally {
+    finish();
+    studioCtx.dispose();
+  }
+});
 
 describe("model change queue failures", () => {
   it.each(["change", "changeObserved"] as const)(

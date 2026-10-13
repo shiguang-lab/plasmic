@@ -98,6 +98,57 @@ it("keeps one skeleton and its animation nodes across app startup, app context, 
   expect(screen.queryByRole("status")).toBeNull();
 });
 
+it("keeps the first-paint HTML skeleton until ready without mounting a second skeleton", () => {
+  const bootstrap = document.createElement("div");
+  bootstrap.id = "studio-startup-loading";
+  bootstrap.className = "studio-loading visible";
+  bootstrap.setAttribute("role", "status");
+  bootstrap.innerHTML = '<div class="studio-loading__placeholder"></div>';
+  document.body.appendChild(bootstrap);
+  try {
+    const placeholder = bootstrap.firstElementChild;
+    const { rerender, history } = setup(<ApplicationPageLoading />);
+    expect(document.querySelectorAll(".studio-loading")).toHaveLength(1);
+    expect(bootstrap.classList.contains("fadeOut")).toBe(false);
+    rerender(<StudioChrome projectName="Project" />);
+    expect(bootstrap.firstElementChild).toBe(placeholder);
+    expect(bootstrap.classList.contains("fadeOut")).toBe(false);
+    rerender(<ReadyCanvas ready />);
+    expect(bootstrap.classList.contains("fadeOut")).toBe(true);
+    rerender(null);
+    act(() => history.push("/projects/other"));
+    expect(bootstrap.classList.contains("fadeOut")).toBe(false);
+    expect(bootstrap.firstElementChild).toBe(placeholder);
+    act(() => history.push("/projects"));
+    expect(bootstrap.classList.contains("fadeOut")).toBe(true);
+  } finally {
+    cleanup();
+    bootstrap.remove();
+  }
+});
+
+it("reveals startup failures and restores the HTML skeleton on retry", () => {
+  const bootstrap = document.createElement("div");
+  bootstrap.id = "studio-startup-loading";
+  bootstrap.className = "studio-loading visible";
+  document.body.appendChild(bootstrap);
+  try {
+    const retry = vi.fn();
+    const { rerender } = setup(
+      <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />,
+    );
+    expect(bootstrap.classList.contains("fadeOut")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(retry).toHaveBeenCalledOnce();
+    rerender(<ApplicationPageLoading />);
+    expect(bootstrap.classList.contains("fadeOut")).toBe(false);
+    expect(document.querySelectorAll(".studio-loading")).toHaveLength(1);
+  } finally {
+    cleanup();
+    bootstrap.remove();
+  }
+});
+
 it("shows startup failures and retry through the owner instead of covering them with a skeleton", () => {
   const retry = vi.fn();
   const { rerender } = setup(

@@ -1,5 +1,22 @@
 # Layout
 
+## Standalone AppShell golden boilerplate
+
+For a standalone admin Page using the registered Overseas AppShell, use this sizing chain. Replace the imported project ID and static menu with values from the live registration and reviewed route inventory; insert the business body in `children`.
+
+```html
+<div style="width:100%;min-width:0;height:100vh;min-height:0;overflow:hidden">
+  <plasmic-component data-plasmic-component="plasmic-overseas-app-shell"
+    data-plasmic-project="IMPORTED_PROJECT_ID" data-plasmic-name="AppShell"
+    data-props='{"menuItems":[{"key":"records","label":"Records","href":"/records"}]}'
+    style="width:100%;height:100%;min-width:0;min-height:0">
+    <slot name="children"><div style="width:100%;min-width:0">Business content</div></slot>
+  </plasmic-component>
+</div>
+```
+
+For an existing Page, apply these CSS declarations to its actual root and shell through `changeElement`; do not add another root or shell. **Never use `height:stretch`/`auto` or only `max-height:100vh` on this Page root.** Override the registration's fixed instance dimensions. Root clipping is not proof of correct shell height: still run the model/geometry gate and Preview acceptance below. Embedded content follows its host's sizing contract instead.
+
 ## Viewport and scroll ownership
 
 Use the live Studio Desktop device preset for PC requirements (currently 1440x1024); discover it through read.devicePresets rather than assuming a viewport. Explicit user dimensions take precedence. Keep only Desktop preview columns in Pages and one overview Arena referencing the existing routed Pages. Do not add per-page duplicate Arenas, test pages, mobile breakpoints or responsive overrides to PC-only scope.

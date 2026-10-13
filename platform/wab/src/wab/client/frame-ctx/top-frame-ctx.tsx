@@ -16,6 +16,7 @@ import { getUiLocale, subscribeUiLocale } from "@/wab/client/i18n";
 import { getUiAppearance, subscribeUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
+import { BranchId } from "@/wab/shared/ApiSchema";
 import { assert } from "@/wab/shared/common";
 import * as Comlink from "comlink";
 import * as React from "react";
@@ -30,12 +31,14 @@ export interface TopFrameCtxProviderProps {
   children: React.ReactNode;
   projectId: string;
   topFrameApi: TopFrameApi;
+  initialBranchId?: BranchId;
 }
 
 export function TopFrameCtxProvider({
   children,
   projectId,
   topFrameApi,
+  initialBranchId,
 }: TopFrameCtxProviderProps) {
   ensureIsTopFrame();
 
@@ -52,6 +55,16 @@ export function TopFrameCtxProvider({
   });
 
   React.useEffect(() => {
+    const api = filteredApi(
+      projectId,
+      bindMethods(appCtx.api),
+      appCtx.appConfig,
+    );
+    // Fetch the model while the trusted host boots, instead of starting this
+    // request only after its scripts and frame bridge have initialized.
+    let initialSiteInfo: ReturnType<typeof api.getSiteInfo> | undefined =
+      api.getSiteInfo(projectId, { branchId: initialBranchId });
+    void initialSiteInfo.catch(() => undefined);
     const localeDisposers = new Set<() => void>();
     let comlinkState:
       | undefined
@@ -87,11 +100,6 @@ export function TopFrameCtxProvider({
       console.log(
         "[TopFrame] Received PLASMIC_HOST_REGISTER message, exposing API to HostFrame",
       );
-      const api = filteredApi(
-        projectId,
-        bindMethods(appCtx.api),
-        appCtx.appConfig,
-      );
       const topFrameCtxApi: TopFrameFullApi = {
         exposeHostFrameApi: (hostFrameApi: Comlink.Remote<HostFrameApi>) => {
           setTopFrameCtx((prev) => ({
@@ -102,6 +110,22 @@ export function TopFrameCtxProvider({
         },
         ...api,
         ...topFrameApi,
+
+        getSiteInfo: (siteId, opts) => {
+          if (
+            initialSiteInfo &&
+            siteId === projectId &&
+            opts?.branchId === initialBranchId &&
+            opts?.revisionId === undefined &&
+            opts?.revisionNum === undefined &&
+            opts?.dontMigrateProject === undefined
+          ) {
+            const request = initialSiteInfo;
+            initialSiteInfo = undefined;
+            return request;
+          }
+          return api.getSiteInfo(siteId, opts);
+        },
 
         // Override some methods to hide Comlink implementation details.
         async registerUiLocaleListener(localeListener): Promise<() => void> {

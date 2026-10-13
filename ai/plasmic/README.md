@@ -203,6 +203,8 @@ CLI 发布脚本仅在实际包内容变化时调用 npm publish，且要求版�
 
 ## 验证
 
+项目原型的六类门禁统一入口为 [verify_all.py](scripts/verify_all.py)，配置和在线采集/离线重放见[统一验收规范](references/verification.md)。表单清单可按页面 path 跨项目复用；需求清单必须独立审核，不能从生成结果反推。此入口汇总自动检查，Preview 交互和保存重开仍需单独验证。
+
 ```sh
 npm --prefix packages/plasmic-cli test
 node --test desktop/tests/plasmic-resources.test.cjs desktop/tests/mcp-skill.test.cjs

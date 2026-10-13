@@ -1,0 +1,84 @@
+{
+  "before": {
+    "refreshTimesMs": [
+      5593,
+      4917,
+      5271
+    ],
+    "medianMs": 5271,
+    "topSkeletonCounts": [
+      {
+        "visibleNodeIds": [
+          1,
+          2
+        ],
+        "animationStarts": 168
+      },
+      {
+        "visibleNodeIds": [
+          1,
+          2
+        ],
+        "animationStarts": 168
+      },
+      {
+        "visibleNodeIds": [
+          1,
+          2
+        ],
+        "animationStarts": 168
+      }
+    ]
+  },
+  "after": {
+    "refreshTimesMs": [
+      4933,
+      4071,
+      4451
+    ],
+    "medianMs": 4451,
+    "topSkeletonCounts": [
+      {
+        "visibleNodeIds": [
+          1
+        ],
+        "animationStarts": 84
+      },
+      {
+        "visibleNodeIds": [
+          1
+        ],
+        "animationStarts": 84
+      },
+      {
+        "visibleNodeIds": [
+          1
+        ],
+        "animationStarts": 84
+      }
+    ]
+  },
+  "improvementPercent": 15.6,
+  "method": "Native Electron startDesktop and the live project, authenticated isolated session, no CPU or network throttling. Same original release canvas runtimes and remote pinned component library versions in both variants. Studio application rebuilt for the after variant. Profiler, trace and DOM probe enabled identically on all timed refreshes. Three runs; no P95 claim.",
+  "fixes": [
+    "Preserve HTML first-paint skeleton nodes and animation through React startup",
+    "Wait for initial route resolution before reporting canvas readiness",
+    "Fetch initial project model during trusted host bootstrap; consume request once, preserve branch/revision isolation and retry"
+  ],
+  "verification": {
+    "testsPassed": 50,
+    "testFilesPassed": 6,
+    "productionBuild": "passed",
+    "lint": "passed; one existing StudioCtx warning",
+    "fullTypecheck": "blocked by nine errors in unmodified self-hosted-entitlements.test.ts and page-metadata/index.test.tsx",
+    "openProjectMs": 3756,
+    "previewRendered": true,
+    "revisionBefore": 16,
+    "revisionAfter": 16,
+    "changeCounterAfter": 0,
+    "activeClientUpdated": true,
+    "backupApplication": "/tmp/plasmic-loading-diagnostic/Plasmic-before-loading-fix.app",
+    "activeClientSigning": "Ad-hoc signature replaced and verified with codesign --verify --deep --strict",
+    "routeReadinessRegression": "passed after final test cleanup"
+  }
+}

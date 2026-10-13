@@ -1,0 +1,7 @@
+{
+  "en": "- Keep one continuous loading skeleton when opening or refreshing the editor.\n- Restore the initial page before revealing the canvas, and fetch project data while the host starts to reduce loading time.\n- Improve prototype verification with reusable page inventories and a combined set of automated checks.",
+  "zh-CN": "- 修复打开或刷新编辑器时 Loading 重复显示，保持连续的加载骨架。\n- 初始页面恢复完成后再显示画布，并在 Host 启动时并行加载项目数据，缩短等待时间。\n- 完善原型验收，支持复用页面清单和统一运行自动检查。",
+  "zh-TW": "- 修復開啟或重新整理編輯器時 Loading 重複顯示，保持連續的載入骨架。\n- 初始頁面恢復完成後再顯示畫布，並在 Host 啟動時並行載入專案資料，縮短等待時間。\n- 完善原型驗收，支援重用頁面清單與統一執行自動檢查。",
+  "ja": "- エディターを開く際や再読み込み時に、ローディング表示が繰り返される問題を修正。\n- 初期ページの復元後にキャンバスを表示し、ホスト起動とプロジェクトデータ取得を並行して待ち時間を短縮。\n- 再利用できるページ一覧と一括自動チェックで、プロトタイプの検証を改善。",
+  "ko": "- 편집기를 열거나 새로 고칠 때 로딩 화면이 반복되는 문제를 수정합니다.\n- 초기 페이지 복원이 끝난 뒤 캔버스를 표시하고, 호스트 시작과 프로젝트 데이터 로드를 병렬로 처리해 대기 시간을 줄입니다.\n- 재사용 가능한 페이지 목록과 통합 자동 검사로 프로토타입 검증을 개선합니다."
+}

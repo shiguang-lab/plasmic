@@ -4,7 +4,7 @@ Discover exact tools and operation schemas through `get_app_state`; registration
 
 ## Read and target
 
-Start the signed-in Desktop and read `get_app_state`. Follow [project management](desktop-management.md) to resolve and open the target. Then call `execute` → `identify` with the actual model/client and skill `plasmic`. Discovery needs no ready editor; `canEdit` gates Studio mutations. `read` without a target returns an overview; component/subtree reads use live UUID fields. See [model-reading](model-reading.md).
+Start the signed-in Desktop and read `get_app_state`. Follow [project management](desktop-management.md) to resolve and open the target. Then call `execute` → `identify` with the actual model/client and skill `plasmic`. Discovery needs no ready editor; `canEdit` gates Studio mutations. `read` without a target returns an overview; use `componentUuids` for full models and `elements` for subtrees, never `components`. See [minimal examples](desktop-examples.md) and [model-reading](model-reading.md).
 
 `open_design` saves the current editable project before switching projects. For read-only inspection or coding, use the already open target or readable imported dependencies. Opening the target is safe when no editor is ready, or when it stays in the same project. If switching would save another editable project, finish independent reads and report that side effect; obtain explicit authorization before that switch. Do not silently persist unrelated work to obtain a read.
 
@@ -16,7 +16,7 @@ Public operations create/change/move/copy/delete nodes, states, interactions, to
 
 Code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME" data-plasmic-project="IMPORTED_PROJECT_ID" data-props='{"prop":"value"}'><slot name="children">Content</slot></plasmic-component>`. Names and values come from the registration. Instance styles affect layout; appearance uses real props. Do not insert scripts or invent native input handlers. Dynamic bindings use the discovered expression contract and available data scopes.
 
-`save` persists the model; reopen and read to verify it. Imported definitions are readable but are not local editable components. Library installation/upgrading and design changes are mutations, distinct from read-only inspection. `validate` checks model invariants, not runtime behavior or visual quality.
+`save` confirms no unsaved changes remain and returns `projectId`, `revision`, `saved`; reopen and read to verify persistence. Batch atomicity does not save the model. Imported definitions are readable, not locally editable. Library installation/upgrading and design changes are mutations. `validate` checks model invariants, not runtime behavior or visual quality.
 
 ## Conditional capabilities
 
@@ -26,4 +26,4 @@ Code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME"
 - Admin component usage: [admin reference index](admin-design.md), selecting only affected regions.
 - Component registration/runtime changes: [engineering verification](engineering/component-contracts.md), only for explicit platform/component work.
 
-Inspect each operation result before dependent writes: a successful transport or shell exit does not prove Studio success. After a failure, Desktop restart or session change, stop dependent writes, reread app/project identity and identify the session before retrying. In particular, do not save after failed validation or an unexpected project change. Retain the known model state, report the exact limitation and complete independent work. Never assume access to platform source, silently install an editor upgrade, or use private Studio scripting/raw REST to bypass the public contract.
+Inspect each result before dependent writes; transport success does not prove Studio success. After failure, restart or session change, stop dependent writes, reread project identity and identify before retrying. Do not save after failed validation or a project change. Report the limitation and continue independent work. Do not assume platform source access, silently upgrade the editor or bypass public tools with private scripting/raw REST.

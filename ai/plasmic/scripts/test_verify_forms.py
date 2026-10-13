@@ -25,6 +25,48 @@ class FormCheckTests(unittest.TestCase):
     def test_real_fields_pass_with_both_component_name_formats(self):
         self.assertTrue(self.result(self.html)["passed"])
 
+    def test_path_inventory_reuses_new_project_uuids_without_mutation(self):
+        page = self.expected["pages"][0]
+        page.pop("componentUuid")
+        page["path"] = "/records"
+        expected = copy.deepcopy(self.expected)
+        for uuid in ("first-project-page", "second-project-page"):
+            overview, readback = self.overview(), self.readback(self.html)
+            overview["results"][0]["components"][0].update(uuid=uuid, pageMeta={"path": "/records"})
+            readback["results"][0].update(uuid=uuid, pageMeta={"path": "/records"})
+            self.assertTrue(check(self.expected, overview, readback)["passed"])
+        self.assertEqual(self.expected, expected)
+
+    def test_unique_name_and_agreeing_selectors(self):
+        overview = self.overview()
+        overview["results"][0]["components"][0].update(name="Records", pageMeta={"path": "/records"})
+        page = self.expected["pages"][0]
+        page.pop("componentUuid")
+        page["name"] = "Records"
+        self.assertTrue(check(self.expected, overview, self.readback(self.html))["passed"])
+        page.update(path="/records", componentUuid="page")
+        self.assertTrue(check(self.expected, overview, self.readback(self.html))["passed"])
+        page["componentUuid"] = "stale-page"
+        self.assertFalse(check(self.expected, overview, self.readback(self.html))["passed"])
+
+    def test_missing_ambiguous_empty_and_duplicate_selectors_fail_cleanly(self):
+        page = self.expected["pages"][0]
+        page.pop("componentUuid")
+        self.assertFalse(self.result(self.html)["passed"])
+        page["path"] = "/missing"
+        self.assertFalse(self.result(self.html)["passed"])
+        page["path"] = ""
+        self.assertFalse(self.result(self.html)["passed"])
+        overview = self.overview()
+        first = overview["results"][0]["components"][0]
+        first.update(name="Records", pageMeta={"path": "/records"})
+        page["path"] = "/records"
+        overview["results"][0]["components"].append({**first, "uuid": "other"})
+        self.assertFalse(check(self.expected, overview, self.readback(self.html))["passed"])
+        overview["results"][0]["components"].pop()
+        self.expected["pages"].append({"name": "Records", "forms": []})
+        self.assertFalse(check(self.expected, overview, self.readback(self.html))["passed"])
+
     def test_native_form_layout_and_single_error_setting(self):
         form = self.expected["pages"][0]["forms"][0]
         form["formLayout"] = "horizontal"

@@ -2063,6 +2063,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const { studioCtx, viewCtx } = this.props;
     const canvasLoading =
       this.props.canvasLoading ||
+      !studioCtx.initialRouteReady ||
       getArenaFrames(studioCtx.currentArena).some(
         (frame) => !studioCtx.tryGetViewCtxForFrame(frame),
       );

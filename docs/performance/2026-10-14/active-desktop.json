@@ -1,0 +1,42 @@
+{
+  "version": "0.0.63",
+  "build": {
+    "kind": "local",
+    "revision": "5ec64a8b80c0f6f7008d3b926862109b781c811f",
+    "dirty": true,
+    "builtAt": "2026-10-13T23:38:49.208Z",
+    "rendererHash": "98b6e489106e4e94a232a264648a887d592f4fe5ce26de3c1c09e5cef7689e76",
+    "desktopHash": "a255346b4f2f45f43ae5b575a1ee56e3759a00a57635bfa471e9c4806b5eedda",
+    "sourceHash": "d263a527832bcb74cdc009b7adb2869d4a4d4f680eac3e447a28c82be51436a1"
+  },
+  "projectId": "iqBeCQWLFWvGwftodkcHbN",
+  "ready": true,
+  "context": {
+    "projectName": "海外客群管理平台 P0 原型",
+    "projectId": "iqBeCQWLFWvGwftodkcHbN",
+    "branchId": null,
+    "sessionId": "mCkdeZ7jmelA",
+    "revision": 16,
+    "componentName": "客群详情",
+    "changeCounter": 0,
+    "componentUuid": "fyjLkD2jIGjk",
+    "frameUuid": "h75AFWJtnLUo",
+    "selectedElementUuids": [],
+    "instanceIndex": null,
+    "mode": "edit",
+    "canEdit": true,
+    "editorView": {
+      "arenaId": "fyjLkD2jIGjk",
+      "arenaType": "page",
+      "frameUuid": "h75AFWJtnLUo",
+      "scale": 0.7767195767195767,
+      "scroll": {
+        "x": 1428,
+        "y": 872.5
+      }
+    },
+    "selectedSlot": null,
+    "previewContext": null,
+    "path": []
+  }
+}

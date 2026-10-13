@@ -389,6 +389,8 @@ existing `PLASMIC_AI_TOOLS` transaction API. Read-only canvas inspection uses
 fixed DOM code; exports render sanitized snapshots in isolated windows. Clients cannot evaluate arbitrary JavaScript in the Studio renderer. The isolated reference browser exposes restricted CDP domains and shares no Studio session or preload. Runtime prototype
 interaction code is supported only by the validated createInteraction contract. Do not share the user-data directory or `mcp-connection.json`.
 
+For inspection timeout diagnosis, run `node desktop/scripts/diagnose-inspection.cjs --profile /absolute/path/to/user-data --project-id PROJECT_ID --output /absolute/path/to/new-report-directory --rounds 3` from the repository root with the intended project already open. It records stage durations for direct targeted snapshots and immediate snapshots after navigation, with and without component targeting. It temporarily navigates pages and restores the editor view; it never saves or switches projects. Use an idle editor and retain `report.json`, including any failing stage, before changing retry/readiness behavior. A successful probe does not establish that intermittent timeouts cannot occur.
+
 For a development checkout, the copied configuration uses the local Electron
 binary and the `desktop` directory as its first argument. Keep that GUI instance
 running while calling tools. To run the end-to-end MCP acceptance test on the

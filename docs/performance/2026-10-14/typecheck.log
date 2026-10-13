@@ -1,0 +1,11 @@
+$ NODE_OPTIONS='--max-old-space-size=16384' tsc --incremental
+src/wab/server/db/self-hosted-entitlements.test.ts(119,20): error TS2345: Argument of type '{ team: Team; workspace: Workspace; }' is not assignable to parameter of type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(134,32): error TS2339: Property 'team' does not exist on type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(139,63): error TS2339: Property 'team' does not exist on type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(140,43): error TS2339: Property 'team' does not exist on type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(141,48): error TS2339: Property 'workspace' does not exist on type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(148,44): error TS2339: Property 'team' does not exist on type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(149,19): error TS2339: Property 'team' does not exist on type 'never'.
+src/wab/server/db/self-hosted-entitlements.test.ts(156,38): error TS2339: Property 'team' does not exist on type 'never'.
+src/wab/shared/codegen/react-p/page-metadata/index.test.tsx(109,3): error TS2322: Type 'null' is not assignable to type 'string | ClsTemplatedString'.
+[ELIFECYCLE] Command failed with exit code 1.

@@ -47,6 +47,27 @@ test("state and independent media remain responsive while editor operations seri
   assert.equal(controller.operations.size, 0);
   controller.close();
 });
+test("a lost metadata response expires, releases the queue and ignores a late IPC reply", async () => {
+  const sent = [];
+  const webContents = { mainFrame: {}, send: (_channel, request) => sent.push(request) };
+  const win = { isDestroyed: () => false, webContents };
+  const controller = new DesktopController(() => win, {});
+  controller.execute = (method) => method === "snapshot_layout"
+    ? controller.invoke("metadata", {}, 10)
+    : Promise.resolve({ resumed: true });
+  const failed = assert.rejects(controller.dispatch("snapshot_layout", {}), /Editor command timed out: metadata/);
+  const next = controller.dispatch("execute", {});
+  await failed;
+  assert.deepEqual(await next, { resumed: true });
+  assert.equal(controller.pending.size, 0);
+  assert.equal(controller.operations.size, 0);
+  controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, sent[0].id, { ready: true });
+  assert.equal(controller.pending.size, 0);
+  const healthy = controller.invoke("metadata", {}, 1000);
+  controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, sent[1].id, { ready: true });
+  assert.deepEqual(await healthy, { ready: true });
+  controller.close();
+});
 test("opening a project waits for initial loadURL to finish", async () => {
   const startup = deferred();
   const urls = [];

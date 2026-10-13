@@ -1,0 +1,209 @@
+{
+  "passed": false,
+  "scope": "automated gates only",
+  "projectId": "iqBeCQWLFWvGwftodkcHbN",
+  "capture": {
+    "projectId": "iqBeCQWLFWvGwftodkcHbN",
+    "desktopVersion": "0.0.63",
+    "collectedAt": "2026-10-13T23:17:12.823370+00:00",
+    "before": {
+      "projectId": "iqBeCQWLFWvGwftodkcHbN",
+      "branchId": null,
+      "revision": 16,
+      "changeCounter": 0
+    },
+    "after": {
+      "projectId": "iqBeCQWLFWvGwftodkcHbN",
+      "branchId": null,
+      "revision": 16,
+      "changeCounter": 0
+    }
+  },
+  "checks": [
+    {
+      "gate": "evidence",
+      "status": "passed",
+      "report": {
+        "passed": true,
+        "errors": []
+      }
+    },
+    {
+      "gate": "structure",
+      "status": "unverified",
+      "report": {
+        "reason": "No reviewed gate configuration supplied"
+      }
+    },
+    {
+      "gate": "forms",
+      "status": "unverified",
+      "report": {
+        "reason": "No reviewed gate configuration supplied"
+      }
+    },
+    {
+      "gate": "descriptions",
+      "status": "unverified",
+      "report": {
+        "reason": "No reviewed gate configuration supplied"
+      }
+    },
+    {
+      "gate": "overlays",
+      "status": "unverified",
+      "report": {
+        "reason": "No reviewed gate configuration supplied"
+      }
+    },
+    {
+      "gate": "slots",
+      "status": "unverified",
+      "report": {
+        "reason": "No reviewed gate configuration supplied"
+      }
+    },
+    {
+      "gate": "shell_height",
+      "status": "passed",
+      "report": {
+        "passed": true,
+        "pages": [
+          {
+            "componentUuid": "20ogVdefnlyb",
+            "path": "/req-075/groups",
+            "passed": true,
+            "frameUuid": "u53Sgsmvnkyp",
+            "viewportHeight": 1024,
+            "measurements": [
+              {
+                "region": "AppShell",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "Layout",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "sidebar",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              }
+            ],
+            "errors": [],
+            "notChecked": [
+              "live-preview-scrolling",
+              "save-reload-persistence"
+            ]
+          },
+          {
+            "componentUuid": "Av2WxMD0UmJD",
+            "path": "/req-075/regular",
+            "passed": true,
+            "frameUuid": "Pwctd6wUFD_b",
+            "viewportHeight": 1024,
+            "measurements": [
+              {
+                "region": "AppShell",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "Layout",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "sidebar",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              }
+            ],
+            "errors": [],
+            "notChecked": [
+              "live-preview-scrolling",
+              "save-reload-persistence"
+            ]
+          },
+          {
+            "componentUuid": "T077eWMlWTTj",
+            "path": "/req-075/onetime",
+            "passed": true,
+            "frameUuid": "tS7qu8C2xJqB",
+            "viewportHeight": 1024,
+            "measurements": [
+              {
+                "region": "AppShell",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "Layout",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "sidebar",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              }
+            ],
+            "errors": [],
+            "notChecked": [
+              "live-preview-scrolling",
+              "save-reload-persistence"
+            ]
+          },
+          {
+            "componentUuid": "fyjLkD2jIGjk",
+            "path": "/req-075/detail",
+            "passed": true,
+            "frameUuid": "h75AFWJtnLUo",
+            "viewportHeight": 1024,
+            "measurements": [
+              {
+                "region": "AppShell",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "Layout",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              },
+              {
+                "region": "sidebar",
+                "top": 0,
+                "height": 1024,
+                "bottom": 1024
+              }
+            ],
+            "errors": [],
+            "notChecked": [
+              "live-preview-scrolling",
+              "save-reload-persistence"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "notChecked": [
+    "source-interpretation",
+    "Preview interactions and scrolling",
+    "save/reopen persistence"
+  ]
+}

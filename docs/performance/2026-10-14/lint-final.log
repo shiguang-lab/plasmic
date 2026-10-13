@@ -1,0 +1,6 @@
+
+/Users/yanxianliang/shiguang/plasmic/platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx
+  1026:28  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+✖ 1 problem (0 errors, 1 warning)
+
