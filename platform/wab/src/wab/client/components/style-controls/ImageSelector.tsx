@@ -227,6 +227,8 @@ export function ImagePreview(props: {
   size?: "cover" | "contain";
   showCheckboard?: boolean;
 }) {
+  const isPlaceholder = !props.children &&
+    (!props.uri || props.uri === placeholderImgUrl());
   return (
     <div
       className={cx("image-preview", props.className)}
@@ -239,15 +241,15 @@ export function ImagePreview(props: {
         })}
       >
         <div
-          className={"img-thumb"}
+          className={cx("img-thumb", { "img-thumb--placeholder": isPlaceholder })}
           style={{
-            backgroundImage: !props.children
-              ? `url("${props.uri ?? placeholderImgUrl()}")`
+            backgroundImage: !props.children && !isPlaceholder
+              ? `url("${props.uri}")`
               : "none",
             backgroundSize: props.size || "cover",
           }}
         >
-          {props.children}
+          {isPlaceholder ? <Icon icon={ImageBlockIcon} /> : props.children}
         </div>
       </div>
       {props.hoverMsg && (

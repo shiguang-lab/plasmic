@@ -9,7 +9,6 @@ import {
   SEARCH_PARAM_ARENA_TYPE,
   SEARCH_PARAM_BRANCH,
   SEARCH_PARAM_COMMENT,
-  SEARCH_PARAM_COPILOT_CHAT,
   SEARCH_PARAM_REVISION,
   SEARCH_PARAM_VERSION,
 } from "@/wab/shared/route/app-routes";
@@ -37,8 +36,6 @@ export function parseProjectLocation(
   const arenaUuidOrNameOrPath =
     searchParams.get(SEARCH_PARAM_ARENA) || undefined;
   const threadId = searchParams.get(SEARCH_PARAM_COMMENT) || undefined;
-  const copilotChat =
-    searchParams.get(SEARCH_PARAM_COPILOT_CHAT) === "true" || undefined;
 
   const matchProject = APP_ROUTES.project.parse(location.pathname);
   if (matchProject) {
@@ -51,7 +48,6 @@ export function parseProjectLocation(
       arenaType,
       arenaUuidOrNameOrPath,
       threadId,
-      copilotChat,
     };
   }
 
@@ -66,7 +62,6 @@ export function parseProjectLocation(
       arenaType,
       arenaUuidOrNameOrPath,
       threadId,
-      copilotChat,
     };
   }
 
@@ -88,7 +83,6 @@ export function parseProjectLocation(
       branchVersion: latestTag,
       arenaUuidOrNameOrPath: previewPath,
       isPreview: true,
-      copilotChat,
     };
   }
 

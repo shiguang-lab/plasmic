@@ -186,22 +186,15 @@ describe("mkProjectLocation/parseProjectLocation", () => {
         search: "?comment=THREAD_ID",
       },
     );
-    expectMkParse(
-      {
-        projectId: "PROJECT_ID",
-        slug: undefined,
-        branchName: "main",
-        branchVersion: "latest",
-        branchRevision: undefined,
-        arenaType: undefined,
-        arenaUuidOrNameOrPath: undefined,
-        copilotChat: true,
-      },
-      {
-        pathname: "/projects/PROJECT_ID",
-        search: "?copilot_chat=true",
-      },
-    );
+
+  });
+
+  it("ignores the AI panel query flag", () => {
+    for (const pathname of ["/projects/PROJECT_ID", "/projects/PROJECT_ID/preview/ARENA_UUID"]) {
+      expect(parseProjectLocation({ pathname, search: "?copilot_chat=true" })).toEqual(
+        parseProjectLocation({ pathname, search: "" }),
+      );
+    }
   });
   it.each(["preview", "preview-full"])("parses %s locations", (mode) => {
     expect(
@@ -251,7 +244,6 @@ describe("mkProjectLocation/parseProjectLocation", () => {
       }),
     ).toMatchObject({
       isPreview: true,
-      copilotChat: true,
     });
   });
 });

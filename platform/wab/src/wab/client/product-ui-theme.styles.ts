@@ -1,3 +1,5 @@
+import canvasFrame from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
+import definedIndicator from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
 import addCommentMarker from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
 import shareDialog from "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent.module.css";
 import iconButton from "@/wab/client/plasmic/PlasmicIconButton.module.css";
@@ -8,11 +10,92 @@ import tooltip from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicToolt
 import styleTooltip from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
 import leftSettingsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSettingsPanel.module.css";
 import type { GlobalToken } from "antd";
-import { createStyles } from "antd-style";
+import { createStyles, type CSSObject } from "antd-style";
 
 // These tokens belong to the product's generated UI library. Scoped binding
 // keeps the shared application/editor palette out of business iframe documents.
-export const productPalette = (token: GlobalToken) => ({
+export const productPalette = (token: GlobalToken): CSSObject => ({
+  [`& .${definedIndicator.DefinedIndicator}`]: {
+    boxShadow: "none",
+    opacity: 0.65,
+  },
+  [`& .${definedIndicator.DefinedIndicatorContainer}:hover .${definedIndicator.DefinedIndicator}`]: {
+    opacity: 1,
+  },
+  "& .tpltree__label__indicator": { opacity: 0.65 },
+  "& .tpltree__label__indicator:hover": { opacity: 1 },
+  "& .defined-indicator__source-stack, & .defined-indicator__source-icon": {
+    background: token.colorBgElevated,
+  },
+  "& .defined-indicator__source": {
+    color: token.colorTextSecondary,
+    padding: "4px 0",
+    alignItems: "baseline",
+  },
+  "& .defined-indicator__source--target": { color: token.colorText },
+  "& .defined-indicator__source-name": {
+    minWidth: 64,
+    maxWidth: "40%",
+    flexShrink: 0,
+    color: token.colorTextSecondary,
+  },
+  "& .defined-indicator__source-value": {
+    minWidth: 0,
+    whiteSpace: "normal",
+    overflowWrap: "anywhere",
+    overflow: "visible",
+    textOverflow: "clip",
+  },
+  "& .defined-indicator__source-stack__line-container__line, & .defined-indicator__prop": {
+    borderColor: token.colorBorderSecondary,
+  },
+  "& .defined-indicator__edit-button": {
+    background: token.colorFillTertiary,
+    color: token.colorText,
+  },
+  "& .defined-indicator__edit-button:hover": {
+    background: token.colorFillSecondary,
+  },
+  "& .right-panel-input-background, & .right-panel-input-background__no-height, & .code-editor-input, & .generic-prop-editor .code-editor-input": {
+    background: token.colorBgContainer,
+    color: token.colorText,
+  },
+  "& .right-panel-input-background:hover, & .right-panel-input-background__no-height:hover, & .code-editor-input:hover, & .generic-prop-editor .code-editor-input:hover, & .right-panel-input-background-selected": {
+    background: token.colorFillTertiary,
+  },
+  "& .code-chip-like, & .templated-string-input .code-chip, & .code-editor-input .text-set": {
+    background: token.colorSuccessBg,
+    color: token.colorSuccessText,
+  },
+  "& .code-chip-like:hover, & .templated-string-input .code-chip:hover, & .code-editor-input .text-set:hover": {
+    background: token.colorSuccessBgHover,
+  },
+  "& .templated-string-input .code-chip.right-panel-input-background-selected": {
+    background: token.colorPrimary,
+    color: token.colorTextLightSolid,
+  },
+  "& .templated-string-input .code-chip.right-panel-input-background-selected:hover": {
+    background: token.colorPrimaryHover,
+    color: token.colorTextLightSolid,
+  },
+  "& .text-unset": { color: token.colorTextPlaceholder },
+  "& .text-inherited": { color: token.colorTextSecondary },
+  "& .multi-select-prop-pill": {
+    background: token.colorBgContainer,
+    color: token.colorText,
+  },
+  "& .img-thumb-border": { borderColor: token.colorBorder },
+  "& .img-thumb--placeholder": {
+    background: token.colorFillSecondary,
+    color: token.colorTextSecondary,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  [`& .${canvasFrame.artboardSelectionHandle}`]: {
+    "--artboard-handle-background": token.colorBgElevated,
+    "--artboard-handle-foreground": token.colorTextSecondary,
+  },
   [`& .${leftSettingsPanel.root}`]: {
     background: token.colorBgContainer,
     color: token.colorText,

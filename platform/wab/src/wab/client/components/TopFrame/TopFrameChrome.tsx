@@ -61,10 +61,7 @@ import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
-import {
-  APP_ROUTES,
-  SEARCH_PARAM_COPILOT_CHAT,
-} from "@/wab/shared/route/app-routes";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { canEditUiConfig } from "@/wab/shared/ui-config-utils";
 import { message, notification } from "antd";
 import { Action, Location } from "history";
@@ -166,7 +163,12 @@ export function TopFrameChrome({
           : topFrameApi.setShowPublishModal;
     spawn(setter(true));
   };
-  const { hostFrameApiReady } = useTopFrameCtx();
+  const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
+  React.useEffect(() => {
+    if (hostFrameApiReady) {
+      spawn(hostFrameApi.setCopilotChatOpen(rest.showCopilotChatModal));
+    }
+  }, [hostFrameApi, hostFrameApiReady, rest.showCopilotChatModal]);
   const location = useLocation();
   const fullPreview = !!APP_ROUTES.projectFullPreview.parse(
     location.pathname,
@@ -579,7 +581,6 @@ export function useTopFrameState({
   forceUpdate: () => void;
 }) {
   const history = useHistory();
-  const currentLocation = useLocation();
 
   const [studioReady, setStudioReady] = React.useState(false);
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
@@ -626,13 +627,15 @@ export function useTopFrameState({
   >(undefined);
 
   const [localAiContext, setLocalAiContext] = React.useState<LocalAiContext>();
-  const showCopilotChatModal = React.useMemo(() => {
-    const searchParams = new URLSearchParams(currentLocation.search);
-    return searchParams.get(SEARCH_PARAM_COPILOT_CHAT) === "true";
-  }, [currentLocation.search]);
+  const [showCopilotChatModal, setShowCopilotChatModal] = React.useState(false);
+
+  React.useEffect(() => {
+    setShowCopilotChatModal(false);
+    setCopilotChatOpenOpts(undefined);
+  }, [project?.id]);
 
   // The open options are scoped to one dialog session, clear when the dialog
-  // closes so the prompt can't come back prefilled on a later history navigation.
+  // closes so the prompt can't come back prefilled when reopened.
   React.useEffect(() => {
     if (!showCopilotChatModal) {
       setCopilotChatOpenOpts(undefined);
@@ -749,23 +752,14 @@ export function useTopFrameState({
       setShowAppAuthModal: asyncWrapper(setShowAppAuthModal),
       setStudioModalOpen: asyncWrapper(setStudioModalOpen),
       toggleCopilotChat: async () => {
-        const queryParams = new URLSearchParams(history.location.search);
-        if (queryParams.get(SEARCH_PARAM_COPILOT_CHAT) === "true") {
-          queryParams.delete(SEARCH_PARAM_COPILOT_CHAT);
-        } else {
-          queryParams.set(SEARCH_PARAM_COPILOT_CHAT, "true");
-        }
-        history.push({ search: queryParams.toString() });
-        forceUpdate();
+        setShowCopilotChatModal((open) => !open);
+      },
+      closeCopilotChat: async () => {
+        setShowCopilotChatModal(false);
       },
       openCopilotChat: async (opts) => {
         setCopilotChatOpenOpts(opts);
-        const queryParams = new URLSearchParams(history.location.search);
-        if (queryParams.get(SEARCH_PARAM_COPILOT_CHAT) !== "true") {
-          queryParams.set(SEARCH_PARAM_COPILOT_CHAT, "true");
-          history.push({ search: queryParams.toString() });
-        }
-        forceUpdate();
+        setShowCopilotChatModal(true);
       },
       setLocalAiContext: asyncWrapper(setLocalAiContext),
       onFrameInteraction: asyncWrapper((event) =>

@@ -23,9 +23,6 @@ export function useLocalAiStatus(
       return parsed.data;
     },
     {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      revalidateIfStale: false,
       shouldRetryOnError: false,
     },
   );

@@ -1679,7 +1679,8 @@ export class TreeDndManager {
 }
 
 function indentPadding(indent: number) {
-  return indent * 12;
+  // Reserve a gutter for the configuration indicator before the tree controls.
+  return 16 + indent * 12;
 }
 
 interface TreeRowItemData {

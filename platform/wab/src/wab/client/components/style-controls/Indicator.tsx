@@ -5,6 +5,7 @@ import {
   PlasmicIndicator,
 } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIndicator";
 import { Popover, Tooltip } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { RenderFunction } from "antd/lib/_util/getRenderPropValue";
 import { TooltipPlacement } from "antd/lib/tooltip";
 import * as React from "react";
@@ -40,7 +41,11 @@ function Indicator(props: IndicatorProps) {
         overlayClassName="defined-indicator__popover group"
         title={popoverTitle}
         placement={placement}
-        content={popover}
+        content={() => (
+          <Scrollbar scrollX={false} style={{ maxHeight: 300 }}>
+            {typeof popover === "function" ? popover() : popover}
+          </Scrollbar>
+        )}
         onOpenChange={(visible) => {
           console.log("Visible", visible);
         }}

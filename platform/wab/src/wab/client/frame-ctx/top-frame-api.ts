@@ -97,6 +97,7 @@ export interface TopFrameApi {
   setOnboardingTour(val: TopFrameTourState): Promise<void>;
   toggleCopilotChat(): Promise<void>;
   openCopilotChat(opts: CopilotChatOpenOpts): Promise<void>;
+  closeCopilotChat(): Promise<void>;
   setLocalAiContext(
     context:
       import("@/wab/shared/copilot/local-edit").LocalAiContext | undefined,

@@ -106,6 +106,7 @@ import {
   getVisibilityLabel,
 } from "@/wab/shared/visibility-utils";
 import { Alert, Menu, Popover, Tooltip } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import classNames from "classnames";
 import L from "lodash";
 import { observer } from "mobx-react";
@@ -845,11 +846,13 @@ function DefinedIndicator_(props: {
         )
       }
       content={() => (
-        <PopoverContent
-          types={types}
-          onShowPopup={() => setVisible(false)}
-          alwaysShowPropLabel={alwaysShowPropLabel}
-        />
+        <Scrollbar scrollX={false} style={{ maxHeight: 300 }}>
+          <PopoverContent
+            types={types}
+            onShowPopup={() => setVisible(false)}
+            alwaysShowPropLabel={alwaysShowPropLabel}
+          />
+        </Scrollbar>
       )}
       open={visible}
       onOpenChange={(_v) => setVisible(_v)}

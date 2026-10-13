@@ -377,7 +377,6 @@ import {
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import {
   APP_ROUTES,
-  SEARCH_PARAM_COPILOT_CHAT,
   SEARCH_PROMPT,
   mkProjectLocation,
 } from "@/wab/shared/route/app-routes";
@@ -2191,7 +2190,6 @@ export class StudioCtx extends WithDbCtx {
       arenaType,
       arenaUuidOrNameOrPath: arenaUuidOrName,
       threadId,
-      copilotChat: this.isCopilotChatOpen,
     });
 
     if (replace) {
@@ -2225,12 +2223,6 @@ export class StudioCtx extends WithDbCtx {
 
   private async handleRouteChange(location: Location) {
     const match = parseProjectLocation(location);
-    if (match?.copilotChat && !this.isCopilotChatOpen) {
-      this._leftTabGroup.set(undefined);
-      this.switchLeftTab(undefined);
-      this.setShowAddDrawer(false);
-    }
-    this._isCopilotChatOpen.set(!!match?.copilotChat);
     if (match) {
       const {
         branchName,
@@ -3166,15 +3158,21 @@ export class StudioCtx extends WithDbCtx {
     return this._isCopilotChatOpen.get();
   }
 
+  setCopilotChatOpen(open: boolean) {
+    if (open && !this.isCopilotChatOpen) {
+      this._leftTabGroup.set(undefined);
+      this.switchLeftTab(undefined);
+      this.setShowAddDrawer(false);
+    }
+    this._isCopilotChatOpen.set(open);
+  }
+
   private closeCopilotChat() {
     if (!this.isCopilotChatOpen) {
       return;
     }
     this._isCopilotChatOpen.set(false);
-    const history = this.appCtx.history;
-    const queryParams = new URLSearchParams(history.location.search);
-    queryParams.delete(SEARCH_PARAM_COPILOT_CHAT);
-    history.replace({ search: queryParams.toString() });
+    spawn(this.appCtx.topFrameApi?.closeCopilotChat());
   }
 
   private _preferredAiOutputFormat = observable.box<AiOutputFormat>("json");

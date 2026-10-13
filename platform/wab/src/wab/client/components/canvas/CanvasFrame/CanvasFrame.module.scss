@@ -4,8 +4,8 @@
 .root:hover {
   & .artboardSelectionHandle:not(:hover) {
     transform: scale($inverseZoom) !important;
-    background-color: $sand4;
-    color: $sand9;
+    background-color: var(--artboard-handle-background);
+    color: var(--artboard-handle-foreground);
 
     &:hover {
       background-color: $selectionControlsColor !important;
@@ -28,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $sand9;
+  color: var(--artboard-handle-foreground);
   transition:
     transform 200ms,
     background 200ms,
@@ -41,8 +41,8 @@
 
   &:hover,
   &.artboardSelectionHandle_prominent {
-    background-color: $sand4;
-    color: $sand9;
+    background-color: var(--artboard-handle-background);
+    color: var(--artboard-handle-foreground);
   }
 }
 

@@ -15,6 +15,7 @@ import { LeftTabKey } from "@/wab/shared/ui-config-utils";
 import { ExtendedKeyboardEvent } from "mousetrap";
 
 export type HostFrameApi = {
+  setCopilotChatOpen(open: boolean): Promise<void>;
   switchLeftTab(
     tabKey: LeftTabKey | undefined,
     opts?: { highlight?: boolean },

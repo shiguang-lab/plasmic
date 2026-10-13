@@ -5,6 +5,7 @@ import {
   cleanup,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
 } from "@testing-library/react";
@@ -109,3 +110,23 @@ it("waits for feature/permission enablement and fetches a separate catalog when 
   await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
   expect(request).toHaveBeenLastCalledWith("second", "status");
 });
+
+it.each(["focus", "online"])(
+  "refreshes a fallback model catalog on %s",
+  async (event) => {
+    request.mockResolvedValueOnce({ ...status, models: [status.model] });
+    const cache = new Map();
+    const { result } = renderHook(() => useLocalAiStatus("project", true), {
+      wrapper: ({ children }) => (
+        <SWRConfig value={{ provider: () => cache, dedupingInterval: 0, focusThrottleInterval: 0 }}>
+          {children}
+        </SWRConfig>
+      ),
+    });
+    await waitFor(() => expect(result.current.data?.models).toEqual(["model"]));
+    await act(() => {
+      window.dispatchEvent(new Event(event));
+    });
+    await waitFor(() => expect(result.current.data?.models).toEqual(status.models));
+  },
+);

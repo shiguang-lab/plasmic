@@ -56,7 +56,7 @@ export function MultiSelectEnumPropEditor(props: {
       )}
       renderOption={(option) => option.label}
       renderSelectedItem={(option) => option.label}
-      pillClassName="white-bg"
+      pillClassName="multi-select-prop-pill"
       placeholder={defaultValueHint?.join(",")}
       isDisabled={disabled}
       onReorder={(fromIndex, toIndex) => {

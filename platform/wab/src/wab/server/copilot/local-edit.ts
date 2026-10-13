@@ -68,7 +68,6 @@ export async function getLocalAiModels(): Promise<string[]> {
   try {
     const response = await fetch(`${config.baseUrl}/models`, {
       headers: { Authorization: `Bearer ${config.apiKey}` },
-      signal: AbortSignal.timeout(5000),
       redirect: "error",
     });
     if (!response.ok) {

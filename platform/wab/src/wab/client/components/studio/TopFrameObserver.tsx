@@ -112,6 +112,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
 
   const hostFrameApi = React.useMemo<HostFrameApi>(
     () => ({
+      setCopilotChatOpen: async (open) => studioCtx.setCopilotChatOpen(open),
       switchLeftTab: async (tabKey, opts) =>
         studioCtx.switchLeftTab(tabKey, opts),
       refreshSiteInfo: async () => {
