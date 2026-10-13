@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: YvSNiHRodZSY
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -113,7 +114,7 @@ function PlasmicMenuSection__RenderFunc(props: {
           className={classNames("all", sty.freeBox)}
         >
           {renderPlasmicSlot({
-            defaultContents: "Section Header",
+            defaultContents: <UiText message={"Section Header"} />,
             value: args.header,
             className: classNames(sty.slotTargetHeader),
           })}

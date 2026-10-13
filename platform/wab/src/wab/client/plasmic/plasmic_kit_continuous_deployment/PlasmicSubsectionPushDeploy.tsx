@@ -127,6 +127,8 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
   overrides: PlasmicSubsectionPushDeploy__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -439,7 +441,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "collapse", "collapse") ? "Show" : <UiText message={"Remove"} />}
+                {hasVariant($state, "collapse", "collapse") ? uiT("Show") : <UiText message={"Remove"} />}
               </div>
             </Button>
           ) : null}
@@ -506,7 +508,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                 })}
               >
                 {hasVariant($state, "view", "status")
-                  ? "View on GitHub"
+                  ? uiT("View on GitHub")
                   : <UiText message={"Button"} />}
               </div>
             </Button>
@@ -676,12 +678,12 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   platform={"react"}
                 >
                   {hasVariant($state, "connection", "error")
-                    ? "Error loading repository information."
+                    ? uiT("Error loading repository information.")
                     : hasVariant($state, "connection", "connected")
                     ? "<repository name>"
                     : hasVariant($state, "connection", "loading")
                     ? <UiText message={"Loading..."} />
-                    : "Not connected"}
+                    : uiT("Not connected")}
                 </PlasmicLink__>
               </div>
               {(hasVariant($state, "connection", "error") ? true : false) ? (
@@ -933,7 +935,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                               "collapseOptions",
                               "collapseOptions"
                             )
-                              ? "More options"
+                              ? uiT("More options")
                               : <UiText message={"Fewer options"} />}
                           </div>
                         </Button>
@@ -1294,7 +1296,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
         >
           {hasVariant($state, "view", "status") &&
           hasVariant($state, "result", "success")
-            ? "GitHub Pages may take a minute or two for your changes to show up."
+            ? uiT("GitHub Pages may take a minute or two for your changes to show up.")
             : <UiText message={"Enter some text"} />}
         </div>
       ) : null}

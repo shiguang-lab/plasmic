@@ -434,7 +434,7 @@ function PlasmicParamSection__RenderFunc(props: {
           {renderPlasmicSlot({
             defaultContents: (
               <div className={classNames("all", "__wab_text", sty.text__fuiYb)}>
-                {"Choice settings go here..."}
+                {<UiText message={"Choice settings go here..."} />}
               </div>
             ),
             value: args.choiceSettings,

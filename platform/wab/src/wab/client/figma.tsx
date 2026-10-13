@@ -1,3 +1,5 @@
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+
 import { CENTERED_FRAME_PADDING } from "@/wab/client/ClientConstants";
 import {
   PasteArgs,
@@ -43,6 +45,7 @@ import {
   wrapInBox,
   wrapTplNodes,
 } from "@/wab/client/figma-importer/utils";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
@@ -116,12 +119,18 @@ export async function pasteFromFigma(
     message: (
       <>
         <p>
-          Figma components instances can be converted into existing components
-          of the same name, in your Plasmic project, including code components.
-          If there's no component of the same name, it will be converted into
-          basic elements.
+          {" "}
+          <UiText
+            message={
+              "Figma components instances can be converted into existing components of the same name, in your Plasmic project, including code components. If there's no component of the same name, it will be converted into basic elements."
+            }
+          />{" "}
         </p>
-        <p>Try converting Figma components to Plasmic components?</p>
+        <p>
+          <UiText
+            message={"Try converting Figma components to Plasmic components?"}
+          />
+        </p>
         <a
           href="https://docs.plasmic.app/learn/importing-from-figma/#converting-component-instances"
           target="_blank"
@@ -130,15 +139,20 @@ export async function pasteFromFigma(
         </a>
       </>
     ),
-    confirmLabel: "Yes, use existing Plasmic components",
-    cancelLabel: "No, use basic elements",
+    confirmLabel: translate(
+      getUiLocale(),
+      "Yes, use existing Plasmic components",
+    ),
+    cancelLabel: translate(getUiLocale(), "No, use basic elements"),
   }));
 
   const showFigmaError = () => {
     notification.error({
-      message: "No Figma layers to paste",
-      description:
+      message: translate(getUiLocale(), "No Figma layers to paste"),
+      description: translate(
+        getUiLocale(),
         "This could happen if (for example) the entire selection was invisible in Figma. If you aren't expecting this behavior, please share the Figma file with team@plasmic.app.",
+      ),
     });
   };
   const vc = studioCtx.focusedViewCtx();
@@ -184,7 +198,11 @@ export async function pasteFromFigma(
     const arena = studioCtx.currentArena;
     if (!isMixedArena(arena)) {
       notification.error({
-        message: `Please select where you want to paste. (If you want to paste multiple Figma artboards, create a ${ARENA_LOWER}.)`,
+        message: translate(
+          getUiLocale(),
+          "Please select where you want to paste. (If you want to paste multiple Figma artboards, create a {part1}.)",
+          { part1: translateUiLabel(getUiLocale(), ARENA_LOWER) },
+        ),
       });
       return {
         handled: true,

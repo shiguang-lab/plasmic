@@ -591,7 +591,7 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
           renderSelectedItem={(type) => <span className="text-xs">{type}</span>}
           placeholder={
             selectedExprTypes.length === 0
-              ? "Select types to filter..."
+              ? uiT("Select types to filter...")
               : undefined
           }
           className="fill-width right-panel-input-background__no-height"

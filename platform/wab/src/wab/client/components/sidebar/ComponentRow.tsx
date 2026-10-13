@@ -285,7 +285,7 @@ function buildPlasmicComponentMenuItems(
                 getUiLocale(),
                 "What's the new name for this component?",
               ),
-              actionText: "Rename",
+              actionText: translate(getUiLocale(), "Rename"),
               placeholder: translate(getUiLocale(), "New component name"),
               defaultValue: component.name,
             });

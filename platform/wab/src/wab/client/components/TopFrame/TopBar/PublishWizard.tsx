@@ -1,6 +1,7 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { GithubConnect } from "@/wab/client/components/auth/GithubConnect";
 import Button from "@/wab/client/components/widgets/Button";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import OpenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Open";
 import {
@@ -16,6 +17,8 @@ interface PublishWizardProps extends DefaultPublishWizardProps {
 }
 
 function PublishWizard(props: PublishWizardProps) {
+  const { t: studioUiT } = useI18n();
+
   const { appCtx, close, onGithubConnect, ...rest } = props;
   return (
     <PlasmicPublishWizard
@@ -35,7 +38,7 @@ function PublishWizard(props: PublishWizardProps) {
                 withIcons="endIcon"
               >
                 {ps.isWaiting ? (
-                  "Waiting for GitHub..."
+                  studioUiT("Waiting for GitHub...")
                 ) : (
                   <UiText message={"Connect to GitHub"} />
                 )}

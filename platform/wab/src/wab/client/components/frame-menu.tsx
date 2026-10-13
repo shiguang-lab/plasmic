@@ -5,7 +5,7 @@ import {
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { translateUiLabel } from "@/wab/client/i18n/locales";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -150,8 +150,10 @@ export function makeFrameMenu({
         >
           <MenuItemContent shortcut={getComboForAction("DELETE")}>
             {isPageArena(originArena) && !isCombinationPageArenaFrame
-              ? "Delete this screen size"
-              : "Delete " + FRAME_LOWER}
+              ? translate(getUiLocale(), "Delete this screen size")
+              : translate(getUiLocale(), "Delete {part1}", {
+                  part1: translateUiLabel(getUiLocale(), FRAME_LOWER),
+                })}
           </MenuItemContent>
         </Menu.Item>,
       );

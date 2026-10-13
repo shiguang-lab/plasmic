@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: eqF_n5a1-6b
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -98,6 +99,8 @@ function PlasmicDomainCard__RenderFunc(props: {
   overrides: PlasmicDomainCard__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -307,15 +310,15 @@ function PlasmicDomainCard__RenderFunc(props: {
             )}
           >
             {hasVariant($state, "error", "error") ? (
-              "Invalid configuration"
+              studioUiT("Invalid configuration")
             ) : hasVariant($state, "error", "apex") ? (
-              "Invalid configuration"
+              studioUiT("Invalid configuration")
             ) : hasVariant($state, "error", "cname") ? (
-              "Invalid configuration"
+              studioUiT("Invalid configuration")
             ) : (
               <React.Fragment>
                 <React.Fragment>
-                  {"{yoursite.com} is already owned by another team. "}
+                  {<><UiText message={"{yoursite.com} is already owned by another team."} />{" "}</>}
                 </React.Fragment>
                 <span
                   className={
@@ -383,7 +386,7 @@ function PlasmicDomainCard__RenderFunc(props: {
           <Button
             data-plasmic-name={"refreshButton"}
             data-plasmic-override={overrides.refreshButton}
-            caption={"Caption"}
+            caption={studioUiT("Caption")}
             className={classNames("__wab_instance", sty.refreshButton, {
               [sty.refreshButtonerror_success]: hasVariant(
                 $state,
@@ -427,13 +430,13 @@ function PlasmicDomainCard__RenderFunc(props: {
             withIcons={["startIcon"]}
           >
             {hasVariant($state, "refreshing", "refreshing")
-              ? "Refreshing\u2026"
+              ? studioUiT("Refreshing…")
               : <UiText message={"Refresh"} />}
           </Button>
           <Button
             data-plasmic-name={"removeButton"}
             data-plasmic-override={overrides.removeButton}
-            caption={"Caption"}
+            caption={studioUiT("Caption")}
             color={"red"}
             endIcon={
               <ChevronDownSvgIcon
@@ -532,14 +535,14 @@ function PlasmicDomainCard__RenderFunc(props: {
             }}
           >
             <React.Fragment>
-              <React.Fragment>{"CNAME Record "}</React.Fragment>
+              <React.Fragment>{<><UiText message={"CNAME Record"} />{" "}</>}</React.Fragment>
               <span
                 className={
                   "plasmic_default__all plasmic_default__span plasmic_default__span__fpbcK"
                 }
                 style={{ fontWeight: 400 }}
               >
-                {"(subdomains)"}
+                {<UiText message={"(subdomains)"} />}
               </span>
             </React.Fragment>
           </button>
@@ -562,14 +565,14 @@ function PlasmicDomainCard__RenderFunc(props: {
             }}
           >
             <React.Fragment>
-              <React.Fragment>{"A Record "}</React.Fragment>
+              <React.Fragment>{<><UiText message={"A Record"} />{" "}</>}</React.Fragment>
               <span
                 className={
                   "plasmic_default__all plasmic_default__span plasmic_default__span__fpbcK"
                 }
                 style={{ fontWeight: 400 }}
               >
-                {"(apex domain)"}
+                {<UiText message={"(apex domain)"} />}
               </span>
             </React.Fragment>
           </button>

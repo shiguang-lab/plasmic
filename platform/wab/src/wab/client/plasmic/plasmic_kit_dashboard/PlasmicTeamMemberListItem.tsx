@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: gdLJj97tYt
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -88,6 +89,8 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
   overrides: PlasmicTeamMemberListItem__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -151,7 +154,7 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__lV3Y)}>
         {renderPlasmicSlot({
-          defaultContents: "Name",
+          defaultContents: <UiText message={"Name"} />,
           value: args.name,
           className: classNames(sty.slotTargetName),
         })}
@@ -269,7 +272,7 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
         <MenuButton
           data-plasmic-name={"menuButton"}
           data-plasmic-override={overrides.menuButton}
-          hoverText={"More…"}
+          hoverText={studioUiT("More…")}
           withBackgroundHover={true}
         />
       </div>

@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: tNBvs5bIAy
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -143,6 +144,8 @@ function PlasmicTopBar__RenderFunc(props: {
   overrides: PlasmicTopBar__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -457,7 +460,7 @@ function PlasmicTopBar__RenderFunc(props: {
             >
               {<UiText message={"admin mode"} />}
             </span>
-            <React.Fragment>{" is disabled"}</React.Fragment>
+            <React.Fragment>{<>{" "}<UiText message={"is disabled"} /></>}</React.Fragment>
           </React.Fragment>
         </div>
       </div>
@@ -491,7 +494,7 @@ function PlasmicTopBar__RenderFunc(props: {
           data-plasmic-name={"freeTrial"}
           data-plasmic-override={overrides.freeTrial}
           className={classNames("__wab_instance", sty.freeTrial)}
-          freeTrialTimeRemaining={"0 days left"}
+          freeTrialTimeRemaining={studioUiT("0 days left")}
           topBar={true}
         />
 
@@ -702,8 +705,8 @@ function PlasmicTopBar__RenderFunc(props: {
             withIcons={["startIcon"]}
           >
             {hasVariant($state, "mode", "preview")
-              ? "Back to studio"
-              : "Exit preview"}
+              ? studioUiT("Back to studio")
+              : studioUiT("Exit preview")}
           </Button>
         ) : null}
         {(

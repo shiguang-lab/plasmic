@@ -37,7 +37,7 @@
   flex-shrink: 0;
 }
 .main {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   box-shadow: 0px 4px 12px 1px var(--token-VEgqNiouHaAh);
   position: relative;
   align-items: stretch;

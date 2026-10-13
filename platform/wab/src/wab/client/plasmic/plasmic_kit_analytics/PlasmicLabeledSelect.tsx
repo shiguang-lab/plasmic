@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: bQ74QBVIbHI
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -85,6 +86,8 @@ function PlasmicLabeledSelect__RenderFunc(props: {
   overrides: PlasmicLabeledSelect__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -179,7 +182,7 @@ function PlasmicLabeledSelect__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Label",
+          defaultContents: <UiText message={"Label"} />,
           value: args.label,
           className: classNames(sty.slotTargetLabel),
         })}
@@ -230,7 +233,7 @@ function PlasmicLabeledSelect__RenderFunc(props: {
         </Select__OptionGroup>
         <Select__OptionGroup
           className={classNames("__wab_instance", sty.optionGroup__zctCi)}
-          title={"Other Group"}
+          title={uiT("Other Group")}
         >
           <Select__Option
             className={classNames("__wab_instance", sty.option__ekSaT)}

@@ -85,6 +85,8 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
   overrides: PlasmicDefaultStylesPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -180,7 +182,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
     >
       <div className={classNames("all", "__wab_text", sty.text__iGLd)}>
         {
-          "Define default typography styles; you can define different styles for different tags and responsive breakpoints."
+          <UiText message={"Define default typography styles; you can define different styles for different tags and responsive breakpoints."} />
         }
       </div>
       <div
@@ -316,8 +318,8 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
           ]}
           placeholder={
             hasVariant($state, "showPseudoClass", "showPseudoClass")
-              ? "Select tag\u2026"
-              : "Select tag\u2026"
+              ? uiT("Select tag…")
+              : uiT("Select tag…")
           }
           type={"bordered"}
           value={generateStateValueProp($state, ["tagSelect", "value"])}

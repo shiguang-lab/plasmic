@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: EeT-6P6YTW
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -122,7 +123,7 @@ function PlasmicLeftSettingsPanel__RenderFunc(props: {
             className={classNames("all", "__wab_text", sty.text)}
           >
             {
-              'These are the settings ("global contexts") available for you to configure in this project.'
+              <UiText message={"These are the settings (\"global contexts\") available for you to configure in this project."} />
             }
           </div>
         }

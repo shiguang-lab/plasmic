@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 54ykx6A8G6T
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -125,6 +126,8 @@ function PlasmicCmsSection__RenderFunc(props: {
   overrides: PlasmicCmsSection__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -401,7 +404,7 @@ function PlasmicCmsSection__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"models"}
+                  {<UiText message={"models"} />}
                 </div>
               </div>
             </div>
@@ -462,7 +465,7 @@ function PlasmicCmsSection__RenderFunc(props: {
                 "cantEdit"
               ),
             })}
-            hoverText={"More…"}
+            hoverText={studioUiT("More…")}
             withBackgroundHover={true}
           />
         </div>

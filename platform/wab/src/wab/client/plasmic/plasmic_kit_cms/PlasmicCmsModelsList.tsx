@@ -92,6 +92,8 @@ function PlasmicCmsModelsList__RenderFunc(props: {
   overrides: PlasmicCmsModelsList__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -217,8 +219,8 @@ function PlasmicCmsModelsList__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "isSchemaMode", "isSchemaMode")
-              ? "Edit Models"
-              : "Models"}
+              ? uiT("Edit Models")
+              : uiT("Models")}
           </div>
           {(
             hasVariant($state, "isSchemaMode", "isSchemaMode") ? true : false

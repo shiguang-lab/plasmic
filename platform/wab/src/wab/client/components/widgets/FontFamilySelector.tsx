@@ -119,7 +119,7 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
         userManagedFonts.length === 0
           ? undefined
           : {
-              label: "Custom Fonts",
+              label: uiT("Custom Fonts"),
               options: userManagedFonts.map(({ fontFamily, label }) => ({
                 value: fontFamily,
                 label,

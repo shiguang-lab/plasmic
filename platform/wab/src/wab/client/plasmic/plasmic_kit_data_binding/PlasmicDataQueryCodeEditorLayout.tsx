@@ -174,7 +174,7 @@ function PlasmicDataQueryCodeEditorLayout__RenderFunc(props: {
           })}
         >
           {
-            "Write your custom code below. Available variables are listed in the data context section."
+            <UiText message={"Write your custom code below. Available variables are listed in the data context section."} />
           }
         </div>
         <div

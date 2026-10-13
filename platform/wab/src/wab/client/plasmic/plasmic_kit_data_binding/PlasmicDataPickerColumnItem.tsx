@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: fa3uzsyXr0
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -125,6 +126,8 @@ function PlasmicDataPickerColumnItem__RenderFunc(props: {
   overrides: PlasmicDataPickerColumnItem__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -455,7 +458,7 @@ function PlasmicDataPickerColumnItem__RenderFunc(props: {
               : hasVariant($state, "variableType", "undefined")
                 ? "undefined"
                 : hasVariant($state, "variableType", "array")
-                  ? "3 items"
+                  ? studioUiT("3 items")
                   : hasVariant($state, "variableType", "object")
                     ? "object"
                     : hasVariant($state, "variableType", "boolean")
@@ -463,7 +466,7 @@ function PlasmicDataPickerColumnItem__RenderFunc(props: {
                       : hasVariant($state, "variableType", "number")
                         ? "123"
                         : hasVariant($state, "step", "notPlayed")
-                          ? "Not executed"
+                          ? studioUiT("Not executed")
                           : '"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."'}
           </div>
         </div>

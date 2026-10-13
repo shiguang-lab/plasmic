@@ -11,6 +11,7 @@
 // Plasmic Project: 29njzcsBEPR4koRddw4knF
 // Component: DCWq1LLaJ6e
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -118,6 +119,8 @@ function PlasmicAlertBanner__RenderFunc(props: {
   overrides: PlasmicAlertBanner__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -426,7 +429,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
               ? <UiText message={"Someone else has edited the project,"} />
               : hasVariant($state, "state", "readOnly")
               ? <UiText message={"You only have read permission to this project."} />
-              : "This is bold text."}
+              : studioUiT("This is bold text.")}
           </div>
           <div
             className={classNames("all", "__wab_text", sty.text__n3UE1, {
@@ -523,7 +526,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
               ? <UiText message={"so this is a stale version. Would you like to watch for new changes?"} />
               : hasVariant($state, "state", "readOnly")
               ? <UiText message={"You can make a copy of this project for yourself. Any changes to this project won't be saved."} />
-              : "This is normal text"}
+              : studioUiT("This is normal text")}
           </div>
         </div>
       </div>
@@ -539,7 +542,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
         <Button
           data-plasmic-name={"watchBtn"}
           data-plasmic-override={overrides.watchBtn}
-          caption={"Caption"}
+          caption={studioUiT("Caption")}
           className={classNames("__wab_instance", sty.watchBtn, {
             [sty.watchBtnstate_authError]: hasVariant(
               $state,
@@ -708,7 +711,7 @@ function PlasmicAlertBanner__RenderFunc(props: {
           <Button
             data-plasmic-name={"actionBtn"}
             data-plasmic-override={overrides.actionBtn}
-            caption={"Caption"}
+            caption={studioUiT("Caption")}
             className={classNames("__wab_instance", {
               [sty.actionBtnstate_protectedMainBranch]: hasVariant(
                 $state,

@@ -1,11 +1,11 @@
 @import "src/wab/styles/tokens";
 
-$activeAlignmentControls: $sand11;
-$simulatedAlignmentControls: $blue9;
+$activeAlignmentControls: var(--ui-muted, #{$sand11});
+$simulatedAlignmentControls: var(--ui-accent, #{$blue9});
 
-$expanderBackground: $sand3;
-$expanderHoverBackground: $blue3;
-$expanderHoverChevronColor: $blue9;
+$expanderBackground: var(--ui-fill, #{$sand3});
+$expanderHoverBackground: var(--ui-selected, #{$blue3});
+$expanderHoverChevronColor: var(--ui-accent-text, #{$blue9});
 
 $expanderSize: 12px;
 $alignerSize: 16px;
@@ -172,7 +172,7 @@ $gridHeight: 120px;
 .horizontalStack,
 .verticalStack {
   padding: 3px;
-  background: white;
+  background: var(--ui-surface, white);
   border: 1px solid $activeAlignmentControls;
   position: absolute;
   left: 50%;
@@ -213,7 +213,7 @@ $gridHeight: 120px;
   & > div > span {
     width: 2px;
     height: 2px;
-    background: white;
+    background: var(--ui-on-accent, white);
     margin: 1px;
     display: none;
   }
@@ -281,7 +281,7 @@ $gridHeight: 120px;
   margin-top: 6px;
   padding-top: 12px;
   padding-bottom: 8px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--ui-border-subtle, #eee);
 }
 
 .overflowToggleGroup {

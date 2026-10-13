@@ -5,7 +5,7 @@
   justify-content: flex-start;
   position: relative;
   row-gap: 8px;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   width: 100%;
   min-width: 0;
 }

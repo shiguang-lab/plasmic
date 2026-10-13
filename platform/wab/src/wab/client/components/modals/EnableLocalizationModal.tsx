@@ -3,7 +3,6 @@ import {
   promptBilling,
   showUpsellConfirm,
 } from "@/wab/client/components/modals/PricingModal";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
@@ -14,12 +13,12 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Form, notification } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
-import { FocusScope } from "react-aria";
 
 export interface EnableLocalizationModalProps {
   onDone: () => void;
@@ -36,6 +35,8 @@ export const EnableLocalizationModal = observer(
     onDone,
   }: EnableLocalizationModalProps) {
     const { t: uiT } = useI18n();
+    const [form] = Form.useForm();
+    const formId = React.useId();
     const appCtx = useAppCtx();
     const { hostFrameApi } = useTopFrameCtx();
 
@@ -48,9 +49,12 @@ export const EnableLocalizationModal = observer(
         )}
         open
         onCancel={() => onDone()}
-        footer={null}
+
+        okButtonProps={{ htmlType: "submit", form: formId }}
+        okText={<UiText message="Confirm" />}
+        cancelText={<UiText message="Cancel" />}
       >
-        <FocusScope contain>
+        <>
           <div className="mb-xlg">
             <UiText
               message={
@@ -73,6 +77,8 @@ export const EnableLocalizationModal = observer(
             />
           </div>
           <Form
+            id={formId}
+            form={form}
             onFinish={async (e) => {
               if (
                 isLocalizationEnabled ||
@@ -119,27 +125,17 @@ export const EnableLocalizationModal = observer(
                 </Form.Item>
               </>
             )}
-            <Form.Item>
-              <Button
-                htmlType="submit"
-                className="mr-sm"
-                type="primary"
-                autoFocus
-              >
-                <UiText message={"Confirm"} />
-              </Button>
-              <Button onClick={() => onDone()}>
-                <UiText message={"Cancel"} />
-              </Button>
-            </Form.Item>
           </Form>
-        </FocusScope>
+        </>
       </Modal>
     );
   },
 );
 
 async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
+  if (SELF_HOSTED) {
+    return true;
+  }
   const projectTeam = appCtx.teams.find((team) => team.id === project.teamId);
   if (!projectTeam) {
     notification.error({

@@ -113,7 +113,7 @@
   align-items: stretch;
   justify-content: flex-start;
   overflow: hidden;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   border-radius: 4px;
   border: 1px solid var(--token-hoA5qaM-91G);
 }
@@ -446,7 +446,7 @@
 .freeBox__daTyt {
   display: flex;
   position: relative;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   border-radius: 4px;
   padding: 0.5rem;
   border: 1px solid var(--token-hoA5qaM-91G);

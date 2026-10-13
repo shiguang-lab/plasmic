@@ -47,6 +47,7 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { NewComponentInfo } from "@/wab/client/components/widgets/NewComponentModal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
+
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   buildInsertableExtraInfo,
@@ -204,6 +205,8 @@ function DataSourceTablePickerWrapper({
   studioCtx: StudioCtx;
   onSubmit: ([lookupSpec, fields]: [LookupSpec, TableSchema]) => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const [draft, setDraft] = React.useState<LookupSpecDraft | undefined>(
     undefined,
   );
@@ -238,7 +241,7 @@ function DataSourceTablePickerWrapper({
 
   return (
     <div className="flex flex-col gap-xlg">
-      <StandardMarkdown>{DYNAMIC_PAGES_HELP_TEXT}</StandardMarkdown>
+      <StandardMarkdown>{studioUiT(DYNAMIC_PAGES_HELP_TEXT)}</StandardMarkdown>
       <DataSourceTablePicker
         studioCtx={studioCtx}
         draft={draft}
@@ -450,7 +453,7 @@ function NavigationDropdown_(
               providesStudioCtx(studioCtx)(
                 providesAppCtx(studioCtx.appCtx)(
                   <Modal
-                    title={`Create dynamic page template`}
+                    title={uiT("Create dynamic page template")}
                     open={true}
                     footer={null}
                     onCancel={() => onCancel()}
@@ -969,12 +972,12 @@ const buildItems = computedFn(
         studioCtx.getSortedMixedArenas(),
       ),
       getSection(
-        <UiText message="Pages" />,
+        <UiText message={"Pages"} />,
         "page",
         studioCtx.getSortedPageArenas(),
       ),
       getSection(
-        <UiText message="Components" />,
+        <UiText message={"Components"} />,
         "component",
         studioCtx.getSortedComponentArenas(),
       ),

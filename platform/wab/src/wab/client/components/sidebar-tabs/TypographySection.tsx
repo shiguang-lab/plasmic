@@ -87,6 +87,8 @@ function TypographySection_(props: {
   title?: React.ReactNode;
   animatableOnly?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { expsProvider, ancestorSlot, viewCtx, vsh, title, animatableOnly } =
     props;
 
@@ -104,7 +106,7 @@ function TypographySection_(props: {
   return (
     <StylePanelSection
       hasMore
-      title={title ?? "Text"}
+      title={title ?? studioUiT("Text")}
       expsProvider={expsProvider}
       styleProps={
         props.inheritableOnly
@@ -207,12 +209,14 @@ export const TextOnlySection = observer(function TextOnlySection(props: {
   viewCtx?: ViewCtx;
   title?: React.ReactNode;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { expsProvider, viewCtx, title } = props;
   if (!(expsProvider instanceof TplExpsProvider) || !viewCtx) {
     return null;
   }
   return (
-    <SidebarSection title={title ?? "Text"}>
+    <SidebarSection title={title ?? studioUiT("Text")}>
       <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
     </SidebarSection>
   );

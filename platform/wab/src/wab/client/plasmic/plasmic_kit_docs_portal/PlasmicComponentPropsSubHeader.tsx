@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: buRRLzgjkH
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -143,7 +144,7 @@ function PlasmicComponentPropsSubHeader__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Variant Props",
+          defaultContents: <UiText message={"Variant Props"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren),
         })}
@@ -161,7 +162,7 @@ function PlasmicComponentPropsSubHeader__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Some details",
+            defaultContents: <UiText message={"Some details"} />,
             value: args.slot,
             className: classNames(sty.slotTargetSlot),
           })}

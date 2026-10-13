@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: 0hwZcM2HAXr
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -263,7 +264,7 @@ function PlasmicStyleSwitch__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Enter some text",
+            defaultContents: <UiText message={"Enter some text"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren, {
               [sty.slotTargetChildren___focusVisibleWithin]:

@@ -112,6 +112,8 @@ function PlasmicNewVariable__RenderFunc(props: {
   overrides: PlasmicNewVariable__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -582,7 +584,7 @@ function PlasmicNewVariable__RenderFunc(props: {
         <Button
           data-plasmic-name={"cancelButton"}
           data-plasmic-override={overrides.cancelButton}
-          caption={"Caption"}
+          caption={uiT("Caption")}
           className={classNames("__wab_instance", sty.cancelButton)}
           endIcon={
             <ChevronDownSvgIcon
@@ -602,7 +604,7 @@ function PlasmicNewVariable__RenderFunc(props: {
         <Button
           data-plasmic-name={"confirmButton"}
           data-plasmic-override={overrides.confirmButton}
-          caption={"Caption"}
+          caption={uiT("Caption")}
           className={classNames("__wab_instance", sty.confirmButton)}
           endIcon={
             <ChevronDownSvgIcon

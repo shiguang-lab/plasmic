@@ -8,6 +8,7 @@ import {
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { SELF_HOSTED } from "@/wab/client/env";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { ApiTeam } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
@@ -44,6 +45,8 @@ export function shouldUpsellRedirect(
 
 /** Prompts upsell using `?upsell=<tierName>`, which comes from nwww pricing page. */
 export function useUpsellQueryParam(team: ApiTeam) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const history = useHistory();
   const search = useLocation().search;
@@ -65,13 +68,16 @@ export function useUpsellQueryParam(team: ApiTeam) {
     }
     if (!canUpgradeTeam(appCtx, team)) {
       notification.warning({
-        message: `You don't have permission to upgrade this ${ORGANIZATION_LOWER}.`,
+        message: studioUiT(
+          "You don't have permission to upgrade this {part1}.",
+          { part1: String(ORGANIZATION_LOWER) },
+        ),
       });
       return;
     }
     const billing = await promptBilling({
       appCtx,
-      title: "Upgrade your Plasmic plan",
+      title: studioUiT("Upgrade your Plasmic plan"),
       target: {
         team,
         initialTier: tier,

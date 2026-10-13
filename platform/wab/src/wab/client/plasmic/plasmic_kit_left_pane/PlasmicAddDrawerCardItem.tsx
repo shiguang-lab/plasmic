@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: P3v3AgRgKU4U
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -99,19 +101,21 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
   overrides: PlasmicAddDrawerCardItem__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
     () =>
       Object.assign(
         {
-          hoverText: "Install package",
+          hoverText: studioUiT("Install package"),
         },
         Object.fromEntries(
           Object.entries(props.args).filter(([_, v]) => v !== undefined)
         )
       ),
-    [props.args]
+    [props.args, studioUiT]
   );
 
   const $props = {
@@ -218,7 +222,7 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
             ),
           })}
         >
-          {"NEW"}
+          {<UiText message={"NEW"} />}
         </div>
       </div>
       <div

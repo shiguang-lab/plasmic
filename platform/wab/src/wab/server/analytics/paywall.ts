@@ -2,6 +2,7 @@ import { getRendersInTimestampRange } from "@/wab/server/analytics/queries";
 import { Team } from "@/wab/server/entities/Entities";
 import { getTeamCurrentPeriodRange } from "@/wab/server/routes/team-plans";
 import { ApiFeatureTier } from "@/wab/shared/ApiSchema";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 import * as Sentry from "@sentry/node";
 import { Request } from "express-serve-static-core";
 
@@ -13,6 +14,9 @@ export async function isUnderMonthlyViewsLimit(
   },
   req: Request,
 ) {
+  if (SELF_HOSTED) {
+    return { valid: true, renders: 0 };
+  }
   const { team, projectId } = resource;
   try {
     const { start, end } = await getTeamCurrentPeriodRange(

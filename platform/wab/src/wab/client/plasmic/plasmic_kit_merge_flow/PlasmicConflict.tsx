@@ -244,7 +244,7 @@ function PlasmicConflict__RenderFunc(props: {
             >
               {(hasVariant($state, "hasSubtext", "hasSubtext") ? true : false)
                 ? renderPlasmicSlot({
-                    defaultContents: "Some changes were auto merged",
+                    defaultContents: <UiText message={"Some changes were auto merged"} />,
                     value: args.subtext,
                     className: classNames(sty.slotTargetSubtext, {
                       [sty.slotTargetSubtexthasSubtext]: hasVariant(

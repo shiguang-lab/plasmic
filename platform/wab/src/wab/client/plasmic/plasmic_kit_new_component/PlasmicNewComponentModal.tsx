@@ -11,6 +11,7 @@
 // Plasmic Project: oermwjefjidrRRHcrxyCjQ
 // Component: ZDk8OKbbuW
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -93,6 +94,8 @@ function PlasmicNewComponentModal__RenderFunc(props: {
   overrides: PlasmicNewComponentModal__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -193,8 +196,8 @@ function PlasmicNewComponentModal__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "isPage", "isPage")
-              ? "Name for the new page?"
-              : "Name for the new component?"}
+              ? studioUiT("Name for the new page?")
+              : studioUiT("Name for the new component?")}
           </div>
           <Textbox
             data-plasmic-name={"nameInput"}
@@ -204,8 +207,8 @@ function PlasmicNewComponentModal__RenderFunc(props: {
             })}
             placeholder={
               hasVariant($state, "isPage", "isPage")
-                ? "New page name…"
-                : "New component name…"
+                ? studioUiT("New page name…")
+                : studioUiT("New component name…")
             }
             prefixIcon={
               <SearchSvgIcon
@@ -281,8 +284,8 @@ function PlasmicNewComponentModal__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "showTemplates", "showTemplates")
-                ? "Hide component templates."
-                : "Pick from a component template\u2026"}
+                ? studioUiT("Hide component templates.")
+                : studioUiT("Pick from a component template…")}
             </div>
           </button>
         ) : null}
@@ -349,7 +352,7 @@ function PlasmicNewComponentModal__RenderFunc(props: {
                         sty.text__kuCq7
                       )}
                     >
-                      {"Section title"}
+                      {<UiText message={"Section title"} />}
                     </div>
                   }
                 >
@@ -520,7 +523,7 @@ function PlasmicNewComponentModal__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "isPage", "isPage")
-                ? "Create page"
+                ? studioUiT("Create page")
                 : <UiText message={"Create component"} />}
             </div>
           </Button>

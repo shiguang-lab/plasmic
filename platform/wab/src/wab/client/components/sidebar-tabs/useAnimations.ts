@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
@@ -20,6 +21,8 @@ interface UseAnimationsOptions {
 }
 
 export function useAnimations(options: UseAnimationsOptions) {
+  const { t: studioUiT } = useI18n();
+
   const { tpl, variants, viewCtx, isDisabled } = options;
   const studioCtx = useStudioCtx();
   const vtm = viewCtx.variantTplMgr();
@@ -83,7 +86,9 @@ export function useAnimations(options: UseAnimationsOptions) {
     if (allAnimSequences.length === 0) {
       studioCtx.switchLeftTab("animationSequences", { highlight: true });
       notification.warning({
-        message: `Please add ${ANIMATIONS_LOWER} in your project.`,
+        message: studioUiT("Please add {part1} in your project.", {
+          part1: String(ANIMATIONS_LOWER),
+        }),
       });
       return;
     }

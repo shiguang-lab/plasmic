@@ -1,6 +1,7 @@
 import EditableResourceName from "@/wab/client/components/EditableResourceName";
 import { ClickStopper } from "@/wab/client/components/widgets";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useI18n } from "@/wab/client/i18n";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { Stated } from "@/wab/commons/components/Stated";
@@ -17,6 +18,8 @@ interface InlineEditableResourceProps {
 export default function InlineEditableResource(
   props: InlineEditableResourceProps,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const { visibleValue, value, isFake, onChange } = props;
   return (
     <InlineEdit
@@ -63,8 +66,9 @@ export default function InlineEditableResource(
             onEdit={() => {
               if (isFake) {
                 notification.warning({
-                  message:
+                  message: studioUiT(
                     "This operation can't be executed right now. Try again in a few seconds.",
+                  ),
                 });
                 return;
               }

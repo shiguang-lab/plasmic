@@ -8,6 +8,7 @@ import {
   mkStyleComponent,
   providesStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useI18n } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   getAncestorTplSlot,
@@ -32,6 +33,8 @@ export const MergedSlotsTextSection = observer(
     viewCtx: ViewCtx;
     tab: "settings" | "style";
   }) {
+    const { t: studioUiT } = useI18n();
+
     const { viewCtx, tpl, tab } = props;
 
     const slotParams = getSlotParams(tpl.component).filter(
@@ -62,12 +65,16 @@ export const MergedSlotsTextSection = observer(
                   key={`${tpl.uuid}-component-text-slot-content-only`}
                   expsProvider={textExpsProvider}
                   viewCtx={viewCtx}
-                  title={`${smartHumanize(param.variable.name)}: Text`}
+                  title={studioUiT("{part1}: Text", {
+                    part1: String(smartHumanize(param.variable.name)),
+                  })}
                 />
               ) : (
                 <TypographySection
                   key={`${tpl.uuid}-component-text-slot`}
-                  title={`${smartHumanize(param.variable.name)}: Text`}
+                  title={studioUiT("{part1}: Text", {
+                    part1: String(smartHumanize(param.variable.name)),
+                  })}
                   expsProvider={textExpsProvider as TplExpsProvider}
                   ancestorSlot={textStyleAncestorSlot}
                   inheritableOnly={false}

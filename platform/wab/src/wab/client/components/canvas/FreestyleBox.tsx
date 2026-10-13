@@ -1,6 +1,8 @@
 import { NodeTargeter } from "@/wab/client/Dnd";
 import { resizeRect } from "@/wab/client/FreestyleManipulator";
 import { clientToFramePt, clientToFrameRect } from "@/wab/client/coords";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { renderCantAddMsg } from "@/wab/client/messages/parenting-msgs";
 import {
   cssPropsForInvertTransform,
@@ -199,7 +201,10 @@ function insertFreestyleAsDrawn(
 
   if (!ins) {
     notification.error({
-      message: "Must draw inside an existing artboard or element",
+      message: translate(
+        getUiLocale(),
+        "Must draw inside an existing artboard or element",
+      ),
     });
   } else {
     const frameRect = clientToFrameRect(clientRect, viewCtx);
@@ -228,7 +233,7 @@ function insertDefaultFreestyle(viewCtx: ViewCtx, e: React.MouseEvent) {
   if (ins) {
     if (ins.type === "ErrorInsertion") {
       notification.error({
-        message: "Cannot insert here",
+        message: translate(getUiLocale(), "Cannot insert here"),
         description: renderCantAddMsg(ins.msg),
       });
     } else {

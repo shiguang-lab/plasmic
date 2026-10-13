@@ -6,6 +6,7 @@ import {
 import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
 import { useApi } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCmsModelsListProps,
   PlasmicCmsModelsList,
@@ -24,6 +25,8 @@ function CmsModelsList_(
   props: CmsModelsListProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const match = useMatchedRoute<{
     databaseId: CmsDatabaseId;
     tableId?: CmsTableId;
@@ -65,9 +68,9 @@ function CmsModelsList_(
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick: async () => {
           const name = await reactPrompt({
-            message: `Enter the name for your new CMS table`,
-            placeholder: "Table name",
-            actionText: "Add",
+            message: studioUiT("Enter the name for your new CMS table"),
+            placeholder: studioUiT("Table name"),
+            actionText: studioUiT("Add"),
           });
           if (!name) {
             return;

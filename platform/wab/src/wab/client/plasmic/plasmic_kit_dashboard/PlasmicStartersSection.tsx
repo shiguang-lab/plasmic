@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: DWsPKkiyzx1
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -68,6 +69,8 @@ function PlasmicStartersSection__RenderFunc(props: {
   overrides: PlasmicStartersSection__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -122,7 +125,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__hvHeI
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -162,7 +165,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__jkll
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -201,7 +204,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__cgKj8
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -240,7 +243,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__xhWu2
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -288,7 +291,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject___1GtwY
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -327,7 +330,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__y0PMl
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -366,7 +369,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__qctqe
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -405,7 +408,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__nkRgO
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -453,7 +456,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject___8JEqo
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -492,7 +495,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__zjdmM
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -531,7 +534,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__akBzo
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img
@@ -570,7 +573,7 @@ function PlasmicStartersSection__RenderFunc(props: {
                       sty.starterProject__gl1NI
                     )}
                     image={"withImage"}
-                    instruction={"Click to duplicate this project"}
+                    instruction={studioUiT("Click to duplicate this project")}
                     name={'Play "Plasmic Levels"'}
                     preview={
                       <img

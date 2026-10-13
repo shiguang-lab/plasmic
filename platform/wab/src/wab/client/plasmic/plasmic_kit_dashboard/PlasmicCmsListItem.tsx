@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: DEllwXrn27Q
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -97,6 +99,8 @@ function PlasmicCmsListItem__RenderFunc(props: {
   overrides: PlasmicCmsListItem__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -402,7 +406,7 @@ function PlasmicCmsListItem__RenderFunc(props: {
               "showWorkspace"
             ),
           })}
-          hoverText={"More…"}
+          hoverText={studioUiT("More…")}
           stepUp={true}
         />
       </div>
@@ -411,7 +415,7 @@ function PlasmicCmsListItem__RenderFunc(props: {
         data-plasmic-override={overrides.updatedJustNow}
         className={classNames("all", "__wab_text", sty.updatedJustNow)}
       >
-        {"updated just now"}
+        {<UiText message={"updated just now"} />}
       </div>
     </PlasmicLink__>
   ) as React.ReactElement | null;

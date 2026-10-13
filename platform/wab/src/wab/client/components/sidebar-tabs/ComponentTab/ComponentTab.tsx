@@ -62,7 +62,9 @@ export const ComponentTab = observer(function ComponentTab(props: {
       {showSettings && (
         <SidebarModal
           show
-          title={`${component.name} Settings`}
+          title={uiT("{part1} Settings", {
+            part1: String(component.name),
+          })}
           onClose={() => setShowSettings(false)}
           persistOnInteractOutside
           data-test-id="comp-settings"
@@ -97,7 +99,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
                         studioCtx.siteOps().tryRenameComponent(component, name),
                       )
                     }
-                    placeholder={`(unnamed component)`}
+                    placeholder={uiT("(unnamed component)")}
                     subtitle={
                       plugin ? (
                         <HoverableDisclosure

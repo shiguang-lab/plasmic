@@ -103,7 +103,7 @@ function TeamFilters_(props: TeamFiltersProps, ref: HTMLElementRefOf<"div">) {
           <Typography.Text>{uiT("Page / component")}</Typography.Text>
           <Select
             aria-label={uiT("Page / component")}
-            title={COMPONENT_PICKER_INFO}
+            title={uiT(COMPONENT_PICKER_INFO)}
             allowClear
             disabled={!projectId}
             loading={metadata.isLoading}

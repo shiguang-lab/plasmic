@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: VNi6NC2QOI
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -340,7 +341,7 @@ function PlasmicActionMenuButton__RenderFunc(props: {
               })
             : null}
           {renderPlasmicSlot({
-            defaultContents: "Action",
+            defaultContents: <UiText message={"Action"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren, {
               [sty.slotTargetChildrenisOpen]: hasVariant(

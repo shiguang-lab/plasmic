@@ -11,6 +11,7 @@
 // Plasmic Project: aaggSgVS8yYsAwQffVQB4p
 // Component: m5hJqED4tX
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -69,6 +70,8 @@ function PlasmicPasswordStrengthBar__RenderFunc(props: {
   overrides: PlasmicPasswordStrengthBar__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -264,14 +267,14 @@ function PlasmicPasswordStrengthBar__RenderFunc(props: {
         })}
       >
         {hasVariant($state, "passwordStrength", "_4")
-          ? "strong"
+          ? studioUiT("strong")
           : hasVariant($state, "passwordStrength", "_3")
-          ? "good"
+          ? studioUiT("good")
           : hasVariant($state, "passwordStrength", "_2")
-          ? "okay"
+          ? studioUiT("okay")
           : hasVariant($state, "passwordStrength", "_1")
-          ? "weak"
-          : "too short"}
+          ? studioUiT("weak")
+          : studioUiT("too short")}
       </div>
     </div>
   ) as React.ReactElement | null;

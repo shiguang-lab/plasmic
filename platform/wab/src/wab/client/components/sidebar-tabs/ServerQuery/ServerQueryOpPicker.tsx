@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { BottomModalButtons } from "@/wab/client/components/BottomModal";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
@@ -472,12 +476,13 @@ export const ServerQueryOpDraftForm = observer(
           }),
         });
       } catch (error) {
-        notification.error({
+        notification.open({
+          type: getErrorType(error),
           message: translate(
             getUiLocale(),
             "Failed to install custom function",
           ),
-          description: (error as any).message,
+          description: <ErrorDescription error={error} />,
         });
       } finally {
         setIsInstalling(false);

@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: TrtPQzZ8M2
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {

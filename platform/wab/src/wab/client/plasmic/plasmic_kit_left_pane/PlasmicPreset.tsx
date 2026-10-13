@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: eS_Bw5U3wr
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -123,7 +124,7 @@ function PlasmicPreset__RenderFunc(props: {
           className={classNames("all", sty.nameContainer)}
         >
           {renderPlasmicSlot({
-            defaultContents: "Name",
+            defaultContents: <UiText message={"Name"} />,
             value: args.name,
             className: classNames(sty.slotTargetName),
           })}

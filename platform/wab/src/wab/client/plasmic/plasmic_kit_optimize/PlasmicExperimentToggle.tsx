@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: b4qqi4IFfg
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -156,7 +157,7 @@ function PlasmicExperimentToggle__RenderFunc(props: {
           ),
         })}
       >
-        {"OFF"}
+        {<UiText message={"OFF"} />}
       </div>
       <div
         className={classNames("all", "__wab_text", sty.text__nPcXv, {
@@ -167,7 +168,7 @@ function PlasmicExperimentToggle__RenderFunc(props: {
           ),
         })}
       >
-        {"ON"}
+        {<UiText message={"ON"} />}
       </div>
     </div>
   ) as React.ReactElement | null;

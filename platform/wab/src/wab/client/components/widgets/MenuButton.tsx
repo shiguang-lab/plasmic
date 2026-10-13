@@ -5,6 +5,7 @@ import {
   MenuMaker,
 } from "@/wab/client/components/widgets";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
 import DotsVerticalSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DotsVerticalSvg";
 import * as React from "react";
 
@@ -20,6 +21,8 @@ interface MenuButtonProps {
 }
 
 function MenuButton(props: MenuButtonProps) {
+  const { t: studioUiT } = useI18n();
+
   const {
     menu,
     className,
@@ -34,7 +37,7 @@ function MenuButton(props: MenuButtonProps) {
   }
   const button = (
     <IconButton
-      aria-label={props["aria-label"] ?? "More actions"}
+      aria-label={props["aria-label"] ?? studioUiT("More actions")}
       size="vertical"
       onClick={(e: React.MouseEvent) => {
         e.preventDefault();

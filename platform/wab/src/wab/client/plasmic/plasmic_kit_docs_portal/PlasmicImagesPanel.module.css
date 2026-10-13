@@ -4,7 +4,7 @@
   height: 100%;
   position: relative;
   flex-direction: column;
-  background: var(--token-aUCjnzhayS);
+  background: var(--ui-surface, var(--token-aUCjnzhayS));
   min-height: 0;
   border-right: 1px solid var(--token-hoA5qaM-91G);
 }

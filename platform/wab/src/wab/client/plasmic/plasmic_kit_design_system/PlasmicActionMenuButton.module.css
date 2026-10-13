@@ -168,7 +168,7 @@
   overflow: hidden;
 }
 .slotTargetChildrentype_primary {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
   font-weight: 500;
 }
 .slotTargetChildrentype_secondary {

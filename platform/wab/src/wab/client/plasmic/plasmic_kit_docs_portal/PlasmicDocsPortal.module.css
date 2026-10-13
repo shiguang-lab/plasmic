@@ -42,7 +42,7 @@
   height: 100%;
   align-self: center;
   min-height: 0px;
-  background: var(--token-aUCjnzhayS);
+  background: var(--ui-surface, var(--token-aUCjnzhayS));
   min-width: 0;
 }
 .sidebar {

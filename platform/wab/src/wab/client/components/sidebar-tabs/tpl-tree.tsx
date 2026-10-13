@@ -111,7 +111,7 @@ import * as mobx from "mobx";
 import { computed } from "mobx";
 import { observer } from "mobx-react";
 import { computedFn } from "mobx-utils";
-import pluralize from "pluralize";
+
 import * as React from "react";
 import { FixedSizeList } from "react-window";
 
@@ -637,7 +637,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
             );
             viewCtx.studioCtx.endRenamingOnPanel();
           }}
-          inputBoxPlaceholder="Element name"
+          inputBoxPlaceholder={uiT("Element name")}
           allowEmptyString
         >
           <TplTreeNodeLabel
@@ -678,7 +678,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
             });
             viewCtx.studioCtx.endRenamingOnPanel();
           }}
-          inputBoxPlaceholder="Slot name"
+          inputBoxPlaceholder={uiT("Slot name")}
         >
           <TplTreeNodeLabel name={summarizeTpl(item)} content={text} />
         </EditableLabel>
@@ -936,9 +936,14 @@ const TplTreeNode = observer(function TplTreeNode(props: {
               )}
               popoverTitle={() => (
                 <VariantSettingPopoverTitle vs={indicatedVs} viewCtx={viewCtx}>
-                  <UiText message={"Settings for"} />{" "}
-                  {pluralize("variant", indicatedVs.variants.length)} "
-                  {variantComboName(indicatedVs.variants)}"
+                  <UiText
+                    message={
+                      indicatedVs.variants.length === 1
+                        ? 'Settings for variant "{name}"'
+                        : 'Settings for variants "{name}"'
+                    }
+                    values={{ name: variantComboName(indicatedVs.variants) }}
+                  />
                 </VariantSettingPopoverTitle>
               )}
               placement="right"

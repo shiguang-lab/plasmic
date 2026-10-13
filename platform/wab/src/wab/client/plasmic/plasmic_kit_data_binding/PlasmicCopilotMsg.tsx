@@ -124,6 +124,8 @@ function PlasmicCopilotMsg__RenderFunc(props: {
   overrides: PlasmicCopilotMsg__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -266,7 +268,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "userPrompt", "userPrompt")
-              ? "get the IDs of everything"
+              ? uiT("get the IDs of everything")
               : "xs.map((x) => x.id)"}
           </div>
           {(hasVariant($state, "userPrompt", "userPrompt") ? true : false) ? (
@@ -283,7 +285,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "userPrompt", "userPrompt")
-                ? "get the IDs of everything"
+                ? uiT("get the IDs of everything")
                 : "xs.map((x) => x.id)"}
             </div>
           ) : null}
@@ -406,7 +408,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
           data-plasmic-name={"submitFeedbackBtn"}
           data-plasmic-override={overrides.submitFeedbackBtn}
 
-          caption={"Caption"}
+          caption={uiT("Caption")}
           className={classNames("__wab_instance", sty.submitFeedbackBtn, {
             [sty.submitFeedbackBtnfeedback_submit]: hasVariant(
               $state,
@@ -438,8 +440,8 @@ function PlasmicCopilotMsg__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "feedback", "submitting")
-              ? "Sending..."
-              : "Send"}
+              ? uiT("Sending...")
+              : uiT("Send")}
           </div>
         </Button>
       ) : null}
@@ -479,7 +481,7 @@ function PlasmicCopilotMsg__RenderFunc(props: {
               )
             })}
           >
-            {"Your feedback has been received!\nThank you for your help."}
+            {<UiText message={"Your feedback has been received! Thank you for your help."} />}
           </div>
         </div>
       ) : null}

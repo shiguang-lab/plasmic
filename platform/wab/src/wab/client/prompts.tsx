@@ -1,3 +1,5 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 // Returns 'changed', 'unchanged', 'conflict'.  Case-insensitive.
 import { promptChooseItems } from "@/wab/client/components/modals/ChooseItemsModal";
 import {
@@ -30,8 +32,8 @@ export async function promptComponentName(
 ) {
   return await reactPrompt({
     message: opts.message ?? "What's the name for the new component?",
-    actionText: "Create",
-    placeholder: "New component name",
+    actionText: translate(getUiLocale(), "Create"),
+    placeholder: translate(getUiLocale(), "New component name"),
     defaultValue: opts.default,
   });
 }
@@ -44,8 +46,8 @@ export async function promptPageName(
 ) {
   return await reactPrompt({
     message: opts.message ?? "What's the name for the new page?",
-    actionText: "Create",
-    placeholder: "New page name",
+    actionText: translate(getUiLocale(), "Create"),
+    placeholder: translate(getUiLocale(), "New page name"),
     defaultValue: opts.default,
   });
 }
@@ -105,9 +107,11 @@ export async function promptChooseInstallableDependencies(
   site: Site,
 ) {
   const res = await promptChooseItems({
-    title: "Choose additional dependencies",
-    description:
+    title: translate(getUiLocale(), "Choose additional dependencies"),
+    description: translate(
+      getUiLocale(),
       "This package comes with additional (optional) dependencies. Please choose the ones you would like to install.",
+    ),
     group: orderBy(
       site.projectDependencies.map((dep) => {
         const isAlreadyInstalled =
@@ -173,20 +177,26 @@ export async function promptTagsAndDesc(
         data-test-id="prompt-form"
         layout="vertical"
       >
-        <Form.Item name="desc" label={"Enter a new description"}>
+        <Form.Item
+          name="desc"
+          label={translate(getUiLocale(), "Enter a new description")}
+        >
           <Textbox
             name="desc"
-            placeholder={"Description"}
+            placeholder={translate(getUiLocale(), "Description")}
             styleType={["bordered"]}
             autoFocus
             data-test-id="promptDesc"
           />
         </Form.Item>
-        <Form.Item name="tags" label={"Enter the new tags"}>
+        <Form.Item
+          name="tags"
+          label={translate(getUiLocale(), "Enter the new tags")}
+        >
           <Select
             mode="tags"
             style={{ width: "100%" }}
-            placeholder="Tags"
+            placeholder={translate(getUiLocale(), "Tags")}
             tokenSeparators={[","]}
             autoFocus
             data-test-id="promptTags"

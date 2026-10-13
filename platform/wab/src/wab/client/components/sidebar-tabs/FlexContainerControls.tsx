@@ -502,6 +502,8 @@ function Aligner(props: {
   definedIndicator?: DefinedIndicatorType;
   contextMenu: () => React.ReactElement;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const {
     prop,
     value,
@@ -607,7 +609,9 @@ function Aligner(props: {
           </div>
           <div className={S.alignerTextWrapper}>
             {isPerLine &&
-              `Each ${orientation === "horizontal" ? "col" : "row"}: `}
+              studioUiT(
+                orientation === "horizontal" ? "Each column:" : "Each row:",
+              )}
             {getFlexLabel({
               value,
               direction: orientation,
@@ -640,6 +644,8 @@ function Aligner2(props: {
   contextMenu: () => React.ReactElement;
   isInnerAxis?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const {
     value,
     axis,
@@ -702,7 +708,8 @@ function Aligner2(props: {
             <Icon icon={axis === "x" ? ChevronLeftsvgIcon : ChevronUpsvgIcon} />
           </div>
           <div className={S.alignerTextWrapper}>
-            {isInnerAxis && `Each ${axis === "x" ? "col" : "row"}: `}
+            {isInnerAxis &&
+              studioUiT(axis === "x" ? "Each column:" : "Each row:")}
             {options.find((op) => op.value === value)?.label}
           </div>
           <div className={S.iconWrapper}>

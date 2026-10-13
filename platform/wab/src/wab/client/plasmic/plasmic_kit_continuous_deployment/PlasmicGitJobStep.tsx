@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: JzpEJAQTjPX
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -165,7 +166,7 @@ function PlasmicGitJobStep__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         {renderPlasmicSlot({
-          defaultContents: "Step description",
+          defaultContents: <UiText message={"Step description"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenstatus_failed]: hasVariant(

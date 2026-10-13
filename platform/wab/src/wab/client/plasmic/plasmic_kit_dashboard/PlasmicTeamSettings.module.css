@@ -13,7 +13,7 @@
   left: 0px;
   top: 48px;
   z-index: 1;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   padding: 1.5rem;
   border-bottom: 1px solid var(--token-hoA5qaM-91G);
 }

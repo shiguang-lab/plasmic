@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: zRIUpVU0Cm8
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -243,7 +244,7 @@ function PlasmicTeamSettings__RenderFunc(props: {
         data-plasmic-name={"teamBilling"}
         data-plasmic-override={overrides.teamBilling}
         billingError={renderPlasmicSlot({
-          defaultContents: "ERROR: Cannot process payment",
+          defaultContents: <UiText message={"ERROR: Cannot process payment"} />,
           value: args.billingError,
         })}
         className={classNames("__wab_instance", sty.teamBilling, {

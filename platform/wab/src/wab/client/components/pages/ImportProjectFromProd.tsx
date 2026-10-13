@@ -1,4 +1,5 @@
 import { NonAuthCtx } from "@/wab/client/app-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { getBundle } from "@/wab/shared/bundles";
 import { ensureArray, spawn } from "@/wab/shared/common";
@@ -14,6 +15,8 @@ export function ImportProjectsFromProd({
 }: {
   nonAuthCtx: NonAuthCtx;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const [isLoading, setIsLoading] = React.useState(true);
 
   const isNonNil = function <T>(value: T): value is NonNullable<T> {
@@ -99,7 +102,9 @@ export function ImportProjectsFromProd({
   return (
     <>
       <h1>
-        {isLoading ? "Importing projects..." : "Done! Please refresh the page"}
+        {isLoading
+          ? studioUiT("Importing projects...")
+          : studioUiT("Done! Please refresh the page")}
       </h1>
     </>
   );

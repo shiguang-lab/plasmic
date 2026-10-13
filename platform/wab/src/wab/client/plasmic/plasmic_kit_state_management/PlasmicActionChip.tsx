@@ -11,6 +11,7 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: _uEitkIFZr
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -130,7 +131,7 @@ function PlasmicActionChip__RenderFunc(props: {
         </div>
         <div className={classNames("all", sty.freeBox__lWbe1)}>
           {renderPlasmicSlot({
-            defaultContents: "Action Name",
+            defaultContents: <UiText message={"Action Name"} />,
             value: args.actionName,
           })}
         </div>

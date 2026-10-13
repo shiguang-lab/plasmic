@@ -30,7 +30,7 @@ export function AnnotationControls() {
             setExpanded(annot.id);
           })
         }
-        addText={"Add annotation"}
+        addText={uiT("Add annotation")}
       >
         {getAnnotations(tpl).map((annot, i) => (
           <ListBoxItem

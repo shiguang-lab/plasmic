@@ -130,7 +130,7 @@ function PlasmicThemeInitialStylesPanel__RenderFunc(props: {
       <div className={classNames("all", sty.freeBox___1GpQq)}>
         <div className={classNames("all", "__wab_text", sty.text___27NdN)}>
           {
-            "Define initial styles that new elements of different types start with when they are inserted."
+            <UiText message={"Define initial styles that new elements of different types start with when they are inserted."} />
           }
         </div>
       </div>

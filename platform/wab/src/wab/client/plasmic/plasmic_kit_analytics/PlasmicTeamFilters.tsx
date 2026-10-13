@@ -64,6 +64,8 @@ function PlasmicTeamFilters__RenderFunc(props: {
   overrides: PlasmicTeamFilters__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -145,7 +147,7 @@ function PlasmicTeamFilters__RenderFunc(props: {
 
         <OptimizationOption
           className={classNames("__wab_instance", sty.optimizationOption__zoY)}
-          label={"A/B Test"}
+          label={uiT("A/B Test")}
         />
 
         <OptimizationOption
@@ -153,7 +155,7 @@ function PlasmicTeamFilters__RenderFunc(props: {
             "__wab_instance",
             sty.optimizationOption__sqjna
           )}
-          label={"Experiment"}
+          label={uiT("Experiment")}
         />
 
         <OptimizationOption
@@ -161,7 +163,7 @@ function PlasmicTeamFilters__RenderFunc(props: {
             "__wab_instance",
             sty.optimizationOption__s67Ed
           )}
-          label={"Another one"}
+          label={uiT("Another one")}
         />
       </OptimizationsSelect>
     </div>

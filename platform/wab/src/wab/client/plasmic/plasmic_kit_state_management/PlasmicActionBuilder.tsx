@@ -415,7 +415,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                   : true
               )
                 ? renderPlasmicSlot({
-                    defaultContents: "Action name",
+                    defaultContents: <UiText message={"Action name"} />,
                     value: args.actionName,
                     className: classNames(sty.slotTargetActionName, {
                       [sty.slotTargetActionNameisAdding]: hasVariant(
@@ -757,7 +757,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
               />
 
               {renderPlasmicSlot({
-                defaultContents: "Advanced",
+                defaultContents: <UiText message={"Advanced"} />,
                 value: args.label,
                 className: classNames(sty.slotTargetLabel),
               })}

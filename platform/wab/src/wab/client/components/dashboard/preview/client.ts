@@ -8,6 +8,7 @@ import {
   type PreviewRequest,
 } from "@/wab/client/components/dashboard/preview/types";
 import { ENV } from "@/wab/client/env";
+import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { getStaticBaseUrl } from "@/wab/shared/urls";
 
@@ -94,7 +95,13 @@ export function subscribePreview(
         { signal },
       );
       if (!response.ok) {
-        throw new Error(`Preview metadata: ${response.status}`);
+        throw deserializeApiError(
+          await response
+            .json()
+            .then((body) => body.error)
+            .catch(() => undefined),
+          response.status,
+        );
       }
       const { rev } = await response.json();
       const revision: number = rev.revision;

@@ -18,7 +18,7 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
-import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { createComponentProp } from "@/wab/client/operations/create-component-prop";
 import { updateComponentProp } from "@/wab/client/operations/update-component-prop";
@@ -76,7 +76,6 @@ import { smartHumanize } from "@/wab/shared/strs";
 import { ChoiceObject, ChoiceOptions, ChoiceValue } from "@plasmicapp/host";
 import { Menu, notification } from "antd";
 import { ok } from "neverthrow";
-import pluralize from "pluralize";
 import React from "react";
 
 const getValue = (item: ChoiceValue | ChoiceObject): ChoiceValue =>
@@ -240,19 +239,30 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
         ...xGroupBy(issues, (issue) => issue.component).keys(),
       ].map((c) => c.name);
 
-      const issuesPlural =
-        issues.length > 1 ? `are ${issues.length} issues` : "is 1 issue";
-      const componentsPlural = pluralize("components", componentNames.length);
-
       const key = mkUuid();
       notification.warning({
         key,
-        message: translate(getUiLocale(), "Review {part1} prop usage", {
+        message: uiT("Review {part1} prop usage", {
           part1: component.name,
         }),
         description: (
           <>
-            <p>{`There ${issuesPlural} with existing ${newParamName} props on ${componentsPlural}: ${componentNames}.`}</p>
+            <p>
+              {
+                <UiText
+                  message={
+                    issues.length === 1
+                      ? "There is 1 issue with the existing {prop} props in these components: {components}."
+                      : "There are {count} issues with the existing {prop} props in these components: {components}."
+                  }
+                  values={{
+                    count: issues.length,
+                    prop: newParamName,
+                    components: componentNames.join(", "),
+                  }}
+                />
+              }
+            </p>
             <p>
               <UiText
                 message={"To review all issues, go to the{part1}"}

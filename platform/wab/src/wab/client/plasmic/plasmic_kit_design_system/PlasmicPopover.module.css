@@ -29,7 +29,7 @@
   flex-direction: column;
   position: relative;
   justify-content: flex-start;
-  background: var(--token-rqQDmopteQdV);
+  background: var(--ui-surface, var(--token-rqQDmopteQdV));
   align-items: flex-start;
   width: 320px;
   row-gap: var(--token-O2OprmOFWLju);

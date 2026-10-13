@@ -177,7 +177,7 @@ export const LegacyComponentParamsSection = observer(
           )}
           {!metaDataOnly && realParams.length > 0 && shown.meta && (
             <ParamsSection
-              title={justOneSection === "meta" ? "" : "Others"}
+              title={justOneSection === "meta" ? "" : uiT("Others")}
               studioCtx={studioCtx}
               component={component}
               params={realParams}
@@ -193,7 +193,7 @@ export const LegacyComponentParamsSection = observer(
             const metaKeyAndValue = await promptForMetadata(component);
             if (!metaKeyAndValue) {
               notification.error({
-                message: "Fill key and value",
+                message: uiT("Fill key and value"),
                 description: (
                   <>
                     <UiText message={"You should fill both key and value."} />
@@ -205,7 +205,7 @@ export const LegacyComponentParamsSection = observer(
             const validKey = toVarName(metaKeyAndValue.key);
             if (metaKeyAndValue.key !== validKey) {
               notification.info({
-                message: "Key changed to be valid",
+                message: uiT("Key changed to be valid"),
                 description: (
                   <>
                     <UiText
@@ -225,7 +225,7 @@ export const LegacyComponentParamsSection = observer(
             await studioCtx.changeUnsafe(() => {
               if (metaKeyAndValue.key in component.metadata) {
                 notification.error({
-                  message: "Existing key",
+                  message: uiT("Existing key"),
                   description: (
                     <>
                       <UiText
@@ -460,6 +460,8 @@ const MetadataRow = observer(function MetadataRow(props: {
   metadataKey: string;
   children?: React.ReactNode;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { studioCtx, component, metadataKey } = props;
   const overlay = () => makeMetadataMenu(studioCtx, component, metadataKey);
   return (
@@ -474,7 +476,7 @@ const MetadataRow = observer(function MetadataRow(props: {
             const validKey = toVarName(newKey);
             if (newKey !== validKey) {
               notification.info({
-                message: "Key changed to be valid",
+                message: studioUiT("Key changed to be valid"),
                 description: (
                   <>
                     <UiText
@@ -496,7 +498,7 @@ const MetadataRow = observer(function MetadataRow(props: {
                 if (newKey !== metadataKey) {
                   if (newKey in component.metadata) {
                     notification.error({
-                      message: "Existing key",
+                      message: studioUiT("Existing key"),
                       description: (
                         <>
                           <UiText

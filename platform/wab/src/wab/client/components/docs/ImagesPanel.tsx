@@ -1,6 +1,7 @@
 import { useDocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import ImageListItem from "@/wab/client/components/docs/ImageListItem";
 import { Matcher } from "@/wab/client/components/view-common";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultImagesPanelProps,
   PlasmicImagesPanel,
@@ -13,6 +14,8 @@ import * as React from "react";
 type ImagesPanelProps = DefaultImagesPanelProps;
 
 const ImagesPanel = observer(function ImagesPanel(props: ImagesPanelProps) {
+  const { t: studioUiT } = useI18n();
+
   const docsCtx = useDocsPortalCtx();
   const [query, setQuery] = React.useState("");
   const matcher = new Matcher(query);
@@ -43,7 +46,7 @@ const ImagesPanel = observer(function ImagesPanel(props: ImagesPanelProps) {
             style={{ width: "100%" }}
             type="warning"
             showIcon
-            message="No icons."
+            message={studioUiT("No icons.")}
           />
         )}
       </>

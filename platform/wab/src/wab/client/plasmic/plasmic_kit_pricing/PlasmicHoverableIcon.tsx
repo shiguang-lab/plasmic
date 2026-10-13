@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: 1T4UNMYLSC7u
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -146,7 +147,7 @@ function PlasmicHoverableIcon__RenderFunc(props: {
       data-plasmic-for-node={forNode}
       className={classNames("__wab_instance", sty.root)}
       content={renderPlasmicSlot({
-        defaultContents: "Some description",
+        defaultContents: <UiText message={"Some description"} />,
         value: args.popover,
         className: classNames(sty.slotTargetPopover, {
           [sty.slotTargetPopoverabove]: hasVariant($state, "above", "above"),

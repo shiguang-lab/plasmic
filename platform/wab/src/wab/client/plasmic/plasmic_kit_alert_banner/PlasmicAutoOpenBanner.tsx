@@ -11,6 +11,7 @@
 // Plasmic Project: 29njzcsBEPR4koRddw4knF
 // Component: ETj0D1AzSHQn
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -58,6 +59,8 @@ function PlasmicAutoOpenBanner__RenderFunc(props: {
   overrides: PlasmicAutoOpenBanner__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -91,7 +94,7 @@ function PlasmicAutoOpenBanner__RenderFunc(props: {
       actionLabel1={"Hide"}
       className={classNames("__wab_instance", sty.root)}
       iconType={"autoOpen"}
-      message={"Auto-showing hidden element."}
+      message={studioUiT("Auto-showing hidden element.")}
       onClickAction1={args.onHide}
       size={"small"}
       type={"_default"}

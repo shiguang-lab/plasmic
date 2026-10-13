@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: hGC02-wRlm3F
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -106,7 +107,7 @@ function PlasmicDescription__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         {renderPlasmicSlot({
-          defaultContents: "Description\u2026",
+          defaultContents: <UiText message={"Description…"} />,
           value: args.children,
         })}
       </div>

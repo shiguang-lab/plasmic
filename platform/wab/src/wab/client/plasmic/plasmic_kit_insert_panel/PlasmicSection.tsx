@@ -11,6 +11,7 @@
 // Plasmic Project: 4B48dRthR8uGgyaBYpWthR
 // Component: Uq14j_W-86
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -106,7 +107,7 @@ function PlasmicSection__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__uIUaY)}>
         {renderPlasmicSlot({
-          defaultContents: "Section Title",
+          defaultContents: <UiText message={"Section Title"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle),
         })}

@@ -8,6 +8,8 @@ import {
 } from "@/wab/client/components/live/preview-viewport";
 import { ClientPinManager } from "@/wab/client/components/variants/ClientPinManager";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { withProvider } from "@/wab/commons/components/ContextUtil";
 import { MainBranchId, ProjectId } from "@/wab/shared/ApiSchema";
@@ -168,6 +170,9 @@ export class PreviewCtx {
     const historyListener = (location: Location) => {
       const wasLive = this.isLive;
       this.isLive = isLiveMode(location.pathname);
+      if (this.isLive && !wasLive) {
+        studioCtx.closeEditorPanels();
+      }
       if (!this.isLive && wasLive) {
         this.previousLocation = undefined;
       }
@@ -247,7 +252,10 @@ export class PreviewCtx {
     } else {
       if (this.popup) {
         notification.error({
-          message: "External preview window is already open.",
+          message: translate(
+            getUiLocale(),
+            "External preview window is already open.",
+          ),
         });
       } else {
         await this._startLiveMode();

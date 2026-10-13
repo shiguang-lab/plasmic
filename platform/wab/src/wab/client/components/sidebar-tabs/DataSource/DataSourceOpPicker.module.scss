@@ -2,7 +2,7 @@
 @import "../../../../styles/_vars.sass";
 
 .trashIcon {
-  color: $sand11;
+  color: var(--ui-muted, #{$sand11});
   position: absolute;
   right: 10px;
   top: 50%;
@@ -12,7 +12,7 @@
   height: 15px;
 
   &:hover {
-    color: $sand12;
+    color: var(--ui-text, #{$sand12});
   }
 }
 
@@ -27,7 +27,7 @@
 }
 .container {
   user-select: text;
-  background: #fafafa;
+  background: var(--ui-bg, #fafafa);
 }
 
 .blueIndicatorContainer {
@@ -45,6 +45,6 @@
   height: 4px;
   width: 4px;
   z-index: 10;
-  box-shadow: 0 0 0 2px white;
-  background: $indicator-set;
+  box-shadow: 0 0 0 2px var(--ui-surface, white);
+  background: var(--ui-accent, #{$indicator-set});
 }

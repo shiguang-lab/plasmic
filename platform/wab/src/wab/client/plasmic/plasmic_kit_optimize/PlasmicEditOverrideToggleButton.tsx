@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: QUkOz1f5TI
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -129,7 +130,7 @@ function PlasmicEditOverrideToggleButton__RenderFunc(props: {
           className={classNames("all", "__wab_text", sty.text)}
         >
           <React.Fragment>
-            <React.Fragment>{"Record Changes for "}</React.Fragment>
+            <React.Fragment>{<><UiText message={"Record Changes for"} />{" "}</>}</React.Fragment>
             {
               <span
                 data-plasmic-name={"componentName"}

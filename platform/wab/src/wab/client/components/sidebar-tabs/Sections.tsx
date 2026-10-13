@@ -60,7 +60,9 @@ import {
   TplExpsProvider,
   mkStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
@@ -701,7 +703,11 @@ function getRenderBySection(
         isTypographyValidForTpl(tpl) &&
         showSection(Section.Typography) && (
           <TypographySection
-            title={isContainerOrCodeComponentTpl ? "Typography" : "Text"}
+            title={
+              isContainerOrCodeComponentTpl
+                ? translate(getUiLocale(), "Typography")
+                : translate(getUiLocale(), "Text")
+            }
             key={`${tpl.uuid}-typography`}
             expsProvider={sc.props.expsProvider}
             ancestorSlot={styleAncestorSlot}
@@ -1208,7 +1214,9 @@ const MissingPositionClassSection = observer(
               <p>
                 <UiText
                   message={
-                    '{part1}{part2}It looks like the{part3}code component {part4} does not make use of a "className" prop, so you cannot set styles on the component.'
+                    isNestedStructure
+                      ? '{part1}{part2}The root code component {part4} does not use a "className" prop, so you cannot set its styles.'
+                      : '{part1}{part2}The code component {part4} does not use a "className" prop, so you cannot set its styles.'
                   }
                   values={{
                     part1: (
@@ -1223,7 +1231,6 @@ const MissingPositionClassSection = observer(
                       </strong>
                     ),
                     part2: <br />,
-                    part3: isNestedStructure ? " root " : " ",
                     part4: codeComponentName,
                   }}
                 />

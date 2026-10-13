@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PublishSpinner from "@/wab/client/components/widgets/PublishSpinner";
 import Select from "@/wab/client/components/widgets/Select";
@@ -38,6 +39,8 @@ export const viewerTooltip = (
 );
 
 function PermissionItem(props: PermissionItemProps) {
+ const { t: studioUiT } = useI18n();
+
   const { accessLevel, onGrant, onRevoke, canEdit } = props;
   const [loading, setLoading] = React.useState(false);
   const [temporary, setTemporary] = React.useState("");
@@ -48,7 +51,7 @@ function PermissionItem(props: PermissionItemProps) {
       loading={loading}
       roleDropdown={{
         value: temporary || accessLevel,
-        "aria-label": `Permission level for ${props.email}`,
+        "aria-label": studioUiT("Permission level for {part1}", { part1: String(props.email) }),
         onChange: async (key) => {
           setLoading(true);
           setTemporary(key as GrantableAccessLevel);

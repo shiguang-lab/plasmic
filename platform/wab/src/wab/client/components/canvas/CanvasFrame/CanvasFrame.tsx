@@ -14,6 +14,7 @@ import {
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { CanvasCommentMarkers } from "@/wab/client/components/comments/CanvasCommentMarkers";
 import { StudioLoading } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -65,6 +66,8 @@ export const CanvasFrame = observer(function CanvasFrame({
   onFrameLoad,
   studioCtx,
 }: CanvasFrameProps) {
+  const { t: studioUiT } = useI18n();
+
   const [createdVc, setCreatedVc] = useState(false);
   const [iFrameKey, setIFrameKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -712,16 +715,18 @@ export const CanvasFrame = observer(function CanvasFrame({
         />
         {DEVFLAGS.loadingDebug && (
           <div className={styles.statusBadge}>
-            {loadState === "unloaded" && "Mounted..."}
-            {loadState === "queued" && "Queued to be loaded..."}
-            {loadState === "ready-to-load" && "Waiting to be loaded..."}
-            {loadState === "loading" && "Loading host..."}
+            {loadState === "unloaded" && studioUiT("Mounted...")}
+            {loadState === "queued" && studioUiT("Queued to be loaded...")}
+            {loadState === "ready-to-load" &&
+              studioUiT("Waiting to be loaded...")}
+            {loadState === "loading" && studioUiT("Loading host...")}
             {initState === "user-body-wait" &&
-              "Waiting for host to render <PlasmicCanvasHost />..."}
-            {initState === "script-wait" && "Executing artboard scripts..."}
+              studioUiT("Waiting for host to render <PlasmicCanvasHost />...")}
+            {initState === "script-wait" &&
+              studioUiT("Executing artboard scripts...")}
             {initState === "hostless-wait" &&
-              "Installing built-in comopnent packages..."}
-            {initState === "done" && "Loaded"}
+              studioUiT("Installing built-in comopnent packages...")}
+            {initState === "done" && studioUiT("Loaded")}
           </div>
         )}
 

@@ -4,7 +4,7 @@
   position: relative;
   width: 100%;
   height: auto;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   min-height: 60px;
   justify-content: center;
   min-width: 0;

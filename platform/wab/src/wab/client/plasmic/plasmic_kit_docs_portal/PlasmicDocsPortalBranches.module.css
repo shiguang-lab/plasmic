@@ -7,7 +7,7 @@
   height: 100%;
   position: relative;
   overflow: auto;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   min-width: 0;
   min-height: 0;
 }

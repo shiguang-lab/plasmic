@@ -11,6 +11,7 @@
 // Plasmic Project: 6BCq4vMow1yqGKFdcP68Rz
 // Component: ntKkcfMNg2s
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -234,7 +235,7 @@ function PlasmicSwitch__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Switch me",
+            defaultContents: <UiText message={"Switch me"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren, {
               [sty.slotTargetChildren___focusVisibleWithin]:

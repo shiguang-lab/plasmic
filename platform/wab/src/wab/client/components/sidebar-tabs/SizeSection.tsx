@@ -411,10 +411,12 @@ const SizeControl = observer(function SizeRow(props: {
 
   const stretchLabel =
     prop === "width" && isDeepContentLayoutChild && !isRoot
-      ? "Standard width"
-      : "Stretch";
-  const fullBleedLabel = isRoot ? "Stretch (full bleed)" : "Full bleed";
-  const wideLabel = isRoot ? "Stretch (wide)" : "Wide";
+      ? uiT("Standard width")
+      : uiT("Stretch");
+  const fullBleedLabel = isRoot
+    ? uiT("Stretch (full bleed)")
+    : uiT("Full bleed");
+  const wideLabel = isRoot ? uiT("Stretch (wide)") : uiT("Wide");
   const extraOptions = canSetSpecialSizes
     ? withoutNils([
         {

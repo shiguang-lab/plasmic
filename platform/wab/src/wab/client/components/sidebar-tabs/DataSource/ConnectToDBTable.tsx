@@ -24,9 +24,9 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
+
 import {
   StudioCtx,
   providesStudioCtx,
@@ -415,6 +415,8 @@ export function FormDataConnectionPropEditor({
   tpl: TplComponent;
   disabled?: boolean;
 }) {
+  const { t: uiT } = useI18n();
+
   const studioCtx = useStudioCtx();
   const modalActions = useBottomModalActions();
   const bottomModalKey = `form-data-connection-prop-editor-${value?.opId}`;
@@ -477,11 +479,12 @@ export function FormDataConnectionPropEditor({
       data-test-id="form-data"
     >
       {tableSchema ? (
-        `${
+        uiT(
           selectedFormOption === FormType.NewEntry
-            ? "New Entry"
-            : "Update Entry"
-        }: ${tableSchema.label ?? tableSchema.id}`
+            ? "New Entry: {name}"
+            : "Update Entry: {name}",
+          { name: tableSchema.label ?? tableSchema.id },
+        )
       ) : (
         <UiText message={"Loading..."} />
       )}
@@ -542,16 +545,13 @@ function FormDataConnectionBottomModal({
   const makeQueryFromDraft = async () => {
     if (!sourceId) {
       notification.error({
-        message: translate(
-          getUiLocale(),
-          "Missing required fields: Integration",
-        ),
+        message: uiT("Missing required fields: Integration"),
       });
       return;
     }
     if (!isString(tableId) || !tableSchema || !sourceMeta) {
       notification.error({
-        message: translate(getUiLocale(), "Missing required fields: Table"),
+        message: uiT("Missing required fields: Table"),
       });
       return undefined;
     }
@@ -565,10 +565,7 @@ function FormDataConnectionBottomModal({
     } else {
       if (!draft?.lookupValue) {
         notification.error({
-          message: translate(
-            getUiLocale(),
-            "Missing required fields: Lookup value",
-          ),
+          message: uiT("Missing required fields: Lookup value"),
         });
         return undefined;
       }

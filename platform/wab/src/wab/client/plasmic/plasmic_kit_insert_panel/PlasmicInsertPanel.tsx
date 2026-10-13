@@ -87,6 +87,8 @@ function PlasmicInsertPanel__RenderFunc(props: {
   overrides: PlasmicInsertPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -145,7 +147,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
           data-plasmic-name={"addButton"}
           data-plasmic-override={overrides.addButton}
           className={classNames("__wab_instance", sty.addButton)}
-          hoverText={"Create a new component"}
+          hoverText={uiT("Create a new component")}
           type={["clear"]}
         />
       </div>

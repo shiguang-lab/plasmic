@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: CCsDeqqYeoM
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -602,7 +603,7 @@ function PlasmicStarterProject__RenderFunc(props: {
                         sty.text__fj0Dj
                       )}
                     >
-                      {"3-Minute Codegen Quickstart"}
+                      {<UiText message={"3-Minute Codegen Quickstart"} />}
                     </div>
                   ),
                   value: args.name,
@@ -695,7 +696,7 @@ function PlasmicStarterProject__RenderFunc(props: {
                 >
                   {renderPlasmicSlot({
                     defaultContents:
-                      "Strongly recommended! Plasmic's power lies in its more advanced concepts.",
+                      <UiText message={"Strongly recommended! Plasmic's power lies in its more advanced concepts."} />,
                     value: args.instruction,
                     className: classNames(sty.slotTargetInstruction, {
                       [sty.slotTargetInstructionicon_withIcon]: hasVariant(

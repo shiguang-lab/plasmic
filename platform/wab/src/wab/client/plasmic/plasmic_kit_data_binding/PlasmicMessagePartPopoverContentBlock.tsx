@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: 1r7jyUeHxY8n
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -107,7 +108,7 @@ function PlasmicMessagePartPopoverContentBlock__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__ifvFk)}>
         {renderPlasmicSlot({
-          defaultContents: "INPUT",
+          defaultContents: <UiText message={"INPUT"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle),
         })}

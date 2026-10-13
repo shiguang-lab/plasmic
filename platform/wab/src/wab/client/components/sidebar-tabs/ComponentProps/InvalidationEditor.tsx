@@ -119,11 +119,14 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
       const count = group.queries.length;
       options.push({
         value: id,
-        label: `${fnName} (${count} ${count === 1 ? "query" : "queries"})`,
+        label: uiT(
+          count === 1 ? "{name} (1 query)" : "{name} ({count} queries)",
+          { name: fnName, count },
+        ),
       });
     }
     return { queryOptions: options, valueToRef: valueToRefMap };
-  }, [studioCtx.site.components]);
+  }, [studioCtx.site.components, uiT]);
 
   const refToValue = (ref: QueryRef["ref"]): string => {
     if (

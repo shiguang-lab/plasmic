@@ -15,7 +15,9 @@ import {
 } from "@/wab/client/components/widgets/EditableLabel";
 import { useRefMap } from "@/wab/client/hooks/useRefMap";
 import { useResponsiveBreakpoints } from "@/wab/client/hooks/useResponsiveBreakpoints";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -189,8 +191,8 @@ export const ComponentArenaLayout = observer(
                   inputBoxPlaceholder={
                     isKnownVariantGroup(row.rowKey) &&
                     isStandaloneVariantGroup(row.rowKey)
-                      ? `${VARIANT_CAP} name`
-                      : `Group name`
+                      ? uiT("{part1} name", { part1: String(VARIANT_CAP) })
+                      : uiT("Group name")
                   }
                 >
                   {children}
@@ -241,11 +243,11 @@ export const ComponentArenaLayout = observer(
               }
               return (
                 <GhostFrame
-                  tooltip={`Add ${
+                  tooltip={uiT(
                     isTplRootWithCodeComponentVariants(component.tplTree)
-                      ? "registered"
-                      : "interaction"
-                  } variant`}
+                      ? "Add registered variant"
+                      : "Add interaction variant",
+                  )}
                   width={framesWidth}
                   height={framesHeight}
                   onClick={() =>
@@ -303,7 +305,9 @@ export const ComponentArenaLayout = observer(
             return (
               <GhostFrame
                 ref={ghostFrameRef}
-                tooltip={`Add more ${VARIANTS_LOWER}`}
+                tooltip={uiT("Add more {part1}", {
+                  part1: translateUiLabel(getUiLocale(), VARIANTS_LOWER),
+                })}
                 width={framesWidth}
                 height={framesHeight}
                 data-event="component-arena-add-variant"
@@ -404,6 +408,8 @@ export const VariantComboGhostFrame = observer(
     studioCtx: StudioCtx;
     arena: ComponentArena | PageArena;
   }) {
+    const { t: studioUiT } = useI18n();
+
     const { studioCtx, arena } = props;
     const [visible, setVisible] = React.useState(false);
 
@@ -442,7 +448,9 @@ export const VariantComboGhostFrame = observer(
       >
         <GhostFrame
           tooltip={
-            visible ? undefined : "Add artboard for a combination of variants"
+            visible
+              ? undefined
+              : studioUiT("Add artboard for a combination of variants")
           }
           height={framesHeight}
           width={framesWidth}

@@ -88,7 +88,9 @@ export default function DirectoryUsers(props: {
         />
       </div>
       <Modal
-        title={`Manage user ${selectedUser?.email}`}
+        title={uiT("Manage user {part1}", {
+          part1: String(selectedUser?.email),
+        })}
         open={!!selectedUser}
         onCancel={() => {
           setSelectedUser(null);

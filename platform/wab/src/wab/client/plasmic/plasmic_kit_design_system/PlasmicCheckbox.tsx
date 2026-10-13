@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: W-rO7NZqPjZ
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -393,7 +394,7 @@ function PlasmicCheckbox__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Enter some text",
+            defaultContents: <UiText message={"Enter some text"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren, {
               [sty.slotTargetChildren___focusWithin__notFocusVisibleWithin]:

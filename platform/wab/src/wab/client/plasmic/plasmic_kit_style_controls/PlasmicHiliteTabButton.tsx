@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: lHRivspQeB
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -167,7 +168,7 @@ function PlasmicHiliteTabButton__RenderFunc(props: {
       role={hasVariant($state, "isSelected", "isSelected") ? `` : "tab"}
     >
       {renderPlasmicSlot({
-        defaultContents: "Tab",
+        defaultContents: <UiText message={"Tab"} />,
         value: args.children,
         className: classNames(sty.slotTargetChildren, {
           [sty.slotTargetChildrenisSelected]: hasVariant(

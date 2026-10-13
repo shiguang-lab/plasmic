@@ -6,7 +6,7 @@
   width: 100%;
   min-width: 0;
   position: relative;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   border-radius: 12px;
 }
 .freeBox__q1ThZ {

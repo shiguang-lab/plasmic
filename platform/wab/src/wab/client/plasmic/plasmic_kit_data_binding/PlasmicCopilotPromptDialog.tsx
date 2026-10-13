@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: -zGA-erYhCmv
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -137,6 +138,8 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
   overrides: PlasmicCopilotPromptDialog__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -462,7 +465,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
                   )}
                 >
                   {hasVariant($state, "state", "historyEmpty")
-                    ? "No data"
+                    ? studioUiT("No data")
                     : <UiText message={"Enter some text"} />}
                 </div>
                 <div
@@ -700,7 +703,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
                 )
               })}
             >
-              {"Error! \ud83d\ude14"}
+              {<UiText message={"Error! 😔"} />}
             </div>
             <div
               data-plasmic-name={"quotaExceededMsg"}
@@ -723,7 +726,7 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "state", "quotaExceeded")
-                ? "Oops!\nYou have exceeded the daily limit for using Plasmic Copilot.\nPlease come back tomorrow or at a later time to continue using the service."
+                ? studioUiT("Oops! You have exceeded the daily limit for using Plasmic Copilot. Please come back tomorrow or at a later time to continue using the service.")
                 : <UiText message={"Enter some text"} />}
             </div>
             <CopilotMsg

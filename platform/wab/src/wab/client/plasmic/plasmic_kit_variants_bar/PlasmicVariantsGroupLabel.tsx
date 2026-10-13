@@ -11,6 +11,7 @@
 // Plasmic Project: kdj5vahTyUKxznuR6rrtt6
 // Component: 73fZB1b9iN
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -103,7 +104,7 @@ function PlasmicVariantsGroupLabel__RenderFunc(props: {
       )}
     >
       {renderPlasmicSlot({
-        defaultContents: "Enter some text",
+        defaultContents: <UiText message={"Enter some text"} />,
         value: args.children,
         className: classNames(sty.slotTargetChildren),
       })}

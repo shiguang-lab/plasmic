@@ -5,7 +5,9 @@ import {
   StripePriceId,
   Subscription,
 } from "@/wab/shared/ApiSchema";
+import { getEffectiveFeatureTier } from "@/wab/shared/billing/feature-tier";
 import { assert } from "@/wab/shared/common";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS, DevFlagsType } from "@/wab/shared/devflags";
 import { MakeADT } from "ts-adt/MakeADT";
@@ -50,7 +52,9 @@ export function canUseChatCopilot(
   devflags: DevFlagsType,
 ): boolean {
   return (
-    isAdminTeamEmail(email, devflags) || (!!team && checkIsTeamOnPaidTier(team))
+    SELF_HOSTED ||
+    isAdminTeamEmail(email, devflags) ||
+    (!!team && checkIsTeamOnPaidTier(team))
   );
 }
 
@@ -62,6 +66,12 @@ export function getSubscriptionStatus(
   subscription?: Subscription,
 ): SubscriptionStatus {
   const freeTier = DEVFLAGS.freeTier;
+  if (SELF_HOSTED) {
+    return {
+      type: "valid",
+      tier: getEffectiveFeatureTier(team.featureTier ?? freeTier),
+    };
+  }
 
   // Handle free tier
   if (!team.featureTier) {

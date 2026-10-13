@@ -19,7 +19,9 @@ import { isCmsTextLike } from "@/wab/client/components/cms/utils";
 import { confirm } from "@/wab/client/components/quick-modals";
 import { FormSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useApi } from "@/wab/client/contexts/AppContexts";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   DefaultCmsEntryDetailsProps,
   PlasmicCmsEntryDetails,
@@ -125,7 +127,11 @@ export function getRowIdentifierNode(
     formIdentifier,
   );
   return (
-    identifier ?? <div className="dimfg">{placeholder || "Untitled entry"}</div>
+    identifier ?? (
+      <div className="dimfg">
+        {placeholder || translate(getUiLocale(), "Untitled entry")}
+      </div>
+    )
   );
 }
 
@@ -248,6 +254,8 @@ function CmsEntryDetailsForm_(
   },
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const { database, table, row, ...rest } = props;
   const api = useApi();
 
@@ -393,12 +401,16 @@ function CmsEntryDetailsForm_(
 
   const warnConflict = () => {
     notification.error({
-      message: "Update conflict detected",
+      message: studioUiT("Update conflict detected"),
       key: "cms-row-conflict",
       description: (
         <div>
-          Someone just updated this entry, so your edits have been blocked.
-          Please{" "}
+          {" "}
+          <UiText
+            message={
+              "Someone just updated this entry, so your edits have been blocked. Please"
+            }
+          />{" "}
           <a
             onClick={async () => {
               spawn(
@@ -415,9 +427,10 @@ function CmsEntryDetailsForm_(
               setInConflict(false);
             }}
           >
-            reload this entry
+            {" "}
+            <UiText message={"reload this entry"} />{" "}
           </a>{" "}
-          and try editing again.
+          <UiText message={"and try editing again."} />{" "}
         </div>
       ),
       duration: 0,
@@ -542,8 +555,10 @@ function CmsEntryDetailsForm_(
     getRowIdentifierText(table, row);
   const entryDisplayName =
     entryIdenfitier || entryPlaceholder
-      ? `"${entryIdenfitier || entryPlaceholder}" entry`
-      : "untitled entry";
+      ? studioUiT('"{part1}" entry', {
+          part1: String(entryIdenfitier || entryPlaceholder),
+        })
+      : studioUiT("untitled entry");
 
   return (
     <>
@@ -553,7 +568,7 @@ function CmsEntryDetailsForm_(
             route: APP_ROUTES.cmsEntryRevisions,
             render: () => (
               <Drawer
-                title={"Entry revisions"}
+                title={studioUiT("Entry revisions")}
                 placement="right"
                 onClose={() =>
                   history.push(
@@ -619,7 +634,9 @@ function CmsEntryDetailsForm_(
           <Form.Item shouldUpdate={() => true}>
             {(theform) => (
               <pre>
-                Data: {JSON.stringify(theform.getFieldsValue(), null, 2)}
+                {" "}
+                <UiText message={"Data:"} />{" "}
+                {JSON.stringify(theform.getFieldsValue(), null, 2)}
               </pre>
             )}
           </Form.Item>
@@ -631,9 +648,13 @@ function CmsEntryDetailsForm_(
             <Form.Item noStyle shouldUpdate>
               {() =>
                 inConflict ? (
-                  <span className="light-error">Conflict detected.</span>
+                  <span className="light-error">
+                    <UiText message={"Conflict detected."} />
+                  </span>
                 ) : hasFormError() ? (
-                  <span className="light-error">Some fields are invalid.</span>
+                  <span className="light-error">
+                    <UiText message={"Some fields are invalid."} />
+                  </span>
                 ) : isSaving ? (
                   "Saving draft..."
                 ) : hasUnsavedChanges ? (
@@ -716,10 +737,12 @@ function CmsEntryDetailsForm_(
                     }
                     tooltip={
                       hasFormError()
-                        ? "Cannot publish because some fields are invalid"
+                        ? studioUiT(
+                            "Cannot publish because some fields are invalid",
+                          )
                         : !hasUnpublishedChanges
-                          ? "All changes have been published"
-                          : "Publish this entry publicly"
+                          ? studioUiT("All changes have been published")
+                          : studioUiT("Publish this entry publicly")
                     }
                     children={
                       isPublishing
@@ -765,8 +788,14 @@ function CmsEntryDetailsForm_(
                       }}
                       disabled={isSaving || isPublishing}
                     >
-                      <Tooltip title="Unpublishing removes the published status of the entry">
-                        <span>Unpublish entry</span>
+                      <Tooltip
+                        title={studioUiT(
+                          "Unpublishing removes the published status of the entry",
+                        )}
+                      >
+                        <span>
+                          <UiText message={"Unpublish entry"} />
+                        </span>
                       </Tooltip>
                     </Menu.Item>
                     {row.data && row.draftData && (
@@ -798,8 +827,14 @@ function CmsEntryDetailsForm_(
                         }}
                         disabled={isSaving}
                       >
-                        <Tooltip title="Reverts draft data to previously-published data">
-                          <span>Revert to published entry</span>
+                        <Tooltip
+                          title={studioUiT(
+                            "Reverts draft data to previously-published data",
+                          )}
+                        >
+                          <span>
+                            <UiText message={"Revert to published entry"} />
+                          </span>
                         </Tooltip>
                       </Menu.Item>
                     )}
@@ -810,14 +845,19 @@ function CmsEntryDetailsForm_(
                   onClick={() => setShowDuplicateModal(true)}
                   disabled={isSaving || isPublishing}
                 >
-                  <span>Duplicate entry</span>
+                  <span>
+                    <UiText message={"Duplicate entry"} />
+                  </span>
                 </Menu.Item>
                 <Menu.Item
                   key="delete"
                   onClick={async () => {
                     const confirmed = await confirm({
-                      title: "Delete entry",
-                      message: `Are you sure you want to delete ${entryDisplayName}?`,
+                      title: studioUiT("Delete entry"),
+                      message: studioUiT(
+                        "Are you sure you want to delete {part1}?",
+                        { part1: String(entryDisplayName) },
+                      ),
                     });
                     if (confirmed) {
                       spawn(
@@ -845,7 +885,8 @@ function CmsEntryDetailsForm_(
                     }
                   }}
                 >
-                  Delete entry
+                  {" "}
+                  <UiText message={"Delete entry"} />{" "}
                 </Menu.Item>
               </Menu>
             ),
@@ -856,7 +897,7 @@ function CmsEntryDetailsForm_(
               tableId: table.id,
               rowId: row.id,
             }),
-            tooltip: "Show revision history",
+            tooltip: studioUiT("Show revision history"),
           }}
           children={
             <div className={"vlist-gap-xlg fill-width"}>

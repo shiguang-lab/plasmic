@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: Xx_WsdQKli-S
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -111,6 +112,8 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
   overrides: PlasmicPriceTierPicker__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -260,7 +263,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
           })}
         >
           <div className={classNames("all", "__wab_text", sty.text__u9Ppd)}>
-            {"Upgrade "}
+            {<><UiText message={"Upgrade"} />{" "}</>}
           </div>
           <div className={classNames("all", sty.freeBox__pSqi)}>
             {renderPlasmicSlot({
@@ -282,7 +285,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
           <div className={classNames("all", "__wab_text", sty.text__gc5Ft)}>
             <React.Fragment>
               <React.Fragment>
-                {"Select a new plan to upgrade. "}
+                {<><UiText message={"Select a new plan to upgrade."} />{" "}</>}
               </React.Fragment>
               {
                 <PlasmicLink__
@@ -345,7 +348,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
           }}
         >
           <div className={classNames("all", "__wab_text", sty.text__b6Uf2)}>
-            {"Annual Billing (Save 20%)"}
+            {<UiText message={"Annual Billing (Save 20%)"} />}
           </div>
         </Switch>
       </div>
@@ -369,7 +372,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
             )}
             tier={"starter"}
           >
-            {"You are grandfathered in"}
+            {<UiText message={"You are grandfathered in"} />}
           </PriceTierFeatureItem>
         }
       />
@@ -422,7 +425,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
           valueProps={
             <React.Fragment>
               <div className={classNames("all", "__wab_text", sty.text__jjbWy)}>
-                {"Includes:"}
+                {<UiText message={"Includes:"} />}
               </div>
               <PriceTierFeatureItem
                 className={classNames(
@@ -468,7 +471,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___7NhFa)}
               >
-                {"Free includes (monthly):"}
+                {<UiText message={"Free includes (monthly):"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -477,7 +480,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__qZrbE
                 )}
               >
-                {"Unlimited projects"}
+                {<UiText message={"Unlimited projects"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -486,7 +489,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__nMt01
                 )}
               >
-                {"Unlimited wrokspaces"}
+                {<UiText message={"Unlimited wrokspaces"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -495,7 +498,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem___2M3Xe
                 )}
               >
-                {"Unlimited publishes & syncs"}
+                {<UiText message={"Unlimited publishes & syncs"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -504,7 +507,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__sIdY4
                 )}
               >
-                {"Unlimited cross-project imports"}
+                {<UiText message={"Unlimited cross-project imports"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -525,7 +528,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   )}
                   forceOverlay={false}
                   popover={
-                    "Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more. "
+                    studioUiT("Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -547,7 +550,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__xEp8D
                   )}
                   popover={
-                    "Choose from a wide range of pre-built integrations to power your project."
+                    studioUiT("Choose from a wide range of pre-built integrations to power your project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -569,7 +572,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__pv5F
                   )}
                   popover={
-                    "Browse a library of pre-built projects and sections that you can copy and customize in minutes.   "
+                    studioUiT("Browse a library of pre-built projects and sections that you can copy and customize in minutes.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -594,7 +597,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__amjoU
                   )}
                   popover={
-                    "All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain."
+                    studioUiT("All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -608,7 +611,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__nLScj)}
                 >
-                  {"Plasmic hosting"}
+                  {<UiText message={"Plasmic hosting"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -616,7 +619,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__nTPoJ
                   )}
                   popover={
-                    "We provide reliable and secure hosting for your app or website."
+                    studioUiT("We provide reliable and secure hosting for your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -641,7 +644,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___2Mmy5
                   )}
                   popover={
-                    "Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects."
+                    studioUiT("Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -663,7 +666,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__p9NQv
                   )}
                   popover={
-                    "Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details."
+                    studioUiT("Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -685,7 +688,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__cc1Ua
                   )}
                   popover={
-                    "Apply colors, fonts, spacing, and more. Design with speed and consistency."
+                    studioUiT("Apply colors, fonts, spacing, and more. Design with speed and consistency.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -707,7 +710,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__t2UOg
                   )}
                   popover={
-                    "Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen."
+                    studioUiT("Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -721,7 +724,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___3X0P)}
                 >
-                  {"Figma import"}
+                  {<UiText message={"Figma import"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -729,7 +732,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___7GT6R
                   )}
                   popover={
-                    "If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter."
+                    studioUiT("If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -743,7 +746,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___1Zzc)}
                 >
-                  {"Theming & branding"}
+                  {<UiText message={"Theming & branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -751,7 +754,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__hwq1O
                   )}
                   popover={
-                    "Easily control the global styles across your app or website. Display your own branding on your app or website. "
+                    studioUiT("Easily control the global styles across your app or website. Display your own branding on your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -776,7 +779,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___7R9S7
                   )}
                   popover={
-                    "Use custom React components\u2014from your own codebase or imported from npm libraries\u2014directly as building blocks in Plasmic Studio."
+                    studioUiT("Use custom React components—from your own codebase or imported from npm libraries—directly as building blocks in Plasmic Studio.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -798,7 +801,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__cevhz
                   )}
                   popover={
-                    "Build within your existing applications. Use your own components, data, and code, and compose new screens and components."
+                    studioUiT("Build within your existing applications. Use your own components, data, and code, and compose new screens and components.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -820,7 +823,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__rSpqY
                   )}
                   popover={
-                    "Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic."
+                    studioUiT("Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -837,7 +840,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__gg6Me)}
                 >
-                  {"Headless CMS"}
+                  {<UiText message={"Headless CMS"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -845,7 +848,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__gyozc
                   )}
                   popover={
-                    "A headless API-driven structured content management system."
+                    studioUiT("A headless API-driven structured content management system.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -856,7 +859,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__lzl94
                 )}
               >
-                {"Unlimited CMS types"}
+                {<UiText message={"Unlimited CMS types"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -865,7 +868,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__iP3T1
                 )}
               >
-                {"Unlimited CMS entries"}
+                {<UiText message={"Unlimited CMS entries"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -885,7 +888,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___0HEas
                   )}
                   popover={
-                    "Reduces the file size of your images, without sacrificing quality, to improve overall performance."
+                    studioUiT("Reduces the file size of your images, without sacrificing quality, to improve overall performance.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -902,7 +905,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__k2XXh)}
                 >
-                  {"Multiplayer"}
+                  {<UiText message={"Multiplayer"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -910,12 +913,12 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__c9Mqs
                   )}
                   popover={
-                    "Real-time collaborative editing\u2014have multiple users editing the same project at the same time."
+                    studioUiT("Real-time collaborative editing—have multiple users editing the same project at the same time.")
                   }
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__dNqyn)}>
-                {"Growth & Optimization"}
+                {<UiText message={"Growth & Optimization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -934,13 +937,13 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     "__wab_instance",
                     sty.hoverableIcon__vugwK
                   )}
-                  popover={"Privacy-first analytics with page views."}
+                  popover={studioUiT("Privacy-first analytics with page views.")}
                 />
               </PriceTierFeatureItem>
               <div
                 className={classNames("all", "__wab_text", sty.text___7OLdd)}
               >
-                {"Security & Controls"}
+                {<UiText message={"Security & Controls"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -960,7 +963,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__wJwuj
                   )}
                   popover={
-                    "API access to programmatically create full snapshot representations of any project."
+                    studioUiT("API access to programmatically create full snapshot representations of any project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -982,7 +985,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__mR5C6
                   )}
                   popover={
-                    "Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API."
+                    studioUiT("Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1004,7 +1007,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__zuOvS
                   )}
                   popover={
-                    "Fully transfer your Plasmic project to another Plasmic user."
+                    studioUiT("Fully transfer your Plasmic project to another Plasmic user.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1015,7 +1018,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem___0EskV
                 )}
               >
-                {"14-day version history"}
+                {<UiText message={"14-day version history"} />}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__qmDdm)}>
                 {<UiText message={"Resources"} />}
@@ -1027,7 +1030,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__fnKDl
                 )}
               >
-                {"Community forum support"}
+                {<UiText message={"Community forum support"} />}
               </PriceTierFeatureItem>
             </React.Fragment>
           }
@@ -1048,10 +1051,10 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "billingFrequency", "year")
-                ? "Free forever"
+                ? studioUiT("Free forever")
                 : hasVariant($state, "billingFrequency", "month")
-                ? "Free forever"
-                : "Free forever"}
+                ? studioUiT("Free forever")
+                : studioUiT("Free forever")}
             </div>
           }
           tier={"free"}
@@ -1071,7 +1074,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Free plan includes:"}
+                {<UiText message={"Free plan includes:"} />}
               </div>
               <PriceTierFeatureItem
                 className={classNames(
@@ -1098,7 +1101,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     />
                   }
                 >
-                  {"3 collaborators"}
+                  {<UiText message={"3 collaborators"} />}
                 </HoverableText>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1119,7 +1122,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Unlimited projects"}
+                  {<UiText message={"Unlimited projects"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1132,7 +1135,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__sUpik)}
                 >
-                  {"Unlimited headless CMS"}
+                  {<UiText message={"Unlimited headless CMS"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1145,7 +1148,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__urAx)}
                 >
-                  {"Community forum support"}
+                  {<UiText message={"Community forum support"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1158,7 +1161,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__h0QYr)}
                 >
-                  {"Use custom domains with Plasmic hosting  "}
+                  {<><UiText message={"Use custom domains with Plasmic hosting"} />{"  "}</>}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1188,7 +1191,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   })}
                 >
                   {
-                    "Plasmic badge on every project (only for Plasmic-hosted websites)"
+                    <UiText message={"Plasmic badge on every project (only for Plasmic-hosted websites)"} />
                   }
                 </div>
               </PriceTierFeatureItem>
@@ -1217,8 +1220,8 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 className={classNames("all", "__wab_text", sty.text___94C8F)}
               >
                 {hasVariant(globalVariants, "screen", "mobileOnly")
-                  ? "Starter includes (monthly):"
-                  : "Free includes (monthly):"}
+                  ? studioUiT("Starter includes (monthly):")
+                  : studioUiT("Free includes (monthly):")}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1227,7 +1230,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__luSa
                 )}
               >
-                {"Unlimited projects"}
+                {<UiText message={"Unlimited projects"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1236,7 +1239,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem___1Rkzi
                 )}
               >
-                {"Unlimited wrokspaces"}
+                {<UiText message={"Unlimited wrokspaces"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1245,7 +1248,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__yNuRy
                 )}
               >
-                {"Unlimited publishes & syncs"}
+                {<UiText message={"Unlimited publishes & syncs"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1254,7 +1257,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__ye9Jn
                 )}
               >
-                {"Unlimited cross-project imports"}
+                {<UiText message={"Unlimited cross-project imports"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1275,7 +1278,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   )}
                   forceOverlay={false}
                   popover={
-                    "Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more. "
+                    studioUiT("Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1297,7 +1300,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___7Ktv
                   )}
                   popover={
-                    "Choose from a wide range of pre-built integrations to power your project."
+                    studioUiT("Choose from a wide range of pre-built integrations to power your project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1319,7 +1322,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__bOXq
                   )}
                   popover={
-                    "Browse a library of pre-built projects and sections that you can copy and customize in minutes.   "
+                    studioUiT("Browse a library of pre-built projects and sections that you can copy and customize in minutes.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1342,7 +1345,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__lLz6
                   )}
                   popover={
-                    "All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain."
+                    studioUiT("All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1356,7 +1359,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__cIoxV)}
                 >
-                  {"Plasmic hosting"}
+                  {<UiText message={"Plasmic hosting"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1364,7 +1367,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__g7PC
                   )}
                   popover={
-                    "We provide reliable and secure hosting for your app or website."
+                    studioUiT("We provide reliable and secure hosting for your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1386,7 +1389,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__vgU5
                   )}
                   popover={
-                    "Remove the Plasmic badge from all published projects."
+                    studioUiT("Remove the Plasmic badge from all published projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1411,7 +1414,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__aMwVh
                   )}
                   popover={
-                    "Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects."
+                    studioUiT("Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1433,7 +1436,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__bE3Cs
                   )}
                   popover={
-                    "Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details."
+                    studioUiT("Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1455,7 +1458,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__jo7J
                   )}
                   popover={
-                    "Apply colors, fonts, spacing, and more. Design with speed and consistency."
+                    studioUiT("Apply colors, fonts, spacing, and more. Design with speed and consistency.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1475,7 +1478,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___3N5W
                   )}
                   popover={
-                    "Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen."
+                    studioUiT("Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1489,7 +1492,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__j30Sj)}
                 >
-                  {"Figma import"}
+                  {<UiText message={"Figma import"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1497,7 +1500,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__ssYA
                   )}
                   popover={
-                    "If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter."
+                    studioUiT("If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1511,7 +1514,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__za1F6)}
                 >
-                  {"Theming & branding"}
+                  {<UiText message={"Theming & branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1519,7 +1522,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__jghPf
                   )}
                   popover={
-                    "Easily control the global styles across your app or website. Display your own branding on your app or website. "
+                    studioUiT("Easily control the global styles across your app or website. Display your own branding on your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1544,7 +1547,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___27Ibt
                   )}
                   popover={
-                    "Use custom React components\u2014from your own codebase or imported from npm libraries\u2014directly as building blocks in Plasmic Studio."
+                    studioUiT("Use custom React components—from your own codebase or imported from npm libraries—directly as building blocks in Plasmic Studio.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1566,7 +1569,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__rqHcN
                   )}
                   popover={
-                    "Build within your existing applications. Use your own components, data, and code, and compose new screens and components."
+                    studioUiT("Build within your existing applications. Use your own components, data, and code, and compose new screens and components.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1588,7 +1591,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__d7F3Q
                   )}
                   popover={
-                    "Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic."
+                    studioUiT("Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1605,7 +1608,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__qmg3L)}
                 >
-                  {"Headless CMS"}
+                  {<UiText message={"Headless CMS"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1613,7 +1616,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__x90ZX
                   )}
                   popover={
-                    "A headless API-driven structured content management system."
+                    studioUiT("A headless API-driven structured content management system.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1624,7 +1627,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__v6Mx9
                 )}
               >
-                {"Unlimited CMS types"}
+                {<UiText message={"Unlimited CMS types"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1633,7 +1636,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__s7ZZ7
                 )}
               >
-                {"Unlimited CMS entries"}
+                {<UiText message={"Unlimited CMS entries"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1653,7 +1656,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__x7Ra0
                   )}
                   popover={
-                    "Reduces the file size of your images, without sacrificing quality, to improve overall performance."
+                    studioUiT("Reduces the file size of your images, without sacrificing quality, to improve overall performance.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1670,7 +1673,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__tkLn1)}
                 >
-                  {"Multiplayer"}
+                  {<UiText message={"Multiplayer"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -1678,12 +1681,12 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__wwrjC
                   )}
                   popover={
-                    "Real-time collaborative editing\u2014have multiple users editing the same project at the same time."
+                    studioUiT("Real-time collaborative editing—have multiple users editing the same project at the same time.")
                   }
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__jzGgP)}>
-                {"Growth & Optimization"}
+                {<UiText message={"Growth & Optimization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1702,11 +1705,11 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     "__wab_instance",
                     sty.hoverableIcon__kjFzm
                   )}
-                  popover={"Privacy-first analytics with page views."}
+                  popover={studioUiT("Privacy-first analytics with page views.")}
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__pNEuB)}>
-                {"Security & Controls"}
+                {<UiText message={"Security & Controls"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1726,7 +1729,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__i5Md9
                   )}
                   popover={
-                    "API access to programmatically create full snapshot representations of any project."
+                    studioUiT("API access to programmatically create full snapshot representations of any project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1748,7 +1751,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__mf0Td
                   )}
                   popover={
-                    "Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API."
+                    studioUiT("Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1770,7 +1773,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___0CtXw
                   )}
                   popover={
-                    "Fully transfer your Plasmic project to another Plasmic user."
+                    studioUiT("Fully transfer your Plasmic project to another Plasmic user.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -1781,7 +1784,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__dlOya
                 )}
               >
-                {"30-day version history"}
+                {<UiText message={"30-day version history"} />}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__dbKvl)}>
                 {<UiText message={"Resources"} />}
@@ -1793,7 +1796,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__gvAyO
                 )}
               >
-                {"Community forum support"}
+                {<UiText message={"Community forum support"} />}
               </PriceTierFeatureItem>
             </React.Fragment>
           }
@@ -1832,7 +1835,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Everything in Free, plus:"}
+                {<UiText message={"Everything in Free, plus:"} />}
               </div>
               <PriceTierFeatureItem
                 className={classNames(
@@ -1858,7 +1861,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   )}
                   popover={<CollaboratorsHoverContent />}
                 >
-                  {"3 collaborators"}
+                  {<UiText message={"3 collaborators"} />}
                 </HoverableText>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -1897,7 +1900,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__wohWa)}
                 >
-                  {"AI support chat"}
+                  {<UiText message={"AI support chat"} />}
                 </div>
               </PriceTierFeatureItem>
             </React.Fragment>
@@ -1925,8 +1928,8 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 className={classNames("all", "__wab_text", sty.text___71AdJ)}
               >
                 {hasVariant(globalVariants, "screen", "mobileOnly")
-                  ? "Pro includes (monthly):"
-                  : "Free includes (monthly):"}
+                  ? studioUiT("Pro includes (monthly):")
+                  : studioUiT("Free includes (monthly):")}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1935,7 +1938,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__rp9Xj
                 )}
               >
-                {"Unlimited projects"}
+                {<UiText message={"Unlimited projects"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1944,7 +1947,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__iMmpz
                 )}
               >
-                {"Unlimited wrokspaces"}
+                {<UiText message={"Unlimited wrokspaces"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1953,7 +1956,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__yO4Yt
                 )}
               >
-                {"Unlimited publishes & syncs"}
+                {<UiText message={"Unlimited publishes & syncs"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1962,7 +1965,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__ydsQ7
                 )}
               >
-                {"Unlimited cross-project imports"}
+                {<UiText message={"Unlimited cross-project imports"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -1983,7 +1986,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   )}
                   forceOverlay={false}
                   popover={
-                    "Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more. "
+                    studioUiT("Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2005,7 +2008,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__h2ECl
                   )}
                   popover={
-                    "Choose from a wide range of pre-built integrations to power your project."
+                    studioUiT("Choose from a wide range of pre-built integrations to power your project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2027,7 +2030,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__foi95
                   )}
                   popover={
-                    "Browse a library of pre-built projects and sections that you can copy and customize in minutes.   "
+                    studioUiT("Browse a library of pre-built projects and sections that you can copy and customize in minutes.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2052,7 +2055,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__l3N6U
                   )}
                   popover={
-                    "All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain."
+                    studioUiT("All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2066,7 +2069,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___2M9Fy)}
                 >
-                  {"Plasmic hosting"}
+                  {<UiText message={"Plasmic hosting"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2074,7 +2077,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___5Hv0B
                   )}
                   popover={
-                    "We provide reliable and secure hosting for your app or website."
+                    studioUiT("We provide reliable and secure hosting for your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2096,7 +2099,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__yeZSk
                   )}
                   popover={
-                    "Remove the Plasmic badge from all published projects."
+                    studioUiT("Remove the Plasmic badge from all published projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2123,7 +2126,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__ncKx1
                   )}
                   popover={
-                    "Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects."
+                    studioUiT("Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2145,7 +2148,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__az2MB
                   )}
                   popover={
-                    "Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details."
+                    studioUiT("Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2167,7 +2170,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__qm2Hv
                   )}
                   popover={
-                    "Apply colors, fonts, spacing, and more. Design with speed and consistency."
+                    studioUiT("Apply colors, fonts, spacing, and more. Design with speed and consistency.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2189,7 +2192,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___0GVtB
                   )}
                   popover={
-                    "Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen."
+                    studioUiT("Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2203,7 +2206,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__uFrsT)}
                 >
-                  {"Figma import"}
+                  {<UiText message={"Figma import"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2211,7 +2214,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___1X4Uw
                   )}
                   popover={
-                    "If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter."
+                    studioUiT("If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2225,7 +2228,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__rYmDb)}
                 >
-                  {"Theming & branding"}
+                  {<UiText message={"Theming & branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2233,7 +2236,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__tjqyB
                   )}
                   popover={
-                    "Easily control the global styles across your app or website. Display your own branding on your app or website. "
+                    studioUiT("Easily control the global styles across your app or website. Display your own branding on your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2258,7 +2261,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__saTiw
                   )}
                   popover={
-                    "Use custom React components\u2014from your own codebase or imported from npm libraries\u2014directly as building blocks in Plasmic Studio."
+                    studioUiT("Use custom React components—from your own codebase or imported from npm libraries—directly as building blocks in Plasmic Studio.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2280,7 +2283,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__xSh8
                   )}
                   popover={
-                    "Build within your existing applications. Use your own components, data, and code, and compose new screens and components."
+                    studioUiT("Build within your existing applications. Use your own components, data, and code, and compose new screens and components.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2302,7 +2305,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__rDv4O
                   )}
                   popover={
-                    "Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic."
+                    studioUiT("Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2319,7 +2322,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__vmGdm)}
                 >
-                  {"Headless CMS"}
+                  {<UiText message={"Headless CMS"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2327,7 +2330,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__umeof
                   )}
                   popover={
-                    "A headless API-driven structured content management system."
+                    studioUiT("A headless API-driven structured content management system.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2338,7 +2341,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__p2UDp
                 )}
               >
-                {"Unlimited CMS types"}
+                {<UiText message={"Unlimited CMS types"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2347,7 +2350,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__a2Cud
                 )}
               >
-                {"Unlimited CMS entries"}
+                {<UiText message={"Unlimited CMS entries"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2367,7 +2370,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__kdUl7
                   )}
                   popover={
-                    "Reduces the file size of your images, without sacrificing quality, to improve overall performance."
+                    studioUiT("Reduces the file size of your images, without sacrificing quality, to improve overall performance.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2384,7 +2387,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__eFuYw)}
                 >
-                  {"Multiplayer"}
+                  {<UiText message={"Multiplayer"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2392,12 +2395,12 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__uAekr
                   )}
                   popover={
-                    "Real-time collaborative editing\u2014have multiple users editing the same project at the same time."
+                    studioUiT("Real-time collaborative editing—have multiple users editing the same project at the same time.")
                   }
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__clgKr)}>
-                {"Growth & Optimization"}
+                {<UiText message={"Growth & Optimization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2416,11 +2419,11 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     "__wab_instance",
                     sty.hoverableIcon__qr1Mt
                   )}
-                  popover={"Privacy-first analytics with page views."}
+                  popover={studioUiT("Privacy-first analytics with page views.")}
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__kmisn)}>
-                {"Security & Controls"}
+                {<UiText message={"Security & Controls"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2440,7 +2443,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__o1TjN
                   )}
                   popover={
-                    "API access to programmatically create full snapshot representations of any project."
+                    studioUiT("API access to programmatically create full snapshot representations of any project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2462,7 +2465,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__i9Zq
                   )}
                   popover={
-                    "Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API."
+                    studioUiT("Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2484,7 +2487,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__xzqB
                   )}
                   popover={
-                    "Fully transfer your Plasmic project to another Plasmic user."
+                    studioUiT("Fully transfer your Plasmic project to another Plasmic user.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2495,7 +2498,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__sTduc
                 )}
               >
-                {"90-day version history"}
+                {<UiText message={"90-day version history"} />}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__nOyyf)}>
                 {<UiText message={"Resources"} />}
@@ -2507,7 +2510,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__w2YGd
                 )}
               >
-                {"Community forum support"}
+                {<UiText message={"Community forum support"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2516,7 +2519,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__eMvJo
                 )}
               >
-                {"Email & chat support"}
+                {<UiText message={"Email & chat support"} />}
               </PriceTierFeatureItem>
             </React.Fragment>
           }
@@ -2538,7 +2541,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
           valueProps={
             <React.Fragment>
               <div className={classNames("all", "__wab_text", sty.text__qmzG3)}>
-                {"Everything in Starter, plus:"}
+                {<UiText message={"Everything in Starter, plus:"} />}
               </div>
               <PriceTierFeatureItem
                 className={classNames(
@@ -2569,7 +2572,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     />
                   }
                 >
-                  {"4-10 collaborators"}
+                  {<UiText message={"4-10 collaborators"} />}
                 </HoverableText>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -2583,7 +2586,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"pro"}
               >
-                {"Priority support"}
+                {<UiText message={"Priority support"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 className={classNames(
@@ -2595,7 +2598,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__nsYP)}
                 >
-                  {"Unlimited access to the Plasmic AI (Beta)"}
+                  {<UiText message={"Unlimited access to the Plasmic AI (Beta)"} />}
                 </div>
               </PriceTierFeatureItem>
             </React.Fragment>
@@ -2616,8 +2619,8 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
             <React.Fragment>
               <div className={classNames("all", "__wab_text", sty.text__wfssn)}>
                 {hasVariant(globalVariants, "screen", "mobileOnly")
-                  ? "Scale includes (monthly):"
-                  : "Free includes (monthly):"}
+                  ? studioUiT("Scale includes (monthly):")
+                  : studioUiT("Free includes (monthly):")}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2626,7 +2629,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__cuLlr
                 )}
               >
-                {"Unlimited projects"}
+                {<UiText message={"Unlimited projects"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2635,7 +2638,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__ckcDz
                 )}
               >
-                {"Unlimited wrokspaces"}
+                {<UiText message={"Unlimited wrokspaces"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2644,7 +2647,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__q1K
                 )}
               >
-                {"Unlimited publishes & syncs"}
+                {<UiText message={"Unlimited publishes & syncs"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2653,7 +2656,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem___1WqcQ
                 )}
               >
-                {"Unlimited cross-project imports"}
+                {<UiText message={"Unlimited cross-project imports"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -2674,7 +2677,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   )}
                   forceOverlay={false}
                   popover={
-                    "Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more. "
+                    studioUiT("Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2696,7 +2699,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___8C9OV
                   )}
                   popover={
-                    "Choose from a wide range of pre-built integrations to power your project."
+                    studioUiT("Choose from a wide range of pre-built integrations to power your project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2718,7 +2721,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__llW2G
                   )}
                   popover={
-                    "Browse a library of pre-built projects and sections that you can copy and customize in minutes.   "
+                    studioUiT("Browse a library of pre-built projects and sections that you can copy and customize in minutes.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2743,7 +2746,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__t8IVf
                   )}
                   popover={
-                    "All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain."
+                    studioUiT("All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2757,7 +2760,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__v4QR)}
                 >
-                  {"Plasmic hosting"}
+                  {<UiText message={"Plasmic hosting"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2765,7 +2768,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__rewdy
                   )}
                   popover={
-                    "We provide reliable and secure hosting for your app or website."
+                    studioUiT("We provide reliable and secure hosting for your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2787,7 +2790,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__wEsez
                   )}
                   popover={
-                    "Remove the Plasmic badge from all published projects."
+                    studioUiT("Remove the Plasmic badge from all published projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2814,7 +2817,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__wrNcO
                   )}
                   popover={
-                    "Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects."
+                    studioUiT("Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2836,7 +2839,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__f6Wzn
                   )}
                   popover={
-                    "Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details."
+                    studioUiT("Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2858,7 +2861,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__n3JXp
                   )}
                   popover={
-                    "Apply colors, fonts, spacing, and more. Design with speed and consistency."
+                    studioUiT("Apply colors, fonts, spacing, and more. Design with speed and consistency.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2880,7 +2883,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__cT1Gf
                   )}
                   popover={
-                    "Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen."
+                    studioUiT("Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2894,7 +2897,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__w06Cc)}
                 >
-                  {"Figma import"}
+                  {<UiText message={"Figma import"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2902,7 +2905,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__wotPu
                   )}
                   popover={
-                    "If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter."
+                    studioUiT("If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2916,7 +2919,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__iwwdS)}
                 >
-                  {"Theming & branding"}
+                  {<UiText message={"Theming & branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -2924,7 +2927,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___8BrJa
                   )}
                   popover={
-                    "Easily control the global styles across your app or website. Display your own branding on your app or website. "
+                    studioUiT("Easily control the global styles across your app or website. Display your own branding on your app or website.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2951,7 +2954,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__ciqTn
                   )}
                   popover={
-                    "Use custom React components\u2014from your own codebase or imported from npm libraries\u2014directly as building blocks in Plasmic Studio."
+                    studioUiT("Use custom React components—from your own codebase or imported from npm libraries—directly as building blocks in Plasmic Studio.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2973,7 +2976,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__zdEl7
                   )}
                   popover={
-                    "Build within your existing applications. Use your own components, data, and code, and compose new screens and components."
+                    studioUiT("Build within your existing applications. Use your own components, data, and code, and compose new screens and components.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -2995,7 +2998,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__fDQg
                   )}
                   popover={
-                    "Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic."
+                    studioUiT("Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3012,7 +3015,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__ggqhz)}
                 >
-                  {"Headless CMS"}
+                  {<UiText message={"Headless CMS"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3020,7 +3023,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__y5Gb9
                   )}
                   popover={
-                    "A headless API-driven structured content management system."
+                    studioUiT("A headless API-driven structured content management system.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3031,7 +3034,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__kYem7
                 )}
               >
-                {"Unlimited CMS types"}
+                {<UiText message={"Unlimited CMS types"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3040,7 +3043,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__ric5E
                 )}
               >
-                {"Unlimited CMS entries"}
+                {<UiText message={"Unlimited CMS entries"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3060,7 +3063,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__tdq0M
                   )}
                   popover={
-                    "Reduces the file size of your images, without sacrificing quality, to improve overall performance."
+                    studioUiT("Reduces the file size of your images, without sacrificing quality, to improve overall performance.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3077,7 +3080,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___1KgmD)}
                 >
-                  {"Multiplayer"}
+                  {<UiText message={"Multiplayer"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3085,12 +3088,12 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__jpqlD
                   )}
                   popover={
-                    "Real-time collaborative editing\u2014have multiple users editing the same project at the same time."
+                    studioUiT("Real-time collaborative editing—have multiple users editing the same project at the same time.")
                   }
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__nMrPv)}>
-                {"Growth & Optimization"}
+                {<UiText message={"Growth & Optimization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3109,7 +3112,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     "__wab_instance",
                     sty.hoverableIcon__dtVEa
                   )}
-                  popover={"Privacy-first analytics with page views."}
+                  popover={studioUiT("Privacy-first analytics with page views.")}
                 />
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -3122,7 +3125,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__o6Yhr)}
                 >
-                  {"A/B Testing"}
+                  {<UiText message={"A/B Testing"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3130,7 +3133,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__tdd3N
                   )}
                   popover={
-                    "Easily experiment with multiple variations of a page to measure which is more effective. Promote the winning edits as the main copy. Support multiple concurrent A/B tests at the same time."
+                    studioUiT("Easily experiment with multiple variations of a page to measure which is more effective. Promote the winning edits as the main copy. Support multiple concurrent A/B tests at the same time.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3144,7 +3147,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__opnHh)}
                 >
-                  {"Scheduled content"}
+                  {<UiText message={"Scheduled content"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3152,7 +3155,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__yyGb
                   )}
                   popover={
-                    "Create a different variation of a page that is activated during a time interval, such as a holiday promotion."
+                    studioUiT("Create a different variation of a page that is activated during a time interval, such as a holiday promotion.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3166,7 +3169,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mYAo7)}
                 >
-                  {"Custom targeting & segmentation"}
+                  {<UiText message={"Custom targeting & segmentation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3174,7 +3177,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___8V2Bj
                   )}
                   popover={
-                    "Create a different variation of a page that is activated under certain conditions, such as when the user has a certain item in their shopping cart."
+                    studioUiT("Create a different variation of a page that is activated under certain conditions, such as when the user has a certain item in their shopping cart.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3196,12 +3199,12 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__i1Vu6
                   )}
                   popover={
-                    "Integrate with popular localization frameworks like Lingui, or react-i18next."
+                    studioUiT("Integrate with popular localization frameworks like Lingui, or react-i18next.")
                   }
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__r9MkW)}>
-                {"Security & Controls"}
+                {<UiText message={"Security & Controls"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3221,7 +3224,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__rq2N3
                   )}
                   popover={
-                    "API access to programmatically create full snapshot representations of any project."
+                    studioUiT("API access to programmatically create full snapshot representations of any project.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3243,7 +3246,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__lu6Kt
                   )}
                   popover={
-                    "Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API."
+                    studioUiT("Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3265,7 +3268,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__vwOb
                   )}
                   popover={
-                    "Fully transfer your Plasmic project to another Plasmic user."
+                    studioUiT("Fully transfer your Plasmic project to another Plasmic user.")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3279,7 +3282,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__vXg1J)}
                 >
-                  {"180-day version history"}
+                  {<UiText message={"180-day version history"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -3292,7 +3295,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__cXzp)}
                 >
-                  {"Team roles & permissions"}
+                  {<UiText message={"Team roles & permissions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3300,7 +3303,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__pwP81
                   )}
                   popover={
-                    "Assign permission levels for pre-set roles (admin, developer, designer, editor)."
+                    studioUiT("Assign permission levels for pre-set roles (admin, developer, designer, editor).")
                   }
                 />
               </PriceTierFeatureItem>
@@ -3330,7 +3333,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                       )}
                     >
                       {
-                        "Enables a streamlined editing experience with full content control, but allows admin to limit styling options and predefine the building blocks, customizable per workspace and project."
+                        <UiText message={"Enables a streamlined editing experience with full content control, but allows admin to limit styling options and predefine the building blocks, customizable per workspace and project."} />
                       }
                     </div>
                   }
@@ -3346,7 +3349,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__yvMJp
                 )}
               >
-                {"Community forum support"}
+                {<UiText message={"Community forum support"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3355,7 +3358,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   sty.priceTierFeatureItem__buGwq
                 )}
               >
-                {"Email & chat support"}
+                {<UiText message={"Email & chat support"} />}
               </PriceTierFeatureItem>
             </React.Fragment>
           }
@@ -3383,8 +3386,8 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "billingFrequency", "year")
-                ? "Billed yearly"
-                : "Billed monthly"}
+                ? studioUiT("Billed yearly")
+                : studioUiT("Billed monthly")}
             </div>
           }
           tier={"team"}
@@ -3399,7 +3402,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Everything in Pro, plus:"}
+                {<UiText message={"Everything in Pro, plus:"} />}
               </div>
               <PriceTierFeatureItem
                 className={classNames(
@@ -3422,7 +3425,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     />
                   }
                 >
-                  {"8-30 collaborators"}
+                  {<UiText message={"8-30 collaborators"} />}
                 </HoverableText>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -3445,7 +3448,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"team"}
               >
-                {"A/B testing"}
+                {<UiText message={"A/B testing"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 className={classNames(
@@ -3457,7 +3460,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__a1AFi)}
                 >
-                  {"Scheduled content"}
+                  {<UiText message={"Scheduled content"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -3470,7 +3473,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__tTk9C)}
                 >
-                  {"Custom targeting"}
+                  {<UiText message={"Custom targeting"} />}
                 </div>
               </PriceTierFeatureItem>
             </React.Fragment>
@@ -3497,7 +3500,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               <div
                 className={classNames("all", "__wab_text", sty.text___7ZlfK)}
               >
-                {"Enterprise includes (monthly):"}
+                {<UiText message={"Enterprise includes (monthly):"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3507,7 +3510,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Unlimited projects"}
+                {<UiText message={"Unlimited projects"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3517,7 +3520,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Unlimited wrokspaces"}
+                {<UiText message={"Unlimited wrokspaces"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3527,7 +3530,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Unlimited publishes & syncs"}
+                {<UiText message={"Unlimited publishes & syncs"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3537,7 +3540,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Unlimited cross-project imports"}
+                {<UiText message={"Unlimited cross-project imports"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -3559,7 +3562,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                   )}
                   forceOverlay={false}
                   popover={
-                    "Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more. "
+                    studioUiT("Components are the building blocks for Plasmic projects. Access a growing library of production-ready components, from basic UI elements to major common app views, including table, list, grid, inbox, calendar, map, kanban and more.")
                   }
                   white={true}
                 />
@@ -3583,7 +3586,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___11KZk
                   )}
                   popover={
-                    "Choose from a wide range of pre-built integrations to power your project."
+                    studioUiT("Choose from a wide range of pre-built integrations to power your project.")
                   }
                   white={true}
                 />
@@ -3607,7 +3610,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__fCqxk
                   )}
                   popover={
-                    "Browse a library of pre-built projects and sections that you can copy and customize in minutes.   "
+                    studioUiT("Browse a library of pre-built projects and sections that you can copy and customize in minutes.")
                   }
                   white={true}
                 />
@@ -3634,7 +3637,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__inlKa
                   )}
                   popover={
-                    "All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain."
+                    studioUiT("All Plasmic projects come with a default Plasmic subdomain, but you can also choose to use your own custom domain.")
                   }
                   white={true}
                 />
@@ -3650,7 +3653,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__ytjlI)}
                 >
-                  {"Plasmic hosting"}
+                  {<UiText message={"Plasmic hosting"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3658,7 +3661,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___9JKsx
                   )}
                   popover={
-                    "We provide reliable and secure hosting for your app or website."
+                    studioUiT("We provide reliable and secure hosting for your app or website.")
                   }
                   white={true}
                 />
@@ -3682,7 +3685,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__ysShe
                   )}
                   popover={
-                    "Remove the Plasmic badge from all published projects."
+                    studioUiT("Remove the Plasmic badge from all published projects.")
                   }
                   white={true}
                 />
@@ -3709,7 +3712,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__iAgCv
                   )}
                   popover={
-                    "Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects."
+                    studioUiT("Create your own reusable components within Plasmic. Design sections or atomic design system elements that can be used across multiple projects.")
                   }
                   white={true}
                 />
@@ -3733,7 +3736,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__xwxfz
                   )}
                   popover={
-                    "Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details."
+                    studioUiT("Add free-form logic and behavior to your designs. Manage state with ease without worrying about low-level details.")
                   }
                   white={true}
                 />
@@ -3757,7 +3760,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___46Cdi
                   )}
                   popover={
-                    "Apply colors, fonts, spacing, and more. Design with speed and consistency."
+                    studioUiT("Apply colors, fonts, spacing, and more. Design with speed and consistency.")
                   }
                   white={true}
                 />
@@ -3781,7 +3784,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__kvJle
                   )}
                   popover={
-                    "Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen."
+                    studioUiT("Built-in image optimization, which ensures images are served at optimal sizes and at the proper resolution for the device screen.")
                   }
                   white={true}
                 />
@@ -3797,7 +3800,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__snMBh)}
                 >
-                  {"Figma import"}
+                  {<UiText message={"Figma import"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3805,7 +3808,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__qWeGy
                   )}
                   popover={
-                    "If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter."
+                    studioUiT("If you have existing Figma designs, you can import them into Plasmic using our best-in-class Figma-to-web converter.")
                   }
                   white={true}
                 />
@@ -3821,7 +3824,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__s0NLb)}
                 >
-                  {"Theming & branding"}
+                  {<UiText message={"Theming & branding"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3829,7 +3832,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__ytp3V
                   )}
                   popover={
-                    "Easily control the global styles across your app or website. Display your own branding on your app or website. "
+                    studioUiT("Easily control the global styles across your app or website. Display your own branding on your app or website.")
                   }
                   white={true}
                 />
@@ -3854,7 +3857,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__x8Eih
                   )}
                   popover={
-                    "Use custom React components\u2014from your own codebase or imported from npm libraries\u2014directly as building blocks in Plasmic Studio."
+                    studioUiT("Use custom React components—from your own codebase or imported from npm libraries—directly as building blocks in Plasmic Studio.")
                   }
                   white={true}
                 />
@@ -3878,7 +3881,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__nh4Qc
                   )}
                   popover={
-                    "Build within your existing applications. Use your own components, data, and code, and compose new screens and components."
+                    studioUiT("Build within your existing applications. Use your own components, data, and code, and compose new screens and components.")
                   }
                   white={true}
                 />
@@ -3902,7 +3905,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__gO2Cz
                   )}
                   popover={
-                    "Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic."
+                    studioUiT("Customize the Plasmic visual builder to fit your applications and domain. Bring your own custom controls, components, data sources, auth, interactions, and other extensions to Plasmic.")
                   }
                   white={true}
                 />
@@ -3918,14 +3921,14 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___6ZXoP)}
                 >
-                  {"White labelling"}
+                  {<UiText message={"White labelling"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
                     "__wab_instance",
                     sty.hoverableIcon__wTxOf
                   )}
-                  popover={"Add your own branding to the Plasmic studio."}
+                  popover={studioUiT("Add your own branding to the Plasmic studio.")}
                   white={true}
                 />
               </PriceTierFeatureItem>
@@ -3948,7 +3951,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__jOg3U
                   )}
                   popover={
-                    "Integrate Plasmic as a visual builder within your product."
+                    studioUiT("Integrate Plasmic as a visual builder within your product.")
                   }
                   white={true}
                 />
@@ -3964,7 +3967,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__jSi7N)}
                 >
-                  {"Custom integrations priority"}
+                  {<UiText message={"Custom integrations priority"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3972,7 +3975,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__hNbEb
                   )}
                   popover={
-                    "If you need an integration that doesn't exist yet, we'll work with you to get it built."
+                    studioUiT("If you need an integration that doesn't exist yet, we'll work with you to get it built.")
                   }
                   white={true}
                 />
@@ -3988,7 +3991,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___0MTnT)}
                 >
-                  {"Custom components priority"}
+                  {<UiText message={"Custom components priority"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -3996,7 +3999,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__yEhte
                   )}
                   popover={
-                    "If you need a component that doesn't exist yet, we'll work with you to get it built."
+                    studioUiT("If you need a component that doesn't exist yet, we'll work with you to get it built.")
                   }
                   white={true}
                 />
@@ -4009,7 +4012,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Extended platform APIs"}
+                {<UiText message={"Extended platform APIs"} />}
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__ns3Lt)}>
                 {"CMS"}
@@ -4025,7 +4028,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__yb5K6)}
                 >
-                  {"Headless CMS"}
+                  {<UiText message={"Headless CMS"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4033,7 +4036,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__wuzse
                   )}
                   popover={
-                    "A headless API-driven structured content management system."
+                    studioUiT("A headless API-driven structured content management system.")
                   }
                   white={true}
                 />
@@ -4046,7 +4049,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Unlimited CMS types"}
+                {<UiText message={"Unlimited CMS types"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4056,7 +4059,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Unlimited CMS entries"}
+                {<UiText message={"Unlimited CMS entries"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4077,7 +4080,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon___0SFkE
                   )}
                   popover={
-                    "Reduces the file size of your images, without sacrificing quality, to improve overall performance."
+                    studioUiT("Reduces the file size of your images, without sacrificing quality, to improve overall performance.")
                   }
                   white={true}
                 />
@@ -4098,7 +4101,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__wJjt)}
                 >
-                  {"Multiplayer"}
+                  {<UiText message={"Multiplayer"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4106,7 +4109,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__jh0GB
                   )}
                   popover={
-                    "Real-time collaborative editing\u2014have multiple users editing the same project at the same time."
+                    studioUiT("Real-time collaborative editing—have multiple users editing the same project at the same time.")
                   }
                   white={true}
                 />
@@ -4122,7 +4125,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__u24Oj)}
                 >
-                  {"Branching (Beta)"}
+                  {<UiText message={"Branching (Beta)"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4130,13 +4133,13 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__lQ43F
                   )}
                   popover={
-                    "Allow editors to make changes on their own copies of the project. When ready, merge their changes back into the main copy. Review and approve the changes as desired, or resolve conflicts."
+                    studioUiT("Allow editors to make changes on their own copies of the project. When ready, merge their changes back into the main copy. Review and approve the changes as desired, or resolve conflicts.")
                   }
                   white={true}
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__ij6H9)}>
-                {"Growth & Optimization"}
+                {<UiText message={"Growth & Optimization"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4156,7 +4159,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     "__wab_instance",
                     sty.hoverableIcon__qbYvd
                   )}
-                  popover={"Privacy-first analytics with page views."}
+                  popover={studioUiT("Privacy-first analytics with page views.")}
                   white={true}
                 />
               </PriceTierFeatureItem>
@@ -4171,7 +4174,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__c0WRn)}
                 >
-                  {"A/B Testing"}
+                  {<UiText message={"A/B Testing"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4179,7 +4182,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__uWbIp
                   )}
                   popover={
-                    "Easily experiment with multiple variations of a page to measure which is more effective. Promote the winning edits as the main copy. Support multiple concurrent A/B tests at the same time."
+                    studioUiT("Easily experiment with multiple variations of a page to measure which is more effective. Promote the winning edits as the main copy. Support multiple concurrent A/B tests at the same time.")
                   }
                   white={true}
                 />
@@ -4195,7 +4198,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__kMAe)}
                 >
-                  {"Scheduled content"}
+                  {<UiText message={"Scheduled content"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4203,7 +4206,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__w2CWx
                   )}
                   popover={
-                    "Create a different variation of a page that is activated during a time interval, such as a holiday promotion."
+                    studioUiT("Create a different variation of a page that is activated during a time interval, such as a holiday promotion.")
                   }
                   white={true}
                 />
@@ -4219,7 +4222,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__t2Uez)}
                 >
-                  {"Custom targeting & segmentation"}
+                  {<UiText message={"Custom targeting & segmentation"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4227,7 +4230,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__p3RIp
                   )}
                   popover={
-                    "Create a different variation of a page that is activated under certain conditions, such as when the user has a certain item in their shopping cart."
+                    studioUiT("Create a different variation of a page that is activated under certain conditions, such as when the user has a certain item in their shopping cart.")
                   }
                   white={true}
                 />
@@ -4251,13 +4254,13 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__tq8Lu
                   )}
                   popover={
-                    "Integrate with popular localization frameworks like Lingui, or react-i18next."
+                    studioUiT("Integrate with popular localization frameworks like Lingui, or react-i18next.")
                   }
                   white={true}
                 />
               </PriceTierFeatureItem>
               <div className={classNames("all", "__wab_text", sty.text__c9DHw)}>
-                {"Security & Controls"}
+                {<UiText message={"Security & Controls"} />}
               </div>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4278,7 +4281,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__uhTd
                   )}
                   popover={
-                    "API access to programmatically create full snapshot representations of any project."
+                    studioUiT("API access to programmatically create full snapshot representations of any project.")
                   }
                   white={true}
                 />
@@ -4302,7 +4305,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__mEtTw
                   )}
                   popover={
-                    "Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API."
+                    studioUiT("Generate human-manageable source code. Eject at any time with your code, or continuously sync code for your components and interface with them via an API.")
                   }
                   white={true}
                 />
@@ -4326,7 +4329,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__jPrQ
                   )}
                   popover={
-                    "Fully transfer your Plasmic project to another Plasmic user."
+                    studioUiT("Fully transfer your Plasmic project to another Plasmic user.")
                   }
                   white={true}
                 />
@@ -4342,7 +4345,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__eYCud)}
                 >
-                  {"Custom version history"}
+                  {<UiText message={"Custom version history"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -4356,7 +4359,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___0UUvh)}
                 >
-                  {"Team roles & permissions"}
+                  {<UiText message={"Team roles & permissions"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4364,7 +4367,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                     sty.hoverableIcon__xj4Em
                   )}
                   popover={
-                    "Assign permission levels for pre-set roles (admin, developer, designer, editor)."
+                    studioUiT("Assign permission levels for pre-set roles (admin, developer, designer, editor).")
                   }
                   white={true}
                 />
@@ -4396,7 +4399,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                       )}
                     >
                       {
-                        "Enables a streamlined editing experience with full content control, but allows admin to limit styling options and predefine the building blocks, customizable per workspace and project."
+                        <UiText message={"Enables a streamlined editing experience with full content control, but allows admin to limit styling options and predefine the building blocks, customizable per workspace and project."} />
                       }
                     </div>
                   }
@@ -4414,7 +4417,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___37Gge)}
                 >
-                  {"Custom content creator mode"}
+                  {<UiText message={"Custom content creator mode"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4430,7 +4433,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                       )}
                     >
                       {
-                        "Customize what is enabled or disabled for the content creator role to control the Plasmic visual editing experience."
+                        <UiText message={"Customize what is enabled or disabled for the content creator role to control the Plasmic visual editing experience."} />
                       }
                     </div>
                   }
@@ -4448,7 +4451,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__nfpPq)}
                 >
-                  {"Domain capture"}
+                  {<UiText message={"Domain capture"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4464,7 +4467,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                       )}
                     >
                       {
-                        "Ensure that all Plasmic users who sign up with @yourcompany.com are automatically managed as part of your team."
+                        <UiText message={"Ensure that all Plasmic users who sign up with @yourcompany.com are automatically managed as part of your team."} />
                       }
                     </div>
                   }
@@ -4497,7 +4500,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                         sty.text___2FziP
                       )}
                     >
-                      {"Support for Okta, Google, and custom SSO providers."}
+                      {<UiText message={"Support for Okta, Google, and custom SSO providers."} />}
                     </div>
                   }
                   white={true}
@@ -4514,7 +4517,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__y6T2E)}
                 >
-                  {"Availability SLAs"}
+                  {<UiText message={"Availability SLAs"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4529,7 +4532,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                         sty.text__ksnEv
                       )}
                     >
-                      {"99.5% API and Plasmic hosting availability guarantees."}
+                      {<UiText message={"99.5% API and Plasmic hosting availability guarantees."} />}
                     </div>
                   }
                   white={true}
@@ -4546,7 +4549,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Community forum support"}
+                {<UiText message={"Community forum support"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4556,7 +4559,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Email & chat support"}
+                {<UiText message={"Email & chat support"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 checkIcon={true}
@@ -4569,7 +4572,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__ceFt)}
                 >
-                  {"Response time SLAs"}
+                  {<UiText message={"Response time SLAs"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4584,7 +4587,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                         sty.text__r3M3C
                       )}
                     >
-                      {"24-hour response time guarantee."}
+                      {<UiText message={"24-hour response time guarantee."} />}
                     </div>
                   }
                   white={true}
@@ -4617,7 +4620,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                       )}
                     >
                       {
-                        "Training and integration to ensure you are able to successfully get started with Plasmic."
+                        <UiText message={"Training and integration to ensure you are able to successfully get started with Plasmic."} />
                       }
                     </div>
                   }
@@ -4635,7 +4638,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__mxLXz)}
                 >
-                  {"Private Slack channel"}
+                  {<UiText message={"Private Slack channel"} />}
                 </div>
                 <HoverableIcon
                   className={classNames(
@@ -4651,7 +4654,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                       )}
                     >
                       {
-                        "Direct line to our engineering and product teams for questions and feedback."
+                        <UiText message={"Direct line to our engineering and product teams for questions and feedback."} />
                       }
                     </div>
                   }
@@ -4665,7 +4668,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
           valueProps={
             <React.Fragment>
               <div className={classNames("all", "__wab_text", sty.text__u9AGd)}>
-                {"Everything in Scale, plus:"}
+                {<UiText message={"Everything in Scale, plus:"} />}
               </div>
               <PriceTierFeatureItem
                 className={classNames(
@@ -4674,7 +4677,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Custom collaborators"}
+                {<UiText message={"Custom collaborators"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 className={classNames(
@@ -4683,7 +4686,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Custom integrations"}
+                {<UiText message={"Custom integrations"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 className={classNames(
@@ -4695,7 +4698,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__brufQ)}
                 >
-                  {"Custom roles & permissions"}
+                  {<UiText message={"Custom roles & permissions"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -4708,7 +4711,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__taizU)}
                 >
-                  {"SSO & domain capture"}
+                  {<UiText message={"SSO & domain capture"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -4718,7 +4721,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 )}
                 tier={"enterprise"}
               >
-                {"Whitelabeling & embedding"}
+                {<UiText message={"Whitelabeling & embedding"} />}
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
                 className={classNames(
@@ -4730,7 +4733,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__rsSYq)}
                 >
-                  {"Availability & response time SLAs"}
+                  {<UiText message={"Availability & response time SLAs"} />}
                 </div>
               </PriceTierFeatureItem>
               <PriceTierFeatureItem
@@ -4743,7 +4746,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___0VqYr)}
                 >
-                  {"Dedicated support & onboarding"}
+                  {<UiText message={"Dedicated support & onboarding"} />}
                 </div>
               </PriceTierFeatureItem>
             </React.Fragment>

@@ -1,4 +1,5 @@
 import { useNonAuthCtx } from "@/wab/client/app-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import { ApiUser } from "@/wab/shared/ApiSchema";
 import { Select } from "antd";
 import React, { useEffect, useState } from "react";
@@ -7,6 +8,8 @@ export interface AdminUserSelectProps {
   onChange: (userId: string) => void;
 }
 export function AdminUserSelect({ onChange }: AdminUserSelectProps) {
+  const { t: studioUiT } = useI18n();
+
   const { api } = useNonAuthCtx();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<ApiUser[]>([]);
@@ -46,7 +49,7 @@ export function AdminUserSelect({ onChange }: AdminUserSelectProps) {
       showSearch
       filterOption={false}
       loading={loading}
-      placeholder="Search Shiguang users (3+ characters)"
+      placeholder={studioUiT("Search Shiguang users (3+ characters)")}
       onSearch={setQuery}
       options={users.map((user) => ({
         value: user.id,

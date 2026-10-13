@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: X5avWz1hNF
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -110,7 +111,7 @@ function PlasmicCodePreviewSnippet__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__edkBc)}>
         {renderPlasmicSlot({
-          defaultContents: "Component Name",
+          defaultContents: <UiText message={"Component Name"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle),
         })}

@@ -10,10 +10,12 @@ import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggl
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { ensure } from "@/wab/shared/common";
 import { BoxShadow, Dim } from "@/wab/shared/core/bg-styles";
 import { LENGTH_UNITS } from "@/wab/shared/css/types";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { observer } from "mobx-react";
 import React from "react";
 import defer = setTimeout;
@@ -58,19 +60,22 @@ class _BoxShadowPanel extends StyleComponent<BoxShadowPanelProps> {
             <StyleToggleButton
               className="icon-button-flex"
               value="outset"
-              label="Outset"
+              label={translate(getUiLocale(), "Outset")}
               noIcon
             />
             <StyleToggleButton
               className="icon-button-flex"
               value="inset"
-              label="Inset"
+              label={translate(getUiLocale(), "Inset")}
               noIcon
             />
           </StyleToggleButtonGroup>
         </FullRow>
         <FullRow twinCols>
-          <LabeledItem label="Left" labelSize="small">
+          <LabeledItem
+            label={translate(getUiLocale(), "Left")}
+            labelSize="small"
+          >
             <DimTokenSpinner
               ref={this.firstInputRef}
               value={shadow.x.showCss()}
@@ -84,7 +89,10 @@ class _BoxShadowPanel extends StyleComponent<BoxShadowPanelProps> {
               studioCtx={this.studioCtx()}
             />
           </LabeledItem>
-          <LabeledItem label="Top" labelSize="small">
+          <LabeledItem
+            label={translate(getUiLocale(), "Top")}
+            labelSize="small"
+          >
             <DimTokenSpinner
               value={shadow.y.showCss()}
               onChange={(val) =>
@@ -99,7 +107,10 @@ class _BoxShadowPanel extends StyleComponent<BoxShadowPanelProps> {
           </LabeledItem>
         </FullRow>
         <FullRow twinCols>
-          <LabeledItem label="Blur" labelSize="small">
+          <LabeledItem
+            label={translate(getUiLocale(), "Blur")}
+            labelSize="small"
+          >
             <DimTokenSpinner
               value={shadow.blur.showCss()}
               onChange={(val) =>
@@ -114,7 +125,10 @@ class _BoxShadowPanel extends StyleComponent<BoxShadowPanelProps> {
               studioCtx={this.studioCtx()}
             />
           </LabeledItem>
-          <LabeledItem label="Spread" labelSize="small">
+          <LabeledItem
+            label={translate(getUiLocale(), "Spread")}
+            labelSize="small"
+          >
             <DimTokenSpinner
               value={shadow.spread.showCss()}
               onChange={(val) =>

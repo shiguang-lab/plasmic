@@ -21,7 +21,7 @@
   box-shadow: inset 0px 0px 0px 1px var(--token-eBt2ZgqRUCz);
 }
 .rootstyleType_white {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .rootstyleType_gray {
   background: var(--token-O4S7RMTqZ3);
@@ -45,42 +45,42 @@
   box-shadow: inset 0px 0px 0px 1px var(--token-iDpByWoW0eF);
 }
 .rootwhiteBackground {
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
 }
 .root:focus-within:focus-within {
   box-shadow: 0px 0px 0px 2px #0091ff80;
   outline: none;
 }
 .rootstyleType_gray:focus-within:focus-within {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   outline: none;
 }
 .rootstyleType_gray:active:active {
   background: var(--token-Ik3bdE1e1Uy);
 }
 .rootstyleType_red:focus-within:focus-within {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   outline: none;
 }
 .rootstyleType_red:active:active {
   background: var(--token-5kjtdCiiOPB);
 }
 .rootstyleType_green:focus-within:focus-within {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   outline: none;
 }
 .rootstyleType_green:active:active {
   background: var(--token-Tc_ZOUnBuGQ_);
 }
 .rootstyleType_blue:focus-within:focus-within {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   outline: none;
 }
 .rootstyleType_blue:active:active {
   background: var(--token-RhvOnhv_xIi);
 }
 .rootstyleType_purple:focus-within:focus-within {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   outline: none;
 }
 .rootstyleType_purple:active:active {

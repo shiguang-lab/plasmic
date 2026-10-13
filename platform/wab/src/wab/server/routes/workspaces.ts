@@ -24,6 +24,7 @@ import {
   WorkspaceId,
 } from "@/wab/shared/ApiSchema";
 import { ensureType } from "@/wab/shared/common";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { createTaggedResourceId } from "@/wab/shared/perms";
 import { Request, Response } from "express-serve-static-core";
 import L from "lodash";
@@ -44,9 +45,10 @@ export function mkApiWorkspace(workspace: Workspace): ApiWorkspace {
     ]),
     team: mkApiTeam(workspace.team),
     // only use the custom config if team feature tier has permission to customize it
-    contentCreatorConfig: workspace.team.featureTier?.editContentCreatorMode
-      ? workspace.contentCreatorConfig
-      : null,
+    contentCreatorConfig:
+      SELF_HOSTED || workspace.team.featureTier?.editContentCreatorMode
+        ? workspace.contentCreatorConfig
+        : null,
   };
 }
 

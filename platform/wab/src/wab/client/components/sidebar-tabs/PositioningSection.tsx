@@ -23,8 +23,9 @@ import StyleToggleButtonGroup from "@/wab/client/components/style-controls/Style
 import { AlignItemsControls } from "@/wab/client/components/style-controls/align-items-controls";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { isStylePropSet } from "@/wab/client/utils/style-utils";
 import {
   Axis,
@@ -104,18 +105,18 @@ export const PositioningPanelSection = observer(
 
       let toggleButtons = [
         {
-          label: "Free",
-          tooltip: "Free",
+          label: translate(getUiLocale(), "Free"),
+          tooltip: translate(getUiLocale(), "Free"),
           value: "absolute",
         },
         {
-          label: "Sticky",
-          tooltip: "Sticky",
+          label: translate(getUiLocale(), "Sticky"),
+          tooltip: translate(getUiLocale(), "Sticky"),
           value: "sticky",
         },
         {
-          label: "Fixed",
-          tooltip: "Fixed",
+          label: translate(getUiLocale(), "Fixed"),
+          tooltip: translate(getUiLocale(), "Fixed"),
           value: "fixed",
         },
       ];
@@ -124,8 +125,8 @@ export const PositioningPanelSection = observer(
         // Don't show Auto if parent is free container
         toggleButtons = [
           {
-            label: "Auto",
-            tooltip: "Auto",
+            label: translate(getUiLocale(), "Auto"),
+            tooltip: translate(getUiLocale(), "Auto"),
             value: "relative",
           },
           ...toggleButtons,

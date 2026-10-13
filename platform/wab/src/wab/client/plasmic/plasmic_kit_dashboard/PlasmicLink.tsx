@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: IQU7DmjqUs
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -142,7 +143,7 @@ function PlasmicLink__RenderFunc(props: {
       platform={"react"}
     >
       {renderPlasmicSlot({
-        defaultContents: "View docs",
+        defaultContents: <UiText message={"View docs"} />,
         value: args.text,
         className: classNames(sty.slotTargetText, {
           [sty.slotTargetTextalt]: hasVariant($state, "alt", "alt"),

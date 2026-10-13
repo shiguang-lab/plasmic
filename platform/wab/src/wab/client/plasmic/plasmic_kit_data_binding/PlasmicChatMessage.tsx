@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: 6Cb3e8nRgrBg
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -144,7 +145,7 @@ function PlasmicChatMessage__RenderFunc(props: {
           defaultContents: (
             <div className={classNames("all", "__wab_text", sty.text__eCdm)}>
               {
-                "Sure!\nThis feature helps you understand what\u2019s happening at each step. It gives you clear feedback, highlights important actions, and makes it easier to move forward without getting stuck."
+                <UiText message={"Sure! This feature helps you understand what’s happening at each step. It gives you clear feedback, highlights important actions, and makes it easier to move forward without getting stuck."} />
               }
             </div>
           ),

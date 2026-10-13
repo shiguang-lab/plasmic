@@ -1,3 +1,4 @@
+import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { MIXINS_CAP, PRIVATE_STYLE_VARIANTS_CAP } from "@/wab/shared/Labels";
@@ -217,7 +218,11 @@ export function ElementVariantsTooltip() {
           href="https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes"
           target="_blank"
         >
-          <UiText message="Element variants can also target elements in a more advanced way using CSS pseudo-classes." />
+          <UiText
+            message={
+              "Element variants can also target elements in a more advanced way using CSS pseudo-classes."
+            }
+          />
         </a>
       </p>
 
@@ -654,18 +659,13 @@ export function LeftIconsSectionTooltip({
 }
 
 export function AuthProviderTooltip() {
+  const { t } = useI18n();
   return (
     <div>
       <StandardMarkdown>
-        {`
-Plasmic Auth lets users sign up and sign in using Plasmic's integrated auth system.
-This is the simplest option.
-
-You can also use a third-party auth provider by switching to Custom Auth (requires code integration).
-Examples: Auth0, Supabase Auth, Xano.
-
-[Learn more in the docs](https://docs.plasmic.app/learn/auth).
-`}
+        {t(
+          "Plasmic Auth lets users sign up and sign in using Plasmic's integrated auth system. This is the simplest option. You can also use a third-party auth provider by switching to Custom Auth (requires code integration). Examples: Auth0, Supabase Auth, Xano. [Learn more in the docs](https://docs.plasmic.app/learn/auth).",
+        )}
       </StandardMarkdown>
     </div>
   );
@@ -692,59 +692,45 @@ export function UserDirectoryTooltip() {
 }
 
 export function RolesTooltip() {
+  const { t } = useI18n();
   return (
     <StandardMarkdown>
-      {`
-Here you define the roles that you can assign users/groups to (in the Permissions tab).
-
-Then, throughout your application, you can set the required role on queries, pages, and components. For instance, only admins should be able to update all records, or only logged-in users can access a page.
-
-Roles are ordered--higher roles can do anything lower roles can do.
-
-[Learn more in the docs](https://docs.plasmic.app/learn/auth).
-`}
+      {t(
+        "Here you define the roles that you can assign users/groups to (in the Permissions tab). Then, throughout your application, you can set the required role on queries, pages, and components. For instance, only admins should be able to update all records, or only logged-in users can access a page. Roles are ordered--higher roles can do anything lower roles can do. [Learn more in the docs](https://docs.plasmic.app/learn/auth).",
+      )}
     </StandardMarkdown>
   );
 }
 
 export function DefaultRoleTooltip() {
+  const { t } = useI18n();
   return (
     <StandardMarkdown>
-      {`
-Set the default minimum required role for all new pages.
-
-**Changing this does not affecting existing pages**.
-
-[Learn more in the docs](https://docs.plasmic.app/learn/auth).
-`}
+      {t(
+        "Set the default minimum required role for all new pages. **Changing this does not affecting existing pages**. [Learn more in the docs](https://docs.plasmic.app/learn/auth).",
+      )}
     </StandardMarkdown>
   );
 }
 
 export function AuthRedirectsTooltip() {
+  const { t } = useI18n();
   return (
     <StandardMarkdown>
-      {`
-This lists allowed URLs to redirect the user to after successful login with Plasmic Auth.
-
-Only needed if you are not using Plasmic Hosting and are using codebase integration. This affects what you can pass to the \`authRedirectUri\` prop in \`PlasmicRootProvider\`.
-
-[Learn more in the docs](https://docs.plasmic.app/learn/auth-integration).
-            `}
+      {t(
+        "This lists allowed URLs to redirect the user to after successful login with Plasmic Auth. Only needed if you are not using Plasmic Hosting and are using codebase integration. This affects what you can pass to the `authRedirectUri` prop in `PlasmicRootProvider`. [Learn more in the docs](https://docs.plasmic.app/learn/auth-integration).",
+      )}
     </StandardMarkdown>
   );
 }
 
 export function AuthTokenTooltip() {
+  const { t } = useI18n();
   return (
     <StandardMarkdown>
-      {`
-If using Custom Auth, this is the secret token to integrate with your codebase.
-
-Pass this into \`ensurePlasmicAppUser()\` to get a user token, and thus be able to run integration queries/operations as that user.
-
-[Learn more in the docs](https://docs.plasmic.app/learn/auth-integration).
-`}
+      {t(
+        "If using Custom Auth, this is the secret token to integrate with your codebase. Pass this into `ensurePlasmicAppUser()` to get a user token, and thus be able to run integration queries/operations as that user. [Learn more in the docs](https://docs.plasmic.app/learn/auth-integration).",
+      )}
     </StandardMarkdown>
   );
 }

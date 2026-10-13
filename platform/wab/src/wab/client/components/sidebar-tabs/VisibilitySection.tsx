@@ -310,7 +310,9 @@ function VisibilitySection_(props: {
                 disabledTooltip={
                   disabledTooltip ??
                   (hasPrivateStyleVariant
-                    ? "Cannot toggle visibility when targeting element state"
+                    ? uiT(
+                        "Cannot toggle visibility when targeting element state",
+                      )
                     : undefined)
                 }
                 data-test-id="visibility-choices"

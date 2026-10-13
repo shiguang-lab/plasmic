@@ -4,6 +4,8 @@ import {
   QueryBuilderConfig,
 } from "@/wab/client/components/QueryBuilder/QueryBuilderConfig";
 import { getEmptyTree } from "@/wab/client/components/QueryBuilder/query-builder-utils";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { TraitMeta, TraitRegistration } from "@plasmicapp/host";
 import {
@@ -69,6 +71,7 @@ function SegmentQueryBuilder_(
   outerRef: React.Ref<HTMLDivElement>,
 ) {
   const { logic, saveLogic } = props;
+  const { t } = useI18n();
 
   const studioCtx = useStudioCtx();
   const registeredTraits = studioCtx.getRegisteredTraits();
@@ -77,21 +80,20 @@ function SegmentQueryBuilder_(
     ...baseConfig,
     fields: {
       ...baseConfig.fields,
+      time: { ...baseConfig.fields.time, label: t("Time") },
       ...convertRegisteredTraitsToQBuilder(registeredTraits),
     },
   } as Config;
 
   const [state, setState] = React.useState<{
     tree: ImmutableTree;
-    config: Config;
   }>({
     tree:
       QbUtils.loadFromJsonLogic(logic, config) ??
       QbUtils.loadTree(getEmptyTree(config, { appendFirstField: true })),
-    config,
   });
-  const handleChange = (_tree, _config) => {
-    setState({ tree: _tree, config: _config });
+  const handleChange = (_tree: ImmutableTree) => {
+    setState({ tree: _tree });
     const jsonLogic = QbUtils.jsonLogicFormat(_tree, config);
     if ((jsonLogic.errors ?? []).length === 0) {
       saveLogic(jsonLogic.logic);
@@ -101,7 +103,7 @@ function SegmentQueryBuilder_(
   return (
     <div className="plasmic-query-builder-scope" ref={outerRef}>
       <Query
-        {...state.config}
+        {...config}
         value={state.tree}
         onChange={handleChange}
         renderBuilder={AwesomeBuilder}
@@ -118,6 +120,10 @@ export function getHumanFormatRules(logic: any) {
     ...baseConfig,
     fields: {
       ...baseConfig.fields,
+      time: {
+        ...baseConfig.fields.time,
+        label: translate(getUiLocale(), "Time"),
+      },
       ...convertRegisteredTraitsToQBuilder(registeredTraits),
     },
   } as Config;

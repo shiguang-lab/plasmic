@@ -1,3 +1,5 @@
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+
 import {
   Adoptee,
   InsertionSpec,
@@ -40,6 +42,7 @@ import { AddTplItem, WRAPPERS_MAP } from "@/wab/client/definitions/insertables";
 import { getBoundingClientRect, getOffsetPoint } from "@/wab/client/dom";
 import { getBackgroundImageProps } from "@/wab/client/dom-utils";
 import { FocusHeuristics } from "@/wab/client/focus-heuristics";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { renderCantAddMsg } from "@/wab/client/messages/parenting-msgs";
 import {
@@ -280,7 +283,6 @@ import * as Sentry from "@sentry/browser";
 import { notification } from "antd";
 import $ from "jquery";
 import L, { clamp, isArray } from "lodash";
-import pluralize from "pluralize";
 import React from "react";
 
 export class ViewOps {
@@ -734,8 +736,11 @@ export class ViewOps {
     const targetTpls = targets.filter((t) => isKnownTplNode(t)) as TplNode[];
     if (targetTpls.length !== targets.length || !Tpls.areSiblings(targetTpls)) {
       notification.error({
-        message: "Cannot wrap non-sibling nodes.",
-        description: "This is not supported at the moment.",
+        message: translate(getUiLocale(), "Cannot wrap non-sibling nodes."),
+        description: translate(
+          getUiLocale(),
+          "This is not supported at the moment.",
+        ),
       });
       return;
     }
@@ -743,8 +748,14 @@ export class ViewOps {
       targetTpls.length > 1 ? Tpls.sortByTreeOrder(targetTpls) : targetTpls;
     if (Tpls.hasTextAncestor(tpls[0])) {
       notification.error({
-        message: "Cannot wrap text inside rich text block into a component.",
-        description: "This feature is not supported at the moment.",
+        message: translate(
+          getUiLocale(),
+          "Cannot wrap text inside rich text block into a component.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "This feature is not supported at the moment.",
+        ),
       });
       return;
     }
@@ -762,10 +773,18 @@ export class ViewOps {
       tpls[0].vsettings[0].dataRep
     ) {
       moveRep = !!(await reactConfirm({
-        message:
+        message: translate(
+          getUiLocale(),
           "You're wrapping a repeated element. Do you want to repeat the new component instance?",
-        confirmLabel: "Move repetition to component instance",
-        cancelLabel: "Wrap repeated items in the component children",
+        ),
+        confirmLabel: translate(
+          getUiLocale(),
+          "Move repetition to component instance",
+        ),
+        cancelLabel: translate(
+          getUiLocale(),
+          "Wrap repeated items in the component children",
+        ),
       }));
     }
     const spec = createAddTplComponent(selectedComponent);
@@ -791,8 +810,11 @@ export class ViewOps {
     const targetTpls = targets.filter((t) => isKnownTplNode(t)) as TplNode[];
     if (targetTpls.length !== targets.length || !Tpls.areSiblings(targetTpls)) {
       notification.error({
-        message: "Cannot wrap non-sibling nodes.",
-        description: "This is not supported at the moment.",
+        message: translate(getUiLocale(), "Cannot wrap non-sibling nodes."),
+        description: translate(
+          getUiLocale(),
+          "This is not supported at the moment.",
+        ),
       });
       return;
     }
@@ -800,8 +822,14 @@ export class ViewOps {
       targetTpls.length > 1 ? Tpls.sortByTreeOrder(targetTpls) : targetTpls;
     if (Tpls.hasTextAncestor(tpls[0])) {
       notification.error({
-        message: "Cannot wrap text inside rich text block into a container.",
-        description: "This feature is not supported at the moment.",
+        message: translate(
+          getUiLocale(),
+          "Cannot wrap text inside rich text block into a container.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "This feature is not supported at the moment.",
+        ),
       });
       return;
     }
@@ -812,10 +840,15 @@ export class ViewOps {
       tpls[0].vsettings[0].dataRep
     ) {
       moveRep = !!(await reactConfirm({
-        message:
+        message: translate(
+          getUiLocale(),
           "You're wrapping a repeated element. Do you want to repeat the new container?",
-        confirmLabel: "Move repetition to container",
-        cancelLabel: "Wrap repeated items in the container",
+        ),
+        confirmLabel: translate(getUiLocale(), "Move repetition to container"),
+        cancelLabel: translate(
+          getUiLocale(),
+          "Wrap repeated items in the container",
+        ),
       }));
     }
     const spec = WRAPPERS_MAP[
@@ -1103,8 +1136,14 @@ export class ViewOps {
       }
       if (!isTplAutoSizable(tpl, vtm)) {
         notification.error({
-          message: "You should not auto-size a free container",
-          description: "A free container cannot be sized by its content.",
+          message: translate(
+            getUiLocale(),
+            "You should not auto-size a free container",
+          ),
+          description: translate(
+            getUiLocale(),
+            "A free container cannot be sized by its content.",
+          ),
         });
         return;
       }
@@ -1427,7 +1466,10 @@ export class ViewOps {
           : null;
       if (!containerCtx) {
         notification.warning({
-          message: "You cannot edit imported components or code components.",
+          message: translate(
+            getUiLocale(),
+            "You cannot edit imported components or code components.",
+          ),
         });
         return false;
       }
@@ -1445,9 +1487,14 @@ export class ViewOps {
       ) {
         // Cannot edit master component of code component or external component.
         notification.warning({
-          message: `You cannot edit ${
-            codeComponent ? "a code" : ownedBySite ? "this" : "an imported"
-          } component.`,
+          message: translate(
+            getUiLocale(),
+            codeComponent
+              ? "You cannot edit a code component."
+              : ownedBySite
+                ? "You cannot edit this component."
+                : "You cannot edit an imported component.",
+          ),
         });
         return false;
       }
@@ -1818,8 +1865,10 @@ export class ViewOps {
       // Only support clearing one SlotSelection at a time
       if (targets.length > 1) {
         notification.warning({
-          message:
+          message: translate(
+            getUiLocale(),
             "Removing multi-selections with slots is not supported at the moment.",
+          ),
         });
         return;
       }
@@ -1841,7 +1890,7 @@ export class ViewOps {
 
     if (tpls.some((t) => t === this.viewCtx().currentCtxTplUserRoot())) {
       notification.error({
-        message: "Cannot remove the root element",
+        message: translate(getUiLocale(), "Cannot remove the root element"),
       });
       return;
     }
@@ -1882,7 +1931,7 @@ export class ViewOps {
               values={{
                 state: (
                   <strong>
-                    <UiText message="is now hidden" />
+                    <UiText message={"is now hidden"} />
                   </strong>
                 ),
               }}
@@ -1935,20 +1984,25 @@ export class ViewOps {
 
         if (commentsCount > 0) {
           const isElementPlural = tpls.length > 1;
-          const isCommentPlural = commentsCount > 1;
 
           const confirm = await reactConfirm({
-            title: `Delete ${
-              isElementPlural ? "elements" : "element"
-            } with unresolved ${isCommentPlural ? "comments" : "comment"}?`,
-            message: `${
-              isElementPlural ? "Elements include" : "Element includes"
-            } ${commentsCount} unresolved ${
-              isCommentPlural ? "comments" : "comment"
-            }. You will still be able to view the ${
-              isCommentPlural ? "comments" : "comment"
-            } in the comments panel.`,
-            confirmLabel: `Delete ${isElementPlural ? "elements" : "element"}`,
+            title: translate(
+              getUiLocale(),
+              isElementPlural
+                ? "Delete elements with unresolved comments?"
+                : "Delete element with unresolved comments?",
+            ),
+            message: translate(
+              getUiLocale(),
+              commentsCount === 1
+                ? "The selection has 1 unresolved comment. You can still view it in the comments panel."
+                : "The selection has {count} unresolved comments. You can still view them in the comments panel.",
+              { count: commentsCount },
+            ),
+            confirmLabel: translate(
+              getUiLocale(),
+              isElementPlural ? "Delete elements" : "Delete element",
+            ),
             danger: true,
           });
 
@@ -2195,8 +2249,10 @@ export class ViewOps {
     if (focusedObjs.length > 1) {
       if (focusedObjs.some((node) => node instanceof SlotSelection)) {
         notification.warning({
-          message:
+          message: translate(
+            getUiLocale(),
             "Copying multi-selections with slots is not supported at the moment.",
+          ),
         });
         return undefined;
       }
@@ -2278,7 +2334,7 @@ export class ViewOps {
       } else {
         // TODO: maybe we can?
         notification.error({
-          message: "Cannot duplicate this artboard",
+          message: translate(getUiLocale(), "Cannot duplicate this artboard"),
         });
       }
     } else if (this.isRootNodeOfStretchFrame(item)) {
@@ -2358,7 +2414,10 @@ export class ViewOps {
     console.log("Copied styles", clip?.cssProps);
     if (!clip) {
       notification.warning({
-        message: "Cannot copy styles from this element",
+        message: translate(
+          getUiLocale(),
+          "Cannot copy styles from this element",
+        ),
       });
       return;
     }
@@ -2367,8 +2426,14 @@ export class ViewOps {
     // Warn the user if there was nothing to copy.
     if (isEmptyStyleClip(clip)) {
       notification.info({
-        message: "This element has no styles of its own to copy",
-        description: "Its appearance comes from the project theme.",
+        message: translate(
+          getUiLocale(),
+          "This element has no styles of its own to copy",
+        ),
+        description: translate(
+          getUiLocale(),
+          "Its appearance comes from the project theme.",
+        ),
       });
     }
   }
@@ -2388,7 +2453,9 @@ export class ViewOps {
 
     // Fall back to local clipboard
     if (!this.clipboard().isSet()) {
-      notification.info({ message: "No styles available to paste" });
+      notification.info({
+        message: translate(getUiLocale(), "No styles available to paste"),
+      });
       return;
     }
     const clip = this.clipboard().paste();
@@ -2406,12 +2473,17 @@ export class ViewOps {
       styleClip = this.copyStyleHelper(tplClip.node);
       if (!styleClip) {
         notification.warning({
-          message: "Cannot extract styles from this element",
+          message: translate(
+            getUiLocale(),
+            "Cannot extract styles from this element",
+          ),
         });
         return;
       }
     } else {
-      notification.info({ message: "No styles available to paste" });
+      notification.info({
+        message: translate(getUiLocale(), "No styles available to paste"),
+      });
       return;
     }
 
@@ -2430,7 +2502,10 @@ export class ViewOps {
       !(Tpls.isTplComponent(targetTpl) && isCodeComponent(targetTpl.component))
     ) {
       notification.warning({
-        message: "Cannot paste styles - must select an element",
+        message: translate(
+          getUiLocale(),
+          "Cannot paste styles - must select an element",
+        ),
       });
       return false;
     }
@@ -2514,9 +2589,11 @@ export class ViewOps {
 
     if (appliedCount === 0) {
       notification.warning({
-        message: "No styles were pasted",
-        description:
+        message: translate(getUiLocale(), "No styles were pasted"),
+        description: translate(
+          getUiLocale(),
           "The copied styles are empty, or none of them can be applied to this element.",
+        ),
       });
       return false;
     }
@@ -2681,8 +2758,16 @@ export class ViewOps {
       getTplSlotDescendants(newTree).length > 0
     ) {
       notification.error({
-        message: `You can only paste slots into a component ${FRAME_LOWER}`,
-        description: `You can first convert this ${FRAME_LOWER} into a component.`,
+        message: translate(
+          getUiLocale(),
+          "You can only paste slots into a component {part1}",
+          { part1: translateUiLabel(getUiLocale(), FRAME_LOWER) },
+        ),
+        description: translate(
+          getUiLocale(),
+          "You can first convert this {part1} into a component.",
+          { part1: translateUiLabel(getUiLocale(), FRAME_LOWER) },
+        ),
       });
       return undefined;
     }
@@ -2701,10 +2786,12 @@ export class ViewOps {
       );
       if (refs.length > 0) {
         notification.error({
-          message: "Cannot paste elements",
-          description: `They contain a reference to "${getStateDisplayName(
-            state,
-          )}".`,
+          message: translate(getUiLocale(), "Cannot paste elements"),
+          description: translate(
+            getUiLocale(),
+            'They contain a reference to "{part1}".',
+            { part1: String(getStateDisplayName(state)) },
+          ),
         });
         return;
       }
@@ -2835,9 +2922,11 @@ export class ViewOps {
   }) {
     if (!target) {
       notification.error({
-        message: "Choose where to paste",
-        description:
-          "You must first select an item.  Pasting will then paste into that item.",
+        message: translate(getUiLocale(), "Choose where to paste"),
+        description: translate(
+          getUiLocale(),
+          "You must first select an item. Pasting will then paste into that item.",
+        ),
       });
       return false;
     }
@@ -2852,7 +2941,7 @@ export class ViewOps {
       getAutoInsertLoc(this.viewCtx(), nodes, targetTplOrSlotSelection, ctx);
     if (!insertLoc) {
       notification.error({
-        message: "Cannot paste here",
+        message: translate(getUiLocale(), "Cannot paste here"),
         description:
           "You cannot paste into or around the selected" +
           " element. Try pasting elsewhere.",
@@ -2886,12 +2975,17 @@ export class ViewOps {
     );
     if (newTplSlots.length > 0) {
       notification.info({
-        message: `Auto-created ${pluralize("slot", newTplSlots.length)}`,
-        description: `You pasted ${
-          newTplSlots.length === 1 ? "a slot" : "some slots"
-        }, so ${
-          newTplSlots.length === 1 ? "a new slot was" : "new slots were"
-        } created in the "${ctx.component.name}" component.`,
+        message: translate(
+          getUiLocale(),
+          newTplSlots.length === 1 ? "Auto-created slot" : "Auto-created slots",
+        ),
+        description: translate(
+          getUiLocale(),
+          newTplSlots.length === 1
+            ? 'Pasting the slot created a new slot in component "{name}".'
+            : 'Pasting the slots created new slots in component "{name}".',
+          { name: ctx.component.name },
+        ),
       });
     }
 
@@ -3165,7 +3259,7 @@ export class ViewOps {
       }
       for (const warning of warnings) {
         notification.warning({
-          message: "Fallback omitted",
+          message: translate(getUiLocale(), "Fallback omitted"),
           description: warning,
           duration: 0,
         });
@@ -3174,7 +3268,7 @@ export class ViewOps {
       const key = common.mkUuid();
       notification.info({
         key,
-        message: "Component created",
+        message: translate(getUiLocale(), "Component created"),
         description: (
           <>
             <a
@@ -3199,8 +3293,8 @@ export class ViewOps {
               }}
             >
               {isMixedArena(arena)
-                ? "[Edit component in new artboard]"
-                : "[Open component]"}
+                ? translate(getUiLocale(), "[Edit component in new artboard]")
+                : translate(getUiLocale(), "[Open component]")}
             </a>
           </>
         ),
@@ -3544,9 +3638,11 @@ export class ViewOps {
         .find((n) => Tpls.isTplSlot(n))
     ) {
       notification.error({
-        message: "Error converting to a slot",
-        description:
+        message: translate(getUiLocale(), "Error converting to a slot"),
+        description: translate(
+          getUiLocale(),
           "This element is already the default content for a slot; you cannot nest slots.",
+        ),
       });
       return;
     }
@@ -3556,7 +3652,7 @@ export class ViewOps {
     const containedSlots = getTplSlotDescendants(tpl);
     if (containedSlots.length > 0) {
       notification.error({
-        message: "Error converting to a slot",
+        message: translate(getUiLocale(), "Error converting to a slot"),
         description: (
           <>
             <UiText
@@ -3580,8 +3676,14 @@ export class ViewOps {
 
     if (Tpls.hasTextAncestor(tpl)) {
       notification.error({
-        message: "Cannot convert element inside rich text block to a slot.",
-        description: "This feature is not supported at the moment.",
+        message: translate(
+          getUiLocale(),
+          "Cannot convert element inside rich text block to a slot.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "This feature is not supported at the moment.",
+        ),
       });
       return;
     }
@@ -3591,7 +3693,7 @@ export class ViewOps {
     const varRefs = Array.from(Components.findVarRefs(tpl));
     if (varRefs.length > 0) {
       notification.error({
-        message: "Error converting to a slot",
+        message: translate(getUiLocale(), "Error converting to a slot"),
         description: (
           <>
             <UiText
@@ -4040,8 +4142,14 @@ export class ViewOps {
     );
     if (!container) {
       notification.error({
-        message: "Cannot convert text inside rich text block to a container.",
-        description: "This feature is not supported at the moment.",
+        message: translate(
+          getUiLocale(),
+          "Cannot convert text inside rich text block to a container.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "This feature is not supported at the moment.",
+        ),
       });
       return undefined;
     }
@@ -4177,8 +4285,14 @@ export class ViewOps {
     if (!tpl) {
       // Can make this more descriptive.
       notification.error({
-        message: "Cannot insert into the selected element.",
-        description: "Choose a container to insert in.",
+        message: translate(
+          getUiLocale(),
+          "Cannot insert into the selected element.",
+        ),
+        description: translate(
+          getUiLocale(),
+          "Choose a container to insert in.",
+        ),
       });
     }
     return tpl;
@@ -4346,7 +4460,7 @@ export class ViewOps {
     const key = common.mkUuid();
     notification.error({
       key,
-      message: "Cannot create component",
+      message: translate(getUiLocale(), "Cannot create component"),
       description: (
         <>
           <UiText

@@ -1,3 +1,6 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 /** @format */
 
 import {
@@ -527,7 +530,8 @@ const INSERTABLES: readonly AddItem[] = [
     label: "Unstyled button",
     displayLabel: (
       <span>
-        Unstyled <code>{"<button/>"}</code>
+        {" "}
+        <UiText message={"Unstyled"} /> <code>{"<button/>"}</code>
       </span>
     ),
     canWrap: true,
@@ -550,7 +554,8 @@ const INSERTABLES: readonly AddItem[] = [
     label: "Unstyled text input",
     displayLabel: (
       <span>
-        Unstyled <code>{"<input type='text'/>"}</code>
+        {" "}
+        <UiText message={"Unstyled"} /> <code>{"<input type='text'/>"}</code>
       </span>
     ),
     icon: INPUT_ICON,
@@ -565,7 +570,7 @@ const INSERTABLES: readonly AddItem[] = [
       const tag = vtm.mkTplTagX("input", {
         attrs: {
           type: "text",
-          placeholder: "Some placeholder",
+          placeholder: translate(getUiLocale(), "Some placeholder"),
           value: "Some value",
           size: 1,
         },
@@ -585,7 +590,8 @@ const INSERTABLES: readonly AddItem[] = [
     label: "Multiline input",
     displayLabel: (
       <span>
-        Multiline text input <code>{"<textarea/>"}</code>
+        {" "}
+        <UiText message={"Multiline text input"} /> <code>{"<textarea/>"}</code>
       </span>
     ),
     icon: TEXTAREA_ICON,

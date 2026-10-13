@@ -1,4 +1,5 @@
 import { apiKey } from "@/wab/client/api";
+import { getErrorMessage } from "@/wab/client/api-error-presentation";
 import {
   useGetDomainsForProject,
   usePlasmicHostingSettings,
@@ -12,6 +13,7 @@ import {
 } from "@/wab/client/components/modals/PricingModal";
 import { ImageUploader } from "@/wab/client/components/style-controls/ImageSelector";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultPlasmicHostingSettingsProps,
@@ -96,7 +98,7 @@ function mkDomainCardError(error: any): DomainCardError {
     vercelErrorCode: error.vercelErrorCode,
     // Only meaningful when the request threw instead of returning a status;
     // otherwise `message` is just the status string.
-    message: error.code ? undefined : error.message,
+    message: error.code ? undefined : getErrorMessage(error),
     operation: error.operation,
   };
 }
@@ -110,6 +112,8 @@ function PlasmicHostingSettings_(
   }: PlasmicHostingSettingsProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const appConfig = appCtx.appConfig;
   const api = appCtx.api;
@@ -224,7 +228,7 @@ function PlasmicHostingSettings_(
       const failedDomain = fullCustomDomain || settings.customDomain;
       setError({
         domain: failedDomain,
-        message: err instanceof Error ? err.message : String(err),
+        message: getErrorMessage(err),
         operation: customDomain ? "register" : "remove",
       });
       setShowDomainCardFor(failedDomain || null);
@@ -331,7 +335,7 @@ function PlasmicHostingSettings_(
           !showDomainCardFor && error ? (
             <p>
               <strong>{String(error.domain || "")}</strong>:{" "}
-              {String(error.message || "Unable to set domain")}
+              {String(error.message || studioUiT("Unable to set domain"))}
             </p>
           ) : null,
       }}

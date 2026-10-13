@@ -1,3 +1,5 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   TutorialEvent,
   TutorialEventsType,
@@ -88,7 +90,7 @@ export function addElementStepFunc({
         event.params.itemSystemName !== componentName
       ) {
         notification.warning({
-          message: "Wrong component inserted",
+          message: translate(getUiLocale(), "Wrong component inserted"),
         });
         return false;
       }

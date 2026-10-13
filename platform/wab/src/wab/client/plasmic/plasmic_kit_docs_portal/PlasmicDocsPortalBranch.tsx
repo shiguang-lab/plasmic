@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: mJFZOBWGNu
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -143,7 +144,7 @@ function PlasmicDocsPortalBranch__RenderFunc(props: {
       >
         {renderPlasmicSlot({
           defaultContents:
-            "Generate presentational components into your codebase.",
+            <UiText message={"Generate presentational components into your codebase."} />,
           value: args.slot,
           className: classNames(sty.slotTargetSlot, {
             [sty.slotTargetSlotglobal_codegenType_loader]: hasVariant(

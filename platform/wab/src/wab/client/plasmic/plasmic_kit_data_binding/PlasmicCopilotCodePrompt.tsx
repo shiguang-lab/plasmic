@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: SdMPiPjcB9G
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -101,6 +102,8 @@ function PlasmicCopilotCodePrompt__RenderFunc(props: {
   overrides: PlasmicCopilotCodePrompt__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -144,7 +147,7 @@ function PlasmicCopilotCodePrompt__RenderFunc(props: {
         data-plasmic-name={"openCopilotBtn"}
         data-plasmic-override={overrides.openCopilotBtn}
 
-        caption={"Caption"}
+        caption={studioUiT("Caption")}
         className={classNames("__wab_instance", sty.openCopilotBtn)}
         size={"small"}
         type={["primary", "chip"]}

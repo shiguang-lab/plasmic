@@ -175,17 +175,24 @@ const CmsComponentMessage = observer(function CmsComponentMessage(props: {
   if (!props.isExpanded) {
     return (
       <span>
-        To render <strong>{componentName}</strong> with PlasmicComponent
+        {" "}
+        <UiText message={"To render"} /> <strong>{componentName}</strong>{" "}
+        <UiText message={"with PlasmicComponent"} />{" "}
       </span>
     );
   }
   return (
     <div>
-      To render{" "}
+      {" "}
+      <UiText message={"To render"} />{" "}
       <strong>
         <code>{componentName}</code>
       </strong>{" "}
-      with PlasmicComponent, simply pass it as the "component" prop.
+      <UiText
+        message={
+          'with PlasmicComponent, simply pass it as the "component" prop.'
+        }
+      />{" "}
     </div>
   );
 });
@@ -197,11 +204,12 @@ const BlackboxComponentMessage = observer(
     const { component, isExpanded } = props;
     const firstSentence = (
       <>
-        For{" "}
+        {" "}
+        <UiText message={"For"} />{" "}
         <strong>
           <code>{getExportedComponentName(component)}</code>
-        </strong>
-        , Plasmic generates two React components:
+        </strong>{" "}
+        <UiText message={", Plasmic generates two React components:"} />{" "}
       </>
     );
 
@@ -215,27 +223,39 @@ const BlackboxComponentMessage = observer(
             <li>
               <strong>
                 <code>{makePlasmicComponentName(component)}</code>
-              </strong>
-              : a purely presentational component, for rendering the design.
-              Will be updated by Plasmic when design changes.
+              </strong>{" "}
+              <UiText
+                message={
+                  ": a purely presentational component, for rendering the design. Will be updated by Plasmic when design changes."
+                }
+              />{" "}
             </li>
             <li>
               <strong>
                 <code>{getExportedComponentName(component)}</code>
-              </strong>
-              : a wrapper component, owned by you, where you instantiate{" "}
-              <code>{makePlasmicComponentName(component)}</code> and attach
-              state, data, and behavior.
+              </strong>{" "}
+              <UiText
+                message={
+                  ": a wrapper component, owned by you, where you instantiate"
+                }
+              />{" "}
+              <code>{makePlasmicComponentName(component)}</code>{" "}
+              <UiText message={"and attach state, data, and behavior."} />{" "}
             </li>
           </ul>
           <p>
-            Try the different props and overrides you can pass to{" "}
-            <code>{getExportedComponentName(component)}</code> component below.{" "}
+            {" "}
+            <UiText
+              message={"Try the different props and overrides you can pass to"}
+            />{" "}
+            <code>{getExportedComponentName(component)}</code>{" "}
+            <UiText message={"component below."} />{" "}
             <a
               href="https://www.plasmic.app/learn/codegen-guide/"
               target="_blank"
             >
-              See details
+              {" "}
+              <UiText message={"See details"} />{" "}
             </a>
             .
           </p>
@@ -248,10 +268,13 @@ const BlackboxComponentMessage = observer(
 function VariantPropsTooltip() {
   return (
     <DocsTooltip>
-      Each variant is exposed as a React prop. For toggle variants, pass a
-      boolean; for single-choice variants, pass an option string; for
-      multi-choice variants, pass an array of options or an object mapping
-      option to <code>true</code> <UiText message={"or"} /> <code>false</code>.{" "}
+      {" "}
+      <UiText
+        message={
+          "Each variant is exposed as a React prop. For toggle variants, pass a boolean; for single-choice variants, pass an option string; for multi-choice variants, pass an array of options or an object mapping option to"
+        }
+      />{" "}
+      <code>true</code> <UiText message={"or"} /> <code>false</code>.{" "}
       <a
         href="https://www.plasmic.app/learn/codegen-guide/#variant-props"
         target="_blank"
@@ -265,8 +288,12 @@ function VariantPropsTooltip() {
 function SlotPropsTooltip() {
   return (
     <DocsTooltip>
-      Each slot is exposed as a React prop; pass in any{" "}
-      <code>React.ReactNode</code> to customize the content of each slot.{" "}
+      {" "}
+      <UiText
+        message={"Each slot is exposed as a React prop; pass in any"}
+      />{" "}
+      <code>React.ReactNode</code>{" "}
+      <UiText message={"to customize the content of each slot."} />{" "}
       <a
         href="https://www.plasmic.app/learn/codegen-guide/#slot-props"
         target="_blank"
@@ -282,10 +309,12 @@ function ElementPropsTooltip() {
     <DocsTooltip placement="right" maxWidth={400}>
       {() => (
         <>
-          Each element with a name in Plasmic can be customized with these
-          element override props. You can attach event handlers, modify content
-          or attributes, add wrappers, or completely replace an element with
-          something else. Some examples below:
+          {" "}
+          <UiText
+            message={
+              "Each element with a name in Plasmic can be customized with these element override props. You can attach event handlers, modify content or attributes, add wrappers, or completely replace an element with something else. Some examples below:"
+            }
+          />{" "}
           <CodeSnippet language="typescript" className="mt-m">
             {`
 element={{

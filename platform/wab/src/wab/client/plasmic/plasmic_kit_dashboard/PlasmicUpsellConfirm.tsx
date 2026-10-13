@@ -122,12 +122,12 @@ function PlasmicUpsellConfirm__RenderFunc(props: {
         </div>
         <div className={classNames("all", "__wab_text", sty.text__efG6S)}>
           {
-            "A receipt for this transaction has been sent via email for your records"
+            <UiText message={"A receipt for this transaction has been sent via email for your records"} />
           }
         </div>
         <div className={classNames("all", "__wab_text", sty.text__lsGm)}>
           {
-            "To make future changes to your subscription, visit your organization settings page:"
+            <UiText message={"To make future changes to your subscription, visit your organization settings page:"} />
           }
         </div>
         <PlasmicLink__
@@ -144,7 +144,7 @@ function PlasmicUpsellConfirm__RenderFunc(props: {
           platform={"react"}
           target={"_blank"}
         >
-          {"Visit organization settings ->"}
+          {<UiText message={"Visit organization settings ->"} />}
         </PlasmicLink__>
         <div className={classNames("all", sty.freeBox___65IXe)}>
           <div className={classNames("all", "__wab_text", sty.text__fWkFm)}>

@@ -3,6 +3,7 @@ import DataPicker, {
   DataPickerTypesSchema,
   InitialMode,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -50,6 +51,8 @@ export const InternalDataPickerEditor = observer(
       setVisible: (value: boolean) => void;
     },
   ) {
+    const { t: studioUiT } = useI18n();
+
     const {
       value,
       onChange,
@@ -200,8 +203,10 @@ export const InternalDataPickerEditor = observer(
           role="button"
           aria-label={
             complexExpression
-              ? "Dynamic binding: click to view or edit the expression"
-              : "Edit data binding"
+              ? studioUiT(
+                  "Dynamic binding: click to view or edit the expression",
+                )
+              : studioUiT("Edit data binding")
           }
           aria-disabled={isDisabled}
           onKeyDown={(event) => {
@@ -219,7 +224,7 @@ export const InternalDataPickerEditor = observer(
               })}
             >
               {complexExpression
-                ? "Dynamic binding · click to edit"
+                ? studioUiT("Dynamic binding · click to edit")
                 : (codeExpr ?? <UiText message="unset" />)}
             </span>
           </Tooltip>

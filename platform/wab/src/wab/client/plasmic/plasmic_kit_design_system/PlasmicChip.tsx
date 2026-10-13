@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: jW885tExwE
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -184,7 +185,7 @@ function PlasmicChip__RenderFunc(props: {
       {renderPlasmicSlot({
         defaultContents: (
           <div className={classNames("all", "__wab_text", sty.text__cySel)}>
-            {"Chip"}
+            {<UiText message={"Chip"} />}
           </div>
         ),
         value: args.children,

@@ -4,6 +4,7 @@ import { ColorButton } from "@/wab/client/components/style-controls/ColorButton"
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultIconTogglesPanelProps,
   PlasmicIconTogglesPanel,
@@ -106,9 +107,14 @@ export default IconTogglesPanel;
 function IconTogglesInfo() {
   return (
     <div>
-      Each SVG icon added to Plasmic can be used as a React component. Each
-      component takes in the usual props you can pass into an <code>svg</code>{" "}
-      element. By default, its size is <code>1em</code>.
+      {" "}
+      <UiText
+        message={
+          "Each SVG icon added to Plasmic can be used as a React component. Each component takes in the usual props you can pass into an"
+        }
+      />{" "}
+      <code>svg</code> <UiText message={"element. By default, its size is"} />{" "}
+      <code>1em</code>.
     </div>
   );
 }

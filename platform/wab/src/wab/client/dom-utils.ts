@@ -1,5 +1,7 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { hasLayoutBox } from "@/wab/client/dom";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { getImageSize } from "@/wab/client/image/metadata";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { ensure, ensureHTMLElt, ensureString } from "@/wab/shared/common";
@@ -498,7 +500,7 @@ export function deriveImageAssetTypeAndUri(
   const parsed = parseDataUrl(dataUri);
   if (!parsed) {
     notification.error({
-      message: "Error loading image",
+      message: translate(getUiLocale(), "Error loading image"),
     });
     return undefined;
   }
@@ -553,7 +555,10 @@ export function deriveImageAssetTypeAndUri(
         return { dataUri, type: ImageAssetType.Picture };
       } else {
         notification.error({
-          message: "Can only use svg images with one color as icons",
+          message: translate(
+            getUiLocale(),
+            "Can only use svg images with one color as icons",
+          ),
         });
         return undefined;
       }
@@ -565,7 +570,7 @@ export function deriveImageAssetTypeAndUri(
     } else {
       // Cannot upload non-svg for icons
       notification.error({
-        message: "Can only use svg images as icons",
+        message: translate(getUiLocale(), "Can only use svg images as icons"),
       });
       return undefined;
     }

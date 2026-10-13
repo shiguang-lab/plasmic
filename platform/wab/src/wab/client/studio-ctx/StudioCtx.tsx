@@ -3175,6 +3175,14 @@ export class StudioCtx extends WithDbCtx {
     spawn(this.appCtx.topFrameApi?.closeCopilotChat());
   }
 
+  closeEditorPanels() {
+    this.closeCopilotChat();
+    this.setLeftTabGroup(undefined);
+    this.switchLeftTab(undefined);
+    this.setShowAddDrawer(false);
+    this._showCommentsPanel.set(false);
+  }
+
   private _preferredAiOutputFormat = observable.box<AiOutputFormat>("json");
 
   /**
@@ -5985,13 +5993,20 @@ export class StudioCtx extends WithDbCtx {
 
   blockChanges = false;
 
-  aiSaveReceipt?: { operationId: string; sessionId: string; fence: number; result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult };
+  aiSaveReceipt?: {
+    operationId: string;
+    sessionId: string;
+    fence: number;
+    result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult;
+  };
   async save() {
     return this.asyncSaver();
   }
 
   private async trySave(preferIncremental = true): Promise<SaveResult> {
-    if (this.aiSaveReceipt && !this.aiSaveReceipt.result) { return SaveResult.SkipUpToDate; }
+    if (this.aiSaveReceipt && !this.aiSaveReceipt.result) {
+      return SaveResult.SkipUpToDate;
+    }
     const branchId = this.dbCtx().branchInfo?.id;
     if (!branchId && this.siteInfo.isMainBranchProtected) {
       return SaveResult.TriedEditProtectedMain;
@@ -6920,9 +6935,11 @@ export class StudioCtx extends WithDbCtx {
             branchId,
           ),
         {
-          title: "Publishing is disabled",
-          description:
+          title: translate(getUiLocale(), "Publishing is disabled"),
+          description: translate(
+            getUiLocale(),
             "This project belongs to a team that does not have enough seats. Increase the number of seats to perform this action.",
+          ),
         },
         true,
       );
@@ -7063,7 +7080,11 @@ export class StudioCtx extends WithDbCtx {
         description: (
           <>
             <p>
-              <UiText message="This cloned project includes dynamic data from an example data source! But you will probably want to use your own data source instead." />
+              <UiText
+                message={
+                  "This cloned project includes dynamic data from an example data source! But you will probably want to use your own data source instead."
+                }
+              />
             </p>
             <p>
               <UiText
@@ -7071,7 +7092,7 @@ export class StudioCtx extends WithDbCtx {
                 values={{
                   settings: (
                     <a onClick={goToSettings}>
-                      <UiText message="Go to settings" />
+                      <UiText message={"Go to settings"} />
                     </a>
                   ),
                 }}
@@ -7937,8 +7958,10 @@ export class StudioCtx extends WithDbCtx {
           !appUserCtx.appUser.roleIds.includes(op.roleId)
         ) {
           this.debouncedWarn({
-            message:
+            message: translate(
+              getUiLocale(),
               "Some data couldn't be loaded because you are viewing the app as an user that doesn't have the required role.",
+            ),
           });
 
           throw new UnauthorizedError();
@@ -7969,12 +7992,15 @@ export class StudioCtx extends WithDbCtx {
         } catch (e) {
           if (e.name === "NotFoundError") {
             this.debouncedWarn({
-              message: `Could not find integration.`,
+              message: translate(getUiLocale(), "Could not find integration."),
               duration: 30,
             });
           } else if (e.name === "ForbiddenError") {
             this.debouncedWarn({
-              message: `You do not have permission to use some of the data integrations in this project. You must have at least viewer access to the Workspace that the data integrations belong to.  Please contact the owner of the data integrations to add you to the necessary Workspaces.`,
+              message: translate(
+                getUiLocale(),
+                "You do not have permission to use some of the data integrations in this project. You must have at least viewer access to the Workspace that the data integrations belong to. Please contact the owner of the data integrations to add you to the necessary Workspaces.",
+              ),
               duration: 0,
             });
           }

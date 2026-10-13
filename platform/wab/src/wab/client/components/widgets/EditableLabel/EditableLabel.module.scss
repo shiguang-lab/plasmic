@@ -7,16 +7,16 @@
 
 .inputBox {
   width: 100%;
-  border: 2px solid $blue9;
+  border: 2px solid var(--ui-accent, #{$blue9});
   padding: 2px;
   outline: none;
-  background: white;
+  background: var(--ui-surface, white);
   line-height: 1.2em;
   border-radius: 2px;
   display: inline-flex;
   align-items: center;
   overflow: unset !important;
-  color: #222;
+  color: var(--ui-text, #222);
 }
 
 span.inputBox[placeholder]:empty:focus::before {
@@ -24,5 +24,5 @@ span.inputBox[placeholder]:empty:focus::before {
   line-height: 1.2em;
   display: inline-flex;
   align-items: center;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--ui-placeholder, rgba(0, 0, 0, 0.2));
 }

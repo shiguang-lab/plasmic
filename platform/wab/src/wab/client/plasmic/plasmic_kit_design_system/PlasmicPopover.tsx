@@ -11,6 +11,8 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: FYmdApEkhOiH
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -91,6 +93,8 @@ function PlasmicPopover__RenderFunc(props: {
   overrides: PlasmicPopover__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -200,7 +204,7 @@ function PlasmicPopover__RenderFunc(props: {
                     className={classNames("all", "__wab_text", sty.text__eBq5U)}
                   >
                     {
-                      "Use it in a `Aria Dialog Trigger` component to trigger it on a button click."
+                      <UiText message={"Use it in a `Aria Dialog Trigger` component to trigger it on a button click."} />
                     }
                   </div>
                 </div>
@@ -221,7 +225,7 @@ function PlasmicPopover__RenderFunc(props: {
         defaultContents: (
           <PlexusButton
             className={classNames("__wab_instance", sty.plexusButton__nnmCo)}
-            label={"Open Popover"}
+            label={studioUiT("Open Popover")}
           />
         ),
 

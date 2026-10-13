@@ -24,6 +24,7 @@ import {
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
+import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import SlotIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Slot";
 import { selectionPath } from "@/wab/client/selection-context";
@@ -583,6 +584,8 @@ const TplSlotMessage = observer(function TplSlotMessage(props: {
   viewCtx: ViewCtx;
   tpl: TplSlot;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { viewCtx, tpl } = props;
   const component = $$$(tpl).owningComponent();
   return (
@@ -596,7 +599,7 @@ const TplSlotMessage = observer(function TplSlotMessage(props: {
               viewCtx.getViewOps().tryRenameParam(val, tpl.param),
             )
           }
-          placeholder={`(unnamed slot)`}
+          placeholder={studioUiT("(unnamed slot)")}
           suffix={
             <div className="text-ellipsis">
               <UiText

@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: E0bKgamUEin
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -303,7 +304,7 @@ function PlasmicStyleSelect__RenderFunc(props: {
                 : true
             )
               ? renderPlasmicSlot({
-                  defaultContents: "Selected",
+                  defaultContents: <UiText message={"Selected"} />,
                   value: args.selectedContent,
                   className: classNames(sty.slotTargetSelectedContent, {
                     [sty.slotTargetSelectedContentisOpen]: hasVariant(
@@ -331,7 +332,7 @@ function PlasmicStyleSelect__RenderFunc(props: {
                 : false
             )
               ? renderPlasmicSlot({
-                  defaultContents: "Placeholder\u2026",
+                  defaultContents: <UiText message={"Placeholder…"} />,
                   value: args.placeholder,
                   className: classNames(sty.slotTargetPlaceholder, {
                     [sty.slotTargetPlaceholdershowPlaceholder]: hasVariant(

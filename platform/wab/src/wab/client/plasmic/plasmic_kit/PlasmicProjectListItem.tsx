@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 2FvZipCkyxl
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -94,6 +96,8 @@ function PlasmicProjectListItem__RenderFunc(props: {
   overrides: PlasmicProjectListItem__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -363,7 +367,7 @@ function PlasmicProjectListItem__RenderFunc(props: {
         <MenuButton
           data-plasmic-name={"menuButton"}
           data-plasmic-override={overrides.menuButton}
-          hoverText={"More…"}
+          hoverText={studioUiT("More…")}
           stepUp={true}
         />
       </div>
@@ -372,7 +376,7 @@ function PlasmicProjectListItem__RenderFunc(props: {
         data-plasmic-override={overrides.updatedJustNow}
         className={classNames("all", "__wab_text", sty.updatedJustNow)}
       >
-        {"updated just now"}
+        {<UiText message={"updated just now"} />}
       </div>
     </PlasmicLink__>
   ) as React.ReactElement | null;

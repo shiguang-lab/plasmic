@@ -1,6 +1,8 @@
 import { NonAuthCtx, useNonAuthCtx } from "@/wab/client/app-ctx";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { WorkspaceId } from "@/wab/shared/ApiSchema";
 import { Bundle } from "@/wab/shared/bundles";
 import { DevFlagsType } from "@/wab/shared/devflags";
@@ -54,7 +56,7 @@ async function setupHostlessWorkspace(
     await nonAuthCtx.api.adminCreateWorkspace({
       id: hostLessWorkspaceId,
       name: "Hostless Workspace",
-      description: "Workspace for hostless projects",
+      description: translate(getUiLocale(), "Workspace for hostless projects"),
       teamId: teamId,
     });
   }
@@ -94,6 +96,8 @@ async function resetProjects(
 }
 
 export function AdminImportProjectsFromProd() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [modalVisible, setModalVisible] = useState(false);
   const ref = React.createRef<HTMLIFrameElement>();
@@ -141,11 +145,13 @@ export function AdminImportProjectsFromProd() {
 
   return (
     <div>
-      <h2>Import devflags and plasmic projects from prod</h2>
+      <h2>
+        <UiText message={"Import devflags and plasmic projects from prod"} />
+      </h2>
       <Modal
         open={modalVisible}
         footer={null}
-        title={"Import plasmic projects from prod"}
+        title={studioUiT("Import plasmic projects from prod")}
         onCancel={() => setModalVisible(false)}
         width={800}
       >
@@ -159,7 +165,9 @@ export function AdminImportProjectsFromProd() {
       <Button onClick={() => setModalVisible((v) => !v)}>
         <UiText message={"Import"} />
       </Button>
-      <p>This will override your current devflags</p>
+      <p>
+        <UiText message={"This will override your current devflags"} />
+      </p>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { displayTokenValue } from "@/wab/client/components/sidebar-tabs/DataBind
 import { useSuggestDataTokens } from "@/wab/client/components/sidebar-tabs/DataBinding/useSuggestDataTokens";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon, SvgIcon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import { DataTokenIcon } from "@/wab/client/icons";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
@@ -56,6 +57,8 @@ export function HrefEditor(props: {
   disabled: boolean;
   "data-plasmic-prop"?: string;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const sc = useStudioCtx();
   const { suggestDataTokens, onSelectDataToken } =
     useSuggestDataTokens("string");
@@ -196,7 +199,7 @@ export function HrefEditor(props: {
             placeholder={
               isKnownPageHref(props.value)
                 ? hrefStr(props.value.page)
-                : "Enter value"
+                : studioUiT("Enter value")
             }
             autoSize={{ minRows: 1, maxRows: 6 }}
             onKeyDown={handleKeyDown}

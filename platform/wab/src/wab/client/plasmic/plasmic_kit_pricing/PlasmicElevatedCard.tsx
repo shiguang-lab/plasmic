@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: OOKbAz_EJ7Rm
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -145,10 +146,10 @@ function PlasmicElevatedCard__RenderFunc(props: {
         defaultContents: (
           <React.Fragment>
             <div className={classNames("all", "__wab_text", sty.text__clTcj)}>
-              {"Menu item 1"}
+              {<UiText message={"Menu item 1"} />}
             </div>
             <div className={classNames("all", "__wab_text", sty.text__r3A7)}>
-              {"Menu item 1"}
+              {<UiText message={"Menu item 1"} />}
             </div>
           </React.Fragment>
         ),

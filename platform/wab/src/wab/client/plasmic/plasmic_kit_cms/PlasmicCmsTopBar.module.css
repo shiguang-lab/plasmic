@@ -6,7 +6,7 @@
   height: auto;
   justify-content: center;
   align-items: center;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   min-width: 0;
   padding: 9px 12px;
   border-bottom: 1px solid var(--token-bV4cCeIniS6);

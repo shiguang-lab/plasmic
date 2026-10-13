@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { ConnectOAuthButton } from "@/wab/client/components/auth/ConnectOAuth";
 import styles from "@/wab/client/components/auth/ConnectOAuth.module.scss";
@@ -9,9 +13,10 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
+import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
+
 import GLogo from "@/wab/commons/images/g-logo.png";
 import {
   ApiDataSource,
@@ -191,6 +196,7 @@ export function DataSourceModal({
   const { t: uiT } = useI18n();
   const api = useApi();
   const [form] = Form.useForm<DataSourceFormData>();
+  const formId = React.useId();
   const dataSourceMetasOrAliases = React.useMemo(() => {
     const list: (DataSourceMeta | DataSourceAlias)[] =
       getAllPublicDataSourceMetas();
@@ -254,7 +260,7 @@ export function DataSourceModal({
 
         if (!isValidValuesData(values)) {
           notification.error({
-            message: translate(getUiLocale(), "Missing required data"),
+            message: uiT("Missing required data"),
           });
           return { result: { connected: false } };
         }
@@ -276,7 +282,7 @@ export function DataSourceModal({
         // Don't test the same successful connection twice
         if (successfulConnections[key]) {
           notification.success({
-            message: translate(getUiLocale(), "Connection successful"),
+            message: uiT("Connection successful"),
           });
           return { result: { connected: true } };
         }
@@ -293,9 +299,8 @@ export function DataSourceModal({
               connectionOptions.sslmode === "require"
             ) {
               notification.error({
-                message: translate(getUiLocale(), "Connection failed"),
-                description: translate(
-                  getUiLocale(),
+                message: uiT("Connection failed"),
+                description: uiT(
                   "SSL is required for this connection. Please enable SSL in connection options and try again.",
                 ),
               });
@@ -310,22 +315,28 @@ export function DataSourceModal({
                 },
               });
               notification.warning({
-                message: translate(getUiLocale(), "Connection failed"),
-                description: translate(
-                  getUiLocale(),
+                message: uiT("Connection failed"),
+                description: uiT(
                   "SSL is not enabled for this connection. Add ssl:true and sslmode:require to connection options and try again.",
                 ),
               });
             }
           } else {
-            notification.error({
-              message: translate(getUiLocale(), "Connection failed"),
-              description: connectionTest.result.error,
+            notification.open({
+              type: getErrorType(
+                deserializeApiError(connectionTest.result.error, 400),
+              ),
+              message: uiT("Connection failed"),
+              description: (
+                <ErrorDescription
+                  error={deserializeApiError(connectionTest.result.error, 400)}
+                />
+              ),
             });
           }
         } else {
           notification.success({
-            message: translate(getUiLocale(), "Connection successful"),
+            message: uiT("Connection successful"),
           });
           setSuccessfulConnections((prev) => ({
             ...prev,
@@ -335,27 +346,59 @@ export function DataSourceModal({
 
         return connectionTest;
       } catch (err) {
-        notification.error({
-          message: translate(getUiLocale(), "Connection failed"),
-          description: err.message,
+        notification.open({
+          type: getErrorType(err),
+          message: uiT("Connection failed"),
+          description: <ErrorDescription error={err} />,
         });
         return { result: { connected: false } };
       }
     },
-    [form, appCtx, successfulConnections, isValidValuesData],
+    [form, appCtx, successfulConnections, isValidValuesData, uiT],
   );
 
   return (
     <Modal
       key={editingDataSource === "new" ? "new" : editingDataSource.id}
-      visible
+      open
       onCancel={() => onDone()}
       title={
         editingDataSource === "new"
           ? uiT("New data source")
           : uiT("Data source settings")
       }
-      footer={null}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
+      okButtonProps={{
+        htmlType: "submit",
+        form: formId,
+        "data-test-id": "prompt-submit",
+        disabled: !selectedDataSourceType || isDisabled || isLoading,
+      }}
+      cancelButtonProps={{ disabled: isLoading || isTestingConnection }}
+      footer={(_, { OkBtn, CancelBtn }) => (
+        <>
+          {isUntestableDataSourceType(selectedDataSourceType) ? null : (
+            <Button
+              className="mr-sm"
+              type="secondary"
+              disabled={!selectedDataSourceType || isTestingConnection}
+              onClick={async () => {
+                setIsTestingConnection(true);
+                await testDataSourceConnection(workspaceId);
+                setIsTestingConnection(false);
+              }}
+              data-test-id="test-connection"
+            >
+              {isTestingConnection
+                ? uiT("Testing ...")
+                : uiT("Test connection")}
+            </Button>
+          )}
+          <CancelBtn />
+          <OkBtn />
+        </>
+      )}
       closable={false}
       wrapClassName="prompt-modal"
     >
@@ -383,6 +426,7 @@ export function DataSourceModal({
         />
       )}
       <Form
+        id={formId}
         form={form}
         autoComplete="off"
         initialValues={
@@ -432,19 +476,19 @@ export function DataSourceModal({
               onDone();
             } catch (err) {
               setIsLoading(false);
-              notification.error({
-                message: translate(
-                  getUiLocale(),
+              notification.open({
+                type: getErrorType(err),
+                message: uiT(
                   editingDataSource === "new"
                     ? "Error creating data source"
                     : "Error updating data source",
                 ),
-                description: err.message,
+                description: <ErrorDescription error={err} />,
               });
             }
           } else {
             notification.error({
-              message: translate(getUiLocale(), "Missing required data"),
+              message: uiT("Missing required data"),
             });
           }
         }}
@@ -563,50 +607,6 @@ export function DataSourceModal({
             />
           </>
         )}
-        <Form.Item
-          wrapperCol={{
-            xs: {
-              span: 24,
-              offset: 0,
-            },
-            sm: {
-              span: 16,
-              offset: 8,
-            },
-          }}
-        >
-          <Button
-            className="mr-sm"
-            type="primary"
-            htmlType="submit"
-            data-test-id="prompt-submit"
-            disabled={!selectedDataSourceType || isDisabled || isLoading}
-          >
-            {<UiText message={"Confirm"} />}
-          </Button>
-          <Button
-            className="mr-sm"
-            onClick={() => onDone()}
-            disabled={isLoading || isTestingConnection}
-          >
-            <UiText message={"Cancel"} />
-          </Button>
-          {isUntestableDataSourceType(selectedDataSourceType) ? null : (
-            <Button
-              className="mr-sm"
-              type="secondary"
-              disabled={!selectedDataSourceType || isTestingConnection}
-              onClick={async () => {
-                setIsTestingConnection(true);
-                await testDataSourceConnection(workspaceId);
-                setIsTestingConnection(false);
-              }}
-              data-test-id="test-connection"
-            >
-              {isTestingConnection ? "Testing ..." : "Test connection"}
-            </Button>
-          )}
-        </Form.Item>
       </Form>
     </Modal>
   );
@@ -620,6 +620,8 @@ function CredentialsAndSettingsSection(props: {
   integrationList?: ListAuthIntegrationsResponse;
   isDisabled?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const {
     form,
     sourceMeta,
@@ -635,9 +637,8 @@ function CredentialsAndSettingsSection(props: {
     const strSizeLimit = 500 * 1024; // 500KB
     if (val.length > strSizeLimit) {
       notification.error({
-        message: translate(getUiLocale(), "Value is too long"),
-        description: translate(
-          getUiLocale(),
+        message: studioUiT("Value is too long"),
+        description: studioUiT(
           "Please provide a value up to 500KB characters long",
         ),
       });
@@ -650,9 +651,11 @@ function CredentialsAndSettingsSection(props: {
 
     if (val[0] !== "{") {
       notification.warning({
-        message: <UiText message="Invalid JSON object" />,
+        message: <UiText message={"Invalid JSON object"} />,
         description: (
-          <UiText message="Only JSON objects (wrapped in {}) are supported." />
+          <UiText
+            message={"Only JSON objects (wrapped in {}) are supported."}
+          />
         ),
       });
       return;
@@ -665,7 +668,7 @@ function CredentialsAndSettingsSection(props: {
       });
     } catch (err) {
       notification.warning({
-        message: <UiText message="Invalid JSON" />,
+        message: <UiText message={"Invalid JSON"} />,
         description: `${err}`,
       });
     }
@@ -716,7 +719,7 @@ function CredentialsAndSettingsSection(props: {
             {integrationList?.providers.find(
               (provider) => provider.name === sourceMeta.id,
             )
-              ? "Edit integration"
+              ? studioUiT("Edit integration")
               : undefined}
           </DataSourcesSignInFormButton>
         ) : settingMeta.type === "base" ? (
@@ -831,6 +834,8 @@ function AirtableSignInButton(props: {
   onFailure: (reason: string) => void;
   disabled?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { onStart, onSuccess, onFailure, children, disabled } = props;
   return (
     <ConnectOAuthButton
@@ -838,10 +843,10 @@ function AirtableSignInButton(props: {
       onSuccess={onSuccess}
       onFailure={onFailure}
       url={APP_ROUTES.airtableAuth.fill({})}
-      waitingChildren={"Signing into airtable..."}
+      waitingChildren={studioUiT("Signing into airtable...")}
       disabled={disabled}
     >
-      {children ? children : "Connect to Airtable"}
+      {children ? children : studioUiT("Connect to Airtable")}
     </ConnectOAuthButton>
   );
 }
@@ -853,6 +858,8 @@ function GoogleSheetsSignInButton(props: {
   onFailure: (reason: string) => void;
   disabled?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   // Must adhere to Google branding guidelines
   const { onStart, onSuccess, onFailure, children, disabled } = props;
   return (
@@ -861,10 +868,11 @@ function GoogleSheetsSignInButton(props: {
       onSuccess={onSuccess}
       onFailure={onFailure}
       url={APP_ROUTES.googleSheetsAuth.fill({})}
-      waitingChildren={"Connect to Google"}
+      waitingChildren={studioUiT("Connect to Google")}
       disabled={disabled}
       style={{
         background: "white",
+        color: "#1b1b18",
         border: "1px solid #eee",
         borderBottom: "1px solid #ccc",
       }}
@@ -942,6 +950,8 @@ function PostgresConnectionStringImportButton(props: {
   sourceMeta: DataSourceMeta;
   isDisabled?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { form, sourceMeta, isDisabled } = props;
   return (
     <div className="mb-xlg flex justify-end">
@@ -950,9 +960,9 @@ function PostgresConnectionStringImportButton(props: {
         disabled={isDisabled}
         onClick={async () => {
           const connectionString = await reactPrompt({
-            message: translate(getUiLocale(), "What's the connection string?"),
-            actionText: "Import",
-            placeholder: translate(getUiLocale(), "Connection string"),
+            message: studioUiT("What's the connection string?"),
+            actionText: studioUiT("Import"),
+            placeholder: studioUiT("Connection string"),
           });
           if (!connectionString) {
             return;

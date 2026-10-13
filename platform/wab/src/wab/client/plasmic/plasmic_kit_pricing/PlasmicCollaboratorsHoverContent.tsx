@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: DHHU9E4NuTqC
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -101,7 +102,7 @@ function PlasmicCollaboratorsHoverContent__RenderFunc(props: {
         sty.root
       )}
     >
-      {"A collaborator is any editor or viewer of your projects."}
+      {<UiText message={"A collaborator is any editor or viewer of your projects."} />}
     </div>
   ) as React.ReactElement | null;
 }

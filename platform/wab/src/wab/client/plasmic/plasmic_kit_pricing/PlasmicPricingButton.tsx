@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: NqVzp6p_r1Wa
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -314,7 +315,7 @@ function PlasmicPricingButton__RenderFunc(props: {
         />
 
         {renderPlasmicSlot({
-          defaultContents: "Select plan",
+          defaultContents: <UiText message={"Select plan"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrendark]: hasVariant($state, "dark", "dark"),

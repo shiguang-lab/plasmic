@@ -5,6 +5,7 @@ import DataPicker, {
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { zIndex } from "@/wab/client/z-index";
@@ -134,6 +135,8 @@ export function DynamicValueWidget({
   expectedValues,
   exprCtx,
 }: DynamicValueWidgetProps) {
+  const { t: studioUiT } = useI18n();
+
   const [popoverVisible, setPopoverVisible] = React.useState(
     defaultOpenDataPicker ?? false,
   );
@@ -175,7 +178,7 @@ export function DynamicValueWidget({
             "text-unset": !previewValue,
           })}
         >
-          {previewValue ?? "unset"}
+          {previewValue ?? studioUiT("unset")}
         </span>
 
         {deleteIcon && (

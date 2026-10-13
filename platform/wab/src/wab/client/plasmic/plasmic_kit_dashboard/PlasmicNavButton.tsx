@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 82ZzbE4hazN
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -342,7 +343,7 @@ function PlasmicNavButton__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Button",
+          defaultContents: <UiText message={"Button"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildren___focusVisibleWithin]:

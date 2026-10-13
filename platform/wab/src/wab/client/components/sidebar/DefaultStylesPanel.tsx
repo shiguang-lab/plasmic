@@ -140,7 +140,7 @@ const DefaultStylesPanel = observer(
         tagSelect={{
           props: {
             options: [
-              { value: BASE_THEMABLE_TAG, label: "Normal text" },
+              { value: BASE_THEMABLE_TAG, label: uiT("Normal text") },
               ...naturalSort(THEMABLE_TAGS, tagDisplayLabel).map(
                 (themeTag) => ({
                   value: themeTag,
@@ -156,7 +156,7 @@ const DefaultStylesPanel = observer(
         showPseudoClass={pseudoClassOptions.length > 0}
         pseudoClassSelect={{
           props: {
-            label: "Pseudo-class",
+            label: uiT("Pseudo-class"),
             options: [
               { value: "", label: uiT("Base") },
               ...pseudoClassOptions.map((op) => ({

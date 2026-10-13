@@ -5,6 +5,7 @@ import { PageFooter } from "@/wab/client/components/pages/PageFooter";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { getTeamInviteLink } from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import MarkFullColorIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__MarkFullColor";
 import { ApiTeam, Grant, MAX_GRANTS_PER_REQUEST } from "@/wab/shared/ApiSchema";
@@ -21,6 +22,8 @@ function Label({ children }: { children: ReactNode }) {
 }
 
 export function TeamCreation() {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [team, setTeam] = useState<ApiTeam | undefined>(undefined);
@@ -38,7 +41,9 @@ export function TeamCreation() {
     try {
       if (!teamName) {
         notification.error({
-          message: "Insert your organization name to create an organization",
+          message: studioUiT(
+            "Insert your organization name to create an organization",
+          ),
         });
         setSubmitting(false);
         return;
@@ -62,7 +67,7 @@ export function TeamCreation() {
       const parsedEmails = emails.map((email) => parseEmailAddress(email));
       if (parsedEmails.some((parsedEmail) => !parsedEmail)) {
         notification.error({
-          message: "Enter valid emails only, comma separated... ",
+          message: studioUiT("Enter valid emails only, comma separated..."),
         });
         setSubmitting(false);
         return;
@@ -82,9 +87,10 @@ export function TeamCreation() {
               revokes: [],
             }),
           {
-            title: "Upgrade to grant new permissions",
-            description:
+            title: studioUiT("Upgrade to grant new permissions"),
+            description: studioUiT(
               "This organization does not have enough seats to grant permissions to new users. Please increase the number of seats to be able to perform this action.",
+            ),
           },
         );
       }
@@ -136,7 +142,10 @@ export function TeamCreation() {
                 }
                 name={"teamName"}
               >
-                <Input size={"large"} placeholder={`Organization name...`} />
+                <Input
+                  size={"large"}
+                  placeholder={studioUiT("Organization name...")}
+                />
               </Form.Item>
               <Button
                 loading={submitting}
@@ -190,7 +199,9 @@ export function TeamCreation() {
                   mode="tags"
                   data-test-id={"invite-emails"}
                   size={"large"}
-                  placeholder={`Or invite by email, comma separated...`}
+                  placeholder={studioUiT(
+                    "Or invite by email, comma separated...",
+                  )}
                 />
               </Form.Item>
               <Button

@@ -20,6 +20,7 @@ import {
   UiConfig,
   makeNiceAliasName,
 } from "@/wab/shared/ui-config-utils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Form, Input } from "antd";
 import { capitalize, omit, uniqBy } from "lodash";
 import React from "react";
@@ -38,12 +39,16 @@ export function ContentEditorConfigModal(props: {
   const { appCtx, config, onSubmit, onCancel, title, level } = props;
 
   const [form] = Form.useForm();
+  const formId = React.useId();
 
   return (
     <Modal
       title={title}
       open={true}
-      footer={null}
+
+      okButtonProps={{ htmlType: "submit", form: formId }}
+      okText={<UiText message="Update" />}
+      cancelText={<UiText message="Cancel" />}
       onCancel={onCancel}
       closable={false}
       maskClosable={false}
@@ -55,7 +60,8 @@ export function ContentEditorConfigModal(props: {
       }}
     >
       <Form
-        className="max-scrollable justify-between"
+        id={formId}
+        style={{ height: "100%", minHeight: 0 }}
         form={form}
         onFinish={(values) => {
           onSubmit?.(
@@ -79,221 +85,219 @@ export function ContentEditorConfigModal(props: {
               : JSON.stringify(config.insertableTemplates, null, 2),
         }}
       >
-        <div className="ph-xxlg overflow-scroll">
-          {level === "project" && (
-            <Alert
-              className="mt-sm"
-              type={"info"}
-              message={`Changes to the project UI configuration will only take place after refreshing the page.`}
-            />
-          )}
-          <h3 className="mv-xlg">
-            <UiText message={"Creation"} />
-          </h3>
-          <Form.Item name={["canCreateBasics"]} noStyle>
-            <BooleanPreferencesControl
-              label={uiT("Can create basic entities?")}
-              prefKeys={BASIC_ENTITY_ALIASES.map((alias) => ({
-                value: alias,
-                label: makeNiceAliasName(alias),
-              })).sort((a, b) => a.label.localeCompare(b.label))}
-            />
-          </Form.Item>
+        <Scrollbar style={{ height: "100%" }}>
+          <div className="ph-xxlg">
+            {level === "project" && (
+              <Alert
+                className="mt-sm"
+                type={"info"}
+                message={uiT(
+                  "Changes to the project UI configuration will only take place after refreshing the page.",
+                )}
+              />
+            )}
+            <h3 className="mv-xlg">
+              <UiText message={"Creation"} />
+            </h3>
+            <Form.Item name={["canCreateBasics"]} noStyle>
+              <BooleanPreferencesControl
+                label={uiT("Can create basic entities?")}
+                prefKeys={BASIC_ENTITY_ALIASES.map((alias) => ({
+                  value: alias,
+                  label: makeNiceAliasName(alias),
+                })).sort((a, b) => a.label.localeCompare(b.label))}
+              />
+            </Form.Item>
 
-          <h3 className="mv-xlg">
-            <UiText message={"Insertion"} />
-          </h3>
-          <Form.Item name={["canInsertBasics"]} noStyle>
-            <BooleanPreferencesControl
-              label={uiT("Can insert basic elements?")}
-              prefKeys={BASIC_ALIASES.map((alias) => ({
-                value: alias,
-                label: makeNiceAliasName(alias),
-              })).sort((a, b) => a.label.localeCompare(b.label))}
-            />
-          </Form.Item>
-          <Form.Item name={["canInsertBuiltinComponent"]} noStyle>
-            <BooleanPreferencesControl
-              label={uiT("Can insert builtin components?")}
-              prefKeys={COMPONENT_ALIASES.map((alias) => ({
-                value: alias,
-                label: makeNiceAliasName(alias),
-              })).sort((a, b) => a.label.localeCompare(b.label))}
-            />
-          </Form.Item>
-          <Form.Item name={["canInsertHostless"]} noStyle>
-            <BooleanPreferencesControl
-              label={uiT("Can use components from component store?")}
-              prefKeys={uniqBy(
-                [
-                  // The "plume" key gates both Plume and Plexus components
-                  {
-                    value: "plume",
-                    label: uiT("Plasmic Customizable Components"),
-                  },
-                  ...(appCtx.appConfig.hostLessComponents ?? []).map((pkg) => ({
-                    value: pkg.codeName ?? "",
-                    label: pkg.name,
-                  })),
-                ],
-                (p) => p.value,
-              ).sort((a, b) => a.label.localeCompare(b.label))}
-            />
-          </Form.Item>
+            <h3 className="mv-xlg">
+              <UiText message={"Insertion"} />
+            </h3>
+            <Form.Item name={["canInsertBasics"]} noStyle>
+              <BooleanPreferencesControl
+                label={uiT("Can insert basic elements?")}
+                prefKeys={BASIC_ALIASES.map((alias) => ({
+                  value: alias,
+                  label: makeNiceAliasName(alias),
+                })).sort((a, b) => a.label.localeCompare(b.label))}
+              />
+            </Form.Item>
+            <Form.Item name={["canInsertBuiltinComponent"]} noStyle>
+              <BooleanPreferencesControl
+                label={uiT("Can insert builtin components?")}
+                prefKeys={COMPONENT_ALIASES.map((alias) => ({
+                  value: alias,
+                  label: makeNiceAliasName(alias),
+                })).sort((a, b) => a.label.localeCompare(b.label))}
+              />
+            </Form.Item>
+            <Form.Item name={["canInsertHostless"]} noStyle>
+              <BooleanPreferencesControl
+                label={uiT("Can use components from component store?")}
+                prefKeys={uniqBy(
+                  [
+                    // The "plume" key gates both Plume and Plexus components
+                    {
+                      value: "plume",
+                      label: uiT("Plasmic Customizable Components"),
+                    },
+                    ...(appCtx.appConfig.hostLessComponents ?? []).map(
+                      (pkg) => ({
+                        value: pkg.codeName ?? "",
+                        label: pkg.name,
+                      }),
+                    ),
+                  ],
+                  (p) => p.value,
+                ).sort((a, b) => a.label.localeCompare(b.label))}
+              />
+            </Form.Item>
 
-          <h3 className="mv-xlg">
-            <UiText message={"Project Configs"} />
-          </h3>
-          <Form.Item name={["projectConfigs"]} noStyle>
-            <BooleanPreferencesControl
-              label={uiT("Can edit project configurations?")}
-              prefKeys={PROJECT_CONFIGS.map((t) => ({
-                value: t,
-                label: capitalizeFirst(t),
-              })).sort((a, b) => a.label.localeCompare(b.label))}
-            />
-          </Form.Item>
-          <Form.Item
-            name={["canPublishProject"]}
-            label={uiT("Can publish project?")}
-          >
-            <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
-          </Form.Item>
+            <h3 className="mv-xlg">
+              <UiText message={"Project Configs"} />
+            </h3>
+            <Form.Item name={["projectConfigs"]} noStyle>
+              <BooleanPreferencesControl
+                label={uiT("Can edit project configurations?")}
+                prefKeys={PROJECT_CONFIGS.map((t) => ({
+                  value: t,
+                  label: capitalizeFirst(t),
+                })).sort((a, b) => a.label.localeCompare(b.label))}
+              />
+            </Form.Item>
+            <Form.Item
+              name={["canPublishProject"]}
+              label={uiT("Can publish project?")}
+            >
+              <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
+            </Form.Item>
 
-          <h3 className="mv-xlg">
-            <UiText message={"Left tabs"} />
-          </h3>
-          <Form.Item name={["leftTabs"]} noStyle>
-            <PreferencesControl
-              label={uiT("Show left tabs?")}
-              prefKeys={LEFT_TAB_UI_KEYS.filter(
-                (x) => !HIDDEN_LEFT_TAB_KEYS.includes(x),
-              )
-                .map((t) => ({ value: t, label: leftTabKeyToLabel(t) }))
-                .sort((a, b) => a.label.localeCompare(b.label))}
-              options={["hidden", "readable", "writable"]}
-              optionLabel={(op) => capitalizeFirst(op)}
-            />
-          </Form.Item>
+            <h3 className="mv-xlg">
+              <UiText message={"Left tabs"} />
+            </h3>
+            <Form.Item name={["leftTabs"]} noStyle>
+              <PreferencesControl
+                label={uiT("Show left tabs?")}
+                prefKeys={LEFT_TAB_UI_KEYS.filter(
+                  (x) => !HIDDEN_LEFT_TAB_KEYS.includes(x),
+                )
+                  .map((t) => ({ value: t, label: leftTabKeyToLabel(t) }))
+                  .sort((a, b) => a.label.localeCompare(b.label))}
+                options={["hidden", "readable", "writable"]}
+                optionLabel={(op) => capitalizeFirst(op)}
+              />
+            </Form.Item>
 
-          <h3 className="mv-xlg">
-            <UiText message={"Style controls"} />
-          </h3>
-          <Form.Item name={["styleSectionVisibilities"]} noStyle>
-            <BooleanPreferencesControl
-              label={uiT("Can edit these sections in the right panel?")}
-              prefKeys={Object.entries(PublicStyleSection).map(
-                ([label, value]) => ({
-                  value,
-                  label: publicStyleSectionToLabel(value, label),
-                }),
+            <h3 className="mv-xlg">
+              <UiText message={"Style controls"} />
+            </h3>
+            <Form.Item name={["styleSectionVisibilities"]} noStyle>
+              <BooleanPreferencesControl
+                label={uiT("Can edit these sections in the right panel?")}
+                prefKeys={Object.entries(PublicStyleSection).map(
+                  ([label, value]) => ({
+                    value,
+                    label: publicStyleSectionToLabel(value, label),
+                  }),
+                )}
+              />
+            </Form.Item>
+            <Form.Item
+              name={["canOverrideImportedTokens"]}
+              label={uiT("Can override imported tokens?")}
+            >
+              <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
+            </Form.Item>
+            <Form.Item
+              name={["canOverrideRegisteredTokens"]}
+              label={uiT("Can override registered tokens?")}
+            >
+              <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
+            </Form.Item>
+
+            {isOneOf(level, ["team", "workspace"]) && (
+              <>
+                <hr className="mv-xlg" />
+                <h3>
+                  <UiText message={"Branding"} />
+                </h3>
+                <Form.Item
+                  name={["brand", "logoImgSrc"]}
+                  label={uiT("Logo image url")}
+                  getValueFromEvent={(e) =>
+                    e.target.value === "" ? undefined : e.target.value
+                  }
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  name={["brand", "logoHref"]}
+                  label={uiT("Logo link url")}
+                  getValueFromEvent={(e) =>
+                    e.target.value === "" ? undefined : e.target.value
+                  }
+                >
+                  <Input />
+                </Form.Item>
+              </>
+            )}
+
+            <hr className="mv-xlg" />
+            <h3>
+              <UiText message={"Templates"} />
+            </h3>
+            <p>
+              <UiText
+                message={
+                  "Don't forget to publish the project with your templates. Templates will always use the latest published version."
+                }
+              />{" "}
+              <a href="https://docs.plasmic.app/learn/custom-templates/">
+                <UiText message={"Learn more"} />
+              </a>
+            </p>
+            <Form.Item
+              name="hideDefaultPageTemplates"
+              label={uiT("Hide default page templates?")}
+              help={uiT(
+                'Hide default page templates like "Empty page". Can only be hidden if custom page templates (below) are defined.',
               )}
-            />
-          </Form.Item>
-          <Form.Item
-            name={["canOverrideImportedTokens"]}
-            label={uiT("Can override imported tokens?")}
-          >
-            <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
-          </Form.Item>
-          <Form.Item
-            name={["canOverrideRegisteredTokens"]}
-            label={uiT("Can override registered tokens?")}
-          >
-            <BooleanControl trueLabel="Allowed" falseLabel="Disallowed" />
-          </Form.Item>
-
-          {isOneOf(level, ["team", "workspace"]) && (
-            <>
-              <hr className="mv-xlg" />
-              <h3>
-                <UiText message={"Branding"} />
-              </h3>
-              <Form.Item
-                name={["brand", "logoImgSrc"]}
-                label={uiT("Logo image url")}
-                getValueFromEvent={(e) =>
-                  e.target.value === "" ? undefined : e.target.value
-                }
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name={["brand", "logoHref"]}
-                label={uiT("Logo link url")}
-                getValueFromEvent={(e) =>
-                  e.target.value === "" ? undefined : e.target.value
-                }
-              >
-                <Input />
-              </Form.Item>
-            </>
-          )}
-
-          <hr className="mv-xlg" />
-          <h3>
-            <UiText message={"Templates"} />
-          </h3>
-          <p>
-            <UiText
-              message={
-                "Don't forget to publish the project with your templates. Templates will always use the latest published version."
-              }
-            />{" "}
-            <a href="https://docs.plasmic.app/learn/custom-templates/">
-              <UiText message={"Learn more"} />
-            </a>
-          </p>
-          <Form.Item
-            name="hideDefaultPageTemplates"
-            label={uiT("Hide default page templates?")}
-            help={
-              'Hide default page templates like "Empty page". Can only be hidden if custom page templates (below) are defined.'
-            }
-          >
-            <BooleanControl trueLabel="Hide" falseLabel="Show" />
-          </Form.Item>
-          {renderJsonEditor<TemplateSpec[]>({
-            fieldName: "pageTemplates",
-            label: "page templates",
-            help: "JSON array of page templates.",
-            defaultInitialValue: [
-              {
-                displayName: "My Page Template",
-                imageUrl: "https://example.com/my-template.png",
-                projectId: toOpaque("rBVncjZMfEPDGmCMNe2QhK"),
-                componentName: "Homepage",
-                category: "Landing Pages",
-                componentResolution: "inline",
-                tokenResolution: "inline",
-              },
-            ],
-          })}
-          {renderJsonEditor<TemplateSpec[]>({
-            fieldName: "insertableTemplates",
-            label: "insertable templates",
-            help: "JSON array of insertable templates.",
-            defaultInitialValue: [
-              {
-                displayName: "My Insertable Template",
-                imageUrl: "https://example.com/my-template.png",
-                projectId: toOpaque("3SwC2F4BeXucfS9cpFbd24"),
-                componentName: "Hero Section 1",
-                category: "Hero Sections",
-                componentResolution: "inline",
-                tokenResolution: "inline",
-              },
-            ],
-          })}
-        </div>
-        <div className="flex-no-shrink p-xxlg bt-dim">
-          <Button className="mr-sm" type="primary" htmlType="submit">
-            <UiText message={"Update"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
-        </div>
+            >
+              <BooleanControl trueLabel="Hide" falseLabel="Show" />
+            </Form.Item>
+            {renderJsonEditor<TemplateSpec[]>({
+              fieldName: "pageTemplates",
+              label: uiT("page templates"),
+              help: uiT("JSON array of page templates."),
+              defaultInitialValue: [
+                {
+                  displayName: "My Page Template",
+                  imageUrl: "https://example.com/my-template.png",
+                  projectId: toOpaque("rBVncjZMfEPDGmCMNe2QhK"),
+                  componentName: "Homepage",
+                  category: "Landing Pages",
+                  componentResolution: "inline",
+                  tokenResolution: "inline",
+                },
+              ],
+            })}
+            {renderJsonEditor<TemplateSpec[]>({
+              fieldName: "insertableTemplates",
+              label: uiT("insertable templates"),
+              help: uiT("JSON array of insertable templates."),
+              defaultInitialValue: [
+                {
+                  displayName: "My Insertable Template",
+                  imageUrl: "https://example.com/my-template.png",
+                  projectId: toOpaque("3SwC2F4BeXucfS9cpFbd24"),
+                  componentName: "Hero Section 1",
+                  category: "Hero Sections",
+                  componentResolution: "inline",
+                  tokenResolution: "inline",
+                },
+              ],
+            })}
+          </div>
+        </Scrollbar>
       </Form>
     </Modal>
   );

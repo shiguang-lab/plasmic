@@ -27,7 +27,10 @@ if (window && "matchMedia" in window) {
   require("tinymce/plugins/visualblocks");
 }
 
-import "tinymce/skins/ui/tinymce-5/skin.min.css";
+// @ts-ignore
+import lightSkin from "!!raw-loader!tinymce/skins/ui/tinymce-5/skin.min.css";
+// @ts-ignore
+import darkSkin from "!!raw-loader!tinymce/skins/ui/tinymce-5-dark/skin.min.css";
 
 // @ts-ignore
 import contentCss from "!!raw-loader!../../gen/static/styles/tinymce-content-css.txt";
@@ -37,19 +40,66 @@ import prismCss from "!!raw-loader!../../gen/static/styles/prismjs-css.txt";
 import { getCmsImageUrl } from "@/wab/client/components/sidebar/image-asset-controls";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { Editor, IAllProps } from "@tinymce/tinymce-react";
+import { useTheme } from "antd-style";
 import * as React from "react";
+import type { Editor as TinyMceEditor } from "tinymce";
 
 type TinyEditorProps = Omit<IAllProps, "onChange"> & {
   onChange: (value: string) => void;
 };
 
-export function TinyEditor({ value, onChange, ...props }: TinyEditorProps) {
+export function TinyEditor({
+  value,
+  onChange,
+  onInit,
+  ...props
+}: TinyEditorProps) {
   const appCtx = useAppCtx();
+  const token = useTheme();
+  const [editor, setEditor] = React.useState<TinyMceEditor>();
+  const contentTheme = `
+    html, body { background: ${token.colorBgContainer}; color: ${token.colorText}; }
+    body { font-family: ${token.fontFamily}; }
+    a { color: ${token.colorLink}; }
+    blockquote { border-left-color: ${token.colorBorder}; }
+    ::selection { background: ${token.colorPrimaryBgHover}; }
+  `;
+  // The editable document lives in an iframe. Update its presentation in place
+  // so appearance changes keep the draft, selection and editor undo history.
+  React.useEffect(() => {
+    if (!editor) {
+      return;
+    }
+    const doc = editor.getDoc();
+    let style = doc.getElementById("cms-editor-theme");
+    if (!style) {
+      style = doc.createElement("style");
+      style.id = "cms-editor-theme";
+      doc.head.appendChild(style);
+    }
+    style.textContent = contentTheme;
+  }, [editor, contentTheme]);
   return (
     <div>
+      <style>{`${token.isDarkMode ? darkSkin : lightSkin}
+        .tox.tox-tinymce { border-color: ${token.colorBorder}; border-radius: ${token.borderRadius}px; }
+        .tox .tox-editor-header, .tox .tox-toolbar-overlord,
+        .tox .tox-edit-area__iframe { background: ${token.colorBgContainer}; }
+        /* The bundled TinyMCE 5 skin marks toolbar backgrounds important. */
+        .tox .tox-toolbar, .tox .tox-toolbar__primary, .tox .tox-toolbar__overflow {
+          background: ${token.colorBgContainer} !important;
+          box-shadow: inset 0 -1px ${token.colorBorder};
+        }
+        .tox:not([dir=rtl]) .tox-toolbar__group:not(:last-of-type),
+        .tox[dir=rtl] .tox-toolbar__group:not(:last-of-type) { border-color: ${token.colorBorder}; }
+        .tox .tox-tbtn { color: ${token.colorText}; }
+        .tox .tox-tbtn svg { fill: ${token.colorText}; }
+        .tox .tox-tbtn:hover { background: ${token.colorFillSecondary}; }
+      `}</style>
       <Editor
         init={{
           skin: false,
+          content_css: false,
           height: 500,
           width: 600,
           menubar: false,
@@ -67,6 +117,7 @@ export function TinyEditor({ value, onChange, ...props }: TinyEditorProps) {
 
             ${contentCss}
             ${prismCss}
+            ${contentTheme}
             `,
           plugins: [
             "advlist",
@@ -99,6 +150,10 @@ export function TinyEditor({ value, onChange, ...props }: TinyEditorProps) {
           },
         }}
         {...props}
+        onInit={(event, instance) => {
+          setEditor(instance);
+          onInit?.(event, instance);
+        }}
         value={value}
         onEditorChange={(newValue) => onChange(newValue)}
       />

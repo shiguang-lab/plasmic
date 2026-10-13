@@ -84,6 +84,8 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
   overrides: PlasmicLeftImagesPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -212,7 +214,7 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
           </TextWithInfo>
         }
         description={
-          "Icons are colorable SVGs that you can use throughout your designs."
+          uiT("Icons are colorable SVGs that you can use throughout your designs.")
         }
         expandState={"expanded"}
         title={uiT("Icons")}

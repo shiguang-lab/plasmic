@@ -636,7 +636,7 @@ function PlasmicLabeledListItem__RenderFunc(props: {
               })}
             >
               {renderPlasmicSlot({
-                defaultContents: "Label",
+                defaultContents: <UiText message={"Label"} />,
                 value: args.label,
                 className: classNames(sty.slotTargetLabel, {
                   [sty.slotTargetLabeldeletable]: hasVariant(
@@ -818,7 +818,7 @@ function PlasmicLabeledListItem__RenderFunc(props: {
           {renderPlasmicSlot({
             defaultContents: (
               <div className={classNames("all", "__wab_text", sty.text__xVFjy)}>
-                {"One line"}
+                {<UiText message={"One line"} />}
               </div>
             ),
             value: args.children,

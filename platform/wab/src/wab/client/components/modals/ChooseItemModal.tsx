@@ -1,5 +1,4 @@
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { Form, Radio } from "antd";
@@ -41,6 +40,8 @@ function ChooseItemForm<T>(props: {
 }) {
   const { title, description, group, onSubmit, onCancel } = props;
   const [chosen, setChosen] = React.useState<NamedItem<T> | undefined>();
+  const [form] = Form.useForm();
+  const formId = React.useId();
   const onChange = (e) => {
     setChosen(e.target.value);
   };
@@ -51,9 +52,17 @@ function ChooseItemForm<T>(props: {
   };
 
   return (
-    <Modal title={title} open={true} footer={null} onCancel={() => onCancel()}>
+    <Modal
+      title={title}
+      open={true}
+
+      okButtonProps={{ htmlType: "submit", form: formId }}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
+      onCancel={() => onCancel()}
+    >
       {description && <p>{description}</p>}
-      <Form onFinish={() => onSubmit(chosen)}>
+      <Form id={formId} form={form} onFinish={() => onSubmit(chosen)}>
         <Form.Item required>
           <Radio.Group onChange={onChange} value={chosen}>
             {group.map((i) => (
@@ -62,19 +71,6 @@ function ChooseItemForm<T>(props: {
               </Radio>
             ))}
           </Radio.Group>
-        </Form.Item>
-        <Form.Item>
-          <Button
-            className="mr-sm"
-            type="primary"
-            htmlType="submit"
-            onClick={() => onSubmit(chosen)}
-          >
-            <UiText message={"Confirm"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
         </Form.Item>
       </Form>
     </Modal>

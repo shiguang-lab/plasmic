@@ -167,7 +167,7 @@ function PlasmicPeriodPicker__RenderFunc(props: {
             [sty.dayOptionmonth]: hasVariant($state, "month", "month"),
           })}
         >
-          {"Day"}
+          {<UiText message={"Day"} />}
         </div>
         <div
           data-plasmic-name={"monthOption"}
@@ -176,7 +176,7 @@ function PlasmicPeriodPicker__RenderFunc(props: {
             [sty.monthOptionmonth]: hasVariant($state, "month", "month"),
           })}
         >
-          {"Month"}
+          {<UiText message={"Month"} />}
         </div>
       </div>
     </div>

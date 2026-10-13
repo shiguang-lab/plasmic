@@ -4,6 +4,6 @@
   & [data-role="nonCollapsibleRowsContainer"] {
     padding-top: 8px;
     margin-top: 8px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--ui-border-subtle, #eee);
   }
 }

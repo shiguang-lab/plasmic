@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: HtHxjHknmj_
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -106,6 +107,8 @@ function PlasmicExperimentPanel__RenderFunc(props: {
   overrides: PlasmicExperimentPanel__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -214,7 +217,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
           </div>
           {(hasVariant($state, "isBase", "isBase") ? false : true)
             ? renderPlasmicSlot({
-                defaultContents: "Override",
+                defaultContents: <UiText message={"Override"} />,
                 value: args.versionName,
                 className: classNames(sty.slotTargetVersionName, {
                   [sty.slotTargetVersionNameisBase]: hasVariant(
@@ -293,7 +296,7 @@ function PlasmicExperimentPanel__RenderFunc(props: {
                 })}
               >
                 {hasVariant($state, "isEditing", "isEditing")
-                  ? "Stop Editing"
+                  ? studioUiT("Stop Editing")
                   : <UiText message={"Edit"} />}
               </div>
             </div>
@@ -428,8 +431,8 @@ function PlasmicExperimentPanel__RenderFunc(props: {
             {hasVariant($state, "type", "segment")
               ? <UiText message={"Condition"} />
               : hasVariant($state, "type", "schedule")
-              ? "Date range"
-              : "Distribution"}
+              ? studioUiT("Date range")
+              : studioUiT("Distribution")}
           </div>
         </div>
         <div

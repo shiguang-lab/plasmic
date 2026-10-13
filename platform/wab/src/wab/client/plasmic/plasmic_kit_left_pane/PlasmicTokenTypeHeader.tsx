@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: eMjSZ8G7mG
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -196,7 +197,7 @@ function PlasmicTokenTypeHeader__RenderFunc(props: {
         </div>
         <div className={classNames("all", sty.freeBox__cp1Xx)}>
           {renderPlasmicSlot({
-            defaultContents: "Colors",
+            defaultContents: <UiText message={"Colors"} />,
             value: args.tokenType,
             className: classNames(sty.slotTargetTokenType),
           })}

@@ -142,7 +142,7 @@ function PlasmicLeftLintIssuesPanel__RenderFunc(props: {
             className={classNames("all", "__wab_text", sty.description)}
           >
             {
-              "Some issues have been identified with your project.  Please fix them to avoid problems."
+              <UiText message={"Some issues have been identified with your project. Please fix them to avoid problems."} />
             }
           </div>
         }

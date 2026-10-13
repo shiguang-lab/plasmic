@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: PTsdlYdahZ76
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -149,7 +150,7 @@ function PlasmicCommentsHeader__RenderFunc(props: {
       <div className={classNames("all", sty.freeBox__wQlN)}>
         <div className={classNames("all", sty.freeBox__hBgUl)}>
           {renderPlasmicSlot({
-            defaultContents: "Name",
+            defaultContents: <UiText message={"Name"} />,
             value: args.name,
             className: classNames(sty.slotTargetName),
           })}
@@ -157,7 +158,7 @@ function PlasmicCommentsHeader__RenderFunc(props: {
         <div className={classNames("all", sty.freeBox___0PdRk)}>
           {(hasVariant($state, "nameOnly", "nameOnly") ? false : true)
             ? renderPlasmicSlot({
-                defaultContents: "Type",
+                defaultContents: <UiText message={"Type"} />,
                 value: args.type,
                 className: classNames(sty.slotTargetType, {
                   [sty.slotTargetTypenameOnly]: hasVariant(

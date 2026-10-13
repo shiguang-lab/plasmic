@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: qiIt-rIFSO0f
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -76,6 +77,8 @@ function PlasmicThreadHistory__RenderFunc(props: {
   overrides: PlasmicThreadHistory__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -220,8 +223,8 @@ function PlasmicThreadHistory__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "isResolved", "isResolved")
-              ? "Comment thread resolved."
-              : "Comment thread reopened."}
+              ? studioUiT("Comment thread resolved.")
+              : studioUiT("Comment thread reopened.")}
           </div>
         </div>
       </div>

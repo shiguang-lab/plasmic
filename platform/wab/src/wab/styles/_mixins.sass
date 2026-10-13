@@ -125,7 +125,7 @@ $panel-block-border: color.adjust($panel-block-base-color, $lightness: -15%)
   vertical-align: middle
 
 @mixin focused
-  box-shadow: 0 0 0 2px $focus-color
+  box-shadow: 0 0 0 2px var(--ui-accent, #{$focus-color})
 
 @mixin icon-button
   @include panel-button
@@ -183,10 +183,10 @@ $panel-block-border: color.adjust($panel-block-base-color, $lightness: -15%)
   @include codefont
   padding: 0 2px
   border-radius: 4px
-  color: $green10
-  background-color: white
+  color: var(--ui-success, #{$green10})
+  background-color: var(--ui-success-bg, white)
   cursor: pointer
   font-weight: bold
   vertical-align: middle
   &:hover
-    background-color: $green3
+    background-color: var(--ui-success-hover, #{$green3})

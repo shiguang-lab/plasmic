@@ -2,7 +2,7 @@
   width: 300px;
   box-sizing: border-box;
   object-fit: cover;
-  background: var(--token-rqQDmopteQdV);
+  background: var(--ui-surface, var(--token-rqQDmopteQdV));
   position: relative;
   overflow: auto;
   box-shadow: 0px 0px 12px 0px #00000040,

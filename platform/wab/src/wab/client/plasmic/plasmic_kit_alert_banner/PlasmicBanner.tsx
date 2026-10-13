@@ -11,6 +11,7 @@
 // Plasmic Project: 29njzcsBEPR4koRddw4knF
 // Component: LlDTs6h34ISG
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -115,20 +116,22 @@ function PlasmicBanner__RenderFunc(props: {
   overrides: PlasmicBanner__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
     () =>
       Object.assign(
         {
-          message: "This is normal text",
+          message: studioUiT("This is normal text"),
           dismissible: false,
         },
         Object.fromEntries(
           Object.entries(props.args).filter(([_, v]) => v !== undefined)
         )
       ),
-    [props.args]
+    [props.args, studioUiT]
   );
 
   const $props = {

@@ -11,6 +11,7 @@
 // Plasmic Project: eyjDfHaWPk4awNJAqhg4Cb
 // Component: MgtZV0FX0Q
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -184,7 +185,7 @@ function PlasmicMultiplayerFollowingBorder__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__nGj4L)}
                 >
-                  {"Following "}
+                  {<><UiText message={"Following"} />{" "}</>}
                 </div>
                 <div
                   className={classNames("all", "__wab_text", sty.text__p4Adk)}

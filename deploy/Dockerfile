@@ -36,7 +36,7 @@ COPY --chown=node:node deploy/nas-ai-init.ts src/wab/server/nas-ai-init.ts
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node
-ENV NODE_ENV=development MAX_HEAP_SIZE=1536 NODE_PATH=/plasmic/platform/wab/node_modules
+ENV NODE_ENV=development PLASMIC_SELF_HOSTED=1 MAX_HEAP_SIZE=1536 NODE_PATH=/plasmic/platform/wab/node_modules
 EXPOSE 3004
 ENTRYPOINT ["plasmic-server"]
 CMD ["src/wab/server/main.ts"]

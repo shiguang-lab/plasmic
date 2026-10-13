@@ -141,7 +141,7 @@ function PlasmicDiffs__RenderFunc(props: {
                       className={classNames("all", "__wab_text", sty.label)}
                     >
                       <React.Fragment>
-                        <React.Fragment>{"Changes in "}</React.Fragment>
+                        <React.Fragment>{<><UiText message={"Changes in"} />{" "}</>}</React.Fragment>
                         {
                           <span
                             data-plasmic-name={"branchLabel"}
@@ -155,7 +155,7 @@ function PlasmicDiffs__RenderFunc(props: {
                               sty.branchLabel
                             )}
                           >
-                            {"the main branch"}
+                            {<UiText message={"the main branch"} />}
                           </span>
                         }
                         <React.Fragment>{""}</React.Fragment>
@@ -193,7 +193,7 @@ function PlasmicDiffs__RenderFunc(props: {
             >
               <div className={classNames("all", sty.freeBox__wTUx)}>
                 {renderPlasmicSlot({
-                  defaultContents: "Enter some text",
+                  defaultContents: <UiText message={"Enter some text"} />,
                   value: args.children,
                 })}
               </div>

@@ -1,6 +1,8 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { reactAlert, reactConfirm } from "@/wab/client/components/quick-modals";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { ApiPermission, ApiProject } from "@/wab/shared/ApiSchema";
 import * as React from "react";
 
@@ -21,8 +23,10 @@ export async function showRegenerateSecretTokenModal({
 }) {
   if (
     !(await reactConfirm({
-      message:
+      message: translate(
+        getUiLocale(),
         "Generate new secret API token? (This will invalidate any existing secret token.) This is only needed for the Write API.",
+      ),
     }))
   ) {
     return;

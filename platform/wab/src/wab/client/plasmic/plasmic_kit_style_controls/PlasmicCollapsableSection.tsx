@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: OW_7AtJANr
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -208,7 +209,7 @@ function PlasmicCollapsableSection__RenderFunc(props: {
         {renderPlasmicSlot({
           defaultContents: (
             <div className={classNames("all", "__wab_text", sty.text___2OyO6)}>
-              {"Section content here and there and everywhere!!  Yup okay!"}
+              {<UiText message={"Section content here and there and everywhere!! Yup okay!"} />}
             </div>
           ),
           value: args.children,

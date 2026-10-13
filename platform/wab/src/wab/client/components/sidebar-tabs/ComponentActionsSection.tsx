@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import {
@@ -447,9 +451,10 @@ function ButtonAction<P>({
               )
               .then(ensureOk)
               .catch((error) => {
-                notification.error({
+                notification.open({
+                  type: getErrorType(error),
                   message: translate(getUiLocale(), "Component action failed"),
-                  description: error.message,
+                  description: <ErrorDescription error={error} />,
                 });
                 reportError(error);
               }),

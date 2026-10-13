@@ -11,6 +11,8 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: p3GgKAlaQe
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -85,6 +87,8 @@ function PlasmicFreeTrial__RenderFunc(props: {
   overrides: PlasmicFreeTrial__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -240,13 +244,13 @@ function PlasmicFreeTrial__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "trialEnded", "trialEnded")
-              ? "Trial ended"
+              ? studioUiT("Trial ended")
               : hasVariant($state, "topBar", "topBar")
-              ? "Trial"
-              : "Scale plan trial"}
+              ? studioUiT("Trial")
+              : studioUiT("Scale plan trial")}
           </div>
           {renderPlasmicSlot({
-            defaultContents: "0 days left",
+            defaultContents: <UiText message={"0 days left"} />,
             value: args.freeTrialTimeRemaining,
             className: classNames(sty.slotTargetFreeTrialTimeRemaining, {
               [sty.slotTargetFreeTrialTimeRemainingaccountSection]: hasVariant(

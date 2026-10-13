@@ -70,7 +70,7 @@ function CmsLeftTabs_(props: CmsLeftTabsProps, ref: HTMLElementRefOf<"div">) {
       settingsButton={{
         style: shouldHideSettingsButton ? { display: "none" } : {},
         href: APP_ROUTES.cmsSettings.fill(params),
-        tooltip: "CMS Settings",
+        tooltip: t("CMS Settings"),
         "data-test-id": "cmsSettings",
       }}
     />

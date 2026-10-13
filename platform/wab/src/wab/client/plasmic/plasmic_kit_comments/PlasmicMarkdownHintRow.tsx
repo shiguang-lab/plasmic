@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: T7mVQBFEWA-V
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -110,7 +111,7 @@ function PlasmicMarkdownHintRow__RenderFunc(props: {
     >
       <div className={classNames("all", sty.freeBox__d5Rgg)}>
         {renderPlasmicSlot({
-          defaultContents: "Heading",
+          defaultContents: <UiText message={"Heading"} />,
           value: args.name,
           className: classNames(sty.slotTargetName),
         })}

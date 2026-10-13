@@ -12,7 +12,6 @@ import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame
 import ShareModal from "@/wab/client/components/TopFrame/TopBar/ShareModal";
 import UpsellModal from "@/wab/client/components/TopFrame/TopBar/UpsellModal";
 import { AppAuthSettingsModal } from "@/wab/client/components/app-auth/AppAuthSettings";
-import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
@@ -26,6 +25,7 @@ import {
 import { FloatingWindowLayer } from "@/wab/client/components/widgets/FloatingWindow";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
+import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
 import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import {
@@ -35,6 +35,7 @@ import {
   TopFrameApiReturnType,
 } from "@/wab/client/frame-ctx/top-frame-api";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
@@ -147,13 +148,17 @@ export function TopFrameChrome({
   didShowRegenerateSecretTokenModal,
   ...rest
 }: TopFrameChromeProps) {
+  const { t: studioUiT } = useI18n();
+
   React.useEffect(() => {
-    if (!appCtx.appConfig.enableLocalAiEditing) { return; }
+    if (!appCtx.appConfig.enableLocalAiEditing) {
+      return;
+    }
     const session = getLocalEditSession(project.id);
     session.userId = appCtx.selfInfo?.id;
     session.connect();
     return () => session.disconnect();
-  }, [project.id, appCtx.appConfig.enableLocalAiEditing,appCtx.selfInfo?.id]);
+  }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id]);
   const selectDelivery = (tab: DeliveryTab) => {
     const setter =
       tab === "share"
@@ -170,6 +175,14 @@ export function TopFrameChrome({
     }
   }, [hostFrameApi, hostFrameApiReady, rest.showCopilotChatModal]);
   const location = useLocation();
+  const preview =
+    !!APP_ROUTES.projectPreview.parse(location.pathname, false) ||
+    !!APP_ROUTES.projectFullPreview.parse(location.pathname, false);
+  React.useEffect(() => {
+    if (preview) {
+      spawn(topFrameApi.closeCopilotChat());
+    }
+  }, [preview, topFrameApi]);
   const fullPreview = !!APP_ROUTES.projectFullPreview.parse(
     location.pathname,
     false,
@@ -385,7 +398,9 @@ export function TopFrameChrome({
             )}
             {rest.showUiConfigModal && (
               <ContentEditorConfigModal
-                title={`Studio UI for ${project.name}`}
+                title={studioUiT("Studio UI for {part1}", {
+                  part1: String(project.name),
+                })}
                 appCtx={appCtx}
                 level={"project"}
                 onSubmit={async (newConfig) => {
@@ -396,8 +411,9 @@ export function TopFrameChrome({
                   }
                   await topFrameApi.setShowUiConfigModal(false);
                   notification.info({
-                    message:
+                    message: studioUiT(
                       "Changes in the configuration UI will only take place after refreshing the page",
+                    ),
                     duration: 5,
                   });
                 }}
@@ -425,7 +441,7 @@ export function TopFrameChrome({
               editorPerm &&
               rest.localAiContext &&
               !rest.showCopilotChatModal &&
-              !fullPreview && (
+              !preview && (
                 <CanvasAiComposer
                   appCtx={appCtx}
                   projectId={project.id}
@@ -435,7 +451,7 @@ export function TopFrameChrome({
                 />
               )}
             <FloatingWindowLayer>
-              {hostFrameApiReady && rest.showCopilotChatModal && (
+              {hostFrameApiReady && rest.showCopilotChatModal && !preview && (
                 <CopilotChat
                   width={rest.leftPaneWidth}
                   project={project}

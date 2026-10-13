@@ -9,7 +9,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
-import { Button, Form } from "antd";
+import { Form } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 
@@ -30,6 +30,8 @@ export const ProjectNameModal = observer(function ProjectNameModal({
   const { hostFrameApi } = useTopFrameCtx();
   const [name, setName] = React.useState(project.name);
   const appCtx = useAppCtx();
+  const [form] = Form.useForm();
+  const formId = React.useId();
 
   const onSubmit = (newName: string) => {
     if (newName && (newName !== project.name || newName !== name)) {
@@ -55,12 +57,20 @@ export const ProjectNameModal = observer(function ProjectNameModal({
         <Modal
           title={null}
           open={true}
-          footer={null}
+          okText={<UiText message="Submit" />}
+          cancelText={<UiText message="Cancel" />}
+          okButtonProps={{
+            htmlType: "submit",
+            form: formId,
+            "data-test-id": "prompt-submit",
+          }}
           onCancel={() => setShowProjectNameModal(false)}
           closable={false}
           wrapClassName="prompt-modal"
         >
           <Form
+            id={formId}
+            form={form}
             onFinish={(e) => {
               onSubmit(e.name);
             }}
@@ -76,19 +86,6 @@ export const ProjectNameModal = observer(function ProjectNameModal({
                 autoFocus
                 data-test-id="promptName"
               />
-            </Form.Item>
-            <Form.Item style={{ margin: 0 }}>
-              <Button
-                className="mr-sm"
-                type="primary"
-                htmlType="submit"
-                data-test-id="prompt-submit"
-              >
-                {<UiText message={"Submit"} />}
-              </Button>
-              <Button onClick={() => setShowProjectNameModal(false)}>
-                <UiText message={"Cancel"} />
-              </Button>
             </Form.Item>
           </Form>
         </Modal>

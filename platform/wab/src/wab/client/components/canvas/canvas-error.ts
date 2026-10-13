@@ -3,6 +3,8 @@ import {
   RenderingCtx,
 } from "@/wab/client/components/canvas/canvas-rendering";
 import { handleError } from "@/wab/client/ErrorNotifications";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   classNameProp,
@@ -182,11 +184,13 @@ export function withErrorDisplayFallback<T>(
       ctx,
       nodeOrComponent,
       error,
-      title: `Error in ${
-        isKnownComponent(nodeOrComponent)
-          ? getComponentDisplayName(nodeOrComponent)
-          : summarizeTpl(nodeOrComponent)
-      }:`,
+      title: translate(getUiLocale(), "Error in {part1}:", {
+        part1: String(
+          isKnownComponent(nodeOrComponent)
+            ? getComponentDisplayName(nodeOrComponent)
+            : summarizeTpl(nodeOrComponent),
+        ),
+      }),
     });
   }
 }

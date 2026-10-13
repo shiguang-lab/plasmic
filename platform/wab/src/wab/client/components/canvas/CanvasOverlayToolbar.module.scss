@@ -12,26 +12,26 @@
   width: 20px;
   height: 20px;
   padding: 0;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--ui-border, #d9d9d9);
   border-radius: 4px;
-  background: white;
-  color: #666;
+  background: var(--ui-surface, white);
+  color: var(--ui-muted, #666);
   font-size: 14px;
   cursor: pointer;
 
   &:hover {
-    border-color: #0091ff;
-    color: #0091ff;
+    border-color: var(--ui-accent, #0091ff);
+    color: var(--ui-accent, #0091ff);
   }
 
   &[aria-pressed="true"] {
-    border-color: #0091ff;
-    background: #0091ff;
-    color: white;
+    border-color: var(--ui-accent, #0091ff);
+    background: var(--ui-accent, #0091ff);
+    color: var(--ui-on-accent, white);
   }
 
   &:focus-visible {
-    outline: 2px solid #0091ff;
+    outline: 2px solid var(--ui-accent, #0091ff);
     outline-offset: 2px;
   }
 }

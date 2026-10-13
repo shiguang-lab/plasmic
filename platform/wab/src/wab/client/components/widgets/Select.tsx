@@ -1,5 +1,6 @@
 import Option from "@/wab/client/components/widgets/Select__Option";
 import OptionGroup from "@/wab/client/components/widgets/Select__OptionGroup";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultSelectProps,
   PlasmicSelect,
@@ -10,7 +11,13 @@ import * as React from "react";
 type SelectProps = DefaultSelectProps;
 
 function Select_(props: SelectProps, ref: SelectRef) {
-  const { plasmicProps, state: _state } = PlasmicSelect.useBehavior(props, ref);
+  const { plasmicProps, state: _state } = PlasmicSelect.useBehavior(
+    {
+      ...props,
+      placeholder: props.placeholder ?? <UiText message="Select..." />,
+    },
+    ref,
+  );
   return <PlasmicSelect {...plasmicProps} />;
 }
 

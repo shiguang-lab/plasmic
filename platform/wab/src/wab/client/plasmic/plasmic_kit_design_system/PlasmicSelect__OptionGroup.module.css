@@ -4,7 +4,7 @@
   width: 100%;
   height: auto;
   flex-direction: column;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   min-width: 0;
 }
 .titleContainer {

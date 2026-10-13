@@ -139,7 +139,9 @@ export function DataSourcePicker({
                     >
                       <Select.Option
                         key="create"
-                        textValue={`Create new ${DATA_SOURCE_LOWER}`}
+                        textValue={uiT("Create new {part1}", {
+                          part1: String(DATA_SOURCE_LOWER),
+                        })}
                         value="create"
                       >
                         <UiText

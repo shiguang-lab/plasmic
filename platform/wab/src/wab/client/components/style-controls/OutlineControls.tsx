@@ -106,9 +106,9 @@ export const OutlinePanelSection = observer(function OutlinePanelSection() {
             tokenType={"Spacing"}
             dimOpts={{
               extraOptions: [
-                { value: "thin", label: "Thin" },
+                { value: "thin", label: uiT("Thin") },
                 { value: "medium", label: uiT("Medium") },
-                { value: "thick", label: "Thick" },
+                { value: "thick", label: uiT("Thick") },
               ],
               min: 0,
               allowedUnits: LENGTH_PERCENTAGE_UNITS,

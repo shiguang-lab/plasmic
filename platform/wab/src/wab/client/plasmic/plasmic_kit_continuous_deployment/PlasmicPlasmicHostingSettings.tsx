@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: aFapl-YUjv9
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -116,6 +117,8 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
   overrides: PlasmicPlasmicHostingSettings__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -411,7 +414,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                     sty.domainErrorMessage7
                   )}
                 >
-                  {"{yoursite.com} is already taken."}
+                  {<UiText message={"{yoursite.com} is already taken."} />}
                 </div>
               </ErrorFeedback>
             </div>
@@ -471,7 +474,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
             <Button
               data-plasmic-name={"saveSubdomainButton"}
               data-plasmic-override={overrides.saveSubdomainButton}
-              caption={"Caption"}
+              caption={studioUiT("Caption")}
               disabled={
                 hasVariant($state, "subdomain", "loading")
                   ? true
@@ -533,7 +536,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                   >
                     <React.Fragment>
                       <React.Fragment>
-                        {"{yoursite.com} is already owned by another team. "}
+                        {<><UiText message={"{yoursite.com} is already owned by another team."} />{" "}</>}
                       </React.Fragment>
                       <span
                         className={
@@ -552,7 +555,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 <Button
                   data-plasmic-name={"refreshButton7"}
                   data-plasmic-override={overrides.refreshButton7}
-                  caption={"Caption"}
+                  caption={studioUiT("Caption")}
                   endIcon={
                     <ChevronDownSvgIcon
                       className={classNames("all", sty.svg__vFRdg)}
@@ -574,7 +577,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 <Button
                   data-plasmic-name={"refreshButton8"}
                   data-plasmic-override={overrides.refreshButton8}
-                  caption={"Caption"}
+                  caption={studioUiT("Caption")}
                   color={"red"}
                   endIcon={
                     <ChevronDownSvgIcon
@@ -709,7 +712,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
               >
                 <React.Fragment>
                   <React.Fragment>
-                    {"{yoursite.com} is already owned by another team. "}
+                    {<><UiText message={"{yoursite.com} is already owned by another team."} />{" "}</>}
                   </React.Fragment>
                   <span
                     className={
@@ -772,7 +775,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
             <Button
               data-plasmic-name={"addCustomDomainButton"}
               data-plasmic-override={overrides.addCustomDomainButton}
-              caption={"Caption"}
+              caption={studioUiT("Caption")}
               disabled={
                 hasVariant($state, "customDomain", "loading")
                   ? true
@@ -824,7 +827,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
             <div className={classNames("all", "__wab_text", sty.text__arLZl)}>
               <React.Fragment>
                 <React.Fragment>
-                  {"Below features are exclusive to paid plans. "}
+                  {<><UiText message={"Below features are exclusive to paid plans."} />{" "}</>}
                 </React.Fragment>
                 {
                   <PlasmicLink__
@@ -854,7 +857,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                     </React.Fragment>
                   </PlasmicLink__>
                 }
-                <React.Fragment>{" or "}</React.Fragment>
+                <React.Fragment>{<>{" "}<UiText message={"or"} />{" "}</>}</React.Fragment>
                 {
                   <PlasmicLink__
                     data-plasmic-name={"upgradeNowLink"}

@@ -1,5 +1,4 @@
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useI18n } from "@/wab/client/i18n";
@@ -29,22 +28,15 @@ export async function promptExtractComponent(props: {
   serverQueriesToCreateProps: ComponentServerQuery[];
 }) {
   return showTemporaryPrompt<ExtractComponentResponse>((onSubmit, onCancel) => (
-    <Modal
-      title={<UiText message="Create new component" />}
-      footer={null}
-      open={true}
+    <ExtractComponentForm
+      site={props.site}
+      containingComponent={props.containingComponent}
+      linkedParams={props.linkedParams}
+      queriesToCreateProps={props.queriesToCreateProps}
+      serverQueriesToCreateProps={props.serverQueriesToCreateProps}
+      onSubmit={(resp) => onSubmit(resp)}
       onCancel={() => onCancel()}
-    >
-      <ExtractComponentForm
-        site={props.site}
-        containingComponent={props.containingComponent}
-        linkedParams={props.linkedParams}
-        queriesToCreateProps={props.queriesToCreateProps}
-        serverQueriesToCreateProps={props.serverQueriesToCreateProps}
-        onSubmit={(resp) => onSubmit(resp)}
-        onCancel={() => onCancel()}
-      />
-    </Modal>
+    />
   ));
 }
 
@@ -58,6 +50,8 @@ export function ExtractComponentForm(props: {
   onCancel: () => void;
 }) {
   const { t: uiT } = useI18n();
+  const [form] = Form.useForm();
+  const formId = React.useId();
   const {
     containingComponent,
     linkedParams,
@@ -83,69 +77,70 @@ export function ExtractComponentForm(props: {
   }));
 
   return useObserver(() => (
-    <Form
-      onFinish={(_e) => {
-        if (resp.name && !errors.get().name) {
-          props.onSubmit(resp);
-        }
+    <Modal
+      title={<UiText message="Create new component" />}
+      open
+      onCancel={props.onCancel}
+      okText={<UiText message="Create component" />}
+      cancelText={<UiText message="Cancel" />}
+      okButtonProps={{
+        htmlType: "submit",
+        form: formId,
+        disabled: !resp.name || !!errors.get().name,
       }}
-      layout="horizontal"
-      data-test-id="extract-component-form"
     >
-      <Form.Item
-        label={uiT("Component name")}
-        validateStatus={errors.get().name ? "error" : undefined}
-        help={errors.get().name}
+      <Form
+        id={formId}
+        form={form}
+        onFinish={(_e) => {
+          if (resp.name && !errors.get().name) {
+            props.onSubmit(resp);
+          }
+        }}
+        layout="horizontal"
+        data-test-id="extract-component-form"
       >
-        <Textbox
-          onChange={(e) => (resp.name = e.target.value)}
-          value={resp.name}
-          autoFocus={true}
-          placeholder={uiT("Enter the name of your new component")}
-          data-test-id="extract-component-name"
-          styleType={["bordered"]}
-        />
-      </Form.Item>
-      {(linkedParams.length > 0 ||
-        queriesToCreateProps.length > 0 ||
-        serverQueriesToCreateProps.length > 0) &&
-        !!containingComponent.name && (
-          <div className="mb-xlg">
-            <UiText
-              message={"Your new component will also have props for {part1}."}
-              values={{
-                part1: joinReactNodes(
-                  [
-                    ...linkedParams.map((s) => (
-                      <code key={s.variable.name}>{s.variable.name}</code>
-                    )),
-                    ...queriesToCreateProps.map((q) => (
-                      <code key={q.name}>{q.name}</code>
-                    )),
-                    ...serverQueriesToCreateProps.map((q) => (
-                      <code key={q.name}>{q.name}</code>
-                    )),
-                  ],
-                  ", ",
-                ),
-              }}
-            />
-          </div>
-        )}
-      <Form.Item>
-        <Button
-          className="mr-sm"
-          type="primary"
-          htmlType="submit"
-          onClick={() => props.onSubmit(resp)}
-          disabled={!resp.name || !!errors.get().name}
+        <Form.Item
+          label={uiT("Component name")}
+          validateStatus={errors.get().name ? "error" : undefined}
+          help={errors.get().name}
         >
-          <UiText message={"Create component"} />
-        </Button>
-        <Button onClick={() => props.onCancel()}>
-          <UiText message={"Cancel"} />
-        </Button>
-      </Form.Item>
-    </Form>
+          <Textbox
+            onChange={(e) => (resp.name = e.target.value)}
+            value={resp.name}
+            autoFocus={true}
+            placeholder={uiT("Enter the name of your new component")}
+            data-test-id="extract-component-name"
+            styleType={["bordered"]}
+          />
+        </Form.Item>
+        {(linkedParams.length > 0 ||
+          queriesToCreateProps.length > 0 ||
+          serverQueriesToCreateProps.length > 0) &&
+          !!containingComponent.name && (
+            <div className="mb-xlg">
+              <UiText
+                message={"Your new component will also have props for {part1}."}
+                values={{
+                  part1: joinReactNodes(
+                    [
+                      ...linkedParams.map((s) => (
+                        <code key={s.variable.name}>{s.variable.name}</code>
+                      )),
+                      ...queriesToCreateProps.map((q) => (
+                        <code key={q.name}>{q.name}</code>
+                      )),
+                      ...serverQueriesToCreateProps.map((q) => (
+                        <code key={q.name}>{q.name}</code>
+                      )),
+                    ],
+                    ", ",
+                  ),
+                }}
+              />
+            </div>
+          )}
+      </Form>
+    </Modal>
   ));
 }

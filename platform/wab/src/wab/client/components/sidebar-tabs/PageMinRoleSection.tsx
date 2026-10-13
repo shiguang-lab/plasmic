@@ -94,7 +94,11 @@ function PageMinRoleSection_({ page }: { page: Component }) {
           >
             <Form onFinish={() => onSubmit("downgrade")}>
               <span>
-                <UiText message="Some operations in the current page have higher minimum role than the new selected minimum role of the page. Do you want to downgrade them or keep the required role?" />
+                <UiText
+                  message={
+                    "Some operations in the current page have higher minimum role than the new selected minimum role of the page. Do you want to downgrade them or keep the required role?"
+                  }
+                />
               </span>
               <Form.Item style={{ marginBottom: 0, marginTop: 28 }}>
                 <Button
@@ -141,7 +145,10 @@ function PageMinRoleSection_({ page }: { page: Component }) {
 
   return (
     <SidebarSection style={{ paddingTop: 12 }}>
-      <LabeledItemRow label={uiT("Role needed")} tooltip={MIN_ROLE_TOOLTIP}>
+      <LabeledItemRow
+        label={uiT("Role needed")}
+        tooltip={uiT(MIN_ROLE_TOOLTIP)}
+      >
         <AntSelect
           className="form-control textboxlike"
           style={{ width: "100%" }}
@@ -247,8 +254,9 @@ function PageMinRoleSection_({ page }: { page: Component }) {
 
             if (upgradeOperations.length > 0) {
               notification.warning({
-                message:
+                message: uiT(
                   "Data source operations have been upgraded to match the new page minimum role.",
+                ),
               });
             }
           }}

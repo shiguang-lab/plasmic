@@ -6,7 +6,7 @@
   width: 100%;
   height: auto;
   max-width: 100%;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   position: relative;
   row-gap: 8px;
   min-width: 0;

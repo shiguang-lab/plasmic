@@ -1,3 +1,5 @@
+import { normalizeError, showError } from "@/wab/client/ErrorNotifications";
+import { ErrorDescription } from "@/wab/client/api-error-presentation";
 import { useNonAuthCtx } from "@/wab/client/app-ctx";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useAdminCtx } from "@/wab/client/components/pages/admin/AdminCtx";
@@ -42,6 +44,8 @@ import {
 import React, { useMemo, useState } from "react";
 
 export function AdminTeamsView() {
+  const { t: studioUiT } = useI18n();
+
   const { teamId, navigate } = useAdminCtx();
   const nonAuthCtx = useNonAuthCtx();
   const {
@@ -68,12 +72,12 @@ export function AdminTeamsView() {
         items={[
           {
             key: "paying",
-            label: "Paying teams",
+            label: studioUiT("Paying teams"),
             children: <PayingTeamsView />,
           },
           {
             key: "user",
-            label: "Lookup team by user",
+            label: studioUiT("Lookup team by user"),
             children: <TeamLookupByUser />,
           },
         ]}
@@ -84,7 +88,7 @@ export function AdminTeamsView() {
             <div className="flex-col">
               <h1 className="m0">
                 {data ? (
-                  `Team: ${data.team.name}`
+                  studioUiT("Team: {part1}", { part1: String(data.team.name) })
                 ) : (
                   <UiText message={"Loading..."} />
                 )}
@@ -95,7 +99,8 @@ export function AdminTeamsView() {
           loading={loading}
           extra={
             <Button onClick={() => navigate({ tab: "teams" })}>
-              Close team
+              {" "}
+              <UiText message={"Close team"} />{" "}
             </Button>
           }
         >
@@ -126,7 +131,9 @@ function TeamLookupByUser() {
 
   return (
     <>
-      <h2>Lookup teams for user</h2>
+      <h2>
+        <UiText message={"Lookup teams for user"} />
+      </h2>
       <AdminUserSelect onChange={(val) => setUserId(val)} />
       <TeamTable
         loading={listTeams.loading}
@@ -151,7 +158,9 @@ function PayingTeamsView() {
 
   return (
     <>
-      <h2>All customers</h2>
+      <h2>
+        <UiText message={"All customers"} />
+      </h2>
       <TeamTable
         loading={listTeams.loading}
         teams={listTeams.value?.teams ?? []}
@@ -161,6 +170,8 @@ function PayingTeamsView() {
 }
 
 function TeamTable(props: { loading: boolean; teams: ApiTeam[] }) {
+  const { t: studioUiT } = useI18n();
+
   const { navigate } = useAdminCtx();
   return (
     <Table<ApiTeam>
@@ -169,7 +180,7 @@ function TeamTable(props: { loading: boolean; teams: ApiTeam[] }) {
       rowKey="id"
       columns={[
         {
-          title: "Team",
+          title: studioUiT("Team"),
           dataIndex: "name",
           render: smartRender,
           sorter: {
@@ -179,23 +190,23 @@ function TeamTable(props: { loading: boolean; teams: ApiTeam[] }) {
           defaultSortOrder: "ascend",
         },
         {
-          title: "Feature Tier",
+          title: studioUiT("Feature Tier"),
           key: "featureTier",
           filters: [
             {
-              text: "Enterprise",
+              text: studioUiT("Enterprise"),
               value: "Enterprise",
             },
             {
-              text: "Team (Scale)",
+              text: studioUiT("Team (Scale)"),
               value: "Team",
             },
             {
-              text: "Starter",
+              text: studioUiT("Starter"),
               value: "Starter",
             },
             {
-              text: "Free",
+              text: studioUiT("Free"),
               value: "Free",
             },
           ],
@@ -247,25 +258,25 @@ function TeamTable(props: { loading: boolean; teams: ApiTeam[] }) {
           defaultSortOrder: "descend",
         },
         {
-          title: "Seats",
+          title: studioUiT("Seats"),
           dataIndex: "seats",
           render: smartRender,
           sorter: (a, b) => (a.seats ?? 0) - (b.seats ?? 0),
         },
         {
-          title: "Billing Email",
+          title: studioUiT("Billing Email"),
           dataIndex: "billingEmail",
           render: smartRender,
           sorter: (a, b) => a.billingEmail.localeCompare(b.billingEmail),
         },
         {
-          title: "Created at",
+          title: studioUiT("Created at"),
           dataIndex: "createdAt",
           render: smartRender,
           sorter: (a, b) => (a.createdAt < b.createdAt ? -1 : 1),
         },
         {
-          title: "Modified at",
+          title: studioUiT("Modified at"),
           dataIndex: "updatedAt",
           render: smartRender,
           sorter: (a, b) => (a.updatedAt < b.updatedAt ? -1 : 1),
@@ -296,7 +307,7 @@ function TeamDetail(props: TeamProps) {
         items={[
           {
             key: "links",
-            label: "Quick Links",
+            label: uiT("Quick Links"),
             children: <QuickLinks {...props} />,
           },
           {
@@ -306,17 +317,17 @@ function TeamDetail(props: TeamProps) {
           },
           {
             key: "billing",
-            label: "Billing",
+            label: uiT("Billing"),
             children: <Billing {...props} />,
           },
           {
             key: "discourse",
-            label: "Discourse",
+            label: uiT("Discourse"),
             children: <TeamDiscourseInfo {...props} />,
           },
           {
             key: "white-label",
-            label: "White-label",
+            label: uiT("White-label"),
             children: <WhiteLabel {...props} />,
           },
           {
@@ -327,7 +338,9 @@ function TeamDetail(props: TeamProps) {
         ]}
       />
       <div>
-        <h2>Info</h2>
+        <h2>
+          <UiText message={"Info"} />
+        </h2>
         <AutoInfo info={props.team} />
       </div>
     </div>
@@ -380,6 +393,8 @@ function CheckStripeSubscription({
   featureTier,
   refetch,
 }: TeamProps & { featureTier: ApiFeatureTier }) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <Button
@@ -387,17 +402,28 @@ function CheckStripeSubscription({
         const res = await nonAuthCtx.api.getSubscription(team.id);
         if (res.type === "success") {
           notification.info({
-            message: `Organization ${team.name} on ${featureTier.name} plan has Stripe subscription status ${res.subscription.status}`,
+            message: studioUiT(
+              "Organization {part1} on {part2} plan has Stripe subscription status {part3}",
+              {
+                part1: String(team.name),
+                part2: String(featureTier.name),
+                part3: String(res.subscription.status),
+              },
+            ),
           });
         } else {
           notification.error({
-            message: `Organization ${team.name} does not have a subscription`,
+            message: studioUiT(
+              "Organization {part1} does not have a subscription",
+              { part1: String(team.name) },
+            ),
           });
         }
         refetch();
       }}
     >
-      Check Stripe subscription
+      {" "}
+      <UiText message={"Check Stripe subscription"} />{" "}
     </Button>
   );
 }
@@ -407,35 +433,46 @@ function CancelTeamPlan({
   featureTier,
   refetch,
 }: TeamProps & { featureTier: ApiFeatureTier }) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <Button
       onClick={async () => {
         Modal.confirm({
-          title: `Cancel ${featureTier.name} plan for organization ${team.name}?`,
+          title: studioUiT("Cancel {part1} plan for organization {part2}?", {
+            part1: String(featureTier.name),
+            part2: String(team.name),
+          }),
           content: `This cancels the Stripe subscription and puts the organization on the free tier. No refunds will be issued.`,
           onOk: async () => {
             await nonAuthCtx.api.cancelSubscription(team.id);
             refetch();
             notification.info({
-              message: `Canceled ${featureTier.name} plan for organization ${team.name}`,
+              message: studioUiT(
+                "Canceled {part1} plan for organization {part2}",
+                { part1: String(featureTier.name), part2: String(team.name) },
+              ),
             });
           },
         });
       }}
     >
-      <UiText message={"Cancel"} /> {featureTier.name} plan
+      <UiText message={"Cancel"} /> {featureTier.name}{" "}
+      <UiText message={"plan"} />{" "}
     </Button>
   );
 }
 
 function ResetTeamTrial({ team, refetch }: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <Button
       onClick={() => {
         Modal.confirm({
-          title: "Reset team trial?",
+          title: studioUiT("Reset team trial?"),
           content: `This will reset the team trial for team "${team.name}"`,
           onOk: async () => {
             await nonAuthCtx.api.resetTeamTrial(team.id);
@@ -444,7 +481,8 @@ function ResetTeamTrial({ team, refetch }: TeamProps) {
         });
       }}
     >
-      Reset team trial
+      {" "}
+      <UiText message={"Reset team trial"} />{" "}
     </Button>
   );
 }
@@ -454,6 +492,8 @@ function ResetTeamTrial({ team, refetch }: TeamProps) {
  * - Note that you need
  */
 function TeamTierControls({ team }: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const teamId = team.id;
   const [error, setError] = useState("");
@@ -473,21 +513,37 @@ function TeamTierControls({ team }: TeamProps) {
   >();
   return (
     <div>
-      <h2>Modify team billing</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <h2>Upgrade a team from free tier</h2>
+      <h2>
+        <UiText message={"Modify team billing"} />
+      </h2>
+      {!!error && (
+        <p style={{ color: "red" }}>
+          <ErrorDescription error={error} />
+        </p>
+      )}
+      <h2>
+        <UiText message={"Upgrade a team from free tier"} />
+      </h2>
       <p></p>
       <ul>
         <li>
-          1. First manually create a Stripe customer and subscription for them.
-          If Enterprise, select the right combination of products based on what
-          was negotiated. If you plan on charging, make sure you send the user
-          the invoice when making the subscription.
+          {" "}
+          <UiText
+            message={
+              "1. First manually create a Stripe customer and subscription for them. If Enterprise, select the right combination of products based on what was negotiated. If you plan on charging, make sure you send the user the invoice when making the subscription."
+            }
+          />{" "}
         </li>
-        <li>2. Populate every field in this form</li>
         <li>
-          Warning: If you run this on a team that's already on a paid tier, it
-          will NOT cancel the existing subscription
+          <UiText message={"2. Populate every field in this form"} />
+        </li>
+        <li>
+          {" "}
+          <UiText
+            message={
+              "Warning: If you run this on a team that's already on a paid tier, it will NOT cancel the existing subscription"
+            }
+          />{" "}
         </li>
       </ul>
       <Form
@@ -527,7 +583,9 @@ function TeamTierControls({ team }: TeamProps) {
           });
           setError("");
           notification.info({
-            message: `Upgraded Team ${teamId}`,
+            message: studioUiT("Upgraded Team {part1}", {
+              part1: String(teamId),
+            }),
           });
         }}
       >
@@ -545,26 +603,30 @@ function TeamTierControls({ team }: TeamProps) {
         <Input
           type={"input"}
           value={seats}
-          placeholder="Number of Seats"
+          placeholder={studioUiT("Number of Seats")}
           onChange={(e) => setSeats(parseInt(e.target.value))}
         />
         <Select
           style={{ width: 120 }}
           onChange={(v: BillingFrequency) => setBillingFreq(v)}
         >
-          <Select.Option value="month">Monthly</Select.Option>
-          <Select.Option value="year">Yearly</Select.Option>
+          <Select.Option value="month">
+            <UiText message={"Monthly"} />
+          </Select.Option>
+          <Select.Option value="year">
+            <UiText message={"Yearly"} />
+          </Select.Option>
         </Select>
         <Input
           type={"input"}
           value={billingEmail}
-          placeholder="Billing Email"
+          placeholder={studioUiT("Billing Email")}
           onChange={(e) => setBillingEmail(e.target.value)}
         />
         <Input
           type={"input"}
           value={stripeCustomerId}
-          placeholder="Stripe Customer Id"
+          placeholder={studioUiT("Stripe Customer Id")}
           onChange={(e) =>
             setStripeCustomerId(uncheckedCast<StripeCustomerId>(e.target.value))
           }
@@ -572,23 +634,30 @@ function TeamTierControls({ team }: TeamProps) {
         <Input
           type={"input"}
           value={stripeSubscriptionId}
-          placeholder="Stripe Subscription Id"
+          placeholder={studioUiT("Stripe Subscription Id")}
           onChange={(e) =>
             setStripeSubscriptionId(
               uncheckedCast<StripeSubscriptionId>(e.target.value),
             )
           }
         />
-        <Button htmlType={"submit"}>Upgrade team </Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Upgrade team"} />{" "}
+        </Button>
       </Form>
 
       <br />
 
-      <h2>Change team tier</h2>
+      <h2>
+        <UiText message={"Change team tier"} />
+      </h2>
       <p>
-        Note: only use this on teams on an existing paid tier. Team will be
-        billed according to the new tier pricing. (Useful for testing enterprise
-        on dev server)
+        {" "}
+        <UiText
+          message={
+            "Note: only use this on teams on an existing paid tier. Team will be billed according to the new tier pricing. (Useful for testing enterprise on dev server)"
+          }
+        />{" "}
       </p>
       <Form
         onFinish={async () => {
@@ -617,7 +686,9 @@ function TeamTierControls({ team }: TeamProps) {
           }
           setError("");
           notification.info({
-            message: `Updated Team ${teamId}`,
+            message: studioUiT("Updated Team {part1}", {
+              part1: String(teamId),
+            }),
           });
         }}
       >
@@ -635,10 +706,12 @@ function TeamTierControls({ team }: TeamProps) {
         <Input
           type={"input"}
           value={seats}
-          placeholder="Number of Seats"
+          placeholder={studioUiT("Number of Seats")}
           onChange={(e) => setSeats(parseInt(e.target.value))}
         />
-        <Button htmlType={"submit"}>Change plan</Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Change plan"} />
+        </Button>
       </Form>
     </div>
   );
@@ -672,7 +745,7 @@ function Members({ team, perms, refetch }: TeamProps) {
       items={items}
       extraColumns={[
         {
-          title: "Access Level",
+          title: uiT("Access Level"),
           dataIndex: "accessLevel",
           render: smartRender,
           sorter: {
@@ -699,7 +772,8 @@ function Members({ team, perms, refetch }: TeamProps) {
                   refetch();
                 }}
               >
-                Replace as team owner
+                {" "}
+                <UiText message={"Replace as team owner"} />{" "}
               </Button>
             );
           },
@@ -721,18 +795,21 @@ function UpgradePersonalTeam({ team, refetch }: TeamProps) {
         refetch();
       }}
     >
-      Promote to real team
+      {" "}
+      <UiText message={"Promote to real team"} />{" "}
     </Button>
   );
 }
 
 function GenerateTeamApiToken({ team, refetch }: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <Button
       onClick={() =>
         Modal.confirm({
-          title: "Generate Team API Token?",
+          title: studioUiT("Generate Team API Token?"),
           content: `This will replace the existing token for team "${team.name}".`,
           onOk: async () => {
             try {
@@ -741,19 +818,21 @@ function GenerateTeamApiToken({ team, refetch }: TeamProps) {
               notification.success({
                 message: (
                   <div>
-                    Token: <strong>{res.token}</strong>
+                    {" "}
+                    <UiText message={"Token:"} /> <strong>{res.token}</strong>
                   </div>
                 ),
                 duration: 0,
               });
             } catch (e) {
-              notification.error({ message: `${e}` });
+              showError(normalizeError(e));
             }
           },
         })
       }
     >
-      Generate Team API Token
+      {" "}
+      <UiText message={"Generate Team API Token"} />{" "}
     </Button>
   );
 }
@@ -769,18 +848,24 @@ function WhiteLabel(props: TeamProps) {
 }
 
 function UpdateWhiteLabelName({ team, refetch }: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <Button
       onClick={() => {
         Modal.confirm({
-          title: "Update white label JWT",
+          title: studioUiT("Update white label JWT"),
           okButtonProps: { style: { display: "none" } },
           content: (
             <div>
               <p>
-                Convert a team to a white-labeled team by associating a
-                white-label name with it.
+                {" "}
+                <UiText
+                  message={
+                    "Convert a team to a white-labeled team by associating a white-label name with it."
+                  }
+                />{" "}
               </p>
               <Form
                 initialValues={{
@@ -798,12 +883,20 @@ function UpdateWhiteLabelName({ team, refetch }: TeamProps) {
                   refetch();
                   Modal.destroyAll();
                   notification.success({
-                    message: "Successfully updated white label team name",
-                    description: `Team ${updatedTeam.id} has name "${updatedTeam.whiteLabelName}"`,
+                    message: studioUiT(
+                      "Successfully updated white label team name",
+                    ),
+                    description: studioUiT('Team {part1} has name "{part2}"', {
+                      part1: String(updatedTeam.id),
+                      part2: String(updatedTeam.whiteLabelName),
+                    }),
                   });
                 }}
               >
-                <Form.Item name="whiteLabelName" label="White label name">
+                <Form.Item
+                  name="whiteLabelName"
+                  label={studioUiT("White label name")}
+                >
                   <Input />
                 </Form.Item>
                 <Form.Item>
@@ -818,13 +911,15 @@ function UpdateWhiteLabelName({ team, refetch }: TeamProps) {
       }}
     >
       {team.whiteLabelName
-        ? "Update white label name"
-        : "Convert to white label"}
+        ? studioUiT("Update white label name")
+        : studioUiT("Convert to white label")}
     </Button>
   );
 }
 
 function UpdateWhiteLabelJwt({ team, refetch }: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   if (!team.whiteLabelName) {
     return null;
@@ -833,12 +928,14 @@ function UpdateWhiteLabelJwt({ team, refetch }: TeamProps) {
     <Button
       onClick={() => {
         Modal.confirm({
-          title: "Update white label JWT",
+          title: studioUiT("Update white label JWT"),
           okButtonProps: { style: { display: "none" } },
           content: (
             <>
               <h3>
-                Team "{team.name}" ({team.whiteLabelName})
+                {" "}
+                <UiText message={'Team "'} />
+                {team.name}" ({team.whiteLabelName})
               </h3>
               <Form
                 initialValues={team.whiteLabelInfo ?? undefined}
@@ -858,12 +955,12 @@ function UpdateWhiteLabelJwt({ team, refetch }: TeamProps) {
                   );
                   refetch();
                   Modal.destroyAll();
-                  notification.success({ message: "Updated!" });
+                  notification.success({ message: studioUiT("Updated!") });
                 }}
               >
                 <Form.Item
                   name={["openRedirect", "publicKey"]}
-                  label="JWT Public Key (RS256)"
+                  label={studioUiT("JWT Public Key (RS256)")}
                 >
                   <Input.TextArea />
                 </Form.Item>
@@ -878,12 +975,15 @@ function UpdateWhiteLabelJwt({ team, refetch }: TeamProps) {
         });
       }}
     >
-      Update white label JWT
+      {" "}
+      <UiText message={"Update white label JWT"} />{" "}
     </Button>
   );
 }
 
 function UpdateWhiteLabelTeamClientCredentials({ team, refetch }: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   if (!team.whiteLabelName) {
     return null;
@@ -892,12 +992,14 @@ function UpdateWhiteLabelTeamClientCredentials({ team, refetch }: TeamProps) {
     <Button
       onClick={() => {
         Modal.confirm({
-          title: "Update white label client credentials",
+          title: studioUiT("Update white label client credentials"),
           okButtonProps: { style: { display: "none" } },
           content: (
             <>
               <h3>
-                Team "{team.name}" ({team.whiteLabelName})
+                {" "}
+                <UiText message={'Team "'} />
+                {team.name}" ({team.whiteLabelName})
               </h3>
               <Form
                 initialValues={team.whiteLabelInfo ?? undefined}
@@ -913,24 +1015,24 @@ function UpdateWhiteLabelTeamClientCredentials({ team, refetch }: TeamProps) {
                   );
                   refetch();
                   Modal.destroyAll();
-                  notification.success({ message: "Updated!" });
+                  notification.success({ message: studioUiT("Updated!") });
                 }}
               >
                 <Form.Item
                   name={["apiClientCredentials", "clientId"]}
-                  label="Client ID"
+                  label={studioUiT("Client ID")}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name={["apiClientCredentials", "issuer"]}
-                  label="Issuer"
+                  label={studioUiT("Issuer")}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name={["apiClientCredentials", "aud"]}
-                  label="Expected audience (aud)"
+                  label={studioUiT("Expected audience (aud)")}
                 >
                   <Input />
                 </Form.Item>
@@ -945,32 +1047,40 @@ function UpdateWhiteLabelTeamClientCredentials({ team, refetch }: TeamProps) {
         });
       }}
     >
-      Update white label client credentials
+      {" "}
+      <UiText message={"Update white label client credentials"} />{" "}
     </Button>
   );
 }
 
 function TeamDiscourseInfo(props: TeamProps) {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div className="flex-col gap-m">
       {props.discourseInfo ? (
         <div>
-          This org has a private Discourse support{" "}
+          {" "}
+          <UiText message={"This org has a private Discourse support"} />{" "}
           <PublicLink
             href={`${BASE_URL}/c/${props.discourseInfo.categoryId}`}
             target="_blank"
           >
-            category
+            {" "}
+            <UiText message={"category"} />{" "}
           </PublicLink>{" "}
           <UiText message={"and"} />{" "}
           <PublicLink
             href={`${BASE_URL}/g/${props.discourseInfo.slug}`}
             target="_blank"
           >
-            group
-          </PublicLink>
-          . Use the form below to update the org's slug or name.
+            {" "}
+            <UiText message={"group"} />{" "}
+          </PublicLink>{" "}
+          <UiText
+            message={". Use the form below to update the org's slug or name."}
+          />{" "}
           <Button
             onClick={async () => {
               console.log(
@@ -983,30 +1093,48 @@ function TeamDiscourseInfo(props: TeamProps) {
 
               if (failed.length > 0) {
                 notification.error({
-                  message: `Sent ${sent.length} emails, failed to send ${failed.length} emails (see console logs for emails)`,
+                  message: studioUiT(
+                    "Sent {part1} emails, failed to send {part2} emails (see console logs for emails)",
+                    {
+                      part1: String(sent.length),
+                      part2: String(failed.length),
+                    },
+                  ),
                 });
               } else {
                 notification.success({
-                  message: `Sent ${sent.length} emails (see console logs for emails)`,
+                  message: studioUiT(
+                    "Sent {part1} emails (see console logs for emails)",
+                    { part1: String(sent.length) },
+                  ),
                 });
               }
             }}
           >
-            Send support welcome email
+            {" "}
+            <UiText message={"Send support welcome email"} />{" "}
           </Button>
         </div>
       ) : (
         <div>
-          This org doesn't currently have a private Discourse support category.
-          They will be directed to the{" "}
+          {" "}
+          <UiText
+            message={
+              "This org doesn't currently have a private Discourse support category. They will be directed to the"
+            }
+          />{" "}
           <a
             href={`${BASE_URL}/c/${PUBLIC_SUPPORT_CATEGORY_ID}`}
             target="_blank"
           >
-            public Discourse support category
+            {" "}
+            <UiText message={"public Discourse support category"} />{" "}
           </a>{" "}
-          instead. Use the form below to create a private Discourse support
-          category. It will only succeed if the org has a valid feature tier.
+          <UiText
+            message={
+              "instead. Use the form below to create a private Discourse support category. It will only succeed if the org has a valid feature tier."
+            }
+          />{" "}
         </div>
       )}
       <TeamDiscourseInfoForm
@@ -1054,14 +1182,16 @@ function TeamDiscourseInfoForm({
         await nonAuthCtx.api.syncTeamDiscourseInfo(team.id, values);
         console.log(`Sync success`);
         notification.success({
-          message: `Discourse info synced. Send a support welcome email when ready.`,
+          message: uiT(
+            "Discourse info synced. Send a support welcome email when ready.",
+          ),
         });
         refetch();
       }}
     >
       <Form.Item
         name="slug"
-        label="Slug"
+        label={uiT("Slug")}
         validateFirst
         rules={[
           { required: true },
@@ -1086,7 +1216,8 @@ function TeamDiscourseInfoForm({
         <Input />
       </Form.Item>
       <Button htmlType="submit" type="primary">
-        Sync to Discourse
+        {" "}
+        <UiText message={"Sync to Discourse"} />{" "}
       </Button>
     </Form>
   );

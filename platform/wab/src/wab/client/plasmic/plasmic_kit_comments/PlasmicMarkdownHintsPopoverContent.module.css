@@ -7,7 +7,7 @@
   max-width: 100%;
   justify-content: flex-start;
   align-items: center;
-  background: #ffffff;
+  background: var(--ui-elevated, #ffffff);
   border: 1px solid #d9d9e0;
 }
 .freeBox {

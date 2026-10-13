@@ -1,4 +1,4 @@
-import { ApiError } from "@/wab/shared/ApiErrors/ApiError";
+import { ApiError, HttpError } from "@/wab/shared/ApiErrors/ApiError";
 import {
   UniqueViolationError,
   isUniqueViolationError,
@@ -139,6 +139,7 @@ const errorNameRegistry = {
   PreconditionFailedError,
   LoaderBundlingError,
   LoaderDeprecatedVersionError,
+  PublicCopilotServiceUnavailable,
 };
 
 /**
@@ -156,10 +157,41 @@ export function transformErrors(err: Error): Error {
   }
   const transformedErrType = errorNameRegistry[err.name];
   if (transformedErrType) {
-    err = new transformedErrType(err.message);
+    const restored = new transformedErrType(err.message);
+    const name = restored.name;
+    // Keep structured validation and error details through JSON/worker transport.
+    err = Object.assign(restored, err, { name });
   }
   if (isUniqueViolationError(err)) {
     err = new UniqueViolationError(err.violations);
   }
   return err;
+}
+
+/** Restore business error identity for both JSON fetch and jQuery transports. */
+export function deserializeApiError(
+  payload: unknown,
+  statusCode: number,
+): ApiError {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "name" in payload &&
+    "message" in payload
+  ) {
+    const restored = transformErrors(payload as Error);
+    if (restored instanceof ApiError) {
+      return restored;
+    }
+  }
+  const message =
+    typeof payload === "string"
+      ? payload
+      : payload &&
+          typeof payload === "object" &&
+          "message" in payload &&
+          typeof payload.message === "string"
+        ? payload.message
+        : undefined;
+  return new HttpError(statusCode, message);
 }

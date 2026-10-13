@@ -1,8 +1,6 @@
 import { sequentially } from "@/wab/commons/asyncutil";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
-import { captureLibraryArtifact } from "@/wab/server/loader/library-artifacts";
-import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
 import {
   getShiguangUserByEmail,
   getShiguangUsers,
@@ -25,6 +23,7 @@ import {
   unbundleProjectFromData,
 } from "@/wab/server/db/DbBundleLoader";
 import { getDevFlagsMergedWithOverrides } from "@/wab/server/db/appconfig";
+import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
 import {
   AppAccessRegistry,
   AppAuthConfig,
@@ -92,6 +91,7 @@ import {
   WorkspaceUser,
 } from "@/wab/server/entities/Entities";
 import { isPaidTeam } from "@/wab/server/freeTrial";
+import { captureLibraryArtifact } from "@/wab/server/loader/library-artifacts";
 import { logger } from "@/wab/server/observability";
 import { REAL_PLUME_VERSION } from "@/wab/server/pkg-mgr/plume-pkg-mgr";
 import { CompatRequest } from "@/wab/server/routes/util";
@@ -110,6 +110,7 @@ import {
   CopilotPlanRequiredError,
   CopilotRateLimitExceededError,
   GrantUserNotFoundError,
+  PreconditionFailedError,
   UnauthorizedError,
 } from "@/wab/shared/ApiErrors/errors";
 import {
@@ -219,6 +220,7 @@ import {
 } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { OperationTemplate } from "@/wab/shared/data-sources-meta/data-sources";
 import { WebhookHeader } from "@/wab/shared/db-json-blobs";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { MIN_ACCESS_LEVEL_FOR_SUPPORT } from "@/wab/shared/discourse/config";
@@ -1127,6 +1129,9 @@ export class DbMgr implements MigrationDbMgr {
     exceptTeamId: TeamId | undefined,
     action: string,
   ): Promise<void> {
+    if (SELF_HOSTED) {
+      return;
+    }
     await this.lockUserRow(ownerId);
     const qb = this._queryTeams({
       createdById: ownerId,
@@ -1277,7 +1282,8 @@ export class DbMgr implements MigrationDbMgr {
     const team = await this.getTeamById(id);
     if (fields.uiConfig) {
       checkPermissions(
-        isEnterprise(team.featureTier || team.parentTeam?.featureTier),
+        SELF_HOSTED ||
+          isEnterprise(team.featureTier || team.parentTeam?.featureTier),
         "Must be on Enterprise plan",
       );
     }
@@ -2262,9 +2268,12 @@ export class DbMgr implements MigrationDbMgr {
         );
       }
       if (!satisfied) {
-        checkPermissions(false, `${await this.describeActor()} tried to ${action} project ${projectId}, but their access level ${humanLevel(
-          selfLevel,
-        )} didn't meet required level ${humanLevel(requireLevel)}. ${suggestion ?? ""}`);
+        checkPermissions(
+          false,
+          `${await this.describeActor()} tried to ${action} project ${projectId}, but their access level ${humanLevel(
+            selfLevel,
+          )} didn't meet required level ${humanLevel(requireLevel)}. ${suggestion ?? ""}`,
+        );
       }
     },
     (projectId, requireLevel, _action, _suggestion, includeDeleted) =>
@@ -2420,6 +2429,7 @@ export class DbMgr implements MigrationDbMgr {
     destinationTeam: Team,
   ): Promise<void> {
     if (
+      SELF_HOSTED ||
       destinationTeam.personalTeamOwnerId ||
       sourceTeamId === destinationTeam.id ||
       this.actor.type === "SuperUser" ||
@@ -2614,7 +2624,7 @@ export class DbMgr implements MigrationDbMgr {
     const isOwnershipChange =
       (!!team.createdById && team.createdById !== newOwner) ||
       ownerPerms.some((perm) => perm.userId !== newOwner);
-    if (isOwnershipChange && !isPaidTeam(team)) {
+    if (!SELF_HOSTED && isOwnershipChange && !isPaidTeam(team)) {
       checkPermissions(
         allowUnpaidTransfer,
         `Cannot transfer an unpaid ${ORGANIZATION_LOWER}.`,
@@ -3378,9 +3388,10 @@ export class DbMgr implements MigrationDbMgr {
 
     const bundler = new Bundler();
     const publishedSite = await unbundleProjectFromData(this, bundler, rev);
-    const libraryArtifact = publishedSite.hostLessPackageInfo && process.env.PREVIEW_ORIGIN
-      ? await captureLibraryArtifact(publishedSite)
-      : undefined;
+    const libraryArtifact =
+      publishedSite.hostLessPackageInfo && process.env.PREVIEW_ORIGIN
+        ? await captureLibraryArtifact(publishedSite)
+        : undefined;
     const usedSiteFeatures: SiteFeature[] = [];
 
     if (
@@ -5437,7 +5448,10 @@ export class DbMgr implements MigrationDbMgr {
       await this._getActorAccessLevelToResources(taggedResourceIds);
 
     for (const id of taggedResourceIds.ids) {
-      if (levels[id] && accessLevelRank(levels[id]) >= accessLevelRank(requireLevel)) {
+      if (
+        levels[id] &&
+        accessLevelRank(levels[id]) >= accessLevelRank(requireLevel)
+      ) {
         continue;
       }
       checkPermissions(
@@ -5832,6 +5846,9 @@ export class DbMgr implements MigrationDbMgr {
     }
     const COPILOT_DAILY_RATE_LIMIT = 100;
     this.checkNormalUser();
+    if (SELF_HOSTED) {
+      return;
+    }
     const userId = ensure(this.tryGetNormalActorId(), "Must have an user id");
     if (opts?.checkTeamHasPlan) {
       const team = await this.getTeamByProjectId(opts.checkTeamHasPlan);
@@ -7320,10 +7337,10 @@ export class DbMgr implements MigrationDbMgr {
     opts: { useDraft?: boolean } = {},
   ) {
     if (query.offset && query.offset < 0) {
-      throw new Error("offset field cannot be negative");
+      throw new BadRequestError("offset field cannot be negative");
     }
     if (query.limit && query.limit < 0) {
-      throw new Error("limit field cannot be negative");
+      throw new BadRequestError("limit field cannot be negative");
     }
 
     const table = await this.getCmsTableById(tableId);
@@ -8554,7 +8571,7 @@ export class DbMgr implements MigrationDbMgr {
     );
     const apps = await this.getEndUserDirectoryApps(endUserDirectoryId);
     if (apps.length > 0) {
-      throw new Error(
+      throw new PreconditionFailedError(
         `Cannot delete end user directory ${endUserDirectoryId} because it has apps associated with it`,
       );
     }
@@ -10411,7 +10428,7 @@ export class DbMgr implements MigrationDbMgr {
           await this.permanentlyDeleteCms(db.id, opts);
         }
       } else {
-        throw new Error(
+        throw new PreconditionFailedError(
           `Cannot permanently delete a workspace that still contains CMS databases: ${databases
             .map((db) => db.id)
             .join(", ")}`,
@@ -10426,7 +10443,7 @@ export class DbMgr implements MigrationDbMgr {
           await this.permanentlyDeleteDataSource(source.id, opts);
         }
       } else {
-        throw new Error(
+        throw new PreconditionFailedError(
           `Cannot permanently delete a workspace that still contains data sources: ${sources
             .map((s) => s.id)
             .join(", ")}`,
@@ -10442,7 +10459,7 @@ export class DbMgr implements MigrationDbMgr {
           await this.permanentlyDeleteProject(proj.id, opts);
         }
       } else {
-        throw new Error(
+        throw new PreconditionFailedError(
           `Cannot permanently delete a workspace that still contains projects: ${projects
             .map((p) => p.id)
             .join(", ")}`,

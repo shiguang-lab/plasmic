@@ -11,6 +11,7 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: 3OCMg2P28Q
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -185,7 +186,7 @@ function PlasmicImplicitVariablesSection__RenderFunc(props: {
           value: args.icon,
         })}
         label={renderPlasmicSlot({
-          defaultContents: "Label",
+          defaultContents: <UiText message={"Label"} />,
           value: args.title,
         })}
         withIcon={true}

@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: XxbnrpTDqu
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -88,6 +89,8 @@ function PlasmicHostUrlInput__RenderFunc(props: {
   overrides: PlasmicHostUrlInput__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -242,7 +245,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
         <Button
           data-plasmic-name={"clearButton"}
           data-plasmic-override={overrides.clearButton}
-          caption={"Caption"}
+          caption={studioUiT("Caption")}
           className={classNames("__wab_instance", sty.clearButton)}
           disabled={true}
           endIcon={
@@ -266,7 +269,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
         <Button
           data-plasmic-name={"confirmButton"}
           data-plasmic-override={overrides.confirmButton}
-          caption={"Caption"}
+          caption={studioUiT("Caption")}
           className={classNames("__wab_instance", sty.confirmButton)}
           disabled={true}
           endIcon={
@@ -407,7 +410,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
           >
             <React.Fragment>
               <React.Fragment>
-                {"For standard configuration, the URL path should end with "}
+                {<><UiText message={"For standard configuration, the URL path should end with"} />{" "}</>}
               </React.Fragment>
               <span
                 className={

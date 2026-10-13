@@ -142,7 +142,7 @@ function PlasmicLineItem__RenderFunc(props: {
           >
             {renderPlasmicSlot({
               defaultContents:
-                "Token \u201cInfo\u201d added in both branches, so we renamed this branch\u2019s to \u201cInfo2\u201d.",
+                <UiText message={"Token “Info” added in both branches, so we renamed this branch’s to “Info2”."} />,
               value: args.children,
               className: classNames(sty.slotTargetChildren),
             })}

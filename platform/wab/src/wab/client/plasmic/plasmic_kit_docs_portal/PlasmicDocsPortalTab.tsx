@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: J18H-n0ADz
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -155,7 +156,7 @@ function PlasmicDocsPortalTab__RenderFunc(props: {
         }),
       })}
       {renderPlasmicSlot({
-        defaultContents: "Components",
+        defaultContents: <UiText message={"Components"} />,
         value: args.children,
         className: classNames(sty.slotTargetChildren, {
           [sty.slotTargetChildrenisActive]: hasVariant(

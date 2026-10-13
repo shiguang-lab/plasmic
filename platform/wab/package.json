@@ -35,6 +35,8 @@
     "email:sync": "cd src/wab/server/emails/templates && plasmic sync -p taNK5uwsoPrzfpYmBVwUwX --skip-upgrade-check && vite-node ../tools/remove-css-imports.ts",
     "email:generate": "cd src/wab/server/emails/host && vite-node ../tools/test-email.mts",
     "prepare": "if [ -n \"$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD\" ]; then echo \"Skipping Playwright download (PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set)\"; else playwright install chromium; fi",
+    "i18n:audit": "node tools/i18n/audit-studio.cjs",
+    "i18n:audit-errors": "node tools/i18n/audit-business-errors.cjs",
     "eslint-all": "pnpm --dir ../.. exec eslint platform/wab",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

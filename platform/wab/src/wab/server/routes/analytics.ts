@@ -9,7 +9,9 @@ import {
 import { unbundleProjectFromData } from "@/wab/server/db/DbBundleLoader";
 import { getTeamCurrentPeriodRange } from "@/wab/server/routes/team-plans";
 import { userDbMgr } from "@/wab/server/routes/util";
+import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import { TeamId } from "@/wab/shared/ApiSchema";
+import { getEffectiveFeatureTier } from "@/wab/shared/billing/feature-tier";
 import { Bundler } from "@/wab/shared/bundler";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { Request, Response } from "express-serve-static-core";
@@ -22,7 +24,9 @@ export async function getAnalyticsForTeam(req: Request, res: Response) {
   const { from, to, timezone, period } = req.query;
 
   const team = await mgr.getTeamById(teamId as TeamId);
-  const currentTier = team.featureTier || req.devflags.freeTier;
+  const currentTier = getEffectiveFeatureTier(
+    team.featureTier || team.parentTeam?.featureTier || req.devflags.freeTier,
+  );
   if (!currentTier.analytics && DEVFLAGS.analyticsPaywall) {
     res.json({
       type: "paywall",
@@ -50,7 +54,9 @@ export async function getAnalyticsForProject(req: Request, res: Response) {
   const { componentId, from, to, timezone, splitId, period, type } = req.query;
 
   const team = await mgr.getTeamById(teamId as TeamId);
-  const currentTier = team.featureTier || req.devflags.freeTier;
+  const currentTier = getEffectiveFeatureTier(
+    team.featureTier || team.parentTeam?.featureTier || req.devflags.freeTier,
+  );
   if (!currentTier.analytics && DEVFLAGS.analyticsPaywall) {
     res.json({
       type: "paywall",
@@ -97,7 +103,7 @@ export async function getAnalyticsForProject(req: Request, res: Response) {
     return;
   }
 
-  throw new Error("unexpected analytics type");
+  throw new BadRequestError("unexpected analytics type");
 }
 
 export async function getAnalyticsProjectMeta(req: Request, res: Response) {
@@ -146,7 +152,9 @@ export async function getAnalyticsBillingInfoForTeam(
     "view analytics billing",
   );
   const team = await mgr.getTeamById(teamId as TeamId);
-  const currentTier = team.featureTier || req.devflags.freeTier;
+  const currentTier = getEffectiveFeatureTier(
+    team.featureTier || team.parentTeam?.featureTier || req.devflags.freeTier,
+  );
   const { start, end } = await getTeamCurrentPeriodRange(
     team,
     team.trialDays ?? req.devflags.freeTrialDays,

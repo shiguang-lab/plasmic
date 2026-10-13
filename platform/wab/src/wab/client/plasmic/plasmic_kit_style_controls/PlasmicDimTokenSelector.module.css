@@ -15,7 +15,7 @@
   cursor: not-allowed;
 }
 .rootstyleType_white {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .rootstyleType_bordered {
   box-shadow: inset 0px 0px 0px 1px var(--token-hoA5qaM-91G);

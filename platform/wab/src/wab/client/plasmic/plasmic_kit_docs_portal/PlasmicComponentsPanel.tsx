@@ -139,7 +139,7 @@ function PlasmicComponentsPanel__RenderFunc(props: {
                   sty.componentListItem__xLaCa
                 )}
               >
-                {"Textbox"}
+                {<UiText message={"Textbox"} />}
               </ComponentListItem>
               <ComponentListItem
                 className={classNames(

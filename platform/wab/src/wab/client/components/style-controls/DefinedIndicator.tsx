@@ -14,7 +14,9 @@ import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPic
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getVisibilityIcon } from "@/wab/client/icons";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
@@ -105,8 +107,8 @@ import {
   getVariantSettingVisibility,
   getVisibilityLabel,
 } from "@/wab/shared/visibility-utils";
-import { Alert, Menu, Popover, Tooltip } from "antd";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Alert, Menu, Popover, Tooltip } from "antd";
 import classNames from "classnames";
 import L from "lodash";
 import { observer } from "mobx-react";
@@ -232,6 +234,8 @@ export const SourceValue = observer(function SourceValue(props: {
   editable: boolean;
   onShowPopup?: (showing: boolean) => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { site, source, editable, onShowPopup } = props;
   const clientTokenResolver = useClientTokenResolver();
   const exprCtx: ExprCtx = {
@@ -246,7 +250,11 @@ export const SourceValue = observer(function SourceValue(props: {
     if (site.themes.includes(source.theme)) {
       // We're using a theme in this project, so it can be edited.
       return (
-        <Tooltip title={`Edit theme ${source.theme.defaultStyle.name}`}>
+        <Tooltip
+          title={studioUiT("Edit theme {part1}", {
+            part1: String(source.theme.defaultStyle.name),
+          })}
+        >
           <div>
             <EditMixinButton
               mixin={source.theme.defaultStyle}
@@ -284,7 +292,11 @@ export const SourceValue = observer(function SourceValue(props: {
         "Theme must exist",
       );
       return (
-        <Tooltip title={`Edit default ${source.selector} style`}>
+        <Tooltip
+          title={studioUiT("Edit default {part1} style", {
+            part1: String(source.selector),
+          })}
+        >
           <div>
             <EditMixinButton
               mixin={themeStyle.style}
@@ -317,7 +329,12 @@ export const SourceValue = observer(function SourceValue(props: {
   } else if (source.type === "mixin") {
     if (editable) {
       return (
-        <Tooltip title={`Edit ${MIXIN_LOWER} ${source.mixin.name}`}>
+        <Tooltip
+          title={studioUiT("Edit {part1} {part2}", {
+            part1: translateUiLabel(getUiLocale(), MIXIN_LOWER),
+            part2: String(source.mixin.name),
+          })}
+        >
           <div>
             <EditMixinButton
               mixin={source.mixin}
@@ -406,7 +423,11 @@ export const SourceValue = observer(function SourceValue(props: {
     );
   } else if (source.type === "columnsConfig") {
     return (
-      <Tooltip title={`Responsive section: ${source.value}`}>
+      <Tooltip
+        title={studioUiT("Responsive section: {part1}", {
+          part1: String(source.value),
+        })}
+      >
         <div className={"fill-width"}>
           <code>{source.value}</code>
         </div>
@@ -490,6 +511,8 @@ const VariantSourceStack = observer(function VariantSourceStack(props: {
   onShowPopup?: (showing: boolean) => void;
   menu?: React.ReactNode | (() => React.ReactNode);
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { stack, targetSource, onShowPopup } = props;
   const studioCtx = useStudioCtx();
 
@@ -519,13 +542,19 @@ const VariantSourceStack = observer(function VariantSourceStack(props: {
           source.type === "theme"
             ? source.theme.defaultStyle.name
             : source.type === "themeTag"
-              ? `Default "${source.selector}"`
+              ? studioUiT('Default "{part1}"', {
+                  part1: String(source.selector),
+                })
               : source.type === "slot"
-                ? `${SLOT_CAP} "${source.param.variable.name}" in ${
-                    source.tplComponent
-                      ? getComponentDisplayName(source.tplComponent.component)
-                      : "this component"
-                  }`
+                ? studioUiT('{part1} "{part2}" in {part3}', {
+                    part1: translateUiLabel(getUiLocale(), SLOT_CAP),
+                    part2: String(source.param.variable.name),
+                    part3: String(
+                      source.tplComponent
+                        ? getComponentDisplayName(source.tplComponent.component)
+                        : studioUiT("this component"),
+                    ),
+                  })
                 : source.type === "parentTplStyle"
                   ? (() => {
                       const effectiveVs = getEffectiveVariantSetting(
@@ -662,6 +691,8 @@ const PopoverContent = observer(function PopoverContent(props: {
   types: DefinedIndicatorType[];
   onShowPopup: (showing: boolean) => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const types = props.types.filter((type) => type.source !== "none");
   const studioCtx = useStudioCtx();
   const clientTokenResolver = useClientTokenResolver();
@@ -674,7 +705,7 @@ const PopoverContent = observer(function PopoverContent(props: {
         <div className="defined-indicator__source defined-indicator__source--target">
           <div className="defined-indicator__source-name">
             {types.length === 1
-              ? "Value is set"
+              ? studioUiT("Value is set")
               : getLabelForStyleName(type.prop)}
           </div>
           <div className="defined-indicator__source-value">

@@ -152,7 +152,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
             sty.h2__vmyBz
           )}
         >
-          {"\u26a1 Design to working React code"}
+          {<UiText message={"⚡ Design to working React code"} />}
         </h2>
         <div
           className={classNames("all", "__wab_text", sty.text__e6W8M, {
@@ -169,7 +169,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
           })}
         >
           {
-            "Plasmic generates presentational React code from your designs. You can optionally attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes."
+            <UiText message={"Plasmic generates presentational React code from your designs. You can optionally attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes."} />
           }
         </div>
         <div
@@ -187,7 +187,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
           })}
         >
           {
-            "There are two ways to integrate Plasmic-designed content into your application codebase:"
+            <UiText message={"There are two ways to integrate Plasmic-designed content into your application codebase:"} />
           }
         </div>
         <div
@@ -220,7 +220,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text___4G3Po)}
                 >
-                  {"Recommended for building rich stateful applications."}
+                  {<UiText message={"Recommended for building rich stateful applications."} />}
                 </div>
               </React.Fragment>
             }
@@ -243,25 +243,25 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
                   className={classNames("all", "__wab_text", sty.text__djXcg)}
                 >
                   {
-                    "Load pages/components at build-time without generating code into your repo or version history."
+                    <UiText message={"Load pages/components at build-time without generating code into your repo or version history."} />
                   }
                 </div>
                 <div
                   className={classNames("all", "__wab_text", sty.text__tX4Fm)}
                 >
                   {
-                    "Recommended for websites and other projects that do not need heavy code instrumentation."
+                    <UiText message={"Recommended for websites and other projects that do not need heavy code instrumentation."} />
                   }
                 </div>
                 <div
                   className={classNames("all", "__wab_text", sty.text__wI0Nv)}
                 >
-                  {"For Next.js/Gatsby only. "}
+                  {<><UiText message={"For Next.js/Gatsby only."} />{" "}</>}
                 </div>
               </React.Fragment>
             }
           >
-            {"PlasmicLoader (CMS mode)"}
+            {<UiText message={"PlasmicLoader (CMS mode)"} />}
           </DocsPortalBranch>
         </div>
         <PlasmicLink__
@@ -278,7 +278,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
           platform={"react"}
         >
           <div className={classNames("all", "__wab_text", sty.text___1V3Pg)}>
-            {"Learn more about Codegen vs. PlasmicLoader "}
+            {<><UiText message={"Learn more about Codegen vs. PlasmicLoader"} />{" "}</>}
           </div>
           <OpenIcon
             data-plasmic-name={"svg"}
@@ -296,7 +296,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
             sty.h2__qv6Bk
           )}
         >
-          {"The API Explorer"}
+          {<UiText message={"The API Explorer"} />}
         </h2>
         <div
           className={classNames("all", "__wab_text", sty.text__swGq, {
@@ -308,7 +308,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
           })}
         >
           {
-            "This API Explorer lets you see and play with all the props that each component exposes.  You can toggle the different props, or even directly edit the code snippet, and see how they look in the live preview.."
+            <UiText message={"This API Explorer lets you see and play with all the props that each component exposes. You can toggle the different props, or even directly edit the code snippet, and see how they look in the live preview.."} />
           }
         </div>
       </div>

@@ -291,7 +291,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                       sty.span__odQgX
                     )}
                   >
-                    {"Learn the core concepts to build a website!"}
+                    {<UiText message={"Learn the core concepts to build a website!"} />}
                   </span>
                 }
                 name={
@@ -304,7 +304,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                       sty.span__q4Sp4
                     )}
                   >
-                    {"Beginner's guide: website in 3 minutes"}
+                    {<UiText message={"Beginner's guide: website in 3 minutes"} />}
                   </span>
                 }
                 type={"first"}
@@ -329,7 +329,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                       sty.span__acyQb
                     )}
                   >
-                    {"Learn how to build web pages in a set of challenges!"}
+                    {<UiText message={"Learn how to build web pages in a set of challenges!"} />}
                   </span>
                 }
                 name={
@@ -342,7 +342,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                       sty.span__tCwu4
                     )}
                   >
-                    {"Play Plasmic Levels"}
+                    {<UiText message={"Play Plasmic Levels"} />}
                   </span>
                 }
                 type={"second"}
@@ -367,7 +367,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
                     )}
                   >
                     {
-                      "Integrate with your codebase / set up headless content editing."
+                      <UiText message={"Integrate with your codebase / set up headless content editing."} />
                     }
                   </span>
                 }

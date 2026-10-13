@@ -159,7 +159,7 @@ function PlasmicLeftFontsPanel__RenderFunc(props: {
             platform={"react"}
             target={"_blank"}
           >
-            {"Learn how to add custom fonts."}
+            {<UiText message={"Learn how to add custom fonts."} />}
           </PlasmicLink__>
         }
         title={uiT("Custom fonts")}

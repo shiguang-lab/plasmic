@@ -169,12 +169,13 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                           );
 
                           const hardConfirm = await confirm({
-                            title: `Are you sure?`,
-                            message: `This is going to remove the access log of this user. ${
+                            title: uiT("Are you sure?"),
+                            message: uiT(
                               isUserLosingAccess
-                                ? "This user will lose access to this app."
-                                : `This user will still have access to this app through other rules from the permission list, but their new role will be "${newRole?.name}".`
-                            }`,
+                                ? "This removes the access log of this user. This user will lose access to this app."
+                                : 'This removes the access log of this user. Other permission rules still grant access with the role "{role}".',
+                              { role: newRole?.name ?? "" },
+                            ),
                           });
 
                           if (hardConfirm) {
@@ -203,13 +204,15 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                         <Tooltip
                           title={
                             canRevokePermission
-                              ? "Revoke user access to the app."
-                              : `This user is allowed to the app through domain, groups or general access, remove those rules to be able to revoke the access`
+                              ? uiT("Revoke user access to the app.")
+                              : uiT(
+                                  "This user is allowed to the app through domain, groups or general access, remove those rules to be able to revoke the access",
+                                )
                           }
                         >
                           {record.matchedRoles.length === 0
-                            ? "Remove from list"
-                            : "Revoke access"}
+                            ? uiT("Remove from list")
+                            : uiT("Revoke access")}
                         </Tooltip>
                       </Menu.Item>
                     </Menu>,
@@ -220,7 +223,7 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
             rowKey="id"
             columns={[
               {
-                title: "Identifier",
+                title: uiT("Identifier"),
                 dataIndex: "",
                 render(_, record: ApiAppAccessRegistry) {
                   return (
@@ -317,7 +320,7 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                 },
               },
               {
-                title: "Last Accessed At",
+                title: uiT("Last Accessed At"),
                 dataIndex: "updatedAt",
                 render: (updatedAt: string) => {
                   return moment(updatedAt).fromNow();

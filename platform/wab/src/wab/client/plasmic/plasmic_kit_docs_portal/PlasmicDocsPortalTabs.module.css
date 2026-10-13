@@ -4,7 +4,7 @@
   height: auto;
   position: relative;
   flex-direction: column;
-  background: var(--token-aUCjnzhayS);
+  background: var(--ui-surface, var(--token-aUCjnzhayS));
   row-gap: 4px;
   min-width: 0;
   padding: 8px;

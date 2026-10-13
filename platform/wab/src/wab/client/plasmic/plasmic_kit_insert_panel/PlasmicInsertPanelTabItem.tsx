@@ -11,6 +11,7 @@
 // Plasmic Project: 4B48dRthR8uGgyaBYpWthR
 // Component: iSztBTxncH
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -173,7 +174,7 @@ function PlasmicInsertPanelTabItem__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Templates",
+          defaultContents: <UiText message={"Templates"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenhasIcon]: hasVariant(

@@ -67,7 +67,7 @@
   font-weight: 500;
   width: auto;
   flex-shrink: 0;
-  color: var(--token-olzpv9Zfv0);
+  color: var(--ui-on-accent, var(--token-olzpv9Zfv0));
 }
 .textstate_watch__su8VUCfKC {
   height: auto;

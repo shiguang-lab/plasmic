@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: tKtZ3ZcVITrx
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -432,7 +433,7 @@ function PlasmicTextField__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Label",
+            defaultContents: <UiText message={"Label"} />,
             value: args.label,
           })}
         </Label>
@@ -594,7 +595,7 @@ function PlasmicTextField__RenderFunc(props: {
           className={classNames("__wab_instance", sty.description)}
         >
           {renderPlasmicSlot({
-            defaultContents: "Description...",
+            defaultContents: <UiText message={"Description..."} />,
             value: args.description,
           })}
         </Description>

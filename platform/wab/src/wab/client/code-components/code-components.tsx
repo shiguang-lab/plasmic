@@ -18,6 +18,9 @@ import {
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { scriptExec } from "@/wab/client/dom-utils";
+import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { trackEvent } from "@/wab/client/tracking";
@@ -105,7 +108,10 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
   onInvalidComponentImportNames: notifyInvalidImportName,
   onAddedNewProps: () => {
     notification.info({
-      message: "New props have been registered for some code components",
+      message: translate(
+        getUiLocale(),
+        "New props have been registered for some code components",
+      ),
     });
   },
   onStaleProps: async (ctx, userStaleDiffs, _opts) => {
@@ -155,24 +161,30 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
   onUpdatedTokens(opts) {
     const { newTokens, updatedTokens, removedTokens } = opts;
     notification.info({
-      message: "Registered tokens updated",
+      message: translate(getUiLocale(), "Registered tokens updated"),
       description: (
         <>
           {newTokens.length > 0 && (
             <p>
-              <strong>New tokens: </strong>{" "}
+              <strong>
+                <UiText message={"New tokens:"} />{" "}
+              </strong>{" "}
               {newTokens.map((t) => `"${t.name}"`)}
             </p>
           )}
           {updatedTokens.length > 0 && (
             <p>
-              <strong>Updated tokens: </strong>
+              <strong>
+                <UiText message={"Updated tokens:"} />{" "}
+              </strong>
               {updatedTokens.map((t) => `"${t.name}"`)}
             </p>
           )}
           {removedTokens.length > 0 && (
             <p>
-              <strong>Removed tokens: </strong>{" "}
+              <strong>
+                <UiText message={"Removed tokens:"} />{" "}
+              </strong>{" "}
               {removedTokens.map((t) => `"${t.name}"`)}
             </p>
           )}
@@ -189,18 +201,22 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
       removedFunctions: opts.removedFunctions,
     });
     notification.info({
-      message: "Registered functions updated",
+      message: translate(getUiLocale(), "Registered functions updated"),
       description: (
         <>
           {newFunctions.length > 0 && (
             <p>
-              <strong>New functions: </strong>{" "}
+              <strong>
+                <UiText message={"New functions:"} />{" "}
+              </strong>{" "}
               {newFunctions.map((f) => `"${customFunctionId(f)}"`).join(", ")}
             </p>
           )}
           {updatedFunctions.length > 0 && (
             <p>
-              <strong>Updated functions: </strong>
+              <strong>
+                <UiText message={"Updated functions:"} />{" "}
+              </strong>
               {updatedFunctions
                 .map((f) => `"${customFunctionId(f)}"`)
                 .join(", ")}
@@ -208,7 +224,9 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
           )}
           {removedFunctions.length > 0 && (
             <p>
-              <strong>Removed functions: </strong>{" "}
+              <strong>
+                <UiText message={"Removed functions:"} />{" "}
+              </strong>{" "}
               {removedFunctions
                 .map((f) => `"${customFunctionId(f)}"`)
                 .join(", ")}
@@ -221,24 +239,30 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
   onUpdatedCodeLibraries(opts) {
     const { newLibraries, updatedLibraries, removedLibraries } = opts;
     notification.info({
-      message: "Registered libraries updated",
+      message: translate(getUiLocale(), "Registered libraries updated"),
       description: (
         <>
           {newLibraries.length > 0 && (
             <p>
-              <strong>New libraries: </strong>{" "}
+              <strong>
+                <UiText message={"New libraries:"} />{" "}
+              </strong>{" "}
               {newLibraries.map((l) => `"${l.name}"`).join(", ")}
             </p>
           )}
           {removedLibraries.length > 0 && (
             <p>
-              <strong>Updated libraries: </strong>
+              <strong>
+                <UiText message={"Updated libraries:"} />{" "}
+              </strong>
               {removedLibraries.map((l) => `"${l.name}"`).join(", ")}
             </p>
           )}
           {updatedLibraries.length > 0 && (
             <p>
-              <strong>Removed libraries: </strong>{" "}
+              <strong>
+                <UiText message={"Removed libraries:"} />{" "}
+              </strong>{" "}
               {updatedLibraries.map((l) => `"${l.name}"`).join(", ")}
             </p>
           )}
@@ -291,7 +315,10 @@ export async function syncCodeComponentsAndHandleErrors(
         })
         .when(CodeComponentRegistrationTypeError, (typeErr) => {
           notification.error({
-            message: "Type error while registering code components",
+            message: translate(
+              getUiLocale(),
+              "Type error while registering code components",
+            ),
             description: typeErr.message,
             duration: 0,
           });
@@ -299,23 +326,34 @@ export async function syncCodeComponentsAndHandleErrors(
         .when(CyclicComponentReferencesError, (cyclicRefsErr) => {
           notification.error({
             message: cyclicRefsErr.message,
-            description: `Some registered components reference each other in
-              the default slot values in a cycle. Please make sure this chain
-              of references doesn't contain any cycles.`,
+            description: translate(
+              getUiLocale(),
+              "Some registered components reference each other in the default slot values in a cycle. Please make sure this chain of references doesn't contain any cycles.",
+            ),
             duration: 0,
           });
         })
         .when(SelfReferencingComponent, (refError) => {
           notification.error({
             message: refError.message,
-            description: `Some registered components reference itself in the slot default value, resulting in a cycle.`,
+            description: translate(
+              getUiLocale(),
+              "Some registered components reference itself in the slot default value, resulting in a cycle.",
+            ),
             duration: 0,
           });
         })
         .when(UnknownComponentPropError, (propErr) => {
           notification.error({
             message: propErr.message,
-            description: `When registering ${propErr.componentName}, expected to find prop ${propErr.propName}`,
+            description: translate(
+              getUiLocale(),
+              "When registering {part1}, expected to find prop {part2}",
+              {
+                part1: String(propErr.componentName),
+                part2: String(propErr.propName),
+              },
+            ),
             duration: 0,
           });
         })
@@ -326,7 +364,7 @@ export async function syncCodeComponentsAndHandleErrors(
         })
         .when(DuplicatedComponentParamError, (paramErr) => {
           notification.error({
-            message: "Duplicated prop and state name",
+            message: translate(getUiLocale(), "Duplicated prop and state name"),
             description: paramErr.message,
             duration: 0,
           });

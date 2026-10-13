@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: evzY7iORow
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -118,7 +119,7 @@ function PlasmicSegmentModal__RenderFunc(props: {
         platform={"react"}
         target={"_blank"}
       >
-        {"How to register custom traits?"}
+        {<UiText message={"How to register custom traits?"} />}
       </PlasmicLink__>
     </div>
   ) as React.ReactElement | null;

@@ -8,7 +8,7 @@
   min-height: 0;
 }
 .freeBox__bU0WY {
-  background: rgba(255, 255, 255, 1);
+  background: var(--ui-elevated, rgba(255, 255, 255, 1));
   box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.114);
   filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.079));
   width: 100%;

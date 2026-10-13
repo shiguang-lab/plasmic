@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: vSQc3cNg5Q
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -76,6 +77,8 @@ function PlasmicChartView__RenderFunc(props: {
   overrides: PlasmicChartView__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -212,7 +215,7 @@ function PlasmicChartView__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "empty", "empty")
-                ? "No data found"
+                ? studioUiT("No data found")
                 : <UiText message={"Loading your data ..."} />}
             </div>
           </div>

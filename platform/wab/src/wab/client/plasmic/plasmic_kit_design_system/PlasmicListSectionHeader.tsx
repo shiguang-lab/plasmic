@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: wNvxk7eOak
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -239,7 +240,7 @@ function PlasmicListSectionHeader__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "List Item Section",
+          defaultContents: <UiText message={"List Item Section"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenshowActions]: hasVariant(

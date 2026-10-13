@@ -7,7 +7,7 @@
   height: 100%;
   max-width: 100%;
   position: relative;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   min-width: 0;
   min-height: 0;
 }

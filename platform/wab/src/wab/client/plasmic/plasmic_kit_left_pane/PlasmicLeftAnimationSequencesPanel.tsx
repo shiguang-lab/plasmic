@@ -187,7 +187,7 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
             <React.Fragment>
               <React.Fragment>
                 {
-                  "Create multi-step animations by setting style changes at key moments in time ("
+                  <UiText message={"Create multi-step animations by setting style changes at key moments in time ("} />
                 }
               </React.Fragment>
               {
@@ -208,11 +208,11 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
                   platform={"react"}
                   target={"_blank"}
                 >
-                  {"keyframes"}
+                  {<UiText message={"keyframes"} />}
                 </PlasmicLink__>
               }
               <React.Fragment>
-                {"). Animations can be applied to elements."}
+                {<UiText message={"). Animations can be applied to elements."} />}
               </React.Fragment>
             </React.Fragment>
           </div>

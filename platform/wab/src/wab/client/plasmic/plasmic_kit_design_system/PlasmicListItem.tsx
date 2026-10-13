@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: v31d9_ANqk
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -682,7 +683,7 @@ function PlasmicListItem__RenderFunc(props: {
             })}
           >
             {renderPlasmicSlot({
-              defaultContents: "Item name is pretty long",
+              defaultContents: <UiText message={"Item name is pretty long"} />,
               value: args.children,
               className: classNames(sty.slotTargetChildren, {
                 [sty.slotTargetChildrencolor_variant]: hasVariant(

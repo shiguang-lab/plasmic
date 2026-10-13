@@ -1,5 +1,6 @@
 import { useNonAuthCtx } from "@/wab/client/app-ctx";
 import Button from "@/wab/client/components/widgets/Button";
+import { useI18n } from "@/wab/client/i18n";
 import { PlasmicButton__VariantsArgs } from "@/wab/client/plasmic/PlasmicButton";
 import { WrappedStorageEvent } from "@/wab/shared/SharedApi";
 import { mkUuid, spawn } from "@/wab/shared/common";
@@ -33,6 +34,8 @@ export function useAuthPopup(opts: {
   onFailure?: (reason: string | null) => void;
   onEnd?: () => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const api = useNonAuthCtx().api;
   const { onStart, onSuccess, onFailure, onEnd } = opts;
   const [isWaiting, setWaiting] = React.useState(false);
@@ -72,7 +75,9 @@ export function useAuthPopup(opts: {
           }
         }, 500);
       } else {
-        alert("Please disable your popup blocker, then reload the page.");
+        alert(
+          studioUiT("Please disable your popup blocker, then reload the page."),
+        );
       }
     },
   };

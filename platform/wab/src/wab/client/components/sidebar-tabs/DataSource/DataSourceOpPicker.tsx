@@ -1,6 +1,10 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
-import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import "@graphiql/plugin-explorer/dist/style.css";
 import type { CrudSorting } from "@pankod/refine-core";
@@ -302,6 +306,8 @@ type DataSourceOpPickerProps = {
 );
 
 export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
+  const { t: studioUiT } = useI18n();
+
   const {
     queryKey,
     value,
@@ -373,7 +379,7 @@ export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
           data-plasmic-prop="data-source-open-modal-btn"
         >
           {!value ? (
-            "Configure an operation"
+            studioUiT("Configure an operation")
           ) : (
             <DataSourceOpExprSummary expr={value} />
           )}
@@ -534,6 +540,8 @@ const DataSourceOpExprBottomModalContent = observer(
 
 export const DataSourceOpExprSummary = observer(
   function DataSourceOpExprSummary(props: { expr: DataSourceOpExpr }) {
+    const { t: studioUiT } = useI18n();
+
     const { expr } = props;
     const sourceId = expr.sourceId;
     const opName = expr.opName;
@@ -551,7 +559,7 @@ export const DataSourceOpExprSummary = observer(
     return (
       <div className={styles.dataSourceExprValue}>
         {opMeta.name === "getTableSchema"
-          ? `Table: ${source.name}`
+          ? studioUiT("Table: {part1}", { part1: String(source.name) })
           : `${source.name}: ${opMeta.label ?? opMeta.name}`}
       </div>
     );
@@ -965,11 +973,9 @@ const DataSourceOpExprFormAndPreview = observer(
           );
         } else {
           notification.error({
-            message: translate(
-              getUiLocale(),
-              "Missing required fields: {part1}",
-              { part1: missingRequiredArgs.join(", ") },
-            ),
+            message: uiT("Missing required fields: {part1}", {
+              part1: missingRequiredArgs.join(", "),
+            }),
           });
         }
         setGettingOpId(false);
@@ -1067,7 +1073,11 @@ const DataSourceOpExprFormAndPreview = observer(
                   }
                   onClick={saveOpExpr}
                 >
-                  {isGettingOpId ? "Saving..." : <UiText message={"Save"} />}
+                  {isGettingOpId ? (
+                    uiT("Saving...")
+                  ) : (
+                    <UiText message={"Save"} />
+                  )}
                 </Button>
                 <Button
                   onClick={async () => {
@@ -2093,18 +2103,19 @@ function DataSourceOpDataPreview(props: {
         setMutateOpResults(result);
       } catch (err) {
         const sourceMeta = source && getDataSourceMeta(source.source);
-        notification.error({
-          message: translate(getUiLocale(), 'Operation "{part1}" failed', {
+        notification.open({
+          type: getErrorType(err),
+          message: uiT('Operation "{part1}" failed', {
             part1:
               sourceMeta?.ops.find((op) => op.name === opExpr.opName)?.label ??
               opExpr.opName,
           }),
-          description: err.message,
+          description: <ErrorDescription error={err} />,
         });
       }
       setExecuteQueue(rest);
     }
-  }, [executeQueue, setExecuteQueue]);
+  }, [executeQueue, setExecuteQueue, uiT]);
 
   React.useEffect(() => {
     spawn(popExecuteQueue());
@@ -2295,6 +2306,8 @@ export function DataSourcePickerButton(props: {
   disabled?: boolean;
   readOpsOnly?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { sourceId, readOpsOnly, onChange, sourceType, disabled } = props;
   const topFrameApi = useTopFrameApi();
   const { data: source } = useDataSource(sourceId);
@@ -2315,7 +2328,9 @@ export function DataSourcePickerButton(props: {
       }}
     >
       {!sourceId ? (
-        `Pick an ${DATA_SOURCE_LOWER}`
+        studioUiT("Pick an {part1}", {
+          part1: translateUiLabel(getUiLocale(), DATA_SOURCE_LOWER),
+        })
       ) : !source ? (
         <UiText message={"Loading..."} />
       ) : (

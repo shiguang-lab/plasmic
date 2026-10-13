@@ -8,7 +8,7 @@
   border-right-width: 0px;
   border-left-width: 0px;
   align-items: center;
-  background: var(--token-aUCjnzhayS);
+  background: var(--ui-surface, var(--token-aUCjnzhayS));
   column-gap: 13px;
   min-width: 0;
   padding: 0px 12px;

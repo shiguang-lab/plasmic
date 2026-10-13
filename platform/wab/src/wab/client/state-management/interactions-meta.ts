@@ -1,3 +1,5 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { getTplRefActions } from "@/wab/client/state-management/ref-actions";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ApiDataSource } from "@/wab/shared/ApiSchema";
@@ -789,7 +791,7 @@ export function extractDataCtx(
             ]),
           ),
           [mkMetaName("$steps")]: {
-            label: "Previous step results",
+            label: translate(getUiLocale(), "Previous step results"),
             currentInteraction,
           },
         }

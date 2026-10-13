@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: UttGK3xVrb
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -169,7 +170,7 @@ function PlasmicEditableResourceName__RenderFunc(props: {
       data-plasmic-trigger-props={[triggerRootHoverProps]}
     >
       {renderPlasmicSlot({
-        defaultContents: "Untitled",
+        defaultContents: <UiText message={"Untitled"} />,
         value: args.name,
         className: classNames(sty.slotTargetName, {
           [sty.slotTargetNamecantEdit]: hasVariant(

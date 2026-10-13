@@ -20,7 +20,7 @@
 .overflowControls {
   padding-top: 12px;
   margin-top: 12px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--ui-border-subtle, #eee);
 
   & > div {
     width: 100%;
@@ -39,10 +39,10 @@
 }
 
 .toggleSizingIcon {
-  color: $sand11;
+  color: var(--ui-muted, #{$sand11});
   cursor: pointer;
   &:hover {
-    color: $sand12;
+    color: var(--ui-text, #{$sand12});
   }
 }
 

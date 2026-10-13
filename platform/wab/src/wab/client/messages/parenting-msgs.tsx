@@ -32,7 +32,9 @@ export function renderCantAddMsg(
         `Cannot add elements to tag ${msg.tpl.tag}`
       ) : (
         <>
-          Cannot add elements to tag <code>{msg.tpl.tag}</code>
+          {" "}
+          <UiText message={"Cannot add elements to tag"} />{" "}
+          <code>{msg.tpl.tag}</code>
         </>
       );
     case "CantAddToAttrsChildren":
@@ -40,7 +42,10 @@ export function renderCantAddMsg(
         "Element content already defined by attribute children"
       ) : (
         <>
-          Element content already defined by attribute{" "}
+          {" "}
+          <UiText
+            message={"Element content already defined by attribute"}
+          />{" "}
           <code>
             <UiText message={"children"} />
           </code>
@@ -63,12 +68,15 @@ export function renderCantAddMsg(
           .join(", ")}) as default content of a slot.`
       ) : (
         <>
-          Cannot add element that references component props (
+          {" "}
+          <UiText
+            message={"Cannot add element that references component props ("}
+          />{" "}
           {joinReactNodes(
             msg.vars.map((v) => <code>{v.name}</code>),
             ", ",
-          )}
-          ) as default content of a slot.
+          )}{" "}
+          <UiText message={") as default content of a slot."} />{" "}
         </>
       );
     case "CantAddToSelfDescendant":

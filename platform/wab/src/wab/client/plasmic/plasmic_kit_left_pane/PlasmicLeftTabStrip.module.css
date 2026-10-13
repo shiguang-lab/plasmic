@@ -4,7 +4,7 @@
   height: 100%;
   position: relative;
   flex-direction: column;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   overflow: auto;
   pointer-events: auto;
   row-gap: 4px;

@@ -1,4 +1,6 @@
+import { normalizeError, showError } from "@/wab/client/ErrorNotifications";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import React from "react";
 
 import { NonAuthCtx, loadAppCtx, useNonAuthCtx } from "@/wab/client/app-ctx";
@@ -11,7 +13,7 @@ import {
 import { PkgVersionInfoMeta } from "@/wab/shared/SharedApi";
 import { assert, ensure } from "@/wab/shared/common";
 import "@xyflow/react/dist/style.css";
-import { Button, Descriptions, Input, Skeleton, notification } from "antd";
+import { Button, Descriptions, Input, Skeleton } from "antd";
 import { keyBy, maxBy, uniq } from "lodash";
 import moment from "moment";
 
@@ -117,7 +119,7 @@ function PkgVersionDetails(props: {
         ),
       );
     } catch (e) {
-      notification.error({ message: `${e}` });
+      showError(normalizeError(e));
     }
   }
 
@@ -134,19 +136,19 @@ function PkgVersionDetails(props: {
 
   return (
     <div>
-      <Descriptions title="Package Version Info" layout="vertical">
-        <Descriptions.Item label="Package Version ID">
+      <Descriptions title={uiT("Package Version Info")} layout="vertical">
+        <Descriptions.Item label={uiT("Package Version ID")}>
           {pkgVersionId}
         </Descriptions.Item>
-        <Descriptions.Item label="Created At">
+        <Descriptions.Item label={uiT("Created At")}>
           {`${createdAt.format(
             "YYYY-MM-DD HH:mm:ss",
           )} (${createdAt.fromNow()})`}
         </Descriptions.Item>
-        <Descriptions.Item label="Created By">
+        <Descriptions.Item label={uiT("Created By")}>
           {author?.email}
         </Descriptions.Item>
-        <Descriptions.Item label="Parents">
+        <Descriptions.Item label={uiT("Parents")}>
           <div>
             {parents.map((parent) => (
               <p key={parent}>{parent}</p>
@@ -158,16 +160,20 @@ function PkgVersionDetails(props: {
         </Descriptions.Item>
       </Descriptions>
       <Button onClick={() => downloadCurrentPkgVersionData()}>
-        Download current state
+        {" "}
+        <UiText message={"Download current state"} />{" "}
       </Button>
       <Button onClick={() => downloadDataPriorToMerge()}>
-        Download state prior to this version/merge
+        {" "}
+        <UiText message={"Download state prior to this version/merge"} />{" "}
       </Button>
     </div>
   );
 }
 
 export function AdminBranchingInspector() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [projectId, setProjectId] = React.useState<string>("");
   const [projectMetadata, setProjectMetadata] =
@@ -285,9 +291,11 @@ export function AdminBranchingInspector() {
 
   return (
     <div>
-      <h2>Branching Inspector</h2>
+      <h2>
+        <UiText message={"Branching Inspector"} />
+      </h2>
       <Input
-        placeholder="Project ID"
+        placeholder={studioUiT("Project ID")}
         value={projectId}
         onChange={(e) => setProjectId(e.target.value)}
       />
@@ -302,7 +310,8 @@ export function AdminBranchingInspector() {
           });
         }}
       >
-        Load
+        {" "}
+        <UiText message={"Load"} />{" "}
       </Button>
       {selectedPkgVersionId && projectMetadata && (
         <div style={{ marginTop: 32 }}>

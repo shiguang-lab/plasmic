@@ -123,14 +123,14 @@ function PlasmicFreeTrialModal__RenderFunc(props: {
         data-plasmic-override={overrides.h3}
         className={classNames("all", "h3", "h3__ooL7E", "__wab_text", sty.h3)}
       >
-        <React.Fragment>{`Discover all of Plasmic with a ${$props.trialDays}-day trial of Scale`}</React.Fragment>
+        <React.Fragment>{<UiText message={"Discover all of Plasmic with a {part1}-day trial of Scale"} values={{ part1: String($props.trialDays) }} />}</React.Fragment>
       </h3>
       <div
         data-plasmic-name={"text"}
         data-plasmic-override={overrides.text}
         className={classNames("all", "__wab_text", sty.text)}
       >
-        <React.Fragment>{`We\u2019ve upgraded you to a free ${$props.trialDays}-day trial of the Scale plan. Experience Plasmic's full range of features to choose the best plan for you.\n\nWhen your trial ends, we'll automatically move your account to the Free plan unless you choose to upgrade.`}</React.Fragment>
+        <React.Fragment>{<UiText message={"We’ve upgraded you to a free {part1}-day trial of the Scale plan. Experience Plasmic's full range of features to choose the best plan for you. When your trial ends, we'll automatically move your account to the Free plan unless you choose to upgrade."} values={{ part1: String($props.trialDays) }} />}</React.Fragment>
       </div>
       <div
         data-plasmic-name={"freeBox"}

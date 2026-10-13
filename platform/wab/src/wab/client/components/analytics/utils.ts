@@ -1,4 +1,6 @@
 import { useChartData } from "@/wab/client/components/analytics/useChartData";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -135,7 +137,7 @@ export function getChartHeaders(chartData: ReturnType<typeof useChartData>) {
   }
   const type = chartData.analyticsQuery?.type!;
   const TIME = {
-    label: "Time",
+    label: translate(getUiLocale(), "Time"),
     key: "time",
   };
   switch (type) {
@@ -143,11 +145,11 @@ export function getChartHeaders(chartData: ReturnType<typeof useChartData>) {
       return [
         TIME,
         {
-          label: "Impressions",
+          label: translate(getUiLocale(), "Impressions"),
           key: "impressions",
         },
         {
-          label: "Unique impressions",
+          label: translate(getUiLocale(), "Unique impressions"),
           key: "unique_impressions",
         },
       ];
@@ -156,11 +158,11 @@ export function getChartHeaders(chartData: ReturnType<typeof useChartData>) {
       return [
         TIME,
         {
-          label: "Conversions",
+          label: translate(getUiLocale(), "Conversions"),
           key: "conversions",
         },
         {
-          label: "Conversion Amount",
+          label: translate(getUiLocale(), "Conversion Amount"),
           key: "conversion_amount",
         },
       ];
@@ -169,15 +171,15 @@ export function getChartHeaders(chartData: ReturnType<typeof useChartData>) {
       return [
         TIME,
         {
-          label: "Renders",
+          label: translate(getUiLocale(), "Renders"),
           key: "renders",
         },
         {
-          label: "Conversions",
+          label: translate(getUiLocale(), "Conversions"),
           key: "conversions",
         },
         {
-          label: "Conversion Rate",
+          label: translate(getUiLocale(), "Conversion Rate"),
           key: "conversion_rate",
         },
       ];

@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: bqUvK9cs5w
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -314,7 +315,7 @@ function PlasmicStyleToggleButton__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Label",
+            defaultContents: <UiText message={"Label"} />,
             value: args.label,
             className: classNames(sty.slotTargetLabel, {
               [sty.slotTargetLabelnoIcon]: hasVariant(

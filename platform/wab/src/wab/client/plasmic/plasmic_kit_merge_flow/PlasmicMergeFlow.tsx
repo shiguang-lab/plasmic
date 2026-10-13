@@ -110,6 +110,10 @@ function PlasmicMergeFlow__RenderFunc(props: {
   overrides: PlasmicMergeFlow__OverridesType;
   forNode?: string;
 }) {
+
+
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -415,7 +419,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text__kp5Wz
                       )}
                     >
-                      {"in this branch"}
+                      {<UiText message={"in this branch"} />}
                     </div>
                     {false ? (
                       <div
@@ -475,7 +479,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         sty.text___8FduF
                       )}
                     >
-                      {"in main branch since this branch was created"}
+                      {<UiText message={"in main branch since this branch was created"} />}
                     </div>
                     {false ? (
                       <div
@@ -683,7 +687,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                           sty.text___8D6Zw
                         )}
                       >
-                        {"Object"}
+                        {<UiText message={"Object"} />}
                       </div>
                       {false ? (
                         <div
@@ -747,7 +751,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                             sty.text__iXNhU
                           )}
                         >
-                          {"Main\nbranch"}
+                          {<UiText message={"Main branch"} />}
                         </div>
                         {false ? (
                           <div
@@ -810,7 +814,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                             sty.text__qtmHr
                           )}
                         >
-                          {"This\nbranch"}
+                          {<UiText message={"This branch"} />}
                         </div>
                         {false ? (
                           <div
@@ -880,21 +884,21 @@ function PlasmicMergeFlow__RenderFunc(props: {
                     ),
                   })}
                   name={"Homepage"}
-                  subtext={"Some changes were auto merged"}
+                  subtext={uiT("Some changes were auto merged")}
                 />
 
                 <Conflict
                   className={classNames("__wab_instance", sty.conflict__i7Jgd)}
                   hasSubtext={true}
                   name={"Homepage"}
-                  subtext={"Some changes were auto merged"}
+                  subtext={uiT("Some changes were auto merged")}
                 />
 
                 <Conflict
                   className={classNames("__wab_instance", sty.conflict__u2SIb)}
                   merged={true}
                   name={"Homepage"}
-                  subtext={"Some changes were auto merged"}
+                  subtext={uiT("Some changes were auto merged")}
                 />
 
                 <Conflict
@@ -907,7 +911,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                   })}
                   merged={true}
                   name={"Homepage"}
-                  subtext={"Some changes were auto merged"}
+                  subtext={uiT("Some changes were auto merged")}
                 />
               </div>
               <div
@@ -1050,14 +1054,14 @@ function PlasmicMergeFlow__RenderFunc(props: {
                 })}
               >
                 {
-                  "Token \u201cInfo\u201d added in both branches, so we renamed this branch\u2019s to \u201cInfo2\u201d."
+                  <UiText message={"Token “Info” added in both branches, so we renamed this branch’s to “Info2”."} />
                 }
               </LineItem>
               <LineItem
                 className={classNames("__wab_instance", sty.lineItem__skGyc)}
               >
                 {
-                  "Component \u201cListItem\u201d deleted in this branch, but got used in the main branch, so we deleted those new usages."
+                  <UiText message={"Component “ListItem” deleted in this branch, but got used in the main branch, so we deleted those new usages."} />
                 }
               </LineItem>
             </div>
@@ -1168,7 +1172,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
               </div>
               <div className={classNames("all", "__wab_text", sty.text__uUu0C)}>
                 {
-                  "Merging will cause a new version to be saved. Publish actions will not be run."
+                  <UiText message={"Merging will cause a new version to be saved. Publish actions will not be run."} />
                 }
               </div>
             </div>
@@ -1249,7 +1253,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
               <Button
                 data-plasmic-name={"cancelButton"}
                 data-plasmic-override={overrides.cancelButton}
-                caption={"Caption"}
+                caption={uiT("Caption")}
                 className={classNames("__wab_instance", sty.cancelButton)}
               >
                 {<UiText message={"Cancel"} />}
@@ -1257,7 +1261,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
               <Button
                 data-plasmic-name={"finishButton"}
                 data-plasmic-override={overrides.finishButton}
-                caption={"Caption"}
+                caption={uiT("Caption")}
                 className={classNames("__wab_instance", sty.finishButton, {
                   [sty.finishButtonblocked]: hasVariant(
                     $state,

@@ -11,6 +11,7 @@
 // Plasmic Project: 29njzcsBEPR4koRddw4knF
 // Component: V-X3eZLINq
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -66,20 +67,22 @@ function PlasmicPromoBanner__RenderFunc(props: {
   overrides: PlasmicPromoBanner__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
     () =>
       Object.assign(
         {
-          message: "Sign up!",
+          message: studioUiT("Sign up!"),
           bannerUrl: "https://studio.plasmic.app/signup",
         },
         Object.fromEntries(
           Object.entries(props.args).filter(([_, v]) => v !== undefined)
         )
       ),
-    [props.args]
+    [props.args, studioUiT]
   );
 
   const $props = {

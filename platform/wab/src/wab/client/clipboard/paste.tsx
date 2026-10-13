@@ -7,6 +7,8 @@ import { pasteRemote } from "@/wab/client/clipboard/remote";
 import { pasteText } from "@/wab/client/clipboard/text";
 import { InsertRelLoc } from "@/wab/client/components/canvas/view-ops";
 import { pasteFromFigma } from "@/wab/client/figma";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { isCopyState } from "@/wab/client/insertable-templates";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { pasteFromWebImporter } from "@/wab/client/web-importer/WebImporter";
@@ -129,13 +131,16 @@ async function pasteRouter(
     }
 
     notification.warning({
-      message: "Nothing to paste - the clipboard is empty",
+      message: translate(
+        getUiLocale(),
+        "Nothing to paste - the clipboard is empty",
+      ),
     });
     return false;
   } catch (err) {
     reportError(err);
     showError(err, {
-      title: "Paste failed",
+      title: translate(getUiLocale(), "Paste failed"),
     });
     return false;
   }

@@ -11,6 +11,7 @@
 // Plasmic Project: 6BCq4vMow1yqGKFdcP68Rz
 // Component: jTLog2H3DE
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -93,6 +94,8 @@ function PlasmicPageSettings__RenderFunc(props: {
   overrides: PlasmicPageSettings__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -204,7 +207,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                 </div>
                 <Textbox
                   className={classNames("__wab_instance", sty.textbox__mY5Mi)}
-                  placeholder={"My fancy page"}
+                  placeholder={studioUiT("My fancy page")}
                   prefixIcon={
                     <SearchSvgIcon
                       className={classNames("all", sty.svg__xOaFz)}
@@ -250,7 +253,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                           sty.textarea___40UOz
                         )}
                         placeholder={
-                          "A description to show for search engine results."
+                          studioUiT("A description to show for search engine results.")
                         }
                       />
                     </div>
@@ -328,7 +331,7 @@ function PlasmicPageSettings__RenderFunc(props: {
                   sty.span
                 )}
               >
-                {"The preview image when the page is shared on social media."}
+                {<UiText message={"The preview image when the page is shared on social media."} />}
               </span>
               <PlasmicLink__
                 data-plasmic-name={"link"}
@@ -357,7 +360,7 @@ function PlasmicPageSettings__RenderFunc(props: {
               data-plasmic-override={overrides.imageAssetPicker}
               className={classNames("all", "__wab_text", sty.imageAssetPicker)}
             >
-              {"This is the image asset picker"}
+              {<UiText message={"This is the image asset picker"} />}
             </div>
             <div className={classNames("all", "__wab_text", sty.text__hatY)}>
               {<UiText message={"(Recommended: 1200 x 630 pixels)"} />}

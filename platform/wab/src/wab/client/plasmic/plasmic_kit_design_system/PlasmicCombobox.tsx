@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: zIW2sbKF4DAY
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -132,13 +133,15 @@ function PlasmicCombobox__RenderFunc(props: {
   overrides: PlasmicCombobox__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
     () =>
       Object.assign(
         {
-          placeholder: "Select an item",
+          placeholder: studioUiT("Select an item"),
           showLabel: true,
           showDescription: false,
         },
@@ -146,7 +149,7 @@ function PlasmicCombobox__RenderFunc(props: {
           Object.entries(props.args).filter(([_, v]) => v !== undefined)
         )
       ),
-    [props.args]
+    [props.args, studioUiT]
   );
 
   const $props = {
@@ -266,7 +269,7 @@ function PlasmicCombobox__RenderFunc(props: {
           className={classNames("__wab_instance", sty.label)}
         >
           {renderPlasmicSlot({
-            defaultContents: "Label",
+            defaultContents: <UiText message={"Label"} />,
             value: args.label,
           })}
         </Label>
@@ -320,7 +323,7 @@ function PlasmicCombobox__RenderFunc(props: {
           className={classNames("__wab_instance", sty.description)}
         >
           {renderPlasmicSlot({
-            defaultContents: "Description...",
+            defaultContents: <UiText message={"Description..."} />,
             value: args.description,
           })}
         </Description>

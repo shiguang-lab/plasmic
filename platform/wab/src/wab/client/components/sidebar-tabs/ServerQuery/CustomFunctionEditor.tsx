@@ -5,6 +5,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/ServerQuery/QueryResultPreview";
 import { useServerQueryBottomModal } from "@/wab/client/components/sidebar-tabs/ServerQuery/ServerQueryBottomModal";
 import Button from "@/wab/client/components/widgets/Button";
+import { useI18n } from "@/wab/client/i18n";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -50,6 +51,8 @@ type CustomFunctionEditorProps = {
 
 export const CustomFunctionEditor = observer(
   (props: CustomFunctionEditorProps) => {
+    const { t: studioUiT } = useI18n();
+
     const {
       queryKey,
       value,
@@ -112,7 +115,7 @@ export const CustomFunctionEditor = observer(
           data-plasmic-prop="data-source-open-modal-btn"
         >
           {!value ? (
-            "Configure an operation"
+            studioUiT("Configure an operation")
           ) : (
             <ServerQueryOpSummary expr={value} />
           )}

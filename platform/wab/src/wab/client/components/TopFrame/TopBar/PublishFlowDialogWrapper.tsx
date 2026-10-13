@@ -7,8 +7,8 @@ import {
   ensureWebsiteVersionSaved,
   publishCurrentWebsite,
 } from "@/wab/client/components/TopFrame/TopBar/publish-website";
-import { getUiLocale } from "@/wab/client/i18n";
-import { translate } from "@/wab/client/i18n/locales";
+import { useI18n } from "@/wab/client/i18n";
+
 /** @format */
 
 import { apiKey } from "@/wab/client/api";
@@ -149,6 +149,8 @@ export const PublishFlowDialogWrapper = observer(
     setShowCodeModal,
     onSelectDelivery,
   }: PublishFlowDialogWrapperProps) {
+    const { t: studioUiT } = useI18n();
+
     const appCtx = useAppCtx();
     const { hostFrameApi } = useTopFrameCtx();
     const projectId = project.id;
@@ -156,7 +158,7 @@ export const PublishFlowDialogWrapper = observer(
     const [previewEnabled, setPreviewEnabled] = React.useState(false);
     const [previewEntryPath, setPreviewEntryPath] = React.useState("");
     const [previewBusy, setPreviewBusy] = React.useState(false);
-    const [previewError, setPreviewError] = React.useState<string>();
+    const [previewError, setPreviewError] = React.useState<unknown>();
     const previewAvailable =
       !!appCtx.appConfig.previewOrigin && !activatedBranch;
     const {
@@ -211,7 +213,7 @@ export const PublishFlowDialogWrapper = observer(
         await refreshPreview(result, false);
         refreshProjectAndPerms();
       } catch (error) {
-        setPreviewError(error instanceof Error ? error.message : String(error));
+        setPreviewError(error);
         throw error;
       } finally {
         setPreviewBusy(false);
@@ -226,7 +228,7 @@ export const PublishFlowDialogWrapper = observer(
         await refreshPreview();
         refreshProjectAndPerms();
       } catch (error) {
-        setPreviewError(error instanceof Error ? error.message : String(error));
+        setPreviewError(error);
       } finally {
         setPreviewBusy(false);
       }
@@ -543,9 +545,7 @@ export const PublishFlowDialogWrapper = observer(
               if (!previewAvailable) {
                 throw error;
               }
-              setPreviewError(
-                error instanceof Error ? error.message : String(error),
-              );
+              setPreviewError(error);
               await refreshPreview();
               return;
             }
@@ -558,9 +558,7 @@ export const PublishFlowDialogWrapper = observer(
               ensureWebsiteVersionSaved(publishResult);
             } catch (error) {
               if (previewAvailable && previewEnabled) {
-                setPreviewError(
-                  error instanceof Error ? error.message : String(error),
-                );
+                setPreviewError(error);
               }
               return;
             }
@@ -697,9 +695,8 @@ export const PublishFlowDialogWrapper = observer(
           });
         } else {
           notification.warning({
-            message: translate(getUiLocale(), "The latest publish failed"),
-            description: translate(
-              getUiLocale(),
+            message: studioUiT("The latest publish failed"),
+            description: studioUiT(
               "An error occurred when publishing. Please try again!",
             ),
           });
@@ -755,10 +752,7 @@ export const PublishFlowDialogWrapper = observer(
                       previewLoading ||
                       publishState === "publishing"
                     }
-                    error={
-                      previewError ||
-                      (previewLoadError ? String(previewLoadError) : undefined)
-                    }
+                    error={previewError || previewLoadError}
                     canEdit={editorPerm && !previewLoadError}
                     publish={() =>
                       spawn(publishWebsite(true).catch(() => undefined))

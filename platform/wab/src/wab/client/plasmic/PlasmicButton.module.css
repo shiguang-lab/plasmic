@@ -23,16 +23,16 @@
   padding: 0px;
 }
 .roottype_backlitError {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .roottype_backlitInfo {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .roottype_toggleOn {
   background: var(--token-bV4cCeIniS6);
 }
 .roottype_toggleOff {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .roottype_clear {
   background: var(--token-brSQU2ryS);
@@ -61,7 +61,7 @@
   box-shadow:
     0px 2px 4px 0px var(--token-JrjdlBU-a5Ju),
     0px 0px 0px 0px var(--token-zBV3PmIqbJ9F);
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   padding-top: 6px;
   padding-bottom: 6px;
   min-height: 1.75rem;
@@ -154,12 +154,12 @@
   padding-right: 4px;
 }
 .roottype_bordered_color_green {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   border-style: solid;
   border-color: var(--token-n4S9_H7k9rsR);
 }
 .roottype_bordered_color_red {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   border-style: solid;
   border-color: var(--token-yUAjM3D7ZnY);
 }
@@ -314,7 +314,7 @@
   color: var(--token-UCbZU41E8Mj);
 }
 .slotTargetStartIcontype_primary_withIcons_startIcon {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .slotTargetStartIcontype_clearPrimary_withIcons_startIcon {
   color: var(--token-VUsIDivgUss);

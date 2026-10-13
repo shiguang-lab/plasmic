@@ -1,3 +1,6 @@
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+
 import VariantRow from "@/wab/client/components/canvas/VariantsBar/VariantRow";
 import styles from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer.module.scss";
 import VariantsGroupLabel from "@/wab/client/components/canvas/VariantsBar/VariantsGroupLabel";
@@ -72,6 +75,8 @@ function VariantsDrawer_({
   component,
   ...props
 }: VariantsDrawerProps) {
+  const { t: studioUiT } = useI18n();
+
   const studioCtx = useStudioCtx();
   const viewCtx = studioCtx.focusedViewCtx();
   const focusedTpl = viewCtx?.focusedTpl();
@@ -97,15 +102,16 @@ function VariantsDrawer_({
     } else if (isCodeComponentVariant(v)) {
       return v.codeComponentVariantKeys?.some(
         (key) =>
-          matcher.matches(key) || matcher.matches(codeComponentVariantsLabel),
+          matcher.matches(key) ||
+          matcher.matches(studioUiT(codeComponentVariantsLabel)),
       );
     } else if (isStyleVariant(v)) {
       return v.selectors?.some(
         (sel) =>
           matcher.matches(sel) ||
           (isPrivateStyleVariant(v) &&
-            matcher.matches(elementInteractionsLabel)) ||
-          matcher.matches(styleVariantsLabel),
+            matcher.matches(studioUiT(elementInteractionsLabel))) ||
+          matcher.matches(studioUiT(styleVariantsLabel)),
       );
     } else {
       return (
@@ -115,7 +121,8 @@ function VariantsDrawer_({
     }
   });
 
-  const shouldShowBase = !hideBase && (!query || matcher.matches(baseLabel));
+  const shouldShowBase =
+    !hideBase && (!query || matcher.matches(studioUiT(baseLabel)));
   const getVariantRowRef = useRefMap<Variant, HTMLDivElement>();
   const lockMouseInteractionsRef = useRef(true);
   const baseVariantRef = useRef<HTMLDivElement>(null);
@@ -254,7 +261,9 @@ function VariantsDrawer_({
         onBlur: handleDismiss,
         onFocus: handleSearchInputFocus,
         onChange: (e) => setQuery(e.target.value),
-        placeholder: `Search ${VARIANTS_LOWER}`,
+        placeholder: studioUiT("Search {part1}", {
+          part1: translateUiLabel(getUiLocale(), VARIANTS_LOWER),
+        }),
         value: query,
       }}
       variantsList={{ ref: variantsListRef }}
@@ -276,7 +285,7 @@ function VariantsDrawer_({
                 onMouseEnter={handleRowMouseEnter(0)}
                 onMouseLeave={handleRowMouseEnter(-1)}
               >
-                {baseLabel}
+                {<UiText message={baseLabel} />}
               </VariantRow>
             ) : (
               variants?.map((variant) => (
@@ -364,7 +373,7 @@ function useGroupedVariants(
         key: elementInteractionsLabel,
         groupLabel: (
           <>
-            {elementInteractionsLabel}
+            {<UiText message={elementInteractionsLabel} />}
             <Icon icon={PlasmicIcon__Bolt} />
           </>
         ),
@@ -375,7 +384,7 @@ function useGroupedVariants(
         key: codeComponentVariantsLabel,
         groupLabel: (
           <>
-            {codeComponentVariantsLabel}
+            {<UiText message={codeComponentVariantsLabel} />}
             <Icon icon={PlasmicIcon__Bolt} />
           </>
         ),
@@ -386,7 +395,7 @@ function useGroupedVariants(
         key: styleVariantsLabel,
         groupLabel: (
           <>
-            {styleVariantsLabel}
+            {<UiText message={styleVariantsLabel} />}
             <Icon icon={PlasmicIcon__Bolt} />
           </>
         ),

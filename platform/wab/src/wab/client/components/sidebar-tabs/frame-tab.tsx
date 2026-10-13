@@ -169,7 +169,7 @@ const FrameBgSection = observer(function FrameBgSection(props: {
           color={frame.bgColor || ""}
           onChange={(color) => handleChange(color)}
           sc={viewCtx.studioCtx}
-          popupTitle="Artboard background"
+          popupTitle={uiT("Artboard background")}
         />
       </LabeledItemRow>
     </SidebarModalProvider>
@@ -278,8 +278,12 @@ const FrameSizeSection = observer(function FrameSizeSection(
             tooltipPlacement={"bottom"}
             tooltip={
               isPageFrame(frame)
-                ? "Page height grows based on content. This value is automatically computed."
-                : "In stretch mode, component height grows based on content. This value is automatically computed."
+                ? uiT(
+                    "Page height grows based on content. This value is automatically computed.",
+                  )
+                : uiT(
+                    "In stretch mode, component height grows based on content. This value is automatically computed.",
+                  )
             }
             allowFunctions={false}
           />

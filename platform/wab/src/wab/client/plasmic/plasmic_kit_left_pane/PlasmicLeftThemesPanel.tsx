@@ -99,6 +99,8 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
   overrides: PlasmicLeftThemesPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -274,7 +276,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
           </TextWithInfo>
         }
         description={
-          "Define the default styles and layout settings across this project."
+          uiT("Define the default styles and layout settings across this project.")
         }
         noActions={
           hasVariant($state, "noThemePicker", "noThemePicker")

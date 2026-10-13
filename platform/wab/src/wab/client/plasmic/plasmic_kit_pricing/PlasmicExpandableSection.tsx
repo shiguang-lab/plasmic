@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: IzGvUfmCzHyO
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -212,7 +213,7 @@ function PlasmicExpandableSection__RenderFunc(props: {
               })}
             >
               {renderPlasmicSlot({
-                defaultContents: "All features",
+                defaultContents: <UiText message={"All features"} />,
                 value: args.title,
                 className: classNames(sty.slotTargetTitle, {
                   [sty.slotTargetTitledark]: hasVariant($state, "dark", "dark"),
@@ -253,7 +254,7 @@ function PlasmicExpandableSection__RenderFunc(props: {
                   className={classNames("all", "__wab_text", sty.text___8C9RY)}
                 >
                   {
-                    "A workspace is an organizational unit within an organization. Organizations can contain multiple workspaces, and each workspace can house numerous Plasmic projects. Organization members can be added to workspaces or individual projects. For example, you could have an organization for your agency with separate workspaces for each client, or an organization for your company with workspaces for each department."
+                    <UiText message={"A workspace is an organizational unit within an organization. Organizations can contain multiple workspaces, and each workspace can house numerous Plasmic projects. Organization members can be added to workspaces or individual projects. For example, you could have an organization for your agency with separate workspaces for each client, or an organization for your company with workspaces for each department."} />
                   }
                 </div>
               </div>

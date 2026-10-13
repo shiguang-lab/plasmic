@@ -1,3 +1,6 @@
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+
 /** @format */
 
 import EditableResourceName from "@/wab/client/components/EditableResourceName";
@@ -37,6 +40,8 @@ function TeamPageHeader_(
   props: TeamPageHeaderProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const history = useHistory();
   const {
@@ -117,7 +122,9 @@ function TeamPageHeader_(
       settingsButton={{
         props: {
           href: APP_ROUTES.orgSettings.fill({ teamId: team.id }),
-          tooltip: `${ORGANIZATION_CAP} settings`,
+          tooltip: studioUiT("{part1} settings", {
+            part1: translateUiLabel(getUiLocale(), ORGANIZATION_CAP),
+          }),
         },
         wrap: (node) => {
           if (appCtx.appConfig.analytics) {
@@ -126,7 +133,9 @@ function TeamPageHeader_(
                 {node}
                 <IconButton
                   href={APP_ROUTES.orgAnalytics.fill({ teamId: team.id })}
-                  tooltip={`${ORGANIZATION_CAP} analytics`}
+                  tooltip={studioUiT("{part1} analytics", {
+                    part1: translateUiLabel(getUiLocale(), ORGANIZATION_CAP),
+                  })}
                 >
                   <Icon icon={ChartsvgIcon} />
                 </IconButton>

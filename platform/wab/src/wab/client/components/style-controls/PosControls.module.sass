@@ -22,13 +22,13 @@
 .CenterBlock
   width: 32px
   height: 16px
-  background-color: $sand4
+  background-color: var(--ui-hover, #{$sand4})
   border-radius: 2px
 .Num
   @include dead-center
   height: 33%
 .LabelHole
-  background: $panel-block-bg
+  background: var(--ui-surface, #{$panel-block-bg})
   padding: 0 1px
   line-height: 1
   @extend .code

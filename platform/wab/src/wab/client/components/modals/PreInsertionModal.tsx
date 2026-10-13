@@ -74,7 +74,7 @@ export const PreInsertionModal = (props: PreInsertionModalProps) => {
       onOk={() => onClose(args)}
     >
       {providesStudioCtx(studioCtx)(
-        <div style={{ backgroundColor: "white" }}>
+        <div style={{ backgroundColor: "var(--ui-surface, white)" }}>
           {Object.entries(hackyCast(meta).preInsertion).map(([name, prop]) => {
             const propType = prop as StudioPropType<any>;
             const litArgs = Object.fromEntries(

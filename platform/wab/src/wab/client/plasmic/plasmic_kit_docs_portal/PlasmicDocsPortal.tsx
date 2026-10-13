@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: -491oma_4M
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -308,7 +309,7 @@ function PlasmicDocsPortal__RenderFunc(props: {
                     />
                   }
                 >
-                  {"plus circle"}
+                  {<UiText message={"plus circle"} />}
                 </ImageListItem>
                 <ImageListItem
                   className={classNames(
@@ -322,7 +323,7 @@ function PlasmicDocsPortal__RenderFunc(props: {
                     />
                   }
                 >
-                  {"gear"}
+                  {<UiText message={"gear"} />}
                 </ImageListItem>
               </ImagesPanel>
             ) : null}

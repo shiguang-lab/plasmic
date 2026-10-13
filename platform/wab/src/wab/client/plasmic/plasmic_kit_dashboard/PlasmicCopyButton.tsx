@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: u7TII072Seb
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -73,6 +75,8 @@ function PlasmicCopyButton__RenderFunc(props: {
   overrides: PlasmicCopyButton__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -140,7 +144,7 @@ function PlasmicCopyButton__RenderFunc(props: {
         styleTokensClassNames,
         sty.root
       )}
-      title={triggers.hover_root ? "Copy project ID" : undefined}
+      title={triggers.hover_root ? studioUiT("Copy project ID") : undefined}
       type={"button"}
       data-plasmic-trigger-props={[triggerRootHoverProps]}
     >

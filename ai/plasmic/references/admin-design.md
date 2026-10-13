@@ -11,7 +11,8 @@ Reuse registered Antd6 Flex, Row/Col, Space and Card; use the existing AppShell 
 | Creation, copy or renaming of editable nodes | [Node naming](design/naming.md) |
 | Filters, Tabs, Tables, pagination or overflow | [Queries and lists](design/lists.md) and the live [SearchForm contract](search-form.md) when used |
 | Buttons, navigation, feedback or confirmation | [Actions](design/actions.md) |
-| Editable fields, Form validation or Modal/Drawer forms | [Forms](design/forms.md) |
+| Modal/Drawer structure, dismissal or footer | [Overlays](design/overlays.md) and [Actions](design/actions.md) |
+| Editable fields, Form validation or Modal/Drawer forms | [Forms](design/forms.md) and [Overlays](design/overlays.md) |
 | Record detail heading and return navigation | [Detail headers](design/detail.md) |
 
 These are admin design conventions adapted from pen-antd-kit; they do not supply component identifiers or replace the actual registration. Explicit user-approved designs take precedence over defaults. Business language remains configured; Studio labels remain English.

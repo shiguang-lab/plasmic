@@ -216,7 +216,7 @@ function PlasmicListSection__RenderFunc(props: {
         }
       >
         {renderPlasmicSlot({
-          defaultContents: "List Item Section",
+          defaultContents: <UiText message={"List Item Section"} />,
           value: args.title,
         })}
       </ListSectionHeader>

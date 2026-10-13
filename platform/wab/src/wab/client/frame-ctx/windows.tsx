@@ -1,6 +1,9 @@
 import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { getCanvasPkgs } from "@/wab/client/components/studio/studio-bundles";
 import { scriptExec } from "@/wab/client/dom-utils";
+import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { lt } from "@/wab/commons/semver";
 import { assert, withTimeout } from "@/wab/shared/common";
 import { requiredPackageVersions } from "@/wab/shared/required-versions";
@@ -51,11 +54,16 @@ export function checkRootSubHostVersion() {
     // TODO: Detect if the user is using loader-nextjs, loader-gatsby,
     // loader-react or codegen to display a more directed message.
     notification.warning({
-      message: "Unsupported host app detected",
+      message: translate(getUiLocale(), "Unsupported host app detected"),
       description: (
         <>
-          Please upgrade <code>@plasmicapp/*</code> packages in your host app to
-          continue using Plasmic Studio's latest features.
+          {" "}
+          <UiText message={"Please upgrade"} /> <code>@plasmicapp/*</code>{" "}
+          <UiText
+            message={
+              "packages in your host app to continue using Plasmic Studio's latest features."
+            }
+          />{" "}
         </>
       ),
       duration: 0,

@@ -5,6 +5,8 @@ import { GroupHeader } from "@/wab/client/components/QueryBuilder/Components/Gro
 import { MultiSelectEditor } from "@/wab/client/components/QueryBuilder/Components/MultiSelectEditor";
 import { OperatorPicker } from "@/wab/client/components/QueryBuilder/Components/OperatorPicker";
 import { RowActionsGroup } from "@/wab/client/components/QueryBuilder/Components/RowActionsGroup";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { mergeSane } from "@/wab/shared/common";
 import {
   AntdConfig,
@@ -91,7 +93,7 @@ export function createQueryBuilderConfig(
     // since react-awesome-query-builder doesn't have a built-in array widget.
     operators: {
       regex: {
-        label: "matches regex",
+        label: translate(getUiLocale(), "matches regex"),
         jsonLogic: "regex",
       },
     },
@@ -113,7 +115,7 @@ export function createQueryBuilderConfig(
   // Override base default valueSourcesInfo manually because L.merge won't.
   // The new default for is values only.
   base.settings.valueSourcesInfo = {
-    value: { label: "Value" }, // ALLOW literal values
+    value: { label: translate(getUiLocale(), "Value") }, // ALLOW literal values
     // field: { label: "Field" }, // DISALLOW field references
     // func: { label: "Function" }, // DISALLOW functions
   };

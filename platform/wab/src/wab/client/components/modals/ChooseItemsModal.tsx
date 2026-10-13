@@ -1,5 +1,4 @@
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { Checkbox, Form, Row } from "antd";
@@ -46,6 +45,8 @@ function ChooseItemsForm<T>(props: {
 }) {
   const { title, description, group, onSubmit, onCancel } = props;
   const [chosen, setChosen] = React.useState<string[]>([]);
+  const [form] = Form.useForm();
+  const formId = React.useId();
   const handleSubmit = React.useCallback(() => {
     onSubmit(group.filter((i) => chosen?.includes(i.value)));
   }, [onSubmit, group, chosen]);
@@ -54,12 +55,15 @@ function ChooseItemsForm<T>(props: {
     <Modal
       title={title}
       open={true}
-      footer={null}
+
+      okButtonProps={{ htmlType: "submit", form: formId }}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
       maskClosable={false}
       onCancel={() => onCancel()}
     >
       {description && <p>{description}</p>}
-      <Form onFinish={handleSubmit}>
+      <Form id={formId} form={form} onFinish={handleSubmit}>
         <Form.Item required>
           <Checkbox.Group<string>
             onChange={setChosen}
@@ -75,14 +79,6 @@ function ChooseItemsForm<T>(props: {
               </Row>
             ))}
           </Checkbox.Group>
-        </Form.Item>
-        <Form.Item>
-          <Button className="mr-sm" type="primary" htmlType="submit">
-            <UiText message={"Confirm"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
         </Form.Item>
       </Form>
     </Modal>

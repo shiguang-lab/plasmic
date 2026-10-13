@@ -11,9 +11,9 @@ import Button from "@/wab/client/components/widgets/Button";
 import GitJobStep from "@/wab/client/components/widgets/GitJobStep";
 import Select from "@/wab/client/components/widgets/Select";
 import { AsyncFnReturn } from "@/wab/client/hooks/useAsyncStrict";
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
+
 import {
   DefaultSubsectionPushDeployProps,
   PlasmicSubsectionPushDeploy,
@@ -115,10 +115,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
 
   const removeProjectRepository = async () => {
     const confirmed = await confirm({
-      message: translate(
-        getUiLocale(),
-        "Are you sure you want to remove this GitHub connection?",
-      ),
+      message: uiT("Are you sure you want to remove this GitHub connection?"),
     });
     if (confirmed) {
       await appCtx.api.deleteProjectRepository(
@@ -146,7 +143,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
         {...rest}
         checkbox={{
           props: {
-            "aria-label": "Enable push",
+            "aria-label": uiT("Enable push"),
             isDisabled: block,
             isChecked: enable,
             onChange: (checked: boolean) =>
@@ -159,12 +156,11 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
           props: {
             onClick: async () =>
               (await reactConfirm({
-                title: translate(getUiLocale(), "Remove GitHub configuration?"),
-                message: translate(
-                  getUiLocale(),
+                title: uiT("Remove GitHub configuration?"),
+                message: uiT(
                   "This will stop triggering updates to the GitHub repo.",
                 ),
-                confirmLabel: translate(getUiLocale(), "Remove"),
+                confirmLabel: uiT("Remove"),
               })) && setVisibleEnableBlock(false, false, block),
           },
         }}
@@ -210,7 +206,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
                   size="small"
                 >
                   {_props.isWaiting ? (
-                    "Waiting for GitHub..."
+                    uiT("Waiting for GitHub...")
                   ) : (
                     <UiText message={"Connect to GitHub"} />
                   )}
@@ -257,13 +253,17 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
             }
           },
           children: [
-            <Select.Option value="commit" key="commit" textValue="commit">
+            <Select.Option
+              value="commit"
+              key="commit"
+              textValue={uiT("commit")}
+            >
               <UiText
                 message={"a commit to {part1}"}
                 values={{ part1: <strong>{branch}</strong> }}
               />
             </Select.Option>,
-            <Select.Option value="pr" key="pr" textValue="pr">
+            <Select.Option value="pr" key="pr" textValue={uiT("pr")}>
               <UiText
                 message={"a new pull request to {part1}"}
                 values={{ part1: <strong>{branch}</strong> }}
@@ -277,7 +277,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
               <Select.Option
                 value={`${name}`}
                 key={`${name}`}
-                textValue={`update to ${name}`}
+                textValue={uiT("update to {part1}", { part1: String(name) })}
               >
                 <UiText
                   message={"an update to {part1}"}

@@ -20,7 +20,7 @@
   left: 0px;
   top: -16px;
   cursor: pointer;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .slotTargetName {
   font-weight: 700;

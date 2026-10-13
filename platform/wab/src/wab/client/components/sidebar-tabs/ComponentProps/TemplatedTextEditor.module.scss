@@ -1,27 +1,27 @@
 @import "src/wab/styles/_vars";
 
 .sqlKeywordColor {
-  color: #07a;
+  color: var(--ui-accent-text, #07a);
 }
 
 .sqlSpecialColor {
-  color: #999;
+  color: var(--ui-muted, #999);
 }
 
 .sqlNumberColor {
-  color: #905;
+  color: var(--ui-accent-text, #905);
 }
 
 .sqlFunctionColor {
-  color: #dd4a68;
+  color: var(--ui-error, #dd4a68);
 }
 
 .sqlBracketColor {
-  color: #9a6e3a;
+  color: var(--ui-warning, #9a6e3a);
 }
 
 .errorMsg {
-  color: red;
+  color: var(--ui-error, red);
   margin-bottom: 4px;
 }
 
@@ -32,13 +32,13 @@
 .prefix {
   vertical-align: middle;
   user-select: none;
-  color: $sand9;
+  color: var(--ui-placeholder, #{$sand9});
 }
 
 .placeholder {
   top: 7px !important;
   opacity: 1 !important;
-  color: $sand9 !important;
+  color: var(--ui-placeholder, #{$sand9}) !important;
   width: initial !important;
   display: inline-block !important;
 }

@@ -290,9 +290,10 @@ function ProjectListItem(props: ProjectListItemProps) {
                                     : null,
                               }),
                             {
-                              title: "Upgrade to move this project",
-                              description:
+                              title: t("Upgrade to move this project"),
+                              description: t(
                                 "The destination workspace belongs to a team that does not have enough seats. Increase the number of seats to perform this action.",
+                              ),
                             },
                           );
                           notification.info({
@@ -317,9 +318,12 @@ function ProjectListItem(props: ProjectListItemProps) {
                             isUserStarter: !project.isUserStarter,
                           });
                           notification.success({
-                            message: `Project "${project.name}" ${
-                              project.isUserStarter ? "unset" : "set"
-                            } as workspace starter.`,
+                            message: t(
+                              project.isUserStarter
+                                ? 'Project "{name}" removed as workspace starter.'
+                                : 'Project "{name}" set as workspace starter.',
+                              { name: project.name },
+                            ),
                           });
 
                           await onUpdate?.();

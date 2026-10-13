@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: jfBLn3a3U6
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -179,7 +180,7 @@ function PlasmicActivityRow__RenderFunc(props: {
           </div>
           <div className={classNames("all", sty.freeBox__jnPaY)}>
             {renderPlasmicSlot({
-              defaultContents: "Logged in",
+              defaultContents: <UiText message={"Logged in"} />,
               value: args.status,
               className: classNames(sty.slotTargetStatus),
             })}

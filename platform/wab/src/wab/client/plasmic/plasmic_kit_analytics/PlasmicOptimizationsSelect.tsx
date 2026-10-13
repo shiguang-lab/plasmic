@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: 0bODOMCtGi
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -67,6 +68,8 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
   overrides: PlasmicOptimizationsSelect__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -112,7 +115,7 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
         data-plasmic-override={overrides.text}
         className={classNames("all", "__wab_text", sty.text)}
       >
-        {"Optimizations"}
+        {<UiText message={"Optimizations"} />}
       </div>
       <div
         data-plasmic-name={"freeBox"}
@@ -136,7 +139,7 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
                   "__wab_instance",
                   sty.optimizationOption__glowY
                 )}
-                label={"A/B Test"}
+                label={uiT("A/B Test")}
               />
 
               <OptimizationOption
@@ -144,7 +147,7 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
                   "__wab_instance",
                   sty.optimizationOption___7ZyRs
                 )}
-                label={"Experiment"}
+                label={uiT("Experiment")}
               />
 
               <OptimizationOption
@@ -152,7 +155,7 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
                   "__wab_instance",
                   sty.optimizationOption__dkn4A
                 )}
-                label={"Another one"}
+                label={uiT("Another one")}
               />
             </React.Fragment>
           ),

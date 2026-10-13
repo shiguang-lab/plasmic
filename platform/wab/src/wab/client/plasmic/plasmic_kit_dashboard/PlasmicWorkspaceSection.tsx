@@ -135,6 +135,8 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
   overrides: PlasmicWorkspaceSection__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -829,7 +831,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                 >
                   {hasVariant($state, "canUseCmsAndDataSources", "dataSources")
                     ? <UiText message={"Content Management Systems (CMS)"} />
-                    : "Workspace CMSs"}
+                    : t("Workspace CMSs")}
                 </div>
                 <Button
                   data-plasmic-name={"newCmsButton"}
@@ -867,7 +869,7 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
                 </Button>
               </div>
               {renderPlasmicSlot({
-                defaultContents: "This workspace has no CMSs.",
+                defaultContents: <UiText message={"This workspace has no CMSs."} />,
                 value: args.databases,
                 className: classNames(sty.slotTargetDatabases, {
                   [sty.slotTargetDatabasescanUseCmsAndDataSources_empty]:

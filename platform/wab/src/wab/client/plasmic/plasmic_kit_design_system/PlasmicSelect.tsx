@@ -11,6 +11,8 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: j_4IQyOWK2b
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -169,6 +171,8 @@ function PlasmicSelect__RenderFunc(props: {
   overrides: PlasmicSelect__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -408,7 +412,7 @@ function PlasmicSelect__RenderFunc(props: {
                 : true
             )
               ? renderPlasmicSlot({
-                  defaultContents: "Selected",
+                  defaultContents: <UiText message={"Selected"} />,
                   value: args.selectedContent,
                   className: classNames(sty.slotTargetSelectedContent, {
                     [sty.slotTargetSelectedContentfont_bold]: hasVariant(
@@ -450,7 +454,7 @@ function PlasmicSelect__RenderFunc(props: {
                 : false
             )
               ? renderPlasmicSlot({
-                  defaultContents: "Select...",
+                  defaultContents: <UiText message={"Select..."} />,
                   value: args.placeholder,
                   className: classNames(sty.slotTargetPlaceholder, {
                     [sty.slotTargetPlaceholderfont_bold]: hasVariant(
@@ -587,7 +591,7 @@ function PlasmicSelect__RenderFunc(props: {
                         "__wab_instance",
                         sty.optionGroup__xAYx9
                       )}
-                      title={"Other Group"}
+                      title={studioUiT("Other Group")}
                     >
                       <Select__Option
                         className={classNames(
@@ -633,6 +637,8 @@ function useBehavior<P extends pp.BaseSelectProps>(
   props: P,
   ref: pp.SelectRef
 ) {
+ const { t: studioUiT } = useI18n();
+
   if (!("options" in props)) {
     if (!("children" in props)) {
       props = {
@@ -669,7 +675,7 @@ function useBehavior<P extends pp.BaseSelectProps>(
             </Select__OptionGroup>
             <Select__OptionGroup
               className={classNames("__wab_instance", sty.optionGroup__xAYx9)}
-              title={"Other Group"}
+              title={studioUiT("Other Group")}
             >
               <Select__Option
                 className={classNames("__wab_instance", sty.option__dvKOl)}

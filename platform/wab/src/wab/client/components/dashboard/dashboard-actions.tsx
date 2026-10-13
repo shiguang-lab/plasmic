@@ -7,13 +7,16 @@ import {
   reactPrompt,
   showTemporaryPrompt,
 } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
-import { getUiLocale } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+import {
+  MessageKey,
+  translate,
+  translateUiLabel,
+} from "@/wab/client/i18n/locales";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import {
   ApiPermission,
@@ -80,6 +83,8 @@ export function getTeamMenuItems(appCtx: AppCtx, team: ApiTeam) {
 }
 
 export function TeamMenu(props: TeamMenuProps) {
+  const { t: studioUiT } = useI18n();
+
   const { appCtx, team, items, onUpdate, redirectOnDelete } = props;
   const history = useHistory();
 
@@ -93,7 +98,9 @@ export function TeamMenu(props: TeamMenuProps) {
           onClick={async () => {
             const config = await promptContentCreatorConfig(
               appCtx,
-              `Studio UI for "${team.name}"`,
+              studioUiT('Studio UI for "{name}"', {
+                name: team.name,
+              }),
               team.uiConfig ?? {},
               "team",
             );
@@ -124,7 +131,7 @@ export function TeamMenu(props: TeamMenuProps) {
               appCtx.api.getTeamMeta(team.id),
             );
             const confirm = await reactConfirm({
-              title: translate(getUiLocale(), "Delete {part1}", {
+              title: studioUiT("Delete {part1}", {
                 part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
               }),
               message: (
@@ -211,6 +218,8 @@ interface WorkspaceMenuProps {
 }
 
 export function WorkspaceMenu(props: WorkspaceMenuProps) {
+  const { t: studioUiT } = useI18n();
+
   const history = useHistory();
   const {
     appCtx,
@@ -246,7 +255,9 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
             onClick={async () => {
               const contentCreatorConfig = await promptContentCreatorConfig(
                 appCtx,
-                `Content editor mode for "${workspace.name}"`,
+                studioUiT('Content editor mode for "{name}"', {
+                  name: workspace.name,
+                }),
                 mergeUiConfigs(
                   appCtx.appConfig.defaultContentCreatorConfig,
                   workspace.contentCreatorConfig ?? undefined,
@@ -280,8 +291,10 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
               async () =>
                 await appCtx.api.updateWorkspace(workspace.id, { teamId }),
               {
-                title: "Upgrade to move this workspace",
-                description: `The destination ${ORGANIZATION_LOWER} does not support workspaces or it has no enough seats to move this workspace. Select a new plan and/or increase the number of seats to perform this action.`,
+                title: studioUiT("Upgrade to move this workspace"),
+                description: studioUiT(
+                  "The destination organization does not support workspaces or it has no enough seats to move this workspace. Select a new plan and/or increase the number of seats to perform this action.",
+                ),
               },
             );
             await appCtx.reloadAppCtx();
@@ -305,7 +318,7 @@ export function WorkspaceMenu(props: WorkspaceMenuProps) {
         <Menu.Item
           onClick={async () => {
             const confirm = await reactConfirm({
-              title: translate(getUiLocale(), "Delete workspace"),
+              title: studioUiT("Delete workspace"),
               message: (
                 <>
                   <p>
@@ -381,15 +394,36 @@ async function promptTeam(
   );
 
   return await showTemporaryPrompt<TeamId | undefined>((onSubmit, onCancel) => (
+    <TeamPrompt teams={teams} onSubmit={onSubmit} onCancel={onCancel} />
+  ));
+}
+
+function TeamPrompt({
+  teams,
+  onSubmit,
+  onCancel,
+}: {
+  teams: ApiTeam[];
+  onSubmit: (teamId: TeamId | undefined) => void;
+  onCancel: () => void;
+}) {
+  const [form] = Form.useForm();
+  const formId = React.useId();
+  return (
     <Modal
       title={null}
       open={true}
-      footer={null}
+
+      okButtonProps={{ htmlType: "submit", form: formId }}
+      okText={<UiText message="Move workspace" />}
+      cancelText={<UiText message="Cancel" />}
       onCancel={onCancel}
       closable={false}
       wrapClassName="prompt-modal"
     >
       <Form
+        id={formId}
+        form={form}
         onFinish={(e) => {
           onSubmit(e.select ?? undefined);
         }}
@@ -425,17 +459,9 @@ async function promptTeam(
             )}
           </Select>
         </Form.Item>
-        <Form.Item style={{ margin: 0 }}>
-          <Button className="mr-sm" type="primary" htmlType="submit">
-            <UiText message={"Move workspace"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
-        </Form.Item>
       </Form>
     </Modal>
-  ));
+  );
 }
 
 async function promptContentCreatorConfig(
@@ -504,8 +530,8 @@ export async function promptMoveToWorkspace(
 
 interface PromptWorkspaceProps {
   workspaces: ApiWorkspace[];
-  message: string;
-  noWorkspacesMessage: string;
+  message: MessageKey;
+  noWorkspacesMessage: MessageKey;
   confirmButtonMessage?: PromptMoveToWorkspaceOperation;
   selectedWorkspaceId?: WorkspaceId;
   allowNoWorkspace: boolean;
@@ -513,7 +539,15 @@ interface PromptWorkspaceProps {
   projectName?: string;
 }
 
-export async function promptWorkspace({
+export async function promptWorkspace(props: PromptWorkspaceProps) {
+  return showTemporaryPrompt<PromptWorkspaceResponse | undefined>(
+    (onSubmit, onCancel) => (
+      <WorkspacePrompt {...props} onSubmit={onSubmit} onCancel={onCancel} />
+    ),
+  );
+}
+
+function WorkspacePrompt({
   workspaces,
   message,
   confirmButtonMessage,
@@ -522,106 +556,99 @@ export async function promptWorkspace({
   allowNoWorkspace,
   allTeams,
   projectName,
-}: PromptWorkspaceProps) {
-  const defaultNewName = projectName ? `Copy of ${projectName}` : "New Project";
+  onSubmit,
+  onCancel,
+}: PromptWorkspaceProps & {
+  onSubmit: (result: PromptWorkspaceResponse) => void;
+  onCancel: () => void;
+}) {
+  const [form] = Form.useForm();
+  const formId = React.useId();
+  const selected = Form.useWatch("select", form);
+  const defaultNewName = projectName
+    ? translate(getUiLocale(), "Copy of {name}", { name: projectName })
+    : translate(getUiLocale(), "New Project");
   const teams = allTeams.filter((t) =>
     workspaces.find((w) => w.team.id === t.id),
   );
 
-  return await showTemporaryPrompt<PromptWorkspaceResponse | undefined>(
-    (onSubmit, onCancel) => (
-      <Modal
-        open={true}
-        footer={null}
-        onCancel={onCancel}
-        closable={false}
-        wrapClassName="prompt-modal"
-      >
-        <Form
-          onFinish={(e) => {
-            const workspace = workspaces.find((w) => w.id === e.select);
-            if (workspace) {
-              onSubmit({
-                result: "workspace",
-                workspace,
-                name: e.name || undefined,
-              });
+  return (
+    <Modal
+      open={true}
+      okText={<UiText message={confirmButtonMessage ?? "Confirm"} />}
+      cancelText={<UiText message="Cancel" />}
+      okButtonProps={{
+        htmlType: "submit",
+        form: formId,
+        disabled: !allowNoWorkspace && !selected,
+      }}
+      onCancel={onCancel}
+      closable={false}
+      wrapClassName="prompt-modal"
+    >
+      <Form
+        id={formId}
+        form={form}
+        onFinish={(e) => {
+          const workspace = workspaces.find((w) => w.id === e.select);
+          if (workspace) {
+            onSubmit({
+              result: "workspace",
+              workspace,
+              name: e.name || undefined,
+            });
+          } else {
+            if (allowNoWorkspace) {
+              onSubmit({ result: "noWorkspace" });
             } else {
-              if (allowNoWorkspace) {
-                onSubmit({ result: "noWorkspace" });
-              } else {
-                onCancel();
-              }
+              onCancel();
             }
-          }}
-          layout="vertical"
-        >
-          {confirmButtonMessage === "Duplicate" && (
-            <Form.Item
+          }
+        }}
+        layout="vertical"
+      >
+        {confirmButtonMessage === "Duplicate" && (
+          <Form.Item
+            name="name"
+            label={<UiText message="Enter a name for the duplicated project" />}
+          >
+            <Textbox
               name="name"
-              label={
-                <UiText message="Enter a name for the duplicated project" />
-              }
-            >
-              <Textbox
-                name="name"
-                placeholder={defaultNewName}
-                defaultValue={defaultNewName}
-                styleType={["bordered"]}
-                autoFocus
-                data-test-id="promptName"
-              />
-            </Form.Item>
-          )}
-          <Form.Item name="select" label={message}>
-            <Select name="select" autoFocus>
-              {selectedWorkspaceId && allowNoWorkspace ? (
-                <Select.Option key="none" value="">
-                  {<UiLabel text={PERSONAL_WORKSPACE} />}
-                </Select.Option>
-              ) : null}
-              {teams.map((t) => (
-                <Select.OptionGroup key={t.id} title={t.name}>
-                  {workspaces
-                    .filter((w) => w.team.id === t.id)
-                    .map((w) => (
-                      <Select.Option key={w.id} value={w.id}>
-                        {w.name}
-                      </Select.Option>
-                    ))}
-                </Select.OptionGroup>
-              ))}
-              {!selectedWorkspaceId && teams.length === 0 && (
-                <Select.Option value={null} isDisabled={true}>
-                  {noWorkspacesMessage}
-                </Select.Option>
-              )}
-            </Select>
+              placeholder={defaultNewName}
+              defaultValue={defaultNewName}
+              styleType={["bordered"]}
+              autoFocus
+              data-test-id="promptName"
+            />
           </Form.Item>
-          <Form.Item style={{ margin: 0 }} shouldUpdate>
-            {({ getFieldsValue }) => {
-              const { select } = getFieldsValue();
-
-              return (
-                <>
-                  <Button
-                    disabled={allowNoWorkspace ? false : !Boolean(select)}
-                    className="mr-sm"
-                    type="primary"
-                    htmlType="submit"
-                  >
-                    {confirmButtonMessage ?? "Confirm"}
-                  </Button>
-                  <Button onClick={() => onCancel()}>
-                    <UiText message={"Cancel"} />
-                  </Button>
-                </>
-              );
-            }}
-          </Form.Item>
-        </Form>
-      </Modal>
-    ),
+        )}
+        <Form.Item name="select" label={<UiText message={message} />}>
+          <Select name="select" autoFocus>
+            {selectedWorkspaceId && allowNoWorkspace ? (
+              <Select.Option key="none" value="">
+                {<UiLabel text={PERSONAL_WORKSPACE} />}
+              </Select.Option>
+            ) : null}
+            {teams.map((t) => (
+              <Select.OptionGroup key={t.id} title={t.name}>
+                {workspaces
+                  .filter((w) => w.team.id === t.id)
+                  .map((w) => (
+                    <Select.Option key={w.id} value={w.id}>
+                      {w.name}
+                    </Select.Option>
+                  ))}
+              </Select.OptionGroup>
+            ))}
+            {!selectedWorkspaceId && teams.length === 0 && (
+              <Select.Option value={null} isDisabled={true}>
+                <UiText message={noWorkspacesMessage} />
+              </Select.Option>
+            )}
+          </Select>
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 }
 
@@ -679,8 +706,11 @@ export async function promptNewWorkspace(
         teamId,
       }),
     {
-      title: "Upgrade to create a shared workspace",
-      description: `This ${ORGANIZATION_LOWER}'s current plan does not support shared workspaces. Select a new plan to upgrade.`,
+      title: translate(getUiLocale(), "Upgrade to create a shared workspace"),
+      description: translate(
+        getUiLocale(),
+        "This organization's current plan does not support shared workspaces. Select a new plan to upgrade.",
+      ),
     },
   );
   await appCtx.reloadAppCtx();

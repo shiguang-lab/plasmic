@@ -29,7 +29,7 @@
   }
 
   &:hover {
-    color: $sand9 !important;
+    color: var(--ui-muted, #{$sand9}) !important;
   }
 
   & svg {
@@ -71,5 +71,5 @@
 
 .framesMenuGroupLabel {
   text-transform: capitalize;
-  color: $sand8 !important;
+  color: var(--ui-muted, #{$sand8}) !important;
 }

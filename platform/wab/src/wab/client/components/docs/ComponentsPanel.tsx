@@ -1,6 +1,7 @@
 import ComponentListItem from "@/wab/client/components/docs/ComponentListItem";
 import { useDocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import { Matcher } from "@/wab/client/components/view-common";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultComponentsPanelProps,
   PlasmicComponentsPanel,
@@ -19,6 +20,8 @@ type ComponentsPanelProps = DefaultComponentsPanelProps;
 const ComponentsPanel = observer(function ComponentsPanel(
   props: ComponentsPanelProps,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const docsCtx = useDocsPortalCtx();
   const [query, setQuery] = React.useState("");
   const matcher = new Matcher(query);
@@ -54,7 +57,7 @@ const ComponentsPanel = observer(function ComponentsPanel(
             style={{ width: "100%" }}
             type="warning"
             showIcon
-            message="No components."
+            message={studioUiT("No components.")}
           />
         )}
       </>

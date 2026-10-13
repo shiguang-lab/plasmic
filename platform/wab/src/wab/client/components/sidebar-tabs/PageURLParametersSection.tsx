@@ -53,8 +53,13 @@ import React from "react";
 type URLParamType = "Path" | "Query" | "Fragment";
 
 export function URLParamTooltip(props: { type: URLParamType }) {
+  const { t: studioUiT } = useI18n();
+
   const { type } = props;
-  const text = type === "Fragment" ? type : `${type} param`;
+  const text =
+    type === "Fragment"
+      ? type
+      : studioUiT("{part1} param", { part1: String(type) });
   return (
     <Tooltip
       title={
@@ -279,7 +284,7 @@ export const PageURLParametersSection = observer(
         }
         zeroBodyPadding
         emptyBody={paramMetas.length === 0}
-        emptyDescription="Use values from the URL in this page."
+        emptyDescription={uiT("Use values from the URL in this page.")}
         isHeaderActive={true}
       >
         <div className="vlist-gap-m">

@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: BqSsxlQdj2F0
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -150,7 +151,7 @@ function PlasmicAiButton__RenderFunc(props: {
             [sty.textactive]: hasVariant($state, "active", "active"),
           })}
         >
-          {"\u03b2eta"}
+          {<UiText message={"βeta"} />}
         </div>
       </div>
     </IconButton>

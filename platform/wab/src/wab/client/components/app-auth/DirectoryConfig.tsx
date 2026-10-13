@@ -14,7 +14,6 @@ import {
   useTeamDirectories,
 } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { confirm } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -33,7 +32,6 @@ import { mkUuid, uniqueName } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Menu, notification } from "antd";
 import * as React from "react";
-import { FocusScope } from "react-aria";
 import { KeyedMutator } from "swr";
 import validator from "validator";
 
@@ -211,15 +209,19 @@ function DirectoryConfig_(
 
                         if (isUsingGroupAccess) {
                           notification.error({
-                            message:
+                            message: uiT(
                               "Cannot delete group while it is being used in access list",
+                            ),
                           });
                           return;
                         }
 
                         const confirmed = await confirm({
-                          title: "Delete group",
-                          message: `Are you sure you want to delete group "${group.name}"?`,
+                          title: uiT("Delete group"),
+                          message: uiT(
+                            'Are you sure you want to delete group "{part1}"?',
+                            { part1: String(group.name) },
+                          ),
                         });
 
                         if (confirmed) {
@@ -373,15 +375,16 @@ function DirectoryConfig_(
 
                   if (isUsingGroupAccess) {
                     notification.error({
-                      message:
+                      message: uiT(
                         "Cannot delete directory while group is being used in access list",
+                      ),
                     });
                     return;
                   }
 
                   if (directories.length === 1) {
                     notification.error({
-                      message: "Cannot delete last directory",
+                      message: uiT("Cannot delete last directory"),
                     });
                     return;
                   }
@@ -395,9 +398,14 @@ function DirectoryConfig_(
 
                   if (usedInOtherApps.length > 0) {
                     notification.error({
-                      message: `Cannot delete directory, currently being used in other apps: ${usedInOtherApps
-                        .map((d) => d.name)
-                        .join(", ")}`,
+                      message: uiT(
+                        "Cannot delete directory, currently being used in other apps: {part1}",
+                        {
+                          part1: String(
+                            usedInOtherApps.map((d) => d.name).join(", "),
+                          ),
+                        },
+                      ),
                     });
                     return;
                   }
@@ -408,7 +416,13 @@ function DirectoryConfig_(
 
                   const confirmed = await confirm({
                     title: uiT("Delete directory"),
-                    message: `Are you sure you want to delete "${directory?.name}"? The app auth will be pointing to "${substituteDirectory?.name}".`,
+                    message: uiT(
+                      'Are you sure you want to delete "{part1}"? The app auth will be pointing to "{part2}".',
+                      {
+                        part1: String(directory?.name),
+                        part2: String(substituteDirectory?.name),
+                      },
+                    ),
                   });
 
                   if (confirmed) {
@@ -458,14 +472,14 @@ function AddUserToDirectoryModal(props: {
   async function addUserToDirectory() {
     if (!validator.isEmail(userEmail)) {
       notification.warning({
-        message: "Invalid email",
+        message: uiT("Invalid email"),
       });
       return;
     }
 
     if (users.some((u) => u.email === userEmail)) {
       notification.warning({
-        message: "User already in the directory",
+        message: uiT("User already in the directory"),
       });
       return;
     }
@@ -474,19 +488,23 @@ function AddUserToDirectoryModal(props: {
     await mutateUsers();
     setUserEmail("");
     notification.success({
-      message: "User added",
+      message: uiT("User added"),
     });
   }
 
   return (
     <Modal
-      title={`Add user to "${directory.name}"`}
+      title={uiT('Add user to "{part1}"', {
+        part1: String(directory.name),
+      })}
       open
       onCancel={onCancel}
       destroyOnClose
-      footer={null}
+      onOk={addUserToDirectory}
+      okText={<UiText message="Add user" />}
+      cancelText={<UiText message="Cancel" />}
     >
-      <FocusScope contain>
+      <>
         <div>
           <Textbox
             placeholder={uiT("Enter user email")}
@@ -499,26 +517,8 @@ function AddUserToDirectoryModal(props: {
               await addUserToDirectory();
             }}
           />
-          <div className="mt-xlg">
-            <Button
-              className="mr-sm"
-              type="primary"
-              onClick={async () => {
-                await addUserToDirectory();
-              }}
-            >
-              <UiText message={"Add user"} />
-            </Button>
-            <Button
-              onClick={() => {
-                onCancel();
-              }}
-            >
-              <UiText message={"Cancel"} />
-            </Button>
-          </div>
         </div>
-      </FocusScope>
+      </>
     </Modal>
   );
 }

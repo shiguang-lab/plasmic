@@ -1,3 +1,5 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { derefTokenRefs } from "@/wab/commons/StyleToken";
 import { extractUsedFontsFromComponents } from "@/wab/shared/codegen/fonts";
@@ -293,8 +295,15 @@ export class FontManager {
           fontFamily,
           new ThrottledNotification(
             {
-              message: `Font "${fontFamily}" is not available on this machine`,
-              description: "This font won't be rendered correctly.",
+              message: translate(
+                getUiLocale(),
+                'Font "{part1}" is not available on this machine',
+                { part1: String(fontFamily) },
+              ),
+              description: translate(
+                getUiLocale(),
+                "This font won't be rendered correctly.",
+              ),
             },
             // 1 day
             24 * 3600 * 1000,

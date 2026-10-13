@@ -77,7 +77,7 @@ export class DimManip {
           <strong>
             <UiText message={"Switch"} />
           </strong>{" "}
-          to {toUnit}
+          <UiText message={"to"} /> {toUnit}
         </Menu.Item>
       )
     );

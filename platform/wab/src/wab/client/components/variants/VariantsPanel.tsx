@@ -312,7 +312,9 @@ export const VariantsPanel = observer(
         icon: opts.icon ?? <Icon icon={GlobeIcon} />,
         showIcon: !!opts.icon,
         title: `${group.param.variable.name} ${
-          opts.dep ? `(from "${opts.dep.name}")` : ""
+          opts.dep
+            ? uiT('(from "{part1}")', { part1: String(opts.dep.name) })
+            : ""
         }`,
         onClickSettings: opts.onClickSettings,
         variants: group.variants,
@@ -365,8 +367,8 @@ export const VariantsPanel = observer(
           title={
             <LabelWithDetailedTooltip tooltip={<VariantsTooltip />}>
               {isPageComponent(component)
-                ? "Page Variants"
-                : "Component Variants"}
+                ? uiT("Page Variants")
+                : uiT("Component Variants")}
             </LabelWithDetailedTooltip>
           }
           controls={
@@ -524,10 +526,10 @@ export const VariantsPanel = observer(
                   icon={<Icon icon={BoltIcon} />}
                   title={
                     isTplRootWithCodeComponentVariants(tplRoot)
-                      ? "Registered Variants"
-                      : "Interaction Variants"
+                      ? uiT("Registered Variants")
+                      : uiT("Interaction Variants")
                   }
-                  emptyAddButtonText="Add variant"
+                  emptyAddButtonText={uiT("Add variant")}
                   emptyAddButtonTooltip={
                     isTplRootWithCodeComponentVariants(tplRoot)
                       ? "Registered variants are registered in code component meta"
@@ -1082,6 +1084,8 @@ const ComponentVariantGroupSection = observer(
     isDraggable?: boolean;
     dragHandleProps?: DraggableProvidedDragHandleProps;
   }) {
+    const { t: studioUiT } = useI18n();
+
     const {
       studioCtx,
       group,
@@ -1115,7 +1119,7 @@ const ComponentVariantGroupSection = observer(
             ref={ref}
           />
         }
-        emptyAddButtonText={`Add variant option`}
+        emptyAddButtonText={studioUiT("Add variant option")}
         onAddNewVariant={
           justAdded
             ? undefined

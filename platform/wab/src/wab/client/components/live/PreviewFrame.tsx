@@ -11,8 +11,8 @@ import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
-import { scriptExec } from "@/wab/client/dom-utils";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { scriptExec } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { isComponentArena } from "@/wab/shared/Arenas";
@@ -443,8 +443,10 @@ export const PreviewFrame = observer(function PreviewFrame({
                 type="button"
                 aria-label={
                   edge === "bottom"
-                    ? "Drag to resize preview height"
-                    : `Drag to resize preview width (${edge} edge)`
+                    ? uiT("Drag to resize preview height")
+                    : uiT("Drag to resize preview width ({part1} edge)", {
+                        part1: String(edge),
+                      })
                 }
                 className={`${styles.resize} ${styles[edge]}`}
                 onPointerDown={(event) => {

@@ -19,7 +19,9 @@ import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import Select from "@/wab/client/components/widgets/Select";
 import { Switch, SwitchProps } from "@/wab/client/components/widgets/Switch";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import Trash2Icon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
 import ArrowDownSvg from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ArrowDownSvg";
@@ -39,6 +41,7 @@ import {
 import { assert, ensure, ensureType } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { naturalSort } from "@/wab/shared/sort";
+import { ExportOutlined } from "@ant-design/icons";
 import { PlasmicImg } from "@plasmicapp/react-web";
 import Pickr from "@simonwep/pickr";
 import "@simonwep/pickr/dist/themes/nano.min.css";
@@ -51,17 +54,28 @@ import {
   Skeleton,
   notification,
 } from "antd";
+import { createStyles } from "antd-style";
 import { FormItemProps } from "antd/lib/form";
-import TextArea from "antd/lib/input/TextArea";
 import dayjs, { Dayjs } from "dayjs";
 import { upperFirst } from "lodash";
 import * as React from "react";
 import { ReactElement, ReactNode, createContext, useContext } from "react";
 import { useHover } from "react-aria";
-import { GrNewWindow } from "react-icons/all";
 const LazyRichTextEditor = React.lazy(
   () => import("@/wab/client/components/RichTextEditor"),
 );
+
+const useColorInputStyles = createStyles(({ token }) => ({
+  root: {
+    "& .pcr-app": { background: token.colorBgContainer },
+    "& .pcr-interaction .pcr-result": {
+      background: token.colorFillTertiary,
+      color: token.colorText,
+      border: `1px solid ${token.colorBorder}`,
+      "&:focus": { borderColor: token.colorPrimary, boxShadow: "none" },
+    },
+  },
+}));
 
 type NamePathz = (string | number)[];
 
@@ -114,6 +128,8 @@ export function StringDateTimePicker(props: any) {
 }
 
 export function CmsRefInput(props: any) {
+  const { t: studioUiT } = useI18n();
+
   const { disabled, typeMeta, database } = useContentEntryFormContext();
   assert(typeMeta.type === CmsMetaType.REF, "");
   const maybeTable = useCmsTableMaybe(database.id, typeMeta.tableId);
@@ -124,7 +140,7 @@ export function CmsRefInput(props: any) {
 
   const placeholder =
     !typeMeta.tableId || error || (maybeTable && !maybeTable.table)
-      ? "Please configure a model type for this field"
+      ? studioUiT("Please configure a model type for this field")
       : undefined;
 
   // Convert rows to MenuItem components
@@ -135,7 +151,8 @@ export function CmsRefInput(props: any) {
           (rows ?? []).map((row) => {
             const { identifier, placeholder: rowPlaceholder } =
               getRowIdentifierText(table, row);
-            const label = identifier || rowPlaceholder || "Untitled entry";
+            const label =
+              identifier || rowPlaceholder || studioUiT("Untitled entry");
             return { label, rowId: row.id };
           }),
           (rowData) => rowData.label,
@@ -304,7 +321,8 @@ export function CmsListInput(props: any) {
                       handles.add(ensureType<{}>({}));
                     }}
                   >
-                    Add item
+                    {" "}
+                    <UiText message={"Add item"} />{" "}
                   </Button>
                   {items.length > 1 && (
                     <>
@@ -396,10 +414,12 @@ function MaybeFormItem({
   minChars?: number;
   uniqueStatus?: UniqueFieldStatus;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const history = useHistory();
   const match = useMatchedRoute(APP_ROUTES.cmsEntry);
   const commonRules = [
-    { required: props.required, message: "Field is required" },
+    { required: props.required, message: studioUiT("Field is required") },
     {
       warningOnly: true,
       validator: () => {
@@ -414,13 +434,19 @@ function MaybeFormItem({
           });
           return Promise.reject(
             <>
-              This unique field value conflicts with the published version of{" "}
+              {" "}
+              <UiText
+                message={
+                  "This unique field value conflicts with the published version of"
+                }
+              />{" "}
               <a
                 onClick={() => {
                   history.push(conflictingRowRoute);
                 }}
               >
-                this entry
+                {" "}
+                <UiText message={"this entry"} />{" "}
               </a>
               .
             </>,
@@ -463,7 +489,10 @@ export function CmsObjectInput(props: any) {
       style={
         directlyInsideList
           ? {}
-          : { padding: "8px 0 8px 8px", borderLeft: "8px solid #eef" }
+          : {
+              padding: "8px 0 8px 12px",
+              borderLeft: "2px solid var(--ui-border)",
+            }
       }
       className={"vlist-gap-xlg"}
     >
@@ -495,7 +524,9 @@ export function CmsTextInput(props: any) {
 }
 export function CmsLongTextInput(props: any) {
   const { disabled } = useContentEntryFormContext();
-  return <TextArea autoSize={{ minRows: 3 }} disabled={disabled} {...props} />;
+  return (
+    <Input.TextArea autoSize={{ minRows: 3 }} disabled={disabled} {...props} />
+  );
 }
 
 export function CmsNumberInput(props: any) {
@@ -559,7 +590,11 @@ export function CmsImageInput(props: {
           accept={"image"}
         />
       )}
-      {isUploading && <em>Uploading...</em>}
+      {isUploading && (
+        <em>
+          <UiText message={"Uploading..."} />
+        </em>
+      )}
     </div>
   );
 }
@@ -568,6 +603,8 @@ export function CmsFileInput(props: {
   value?: CmsUploadedFile | undefined;
   onChange?: (value: CmsUploadedFile | undefined) => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const { value, onChange } = props;
   const [isUploading, setUploading] = React.useState(false);
@@ -598,7 +635,10 @@ export function CmsFileInput(props: {
             const file = fileList[0];
             if (file.size > fileSizeLimit * 1024 * 1024) {
               notification.error({
-                message: `This file is too big, you can only upload files up to ${fileSizeLimit}MB`,
+                message: studioUiT(
+                  "This file is too big, you can only upload files up to {part1}MB",
+                  { part1: String(fileSizeLimit) },
+                ),
               });
               return;
             }
@@ -609,7 +649,11 @@ export function CmsFileInput(props: {
           }}
         />
       )}
-      {isUploading && <em>Uploading...</em>}
+      {isUploading && (
+        <em>
+          <UiText message={"Uploading..."} />
+        </em>
+      )}
     </div>
   );
 }
@@ -618,6 +662,7 @@ export function CmsColorInput(props: {
   value?: string | undefined;
   onChange?: (value: string | undefined) => void;
 }) {
+  const { styles } = useColorInputStyles();
   const { disabled } = useContentEntryFormContext();
   const { value, onChange } = props;
   const colorPickerRef = React.useRef<HTMLDivElement>(null);
@@ -654,7 +699,7 @@ export function CmsColorInput(props: {
   }, []);
 
   return (
-    <div className="flex justify-between flex-vcenter">
+    <div className={`flex justify-between flex-vcenter ${styles.root}`}>
       <div ref={colorPickerRef}></div>
       {disabled ? (
         <>
@@ -808,19 +853,25 @@ export function renderMaybeLocalizedInput({
             {...formItemProps}
             style={{ marginBottom: "2" }}
             rules={[
-              { required: required, message: "Field is required" },
+              {
+                required: required,
+                message: translate(getUiLocale(), "Field is required"),
+              },
               { max: maxChars },
               { min: minChars },
             ]}
           >
             <div
-              style={{ padding: "8px 0 8px 8px", borderLeft: "8px solid #eef" }}
+              style={{
+                padding: "8px 0 8px 12px",
+                borderLeft: "2px solid var(--ui-border)",
+              }}
               className={"vlist-gap-xlg"}
             >
               {["", ...locales].map((locale) => (
-                <div>
-                  <div style={{ fontWeight: 600, color: "#888" }}>
-                    {locale || "Locale: Default"}
+                <div key={locale}>
+                  <div style={{ fontWeight: 600, color: "var(--ui-muted)" }}>
+                    {locale || translate(getUiLocale(), "Locale: Default")}
                   </div>
                   <ContentEntryFormContext.Provider
                     value={{
@@ -847,7 +898,8 @@ export function renderMaybeLocalizedInput({
                   href={APP_ROUTES.cmsSettings.fill({ databaseId })}
                   target={"_blank"}
                 >
-                  Setup locales <GrNewWindow />
+                  {" "}
+                  <UiText message={"Setup locales"} /> <ExportOutlined />
                 </PublicLink>
               </div>
             </div>

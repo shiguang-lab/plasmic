@@ -14,7 +14,9 @@ import {
   ListBoxItem,
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
@@ -104,7 +106,7 @@ class _ShadowsPanelSection extends StyleComponent<
 
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props: {},
-      label: "Shadows",
+      label: translate(getUiLocale(), "Shadows"),
       indicators: this.definedIndicators("box-shadow"),
     });
 
@@ -143,7 +145,7 @@ class _ShadowsPanelSection extends StyleComponent<
             <SidebarModal
               show={!!inspectedShadow && !isDisabled}
               onClose={() => this.setState({ inspectedShadow: undefined })}
-              title="Shadow"
+              title={translate(getUiLocale(), "Shadow")}
             >
               {inspectedShadow && index !== undefined && (
                 <div className="panel-content">

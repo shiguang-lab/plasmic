@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: aVJYhoS8iDMR
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -139,7 +140,7 @@ function PlasmicHoverableText__RenderFunc(props: {
       content={renderPlasmicSlot({
         defaultContents: (
           <div className={classNames("all", "__wab_text", sty.text___26Bq)}>
-            {"Some description"}
+            {<UiText message={"Some description"} />}
           </div>
         ),
         value: args.popover,
@@ -158,7 +159,7 @@ function PlasmicHoverableText__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "4 collaborators",
+            defaultContents: <UiText message={"4 collaborators"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren),
           })}

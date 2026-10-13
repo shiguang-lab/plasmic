@@ -1,5 +1,4 @@
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useI18n } from "@/wab/client/i18n";
@@ -41,16 +40,26 @@ function MetadataForm({
   onCancel: () => void;
 }) {
   const { t } = useI18n();
+  const [form] = Form.useForm();
+  const formId = React.useId();
   return (
     <Modal
       title={null}
       open={true}
-      footer={null}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
+      okButtonProps={{
+        htmlType: "submit",
+        form: formId,
+        "data-test-id": "prompt-submit",
+      }}
       onCancel={onCancel}
       closable={false}
       wrapClassName="prompt-modal"
     >
       <Form
+        id={formId}
+        form={form}
         onFinish={(e) => {
           onSubmit({
             key: e.keyInput,
@@ -92,19 +101,6 @@ function MetadataForm({
             styleType={["bordered"]}
             data-test-id="prompt"
           />
-        </Form.Item>
-        <Form.Item style={{ margin: 0 }}>
-          <Button
-            className="mr-sm"
-            type="primary"
-            htmlType="submit"
-            data-test-id="prompt-submit"
-          >
-            <UiText message={"Confirm"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
         </Form.Item>
       </Form>
     </Modal>

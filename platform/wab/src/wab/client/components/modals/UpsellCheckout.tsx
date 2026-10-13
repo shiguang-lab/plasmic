@@ -3,6 +3,7 @@ import {
   DefaultUpsellCheckoutProps,
   PlasmicUpsellCheckout,
 } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicUpsellCheckout";
+import { useStripeElementStyle } from "@/wab/client/stripe";
 import { ApiFeatureTier, BillingFrequency } from "@/wab/shared/ApiSchema";
 import { newFeatureTiers } from "@/wab/shared/pricing/pricing-utils";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
@@ -35,6 +36,7 @@ function UpsellCheckout_(
   props: UpsellCheckoutProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const style = useStripeElementStyle();
   const {
     appCtx,
     disabled,
@@ -96,13 +98,13 @@ function UpsellCheckout_(
         hideLegacyTier: true,
       }}
       stripeCardElement={{
-        render: () => <CardNumberElement />,
+        render: () => <CardNumberElement options={{ style }} />,
       }}
       stripeExpiryElement={{
-        render: () => <CardExpiryElement />,
+        render: () => <CardExpiryElement options={{ style }} />,
       }}
       stripeCvcElement={{
-        render: () => <CardCvcElement />,
+        render: () => <CardCvcElement options={{ style }} />,
       }}
       // See Plasmic project. We have 2 of each, hidden depending on
       // whether skipCreditCard is enabled

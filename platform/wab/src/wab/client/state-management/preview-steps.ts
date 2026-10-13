@@ -1,4 +1,7 @@
+import { getErrorMessage } from "@/wab/client/api-error-presentation";
 import { mkEventHandlerEnv } from "@/wab/client/components/canvas/canvas-rendering";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -224,8 +227,10 @@ export function runInteractionCode(
     );
   } catch (err) {
     notification.error({
-      message: `Error when running step ${interaction.interactionName}`,
-      description: err.message,
+      message: translate(getUiLocale(), "Error when running step {part1}", {
+        part1: String(interaction.interactionName),
+      }),
+      description: getErrorMessage(err),
     });
   }
 }

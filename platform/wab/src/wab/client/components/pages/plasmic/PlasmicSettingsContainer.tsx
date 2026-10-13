@@ -11,6 +11,7 @@
 // Plasmic Project: aaggSgVS8yYsAwQffVQB4p
 // Component: XkSd43CUYOB
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -108,6 +109,8 @@ function PlasmicSettingsContainer__RenderFunc(props: {
   overrides: PlasmicSettingsContainer__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -303,7 +306,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
               })}
               {false
                 ? renderPlasmicSlot({
-                    defaultContents: "Designer",
+                    defaultContents: <UiText message={"Designer"} />,
                     value: args.role,
                     className: classNames(sty.slotTargetRole),
                   })
@@ -609,7 +612,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "tokenState", "error")
-              ? "Error while load existing tokens. Please refresh page to try again."
+              ? studioUiT("Error while load existing tokens. Please refresh page to try again.")
               : ""}
           </div>
         ) : null}
@@ -872,7 +875,7 @@ function PlasmicSettingsContainer__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "trustedHostsState", "error")
-              ? "Error while loading trusted hosts. Please refresh page to try again."
+              ? studioUiT("Error while loading trusted hosts. Please refresh page to try again.")
               : hasVariant($state, "trustedHostsState", "loading")
               ? <UiText message={"Loading..."} />
               : <UiText message={"Enter some text"} />}

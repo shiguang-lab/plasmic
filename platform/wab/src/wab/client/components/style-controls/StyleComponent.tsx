@@ -1,3 +1,5 @@
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+
 import {
   maybeShowContextMenu,
   WithContextMenu,
@@ -14,6 +16,7 @@ import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch"
 import { DefinedIndicator } from "@/wab/client/components/style-controls/DefinedIndicator";
 import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
 import { Tab, Tabs } from "@/wab/client/components/widgets";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioChangeOpts, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -375,7 +378,7 @@ export function createStyleContextMenu(
       validVariantGroups.map(([vg, variants]) => (
         <Menu.ItemGroup
           key={vg ? vg.uid : "base"}
-          title={vg ? vg.param.variable.name : "Base"}
+          title={vg ? vg.param.variable.name : translate(getUiLocale(), "Base")}
         >
           {variants.map((v) => (
             <Menu.Item key={v.uid}>
@@ -590,9 +593,13 @@ function buildMixinPicker(
     f: (mixinOrName: Mixin | string) => Promise<void>,
   ) => {
     const name = await reactPrompt({
-      message: `Enter ${MIXIN_LOWER} name`,
-      placeholder: `${MIXIN_CAP} name`,
-      actionText: "Add",
+      message: translate(getUiLocale(), "Enter {part1} name", {
+        part1: translateUiLabel(getUiLocale(), MIXIN_LOWER),
+      }),
+      placeholder: translate(getUiLocale(), "{part1} name", {
+        part1: translateUiLabel(getUiLocale(), MIXIN_CAP),
+      }),
+      actionText: translate(getUiLocale(), "Add"),
     });
     if (!name) {
       return;
@@ -662,11 +669,15 @@ function buildExtractToTokens(
               key="new-token"
               onClick={async () => {
                 const name = await reactPrompt({
-                  message: `Enter ${tokenTypeLabel(
-                    tokenType,
-                  ).toLowerCase()} token name`,
-                  placeholder: `${TOKEN_CAP} name`,
-                  actionText: "Add",
+                  message: translate(
+                    getUiLocale(),
+                    "Enter {part1} token name",
+                    { part1: String(tokenTypeLabel(tokenType).toLowerCase()) },
+                  ),
+                  placeholder: translate(getUiLocale(), "{part1} name", {
+                    part1: translateUiLabel(getUiLocale(), TOKEN_CAP),
+                  }),
+                  actionText: translate(getUiLocale(), "Add"),
                 });
                 if (!name) {
                   return;

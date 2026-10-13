@@ -1,12 +1,12 @@
 import { SiteDiffs } from "@/wab/client/components/modals/SiteDiffs";
 import { getCustomFunctionDisplayName } from "@/wab/client/components/modals/customFunctionModals";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import CodeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Code";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
@@ -59,6 +59,7 @@ import {
   compareSites,
 } from "@/wab/shared/site-diffs";
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Form, Select } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
@@ -82,10 +83,12 @@ export async function promptUpgradeDeps(props: {
     <Modal
       title={<UiText message="Upgrade imported projects" />}
       open={true}
-      footer={null}
+      onOk={() => onSubmit(true)}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
       onCancel={() => onCancel()}
     >
-      <WarnChangeDepForm onSubmit={onSubmit} onCancel={onCancel}>
+      <Scrollbar style={{ maxHeight: "calc(80vh - 150px)" }}>
         {targetDeps.map((targetDep) => {
           const curDep = ensure(
             studioCtx.site.projectDependencies.find(
@@ -115,7 +118,7 @@ export async function promptUpgradeDeps(props: {
             />
           );
         })}
-      </WarnChangeDepForm>
+      </Scrollbar>
     </Modal>
   ));
 }
@@ -140,10 +143,12 @@ export async function promptUpgradeDep(props: {
         />
       }
       open={true}
-      footer={null}
+      onOk={() => onSubmit(true)}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
       onCancel={() => onCancel()}
     >
-      <WarnChangeDepForm onSubmit={onSubmit} onCancel={onCancel}>
+      <Scrollbar style={{ maxHeight: "calc(80vh - 150px)" }}>
         <WarnChangeDep
           studioCtx={studioCtx}
           curDep={curDep}
@@ -161,7 +166,7 @@ export async function promptUpgradeDep(props: {
             </p>
           }
         />
-      </WarnChangeDepForm>
+      </Scrollbar>
     </Modal>
   ));
 }
@@ -172,7 +177,7 @@ export async function promptDeleteDep(props: {
 }) {
   const { studioCtx, curDep } = props;
   const depName = isHostLessPackage(curDep.site) ? (
-    `package "${curDep.name}"`
+    translate(getUiLocale(), 'package "{name}"', { name: curDep.name })
   ) : (
     <>
       "{curDep.name}" <strong>v{curDep.version}</strong>
@@ -187,10 +192,12 @@ export async function promptDeleteDep(props: {
         />
       }
       open={true}
-      footer={null}
+      onOk={() => onSubmit(true)}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
       onCancel={() => onCancel()}
     >
-      <WarnChangeDepForm onSubmit={onSubmit} onCancel={onCancel}>
+      <Scrollbar style={{ maxHeight: "calc(80vh - 150px)" }}>
         <WarnChangeDep
           studioCtx={studioCtx}
           curDep={curDep}
@@ -206,7 +213,7 @@ export async function promptDeleteDep(props: {
             </p>
           }
         />
-      </WarnChangeDepForm>
+      </Scrollbar>
     </Modal>
   ));
 }
@@ -248,21 +255,27 @@ function PublishContent(props: {
 
   if (loading) {
     return (
-      <p>
-        <UiText message={"Loading..."} />
-      </p>
+      <Modal
+        title={<UiText message="Publish a new version" />}
+        open
+        onCancel={onCancel}
+        footer={null}
+      >
+        <UiText message="Loading..." />
+      </Modal>
     );
   }
 
   if (!nextVersion) {
     return (
-      <p>
-        <UiText
-          message={
-            "There have been no new changes since your last published version"
-          }
-        />
-      </p>
+      <Modal
+        title={<UiText message="Publish a new version" />}
+        open
+        onCancel={onCancel}
+        footer={null}
+      >
+        <UiText message="There have been no new changes since your last published version" />
+      </Modal>
     );
   }
 
@@ -273,89 +286,78 @@ function PublishContent(props: {
   });
 
   return (
-    <Form>
-      <p>
-        <UiText
-          message={
-            "When you publish a new version, you let other developers and designers know that your updates are ready for use."
-          }
-        />
-      </p>
-      {releaseType === "major" && (
+    <Modal
+      title={<UiText message="Publish a new version" />}
+      open
+      onCancel={onCancel}
+      onOk={() => onSubmit({ confirm: true, tags, title })}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
+    >
+      <Form>
         <p>
-          <Alert
-            type="warning"
-            showIcon
-            message={uiT(
-              "The new version you're publishing contains potentially breaking changes, as some things have been removed or renamed.",
-            )}
+          <UiText
+            message={
+              "When you publish a new version, you let other developers and designers know that your updates are ready for use."
+            }
           />
         </p>
-      )}
-      <p>
-        <strong>
-          <UiText message={"Version:"} />{" "}
-        </strong>{" "}
-        {version}
-      </p>
-      <p>
-        <Textbox
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={uiT("Description (optional)...")}
-          aria-label={uiT("Description")}
-          autoFocus
-          styleType={"bordered"}
-        />
-      </p>
-      <p>
-        <Select
-          mode="tags"
-          style={{ width: "100%" }}
-          placeholder={uiT("Tags (optional) ...")}
-          aria-label={uiT("Tags selector")}
-          onChange={(newTags) => setTags(newTags)}
-          tokenSeparators={[","]}
-        >
-          {previousTagsOptions}
-        </Select>
-      </p>
-      {diffs && (
+        {releaseType === "major" && (
+          <p>
+            <Alert
+              type="warning"
+              showIcon
+              message={uiT(
+                "The new version you're publishing contains potentially breaking changes, as some things have been removed or renamed.",
+              )}
+            />
+          </p>
+        )}
         <p>
-          <SiteDiffs diffs={diffs} />
+          <strong>
+            <UiText message={"Version:"} />{" "}
+          </strong>{" "}
+          {version}
         </p>
-      )}
-      <div className="mt-xlg">
-        <Button
-          className="mr-sm"
-          type="primary"
-          htmlType="submit"
-          onClick={() => onSubmit({ confirm: true, tags, title })}
-        >
-          <UiText message={"Confirm"} />
-        </Button>
-        <Button onClick={() => onCancel()}>
-          <UiText message={"Cancel"} />
-        </Button>
-      </div>
-    </Form>
+        <p>
+          <Textbox
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={uiT("Description (optional)...")}
+            aria-label={uiT("Description")}
+            autoFocus
+            styleType={"bordered"}
+          />
+        </p>
+        <p>
+          <Select
+            mode="tags"
+            style={{ width: "100%" }}
+            placeholder={uiT("Tags (optional) ...")}
+            aria-label={uiT("Tags selector")}
+            onChange={(newTags) => setTags(newTags)}
+            tokenSeparators={[","]}
+          >
+            {previousTagsOptions}
+          </Select>
+        </p>
+        {diffs && (
+          <p>
+            <SiteDiffs diffs={diffs} />
+          </p>
+        )}
+      </Form>
+    </Modal>
   );
 }
 
 export async function promptPublishProj(props: { studioCtx: StudioCtx }) {
   return showTemporaryPrompt<PublishProjResponse>((onSubmit, onCancel) => (
-    <Modal
-      title={<UiText message="Publish a new version" />}
-      open={true}
-      footer={null}
-      onCancel={() => onCancel()}
-    >
-      <PublishContent
-        studioCtx={props.studioCtx}
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />
-    </Modal>
+    <PublishContent
+      studioCtx={props.studioCtx}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+    />
   ));
 }
 
@@ -569,15 +571,18 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
     </div>
   );
   const removedHostlessArtifactTypes = withoutNils([
-    removedReferencedComponents.size > 0 ? "components" : undefined,
-    removedReferencedFunctions.size > 0 ? "functions" : undefined,
+    removedReferencedComponents.size > 0 ? uiT("components") : undefined,
+    removedReferencedFunctions.size > 0 ? uiT("functions") : undefined,
   ]);
   const removedHostlessArtifactLabel =
     removedHostlessArtifactTypes.length === 0
-      ? "items"
+      ? uiT("items")
       : removedHostlessArtifactTypes.length === 1
         ? removedHostlessArtifactTypes[0]
-        : removedHostlessArtifactTypes.join(" and ");
+        : uiT("{first} and {second}", {
+            first: removedHostlessArtifactTypes[0],
+            second: removedHostlessArtifactTypes[1],
+          });
 
   return (
     <>
@@ -682,36 +687,5 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
         />
       )}
     </>
-  );
-});
-
-const WarnChangeDepForm = observer(function WarnChangeDepForm_(props: {
-  children?: React.ReactNode;
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
-}) {
-  const { onSubmit, onCancel, children } = props;
-  return (
-    <Form onFinish={() => onSubmit(true)}>
-      <div
-        className="mb-xlg"
-        style={{ maxHeight: "calc(80vh - 50px)", overflowY: "auto" }}
-      >
-        {children}
-      </div>
-      <Form.Item className="m0">
-        <Button
-          className="mr-sm"
-          type="primary"
-          htmlType="submit"
-          onClick={() => onSubmit(true)}
-        >
-          <UiText message={"Confirm"} />
-        </Button>
-        <Button onClick={() => onCancel()}>
-          <UiText message={"Cancel"} />
-        </Button>
-      </Form.Item>
-    </Form>
   );
 });

@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: sK-iPs7I1Z
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -112,6 +113,8 @@ function PlasmicBill__RenderFunc(props: {
   overrides: PlasmicBill__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -221,7 +224,7 @@ function PlasmicBill__RenderFunc(props: {
               className: classNames(sty.slotTargetNumSeats),
             })}
             {renderPlasmicSlot({
-              defaultContents: "seats",
+              defaultContents: <UiText message={"seats"} />,
               value: args.seatNoun,
             })}
           </div>
@@ -272,11 +275,11 @@ function PlasmicBill__RenderFunc(props: {
           >
             <div className={classNames("all", sty.freeBox__rl9Jl)}>
               {renderPlasmicSlot({
-                defaultContents: "1 Basic Team",
+                defaultContents: <UiText message={"1 Basic Team"} />,
                 value: args.baseTitle,
               })}
               {renderPlasmicSlot({
-                defaultContents: "$20 x 1 team",
+                defaultContents: <UiText message={"$20 x 1 team"} />,
                 value: args.baseDescription,
                 className: classNames(sty.slotTargetBaseDescription),
               })}
@@ -302,7 +305,7 @@ function PlasmicBill__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "type", "year") ? " / year" : " / month"}
+                {hasVariant($state, "type", "year") ? (" " + studioUiT("/ year")) : (" " + studioUiT("/ month"))}
               </div>
             </div>
           </div>
@@ -327,11 +330,11 @@ function PlasmicBill__RenderFunc(props: {
           >
             <div className={classNames("all", sty.freeBox___2IfV0)}>
               {renderPlasmicSlot({
-                defaultContents: "10 Basic seats",
+                defaultContents: <UiText message={"10 Basic seats"} />,
                 value: args.seatTitle,
               })}
               {renderPlasmicSlot({
-                defaultContents: "$15 x 10 seats",
+                defaultContents: <UiText message={"$15 x 10 seats"} />,
                 value: args.seatDescription,
                 className: classNames(sty.slotTargetSeatDescription),
               })}
@@ -357,7 +360,7 @@ function PlasmicBill__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "type", "year") ? " / year" : " / month"}
+                {hasVariant($state, "type", "year") ? (" " + studioUiT("/ year")) : (" " + studioUiT("/ month"))}
               </div>
             </div>
           </div>
@@ -380,9 +383,9 @@ function PlasmicBill__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "type", "year")
-              ? "New yearly total "
+              ? (studioUiT("New yearly total") + " ")
               : hasVariant($state, "type", "month")
-              ? "New monthly total "
+              ? (studioUiT("New monthly total") + " ")
               : <UiText message={"Total"} />}
           </div>
           <div className={classNames("all", sty.freeBox___5MDgk)}>
@@ -405,7 +408,7 @@ function PlasmicBill__RenderFunc(props: {
                 ),
               })}
             >
-              {hasVariant($state, "type", "year") ? " / year" : " / month"}
+              {hasVariant($state, "type", "year") ? (" " + studioUiT("/ year")) : (" " + studioUiT("/ month"))}
             </div>
           </div>
         </div>

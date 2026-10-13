@@ -8,7 +8,7 @@ Use [Ant Design button guidance](https://ant.design/docs/spec/buttons), the [But
 
 | Context | Placement and order |
 | --- | --- |
-| Routine Modal confirm/cancel pair | Retain the native footer: cancel on the left, confirmation on the right. Follow [forms and state](../design/forms.md#forms-and-state) for locale-owned text and submission bindings. |
+| Routine Modal confirm/cancel pair | A multi-action footer may retain Cancel even with a header close icon; see [overlay footers](overlays.md). Retain the native footer: cancel on the left, confirmation on the right. Follow [forms and state](../design/forms.md#forms-and-state) for locale-owned text and submission bindings. |
 | Drawer footer or page-level completion bar | Right-align the action group: cancel/back, secondary business actions, primary completion action. Cancel is first within the group, not necessarily at the far left of the whole bar. Keep concise status/prerequisite text at the bar's left when needed. |
 | Inline form actions | Align with the form's control/content column and retain the native or approved form pattern, commonly submit followed by cancel. Do not apply the right-aligned footer rule automatically. |
 | List/business toolbar or page-header actions | Follow the owning region's layout: list-query business actions align left; header actions occupy the header's action area. Order by importance and usage, commonly primary business action before secondary actions. These groups do not acquire a cancel button unless a cancellable task exists. |

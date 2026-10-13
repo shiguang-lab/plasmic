@@ -1,5 +1,6 @@
 import styles from "@/wab/client/components/style-controls/TrackSizeInput.module.scss";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { maybe } from "@/wab/shared/common";
 import {
@@ -20,6 +21,8 @@ export interface TrackSizeInputProps {
 }
 
 function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
+  const { t: studioUiT } = useI18n();
+
   const defaultText1 = showSizeCss(
     size.type === "MinMaxSize" ? size.min : size,
   );
@@ -33,9 +36,10 @@ function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
     const proposedSize = tryParseAtomicSize(val);
     if (proposedSize === undefined) {
       notification.error({
-        message: <UiText message="Invalid value" />,
-        description:
+        message: <UiText message={"Invalid value"} />,
+        description: studioUiT(
           "Must be 'auto', or a numeric value with units of fr, px or %.",
+        ),
       });
       return;
     } else if (
@@ -45,8 +49,8 @@ function TrackSizeInput({ size, onChange }: TrackSizeInputProps) {
       proposedSize.unit === "fr"
     ) {
       notification.error({
-        message: <UiText message="Invalid value" />,
-        description: "Minimal size can not be specified in fr.",
+        message: <UiText message={"Invalid value"} />,
+        description: studioUiT("Minimal size can not be specified in fr."),
       });
       return;
     }

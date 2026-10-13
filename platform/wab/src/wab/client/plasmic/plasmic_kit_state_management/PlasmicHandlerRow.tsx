@@ -11,6 +11,7 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: VYbagtLCKV
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -108,7 +109,7 @@ function PlasmicHandlerRow__RenderFunc(props: {
       <div className={classNames("all", sty.freeBox__eUpUb)}>
         <div className={classNames("all", sty.freeBox__qgIiv)}>
           {renderPlasmicSlot({
-            defaultContents: "Handler 1",
+            defaultContents: <UiText message={"Handler 1"} />,
             value: args.handlerName,
           })}
         </div>

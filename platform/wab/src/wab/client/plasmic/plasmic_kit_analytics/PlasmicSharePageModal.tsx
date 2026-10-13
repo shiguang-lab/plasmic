@@ -11,6 +11,7 @@
 // Plasmic Project: cQnF1HuwK97HkvkrC6uRk2
 // Component: wQH36LoqQL
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -74,6 +75,8 @@ function PlasmicSharePageModal__RenderFunc(props: {
   overrides: PlasmicSharePageModal__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -185,7 +188,7 @@ function PlasmicSharePageModal__RenderFunc(props: {
               : ["primary"]
           }
         >
-          {hasVariant($state, "copied", "copied") ? "Copied!" : <UiText message={"Copy"} />}
+          {hasVariant($state, "copied", "copied") ? studioUiT("Copied!") : <UiText message={"Copy"} />}
         </Button>
       </div>
     </div>

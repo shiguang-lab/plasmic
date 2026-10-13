@@ -10,7 +10,7 @@
   position: relative;
   flex-shrink: 0;
   cursor: pointer;
-  background: var(--token-7aKAiXanMe);
+  background: var(--ui-surface, var(--token-7aKAiXanMe));
   border-radius: 50%;
 }
 .rootcontained {

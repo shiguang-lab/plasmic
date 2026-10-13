@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/wab/client/api-error-presentation";
 import { AppCtx } from "@/wab/client/app-ctx";
 import FreeTrial from "@/wab/client/components/FreeTrial";
 import {
@@ -104,9 +105,7 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
     try {
       await action();
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : t("Failed to update billing"),
-      );
+      setActionError(getErrorMessage(error));
     } finally {
       setOperation(null);
     }

@@ -109,15 +109,24 @@ const VariantComboRow = observer(function VariantComboRow(
 
               popoverTitle: () => (
                 <VariantSettingPopoverTitle vs={indicatedVs} viewCtx={viewCtx}>
-                  {`Settings for element ${summarizeTpl(
-                    tpl,
-                    isTplVariantable(tpl)
-                      ? getEffectiveVariantSetting(
-                          tpl,
-                          indicatedVs?.variants,
-                        ).rsh()
-                      : undefined,
-                  )}`}
+                  {
+                    <UiText
+                      message={"Settings for element {part1}"}
+                      values={{
+                        part1: String(
+                          summarizeTpl(
+                            tpl,
+                            isTplVariantable(tpl)
+                              ? getEffectiveVariantSetting(
+                                  tpl,
+                                  indicatedVs?.variants,
+                                ).rsh()
+                              : undefined,
+                          ),
+                        ),
+                      }}
+                    />
+                  }
                 </VariantSettingPopoverTitle>
               ),
 

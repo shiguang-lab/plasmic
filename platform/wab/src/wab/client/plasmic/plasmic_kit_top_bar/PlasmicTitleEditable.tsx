@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: MAl3yYpW3c
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -145,7 +146,7 @@ function PlasmicTitleEditable__RenderFunc(props: {
       data-plasmic-trigger-props={[triggerRootHoverProps]}
     >
       {renderPlasmicSlot({
-        defaultContents: "Enter some text",
+        defaultContents: <UiText message={"Enter some text"} />,
         value: args.children,
       })}
       {(triggers.hover_root ? true : false)

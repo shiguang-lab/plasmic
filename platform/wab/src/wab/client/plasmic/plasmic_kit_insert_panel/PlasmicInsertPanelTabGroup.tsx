@@ -11,6 +11,7 @@
 // Plasmic Project: 4B48dRthR8uGgyaBYpWthR
 // Component: bulTqUMaa2
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -113,7 +114,7 @@ function PlasmicInsertPanelTabGroup__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         {renderPlasmicSlot({
-          defaultContents: "Imported Components",
+          defaultContents: <UiText message={"Imported Components"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle),
         })}

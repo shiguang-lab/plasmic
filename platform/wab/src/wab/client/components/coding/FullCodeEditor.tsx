@@ -9,6 +9,7 @@ import {
   DataPickerTypesSchema,
   extraTsFilesSymbol,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { useUiAppearance } from "@/wab/client/ui-theme";
 import { isPlainObject, uniq } from "lodash";
 import * as monaco from "monaco-editor";
 import React from "react";
@@ -74,8 +75,15 @@ export const FullCodeEditor = React.forwardRef(
       };
     }, [props.onChange, props.onSave]);
 
+    const { appearance } = useUiAppearance();
+    const editorTheme = appearance === "dark" ? "vs-dark" : "vs";
+    React.useEffect(() => {
+      // Theme changes must not recreate the editor or reset its model/undo history.
+      monaco.editor.setTheme(editorTheme);
+    }, [editorTheme]);
+
     const options: monaco.editor.IStandaloneEditorConstructionOptions = {
-      theme: "vs",
+      theme: editorTheme,
       // Prevents completion/hover popups from being clipped.
       fixedOverflowWidgets: true,
       folding: folding,

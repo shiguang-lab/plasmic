@@ -1,4 +1,5 @@
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import WarningIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import { cx } from "@/wab/shared/common";
 import {
@@ -33,11 +34,13 @@ export function InvalidArgsBadge(props: {
  * surfaces that show the list standalone (server query preview/tooltips).
  */
 export function InvalidArgsSummary(props: { invalidArgs: InvalidArg[] }) {
+  const { t: studioUiT } = useI18n();
+
   return (
     <>
       {props.invalidArgs.length === 1
-        ? "This parameter has an invalid value:"
-        : "These parameters have invalid values:"}
+        ? studioUiT("This parameter has an invalid value:")
+        : studioUiT("These parameters have invalid values:")}
       <InvalidArgsList invalidArgs={props.invalidArgs} />
     </>
   );

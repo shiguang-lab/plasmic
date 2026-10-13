@@ -5,6 +5,9 @@ import {
   parseProjectLocation,
 } from "@/wab/client/cli-routes";
 import * as DbMod from "@/wab/client/db";
+import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { ApiBranch, MainBranchId, ProjectId } from "@/wab/shared/ApiSchema";
 import { SiteInfo } from "@/wab/shared/SharedApi";
 import * as slotUtils from "@/wab/shared/SlotUtils";
@@ -132,11 +135,16 @@ export async function checkDepPkgHosts(
       )
     ) {
       notification.warning({
-        message: "This project imports from a project hosted by another app",
+        message: translate(
+          getUiLocale(),
+          "This project imports from a project hosted by another app",
+        ),
         description: (
           <p>
-            This project is hosted by {siteInfo.hostUrl ?? "Plasmic"}, but it
-            imports components from{" "}
+            {" "}
+            <UiText message={"This project is hosted by"} />{" "}
+            {siteInfo.hostUrl ?? "Plasmic"}
+            <UiText message={", but it imports components from"} />{" "}
             <a
               target="_blank"
               href={APP_ROUTES.project.fill({
@@ -144,10 +152,14 @@ export async function checkDepPkgHosts(
               })}
             >
               {pkgVersion.pkg.pkg?.name}
-            </a>
-            , which is hosted by {pkgVersion.pkg.hostUrl}. <br />
-            Notice this can prevent the canvas from rendering components
-            correctly.
+            </a>{" "}
+            <UiText message={", which is hosted by"} /> {pkgVersion.pkg.hostUrl}
+            . <br />{" "}
+            <UiText
+              message={
+                "Notice this can prevent the canvas from rendering components correctly."
+              }
+            />{" "}
           </p>
         ),
         duration: 0,

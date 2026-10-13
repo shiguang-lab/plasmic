@@ -18,6 +18,7 @@ import {
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
+
 import AlignCenterIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignCenter";
 import AlignLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignLeft";
 import AlignRightIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignRight";
@@ -131,7 +132,7 @@ function _Typography({
       <FullRow>
         <LabeledStyleSelectItem
           styleName={"font-weight"}
-          tooltip={`Font weight (boldness)`}
+          tooltip={uiT("Font weight (boldness)")}
           label={uiT("Weight")}
           textRight={false}
           selectOpts={{
@@ -172,8 +173,9 @@ function _Typography({
                     ["em", "%", "rem"].includes(parsed.units)
                   ) {
                     notification.warning({
-                      message:
+                      message: uiT(
                         "Font size is set in relative units (em, %, rem). This may cause unexpected results when font size is inherited.",
+                      ),
                     });
                   }
                 }
@@ -336,7 +338,9 @@ function _Typography({
                     label={uiT("Overflow")}
                     styleName="text-overflow"
                     isDisabled={readOnly || exp.get("white-space") !== "nowrap"}
-                    disabledTooltip="Line wrap needs to be turned off to set the text overflow options"
+                    disabledTooltip={uiT(
+                      "Line wrap needs to be turned off to set the text overflow options",
+                    )}
                     value={
                       exp.has("text-overflow")
                         ? exp.get("text-overflow")

@@ -113,6 +113,8 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
   overrides: PlasmicSubsectionPlasmicHosting__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -301,7 +303,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                 ),
               })}
             >
-              {hasVariant($state, "collapse", "collapse") ? "Show" : <UiText message={"Remove"} />}
+              {hasVariant($state, "collapse", "collapse") ? uiT("Show") : <UiText message={"Remove"} />}
             </div>
           </Button>
           {false ? (
@@ -401,7 +403,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                   </span>
                   <React.Fragment>
                     {
-                      ": you have a custom application host. Plasmic Hosting does not have access to your code components. Deploy to your own hosting environment instead, and remove Plasmic Hosting!"
+                      <UiText message={": you have a custom application host. Plasmic Hosting does not have access to your code components. Deploy to your own hosting environment instead, and remove Plasmic Hosting!"} />
                     }
                   </React.Fragment>
                 </React.Fragment>

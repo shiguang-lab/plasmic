@@ -14,7 +14,7 @@
   flex-shrink: 0;
 }
 .header {
-  background: linear-gradient(#ffffff, #ffffff), var(--token-p-rw5DRJTx);
+  background: linear-gradient(var(--ui-surface, #ffffff), var(--ui-surface, #ffffff)), var(--token-p-rw5DRJTx);
   display: flex;
   position: sticky;
   justify-content: space-between;
@@ -31,7 +31,7 @@
   }
 }
 .headersubHeader {
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .freeBox__nj2Zz {
   display: flex;

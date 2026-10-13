@@ -1,13 +1,13 @@
 import { confirm } from "@/wab/client/components/quick-modals";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translateUiLabel } from "@/wab/client/i18n/locales";
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import React from "react";
 
 export async function promptDeleteFolder(itemType, path, itemCount = 0) {
   return confirm({
-    title: <UiText message="Confirm deletion" />,
-    confirmLabel: "Delete",
+    title: <UiText message={"Confirm deletion"} />,
+    confirmLabel: translate(getUiLocale(), "Delete"),
     message:
       itemCount > 0 ? (
         <UiText

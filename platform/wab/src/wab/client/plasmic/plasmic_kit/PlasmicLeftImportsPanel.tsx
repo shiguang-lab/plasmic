@@ -88,6 +88,8 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
   overrides: PlasmicLeftImportsPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -236,7 +238,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
             >
               {hasVariant($state, "state", "refreshing")
                 ? <UiText message={"Checking…"} />
-                : "Check for updates"}
+                : uiT("Check for updates")}
             </Button>
             {(
               hasVariant($state, "withUpdateAll", "withUpdateAll")
@@ -280,7 +282,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
               >
                 {hasVariant($state, "state", "refreshing")
                   ? <UiText message={"Checking…"} />
-                  : "Update all"}
+                  : uiT("Update all")}
               </Button>
             ) : null}
           </div>
@@ -298,7 +300,7 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
           ),
         })}
         description={
-          "You can import other published projects to use assets\u2014components, images/icons, style tokens, and style presets\u2014from those projects."
+          uiT("You can import other published projects to use assets—components, images/icons, style tokens, and style presets—from those projects.")
         }
         title={uiT("Imported projects")}
       />

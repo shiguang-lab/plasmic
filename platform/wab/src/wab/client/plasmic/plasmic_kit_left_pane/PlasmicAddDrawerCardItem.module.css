@@ -45,7 +45,7 @@
   background: var(--token-S8OnTYk9S2Q);
   transform: rotate3d(0, 0, 1, -45deg);
   box-shadow: 0px 4px 10px 0px #0000007a;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
   padding: 2px 60px;
 }
 .freeBox__e9Vri {

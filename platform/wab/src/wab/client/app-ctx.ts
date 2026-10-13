@@ -5,6 +5,8 @@ import { getClientDevFlagOverrides } from "@/wab/client/client-dev-flags";
 import { StarterGroupProps } from "@/wab/client/components/StarterGroup";
 import { App } from "@/wab/client/components/top-view";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import {
   ApiPermission,
@@ -257,7 +259,7 @@ export class AppOps extends AppComponent {
   async deleteSite(siteId: string) {
     await this.api().deleteSite(siteId);
     await this.reloadAll();
-    notification.info({ message: "Project deleted" });
+    notification.info({ message: translate(getUiLocale(), "Project deleted") });
   }
   async createPersonalApiToken() {
     const token = await this.api().createPersonalApiToken();
@@ -361,7 +363,7 @@ export function loadStarters(
   const showAdminTeamOnlySections = isAdminTeamEmail(user.email, appConfig);
 
   const blankProjectSection: StarterGroupProps = {
-    title: "Blank",
+    title: translate(getUiLocale(), "Blank"),
     // An undefined project will be interpreted as a blank project.  This is only
     // used for dev servers; in production, we always create blank projects from
     // a template as well.

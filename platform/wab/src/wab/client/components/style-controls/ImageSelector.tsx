@@ -227,8 +227,8 @@ export function ImagePreview(props: {
   size?: "cover" | "contain";
   showCheckboard?: boolean;
 }) {
-  const isPlaceholder = !props.children &&
-    (!props.uri || props.uri === placeholderImgUrl());
+  const isPlaceholder =
+    !props.children && (!props.uri || props.uri === placeholderImgUrl());
   return (
     <div
       className={cx("image-preview", props.className)}
@@ -241,11 +241,14 @@ export function ImagePreview(props: {
         })}
       >
         <div
-          className={cx("img-thumb", { "img-thumb--placeholder": isPlaceholder })}
+          className={cx("img-thumb", {
+            "img-thumb--placeholder": isPlaceholder,
+          })}
           style={{
-            backgroundImage: !props.children && !isPlaceholder
-              ? `url("${props.uri}")`
-              : "none",
+            backgroundImage:
+              !props.children && !isPlaceholder
+                ? `url("${props.uri}")`
+                : "none",
             backgroundSize: props.size || "cover",
           }}
         >
@@ -393,9 +396,9 @@ export const ImageAssetOrUrlPicker = observer(
                   values={{
                     kind:
                       type === ImageAssetType.Icon ? (
-                        <UiText message="icon" />
+                        <UiText message={"icon"} />
                       ) : (
-                        <UiText message="image" />
+                        <UiText message={"image"} />
                       ),
                   }}
                 />
@@ -422,9 +425,11 @@ export const ImageAssetOrUrlPicker = observer(
                 }
                 optionLabelProp="label"
                 suffixIcon={<Icon icon={TriangleBottomIcon} />}
-                placeholder={`Select an ${
-                  type === ImageAssetType.Icon ? "icon" : "image"
-                }`}
+                placeholder={uiT(
+                  type === ImageAssetType.Icon
+                    ? "Select an icon"
+                    : "Select an image",
+                )}
                 options={selectableAssets.map((asset) => ({
                   value: asset.uuid,
                   label: (
@@ -518,6 +523,8 @@ export function ImageUploader(props: {
   children?: React.ReactNode;
   isDisabled?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const { onUploaded, accept, children, isDisabled } = props;
   const handleUploadChange = async (fileList: FileList | null) => {
@@ -528,7 +535,7 @@ export function ImageUploader(props: {
     const image = await readAndSanitizeFileAsImage(appCtx, file);
     if (!image) {
       notification.error({
-        message: "Invalid image",
+        message: studioUiT("Invalid image"),
       });
       return;
     }
@@ -547,6 +554,8 @@ export function ImageUploader(props: {
 export function ImagePaster(props: {
   onPasted: (image: ResizableImage) => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const [isProcessing, setProcessing] = React.useState(false);
   const ref = React.useRef<HTMLTextAreaElement>(null);
@@ -567,7 +576,7 @@ export function ImagePaster(props: {
         props.onPasted(image);
       } else {
         notification.error({
-          message: "Detected no image...",
+          message: studioUiT("Detected no image..."),
         });
       }
       setProcessing(false);
@@ -580,7 +589,11 @@ export function ImagePaster(props: {
     <textarea
       ref={ref}
       className="textbox image-paster"
-      placeholder={isProcessing ? "Pasting..." : "Select and paste here"}
+      placeholder={
+        isProcessing
+          ? studioUiT("Pasting...")
+          : studioUiT("Select and paste here")
+      }
       value=""
       disabled={isProcessing}
     />

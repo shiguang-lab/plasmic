@@ -1,8 +1,12 @@
 import {
-  useAiAttachments,
-} from "@/wab/client/components/copilot/AiAttachments";
-import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
+import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
+import { AiExecutionProgress } from "@/wab/client/components/copilot/AiExecutionProgress";
+import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
+import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -44,31 +48,77 @@ const useStyles = createStyles(({ token }) => ({
     borderRadius: token.borderRadiusLG,
     boxShadow: token.boxShadowSecondary,
     pointerEvents: "auto",
+    fontSize: 13,
+    fontWeight: 400,
+    lineHeight: 1.6,
   },
   header: editorPanelHeaderStyle(token),
   history: { flex: 1, minHeight: 0 },
-  historyContent: { padding: 16 },
-  task: {
-    paddingBottom: 16,
-    marginBottom: 16,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+  historyContent: {
+    padding: 16,
+    display: "flex",
+    flexDirection: "column",
+    gap: 24,
+  },
+  empty: {
+    margin: 0,
+    padding: "8px 0",
+    color: token.colorTextSecondary,
+    fontSize: 13,
+    fontWeight: 400,
+  },
+  request: {
+    padding: "10px 12px",
+    borderRadius: token.borderRadiusLG,
+    background: token.colorFillSecondary,
     whiteSpace: "pre-wrap",
     overflowWrap: "anywhere",
+    "& p": { margin: 0, fontWeight: 400 },
+  },
+  metadata: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "4px 8px",
+    marginTop: 6,
+    color: token.colorTextTertiary,
+    fontSize: 11,
+  },
+  response: { display: "flex", flexDirection: "column", gap: 12, minWidth: 0 },
+  status: {
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 6,
+    color: token.colorTextSecondary,
+    fontSize: 11,
+  },
+  note: {
+    margin: 0,
+    fontSize: 11,
+    lineHeight: 1.6,
+    color: token.colorTextSecondary,
+  },
+  files: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+    fontSize: 12,
+  },
+  task: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    minWidth: 0,
+    paddingBottom: 24,
+    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    "&:last-child": { paddingBottom: 0, borderBottom: 0 },
   },
   composer: {
     padding: 12,
     flexShrink: 0,
     borderTop: `1px solid ${token.colorBorderSecondary}`,
   },
-  details: {
-    marginTop: 8,
-    "& pre": {
-      fontSize: 11,
-      whiteSpace: "pre-wrap",
-      overflowWrap: "anywhere",
-    },
-  },
-  detailScroll: { maxHeight: 240 },
 }));
 
 export function CopilotChatDialog({
@@ -133,6 +183,19 @@ export function CopilotChatDialog({
       }
     }
   }, [chatOpenOpts, status, session, model, session.running]);
+  const historyRef = React.useRef<HTMLElement>(null);
+  const followLatest = React.useRef(true);
+  const previousLastTask = React.useRef(tasks.at(-1)?.id);
+  React.useLayoutEffect(() => {
+    if (tasks.at(-1)?.id !== previousLastTask.current) {
+      followLatest.current = true;
+    }
+    previousLastTask.current = tasks.at(-1)?.id;
+    const viewport = historyRef.current;
+    if (viewport && followLatest.current) {
+      viewport.scrollTop = viewport.scrollHeight;
+    }
+  }, [tasks]);
   const lastTask = tasks.at(-1);
   const lastRecord = tasks
     .flatMap((task) => task.records)
@@ -143,7 +206,8 @@ export function CopilotChatDialog({
     status?.pageGenerationEnabled;
   const send = () => {
     if (
-      enabled && !readOnly &&
+      enabled &&
+      !readOnly &&
       draft.trim() &&
       !session.running &&
       status?.configured &&
@@ -171,7 +235,26 @@ export function CopilotChatDialog({
         <strong>{t("AI assistant")}</strong>
         <PanelCloseButton onClick={onClose} />
       </div>
-      <Scrollbar scrollX={false} className={styles.history}>
+      <Scrollbar
+        ref={historyRef}
+        scrollX={false}
+        defer={false}
+        className={styles.history}
+        events={{
+          scroll: (instance) => {
+            const viewport = instance.elements().viewport;
+            followLatest.current =
+              viewport.scrollHeight -
+                viewport.scrollTop -
+                viewport.clientHeight <
+              48;
+          },
+          initialized: (instance) => {
+            const viewport = instance.elements().viewport;
+            viewport.scrollTop = viewport.scrollHeight;
+          },
+        }}
+      >
         <div className={styles.historyContent} aria-live="polite">
           {!enabled && (
             <Alert type="info" message={t("Local AI editing is disabled.")} />
@@ -184,11 +267,25 @@ export function CopilotChatDialog({
               )}
             />
           )}
-          {error && <Alert type="error" message={label(error.message)} />}
-          {session.error && <Alert type="error" message={label(session.error)} />}
-          {session.before && <Button onClick={() => void session.loadEarlier()}>{t("Load earlier messages")}</Button>}
+          {error && (
+            <Alert
+              type={getErrorType(error)}
+              message={<ErrorDescription error={error} />}
+            />
+          )}
+          {session.error && (
+            <Alert
+              type={getErrorType(session.error)}
+              message={<ErrorDescription error={session.error} />}
+            />
+          )}
+          {session.before && (
+            <Button onClick={() => void session.loadEarlier()}>
+              {t("Load earlier messages")}
+            </Button>
+          )}
           {!tasks.length && (
-            <p>
+            <p className={styles.empty}>
               {t(
                 pageEnabled
                   ? "Describe what you need. AI can edit the current selection or page, or create a new page."
@@ -204,127 +301,157 @@ export function CopilotChatDialog({
               data-ai-status={task.status}
               data-ai-saved-revision={task.savedRevision}
             >
-              <p>
-                <strong>{task.prompt}</strong>
-              </p>
-              <small>{task.authorName ?? task.authorId} · {task.model} · {new Date(task.createdAt).toLocaleString(locale)}</small>
-              {task.files?.map((file) => {
-                const url = `/api/v1/projects/${encodeURIComponent(project.id)}/ai/chat/attachments/${file.id}`;
-                return <div key={file.id}>{file.mediaType.startsWith("image/") && <Image src={`${url}?preview=1`} preview={{ src: url }} width={100} alt={file.name} />}<a href={url} download={file.name}>{file.name}</a></div>;
-              })}
-              {task.nodes?.map((node) => <Tag key={node.uuid} onClick={() => void session.locate(task,node.uuid)} style={{ cursor: "pointer" }}>{node.name}</Tag>)}
-              <Tag
-                color={
-                  task.status === "failed"
-                    ? "error"
-                    : task.status === "running"
-                      ? "processing"
-                      : undefined
-                }
-              >
-                {label(task.phase)}
-              </Tag>
-              {task.binding && (
-                <p>
-                  {t("Pinned scope")}:{" "}
-                  {task.scopeLabel ??
-                    (task.binding.elementUuids.length
-                      ? t("Current selection")
-                      : t("Current page"))}
-                </p>
-              )}
-              {task.messages.map((message, index) => (
-                <AiMarkdown key={index}>{message}</AiMarkdown>
-              ))}
-              {task.parts?.flatMap((part,index) => part.type === "result" && part.text !== task.phase && part.text !== task.error
-                ? [<p key={`result-${index}`}>{part.status === "verified" ? t("Saved revision {revision} verified. Start a new request from the current editor.",{revision:part.revision ?? ""}) : label(part.text)}</p>]
-                : [])}
-              {task.error && <Alert type="error" message={task.error} />}
-              {task.needsReconciliation && session.canStop(task) && <Button onClick={() => void session.reconcile(task)}>{t("Verify saved design")}</Button>}
-              {(task.status === "failed" || task.status === "stopped") && !task.needsReconciliation && session.canStop(task) && <Button disabled={session.running} onClick={() => void session.retry(task)}>{t("Retry in current editor")}</Button>}
-              {!!task.operations.length && (
-                <details
-                  className={styles.details}
-                  data-test-id="local-ai-operations"
-                >
-                  <summary>{t("Execution progress")}</summary>
-                  <ol>
-                    {task.operations.map((operation) => (
-                      <li key={operation.id}>
-                        {operation.name} ·{" "}
-                        {label(
-                          operation.status === "completed"
-                            ? "Completed"
-                            : operation.status === "failed"
-                              ? "Failed"
-                              : "Running",
-                        )}
-                        {operation.error && <div>{operation.error}</div>}
-                      </li>
+              <div className={styles.request}>
+                <p>{task.prompt}</p>
+                <div className={styles.metadata}>
+                  <span>{task.authorName ?? task.authorId}</span>
+                  <time dateTime={task.createdAt}>
+                    {new Date(task.createdAt).toLocaleString(locale)}
+                  </time>
+                </div>
+                {!!task.nodes?.length && (
+                  <div className={styles.status} style={{ marginTop: 8 }}>
+                    {task.nodes.map((node) => (
+                      <AiNodeReference
+                        key={node.uuid}
+                        node={node}
+                        onLocate={() => void session.locate(task, node)}
+                      />
                     ))}
-                  </ol>
-                </details>
-              )}
-              {task.records.map((record) => (
-                <details
-                  className={styles.details}
-                  key={record.id}
-                  data-test-id="local-ai-change"
-                  data-ai-undone={!!record.undone}
-                >
-                  <summary>
-                    {t("Changes")}: {record.name}
-                    {record.undone ? ` · ${t("Undone")}` : ""}
-                  </summary>
-                  <Scrollbar scrollX={false} className={styles.detailScroll}>
-                    <pre>{JSON.stringify(record.input, null, 2)}</pre>
-                  </Scrollbar>
-                  <details>
-                    <summary>{t("Before")}</summary>
-                    <Scrollbar scrollX={false} className={styles.detailScroll}>
-                      <pre>{record.before}</pre>
-                    </Scrollbar>
-                  </details>
-                  <details>
-                    <summary>{t("After")}</summary>
-                    <Scrollbar scrollX={false} className={styles.detailScroll}>
-                      <pre>{record.after}</pre>
-                    </Scrollbar>
-                  </details>
-                  {record === lastRecord &&
-                    !record.undone &&
-                    !session.running && session.canUndo(record) && (
-                      <Button
-                        size="small"
-                        onClick={() => void session.undo(task, record)}
-                      >
-                        {t("Undo")}
-                      </Button>
-                    )}
-                </details>
-              ))}
-              {task.savedRevision !== undefined && (
-                <p>
-                  {t("Saved revision {revision}.", {
-                    revision: task.savedRevision,
-                  })}
-                </p>
-              )}
-              {task.status === "completed" && (
-                <p>
-                  {t(
-                    "Model structure checked. Visual layout and interactions were not tested.",
+                  </div>
+                )}
+                {task.files?.map((file) => {
+                  const url = `/api/v1/projects/${encodeURIComponent(project.id)}/ai/chat/attachments/${file.id}`;
+                  return (
+                    <div key={file.id} className={styles.files}>
+                      {file.mediaType.startsWith("image/") && (
+                        <Image
+                          src={`${url}?preview=1`}
+                          preview={{ src: url }}
+                          width={100}
+                          alt={file.name}
+                        />
+                      )}
+                      <a href={url} download={file.name}>
+                        {file.name}
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className={styles.response}>
+                <div className={styles.status}>
+                  <span>{t("AI assistant")}</span>
+                  {task.model && <span>{task.model}</span>}
+
+                  <Tag
+                    color={
+                      task.status === "failed"
+                        ? "error"
+                        : task.status === "running"
+                          ? "processing"
+                          : undefined
+                    }
+                  >
+                    {label(task.phase)}
+                  </Tag>
+                  {task.binding && (
+                    <span>
+                      {t("Pinned scope")}:{" "}
+                      {task.scopeLabel ??
+                        (task.binding.elementUuids.length
+                          ? t("Current selection")
+                          : t("Current page"))}
+                    </span>
                   )}
-                </p>
-              )}
-              {(task.status === "stopped" || task.status === "failed") &&
-                task.records.length > 0 && (
-                  <p>
+                </div>
+                {task.messages.map((message, index) => (
+                  <AiMarkdown
+                    key={index}
+                    running={
+                      task.status === "running" &&
+                      index === task.messages.length - 1
+                    }
+                    nodes={[
+                      ...(task.nodes ?? []),
+                      ...task.parts.filter((part) => part.type === "node"),
+                    ]}
+                    onLocate={(node) => void session.locate(task, node)}
+                  >
+                    {message}
+                  </AiMarkdown>
+                ))}
+                {task.parts
+                  .filter((part) => part.type === "node")
+                  .map((node) => (
+                    <AiNodeReference
+                      key={node.uuid}
+                      node={node}
+                      onLocate={() => void session.locate(task, node)}
+                    />
+                  ))}
+                {task.parts?.flatMap((part, index) =>
+                  part.type === "result" &&
+                  part.text !== task.phase &&
+                  part.text !== task.error
+                    ? [
+                        <p className={styles.note} key={`result-${index}`}>
+                          {part.status === "verified"
+                            ? t(
+                                "Saved revision {revision} verified. Start a new request from the current editor.",
+                                { revision: part.revision ?? "" },
+                              )
+                            : label(part.text)}
+                        </p>,
+                      ]
+                    : [],
+                )}
+                {task.error && <Alert type="error" message={task.error} />}
+                {task.needsReconciliation && session.canStop(task) && (
+                  <Button onClick={() => void session.reconcile(task)}>
+                    {t("Verify saved design")}
+                  </Button>
+                )}
+                {(task.status === "failed" || task.status === "stopped") &&
+                  !task.needsReconciliation &&
+                  session.canStop(task) && (
+                    <Button
+                      disabled={session.running}
+                      onClick={() => void session.retry(task)}
+                    >
+                      {t("Retry in current editor")}
+                    </Button>
+                  )}
+                {(!!task.operations.length || !!task.records.length) && (
+                  <AiExecutionProgress
+                    task={task}
+                    session={session}
+                    lastRecord={lastRecord}
+                  />
+                )}
+                {task.savedRevision !== undefined && (
+                  <p className={styles.note}>
+                    {t("Saved revision {revision}.", {
+                      revision: task.savedRevision,
+                    })}
+                  </p>
+                )}
+                {task.status === "completed" && (
+                  <p className={styles.note}>
                     {t(
-                      "Completed changes are retained and may have been saved automatically.",
+                      "Model structure checked. Visual layout and interactions were not tested.",
                     )}
                   </p>
                 )}
+                {(task.status === "stopped" || task.status === "failed") &&
+                  task.records.length > 0 && (
+                    <p className={styles.note}>
+                      {t(
+                        "Completed changes are retained and may have been saved automatically.",
+                      )}
+                    </p>
+                  )}
+              </div>
             </article>
           ))}
         </div>
@@ -351,7 +478,9 @@ export function CopilotChatDialog({
           running={session.running}
           onStop={() => session.stop()}
           stopDisabled={
-            lastTask?.status !== "running" || !session.canStop(lastTask) || lastTask.phase === "Stopping"
+            lastTask?.status !== "running" ||
+            !session.canStop(lastTask) ||
+            lastTask.phase === "Stopping"
           }
           placeholder={t(
             pageEnabled

@@ -54,7 +54,7 @@
   position: relative;
   width: 100%;
   box-shadow: inset 0px 0px 0px 1px var(--token-CE-OiWjNhspe);
-  background: var(--token-rqQDmopteQdV);
+  background: var(--ui-surface, var(--token-rqQDmopteQdV));
   min-width: 0;
   border-radius: var(--token-CyMxORMQ0iY7);
   border-style: none;

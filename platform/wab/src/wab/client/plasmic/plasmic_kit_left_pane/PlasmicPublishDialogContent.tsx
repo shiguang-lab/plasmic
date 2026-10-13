@@ -85,6 +85,8 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
   overrides: PlasmicPublishDialogContent__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -237,8 +239,8 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "state", "nochanges")
-            ? "There have been no new changes since your last published version."
-            : "When you publish a new version, you let other developers and designers know that your components are ready for use."}
+            ? uiT("There have been no new changes since your last published version.")
+            : uiT("When you publish a new version, you let other developers and designers know that your components are ready for use.")}
         </div>
         {(hasVariant($state, "state", "nochanges") ? false : true) ? (
           <div
@@ -273,7 +275,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
                 })}
               >
                 {
-                  "Version numbers are automatically calculated using semantic versioning."
+                  <UiText message={"Version numbers are automatically calculated using semantic versioning."} />
                 }
               </div>
             </div>
@@ -373,7 +375,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
                 type={["link"]}
                 withIcons={["startIcon"]}
               >
-                {"See here for more details"}
+                {<UiText message={"See here for more details"} />}
               </Button>
             ) : null}
           </div>

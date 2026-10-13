@@ -11,6 +11,7 @@
 // Plasmic Project: oYWs1jXLUht24zyQBdCd5F
 // Component: dWRKivg8dUht
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -72,6 +73,8 @@ function PlasmicInitTokenContainer__RenderFunc(props: {
   overrides: PlasmicInitTokenContainer__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -172,10 +175,10 @@ function PlasmicInitTokenContainer__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "state", "done")
-            ? "Done! You may now close this tab."
+            ? studioUiT("Done! You may now close this tab.")
             : hasVariant($state, "state", "error")
-            ? "Do you want to authorize Plasmic CLI to have access to your projects?"
-            : "Do you want to authorize Plasmic CLI to have access to your projects?"}
+            ? studioUiT("Do you want to authorize Plasmic CLI to have access to your projects?")
+            : studioUiT("Do you want to authorize Plasmic CLI to have access to your projects?")}
         </div>
       </div>
       {(hasVariant($state, "state", "done") ? false : true) ? (
@@ -215,7 +218,7 @@ function PlasmicInitTokenContainer__RenderFunc(props: {
           >
             {hasVariant($state, "state", "loading")
               ? <UiText message={"Loading..."} />
-              : "Authorize"}
+              : studioUiT("Authorize")}
           </div>
         </Button>
       ) : null}
@@ -235,7 +238,7 @@ function PlasmicInitTokenContainer__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "state", "error")
-            ? "Authorization error. Please try again."
+            ? studioUiT("Authorization error. Please try again.")
             : ""}
         </div>
       ) : null}

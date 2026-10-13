@@ -1,3 +1,5 @@
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+
 import {
   getVariantIdentifier,
   Selector,
@@ -11,6 +13,7 @@ import {
   EditableLabel,
   EditableLabelHandles,
 } from "@/wab/client/components/widgets/EditableLabel";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
@@ -70,6 +73,8 @@ const VariantLabel_: ForwardRefRenderFunction<
   }: VariantLabelProps,
   ref: React.Ref<EditableLabelHandles>,
 ) => {
+  const { t: studioUiT } = useI18n();
+
   const studioCtx = useStudioCtx();
   const viewCtx = studioCtx.focusedViewCtx()!;
   const focusedTpl = viewCtx?.focusedTpl();
@@ -111,7 +116,9 @@ const VariantLabel_: ForwardRefRenderFunction<
         },
         inputBoxClassName,
       )}
-      inputBoxPlaceholder={`${VARIANT_CAP} name`}
+      inputBoxPlaceholder={studioUiT("{part1} name", {
+        part1: String(VARIANT_CAP),
+      })}
     >
       <span className={className}>{variantName}</span>
     </EditableLabel>
@@ -135,8 +142,12 @@ export function makeCanvasVariantContextMenu({
     <Menu>
       <Menu.Item onClick={onRequestEditing}>
         {isStyleOrCodeComponentVariant(variant)
-          ? `Change ${VARIANT_LOWER} selectors`
-          : `Rename ${VARIANT_LOWER}`}
+          ? translate(getUiLocale(), "Change {part1} selectors", {
+              part1: translateUiLabel(getUiLocale(), VARIANT_LOWER),
+            })
+          : translate(getUiLocale(), "Rename {part1}", {
+              part1: translateUiLabel(getUiLocale(), VARIANT_LOWER),
+            })}
       </Menu.Item>
       <Menu.Item
         onClick={() =>

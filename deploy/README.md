@@ -90,6 +90,14 @@ Copy the current `nginx.conf` when upgrading; Compose mounts this deployment
 configuration over the image default. Cloud hosting is separate and is not
 provided by these images.
 
+The server image and Compose environment set `PLASMIC_SELF_HOSTED=1`, matching
+the frontend build. Self-hosted deployments have no subscription requirement:
+organization creation, organization/project transfers, AI request quotas,
+analytics, localization, experimentation, content editing roles, UI customization
+and version history are available without plan limits. Capabilities are resolved
+when serving API data; no paid subscription or feature tier is written to the
+database. Resource authentication and role permissions still apply.
+
 ## Desktop download image
 
 `desktop-releases` serves installers, Electron update YAML and `latest.json` from

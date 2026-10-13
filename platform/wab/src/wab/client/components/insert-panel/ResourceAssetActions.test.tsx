@@ -20,9 +20,7 @@ import React from "react";
 
 const downloads = vi.hoisted(() => vi.fn());
 vi.mock("@/wab/client/dom-utils", () => ({ downloadImageAsset: downloads }));
-vi.mock("@/wab/client/i18n", () => ({
-  useI18n: () => ({ t: (text: string) => text }),
-}));
+
 vi.mock("@/wab/client/components/sidebar/FindReferencesModal", () => ({
   FindReferencesModal: ({ onClose }: { onClose: () => void }) => {
     if (!useMaybeSidebarModalContext()) {

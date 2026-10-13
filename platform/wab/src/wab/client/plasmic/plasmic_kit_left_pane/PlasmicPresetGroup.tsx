@@ -158,7 +158,7 @@ function PlasmicPresetGroup__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Default",
+            defaultContents: <UiText message={"Default"} />,
             value: args.name,
             className: classNames(sty.slotTargetName, {
               [sty.slotTargetNamehideGroupName]: hasVariant(

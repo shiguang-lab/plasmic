@@ -77,6 +77,8 @@ function PlasmicNewProjectModal__RenderFunc(props: {
   overrides: PlasmicNewProjectModal__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -164,7 +166,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__xQrks
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -204,7 +206,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__mLyWg
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -243,7 +245,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__t85EI
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -282,7 +284,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject___7HRnI
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -333,7 +335,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__sbDnI
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -372,7 +374,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__oCAcA
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -411,7 +413,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject___3RF
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -450,7 +452,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__aVc4Q
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -501,7 +503,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__bQnRm
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -540,7 +542,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__e7Lml
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -579,7 +581,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__eoRbz
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img
@@ -618,7 +620,7 @@ function PlasmicNewProjectModal__RenderFunc(props: {
                         sty.starterProject__v72Qz
                       )}
                       image={"withImage"}
-                      instruction={"Click to duplicate this project"}
+                      instruction={uiT("Click to duplicate this project")}
                       name={'Play "Plasmic Levels"'}
                       preview={
                         <img

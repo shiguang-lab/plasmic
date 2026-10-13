@@ -199,7 +199,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                   sty.variantsGroupLabel__eNuDg
                 )}
               >
-                {"Highlights"}
+                {<UiText message={"Highlights"} />}
               </VariantsGroupLabel>
               <VariantRow
                 className={classNames("__wab_instance", sty.variantRow__ij1KE)}
@@ -221,7 +221,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
                   sty.variantsGroupLabel__jsbGk
                 )}
               >
-                {"Highlights"}
+                {<UiText message={"Highlights"} />}
               </VariantsGroupLabel>
               <VariantRow
                 className={classNames("__wab_instance", sty.variantRow__nvL0I)}

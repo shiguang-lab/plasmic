@@ -11,6 +11,7 @@
 // Plasmic Project: wT5BWZPEc2fYxyqbTLXMt2
 // Component: PDpx0GMKsd
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -281,7 +282,7 @@ function PlasmicVariantSection__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Variant Group Name",
+            defaultContents: <UiText message={"Variant Group Name"} />,
             value: args.title,
             className: classNames(sty.slotTargetTitle, {
               [sty.slotTargetTitlehasCodeExpression]: hasVariant(
@@ -501,7 +502,7 @@ function PlasmicVariantSection__RenderFunc(props: {
               withIcons={["startIcon"]}
             >
               {renderPlasmicSlot({
-                defaultContents: "Add option",
+                defaultContents: <UiText message={"Add option"} />,
                 value: args.emptyAddButtonText,
               })}
             </Button>

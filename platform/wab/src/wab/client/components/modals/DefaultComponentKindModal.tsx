@@ -1,4 +1,3 @@
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -15,6 +14,8 @@ export function DefaultComponentKindModal<T>({
   onCancel: () => void;
 }) {
   const { t: uiT } = useI18n();
+  const [form] = Form.useForm();
+  const formId = React.useId();
   return (
     <Modal
       title={
@@ -22,11 +23,16 @@ export function DefaultComponentKindModal<T>({
           <UiText message={"Set as default component"} />
         </h3>
       }
-      visible
-      footer={null}
+      open
+
+      okButtonProps={{ htmlType: "submit", form: formId }}
+      okText={<UiText message="Submit" />}
+      cancelText={<UiText message="Cancel" />}
       onCancel={() => onCancel()}
     >
       <Form
+        id={formId}
+        form={form}
         labelCol={{
           span: 3,
         }}
@@ -53,21 +59,6 @@ export function DefaultComponentKindModal<T>({
               <Select.Option value={kind}>{label}</Select.Option>
             ))}
           </Select>
-        </Form.Item>
-        <Form.Item
-          wrapperCol={{
-            xs: {
-              span: 24,
-            },
-            sm: {
-              span: 8,
-              offset: 8,
-            },
-          }}
-        >
-          <Button htmlType={"submit"} size={"stretch"} type={"primary"}>
-            <UiText message={"Submit"} />
-          </Button>
         </Form.Item>
       </Form>
     </Modal>

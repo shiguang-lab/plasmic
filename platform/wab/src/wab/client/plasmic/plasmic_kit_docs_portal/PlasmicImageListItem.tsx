@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: tnA9SknzQ5
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -167,7 +168,7 @@ function PlasmicImageListItem__RenderFunc(props: {
         }
       >
         {renderPlasmicSlot({
-          defaultContents: "Trash",
+          defaultContents: <UiText message={"Trash"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenisSelected]: hasVariant(

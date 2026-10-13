@@ -1,5 +1,6 @@
 import { MenuType, useContextMenu } from "@/wab/client/components/ContextMenu";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultContextMenuIndicatorProps,
   PlasmicContextMenuIndicator,
@@ -49,7 +50,7 @@ function ContextMenuIndicator_(
   {
     menu,
     onIndicatorClickDefault,
-    tooltip = "Use dynamic value",
+    tooltip = <UiText message="Use dynamic value" />,
     showDynamicValueButton = false,
     showMenuOnRightClick = false,
     style,

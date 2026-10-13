@@ -1,3 +1,4 @@
+import { reportError, showError } from "@/wab/client/ErrorNotifications";
 import {
   CommentFilter,
   CommentsStats,
@@ -6,7 +7,8 @@ import {
   isCommentForFrame,
   makeCommonFields,
 } from "@/wab/client/components/comments/utils";
-import { reportError, showError } from "@/wab/client/ErrorNotifications";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -330,8 +332,11 @@ export class CommentsCtx {
       runInAction(() => this._loadFailed.set(true));
       reportError(err);
       showError(err, {
-        title: "Unable to process your request",
-        description: "Failed to fetch comments for project",
+        title: translate(getUiLocale(), "Unable to process your request"),
+        description: translate(
+          getUiLocale(),
+          "Failed to fetch comments for project",
+        ),
       });
     } finally {
       runInAction(() => this._loading.set(false));
@@ -556,8 +561,8 @@ export class CommentsCtx {
         } catch (err) {
           reportError(err);
           showError(err, {
-            title: "Unable to process your request",
-            description: "Please try again",
+            title: translate(getUiLocale(), "Unable to process your request"),
+            description: translate(getUiLocale(), "Please try again"),
           });
           spawn(this.fetchComments());
         }

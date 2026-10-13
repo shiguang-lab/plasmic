@@ -284,15 +284,17 @@ export function ResponsivenessPanel_() {
                 {allScreenVariantGroups.map((group) => (
                   <Select.Option value={group.uuid} key={group.uuid}>
                     {site.globalVariantGroups.includes(group)
-                      ? "This project's breakpoints"
-                      : `Breakpoints from "${
-                          ensure(
-                            studioCtx.projectDependencyManager.getOwnerDep(
-                              group,
-                            ),
-                            `Missing dependency for ${group.uuid}`,
-                          ).name
-                        }"`}
+                      ? uiT("This project's breakpoints")
+                      : uiT('Breakpoints from "{part1}"', {
+                          part1: String(
+                            ensure(
+                              studioCtx.projectDependencyManager.getOwnerDep(
+                                group,
+                              ),
+                              `Missing dependency for ${group.uuid}`,
+                            ).name,
+                          ),
+                        })}
                   </Select.Option>
                 ))}
               </Select>
@@ -352,7 +354,7 @@ export function ResponsivenessPanel_() {
           <div className={styles.breakpointsContainer}>
             {orderedScreenVariants?.map(({ screenSpec, variant }) => {
               const variantNameFieldProps = {
-                placeholder: "Name",
+                placeholder: uiT("Name"),
                 defaultValue: variant.name,
                 onBlur: async (e) => {
                   if (e.target.value) {

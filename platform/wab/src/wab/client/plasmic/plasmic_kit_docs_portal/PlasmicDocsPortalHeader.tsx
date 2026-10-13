@@ -175,7 +175,7 @@ function PlasmicDocsPortalHeader__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         <div className={classNames("all", "__wab_text", sty.text__nZGhC)}>
-          {"API Explorer: "}
+          {<><UiText message={"API Explorer:"} />{" "}</>}
         </div>
         {renderPlasmicSlot({
           defaultContents: "Project Name",

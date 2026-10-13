@@ -6,7 +6,7 @@
   height: auto;
   justify-content: center;
   align-items: center;
-  background: var(--token-rqQDmopteQdV);
+  background: var(--ui-surface, var(--token-rqQDmopteQdV));
   justify-self: flex-start;
   border-radius: var(--token-G5TIO9SLc);
   border: 3px solid var(--token-rqQDmopteQdV);

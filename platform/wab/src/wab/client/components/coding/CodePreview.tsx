@@ -1,3 +1,4 @@
+import { useInspectorTheme } from "@/wab/client/components/coding/useInspectorTheme";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { tryEvalExpr } from "@/wab/shared/eval";
 import L, { debounce } from "lodash";
@@ -6,7 +7,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import {
   InspectorNodeRenderer,
   ObjectInspector,
-  chromeLight,
+  ObjectInspectorProps,
 } from "react-inspector";
 
 const BASE_FONT_FAMILY = '"Roboto Mono", Consolas, Menlo, monospace';
@@ -135,19 +136,27 @@ export function renderInspector(
   },
 ) {
   return (
+    <ThemedObjectInspector
+      data={L.isError(val) ? formatError(val) : val}
+      expandLevel={opts?.expandPaths ? undefined : (opts?.expandLevel ?? 1)}
+      expandPaths={opts?.expandPaths}
+      nodeRenderer={opts?.nodeRenderer}
+    />
+  );
+}
+
+function ThemedObjectInspector(props: ObjectInspectorProps) {
+  const inspectorTheme = useInspectorTheme();
+  return (
     <ObjectInspector
+      {...props}
       theme={{
-        ...chromeLight,
-        BASE_BACKGROUND_COLOR: "transparent",
+        ...inspectorTheme,
         BASE_FONT_FAMILY,
         BASE_FONT_SIZE: `${BASE_FONT_SIZE}px`,
         TREENODE_FONT_FAMILY: BASE_FONT_FAMILY,
         TREENODE_FONT_SIZE: `${BASE_FONT_SIZE}px`,
       }}
-      data={L.isError(val) ? formatError(val) : val}
-      expandLevel={opts?.expandPaths ? undefined : (opts?.expandLevel ?? 1)}
-      expandPaths={opts?.expandPaths}
-      nodeRenderer={opts?.nodeRenderer}
     />
   );
 }

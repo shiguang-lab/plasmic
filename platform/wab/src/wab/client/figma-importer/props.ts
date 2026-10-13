@@ -5,6 +5,8 @@ import {
   ComponentPropertyEntry,
   InstanceNode,
 } from "@/wab/client/figma-importer/plugin-types";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isSlot } from "@/wab/shared/SlotUtils";
 import { isStandaloneVariantGroup } from "@/wab/shared/Variants";
@@ -286,7 +288,11 @@ function safeFigmaPropsTransform(
     // If the transformation fails, we will just notify the user, log the error and
     // continue with the original props
     notification.error({
-      message: `Error transforming figma props for code component ${component.name} using figmaPropsTransform function`,
+      message: translate(
+        getUiLocale(),
+        "Error transforming figma props for code component {part1} using figmaPropsTransform function",
+        { part1: String(component.name) },
+      ),
     });
     console.error(
       `Error transforming figma props for code component ${component.name}`,

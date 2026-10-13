@@ -3,7 +3,7 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   width: 480px;
   border-radius: 4px;
   border: 1px solid var(--token-hoA5qaM-91G);

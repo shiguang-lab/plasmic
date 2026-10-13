@@ -1,4 +1,5 @@
 import { SelectInput } from "@/wab/client/components/QueryBuilder/Components/SelectInput";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { ConjsProps } from "@react-awesome-query-builder/antd";
 import React from "react";
@@ -12,6 +13,7 @@ const _negationOptions = {
 const _negationOptionsArray = Object.values(_negationOptions);
 
 export function GroupHeader(props: Props) {
+  const { label } = useI18n();
   const { conjunctionOptions = {}, config } = props;
   const showNot = config?.settings?.showNot !== false;
 
@@ -19,7 +21,7 @@ export function GroupHeader(props: Props) {
     (key: keyof typeof conjunctionOptions) => {
       const item = conjunctionOptions[key];
       return {
-        label: item.label,
+        label: label(item.label),
         key: item.key,
       };
     },
@@ -34,7 +36,10 @@ export function GroupHeader(props: Props) {
       {showNot ? (
         <SelectInput
           className={`not-selector ${props.not ? "is-active" : "is-inactive"}`}
-          items={_negationOptionsArray}
+          items={_negationOptionsArray.map((item) => ({
+            ...item,
+            label: label(item.label),
+          }))}
           value={
             props.not
               ? _negationOptions.dontMatch.key

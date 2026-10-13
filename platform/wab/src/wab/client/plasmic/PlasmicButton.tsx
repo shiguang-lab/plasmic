@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: SEF-sRmSoqV5c
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -713,7 +714,7 @@ function PlasmicButton__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Button",
+          defaultContents: <UiText message={"Button"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrencolor_blue]: hasVariant(
@@ -890,7 +891,7 @@ function PlasmicButton__RenderFunc(props: {
         })}
         {(hasVariant($state, "type", "hasCaption") ? true : false)
           ? renderPlasmicSlot({
-              defaultContents: "Caption",
+              defaultContents: <UiText message={"Caption"} />,
               value: args.caption,
               className: classNames(sty.slotTargetCaption, {
                 [sty.slotTargetCaptioncolor_blue]: hasVariant(

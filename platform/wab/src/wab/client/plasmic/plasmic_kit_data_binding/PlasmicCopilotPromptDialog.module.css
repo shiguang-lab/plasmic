@@ -36,7 +36,7 @@
   height: auto;
   max-width: 100%;
   overflow: auto;
-  background: #ffffff;
+  background: var(--ui-elevated, #ffffff);
   max-height: 100%;
   row-gap: 8px;
   padding: 16px;

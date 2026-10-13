@@ -108,6 +108,8 @@ function PlasmicContentPage__RenderFunc(props: {
   overrides: PlasmicContentPage__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -172,7 +174,7 @@ function PlasmicContentPage__RenderFunc(props: {
                 data-plasmic-name={"moreButton"}
                 data-plasmic-override={overrides.moreButton}
                 className={classNames("__wab_instance", sty.moreButton)}
-                hoverText={"More…"}
+                hoverText={uiT("More…")}
                 stepUp={true}
               />
             </div>
@@ -217,11 +219,11 @@ function PlasmicContentPage__RenderFunc(props: {
                     {renderPlasmicSlot({
                       defaultContents: (
                         <React.Fragment>
-                          <MenuItem href={"#"}>{"Alpha"}</MenuItem>
+                          <MenuItem href={"#"}>{<UiText message={"Alpha"} />}</MenuItem>
                           <MenuItem href={"#"} selected={true}>
-                            {"Beta"}
+                            {<UiText message={"Beta"} />}
                           </MenuItem>
-                          <MenuItem href={"#"}>{"Gamma"}</MenuItem>
+                          <MenuItem href={"#"}>{<UiText message={"Gamma"} />}</MenuItem>
                         </React.Fragment>
                       ),
                       value: args.modelList,

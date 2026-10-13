@@ -240,7 +240,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                     }
                   )}
                 >
-                  {"Updated Nav Component"}
+                  {<UiText message={"Updated Nav Component"} />}
                 </span>
               }
               <React.Fragment>{""}</React.Fragment>
@@ -541,7 +541,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                 }
                 style={{ color: "var(--token-qKhMu66CwSx)" }}
               >
-                {"on "}
+                {<><UiText message={"on"} />{" "}</>}
               </span>
               <React.Fragment>{""}</React.Fragment>
               {
@@ -564,7 +564,7 @@ function PlasmicVersionsListItem__RenderFunc(props: {
                       }
                       style={{ color: "var(--token-qKhMu66CwSx)" }}
                     >
-                      {"8/26/2025, 2:15PM"}
+                      {<UiText message={"8/26/2025, 2:15PM"} />}
                     </span>
                   </React.Fragment>
                 </span>

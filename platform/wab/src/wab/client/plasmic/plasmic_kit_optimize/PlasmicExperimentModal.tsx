@@ -220,7 +220,7 @@ function PlasmicExperimentModal__RenderFunc(props: {
               data-plasmic-override={overrides.type}
               className={classNames("all", "__wab_text", sty.type)}
             >
-              {"A/B Test"}
+              {<UiText message={"A/B Test"} />}
             </div>
           </div>
         </div>

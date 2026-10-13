@@ -32,6 +32,7 @@ import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
+import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
 import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import {
   getActivatedVariantsForFrame,
@@ -75,7 +76,13 @@ async function prepare(request: PreviewRequest) {
     `/api/v1/projects/${encodeURIComponent(id)}?revisionNum=${request.revision}`,
   );
   if (!response.ok) {
-    throw new Error(`Preview project: ${response.status}`);
+    throw deserializeApiError(
+      await response
+        .json()
+        .then((body) => body.error)
+        .catch(() => undefined),
+      response.status,
+    );
   }
   const data: GetProjectResponse = await response.json();
   if (data.rev.revision !== request.revision) {

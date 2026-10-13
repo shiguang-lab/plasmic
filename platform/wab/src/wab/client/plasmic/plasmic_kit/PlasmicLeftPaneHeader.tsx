@@ -303,7 +303,7 @@ function PlasmicLeftPaneHeader__RenderFunc(props: {
               })}
             >
               {renderPlasmicSlot({
-                defaultContents: "Color tokens",
+                defaultContents: <UiText message={"Color tokens"} />,
                 value: args.title,
                 className: classNames(sty.slotTargetTitle, {
                   [sty.slotTargetTitlecompact]: hasVariant(
@@ -406,7 +406,7 @@ function PlasmicLeftPaneHeader__RenderFunc(props: {
               >
                 {renderPlasmicSlot({
                   defaultContents:
-                    "Color tokens are reusable color values that you can name and apply anywhere there you have a color picker (fill color, text color, etc.).  You can even define color tokens in terms of other color tokens.",
+                    <UiText message={"Color tokens are reusable color values that you can name and apply anywhere there you have a color picker (fill color, text color, etc.). You can even define color tokens in terms of other color tokens."} />,
                   value: args.description,
                 })}
               </div>
@@ -436,7 +436,7 @@ function PlasmicLeftPaneHeader__RenderFunc(props: {
               })}
             >
               {renderPlasmicSlot({
-                defaultContents: "Be aware of something. [Dismiss]",
+                defaultContents: <UiText message={"Be aware of something. [Dismiss]"} />,
                 value: args.alert,
                 className: classNames(sty.slotTargetAlert, {
                   [sty.slotTargetAlertshowAlert]: hasVariant(

@@ -185,7 +185,7 @@ function PlasmicSelect__OptionGroup__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Group Name",
+            defaultContents: <UiText message={"Group Name"} />,
             value: args.title,
             className: classNames(sty.slotTargetTitle),
           })}

@@ -11,6 +11,7 @@
 // Plasmic Project: pTmuho7nuNtDcvZAf2kJgx
 // Component: aSLlLoswhi
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -161,7 +162,7 @@ function PlasmicFrameworkTab__RenderFunc(props: {
         })}
       </div>
       {renderPlasmicSlot({
-        defaultContents: "Framework",
+        defaultContents: <UiText message={"Framework"} />,
         value: args.name,
         className: classNames(sty.slotTargetName, {
           [sty.slotTargetNameactive]: hasVariant($state, "active", "active"),

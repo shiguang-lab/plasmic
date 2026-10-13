@@ -6,7 +6,7 @@
   height: auto;
   position: relative;
   flex-direction: column;
-  background: rgb(255, 255, 255);
+  background: var(--ui-elevated, rgb(255, 255, 255));
   border-radius: 2px;
   padding: 4px 0px;
 }

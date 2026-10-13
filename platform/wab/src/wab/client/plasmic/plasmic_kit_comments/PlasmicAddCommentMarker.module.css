@@ -21,7 +21,7 @@
   display: flex;
   position: relative;
   object-fit: cover;
-  color: var(--token-rqQDmopteQdV);
+  color: var(--ui-on-accent, var(--token-rqQDmopteQdV));
   left: auto;
   top: auto;
   height: 1em;

@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: twJQ9idqHQ
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -163,7 +164,7 @@ function PlasmicDocsCollapsibleExplanation__RenderFunc(props: {
 
         {renderPlasmicSlot({
           defaultContents:
-            "Some explanation lksdj flskdfj sldkfj sdlfkj sldkfj l\n\nwhatlkj sdlkfj sldkfj lk\n\nsdfkjokjsdfl k",
+            "Some explanation lksdj flskdfj sldkfj sdlfkj sldkfj l whatlkj sdlkfj sldkfj lk sdfkjokjsdfl k",
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenisExpanded]: hasVariant(

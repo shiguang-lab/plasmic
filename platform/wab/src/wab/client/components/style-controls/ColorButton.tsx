@@ -7,10 +7,12 @@ import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useI18n } from "@/wab/client/i18n";
+
 import PlasmicColorButton from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicColorButton";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isTokenRef, tryParseTokenRef } from "@/wab/commons/StyleToken";
-import { TOKEN_CAP } from "@/wab/shared/Labels";
+
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { zeroWidthSpace } from "@/wab/shared/common";
 import { siteFinalColorTokens } from "@/wab/shared/core/site-style-tokens";
@@ -43,6 +45,8 @@ type ColorButtonProps = {
 };
 
 function _ColorButton(props: ColorButtonProps) {
+  const { t: studioUiT } = useI18n();
+
   const {
     color,
     onChange,
@@ -93,7 +97,7 @@ function _ColorButton(props: ColorButtonProps) {
           appliedToken
             ? appliedToken.name
             : tokenRef
-              ? "Invalid " + TOKEN_CAP
+              ? studioUiT("Invalid token")
               : color != null
                 ? Chroma.stringify(color)
                 : zeroWidthSpace

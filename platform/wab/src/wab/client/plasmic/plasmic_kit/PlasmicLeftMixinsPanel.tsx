@@ -69,6 +69,8 @@ function PlasmicLeftMixinsPanel__RenderFunc(props: {
   overrides: PlasmicLeftMixinsPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -144,7 +146,7 @@ function PlasmicLeftMixinsPanel__RenderFunc(props: {
         }
         className={classNames("__wab_instance", sty.mixinsHeader)}
         description={
-          "Style presets are bundles of styles that you can apply to any element. You might create style presets to define consistent styles for typography, backgrounds, shadows, layout, and more."
+          uiT("Style presets are bundles of styles that you can apply to any element. You might create style presets to define consistent styles for typography, backgrounds, shadows, layout, and more.")
         }
         title={uiT("Style presets")}
       />

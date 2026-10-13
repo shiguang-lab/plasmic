@@ -93,7 +93,7 @@ body
     transition: box-shadow .2s
 
 @mixin popup-menu
-  background-color: $panel-bg
+  background-color: var(--ui-surface, #{$panel-bg})
   border: 1px solid $darkener
   padding: 4px 0
   box-shadow: 1px 2px 9px 3px rgba(0,0,0,.4)
@@ -349,7 +349,7 @@ button
   box-shadow: none !important
 
 .focused-input-bg
-  background-color: #fff !important
+  background-color: var(--ui-surface, #fff) !important
 
 @mixin textbox
   @include inset
@@ -359,16 +359,16 @@ button
   border: none
   @extend .form-control-transition
   min-height: $section-list-item-height
-  color: $fg
+  color: var(--ui-text, #{$fg})
   &::placeholder
-    color: $dimdimfg
+    color: var(--ui-placeholder, #{$dimdimfg})
   &:disabled
-    color: $dimfg
+    color: var(--ui-disabled, #{$dimfg})
   &:hover:not(:focus)
     box-shadow: inset 0 0 0 1px $dimdimdimfg
   &:focus
     @extend .focused
-    color: $fg !important
+    color: var(--ui-text, #{$fg}) !important
     @extend .focused-input-bg
   &:disabled:hover
     cursor: not-allowed
@@ -467,7 +467,7 @@ input[type="text"].textbox--unset, textarea.textbox-unset, .select-dropdown__but
       box-shadow: inset 0 0 0 2px $focus-color
   &.textboxlike--white
     .ant-select-selector
-      background-color: #fff
+      background-color: var(--ui-surface, #fff)
       color: $dimfg
 .ant-select.textboxlike.text-right
   .ant-select-selection-item
@@ -670,7 +670,7 @@ h5, h6
   padding-left: 0px
 
 .modal
-  background: $bg
+  background: var(--ui-surface, #{$bg})
   box-shadow: 2px 2px 40px black
   display: flex
   flex-direction: column
@@ -797,7 +797,7 @@ p:last-child
 .monaco-editor .suggest-widget .monaco-list .monaco-list-row .right
   background-color: inherit
 .top-left, .top-right, .bottom-left, .bottom-right
-  background-color: white
+  background-color: var(--ui-surface, white)
   //border: 1px solid black
   height: $node-outline-handle-size
   width: $node-outline-handle-size
@@ -875,7 +875,7 @@ p:last-child
   z-index: 2000
   .style-completions
     position: absolute
-    background: white
+    background: var(--ui-elevated, white)
     list-style: none
     padding: 2px
     @include popup-box
@@ -906,7 +906,7 @@ p:last-child
   z-index: 1000
   display: block // !important
   position: fixed
-  background: $bg
+  background: var(--ui-surface, #{$bg})
   margin: initial
   left: initial
   @include popup-box
@@ -1013,7 +1013,7 @@ $dnd-container-error-color: rgba(255, 0, 0, 0.1)
   width: 32px
   height: 32px
   border: 1px solid silver
-  background: white
+  background: var(--ui-surface, white)
 .filled-table-block
   background: #80B5F2
 
@@ -2125,7 +2125,7 @@ a.btn-link
   display: inline-block
 
 .updated-element
-  background: rgba(255, 255, 255, .2)
+  background: var(--ui-hover, rgba(255, 255, 255, .2))
 
 .ant-dropdown-menu-root, .ant-dropdown-menu-sub
   max-height: 80vh
@@ -2278,7 +2278,7 @@ a.btn-link
   @include list-box-item--highlighted
 
 .flex-accessor__item--browsed
-  background: rgba(255, 255, 255, .05)
+  background: var(--ui-hover, rgba(255, 255, 255, .05))
 
 .flex-accessor__item--selected
   //background: $dim-highlight
@@ -2377,7 +2377,7 @@ a.btn-link
   width: 20px
   display: block
   &:hover
-    background: rgba(255,255,255,.1)
+    background: var(--ui-hover, rgba(255,255,255,.1))
 
 .wab-logo
   // TODO make this font avail.
@@ -2570,7 +2570,7 @@ a.btn-link
 .checkbox__box
   display: inline-block
   margin-right: .5em
-  background: color.adjust($bg, $lightness: -5%)
+  background: var(--ui-fill, #{color.adjust($bg, $lightness: -5%)})
   border: 2px solid black
   color: #3BBFFF
   width: calc(1.5em)
@@ -2948,8 +2948,8 @@ input[type="checkbox"]:checked + .checkbox__repr
   @include codefont
   padding: 0 2px
   border-radius: 4px
-  color: $green10
-  background-color: white
+  color: var(--ui-success, #{$green10})
+  background-color: var(--ui-success-bg, white)
   cursor: pointer
   font-weight: bold
   vertical-align: middle
@@ -3184,7 +3184,7 @@ $invalid-arg-color: #faad14
   margin-left: -12px
   margin-right: -12px
   padding: 12px
-  background: $panel-bg
+  background: var(--ui-surface, #{$panel-bg})
   flex-direction: column
   color: $sand10
 
@@ -3224,7 +3224,7 @@ $invalid-arg-color: #faad14
 .data-control-block
   padding: 8px 12px
   margin: 0 -12px
-  background: $panel-bg
+  background: var(--ui-surface, #{$panel-bg})
   border-top: 1px solid transparent
 .data-control-block--has-top-neighbor
   border-top: 1px solid $lightener
@@ -3504,7 +3504,7 @@ $invalid-arg-color: #faad14
 .expr-val__sep-line
   height: 1px
   flex: 1
-  background: rgba(255, 255, 255, 0.1)
+  background: var(--ui-border-subtle, rgba(255, 255, 255, 0.1))
 .expr-val__sep-sym
   color: rgba(255, 255, 255, 0.2)
   padding: 0 10px
@@ -3845,7 +3845,7 @@ $color-stops-width: 100%
   pointer-events: auto
   // Move the spotlight controls on top of the hoverbox
   z-index: 1
-  background-color: rgba(255,255,255,0.8)
+  background-color: var(--ui-elevated, rgba(255,255,255,0.8))
   padding: 4px
   border-radius: 4px
   button.ant-switch
@@ -3858,7 +3858,7 @@ $color-stops-width: 100%
   background: rgba(black, 0.25)
 
 .menu
-  background: $panel-bg
+  background: var(--ui-surface, #{$panel-bg})
   padding: 12px 0
 .menu-group
   &:not(::first)
@@ -3950,7 +3950,7 @@ $color-stops-width: 100%
 .canvas-editor__right-pane
   @include canvas-editor-pane-common
   // background-color: $sand4
-  background-color: white
+  background-color: var(--ui-surface, white)
   overflow: hidden
   margin-left: auto
   border-left: 1px solid $sand6
@@ -4035,7 +4035,7 @@ $color-stops-width: 100%
   display: flex
   max-height: 100%
   flex-direction: column
-  background-color: #fff
+  background-color: var(--ui-surface, #fff)
   &:not(:first-child)
     border-top: 1px solid $canvas-border
   & > div
@@ -4045,7 +4045,7 @@ $color-stops-width: 100%
   display: flex
   flex-direction: column
   border-radius: 8px
-  background-color: #fff
+  background-color: var(--ui-surface, #fff)
   margin: 8px
   &:not(:last-child)
     margin-bottom: 0
@@ -4066,7 +4066,7 @@ $color-stops-width: 100%
   margin-right: -$right-pane-padding
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15)
   border-radius: 0
-  background-color: #fff
+  background-color: var(--ui-surface, #fff)
 
 .canvas-editor__recording-panel-container
   display: flex
@@ -4273,7 +4273,7 @@ $color-stops-width: 100%
   position: relative
 
 .code-preview-inner
-  background: white
+  background: var(--ui-surface, white)
   height: 100%
   width: 100%
   left: 0px
@@ -4341,7 +4341,7 @@ $color-stops-width: 100%
   border: none
 
 .panel-popup
-  background: $bg
+  background: var(--ui-surface, #{$bg})
   width: $right-pane-content-width - 10px
   @include popup-box
   @include right-pane-font
@@ -4598,7 +4598,7 @@ $resizer_size: 8px
   @include HoverBox__Resizer
   width: $resizer_size
   height: $resizer_size
-  background: white
+  background: var(--ui-surface, white)
   border: 1px solid $node-outline-color
   border-radius: 2px
   z-index: 100
@@ -4721,7 +4721,7 @@ $resizer_size: 8px
   .node-outline-tag
     padding-left: 0
     color: $selectionControlsColor
-    background-color: rgba(255,255,255,0.9)
+    background-color: var(--ui-elevated, rgba(255,255,255,0.9))
     & > *
       opacity: 0.7
 
@@ -5179,7 +5179,7 @@ $resizer_size: 8px
 .sidebar-header-section--frame
   background-color: $blue4
 .sidebar-header-section__content
-  background-color: #fff
+  background-color: var(--ui-surface, #fff)
   border-radius: 6px
 
 .SectionTabsBar
@@ -5407,7 +5407,7 @@ $size-controls-width: $spacing-control-width - 2 * ($spacing-control-x-thickness
   +cover
   +dead-center
   z-index: 99999
-  background: rgba(white, 0.5)
+  background: var(--ui-hover, rgba(white, 0.5))
   opacity: 0
 .ScreenDimmer__Fade
   opacity: 1
@@ -5551,7 +5551,7 @@ $size-controls-width: $spacing-control-width - 2 * ($spacing-control-x-thickness
 
 .defined-indicator__source-stack
   position: relative
-  background-color: #fff
+  background-color: var(--ui-elevated, #fff)
 .defined-indicator__source-stack__line-container
     position: absolute
     height: 100%
@@ -5577,7 +5577,7 @@ $size-controls-width: $spacing-control-width - 2 * ($spacing-control-x-thickness
 
 .defined-indicator__source-icon
   margin-right: $space-sm
-  background-color: #fff
+  background-color: var(--ui-elevated, #fff)
   line-height: 0
   z-index: 1
 .defined-indicator__source-name
@@ -5773,7 +5773,7 @@ a, button.link-like
   color: $sand11
 
 .ql-container.ql-snow
-  background-color: white
+  background-color: var(--ui-surface, white)
 
 .ant-popover.data-picker-popover-overlay
   & .ant-popover-arrow
@@ -5876,7 +5876,7 @@ a, button.link-like
   .ant-table
     background: none
   .ant-table-tbody
-    background: white
+    background: var(--ui-surface, white)
   .ant-table-content
     overflow: unset !important
   .ant-table-container::after, .ant-table-container::before

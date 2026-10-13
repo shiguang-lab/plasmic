@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: P6rYMyYSiZ
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -106,7 +107,7 @@ function PlasmicDocsCodeSnippet__RenderFunc(props: {
       )}
     >
       {renderPlasmicSlot({
-        defaultContents: "Snippet!",
+        defaultContents: <UiText message={"Snippet!"} />,
         value: args.children,
         className: classNames(sty.slotTargetChildren),
       })}

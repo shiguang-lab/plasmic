@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: u6dq5eydCj
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -97,6 +99,8 @@ function PlasmicStarterGroup__RenderFunc(props: {
   overrides: PlasmicStarterGroup__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -196,7 +200,7 @@ function PlasmicStarterGroup__RenderFunc(props: {
         >
           <div className={classNames("all", sty.freeBox__vZxO3)}>
             {renderPlasmicSlot({
-              defaultContents: "Subheading",
+              defaultContents: <UiText message={"Subheading"} />,
               value: args.heading,
               className: classNames(sty.slotTargetHeading),
             })}
@@ -218,7 +222,7 @@ function PlasmicStarterGroup__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              text={"Docs"}
+              text={studioUiT("Docs")}
             />
 
             <Link
@@ -231,7 +235,7 @@ function PlasmicStarterGroup__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              text={"See all\u2026"}
+              text={studioUiT("See all…")}
             />
           </div>
         </div>
@@ -268,7 +272,7 @@ function PlasmicStarterGroup__RenderFunc(props: {
             <React.Fragment>
               <StarterProject
                 image={"withImage"}
-                instruction={"Click to duplicate this project"}
+                instruction={studioUiT("Click to duplicate this project")}
                 name={'Play "Plasmic Levels"'}
                 preview={
                   <img
@@ -307,7 +311,7 @@ function PlasmicStarterGroup__RenderFunc(props: {
                   sty.starterProject__s5Vns
                 )}
                 image={"withImage"}
-                instruction={"Click to duplicate this project"}
+                instruction={studioUiT("Click to duplicate this project")}
                 name={'Play "Plasmic Levels"'}
                 preview={
                   <img

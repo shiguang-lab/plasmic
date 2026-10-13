@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: Z40kBWC-Knbn
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -226,7 +227,7 @@ function PlasmicPriceTierFeatureItem__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "What a cool feature",
+          defaultContents: <UiText message={"What a cool feature"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrencheckIcon]: hasVariant(

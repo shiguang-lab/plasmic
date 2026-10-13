@@ -1,6 +1,8 @@
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicElementProp } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicElementProp";
 import { toClassName } from "@/wab/shared/codegen/util";
 import { isTplComponent, isTplTag, TplNamable } from "@/wab/shared/core/tpls";
@@ -17,6 +19,8 @@ interface ElementPropProps {
 }
 
 const ElementProp = observer(function ElementProp(props: ElementPropProps) {
+  const { t: studioUiT } = useI18n();
+
   const { docsCtx, node, name, isRoot } = props;
   const component = docsCtx.getFocusedComponent();
 
@@ -35,7 +39,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
               )
             }
           >
-            Attach event listeners
+            {" "}
+            <UiText message={"Attach event listeners"} />{" "}
           </Menu.Item>
         )}
 
@@ -51,7 +56,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
               )
             }
           >
-            Override content
+            {" "}
+            <UiText message={"Override content"} />{" "}
           </Menu.Item>
         )}
 
@@ -66,7 +72,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
             )
           }
         >
-          Override props
+          {" "}
+          <UiText message={"Override props"} />{" "}
         </Menu.Item>
         <Menu.Item
           onClick={() =>
@@ -79,7 +86,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
             )
           }
         >
-          Wrap element
+          {" "}
+          <UiText message={"Wrap element"} />{" "}
         </Menu.Item>
         <Menu.Item
           onClick={() =>
@@ -92,7 +100,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
             )
           }
         >
-          Replace element
+          {" "}
+          <UiText message={"Replace element"} />{" "}
         </Menu.Item>
         {!isTplComponent(node) && (
           <Menu.Item
@@ -106,7 +115,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
               )
             }
           >
-            Insert additional children
+            {" "}
+            <UiText message={"Insert additional children"} />{" "}
           </Menu.Item>
         )}
 
@@ -122,7 +132,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
               )
             }
           >
-            Override element type
+            {" "}
+            <UiText message={"Override element type"} />{" "}
           </Menu.Item>
         )}
       </Menu>
@@ -138,7 +149,7 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
         onMouseLeave={() => docsCtx.setFocusedElement(undefined)}
         addButton={{
           props: {
-            tooltip: "Add override props",
+            tooltip: studioUiT("Add override props"),
             tooltipPlacement: "right",
           },
 

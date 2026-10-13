@@ -1,5 +1,6 @@
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { Input, InputRef } from "antd";
 import * as React from "react";
@@ -24,6 +25,8 @@ export function CmsEntryCloneModal({
   onClone,
   onCancel,
 }: CmsEntryCloneModalProps) {
+  const { t: studioUiT } = useI18n();
+
   const [identifier, setIdentifier] = useState(defaultIdentifier);
   const ref = useRef<InputRef | null>(null);
   useFocusOnDisplayed(() => ref.current?.input, {
@@ -32,9 +35,9 @@ export function CmsEntryCloneModal({
   });
   return (
     <Modal
-      title="Duplicate CMS entry"
+      title={studioUiT("Duplicate CMS entry")}
       open={open}
-      okText="Duplicate"
+      okText={studioUiT("Duplicate")}
       okButtonProps={{
         disabled,
       }}
@@ -42,12 +45,16 @@ export function CmsEntryCloneModal({
       onCancel={onCancel}
     >
       <p>
-        <UiText message={"Duplicate"} /> {entryDisplayName}? This will create an
-        unpublished duplicate of the entry and all its data.
+        <UiText message={"Duplicate"} /> {entryDisplayName}
+        <UiText
+          message={
+            "? This will create an unpublished duplicate of the entry and all its data."
+          }
+        />{" "}
       </p>
       <Input
         ref={ref}
-        placeholder={placeholderIdentifier || "Entry identifier"}
+        placeholder={placeholderIdentifier || studioUiT("Entry identifier")}
         value={identifier}
         onChange={(e) => setIdentifier(e.target.value)}
         onPressEnter={() => onClone(identifier)}

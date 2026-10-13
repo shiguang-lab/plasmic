@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { COMMANDS } from "@/wab/client/commands/command";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { TextAndShortcut } from "@/wab/client/components/menu-builder";
@@ -631,6 +635,8 @@ export function InteractionExprEditor(props: {
   component?: Component;
   isRunCodeInteraction?: boolean;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const {
     viewCtx,
     tpl,
@@ -710,7 +716,7 @@ export function InteractionExprEditor(props: {
           const invalidCodeMessage = validateInteractionCode(runValue);
           if (invalidCodeMessage) {
             notification.error({
-              message: translate(getUiLocale(), "Invalid run code"),
+              message: studioUiT("Invalid run code"),
               description: invalidCodeMessage,
             });
             return;
@@ -735,9 +741,10 @@ export function InteractionExprEditor(props: {
             );
             setHidePreview(false);
           } catch (err) {
-            notification.error({
-              message: translate(getUiLocale(), "Failed to run this action"),
-              description: err.message,
+            notification.open({
+              type: getErrorType(err),
+              message: studioUiT("Failed to run this action"),
+              description: <ErrorDescription error={err} />,
             });
           }
         }}
@@ -859,7 +866,7 @@ export const TplRefEditor = observer(function TplRefEditor(props: {
       }}
       valueSetState={valueSetState}
       isDisabled={reffableTpls.length === 0}
-      disabledTooltip={"No element action available"}
+      disabledTooltip={uiT("No element action available")}
       placeholder={uiT("Pick an element")}
     >
       {reffableTpls.map((tpl) => (
@@ -940,6 +947,8 @@ export const DataSelectorEditor = (props: {
   data?: object;
   onChange?: (value: string[] | null | undefined) => void;
 }) => {
+  const { t: studioUiT } = useI18n();
+
   const { value, data, onChange } = props;
 
   const dataSelector: {
@@ -988,7 +997,7 @@ export const DataSelectorEditor = (props: {
         >
           <StyleSelect.Option key={`${i}_select`} value={"none"}>
             <UiText message={"Select"} />{" "}
-            {!isArray(_data) ? "a field" : "an index"}...
+            {!isArray(_data) ? studioUiT("a field") : studioUiT("an index")}...
           </StyleSelect.Option>
           {Object.keys(_data ?? {}).map((option, j) => (
             <StyleSelect.Option key={`${j}_${option}`} value={option}>
@@ -1029,7 +1038,7 @@ export const FallbackEditor = observer(function FallbackEditor_(props: {
           )}
         </Menu>
       )}
-      label={!hideFallbackLabel && <UiText message="Fallback" />}
+      label={!hideFallbackLabel && <UiText message={"Fallback"} />}
       definedIndicator={isSet ? definedIndicator : { source: "none" }}
     >
       {children}
@@ -1133,7 +1142,7 @@ export async function promptForParamName(
       { part1: getComponentDisplayName(component) },
     ),
     placeholder: translate(getUiLocale(), "Prop name"),
-    actionText: "Confirm",
+    actionText: translate(getUiLocale(), "Confirm"),
   });
   if (!name) {
     return undefined;

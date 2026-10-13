@@ -2,6 +2,7 @@ import {
   EditableLabel,
   EditableLabelHandles,
 } from "@/wab/client/components/widgets/EditableLabel";
+import { useI18n } from "@/wab/client/i18n";
 import { VARIANTS_CAP } from "@/wab/shared/Labels";
 import { VariantGroup } from "@/wab/shared/model/classes";
 import { observer } from "mobx-react";
@@ -17,6 +18,8 @@ function EditableGroupLabel_(
   { group, onEdit, defaultEditing }: EditableGroupLabelProps,
   ref: React.Ref<EditableLabelHandles>,
 ) {
+  const { t: studioUiT } = useI18n();
+
   return (
     <EditableLabel
       labelFactory={(p) => <div {...p} className="flex-fill" />}
@@ -24,7 +27,9 @@ function EditableGroupLabel_(
       ref={ref}
       doubleClickToEdit
       defaultEditing={defaultEditing}
-      inputBoxPlaceholder={`${VARIANTS_CAP} group name`}
+      inputBoxPlaceholder={studioUiT("{part1} group name", {
+        part1: String(VARIANTS_CAP),
+      })}
       onEdit={onEdit}
     />
   );

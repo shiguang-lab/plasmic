@@ -69,6 +69,8 @@ function PlasmicLeftComponentsPanel__RenderFunc(props: {
   overrides: PlasmicLeftComponentsPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -143,7 +145,7 @@ function PlasmicLeftComponentsPanel__RenderFunc(props: {
         }
         className={classNames("__wab_instance", sty.leftPaneHeader)}
         description={
-          "Components are chunks of UI you can reuse. Instances of a component can be customized with different props, variants or slot contents."
+          uiT("Components are chunks of UI you can reuse. Instances of a component can be customized with different props, variants or slot contents.")
         }
         title={uiT("Components")}
       />

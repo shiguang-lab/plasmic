@@ -1,5 +1,7 @@
 import { ControlExtras } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { SvgIcon } from "@/wab/client/components/widgets/Icon";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   DataQueryIcon,
   DataTokenIcon,
@@ -308,7 +310,9 @@ export function prepareEnvForDataPicker(
     }
   }
   if (dataTokensEnv) {
-    fixedData[mkMetaName("$dataTokens")] = { label: "Data Tokens" };
+    fixedData[mkMetaName("$dataTokens")] = {
+      label: translate(getUiLocale(), "Data Tokens"),
+    };
     fixedData.$dataTokens = dataTokensEnv;
   }
   // Omit fields from StatefulQueryResult instances in $q.

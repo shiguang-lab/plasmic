@@ -12,7 +12,9 @@ import {
 } from "@/wab/client/components/tpl-text-ops";
 import { SlotsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getVisibilityChoicesForTpl } from "@/wab/client/utils/tpl-client-utils";
@@ -439,8 +441,10 @@ export function makeTplMenu(
                 const valNode = tryGetValNode();
                 if (!valNode) {
                   notification.warning({
-                    message:
+                    message: translate(
+                      getUiLocale(),
                       "Cannot edit component in place when the component instance is invisible",
+                    ),
                   });
                   return;
                 }
@@ -473,7 +477,7 @@ export function makeTplMenu(
               }
             >
               <MenuItemContent shortcut={getComboForAction("ENTER_EDIT_FRAME")}>
-                <UiText message="Edit component in new artboard" />
+                <UiText message={"Edit component in new artboard"} />
               </MenuItemContent>
             </Menu.Item>,
           );

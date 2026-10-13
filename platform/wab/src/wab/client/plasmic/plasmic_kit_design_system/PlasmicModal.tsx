@@ -161,7 +161,7 @@ function PlasmicModal__RenderFunc(props: {
       >
         <div className={classNames("all", sty.freeBox__x9WX)}>
           {renderPlasmicSlot({
-            defaultContents: "Modal name",
+            defaultContents: <UiText message={"Modal name"} />,
             value: args.title,
             className: classNames(sty.slotTargetTitle),
           })}

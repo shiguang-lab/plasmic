@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: pQfj4ZYSnAW
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -178,7 +179,7 @@ function PlasmicStyleSelect__OptionGroup__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Group Name",
+            defaultContents: <UiText message={"Group Name"} />,
             value: args.title,
             className: classNames(sty.slotTargetTitle),
           })}

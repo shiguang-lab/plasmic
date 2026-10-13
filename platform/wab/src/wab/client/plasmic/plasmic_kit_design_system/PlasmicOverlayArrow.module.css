@@ -4,7 +4,7 @@
   position: relative;
 }
 .svg {
-  color: var(--token-rqQDmopteQdV);
+  color: var(--ui-on-accent, var(--token-rqQDmopteQdV));
   width: 10px;
   height: 10px;
   transform: translate3d(0px, 3px, 0px);

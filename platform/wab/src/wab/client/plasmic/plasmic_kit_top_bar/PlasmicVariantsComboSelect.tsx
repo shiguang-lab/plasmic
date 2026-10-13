@@ -11,6 +11,7 @@
 // Plasmic Project: 6CrqkTcB6gSAHoA8c8zpNz
 // Component: I6gjdy639O
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -154,7 +155,7 @@ function PlasmicVariantsComboSelect__RenderFunc(props: {
         withIcons={["endIcon"]}
       >
         {renderPlasmicSlot({
-          defaultContents: "Button",
+          defaultContents: <UiText message={"Button"} />,
           value: args.children,
         })}
       </Button>

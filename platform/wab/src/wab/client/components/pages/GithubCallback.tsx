@@ -2,9 +2,12 @@ import { githubStateKey, githubTokenKey } from "@/wab/client/LocalStorageKey";
 import { NonAuthCtx } from "@/wab/client/app-ctx";
 import { getURL } from "@/wab/client/components/auth/GithubConnect";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 export function GithubCallback(props: { nonAuthCtx: NonAuthCtx }) {
+  const { t: studioUiT } = useI18n();
+
   const [err, setErr] = React.useState("");
 
   useAsyncStrict(async () => {
@@ -56,5 +59,5 @@ export function GithubCallback(props: { nonAuthCtx: NonAuthCtx }) {
     }
   });
 
-  return <div>{err || "Loading..."}</div>;
+  return <div>{err || studioUiT("Loading...")}</div>;
 }

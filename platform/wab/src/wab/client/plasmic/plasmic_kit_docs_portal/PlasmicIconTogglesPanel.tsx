@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: 9qTu7qylBlP
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -84,6 +85,8 @@ function PlasmicIconTogglesPanel__RenderFunc(props: {
   overrides: PlasmicIconTogglesPanel__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -140,7 +143,7 @@ function PlasmicIconTogglesPanel__RenderFunc(props: {
           className={classNames("all", sty.freeBox)}
         >
           <div className={classNames("all", "__wab_text", sty.text__dWjAt)}>
-            {"Props for"}
+            {<UiText message={"Props for"} />}
           </div>
           {renderPlasmicSlot({
             defaultContents: "TrashIcon",

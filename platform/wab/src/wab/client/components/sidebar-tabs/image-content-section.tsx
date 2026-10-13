@@ -63,14 +63,14 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
             tpl={tpl}
             expsProvider={expsProvider}
             attr="quality"
-            about="Set the optimization quality from 0 to 100."
+            about={uiT("Set the optimization quality from 0 to 100.")}
           />
           <HTMLAttributePropEditor
             viewCtx={viewCtx}
             tpl={tpl}
             expsProvider={expsProvider}
             attr="format"
-            about="Choose the output image format."
+            about={uiT("Choose the output image format.")}
           />
         </>
       )}

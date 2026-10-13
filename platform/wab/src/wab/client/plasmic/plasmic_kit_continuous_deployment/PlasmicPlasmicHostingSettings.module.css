@@ -4,7 +4,7 @@
   position: relative;
   width: 480px;
   overflow: hidden;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   border-radius: 0.25rem;
 }
 .freeBox__spuop {

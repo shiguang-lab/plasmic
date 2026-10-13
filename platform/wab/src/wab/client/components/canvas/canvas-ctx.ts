@@ -1,3 +1,5 @@
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import type { Site } from "@/wab/shared/model/classes";
 /// <reference types="@types/resize-observer-browser" />
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
@@ -9,9 +11,9 @@ import {
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import {
   getCanvasPkgs,
+  getHostLessPkgIdentity,
   getReactWebBundle,
   getSortedHostLessPkgs,
-  getHostLessPkgIdentity,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import * as domMod from "@/wab/client/dom";
@@ -149,7 +151,12 @@ export class CanvasCtx {
   }
 
   private updatePkgsList(pkgs: string[], site: Site) {
-    if (pkgs.some((pkg) => !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)))) {
+    if (
+      pkgs.some(
+        (pkg) =>
+          !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)),
+      )
+    ) {
       spawn(this.updateCcRegistry(pkgs, site));
     }
   }
@@ -406,11 +413,15 @@ export class CanvasCtx {
               // then there's probably a code component messing with our height (e.g. 100vh)
               // See https://app.shortcut.com/plasmic/story/23759/high-pri-infinitely-expanding-canvas-when-css-overflows-vertically
               notification.warning({
-                message: `Incompatible height in ${sc
-                  .tplMgr()
-                  .describeArenaFrame(arenaFrame)}`,
-                description:
+                message: translate(
+                  getUiLocale(),
+                  "Incompatible height in {part1}",
+                  { part1: String(sc.tplMgr().describeArenaFrame(arenaFrame)) },
+                ),
+                description: translate(
+                  getUiLocale(),
                   "We've stopped auto-growing the height of this artboard. There may be a code component with incompatible height (e.g. 100vh, 110%, calc(100%+300px)), which will cause the artboard to grow forever. You can fix this by setting the height of the code component instance within the Studio, which will allow us to cap the height to device height in the artboard",
+                ),
                 duration: 0,
               });
             }

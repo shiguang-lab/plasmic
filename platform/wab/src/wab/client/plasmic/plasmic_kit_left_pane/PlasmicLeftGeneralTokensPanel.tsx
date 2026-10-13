@@ -85,6 +85,8 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
   overrides: PlasmicLeftGeneralTokensPanel__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -206,7 +208,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
           ),
         })}
         description={
-          "Create tokens for colors, spacing, and more. Tokens can reference other tokens."
+          uiT("Create tokens for colors, spacing, and more. Tokens can reference other tokens.")
         }
         hasTitleActions={true}
         title={uiT("Style Tokens")}

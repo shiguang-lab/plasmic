@@ -7,8 +7,6 @@ import {
   StyleSectionVisibilities,
   TemplateSpec,
 } from "@/wab/shared/ApiSchema";
-import { arrayReversed } from "@/wab/shared/collections";
-import { withoutNils } from "@/wab/shared/common";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
 import {
   FRAME_CAP,
@@ -17,6 +15,9 @@ import {
   LAYOUT_CONTAINER_CAP,
   VERT_CONTAINER_CAP,
 } from "@/wab/shared/Labels";
+import { arrayReversed } from "@/wab/shared/collections";
+import { withoutNils } from "@/wab/shared/common";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { isEnterprise } from "@/wab/shared/pricing/pricing-utils";
 import { smartHumanize } from "@/wab/shared/strs";
@@ -454,7 +455,7 @@ export function canEditUiConfig(
   user: ApiUser | null,
   perms: ApiPermission[],
 ) {
-  if (!team || !isEnterprise(team.featureTier)) {
+  if (!SELF_HOSTED && (!team || !isEnterprise(team.featureTier))) {
     return false;
   }
   const accessLevel = getAccessLevelToResource(resource, user, perms);

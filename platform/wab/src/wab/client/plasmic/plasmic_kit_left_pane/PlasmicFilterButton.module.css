@@ -6,7 +6,7 @@
   display: flex;
   position: relative;
   object-fit: cover;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
   height: 1em;
 }
 .svg__wHz3V {

@@ -47,6 +47,7 @@ import {
   TeamMember,
   WorkspaceId,
 } from "@/wab/shared/ApiSchema";
+import { getEffectiveFeatureTier } from "@/wab/shared/billing/feature-tier";
 import {
   ensure,
   ensureType,
@@ -54,6 +55,8 @@ import {
   uncheckedCast,
   xGroupBy,
 } from "@/wab/shared/common";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
+import { DEVFLAGS } from "@/wab/shared/devflags";
 import {
   ResourceId,
   ResourceType,
@@ -96,9 +99,15 @@ export function mkApiTeam(team: Team): ApiTeam {
     ]),
     {
       parentTeamId: team.parentTeamId,
-      featureTier: team.featureTier || team.parentTeam?.featureTier || null,
+      featureTier: SELF_HOSTED
+        ? getEffectiveFeatureTier(
+            team.featureTier ||
+              team.parentTeam?.featureTier ||
+              DEVFLAGS.freeTier,
+          )
+        : team.featureTier || team.parentTeam?.featureTier || null,
       uiConfig: mergeUiConfigs(team.parentTeam?.uiConfig, team.uiConfig),
-      onTrial: isTeamOnFreeTrial(team),
+      onTrial: !SELF_HOSTED && isTeamOnFreeTrial(team),
     },
   );
 }
@@ -148,7 +157,11 @@ export async function createTeam(req: Request, res: Response) {
   await userMgr.checkCanCreateTeam();
   let team = await userMgr.createTeam(teamName, { extendedFreeTrial });
 
-  if (req.devflags.freeTrial && (await userMgr.canStartFreeTrial(team.id))) {
+  if (
+    !SELF_HOSTED &&
+    req.devflags.freeTrial &&
+    (await userMgr.canStartFreeTrial(team.id))
+  ) {
     await userMgr.startFreeTrial({
       teamId: team.id,
       featureTierName: req.devflags.freeTrialTierName,

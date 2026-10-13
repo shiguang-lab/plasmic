@@ -11,6 +11,7 @@
 // Plasmic Project: ehckhYnyDHgCBbV47m9bkf
 // Component: P7E8qtNzKrbM
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -155,6 +156,8 @@ function PlasmicPriceTier__RenderFunc(props: {
   overrides: PlasmicPriceTier__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -488,16 +491,16 @@ function PlasmicPriceTier__RenderFunc(props: {
                 })}
               >
                 {hasVariant($state, "tier", "legacy")
-                  ? "Legacy plan "
+                  ? (studioUiT("Legacy plan") + " ")
                   : hasVariant($state, "tier", "enterprise")
-                  ? "For advanced security, dedicated support & flexible controls."
+                  ? studioUiT("For advanced security, dedicated support & flexible controls.")
                   : hasVariant($state, "tier", "team")
-                  ? "For cross-functional teams & scaling organizations."
+                  ? studioUiT("For cross-functional teams & scaling organizations.")
                   : hasVariant($state, "tier", "pro")
-                  ? "For SMBs building professional applications."
+                  ? studioUiT("For SMBs building professional applications.")
                   : hasVariant($state, "tier", "starter")
-                  ? "For entrepreneurs launching passion projects."
-                  : "For anyone getting started with Plasmic."}
+                  ? studioUiT("For entrepreneurs launching passion projects.")
+                  : studioUiT("For anyone getting started with Plasmic.")}
               </div>
             }
             tier={
@@ -546,15 +549,15 @@ function PlasmicPriceTier__RenderFunc(props: {
                 })}
               >
                 {hasVariant($state, "tier", "legacy")
-                  ? "Legacy"
+                  ? studioUiT("Legacy")
                   : hasVariant($state, "tier", "enterprise")
-                  ? "Enterprise"
+                  ? studioUiT("Enterprise")
                   : hasVariant($state, "tier", "team")
                   ? <UiText message={"Scale"} />
                   : hasVariant($state, "tier", "pro")
                   ? "Pro"
                   : hasVariant($state, "tier", "starter")
-                  ? "Starter"
+                  ? studioUiT("Starter")
                   : <UiText message={"Free plan"} />}
               </div>
             }
@@ -610,7 +613,7 @@ function PlasmicPriceTier__RenderFunc(props: {
                 className={classNames("all", "h3", "h3__ehckh", sty.h3)}
               >
                 {renderPlasmicSlot({
-                  defaultContents: "Price",
+                  defaultContents: <UiText message={"Price"} />,
                   value: args.price,
                   className: classNames(sty.slotTargetPrice, {
                     [sty.slotTargetPricetier_enterprise]: hasVariant(
@@ -635,11 +638,11 @@ function PlasmicPriceTier__RenderFunc(props: {
                   ),
                 })}
               >
-                {"/month"}
+                {<UiText message={"/month"} />}
               </div>
             </div>
             {renderPlasmicSlot({
-              defaultContents: "Sub-price",
+              defaultContents: <UiText message={"Sub-price"} />,
               value: args.subprice,
               className: classNames(sty.slotTargetSubprice, {
                 [sty.slotTargetSubpriceglobal_environment_website]: hasVariant(
@@ -945,29 +948,29 @@ function PlasmicPriceTier__RenderFunc(props: {
             >
               {hasVariant($state, "status", "manageSeats") &&
               hasVariant($state, "tier", "grandfathered")
-                ? "Manage seats"
+                ? studioUiT("Manage seats")
                 : hasVariant($state, "tier", "legacy") &&
                   hasVariant($state, "status", "manageSeats")
-                ? "Manage seats"
+                ? studioUiT("Manage seats")
                 : hasVariant($state, "tier", "grandfathered")
-                ? "Selected"
+                ? studioUiT("Selected")
                 : hasVariant($state, "tier", "legacy")
-                ? "Selected"
+                ? studioUiT("Selected")
                 : hasVariant($state, "tier", "enterprise")
-                ? "Contact us"
+                ? studioUiT("Contact us")
                 : hasVariant($state, "status", "manageSeats")
-                ? "Manage seats"
+                ? studioUiT("Manage seats")
                 : hasVariant($state, "status", "startFreeTrial")
-                ? "Start free trial"
+                ? studioUiT("Start free trial")
                 : hasVariant($state, "status", "goback")
-                ? "Choose another plan "
+                ? (studioUiT("Choose another plan") + " ")
                 : hasVariant($state, "status", "manual")
-                ? "Contact us"
+                ? studioUiT("Contact us")
                 : hasVariant($state, "status", "current")
-                ? "Selected"
+                ? studioUiT("Selected")
                 : hasVariant(globalVariants, "environment", "website")
-                ? "Try for free"
-                : "Select plan"}
+                ? studioUiT("Try for free")
+                : studioUiT("Select plan")}
             </div>
           </PricingButton>
         </div>
@@ -1007,7 +1010,7 @@ function PlasmicPriceTier__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__yXzLz)}
                 >
-                  {"Includes:"}
+                  {<UiText message={"Includes:"} />}
                 </div>
                 <PriceTierFeatureItem
                   className={classNames(
@@ -1068,7 +1071,7 @@ function PlasmicPriceTier__RenderFunc(props: {
             <div className={classNames("all", sty.freeBox__ix8VU)}>
               {renderPlasmicSlot({
                 defaultContents:
-                  "A workspace is an organizational unit within an organization. Organizations can contain multiple workspaces, and each workspace can house numerous Plasmic projects. Organization members can be added to workspaces or individual projects. For example, you could have an organization for your agency with separate workspaces for each client, or an organization for your company with workspaces for each department.",
+                  <UiText message={"A workspace is an organizational unit within an organization. Organizations can contain multiple workspaces, and each workspace can house numerous Plasmic projects. Organization members can be added to workspaces or individual projects. For example, you could have an organization for your agency with separate workspaces for each client, or an organization for your company with workspaces for each department."} />,
                 value: args.expandableBody,
               })}
             </div>
@@ -1098,7 +1101,7 @@ function PlasmicPriceTier__RenderFunc(props: {
             }
           })()}
           title={renderPlasmicSlot({
-            defaultContents: "All features",
+            defaultContents: <UiText message={"All features"} />,
             value: args.expandableTitle,
           })}
         />
@@ -1121,7 +1124,7 @@ function PlasmicPriceTier__RenderFunc(props: {
             ),
           })}
         >
-          {"Most popular"}
+          {<UiText message={"Most popular"} />}
         </div>
       </div>
     </div>

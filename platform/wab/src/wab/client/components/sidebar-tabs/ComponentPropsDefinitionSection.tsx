@@ -82,6 +82,8 @@ export const ComponentPropsDefinitionSection = observer(
     viewCtx: ViewCtx;
     justOneSection?: "variants" | "slots" | "meta";
   }) {
+    const { t: studioUiT } = useI18n();
+
     const { studioCtx, component, viewCtx } = props;
     const [newPropPrefix, setNewPropPrefix] = React.useState<string | null>(
       null,
@@ -147,7 +149,9 @@ export const ComponentPropsDefinitionSection = observer(
           }
           zeroBodyPadding
           emptyBody={!slotParams.length && !realParams.length}
-          emptyDescription="Customize each instance of this component."
+          emptyDescription={studioUiT(
+            "Customize each instance of this component.",
+          )}
           data-test-id="props-section"
         >
           {realParams.length > 0 && (

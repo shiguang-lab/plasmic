@@ -1,4 +1,5 @@
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useI18n } from "@/wab/client/i18n";
 import SpeechBubblesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SpeechBubbleSvg";
 import { Tooltip } from "antd";
 import * as React from "react";
@@ -12,17 +13,25 @@ export default function CommentIndicatorIcon({
   replyCount: number;
   otherVariantsCount?: number;
 }) {
-  let title = `${commentCount} ${commentCount > 1 ? "comments" : "comment"}`;
-  if (replyCount > 0) {
-    title += ` and ${replyCount} ${replyCount > 1 ? "replies" : "reply"}`;
-  }
-
-  if (otherVariantsCount) {
-    title += `, (${otherVariantsCount}) ${
-      otherVariantsCount > 1 ? "comments" : "comment"
-    } in other variants`;
-  }
-
+  const { t } = useI18n();
+  const comments = t(commentCount === 1 ? "1 comment" : "{count} comments", {
+    count: commentCount,
+  });
+  const replies =
+    replyCount > 0
+      ? t(
+          replyCount === 1
+            ? "{comments} and 1 reply"
+            : "{comments} and {count} replies",
+          { comments, count: replyCount },
+        )
+      : comments;
+  const title = otherVariantsCount
+    ? t("{summary}; {count} comments in other variants", {
+        summary: replies,
+        count: otherVariantsCount,
+      })
+    : replies;
   return (
     <Tooltip title={title}>
       <Icon icon={SpeechBubblesvgIcon} />

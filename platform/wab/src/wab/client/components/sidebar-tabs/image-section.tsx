@@ -182,7 +182,7 @@ export const ImageSection = observer(function ImageSection(props: {
           <>
             <span>
               <UiText message={"Image"} />
-              {variable && " slot"}
+              {variable && " " + (" " + uiT("slot"))}
             </span>
             {variable && (
               <span

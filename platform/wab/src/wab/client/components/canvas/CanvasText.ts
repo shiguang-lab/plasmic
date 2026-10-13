@@ -21,6 +21,8 @@ import {
   reactPrompt,
   ReactPromptOpts,
 } from "@/wab/client/components/quick-modals";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import type {
   EditingTextContext,
   ViewCtx,
@@ -334,7 +336,9 @@ const mkRichTextShortcuts: (sub: SubDeps) => Shortcut[] = computedFn(
           editor: SlateEditor,
           { prompt },
         ): Promise<InlineTagProps | undefined> {
-          const href = await prompt({ message: "Destination URL" });
+          const href = await prompt({
+            message: translate(getUiLocale(), "Destination URL"),
+          });
           sub.slateReact.ReactEditor.focus(editor);
           return href
             ? { attrs: { href }, children: [{ text: href }] }

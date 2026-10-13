@@ -1,3 +1,5 @@
+import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+
 import { DndAdoptee, DndMarkers, DragMoveManager } from "@/wab/client/Dnd";
 import { DragMoveFrameManager } from "@/wab/client/FreestyleManipulator";
 import { ReadableClipboard } from "@/wab/client/clipboard/ReadableClipboard";
@@ -68,6 +70,7 @@ import {
   isForwardedFrameInteraction,
   trackFrameInteractions,
 } from "@/wab/client/frame-ctx/frame-interactions";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
@@ -593,13 +596,14 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 vc.enterComponentCtxForVal(focusObj, "ctrl+enter");
               } else {
                 notification.warning({
-                  message: `You cannot edit ${
+                  message: translate(
+                    getUiLocale(),
                     codeComponent
-                      ? "a code"
+                      ? "You cannot edit a code component."
                       : ownedBySite
-                        ? "this"
-                        : "an imported"
-                  } component.`,
+                        ? "You cannot edit this component."
+                        : "You cannot edit an imported component.",
+                  ),
                 });
               }
             } else {
@@ -644,13 +648,14 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                   .createNewFrameForMixedArena(tplComponent, {});
               } else {
                 notification.warning({
-                  message: `You cannot edit ${
+                  message: translate(
+                    getUiLocale(),
                     codeComponent
-                      ? "a code"
+                      ? "You cannot edit a code component."
                       : ownedBySite
-                        ? "this"
-                        : "an imported"
-                  } component.`,
+                        ? "You cannot edit this component."
+                        : "You cannot edit an imported component.",
+                  ),
                 });
               }
             }
@@ -1184,7 +1189,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
     if (closest == null) {
       notification.warning({
-        message: "Unknown element",
+        message: translate(getUiLocale(), "Unknown element"),
         description: (
           <span>
             <UiText
@@ -1358,16 +1363,20 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           const position = this.viewOps().getPositionType(focusedTpl);
           if (position === PositionLayoutType.fixed) {
             this.throttledWarn({
-              message:
+              message: translate(
+                getUiLocale(),
                 "You cannot drag a fixed element. Use the right menu to change the position.",
+              ),
             });
             return;
           }
         }
         if (focusedTpl && isTplTextBlock(focusedTpl.parent)) {
           this.throttledWarn({
-            message:
+            message: translate(
+              getUiLocale(),
               "You cannot drag an inline element from a rich-text block.",
+            ),
           });
           return;
         }
@@ -1577,7 +1586,8 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const click = this.pendingCanvasClick;
     this.pendingCanvasClick = undefined;
     if (
-      !click || this.props.studioCtx.isLiveMode ||
+      !click ||
+      this.props.studioCtx.isLiveMode ||
       this.props.studioCtx.isInteractiveMode ||
       this.props.studioCtx.freestyleState()
     ) {
@@ -1586,7 +1596,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const drillDown = this.canvasClicks.finish(e);
     const finishClick = () => {
       if (
-        drillDown && click && !this.props.studioCtx.isLiveMode &&
+        drillDown &&
+        click &&
+        !this.props.studioCtx.isLiveMode &&
         !this.props.studioCtx.isInteractiveMode &&
         !this.props.studioCtx.freestyleState() &&
         !click.viewCtx.viewOps.isEditing(e.target as HTMLElement)
@@ -1864,7 +1876,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       return (
         <div className="canvas-editor__floating-msg no-pointer-events">
           <Alert
-            message={`Click where you want to insert a new ${freestyleState.spec.label} element.`}
+            message={translate(
+              getUiLocale(),
+              "Click where you want to insert a new {part1} element.",
+              { part1: String(freestyleState.spec.label) },
+            )}
           />
         </div>
       );
@@ -1873,7 +1889,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       return (
         <div className="canvas-editor__floating-msg no-pointer-events">
           <Alert
-            message={`Click where you want to insert a new ${dragInsertState.spec.label} element.`}
+            message={translate(
+              getUiLocale(),
+              "Click where you want to insert a new {part1} element.",
+              { part1: String(dragInsertState.spec.label) },
+            )}
           />
         </div>
       );
@@ -1888,10 +1908,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           <Alert
             message={
               isMixedArena(studioCtx.currentArena)
-                ? `This ${ARENA_LOWER} is empty.`
+                ? translate(getUiLocale(), "This {part1} is empty.", {
+                    part1: translateUiLabel(getUiLocale(), ARENA_LOWER),
+                  })
                 : isPageArena(studioCtx.currentArena)
-                  ? `This page is empty.`
-                  : "This project is empty."
+                  ? translate(getUiLocale(), "This page is empty.")
+                  : translate(getUiLocale(), "This project is empty.")
             }
             description={
               !studioCtx.currentArena ||
@@ -1910,7 +1932,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                               studioCtx.siteOps().createFrameForNewPage()
                             }
                           >
-                            <UiText message="new page" />
+                            <UiText message={"new page"} />
                           </widgets.LinkButton>
                         ),
                         component: (
@@ -1919,7 +1941,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                               studioCtx.siteOps().createFrameForNewComponent()
                             }
                           >
-                            <UiText message="new component" />
+                            <UiText message={"new component"} />
                           </widgets.LinkButton>
                         ),
                       }}
@@ -2326,7 +2348,7 @@ const RightPane = observer(function RightPane(props: { studioCtx: StudioCtx }) {
   if (focusedViewCtx && !studioCtx.focusedFrame()) {
     tabs.push(
       new widgets.Tab({
-        name: <UiText message="Design" />,
+        name: <UiText message={"Design"} />,
         key: RightTabKey.style,
         contents: () => (
           <StyleTabContext.Provider value="design">
@@ -2335,7 +2357,7 @@ const RightPane = observer(function RightPane(props: { studioCtx: StudioCtx }) {
         ),
       }),
       new widgets.Tab({
-        name: <UiText message="Interactions" />,
+        name: <UiText message={"Interactions"} />,
         key: RightTabKey.interactions,
         contents: () => (
           <StyleTabContext.Provider value="interactions">
@@ -2351,7 +2373,7 @@ const RightPane = observer(function RightPane(props: { studioCtx: StudioCtx }) {
   if (focusedOrFirstViewCtx) {
     tabs.push(
       new widgets.Tab({
-        name: <UiText message="Data" />,
+        name: <UiText message={"Data"} />,
         key: RightTabKey.component,
         contents: () => (
           <ComponentOrPageTab

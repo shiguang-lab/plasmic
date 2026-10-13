@@ -6,3 +6,14 @@ export abstract class ApiError extends Error {
   name = "ApiError";
   statusCode = 400;
 }
+
+/** A nonstandard API error response still retains its HTTP classification. */
+export class HttpError extends ApiError {
+  name = "HttpError";
+  constructor(
+    public statusCode: number,
+    message?: string,
+  ) {
+    super(message);
+  }
+}

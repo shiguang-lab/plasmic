@@ -1,6 +1,8 @@
-import { UiLabel } from "@/wab/client/i18n/UiText";
-import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+
+
 import PermissionsTab from "@/wab/client/components/app-auth/PermissionsTab";
 import { useAppAuthConfig } from "@/wab/client/components/app-auth/app-auth-contexts";
 import {
@@ -56,7 +58,7 @@ import React, { useEffect, useState } from "react";
 
 export const personalProjectPaywallMessage = (
   <><UiText message={"This project is a personal project that is not in any {part1} workspace, so it is limited to {part2} editors and no A/B testing or custom targeting. Please move the project into a {part3} whose plan supports a larger number of seats, or {part4}."} values={{part1: (<UiLabel text={ORGANIZATION_LOWER} />),part2: (DEVFLAGS.freeTier.maxUsers),part3: (<UiLabel text={ORGANIZATION_LOWER} />),part4: (<a href="https://www.plasmic.app/pricing" target="_blank">
-      <UiText message="create such a {kind}" values={{kind: <UiLabel text={ORGANIZATION_LOWER} />}} />
+      <UiText message={"create such a {kind}"} values={{kind: <UiLabel text={ORGANIZATION_LOWER} />}} />
     </a>)}} /></>
 );
 
@@ -81,6 +83,8 @@ interface ShareDialogContentProps {
 }
 
 function ShareDialogContent(props: ShareDialogContentProps) {
+
+
   const { t: uiT } = useI18n();
   const {
     className,
@@ -132,8 +136,8 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         appCtx,
         async () => await appCtx.api.grantRevoke(data),
         {
-          title: "Upgrade to grant new permissions",
-          description: `This ${ORGANIZATION_LOWER} does not have enough seats to grant permissions to new users. Please increase the number of seats to be able to perform this action.`,
+          title: uiT("Upgrade to grant new permissions"),
+          description: uiT("This {part1} does not have enough seats to grant permissions to new users. Please increase the number of seats to be able to perform this action.", { part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER) }),
         },
       );
       await reloadPerms(newPerms);
@@ -155,7 +159,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     const parsedEmail = parseEmailAddress(email);
     if (!parsedEmail) {
       setEmailInvalid(true);
-      notification.error({ message: "Insert a valid email to invite" });
+      notification.error({ message: uiT("Insert a valid email to invite") });
       return;
     }
     setEmailInvalid(false);
@@ -170,9 +174,9 @@ function ShareDialogContent(props: ShareDialogContentProps) {
 
       if (enqueued) {
         notification.info({
-          message: "User has been waitlisted",
+          message: uiT("User has been waitlisted"),
           description:
-            "Plasmic is currently in private alpha, so we've waitlisted the user you just tried to invite.  Thanks for bearing with us!",
+            uiT("Plasmic is currently in private alpha, so we've waitlisted the user you just tried to invite. Thanks for bearing with us!"),
           placement: "bottomRight",
         });
       }
@@ -301,7 +305,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
       shareByLinkAllowed={shareByLinkAllowed ? "yes" : "no"}
       newUserRoleDropdown={{
         value: inviteAccessLevel,
-        "aria-label": `Permission level for new user`,
+        "aria-label": uiT("Permission level for new user"),
         onChange: (key) => setInviteAccessLevel(key as GrantableAccessLevel),
         children: [
           <Select.Option value="viewer">{viewerTooltip}</Select.Option>,
@@ -330,7 +334,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
       shareByLinkPermDropdown={
         resource.type === "team" && resource.resource.defaultAccessLevel
           ? {
-              "aria-label": "Default permission for link sharing",
+              "aria-label": uiT("Default permission for link sharing"),
               value: resource.resource.defaultAccessLevel,
               onChange: (value) => updateTeam(value as GrantableAccessLevel),
               children: [
@@ -357,7 +361,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
           resource.type === "project" && resource.resource.inviteOnly
             ? "none"
             : "viewer",
-        "aria-label": `Everyone else permission`,
+        "aria-label": uiT("Everyone else permission"),
         onChange: (key) => {
           const inviteOnly = key === "none" ? true : false;
           spawn(updateProject(inviteOnly));

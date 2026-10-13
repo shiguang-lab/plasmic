@@ -7,6 +7,7 @@ import {
   InvalidArgsSummary,
 } from "@/wab/client/components/widgets/InvalidArgs";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { observer } from "@/wab/client/utils/mobx-client-util";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
@@ -194,12 +195,14 @@ export function CustomFunctionExprPreviewModal(props: {
 
 export const ServerQueryOpSummary = observer(
   function ServerQueryOpSummary(props: { expr: ServerQueryOp }) {
+    const { t: studioUiT } = useI18n();
+
     const { expr } = props;
     return (
       <div className={styles.serverQueryOpSummary}>
         {isKnownCustomFunctionExpr(expr)
           ? smartHumanize(customFunctionId(expr.func))
-          : "Custom code"}
+          : studioUiT("Custom code")}
       </div>
     );
   },

@@ -14,7 +14,7 @@
   position: relative;
 }
 .freeBox__zQtUe {
-  background: linear-gradient(#ffffff, #ffffff), var(--token-p-rw5DRJTx);
+  background: linear-gradient(var(--ui-surface, #ffffff), var(--ui-surface, #ffffff)), var(--token-p-rw5DRJTx);
   display: flex;
   position: relative;
   flex-direction: row;

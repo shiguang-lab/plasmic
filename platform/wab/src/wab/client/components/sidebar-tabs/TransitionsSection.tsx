@@ -15,7 +15,9 @@ import {
   ListBoxItem,
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { isBaseVariant, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
@@ -185,7 +187,7 @@ class _TransitionsPanelSection extends StyleComponent<
             {index !== undefined && (
               <SidebarModal
                 show
-                title="Transition"
+                title={translate(getUiLocale(), "Transition")}
                 onClose={() =>
                   this.setState({
                     index: undefined,

@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: O5AxABt3WN
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -85,6 +86,8 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
   overrides: PlasmicWorkspaceDataSources__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -212,7 +215,7 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
         >
           {hasVariant(globalVariants, "screen", "mobile")
             ? <UiText message={"New member"} />
-            : "New integration"}
+            : studioUiT("New integration")}
         </Button>
       </div>
       <div
@@ -274,7 +277,7 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
               ),
             })}
           >
-            {"API keys\n"}
+            {<><UiText message={"API keys"} />{"\n"}</>}
           </div>
           <Button
             data-plasmic-name={"newApiKey"}
@@ -313,7 +316,7 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
             <div className={classNames("all", "__wab_text", sty.text___2VnNh)}>
               {hasVariant(globalVariants, "screen", "mobile")
                 ? <UiText message={"New member"} />
-                : "New API key"}
+                : studioUiT("New API key")}
             </div>
           </Button>
         </div>

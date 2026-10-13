@@ -260,7 +260,7 @@ function ComponentQueriesSection_(props: {
 
   const tplFetchers = getTplComponentFetchers(component);
 
-  const componentType = isPageComponent(component) ? "page" : "component";
+  const componentType = uiT(isPageComponent(component) ? "page" : "component");
 
   const showMigrate =
     isDeprecated &&
@@ -297,11 +297,11 @@ function ComponentQueriesSection_(props: {
           }
         >
           {<UiLabel text={DATA_QUERY_PLURAL_CAP} />}
-          {isDeprecated ? " (legacy)" : ""}
+          {isDeprecated ? " " + uiT("(legacy)") : ""}
         </LabelWithDetailedTooltip>
       }
       emptyBody={component.dataQueries.length === 0 && tplFetchers.length === 0}
-      emptyDescription="Fetch data from an integration."
+      emptyDescription={uiT("Fetch data from an integration.")}
       zeroBodyPadding
       controls={
         <div className="inline-flex flex-vcenter gap-m">
@@ -364,7 +364,7 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
   )?.expr;
 
   const name = !nameExpr
-    ? "Unnamed query"
+    ? uiT("Unnamed query")
     : isKnownTemplatedString(nameExpr)
       ? asCode(nameExpr, exprCtx).code.slice(1, -1)
       : JSON.parse(asCode(nameExpr, exprCtx).code);

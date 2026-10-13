@@ -39,7 +39,7 @@
   background: #717069;
 }
 .rootcolor_white {
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
 }
 .rootcolor_softBlue {
   background: #edf6ff;

@@ -147,7 +147,7 @@ function PlasmicCmsSettingsPage__RenderFunc(props: {
               data-plasmic-override={overrides.details}
               className={classNames("all", "__wab_text", sty.details)}
             >
-              {"X models"}
+              {<UiText message={"X models"} />}
             </div>
           </div>
           <div
@@ -164,7 +164,7 @@ function PlasmicCmsSettingsPage__RenderFunc(props: {
               type={["bordered"]}
             >
               <div className={classNames("all", "__wab_text", sty.text__luZtw)}>
-                {"Duplicate CMS Database"}
+                {<UiText message={"Duplicate CMS Database"} />}
               </div>
             </Button>
             <Button

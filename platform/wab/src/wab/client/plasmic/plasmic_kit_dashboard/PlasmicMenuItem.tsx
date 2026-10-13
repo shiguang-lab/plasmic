@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: Ts79yZbRFG
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -173,7 +174,7 @@ function PlasmicMenuItem__RenderFunc(props: {
         />
 
         {renderPlasmicSlot({
-          defaultContents: "Models",
+          defaultContents: <UiText message={"Models"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenselected]: hasVariant(

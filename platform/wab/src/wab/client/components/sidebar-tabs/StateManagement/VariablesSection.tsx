@@ -93,7 +93,7 @@ function VariablesSection_(props: VariablesSectionProps) {
           component.states.filter((state) => state.variableType !== "variant")
             .length === 0
         }
-        emptyDescription="Store data that can change over time."
+        emptyDescription={uiT("Store data that can change over time.")}
         noBottomPadding={!!implicitVariableGroups.length}
         data-test-id="variables-section"
       >

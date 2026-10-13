@@ -11,6 +11,8 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: nD2Ql_rEk6
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -84,6 +86,8 @@ function PlasmicDataPickerGlobalSearchResultsItem__RenderFunc(props: {
   overrides: PlasmicDataPickerGlobalSearchResultsItem__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -183,7 +187,7 @@ function PlasmicDataPickerGlobalSearchResultsItem__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Path / To / Item / Name",
+          defaultContents: <UiText message={"Path / To / Item / Name"} />,
           value: args.label,
           className: classNames(sty.slotTargetLabel),
         })}
@@ -234,9 +238,9 @@ function PlasmicDataPickerGlobalSearchResultsItem__RenderFunc(props: {
           : hasVariant($state, "variableType", "undefined")
           ? "undefined"
           : hasVariant($state, "variableType", "array")
-          ? "3 items"
+          ? studioUiT("3 items")
           : hasVariant($state, "variableType", "object")
-          ? "3 items"
+          ? studioUiT("3 items")
           : hasVariant($state, "variableType", "boolean")
           ? "false"
           : hasVariant($state, "variableType", "number")

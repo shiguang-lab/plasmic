@@ -2,7 +2,7 @@
 
 .columnError {
   padding: 8px 12px;
-  color: $tomato9;
+  color: var(--ui-error, #{$tomato9});
   font-size: 13px;
   line-height: 1.5;
 }

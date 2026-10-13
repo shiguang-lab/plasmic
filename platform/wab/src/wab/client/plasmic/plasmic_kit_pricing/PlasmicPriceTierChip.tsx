@@ -191,7 +191,7 @@ function PlasmicPriceTierChip__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "For anyone getting started with Plasmic.",
+            defaultContents: <UiText message={"For anyone getting started with Plasmic."} />,
             value: args.description,
             className: classNames(sty.slotTargetDescription, {
               [sty.slotTargetDescriptioncurrent]: hasVariant(

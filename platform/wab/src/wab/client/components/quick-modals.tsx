@@ -1,5 +1,4 @@
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
@@ -111,31 +110,16 @@ export async function confirm(opts: {
   return showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
     <Modal
       title={title}
-      open={true}
-      footer={null}
+      open
+      onOk={() => onSubmit(true)}
       onCancel={onCancel}
+      okText={<UiLabel text={confirmLabel ?? "Confirm"} />}
+      cancelText={<UiLabel text={cancelLabel ?? "Cancel"} />}
+      okButtonProps={{ danger, autoFocus: true, "data-test-id": "confirm" }}
       closable={false}
       zIndex={zIndex.quickModal}
     >
-      <Form onFinish={() => onSubmit(true)}>
-        {message}
-        <Form.Item style={{ marginBottom: 0, marginTop: 28 }}>
-          <Button
-            className="mr-sm"
-            type="primary"
-            color={danger ? "darkRed" : undefined}
-            htmlType="submit"
-            onClick={() => onSubmit(true)}
-            autoFocus
-            data-test-id="confirm"
-          >
-            <UiLabel text={confirmLabel ?? "Confirm"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiLabel text={cancelLabel ?? "Cancel"} />
-          </Button>
-        </Form.Item>
-      </Form>
+      {message}
     </Modal>
   ));
 }
@@ -150,25 +134,15 @@ export async function alert(opts: {
   return showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
     <Modal
       title={title}
-      open={true}
-      footer={null}
+      open
+      onOk={() => onSubmit(true)}
       onCancel={onCancel}
+      okText={<UiText message="OK" />}
+      okButtonProps={{ autoFocus: true }}
+      footer={(_, { OkBtn }) => <OkBtn />}
       closable={false}
     >
-      <Form onFinish={() => onSubmit(true)}>
-        {message}
-        <Form.Item style={{ marginBottom: 0, marginTop: 28 }}>
-          <Button
-            className="mr-sm"
-            type="primary"
-            htmlType="submit"
-            onClick={() => onSubmit(true)}
-            autoFocus
-          >
-            <UiText message={"OK"} />
-          </Button>
-        </Form.Item>
-      </Form>
+      {message}
     </Modal>
   ));
 }
@@ -202,15 +176,25 @@ function HardConfirmForm(props: {
 }) {
   const { title, message, mustType, onSubmit, onCancel } = props;
   const [readySubmit, setReadySubmit] = React.useState(false);
+  const [form] = Form.useForm();
+  const formId = React.useId();
   return (
     <Modal
       title={title}
       open={true}
-      footer={null}
+      okText={<UiText message="Confirm" />}
+      cancelText={<UiText message="Cancel" />}
+      okButtonProps={{
+        htmlType: "submit",
+        form: formId,
+        disabled: !readySubmit,
+      }}
       onCancel={onCancel}
       closable={false}
     >
       <Form
+        id={formId}
+        form={form}
         onFinish={() => {
           if (readySubmit) {
             onSubmit(true);
@@ -234,19 +218,6 @@ function HardConfirmForm(props: {
               }
             }}
           />
-        </Form.Item>
-        <Form.Item style={{ marginBottom: 0, marginTop: 28 }}>
-          <Button
-            className="mr-sm"
-            type="primary"
-            htmlType="submit"
-            disabled={!readySubmit}
-          >
-            <UiText message={"Confirm"} />
-          </Button>
-          <Button onClick={() => onCancel()}>
-            <UiText message={"Cancel"} />
-          </Button>
         </Form.Item>
       </Form>
     </Modal>

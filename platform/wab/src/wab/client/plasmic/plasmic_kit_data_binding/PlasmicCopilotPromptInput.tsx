@@ -138,6 +138,8 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
   overrides: PlasmicCopilotPromptInput__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -286,7 +288,7 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
             return;
           }
         }}
-        placeholder={"Model provider override"}
+        placeholder={uiT("Model provider override")}
         value={generateStateValueProp($state, ["modelOverrideInput", "value"])}
       />
 

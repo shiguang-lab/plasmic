@@ -1062,6 +1062,8 @@ export interface DimValueOpts {
 }
 
 function useDimValue(opts: DimValueOpts) {
+  const { t: studioUiT } = useI18n();
+
   const {
     value,
     onChange,
@@ -1101,7 +1103,7 @@ function useDimValue(opts: DimValueOpts) {
         return true;
       }
       notification.error({
-        message: `Invalid value "${val}"`,
+        message: studioUiT('Invalid value "{part1}"', { part1: String(val) }),
         description: result.error || "Invalid value",
       });
       return false;
@@ -1114,7 +1116,9 @@ function useDimValue(opts: DimValueOpts) {
         const result = validateDimCssFunction(formattedValue, allowedUnits);
         if (!result.valid) {
           notification.error({
-            message: `Invalid CSS function "${newValue}"`,
+            message: studioUiT('Invalid CSS function "{part1}"', {
+              part1: String(newValue),
+            }),
             description: result.error,
           });
           return false;
@@ -1125,8 +1129,10 @@ function useDimValue(opts: DimValueOpts) {
 
       if (!parsed) {
         notification.error({
-          message: `Invalid value "${newValue}"`,
-          description: `Must be a numeric value`,
+          message: studioUiT('Invalid value "{part1}"', {
+            part1: String(newValue),
+          }),
+          description: studioUiT("Must be a numeric value"),
         });
 
         return false;
@@ -1142,8 +1148,12 @@ function useDimValue(opts: DimValueOpts) {
 
       if (parsed.num > max) {
         notification.error({
-          message: `Invalid value "${newValue}"`,
-          description: `Must be less than ${max}.`,
+          message: studioUiT('Invalid value "{part1}"', {
+            part1: String(newValue),
+          }),
+          description: studioUiT("Must be less than {part1}.", {
+            part1: String(max),
+          }),
         });
 
         return false;
@@ -1151,8 +1161,12 @@ function useDimValue(opts: DimValueOpts) {
 
       if (parsed.num < min) {
         notification.error({
-          message: `Invalid value "${newValue}"`,
-          description: `Must be greater than ${min}.`,
+          message: studioUiT('Invalid value "{part1}"', {
+            part1: String(newValue),
+          }),
+          description: studioUiT("Must be greater than {part1}.", {
+            part1: String(min),
+          }),
         });
 
         return false;
@@ -1178,8 +1192,12 @@ function useDimValue(opts: DimValueOpts) {
 
   function showUnitError(newValue: string) {
     notification.error({
-      message: `Invalid value "${newValue}"`,
-      description: `Must use one of these units - ${allowedUnits.join(", ")}.`,
+      message: studioUiT('Invalid value "{part1}"', {
+        part1: String(newValue),
+      }),
+      description: studioUiT("Must use one of these units - {part1}.", {
+        part1: String(allowedUnits.join(", ")),
+      }),
     });
   }
 

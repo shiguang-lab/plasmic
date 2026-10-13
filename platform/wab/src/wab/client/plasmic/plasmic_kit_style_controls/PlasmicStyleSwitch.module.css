@@ -80,7 +80,7 @@
   height: 12px;
   transition-property: all;
   transition-duration: 0.2s;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   box-shadow: 0px 0px 0px 1px var(--token-JrjdlBU-a5Ju);
   flex-shrink: 0;
   -webkit-transition-property: all;
@@ -90,7 +90,7 @@
 .thumbisChecked {
   left: 14px;
   right: auto;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
 }
 .root .thumb___focusVisibleWithin {
   outline: none;

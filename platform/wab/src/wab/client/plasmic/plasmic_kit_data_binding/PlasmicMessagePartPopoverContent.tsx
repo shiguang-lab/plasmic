@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: cdd2zPdEWaRL
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
@@ -112,7 +113,7 @@ function PlasmicMessagePartPopoverContent__RenderFunc(props: {
         className={classNames("all", sty.header)}
       >
         {renderPlasmicSlot({
-          defaultContents: "Title",
+          defaultContents: <UiText message={"Title"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle),
         })}

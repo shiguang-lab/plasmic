@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: fVzKJ6hzd6u
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -182,7 +183,7 @@ function PlasmicStyleSelect__Option__RenderFunc(props: {
       )}
     >
       {renderPlasmicSlot({
-        defaultContents: "Option",
+        defaultContents: <UiText message={"Option"} />,
         value: args.children,
         className: classNames(sty.slotTargetChildren, {
           [sty.slotTargetChildrenisDisabled]: hasVariant(

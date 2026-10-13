@@ -11,6 +11,7 @@
 // Plasmic Project: ieacQ3Z46z4gwo1FnaB5vY
 // Component: girCdMST6R
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -201,7 +202,7 @@ function PlasmicCmsEntryItem__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Apr 1, 2022",
+          defaultContents: <UiText message={"Apr 1, 2022"} />,
           value: args.details,
           className: classNames(sty.slotTargetDetails, {
             [sty.slotTargetDetailsisActive]: hasVariant(

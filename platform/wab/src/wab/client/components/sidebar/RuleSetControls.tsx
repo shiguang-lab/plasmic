@@ -1,5 +1,6 @@
 import { Matcher } from "@/wab/client/components/view-common";
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
+import { useI18n } from "@/wab/client/i18n";
 import { siteCCVariantsToInfos } from "@/wab/shared/cached-selectors";
 import { CodeComponent } from "@/wab/shared/core/components";
 import {
@@ -141,6 +142,8 @@ export function SelectorsInput({
   forRoot,
   codeComponent,
 }: SelectorsInputProps) {
+  const { t: studioUiT } = useI18n();
+
   const [text, setText] = useState("");
   const matcher = new Matcher(text);
   const isTypingPseudoSelector = text.startsWith(":");
@@ -199,7 +202,7 @@ export function SelectorsInput({
     <XMultiSelect
       placeholder={
         codeComponent
-          ? "Choose a variant"
+          ? studioUiT("Choose a variant")
           : "e.g. :hover, :focus, :nth-child(odd)"
       }
       autoFocus={autoFocus}
@@ -273,13 +276,15 @@ export function SelectorTags(props: {
   isCodeComponent: boolean;
   selectors: Selector[];
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { selectors, isCodeComponent } = props;
   if (selectors.length === 0) {
     return (
       <div key={"no-selector"} className={"no-selector-placeholder"}>
         {isCodeComponent
-          ? "Choose a variant"
-          : "Double click to enter CSS selectors"}
+          ? studioUiT("Choose a variant")
+          : studioUiT("Double click to enter CSS selectors")}
       </div>
     );
   }

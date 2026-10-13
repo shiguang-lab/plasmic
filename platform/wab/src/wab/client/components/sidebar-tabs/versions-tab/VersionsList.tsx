@@ -8,6 +8,7 @@ import {
 import VersionsListItem from "@/wab/client/components/sidebar/VersionsListItem";
 import { Matcher } from "@/wab/client/components/view-common";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { promptTagsAndDesc } from "@/wab/client/prompts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -26,6 +27,8 @@ interface VersionsListProps {
 export const VersionsList = observer(function VersionsList(
   props: VersionsListProps,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const { studioCtx, matcher } = props;
   const dbCtx = studioCtx.dbCtx();
 
@@ -107,8 +110,8 @@ export const VersionsList = observer(function VersionsList(
     return (
       <NoItemMessage>
         {studioCtx.releases.length === 0
-          ? "No Published Versions"
-          : "No versions match your search"}
+          ? studioUiT("No Published Versions")
+          : studioUiT("No versions match your search")}
       </NoItemMessage>
     );
   }

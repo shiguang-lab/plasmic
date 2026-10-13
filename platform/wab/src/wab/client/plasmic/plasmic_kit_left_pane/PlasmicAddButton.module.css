@@ -29,7 +29,7 @@
   object-fit: cover;
   width: 24px;
   height: 24px;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
   flex-shrink: 0;
 }
 .root .svg___focusVisible {

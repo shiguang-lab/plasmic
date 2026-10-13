@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: d693eBfNDs7j
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -85,6 +86,8 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
   overrides: PlasmicMultiAssetsActions__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -167,7 +170,7 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
           data-plasmic-override={overrides.numSelected}
           className={classNames("all", "__wab_text", sty.numSelected)}
         >
-          {"8 elements selected"}
+          {<UiText message={"8 elements selected"} />}
         </div>
         <Checkbox
           data-plasmic-name={"selectAll"}
@@ -204,7 +207,7 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
             />
           }
           className={classNames("__wab_instance", sty.deleteSelected)}
-          hoverText={"Delete selected assets"}
+          hoverText={studioUiT("Delete selected assets")}
           withBackgroundHover={true}
         >
           <TrashIcon
@@ -222,7 +225,7 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
             />
           }
           className={classNames("__wab_instance", sty.cancel)}
-          hoverText={"Cancel selection"}
+          hoverText={studioUiT("Cancel selection")}
           withBackgroundHover={true}
         >
           <CloseIcon

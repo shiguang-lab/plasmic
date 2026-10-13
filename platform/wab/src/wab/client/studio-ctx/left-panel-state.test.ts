@@ -1,5 +1,8 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { mock } from "vitest-mock-extended";
 
 it.each(["tab", "insert", "inline insert", "group"])(
   "keeps AI mutually exclusive with %s",
@@ -116,3 +119,54 @@ it("does not restore the AI panel on reentry, even with an old URL flag", async 
     studioCtx.dispose();
   }
 });
+
+it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
+  "closes the %s panel when entering preview and keeps it closed on return",
+  async (panel) => {
+    const { studioCtx, history } = fakeStudioCtx();
+    const preview = new PreviewCtx(
+      {
+        history,
+        topFrameApi: mock<HostFrameCtx["topFrameApi"]>(),
+        onHostFrameApiReady: vi.fn(),
+      },
+      studioCtx,
+    );
+    try {
+      await Promise.resolve();
+      if (panel === "ai") {
+        studioCtx.setCopilotChatOpen(true);
+      }
+      if (panel === "tab") {
+        studioCtx.switchLeftTab("components");
+      }
+      if (panel === "insert") {
+        studioCtx.setShowAddDrawer(true);
+      }
+      if (panel === "inline insert") {
+        studioCtx.setShowInlineAddDrawer(true);
+      }
+      if (panel === "group") {
+        studioCtx.setLeftTabGroup("more");
+      }
+      if (panel === "comments") {
+        studioCtx.toggleCommentsPanel();
+      }
+      history.push(`/projects/${studioCtx.siteInfo.id}/preview/example`);
+      expect(preview.isLive).toBe(true);
+      expect(studioCtx.isCopilotChatOpen).toBe(false);
+      expect(studioCtx.leftTabKey).toBeUndefined();
+      expect(studioCtx.leftTabGroup).toBeUndefined();
+      expect(studioCtx.showAddDrawer()).toBe(false);
+      expect(studioCtx.showInlineAddDrawer()).toBe(false);
+      expect(studioCtx.showCommentsPanel).toBe(false);
+      history.push(`/projects/${studioCtx.siteInfo.id}`);
+      expect(preview.isLive).toBe(false);
+      expect(studioCtx.isCopilotChatOpen).toBe(false);
+      expect(studioCtx.leftTabKey).toBeUndefined();
+    } finally {
+      preview.dispose();
+      studioCtx.dispose();
+    }
+  },
+);

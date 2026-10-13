@@ -6,7 +6,7 @@
   height: auto;
   overflow: hidden;
   justify-content: space-between;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   border-radius: 4px;
 }
 .body {

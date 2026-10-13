@@ -12,7 +12,7 @@
   align-items: stretch;
   justify-content: flex-start;
   max-width: 320px;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   column-gap: 8px;
   border-radius: 4px;
   padding: 16px;

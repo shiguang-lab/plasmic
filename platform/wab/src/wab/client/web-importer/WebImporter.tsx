@@ -3,6 +3,8 @@ import {
   PasteArgs,
   PasteResult,
 } from "@/wab/client/clipboard/common";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { formatWIErrors, WIError } from "@/wab/client/web-importer/errors";
@@ -71,7 +73,9 @@ export async function pasteFromWebImporter(
         wiErrors.map((e) => `  - ${e}`).join("\n"),
     );
     notification.warning({
-      message: `HTML imported with ${wiErrors.length} issue(s)`,
+      message: translate(getUiLocale(), "HTML imported with {part1} issue(s)", {
+        part1: String(wiErrors.length),
+      }),
       description: (
         <>
           <ul style={{ paddingLeft: 16, marginBottom: 0 }}>
@@ -82,8 +86,10 @@ export async function pasteFromWebImporter(
           {wiErrors.length > MAX_SHOWN_IMPORT_ISSUES && (
             <div>
               <UiText message={"and"} />{" "}
-              {wiErrors.length - MAX_SHOWN_IMPORT_ISSUES} more. See the browser
-              console for the full list.
+              {wiErrors.length - MAX_SHOWN_IMPORT_ISSUES}{" "}
+              <UiText
+                message={"more. See the browser console for the full list."}
+              />{" "}
             </div>
           )}
         </>

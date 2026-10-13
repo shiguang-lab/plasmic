@@ -19,6 +19,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { DimManip, roundDim } from "@/wab/client/DimManip";
 import { useQuerySelector } from "@/wab/client/hooks/useQuerySelector";
+import { useI18n } from "@/wab/client/i18n";
 import ArrowBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowBottom";
 import ArrowLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowLeft";
 import ArrowRightIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowRight";
@@ -78,6 +79,8 @@ interface MeasureControlProps extends StyleComponentProps {
 }
 
 function MeasureControl_(props: MeasureControlProps) {
+  const { t: studioUiT } = useI18n();
+
   // TODO: Wanted to make this more accessible...
   // We're doing all sorts of	weird focusing things with
   // DimSpinner / Textbox :-O  When you press ESC / ENTER, we'd ideally
@@ -227,7 +230,11 @@ function MeasureControl_(props: MeasureControlProps) {
               })}
             >
               {maybeToken && (
-                <Tooltip title={`Spacing token ${maybeToken.name}`}>
+                <Tooltip
+                  title={studioUiT("Spacing token {part1}", {
+                    part1: String(maybeToken.name),
+                  })}
+                >
                   <div className="position-legend">{maybeToken.name}</div>
                 </Tooltip>
               )}
@@ -306,6 +313,8 @@ export const GenericPosPushButtons = observer(
       sidesToZero: ReadonlyArray<Side>,
     ) => void;
   }) {
+    const { t: studioUiT } = useI18n();
+
     const { expsProvider, directions, zeroSides } = props;
 
     const sc = expsProvider.studioCtx;
@@ -333,7 +342,11 @@ export const GenericPosPushButtons = observer(
     return (
       <div className="flex flex-fill justify-between">
         {directions.map((dir) => (
-          <Tooltip title={`Push to ${getLabelForStyleName(dir)}`}>
+          <Tooltip
+            title={studioUiT("Push to {part1}", {
+              part1: String(getLabelForStyleName(dir)),
+            })}
+          >
             <IconButton size="small" onClick={() => push(dir)}>
               {DIRECTION_ICONS[dir]}
             </IconButton>

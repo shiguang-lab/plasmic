@@ -53,6 +53,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/StyleExprModal";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -179,6 +180,8 @@ const PropValueEditor_ = (
   },
   ref,
 ) => {
+  const { t: studioUiT } = useI18n();
+
   const {
     attr = "",
     label,
@@ -514,7 +517,7 @@ const PropValueEditor_ = (
         valueSetState={valueSetState}
         defaultValueHint={defaultValueHint}
         readOnly={readOnly || options.length === 0}
-        disabledTooltip={"No variant available"}
+        disabledTooltip={studioUiT("No variant available")}
         data-plasmic-prop={attr}
       />
     );
@@ -541,7 +544,7 @@ const PropValueEditor_ = (
         valueSetState={valueSetState}
         defaultValueHint={defaultValueHint}
         readOnly={readOnly || options.length === 0}
-        disabledTooltip={"No interaction prop available"}
+        disabledTooltip={studioUiT("No interaction prop available")}
         data-plasmic-prop={attr}
       />
     );
@@ -657,12 +660,14 @@ const PropValueEditor_ = (
 
     const options = [
       ...(vgroup && isStandaloneVariantGroup(vgroup)
-        ? [{ value: vgroup.variants[0].name, label: "Set" }]
+        ? [{ value: vgroup.variants[0].name, label: studioUiT("Set") }]
         : variantOptions.map((v) => ({
             value: v.name,
             label: v.name,
           }))),
-      ...(vgroup && !vgroup.multi ? [{ value: "", label: "Unset" }] : []),
+      ...(vgroup && !vgroup.multi
+        ? [{ value: "", label: studioUiT("Unset") }]
+        : []),
     ];
 
     const onChangeVariants = (val: string | string[] | null) => {
@@ -951,7 +956,7 @@ const PropValueEditor_ = (
         data={data}
         schema={schema}
         isDisabled={L.isEmpty(data)}
-        disabledTooltip={"Data not found."}
+        disabledTooltip={studioUiT("Data not found.")}
         hideStateSwitch={true}
         alwaysShowValuePathAsLabel={alwaysShowValuePathAsLabel}
         data-plasmic-prop={attr}

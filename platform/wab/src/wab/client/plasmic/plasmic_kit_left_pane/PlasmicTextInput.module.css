@@ -5,7 +5,7 @@
   height: auto;
   align-items: center;
   justify-content: flex-start;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   position: sticky;
   min-width: 0;
   border-radius: 6px;

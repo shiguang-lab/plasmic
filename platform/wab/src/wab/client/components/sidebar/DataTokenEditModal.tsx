@@ -184,7 +184,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
               }}
               placeholder={
                 selectedTokenType === "string"
-                  ? "Enter text here..."
+                  ? uiT("Enter text here...")
                   : dataTypes[selectedTokenType].defaultSerializedValue
               }
               autoFocus={!defaultEditingName}

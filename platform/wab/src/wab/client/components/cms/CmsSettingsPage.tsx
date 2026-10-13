@@ -53,7 +53,7 @@ function CmsSettingsPage_(
           values.extraData.locales.length
         ) {
           notification.error({
-            message: "Locales must all be distinct",
+            message: t("Locales must all be distinct"),
           });
           return;
         }
@@ -63,7 +63,7 @@ function CmsSettingsPage_(
         await mutateDatabase(databaseId);
         setSubmitting(false);
         notification.success({
-          message: "Successfully saved changes",
+          message: t("Successfully saved changes"),
         });
       }}
     >
@@ -85,7 +85,7 @@ function CmsSettingsPage_(
             try {
               const newCmsDatabase = await api.cloneCmsDatabase(databaseId);
               notification.success({
-                message: "CMS schema duplicated successfully.",
+                message: t("CMS schema duplicated successfully."),
                 duration: 4000,
                 btn: (
                   <Button
@@ -96,13 +96,14 @@ function CmsSettingsPage_(
                       });
                     }}
                   >
-                    Go to new CMS
+                    {" "}
+                    <UiText message={"Go to new CMS"} />{" "}
                   </Button>
                 ),
               });
             } catch (err) {
               notification.error({
-                message: "Failed to duplicate CMS",
+                message: t("Failed to duplicate CMS"),
               });
             } finally {
               setDuplicating(false);
@@ -160,7 +161,7 @@ function CmsSettingsPage_(
                           rules={[
                             {
                               required: true,
-                              message: "Locales cannot be blank",
+                              message: t("Locales cannot be blank"),
                             },
                           ]}
                         >
@@ -179,7 +180,8 @@ function CmsSettingsPage_(
                         onClick={() => handles.add("")}
                         htmlType={"button"}
                       >
-                        Add locale
+                        {" "}
+                        <UiText message={"Add locale"} />{" "}
                       </Button>
                     </div>
                   </div>

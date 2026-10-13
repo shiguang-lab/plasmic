@@ -11,6 +11,7 @@
 // Plasmic Project: gYEVvAzCcLMHDVPvuYxkFh
 // Component: nZHA7E5OiTx
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -264,7 +265,7 @@ function PlasmicStyleCheckbox__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Enter some text",
+            defaultContents: <UiText message={"Enter some text"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren, {
               [sty.slotTargetChildrenisChecked]: hasVariant(

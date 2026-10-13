@@ -4,8 +4,9 @@ import { NoItemMessage } from "@/wab/client/components/sidebar-tabs/versions-tab
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ApiUser } from "@/wab/shared/ApiSchema";
 import { fullName, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
@@ -35,8 +36,8 @@ const ConfirmModal = ({
   title,
   onSubmit,
   onCancel,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   children,
 }: ConfirmModalProps) => (
   <Modal
@@ -46,14 +47,14 @@ const ConfirmModal = ({
       <Form onFinish={() => onSubmit(true)}>
         <Form.Item>
           <Button className="mr-sm" onClick={() => onCancel()}>
-            {cancelText}
+            {cancelText ?? <UiText message="Cancel" />}
           </Button>
           <Button
             type="primary"
             htmlType="submit"
             onClick={() => onSubmit(true)}
           >
-            {confirmText}
+            {confirmText ?? <UiText message="Confirm" />}
           </Button>
         </Form.Item>
       </Form>
@@ -134,7 +135,7 @@ const RevertConfirmModal = ({
       title={title}
       onSubmit={onSubmit}
       onCancel={onCancel}
-      confirmText="Revert"
+      confirmText={uiT("Revert")}
     >
       <div>
         <Alert
@@ -251,15 +252,19 @@ export const promptLoad = async (title: string) => {
       title={title}
       onSubmit={onSubmit}
       onCancel={onCancel}
-      confirmText="Yes"
+      confirmText={translate(getUiLocale(), "Yes")}
     >
       <Alert
         type="warning"
         showIcon
-        message={<UiText message="Changes you made may not be saved." />}
+        message={<UiText message={"Changes you made may not be saved."} />}
         className="mv-m"
         description={
-          <UiText message="Consider saving your changes before loading another version. Are you sure you want to proceed?" />
+          <UiText
+            message={
+              "Consider saving your changes before loading another version. Are you sure you want to proceed?"
+            }
+          />
         }
       />
     </ConfirmModal>
@@ -323,6 +328,8 @@ export const UserOnDate = function ({
   user?: ApiUser | null;
   date: Date;
 }) {
+  const { t: studioUiT } = useI18n();
+
   return (
     <span>
       <UiText
@@ -331,7 +338,7 @@ export const UserOnDate = function ({
           part1: user ? (
             <Tooltip title={getUserEmail(user)}>{fullName(user)}</Tooltip>
           ) : (
-            "Unknown User"
+            studioUiT("Unknown User")
           ),
           part2: formatDateShortTimeShort(date),
         }}

@@ -1,6 +1,7 @@
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { renderInspector } from "@/wab/client/components/coding/CodePreview";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { Menu } from "antd";
 import React from "react";
@@ -22,12 +23,14 @@ type InspectorNodeProps = InspectorNodeParams & {
 export function DataInspector({
   data,
   editorRef,
-  emptyMessage = "No data available",
+  emptyMessage,
 }: {
   data: Record<string, any>;
   editorRef?: React.RefObject<FullCodeEditor | null>;
   emptyMessage?: string;
 }) {
+  const { t: studioUiT } = useI18n();
+
   return (
     <div
       onContextMenu={(e) => {
@@ -60,7 +63,13 @@ export function DataInspector({
         }
       }}
     >
-      <ErrorBoundary fallback={<div className="dimfg">{emptyMessage}</div>}>
+      <ErrorBoundary
+        fallback={
+          <div className="dimfg">
+            {emptyMessage ?? studioUiT("No data available")}
+          </div>
+        }
+      >
         {renderInspector(data, {
           expandLevel: 1,
           nodeRenderer: (nodeProps: InspectorNodeProps) => {
@@ -79,8 +88,8 @@ export function DataInspector({
               depth === 0 ? (
                 <span>
                   {expanded
-                    ? "Right-click to insert or copy a path."
-                    : "Expand to browse available data"}
+                    ? studioUiT("Right-click to insert or copy a path.")
+                    : studioUiT("Expand to browse available data")}
                 </span>
               ) : (
                 <ObjectLabel

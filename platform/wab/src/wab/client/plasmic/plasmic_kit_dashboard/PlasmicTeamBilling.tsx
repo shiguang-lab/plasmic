@@ -204,7 +204,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "ERROR: Cannot process payment",
+          defaultContents: <UiText message={"ERROR: Cannot process payment"} />,
           value: args.billingError,
           className: classNames(sty.slotTargetBillingError),
         })}
@@ -222,7 +222,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
         <div className={classNames("all", sty.freeBox__xXxvr)}>
           <div className={classNames("all", sty.freeBox___7YcIa)}>
             <div className={classNames("all", "__wab_text", sty.text___70ASv)}>
-              {"Account Plan"}
+              {<UiText message={"Account Plan"} />}
             </div>
             <div className={classNames("all", sty.freeBox___2PErC)}>
               <div
@@ -234,7 +234,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Pick a plan that fits your workflow."}
+                {<UiText message={"Pick a plan that fits your workflow."} />}
               </div>
               <PlasmicLink__
                 data-plasmic-name={"learnMore"}
@@ -279,7 +279,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
             })}
           >
             {renderPlasmicSlot({
-              defaultContents: "$45/month",
+              defaultContents: <UiText message={"$45/month"} />,
               value: args.currentBill,
               className: classNames(sty.slotTargetCurrentBill),
             })}
@@ -295,7 +295,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                 className: classNames(sty.slotTargetSeatsUsed),
               })}
               <div className={classNames("all", "__wab_text", sty.text__gJjIm)}>
-                {"of"}
+                {<UiText message={"of"} />}
               </div>
               {renderPlasmicSlot({
                 defaultContents: "3",
@@ -303,7 +303,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                 className: classNames(sty.slotTargetSeatsPurchased),
               })}
               <div className={classNames("all", "__wab_text", sty.text__iz26I)}>
-                {"seats used"}
+                {<UiText message={"seats used"} />}
               </div>
             </div>
             <div className={classNames("all", "__wab_text", sty.text__ofLuw)}>
@@ -346,9 +346,9 @@ function PlasmicTeamBilling__RenderFunc(props: {
                 }
                 style={{ fontWeight: 500 }}
               >
-                {"Annual Billing"}
+                {<UiText message={"Annual Billing"} />}
               </span>
-              <React.Fragment>{" (Save 20%)"}</React.Fragment>
+              <React.Fragment>{<>{" "}<UiText message={"(Save 20%)"} /></>}</React.Fragment>
             </React.Fragment>
           </div>
         </Switch>

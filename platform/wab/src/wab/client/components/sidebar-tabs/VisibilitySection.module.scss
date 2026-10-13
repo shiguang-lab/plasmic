@@ -50,9 +50,9 @@
 
 .moreOptionsIcon {
   cursor: pointer;
-  color: #ceced0;
+  color: var(--ui-placeholder, #ceced0);
 
   &:hover {
-    color: $sand11;
+    color: var(--ui-text, #{$sand11});
   }
 }

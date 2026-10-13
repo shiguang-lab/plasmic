@@ -1,5 +1,6 @@
-import { KeyboardShortcut } from "@/wab/client/components/menu-builder";
 import { tourSeenTopProjectNavKey } from "@/wab/client/LocalStorageKey";
+import { KeyboardShortcut } from "@/wab/client/components/menu-builder";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { Tour } from "@/wab/client/tours/Tour";
@@ -14,14 +15,20 @@ export const TopProjectNavTour = observer(function TopProjectNavTour() {
   const didActionSignal = studioCtx.showNavigationPanelRequested;
   const content = (
     <>
-      <h4 className="text-xlg mb-p">Project navigation has moved!</h4>
+      <h4 className="text-xlg mb-p">
+        <UiText message={"Project navigation has moved!"} />
+      </h4>
       <p>
-        Use the Documents tab to navigate to your pages, components and arenas.
-        You can also use the keyboard shortcut{" "}
+        {" "}
+        <UiText
+          message={
+            "Use the Documents tab to navigate to your pages, components and arenas. You can also use the keyboard shortcut"
+          }
+        />{" "}
         <KeyboardShortcut>
           {getComboForAction("SEARCH_PROJECT_ARENAS")}
         </KeyboardShortcut>{" "}
-        to open document search.
+        <UiText message={"to open document search."} />{" "}
       </p>
     </>
   );

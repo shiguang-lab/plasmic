@@ -11,7 +11,6 @@ import {
   useTeamDirectories,
 } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { Spinner, Tab, Tabs } from "@/wab/client/components/widgets";
-import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { useI18n } from "@/wab/client/i18n";
@@ -94,64 +93,51 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
         title={uiT("Enable auth for this app?")}
         open
         onCancel={onCancel}
-        footer={null}
+        onOk={async () => {
+          trackEvent(APP_AUTH_TRACKING_EVENT, {
+            action: "setup",
+          });
+          await mutateAuthConfig(async () => {
+            setIsSettingUp(true);
+            let directoryId: string | undefined;
+            // Always creates a new directory for every app, make it so that is less
+            // of an issue to change the directory later
+            const directory = await appCtx.api.createEndUserDirectory(
+              teamId,
+              uniqueName(
+                withoutNils(directories.map((d) => d.name)),
+                `App "${project.name}" directory`,
+              ),
+            );
+            directoryId = directory.id;
+            await appCtx.api.upsertAppAuthConfig(project.id, {
+              directoryId,
+              provider: "plasmic-auth",
+            });
+            const newConfig = await appCtx.api.getAppAuthConfig(project.id);
+            await mutateTeamDirectories();
+            const roles = await appCtx.api.listAppRoles(project.id);
+            // Get the first role with order bigger than 0, which should be the normal user role
+            const normalUserRole = roles.find((r) => r.order === 1);
+            if (normalUserRole) {
+              setDefaultPageRoleId(normalUserRole.id);
+              await hostFrameApi.setDefaultPageRoleId(normalUserRole.id);
+            }
+            setIsSettingUp(false);
+            return newConfig;
+          });
+          await mutateHostAppAuthData();
+          await hostFrameApi.refreshSiteInfo();
+        }}
+        okText={<UiText message={isSettingUp ? "Loading..." : "Continue"} />}
+        cancelText={<UiText message="Cancel" />}
+        confirmLoading={isSettingUp}
       >
         <UiText
           message={
             "With auth you can control who can access your app and manage their permissions. Using role-based access control, you can build apps that are secure and easy to manage. Apps with auth enabled can't be imported into other apps."
           }
         />
-        <div className="mt-xlg">
-          <Button
-            type="primary"
-            className="mr-sm"
-            onClick={async () => {
-              trackEvent(APP_AUTH_TRACKING_EVENT, {
-                action: "setup",
-              });
-              await mutateAuthConfig(async () => {
-                setIsSettingUp(true);
-                let directoryId: string | undefined;
-                // Always creates a new directory for every app, make it so that is less
-                // of an issue to change the directory later
-                const directory = await appCtx.api.createEndUserDirectory(
-                  teamId,
-                  uniqueName(
-                    withoutNils(directories.map((d) => d.name)),
-                    `App "${project.name}" directory`,
-                  ),
-                );
-                directoryId = directory.id;
-                await appCtx.api.upsertAppAuthConfig(project.id, {
-                  directoryId,
-                  provider: "plasmic-auth",
-                });
-                const newConfig = await appCtx.api.getAppAuthConfig(project.id);
-                await mutateTeamDirectories();
-                const roles = await appCtx.api.listAppRoles(project.id);
-                // Get the first role with order bigger than 0, which should be the normal user role
-                const normalUserRole = roles.find((r) => r.order === 1);
-                if (normalUserRole) {
-                  setDefaultPageRoleId(normalUserRole.id);
-                  await hostFrameApi.setDefaultPageRoleId(normalUserRole.id);
-                }
-                setIsSettingUp(false);
-                return newConfig;
-              });
-              await mutateHostAppAuthData();
-              await hostFrameApi.refreshSiteInfo();
-            }}
-          >
-            {isSettingUp ? (
-              <UiText message={"Loading..."} />
-            ) : (
-              <UiText message={"Continue"} />
-            )}
-          </Button>
-          <Button onClick={onCancel}>
-            <UiText message={"Cancel"} />
-          </Button>
-        </div>
       </Modal>
     );
   }

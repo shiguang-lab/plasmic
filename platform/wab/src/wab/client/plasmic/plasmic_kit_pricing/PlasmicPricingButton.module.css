@@ -17,7 +17,7 @@
   padding: 1px;
 }
 .rootdark {
-  background: #ffffff;
+  background: var(--ui-on-accent, #ffffff);
 }
 .rootstate_invisible {
   opacity: 0;
@@ -68,7 +68,7 @@
   align-content: unset;
   cursor: pointer;
   width: 100%;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   column-gap: 4px;
   min-width: 0;
   border-radius: 24px;
@@ -105,7 +105,7 @@
   display: block;
 }
 .svgdark_withIcon {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .slotTargetChildren {
   font-size: 14px;
@@ -115,10 +115,10 @@
   letter-spacing: -1%;
 }
 .slotTargetChildrendark {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .slotTargetChildrenstate_selected {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .slotTargetChildrendark_state_selected {
   color: var(--token-UunsGa2Y3t3);

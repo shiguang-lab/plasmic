@@ -4,6 +4,6 @@
   align-items: center;
   gap: 4px;
   a {
-    color: #1b1b18;
+    color: var(--ui-text, #1b1b18);
   }
 }

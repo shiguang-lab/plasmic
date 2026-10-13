@@ -6,6 +6,7 @@ x-server: &server
   command: [src/wab/server/main.ts]
   environment: &env
     NODE_ENV: development
+    PLASMIC_SELF_HOSTED: "1"
     DATABASE_URI: postgresql://wab:${POSTGRES_PASSWORD}@db:5432/wab
     INTEGRATION_SESSION_SECRET: ${INTEGRATION_SESSION_SECRET}
     SG_IDENTITY_API_URL: ${SG_IDENTITY_API_URL:?set SG_IDENTITY_API_URL}
@@ -132,7 +133,8 @@ services:
       SKIP_DB_CREATE: "true"
       ENABLE_ES: "false"
     healthcheck:
-      test: [CMD, temporal, operator, cluster, health, --address, "temporal:7233"]
+      test:
+        [CMD, temporal, operator, cluster, health, --address, "temporal:7233"]
       interval: 10s
       timeout: 5s
       start_period: 60s
@@ -161,7 +163,13 @@ services:
     depends_on:
       db: { condition: service_healthy }
     healthcheck:
-      test: [CMD, node, -e, "fetch('http://127.0.0.1:3011/api/healthcheck').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3011/api/healthcheck').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 15s
       timeout: 5s
       start_period: 30s
@@ -183,7 +191,11 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - desktop-updates:/srv/desktop-updates:ro
     ports:
-      ["${BIND_IP:-127.0.0.1}:3900:8080", "${BIND_IP:-127.0.0.1}:3901:8081", "${BIND_IP:-127.0.0.1}:3902:8082"]
+      [
+        "${BIND_IP:-127.0.0.1}:3900:8080",
+        "${BIND_IP:-127.0.0.1}:3901:8081",
+        "${BIND_IP:-127.0.0.1}:3902:8082",
+      ]
     healthcheck:
       test:
         [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/static/host.html]

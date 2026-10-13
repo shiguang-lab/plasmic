@@ -2,7 +2,9 @@ import { PublicLink } from "@/wab/client/components/PublicLink";
 import { getComponentByPath } from "@/wab/client/components/live/PreviewCtx";
 import { LinkButton } from "@/wab/client/components/widgets";
 import * as domMod from "@/wab/client/dom";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { Fiber } from "@/wab/client/react-global-hook/fiber";
 import {
   getMostRecentFiberVersion,
@@ -172,7 +174,7 @@ export function showCanvasPageNavigationNotification(
   const maybeFound = href ? getComponentByPath(studioCtx, href) : null;
   notification.info({
     key: "navigation-notification",
-    message: `Page navigation disabled`,
+    message: translate(getUiLocale(), "Page navigation disabled"),
     description: (
       <div>
         <p>
@@ -240,7 +242,12 @@ export function showCanvasAuthNotification(
   mode: "preview mode" | "interactive mode",
 ) {
   notification.info({
-    message: `Login and logout not supported in ${mode}`,
+    message: translate(
+      getUiLocale(),
+      mode === "preview mode"
+        ? "Login and logout are not supported in preview mode"
+        : "Login and logout are not supported in interactive mode",
+    ),
     description: (
       <p>
         <UiText
@@ -321,7 +328,7 @@ export function trapInteractionError(
                     step: <strong>{stepName}</strong>,
                     edit: (
                       <LinkButton onClick={goToStep}>
-                        <UiText message="Edit step" />
+                        <UiText message={"Edit step"} />
                       </LinkButton>
                     ),
                   }}
@@ -344,7 +351,7 @@ export function trapInteractionError(
                     step: <strong>{stepName}</strong>,
                     edit: (
                       <LinkButton onClick={goToStep}>
-                        <UiText message="Edit step" />
+                        <UiText message={"Edit step"} />
                       </LinkButton>
                     ),
                   }}

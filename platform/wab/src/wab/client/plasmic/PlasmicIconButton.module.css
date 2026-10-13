@@ -86,7 +86,7 @@
     0px 0px 0px 0px var(--token-zBV3PmIqbJ9F);
   width: auto;
   min-height: 1.75rem;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   column-gap: 4px;
   row-gap: 0px;
   display: inline-flex;
@@ -348,7 +348,7 @@
   font-size: 20px;
 }
 .slotTargetChildrentype_primary {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .slotTargetChildrentype_switchOn {
   color: var(--token-0IloF6TmFvF);
@@ -366,13 +366,13 @@
   color: var(--token-UCbZU41E8Mj);
 }
 .slotTargetChildrentype_black {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .slotTargetChildrenisActive {
   color: var(--token-0IloF6TmFvF);
 }
 .slotTargetChildrenisActive_type_primary_type_dividedRight {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .root:hover .slotTargetChildren {
   color: var(--token-0IloF6TmFvF);
@@ -381,10 +381,10 @@
   color: var(--token-0IloF6TmFvF);
 }
 .roottype_primary:active .slotTargetChildrentype_primary {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .roottype_primary:hover .slotTargetChildrentype_primary {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .roottype_red:hover .slotTargetChildrentype_red {
   color: var(--token-Ift7nNWjir7);

@@ -89,6 +89,8 @@ function PlasmicCommentPostForm__RenderFunc(props: {
   overrides: PlasmicCommentPostForm__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -391,7 +393,7 @@ function PlasmicCommentPostForm__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "isEditing", "isEditing") ? <UiText message={"Save"} /> : "Send"}
+                {hasVariant($state, "isEditing", "isEditing") ? <UiText message={"Save"} /> : uiT("Send")}
               </div>
             }
           />

@@ -173,6 +173,8 @@ function PlasmicGithubIntegration__RenderFunc(props: {
   overrides: PlasmicGithubIntegration__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -1746,7 +1748,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   {hasVariant($state, "isPublishingSite", "isPublishingSite") &&
                   hasVariant($state, "errors", "hasDomainError") &&
                   hasVariant($state, "errors", "invalidDomainError") ? (
-                    "Invalid domain. Please use 1-63 alphanumeric characters, with dashes between words."
+                    uiT("Invalid domain. Please use 1-63 alphanumeric characters, with dashes between words.")
                   ) : hasVariant($state, "errors", "publishSiteWarning") &&
                     hasVariant(
                       $state,
@@ -1761,17 +1763,17 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                         style={{ fontWeight: 700 }}
                       >
                         {
-                          "Site publishing does not work with plain React. Choose Next.js instead. "
+                          <><UiText message={"Site publishing does not work with plain React. Choose Next.js instead."} />{" "}</>
                         }
                       </span>
                       <React.Fragment>
                         {
-                          "Page routes are auto-mounted only for Next.js/Gatsby projects. Proceed with plain React only if you know you want to manually add code to explicitly render pages using a framework like react-router."
+                          <UiText message={"Page routes are auto-mounted only for Next.js/Gatsby projects. Proceed with plain React only if you know you want to manually add code to explicitly render pages using a framework like react-router."} />
                         }
                       </React.Fragment>
                     </React.Fragment>
                   ) : (
-                    "This subdomain is currently taken."
+                    uiT("This subdomain is currently taken.")
                   )}
                 </div>
               </ErrorFeedback>
@@ -1982,8 +1984,8 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       ) &&
                       hasVariant($state, "errors", "hasDomainError") &&
                       hasVariant($state, "errors", "invalidDomainError")
-                        ? "Invalid domain. Please use 1-63 alphanumeric characters, with dashes between words."
-                        : "This subdomain is currently taken."}
+                        ? uiT("Invalid domain. Please use 1-63 alphanumeric characters, with dashes between words.")
+                        : uiT("This subdomain is currently taken.")}
                     </ErrorFeedback>
                   ) : null}
                 </div>
@@ -2048,7 +2050,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       }
                     )}
                   >
-                    {"Hosted by GitHub Pages. "}
+                    {<><UiText message={"Hosted by GitHub Pages."} />{" "}</>}
                   </div>
                   <PlasmicLink__
                     data-plasmic-name={"moreProvidersLink"}
@@ -2150,8 +2152,8 @@ function PlasmicGithubIntegration__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "loading", "saving")
-              ? "Setting up..."
-              : "Save repository information"}
+              ? uiT("Setting up...")
+              : uiT("Save repository information")}
           </div>
         </Button>
       </div>

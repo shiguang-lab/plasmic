@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: isQPD0RPCw
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -265,7 +266,7 @@ function PlasmicAddDrawerItem__RenderFunc(props: {
         }
       >
         {renderPlasmicSlot({
-          defaultContents: "Item Name",
+          defaultContents: <UiText message={"Item Name"} />,
           value: args.children,
         })}
       </ListItem>

@@ -1,6 +1,8 @@
 import { apiKey } from "@/wab/client/api";
 import { SimpleConfetti } from "@/wab/client/components/SimpleConfetti";
 import { topFrameTourSignals } from "@/wab/client/components/TopFrame/TopFrameChrome";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { sleep } from "@/wab/client/tours/tutorials/tutorials-helpers";
 import {
@@ -94,7 +96,10 @@ Here we've configured the app to deploy to <https://{APP_DOMAIN}>.
         .response as RevalidatePlasmicHostingResponse;
       if (response.successes.length === 0) {
         notification.error({
-          message: "Error publishing the app. Please try again later.",
+          message: translate(
+            getUiLocale(),
+            "Error publishing the app. Please try again later.",
+          ),
         });
         return false;
       }

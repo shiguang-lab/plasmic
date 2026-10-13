@@ -6,7 +6,7 @@
   justify-content: flex-start;
   width: 100%;
   height: auto;
-  background: rgb(255, 255, 255);
+  background: var(--ui-surface, rgb(255, 255, 255));
   box-shadow: inset 0px 0px 0px 1px var(--token-hoA5qaM-91G);
   opacity: 1;
   row-gap: 8px;

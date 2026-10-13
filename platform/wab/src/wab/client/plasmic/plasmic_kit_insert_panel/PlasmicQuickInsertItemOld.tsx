@@ -11,6 +11,7 @@
 // Plasmic Project: 4B48dRthR8uGgyaBYpWthR
 // Component: 3Ao1xbz5MD
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -117,7 +118,7 @@ function PlasmicQuickInsertItemOld__RenderFunc(props: {
       </div>
       <div className={classNames("all", sty.freeBox__gi1Qb)}>
         {renderPlasmicSlot({
-          defaultContents: "Text",
+          defaultContents: <UiText message={"Text"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle),
         })}

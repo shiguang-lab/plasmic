@@ -315,9 +315,12 @@ function promptFixReactVersionForHostLessPackages(props: {
   return showTemporaryPrompt<FixReactVersionHostLessPackagesResponse>(
     (onSubmit, onCancel) => (
       <Modal
-        title={<UiText message="Invalid React version" />}
+        title={<UiText message={"Invalid React version"} />}
         open={true}
-        footer={null}
+        onOk={() => onSubmit("delete")}
+        okText={<UiText message="Delete all existing uses" />}
+        okButtonProps={{ danger: true, icon: <Icon icon={TrashsvgIcon} /> }}
+        footer={(_, { OkBtn }) => <OkBtn />}
         onCancel={() => onCancel()}
       >
         <p>
@@ -346,15 +349,6 @@ function promptFixReactVersionForHostLessPackages(props: {
             }}
           />
         </p>
-        <div>
-          <Button
-            startIcon={<Icon icon={TrashsvgIcon} />}
-            withIcons={["startIcon"]}
-            onClick={() => onSubmit("delete")}
-          >
-            <UiText message={"Delete all existing uses"} />
-          </Button>
-        </div>
       </Modal>
     ),
   );
@@ -433,8 +427,11 @@ export async function showModalToRefreshCodeComponentProps(
           <UiText message={"Refresh code component props"} />
         </h2>
       }
-      visible
-      footer={null}
+      open
+      onOk={() => onSubmit(true)}
+      okText={<UiText message="Confirm" />}
+      okButtonProps={{ "data-test-id": "confirm" }}
+      footer={(_, { OkBtn }) => <OkBtn />}
       onCancel={() => onCancel()}
     >
       <>
@@ -450,16 +447,6 @@ export async function showModalToRefreshCodeComponentProps(
             <ComponentPropDeltas diff={diff} />
           ))}
         </ul>
-        <div className="mt-xlg">
-          <Button
-            className="mr-sm"
-            type="primary"
-            data-test-id="confirm"
-            onClick={() => onSubmit(true)}
-          >
-            <UiText message={"Confirm"} />
-          </Button>
-        </div>
       </>
     </Modal>
   )));
@@ -601,12 +588,20 @@ function HostLessPackageForm({
   const { t: uiT } = useI18n();
 
   const [form] = Form.useForm<HostLessPackageInfo>();
+  const formId = React.useId();
   const isProd = process.env.NODE_ENV === "production";
   return (
     <Modal
       title={null}
       open={true}
-      footer={null}
+      okText={<UiText message="Submit (yes I'm sure!)" />}
+      cancelText={<UiText message="Cancel" />}
+      okButtonProps={{
+        htmlType: "submit",
+        form: formId,
+        disabled: !!initialValue,
+        "data-test-id": "hostless-prompt-submit",
+      }}
       onCancel={() => onSubmit(undefined)}
       closable={false}
       wrapClassName="prompt-modal"
@@ -616,7 +611,7 @@ function HostLessPackageForm({
           type="warning"
           message={
             <strong>
-              <UiText message="DO NOT USE THIS FORM" />
+              <UiText message={"DO NOT USE THIS FORM"} />
             </strong>
           }
           description={
@@ -625,7 +620,11 @@ function HostLessPackageForm({
                 <UiText message={"...unless you read this first!"} />
               </p>
               <p>
-                <UiText message="Submitting this form will publish a new version of this hostless project, which means new projects that import from this will be using the new version, for the existing projects that import it, they will be lazily upgraded to the new version if this project belongs to the `hostlessWorkspaceId` (the process is not immediate because of some intermediate caching, up to 10 minutes delay, it will then happen when the user opens a project)." />
+                <UiText
+                  message={
+                    "Submitting this form will publish a new version of this hostless project, which means new projects that import from this will be using the new version, for the existing projects that import it, they will be lazily upgraded to the new version if this project belongs to the `hostlessWorkspaceId` (the process is not immediate because of some intermediate caching, up to 10 minutes delay, it will then happen when the user opens a project)."
+                  }
+                />
               </p>
               <p>
                 <UiText
@@ -633,7 +632,7 @@ function HostLessPackageForm({
                   values={{
                     part1: (
                       <strong>
-                        <UiText message="only use this form" />
+                        <UiText message={"only use this form"} />
                       </strong>
                     ),
                   }}
@@ -648,7 +647,11 @@ function HostLessPackageForm({
                     values={{
                       part1: (
                         <strong>
-                          <UiText message="Creating a hostless project for the first time" />
+                          <UiText
+                            message={
+                              "Creating a hostless project for the first time"
+                            }
+                          />
                         </strong>
                       ),
                     }}
@@ -662,7 +665,11 @@ function HostLessPackageForm({
                     values={{
                       part1: (
                         <strong>
-                          <UiText message="Triggering an upgrade for existing projects" />
+                          <UiText
+                            message={
+                              "Triggering an upgrade for existing projects"
+                            }
+                          />
                         </strong>
                       ),
                     }}
@@ -674,6 +681,7 @@ function HostLessPackageForm({
         />
       )}
       <Form
+        id={formId}
         form={form}
         initialValues={initialValue}
         onFinish={async (values) => {
@@ -681,12 +689,11 @@ function HostLessPackageForm({
             const proceed =
               !isProd ||
               (await reactHardConfirm({
-                title: translate(getUiLocale(), "ARE YOU SUPER SURE??"),
-                message: translate(
-                  getUiLocale(),
+                title: uiT("ARE YOU SUPER SURE??"),
+                message: uiT(
                   "Did you read the warning and understand the implications, and will not make life difficult for the support engineer?",
                 ),
-                mustType: translate(getUiLocale(), "Yes I am super duper sure"),
+                mustType: uiT("Yes I am super duper sure"),
               }));
             if (proceed) {
               onSubmit({
@@ -717,7 +724,7 @@ function HostLessPackageForm({
         <Form.List name="npmPkg">
           {(fields, { add, remove }) => (
             <>
-              <UiText message="NPM Package to be installed:" /> <br />
+              <UiText message={"NPM Package to be installed:"} /> <br />
               {fields.map((field) => (
                 <div style={{ display: "flex", flexDirection: "row" }}>
                   <Form.Item name={field.name} style={{ width: "100%" }}>
@@ -746,7 +753,7 @@ function HostLessPackageForm({
         <Form.List name="cssImport">
           {(fields, { add, remove }) => (
             <>
-              <UiText message="CSS path to be imported:" />
+              <UiText message={"CSS path to be imported:"} />
               {fields.map((field) => (
                 <div style={{ display: "flex", flexDirection: "row" }}>
                   <Form.Item name={field.name} style={{ width: "100%" }}>
@@ -771,11 +778,16 @@ function HostLessPackageForm({
         <Form.List name="deps">
           {(fields, { add, remove }) => (
             <>
-              <UiText message="Any dependencies to other hostless packages?" />
+              <UiText
+                message={"Any dependencies to other hostless packages?"}
+              />
               {fields.map((field) => (
                 <div style={{ display: "flex", flexDirection: "row" }}>
                   <Form.Item name={field.name} style={{ width: "100%" }}>
-                    <Textbox placeholder="commerce" styleType={["bordered"]} />
+                    <Textbox
+                      placeholder={"commerce"}
+                      styleType={["bordered"]}
+                    />
                   </Form.Item>
                   <Button onClick={() => remove(field.name)}>
                     <Icon icon={MinusIcon} />
@@ -804,19 +816,6 @@ function HostLessPackageForm({
             data-test-id="hostless-react-version"
             styleType={["bordered"]}
           />
-        </Form.Item>
-        <Form.Item style={{ margin: 0 }}>
-          <Button
-            className="mr-sm"
-            htmlType="submit"
-            data-test-id="hostless-prompt-submit"
-            disabled={!!initialValue}
-          >
-            {"Submit (yes I'm sure!)"}
-          </Button>
-          <Button onClick={() => onSubmit(undefined)}>
-            <UiText message={"Cancel"} />
-          </Button>
         </Form.Item>
       </Form>
     </Modal>

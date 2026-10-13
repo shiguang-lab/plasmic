@@ -88,13 +88,13 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
       <PlasmicWebhooksItem
         checkbox={{
           props: {
-            "aria-label": "Enable webhook",
+            "aria-label": uiT("Enable webhook"),
             isChecked: enabled,
             onChange: (checked: boolean) => setEnabled(checked),
           },
         }}
         method={{
-          "aria-label": "Method",
+          "aria-label": uiT("Method"),
           value: webhook.method,
           onChange: (key) => {
             const w = { ...webhook };
@@ -108,7 +108,7 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
           )),
         }}
         url={{
-          "aria-label": "URL",
+          "aria-label": uiT("URL"),
           value: webhook.url,
           onChange: (e) => {
             const w = { ...webhook };
@@ -124,7 +124,9 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
                 onClick={() => setExpanded(!expanded)}
               >
                 <PresetsIcon />
-                {expanded ? "Hide advanced options" : "Advanced options..."}
+                {expanded
+                  ? uiT("Hide advanced options")
+                  : uiT("Advanced options...")}
               </Menu.Item>
               <Menu.Item
                 className={`${styles.item} ${styles.delete}`}
@@ -152,7 +154,7 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
           },
         }}
         sendPlasmicDataSwitch={{
-          "aria-label": "Send Plasmic data",
+          "aria-label": uiT("Send Plasmic data"),
           isChecked: webhook.includeChangeData ?? false,
           onChange: (val) => {
             const w = { ...webhook };
@@ -168,11 +170,9 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
               overlayStyle={{ zIndex: 1080 }}
               content={
                 <StandardMarkdown>
-                  {`
-Whether to send information about the changes in the project.
-
-[Learn more in the docs](https://docs.plasmic.app/learn/webhooks/).
-                  `}
+                  {uiT(
+                    "Whether to send information about the changes in the project. [Learn more in the docs](https://docs.plasmic.app/learn/webhooks/).",
+                  )}
                 </StandardMarkdown>
               }
             >

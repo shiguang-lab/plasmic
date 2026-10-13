@@ -1,4 +1,5 @@
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultActionMenuButtonProps,
   PlasmicActionMenuButton,
@@ -21,6 +22,8 @@ const ActionMenuButton = React.forwardRef(function ActionMenuButton(
   props: ActionMenuButtonProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
+  const { t: studioUiT } = useI18n();
+
   const {
     menu,
     onClick,
@@ -50,7 +53,14 @@ const ActionMenuButton = React.forwardRef(function ActionMenuButton(
       }}
       menuTrigger={{
         props: {
-          "aria-label": `${label ?? (typeof props.children === "string" ? props.children : "Actions")} menu`,
+          "aria-label": studioUiT("{part1} menu", {
+            part1: String(
+              label ??
+                (typeof props.children === "string"
+                  ? props.children
+                  : studioUiT("Actions")),
+            ),
+          }),
         },
         wrap: (x) => (
           <IFrameAwareDropdownMenu

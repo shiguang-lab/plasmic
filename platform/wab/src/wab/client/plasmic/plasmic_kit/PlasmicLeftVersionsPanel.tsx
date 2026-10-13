@@ -237,7 +237,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
                 </span>
                 <React.Fragment>
                   {
-                    "\u00a0track changes you make and allows you revert to a previous state of your project. "
+                    <>{" "}<UiText message={"track changes you make and allows you revert to a previous state of your project."} />{" "}</>
                   }
                 </React.Fragment>
               </React.Fragment>
@@ -254,7 +254,7 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
                 </span>
                 <React.Fragment>
                   {
-                    " create a permanent snapshot that can be deployed to production and imported by other projects to reuse components and assets."
+                    <>{" "}<UiText message={"create a permanent snapshot that can be deployed to production and imported by other projects to reuse components and assets."} /></>
                   }
                 </React.Fragment>
               </React.Fragment>

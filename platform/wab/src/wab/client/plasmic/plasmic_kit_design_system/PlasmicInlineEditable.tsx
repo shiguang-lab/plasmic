@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: btpz7A3thO
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -180,7 +181,7 @@ function PlasmicInlineEditable__RenderFunc(props: {
     >
       {(hasVariant($state, "editing", "editing") ? false : true)
         ? renderPlasmicSlot({
-            defaultContents: "Enter some text",
+            defaultContents: <UiText message={"Enter some text"} />,
             value: args.children,
             className: classNames(sty.slotTargetChildren, {
               [sty.slotTargetChildrendisabled]: hasVariant(

@@ -55,13 +55,13 @@
 }
 .freeBoxisFocused {
   box-shadow: 0px 0px 0px 1px #0000001a, 0px 2px 5px 0px #00000033;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   column-gap: 4px;
   row-gap: 0px;
 }
 .freeBoxcontained {
   box-shadow: none;
-  background: var(--token-7aKAiXanMe);
+  background: var(--ui-surface, var(--token-7aKAiXanMe));
   padding: 0px;
 }
 .variantsList {
@@ -87,7 +87,7 @@
   padding-left: 5px;
   padding-right: 5px;
   height: 24px;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   column-gap: 0px;
   border-radius: 3px;
 }
@@ -99,7 +99,7 @@
   background: var(--token-p-rw5DRJTx);
 }
 .root .dropdownTrigger:hover {
-  background: linear-gradient(#0000000d, #0000000d), #ffffff;
+  background: linear-gradient(#0000000d, #0000000d), var(--ui-surface, #ffffff);
 }
 .rootcontained_isEditable_isEmpty_isFocused
   .dropdownTriggercontained_isEditable_isEmpty_isFocused:hover {

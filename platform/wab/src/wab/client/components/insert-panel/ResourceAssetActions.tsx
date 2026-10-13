@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { FindReferencesModal } from "@/wab/client/components/sidebar/FindReferencesModal";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { Modal } from "@/wab/client/components/widgets/Modal";
@@ -24,7 +28,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
   const [view, setView] = React.useState<"preview" | "rename" | "references">();
   const [name, setName] = React.useState(asset.name);
   const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState(false);
+  const [error, setError] = React.useState<unknown>();
   const pending = React.useRef(false);
   const canEdit = () =>
     studioCtx.site.imageAssets.includes(asset) &&
@@ -47,7 +51,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
     }
     pending.current = true;
     setBusy(true);
-    setError(false);
+    setError(undefined);
     try {
       if (action === "rename") {
         await studioCtx.changeUnsafe(() => {
@@ -60,8 +64,8 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
         // The existing operation checks usages and owns deletion confirmation.
         await studioCtx.siteOps().tryDeleteImageAssets([asset]);
       }
-    } catch {
-      setError(true);
+    } catch (cause) {
+      setError(cause);
       if (action === "delete") {
         setView("preview");
       }
@@ -105,7 +109,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
           ],
           onClick: ({ key, domEvent }) => {
             domEvent.stopPropagation();
-            setError(false);
+            setError(undefined);
             if (key === "download") {
               downloadImageAsset(asset);
             } else if (key === "delete") {
@@ -153,10 +157,11 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
           ) : null
         }
       >
-        {error && (
+        {!!error && (
           <Alert
-            type="error"
+            type={getErrorType(error)}
             title={t("Failed to update asset")}
+            description={<ErrorDescription error={error} />}
             style={{ marginBottom: 12 }}
           />
         )}

@@ -16,9 +16,9 @@ import {
   useAsyncFnStrict,
   useAsyncStrict,
 } from "@/wab/client/hooks/useAsyncStrict";
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
+
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import GatsbyIcon from "@/wab/commons/images/gatsby.svg";
 import NextjsIcon from "@/wab/commons/images/nextjs.svg";
@@ -284,7 +284,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           <Button {...props2} onClick={onClick} disabled={isWaiting}>
             <span className={styles.missingButton}>
               {isWaiting ? (
-                "Waiting for GitHub..."
+                uiT("Waiting for GitHub...")
               ) : (
                 <UiText message={"Adjust GitHub App permissions"} />
               )}
@@ -368,7 +368,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
       }}
       privateRepo={{
         props: {
-          "aria-label": "Private repository?",
+          "aria-label": uiT("Private repository?"),
           isDisabled: saveState.loading,
           onChange: (v) => setPrivateRepo(v),
           isChecked: privateRepo,
@@ -423,14 +423,10 @@ function GithubIntegration(props: GithubIntegrationProps) {
           const sure =
             key !== "react" ||
             (await reactConfirm({
-              message: translate(
-                getUiLocale(),
+              message: uiT(
                 "Are you sure you want to use plain React? If you are trying to directly publish the site, pages/routes will not work out of the box. You'll need to manually add your own routing system using something like react-router.",
               ),
-              title: translate(
-                getUiLocale(),
-                "Framework needed to support pages",
-              ),
+              title: uiT("Framework needed to support pages"),
             }));
           if (sure) {
             setFramework(key as GitSyncPlatform);
@@ -440,7 +436,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           <Select.Option
             value="nextjs"
             key="nextjs"
-            textValue="Next.js (recommended)"
+            textValue={uiT("Next.js (recommended)")}
           >
             <img className={styles.icon} src={NextjsIcon} alt="" /> Next.js
           </Select.Option>,
@@ -450,7 +446,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           <Select.Option
             value="react"
             key="react"
-            textValue="None (plain React—advanced)"
+            textValue={uiT("None (plain React—advanced)")}
           >
             <img className={styles.icon} src={ReactIcon} alt="" />{" "}
             <UiText message={"None (plain React)"} />

@@ -1,7 +1,9 @@
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { zIndex } from "@/wab/client/z-index";
 import {
@@ -98,8 +100,8 @@ export function makeVariantMenu(opts: {
             <Menu.Item key="edit-selectors" onClick={onEditSelectors}>
               <UiText message={"Edit"} />{" "}
               {isCodeComponentVariant(variant)
-                ? "registered keys"
-                : "interaction selectors"}
+                ? translate(getUiLocale(), "registered keys")
+                : translate(getUiLocale(), "interaction selectors")}
             </Menu.Item>,
           );
         });

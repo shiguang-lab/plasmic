@@ -1,12 +1,13 @@
+import { normalizeError, showError } from "@/wab/client/ErrorNotifications";
+import { ErrorDescription } from "@/wab/client/api-error-presentation";
 import {
-  loadAppCtx,
   NonAuthCtx,
   NonAuthCtxContext,
+  loadAppCtx,
   useNonAuthCtx,
 } from "@/wab/client/app-ctx";
 import type FullCodeEditor from "@/wab/client/components/coding/FullCodeEditor";
 import LazyFullCodeEditor from "@/wab/client/components/coding/LazyFullCodeEditor";
-import { smartRender } from "@/wab/client/components/pages/admin/admin-util";
 import { AdminBranchingInspector } from "@/wab/client/components/pages/admin/AdminBranchingInspector";
 import {
   AdminCtxProvider,
@@ -14,6 +15,7 @@ import {
 } from "@/wab/client/components/pages/admin/AdminCtx";
 import { AdminImportProjectsFromProd } from "@/wab/client/components/pages/admin/AdminImportProjectsFromProd";
 import { AdminTeamsView } from "@/wab/client/components/pages/admin/AdminTeamsView";
+import { smartRender } from "@/wab/client/components/pages/admin/admin-util";
 import { LinkButton, SearchBox } from "@/wab/client/components/widgets";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { downloadBlob, getUploadedFile } from "@/wab/client/dom-utils";
@@ -23,10 +25,10 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import CheckIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Check";
 import CircleCloseIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__CircleClose";
 import { ApiFeatureTier, ApiProjectRevision } from "@/wab/shared/ApiSchema";
+import { PkgVersionInfo } from "@/wab/shared/SharedApi";
 import { assert, tryRemove } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { PkgVersionInfo } from "@/wab/shared/SharedApi";
 import {
   Button,
   Checkbox,
@@ -34,11 +36,11 @@ import {
   Form,
   Input,
   InputNumber,
-  notification,
   Skeleton,
   Table,
   TablePaginationConfig,
   Tabs,
+  notification,
 } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import dayjs from "dayjs";
@@ -70,7 +72,7 @@ function AdminPageTabs() {
       items={[
         {
           key: "teams",
-          label: "Teams",
+          label: uiT("Teams"),
           children: (
             <div className="flex-col gap-xxxlg">
               <AdminTeamsView />
@@ -97,7 +99,7 @@ function AdminPageTabs() {
         },
         {
           key: "devflags",
-          label: "Devflags",
+          label: uiT("Devflags"),
           children: (
             <div className="flex-col gap-xxxlg">
               <DevFlagControls />
@@ -106,7 +108,7 @@ function AdminPageTabs() {
         },
         {
           key: "pricing",
-          label: "Pricing",
+          label: uiT("Pricing"),
           children: (
             <div className="flex-col gap-xxxlg">
               <FeatureTierControls />
@@ -116,7 +118,7 @@ function AdminPageTabs() {
         },
         {
           key: "dev",
-          label: "Development",
+          label: uiT("Development"),
           children: (
             <div className="flex-col gap-xxxlg">
               <DownloadPkgForPkgMgr />
@@ -129,7 +131,7 @@ function AdminPageTabs() {
         },
         {
           key: "branching-inspect",
-          label: "Branching inspector",
+          label: uiT("Branching inspector"),
           children: (
             <div className="flex-col gap-xxxlg">
               <AdminBranchingInspector />
@@ -142,13 +144,17 @@ function AdminPageTabs() {
 }
 
 function PublicProjectsView() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [projectId, setProjectId] = useState("");
   const [isChecked, setIsChecked] = useState(false);
 
   return (
     <div>
-      <h2>Update Public Projects</h2>
+      <h2>
+        <UiText message={"Update Public Projects"} />
+      </h2>
       <Form
         onFinish={async () => {
           await nonAuthCtx.api.setSiteInfo(projectId, {
@@ -159,14 +165,15 @@ function PublicProjectsView() {
         <Input
           type={"input"}
           value={projectId}
-          placeholder="Project Id"
+          placeholder={studioUiT("Project Id")}
           onChange={(e) => setProjectId(e.target.value)}
         />
         <Checkbox
           onChange={(e) => setIsChecked(e.target.checked)}
           checked={isChecked}
         >
-          Should be public
+          {" "}
+          <UiText message={"Should be public"} />{" "}
         </Checkbox>
         <Button htmlType={"submit"}>
           <UiText message={"Update"} />
@@ -177,14 +184,22 @@ function PublicProjectsView() {
 }
 
 function CloneProjectView() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
 
   return (
     <div>
-      <h2>Clone projects</h2>
+      <h2>
+        <UiText message={"Clone projects"} />
+      </h2>
       <p>
-        This allows you to clone projects by ID, even if share-by-link is turned
-        off
+        {" "}
+        <UiText
+          message={
+            "This allows you to clone projects by ID, even if share-by-link is turned off"
+          }
+        />{" "}
       </p>
       <Form
         onFinish={async (event) => {
@@ -195,7 +210,7 @@ function CloneProjectView() {
               event.revision,
             );
             notification.success({
-              message: "Project cloned",
+              message: studioUiT("Project cloned"),
               description: (
                 <a
                   href={APP_ROUTES.project.fill({
@@ -203,22 +218,25 @@ function CloneProjectView() {
                   })}
                   target="_blank"
                 >
-                  Go to project
+                  {" "}
+                  <UiText message={"Go to project"} />{" "}
                 </a>
               ),
             });
           } catch (e) {
-            notification.error({ message: `${e}` });
+            showError(normalizeError(e));
           }
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input type={"input"} placeholder="Project Id" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input type={"input"} placeholder={studioUiT("Project Id")} />
         </Form.Item>
-        <Form.Item name="revision" label="Revision (optional)">
-          <Input type={"number"} placeholder="Revision" />
+        <Form.Item name="revision" label={studioUiT("Revision (optional)")}>
+          <Input type={"number"} placeholder={studioUiT("Revision")} />
         </Form.Item>
-        <Button htmlType={"submit"}>Clone</Button>
+        <Button htmlType={"submit"}>
+          <UiText message={"Clone"} />
+        </Button>
       </Form>
     </div>
   );
@@ -228,8 +246,12 @@ function UploadProject() {
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div>
-      <h2>Upload project from JSON</h2>
-      <p>This uploads a json bundle as a project.</p>
+      <h2>
+        <UiText message={"Upload project from JSON"} />
+      </h2>
+      <p>
+        <UiText message={"This uploads a json bundle as a project."} />
+      </p>
       <Button
         onClick={() =>
           getUploadedFile(async (data: string) => {
@@ -248,13 +270,21 @@ function UploadProject() {
 }
 
 function DownloadProjectView() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div>
-      <h2>Download project as JSON</h2>
+      <h2>
+        <UiText message={"Download project as JSON"} />
+      </h2>
       <p>
-        This downloads a project as a json blob, which you can then import into
-        your own local dev server.
+        {" "}
+        <UiText
+          message={
+            "This downloads a project as a json blob, which you can then import into your own local dev server."
+          }
+        />{" "}
       </p>
       <Form
         onFinish={async (event) => {
@@ -264,16 +294,16 @@ function DownloadProjectView() {
               dontMigrateProject: event.dontMigrateProject,
             });
           } catch (e) {
-            notification.error({ message: `${e}` });
+            showError(normalizeError(e));
           }
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input type={"input"} placeholder="Project Id" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input type={"input"} placeholder={studioUiT("Project Id")} />
         </Form.Item>
         <Form.Item
           name="dontMigrateProject"
-          label="Don't migrate project?"
+          label={studioUiT("Don't migrate project?")}
           valuePropName="checked"
         >
           <Checkbox />
@@ -287,14 +317,21 @@ function DownloadProjectView() {
 }
 
 function DownloadProjectViewAndBranches() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div>
-      <h2>Download project and branches as JSON</h2>
+      <h2>
+        <UiText message={"Download project and branches as JSON"} />
+      </h2>
       <p>
-        This downloads the whole project data, including branches and
-        dependencies, as a JSON blob, which you can then import into your own
-        local dev server.
+        {" "}
+        <UiText
+          message={
+            "This downloads the whole project data, including branches and dependencies, as a JSON blob, which you can then import into your own local dev server."
+          }
+        />{" "}
       </p>
       <Form
         onFinish={async (event) => {
@@ -309,17 +346,19 @@ function DownloadProjectViewAndBranches() {
                 .filter((branchId) => !!branchId),
             );
           } catch (e) {
-            notification.error({ message: `${e}` });
+            showError(normalizeError(e));
           }
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input type={"input"} placeholder="Project Id" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input type={"input"} placeholder={studioUiT("Project Id")} />
         </Form.Item>
-        <Form.Item name="branchIds" label="Branch IDs (or names)">
+        <Form.Item name="branchIds" label={studioUiT("Branch IDs (or names)")}>
           <Input
             type={"input"}
-            placeholder="Comma separated list of branch IDs (main is always included)"
+            placeholder={studioUiT(
+              "Comma separated list of branch IDs (main is always included)",
+            )}
           />
         </Form.Item>
         <Button htmlType={"submit"}>
@@ -363,18 +402,24 @@ function DownloadPlumePkg() {
 
   return (
     <div>
-      <h2>Download Plume pkg as json</h2>
+      <h2>
+        <UiText message={"Download Plume pkg as json"} />
+      </h2>
       <Button onClick={() => download("latest")}>
-        Download latest version
+        {" "}
+        <UiText message={"Download latest version"} />{" "}
       </Button>
       <Button onClick={() => download("current")}>
-        Download currently used
+        {" "}
+        <UiText message={"Download currently used"} />{" "}
       </Button>
     </div>
   );
 }
 
 function DownloadPkgForPkgMgr() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [projectId, setProjectId] = useState("");
   const download = async () => {
@@ -395,17 +440,21 @@ function DownloadPkgForPkgMgr() {
   };
   return (
     <div>
-      <h2>Download pkg as json for pkg-mgr</h2>
+      <h2>
+        <UiText message={"Download pkg as json for pkg-mgr"} />
+      </h2>
       <Form>
-        <Form.Item name="projectId" label="Project ID">
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
           <Input
             type={"input"}
             value={projectId}
-            placeholder="Project Id"
+            placeholder={studioUiT("Project Id")}
             onChange={(e) => setProjectId(e.target.value)}
           />
         </Form.Item>
-        <Button onClick={() => download()}>Download latest version</Button>
+        <Button onClick={() => download()}>
+          <UiText message={"Download latest version"} />
+        </Button>
       </Form>
     </div>
   );
@@ -457,8 +506,14 @@ function DevFlagControls() {
           await submit();
         }}
       >
-        <h2>Dev Flag Overrides</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        <h2>
+          <UiText message={"Dev Flag Overrides"} />
+        </h2>
+        {!!error && (
+          <p style={{ color: "red" }}>
+            <ErrorDescription error={error} />
+          </p>
+        )}
         {submitError && <p style={{ color: "red" }}>{submitError}</p>}
         <div style={{ height: 1050 }}>
           {!isLoading ? (
@@ -482,16 +537,16 @@ function DevFlagControls() {
         dataSource={devFlagVersions ?? []}
         columns={[
           {
-            title: "Id",
+            title: uiT("Id"),
             dataIndex: "id",
           },
           {
-            title: "Created by",
+            title: uiT("Created by"),
             dataIndex: "createdBy",
             render: (val) => val?.email,
           },
           {
-            title: "Created at",
+            title: uiT("Created at"),
             dataIndex: "createdAt",
             render: (val) => `${moment.utc(val).fromNow()} - ${val}`,
           },
@@ -510,11 +565,14 @@ function DevFlagControls() {
                         await nonAuthCtx.api.setDevFlagOverrides(record.data);
                         await mutate();
                         await mutateVersions();
-                        alert("Reverted! Reload the page to see the changes.");
+                        alert(
+                          uiT("Reverted! Reload the page to see the changes."),
+                        );
                       }
                     }}
                   >
-                    Revert
+                    {" "}
+                    <UiText message={"Revert"} />{" "}
                   </LinkButton>
                   <LinkButton
                     type="button"
@@ -522,7 +580,8 @@ function DevFlagControls() {
                       setCompareTo(record.data);
                     }}
                   >
-                    Diff
+                    {" "}
+                    <UiText message={"Diff"} />{" "}
                   </LinkButton>
                 </>
               );
@@ -534,7 +593,7 @@ function DevFlagControls() {
       <Modal
         open={compareTo.length > 0}
         footer={null}
-        title={"Diff"}
+        title={uiT("Diff")}
         onCancel={() => setCompareTo("")}
         width={1500}
       >
@@ -556,7 +615,9 @@ function DevFlagControls() {
           )}
           {compareTo.length > 0 && (
             <div>
-              <h3>Old version</h3>
+              <h3>
+                <UiText message={"Old version"} />
+              </h3>
               <pre
                 style={{
                   width: 600,
@@ -580,7 +641,7 @@ export function FeatureTierControls() {
   const [query, setQuery] = useState<string | undefined>("");
   // New tier submission form
   const [newTierData, setNewTierData] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<unknown>("");
   const [submitting, setSubmitting] = useState(false);
 
   // Get tiers
@@ -608,7 +669,7 @@ export function FeatureTierControls() {
       await nonAuthCtx.api.addFeatureTier(parsedData);
       setError("");
     } catch (e) {
-      setError(e.toString());
+      setError(e);
     } finally {
       setSubmitting(false);
       listFeatureTiers.retry();
@@ -617,7 +678,9 @@ export function FeatureTierControls() {
 
   return (
     <div className="mv-lg">
-      <h2>Feature Tiers</h2>
+      <h2>
+        <UiText message={"Feature Tiers"} />
+      </h2>
       <SearchBox value={query} onChange={(e) => setQuery(e.target.value)} />
       <Table
         dataSource={tiers.filter((tier) => {
@@ -651,10 +714,18 @@ export function FeatureTierControls() {
         }}
       >
         <h3>
-          Add new tier (click on a row above to start with an existing
-          definition)
+          {" "}
+          <UiText
+            message={
+              "Add new tier (click on a row above to start with an existing definition)"
+            }
+          />{" "}
         </h3>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {!!error && (
+          <p style={{ color: "red" }}>
+            <ErrorDescription error={error} />
+          </p>
+        )}
         <TextArea
           value={newTierData}
           onChange={(e) => setNewTierData(e.target.value)}
@@ -668,18 +739,28 @@ export function FeatureTierControls() {
 }
 
 function RevertProjectRev() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div>
-      <h2>Revert project to revision</h2>
-      <p>Creates a new revision with data from a specific revision</p>
+      <h2>
+        <UiText message={"Revert project to revision"} />
+      </h2>
+      <p>
+        <UiText
+          message={"Creates a new revision with data from a specific revision"}
+        />
+      </p>
       <Form
         onFinish={async (event) => {
           const revision = Number(event.revision);
           console.log(`Reverting ${event.projectId} to ${revision}`);
           if (!Number.isSafeInteger(revision)) {
             notification.error({
-              message: `Invalid revision: ${event.revision}`,
+              message: studioUiT("Invalid revision: {part1}", {
+                part1: String(event.revision),
+              }),
             });
             return;
           }
@@ -689,29 +770,37 @@ function RevertProjectRev() {
               event.projectId,
               revision,
             );
-            notification.success({ message: "Successfully reverted!" });
+            notification.success({
+              message: studioUiT("Successfully reverted!"),
+            });
           } catch (e) {
-            notification.error({ message: `${e}` });
+            showError(normalizeError(e));
           }
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input placeholder="Project ID" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input placeholder={studioUiT("Project ID")} />
         </Form.Item>
-        <Form.Item name="revision" label="Revision to revert to">
-          <Input placeholder="Revision number" type={"number"} />
+        <Form.Item name="revision" label={studioUiT("Revision to revert to")}>
+          <Input placeholder={studioUiT("Revision number")} type={"number"} />
         </Form.Item>
-        <Button htmlType="submit">Revert</Button>
+        <Button htmlType="submit">
+          <UiText message={"Revert"} />
+        </Button>
       </Form>
     </div>
   );
 }
 
 function ChangeProjectOwner() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div>
-      <h2>Change project owner</h2>
+      <h2>
+        <UiText message={"Change project owner"} />
+      </h2>
       <Form
         onFinish={async (event) => {
           try {
@@ -719,17 +808,22 @@ function ChangeProjectOwner() {
               event.projectId,
               event.ownerEmail,
             );
-            notification.success({ message: "Successfully updated!" });
+            notification.success({
+              message: studioUiT("Successfully updated!"),
+            });
           } catch (e) {
-            notification.error({ message: `${e}` });
+            showError(normalizeError(e));
           }
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input placeholder="Project ID" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input placeholder={studioUiT("Project ID")} />
         </Form.Item>
-        <Form.Item name="ownerEmail" label="New owner email address">
-          <Input placeholder="Owner email" type={"email"} />
+        <Form.Item
+          name="ownerEmail"
+          label={studioUiT("New owner email address")}
+        >
+          <Input placeholder={studioUiT("Owner email")} type={"email"} />
         </Form.Item>
         <Button htmlType="submit">
           <UiText message={"Update"} />
@@ -740,12 +834,16 @@ function ChangeProjectOwner() {
 }
 
 function PromotionCode() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [form] = Form.useForm();
 
   return (
     <div>
-      <h2>Create promotion code</h2>
+      <h2>
+        <UiText message={"Create promotion code"} />
+      </h2>
       <Form
         form={form}
         onFinish={async (event) => {
@@ -771,22 +869,23 @@ function PromotionCode() {
             expirationDate,
           );
           notification.info({
-            message: `Created promotion code with id = ${id}. The promotion page is https://plasmic.app/?promo=${encodeURIComponent(
-              id,
-            )}`,
+            message: studioUiT(
+              "Created promotion code with id = {part1}. The promotion page is https://plasmic.app/?promo={part2}",
+              { part1: String(id), part2: String(encodeURIComponent(id)) },
+            ),
           });
         }}
       >
-        <Form.Item name="id" label="Promo code">
+        <Form.Item name="id" label={studioUiT("Promo code")}>
           <Input />
         </Form.Item>
-        <Form.Item name="message" label="Banner message">
+        <Form.Item name="message" label={studioUiT("Banner message")}>
           <Input.TextArea />
         </Form.Item>
-        <Form.Item name="trialDays" label="How many days of trial">
+        <Form.Item name="trialDays" label={studioUiT("How many days of trial")}>
           <Input type="number" defaultValue={DEVFLAGS.freeTrialPromoDays} />
         </Form.Item>
-        <Form.Item name="expirationDate" label="Expiration Date">
+        <Form.Item name="expirationDate" label={studioUiT("Expiration Date")}>
           <DatePicker format={"YYYY-MM-DD"} />
         </Form.Item>
         <Form.Item>
@@ -812,6 +911,8 @@ function LinkToDownloadString({
   children,
   fileName,
 }: LinkToDownloadStringProps) {
+  const { t: studioUiT } = useI18n();
+
   const blob = useMemo(
     () =>
       new Blob([content], {
@@ -839,12 +940,14 @@ function LinkToDownloadString({
       download={fileName || "data.json"}
       style={{ padding: 4 }}
     >
-      {children ?? "Download"}
+      {children ?? studioUiT("Download")}
     </a>
   );
 }
 
 function CopilotFeedbackView() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [query, setQuery] = useState("");
   const PAGE_SIZE = 10;
@@ -867,9 +970,11 @@ function CopilotFeedbackView() {
 
   return (
     <div className="mv-lg">
-      <h2>View AI Feedback</h2>
+      <h2>
+        <UiText message={"View AI Feedback"} />
+      </h2>
       <SearchBox
-        placeholder={"Project ID or user email (press enter to run)"}
+        placeholder={studioUiT("Project ID or user email (press enter to run)")}
         onEdit={(v) => setQuery(v)}
       />
       <Table
@@ -878,20 +983,20 @@ function CopilotFeedbackView() {
         dataSource={feedbackResp.value?.feedback ?? []}
         columns={[
           {
-            title: "User",
+            title: studioUiT("User"),
             dataIndex: "createdByEmail",
           },
           {
-            title: "Prompt",
+            title: studioUiT("Prompt"),
             dataIndex: "userPrompt",
           },
           {
-            title: "Response",
+            title: studioUiT("Response"),
             dataIndex: "response",
             render: (string) => <code className="code">{string}</code>,
           },
           {
-            title: "Feedback",
+            title: studioUiT("Feedback"),
             dataIndex: "feedback",
             render: (feedback?: boolean) =>
               feedback == null ? null : feedback ? (
@@ -905,11 +1010,11 @@ function CopilotFeedbackView() {
               ),
           },
           {
-            title: "Feedback description",
+            title: studioUiT("Feedback description"),
             dataIndex: "feedbackDescription",
           },
           {
-            title: "Full Prompt",
+            title: studioUiT("Full Prompt"),
             dataIndex: "fullPromptSnapshot",
             render: (snapshot) => {
               return (
@@ -920,11 +1025,11 @@ function CopilotFeedbackView() {
             },
           },
           {
-            title: "Project ID",
+            title: studioUiT("Project ID"),
             dataIndex: "projectId",
           },
           {
-            title: "Created at",
+            title: studioUiT("Created at"),
             dataIndex: "createdAt",
             render: smartRender,
           },
@@ -938,9 +1043,11 @@ function CopilotFeedbackView() {
       />
       {feedbackResp.value && (
         <>
-          Total: {feedbackResp.value.totalLikes} (
-          {feedbackResp.value.totalLikes} likes,{" "}
-          {feedbackResp.value.totalDislikes} dislikes)
+          {" "}
+          <UiText message={"Total:"} /> {feedbackResp.value.totalLikes} (
+          {feedbackResp.value.totalLikes} <UiText message={"likes,"} />{" "}
+          {feedbackResp.value.totalDislikes}{" "}
+          <UiText message={"dislikes)"} />{" "}
         </>
       )}
     </div>
@@ -948,6 +1055,8 @@ function CopilotFeedbackView() {
 }
 
 function AppAuthMetrics() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [recency, setRecency] = useState(7);
   const [threshold, setThreshold] = useState(0);
@@ -960,7 +1069,9 @@ function AppAuthMetrics() {
 
   return (
     <div className="mv-lg">
-      <h2>App Auth Metrics</h2>
+      <h2>
+        <UiText message={"App Auth Metrics"} />
+      </h2>
       <InputNumber
         value={recency}
         onChange={(value) => setRecency(value ?? 0)}
@@ -981,28 +1092,34 @@ function AppAuthMetrics() {
           }
         }}
       >
-        Query / Refresh
+        {" "}
+        <UiText message={"Query / Refresh"} />{" "}
       </Button>
       <h4>
-        Total apps registered with plasmic-auth:{" "}
+        {" "}
+        <UiText message={"Total apps registered with plasmic-auth:"} />{" "}
         {data?.metrics?.appsUsingPlasmicAuth}{" "}
       </h4>
       <h4>
-        Total apps registered with custom-auth:{" "}
+        {" "}
+        <UiText message={"Total apps registered with custom-auth:"} />{" "}
         {data?.metrics?.appsUsingCustomAuth}{" "}
       </h4>
-      <h4>Number of active apps: {data?.metrics?.numberOfActiveApps} </h4>
+      <h4>
+        <UiText message={"Number of active apps:"} />{" "}
+        {data?.metrics?.numberOfActiveApps}{" "}
+      </h4>
       <Table
         rowKey="projectId"
         loading={isLoading}
         dataSource={data?.metrics?.mostActiveApps ?? []}
         columns={[
           {
-            title: "Project ID",
+            title: studioUiT("Project ID"),
             dataIndex: "projectId",
           },
           {
-            title: "Active users that logged in",
+            title: studioUiT("Active users that logged in"),
             dataIndex: "amount",
           },
         ]}
@@ -1012,11 +1129,19 @@ function AppAuthMetrics() {
 }
 
 function DownloadAppMeta() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   return (
     <div>
-      <h2>Download App Meta</h2>
-      <p>This downloads metadata of auth and datasources of an app</p>
+      <h2>
+        <UiText message={"Download App Meta"} />
+      </h2>
+      <p>
+        <UiText
+          message={"This downloads metadata of auth and datasources of an app"}
+        />
+      </p>
       <Form
         onFinish={async (event) => {
           try {
@@ -1027,12 +1152,12 @@ function DownloadAppMeta() {
             });
             downloadBlob(blob, `app-${event.projectId}-meta.json`);
           } catch (e) {
-            notification.error({ message: `${e}` });
+            showError(normalizeError(e));
           }
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input type={"input"} placeholder="Project Id" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input type={"input"} placeholder={studioUiT("Project Id")} />
         </Form.Item>
         <Button htmlType={"submit"}>
           <UiText message={"Download"} />
@@ -1043,6 +1168,8 @@ function DownloadAppMeta() {
 }
 
 function EditProjectRevBundle() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [initialRev, setInitialRev] = React.useState<
     ApiProjectRevision | undefined
@@ -1050,7 +1177,9 @@ function EditProjectRevBundle() {
   const editorRef = React.useRef<FullCodeEditor>(null);
   return (
     <div>
-      <h2>Edit ProjectRevision bundle</h2>
+      <h2>
+        <UiText message={"Edit ProjectRevision bundle"} />
+      </h2>
       <Form
         onFinish={async (values) => {
           const projectId = values.projectId;
@@ -1063,22 +1192,23 @@ function EditProjectRevBundle() {
           setInitialRev(rev);
         }}
       >
-        <Form.Item name="projectId" label="Project ID">
-          <Input placeholder="Project ID" />
+        <Form.Item name="projectId" label={studioUiT("Project ID")}>
+          <Input placeholder={studioUiT("Project ID")} />
         </Form.Item>
-        <Form.Item name="branchId" label="Branch ID (Optional)">
-          <Input placeholder="Branch ID" />
+        <Form.Item name="branchId" label={studioUiT("Branch ID (Optional)")}>
+          <Input placeholder={studioUiT("Branch ID")} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            Lookup ProjectRevision
+            {" "}
+            <UiText message={"Lookup ProjectRevision"} />{" "}
           </Button>
         </Form.Item>
       </Form>
       <Form>
         {initialRev && (
           <>
-            <Form.Item label="Current revision">
+            <Form.Item label={studioUiT("Current revision")}>
               <Input readOnly value={initialRev.revision} />
             </Form.Item>
             <div style={{ height: 500 }}>
@@ -1105,7 +1235,9 @@ function EditProjectRevBundle() {
                         initialRev.branchId,
                       );
                     notification.success({
-                      message: `Project saved as revision ${res.revision}`,
+                      message: studioUiT("Project saved as revision {part1}", {
+                        part1: String(res.revision),
+                      }),
                     });
                   }
                 }}
@@ -1121,6 +1253,8 @@ function EditProjectRevBundle() {
 }
 
 function EditPkgVersionBundle() {
+  const { t: studioUiT } = useI18n();
+
   const nonAuthCtx = useNonAuthCtx();
   const [pkgVersion, setPkgVersion] = React.useState<
     PkgVersionInfo | undefined
@@ -1128,8 +1262,12 @@ function EditPkgVersionBundle() {
   const editorRef = React.useRef<FullCodeEditor>(null);
   return (
     <div>
-      <h2>Edit PkgVersion bundle</h2>
-      <p>Look up either by Pkg ID or PkgVersion ID</p>
+      <h2>
+        <UiText message={"Edit PkgVersion bundle"} />
+      </h2>
+      <p>
+        <UiText message={"Look up either by Pkg ID or PkgVersion ID"} />
+      </p>
       <Form
         onFinish={async (values) => {
           const res = await nonAuthCtx.api.getPkgVersionAsAdmin({
@@ -1146,18 +1284,22 @@ function EditPkgVersionBundle() {
           setPkgVersion(res);
         }}
       >
-        <Form.Item name="pkgId" label="Pkg ID">
-          <Input placeholder="Pkg ID" />
+        <Form.Item name="pkgId" label={studioUiT("Pkg ID")}>
+          <Input placeholder={studioUiT("Pkg ID")} />
         </Form.Item>
-        <Form.Item name="version" label="Pkg version string (empty for latest)">
-          <Input placeholder="Pkg version string" />
+        <Form.Item
+          name="version"
+          label={studioUiT("Pkg version string (empty for latest)")}
+        >
+          <Input placeholder={studioUiT("Pkg version string")} />
         </Form.Item>
-        <Form.Item name="pkgVersionId" label="PkgVersion ID">
-          <Input placeholder="PkgVersion ID" />
+        <Form.Item name="pkgVersionId" label={studioUiT("PkgVersion ID")}>
+          <Input placeholder={studioUiT("PkgVersion ID")} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            Lookup
+            {" "}
+            <UiText message={"Lookup"} />{" "}
           </Button>
         </Form.Item>
       </Form>
@@ -1165,7 +1307,9 @@ function EditPkgVersionBundle() {
         {pkgVersion && (
           <>
             <p>
-              <code>PkgVersion ID {pkgVersion.id}</code>
+              <code>
+                <UiText message={"PkgVersion ID"} /> {pkgVersion.id}
+              </code>
             </p>
             <p>
               <code>
@@ -1193,7 +1337,7 @@ function EditPkgVersionBundle() {
                       data,
                     });
                     notification.success({
-                      message: `PkgVersion saved`,
+                      message: studioUiT("PkgVersion saved"),
                     });
                   }
                 }}

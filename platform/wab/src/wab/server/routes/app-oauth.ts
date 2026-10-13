@@ -7,6 +7,7 @@ import {
 import { superDbMgr } from "@/wab/server/routes/util";
 import { getEncryptionKey } from "@/wab/server/secrets";
 import { makeStableEncryptor } from "@/wab/server/util/crypt";
+import { UnauthorizedError } from "@/wab/shared/ApiErrors/errors";
 import { ProjectId, UserId } from "@/wab/shared/ApiSchema";
 import crypto from "crypto";
 import { Request, Response } from "express-serve-static-core";
@@ -174,7 +175,7 @@ function decodeUserToken(token: string) {
     logger().info(`Decoded app auth token to ${info.endUserId}`, info);
     return info;
   } catch (err) {
-    throw new Error("Invalid token");
+    throw new UnauthorizedError("Invalid token");
   }
 }
 

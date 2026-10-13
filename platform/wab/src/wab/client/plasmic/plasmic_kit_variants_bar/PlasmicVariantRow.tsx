@@ -11,6 +11,7 @@
 // Plasmic Project: kdj5vahTyUKxznuR6rrtt6
 // Component: 0Rv3wK0NN-
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -177,7 +178,7 @@ function PlasmicVariantRow__RenderFunc(props: {
         />
       ) : null}
       {renderPlasmicSlot({
-        defaultContents: "Enter some text",
+        defaultContents: <UiText message={"Enter some text"} />,
         value: args.children,
         className: classNames(sty.slotTargetChildren, {
           [sty.slotTargetChildrenisBase]: hasVariant(

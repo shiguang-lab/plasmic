@@ -135,14 +135,18 @@ function PermissionsTab_(
       if (validator.isEmail(email)) {
         if (accessesByEmail.find((u) => u.email === email)) {
           notification.warning({
-            message: `Email ${email} has already been added`,
+            message: uiT("Email {part1} has already been added", {
+              part1: String(email),
+            }),
           });
         } else {
           emails.push(email);
         }
       } else {
         notification.warning({
-          message: `Email ${email} is not valid`,
+          message: uiT("Email {part1} is not valid", {
+            part1: String(email),
+          }),
         });
       }
     });
@@ -152,14 +156,18 @@ function PermissionsTab_(
       if (domain.startsWith("@") && validator.isFQDN(domain.substring(1))) {
         if (accessesByDomain.find((u) => u.domain === domain)) {
           notification.warning({
-            message: `Domain ${domain} has already been added`,
+            message: uiT("Domain {part1} has already been added", {
+              part1: String(domain),
+            }),
           });
         } else {
           domains.push(domain);
         }
       } else {
         notification.warning({
-          message: `Domain ${domain} is not valid`,
+          message: uiT("Domain {part1} is not valid", {
+            part1: String(domain),
+          }),
         });
       }
     });
@@ -169,7 +177,9 @@ function PermissionsTab_(
       if (accessesByGroup.find((u) => u.directoryEndUserGroupId === groupId)) {
         const group = groups.find((g) => g.id === groupId);
         notification.warning({
-          message: `Group ${group?.name} has already been added`,
+          message: uiT("Group {part1} has already been added", {
+            part1: String(group?.name),
+          }),
         });
       } else {
         groupIds.push(groupId);
@@ -313,7 +323,7 @@ function PermissionsTab_(
         value: search,
       },
       isDomainEntry(search) && {
-        label: `Add anyone${search}`,
+        label: uiT("Add anyone{part1}", { part1: String(search) }),
         value: search,
       },
     ]).filter(({ value }) => !invites.includes(value)),
@@ -393,8 +403,13 @@ function PermissionsTab_(
               <Tooltip
                 title={
                   published
-                    ? `Applies only to emails, not @domains or groups. Will be invited to ${prodUrl}.`
-                    : "Project must first be published at some URL, or there's nowhere to invite users to!"
+                    ? uiT(
+                        "Applies only to emails, not @domains or groups. Will be invited to {part1}.",
+                        { part1: String(prodUrl) },
+                      )
+                    : uiT(
+                        "Project must first be published at some URL, or there's nowhere to invite users to!",
+                      )
                 }
               >
                 <div>{node}</div>
@@ -552,7 +567,9 @@ function PermissionsTab_(
               return (
                 <PermissionRule
                   key={access.id}
-                  ruleName={`ID: ${access.externalId}`}
+                  ruleName={uiT("ID: {part1}", {
+                    part1: String(access.externalId),
+                  })}
                   roles={roles}
                   value={access.roleId}
                   isFake={access.isFake}
@@ -569,7 +586,7 @@ function PermissionsTab_(
             <PermissionRule
               key="registered"
               showDenied
-              ruleName={"General Access"}
+              ruleName={uiT("General Access")}
               infoIcon={{
                 wrap: (child) => {
                   return (

@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: kkbHZ8nmgGH
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -292,7 +293,7 @@ function PlasmicActivityFeedItem__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Something happened",
+          defaultContents: <UiText message={"Something happened"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle, {
             [sty.slotTargetTitlestate_anonymousVisited]: hasVariant(

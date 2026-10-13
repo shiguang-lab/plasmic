@@ -213,7 +213,7 @@ function PlasmicThreadList__RenderFunc(props: {
                 sty.span__bNrLu
               )}
             >
-              {"to leave a comment on this selected element."}
+              {<UiText message={"to leave a comment on this selected element."} />}
             </span>
           </div>
         </div>

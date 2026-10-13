@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: OKf_hhc2Skl
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -255,7 +256,7 @@ function PlasmicPermissionRule__RenderFunc(props: {
             })}
           >
             {renderPlasmicSlot({
-              defaultContents: "Anonymous visitors",
+              defaultContents: <UiText message={"Anonymous visitors"} />,
               value: args.ruleName,
               className: classNames(sty.slotTargetRuleName),
             })}

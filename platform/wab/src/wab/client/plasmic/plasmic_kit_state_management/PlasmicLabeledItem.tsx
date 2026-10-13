@@ -11,6 +11,7 @@
 // Plasmic Project: frhoorZk3bxNXU73uUyvHm
 // Component: EmZVqVuGE1
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -228,7 +229,7 @@ function PlasmicLabeledItem__RenderFunc(props: {
           })}
         >
           {renderPlasmicSlot({
-            defaultContents: "Label",
+            defaultContents: <UiText message={"Label"} />,
             value: args.label,
           })}
         </div>

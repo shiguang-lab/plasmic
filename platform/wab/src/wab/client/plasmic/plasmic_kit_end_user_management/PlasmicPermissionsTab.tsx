@@ -75,6 +75,8 @@ function PlasmicPermissionsTab__RenderFunc(props: {
   overrides: PlasmicPermissionsTab__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -236,7 +238,7 @@ function PlasmicPermissionsTab__RenderFunc(props: {
           <PermissionRule
             className={classNames("__wab_instance", sty.permissionRule__tcGvk)}
             isGeneralAccess={true}
-            ruleName={"General Access"}
+            ruleName={uiT("General Access")}
             withoutBorder={true}
           />
         </PermissionRuleGroup>

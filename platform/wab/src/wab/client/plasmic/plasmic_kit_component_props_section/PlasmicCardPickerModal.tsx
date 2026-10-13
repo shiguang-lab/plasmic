@@ -90,6 +90,8 @@ function PlasmicCardPickerModal__RenderFunc(props: {
   overrides: PlasmicCardPickerModal__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -196,7 +198,7 @@ function PlasmicCardPickerModal__RenderFunc(props: {
           </Button>
         </React.Fragment>
       }
-      title={"Card Picker"}
+      title={uiT("Card Picker")}
     >
       <div
         className={classNames("all", sty.freeBox__bJFoi, {

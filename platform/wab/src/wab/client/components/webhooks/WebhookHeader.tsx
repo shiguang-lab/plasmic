@@ -37,11 +37,11 @@ function WebhookHeader(props: WebhookHeaderProps) {
       }}
       addButton={{
         onClick: () => onAdd && onAdd(),
-        tooltip: "New header",
+        tooltip: uiT("New header"),
       }}
       deleteButton={{
         onClick: () => onRemove && onRemove(index),
-        tooltip: "Delete header",
+        tooltip: uiT("Delete header"),
       }}
     />
   );

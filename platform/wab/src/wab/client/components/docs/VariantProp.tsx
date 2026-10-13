@@ -104,7 +104,7 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
           aria-label={name}
         >
           {[
-            <Select.Option value={null} key="" textValue="Unset">
+            <Select.Option value={null} key="" textValue={uiT("Unset")}>
               <em>
                 <UiText message={"(Unset)"} />
               </em>

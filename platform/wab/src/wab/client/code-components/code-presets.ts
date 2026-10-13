@@ -1,4 +1,6 @@
 import { elementSchemaToTplAndLogErrors } from "@/wab/client/code-components/code-components";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { withoutNils } from "@/wab/shared/common";
 import {
@@ -26,10 +28,19 @@ export const getComponentPresets = computedFn(function getComponentPresets(
     [...Object.entries(schemas)].map(([name, template]): Preset | undefined => {
       if (typeof template !== "object") {
         notification.error({
-          message: "Type error while registering code templates",
-          description: `Component ${getComponentDisplayName(
-            component,
-          )} has template ${name} of unexpected type ${typeof template}`,
+          message: translate(
+            getUiLocale(),
+            "Type error while registering code templates",
+          ),
+          description: translate(
+            getUiLocale(),
+            "Component {part1} has template {part2} of unexpected type {part3}",
+            {
+              part1: String(getComponentDisplayName(component)),
+              part2: String(name),
+              part3: String(typeof template),
+            },
+          ),
         });
         return undefined;
       }
@@ -45,7 +56,10 @@ export const getComponentPresets = computedFn(function getComponentPresets(
       );
       if (maybeTpl.isErr()) {
         notification.error({
-          message: "Type error while registering code templates",
+          message: translate(
+            getUiLocale(),
+            "Type error while registering code templates",
+          ),
           description: maybeTpl.error.message,
         });
         return undefined;

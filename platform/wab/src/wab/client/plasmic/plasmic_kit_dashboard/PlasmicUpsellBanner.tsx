@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: CpePZH2ffI
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -109,11 +110,11 @@ function PlasmicUpsellBanner__RenderFunc(props: {
       />
 
       <div className={classNames("all", "__wab_text", sty.text__kKomi)}>
-        {"You're on the Free plan."}
+        {<UiText message={"You're on the Free plan."} />}
       </div>
       <div className={classNames("all", "__wab_text", sty.text__uRIll)}>
         {
-          "Upgrade to get additional editors, workspaces, organizations, and more."
+          <UiText message={"Upgrade to get additional editors, workspaces, organizations, and more."} />
         }
       </div>
     </div>

@@ -5,7 +5,7 @@
 }
 
 .prefsTable {
-  background-color: $sand2;
+  background-color: var(--ui-bg, #{$sand2});
   width: 100%;
   th,
   td {

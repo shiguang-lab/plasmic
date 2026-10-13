@@ -36,9 +36,11 @@ const COMMENT_MARKER_INITIAL_Z_INDEX = 12;
 const THREAD_MARKER_MARGIN = 30;
 
 function ObjInstLabel(props: { subject: ObjInst }) {
+  const { t: studioUiT, label } = useI18n();
+
   const { subject } = props;
   const item = mkSemVerSiteElement(subject as any);
-  const typeName = item.type;
+  const typeName = label(item.type);
   const objName = item.name;
   return (
     <>
@@ -47,7 +49,7 @@ function ObjInstLabel(props: { subject: ObjInst }) {
           {typeName} <strong>{objName}</strong>
         </>
       ) : (
-        "Unnamed " + typeName
+        studioUiT("Unnamed {type}", { type: typeName })
       )}
     </>
   );

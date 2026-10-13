@@ -11,6 +11,8 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: Hxtf0EKrkmO5
 
+import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -75,6 +77,8 @@ function PlasmicLabel__RenderFunc(props: {
   overrides: PlasmicLabel__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -169,7 +173,7 @@ function PlasmicLabel__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Label",
+          defaultContents: <UiText message={"Label"} />,
           value: args.children,
           className: classNames(sty.slotTargetChildren, {
             [sty.slotTargetChildrenrequirementIndicator_optional]: hasVariant(
@@ -204,7 +208,7 @@ function PlasmicLabel__RenderFunc(props: {
         >
           {hasVariant($state, "requirementIndicator", "required")
             ? "*"
-            : "(optional)"}
+            : studioUiT("(optional)")}
         </div>
       </div>
     </BaseLabel>

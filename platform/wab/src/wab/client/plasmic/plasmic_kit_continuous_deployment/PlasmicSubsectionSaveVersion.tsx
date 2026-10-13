@@ -113,6 +113,8 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
   overrides: PlasmicSubsectionSaveVersion__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -453,16 +455,16 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                   })}
                 >
                   {hasVariant($state, "changesState", "first")
-                    ? "You're publishing for the first time!"
+                    ? uiT("You're publishing for the first time!")
                     : hasVariant($state, "changesState", "major")
-                    ? "The new version you're saving contains potentially breaking changes, as some things have been removed or renamed. Please review changes before saving."
+                    ? uiT("The new version you're saving contains potentially breaking changes, as some things have been removed or renamed. Please review changes before saving.")
                     : hasVariant($state, "changesState", "minor")
-                    ? "You have new changes to publish."
+                    ? uiT("You have new changes to publish.")
                     : hasVariant($state, "changesState", "patch")
-                    ? "You have new changes to publish."
+                    ? uiT("You have new changes to publish.")
                     : hasVariant($state, "changesState", "none")
-                    ? "You have no new changes to publish."
-                    : "Computing changes since last publish..."}
+                    ? uiT("You have no new changes to publish.")
+                    : uiT("Computing changes since last publish...")}
                 </div>
                 {(
                   hasVariant($state, "changesState", "major")
@@ -858,7 +860,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
             defaultContents: (
               <div className={classNames("all", "__wab_text", sty.text__dkcxx)}>
                 <React.Fragment>
-                  <React.Fragment>{"Successfully published "}</React.Fragment>
+                  <React.Fragment>{<><UiText message={"Successfully published"} />{" "}</>}</React.Fragment>
                   <span
                     className={
                       "plasmic_default__all plasmic_default__span plasmic_default__span__fpbcK"

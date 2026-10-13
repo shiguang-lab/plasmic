@@ -1,7 +1,7 @@
 .root {
   display: flex;
   position: relative;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   justify-self: flex-start;
   min-width: 200px;
   max-width: 236px;
@@ -67,7 +67,7 @@
 }
 .texttier_enterprise__gWCn8TtOs {
   padding-bottom: 0px;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .texttier_grandfathered__gWCnGMgSw {
   padding-right: 0px;
@@ -108,7 +108,7 @@
   font-size: var(--token-bs5B88d0PFb-);
 }
 .slotTargetPricetier_enterprise {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .text__dVq4A {
   color: var(--token-UunsGa2Y3t3);
@@ -215,7 +215,7 @@
 }
 .text___35HJi {
   position: relative;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
   font-weight: 500;
   line-height: 16px;
   text-transform: uppercase;

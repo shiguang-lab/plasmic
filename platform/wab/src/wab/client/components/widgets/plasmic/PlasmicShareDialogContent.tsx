@@ -133,6 +133,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
   overrides: PlasmicShareDialogContent__OverridesType;
   forNode?: string;
 }) {
+
+
   const { t: uiT } = useI18n();
   const { variants, overrides, forNode } = props;
 
@@ -581,8 +583,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                 }}
               >
                 {hasVariant($state, "resourceType", "team")
-                  ? "Invite by link is enabled"
-                  : "Share by link is enabled"}
+                  ? uiT("Invite by link is enabled")
+                  : uiT("Share by link is enabled")}
               </Checkbox>
               {(
                 hasVariant($state, "shareByLinkAllowed", "no")
@@ -717,8 +719,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   })}
                 >
                   {hasVariant($state, "resourceType", "team")
-                    ? "Anyone with the link can join the organization as"
-                    : "Any Plasmic user with the link is a"}
+                    ? uiT("Anyone with the link can join the organization as")
+                    : uiT("Any Plasmic user with the link is a")}
                 </div>
                 <Select
                   data-plasmic-name={"shareByLinkPermDropdown"}
@@ -1061,7 +1063,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   : hasVariant($state, "state", "unlogged")
                   ? <UiText message={"Invite"} />
                   : hasVariant($state, "state", "submitting")
-                  ? "Inviting..."
+                  ? uiT("Inviting...")
                   : <UiText message={"Invite"} />}
               </Button>
             </div>
@@ -1161,10 +1163,10 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   })}
                 >
                   {hasVariant($state, "state", "noPermToShare")
-                    ? "You don't have permission to share this resource."
+                    ? uiT("You don't have permission to share this resource.")
                     : hasVariant($state, "state", "unlogged")
-                    ? "Please "
-                    : "Invitees can directly create an account, skipping the waitlist."}
+                    ? (uiT("Please") + " ")
+                    : uiT("Invitees can directly create an account, skipping the waitlist.")}
                 </div>
                 {(hasVariant($state, "state", "unlogged") ? true : false) ? (
                   <PlasmicLink__
@@ -1207,8 +1209,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     platform={"react"}
                   >
                     {hasVariant($state, "state", "unlogged")
-                      ? "login"
-                      : "Invitees can directly create an account, skipping the waitlist."}
+                      ? uiT("login")
+                      : uiT("Invitees can directly create an account, skipping the waitlist.")}
                   </PlasmicLink__>
                 ) : null}
                 {(hasVariant($state, "state", "unlogged") ? true : false) ? (
@@ -1232,8 +1234,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     )}
                   >
                     {hasVariant($state, "state", "unlogged")
-                      ? " to send invitations."
-                      : "Invitees can directly create an account, skipping the waitlist."}
+                      ? (" " + uiT("to send invitations."))
+                      : uiT("Invitees can directly create an account, skipping the waitlist.")}
                   </div>
                 ) : null}
               </div>
@@ -1348,7 +1350,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                         sty.span__stjKq
                       )}
                     >
-                      {" organization"}
+                      {<>{" "}<UiText message={"organization"} /></>}
                     </span>
                   }
                   <React.Fragment>{""}</React.Fragment>
@@ -1432,7 +1434,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                           sty.span__okntb
                         )}
                       >
-                        {" workspace"}
+                        {<>{" "}<UiText message={"workspace"} /></>}
                       </span>
                     }
                     <React.Fragment>{""}</React.Fragment>

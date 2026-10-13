@@ -8,6 +8,7 @@ import {
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+
 /** @format */
 
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
@@ -336,7 +337,9 @@ function _TopBar({ preview }: TopBarProps) {
                           }),
                         );
                         notification.info({
-                          message: `Redundant overrides have been cleaned. You can run this again every time you want to clean them.`,
+                          message: t(
+                            "Redundant overrides have been cleaned. You can run this again every time you want to clean them.",
+                          ),
                         });
                       }}
                     >
@@ -353,7 +356,9 @@ function _TopBar({ preview }: TopBarProps) {
                               studioCtx.site,
                             );
                             notification.success({
-                              message: `Pruned ${pruned.size} assets`,
+                              message: t("Pruned {part1} assets", {
+                                part1: String(pruned.size),
+                              }),
                             });
                             return ok();
                           }),
@@ -378,11 +383,16 @@ function _TopBar({ preview }: TopBarProps) {
                             console.log(result);
 
                             notification.success({
-                              message: `Fixed ${Object.keys(
-                                result.total,
-                              )} invisible elements in ${
-                                Object.keys(result.changesByComponent).length
-                              }`,
+                              message: t(
+                                "Fixed {part1} invisible elements in {part2}",
+                                {
+                                  part1: String(Object.keys(result.total)),
+                                  part2: String(
+                                    Object.keys(result.changesByComponent)
+                                      .length,
+                                  ),
+                                },
+                              ),
                             });
                             return ok();
                           }),
@@ -859,7 +869,7 @@ function _TopBar({ preview }: TopBarProps) {
                       <Select.OptionGroup title={t("Artboards")}>
                         {previewArtboards.map((c) => (
                           <Select.Option key={c.uuid} value={c.uuid}>
-                            {c.name || "Unnamed artboard"}
+                            {c.name || t("Unnamed artboard")}
                           </Select.Option>
                         ))}
                       </Select.OptionGroup>

@@ -79,7 +79,11 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
                 <PlainLinkButton
                   onClick={() => !readOnly && setPickingImage(true)}
                 >
-                  {asset ? asset.name : !readOnly ? "Choose an image..." : ""}
+                  {asset
+                    ? asset.name
+                    : !readOnly
+                      ? uiT("Choose an image...")
+                      : ""}
                 </PlainLinkButton>
               </MaybeWrap>
             }
@@ -89,7 +93,7 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
       {value && (
         <IconButton
           className={"flex-start"}
-          hoverText={"Remove image"}
+          hoverText={uiT("Remove image")}
           onClick={(ev) => {
             onPicked(undefined);
           }}

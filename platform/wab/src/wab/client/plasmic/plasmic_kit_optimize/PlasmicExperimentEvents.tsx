@@ -142,7 +142,7 @@ function PlasmicExperimentEvents__RenderFunc(props: {
       <div className={classNames("all", sty.freeBox__mr1Lo)}>
         <div className={classNames("all", sty.freeBox___2U9MO)}>
           <div className={classNames("all", "__wab_text", sty.text__khaXh)}>
-            {"Conversion events"}
+            {<UiText message={"Conversion events"} />}
           </div>
           <div className={classNames("all", sty.freeBox__gYoK3)}>
             <div className={classNames("all", "__wab_text", sty.text__s10UO)}>

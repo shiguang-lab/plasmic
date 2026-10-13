@@ -105,7 +105,7 @@ function SubsectionSaveVersion(props: SubsectionSaveVersionProps) {
       collapse={props.view !== "status" && !visible}
       checkbox={{
         props: {
-          "aria-label": "Enable save",
+          "aria-label": uiT("Enable save"),
           isDisabled: block,
           isChecked: enable,
           onChange: (checked: boolean) =>
@@ -179,7 +179,7 @@ function SubsectionSaveVersion(props: SubsectionSaveVersionProps) {
               status={!result ? "started" : "finished"}
               description={
                 !result ? (
-                  "Saving a new version..."
+                  uiT("Saving a new version...")
                 ) : (
                   <>
                     <UiText
@@ -206,10 +206,10 @@ function SubsectionSaveVersion(props: SubsectionSaveVersionProps) {
               }
               description={
                 result === "Success"
-                  ? "Pushed updates to CDN cache!"
+                  ? uiT("Pushed updates to CDN cache!")
                   : result === "PreFilling"
-                    ? "Pushing updates to CDN cache..."
-                    : "Push updates to CDN cache"
+                    ? uiT("Pushing updates to CDN cache...")
+                    : uiT("Push updates to CDN cache")
               }
             />
           </>

@@ -8,6 +8,7 @@ import {
 } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { arrayMoveIndex } from "@/wab/shared/collections";
@@ -21,6 +22,8 @@ interface RolesControlProps {
 }
 
 export function RolesControl({ appCtx, project }: RolesControlProps) {
+  const { t: studioUiT } = useI18n();
+
   const { hostFrameApi } = useTopFrameCtx();
   const { roles, mutate: mutateRoles } = useAppRoles(appCtx, project.id);
   const mutateHostAppAuthData = useMutateHostAppAuthData(project.id);
@@ -76,7 +79,7 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
                     onClick={async () => {
                       await navigator.clipboard.writeText(role.id);
                       notification.success({
-                        message: `Role ID copied to clipboard`,
+                        message: studioUiT("Role ID copied to clipboard"),
                       });
                     }}
                   >
@@ -87,7 +90,10 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
                       onClick={async () => {
                         if (appAuthConfig?.registeredRoleId === role.id) {
                           notification.error({
-                            message: `Role "${role.name}" is currently used as the general access role`,
+                            message: studioUiT(
+                              'Role "{part1}" is currently used as the general access role',
+                              { part1: String(role.name) },
+                            ),
                           });
                           return;
                         }
@@ -100,11 +106,17 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
 
                         if (usedInComponents.length > 0) {
                           notification.error({
-                            message: `Role "${
-                              role.name
-                            }" is currently being used in components: ${usedInComponents
-                              .map((r) => r.component)
-                              .join(", ")}`,
+                            message: studioUiT(
+                              'Role "{part1}" is currently being used in components: {part2}',
+                              {
+                                part1: String(role.name),
+                                part2: String(
+                                  usedInComponents
+                                    .map((r) => r.component)
+                                    .join(", "),
+                                ),
+                              },
+                            ),
                           });
                           return;
                         }
@@ -115,14 +127,19 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
 
                         if (usedInAccesses.length > 0) {
                           notification.error({
-                            message: `Role "${role.name}" is currently being used in the access list`,
+                            message: studioUiT(
+                              'Role "{part1}" is currently being used in the access list',
+                              { part1: String(role.name) },
+                            ),
                           });
                           return;
                         }
 
                         if (roles.length === 1) {
                           notification.error({
-                            message: `An app must have at least one role`,
+                            message: studioUiT(
+                              "An app must have at least one role",
+                            ),
                           });
                           return;
                         }
@@ -155,9 +172,9 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
                       <span style={{ fontSize: 12 }}>
                         {role.name +
                           (i === 0
-                            ? " (highest)"
+                            ? " " + studioUiT("(highest)")
                             : i === roles.length - 1
-                              ? " (lowest)"
+                              ? " " + studioUiT("(lowest)")
                               : "")}
                       </span>
                     }

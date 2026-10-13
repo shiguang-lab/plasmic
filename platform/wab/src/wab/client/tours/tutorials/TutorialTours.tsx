@@ -7,6 +7,8 @@ import Button from "@/wab/client/components/widgets/Button";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { useApi, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
+import { useI18n } from "@/wab/client/i18n";
+
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import HelpIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Help";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -57,6 +59,8 @@ interface StepContentPopupProps {
 }
 
 function StepContentPopup(props: StepContentPopupProps) {
+  const { t: studioUiT, label } = useI18n();
+
   const {
     name,
     content,
@@ -73,7 +77,7 @@ function StepContentPopup(props: StepContentPopupProps) {
       <div className="flex fill-width flex-align-start">
         <div className="text-align-left fill-width pt-m tutorial-content">
           <StandardMarkdown>
-            {content
+            {label(content.trim())
               .replaceAll("{FIRST_NAME}", tourInfo.userFirstName)
               .replaceAll("{STORE_NAME}", tourInfo.storeName)
               .replaceAll("{APP_DOMAIN}", tourInfo.domain || "")
@@ -83,22 +87,23 @@ function StepContentPopup(props: StepContentPopupProps) {
         <IconButton
           href="https://forum.plasmic.app/"
           target="_blank"
-          hoverText="Visit our community forum for help"
+          hoverText={studioUiT("Visit our community forum for help")}
           size="large"
         >
           <HelpIcon />
         </IconButton>
         <IconButton
-          hoverText="Exit tutorial"
+          hoverText={studioUiT("Exit tutorial")}
           size="large"
           onClick={async () => {
             if (
               await reactConfirm({
-                title: "Exit tutorial?",
-                message:
+                title: studioUiT("Exit tutorial?"),
+                message: studioUiT(
                   "If you want to start the tutorial again, you'll need to start over in a new project.",
-                confirmLabel: "Exit",
-                cancelLabel: "Back",
+                ),
+                confirmLabel: studioUiT("Exit"),
+                cancelLabel: studioUiT("Back"),
               })
             ) {
               await onQuit();
@@ -112,12 +117,16 @@ function StepContentPopup(props: StepContentPopupProps) {
         <div className="pt-sm flex-push-right flex gap-sm">
           {secondaryButtonText && (
             <Button id="tour-secondary-btn" onClick={onSecondary}>
-              <span className="tutorial-content">{secondaryButtonText}</span>
+              <span className="tutorial-content">
+                {secondaryButtonText && label(secondaryButtonText)}
+              </span>
             </Button>
           )}
           {nextButtonText && (
             <Button id="tour-primary-btn" type="primary" onClick={onNext}>
-              <span className="tutorial-content">{nextButtonText}</span>
+              <span className="tutorial-content">
+                {nextButtonText && label(nextButtonText)}
+              </span>
             </Button>
           )}
         </div>
@@ -192,6 +201,8 @@ const useTourStepTargetVisibility = (
 };
 
 export const StudioTutorialTours = observer(function _StudioTutorialTours() {
+  const { t: studioUiT } = useI18n();
+
   const studioCtx = useStudioCtx();
   const api = useApi();
   const topFrameApi = useTopFrameApi();
@@ -230,14 +241,15 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
         });
 
         notification.warning({
-          message:
+          message: studioUiT(
             "Since you navigated away from the tour, it was paused. By navigating back to the previous state, you can resume the tour.",
+          ),
         });
 
         trackCurrentStepTourEvent("paused");
       }
     },
-    [tourState.run],
+    [tourState.run, studioUiT],
   );
 
   const { isTargetVisible } = useTourStepTargetVisibility(
@@ -541,9 +553,11 @@ linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/static/img/g
 });
 
 function UnexpectedTourError() {
+  const { t: studioUiT } = useI18n();
+
   React.useEffect(() => {
     notification.error({
-      message: "Unexpected tour error",
+      message: studioUiT("Unexpected tour error"),
     });
     // TODO: allow studio to recover from this error
   }, []);

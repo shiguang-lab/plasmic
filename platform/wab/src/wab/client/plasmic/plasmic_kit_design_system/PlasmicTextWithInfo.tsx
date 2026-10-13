@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: -EsDm7v023
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -132,7 +133,7 @@ function PlasmicTextWithInfo__RenderFunc(props: {
       )}
     >
       {renderPlasmicSlot({
-        defaultContents: "Enter some text",
+        defaultContents: <UiText message={"Enter some text"} />,
         value: args.children,
       })}
       <InformationSvgIcon

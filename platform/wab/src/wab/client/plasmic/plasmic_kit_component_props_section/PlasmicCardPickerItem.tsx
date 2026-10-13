@@ -11,6 +11,7 @@
 // Plasmic Project: 783YKJdyRRPxZbx3qiNi5Q
 // Component: -ZWJykIq5V-3F
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -187,7 +188,7 @@ function PlasmicCardPickerItem__RenderFunc(props: {
         })}
       >
         {renderPlasmicSlot({
-          defaultContents: "Element footer",
+          defaultContents: <UiText message={"Element footer"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle, {
             [sty.slotTargetTitleisSelected]: hasVariant(

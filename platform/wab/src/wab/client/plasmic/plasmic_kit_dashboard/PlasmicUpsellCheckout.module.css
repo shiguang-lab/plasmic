@@ -255,7 +255,7 @@
   display: flex;
   height: 32px;
   width: 100%;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -302,7 +302,7 @@
   display: flex;
   height: 32px;
   width: 100%;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -349,7 +349,7 @@
   display: flex;
   height: 32px;
   width: 100%;
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   flex-direction: column;
   justify-content: center;
   align-items: center;

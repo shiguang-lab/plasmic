@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: G_RLd7TB5Ns
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -196,7 +197,7 @@ function PlasmicDatabaseListItem__RenderFunc(props: {
         data-plasmic-override={overrides.updatedJustNow}
         className={classNames("all", "__wab_text", sty.updatedJustNow)}
       >
-        {"updated just now"}
+        {<UiText message={"updated just now"} />}
       </div>
     </PlasmicLink__>
   ) as React.ReactElement | null;

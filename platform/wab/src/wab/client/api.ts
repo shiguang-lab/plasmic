@@ -15,7 +15,8 @@ import { LocalClipboardAction } from "@/wab/client/clipboard/local";
 import { analytics } from "@/wab/client/observability";
 import { PushPullQueue } from "@/wab/commons/asyncutil";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { transformErrors } from "@/wab/shared/ApiErrors/errors";
+import { ApiError, HttpError } from "@/wab/shared/ApiErrors/ApiError";
+import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
 import {
   ApiUser,
   CAPTCHA_TOKEN_HEADER,
@@ -116,24 +117,13 @@ export const ajax = async (
         resolve(responseData);
       })
       .fail((xhr, txtStatus, err) => {
-        const error =
+        let error =
           swallow(() => {
             const response = JSON.parse(xhr.responseText);
             if (noErrorTransform) {
               return response;
             }
-            let transformed = transformErrors(response.error);
-            if (!(transformed instanceof Error)) {
-              // The error was JSON-parsible, but not one of the known
-              // ApiErrors. So it is now just a JSON object, not an Error.
-              // We create an UnknownApiError for it instead.
-              transformed = new UnknownApiError(
-                `${method} ${apiSubpath} failed: ${
-                  (transformed as Error).message
-                }`,
-              );
-            }
-            return transformed;
+            return deserializeApiError(response.error, xhr.status);
           }) ||
           (xhr.status === 0
             ? new XHRStatus0Error(`${method} ${apiSubpath} failed`)
@@ -148,6 +138,13 @@ export const ajax = async (
                       : truncateText(200, JSON.stringify(data))
                 }`,
               ));
+        if (
+          !noErrorTransform &&
+          !(error instanceof ApiError) &&
+          ((xhr.status >= 400 && xhr.status < 500) || xhr.status === 503)
+        ) {
+          error = new HttpError(xhr.status, error.message);
+        }
         if (!noErrorTransform) {
           error.stack += `\n${callingStack}`;
         }

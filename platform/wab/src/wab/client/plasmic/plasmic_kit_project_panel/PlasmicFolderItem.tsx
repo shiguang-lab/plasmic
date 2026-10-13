@@ -11,6 +11,7 @@
 // Plasmic Project: m8VxGcigeLAEXFe8c12w5Q
 // Component: iWeSjEMdI3
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -320,7 +321,7 @@ function PlasmicFolderItem__RenderFunc(props: {
         }
       >
         {renderPlasmicSlot({
-          defaultContents: "Item name",
+          defaultContents: <UiText message={"Item name"} />,
           value: args.children,
         })}
       </ListItem>

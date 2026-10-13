@@ -11,6 +11,7 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: 3J9TqoTau-2m
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -119,7 +120,7 @@ function PlasmicListSeperator__RenderFunc(props: {
                       }
                       style={{ color: "var(--token-Z0yiXYDjtUzZ)" }}
                     >
-                      {"Separator Label"}
+                      {<UiText message={"Separator Label"} />}
                     </span>
                   </React.Fragment>
                 </div>

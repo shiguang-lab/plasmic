@@ -1,5 +1,7 @@
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import { promptChooseItem } from "@/wab/client/components/modals/ChooseItemModal";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import {
   StudioCtx,
   normalizeTemplateSpec,
@@ -164,9 +166,11 @@ export const getScreenVariantToInsertableTemplate = async (
   } else {
     // Ask the user which one to use
     const result = await promptChooseItem({
-      title: "Choose a responsive breakpoint",
-      description:
+      title: translate(getUiLocale(), "Choose a responsive breakpoint"),
+      description: translate(
+        getUiLocale(),
         "This template can be responsive to the screen size. Please choose which responsive breakpoint to use.",
+      ),
       group: screenVariantGroup.variants.map((v) => {
         return {
           name: v.name,

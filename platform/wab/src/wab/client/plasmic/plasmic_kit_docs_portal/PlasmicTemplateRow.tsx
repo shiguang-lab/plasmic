@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: qFYdDOtl6B
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -147,7 +148,7 @@ function PlasmicTemplateRow__RenderFunc(props: {
         />
 
         {renderPlasmicSlot({
-          defaultContents: "Enter some text",
+          defaultContents: <UiText message={"Enter some text"} />,
           value: args.children,
         })}
       </div>

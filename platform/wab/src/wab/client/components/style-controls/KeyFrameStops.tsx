@@ -280,18 +280,7 @@ const KeyFrameStops_ = (props: KeyFrameStopsProps) => {
                       className="keyframe-stop__icon"
                       size={24}
                     />
-                    <div
-                      className="keyframe-stop__percentage-chip"
-                      style={{
-                        backgroundColor: isSelected ? "#007acc" : "#fff",
-                        color: isSelected ? "#fff" : "#333",
-                        border: isGhost
-                          ? "1px dashed #ccc"
-                          : isSelected
-                            ? "1px solid #007acc"
-                            : "1px solid #ddd",
-                      }}
-                    >
+                    <div className="keyframe-stop__percentage-chip">
                       {keyframe.percentage}%
                     </div>
                   </div>

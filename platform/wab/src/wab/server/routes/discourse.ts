@@ -1,6 +1,7 @@
 import { logger } from "@/wab/server/observability";
 import { getUser, userDbMgr } from "@/wab/server/routes/util";
 import { getDiscourseConnectSecret } from "@/wab/server/secrets";
+import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
 import { ensure, ensureString, notNil, omitNils } from "@/wab/shared/common";
 import { MIN_ACCESS_LEVEL_FOR_SUPPORT } from "@/wab/shared/discourse/config";
@@ -41,7 +42,7 @@ export async function discourseConnect(req: Request, res: Response) {
   // Verify the request payload.
   const requestSigVerify = hmac(requestPayloadEncoded);
   if (requestSig !== requestSigVerify) {
-    throw new Error("invalid signature in Discourse Connect request!");
+    throw new ForbiddenError("invalid signature in Discourse Connect request!");
   }
 
   // Generate and sign the response payload.

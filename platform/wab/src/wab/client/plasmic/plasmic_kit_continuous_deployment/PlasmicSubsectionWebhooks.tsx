@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: 9EUA-QZFp69
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -95,6 +96,8 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
   overrides: PlasmicSubsectionWebhooks__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -283,7 +286,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
                   ),
                 })}
               >
-                {hasVariant($state, "collapse", "collapse") ? "Show" : <UiText message={"Remove"} />}
+                {hasVariant($state, "collapse", "collapse") ? studioUiT("Show") : <UiText message={"Remove"} />}
               </div>
             </Button>
           ) : null}

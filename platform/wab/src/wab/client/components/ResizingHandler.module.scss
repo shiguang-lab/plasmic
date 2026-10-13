@@ -7,7 +7,7 @@
   transition: background 200ms;
 
   &:hover {
-    background: #00000009;
+    background: var(--ui-fill, #00000009);
   }
 }
 
@@ -53,5 +53,5 @@
   max-width: 100%;
   max-height: 100%;
   border-radius: 9999px;
-  background: #00000022;
+  background: var(--ui-border, #00000022);
 }

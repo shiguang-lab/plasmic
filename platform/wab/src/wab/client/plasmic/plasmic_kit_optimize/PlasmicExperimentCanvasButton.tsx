@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: T79mlJEJy9
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -70,6 +71,8 @@ function PlasmicExperimentCanvasButton__RenderFunc(props: {
   overrides: PlasmicExperimentCanvasButton__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -144,10 +147,10 @@ function PlasmicExperimentCanvasButton__RenderFunc(props: {
         })}
       >
         {hasVariant($state, "type", "scheduled")
-          ? "Edit Schedule"
+          ? studioUiT("Edit Schedule")
           : hasVariant($state, "type", "segement")
-          ? "Edit Targeting"
-          : "Edit A/B Test"}
+          ? studioUiT("Edit Targeting")
+          : studioUiT("Edit A/B Test")}
       </div>
     </Button>
   ) as React.ReactElement | null;

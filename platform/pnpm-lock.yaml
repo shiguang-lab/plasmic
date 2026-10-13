@@ -1087,21 +1087,6 @@ importers:
 
   wab:
     dependencies:
-      '@temporalio/workflow':
-        specifier: 1.24.0
-        version: 1.24.0
-      '@temporalio/worker':
-        specifier: 1.24.0
-        version: 1.24.0(@swc/helpers@0.4.14)(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)
-      '@temporalio/common':
-        specifier: 1.24.0
-        version: 1.24.0
-      '@temporalio/client':
-        specifier: 1.24.0
-        version: 1.24.0
-      '@temporalio/activity':
-        specifier: 1.24.0
-        version: 1.24.0
       '@ai-sdk/anthropic':
         specifier: 4.0.53
         version: 4.0.53(zod@3.25.76)
@@ -1279,6 +1264,21 @@ importers:
       '@supabase/supabase-js':
         specifier: 2.38.4
         version: 2.38.4
+      '@temporalio/activity':
+        specifier: 1.24.0
+        version: 1.24.0
+      '@temporalio/client':
+        specifier: 1.24.0
+        version: 1.24.0
+      '@temporalio/common':
+        specifier: 1.24.0
+        version: 1.24.0
+      '@temporalio/worker':
+        specifier: 1.24.0
+        version: 1.24.0(@swc/helpers@0.4.14)(esbuild@0.25.4)
+      '@temporalio/workflow':
+        specifier: 1.24.0
+        version: 1.24.0
       '@tinymce/tinymce-react':
         specifier: ^4.3.2
         version: 4.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -26334,7 +26334,7 @@ snapshots:
       long: 5.3.2
       protobufjs: 8.8.0
 
-  '@temporalio/worker@1.24.0(@swc/helpers@0.4.14)(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)':
+  '@temporalio/worker@1.24.0(@swc/helpers@0.4.14)(esbuild@0.25.4)':
     dependencies:
       '@grpc/grpc-js': 1.14.4
       '@swc/core': 1.15.43(@swc/helpers@0.4.14)
@@ -26351,11 +26351,11 @@ snapshots:
       protobufjs: 8.8.0
       rxjs: 7.8.2
       source-map: 0.7.6
-      source-map-loader: 5.0.0(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26))
+      source-map-loader: 5.0.0(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4))
       supports-color: 8.1.1
-      swc-loader: 0.2.7(@swc/core@1.15.43(@swc/helpers@0.4.14))(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26))
+      swc-loader: 0.2.7(@swc/core@1.15.43(@swc/helpers@0.4.14))(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4))
       unionfs: 4.6.0
-      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)
+      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/css'
@@ -29028,11 +29028,6 @@ snapshots:
     dependencies:
       postcss: 8.5.19
 
-  css-declaration-sorter@6.4.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
-
   css-in-js-utils@3.1.0:
     dependencies:
       hyphenate-style-name: 1.1.0
@@ -29128,48 +29123,9 @@ snapshots:
       postcss-svgo: 5.1.0(postcss@8.5.19)
       postcss-unique-selectors: 5.1.1(postcss@8.5.19)
 
-  cssnano-preset-default@5.2.14(postcss@8.5.26):
-    dependencies:
-      css-declaration-sorter: 6.4.1(postcss@8.5.26)
-      cssnano-utils: 3.1.0(postcss@8.5.26)
-      postcss: 8.5.26
-      postcss-calc: 8.2.4(postcss@8.5.26)
-      postcss-colormin: 5.3.1(postcss@8.5.26)
-      postcss-convert-values: 5.1.3(postcss@8.5.26)
-      postcss-discard-comments: 5.1.2(postcss@8.5.26)
-      postcss-discard-duplicates: 5.1.0(postcss@8.5.26)
-      postcss-discard-empty: 5.1.1(postcss@8.5.26)
-      postcss-discard-overridden: 5.1.0(postcss@8.5.26)
-      postcss-merge-longhand: 5.1.7(postcss@8.5.26)
-      postcss-merge-rules: 5.1.4(postcss@8.5.26)
-      postcss-minify-font-values: 5.1.0(postcss@8.5.26)
-      postcss-minify-gradients: 5.1.1(postcss@8.5.26)
-      postcss-minify-params: 5.1.4(postcss@8.5.26)
-      postcss-minify-selectors: 5.2.1(postcss@8.5.26)
-      postcss-normalize-charset: 5.1.0(postcss@8.5.26)
-      postcss-normalize-display-values: 5.1.0(postcss@8.5.26)
-      postcss-normalize-positions: 5.1.1(postcss@8.5.26)
-      postcss-normalize-repeat-style: 5.1.1(postcss@8.5.26)
-      postcss-normalize-string: 5.1.0(postcss@8.5.26)
-      postcss-normalize-timing-functions: 5.1.0(postcss@8.5.26)
-      postcss-normalize-unicode: 5.1.1(postcss@8.5.26)
-      postcss-normalize-url: 5.1.0(postcss@8.5.26)
-      postcss-normalize-whitespace: 5.1.1(postcss@8.5.26)
-      postcss-ordered-values: 5.1.3(postcss@8.5.26)
-      postcss-reduce-initial: 5.1.2(postcss@8.5.26)
-      postcss-reduce-transforms: 5.1.0(postcss@8.5.26)
-      postcss-svgo: 5.1.0(postcss@8.5.26)
-      postcss-unique-selectors: 5.1.1(postcss@8.5.26)
-    optional: true
-
   cssnano-utils@3.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
-
-  cssnano-utils@3.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
 
   cssnano@5.1.15(postcss@8.5.19):
     dependencies:
@@ -29177,14 +29133,6 @@ snapshots:
       lilconfig: 2.1.0
       postcss: 8.5.19
       yaml: 1.10.3
-
-  cssnano@5.1.15(postcss@8.5.26):
-    dependencies:
-      cssnano-preset-default: 5.2.14(postcss@8.5.26)
-      lilconfig: 2.1.0
-      postcss: 8.5.26
-      yaml: 1.10.3
-    optional: true
 
   csso@4.2.0:
     dependencies:
@@ -32980,22 +32928,6 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minimizer-webpack-plugin@5.8.0(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      jest-worker: 27.5.1
-      schema-utils: 4.3.3
-      terser: 5.51.2
-      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)
-    optionalDependencies:
-      '@swc/core': 1.15.43(@swc/helpers@0.4.14)
-      clean-css: 5.3.3
-      cssnano: 5.1.15(postcss@8.5.26)
-      csso: 5.0.5
-      esbuild: 0.25.4
-      html-minifier-terser: 7.2.0
-      postcss: 8.5.26
-
   minimizer-webpack-plugin@5.8.0(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -33903,13 +33835,6 @@ snapshots:
       postcss-selector-parser: 6.1.4
       postcss-value-parser: 4.2.0
 
-  postcss-calc@8.2.4(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-selector-parser: 6.1.4
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-colormin@5.3.1(postcss@8.5.19):
     dependencies:
       browserslist: 4.28.6
@@ -33918,63 +33843,27 @@ snapshots:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-colormin@5.3.1(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      caniuse-api: 3.0.0
-      colord: 2.9.3
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-convert-values@5.1.3(postcss@8.5.19):
     dependencies:
       browserslist: 4.28.6
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-convert-values@5.1.3(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-discard-comments@5.1.2(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
-
-  postcss-discard-comments@5.1.2(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
 
   postcss-discard-duplicates@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
 
-  postcss-discard-duplicates@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
-
   postcss-discard-empty@5.1.1(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
 
-  postcss-discard-empty@5.1.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
-
   postcss-discard-overridden@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
-
-  postcss-discard-overridden@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
 
   postcss-load-config@3.1.4(postcss@8.5.19)(ts-node@10.9.2(@swc/core@1.15.43(@swc/helpers@0.5.23))(@types/node@26.4.1)(typescript@6.0.3)):
     dependencies:
@@ -33990,13 +33879,6 @@ snapshots:
       postcss-value-parser: 4.2.0
       stylehacks: 5.1.1(postcss@8.5.19)
 
-  postcss-merge-longhand@5.1.7(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-      stylehacks: 5.1.1(postcss@8.5.26)
-    optional: true
-
   postcss-merge-rules@5.1.4(postcss@8.5.19):
     dependencies:
       browserslist: 4.28.6
@@ -34005,25 +33887,10 @@ snapshots:
       postcss: 8.5.19
       postcss-selector-parser: 6.1.4
 
-  postcss-merge-rules@5.1.4(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      caniuse-api: 3.0.0
-      cssnano-utils: 3.1.0(postcss@8.5.26)
-      postcss: 8.5.26
-      postcss-selector-parser: 6.1.4
-    optional: true
-
   postcss-minify-font-values@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
-
-  postcss-minify-font-values@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
 
   postcss-minify-gradients@5.1.1(postcss@8.5.19):
     dependencies:
@@ -34032,14 +33899,6 @@ snapshots:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-minify-gradients@5.1.1(postcss@8.5.26):
-    dependencies:
-      colord: 2.9.3
-      cssnano-utils: 3.1.0(postcss@8.5.26)
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-minify-params@5.1.4(postcss@8.5.19):
     dependencies:
       browserslist: 4.28.6
@@ -34047,24 +33906,10 @@ snapshots:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-minify-params@5.1.4(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      cssnano-utils: 3.1.0(postcss@8.5.26)
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-minify-selectors@5.2.1(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-selector-parser: 6.1.4
-
-  postcss-minify-selectors@5.2.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-selector-parser: 6.1.4
-    optional: true
 
   postcss-modules-extract-imports@3.1.0(postcss@8.5.19):
     dependencies:
@@ -34103,65 +33948,30 @@ snapshots:
     dependencies:
       postcss: 8.5.19
 
-  postcss-normalize-charset@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-    optional: true
-
   postcss-normalize-display-values@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
-
-  postcss-normalize-display-values@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
 
   postcss-normalize-positions@5.1.1(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-normalize-positions@5.1.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-normalize-repeat-style@5.1.1(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
-
-  postcss-normalize-repeat-style@5.1.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
 
   postcss-normalize-string@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-normalize-string@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-normalize-timing-functions@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
-
-  postcss-normalize-timing-functions@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
 
   postcss-normalize-unicode@5.1.1(postcss@8.5.19):
     dependencies:
@@ -34169,36 +33979,16 @@ snapshots:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-normalize-unicode@5.1.1(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-normalize-url@5.1.0(postcss@8.5.19):
     dependencies:
       normalize-url: 6.1.0
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-normalize-url@5.1.0(postcss@8.5.26):
-    dependencies:
-      normalize-url: 6.1.0
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-normalize-whitespace@5.1.1(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
-
-  postcss-normalize-whitespace@5.1.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
 
   postcss-ordered-values@5.1.3(postcss@8.5.19):
     dependencies:
@@ -34206,36 +33996,16 @@ snapshots:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
 
-  postcss-ordered-values@5.1.3(postcss@8.5.26):
-    dependencies:
-      cssnano-utils: 3.1.0(postcss@8.5.26)
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
-
   postcss-reduce-initial@5.1.2(postcss@8.5.19):
     dependencies:
       browserslist: 4.28.6
       caniuse-api: 3.0.0
       postcss: 8.5.19
 
-  postcss-reduce-initial@5.1.2(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      caniuse-api: 3.0.0
-      postcss: 8.5.26
-    optional: true
-
   postcss-reduce-transforms@5.1.0(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-value-parser: 4.2.0
-
-  postcss-reduce-transforms@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-    optional: true
 
   postcss-selector-parser@6.1.4:
     dependencies:
@@ -34253,23 +34023,10 @@ snapshots:
       postcss-value-parser: 4.2.0
       svgo: 2.8.3
 
-  postcss-svgo@5.1.0(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-value-parser: 4.2.0
-      svgo: 2.8.3
-    optional: true
-
   postcss-unique-selectors@5.1.1(postcss@8.5.19):
     dependencies:
       postcss: 8.5.19
       postcss-selector-parser: 6.1.4
-
-  postcss-unique-selectors@5.1.1(postcss@8.5.26):
-    dependencies:
-      postcss: 8.5.26
-      postcss-selector-parser: 6.1.4
-    optional: true
 
   postcss-value-parser@4.2.0: {}
 
@@ -36794,11 +36551,11 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
-  source-map-loader@5.0.0(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)):
+  source-map-loader@5.0.0(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)):
     dependencies:
       iconv-lite: 0.6.3
       source-map-js: 1.2.1
-      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)
+      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)
 
   source-map-resolve@0.6.0:
     dependencies:
@@ -37150,13 +36907,6 @@ snapshots:
       postcss: 8.5.19
       postcss-selector-parser: 6.1.4
 
-  stylehacks@5.1.1(postcss@8.5.26):
-    dependencies:
-      browserslist: 4.28.8
-      postcss: 8.5.26
-      postcss-selector-parser: 6.1.4
-    optional: true
-
   stylis@4.2.0: {}
 
   stylis@4.4.0: {}
@@ -37219,11 +36969,11 @@ snapshots:
       picocolors: 1.1.1
       sax: 1.6.0
 
-  swc-loader@0.2.7(@swc/core@1.15.43(@swc/helpers@0.4.14))(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)):
+  swc-loader@0.2.7(@swc/core@1.15.43(@swc/helpers@0.4.14))(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)):
     dependencies:
       '@swc/core': 1.15.43(@swc/helpers@0.4.14)
       '@swc/counter': 0.1.3
-      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)
+      webpack: 5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4)
 
   swell-js@3.24.5:
     dependencies:
@@ -38153,44 +37903,6 @@ snapshots:
     optional: true
 
   webpack-sources@3.5.1: {}
-
-  webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26):
-    dependencies:
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.16.0
-      acorn-import-phases: 1.0.4(acorn@8.16.0)
-      browserslist: 4.28.8
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.24.5
-      es-module-lexer: 2.3.2
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      graceful-fs: 4.2.11
-      loader-runner: 4.3.2
-      mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.8.0(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26)(webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(clean-css@5.3.3)(cssnano@5.1.15(postcss@8.5.26))(csso@5.0.5)(esbuild@0.25.4)(html-minifier-terser@7.2.0)(postcss@8.5.26))
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.3
-      watchpack: 2.5.2
-      webpack-sources: 3.5.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - uglify-js
 
   webpack@5.108.4(@swc/core@1.15.43(@swc/helpers@0.4.14))(esbuild@0.25.4):
     dependencies:

@@ -139,6 +139,8 @@ function RichTextToolbar_(
   { ctx, ...props }: RichTextToolbarProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: studioUiT, label: uiLabel } = useI18n();
+
   const { t: uiT } = useI18n();
   // This is just a wrapper to use the run() function from
   // viewCtx.editingTextContext() with no need to check if it's undefined.
@@ -256,19 +258,24 @@ function RichTextToolbar_(
         hideBlock={!showBlock}
         block={{
           props: {
-            "aria-label": "Block type",
+            "aria-label": studioUiT("Block type"),
             children: [
               ...blocks.map((b) => (
                 <Select.Option
                   key={b.tag}
                   value={b.tag}
-                  aria-label={b.label}
-                  textValue={b.label}
+                  aria-label={uiLabel(b.label)}
+                  textValue={uiLabel(b.label)}
                 >
-                  <Icon icon={b.icon} style={{ marginRight: 4 }} /> {b.label}
+                  <Icon icon={b.icon} style={{ marginRight: 4 }} />{" "}
+                  {uiLabel(b.label)}
                 </Select.Option>
               )),
-              <Select.Option key={null} value={null} textValue={"Default"}>
+              <Select.Option
+                key={null}
+                value={null}
+                textValue={studioUiT("Default")}
+              >
                 <Icon icon={TextsvgIcon} style={{ marginRight: 4 }} />
                 <UiText message={"Default"} />
               </Select.Option>,
@@ -326,7 +333,7 @@ function RichTextToolbar_(
         }}
         fontWeight={{
           props: {
-            "aria-label": "Bold",
+            "aria-label": studioUiT("Bold"),
             type: fontWeight ? ["noDivider", "secondary"] : "noDivider",
             onClick: () => {
               if (fontWeight) {
@@ -339,13 +346,13 @@ function RichTextToolbar_(
               <Menu>
                 {fontWeightOptions.map((option) => (
                   <Menu.Item
-                    aria-label={option.label}
+                    aria-label={uiLabel(option.label)}
                     key={option.value}
                     onClick={() =>
                       markCss({ fontWeight: `${option.value}` as any })
                     }
                   >
-                    {option.value} - {option.label}
+                    {option.value} - {uiLabel(option.label)}
                   </Menu.Item>
                 ))}
                 <Menu.Item
@@ -407,11 +414,11 @@ function RichTextToolbar_(
                 {inlineMenuItems.map((item) => (
                   <Menu.Item
                     key={item.tag}
-                    aria-label={item.label}
+                    aria-label={uiLabel(item.label)}
                     onClick={() => runInEditor("WRAP_INLINE", item.tag)}
                   >
                     <Icon icon={item.icon} style={{ marginRight: 4 }} />
-                    {item.label}
+                    {uiLabel(item.label)}
                   </Menu.Item>
                 ))}
               </Menu>

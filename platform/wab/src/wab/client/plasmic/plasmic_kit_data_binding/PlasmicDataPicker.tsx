@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: cbEBf9RLgx
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -155,6 +156,8 @@ function PlasmicDataPicker__RenderFunc(props: {
   overrides: PlasmicDataPicker__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -358,8 +361,8 @@ function PlasmicDataPicker__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "codeEditing", "codeEditing")
-            ? "Edit code"
-            : "Select data"}
+            ? studioUiT("Edit code")
+            : studioUiT("Select data")}
         </div>
         <div
           className={classNames("all", sty.freeBox__kLjUi, {
@@ -435,8 +438,8 @@ function PlasmicDataPicker__RenderFunc(props: {
               platform={"react"}
             >
               {hasVariant($state, "codeEditing", "codeEditing")
-                ? "Switch to Data Picker"
-                : "Switch to Code"}
+                ? studioUiT("Switch to Data Picker")
+                : studioUiT("Switch to Code")}
             </PlasmicLink__>
           ) : null}
           {(
@@ -525,8 +528,8 @@ function PlasmicDataPicker__RenderFunc(props: {
               platform={"react"}
             >
               {hasVariant($state, "advancedToggle", "hide")
-                ? "Hide advanced fields"
-                : "Show advanced fields"}
+                ? studioUiT("Hide advanced fields")
+                : studioUiT("Show advanced fields")}
             </PlasmicLink__>
           ) : null}
           {(
@@ -722,8 +725,8 @@ function PlasmicDataPicker__RenderFunc(props: {
             platform={"react"}
           >
             {hasVariant($state, "withAddVariable", "withAddVariable")
-              ? "Add new State Variable"
-              : "Add new Query"}
+              ? studioUiT("Add new State Variable")
+              : studioUiT("Add new Query")}
           </PlasmicLink__>
           <div
             className={classNames("all", "__wab_text", sty.text__eZfaW, {
@@ -1379,7 +1382,7 @@ function PlasmicDataPicker__RenderFunc(props: {
                     ),
                   })}
                 >
-                  {"Selected:"}
+                  {<UiText message={"Selected:"} />}
                 </div>
               ) : null}
               {(hasVariant($state, "empty", "empty") ? false : true) ? (
@@ -1465,7 +1468,7 @@ function PlasmicDataPicker__RenderFunc(props: {
                   ),
                 })}
               >
-                {"Expected values:"}
+                {<UiText message={"Expected values:"} />}
               </div>
               <div className={classNames("all", sty.freeBox__nBnS)}>
                 {renderPlasmicSlot({
@@ -1504,7 +1507,7 @@ function PlasmicDataPicker__RenderFunc(props: {
             <Button
               data-plasmic-name={"deleteButton"}
               data-plasmic-override={overrides.deleteButton}
-              caption={"Caption"}
+              caption={studioUiT("Caption")}
               className={classNames("__wab_instance", sty.deleteButton, {
                 [sty.deleteButtonwithDeleteButton]: hasVariant(
                   $state,
@@ -1547,7 +1550,7 @@ function PlasmicDataPicker__RenderFunc(props: {
             <Button
               data-plasmic-name={"runButton"}
               data-plasmic-override={overrides.runButton}
-              caption={"Caption"}
+              caption={studioUiT("Caption")}
               className={classNames("__wab_instance", sty.runButton, {
                 [sty.runButtonisRunCodeInteraction]: hasVariant(
                   $state,
@@ -1604,7 +1607,7 @@ function PlasmicDataPicker__RenderFunc(props: {
           <Button
             data-plasmic-name={"cancelButton"}
             data-plasmic-override={overrides.cancelButton}
-            caption={"Caption"}
+            caption={studioUiT("Caption")}
             className={classNames("__wab_instance", sty.cancelButton, {
               [sty.cancelButtonhasExpectedValues]: hasVariant(
                 $state,
@@ -1642,7 +1645,7 @@ function PlasmicDataPicker__RenderFunc(props: {
           <Button
             data-plasmic-name={"saveButton"}
             data-plasmic-override={overrides.saveButton}
-            caption={"Caption"}
+            caption={studioUiT("Caption")}
             className={classNames("__wab_instance", sty.saveButton, {
               [sty.saveButtonisRunCodeInteraction]: hasVariant(
                 $state,

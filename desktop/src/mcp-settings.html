@@ -17,6 +17,7 @@
         --ui-fill: #272831;
         --ui-border: #373842;
         --ui-primary: #9474ff;
+        --ui-on-accent: #fff;
         --ui-error: #ff7875;
         font:
           14px/1.5 "Inter",
@@ -155,7 +156,7 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background: #fff;
+        background: var(--ui-on-accent);
         transition: transform 0.15s;
       }
       .switch[aria-checked="true"] {

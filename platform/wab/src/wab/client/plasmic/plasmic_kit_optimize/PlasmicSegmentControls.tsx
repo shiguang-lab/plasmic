@@ -140,7 +140,7 @@ function PlasmicSegmentControls__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         <div className={classNames("all", "__wab_text", sty.text__zcwNa)}>
-          {"Targeting"}
+          {<UiText message={"Targeting"} />}
         </div>
       </div>
       <Button

@@ -45,7 +45,7 @@
   flex-direction: column;
   box-shadow: 0px 2px 8px 0px #00000026;
   width: 100%;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   min-width: 0;
   border-radius: 4px;
 }

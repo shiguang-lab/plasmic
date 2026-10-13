@@ -464,7 +464,7 @@ export class SiteOps {
   private notifyVariantGroupReferenced(
     component: Component,
     refs: ExprReference[],
-    message = "Cannot delete variant group",
+    message = translate(getUiLocale(), "Cannot delete variant group"),
   ) {
     const viewCtx = this.studioCtx.focusedViewCtx();
     const maybeNode = refs.find((r) => r.node)?.node;
@@ -908,7 +908,10 @@ export class SiteOps {
     component: Component,
     opts: { focusNewComponent: boolean } = { focusNewComponent: true },
   ) {
-    const componentType = isPageComponent(component) ? "page" : "component";
+    const componentType = translate(
+      getUiLocale(),
+      isPageComponent(component) ? "page" : "component",
+    );
 
     const transitiveDeps = extractTransitiveDepsFromComponents(this.site, [
       component,

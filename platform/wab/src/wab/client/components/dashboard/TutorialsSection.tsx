@@ -54,7 +54,9 @@ export function TutorialsSection({ ...props }: TutorialsSectionProps) {
           name: (
             <>
               <UiText message={"Play"} />{" "}
-              <span className="game-name">Plasmic Levels</span>
+              <span className="game-name">
+                <UiText message={"Plasmic Levels"} />
+              </span>
             </>
           ),
           tag: "game",

@@ -11,6 +11,8 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: gCsGtvW8svmg
 
+import { translate } from "@/wab/client/i18n/locales";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -65,14 +67,14 @@ export type PageCtx = {
 
 export function generateDynamicMetadata($q: any, $ctx: PageCtx) {
   return {
-    title: "All projects",
+    title: translate(getUiLocale(), "All projects"),
 
     openGraph: {
-      title: "All projects",
+      title: translate(getUiLocale(), "All projects"),
     },
     twitter: {
       card: "summary" as const,
-      title: "All projects",
+      title: translate(getUiLocale(), "All projects"),
     },
   };
 }

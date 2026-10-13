@@ -1,4 +1,4 @@
 .container {
   user-select: text;
-  background: #fafafa;
+  background: var(--ui-bg, #fafafa);
 }

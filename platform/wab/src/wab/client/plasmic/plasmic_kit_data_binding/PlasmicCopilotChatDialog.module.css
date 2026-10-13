@@ -99,7 +99,7 @@
   position: relative;
   align-items: stretch;
   justify-content: flex-start;
-  background: var(--token-rqQDmopteQdV);
+  background: var(--ui-surface, var(--token-rqQDmopteQdV));
   border-bottom-left-radius: var(--token-8b4HJYZr1yuK);
   border-bottom-right-radius: var(--token-8b4HJYZr1yuK);
   padding: var(--token-O2OprmOFWLju) var(--token-8b4HJYZr1yuK);

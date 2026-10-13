@@ -112,7 +112,7 @@ function PlasmicMarkdownHintsPopoverContent__RenderFunc(props: {
         className={classNames("all", sty.freeBox)}
       >
         <div className={classNames("all", "__wab_text", sty.text__o9Ye)}>
-          {"Markdown hints"}
+          {<UiText message={"Markdown hints"} />}
         </div>
         <PlasmicLink__
           data-plasmic-name={"link"}

@@ -65,7 +65,7 @@
   position: relative;
 }
 .slotTargetTitledark {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .svg {
   position: relative;
@@ -76,7 +76,7 @@
   flex-shrink: 0;
 }
 .svgdark {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .content {
   display: flex;
@@ -100,7 +100,7 @@
   color: var(--token-mlyauzeAvywY);
 }
 .slotTargetBodydark {
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .freeBox__k1Ze5 {
   display: flex;

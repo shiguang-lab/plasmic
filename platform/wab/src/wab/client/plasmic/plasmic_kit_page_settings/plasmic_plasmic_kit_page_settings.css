@@ -142,7 +142,7 @@
   font-weight: inherit;
   color: inherit;
   text-transform: inherit;
-  background-image: linear-gradient(#ffffff, #ffffff);
+  background-image: linear-gradient(var(--ui-surface, #ffffff), var(--ui-surface, #ffffff));
   padding: 2px;
   border: 1px solid lightgray;
 }
@@ -155,7 +155,7 @@
   font-weight: inherit;
   color: inherit;
   text-transform: inherit;
-  background-image: linear-gradient(#ffffff, #ffffff);
+  background-image: linear-gradient(var(--ui-surface, #ffffff), var(--ui-surface, #ffffff));
   padding: 2px;
   border: 1px solid lightgray;
 }

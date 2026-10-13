@@ -107,5 +107,5 @@
   flex-shrink: 0;
 }
 .svgisRecording {
-  color: var(--token-7aKAiXanMe);
+  color: var(--ui-on-accent, var(--token-7aKAiXanMe));
 }

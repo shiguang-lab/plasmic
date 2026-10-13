@@ -37,7 +37,7 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
 import ThemeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Theme";
 import PlasmicLeftMixinsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftMixinsPanel";
@@ -356,6 +356,8 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
 });
 
 function _MixinsPanel() {
+  const { t: studioUiT } = useI18n();
+
   const sc = useStudioCtx();
   const [query, setQuery] = React.useState("");
   const { filterDeps, filterProps } = useDepFilterButton({
@@ -386,8 +388,7 @@ function _MixinsPanel() {
 
     if (badTransitiveDeps.length > 0) {
       notification.error({
-        message: translate(
-          getUiLocale(),
+        message: studioUiT(
           "Before duplicating this {part1} you have to update your imported projects: {part2}",
           {
             part1: translateUiLabel(getUiLocale(), MIXIN_LOWER),
@@ -678,7 +679,11 @@ function defaultPreviewText(tag: TagName) {
 }
 
 function defaultPreviewList(liStyle: React.CSSProperties) {
-  return [1, 2, 3].map((i) => <li key={i} style={liStyle}>{`Item ${i}`}</li>);
+  return [1, 2, 3].map((i) => (
+    <li key={i} style={liStyle}>
+      {<UiText message={"Item {part1}"} values={{ part1: String(i) }} />}
+    </li>
+  ));
 }
 
 function themeTagStyleValues(

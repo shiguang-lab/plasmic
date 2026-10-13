@@ -5,6 +5,7 @@ import {
   VariantSettingPopoverTitle,
 } from "@/wab/client/components/style-controls/DefinedIndicator";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import VariantIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Variant";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
@@ -222,15 +223,24 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
 
               popoverTitle: () => (
                 <VariantSettingPopoverTitle vs={indicatedVs} viewCtx={viewCtx}>
-                  {`Settings for element "${summarizeTpl(
-                    tpl,
-                    isTplVariantable(tpl)
-                      ? getEffectiveVariantSetting(
-                          tpl,
-                          indicatedVs?.variants,
-                        ).rsh()
-                      : undefined,
-                  )}"`}
+                  {
+                    <UiText
+                      message={'Settings for element "{part1}"'}
+                      values={{
+                        part1: String(
+                          summarizeTpl(
+                            tpl,
+                            isTplVariantable(tpl)
+                              ? getEffectiveVariantSetting(
+                                  tpl,
+                                  indicatedVs?.variants,
+                                ).rsh()
+                              : undefined,
+                          ),
+                        ),
+                      }}
+                    />
+                  }
                 </VariantSettingPopoverTitle>
               ),
 

@@ -11,6 +11,8 @@
 // Plasmic Project: aukbrhkegRkQ6KizvhdUPT
 // Component: OzaoSbFLbl
 
+import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -72,6 +74,8 @@ function PlasmicLeftSplitsPanel__RenderFunc(props: {
   overrides: PlasmicLeftSplitsPanel__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -134,12 +138,12 @@ function PlasmicLeftSplitsPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New test"}
+            {<UiText message={"New test"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.abHeader)}
-        description={"Run A/B tests to pick between winning designs."}
-        title={"A/B Tests"}
+        description={studioUiT("Run A/B tests to pick between winning designs.")}
+        title={studioUiT("A/B Tests")}
       />
 
       <div
@@ -176,15 +180,15 @@ function PlasmicLeftSplitsPanel__RenderFunc(props: {
               data-plasmic-override={overrides.text}
               className={classNames("all", "__wab_text", sty.text)}
             >
-              {"New targeted content"}
+              {<UiText message={"New targeted content"} />}
             </div>
           </Button>
         }
         className={classNames("__wab_instance", sty.segmentsHeader)}
         description={
-          "Target specific segments of your users with specialized content."
+          studioUiT("Target specific segments of your users with specialized content.")
         }
-        title={"Targeted Content"}
+        title={studioUiT("Targeted Content")}
       />
 
       <div
@@ -216,14 +220,14 @@ function PlasmicLeftSplitsPanel__RenderFunc(props: {
             type={["secondary"]}
             withIcons={["startIcon"]}
           >
-            {"New scheduled content"}
+            {<UiText message={"New scheduled content"} />}
           </Button>
         }
         className={classNames("__wab_instance", sty.leftPaneHeader)}
         description={
-          "Schedule content to be available in specific time ranges."
+          studioUiT("Schedule content to be available in specific time ranges.")
         }
-        title={"Scheduled Content"}
+        title={studioUiT("Scheduled Content")}
       />
 
       <div

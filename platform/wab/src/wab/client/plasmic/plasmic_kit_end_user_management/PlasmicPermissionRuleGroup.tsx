@@ -11,6 +11,7 @@
 // Plasmic Project: 2dMe7XWUq916KsPnra5vYj
 // Component: 7jCYJVNv9q
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -64,6 +65,8 @@ function PlasmicPermissionRuleGroup__RenderFunc(props: {
   overrides: PlasmicPermissionRuleGroup__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -108,7 +111,7 @@ function PlasmicPermissionRuleGroup__RenderFunc(props: {
           <React.Fragment>
             <PermissionRule
               className={classNames("__wab_instance", sty.permissionRule__rr4E)}
-              ruleName={"Anonymous visitors"}
+              ruleName={studioUiT("Anonymous visitors")}
             />
 
             <PermissionRule
@@ -117,7 +120,7 @@ function PlasmicPermissionRuleGroup__RenderFunc(props: {
                 sty.permissionRule__lhnJ2
               )}
               isGroup={true}
-              ruleName={"Logged in users"}
+              ruleName={studioUiT("Logged in users")}
             />
 
             <PermissionRule
@@ -127,7 +130,7 @@ function PlasmicPermissionRuleGroup__RenderFunc(props: {
               )}
               hasMenu={true}
               isGroup={true}
-              ruleName={"Logged in users"}
+              ruleName={studioUiT("Logged in users")}
               withoutBorder={true}
             />
           </React.Fragment>

@@ -8,6 +8,7 @@ import {
   usePropValueEditorContext,
 } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
+import { useI18n } from "@/wab/client/i18n";
 import {
   StudioPropType,
   getPropTypeDefaultValue,
@@ -57,6 +58,8 @@ export const ArrayPropEditor = observer(function ArrayPropEditor<
   propType,
   disabled,
 }: ArrayPropEditorProps<Value>) {
+  const { t: studioUiT } = useI18n();
+
   const [inspect, setInspect] = useState<number | undefined>(undefined);
 
   function addNewElement() {
@@ -93,7 +96,7 @@ export const ArrayPropEditor = observer(function ArrayPropEditor<
     <>
       <ListBox
         appendPrepend={"append"}
-        addText={"Add item"}
+        addText={studioUiT("Add item")}
         onReorder={(from, to) => {
           if (compositeValue) {
             onChange(arrayMoveIndex(compositeValue, from, to));

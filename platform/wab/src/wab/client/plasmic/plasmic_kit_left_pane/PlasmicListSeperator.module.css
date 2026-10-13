@@ -24,7 +24,7 @@
   border-bottom: 1px solid #e7e7e7;
 }
 .freeBox__i2Yzw {
-  background: #ffffff;
+  background: var(--ui-surface, #ffffff);
   width: auto;
   height: auto;
   display: flex;

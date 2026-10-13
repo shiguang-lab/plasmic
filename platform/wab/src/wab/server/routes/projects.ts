@@ -1,11 +1,13 @@
-import { getUser } from "@/wab/server/routes/util";
-import { receipt as recordAiReceipt, lockRun as lockAiRun, emitTask as emitAiTask } from "@/wab/server/copilot/ai-store";
-import { aiReceiptSchema } from "@/wab/shared/copilot/ai-chat";
 import { addOrUpsertTokens } from "@/wab/commons/StyleToken";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
 import { ProjectVersionMeta, VersionResolution } from "@/wab/commons/versions";
 import { createBranchFromBase } from "@/wab/server/branch";
+import {
+  emitTask as emitAiTask,
+  lockRun as lockAiRun,
+  receipt as recordAiReceipt,
+} from "@/wab/server/copilot/ai-store";
 import { reevaluateDataSourceExprOpIds } from "@/wab/server/data-sources/data-source-utils";
 import {
   getLastBundleVersion,
@@ -39,6 +41,9 @@ import {
 import "@/wab/server/extensions";
 import { logger } from "@/wab/server/observability";
 import { REAL_PLUME_VERSION } from "@/wab/server/pkg-mgr/plume-pkg-mgr";
+import { getUser } from "@/wab/server/routes/util";
+import { aiReceiptSchema } from "@/wab/shared/copilot/ai-chat";
+import { SELF_HOSTED } from "@/wab/shared/deployment";
 
 import { getEntitledTeam } from "@/wab/server/freeTrial";
 import { checkEtagSkippable } from "@/wab/server/routes/loader";
@@ -202,10 +207,11 @@ export function mkApiProject(project: Project): ApiProject {
       project.workspace?.uiConfig,
       project.uiConfig,
     ),
-    contentCreatorConfig: project.workspace?.team?.featureTier
-      ?.editContentCreatorMode
-      ? project.workspace?.contentCreatorConfig
-      : null,
+    contentCreatorConfig:
+      SELF_HOSTED ||
+      project.workspace?.team?.featureTier?.editContentCreatorMode
+        ? project.workspace?.contentCreatorConfig
+        : null,
     isUserStarter: project.isUserStarter ?? false,
   };
 }
@@ -381,8 +387,7 @@ export async function importProject(req: Request, res: Response) {
   };
 
   const bundles = JSON.parse(data) as
-    | [string, Bundle][]
-    | ProjectFullDataResponse;
+    [string, Bundle][] | ProjectFullDataResponse;
   const mgr = userDbMgr(req);
 
   if (!Array.isArray(bundles)) {
@@ -1307,13 +1312,36 @@ export async function saveProjectRev(req: Request, res: Response) {
 
     const aiReceipt = req.body.aiReceipt;
     if (aiReceipt) {
-      const parsed = aiReceiptSchema.safeParse({ sessionId: aiReceipt.sessionId, fence: aiReceipt.fence, result: aiReceipt.result });
-      if (!parsed.success || typeof aiReceipt.operationId !== "string") { throw new BadRequestError("Invalid AI save receipt."); }
-      await recordAiReceipt(projectId, getUser(req).id, aiReceipt.operationId, parsed.data, ensure(req.txMgr,"Save transaction is required"));
-      const [previous] = await ensure(req.txMgr,"Save transaction is required").query(`SELECT "savedRevisionId" FROM ai_tool_call WHERE id=$1`,[aiReceipt.operationId]);
+      const parsed = aiReceiptSchema.safeParse({
+        sessionId: aiReceipt.sessionId,
+        fence: aiReceipt.fence,
+        result: aiReceipt.result,
+      });
+      if (!parsed.success || typeof aiReceipt.operationId !== "string") {
+        throw new BadRequestError("Invalid AI save receipt.");
+      }
+      await recordAiReceipt(
+        projectId,
+        getUser(req).id,
+        aiReceipt.operationId,
+        parsed.data,
+        ensure(req.txMgr, "Save transaction is required"),
+      );
+      const [previous] = await ensure(
+        req.txMgr,
+        "Save transaction is required",
+      ).query(`SELECT "savedRevisionId" FROM ai_tool_call WHERE id=$1`, [
+        aiReceipt.operationId,
+      ]);
       if (previous?.savedRevisionId) {
-        const rev = ensure(await mgr.tryGetProjectRevById(projectId,previous.savedRevisionId),"Saved AI revision is missing");
-        return commitTransaction({ project: await mgr.getProjectById(projectId), rev });
+        const rev = ensure(
+          await mgr.tryGetProjectRevById(projectId, previous.savedRevisionId),
+          "Saved AI revision is missing",
+        );
+        return commitTransaction({
+          project: await mgr.getProjectById(projectId),
+          rev,
+        });
       }
     }
     const project = await mgr.getProjectById(projectId);
@@ -1416,11 +1444,25 @@ export async function saveProjectRev(req: Request, res: Response) {
     });
 
     if (aiReceipt) {
-      await ensure(req.txMgr,"Save transaction is required").query(`UPDATE ai_tool_call SET "savedRevisionId"=$2 WHERE id=$1`,[aiReceipt.operationId,rev.id]);
-      const [{ runId }] = await ensure(req.txMgr,"Save transaction is required").query(`SELECT "runId" FROM ai_tool_call WHERE id=$1`,[aiReceipt.operationId]);
-      const run = await lockAiRun(runId,ensure(req.txMgr,"Save transaction is required"));
+      await ensure(req.txMgr, "Save transaction is required").query(
+        `UPDATE ai_tool_call SET "savedRevisionId"=$2 WHERE id=$1`,
+        [aiReceipt.operationId, rev.id],
+      );
+      const [{ runId }] = await ensure(
+        req.txMgr,
+        "Save transaction is required",
+      ).query(`SELECT "runId" FROM ai_tool_call WHERE id=$1`, [
+        aiReceipt.operationId,
+      ]);
+      const run = await lockAiRun(
+        runId,
+        ensure(req.txMgr, "Save transaction is required"),
+      );
       run.task.savedRevision = rev.revision;
-      await emitAiTask(ensure(req.txMgr,"Save transaction is required"),run.task);
+      await emitAiTask(
+        ensure(req.txMgr, "Save transaction is required"),
+        run.task,
+      );
     }
     if (req.body.incremental) {
       const partial = await (async () => {

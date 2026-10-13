@@ -19,7 +19,7 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -58,6 +58,8 @@ const ServerQueryRow = observer(
     query: ComponentServerQuery;
     viewCtx: ViewCtx;
   }) => {
+    const { t: studioUiT } = useI18n();
+
     const { component, query, viewCtx } = props;
     const studioCtx = viewCtx.studioCtx;
     const projectFlags = studioCtx.projectFlags();
@@ -130,7 +132,9 @@ const ServerQueryRow = observer(
         </Menu>
       );
     };
-    const title = `Query data results for "${query.name}"`;
+    const title = studioUiT('Query data results for "{part1}"', {
+      part1: String(query.name),
+    });
     let env: Record<string, any> | undefined = viewCtx.getCanvasEnvForTpl(tpl, {
       forDataRepCollection: true,
     });
@@ -186,7 +190,7 @@ function ServerQueriesSection_(props: {
   const { component, viewCtx } = props;
   const studioCtx = useStudioCtx();
 
-  const componentType = isPageComponent(component) ? "page" : "component";
+  const componentType = uiT(isPageComponent(component) ? "page" : "component");
 
   const handleAddBlankQuery = () => {
     spawn(
@@ -229,14 +233,17 @@ function ServerQueriesSection_(props: {
             ).join(", ")})`,
         );
         notification.success({
-          message: translate(getUiLocale(), "Copied {part1}: {part2}", {
-            part1: names.length === 1 ? "query" : "queries",
-            part2: names.join(", "),
-          }),
+          message: uiT(
+            names.length === 1
+              ? "Copied query: {names}"
+              : "Copied queries: {names}",
+            {
+              names: names.join(", "),
+            },
+          ),
           description:
             warnings.length > 0
-              ? translate(
-                  getUiLocale(),
+              ? uiT(
                   "References component {names} that may not exist or differ in this component.",
                   { names: warnings.join(", ") },
                 )
@@ -299,7 +306,7 @@ function ServerQueriesSection_(props: {
         </LabelWithDetailedTooltip>
       }
       emptyBody={component.serverQueries.length === 0}
-      emptyDescription="Fetch data from external sources."
+      emptyDescription={uiT("Fetch data from external sources.")}
       zeroBodyPadding
       controls={
         otherComponentsWithQueries.length > 0 ? (

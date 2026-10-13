@@ -77,7 +77,7 @@
   height: 16px;
   transition-property: all;
   transition-duration: 0.2s;
-  background: #ffffff;
+  background: var(--ui-on-accent, #ffffff);
   flex-shrink: 0;
   -webkit-transition-property: all;
   -webkit-transition-duration: 0.2s;

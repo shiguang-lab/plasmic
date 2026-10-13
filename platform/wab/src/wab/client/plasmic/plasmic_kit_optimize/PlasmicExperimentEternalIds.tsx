@@ -11,6 +11,7 @@
 // Plasmic Project: gtUDvxG6cmBbSzqLikNzoP
 // Component: APlN8dajrS9
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -81,6 +82,8 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
   overrides: PlasmicExperimentEternalIds__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -213,7 +216,7 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
           })}
         >
           <div className={classNames("all", "__wab_text", sty.text__nztx2)}>
-            {"Experiment"}
+            {<UiText message={"Experiment"} />}
           </div>
         </div>
         <Textbox
@@ -326,7 +329,7 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
           >
             {hasVariant($state, "isExpanded", "isExpanded") &&
             hasVariant($state, "isSegmentation", "isSegmentation")
-              ? "Override"
+              ? studioUiT("Override")
               : "B"}
           </div>
         </div>

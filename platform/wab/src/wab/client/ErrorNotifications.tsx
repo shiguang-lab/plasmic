@@ -1,4 +1,11 @@
+import {
+  ErrorDescription,
+  asApiError,
+  getApiErrorPresentation,
+} from "@/wab/client/api-error-presentation";
+import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { translate } from "@/wab/client/i18n/locales";
 import { analytics } from "@/wab/client/observability";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UserError } from "@/wab/shared/UserError";
@@ -36,13 +43,23 @@ export function showError(
   },
 ) {
   const { title = "Unexpected error", description, type } = opts ?? {};
+  const businessError = asApiError(error);
   const deriveErrorInfo = () => {
     if (error.message?.includes("XHRStatus0Error")) {
       return {
-        title: "Temporarily disconnected",
-        description:
+        title: translate(getUiLocale(), "Temporarily disconnected"),
+        description: translate(
+          getUiLocale(),
           "Your browser is disconnected from Plasmic. Saving is paused, and will resume soon!",
+        ),
         type: type ?? ("warning" as const),
+      };
+    } else if (businessError) {
+      const presentation = getApiErrorPresentation(businessError);
+      return {
+        title: opts?.title ?? presentation.title,
+        description: undefined,
+        type: presentation.type,
       };
     } else {
       return {
@@ -56,7 +73,7 @@ export function showError(
 
   const info = deriveErrorInfo();
   const newCount = 1 + (errorMessageCounters.get(info.title) || 0);
-  errorMessageCounters.set(title, newCount);
+  errorMessageCounters.set(info.title, newCount);
 
   notification.open({
     type: info.type,
@@ -72,10 +89,17 @@ export function showError(
         )}
       </>
     ),
-    description: <UiLabel text={description ?? info.description ?? ""} />,
+    description:
+      description !== undefined ? (
+        <UiLabel text={description} />
+      ) : businessError ? (
+        <ErrorDescription error={businessError} />
+      ) : (
+        <UiLabel text={info.description ?? ""} />
+      ),
     duration: info.type === "warning" ? 10 : 0,
     onClose: () => {
-      errorMessageCounters.delete(title);
+      errorMessageCounters.delete(info.title);
     },
   });
 }
@@ -96,6 +120,10 @@ export function handleError(error: Error, source?: string) {
     }
   }, 0);
   setTimeout(() => {
+    const apiError = asApiError(error);
+    if (apiError && apiError.statusCode < 500) {
+      return;
+    }
     stampObjectUuid(error);
     Sentry.captureException(error);
     analytics().track("Error", {
@@ -182,7 +210,8 @@ export function shouldIgnoreError(error: Error, source?: string) {
 }
 
 export function reportError(error: Error, eventName?: string) {
-  if (error instanceof UserError) {
+  const apiError = asApiError(error);
+  if (error instanceof UserError || (apiError && apiError.statusCode < 500)) {
     if (DEVFLAGS.debug) {
       console.log("UserError: ", eventName ?? error.name, error.message, error);
     }

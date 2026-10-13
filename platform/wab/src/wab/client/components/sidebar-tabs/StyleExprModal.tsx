@@ -21,6 +21,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import Button from "@/wab/client/components/widgets/Button";
 import Select from "@/wab/client/components/widgets/Select";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -124,10 +125,12 @@ const StyleExprPopup = observer(function StyleExprPopup(props: {
   isClassName: boolean;
   onClose: () => void;
 }) {
+  const { t: studioUiT } = useI18n();
+
   const { studioCtx, label, spec, expr, isClassName, onClose } = props;
   const selectorOptions = withoutNils([
     !isClassName && !spec.selectors?.some((s) => s.label === "Base")
-      ? { value: "base", label: "Base" }
+      ? { value: "base", label: studioUiT("Base") }
       : undefined,
     ...(spec.selectors?.map((s) => ({
       value: s.selector,

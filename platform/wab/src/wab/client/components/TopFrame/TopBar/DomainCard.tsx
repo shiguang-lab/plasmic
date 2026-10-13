@@ -1,4 +1,5 @@
 import { apiKey } from "@/wab/client/api";
+import { getErrorMessage } from "@/wab/client/api-error-presentation";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
   DefaultDomainCardProps,
@@ -229,7 +230,7 @@ function DomainCard_(
                   onRemoved?.();
                 } catch (err) {
                   setRemoveError({
-                    message: err instanceof Error ? err.message : undefined,
+                    message: getErrorMessage(err),
                     operation: "remove",
                   });
                 } finally {

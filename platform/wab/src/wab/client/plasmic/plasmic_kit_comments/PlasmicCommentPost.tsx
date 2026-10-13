@@ -11,6 +11,7 @@
 // Plasmic Project: BP7V3EkXPURJVwwMyWoHn
 // Component: l_AKXl2AAu
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -108,6 +109,8 @@ function PlasmicCommentPost__RenderFunc(props: {
   overrides: PlasmicCommentPost__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -411,7 +414,7 @@ function PlasmicCommentPost__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "isDeleted", "isDeleted")
-              ? "Deleted comment"
+              ? studioUiT("Deleted comment")
               : "Hello there! This comment is long. Hello there! This comment is long. Hello there! This comment is long. Hello there! This comment is long. Hello there! This comment is long. "}
           </div>
         </div>

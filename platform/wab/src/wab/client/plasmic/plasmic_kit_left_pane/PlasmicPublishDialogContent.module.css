@@ -1,7 +1,7 @@
 .root {
   display: flex;
   position: relative;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   padding: 32px;
 }
 .rootstate_disabled {

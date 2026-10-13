@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import styles from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection.module.scss";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -35,7 +39,7 @@ export interface PreviewPublishSectionProps {
   entryPath: string;
   setEntryPath: (value: string) => void;
   busy: boolean;
-  error?: string;
+  error?: unknown;
   canEdit: boolean;
   publish: () => void;
   unpublish: () => void;
@@ -163,12 +167,12 @@ export default function PreviewPublishSection(
             </Button>
           )}
         </div>
-        {error && (
+        {!!error && (
           <Alert
-            type="error"
+            type={getErrorType(error)}
             showIcon
             title={uiT("Website publishing failed")}
-            description={error}
+            description={<ErrorDescription error={error} />}
           />
         )}
       </div>

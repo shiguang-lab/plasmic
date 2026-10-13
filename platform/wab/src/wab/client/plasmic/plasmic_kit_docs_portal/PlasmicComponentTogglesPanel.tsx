@@ -162,7 +162,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
           className={classNames("all", sty.freeBox)}
         >
           <div className={classNames("all", "__wab_text", sty.text__zJvYt)}>
-            {"Props for"}
+            {<UiText message={"Props for"} />}
           </div>
           {renderPlasmicSlot({
             defaultContents: "PlasmicTextbox",
@@ -206,7 +206,7 @@ function PlasmicComponentTogglesPanel__RenderFunc(props: {
           slot={"Activate different variants of the component"}
         >
           <div className={classNames("all", "__wab_text", sty.text___5Ydwu)}>
-            {"Variant Props "}
+            {<><UiText message={"Variant Props"} />{" "}</>}
           </div>
         </ComponentPropsSubHeader>
         <div

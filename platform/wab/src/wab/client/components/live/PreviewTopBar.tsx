@@ -606,7 +606,11 @@ export const PreviewTopBar = observer(function PreviewTopBar({
             <CodeButton showOptions={false} />
           </div>
         )}
-        <Tooltip title={`${t("Back to editor")} · Esc`}>
+        <Tooltip
+          title={t("{part1} · Esc", {
+            part1: String(t("Back to editor")),
+          })}
+        >
           <Button
             type="primary"
             aria-label={t("Back to editor")}

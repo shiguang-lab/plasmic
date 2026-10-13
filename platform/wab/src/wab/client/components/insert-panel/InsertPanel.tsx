@@ -1,3 +1,7 @@
+import {
+  ErrorDescription,
+  getErrorType,
+} from "@/wab/client/api-error-presentation";
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { useFocusManager } from "@/wab/client/components/aria-utils";
 import {
@@ -67,8 +71,12 @@ import {
 } from "@/wab/client/definitions/insertables";
 import { DragInsertManager } from "@/wab/client/Dnd";
 import { useVirtualCombobox } from "@/wab/client/hooks/useVirtualCombobox";
-import { useI18n } from "@/wab/client/i18n";
-import { translateUiLabel, UiLocale } from "@/wab/client/i18n/locales";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import {
+  translate,
+  translateUiLabel,
+  UiLocale,
+} from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { DOWNLOAD_ICON } from "@/wab/client/icons";
 import { getPageTemplatesGroups } from "@/wab/client/insertable-templates";
@@ -806,9 +814,10 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           onInserted(item, null);
         } catch (error) {
           if (pageTemplate) {
-            notification.error({
+            notification.open({
+              type: getErrorType(error),
               message: uiT("Failed to create page"),
-              description: error instanceof Error ? error.message : undefined,
+              description: <ErrorDescription error={error} />,
             });
           } else {
             notifyInstallableFailure(item.label, (error as any).message);
@@ -2061,7 +2070,7 @@ export function buildAddItemGroups({
       sectionKey: "components",
       sectionLabel: DEVFLAGS.insertPanelContent.componentsLabel,
       key: "components",
-      label: "Project Components",
+      label: translate(getUiLocale(), "Project Components"),
       items: sortComponentsByName(
         studioCtx.site.components.filter(
           (c) =>
@@ -2078,7 +2087,7 @@ export function buildAddItemGroups({
       sectionKey: "components",
       sectionLabel: DEVFLAGS.insertPanelContent.componentsLabel,
       key: "code-components",
-      label: "Code Components",
+      label: translate(getUiLocale(), "Code Components"),
       items: sortComponentsByName(
         studioCtx.site.components.filter(
           (c) =>
@@ -2132,7 +2141,7 @@ export function buildAddItemGroups({
 
     canInsertAlias(uiConfig, "icon", canInsertContext) && {
       key: "icons",
-      label: "Icons",
+      label: translate(getUiLocale(), "Icons"),
       items: studioCtx.site.imageAssets
         .filter((asset) => isIcon(asset))
         .map((asset) => createAddTplImage(asset)),
@@ -2140,7 +2149,7 @@ export function buildAddItemGroups({
 
     canInsertAlias(uiConfig, "image", canInsertContext) && {
       key: "images",
-      label: "Images",
+      label: translate(getUiLocale(), "Images"),
       items: studioCtx.site.imageAssets
         .filter(
           (asset) => asset.type === ImageAssetType.Picture && asset.dataUri,
@@ -2174,7 +2183,7 @@ export function buildAddItemGroups({
     canInsertHostlessPackage(uiConfig, "plume", canInsertContext) &&
       studioCtx.shownSyntheticSections.get("plume") && {
         key: "synthetic-plume",
-        label: 'Customizable "headless" components',
+        label: translate(getUiLocale(), 'Customizable "headless" components'),
         sectionLabel: "Headless components",
         familyKey: "installed",
         items: naturalSort(
@@ -2207,7 +2216,7 @@ export function buildAddItemGroups({
     canInsertHostlessPackage(uiConfig, "unstyled", canInsertContext) &&
       studioCtx.shownSyntheticSections.get("unstyled") && {
         key: "synthetic-unstyled",
-        label: "More HTML elements",
+        label: translate(getUiLocale(), "More HTML elements"),
         sectionLabel: "More HTML elements",
         familyKey: "installed",
         items: [
@@ -2450,7 +2459,7 @@ export function buildAddItemGroups({
         sectionKey: firstGroup.sectionKey,
         sectionLabel: firstGroup.sectionLabel,
         key: "recent",
-        label: "Recent",
+        label: translate(getUiLocale(), "Recent"),
         // Note: useCombobox will do shallow comparisons and get confused when there are 2 identical elements
         // For example, highlightedIndex will be set to the first occurrence, leading to a lot of jumping around
         // By just cloning this, we can keep the items distinct
@@ -2486,26 +2495,41 @@ function getPlacementOptions(studioCtx: StudioCtx) {
 
   if (!isContainer && !isSlot && !isColumn) {
     return [
-      { label: "Before", insertLoc: InsertRelLoc.before },
-      { label: "After", insertLoc: InsertRelLoc.after, default: true },
+      {
+        label: translate(getUiLocale(), "Before"),
+        insertLoc: InsertRelLoc.before,
+      },
+      {
+        label: translate(getUiLocale(), "After"),
+        insertLoc: InsertRelLoc.after,
+        default: true,
+      },
     ];
   }
 
   if (_isComponentRoot || isSlot || isColumn || isMarkerTpl) {
-    return [{ label: "Inside", insertLoc: InsertRelLoc.append }];
+    return [
+      {
+        label: translate(getUiLocale(), "Inside"),
+        insertLoc: InsertRelLoc.append,
+      },
+    ];
   }
 
   const preferToInsertInside = isEmpty || !parentIsFlexContainer;
 
   return [
-    { label: "Before", insertLoc: InsertRelLoc.before },
     {
-      label: "Inside",
+      label: translate(getUiLocale(), "Before"),
+      insertLoc: InsertRelLoc.before,
+    },
+    {
+      label: translate(getUiLocale(), "Inside"),
       insertLoc: InsertRelLoc.append,
       default: preferToInsertInside,
     },
     {
-      label: "After",
+      label: translate(getUiLocale(), "After"),
       insertLoc: InsertRelLoc.after,
       default: !preferToInsertInside,
     },

@@ -11,6 +11,7 @@
 // Plasmic Project: ooL7EhXDmFQWnW9sxtchhE
 // Component: 5PfErhGRfT
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -104,6 +105,8 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
   overrides: PlasmicUpsellCheckout__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -242,7 +245,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
               ),
             })}
           >
-            {"Upgrade "}
+            {<><UiText message={"Upgrade"} />{" "}</>}
           </div>
           <div
             className={classNames("all", sty.freeBox__ot68, {
@@ -290,10 +293,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
             })}
           >
             {hasVariant($state, "tempPickOneModal", "tempPickOneModal")
-              ? "Select a new plan to upgrade. "
+              ? (studioUiT("Select a new plan to upgrade.") + " ")
               : hasVariant($state, "onFreeTrial", "onFreeTrial")
-              ? "Select a new plan to upgrade. You'll only be charged after your trial ends. "
-              : "Select a new plan to "}
+              ? (studioUiT("Select a new plan to upgrade. You'll only be charged after your trial ends.") + " ")
+              : (studioUiT("Select a new plan to") + " ")}
           </div>
           <div
             data-plasmic-name={"operationDescription"}
@@ -319,7 +322,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
             {hasVariant($state, "tempPickOneModal", "tempPickOneModal") ? (
               <React.Fragment>
                 <React.Fragment>
-                  {"Select a new plan to upgrade. "}
+                  {<><UiText message={"Select a new plan to upgrade."} />{" "}</>}
                 </React.Fragment>
                 {
                   <PlasmicLink__
@@ -360,7 +363,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
               <React.Fragment>
                 <React.Fragment>
                   {
-                    "Select a new plan to upgrade. You'll only be charged after your trial ends. "
+                    <><UiText message={"Select a new plan to upgrade. You'll only be charged after your trial ends."} />{" "}</>
                   }
                 </React.Fragment>
                 {
@@ -399,7 +402,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                 <React.Fragment>{""}</React.Fragment>
               </React.Fragment>
             ) : (
-              "upgrade"
+              studioUiT("upgrade")
             )}
           </div>
           <div
@@ -419,7 +422,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
             {hasVariant($state, "tempPickOneModal", "tempPickOneModal") ? (
               <React.Fragment>
                 <React.Fragment>
-                  {"Select a new plan to upgrade. "}
+                  {<><UiText message={"Select a new plan to upgrade."} />{" "}</>}
                 </React.Fragment>
                 {
                   <PlasmicLink__
@@ -460,7 +463,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
               <React.Fragment>
                 <React.Fragment>
                   {
-                    "Select a new plan to upgrade. You'll only be charged after your trial ends. "
+                    <><UiText message={"Select a new plan to upgrade. You'll only be charged after your trial ends."} />{" "}</>
                   }
                 </React.Fragment>
                 {
@@ -569,7 +572,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
           }}
         >
           <div className={classNames("all", "__wab_text", sty.text__c7DnN)}>
-            {"Annual Billing (Save 20%)"}
+            {<UiText message={"Annual Billing (Save 20%)"} />}
           </div>
         </Switch>
       </div>
@@ -619,7 +622,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__pogjR)}
                 >
-                  {"$15 x 10 seats x 1 month"}
+                  {<UiText message={"$15 x 10 seats x 1 month"} />}
                 </div>
               }
             />
@@ -740,7 +743,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__naWaw)}
                 >
-                  {"Security Code"}
+                  {<UiText message={"Security Code"} />}
                 </div>
                 <div className={classNames("all", sty.freeBox__wiZSw)}>
                   <div

@@ -1,5 +1,6 @@
 import StarterProject from "@/wab/client/components/StarterProject";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultStarterGroupProps,
   PlasmicStarterGroup,
@@ -20,6 +21,8 @@ export interface StarterGroupProps
 }
 
 function StarterGroup(props: StarterGroupProps) {
+  const { t: studioUiT } = useI18n();
+
   const appCtx = useAppCtx();
   const showPlasmicOnlyProjects = isAdminTeamEmail(
     appCtx.selfInfo?.email,
@@ -68,7 +71,7 @@ function StarterGroup(props: StarterGroupProps) {
       viewDocs={{
         props: {
           href: props.docsUrl ?? "#",
-          text: "Docs",
+          text: studioUiT("Docs"),
           hide: !props.docsUrl,
         },
       }}
@@ -76,7 +79,7 @@ function StarterGroup(props: StarterGroupProps) {
       more={{
         props: {
           href: props.moreUrl ?? "#",
-          text: "See all...",
+          text: studioUiT("See all..."),
           hide: !props.moreUrl,
         },
       }}

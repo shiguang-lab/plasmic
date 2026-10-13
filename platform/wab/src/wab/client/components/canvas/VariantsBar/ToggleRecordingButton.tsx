@@ -1,3 +1,6 @@
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translateUiLabel } from "@/wab/client/i18n/locales";
+
 import {
   DefaultToggleRecordingButtonProps,
   PlasmicToggleRecordingButton,
@@ -11,13 +14,19 @@ interface ToggleRecordingButtonProps extends DefaultToggleRecordingButtonProps {
 }
 
 function ToggleRecordingButton(props: ToggleRecordingButtonProps) {
+  const { t: studioUiT } = useI18n();
+
   return (
     <Tooltip
       trigger={["hover"]}
       title={
         props.isRecording
-          ? `Stop recording all ${VARIANTS_LOWER}`
-          : `Start recording all ${VARIANTS_LOWER}`
+          ? studioUiT("Stop recording all {part1}", {
+              part1: translateUiLabel(getUiLocale(), VARIANTS_LOWER),
+            })
+          : studioUiT("Start recording all {part1}", {
+              part1: translateUiLabel(getUiLocale(), VARIANTS_LOWER),
+            })
       }
     >
       <PlasmicToggleRecordingButton {...props} />

@@ -131,7 +131,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"page"}
               >
-                {"Page 2"}
+                {<UiText message={"Page 2"} />}
               </ReferenceItem>
               <ListSectionSeparator
                 center={true}
@@ -157,7 +157,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"component"}
               >
-                {"Component 2"}
+                {<UiText message={"Component 2"} />}
               </ReferenceItem>
               <ListSectionSeparator
                 center={true}
@@ -191,7 +191,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"mixin"}
               >
-                {"Mixin"}
+                {<UiText message={"Mixin"} />}
               </ReferenceItem>
               <ReferenceItem
                 className={classNames(
@@ -200,7 +200,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"mixin"}
               >
-                {"Mixin 2"}
+                {<UiText message={"Mixin 2"} />}
               </ReferenceItem>
               <ReferenceItem
                 className={classNames(
@@ -212,7 +212,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__jtGud)}
                 >
-                  {"Mixin 3"}
+                  {<UiText message={"Mixin 3"} />}
                 </div>
               </ReferenceItem>
               <ReferenceItem
@@ -222,7 +222,7 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
                 )}
                 type={"mixin"}
               >
-                {"Mixin 4"}
+                {<UiText message={"Mixin 4"} />}
               </ReferenceItem>
               <ListSectionSeparator
                 center={true}

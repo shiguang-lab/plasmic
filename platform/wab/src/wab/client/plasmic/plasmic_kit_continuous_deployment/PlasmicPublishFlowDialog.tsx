@@ -11,6 +11,7 @@
 // Plasmic Project: fpbcKyXdMTvY59T4C5fjcC
 // Component: aXXfRDkhD-
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -117,6 +118,8 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
   overrides: PlasmicPublishFlowDialog__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -950,8 +953,8 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "view", "status")
-                ? "You may close this popup without interrupting your deployment."
-                : "You may close this popup without interrupting publishing."}
+                ? studioUiT("You may close this popup without interrupting your deployment.")
+                : studioUiT("You may close this popup without interrupting publishing.")}
             </div>
           ) : null}
           {(hasVariant($state, "view", "status") ? false : true) ? (
@@ -1068,10 +1071,10 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "publishState", "publishing")
-                ? "The project is being published at the moment..."
+                ? studioUiT("The project is being published at the moment...")
                 : hasVariant($state, "publishState", "failure")
-                ? "The latest publish failed."
-                : "The latest publish was successful."}
+                ? studioUiT("The latest publish failed.")
+                : studioUiT("The latest publish was successful.")}
             </div>
             <Button
               data-plasmic-name={"statusButton"}

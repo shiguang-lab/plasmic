@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: jW-aUu5X3W
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -85,6 +86,8 @@ function PlasmicSlotProp__RenderFunc(props: {
   overrides: PlasmicSlotProp__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -187,7 +190,7 @@ function PlasmicSlotProp__RenderFunc(props: {
               })}
             >
               {hasVariant($state, "isNonText", "isNonText")
-                ? "Non-text content"
+                ? studioUiT("Non-text content")
                 : <UiText message={"Enter some text"} />}
             </div>
           ) : null

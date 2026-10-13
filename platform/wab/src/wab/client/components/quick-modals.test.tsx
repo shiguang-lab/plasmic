@@ -1,28 +1,19 @@
 import promptForMetadata from "@/wab/client/components/modals/ComponentMetadataModal";
-import { confirm, reactPrompt } from "@/wab/client/components/quick-modals";
+import {
+  alert,
+  confirm,
+  hardConfirm,
+  reactPrompt,
+} from "@/wab/client/components/quick-modals";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
+import "@testing-library/jest-dom/vitest";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
-vi.mock("@/wab/client/components/widgets/Button", () => ({
-  default: ({
-    children,
-    onClick,
-    htmlType,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-    htmlType?: "submit";
-  }) => (
-    <button type={htmlType ?? "button"} onClick={onClick}>
-      {children}
-    </button>
-  ),
-}));
 vi.mock("@/wab/client/components/widgets/Textbox", () => ({
   default: ({
     styleType: _styleType,
@@ -150,4 +141,86 @@ it("cancels a creation prompt with its close button", async () => {
     ensure(result, "The creation prompt must be open"),
   ).resolves.toBeUndefined();
   expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+function expectNativeFooter(button: HTMLElement) {
+  const footer = ensure(
+    button.closest(".ant-modal-footer"),
+    "Expected native modal footer",
+  );
+  expect(button).toHaveClass("ant-btn");
+  expect(getComputedStyle(footer).textAlign).toBe("end");
+}
+
+it("uses the native right-aligned footer and danger button for confirmations", async () => {
+  let result: Promise<boolean | undefined> | undefined;
+  act(() => {
+    result = confirm({ message: "Delete this item?", danger: true });
+  });
+  const confirmButton = screen.getByRole("button", { name: "Confirm" });
+  expectNativeFooter(confirmButton);
+  expectNativeFooter(screen.getByRole("button", { name: "Cancel" }));
+  expect(confirmButton).toHaveClass("ant-btn-dangerous");
+  fireEvent.click(confirmButton);
+  await expect(ensure(result, "Expected confirmation")).resolves.toBe(true);
+});
+
+it("renders only the native OK action for alerts", async () => {
+  let result: Promise<boolean | undefined> | undefined;
+  act(() => {
+    result = alert({ message: "Saved" });
+  });
+  const ok = screen.getByRole("button", { name: "OK" });
+  expectNativeFooter(ok);
+  expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+  fireEvent.click(ok);
+  await expect(ensure(result, "Expected alert")).resolves.toBe(true);
+});
+
+it("enables the native hard-confirm action only for the exact confirmation text", async () => {
+  let result: Promise<boolean | undefined> | undefined;
+  act(() => {
+    result = hardConfirm({ message: "Type DELETE", mustType: "DELETE" });
+  });
+  const confirmButton = screen.getByRole("button", { name: "Confirm" });
+  expectNativeFooter(confirmButton);
+  expect(confirmButton).toBeDisabled();
+  const input = screen.getByRole("textbox");
+  fireEvent.change(input, { target: { value: "DELETE" } });
+  expect(confirmButton).toBeEnabled();
+  fireEvent.change(input, { target: { value: "DELETE " } });
+  expect(confirmButton).toBeDisabled();
+  fireEvent.submit(ensure(input.closest("form"), "Expected confirmation form"));
+  await act(async () => {
+    await Promise.resolve();
+  });
+  expect(screen.getByRole("dialog")).toBeTruthy();
+  fireEvent.change(input, { target: { value: "DELETE" } });
+  fireEvent.click(confirmButton);
+  await expect(ensure(result, "Expected confirmation")).resolves.toBe(true);
+});
+
+it("submits metadata fields from the native footer", async () => {
+  const component = mkComponent({
+    name: "Example",
+    type: ComponentType.Plain,
+    tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }),
+  });
+  let result: Promise<{ key: string; value: string } | undefined> | undefined;
+  act(() => {
+    result = promptForMetadata(component);
+  });
+  fireEvent.change(screen.getByPlaceholderText("Metadata key"), {
+    target: { value: " test " },
+  });
+  fireEvent.change(screen.getByPlaceholderText("Metadata value"), {
+    target: { value: " value " },
+  });
+  const confirmButton = screen.getByRole("button", { name: "Confirm" });
+  expectNativeFooter(confirmButton);
+  fireEvent.click(confirmButton);
+  await expect(ensure(result, "Expected metadata prompt")).resolves.toEqual({
+    key: "test",
+    value: "value",
+  });
 });

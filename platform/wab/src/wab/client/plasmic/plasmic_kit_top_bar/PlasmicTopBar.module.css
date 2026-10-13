@@ -6,7 +6,7 @@
   padding-left: 0rem;
   align-items: center;
   justify-content: center;
-  background: var(--token-iR8SeEwQZ);
+  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   height: 3rem;
   column-gap: 12px;
   min-width: 0;

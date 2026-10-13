@@ -128,7 +128,7 @@ function SubsectionWebhooks(props: SubsectionWebhooksProps) {
       {...rest}
       checkbox={{
         props: {
-          "aria-label": "Enable webhooks",
+          "aria-label": t("Enable webhooks"),
           isDisabled: block,
           isChecked: enable,
           onChange: (checked: boolean) =>

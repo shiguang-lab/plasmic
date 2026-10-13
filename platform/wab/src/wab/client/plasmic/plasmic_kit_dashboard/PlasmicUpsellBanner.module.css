@@ -14,14 +14,14 @@
 .svg {
   position: relative;
   object-fit: cover;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
 .text__kKomi {
   position: relative;
-  color: var(--token-iR8SeEwQZ);
+  color: var(--ui-on-accent, var(--token-iR8SeEwQZ));
 }
 .text__uRIll {
   position: relative;

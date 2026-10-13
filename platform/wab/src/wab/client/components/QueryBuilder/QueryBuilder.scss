@@ -42,12 +42,12 @@ body.qb-dragging {
   user-select: none;
 
   // PLASMIC - Custom Styles
-  --qb-select-input-background-color: #ffffff;
-  --qb-select-input-background-color-hover: #eeeee7;
-  --qb-select-input-background-color-accent-hover: #edf6ff;
-  --qb-select-input-text-color: #1b1b18;
-  --qb-select-input-arrow-color: #90908c;
-  --qb-select-input-border-color: #eeeeec;
+  --qb-select-input-background-color: var(--ui-surface, #ffffff);
+  --qb-select-input-background-color-hover: var(--ui-hover, #eeeee7);
+  --qb-select-input-background-color-accent-hover: var(--ui-selected, #edf6ff);
+  --qb-select-input-text-color: var(--ui-text, #1b1b18);
+  --qb-select-input-arrow-color: var(--ui-muted, #90908c);
+  --qb-select-input-border-color: var(--ui-border-subtle, #eeeeec);
   --qb-select-input-font-weight: normal;
 
   .rule--value {
@@ -91,7 +91,7 @@ body.qb-dragging {
   }
 
   .rule-with-error .rule {
-    border: 1px solid #e0a1a1;
+    border: 1px solid var(--ui-error-border, #e0a1a1);
   }
 
   .rule--body--wrapper {
@@ -101,7 +101,7 @@ body.qb-dragging {
   }
 
   .rule--error {
-    color: red;
+    color: var(--ui-error, red);
     margin-bottom: -5px;
     margin-top: 5px;
   }
@@ -112,8 +112,8 @@ body.qb-dragging {
   }
 
   .rule_group {
-    background: rgba(255, 252, 242, 0.5);
-    border: 1px solid #f9f1dd;
+    background: var(--ui-warning-bg, rgba(255, 252, 242, 0.5));
+    border: 1px solid var(--ui-warning-border, #f9f1dd);
   }
 
   // Dragged Item style
@@ -657,18 +657,18 @@ body.qb-dragging {
 
   .group {
     --group-content-padding-horizontal: 24px;
-    --group-line-color: hsl(60, 0%, 75%); // #eeeee7;
+    --group-line-color: var(--ui-border, hsl(60, 0%, 75%));
 
     position: relative;
 
     .group {
-      --group-line-color: hsl(60, 0%, 80%);
+      --group-line-color: var(--ui-border, hsl(60, 0%, 80%));
 
       .group {
-        --group-line-color: hsl(60, 0%, 85%);
+        --group-line-color: var(--ui-border, hsl(60, 0%, 85%));
 
         .group {
-          --group-line-color: hsl(60, 0%, 90%);
+          --group-line-color: var(--ui-border, hsl(60, 0%, 90%));
         }
       }
     }
@@ -729,7 +729,7 @@ body.qb-dragging {
     &:before {
       width: 7px;
       height: 7px;
-      background-color: white;
+      background-color: var(--ui-surface, white);
       margin-left: 1px;
       border: 2px solid var(--group-line-color);
       border-radius: 8px;
@@ -740,7 +740,7 @@ body.qb-dragging {
     &:after {
       width: 100%;
       height: 100%;
-      background-color: #ffffff;
+      background-color: var(--ui-surface, #ffffff);
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M0 0h24v24H0V0z' fill='none'/%3E%3Cpath d='M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
       background-size: 16px 16px;
       background-repeat: no-repeat;
@@ -785,7 +785,7 @@ body.qb-dragging {
       z-index: 1;
       width: 7px;
       height: 7px;
-      background-color: white;
+      background-color: var(--ui-surface, white);
       border: 2px solid var(--group-line-color);
       border-radius: 99px;
       top: 10px;
@@ -849,27 +849,30 @@ body.qb-dragging {
     }
 
     &.not-selector {
-      --qb-select-input-background-color: #e9f9ee;
-      --qb-select-input-background-color-hover: #ddf3e4;
-      --qb-select-input-text-color: #18794e;
-      --qb-select-input-arrow-color: #30a46c;
+      --qb-select-input-background-color: var(--ui-success-bg, #e9f9ee);
+      --qb-select-input-background-color-hover: var(
+        --ui-success-hover,
+        #ddf3e4
+      );
+      --qb-select-input-text-color: var(--ui-success, #18794e);
+      --qb-select-input-arrow-color: var(--ui-success, #30a46c);
       --qb-select-input-border-color: transparent;
       --qb-select-input-font-weight: 600;
 
       &.is-active {
-        --qb-select-input-background-color: #f9e9e9;
-        --qb-select-input-background-color-hover: #f3dddd;
-        --qb-select-input-text-color: #791818;
-        --qb-select-input-arrow-color: #a43030;
+        --qb-select-input-background-color: var(--ui-error-bg, #f9e9e9);
+        --qb-select-input-background-color-hover: var(--ui-error-bg, #f3dddd);
+        --qb-select-input-text-color: var(--ui-error, #791818);
+        --qb-select-input-arrow-color: var(--ui-error, #a43030);
         --qb-select-input-border-color: transparent;
       }
     }
 
     &.conjunction-selector {
-      --qb-select-input-background-color: #edf6ff;
-      --qb-select-input-background-color-hover: #e1f0ff;
-      --qb-select-input-text-color: #006adc;
-      --qb-select-input-arrow-color: #0091ff;
+      --qb-select-input-background-color: var(--ui-selected, #edf6ff);
+      --qb-select-input-background-color-hover: var(--ui-selected, #e1f0ff);
+      --qb-select-input-text-color: var(--ui-accent-text, #006adc);
+      --qb-select-input-arrow-color: var(--ui-accent, #0091ff);
       --qb-select-input-border-color: transparent;
       --qb-select-input-font-weight: 600;
     }
@@ -904,9 +907,9 @@ body.qb-dragging {
 
   // Boolean value editor styles
   .ant-segmented-item-selected {
-    color: #30a46c;
+    color: var(--ui-success, #30a46c);
     &:nth-child(2) {
-      color: #e5484d;
+      color: var(--ui-error, #e5484d);
     }
   }
 
@@ -970,13 +973,13 @@ body.qb-dragging {
 
     &.action--ADD-RULE,
     &.action--ADD-GROUP {
-      border: 1px solid #ddd !important;
+      border: 1px solid var(--ui-border, #ddd) !important;
       box-shadow: none !important;
     }
 
     &.action--DELETE {
       //border-color: transparent !important;
-      color: #d7dade;
+      color: var(--ui-muted, #d7dade);
 
       &:hover {
         background-color: var(--qb-select-input-background-color-accent-hover);
@@ -1018,7 +1021,7 @@ body.qb-dragging {
         content: "";
         position: absolute;
         inset: 0;
-        background: #ffffff;
+        background: var(--ui-surface, #ffffff);
         display: block;
         transform: scaleY(2);
         transform-origin: bottom left;

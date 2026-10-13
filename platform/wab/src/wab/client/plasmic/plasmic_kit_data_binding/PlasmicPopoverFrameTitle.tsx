@@ -11,6 +11,7 @@
 // Plasmic Project: w2GXN278dkQ2gQTVQnPehW
 // Component: _qAXa8aqLB77
 
+import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
@@ -180,7 +181,7 @@ function PlasmicPopoverFrameTitle__RenderFunc(props: {
         className={classNames("all", sty.titleWrap)}
       >
         {renderPlasmicSlot({
-          defaultContents: "Edit Object",
+          defaultContents: <UiText message={"Edit Object"} />,
           value: args.title,
           className: classNames(sty.slotTargetTitle)
         })}

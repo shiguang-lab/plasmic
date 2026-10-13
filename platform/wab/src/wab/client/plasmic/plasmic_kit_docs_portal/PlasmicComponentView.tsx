@@ -11,6 +11,7 @@
 // Plasmic Project: dyzP6dbCdycwJpqiR2zkwe
 // Component: fiIuU8gs9A
 
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
@@ -98,6 +99,8 @@ function PlasmicComponentView__RenderFunc(props: {
   overrides: PlasmicComponentView__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -201,7 +204,7 @@ function PlasmicComponentView__RenderFunc(props: {
           >
             {hasVariant($state, "componentType", "code")
               ? <UiText message={"Templates"} />
-              : "Base Props"}
+              : studioUiT("Base Props")}
           </div>
         ) : null}
         <div
@@ -354,8 +357,8 @@ function PlasmicComponentView__RenderFunc(props: {
           })}
         >
           {hasVariant($state, "componentType", "code")
-            ? "Visualization"
-            : "Examples of usage"}
+            ? studioUiT("Visualization")
+            : studioUiT("Examples of usage")}
         </div>
         <div
           data-plasmic-name={"viewport"}
@@ -470,7 +473,7 @@ function PlasmicComponentView__RenderFunc(props: {
             ),
           })}
         >
-          {hasVariant($state, "componentType", "code") ? <UiText message={"Props"} /> : "Base Props"}
+          {hasVariant($state, "componentType", "code") ? <UiText message={"Props"} /> : studioUiT("Base Props")}
         </div>
         <DocsPropsTable
           data-plasmic-name={"baseProps"}

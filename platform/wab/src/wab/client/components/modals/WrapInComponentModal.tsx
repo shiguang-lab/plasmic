@@ -2,7 +2,6 @@
 // This file is owned by you, feel free to edit as you see fit.
 import ListItem from "@/wab/client/components/ListItem";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
-import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -27,7 +26,8 @@ export async function promptWrapInComponent(props: {
     <Modal
       title={<UiText message="Wrap in component" />}
       open={true}
-      footer={null}
+      cancelText={<UiText message="Cancel" />}
+      footer={(_, { CancelBtn }) => <CancelBtn />}
       onCancel={() => onCancel()}
     >
       <p>
@@ -53,11 +53,6 @@ export async function promptWrapInComponent(props: {
             {displayName}
           </ListItem>
         ))}
-      </div>
-      <div className="flex flex-hcenter pt-m">
-        <Button onClick={onCancel}>
-          <UiText message={"Cancel"} />
-        </Button>
       </div>
     </Modal>
   ));

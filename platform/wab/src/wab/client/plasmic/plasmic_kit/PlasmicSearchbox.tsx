@@ -11,6 +11,7 @@
 // Plasmic Project: tXkSR39sgCDWSitZxC5xFV
 // Component: po7gr0PX4_gWo
 
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
@@ -90,19 +91,21 @@ function PlasmicSearchbox__RenderFunc(props: {
   overrides: PlasmicSearchbox__OverridesType;
   forNode?: string;
 }) {
+ const { t: studioUiT } = useI18n();
+
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
     () =>
       Object.assign(
         {
-          placeholder: "Search...",
+          placeholder: studioUiT("Search..."),
         },
         Object.fromEntries(
           Object.entries(props.args).filter(([_, v]) => v !== undefined)
         )
       ),
-    [props.args]
+    [props.args, studioUiT]
   );
 
   const $props = {
