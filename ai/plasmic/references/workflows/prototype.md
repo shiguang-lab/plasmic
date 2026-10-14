@@ -1,10 +1,10 @@
 # Product prototype workflow
 
-Use for creating or revising editable designs. Resolve the target project before checking editor readiness; Studio mutations require `canEdit`. Explain/review-only tasks use inspect. Missing MCP capabilities do not authorize private design APIs or platform implementation.
+Create or revise editable designs; explanation/review uses inspect. Resolve the project before editor readiness checks; mutations require `canEdit`. Missing MCP capabilities do not authorize private APIs or platform implementation.
 
 ## Target project
 
-Resolve Team → Workspace → Project through [project management](../desktop-management.md) before reading libraries or editing. Find named resources first and reuse a unique match. For missing or ambiguous targets, show the scoped list and offer existing or new choices. Open the chosen Project, reread its identity/schemas, and require `canEdit` before design edits. Reuse an already established target when the requested scope still matches.
+Resolve Team → Workspace → Project through [project management](../desktop-management.md) before reading libraries or editing. Reuse a unique named match or an established target within scope. Otherwise show scoped existing/new choices. Open the chosen Project, reread its identity/schemas and require `canEdit` before edits.
 
 ## Scope and selected references
 
@@ -32,4 +32,4 @@ For full-project acceptance use the [unified verifier](../verification.md): supp
 
 Use [rendered inspection](../desktop-inspection.md) for screenshots, geometry and real Preview interactions at the actual viewport. Every affected standalone AppShell Page must pass [viewport shell height acceptance](../design/layout.md#viewport-shell-height-acceptance), including its model/geometry gate, shorter live Preview and post-reload height check. Exercise required default/hidden states, Tabs, overlays, errors, processing and navigation. Inspect changed labels, content and long/empty values. Record identity, viewport, concrete observations and pass/fail; a list of captures is not visual review. `validate` proves model integrity only.
 
-Save explicitly, record the available revision, reopen and reread affected models, bindings and initial closed overlays. Recheck relevant Preview behavior and images after reopen. Report sources/resource release, actual template mechanism, checks, mock/API boundaries and limitations. Saving alone does not pass acceptance; publishing requires the user's task to authorize it.
+Save explicitly and record the revision. Reopen, reread affected models/bindings and initial closed overlays; recheck Preview behavior and images. Report sources/resource release, template mechanism, checks, mock/API boundaries and limitations. Saving is not acceptance; publishing requires user authorization.

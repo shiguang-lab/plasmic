@@ -146,16 +146,16 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 | 产物 | Tag | 变更判断 |
 | --- | --- | --- |
-| Studio | `0.0.84` | 对比上一个 Studio tag 的生产输入；前端变化在镜像成功后联动 Desktop |
-| Desktop | `desktop-v0.0.59` | 对比上一个 Desktop tag；Studio 联动时自动创建，不重复手工推送 |
-| CLI | `cli-v0.0.83` | 比较实际 npm 包内容，忽略包版本和归档元数据；不变则跳过 |
-| 资源 | `resources-v0.0.84` | 对比上一个资源 tag 的 references、脚本、资源构建和 CLI 包输入 |
+| Studio | `0.1.0` | 主/次版本升级始终发布并联动 Desktop；补丁版本比较生产输入，前端变化联动 Desktop |
+| Desktop | `desktop-v0.1.0` | 主/次版本升级始终发布，补丁版本比较生产输入；Studio 联动时自动创建，不重复手工推送 |
+| CLI | `cli-v0.1.0` | 主/次版本升级始终发布；补丁版本比较实际 npm 包内容，忽略包版本和归档元数据 |
+| 资源 | `resources-v0.1.0` | 主/次版本升级始终发布；补丁版本比较 references、脚本、资源构建和 CLI 包输入 |
 
 资源第一次使用独立 tag 时，以最后一个旧数字 tag 为基线。Studio/纯 Desktop 发布均不发布 CLI 或资源；CLI 发布也不构建资源。资源发布从 npm 下载当前 latest CLI，验证完整性并复用原始字节，不包含尚未发布的本地 CLI 修改。CLI 包变化也视为资源发布输入变化：先发布 CLI，再推送新资源 tag 并部署该次 CI 产物，更新 NAS 清单中的 `cliVersion` 和 CLI 安装包，使版本检查与 npm latest 一致。
 
 CLI 的源码 package.json 版本用于开发，发布版本来自 `cli-v` tag。资源清单的 `version` 来自 `resources-v` tag，`cliVersion` 来自 npm。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
 
-发布前在提交上运行 `node scripts/release-plan.mjs <tag>` 检查范围。Studio 前端发布必须在同一提交中更新 Desktop 版本、五语言发布说明及指向该 Studio tag 的 `webImage`；校验失败则不开始镜像构建。
+发布前在提交上运行 `node scripts/release-plan.mjs <tag>` 检查范围。Studio 前端发布或主/次版本升级必须在同一提交中更新 Desktop 版本、五语言发布说明及指向该 Studio tag 的 `webImage`；校验失败则不开始镜像构建。
 
 ### CI 必要配置
 
@@ -187,7 +187,7 @@ node packages/plasmic-cli/scripts/publish.mjs --tag cli-v0.0.83
 node scripts/release-resources.mjs --tag resources-v0.0.84
 ```
 
-CLI 发布脚本仅在实际包内容变化时调用 npm publish，且要求版本递增。上传 npm 需要显式加 `--execute`；CLI tag 的 CI 会自动传入。Desktop `publish:nas` 不覆盖资源清单。
+CLI 主/次版本升级会发布当前包内容；补丁版本仅在实际包内容变化时调用 npm publish，且要求版本递增。上传 npm 需要显式加 `--execute`；CLI tag 的 CI 会自动传入。Desktop `publish:nas` 不覆盖资源清单。
 
 本地构建目录 `dist/plasmic-resources/` 对应 NAS：
 

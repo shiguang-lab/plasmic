@@ -3,6 +3,7 @@ import { appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareVersions } from "../packages/plasmic-cli/src/protocol.mjs";
+import { isNewReleaseSeries } from "./release-version.mjs";
 
 const version = "(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)";
 const patterns = Object.fromEntries(
@@ -30,9 +31,7 @@ export function affectedProducts(files) {
   };
   for (const file of files) {
     if (
-      /^ai\/plasmic\/(references|scripts)\/.*\.(md|py|json)$/.test(
-        file,
-      ) &&
+      /^ai\/plasmic\/(references|scripts)\/.*\.(md|py|json)$/.test(file) &&
       !path.basename(file).startsWith("test_")
     ) {
       result.resources = true;
@@ -113,13 +112,21 @@ export function releasePlan(tag, ref = "HEAD") {
       : git("ls-tree", "-r", "--name-only", ref)
   ).split("\n");
   const affected = affectedProducts(files);
+  const milestone = Boolean(
+    baseline &&
+    isNewReleaseSeries(
+      tag.replace(/^(desktop-v|cli-v|resources-v)/, ""),
+      baseline.replace(/^(desktop-v|cli-v|resources-v)/, ""),
+    ),
+  );
   const publish =
-    product === "desktop"
+    milestone ||
+    (product === "desktop"
       ? affectedProducts(files.filter((file) => file.startsWith("desktop/")))
           .desktop
-      : affected[product];
+      : affected[product]);
   let desktopTag = "";
-  if (product === "studio" && publish && affected.frontend) {
+  if (product === "studio" && publish && (affected.frontend || milestone)) {
     const pkg = JSON.parse(git("show", `${ref}:desktop/package.json`));
     const config = JSON.parse(
       git("show", `${ref}:desktop/desktop.config.json`),

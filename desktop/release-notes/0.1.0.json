@@ -1,0 +1,7 @@
+{
+  "en": "- 0.1.0 is a milestone release for everyday prototype design and development handoff.\n- Design editable pages with reusable components, forms, tables, tabs and overlays.\n- Collaborate through project sharing, organization and workspace permissions.\n- Connect external agents through Desktop MCP and the CLI skill for prototype editing and design-to-code workflows.\n- Include shared dialog layout fixes and an updated HTML onboarding guide.",
+  "zh-CN": "- 0.1.0 是面向日常原型设计与研发交接的里程碑版本。\n- 使用可复用组件、表单、表格、标签页和弹层设计可编辑页面。\n- 通过项目分享、组织和工作区权限开展协作。\n- 通过 Desktop MCP 与 CLI Skill 连接外部 Agent，执行原型编辑和设计到代码流程。\n- 包含共享弹窗布局修复与更新后的 HTML 使用指南。",
+  "zh-TW": "- 0.1.0 是面向日常原型設計與研發交接的里程碑版本。\n- 使用可重用元件、表單、表格、分頁和彈出視窗設計可編輯頁面。\n- 透過專案分享、組織及工作區權限進行協作。\n- 透過 Desktop MCP 與 CLI Skill 連接外部 Agent，執行原型編輯與設計轉程式碼流程。\n- 包含共用視窗配置修復與更新後的 HTML 使用指南。",
+  "ja": "- 0.1.0 は日常のプロトタイプ設計と開発への引き継ぎに向けたマイルストーン版です。\n- 再利用可能なコンポーネント、フォーム、テーブル、タブ、オーバーレイで編集可能なページを設計できます。\n- プロジェクト共有と組織・ワークスペースの権限で共同作業を行えます。\n- Desktop MCP と CLI Skill で外部 Agent を接続し、プロトタイプ編集とデザインからコードへの実装を進められます。\n- 共有ダイアログの配置修正と更新された HTML 導入ガイドを含みます。",
+  "ko": "- 0.1.0은 일상적인 프로토타입 설계와 개발 인계를 위한 마일스톤 버전입니다.\n- 재사용 가능한 컴포넌트, 폼, 테이블, 탭과 오버레이로 편집 가능한 페이지를 설계합니다.\n- 프로젝트 공유와 조직 및 워크스페이스 권한으로 협업합니다.\n- Desktop MCP와 CLI Skill로 외부 Agent를 연결해 프로토타입 편집과 디자인 기반 코드 구현을 진행합니다.\n- 공유 대화상자 배치 수정과 업데이트된 HTML 시작 가이드를 포함합니다."
+}

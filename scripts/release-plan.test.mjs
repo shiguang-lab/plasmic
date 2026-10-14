@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { affectedProducts, productForTag } from "./release-plan.mjs";
+import { isNewReleaseSeries } from "./release-version.mjs";
+
+test("milestone releases advance the minor or major series", () => {
+  assert.equal(isNewReleaseSeries("0.1.0", "0.0.88"), true);
+  assert.equal(isNewReleaseSeries("1.0.0", "0.1.9"), true);
+  assert.equal(isNewReleaseSeries("0.1.1", "0.1.0"), false);
+  assert.equal(isNewReleaseSeries("0.1.0", "0.1.0"), false);
+  assert.equal(isNewReleaseSeries("0.0.89", "0.1.0"), false);
+});
 
 test("release tags have independent namespaces", () => {
   for (const [tag, product] of [
@@ -57,8 +66,16 @@ test("Desktop is independent and CLI changes refresh the resource feed's CLI art
   assert.deepEqual(products(["ai/plasmic/scripts/verify_slots.py"]), [
     "resources",
   ]);
-  assert.deepEqual(products(["ai/plasmic/references/libraries/overseas/components/search-form.md"]), ["resources"]);
-  assert.deepEqual(products(["scripts/validate-plasmic-component-coverage.mjs"]), ["resources"]);
+  assert.deepEqual(
+    products([
+      "ai/plasmic/references/libraries/overseas/components/search-form.md",
+    ]),
+    ["resources"],
+  );
+  assert.deepEqual(
+    products(["scripts/validate-plasmic-component-coverage.mjs"]),
+    ["resources"],
+  );
 });
 test("documentation, tests, and workflow changes alone do not release products", () => {
   assert.deepEqual(
@@ -160,10 +177,39 @@ test("plans compare product baselines and enforce the Studio/Desktop link", () =
       "resources-v0.0.84",
     );
     assert.equal(releasePlan("resources-v0.0.85").publish, false);
+    assert.equal(releasePlan("resources-v0.1.0").publish, true);
     put("packages/plasmic-cli/src/index.mjs", "new CLI");
     commit();
     assert.equal(releasePlan("resources-v0.0.85").publish, true);
     assert.equal(releasePlan("0.0.85").publish, false);
+    assert.throws(() => releasePlan("0.1.0"), /requires a new Desktop/);
+    put("desktop/package.json", JSON.stringify({ version: "0.1.0" }));
+    put(
+      "desktop/package-lock.json",
+      JSON.stringify({
+        version: "0.1.0",
+        packages: { "": { version: "0.1.0" } },
+      }),
+    );
+    put(
+      "desktop/desktop.config.json",
+      JSON.stringify({ webImage: "ghcr.io/shiguang-lab/plasmic-web:0.1.0" }),
+    );
+    put("desktop/release-notes/0.1.0.md", "Milestone");
+    put(
+      "desktop/release-notes/0.1.0.json",
+      JSON.stringify(
+        Object.fromEntries(
+          ["en", "zh-CN", "zh-TW", "ja", "ko"].map((key) => [key, "Milestone"]),
+        ),
+      ),
+    );
+    commit();
+    git("tag", "desktop-v0.0.59");
+    assert.equal(releasePlan("0.1.0").desktopTag, "desktop-v0.1.0");
+    assert.equal(releasePlan("desktop-v0.1.0").publish, true);
+    git("tag", "0.1.0");
+    assert.equal(releasePlan("0.1.1").publish, false);
   } finally {
     process.chdir(original);
     rmSync(repo, { recursive: true, force: true });

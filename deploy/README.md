@@ -6,11 +6,14 @@ Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
 `ghcr.io/shiguang-lab/plasmic-web:<tag>` and
 `ghcr.io/shiguang-lab/plasmic-preview:<tag>` for Linux amd64.
 Before building, the workflow compares production inputs with the preceding Studio
-tag. Unchanged Studio inputs skip publication. Frontend or shared renderer changes
-also require a new Desktop version, five-language release notes, and
+tag. Patch releases with unchanged Studio inputs skip publication. Frontend or
+shared renderer changes and major/minor milestone releases require a new Desktop
+version, five-language release notes, and
 `desktop/desktop.config.json.webImage` pinned to this Studio tag in the same commit.
 After the images succeed, the workflow records `desktop-v<version>` and calls the
 Desktop installer workflow. Backend-only changes do not release Desktop.
+Major/minor version advances publish even when production inputs are unchanged;
+patch releases continue to compare inputs before publication.
 
 CLI (`cli-v<version>`) and resources (`resources-v<version>`) have separate workflows
 and versions. Neither runs on a Studio or Desktop tag. CLI publication compares

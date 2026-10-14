@@ -111,6 +111,24 @@ test("unchanged CLI skips publication without producing a resource release", asy
   assert.deepEqual(published.cliArtifact, bytes);
 });
 
+test("a new minor or major series publishes unchanged CLI contents", async (t) => {
+  const bytes = await buildCli("0.0.84");
+  const options = await registryFixture(t, bytes, "0.0.84");
+  for (const tag of ["0.1.0", "1.0.0"]) {
+    const built = await prepareRelease({ ...options, tag });
+    assert.equal(built.skipped, false);
+    assert.equal(built.version, tag);
+    const artifact = await readFile(
+      path.join(built.directory, "plasmic-cli.tgz"),
+    );
+    assert.equal((await inspectCliArtifact(artifact)).version, tag);
+    assert.equal(
+      (await inspectCliArtifact(artifact)).contentHash,
+      (await inspectCliArtifact(bytes)).contentHash,
+    );
+  }
+});
+
 for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {
   test(`changed ${filename} publishes npm independently of the resource version`, async (t) => {
     const bytes = await buildCli("0.0.60");

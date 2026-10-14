@@ -8,6 +8,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { buildCli } from "../../../scripts/build-plasmic-resources.mjs";
 import { CLI_VERSION, MAX_BYTES, compareVersions } from "../src/protocol.mjs";
 import { inspectCliArtifact } from "../../../scripts/plasmic-cli-artifact.mjs";
+import { isNewReleaseSeries } from "../../../scripts/release-version.mjs";
 
 export function releaseVersion(tag) {
   compareVersions(tag, tag);
@@ -68,7 +69,7 @@ export async function prepareRelease({ tag, output, registry = "https://registry
   const { published } = await inspectRegistry(registry, fetchRelease);
   const latest = published?.["dist-tags"]?.latest;
   const previous = await publishedCli({ published, fetchRelease });
-  if (previous && (await inspectCliArtifact(previous.cliArtifact)).contentHash === localPackage.contentHash) {
+  if (previous && !isNewReleaseSeries(tag, previous.cliVersion) && (await inspectCliArtifact(previous.cliArtifact)).contentHash === localPackage.contentHash) {
     return { skipped: true, version: previous.cliVersion, reason: "Package contents are unchanged" };
   }
   if (latest && compareVersions(tag, latest) <= 0) throw new Error(`Changed CLI requires a version newer than npm latest ${latest}`);
