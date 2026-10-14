@@ -7,7 +7,16 @@ import {
   MobileOutlined,
   TabletOutlined,
 } from "@ant-design/icons";
-import { Button, InputNumber, Popover, Segmented, Select, Tooltip } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import {
+  Button,
+  Dropdown,
+  InputNumber,
+  MenuProps,
+  Popover,
+  Segmented,
+  Tooltip,
+} from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import React, { useState } from "react";
@@ -50,14 +59,10 @@ const useStyles = createStyles(({ token }) => ({
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
     alignItems: "center",
-    gap: 24,
+    gap: 12,
     minHeight: 48,
     flexShrink: 0,
     margin: 16,
-    padding: "5px 12px",
-    background: token.colorBgContainer,
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: 24,
     color: token.colorText,
     position: "relative",
     zIndex: 100,
@@ -68,45 +73,86 @@ const useStyles = createStyles(({ token }) => ({
       background: token.colorPrimary,
       color: token.colorTextLightSolid,
     },
-    "@media (max-width: 1100px)": {
+    "@media (max-width: 1280px)": {
       gridTemplateColumns: "minmax(0, 1fr) auto",
       gap: 12,
     },
     "@media (max-width: 600px)": { columnGap: 8 },
     "@media (max-width: 420px)": { gridTemplateColumns: "1fr" },
   },
-  leftSection: {
+  section: {
     display: "flex",
     alignItems: "center",
-    gap: 16,
+    minHeight: 48,
     minWidth: 0,
-    "@media (max-width: 600px)": { gap: 8 },
+    maxWidth: "100%",
+    boxSizing: "border-box",
+    padding: "5px 8px",
+    background: token.colorBgContainer,
+    border: `1px solid ${token.colorBorder}`,
+    borderRadius: token.borderRadiusLG,
+    boxShadow: token.boxShadowSecondary,
   },
-  desktopTopBar: {
+  rightGroup: {
+    display: "flex",
+    alignItems: "center",
+    justifySelf: "end",
+    minWidth: 0,
+    maxWidth: "100%",
+    gap: 12,
+    gridColumn: -2,
+    gridRow: 1,
+    "@media (max-width: 420px)": { gridRow: 2, gridColumn: 1 },
+  },
+  leftSection: {
+    gap: 4,
+    justifySelf: "start",
+    paddingInline: 12,
+    borderRadius: 24,
+    "@media (max-width: 600px)": { flexWrap: "wrap" },
+  },
+  navigationTrigger: {
+    minWidth: 0,
+    flexShrink: 1,
+    gap: 6,
+    "&&": {
+      height: 32,
+      padding: "0 8px",
+      border: 0,
+      "--ant-btn-border-width": "0px",
+      borderRadius: 7,
+      background: "transparent",
+      boxShadow: "none",
+      transitionProperty: "background-color, color",
+      "&:hover, &[aria-expanded=true]": {
+        background: token.colorFillTertiary,
+        color: token.colorText,
+      },
+      "&:focus-visible": {
+        outline: `2px solid ${token.colorPrimary}`,
+        outlineOffset: 2,
+      },
+    },
+  },
+  desktopLeftSection: {
     "&&": {
       paddingLeft: 80,
-      "& .ant-segmented": { height: 36, padding: 2 },
     },
   },
   centerSection: {
-    display: "flex",
-    alignItems: "center",
+    justifySelf: "center",
     justifyContent: "center",
     gap: 12,
-    "@media (max-width: 1100px)": { gridRow: 2, gridColumn: "1 / -1" },
+    "@media (max-width: 1280px)": { gridRow: 2, gridColumn: "1 / -1" },
     "@media (max-width: 600px)": { gap: 8, flexWrap: "wrap" },
     "@media (max-width: 420px)": { gridRow: 3 },
   },
   rightSection: {
-    display: "flex",
-    alignItems: "center",
+    justifySelf: "end",
     justifyContent: "flex-end",
-    gap: 12,
-    gridColumn: -2,
-    gridRow: 1,
+    gap: 4,
+    borderRadius: 24,
     flexShrink: 0,
-    "@media (max-width: 600px)": { gap: 8 },
-    "@media (max-width: 420px)": { gridRow: 2, gridColumn: 1 },
   },
   codeControls: {
     display: "flex",
@@ -126,16 +172,11 @@ const useStyles = createStyles(({ token }) => ({
       strokeLinejoin: "round",
     },
   },
-  pageSelect: {
-    width: 196,
-    flexShrink: 1,
-    minWidth: 100,
-  },
   pageLabel: {
     display: "flex",
     color: token.colorText,
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     minWidth: 0,
     "& svg": { flexShrink: 0, color: token.colorTextSecondary },
     "& span": {
@@ -145,14 +186,31 @@ const useStyles = createStyles(({ token }) => ({
     },
   },
   pageMenu: {
+    width: 300,
+    maxWidth: "calc(100vw - 32px)",
+    maxHeight: "calc(100vh - 120px)",
+    minHeight: 0,
     padding: 6,
-    "& .ant-select-item-group": { padding: "8px 10px", fontSize: 12 },
-    "& .ant-select-item-option": {
+    borderRadius: token.borderRadiusLG,
+    background: token.colorBgElevated,
+    boxShadow: token.boxShadowSecondary,
+    "& .ant-dropdown-menu": {
+      padding: 0,
+      maxHeight: "none",
+      overflow: "visible",
+      background: "transparent",
+      boxShadow: "none",
+    },
+    "& .ant-dropdown-menu-item-group-title": {
+      padding: "8px 10px",
+      fontSize: 12,
+    },
+    "& .ant-dropdown-menu-item": {
       padding: "8px 10px",
       borderRadius: 6,
       minHeight: 36,
     },
-    "& .ant-select-item-option-selected": {
+    "& .ant-dropdown-menu-item-selected": {
       background: token.colorPrimaryBg,
       color: token.colorPrimaryText,
       fontWeight: 500,
@@ -216,12 +274,15 @@ export const PreviewTopBar = observer(function PreviewTopBar({
   const { t } = useI18n();
   const topFrameApi = useTopFrameApi();
   const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
-  const topBarRef = React.useRef<HTMLDivElement>(null);
+  const leftSectionRef = React.useRef<HTMLDivElement>(null);
   React.useLayoutEffect(() => {
     if (!isMacDesktop) {
       return;
     }
-    const root = ensure(topBarRef.current, "Preview top bar is mounted");
+    const root = ensure(
+      leftSectionRef.current,
+      "Preview navigation is mounted",
+    );
     const update = () => {
       const bounds = root.getBoundingClientRect();
       spawn(
@@ -259,10 +320,39 @@ export const PreviewTopBar = observer(function PreviewTopBar({
   const [sizeMenuOpen, setSizeMenuOpen] = useState(false);
   const renderPageLabel = (name: string, icon: SvgIcon) => (
     <span className={styles.pageLabel} title={name}>
-      <Icon icon={icon} size={22} />
+      <Icon icon={icon} size={18} />
       <span>{name}</span>
     </span>
   );
+  const pageMenuItems: MenuProps["items"] = [
+    {
+      key: "pages",
+      type: "group" as const,
+      label: t("Pages"),
+      children: naturalSort(previewPages, (c) => c.name).map((c) => ({
+        key: c.uuid,
+        label: renderPageLabel(c.name, PageIcon),
+      })),
+    },
+    {
+      key: "components",
+      type: "group" as const,
+      label: t("Components"),
+      children: naturalSort(previewComponents, (c) => c.name).map((c) => ({
+        key: c.uuid,
+        label: renderPageLabel(c.name, ComponentIcon),
+      })),
+    },
+    {
+      key: "artboards",
+      type: "group" as const,
+      label: t("Artboards"),
+      children: previewArtboards.map((c) => ({
+        key: c.uuid,
+        label: renderPageLabel(c.name || t("Artboards"), ComponentIcon),
+      })),
+    },
+  ].filter((group) => group.children.length > 0);
 
   const [customWidth, setCustomWidth] = useState(previewCtx.width);
   const [customHeight, setCustomHeight] = useState(previewCtx.height);
@@ -324,8 +414,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
 
   return (
     <div
-      ref={topBarRef}
-      className={cx(styles.topBar, isMacDesktop && styles.desktopTopBar)}
+      className={styles.topBar}
       data-desktop-titlebar={isMacDesktop ? "mac" : undefined}
       onKeyDownCapture={(event) => {
         if (
@@ -339,7 +428,14 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         }
       }}
     >
-      <div className={styles.leftSection}>
+      <div
+        ref={leftSectionRef}
+        className={cx(
+          styles.section,
+          styles.leftSection,
+          isMacDesktop && styles.desktopLeftSection,
+        )}
+      >
         <BrandLink
           brand={
             studioCtx.getCurrentUiConfig().brand ??
@@ -349,81 +445,67 @@ export const PreviewTopBar = observer(function PreviewTopBar({
             studioCtx.appCtx.appConfig.brands?.[""]
           }
         />
-        {studioCtx.showBranching() && <BranchSwitcher />}
-        <Select
-          variant="outlined"
-          className={styles.pageSelect}
-          classNames={{ popup: { root: styles.pageMenu } }}
-          styles={{ content: { opacity: 1 } }}
-          popupMatchSelectWidth={300}
-          menuItemSelectedIcon={<CheckOutlined />}
-          optionLabelProp="label"
+        {studioCtx.showBranching() && (
+          <BranchSwitcher className={styles.navigationTrigger} />
+        )}
+        <Dropdown
+          trigger={["click"]}
+          placement="bottomLeft"
           open={pageMenuOpen}
           onOpenChange={setPageMenuOpen}
-          aria-label={t("Select component")}
-          value={previewCtx.component?.uuid}
-          labelRender={() =>
-            previewCtx.component &&
-            renderPageLabel(
-              previewCtx.component.name,
-              isPageComponent(previewCtx.component) ? PageIcon : ComponentIcon,
-            )
-          }
-          onChange={(uuid) => {
-            const component = previewCtx.studioCtx.site.components.find(
-              (c) => c.uuid === uuid,
-            );
-            if (component) {
-              void previewCtx.pushComponent(component);
-            }
+          autoFocus
+          menu={{
+            items: pageMenuItems,
+            selectable: true,
+            selectedKeys: previewCtx.component
+              ? [previewCtx.component.uuid]
+              : [],
+            onClick: ({ key }) => {
+              setPageMenuOpen(false);
+              const component = previewCtx.studioCtx.site.components.find(
+                (c) => c.uuid === key,
+              );
+              if (component) {
+                void previewCtx.pushComponent(component);
+              }
+            },
           }}
+          popupRender={(menu) => (
+            <Scrollbar
+              scrollX={false}
+              defer={false}
+              className={styles.pageMenu}
+              onKeyDownCapture={(event) => {
+                if (event.key === "Escape") {
+                  event.stopPropagation();
+                  setPageMenuOpen(false);
+                }
+              }}
+            >
+              {menu}
+            </Scrollbar>
+          )}
         >
-          {previewPages.length > 0 && (
-            <Select.OptGroup label={t("Pages")}>
-              {naturalSort(previewPages, (c) => c.name).map((c) => (
-                <Select.Option
-                  key={c.uuid}
-                  value={c.uuid}
-                  label={c.name}
-                  title={c.name}
-                >
-                  {renderPageLabel(c.name, PageIcon)}
-                </Select.Option>
-              ))}
-            </Select.OptGroup>
-          )}
-          {previewComponents.length > 0 && (
-            <Select.OptGroup label={t("Components")}>
-              {naturalSort(previewComponents, (c) => c.name).map((c) => (
-                <Select.Option
-                  key={c.uuid}
-                  value={c.uuid}
-                  label={c.name}
-                  title={c.name}
-                >
-                  {renderPageLabel(c.name, ComponentIcon)}
-                </Select.Option>
-              ))}
-            </Select.OptGroup>
-          )}
-          {previewArtboards.length > 0 && (
-            <Select.OptGroup label={t("Artboards")}>
-              {previewArtboards.map((c) => (
-                <Select.Option
-                  key={c.uuid}
-                  value={c.uuid}
-                  label={c.name || t("Artboards")}
-                  title={c.name}
-                >
-                  {renderPageLabel(c.name || t("Artboards"), ComponentIcon)}
-                </Select.Option>
-              ))}
-            </Select.OptGroup>
-          )}
-        </Select>
+          <Button
+            type="text"
+            className={styles.navigationTrigger}
+            aria-label={t("Select component")}
+            aria-haspopup="menu"
+            aria-expanded={pageMenuOpen}
+          >
+            {previewCtx.component &&
+              renderPageLabel(
+                previewCtx.component.name || t("Artboards"),
+                isPageComponent(previewCtx.component)
+                  ? PageIcon
+                  : ComponentIcon,
+              )}
+            <DownOutlined style={{ fontSize: 10 }} />
+          </Button>
+        </Dropdown>
       </div>
 
-      <div className={styles.centerSection}>
+      <div className={cx(styles.section, styles.centerSection)}>
         <Segmented
           aria-label={t("Preview device")}
           options={[
@@ -580,46 +662,52 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         )}
       </div>
 
-      <div className={styles.rightSection}>
-        {hasVariants && (
-          <Popover
-            open={moreOpen}
-            onOpenChange={setMoreOpen}
-            trigger="click"
-            placement="bottomRight"
-            content={
-              <div className={styles.moreMenuContent}>
-                <>
-                  <span>{t("Variants")}</span>
-                  <VariantsComboSelect />
-                </>
-              </div>
-            }
-          >
-            <Tooltip title={t("More")}>
-              <Button aria-label={t("More")} icon={<EllipsisOutlined />} />
-            </Tooltip>
-          </Popover>
+      <div className={styles.rightGroup}>
+        {navigator.userAgent.includes("PlasmicDesktop/") && (
+          <span
+            data-desktop-update-slot="header"
+            data-desktop-update-compact="true"
+          />
         )}
-        {!studioCtx.contentEditorMode && (
-          <div className={styles.codeControls}>
-            <CodeButton showOptions={false} />
-          </div>
-        )}
-        <Tooltip
-          title={t("{part1} · Esc", {
-            part1: String(t("Back to editor")),
-          })}
-        >
-          <Button
-            type="primary"
-            aria-label={t("Back to editor")}
-            icon={<ArrowLeftOutlined />}
-            onClick={() => spawn(previewCtx.toggleLiveMode())}
+        <div className={cx(styles.section, styles.rightSection)}>
+          {hasVariants && (
+            <Popover
+              open={moreOpen}
+              onOpenChange={setMoreOpen}
+              trigger="click"
+              placement="bottomRight"
+              content={
+                <div className={styles.moreMenuContent}>
+                  <>
+                    <span>{t("Variants")}</span>
+                    <VariantsComboSelect />
+                  </>
+                </div>
+              }
+            >
+              <Tooltip title={t("More")}>
+                <Button aria-label={t("More")} icon={<EllipsisOutlined />} />
+              </Tooltip>
+            </Popover>
+          )}
+          {!studioCtx.contentEditorMode && (
+            <div className={styles.codeControls}>
+              <CodeButton showOptions={false} />
+            </div>
+          )}
+          <Tooltip
+            title={t("{part1} · Esc", {
+              part1: String(t("Back to editor")),
+            })}
           >
-            {t("Back to editor")}
-          </Button>
-        </Tooltip>
+            <Button
+              type="text"
+              aria-label={t("Back to editor")}
+              icon={<ArrowLeftOutlined />}
+              onClick={() => spawn(previewCtx.toggleLiveMode())}
+            />
+          </Tooltip>
+        </div>
       </div>
     </div>
   );

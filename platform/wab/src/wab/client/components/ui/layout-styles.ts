@@ -34,18 +34,25 @@ import rowItem from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicRowI
 import textboxLike from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTextboxLike.module.css";
 import topBar from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar.module.css";
 import { productPalette } from "@/wab/client/product-ui-theme.styles";
-import { createStyles } from "antd-style";
 import type { GlobalToken } from "antd";
+import { createStyles } from "antd-style";
 
-export const editorPanelHeaderStyle = (token: GlobalToken) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0 12px",
-  height: 48,
-  flexShrink: 0,
-  borderBottom: `1px solid ${token.colorBorderSecondary}`,
-} as const);
+export const editorLeftRailLayout = {
+  left: 16,
+  width: 48,
+  panelGap: 12,
+} as const;
+
+export const editorPanelHeaderStyle = (token: GlobalToken) =>
+  ({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 12px",
+    height: 48,
+    flexShrink: 0,
+    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+  }) as const;
 
 // Popovers render outside the editor root, so generated controls need the same
 // palette at the portal boundary as their counterparts inside the editor.
@@ -137,11 +144,12 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
         gap: 12,
         top: 0,
       },
-    [`& .${teamPageHeader.freeBox__nhPk}, & .${workspaceSection.freeBox__sKiL}`]: {
-      padding: 0,
-      minWidth: 0,
-      flex: "1 1 160px",
-    },
+    [`& .${teamPageHeader.freeBox__nhPk}, & .${workspaceSection.freeBox__sKiL}`]:
+      {
+        padding: 0,
+        minWidth: 0,
+        flex: "1 1 160px",
+      },
     [`& .${teamPageHeader.freeBox__hp5G2}, & .${workspaceSection.actions}`]: {
       minWidth: 0,
       maxWidth: "100%",
@@ -516,12 +524,12 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       strokeWidth: 1.6,
     },
     "& .editor-rail-divider": {
-      width: 24,
+      width: 20,
       height: 1,
       flexShrink: 0,
       alignSelf: "center",
       background: token.colorBorder,
-      margin: "9px 0",
+      margin: "6px 0",
     },
 
     "& .resource-panel-library-actions": {
@@ -778,42 +786,40 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .canvas-editor__top-pane__floating-elements-container": {
       paddingTop: 82,
     },
+    "& .editor-tool-rail-group": {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      width: editorLeftRailLayout.width,
+      height: "100%",
+      minHeight: 0,
+      gap: 12,
+    },
+    "& .editor-update-below-rail": { flexShrink: 0 },
     "& #left-tab-strip": {
-      width: 56,
+      minHeight: 0,
+      width: editorLeftRailLayout.width,
       height: "auto",
       maxHeight: "100%",
       padding: "6px 5px",
       alignSelf: "flex-start",
       border: `1px solid ${token.colorBorder}`,
-      borderRadius: token.borderRadiusLG,
+      borderRadius: token.borderRadius,
       boxShadow: token.boxShadowSecondary,
       background: token.colorBgContainer,
     },
     [`& #left-tab-strip .${leftTabButton.root}`]: {
-      flexDirection: "column",
+      alignItems: "center",
       justifyContent: "center",
-      width: 44,
-      height: 46,
-      padding: "4px 2px",
-      gap: 2,
-    },
-    [`& #left-tab-strip .${leftTabButton.slotTargetLabel}`]: {
-      fontSize: 10,
-      lineHeight: "12px",
-      textAlign: "center",
-      maxWidth: 42,
-      overflow: "hidden",
-      display: "block",
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-      color: token.colorTextSecondary,
+      width: 36,
+      height: 36,
+      padding: 0,
+      gap: 0,
     },
     "& #left-tab-strip button[aria-current='true']": {
       background: token.colorPrimaryBg,
       color: token.colorPrimaryText,
     },
-    [`& #left-tab-strip button[aria-current='true'] .${leftTabButton.slotTargetLabel}`]:
-      { color: token.colorPrimaryText },
     "& #left-tab-strip button:disabled": { opacity: 0.4, cursor: "default" },
     "& .canvas-editor__left-pane-container": { zIndex: 20 },
     "@media (prefers-reduced-motion: reduce)": {
@@ -1427,7 +1433,7 @@ export const useProjectBrowserStyles = createStyles(({ token }) => ({
     display: "flex",
     alignItems: "center",
     gap: 24,
-    minHeight: 48,
+    minHeight: 64,
     padding: "0 24px",
     background: token.colorBgContainer,
     borderBottom: `1px solid ${token.colorBorderSecondary}`,
@@ -1450,7 +1456,10 @@ export const useProjectBrowserStyles = createStyles(({ token }) => ({
   workspaceToolbar: {
     minWidth: 0,
     maxWidth: "100%",
+    // Pad controls while the tab bar stretches down to the bottom divider.
+    paddingBlock: 12,
     "& .ant-space, & .ant-space-item": { maxWidth: "100%" },
+    "@container workspace-tabs (max-width: 960px)": { paddingBlock: 0 },
   },
   workspaceContent: {
     padding: 24,

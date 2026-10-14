@@ -82,7 +82,11 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
 it("renders a working Web composer and submits once through the session", async () => {
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")
-    .mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
+    .mockImplementation(async () => {
+      if (state.session) {
+        state.session.draft = { prompt: "", attachments: [] };
+      }
+    });
   mount();
   const input = screen.getByRole("textbox");
   fireEvent.change(
@@ -132,8 +136,26 @@ it("keeps a rejected tool's actual error in execution progress", () => {
   }
   state.session.tasks = [
     {
-      id: "rejected", authorId: "author", createdAt: "2026-10-13T00:00:00Z", files: [], parts: [],
-      binding: { projectId: "project", branchId: null, sessionId: "session", changeCounter: 0, componentUuid: "page", elementUuids: [] },
+      id: "rejected",
+      authorId: "author",
+      createdAt: "2026-10-13T00:00:00Z",
+      files: [],
+      parts: [
+        {
+          type: "tool",
+          operationId: "read-form",
+          name: "read",
+          status: "failed",
+        },
+      ],
+      binding: {
+        projectId: "project",
+        branchId: null,
+        sessionId: "session",
+        changeCounter: 0,
+        componentUuid: "page",
+        elementUuids: [],
+      },
       prompt: "Edit form",
       status: "failed",
       phase: "Failed",
@@ -150,7 +172,7 @@ it("keeps a rejected tool's actual error in execution progress", () => {
     },
   ];
   mount();
-  expect(screen.getByText("Execution progress")).toBeInTheDocument();
+  expect(screen.getByText("Processing")).toBeInTheDocument();
   expect(
     screen.getByText("Component is not in the pinned scope."),
   ).toBeInTheDocument();
@@ -160,7 +182,11 @@ it("submits natural language with automatic targeting and no mode or identity fi
   config.enableLocalAiPageGeneration = true;
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")
-    .mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
+    .mockImplementation(async () => {
+      if (state.session) {
+        state.session.draft = { prompt: "", attachments: [] };
+      }
+    });
   mount();
   await screen.findByText("fixture-model");
   expect(screen.queryByRole("radio")).not.toBeInTheDocument();
@@ -193,7 +219,11 @@ it("submits natural language with automatic targeting and no mode or identity fi
 it("uses the chosen model and remembers it when reopening the panel", async () => {
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")
-    .mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
+    .mockImplementation(async () => {
+      if (state.session) {
+        state.session.draft = { prompt: "", attachments: [] };
+      }
+    });
   const first = mount();
   await screen.findByText("fixture-model");
   fireEvent.mouseDown(screen.getByRole("combobox", { name: "AI model" }));
@@ -249,7 +279,10 @@ it("shares the canvas draft and attachments across panel close and reopen", () =
     attachments: [{ type: "text", name: "requirements.md", text: "A table" }],
   };
   const first = mount();
-  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Canvas draft");
+  expect(screen.getByRole("textbox")).toHaveProperty(
+    "innerText",
+    "Canvas draft",
+  );
   expect(screen.getByText("requirements.md")).toBeTruthy();
   fireEvent.input(screen.getByRole("textbox"), {
     target: { innerText: "Continue in panel" },
@@ -257,7 +290,10 @@ it("shares the canvas draft and attachments across panel close and reopen", () =
   first.unmount();
   expect(session.draft.prompt).toBe("Continue in panel");
   mount();
-  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Continue in panel");
+  expect(screen.getByRole("textbox")).toHaveProperty(
+    "innerText",
+    "Continue in panel",
+  );
   expect(screen.getByText("requirements.md")).toBeTruthy();
 });
 
@@ -267,7 +303,11 @@ it("accepts a request from the canvas, starts it once and clears the shared draf
     { type: "text" as const, name: "requirements.md", text: "A table" },
   ];
   session.draft = { prompt: "Canvas request", attachments };
-  const run = vi.spyOn(session, "run").mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
+  const run = vi.spyOn(session, "run").mockImplementation(async () => {
+    if (state.session) {
+      state.session.draft = { prompt: "", attachments: [] };
+    }
+  });
   mount({ prompt: "Canvas request", mode: undefined, attachments });
   await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
   expect(run).toHaveBeenCalledWith(
@@ -337,7 +377,9 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
 it("switches top-frame modes without losing attachments, scope, model or multiline drafts", async () => {
   const rendered = render(<AiModes />);
   const input = screen.getByRole("textbox");
-  fireEvent.input(input, { target: { innerText: "Change padding\nand spacing" } });
+  fireEvent.input(input, {
+    target: { innerText: "Change padding\nand spacing" },
+  });
   expect(
     screen.getByRole("group", { name: "AI canvas editing" }),
   ).toHaveAttribute("data-expanded", "true");
@@ -354,7 +396,8 @@ it("switches top-frame modes without losing attachments, scope, model or multili
   expect(state.session?.selectedModel).toBe("alternate-model");
   fireEvent.click(screen.getByRole("button", { name: "Open panel" }));
   expect(screen.queryByRole("group", { name: "AI canvas editing" })).toBeNull();
-  expect(screen.getByRole("textbox")).toHaveProperty("innerText",
+  expect(screen.getByRole("textbox")).toHaveProperty(
+    "innerText",
     "Change padding\nand spacing",
   );
   expect(screen.getByText("requirements.md")).toBeTruthy();
@@ -365,19 +408,29 @@ it("switches top-frame modes without losing attachments, scope, model or multili
   });
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   expect(screen.queryByRole("region", { name: "AI assistant" })).toBeNull();
-  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Continue in panel");
+  expect(screen.getByRole("textbox")).toHaveProperty(
+    "innerText",
+    "Continue in panel",
+  );
   expect(screen.getByText("requirements.md")).toBeTruthy();
   expect(screen.getByText("alternate-model")).toBeTruthy();
   rendered.rerender(
     <AiModes context={{ ...selection, scope: "SearchButton" }} />,
   );
   expect(screen.getByText("SearchButton")).toBeTruthy();
-  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Continue in panel");
+  expect(screen.getByRole("textbox")).toHaveProperty(
+    "innerText",
+    "Continue in panel",
+  );
 });
 
 it("submits from the top-frame entry into panel mode once with the selected node binding", async () => {
   const session = state.session as LocalEditSession;
-  const run = vi.spyOn(session, "run").mockImplementation(async () => { if (state.session) { state.session.draft = { prompt: "", attachments: [] }; } });
+  const run = vi.spyOn(session, "run").mockImplementation(async () => {
+    if (state.session) {
+      state.session.draft = { prompt: "", attachments: [] };
+    }
+  });
   render(<AiModes />);
   fireEvent.input(screen.getByRole("textbox"), {
     target: { innerText: "Change padding" },

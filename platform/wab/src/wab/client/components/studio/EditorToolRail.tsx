@@ -49,35 +49,44 @@ export function EditorToolRail(
 ) {
   const { t } = useI18n();
   return (
-    <PlasmicLeftTabStrip
-      showAvatar={false}
-      insert={{ render: () => null }}
-      root={{ id: "left-tab-strip" }}
-      buttons={
-        <>
-          {(Object.keys(tools) as (keyof typeof tools)[]).map((tool) => (
-            <React.Fragment key={tool}>
-              {(tool === "Insert" || tool === "Issues") && (
-                <div className="editor-rail-divider" role="separator" />
-              )}
-              <LeftTabButton
-                hasLabel
-                label={t(tool)}
-                tooltip={t(tool)}
-                icon={<EditorToolIcon tool={tool} />}
-                disabled
-              />
-            </React.Fragment>
-          ))}
-        </>
-      }
-      bottomButtons={null}
-      players={{ render: () => null }}
-      avatar={{ render: () => null }}
-      divider={{ render: () => null }}
-      figma={{ render: () => null }}
-      keyboard={{ render: () => null }}
-      {...props}
-    />
+    <div className="editor-tool-rail-group">
+      <PlasmicLeftTabStrip
+        showAvatar={false}
+        insert={{ render: () => null }}
+        root={{ id: "left-tab-strip" }}
+        buttons={
+          <>
+            {(Object.keys(tools) as (keyof typeof tools)[]).map((tool) => (
+              <React.Fragment key={tool}>
+                {(tool === "Insert" || tool === "Issues") && (
+                  <div className="editor-rail-divider" role="separator" />
+                )}
+                <LeftTabButton
+                  label={t(tool)}
+                  tooltip={t(tool)}
+                  icon={<EditorToolIcon tool={tool} />}
+                  disabled
+                />
+              </React.Fragment>
+            ))}
+          </>
+        }
+        bottomButtons={null}
+        players={{ render: () => null }}
+        avatar={{ render: () => null }}
+        divider={{ render: () => null }}
+        figma={{ render: () => null }}
+        keyboard={{ render: () => null }}
+        {...props}
+      />
+      {navigator.userAgent.includes("PlasmicDesktop/") && (
+        <span
+          className="editor-update-below-rail"
+          data-desktop-update-slot="header"
+          data-desktop-update-compact="true"
+          data-desktop-update-position="above"
+        />
+      )}
+    </div>
   );
 }

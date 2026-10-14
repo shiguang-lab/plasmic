@@ -148,6 +148,14 @@
   padding-right: 144px;
 }
 
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
 .navigation {
   :global(.ant-segmented-item-label) {
     padding: 0;

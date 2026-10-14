@@ -60,6 +60,7 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
                 root={{ ref, className: styles.root }}
                 activeTab={"content"}
                 {...rest}
+                cmsLeftTabs={{ render: () => null }}
               />
             ),
           }),
@@ -70,6 +71,7 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
                 root={{ ref, className: styles.root }}
                 activeTab={"schema"}
                 {...rest}
+                cmsLeftTabs={{ render: () => null }}
               />
             ),
           }),
@@ -80,6 +82,7 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
                 root={{ ref, className: styles.root }}
                 activeTab={"settings"}
                 {...rest}
+                cmsLeftTabs={{ render: () => null }}
               />
             ),
           }),

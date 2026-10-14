@@ -3,6 +3,7 @@ import {
   CmsSettingsLayout,
 } from "@/wab/client/components/cms/CmsDetailsLayout";
 import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
+import { CmsNavigation } from "@/wab/client/components/cms/CmsLeftTabs";
 import { CmsModelsListLayout } from "@/wab/client/components/cms/CmsModelsList";
 import { CmsTopBarChrome } from "@/wab/client/components/cms/CmsTopBar";
 import {
@@ -12,7 +13,6 @@ import {
 } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useI18n } from "@/wab/client/i18n";
 import { PlasmicCmsContentPage } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsContentPage";
-import { PlasmicCmsLeftTabs } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsLeftTabs";
 import { PlasmicCmsModelContent } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelContent";
 import { PlasmicCmsRoot } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsRoot";
 import { PlasmicCmsSchemaPage } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsSchemaPage";
@@ -61,7 +61,11 @@ export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
             entriesList={{
               render: ({ className: listClassName }) => (
                 <section className={cx(listClassName, styles.entries)}>
-                  <Flex justify="space-between" align="center">
+                  <Flex
+                    className={styles.sidePanelHeader}
+                    justify="space-between"
+                    align="center"
+                  >
                     <Skeleton.Input
                       active
                       size="small"
@@ -69,17 +73,19 @@ export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
                     />
                     <PillSkeleton width={32} height={32} />
                   </Flex>
-                  <Input.Search disabled placeholder={t("Search…")} />
-                  <Select
-                    disabled
-                    value="last-created"
-                    options={[
-                      { value: "last-created", label: t("Last created") },
-                    ]}
-                  />
-                  <Scrollbar scrollX={false} className={styles.entryList}>
-                    <RowsSkeleton rows={5} />
-                  </Scrollbar>
+                  <div className={styles.sidePanelBody}>
+                    <Input.Search disabled placeholder={t("Search…")} />
+                    <Select
+                      disabled
+                      value="last-created"
+                      options={[
+                        { value: "last-created", label: t("Last created") },
+                      ]}
+                    />
+                    <Scrollbar scrollX={false} className={styles.entryList}>
+                      <RowsSkeleton rows={5} />
+                    </Scrollbar>
+                  </div>
                 </section>
               ),
             }}
@@ -115,9 +121,6 @@ export function CmsLoadingShell({ content }: { content?: React.ReactNode }) {
     content ??
     (activeTab === "settings" ? (
       <CmsSettingsLayout
-        details={{ render: () => <Skeleton.Input active size="small" /> }}
-        duplicateButton={{ disabled: true }}
-        saveButton={{ disabled: true }}
         content={
           <FormSkeleton
             labels={[
@@ -138,36 +141,30 @@ export function CmsLoadingShell({ content }: { content?: React.ReactNode }) {
       activeTab={activeTab}
       cmsTopBar={{
         render: ({ className }) => (
-          <CmsTopBarChrome className={className}>
+          <CmsTopBarChrome
+            className={className}
+            navigation={
+              <CmsNavigation
+                activeTab={activeTab}
+                contentHref={
+                  databaseId
+                    ? APP_ROUTES.cmsContentRoot.fill({ databaseId })
+                    : undefined
+                }
+                schemaHref={
+                  databaseId
+                    ? APP_ROUTES.cmsSchemaRoot.fill({ databaseId })
+                    : undefined
+                }
+                hideSettings
+              />
+            }
+          >
             <Skeleton.Input active style={{ width: 200 }} />
           </CmsTopBarChrome>
         ),
       }}
-      cmsLeftTabs={{
-        render: ({ className }) => (
-          <PlasmicCmsLeftTabs
-            className={className}
-            activeTab={activeTab}
-            contentButton={{
-              tooltip: t("Edit content"),
-              "data-test-id": "cmsContent",
-              href: databaseId
-                ? APP_ROUTES.cmsContentRoot.fill({ databaseId })
-                : undefined,
-            }}
-            schemaButton={{
-              tooltip: t("Edit models"),
-              "data-test-id": "cmsModels",
-              href: databaseId
-                ? APP_ROUTES.cmsSchemaRoot.fill({ databaseId })
-                : undefined,
-            }}
-            settingsButton={{
-              render: () => <PillSkeleton width={32} height={32} />,
-            }}
-          />
-        ),
-      }}
+      cmsLeftTabs={{ render: () => null }}
       cmsContentPage={{ render: () => <>{body}</> }}
       cmsSchemaPage={{ render: () => <>{body}</> }}
       cmsSettingsPage={{ render: () => <>{body}</> }}

@@ -40,6 +40,7 @@ function setup(children: React.ReactNode, path = "/projects/project") {
   const rendered = render(view(children));
   return {
     history,
+    container: rendered.container,
     rerender: (content: React.ReactNode) => rendered.rerender(view(content)),
   };
 }
@@ -204,4 +205,17 @@ it("shows preview startup failures with retry without editor chrome", () => {
   expect(document.querySelector(".canvas-editor")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(retry).toHaveBeenCalledOnce();
+});
+
+it("provides a desktop update slot outside and below the loading editor tool rail", () => {
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+    "PlasmicDesktop/darwin",
+  );
+  const { container } = setup(<ApplicationPageLoading />);
+  const slot = container.querySelector('[data-desktop-update-slot="header"]');
+  expect(slot?.getAttribute("data-desktop-update-compact")).toBe("true");
+  expect(slot?.previousElementSibling?.id).toBe("left-tab-strip");
+  expect(slot?.getAttribute("data-desktop-update-position")).toBe("above");
+  expect(slot?.closest("#left-tab-strip")).toBeNull();
+  vi.restoreAllMocks();
 });

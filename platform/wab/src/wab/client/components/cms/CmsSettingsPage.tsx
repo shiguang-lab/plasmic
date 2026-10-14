@@ -6,18 +6,16 @@ import {
   useCmsDatabase,
   useMutateDatabase,
 } from "@/wab/client/components/cms/cms-contexts";
-import Button from "@/wab/client/components/widgets/Button";
-import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useSettingsStyles } from "@/wab/client/components/pages/plasmic/SettingsContainer.styles";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
 import { DefaultCmsSettingsPageProps } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsSettingsPage";
 import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
 import { ApiCmsDatabase } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Form, notification } from "antd";
+import { Button, Form, Input, Tooltip, notification } from "antd";
 import copy from "copy-to-clipboard";
 import * as React from "react";
 
@@ -29,10 +27,12 @@ function CmsSettingsPage_(
 ) {
   const { t } = useI18n();
   const { styles } = useCmsLayoutStyles();
+  const { styles: settings } = useSettingsStyles();
   const match = useMatchedRoute(APP_ROUTES.cmsSettings);
   const { database } = useCmsDatabase(match?.pathParams.databaseId);
   const api = useApi();
   const mutateDatabase = useMutateDatabase();
+  const [form] = Form.useForm();
   const [submitting, setSubmitting] = React.useState(false);
   const [duplicating, setDuplicating] = React.useState(false);
 
@@ -41,195 +41,248 @@ function CmsSettingsPage_(
   }
   const databaseId = database.id;
   return (
-    <Form
-      className={styles.form}
-      layout="vertical"
-      labelCol={{ span: 8 }}
-      wrapperCol={{ span: 16 }}
-      initialValues={database}
-      onFinish={async (values: ApiCmsDatabase) => {
-        console.log("Form Values", values);
-        if (
-          new Set(values.extraData.locales).size <
-          values.extraData.locales.length
-        ) {
-          notification.error({
-            message: t("Locales must all be distinct"),
-          });
-          return;
-        }
-
-        setSubmitting(true);
-        await api.updateCmsDatabase(databaseId, values);
-        await mutateDatabase(databaseId);
-        setSubmitting(false);
-        notification.success({
-          message: t("Successfully saved changes"),
-        });
-      }}
-    >
-      <CmsSettingsLayout
-        ref={ref}
-        {...props}
-        details={t("{count} models", { count: database.tables.length })}
-        saveButton={{
-          htmlType: "submit",
-          disabled: submitting,
-          children: t(submitting ? "Saving..." : "Save"),
-        }}
-        duplicateButton={{
-          htmlType: "button",
-          disabled: duplicating,
-          children: t(duplicating ? "Duplicating..." : "Duplicate CMS Schema"),
-          onClick: () => {
-            spawn(
-              (async () => {
-                setDuplicating(true);
-                try {
-                  const newCmsDatabase = await api.cloneCmsDatabase(databaseId);
-                  notification.success({
-                    message: t("CMS schema duplicated successfully."),
-                    duration: 4000,
-                    btn: (
-                      <Button
-                        type="link"
-                        onClick={() => {
-                          window.location.href = APP_ROUTES.cmsSettings.fill({
-                            databaseId: newCmsDatabase.id,
+    <CmsSettingsLayout
+      ref={ref}
+      className={props.className}
+      content={
+        <>
+          <header className={`${settings.header} ${styles.settingsHeader}`}>
+            <div>
+              <h1>{t("Settings")}</h1>
+              <p>{t("Manage this content library and its API access.")}</p>
+            </div>
+            <div className={styles.codeActions}>
+              <Tooltip
+                title={t(
+                  "Create a new content library with the same models and locales. Content entries are not copied.",
+                )}
+              >
+                <Button
+                  htmlType="button"
+                  loading={duplicating}
+                  onClick={() => {
+                    spawn(
+                      (async () => {
+                        setDuplicating(true);
+                        try {
+                          const newCmsDatabase =
+                            await api.cloneCmsDatabase(databaseId);
+                          notification.success({
+                            message: t("CMS schema duplicated successfully."),
+                            duration: 4000,
+                            btn: (
+                              <Button
+                                type="link"
+                                onClick={() => {
+                                  window.location.href =
+                                    APP_ROUTES.cmsSettings.fill({
+                                      databaseId: newCmsDatabase.id,
+                                    });
+                                }}
+                              >
+                                {t("Go to new CMS")}
+                              </Button>
+                            ),
                           });
-                        }}
-                      >
-                        {" "}
-                        <UiText message={"Go to new CMS"} />{" "}
-                      </Button>
-                    ),
-                  });
-                } catch (err) {
-                  notification.error({
-                    message: t("Failed to duplicate CMS"),
-                  });
-                } finally {
-                  setDuplicating(false);
-                }
-              })(),
-            );
-          },
-        }}
-        content={
-          <div className="vlist-gap-xlg fill-width">
-            <Form.Item
-              name={"databaseId"}
-              label={<strong>{t("CMS ID")}</strong>}
-            >
-              <CopiableCode text={databaseId} name={"databaseId"} />
-            </Form.Item>
-            <Form.Item
-              name={"publicToken"}
-              label={<strong>{t("Public Token")}</strong>}
-            >
-              <CopiableCode
-                text={database?.publicToken ?? ""}
-                name={"publicToken"}
-              />
-            </Form.Item>
-            <Form.Item
-              name={"secretToken"}
-              label={<strong>{t("Secret Token")}</strong>}
-            >
+                        } catch (err) {
+                          notification.error({
+                            message: t("Failed to duplicate CMS"),
+                          });
+                        } finally {
+                          setDuplicating(false);
+                        }
+                      })(),
+                    );
+                  }}
+                >
+                  {t(duplicating ? "Duplicating..." : "Duplicate CMS Schema")}
+                </Button>
+              </Tooltip>
+              <Button
+                type="primary"
+                htmlType="button"
+                loading={submitting}
+                onClick={() => form.submit()}
+              >
+                {t(submitting ? "Saving..." : "Save")}
+              </Button>
+            </div>
+          </header>
+          <section
+            className={styles.settingsSection}
+            aria-labelledby="cms-database-information"
+          >
+            <div className={settings.sectionHeader}>
+              <div>
+                <h2 id="cms-database-information">
+                  {t("Database information")}
+                </h2>
+                <p>
+                  {t(
+                    "Use the CMS ID to connect this content library to your application.",
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className={styles.settingsField}>
+              <strong>{t("CMS ID")}</strong>
+              <CopiableCode text={databaseId} name="databaseId" />
+            </div>
+            <p>{t("{count} models", { count: database.tables.length })}</p>
+          </section>
+          <section
+            className={styles.settingsSection}
+            aria-labelledby="cms-api-access"
+          >
+            <div className={settings.sectionHeader}>
+              <div>
+                <h2 id="cms-api-access">{t("API access")}</h2>
+                <p>
+                  {t(
+                    "Connect your application using this database's access tokens.",
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className={styles.settingsField}>
+              <strong>{t("Public Token")}</strong>
+              <CopiableCode text={database.publicToken} name="publicToken" />
+            </div>
+            <div className={styles.settingsField}>
+              <strong>{t("Secret Token")}</strong>
               <CopiableCode
                 hide
-                text={database?.secretToken ?? ""}
-                name={"secretToken"}
+                text={database.secretToken ?? ""}
+                name="secretToken"
               />
-            </Form.Item>
-            <Form.Item label={<strong>{t("Locales")}</strong>}>
+            </div>
+          </section>
+          <section
+            className={styles.settingsSection}
+            aria-labelledby="cms-locales"
+          >
+            <Form
+              form={form}
+              layout="vertical"
+              initialValues={database}
+              onFinish={async (values: ApiCmsDatabase) => {
+                const locales = values.extraData.locales;
+                if (new Set(locales).size < locales.length) {
+                  notification.error({
+                    message: t("Locales must all be distinct"),
+                  });
+                  return;
+                }
+                setSubmitting(true);
+                try {
+                  await api.updateCmsDatabase(databaseId, {
+                    extraData: { ...database.extraData, locales },
+                  });
+                  await mutateDatabase(databaseId);
+                  notification.success({
+                    message: t("Successfully saved changes"),
+                  });
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              <div className={settings.sectionHeader}>
+                <div>
+                  <h2 id="cms-locales">{t("Locales")}</h2>
+                  <p>
+                    {t(
+                      "Add locale codes for translated content. The default locale is always available.",
+                    )}
+                  </p>
+                </div>
+              </div>
               <Form.List name={["extraData", "locales"]}>
                 {(fields, handles) => (
-                  <div className={"vlist-gap-xlg"}>
-                    <Textbox
-                      styleType={"bordered"}
-                      disabled
-                      value={"Default"}
-                    />
+                  <>
+                    <div className={styles.localeRow}>
+                      <Input
+                        disabled
+                        value={t("Default")}
+                        aria-label={t("Default")}
+                      />
+                    </div>
                     {fields.map(({ key, name, ...restField }) => (
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr auto",
-                        }}
-                      >
+                      <div key={key} className={styles.localeRow}>
                         <Form.Item
-                          key={key}
                           name={name}
                           {...restField}
-                          noStyle
                           rules={[
                             {
                               required: true,
+                              whitespace: true,
                               message: t("Locales cannot be blank"),
                             },
                           ]}
                         >
-                          <Textbox styleType={"bordered"} />
+                          <Input
+                            aria-label={t("Locale code")}
+                            placeholder="zh-CN"
+                          />
                         </Form.Item>
                         <Button
-                          htmlType={"button"}
+                          htmlType="button"
                           onClick={() => handles.remove(name)}
                         >
-                          <UiText message={"Remove"} />
+                          {t("Remove")}
                         </Button>
                       </div>
                     ))}
-                    <div>
-                      <Button
-                        onClick={() => handles.add("")}
-                        htmlType={"button"}
-                      >
-                        {" "}
-                        <UiText message={"Add locale"} />{" "}
-                      </Button>
-                    </div>
-                  </div>
+                    <Button htmlType="button" onClick={() => handles.add("")}>
+                      {t("Add locale")}
+                    </Button>
+                  </>
                 )}
               </Form.List>
-            </Form.Item>
-          </div>
-        }
-      />
-    </Form>
+            </Form>
+          </section>
+        </>
+      }
+    />
   );
 }
 
-function CopiableCode(props: { text: string; hide?: boolean; name?: string }) {
-  const { hide, text, name } = props;
+function CopiableCode({
+  text,
+  hide,
+  name,
+}: {
+  text: string;
+  hide?: boolean;
+  name: string;
+}) {
+  const { t } = useI18n();
+  const { styles } = useCmsLayoutStyles();
+  const [revealed, setRevealed] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
   return (
-    <div className={"fill-width flex flex-vcenter"}>
-      <code
-        style={{
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
-          overflow: "hidden",
-        }}
-        data-test-id={name}
-      >
-        {hide ? "\u2022".repeat(text.length) : text}
+    <div className={styles.copiableCode}>
+      <code data-test-id={name}>
+        {hide && !revealed ? "\u2022".repeat(16) : text}
       </code>
-      <Button
-        className="ml-m"
-        size="small"
-        type="secondary"
-        htmlType="button"
-        style={{
-          flexShrink: 0,
-        }}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          copy(text);
-        }}
-      >
-        <UiText message={"Copy"} />
-      </Button>
+      <div className={styles.codeActions}>
+        {hide && text && (
+          <Button
+            htmlType="button"
+            aria-pressed={revealed}
+            onClick={() => setRevealed(!revealed)}
+          >
+            {t(revealed ? "Hide" : "Show")}
+          </Button>
+        )}
+        <Button
+          htmlType="button"
+          disabled={!text}
+          onClick={() => setCopied(copy(text))}
+        >
+          {t(copied ? "Copied" : "Copy")}
+        </Button>
+      </div>
     </div>
   );
 }

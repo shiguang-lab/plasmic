@@ -1,7 +1,7 @@
 import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
+import { useSettingsStyles } from "@/wab/client/components/pages/plasmic/SettingsContainer.styles";
 import { PlasmicCmsEntryDetails } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsEntryDetails";
 import { PlasmicCmsModelDetails } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelDetails";
-import { PlasmicCmsSettingsPage } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsSettingsPage";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
@@ -113,31 +113,23 @@ export const CmsModelDetailsLayout = React.forwardRef<
 
 export const CmsSettingsLayout = React.forwardRef<
   HTMLDivElement,
-  Pick<
-    React.ComponentProps<typeof PlasmicCmsSettingsPage>,
-    "className" | "details" | "duplicateButton" | "saveButton"
-  > & {
-    content: React.ReactNode;
-  }
->(function CmsSettingsLayout(
-  { className, content, details, duplicateButton, saveButton },
-  ref,
-) {
+  { className?: string; content: React.ReactNode }
+>(function CmsSettingsLayout({ className, content }, ref) {
+  const { styles, cx } = useCmsLayoutStyles();
+  const { styles: settings } = useSettingsStyles();
   return (
-    <CmsDetailsLayout
-      ref={ref}
-      className={className}
-      header={
-        <>
-          <PlasmicCmsSettingsPage.left details={details} />
-          <PlasmicCmsSettingsPage.right
-            duplicateButton={duplicateButton}
-            saveButton={saveButton}
-          />
-        </>
-      }
-    >
-      {content}
-    </CmsDetailsLayout>
+    <div ref={ref} className={cx(className, styles.settingsLayout)}>
+      <Scrollbar scrollX={false} className={styles.detailsBody}>
+        <div
+          className={cx(
+            settings.root,
+            settings.responsive,
+            styles.settingsContent,
+          )}
+        >
+          {content}
+        </div>
+      </Scrollbar>
+    </div>
   );
 });

@@ -4,6 +4,7 @@ import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewCon
 import { EditorToolRail } from "@/wab/client/components/studio/EditorToolRail";
 import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
 import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
+import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { StudioLoading } from "@/wab/client/components/widgets";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { ensure } from "@/wab/shared/common";
@@ -155,7 +156,7 @@ function StudioChromeContent({
               className="canvas-editor__left-pane-container"
               style={{
                 position: "absolute",
-                left: 16,
+                left: editorLeftRailLayout.left,
                 top: 82,
                 height: "calc(100dvh - 170px)",
               }}

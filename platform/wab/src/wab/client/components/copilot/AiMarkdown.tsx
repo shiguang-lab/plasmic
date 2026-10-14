@@ -15,6 +15,28 @@ import { createStyles } from "antd-style";
 import React from "react";
 
 const useStyles = createStyles(({ token }) => ({
+  compact: {
+    "&&&": {
+      "--font-size": "11px",
+      fontSize: 11,
+      lineHeight: 1.6,
+      color: token.colorTextTertiary,
+    },
+    "&&& p, &&& li, &&& [data-component=paragraph], &&& h1, &&& h2, &&& h3, &&& h4, &&& h5, &&& h6, &&& th, &&& td":
+      {
+        fontSize: "inherit",
+        lineHeight: "inherit",
+        color: "inherit",
+      },
+    "&&& p, &&& [data-component=paragraph]": { marginBottom: 6 },
+    "&&& h1, &&& h2, &&& h3, &&& h4, &&& h5, &&& h6": { margin: "8px 0 4px" },
+    "&&& ul, &&& ol": { margin: "4px 0 6px" },
+    "&&& button[data-node-uuid]": {
+      fontSize: "inherit",
+      lineHeight: "inherit",
+      padding: "0 3px",
+    },
+  },
   markdown: {
     "&&": { "--font-size": "13px", fontSize: 13, lineHeight: 1.7 },
     minWidth: 0,
@@ -277,11 +299,13 @@ export function AiMarkdown({
   running = false,
   nodes = [],
   onLocate,
+  compact = false,
 }: {
   children: string;
   running?: boolean;
   nodes?: AiNode[];
   onLocate?: (node: AiNode) => void;
+  compact?: boolean;
 }) {
   const { styles } = useStyles();
   const context = React.useMemo(() => ({ nodes, onLocate }), [nodes, onLocate]);
@@ -289,7 +313,7 @@ export function AiMarkdown({
     <NodeContext.Provider value={context}>
       <div data-test-id="ai-markdown">
         <XMarkdown
-          rootClassName={styles.markdown}
+          rootClassName={`${styles.markdown} ${compact ? styles.compact : ""}`}
           components={components}
           paragraphTag="p"
           hasNextChunk={running}

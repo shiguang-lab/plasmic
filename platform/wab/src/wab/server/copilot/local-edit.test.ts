@@ -79,6 +79,7 @@ it.each(["selection", "component", "page"] as const)(
         componentUuid: "page",
         elementUuid: "title",
         text: "After",
+        retryOf: "failed-call",
       });
       res.write(
         `data: ${JSON.stringify({ id: "completion", model: config.model, created: 1, choices: [{ index: 0, finish_reason: null, delta: { role: "assistant", content: "Editing title", tool_calls: [{ index: 0, id: "call-1", type: "function", function: { name: "changeElement", arguments: argumentsJson.slice(0, 20) } }] } }] })}\n\n`,
@@ -104,14 +105,25 @@ it.each(["selection", "component", "page"] as const)(
             },
           }
         : { ...request, attachments },
+      "commentary",
       new AbortController().signal,
     );
     expect(result).toMatchObject({
       text: "Editing title",
       calls: [
-        { id: "call-1", name: "changeElement", input: { text: "After" } },
+        {
+          id: "call-1",
+          name: "changeElement",
+          input: { text: "After" },
+          retryOf: "failed-call",
+        },
       ],
     });
+    expect(result.calls[0].input).not.toHaveProperty("retryOf");
+    expect(
+      body.tools.find((tool: any) => tool.function.name === "changeElement")
+        .function.parameters.properties.retryOf.type,
+    ).toBe("string");
     expect(body.model).toBe(
       scope === "page" ? "alternate-model" : config.model,
     );
@@ -206,7 +218,7 @@ it("rejects a provider disconnect before a tool call finishes", async () => {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   config.baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
   await expect(
-    generateLocalEditStep(request, new AbortController().signal),
+    generateLocalEditStep(request, "commentary", new AbortController().signal),
   ).rejects.toThrow();
 });
 
@@ -227,7 +239,7 @@ it("cancels an active provider stream when the task is stopped", async () => {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   config.baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
   await expect(
-    generateLocalEditStep(request, controller.signal),
+    generateLocalEditStep(request, "commentary", controller.signal),
   ).rejects.toMatchObject({ name: "AbortError" });
 });
 
@@ -246,7 +258,7 @@ it("rejects a token-limited response before returning any tools", async () => {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   config.baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
   await expect(
-    generateLocalEditStep(request, new AbortController().signal),
+    generateLocalEditStep(request, "commentary", new AbortController().signal),
   ).rejects.toThrow("AI response did not complete");
 });
 
@@ -314,6 +326,7 @@ it("rejects a model outside the server catalog before calling the provider", asy
   await expect(
     generateLocalEditStep(
       { ...request, model: "unavailable" },
+      "commentary",
       new AbortController().signal,
     ),
   ).rejects.toThrow("not available");
@@ -407,4 +420,51 @@ it("retries discovery after a transient failure instead of caching the fallback"
     config.models = original;
     vi.unstubAllGlobals();
   }
+});
+
+it("sends High thinking and streams upstream reasoning separately from the tool-free final answer", async () => {
+  const chunks: { type: string; text: string; complete: boolean }[] = [];
+  server = createServer(async (req, res) => {
+    const bytes: Buffer[] = [];
+    for await (const part of req) {
+      bytes.push(part);
+    }
+    const body = JSON.parse(Buffer.concat(bytes).toString());
+    expect(body.reasoning_effort).toBe("high");
+    expect(body.extra_body.google.thinking_config).toEqual({
+      include_thoughts: true,
+    });
+    expect(body.tools).toBeUndefined();
+    expect(body.messages[0].content).toContain("final response stage");
+    res.setHeader("Content-Type", "text/event-stream");
+    const emit = (delta: unknown, finish_reason: string | null = null) =>
+      res.write(
+        `data: ${JSON.stringify({ id: "final", model: config.model, created: 1, choices: [{ index: 0, delta, finish_reason }] })}\n\n`,
+      );
+    emit({
+      role: "assistant",
+      reasoning_content: "Checking recorded results.",
+    });
+    emit({ content: "The title was updated." });
+    emit({}, "stop");
+    res.end("data: [DONE]\n\n");
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  config.baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
+  const result = await generateLocalEditStep(
+    request,
+    "answer",
+    new AbortController().signal,
+    async (part) => {
+      chunks.push(part);
+    },
+  );
+  expect(result.reasoning).toBe("Checking recorded results.");
+  expect(result.text).toBe("The title was updated.");
+  expect(chunks).toEqual([
+    { type: "reasoning", text: "Checking recorded results.", complete: false },
+    { type: "reasoning", text: "", complete: true },
+    { type: "markdown", text: "The title was updated.", complete: false },
+    { type: "markdown", text: "", complete: true },
+  ]);
 });

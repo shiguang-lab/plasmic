@@ -103,12 +103,28 @@ test("omits sharing and shows more only when variants exist", () => {
 test("keeps desktop chrome out of the browser preview", () => {
   const { container } = render(<PreviewTopBar />);
   expect(container.querySelector("[data-desktop-titlebar]")).toBeNull();
+  expect(container.querySelector("[data-desktop-update-slot]")).toBeNull();
   expect(mocks.setDragRegion).not.toHaveBeenCalled();
 });
 test("reserves native controls and cleans up the macOS preview drag region", () => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
   const { container, unmount } = render(<PreviewTopBar />);
   expect(container.querySelector('[data-desktop-titlebar="mac"]')).toBeTruthy();
+  const updateSlot = container.querySelector(
+    '[data-desktop-update-slot="header"]',
+  );
+  expect(updateSlot).toBeTruthy();
+  expect(
+    updateSlot?.nextElementSibling?.contains(
+      screen.getByRole("button", { name: "Back to editor" }),
+    ),
+  ).toBe(true);
+  expect(updateSlot?.nextElementSibling?.contains(updateSlot)).toBe(false);
+  expect(
+    updateSlot?.parentElement?.contains(
+      screen.getByRole("button", { name: "Select component" }),
+    ),
+  ).toBe(false);
   expect(mocks.setDragRegion).toHaveBeenCalledWith({
     left: 0,
     top: 0,
@@ -123,30 +139,57 @@ test("places code and back to editor in the right action section", () => {
   const back = screen.getByRole("button", { name: "Back to editor" });
   const code = screen.getByRole("button", { name: "Code" });
   expect(back.parentElement?.contains(code)).toBe(true);
-  expect(back.parentElement?.previousElementSibling?.contains(code)).toBe(
-    false,
-  );
+  expect(
+    back.parentElement?.parentElement?.previousElementSibling?.contains(code),
+  ).toBe(false);
   fireEvent.click(back);
   expect(mocks.preview.toggleLiveMode).toHaveBeenCalledOnce();
 });
 test("displays the current name and preserves page, component and artboard navigation", async () => {
   const page = { uuid: "page2", name: "Page2", kind: "page" };
+  const component = {
+    uuid: "component",
+    name: "CustomerCard",
+    kind: "component",
+  };
+  const artboard = {
+    uuid: "artboard",
+    name: "OverviewArtboard",
+    kind: "artboard",
+  };
   mocks.preview.studioCtx.site.components = [
     mocks.preview.component,
     page,
-    { uuid: "component", name: "CustomerCard", kind: "component" },
-    { uuid: "artboard", name: "OverviewArtboard", kind: "artboard" },
+    component,
+    artboard,
   ];
   render(<PreviewTopBar />);
   expect(screen.getByText("Page1")).toBeTruthy();
-  fireEvent.mouseDown(
-    screen.getByRole("combobox", { name: "Select component" }),
-  );
+  const trigger = screen.getByRole("button", { name: "Select component" });
+  expect(screen.queryByRole("combobox")).toBeNull();
+  fireEvent.click(trigger);
   expect(await screen.findByText("Pages")).toBeTruthy();
   expect(screen.getByText("Components")).toBeTruthy();
   expect(screen.getByText("Artboards")).toBeTruthy();
-  fireEvent.click(screen.getByText("Page2"));
-  expect(mocks.preview.pushComponent).toHaveBeenCalledWith(page);
+  for (const target of [page, component, artboard]) {
+    if (trigger.getAttribute("aria-expanded") === "false") {
+      fireEvent.click(trigger);
+    }
+    fireEvent.click(await screen.findByRole("menuitem", { name: target.name }));
+    expect(mocks.preview.pushComponent).toHaveBeenLastCalledWith(target);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  }
+});
+test("Escape closes the page dropdown without leaving preview", async () => {
+  mocks.preview.studioCtx.site.components = [mocks.preview.component];
+  render(<PreviewTopBar />);
+  const trigger = screen.getByRole("button", { name: "Select component" });
+  fireEvent.click(trigger);
+  fireEvent.keyDown(await screen.findByRole("menuitem", { name: "Page1" }), {
+    key: "Escape",
+  });
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  expect(mocks.preview.toggleLiveMode).not.toHaveBeenCalled();
 });
 test("Escape closes the size menu without leaving preview", async () => {
   render(<PreviewTopBar />);

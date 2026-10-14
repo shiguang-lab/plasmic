@@ -115,8 +115,25 @@ it("groups navigation, creation and user actions in the header and removes the s
     ),
   ).toBe(true);
   expect(container.querySelector("aside")).toBeNull();
+  expect(container.querySelector("[data-desktop-update-slot]")).toBeNull();
   fireEvent.click(creation);
   expect(promptNewTeam).toHaveBeenCalledWith(appCtx, history);
+});
+
+it("places desktop updates outside the brand capsule, before navigation", () => {
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+    "PlasmicDesktop/darwin",
+  );
+  const { container } = setup({ navigation: "allProjects" });
+  const slot = container.querySelector('[data-desktop-update-slot="header"]');
+  expect(slot).toBeTruthy();
+  const brand = screen.getByRole("link", { name: "Back to dashboard" });
+  expect(slot?.previousElementSibling).toBe(brand.parentElement);
+  expect(brand.parentElement?.contains(slot)).toBe(false);
+  expect(
+    slot?.parentElement?.contains(screen.getByRole("button", { name: "User" })),
+  ).toBe(false);
+  expect(screen.getByRole("banner").contains(slot)).toBe(true);
 });
 
 it("follows project routes and restores the selected navigation with back", () => {

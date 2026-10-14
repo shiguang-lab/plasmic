@@ -140,12 +140,15 @@ export const localEditCallSchema = z
     id: z.string().min(1),
     name: z.enum(localEditToolNames),
     input: z.record(z.unknown()),
+    thoughtSignature: z.string().optional(),
+    retryOf: z.string().min(1).optional(),
   })
   .strict();
 export type LocalEditCall = z.infer<typeof localEditCallSchema>;
 export const localEditStepSchema = z
   .object({
     text: z.string().max(30000),
+    reasoning: z.string().max(30000).optional(),
     calls: z.array(localEditCallSchema).max(10),
     results: z
       .array(
@@ -166,7 +169,16 @@ export const localEditRequestSchema = z
   })
   .strict();
 export type LocalEditRequest = z.infer<typeof localEditRequestSchema>;
-export type LocalEditResponse = { text: string; calls: LocalEditCall[] };
+export type LocalEditResponse = {
+  text: string;
+  reasoning?: string;
+  calls: LocalEditCall[];
+};
+export type LocalAiStreamPart = {
+  type: "markdown" | "reasoning";
+  text: string;
+  complete: boolean;
+};
 export type LocalEditToolResult = {
   result: string;
   binding: LocalEditBinding;

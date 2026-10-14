@@ -73,14 +73,29 @@
     #plasmic-desktop-update .update-icon { display: inline-flex; position: absolute; inset: 0; align-items: center; justify-content: center; width: 100%; height: 100%; transition: opacity 80ms, transform 80ms; }
     #plasmic-desktop-update svg { width: 12px; height: 12px; }
     #plasmic-desktop-update .update-label { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-align: center; opacity: 0; transition: opacity 80ms 140ms; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    #plasmic-desktop-update[data-placement=rail] .update-action { position: absolute; left: 8px; z-index: 1; }
-    #plasmic-desktop-update[data-placement=rail] .update-action:popover-open { position: fixed; inset: auto; margin: 0; }
     #plasmic-desktop-update[data-placement=footer] { width: 100%; }
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open), #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-action { grid-template-columns: 1fr; }
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open) .update-icon, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-icon { opacity: 0; transform: scale(.9); }
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open) .update-label, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-label { opacity: 1; }
     #plasmic-desktop-update .update-spinner { animation: plasmic-update-spin 1s linear infinite; }
-    #plasmic-desktop-update .update-tooltip { position: fixed; inset: auto; margin: 0; transform: translateY(-50%); width: max-content; max-width: 280px; padding: 6px 10px; border: 0; border-radius: 8px; background: #27272a; color: white; pointer-events: none; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
+    #plasmic-desktop-update .update-tooltip { position: fixed; inset: auto; margin: 0; transform: translateY(-50%); width: max-content; max-width: 280px; padding: 6px 10px; border: 0; border-radius: 8px; overflow: visible; background: #27272a; color: white; pointer-events: none; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
+    [data-desktop-update-slot=header] { display: inline-flex; align-items: center; -webkit-app-region: no-drag; }
+    [data-desktop-update-slot=header]:empty, [data-desktop-update-slot=header]:has(> [hidden]) { display: none; }
+    #plasmic-desktop-update[data-placement=header] { width: auto; height: 32px; margin: 0; color: inherit; }
+    #plasmic-desktop-update[data-placement=header] .update-action { display: flex; gap: 6px; height: 32px; min-width: 32px; max-width: 112px; padding: 0 8px; border-radius: 8px; background: transparent; color: inherit; }
+    #plasmic-desktop-update[data-placement=header] .update-action:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+    #plasmic-desktop-update[data-placement=header] .update-icon { position: static; width: 16px; height: 16px; opacity: .65; transform: none; }
+    #plasmic-desktop-update[data-placement=header] .update-action:is(:hover,:focus-visible) .update-icon { opacity: 1; transform: none; }
+    #plasmic-desktop-update[data-placement=header] svg { width: 16px; height: 16px; }
+    #plasmic-desktop-update[data-placement=header] .update-label { display: none; font-size: 12px; font-weight: 500; opacity: 1; }
+    #plasmic-desktop-update[data-placement=header][data-phase=downloading] .update-label { display: block; }
+    #plasmic-desktop-update[data-placement=header][data-compact=true] .update-label { display: none; }
+    #plasmic-desktop-update[data-placement=header]:is([data-phase=downloading],[data-phase=downloaded]) .update-icon { opacity: 1; }
+    #plasmic-desktop-update[data-placement=header][data-phase=downloaded] .update-action { color: #0285ff; background: color-mix(in srgb, #0285ff 10%, transparent); }
+    #plasmic-desktop-update[data-placement=header] .update-tooltip { box-sizing: border-box; max-width: min(280px, calc(100vw - 16px)); transform: none; }
+    #plasmic-desktop-update[data-placement=header] .update-tooltip::before { content: ""; position: absolute; top: -4px; left: var(--update-tooltip-arrow-x); width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
+    #plasmic-desktop-update[data-tooltip-side=above] .update-tooltip::before { top: auto; bottom: -4px; }
+    @media (max-width: 1200px) { #plasmic-desktop-update[data-placement=header] .update-label { display: none !important; } }
     @keyframes plasmic-update-spin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { #plasmic-desktop-update * { transition: none !important; animation: none !important; } }
   `;
@@ -102,36 +117,45 @@
   tooltip.setAttribute("role", "tooltip");
   tooltip.setAttribute("popover", "manual");
   const showTooltip = () => {
-    if (
-      control.dataset.placement === "rail" &&
-      !button.disabled &&
-      !button.hasAttribute("popover")
-    ) {
-      // The expanded button must escape the toolbar's scrolling container.
-      const anchor = button.getBoundingClientRect();
-      button.setAttribute("popover", "manual");
-      button.style.left = `${anchor.left}px`;
-      button.style.top = `${anchor.top}px`;
-      button.showPopover();
-    }
     const rect = button.getBoundingClientRect();
-    tooltip.style.left = `${rect.left + Math.min(144, Math.max(rect.width, label.scrollWidth + 20)) + 8}px`;
-    tooltip.style.top = `${rect.top + rect.height / 2}px`;
+    const header = control.dataset.placement === "header";
+    tooltip.style.left = `${header ? rect.left : rect.left + Math.min(144, Math.max(rect.width, label.scrollWidth + 20)) + 8}px`;
+    tooltip.style.top = `${header ? rect.bottom + 8 : rect.top + rect.height / 2}px`;
     tooltip.showPopover();
+    if (header) {
+      const width = tooltip.getBoundingClientRect().width;
+      const left = Math.max(
+        8,
+        Math.min(
+          rect.left + (rect.width - width) / 2,
+          window.innerWidth - width - 8,
+        ),
+      );
+      tooltip.style.left = `${left}px`;
+      if (control.dataset.tooltipSide === "above") {
+        tooltip.style.top = `${rect.top - tooltip.getBoundingClientRect().height - 8}px`;
+      }
+      tooltip.style.setProperty(
+        "--update-tooltip-arrow-x",
+        `${rect.left + rect.width / 2 - left}px`,
+      );
+    }
   };
   const hideTooltip = () => {
     tooltip.hidePopover();
-    if (button.hasAttribute("popover")) {
-      button.hidePopover();
-      button.removeAttribute("popover");
-      button.style.removeProperty("left");
-      button.style.removeProperty("top");
-    }
   };
   control.addEventListener("mouseenter", showTooltip);
   control.addEventListener("mouseleave", hideTooltip);
   control.addEventListener("focusin", showTooltip);
   control.addEventListener("focusout", hideTooltip);
+  window.addEventListener("resize", () => {
+    if (
+      control.dataset.placement === "header" &&
+      tooltip.matches(":popover-open")
+    ) {
+      showTooltip();
+    }
+  });
   button.append(icon, label);
   control.append(button, tooltip);
   const render = (status) => {
@@ -234,9 +258,13 @@
     if (uiDocument.head && style.parentElement !== uiDocument.head) {
       uiDocument.head.append(style);
     }
-    const strip = uiDocument.getElementById("left-tab-strip");
+    const header = [
+      ...uiDocument.querySelectorAll('[data-desktop-update-slot="header"]'),
+    ].find((slot) =>
+      slot.parentElement?.checkVisibility({ checkVisibilityCSS: true }),
+    );
     const footer = uiDocument.querySelector("aside > footer");
-    const parent = strip?.lastElementChild || footer;
+    const parent = header || footer;
     if (!parent) {
       hideTooltip();
       control.remove();
@@ -245,11 +273,15 @@
     if (control.parentElement === parent) {
       return;
     }
-    control.dataset.placement = strip ? "rail" : "footer";
-    if (strip) {
-      parent.insertBefore(control, parent.lastElementChild);
-    } else {
-      parent.append(control);
+    hideTooltip();
+    control.dataset.placement = header ? "header" : "footer";
+    control.dataset.tooltipSide =
+      header?.dataset.desktopUpdatePosition || "below";
+    control.dataset.compact =
+      header?.dataset.desktopUpdateCompact === "true" ? "true" : "false";
+    parent.append(control);
+    if (latestStatus) {
+      render(latestStatus);
     }
   }
   const observer = new MutationObserver(place);

@@ -3,6 +3,7 @@ import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-t
 import {
   LocalAiIntent,
   LocalAiIntentRequest,
+  LocalAiStreamPart,
   LocalEditRequest,
   LocalEditResponse,
   localAiIntentSchema,
@@ -118,7 +119,7 @@ Use the attached requirement documents and reference images to inform the reques
 Answer in the user's language. Briefly describe intended edits, call tools, then summarize actual results.
 Reference editable nodes in prose with [EnglishNodeName](#plasmic-node/EXACT_ELEMENT_UUID), using only element UUIDs confirmed by the current resources or tool reads. These links let the user locate the node in Studio. Use fenced code blocks with the actual language for code, and Markdown tables and lists for structured explanations.
 If missing information changes the implementation, ask; do not invent it. Never add undeclared tool parameters such as reason.
-Validation and persistence are performed by the application after your turn. Never claim visual, interaction or save verification yourself.`;
+Validation and persistence are performed by the application. Report only recorded results. Never claim unperformed visual or interaction verification.`;
 
 const pageInstructions = `The application has created a new routed page and pinned it. Generate only that page.
 Read the overview and actual installed component contracts, including props, slots, defaults, event arguments and ref actions.
@@ -171,12 +172,25 @@ export function localEditMessages(request: LocalEditRequest): ModelMessage[] {
     messages.push({
       role: "assistant",
       content: [
+        ...(step.reasoning
+          ? [{ type: "reasoning" as const, text: step.reasoning }]
+          : []),
         ...(step.text ? [{ type: "text" as const, text: step.text }] : []),
         ...step.calls.map((call) => ({
           type: "tool-call" as const,
           toolCallId: call.id,
           toolName: call.name,
-          input: call.input,
+          input: {
+            ...call.input,
+            ...(call.retryOf ? { retryOf: call.retryOf } : {}),
+          },
+          ...(call.thoughtSignature
+            ? {
+                providerOptions: {
+                  google: { thoughtSignature: call.thoughtSignature },
+                },
+              }
+            : {}),
         })),
       ],
     });
@@ -203,8 +217,9 @@ export function localEditMessages(request: LocalEditRequest): ModelMessage[] {
 
 export async function generateLocalEditStep(
   request: LocalEditRequest,
+  channel: "commentary" | "answer",
   signal: AbortSignal,
-  onText?: (text: string) => Promise<void>,
+  onPart?: (part: LocalAiStreamPart) => Promise<void>,
 ): Promise<LocalEditResponse> {
   const config = getLocalAiConfig();
   if (!config) {
@@ -222,8 +237,21 @@ export async function generateLocalEditStep(
     localEditTools(request.binding).map((name) => [
       name,
       {
-        description: metadata[name].description,
-        inputSchema: jsonSchema(metadata[name].inputSchema),
+        description:
+          metadata[name].description +
+          " When correcting a failed call to this tool, set retryOf to that failed model tool-call ID. retryOf is orchestration metadata and is not passed to the editor.",
+        inputSchema: jsonSchema({
+          ...metadata[name].inputSchema,
+          properties: {
+            ...metadata[name].inputSchema.properties,
+            retryOf: {
+              type: "string",
+              minLength: 1,
+              description:
+                "ID of the failed model tool call this call explicitly retries. Omit for a new operation.",
+            },
+          },
+        }),
       },
     ]),
   );
@@ -236,13 +264,25 @@ export async function generateLocalEditStep(
   const result = streamText({
     model: provider.chatModel(await selectedModel(request.model)),
     system:
+      (channel === "commentary"
+        ? "This is the execution stage. Emit only brief progress explanations, then call the needed tools. When work is ready for application validation, finish without tool calls; do not emit a final answer. The application will request it separately after validation and saving.\n"
+        : "This is the final response stage. Tools are unavailable. Answer the user from the recorded results. Summarize actual outcomes concisely in the user language. Distinguish structural validation from visual/interaction verification. Do not describe intended future actions or repeat progress commentary.\n") +
       instructions +
+      "\nKeep progress explanations concise and in the user's language. If the provider emits a thought summary, prefer a brief summary in the user's language.\n" +
       "\n" +
       (request.binding.mode === "page"
         ? pageInstructions
         : `Edit the existing pinned page or subtree; never create or replace the page. Read its current states, interactions and installed component contracts before editing. Reuse existing fields, table columns, Form ownership and bindings rather than rebuilding unrelated regions. State creation/update/deletion and viewport changes require a whole-component scope with no selected elementUuids. Selection-scoped edits may change element props/styles/text, insert/delete children, copy/move within the pinned subtree and create/update/delete its interactions. Preserve pinned roots. Use native Form validation and onFinish/ref submit; read registered rule shapes and event arguments. For filter changes keep draft and applied filters distinct and reset pagination. Update creation and detail bindings together when adding a field. Keep drawers closed initially. After editing, read back the affected nodes, states and interactions. Correct a rejected call from its actual error without changing the pinned scope.`),
     messages: localEditMessages(request),
-    tools,
+    // The orchestration stage owns the channel before streaming starts.
+
+    tools: channel === "commentary" ? tools : undefined,
+    providerOptions: {
+      plasmicLocalEdit: {
+        reasoningEffort: "high",
+        extra_body: { google: { thinking_config: { include_thoughts: true } } },
+      },
+    },
     maxOutputTokens: wholeComponent ? 8192 : 4096,
     maxRetries: 0,
     abortSignal,
@@ -251,8 +291,18 @@ export async function generateLocalEditStep(
     },
   });
   for await (const chunk of result.fullStream) {
-    if (chunk.type === "text-delta") {
-      await onText?.(chunk.text);
+    if (chunk.type === "text-delta" || chunk.type === "reasoning-delta") {
+      await onPart?.({
+        type: chunk.type === "text-delta" ? "markdown" : "reasoning",
+        text: chunk.text,
+        complete: false,
+      });
+    } else if (chunk.type === "text-end" || chunk.type === "reasoning-end") {
+      await onPart?.({
+        type: chunk.type === "text-end" ? "markdown" : "reasoning",
+        text: "",
+        complete: true,
+      });
     } else if (chunk.type === "error") {
       streamError = chunk.error;
     }
@@ -267,13 +317,19 @@ export async function generateLocalEditStep(
   }
   return {
     text: await result.text,
-    calls: (await result.toolCalls).map((call) =>
-      localEditCallSchema.parse({
+    reasoning: await result.reasoningText,
+    calls: (await result.toolCalls).map((call) => {
+      const { retryOf, ...input } = z.record(z.unknown()).parse(call.input);
+      return localEditCallSchema.parse({
         id: call.toolCallId,
         name: call.toolName,
-        input: call.input,
-      }),
-    ),
+        input,
+        retryOf,
+        thoughtSignature:
+          call.providerMetadata?.plasmicLocalEdit?.thoughtSignature ??
+          call.providerMetadata?.google?.thoughtSignature,
+      });
+    }),
   };
 }
 
@@ -328,9 +384,15 @@ export async function resolveLocalAiIntent(
       },
     },
     toolChoice: { type: "tool", toolName: "resolveIntent" },
-    maxOutputTokens: 256,
+    providerOptions: {
+      plasmicLocalEdit: {
+        reasoningEffort: "high",
+        extra_body: { google: { thinking_config: { include_thoughts: true } } },
+      },
+    },
+    maxOutputTokens: 4096,
     maxRetries: 0,
-    abortSignal: AbortSignal.any([signal, AbortSignal.timeout(30000)]),
+    abortSignal: AbortSignal.any([signal, AbortSignal.timeout(90000)]),
   });
   if (result.toolCalls.length !== 1) {
     throw new Error("AI did not resolve the requested editing target.");

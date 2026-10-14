@@ -393,7 +393,6 @@ More
                   <LeftTabButton
                     icon={item.icon}
                     label={item.title}
-                    hasLabel
                     tooltip={item.title}
                     data-test-tabkey={key}
                     expanded={openGroup === key}
@@ -427,7 +426,6 @@ More
       buttons={
         <>
           <LeftTabButton
-            hasLabel
             label={t("Select")}
             tooltip={t("Select")}
             icon={<EditorToolIcon tool="Select" />}
@@ -440,7 +438,6 @@ More
             }}
           />
           <LeftTabButton
-            hasLabel
             label={t("Pan")}
             tooltip={t("Pan")}
             icon={<EditorToolIcon tool="Pan" />}
@@ -457,7 +454,6 @@ More
             dataTestId="add-button"
             expanded={studioCtx.showAddDrawer()}
             isSelected={studioCtx.showAddDrawer()}
-            hasLabel
             label={t("Insert")}
             tooltip={t("Insert")}
             icon={<EditorToolIcon tool="Insert" />}
@@ -477,7 +473,6 @@ More
             isSelected={
               studioCtx.leftTabKey === "outline" && !studioCtx.showAddDrawer()
             }
-            hasLabel
             label={t("Layers")}
             tooltip={t("Layers")}
             icon={<EditorToolIcon tool="Layers" />}
@@ -501,11 +496,10 @@ More
               label: t("Libraries"),
               cond: canViewTab("libraries"),
             },
-            true,
+            false,
             () => setOpenGroup(undefined),
           )}
           <LeftTabButton
-            hasLabel
             label={t("AI")}
             tooltip={t("AI assistant")}
             icon={<EditorToolIcon tool="AI" />}
@@ -520,7 +514,7 @@ More
           />
           <div className="editor-rail-divider" role="separator" />
           {topMenu.lint.type === "item" &&
-            renderButton("lint", topMenu.lint, true, undefined)}
+            renderButton("lint", topMenu.lint, false, undefined)}
           {renderButtonGroup({
             more: {
               ...mainGroups.more,

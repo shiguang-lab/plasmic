@@ -1,7 +1,6 @@
 import {
   CmsEntryDetailsLayout,
   CmsModelDetailsLayout,
-  CmsSettingsLayout,
 } from "@/wab/client/components/cms/CmsDetailsLayout";
 import { CmsContentLoading } from "@/wab/client/components/cms/CmsLoading";
 import { CmsModelsListLayout } from "@/wab/client/components/cms/CmsModelsList";
@@ -40,7 +39,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it.each(["entry", "schema", "settings"])(
+it.each(["entry", "schema"])(
   "keeps the %s toolbar outside its single shared scroll viewport",
   async (kind) => {
     const field = <input aria-label="Last field" defaultValue="Editable" />;
@@ -54,12 +53,10 @@ it.each(["entry", "schema", "settings"])(
         >
           {field}
         </CmsEntryDetailsLayout>
-      ) : kind === "schema" ? (
+      ) : (
         <CmsModelDetailsLayout ref={ref} modelNameValue="Audit model">
           {field}
         </CmsModelDetailsLayout>
-      ) : (
-        <CmsSettingsLayout ref={ref} details="1 model" content={field} />
       ),
     );
     await waitFor(() =>

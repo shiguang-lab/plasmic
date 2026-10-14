@@ -28,6 +28,7 @@ import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarMod
 import { DefaultStylesPanel } from "@/wab/client/components/sidebar/ThemesControls";
 import { UserManagedFontsPanel } from "@/wab/client/components/sidebar/UserManagedFonts";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
+import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { ListStack } from "@/wab/client/components/widgets/ListStack";
 import { useResizableHandle } from "@/wab/client/hooks/useResizableHandle";
@@ -161,7 +162,7 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
         })}
         style={{
           position: "absolute",
-          left: 16,
+          left: editorLeftRailLayout.left,
           top: 82,
           height: "calc(100dvh - 170px)",
         }}
@@ -181,7 +182,7 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
               className: "canvas-editor__left-pane auto-pointer-events",
               style: {
                 position: "absolute",
-                left: "calc(100% + 12px)",
+                left: `calc(100% + ${editorLeftRailLayout.panelGap}px)`,
                 top: 0,
                 width: studioCtx.leftPaneWidth,
                 display:

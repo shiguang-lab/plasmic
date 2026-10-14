@@ -12,6 +12,7 @@ import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import CenterAndPadIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__CenterAndPad";
 import FrameStretchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__FrameStretch";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
+import { productPalette } from "@/wab/client/product-ui-theme.styles";
 import { ViewComponentProps, ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import {
@@ -27,6 +28,7 @@ import { frameSizeGroups } from "@/wab/shared/responsiveness";
 import { getComponentDefaultSize } from "@/wab/shared/sizingutils";
 import { Chroma } from "@/wab/shared/utils/color-utils";
 import { Menu } from "antd";
+import { createStyles } from "antd-style";
 import L from "lodash";
 import { observer } from "mobx-react";
 import React from "react";
@@ -35,8 +37,18 @@ interface FramePanelProps extends ViewComponentProps {
   frame: ArenaFrame;
 }
 
+const useFramePanelStyles = createStyles(({ token }) => ({
+  root: {
+    ...productPalette(token),
+    width: 200,
+    color: token.colorText,
+    "& .labeled-item__label": { color: token.colorText },
+  },
+}));
+
 export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
   const { t: uiT } = useI18n();
+  const { styles } = useFramePanelStyles();
   const { viewCtx, frame } = props;
 
   const component = frame.container.component;
@@ -47,7 +59,7 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
   );
   const isStretchable = defaultSize.width === "stretch";
   return (
-    <div style={{ width: 200 }}>
+    <div className={styles.root}>
       {
         // We don't show the background color config if it is a page component;
         // in this case, the root node should be supplying the background color

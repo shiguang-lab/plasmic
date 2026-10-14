@@ -7,8 +7,6 @@ import {
 } from "@/wab/client/components/cms/cms-contexts";
 import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
-import IconButton from "@/wab/client/components/widgets/IconButton";
-import Searchbox from "@/wab/client/components/widgets/Searchbox";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultCmsModelsListProps } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelsList";
@@ -16,8 +14,10 @@ import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
 import { CmsDatabaseId, CmsTableId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { PlusOutlined } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Button, Input } from "antd";
 import { partition, sortBy } from "lodash";
 import * as React from "react";
 
@@ -26,7 +26,7 @@ export type CmsModelsListProps = DefaultCmsModelsListProps;
 export const CmsModelsListLayout = React.forwardRef<
   HTMLDivElement,
   CmsModelsListProps & {
-    searchInput: React.ComponentProps<typeof Searchbox>;
+    searchInput: React.ComponentProps<typeof Input.Search>;
     addAction?: React.ReactNode;
     collapsedState?: [boolean, React.Dispatch<React.SetStateAction<boolean>>];
   }
@@ -47,12 +47,21 @@ export const CmsModelsListLayout = React.forwardRef<
   const { t } = useI18n();
   return (
     <div ref={ref} className={cx(className, styles.models)}>
-      <div className={styles.modelsHeader}>
+      <div className={styles.sidePanelHeader}>
         {t(isSchemaMode ? "Edit Models" : "Models")}
         {isSchemaMode && addAction}
       </div>
-      <Searchbox placeholder={t("Filter...")} {...searchInput} />
-      <Scrollbar scrollX={false} className={styles.entryList}>
+      <Input.Search
+        placeholder={t("Filter...")}
+        {...searchInput}
+        className={styles.modelsSearch}
+        allowClear
+        aria-label={t("Filter...")}
+      />
+      <Scrollbar
+        scrollX={false}
+        className={cx(styles.entryList, styles.modelsBody)}
+      >
         <div className={styles.modelItems}>
           {isEmpty ? t("No models have been created.") : children}
           {archivedModels && (
@@ -106,6 +115,9 @@ function CmsModelsList_(
       searchInput={{
         value: query,
         onChange: (e) => setQuery(e.target.value),
+        onKeyDown: (e) => {
+          if (e.key === "Escape") setQuery("");
+        },
       }}
       children={
         <>
@@ -115,8 +127,9 @@ function CmsModelsList_(
         </>
       }
       addAction={
-        <IconButton
-          withBackgroundHover
+        <Button
+          aria-label={studioUiT("Add")}
+          icon={<PlusOutlined aria-hidden />}
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onClick={async () => {
             const name = await reactPrompt({

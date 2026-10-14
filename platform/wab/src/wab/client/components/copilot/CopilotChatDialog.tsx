@@ -4,11 +4,13 @@ import {
 } from "@/wab/client/api-error-presentation";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
-import { AiExecutionProgress } from "@/wab/client/components/copilot/AiExecutionProgress";
-import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
+import { AiResponse } from "@/wab/client/components/copilot/AiResponse";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
-import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
+import {
+  editorLeftRailLayout,
+  editorPanelHeaderStyle,
+} from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
@@ -35,9 +37,12 @@ const useStyles = createStyles(({ token }) => ({
   panel: {
     position: "fixed",
     top: 82,
-    left: 84,
+    left:
+      editorLeftRailLayout.left +
+      editorLeftRailLayout.width +
+      editorLeftRailLayout.panelGap,
     height: "calc(100dvh - 170px)",
-    maxWidth: "calc(100vw - 96px)",
+    maxWidth: `calc(100vw - ${editorLeftRailLayout.left + editorLeftRailLayout.width + editorLeftRailLayout.panelGap + 12}px)`,
     boxSizing: "border-box",
     zIndex: 1000,
     display: "flex",
@@ -255,7 +260,18 @@ export function CopilotChatDialog({
           },
         }}
       >
-        <div className={styles.historyContent} aria-live="polite">
+        <div
+          className={styles.historyContent}
+          aria-live="polite"
+          onClickCapture={(event) => {
+            if (
+              event.target instanceof Element &&
+              event.target.closest("summary, button[aria-expanded]")
+            ) {
+              followLatest.current = false;
+            }
+          }}
+        >
           {!enabled && (
             <Alert type="info" message={t("Local AI editing is disabled.")} />
           )}
@@ -353,7 +369,9 @@ export function CopilotChatDialog({
                           : undefined
                     }
                   >
-                    {label(task.phase)}
+                    {task.phase === "Thinking"
+                      ? t("Thinking")
+                      : label(task.phase)}
                   </Tag>
                   {task.binding && (
                     <span>
@@ -365,47 +383,11 @@ export function CopilotChatDialog({
                     </span>
                   )}
                 </div>
-                {task.messages.map((message, index) => (
-                  <AiMarkdown
-                    key={index}
-                    running={
-                      task.status === "running" &&
-                      index === task.messages.length - 1
-                    }
-                    nodes={[
-                      ...(task.nodes ?? []),
-                      ...task.parts.filter((part) => part.type === "node"),
-                    ]}
-                    onLocate={(node) => void session.locate(task, node)}
-                  >
-                    {message}
-                  </AiMarkdown>
-                ))}
-                {task.parts
-                  .filter((part) => part.type === "node")
-                  .map((node) => (
-                    <AiNodeReference
-                      key={node.uuid}
-                      node={node}
-                      onLocate={() => void session.locate(task, node)}
-                    />
-                  ))}
-                {task.parts?.flatMap((part, index) =>
-                  part.type === "result" &&
-                  part.text !== task.phase &&
-                  part.text !== task.error
-                    ? [
-                        <p className={styles.note} key={`result-${index}`}>
-                          {part.status === "verified"
-                            ? t(
-                                "Saved revision {revision} verified. Start a new request from the current editor.",
-                                { revision: part.revision ?? "" },
-                              )
-                            : label(part.text)}
-                        </p>,
-                      ]
-                    : [],
-                )}
+                <AiResponse
+                  task={task}
+                  session={session}
+                  lastRecord={lastRecord}
+                />
                 {task.error && <Alert type="error" message={task.error} />}
                 {task.needsReconciliation && session.canStop(task) && (
                   <Button onClick={() => void session.reconcile(task)}>
@@ -422,13 +404,6 @@ export function CopilotChatDialog({
                       {t("Retry in current editor")}
                     </Button>
                   )}
-                {(!!task.operations.length || !!task.records.length) && (
-                  <AiExecutionProgress
-                    task={task}
-                    session={session}
-                    lastRecord={lastRecord}
-                  />
-                )}
                 {task.savedRevision !== undefined && (
                   <p className={styles.note}>
                     {t("Saved revision {revision}.", {

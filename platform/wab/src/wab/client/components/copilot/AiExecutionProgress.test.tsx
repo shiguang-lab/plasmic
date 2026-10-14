@@ -70,14 +70,15 @@ it("shows ordered, readable steps, actual counts and distinct running and failed
       })}
     />,
   );
-  expect(screen.getByLabelText("2 of 4 steps completed")).toHaveTextContent(
-    "2/4",
-  );
-  expect(screen.getByText("1 failed")).toBeInTheDocument();
+  expect(screen.getByLabelText("4 tool calls")).toHaveTextContent("4");
+  expect(screen.getByText("1 rejected calls")).toBeInTheDocument();
   expect(screen.getAllByText("Read project resources")).toHaveLength(2);
   expect(screen.getByText("Validate prototype structure")).toBeInTheDocument();
   expect(screen.getByText("Step 3")).toBeInTheDocument();
-  expect(screen.getByRole("alert")).toHaveTextContent("Node no longer exists.");
+  expect(screen.getByText("Tool call was rejected.")).toBeInTheDocument();
+  expect(
+    screen.getByText("Node no longer exists.").closest("details"),
+  ).not.toHaveAttribute("open");
   expect(
     screen
       .getAllByTestId("ai-execution-step")
@@ -150,7 +151,7 @@ it("keeps historical change records even when no matching operation is available
       session={mock<LocalEditSession>()}
     />,
   );
-  expect(screen.getByText("1 changes")).toBeInTheDocument();
+  expect(screen.getByLabelText("1 changes")).toHaveTextContent("1");
   expect(screen.getByTestId("local-ai-operations")).not.toHaveAttribute("open");
   expect(screen.getAllByTestId("ai-execution-step")).toHaveLength(1);
   expect(screen.getByTestId("local-ai-change")).toHaveAttribute(
@@ -158,7 +159,10 @@ it("keeps historical change records even when no matching operation is available
     "true",
   );
   expect(screen.getByText("Undone")).toBeInTheDocument();
-  expect(screen.queryByText("Completed")).toBeNull();
+  expect(screen.getByTestId("ai-process-state")).toHaveAttribute(
+    "aria-label",
+    "Completed",
+  );
 });
 
 it("preserves unknown operation names without inventing a tool description", () => {
@@ -172,5 +176,229 @@ it("preserves unknown operation names without inventing a tool description", () 
       session={mock<LocalEditSession>()}
     />,
   );
-  expect(screen.getAllByText("newServerTool")).toHaveLength(2);
+  expect(
+    within(screen.getByTestId("ai-execution-step")).getAllByText(
+      "newServerTool",
+    ),
+  ).toHaveLength(2);
 });
+
+it("keeps chronological parts and folds thought summaries and technical details", () => {
+  const parts: AiTask["parts"] = [
+    { type: "tool", operationId: "read", name: "read", status: "completed" },
+    {
+      type: "reasoning",
+      step: 0,
+      text: "A long provider summary",
+      complete: true,
+    },
+    {
+      type: "markdown",
+      channel: "commentary",
+      text: "Checking the page",
+      complete: true,
+    },
+    {
+      type: "tool",
+      operationId: "context",
+      name: "getEditorContext",
+      status: "completed",
+    },
+  ];
+  const { container } = render(
+    <AiExecutionProgress
+      session={mock<LocalEditSession>()}
+      parts={parts}
+      task={task({
+        parts,
+        operations: [
+          {
+            id: "read",
+            name: "read",
+            title: "Read page structure",
+            target: "StandardListPage",
+            status: "completed",
+          },
+          { id: "context", name: "getEditorContext", status: "completed" },
+        ],
+      })}
+    />,
+  );
+  expect(
+    Array.from(container.querySelectorAll("ol > li")).map((item) =>
+      item.getAttribute("data-test-id"),
+    ),
+  ).toEqual([
+    "ai-execution-step",
+    "ai-reasoning",
+    "ai-process-message",
+    "ai-execution-step",
+  ]);
+  expect(
+    screen.getByRole("button", { name: "Thought summary" }),
+  ).toHaveAttribute("aria-expanded", "false");
+  expect(
+    screen
+      .getAllByTestId("ai-operation-details")
+      .every((item) => !item.hasAttribute("open")),
+  ).toBe(true);
+  expect(screen.getByText("StandardListPage")).toBeInTheDocument();
+});
+it("retains the same markdown and node reference when folding a thought summary", () => {
+  const session = mock<LocalEditSession>();
+  const currentTask = task({
+    parts: [
+      {
+        type: "reasoning",
+        step: 0,
+        complete: true,
+        text: "Inspect [StandardListPage](#plasmic-node/page).\n\nKeep the design unchanged.",
+      },
+    ],
+  });
+  render(
+    <AiExecutionProgress
+      session={session}
+      task={currentTask}
+      parts={currentTask.parts}
+    />,
+  );
+  const thought = screen.getByTestId("ai-reasoning-details");
+  const toggle = within(thought).getByRole("button", {
+    name: "Thought summary",
+  });
+  const markdown = within(thought).getByTestId("ai-markdown");
+  const node = within(thought).getByRole("button", {
+    name: "Locate node StandardListPage",
+  });
+  const body = document.getElementById(
+    toggle.getAttribute("aria-controls") ?? "",
+  );
+  expect(body).toHaveAttribute("data-collapsed", "true");
+  fireEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  expect(body).toHaveAttribute("data-collapsed", "false");
+  expect(within(thought).getByTestId("ai-markdown")).toBe(markdown);
+  expect(within(thought).getByTestId("ai-node-reference")).toBe(node);
+  fireEvent.click(node);
+  expect(session.locate).toHaveBeenCalledWith(
+    currentTask,
+    expect.objectContaining({ uuid: "page" }),
+  );
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  fireEvent.click(toggle);
+  expect(body).toHaveAttribute("data-collapsed", "true");
+  expect(within(thought).getByTestId("ai-markdown")).toBe(markdown);
+  expect(within(thought).getByTestId("ai-node-reference")).toBe(node);
+});
+
+it("shows recovery only when the server links the successful retry", () => {
+  render(
+    <AiExecutionProgress
+      session={mock<LocalEditSession>()}
+      task={task({
+        status: "completed",
+        operations: [
+          {
+            id: "failed",
+            name: "getEditorContext",
+            status: "failed",
+            error: "raw error",
+            recoveredBy: "retry",
+          },
+          {
+            id: "retry",
+            name: "getEditorContext",
+            status: "completed",
+            retryOf: "failed",
+          },
+          {
+            id: "unrelated",
+            name: "getEditorContext",
+            status: "failed",
+            error: "another error",
+          },
+          { id: "new", name: "getEditorContext", status: "completed" },
+        ],
+      })}
+    />,
+  );
+  expect(screen.getByText("1 recovered retries")).toBeInTheDocument();
+  expect(screen.getByText("1 rejected calls")).toBeInTheDocument();
+  expect(screen.getByText("Recovered")).toBeInTheDocument();
+  expect(screen.queryByText("Incomplete")).toBeNull();
+  expect(
+    screen
+      .getAllByTestId("ai-execution-step")
+      .map((item) => item.dataset.operationStatus),
+  ).toEqual(["recovered", "completed", "failed", "completed"]);
+});
+it.each([true, false])(
+  "preserves chosen disclosure state through completion: open=%s",
+  (chosenOpen) => {
+    const session = mock<LocalEditSession>();
+    const current = task();
+    const view = render(
+      <AiExecutionProgress session={session} task={current} />,
+    );
+    const summary = screen
+      .getByTestId("local-ai-operations")
+      .querySelector("summary");
+    if (!summary) throw new Error("Process summary missing");
+    fireEvent.click(summary);
+    if (chosenOpen) fireEvent.click(summary);
+    view.rerender(
+      <AiExecutionProgress
+        session={session}
+        task={{ ...current, status: "completed" }}
+      />,
+    );
+    expect(screen.getByTestId("local-ai-operations").hasAttribute("open")).toBe(
+      chosenOpen,
+    );
+  },
+);
+it("collapses on completion unless the user chooses otherwise", () => {
+  const session = mock<LocalEditSession>();
+  const current = task();
+  const view = render(<AiExecutionProgress session={session} task={current} />);
+  expect(screen.getByTestId("local-ai-operations")).toHaveAttribute("open");
+  view.rerender(
+    <AiExecutionProgress
+      session={session}
+      task={{ ...current, status: "completed" }}
+    />,
+  );
+  expect(screen.getByTestId("local-ai-operations")).not.toHaveAttribute("open");
+});
+
+it.each(["running", "completed", "stopped", "failed"] as const)(
+  "uses a leading status icon and an icon-only call count for %s",
+  (status) => {
+    render(
+      <AiExecutionProgress
+        task={task({
+          status,
+          operations: [{ id: "read", name: "read", status: "completed" }],
+        })}
+        session={mock<LocalEditSession>()}
+      />,
+    );
+    const process = screen.getByTestId("local-ai-operations");
+    const summary = process.querySelector("summary");
+    expect(summary?.textContent).toBe("Processing1");
+    expect(summary?.firstElementChild).toBe(
+      screen.getByTestId("ai-process-state"),
+    );
+    expect(screen.getByTestId("ai-process-state")).toHaveAttribute(
+      "data-status",
+      status,
+    );
+    expect(!!summary?.querySelector("[data-progress-caret]")).toBe(
+      status === "completed",
+    );
+    expect(screen.getByTestId("ai-process-count")).toHaveAccessibleName(
+      "1 tool calls",
+    );
+  },
+);

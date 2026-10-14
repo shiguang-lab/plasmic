@@ -174,7 +174,12 @@ function CmsEntriesList_(
 
   return (
     <section ref={ref} className={cx(styles.entries, className)}>
-      <Flex align="center" justify="space-between" gap={8}>
+      <Flex
+        className={styles.sidePanelHeader}
+        align="center"
+        justify="space-between"
+        gap={8}
+      >
         <Typography.Text strong ellipsis>
           {table?.name}
         </Typography.Text>
@@ -189,59 +194,61 @@ function CmsEntriesList_(
           }}
         />
       </Flex>
-      <Input.Search
-        aria-label={t("Search content entries")}
-        placeholder={t("Search…")}
-        value={query}
-        allowClear
-        onChange={(event) => {
-          setQuery(event.target.value);
-          debouncedSetQuery(event.target.value);
-        }}
-      />
-      <Select
-        aria-label={t("Sort by")}
-        value={sortConfig.key}
-        options={SORT_CONFIGS.map((config) => ({
-          value: config.key,
-          label: t(config.label),
-        }))}
-        onChange={(key) =>
-          setSortConfig(
-            ensure(
-              SORT_CONFIGS.find((config) => config.key === key),
-              "Unknown CMS sort option",
-            ),
-          )
-        }
-      />
-      {createError && (
-        <Alert
-          type="error"
-          showIcon
-          title={t("Failed to create content entry")}
+      <div className={styles.sidePanelBody}>
+        <Input.Search
+          aria-label={t("Search content entries")}
+          placeholder={t("Search…")}
+          value={query}
+          allowClear
+          onChange={(event) => {
+            setQuery(event.target.value);
+            debouncedSetQuery(event.target.value);
+          }}
         />
-      )}
-      <Scrollbar scrollX={false} className={styles.entryList}>
-        {!rows || !table ? (
-          <div role="status" aria-label={t("Loading content entries…")}>
-            <RowsSkeleton rows={5} />
-          </div>
-        ) : sortedAndFilteredRows.length ? (
-          sortedAndFilteredRows.map((row) => (
-            <CmsEntryItem table={table} row={row} key={row.id} />
-          ))
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              debouncedQuery.trim()
-                ? t("No matching content entries")
-                : t("No content entries yet")
-            }
+        <Select
+          aria-label={t("Sort by")}
+          value={sortConfig.key}
+          options={SORT_CONFIGS.map((config) => ({
+            value: config.key,
+            label: t(config.label),
+          }))}
+          onChange={(key) =>
+            setSortConfig(
+              ensure(
+                SORT_CONFIGS.find((config) => config.key === key),
+                "Unknown CMS sort option",
+              ),
+            )
+          }
+        />
+        {createError && (
+          <Alert
+            type="error"
+            showIcon
+            title={t("Failed to create content entry")}
           />
         )}
-      </Scrollbar>
+        <Scrollbar scrollX={false} className={styles.entryList}>
+          {!rows || !table ? (
+            <div role="status" aria-label={t("Loading content entries…")}>
+              <RowsSkeleton rows={5} />
+            </div>
+          ) : sortedAndFilteredRows.length ? (
+            sortedAndFilteredRows.map((row) => (
+              <CmsEntryItem table={table} row={row} key={row.id} />
+            ))
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                debouncedQuery.trim()
+                  ? t("No matching content entries")
+                  : t("No content entries yet")
+              }
+            />
+          )}
+        </Scrollbar>
+      </div>
     </section>
   );
 }

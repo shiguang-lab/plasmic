@@ -1,4 +1,4 @@
-// Native sidebar/rail update UI and Electron's ASAR bundle cleanup.
+// Native header/footer update UI and Electron's ASAR bundle cleanup.
 const { app, BrowserWindow, nativeTheme } = require("electron");
 const fs = require("original-fs").promises;
 const path = require("node:path");
@@ -59,7 +59,7 @@ app
           frame.addEventListener("load", () => {
             const inner = frame.contentDocument;
             inner.open();
-            inner.write('<html><head></head><body style="margin:0"><div id="left-tab-strip" style="display:flex;flex-direction:column;width:36px;height:calc(100vh - 16px);padding:8px;overflow:auto;justify-content:space-between"><div>Tools</div><div style="display:flex;flex-direction:column;align-items:center"><div class="Avatar" style="height:32px;width:32px;background:#e4e4e7;border-radius:50%">YL</div></div></div></body></html>');
+            inner.write('<html><head></head><body style="margin:0"><div style="position:absolute;left:16px;top:40px;display:flex;flex-direction:column;align-items:center;gap:12px"><div id="left-tab-strip" style="width:56px;height:160px;border:1px solid #ddd">Tools</div><span data-desktop-update-slot="header" data-desktop-update-compact="true" data-desktop-update-position="above"></span></div></body></html>');
             inner.close();
           });
           document.body.append(frame);
@@ -367,19 +367,19 @@ app
       await editor.executeJavaScript(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
-    return { placement: control.dataset.placement, inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, beforeAvatar: control.nextElementSibling.className };
+    return { placement: control.dataset.placement, inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, afterRail: control.parentElement.previousElementSibling.id === "left-tab-strip" };
   })()`),
       {
-        placement: "rail",
-        inStrip: true,
-        width: 20,
-        iconWidth: 12,
+        placement: "header",
+        inStrip: false,
+        width: 32,
+        iconWidth: 16,
         position: "relative",
-        beforeAvatar: "Avatar",
+        afterRail: true,
       },
     );
     await fs.writeFile(
-      path.join(os.tmpdir(), "plasmic-update-rail.png"),
+      path.join(os.tmpdir(), "plasmic-update-editor-below-rail.png"),
       (await window.webContents.capturePage()).toPNG(),
     );
     assert.equal(
@@ -394,14 +394,23 @@ app
     );
     assert.equal(
       await editor.executeJavaScript(
-        `document.querySelector(".update-action").matches(":popover-open")`,
+        `document.querySelector(".update-tooltip").matches(":popover-open")`,
       ),
       true,
-      "The expanded rail button must escape toolbar overflow",
+      "The floating tooltip must open above the download icon",
+    );
+    assert(
+      await editor.executeJavaScript(`(() => {
+        const tooltip = document.querySelector(".update-tooltip");
+        const button = document.querySelector(".update-action");
+        return getComputedStyle(tooltip).overflow === "visible" &&
+          Math.abs(button.getBoundingClientRect().top - tooltip.getBoundingClientRect().bottom - 8) < 1;
+      })()`),
+      "The tooltip must sit above the icon without a native scroll container",
     );
     assert(
       await editor.executeJavaScript(
-        `document.querySelector(".update-action").getBoundingClientRect().width > 20`,
+        `document.querySelector(".update-action").getBoundingClientRect().width === 32`,
       ),
     );
     await editor.executeJavaScript(
@@ -434,7 +443,7 @@ app
     assert.equal(
       await evaluate(`window.commands.length`),
       commandCount,
-      "The sidebar bridge must not directly install",
+      "The editor bridge must not directly install",
     );
     await evaluate(
       `window.postMessage({channel:"plasmic-desktop-update-command",command:"install"},location.origin)`,
@@ -455,7 +464,7 @@ app
       "Untrusted sender must not overwrite status",
     );
     await editor.executeJavaScript(
-      `document.querySelector("#left-tab-strip").remove()`,
+      `document.querySelector("[data-desktop-update-slot]").remove()`,
     );
     assert.equal(
       await editor.executeJavaScript(
@@ -464,7 +473,7 @@ app
       null,
     );
     console.log(
-      "PASS: Bundled editor embeds the compact expanding update button and validates cross-frame messages",
+      "PASS: Bundled editor embeds the separate update button below its tool rail and validates cross-frame messages",
     );
     root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-update-native-"));
     const cache = path.join(root, "updates");

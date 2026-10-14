@@ -56,7 +56,10 @@ section('登录网页与 Desktop','完成浏览器授权，确认桌面应用也
  '回到 Desktop，确认能看到项目列表或工作区。浏览器授权成功后，还需确认 Desktop 已实际登录。'])+
  p('网页入口：<a href="https://studio.plasmic.shiguanglab.com/" target="_blank" rel="noopener">Studio ↗</a>。网页和 Desktop 使用同一账号及云端项目。')+'</div></div>'+
  image('12-desktop-login.png','Desktop 登录入口，沿用 2026-10-11 界面记录。',[(73,65,'点击登录')])+
- note('账号问题','选择正确的 Google 账号；无法登录时使用登录页的“无法登录？”入口。网页已登录不等于 Desktop 已建立会话。'))
+ note('账号问题','选择正确的 Google 账号；无法登录时使用登录页的“无法登录？”入口。网页已登录不等于 Desktop 已建立会话。')+
+ '<h3>客户端自动更新</h3>'+
+ p('Desktop 启动后会检查新版本，并在使用过程中每 10 分钟自动检查一次。发现更新后自动下载，可在应用菜单的“检查更新”或软件更新窗口查看状态。') +
+ note('安装并重启后生效','更新下载完成后，先保存当前设计，再按软件更新窗口提示安装并重启。运行中的客户端不会直接切换为新版本。'))
 
 section('连接 MCP','MCP 让外部 Agent 能读取并编辑 Desktop 中的设计。',
  steps(['保持 Desktop 运行并已登录，在应用菜单选择 <strong>AI → MCP</strong>。Mac 的应用菜单位于屏幕顶部。',
@@ -67,16 +70,21 @@ section('连接 MCP','MCP 让外部 Agent 能读取并编辑 Desktop 中的设�
  code('请读取 Plasmic Desktop 的应用状态，确认登录状态、当前项目和 MCP 工具是否可用。暂时不要修改设计。','发给外部 Agent 的连接检查指令')+
  note('其他客户端','点击“复制 MCP 配置”，粘贴到目标客户端的 MCP 配置中，随后重启或刷新配置。移动 Desktop 安装位置后需重新生成配置。仅安装 Skill 不会自动完成 MCP 连接。'))
 
-section('安装 CLI 与 Skill','CLI 安装 Plasmic Skill，让外部 Agent 按设计或研发流程工作。',
+section('安装 CLI 与 Skill','安装一次 Skill，使用时自动检查最新 CLI 和工作流规范。',
  p('CLI 命令是 <code>plasmickit</code>，npm 包名为 <code>@plasmickit/cli</code>。先安装 <a href="https://nodejs.org/en/download" target="_blank" rel="noopener">Node.js ↗</a>，使用 <strong>22.12 或更高版本</strong>，安装后重新打开终端。')+
- code('node --version\nnpm --version\nnpm install -g @plasmickit/cli@latest\nplasmickit --version\nplasmickit skill install','macOS / Linux 终端，或 Windows PowerShell')+
+ code('node --version\nnpm --version\nnpx -y @plasmickit/cli@latest skill install','macOS / Linux 终端，或 Windows PowerShell')+
  steps(['确认 Node.js 与 npm 命令可用，再执行 CLI 安装命令。',
- '运行 <code>plasmickit skill install</code>，检查输出，确认 Skill 已安装到自己使用的客户端。',
+ '运行 <code>npx -y @plasmickit/cli@latest skill install</code>，检查输出，确认 Skill 已安装到自己使用的客户端。',
  '安装完成后在外部 Agent 中新建对话，明确要求“使用 Plasmic skill”。',
  '设计使用 prototype 工作流，研发生成代码使用 codegen 工作流；通常由 Agent 调用 Skill 自动加载。'])+
- code('plasmickit context resolve --mode prototype\nplasmickit context resolve --mode codegen','需要手动加载规范时')+
- '<details><summary>不做全局安装 / 后续更新</summary>'+code('npx -y @plasmickit/cli@latest skill install','不做全局安装')+
- code('npm install -g @plasmickit/cli@latest\nplasmickit skill install\nplasmickit references update','更新 CLI、Skill 和规范资源')+'</details>'+
+ '<h3>Skill 工作流自动更新</h3>'+
+ p('使用 Plasmic Skill 时，Agent 通过 <code>npx @plasmickit/cli@latest</code> 调用最新发布的 CLI。每次加载设计或研发规范都会检查资源更新，自动下载并校验新版规范，再读取后执行任务。日常使用由 Skill 完成这些步骤。')+
+ code('npx -y @plasmickit/cli@latest context resolve --mode prototype\nnpx -y @plasmickit/cli@latest context resolve --mode codegen','需要手动加载规范时')+
+ note('当前任务中的更新','新版 CLI 在下一次调用时使用；已运行的命令保持原版本。当前任务需要采用新规范时，让 Agent 重新加载 Skill、执行 context resolve 并读取返回的规范文件。')+
+ '<details><summary>可选：全局 CLI 与手动刷新</summary>'+
+ code('npm install -g @plasmickit/cli@latest\nplasmickit --version','希望直接使用 plasmickit 命令时')+
+ code('npx -y @plasmickit/cli@latest skill install\nnpx -y @plasmickit/cli@latest references update','需要刷新已安装的 Skill 入口或规范资源时')+
+ p('全局安装的 CLI 通过 npm 更新。Skill 默认的 npx 调用会按最新发布版本解析，规范资源按每次加载结果更新。')+'</details>'+
  note('完成标志','目标 Agent 能使用 Plasmic Skill，同时已连接 Desktop MCP。CLI 提供 Skill 和规范，实际设计与代码生成由 Agent 执行。'))
 
 section('提供账号，加入数禾组织','把注册信息交给 yanxianliang，由管理员添加组织权限。',
@@ -105,6 +113,7 @@ section('认识编辑器','先定位页面，再选择节点修改属性、布�
  ['画布','点击选择组件，调整布局；需要时缩放、平移或“缩放以显示全部”。'],
  ['右侧属性 / 数据','修改所选组件的真实属性、插槽、样式、状态、查询和事件。'],
  ['顶部保存状态','确认“已保存”；修改后预览检查，再重新打开确认。']])+
+ note('新的通用组件需求','如果设计需要组件库中尚未提供的通用组件，必须先联系 <strong>yanxianliang</strong> 进行补齐，补齐后才能在设计中使用。',True)+
  p('节点名称使用有意义的英文 PascalCase，例如 <code>CustomerTable</code>；业务文案可用中文。按钮需要配置事件、状态和数据，不能只修改文字与外观。'))
 
 section('使用外部 Agent 设计','读取需求文档、生成完整原型，或修改现有设计。',
@@ -143,7 +152,7 @@ section('分享给评审与研发','复制项目链接，并确保对方拥有�
  '在分享窗口复制项目链接。邀请指定人员时，使用其注册邮箱并选择适合的角色。',
  '让接收者登录自己的账号，检查能否打开项目和预览。看不到时确认组织、原型 workspace 和项目权限。',
  '附上本次评审的页面、需求范围和待确认点。研发交接还应提供接口文档与业务规范。'])+
- image('10-share.jpg','分享窗口：复制链接或按注册邮箱邀请成员。图片已裁去个人邮箱列表。',[(67,17,'复制链接'),(25,52,'输入注册邮箱'),(83,52,'选择角色'),(92,81,'邀请')])+
+ image('10-share.jpg','当前分享窗口：复制链接、按邮箱邀请，并查看组织与工作区访问权限。已裁去个人成员邮箱行。',[(68,10,'复制链接'),(50,29,'输入注册邮箱'),(94,29,'选择角色'),(95,44,'邀请')],True)+
  note('链接与权限','复制链接不会自动授予访问权限。无法打开时联系 yanxianliang 或项目管理员确认授权。')+
  table(['交接项','需要提供'],[
  ['设计','项目链接、目标 Page / 路由、本次确认的设计范围。'],
@@ -158,7 +167,7 @@ section('研发读取设计并生成代码','在当前 Agent 的 Workspace 目�
  '提供设计项目链接、目标页面、需求文档和接口契约，要求使用 Plasmic Skill 的 codegen 流程。',
  '让 Agent 读取真实模型、组件、状态、事件、弹层和隐藏 Tab；检查当前工程结构、依赖和公共组件，自行确定页面位置与路由并实现。',
  '检查变更文件，执行工程已有的相关检查，从实际应用入口操作验收，之后走团队代码评审与上线流程。'])+
- code('plasmickit context resolve --mode codegen','研发工作流；通常由 Agent 加载')+
+ code('npx -y @plasmickit/cli@latest context resolve --mode codegen','研发工作流；通常由 Agent 加载')+
  code('使用 Plasmic skill，按 codegen 流程实现设计。\n设计项目：<项目链接>；页面：<页面名称>。\n需求文档：<路径或链接>；接口文档：<路径或链接>。\n\n在当前 Agent 的 Workspace 目录中实现。\n根据现有项目结构与路由约定，自行确定页面位置和路由。\n读取真实页面模型、组件契约、状态、事件和隐藏分支。\n沿用工程已有技术栈、公共组件、请求与权限封装。\n实现 React / TypeScript 页面，并接入真实路由。\n保留查询、重置、分页、详情、表单和提交流程。\n区分原型模拟数据与真实接口，不假设已有生产服务。\n执行相关类型检查、测试与构建，在真实入口验收。\n交付变更文件、已完成行为、验证结果和待联调项。','研发可复制指令')+
  note('研发完成标志','页面已接入目标工程并可从真实路由进入，交互符合需求，接口与权限边界清楚，有实际检查结果。CLI 本身不导出页面代码，由 Agent 在目标工程中实现。')+
  table(['验收范围','检查内容'],[
@@ -169,11 +178,12 @@ section('研发读取设计并生成代码','在当前 Agent 的 Workspace 目�
  ['工程检查','执行相关类型检查、测试与构建，记录真实结果。']]))
 
 section('后续修改与常见问题','按变更范围更新设计和代码；先核对账号、连接与项目。',
+ note('使用支持与修复','遇到任何使用问题，请联系 <strong>yanxianliang</strong> 进行处理和修复。反馈时提供项目链接、操作步骤、错误提示或截图，便于定位问题。')+
  '<h3>设计调整后更新研发代码</h3>'+
  code('使用 Plasmic skill 更新当前 Agent Workspace 中的 <页面名称>。\n设计源：<项目链接>；本次变更：<具体区域和行为>。\n按现有项目结构定位页面，重新读取受影响设计。\n保留其他页面、路由和业务逻辑。\n完成后运行相关检查，从真实应用入口验收。','增量更新指令')+
  '<details open><summary>看不到数禾组织或原型 workspace</summary><p>核对是否使用注册时的同一个 Google 账号登录。将账号邮箱和用户名（如有）提供给 yanxianliang，确认组织、工作区及项目授权；之后刷新或重新登录。</p></details>'+
  '<details><summary>外部 Agent 找不到 Plasmic 工具</summary><p>检查 Desktop 是否运行且已登录、MCP 开关是否开启。重启 Agent 或刷新配置，再读取应用状态。移动应用位置后需重新生成配置。</p></details>'+
- '<details><summary>CLI / Skill 安装后仍不可用</summary>'+code('plasmickit --version\nplasmickit skill install --dry-run\nplasmickit version check\nplasmickit references check')+'<p>检查是否检测到目标客户端，必要时先安装或初始化客户端。切换 Node.js 环境后，在当前环境重新安装全局 CLI。</p></details>'+
+ '<details><summary>CLI / Skill 安装后仍不可用</summary>'+code('npx -y @plasmickit/cli@latest --version\nnpx -y @plasmickit/cli@latest skill install --dry-run\nnpx -y @plasmickit/cli@latest version check\nnpx -y @plasmickit/cli@latest references check')+'<p>检查是否检测到目标客户端，必要时先安装或初始化客户端。使用全局 CLI 的用户切换 Node.js 环境后，需在当前环境重新安装。</p></details>'+
  '<details><summary>内置 Agent 失败或没有修改</summary><p>检查选区、模型与错误提示，提供明确且较小的修改范围。仍失败时反馈项目、操作步骤与错误信息。</p></details>'+
  '<details><summary>原型可点击，研发页面却没有业务功能</summary><p>检查设计的事件、状态和数据；提供完整接口与交互契约。模拟数据验证与真实接口联调分别验收。</p></details>'+
  '<details><summary>截图来源与更新说明</summary><p>下载、账号、编辑器、AI、预览和分享截图于 2026-10-14 从实际界面截取；组织页与新建项目窗口截图在本次修订中按“数禾 → 原型”的当前界面更新。Desktop 登录及 MCP 图片沿用仓库 2026-10-11 和 2026-10-10 界面记录。编辑器和预览采用 Admin Templates 示例数据。当前标签、模型和权限以实际使用时为准。</p><p>截图过程未创建账号、提交 Agent 任务、邀请成员或更改共享权限。</p></details>')
@@ -196,8 +206,8 @@ let timer;function status(s){const el=document.getElementById('copy-status');el.
 document.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',async()=>{const block=b.closest('.code').querySelector('pre');try{await navigator.clipboard.writeText(block.innerText);status('已复制，请替换尖括号中的占位内容。');}catch{const range=document.createRange();range.selectNodeContents(block);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);status('已选中文字，请按 Ctrl+C / ⌘C 复制。');}}));
 '''
 html=f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="织界指南：下载、Google 注册、登录、MCP、CLI、数禾组织、原型 workspace、Agent、预览分享和研发。"><title>织界 · 产品设计与研发使用指南</title><style>{css}</style></head><body>
-<header><div class="brand"><span class="logo" aria-hidden="true">织</span>织界 <span style="font-size:13px;font-weight:400;color:#737080">使用指南</span></div><div class="header-meta">产品 · 设计 · 研发 / 2026.10.14</div><button type="button" class="menu-toggle" aria-controls="guide-nav" aria-expanded="false">步骤目录</button></header><div class="progress" aria-hidden="true"></div>
-<div class="shell"><aside class="sidebar" id="guide-nav"><div class="nav-label">按步骤开始使用</div><nav aria-label="使用步骤">{nav}</nav><div class="sidebar-note"><strong>团队设计位置</strong><br>数禾组织 → 原型 workspace<br><br><strong>组织权限联系人</strong><br>yanxianliang<br>提供账号邮箱 + 用户名（如有）</div></aside><main><div class="hero"><div class="eyebrow">GET STARTED · 从设计到代码</div><h1>产品设计与研发<br>使用指南</h1><p>从下载安装和 Google 注册开始，在数禾组织的原型 workspace 中设计；用外部或内置 Agent 完成原型，再预览、分享并交给研发实现。</p><div class="route"><span>下载</span><i>→</i><span>注册</span><i>→</i><span>登录</span><i>→</i><span>MCP</span><i>→</i><span>CLI</span><i>→</i><span>组织与工作区</span><i>→</i><span>设计与研发</span></div><div class="hero-links"><a href="#step-01">从第 1 步开始</a><a class="secondary" href="#step-09">外部 Agent 设计</a><a class="secondary" href="#step-13">研发生成代码</a></div></div>{''.join(body for _,body in sections)}<footer class="footer">织界使用指南 · 2026 年 10 月 14 日更新<br>截图已嵌入本 HTML，可直接打开或将单个文件发送给同事。</footer></main></div>
+<header><div class="brand"><span class="logo" aria-hidden="true">织</span>织界 <span style="font-size:13px;font-weight:400;color:#737080">使用指南</span></div><div class="header-meta">产品 · 设计 · 研发 / v0.1.1</div><button type="button" class="menu-toggle" aria-controls="guide-nav" aria-expanded="false">步骤目录</button></header><div class="progress" aria-hidden="true"></div>
+<div class="shell"><aside class="sidebar" id="guide-nav"><div class="nav-label">按步骤开始使用</div><nav aria-label="使用步骤">{nav}</nav><div class="sidebar-note"><strong>团队设计位置</strong><br>数禾组织 → 原型 workspace<br><br><strong>组织、组件与使用支持</strong><br>yanxianliang<br>提供账号邮箱 + 用户名（如有）</div></aside><main><div class="hero"><div class="eyebrow">GET STARTED · 从设计到代码</div><h1>产品设计与研发<br>使用指南</h1><p style="font-size:14px">适用版本：<strong>0.1.1</strong> · Skill 工作流与客户端支持自动更新。下载安装以官网最新可用版本为准。</p><p>从下载安装和 Google 注册开始，在数禾组织的原型 workspace 中设计；用外部或内置 Agent 完成原型，再预览、分享并交给研发实现。</p><div class="route"><span>下载</span><i>→</i><span>注册</span><i>→</i><span>登录</span><i>→</i><span>MCP</span><i>→</i><span>CLI</span><i>→</i><span>组织与工作区</span><i>→</i><span>设计与研发</span></div><div class="hero-links"><a href="#step-01">从第 1 步开始</a><a class="secondary" href="#step-09">外部 Agent 设计</a><a class="secondary" href="#step-13">研发生成代码</a></div></div>{''.join(body for _,body in sections)}<footer class="footer">织界使用指南 · 适用版本 0.1.1 · 2026 年 10 月 14 日更新<br>截图已嵌入本 HTML，可直接打开或将单个文件发送给同事。</footer></main></div>
 <dialog id="zoom" aria-label="截图查看器"><div class="zoom-header"><span class="zoom-title"></span><button class="close" type="button">关闭 · Esc</button></div><img alt=""></dialog><div id="copy-status" role="status" aria-live="polite"></div><script>{script}</script></body></html>'''
 OUT.write_text(html,encoding='utf-8')
 print(f'{OUT} ({OUT.stat().st_size:,} bytes; {len(sections)} steps)')
