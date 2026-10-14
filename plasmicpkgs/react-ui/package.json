@@ -39,7 +39,7 @@
   "dependencies": {
     "@react/ui": "file:../../vendor/react-ui",
     "antd": "6.6.5",
-    "@shiguang-lab/plasmic-antd6": "file:../antd6"
+    "@shiguang-lab/plasmic-antd6": "workspace:*"
   },
   "devDependencies": {
     "@plasmicapp/host": "2.0.19",
