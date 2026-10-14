@@ -132,7 +132,7 @@ app
         left: 16,
         top: 16,
         height: 48,
-        paddingLeft: "80px",
+        paddingLeft: "96px",
       });
       const bounds = win.getBounds();
       const resized = once(win, "resize");
