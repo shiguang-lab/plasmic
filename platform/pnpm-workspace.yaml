@@ -5,7 +5,6 @@ packages:
   - wab
   - preview
   - ../plasmicpkgs/overseas
-  - ../plasmicpkgs/antd6
   - ../plasmicpkgs/react-ui
   - canvas-packages
   - loader-bundle-env
@@ -20,15 +19,6 @@ minimumReleaseAgeExclude:
   - "@plasmicpkgs/*"
 
 catalog:
-  "@babel/preset-env": "^7.29.2"
-  "@babel/preset-react": "^7.28.5"
-  "@babel/preset-typescript": "^7.28.5"
-  "@types/lodash": "^4.17.25"
-  "@types/react": "18.3.27"
-  "@types/react-dom": "18.3.7"
-  rollup-plugin-dts: "^5.3.0"
-  rollup-plugin-esbuild: "^5.0.0"
-  rollup-plugin-replace-imports: "^1.0.0"
   "@godaddy/terminus": 4.12.1
   "@hono/node-server": ^1.14.0
   "@nats-io/jetstream": 3.3.1
@@ -60,6 +50,9 @@ catalog:
 # same pins so the manifest matches what actually installs. If these are ever
 # upgraded, rebase patches/@react-aria__*.patch onto the new dist output.
 overrides:
+  # Antd6 is built with local Host contracts in the root workspace.
+  "@shiguang-lab/plasmic-react-ui>@shiguang-lab/plasmic-antd6": "file:../plasmicpkgs/antd6"
+  "@shiguang-lab/plasmic-react-ui>@plasmicapp/host": "link:../packages/host"
   playwright: "catalog:"
   playwright-core: "catalog:"
   "vitest>vite": "catalog:"
