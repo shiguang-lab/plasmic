@@ -318,7 +318,7 @@ importers:
         version: 4.62.2
       rollup-plugin-dts:
         specifier: 'catalog:'
-        version: 5.3.1(rollup@4.62.2)(typescript@7.0.2)
+        version: 5.3.1(rollup@4.62.2)(typescript@5.2.2)
       rollup-plugin-esbuild:
         specifier: 'catalog:'
         version: 5.0.0(esbuild@0.28.2)(rollup@4.62.2)
@@ -328,6 +328,9 @@ importers:
       tsx:
         specifier: 'catalog:'
         version: 4.23.15
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
 
   ../plasmicpkgs/overseas:
     dependencies:
@@ -405,6 +408,9 @@ importers:
       react-dom:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
 
   canvas-packages:
     dependencies:
@@ -18070,6 +18076,11 @@ packages:
         optional: true
       typeorm-aurora-data-api-driver:
         optional: true
+
+  typescript@5.2.2:
+    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+    engines: {node: '>=14.17'}
+    hasBin: true
 
   typescript@6.0.3:
     resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
@@ -37187,11 +37198,11 @@ snapshots:
 
   robust-predicates@3.0.3: {}
 
-  rollup-plugin-dts@5.3.1(rollup@4.62.2)(typescript@7.0.2):
+  rollup-plugin-dts@5.3.1(rollup@4.62.2)(typescript@5.2.2):
     dependencies:
       magic-string: 0.30.21
       rollup: 4.62.2
-      typescript: 7.0.2
+      typescript: 5.2.2
     optionalDependencies:
       '@babel/code-frame': 7.29.7
 
@@ -38655,6 +38666,8 @@ snapshots:
       pg: 8.21.0
     transitivePeerDependencies:
       - supports-color
+
+  typescript@5.2.2: {}
 
   typescript@6.0.3: {}
 

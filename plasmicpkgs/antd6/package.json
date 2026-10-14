@@ -112,7 +112,8 @@
     "rollup-plugin-dts": "catalog:",
     "rollup-plugin-esbuild": "catalog:",
     "rollup-plugin-replace-imports": "catalog:",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "typescript": "5.2.2"
   },
   "peerDependencies": {
     "@plasmicapp/data-sources": ">=0.1.0",
