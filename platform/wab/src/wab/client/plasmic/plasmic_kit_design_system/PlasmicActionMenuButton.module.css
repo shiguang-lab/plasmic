@@ -189,7 +189,8 @@
 .menuTrigger:global(.__wab_instance) {
   max-width: 100%;
   position: relative;
-  height: 100%;
+  height: auto;
+  align-self: stretch;
   min-height: 0;
 }
 .menuTriggersize_small:global(.__wab_instance) {

@@ -1,0 +1,7 @@
+{
+  "en": "- Fix rounded input backgrounds obscuring focus borders.\n- Keep invitation role labels on one line and align the email field in shared dialogs.\n- Align the copy-link button and dropdown arrow in shared button groups.",
+  "zh-CN": "- 修复输入框背景遮挡焦点边框圆角的问题。\n- 修复共享分享弹窗中邀请角色标签换行与邮箱输入框布局。\n- 修复复制链接按钮与下拉箭头高度不一致的问题。",
+  "zh-TW": "- 修復輸入框背景遮擋焦點邊框圓角的問題。\n- 修復共用分享視窗中邀請角色標籤換行與電子郵件輸入框配置。\n- 修復複製連結按鈕與下拉箭頭高度不一致的問題。",
+  "ja": "- 入力欄の背景がフォーカス枠の角を隠す問題を修正。\n- 共有ダイアログの招待ロール名の折り返しとメール入力欄の配置を修正。\n- リンクのコピーボタンとドロップダウン矢印の高さを統一。",
+  "ko": "- 입력란 배경이 포커스 테두리의 둥근 모서리를 가리는 문제를 수정합니다.\n- 공유 대화상자의 초대 역할 이름 줄바꿈과 이메일 입력란 배치를 수정합니다.\n- 링크 복사 버튼과 드롭다운 화살표의 높이를 맞춥니다."
+}

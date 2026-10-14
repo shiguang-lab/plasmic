@@ -2,7 +2,8 @@ import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import PlasmicShareDialogContent from "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent";
 import styles from "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent.module.css";
-import { setLanguagePreference } from "@/wab/client/i18n";
+import { getUiLocale, setLanguagePreference } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
 import { act, cleanup, render, screen } from "@testing-library/react";
@@ -29,7 +30,7 @@ it("keeps the shared dialog rounded and primary action text readable in both the
   expect(screen.queryByText("as")).toBeNull();
   const dialog = ensure(screen.getByText("分享此项目").closest(`.${styles.root}`), "Expected share dialog");
   const copy = screen.getByText("复制链接", { selector: "span" });
-  const arrow = ensure(screen.getByRole("button", { name: "Actions menu" }).querySelector("svg"), "Expected menu arrow");
+  const arrow = ensure(screen.getByRole("button", { name: translate(getUiLocale(), "{part1} menu", { part1: translate(getUiLocale(), "Actions") }) }).querySelector("svg"), "Expected menu arrow");
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
     expect(getComputedStyle(copy).color).toBe("rgb(255, 255, 255)");

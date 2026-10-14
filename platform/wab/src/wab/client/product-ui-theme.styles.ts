@@ -469,6 +469,7 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   [`& .${textbox.textbox}`]: {
     background: token.colorBgContainer,
     color: token.colorText,
+    borderRadius: "inherit",
   },
   [`& .${textbox.textboxdisabled}`]: {
     background: token.colorBgContainerDisabled,

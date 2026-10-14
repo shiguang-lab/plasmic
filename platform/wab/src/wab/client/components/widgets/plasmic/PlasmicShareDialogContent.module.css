@@ -190,9 +190,14 @@
   width: auto;
   height: auto;
   flex-grow: 0;
-  flex-shrink: 1;
+  flex-shrink: 0;
   flex-basis: auto;
   align-self: auto;
+  white-space: nowrap;
+}
+.newUserEmail:global(.__wab_instance) {
+  flex: 1;
+  min-width: 0;
 }
 .freeBox__elohb {
   display: flex;

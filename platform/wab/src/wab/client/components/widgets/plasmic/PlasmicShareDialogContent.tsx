@@ -889,6 +889,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
               <Textbox
                 data-plasmic-name={"newUserEmail"}
                 data-plasmic-override={overrides.newUserEmail}
+                className={classNames("__wab_instance", sty.newUserEmail)}
                 disabled={
                   hasVariant($state, "state", "noPermToShare")
                     ? true
