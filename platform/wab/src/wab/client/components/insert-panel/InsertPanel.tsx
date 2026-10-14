@@ -57,7 +57,6 @@ import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButto
 import { useResourcePanelStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import Button from "@/wab/client/components/widgets/Button";
-import { Textbox, TextboxRef } from "@/wab/client/components/widgets/Textbox";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import {
   AddInstallableItem,
@@ -167,7 +166,6 @@ import { naturalSort } from "@/wab/shared/sort";
 import {
   canInsertAlias,
   canInsertHostlessPackage,
-  getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import {
@@ -176,6 +174,7 @@ import {
   Empty,
   Flex,
   Input,
+  InputRef,
   Menu,
   notification,
   Select,
@@ -418,7 +417,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     onClose,
     recentItems,
   } = props;
-  const inputRef = React.useRef<TextboxRef>(null);
+  const inputRef = React.useRef<InputRef | null>(null);
   const contentRef = React.useRef<HTMLElement>(null);
   const listRef = React.useRef<VariableSizeList>(null);
   const focusManager = useFocusManager();
@@ -911,6 +910,20 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     });
   };
 
+  const { ref: comboboxInputRef, ...searchInputProps } = getInputProps({
+    placeholder: uiT(
+      storeMode
+        ? "Search library contents"
+        : "Search all components, templates and assets",
+    ),
+    autoFocus: true,
+    onKeyDown: spawnWrapper(async (e) => {
+      if (e.key === "Escape" && query.trim().length === 0) {
+        onClose();
+      }
+    }),
+  });
+
   const content = (
     <div className="resource-panel-content">
       {storeMode && storeLibrary && (
@@ -975,39 +988,24 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         </Typography.Text>
       )}
       <div className="resource-panel-search">
-        <Textbox
-          {...getInputProps({
-            placeholder: uiT(
-              storeMode
-                ? "Search library contents"
-                : "Search all components, templates and assets",
-            ),
-            autoFocus: true,
-            refKey: "ref",
-            onKeyDown: spawnWrapper(async (e) => {
-              if (e.key === "Escape" && query.trim().length === 0) {
-                onClose();
-              }
-            }),
-            ref: inputRef as any,
-          })}
-          wrapperProps={getComboboxProps()}
-          styleType="bordered"
-          aria-label={uiT("Search resources")}
-        />
-        {query && (
-          <AntButton
-            type="text"
-            size="small"
-            onClick={() => {
-              setQuery("");
-              setHighlightedItemIndex(0);
-              inputRef.current?.focus();
+        <div {...getComboboxProps()}>
+          <Input.Search
+            {...searchInputProps}
+            ref={(ref) => {
+              inputRef.current = ref;
+              comboboxInputRef(ref?.input ?? null);
             }}
-          >
-            {uiT("Clear search")}
-          </AntButton>
-        )}
+            aria-label={uiT("Search resources")}
+            allowClear
+            onSearch={(value, event, info) => {
+              if (info?.source === "clear" || event?.type === "click") {
+                setQuery(value);
+                setHighlightedItemIndex(0);
+                inputRef.current?.focus();
+              }
+            }}
+          />
+        </div>
       </div>
       {!query && !storeMode && (
         <Tabs
@@ -1257,37 +1255,6 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           },
         }}
       />
-      {!storeMode &&
-        getLeftTabPermission(studioCtx.getCurrentUiConfig(), "libraries", {
-          isContentCreator: studioCtx.contentEditorMode,
-        }) !== "hidden" && (
-          <Flex gap={8} className="resource-panel-library-actions">
-            <AntButton
-              disabled={!availableFamilies["hostless-packages"]?.length}
-              onClick={() => {
-                void studioCtx.changeUnsafe(() =>
-                  studioCtx.openLibraries("store"),
-                );
-              }}
-            >
-              {uiT("Component store")}
-            </AntButton>
-            {getLeftTabPermission(studioCtx.getCurrentUiConfig(), "imports", {
-              isContentCreator: studioCtx.contentEditorMode,
-            }) !== "hidden" && (
-              <AntButton
-                disabled={!studioCtx.appCtx.selfInfo}
-                onClick={() => {
-                  void studioCtx.changeUnsafe(() => {
-                    studioCtx.openLibraries("imports");
-                  });
-                }}
-              >
-                {uiT("Manage libraries")}
-              </AntButton>
-            )}
-          </Flex>
-        )}
       {category !== "components" && (
         <Typography.Text type="secondary" className="resource-panel-hint">
           {uiT(
@@ -1729,7 +1696,7 @@ function getCodeComponentsGroups(studioCtx: StudioCtx): AddItemGroup[] {
               sectionKey: section,
               sectionLabel: section,
               label: subSection,
-              items: createAddTplCodeComponents(subSectionComponents),
+              items: createAddTplCodeComponents(studioCtx, subSectionComponents),
             };
           },
         );
@@ -1871,8 +1838,8 @@ export function buildAddItemGroups({
             ).map((comp) =>
               isCodeComponent(comp)
                 ? createAddTplCodeComponent(
+                    studioCtx,
                     comp,
-                    !!comp.codeComponentMeta.thumbnailUrl,
                   )
                 : createAddTplComponent(comp),
             ),
@@ -2018,8 +1985,8 @@ export function buildAddItemGroups({
                   );
                   if (plexusItem) {
                     return {
-                      previewImageUrl: aliasImageUrl,
                       ...plexusItem,
+                      previewImageUrl: getPlumeImage(kind),
                     };
                   } else {
                     return undefined;

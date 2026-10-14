@@ -157,16 +157,9 @@ test("restart restores a trusted project and viewport without persisting design 
     const restored = new DesktopWorkspace(dir, origin);
     assert.equal(restored.recent.length, 1);
     assert.equal(JSON.stringify(restored.recent).includes("activeKey"), false);
-    const calls = [];
-    const win = {
-      isDestroyed: () => false,
-      webContents: { getURL: () => restored.recent[0].url },
-    };
-    await restored.restore(win, {
-      state: async () => ({ ready: true }),
-      editor: async (...args) => calls.push(args),
-    });
-    assert.deepEqual(calls, [["restoreEditorView", editorView]]);
+    assert.deepEqual(restored.savedEditorView(restored.recent[0].url), editorView);
+    assert.equal(restored.savedEditorView("https://other.example/projects/one"), null);
+    assert.equal(restored.savedEditorView(origin + "/projects/missing"), null);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -316,46 +309,12 @@ test("startup resumes dashboard routes independently of recent projects", async 
   assert.equal(new DesktopWorkspace(dir, origin).lastUrl, origin + "/orgs/org");
 });
 
-test("restoration timeout or metadata failure does not navigate away from the editor", async (t) => {
-  const { workspace, savedUrl } = startupFixture(t);
-  workspace.recent[0].editorView = { scale: 0.7 };
-  const win = {
-    isDestroyed: () => false,
-    webContents: { getURL: () => savedUrl },
-    loadURL: () => assert.fail("Restoration must not redirect"),
-  };
-  let now = 0;
-  t.mock.method(Date, "now", () => now);
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  const restoring = workspace.restore(win, {
-    state: async () => {
-      now = 31000;
-      throw new Error("Metadata bridge is starting");
-    },
-    editor: async () => assert.fail("Editor is not ready"),
-  });
-  await Promise.resolve();
-  t.mock.timers.tick(500);
-  await restoring;
-  assert.equal(win.webContents.getURL(), savedUrl);
-});
-
-test("restoration uses the current project, even when another project is most recent", async (t) => {
+test("initial viewport lookup uses the requested project, not the most recent project", (t) => {
   const { workspace } = startupFixture(t);
   const view = { scale: 0.5 };
   workspace.recent[1].editorView = view;
-  const calls = [];
-  await workspace.restore(
-    {
-      isDestroyed: () => false,
-      webContents: { getURL: () => origin + "/projects/other?arena=new" },
-    },
-    {
-      state: async () => ({ ready: true }),
-      editor: async (...args) => calls.push(args),
-    },
-  );
-  assert.deepEqual(calls, [["restoreEditorView", view]]);
+  assert.deepEqual(workspace.savedEditorView(origin + "/projects/other?arena=new"), view);
+  assert.equal(workspace.savedEditorView(origin + "/settings"), null);
 });
 
 test("recent-project checkpoints do not overwrite the current Dashboard route", async (t) => {

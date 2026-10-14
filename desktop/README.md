@@ -106,9 +106,10 @@ uses this contract for column cells; hierarchy selection stays component-neutral
 The app resumes the last Dashboard or editor route on startup. Recent projects
 remain a separate File-menu history. Login and external URLs do not replace the
 saved route. Project access is checked before opening a saved editor; deleted or
-inaccessible projects open Dashboard after login is confirmed. Restoring an editor
-viewport is best-effort: slow initialization or metadata failures do not navigate
-away from the project.
+inaccessible projects open Dashboard after login is confirmed. Saved editor viewports are supplied to Studio during initialization. The canvas
+remains covered until its saved zoom and pan are applied after artboards and the
+inspector mount. Default initial fitting is skipped for a valid saved viewport;
+missing arenas or artboards fall back to the normal initial overview.
 
 ## NAS updates and releases
 

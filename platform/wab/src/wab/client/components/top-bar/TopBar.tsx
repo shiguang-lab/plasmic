@@ -498,7 +498,7 @@ function _TopBar({ preview }: TopBarProps) {
           props: {
             ref: leftRef,
             style: isMacDesktop
-              ? { paddingLeft: 80, borderRadius: 24 }
+              ? { paddingLeft: 96, borderRadius: 24 }
               : undefined,
           },
           wrapChildren: (children) => (

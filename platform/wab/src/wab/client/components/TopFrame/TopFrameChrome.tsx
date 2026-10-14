@@ -721,6 +721,14 @@ export function useTopFrameState({
       },
 
       setStudioReady: asyncWrapper(() => setStudioReady(true)),
+      getSavedEditorView: async (projectId: string) => {
+        const desktop = (window as Window & {
+          desktopEnvironment?: {
+            getSavedEditorView(projectId: string): Promise<import("@/wab/client/frame-ctx/top-frame-api").SavedEditorView | null>;
+          };
+        }).desktopEnvironment;
+        return desktop ? desktop.getSavedEditorView(projectId) : null;
+      },
       setDocumentTitle: async (val: string) => {
         document.title = val;
       },

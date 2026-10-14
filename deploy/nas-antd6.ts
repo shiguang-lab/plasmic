@@ -23,7 +23,7 @@ async function main() {
         }
       }
       for (const library of [
-        { codeName: "antd5", name: "Ant Design 5", npmPkg: "@plasmicpkgs/antd5", image: "antd6.svg" },
+        { codeName: "antd5", name: "Ant Design 5", npmPkg: "@plasmicpkgs/antd5", image: "antd5.svg" },
         { codeName: "antd6", name: "Ant Design 6", npmPkg: "@shiguang-lab/plasmic-antd6", image: "antd6.svg" },
         { codeName: "overseas", name: "Overseas", npmPkg: "@shiguang-lab/plasmic-overseas", image: "overseas.svg" },
       ]) {

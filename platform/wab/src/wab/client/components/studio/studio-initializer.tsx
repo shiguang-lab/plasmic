@@ -28,6 +28,7 @@ import {
   StudioCtx,
   providesStudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { isUnownedProject } from "@/wab/shared/EntUtil";
 import { spawn } from "@/wab/shared/common";
@@ -41,6 +42,7 @@ import React from "react";
 import { Helmet } from "react-helmet";
 
 type StudioInitializerProps = {
+  loadTimings?: StudioLoadTimings;
   projectId: ProjectId;
   hostFrameCtx: HostFrameCtx;
   appCtx: AppCtx;
@@ -79,6 +81,8 @@ class StudioInitializer_ extends React.Component<
   }
 
   init = async () => {
+    const loadTimings = this.props.loadTimings ?? new StudioLoadTimings();
+    const preferencesDone = loadTimings.begin("startup-preferences");
     initializePlasmicExtension();
     const { hostFrameCtx, appCtx, onRefreshUi, projectId } = this.props;
 
@@ -98,8 +102,14 @@ class StudioInitializer_ extends React.Component<
       );
     }
 
+    preferencesDone();
     makeGlobalObservable();
-    const studioCtx = await initStudioCtx(appCtx, projectId, onRefreshUi);
+    const studioCtx = await initStudioCtx(
+      appCtx,
+      projectId,
+      onRefreshUi,
+      loadTimings,
+    );
     const previewCtx = new PreviewCtx(hostFrameCtx, studioCtx);
 
     spawn(studioCtx.startListeningForSocketEvents());
@@ -143,12 +153,15 @@ class StudioInitializer_ extends React.Component<
       // Version metadata and insertable templates are not needed to paint the
       // current page. Component sync awaits Plume only for missing defaults.
       spawn(studioCtx.projectDependencyManager.refreshDeps());
+      const syncDone = studioCtx.loadTimings.begin("code-component-sync");
       await syncCodeComponentsAndHandleErrors(studioCtx);
+      syncDone();
     }
 
     spawn(studioCtx.maybeShowGlobalContextNotificationForStarters());
     checkRootSubHostVersion();
 
+    const appUserDone = studioCtx.loadTimings.begin("app-user-init");
     if (studioCtx.siteInfo.hasAppAuth) {
       const lastLoggedInAppUser = await appCtx.api.getStorageItem(
         storageViewAsKey(studioCtx.siteInfo.id),
@@ -189,6 +202,8 @@ class StudioInitializer_ extends React.Component<
       }
     }
 
+    appUserDone();
+    studioCtx.loadTimings.mark("initializer-ready");
     return { studioCtx, previewCtx };
   };
 

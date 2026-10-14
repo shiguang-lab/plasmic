@@ -13,7 +13,6 @@ import {
   showCanvasPageNavigationNotification,
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { CanvasCommentMarkers } from "@/wab/client/components/comments/CanvasCommentMarkers";
-import { StudioLoading } from "@/wab/client/components/widgets";
 import { useI18n } from "@/wab/client/i18n";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
@@ -43,6 +42,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { Pt } from "@/wab/shared/geom";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
+import { Skeleton } from "antd";
 import $ from "jquery";
 import L from "lodash";
 import { reaction } from "mobx";
@@ -108,6 +108,7 @@ export const CanvasFrame = observer(function CanvasFrame({
             }
           }),
         arena,
+        frame: arenaFrame,
         name: canvasName,
       });
       setLoadState("queued");
@@ -443,6 +444,10 @@ export const CanvasFrame = observer(function CanvasFrame({
       const viewport = iframeRef.current;
       spawn(
         (async () => {
+          const hostDone = studioCtx.loadTimings.begin(
+            "frame-host-document",
+            arenaFrame.uuid,
+          );
           const html = await studioCtx.fetchHostPageHtml();
           const doc = ensure(
             viewport.contentDocument,
@@ -578,10 +583,12 @@ export const CanvasFrame = observer(function CanvasFrame({
           setLoadState("loading");
 
           if (doc.readyState === "complete") {
+            hostDone();
             await handleLoad(viewport);
           } else {
             const listener = spawnWrapper(async () => {
               if (doc.readyState === "complete") {
+                hostDone();
                 await handleLoad(viewport);
                 doc.removeEventListener("readystatechange", listener);
               }
@@ -675,9 +682,15 @@ export const CanvasFrame = observer(function CanvasFrame({
         }
         data-frame-id={`${arenaFrame.uid}`}
       >
-        {maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry() && (
-          <div className={styles.loadingOverlay}>
-            <StudioLoading />
+        {(!maybeViewCtx()?.initialRenderReady ||
+          maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry()) && (
+          <div
+            className={styles.loadingOverlay}
+            role="status"
+            aria-label={studioUiT("Loading project…")}
+            aria-busy="true"
+          >
+            <Skeleton active paragraph={{ rows: 5 }} />
           </div>
         )}
         <iframe

@@ -134,24 +134,25 @@ export function StudioFrame({
     const fetchProject = async () => {
       try {
         setIsRefreshingProjectData(true);
-        const [{ projects, perms: permissions }, { trustedHosts }] =
+        const branchName = parseProjectLocation(
+          appCtx.history.location,
+        )?.branchName;
+        const [{ projects, perms: permissions }, { trustedHosts }, branches] =
           await Promise.all([
             appCtx.api.getProjects({
               query: "byIds",
               projectIds: [projectId],
             }),
             appCtx.api.getTrustedHostsList(),
+            branchName && branchName !== MainBranchId ? fetchBranches() : [],
           ]);
         const proj = maybeOne(projects);
         if (!proj) {
           throw new ForbiddenError("Project not found");
         }
         let maybeBranch: ApiBranch | undefined = undefined;
-        const branchName = parseProjectLocation(
-          appCtx.history.location,
-        )?.branchName;
         if (branchName && branchName !== MainBranchId) {
-          maybeBranch = (await fetchBranches()).find(
+          maybeBranch = branches.find(
             (b) => b.name === branchName,
           );
         }

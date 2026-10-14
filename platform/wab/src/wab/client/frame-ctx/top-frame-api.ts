@@ -34,7 +34,16 @@ export type TopFrameFullApi = {
 } & Api &
   TopFrameApi;
 
+export interface SavedEditorView {
+  arenaId: string;
+  arenaType: "custom" | "page" | "component";
+  frameUuid: string | null;
+  scale: number;
+  scroll: { x: number; y: number };
+}
+
 export interface TopFrameApi {
+  getSavedEditorView(projectId: string): Promise<SavedEditorView | null>;
   setStudioReady(): Promise<void>;
   pushLocation(path?: string, query?: string, hash?: string): void;
   replaceLocation(path?: string, query?: string, hash?: string): void;

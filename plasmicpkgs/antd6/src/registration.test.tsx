@@ -23,6 +23,18 @@ registerAll({
   registerToken() {},
 } as Registerable);
 
+test("every registered visual component includes a self-contained SVG thumbnail", () => {
+  for (const { meta } of components.values()) {
+    assert.match(meta.thumbnailUrl ?? "", /^data:image\/svg\+xml;charset=utf-8,/,
+      `Missing thumbnail for ${meta.name}`);
+    const svg = decodeURIComponent(meta.thumbnailUrl.split(",")[1]);
+    assert.match(svg, /^<svg\b/);
+    assert.match(svg, /viewBox="0 0 \d+ \d+"/);
+    assert.match(svg, /<(rect|circle|path|text)\b/);
+    assert.doesNotMatch(svg, /<(script|image|foreignObject)\b/);
+  }
+});
+
 test("Form.Item label tooltip is editable and simplified fields expose tooltip text", () => {
   const item = components.get("plasmic-antd6-form-item")!;
   const form = components.get("plasmic-antd6-form")!;

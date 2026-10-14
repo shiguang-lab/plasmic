@@ -1,0 +1,422 @@
+[
+  {
+    "time": "2026-10-14T13:24:58.997611+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.00598633,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status"
+  },
+  {
+    "time": "2026-10-14T13:24:58.997614+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.005986372,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:25:02.936507+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000404347,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:26:45.940494+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000396239,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:26:50.898803+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000398972,
+    "status": 502,
+    "uri": "/api/v1/hosts"
+  },
+  {
+    "time": "2026-10-14T13:27:07.941080+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000881748,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:29:25.941969+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001280644,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:29:33.938138+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001113361,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:29:45.715209+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000341856,
+    "status": 502,
+    "uri": "/api/v1/latest-bundle-version"
+  },
+  {
+    "time": "2026-10-14T13:31:09.937483+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000925361,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:31:37.939119+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000681776,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:32:36.398289+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.00088522,
+    "status": 502,
+    "uri": "/api/v1/socket/?EIO=4&transport=websocket"
+  },
+  {
+    "time": "2026-10-14T13:32:41.941804+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000618895,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:33:12.740222+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000382316,
+    "status": 502,
+    "uri": "/api/auth/session"
+  },
+  {
+    "time": "2026-10-14T13:34:03.941593+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001068403,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:38:34.941476+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000832868,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:38:39.496203+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000825314,
+    "status": 502,
+    "uri": "/api/v1/hosts"
+  },
+  {
+    "time": "2026-10-14T13:44:35.942092+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000445651,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:45:06.946557+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001198312,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:47:00.940899+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000956556,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:47:11.943495+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001227077,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:47:42.944135+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001377485,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:48:05.943480+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000905886,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:49:56.944818+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000839939,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:50:57.330643+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000801113,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat"
+  },
+  {
+    "time": "2026-10-14T13:50:57.583098+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001312322,
+    "status": 502,
+    "uri": "/api/v1/socket/?EIO=4&transport=websocket"
+  },
+  {
+    "time": "2026-10-14T13:51:09.943548+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000490168,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:53:08.453782+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.00103652,
+    "status": 502,
+    "uri": "/api/v1/socket/?EIO=4&transport=websocket"
+  },
+  {
+    "time": "2026-10-14T13:53:27.948550+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000477674,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:55:52.944751+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000737381,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:57:05.946283+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000541524,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T13:59:04.423116+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001347994,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:00:50.740848+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001231662,
+    "status": 502,
+    "uri": "/api/v1/socket/?EIO=4&transport=websocket"
+  },
+  {
+    "time": "2026-10-14T14:01:06.422783+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001239233,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:01:28.436283+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000385757,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:02:50.423318+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000849653,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:03:00.874232+00:00",
+    "error": "EOF",
+    "duration": 8.451797467,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:05:10.428144+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001938968,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:05:38.943012+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000963293,
+    "status": 502,
+    "uri": "/api/v1/app-config"
+  },
+  {
+    "time": "2026-10-14T14:06:09.788969+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001000033,
+    "status": 502,
+    "uri": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6?version=%220.1.0%22&meta=true"
+  },
+  {
+    "time": "2026-10-14T14:08:31.343620+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001142046,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:08:42.343167+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.00071027,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:09:47.343231+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.00111569,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:10:06.342584+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000376631,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:10:58.342485+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000678727,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:13:38.412818+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001172762,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:13:47.412151+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000455776,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:14:07.412709+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000553302,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:14:12.412769+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000685622,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:15:42.414061+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000935254,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:16:33.253960+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000344788,
+    "status": 502,
+    "uri": "/api/v1/socket/?EIO=4&transport=websocket"
+  },
+  {
+    "time": "2026-10-14T14:18:49.418728+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000843708,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:19:04.414638+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001041414,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:19:40.415867+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.001118212,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:20:40.040167+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000923038,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:21:39.416948+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000616578,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:21:46.415383+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000318579,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:21:54.417744+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000935803,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:22:19.416111+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000438099,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  },
+  {
+    "time": "2026-10-14T14:23:02.416683+00:00",
+    "error": "dial tcp 100.87.115.78:3600: i/o timeout",
+    "duration": 3.000372169,
+    "status": 502,
+    "uri": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events?afterSeq=0"
+  }
+]

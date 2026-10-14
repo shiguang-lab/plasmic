@@ -9,7 +9,7 @@ const SKINNY_INPUTS = glob.sync(
   "./src/{register*,form/Form*,form/registerForm,form/SchemaForm}.ts*",
 );
 
-export default [
+const configs = [
   {
     input: ["./src/index.ts"],
     external: (id) => {
@@ -83,4 +83,9 @@ export default [
       }),
     ],
   },
+];
+
+export default [
+  ...configs,
+  { ...configs[1], input: ["./src/canvas-overlay.ts"] },
 ];

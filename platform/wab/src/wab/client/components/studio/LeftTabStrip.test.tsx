@@ -1,6 +1,6 @@
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { observable } from "mobx";
 import React from "react";
 const mocks = vi.hoisted(() => ({
@@ -31,12 +31,13 @@ vi.mock(
   () => ({ PlasmicLeftTabStrip: ({ buttons }: any) => <div>{buttons}</div> }),
 );
 vi.mock("@/wab/client/components/studio/LeftTabButton", () => ({
-  default: ({ label, onClick, expanded, disabled, isSelected }: any) => (
+  default: ({ label, onClick, expanded, disabled, isSelected, ...props }: any) => (
     <button
       onClick={onClick}
       disabled={disabled}
       aria-expanded={expanded}
       aria-current={isSelected ? "true" : undefined}
+      data-test-tabkey={props["data-test-tabkey"]}
     >
       {label}
     </button>
@@ -50,6 +51,10 @@ beforeEach(() => {
     fontManager: { missingUsedFonts: () => [] },
     contentEditorMode: false,
     leftTabKey: undefined as string | undefined,
+    libraryTab: "imports",
+    setLibraryTab(tab: string) {
+      this.libraryTab = tab;
+    },
     leftTabGroup: undefined as string | undefined,
     setLeftTabGroup(group: string | undefined) {
       this.leftTabGroup = group;
@@ -118,7 +123,7 @@ it.each([false, true])(
     ).toBeNull();
   },
 );
-it("places an independent Libraries entry after Assets and toggles its drawer", () => {
+it("places Libraries after Assets and opens its two secondary choices", async () => {
   render(<LeftTabStrip useVersionsCTA={false} />);
   const labels = screen
     .getAllByRole("button")
@@ -127,12 +132,15 @@ it("places an independent Libraries entry after Assets and toggles its drawer", 
   const entry = screen.getByRole("button", { name: "Libraries" });
   expect(entry).not.toHaveAttribute("aria-current");
   fireEvent.click(entry);
-  expect(mocks.ctx.leftTabKey).toBe("libraries");
+  expect(mocks.ctx.leftTabKey).toBeUndefined();
+  expect(mocks.ctx.leftTabGroup).toBe("libraries");
   expect(mocks.ctx.drawer).toBe(false);
   expect(entry.getAttribute("aria-expanded")).toBe("true");
   expect(entry).toHaveAttribute("aria-current", "true");
+  expect(await screen.findByRole("button", { name: "Component store" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Imported projects" })).toBeTruthy();
   fireEvent.click(entry);
-  expect(mocks.ctx.leftTabKey).toBeUndefined();
+  expect(mocks.ctx.leftTabGroup).toBeUndefined();
   expect(entry).not.toHaveAttribute("aria-current");
 });
 it("does not highlight Libraries when its panel is hidden or covered by Insert", () => {
@@ -149,16 +157,49 @@ it("does not highlight Libraries when its panel is hidden or covered by Insert",
     "aria-current",
   );
 });
-it("restores hidden panels when opening Libraries and honors hidden entry permission", () => {
+it("restores hidden panels when choosing a Library destination and honors hidden entry permission", async () => {
   mocks.ctx.panelsHidden = true;
   const { unmount } = render(<LeftTabStrip useVersionsCTA={false} />);
   fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Component store" }));
   expect(mocks.ctx.panelsHidden).toBe(false);
   expect(mocks.ctx.leftTabKey).toBe("libraries");
   unmount();
   mocks.ctx.config = { leftTabs: { libraries: "hidden" } };
   render(<LeftTabStrip useVersionsCTA={false} />);
   expect(screen.queryByRole("button", { name: "Libraries" })).toBeNull();
+});
+
+it.each(["Component store", "Imported projects"])("opens %s from the Library submenu and keeps the Library tool selected", async (label) => {
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
+  fireEvent.click(await screen.findByRole("button", { name: label }));
+  expect(mocks.ctx.libraryTab).toBe(label === "Component store" ? "store" : "imports");
+  expect(mocks.ctx.leftTabKey).toBe("libraries");
+  expect(mocks.ctx.leftTabGroup).toBeUndefined();
+  expect(mocks.ctx.drawer).toBe(false);
+  expect(screen.getByRole("button", { name: "Libraries" })).toHaveAttribute("aria-current", "true");
+  expect(screen.getByRole("button", { name: "Libraries" })).toHaveAttribute("aria-expanded", "false");
+});
+
+it.each(["hidden", "anonymous"])("hides imported projects in the Library submenu for %s access", async (access) => {
+  if (access === "hidden") mocks.ctx.config = { leftTabs: { imports: "hidden" } };
+  else mocks.ctx.appCtx.selfInfo = null;
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
+  expect(await screen.findByRole("button", { name: "Component store" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Imported projects" })).toBeNull();
+});
+
+it("Escape closes the Library submenu and restores focus to its tool", async () => {
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  const entry = screen.getByRole("button", { name: "Libraries" });
+  fireEvent.click(entry);
+  const store = await screen.findByRole("button", { name: "Component store" });
+  store.focus();
+  fireEvent.keyDown(document, { key: "Escape" });
+  await waitFor(() => expect(entry).toHaveFocus());
+  expect(mocks.ctx.leftTabGroup).toBeUndefined();
 });
 
 it("opening More closes AI and clicking AI closes More", async () => {

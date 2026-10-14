@@ -325,6 +325,12 @@ async function startDesktop() {
       desktopAppearance.set(value);
       return desktopAppearance.snapshot();
     });
+    ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
+      if (!trustedAuthSender(event) || workspace?.projectId(event.senderFrame.url) !== projectId) {
+        throw new Error("Invalid Studio project");
+      }
+      return workspace.savedEditorView(event.senderFrame.url);
+    });
     ipcMain.handle("desktop:ui-locale", (event, value) => {
       if (!trustedAuthSender(event)) {
         throw new Error("Invalid Studio page");
@@ -560,7 +566,6 @@ async function startDesktop() {
     Menu.setApplicationMenu(menu);
   }
   const startupUrl = await workspace.startupUrl(desktopSession);
-  await workspace.refreshRecent(desktopSession);
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {
     buildMenu();
@@ -583,9 +588,6 @@ async function startDesktop() {
     }
     await unifiedAuth.navigation;
   }
-  void workspace.restore(mainWindow, controller).catch((error) => {
-    console.warn("Cannot restore desktop workspace:", error.message);
-  });
   if (process.platform === "darwin") {
     await acknowledgeMacUpdate(app);
   }

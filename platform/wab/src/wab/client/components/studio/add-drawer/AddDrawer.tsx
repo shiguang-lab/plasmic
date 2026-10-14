@@ -443,29 +443,29 @@ export function createAddTplComponent(
 }
 
 export function createAddTplCodeComponent(
+  studioCtx: StudioCtx,
   component: CodeComponent,
-  showImages: boolean,
 ): AddTplItem {
-  const thumbUrl = component.codeComponentMeta.thumbnailUrl;
+  const thumbUrl =
+    studioCtx.getCodeComponentMeta(component)?.thumbnailUrl ??
+    component.codeComponentMeta.thumbnailUrl;
   return {
     ...createAddTplComponent(component),
     previewImageUrl: thumbUrl ?? undefined,
     // If we are showing images, we want to show the compact version of the item
-    isCompact: showImages,
+    isCompact: !!thumbUrl,
   };
 }
 
 export function createAddTplCodeComponents(
+  studioCtx: StudioCtx,
   components: CodeComponent[],
 ): AddTplItem[] {
   const uniqComponents = uniqBy(components, (c) => c.uuid);
-  const shouldShowImages = uniqComponents.some(
-    (c) => c.codeComponentMeta.thumbnailUrl,
-  );
   return sortComponentsByName(uniqComponents)
     .filter(isCodeComponent)
     .map((component) => {
-      return createAddTplCodeComponent(component, shouldShowImages);
+      return createAddTplCodeComponent(studioCtx, component);
     });
 }
 

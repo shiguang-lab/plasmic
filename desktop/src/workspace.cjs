@@ -193,42 +193,11 @@ class DesktopWorkspace {
     const state = await controller.state();
     return this.remember(state);
   }
-  async restore(win, controller) {
-    const url = win.webContents.getURL();
+  savedEditorView(url) {
     const id = this.projectId(url);
-    const entry = this.recent.find((item) => this.projectId(item.url) === id);
-    if (!entry?.editorView) {
-      return;
-    }
-    // A fresh Studio takes time to initialize. Stop if the user navigates away.
-    const deadline = Date.now() + 30000;
-    while (
-      Date.now() < deadline &&
-      !win.isDestroyed() &&
-      win.webContents.getURL() === url
-    ) {
-      let state;
-      try {
-        state = await controller.state();
-      } catch (error) {
-        console.warn(
-          "Editor is not ready for workspace restoration:",
-          error.message,
-        );
-      }
-      if (state?.ready) {
-        if (entry.editorView) {
-          try {
-            await controller.editor("restoreEditorView", entry.editorView);
-          } catch (error) {
-            console.warn("Saved editor view unavailable:", error.message);
-          }
-        }
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
+    return id ? this.recent.find((entry) => this.projectId(entry.url) === id)?.editorView ?? null : null;
   }
+
 }
 
 function fileMenu({
@@ -275,12 +244,6 @@ function fileMenu({
                 await controller.dispatch("open_design", {
                   projectId: workspace.projectId(entry.url),
                 });
-                if (entry.editorView) {
-                  await controller.dispatch("execute", {
-                    name: "restoreEditorView",
-                    input: entry.editorView,
-                  });
-                }
               }),
             }))
           : [{ label: t("No Recent Projects"), enabled: false }],

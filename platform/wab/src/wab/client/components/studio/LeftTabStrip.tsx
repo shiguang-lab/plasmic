@@ -400,8 +400,8 @@ More
                       openGroup === key ||
                       (!studioCtx.showAddDrawer() &&
                         !studioCtx.panelsHidden &&
-                        Object.keys(item.items).some(
-                          (i) => i === studioCtx.leftTabKey,
+                        Object.values(item.items).some(
+                          (i) => !!i.tabKey && i.tabKey === studioCtx.leftTabKey,
                         ))
                     }
                   />
@@ -487,18 +487,30 @@ More
               items: resourceItems,
             },
           })}
-          {renderButton(
-            "libraries",
-            {
-              type: "item",
-              tabKey: "libraries",
+          {canViewTab("libraries") && renderButtonGroup({
+            libraries: {
+              type: "group",
               icon: <EditorToolIcon tool="Libraries" />,
-              label: t("Libraries"),
-              cond: canViewTab("libraries"),
+              title: t("Libraries"),
+              items: {
+                store: {
+                  type: "item",
+                  tabKey: "libraries",
+                  icon: <ComponentsvgIcon />,
+                  label: t("Component store"),
+                  onClick: () => studioCtx.setLibraryTab("store"),
+                },
+                imports: {
+                  type: "item",
+                  tabKey: "libraries",
+                  icon: <ComponentssvgIcon />,
+                  label: t("Imported projects"),
+                  cond: isLoggedIn && canViewTab("imports"),
+                  onClick: () => studioCtx.setLibraryTab("imports"),
+                },
+              },
             },
-            false,
-            () => setOpenGroup(undefined),
-          )}
+          })}
           <LeftTabButton
             label={t("AI")}
             tooltip={t("AI assistant")}

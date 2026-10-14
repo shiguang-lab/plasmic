@@ -124,12 +124,20 @@ afterAll(() => {
 });
 
 export function fakeStudioCtx(opts?: {
+  initialUrl?: string;
+  topFrameApi?: AppCtx["topFrameApi"];
   site?: Site;
   devFlagOverrides?: Partial<DevFlagsType>;
   teams?: ApiTeam[];
   siteInfo?: Partial<SiteInfo>;
 }) {
   const dbCtxDeps = fakeDbCtx(opts);
+  if (opts?.initialUrl) {
+    dbCtxDeps.history.replace(opts.initialUrl);
+  }
+  if (opts?.topFrameApi) {
+    dbCtxDeps.appCtx.topFrameApi = opts.topFrameApi;
+  }
   const studioCtx = new StudioCtx({
     dbCtx: dbCtxDeps.dbCtx,
     // Tests never persist anything, the timer would just poll the mocked api.

@@ -1,0 +1,76 @@
+{
+  "projectId": "iqBeCQWLFWvGwftodkcHbN",
+  "revision": 16,
+  "completePairIds": [
+    2,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "plannedPairs": 10,
+  "successfulOpens": 37,
+  "failures": [
+    {
+      "round": 1,
+      "variant": "parallel",
+      "error": "Global canvas did not reveal",
+      "requests": [
+        {
+          "phase": "reopen",
+          "path": "/api/v1/latest-bundle-version",
+          "method": "GET",
+          "status": 503,
+          "headersMs": 213,
+          "startAt": 1791989801672,
+          "contentLength": "20"
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "parallel",
+      "error": "Global canvas did not reveal",
+      "requests": [
+        {
+          "phase": "cold",
+          "path": "/api/v1/app-ctx",
+          "method": "GET",
+          "status": 503,
+          "headersMs": 218,
+          "startAt": 1791989922050,
+          "contentLength": "20"
+        }
+      ]
+    }
+  ],
+  "stages": {
+    "cold": {
+      "visibleMedianMs": {
+        "serial": 6661.0,
+        "parallel": 5981.5
+      },
+      "preStudioMedianMs": {
+        "serial": 3447.4000244140625,
+        "parallel": 2738.1500244140625
+      },
+      "pairedVisibleWins": 8,
+      "pairedPreStudioWins": 7
+    },
+    "reopen": {
+      "visibleMedianMs": {
+        "serial": 4672.5,
+        "parallel": 4286.0
+      },
+      "preStudioMedianMs": {
+        "serial": 1820.0499267578125,
+        "parallel": 1617.5
+      },
+      "pairedVisibleWins": 4,
+      "pairedPreStudioWins": 7
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { LibrariesPanel } from "@/wab/client/components/sidebar/LibrariesPanel";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -43,46 +44,43 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
-it("honors the selected tab and switches between the existing insertion and dependency flows", async () => {
+it("shows the selected Library view with a single title and no tabs", async () => {
   const { container } = render(<LibrariesPanel />);
   const header = container.querySelector(".editor-panel-header");
   expect(container.querySelectorAll(".editor-panel-header")).toHaveLength(1);
-  expect(header?.contains(screen.getByRole("tablist"))).toBe(true);
+  expect(screen.queryByRole("tablist")).toBeNull();
   expect(header?.contains(screen.getByRole("button", { name: "Close" }))).toBe(
     true,
   );
-  expect(
-    screen
-      .getByRole("tab", { name: "Imported projects" })
-      .getAttribute("aria-selected"),
-  ).toBe("true");
+  expect(header?.textContent).toContain("Imported projects");
   expect(screen.getByText("Imported dependency list")).toBeTruthy();
-  fireEvent.click(screen.getByRole("tab", { name: "Component store" }));
+  act(() => mocks.ctx.setLibraryTab("store"));
   expect(mocks.ctx.libraryTab).toBe("store");
+  expect(header?.textContent).toContain("Component store");
+  expect(screen.queryByText("Imported dependency list")).toBeNull();
   fireEvent.click(await screen.findByRole("button", { name: "store content" }));
   await waitFor(() => expect(mocks.close).toHaveBeenCalledWith(undefined));
 });
 it("closes from the shared header and retains the selected library tab on reopen", async () => {
   const { unmount } = render(<LibrariesPanel />);
-  fireEvent.click(screen.getByRole("tab", { name: "Component store" }));
+  act(() => mocks.ctx.setLibraryTab("store"));
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   await waitFor(() => expect(mocks.close).toHaveBeenCalledWith(undefined));
   unmount();
   render(<LibrariesPanel />);
-  expect(
-    screen
-      .getByRole("tab", { name: "Component store" })
-      .getAttribute("aria-selected"),
-  ).toBe("true");
+  expect(screen.getByText("Component store")).toBeTruthy();
+  expect(mocks.ctx.libraryTab).toBe("store");
 });
 it("uses the store when imported projects are hidden", () => {
   mocks.ctx.permission = "hidden";
   render(<LibrariesPanel />);
-  expect(screen.queryByRole("tab", { name: "Imported projects" })).toBeNull();
-  expect(
-    screen
-      .getByRole("tab", { name: "Component store" })
-      .getAttribute("aria-selected"),
-  ).toBe("true");
+  expect(screen.queryByText("Imported projects")).toBeNull();
+  expect(screen.getByText("Component store")).toBeTruthy();
   expect(screen.getByRole("button", { name: "store content" })).toBeTruthy();
+});
+it("uses the store for anonymous users even if imports was selected", () => {
+  mocks.ctx.appCtx.selfInfo = null;
+  render(<LibrariesPanel />);
+  expect(screen.queryByText("Imported dependency list")).toBeNull();
+  expect(screen.getByText("Component store")).toBeTruthy();
 });

@@ -198,6 +198,11 @@ export class ViewCtx extends WithDbCtx {
   }
 
   private disposals: (() => void)[] = [];
+  private _initialRenderReady = observable.box(false);
+  get initialRenderReady() {
+    return this._initialRenderReady.get();
+  }
+
   private _isDisposed = false;
   private _editingTextResizeObserver: ResizeObserver | undefined;
 
@@ -1388,6 +1393,10 @@ export class ViewCtx extends WithDbCtx {
         }
       }
       if (opts.eval) {
+        const renderDone = this.studioCtx.loadTimings.begin(
+          "frame-first-render",
+          this.arenaFrame().uuid,
+        );
         await this.canvasCtx.hostLessPkgsLock;
         await this.csEvaluator.evalAsync();
         this.flushRerenderQueue();
@@ -1411,6 +1420,15 @@ export class ViewCtx extends WithDbCtx {
           });
         });
         await runPostEvalTasks;
+        if (
+          !this.isDisposed &&
+          !this.initialRenderReady &&
+          this.valState().maybeValSysRoot()
+        ) {
+          renderDone();
+          mobx.runInAction(() => this._initialRenderReady.set(true));
+          this.studioCtx.recordCanvasFrameRendered(this.arenaFrame());
+        }
       }
     };
 

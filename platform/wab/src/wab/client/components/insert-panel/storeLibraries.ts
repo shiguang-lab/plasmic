@@ -1,6 +1,7 @@
 import type { AddItemGroup } from "@/wab/client/components/insert-panel/InsertPanel";
 import { AddItemType } from "@/wab/client/definitions/insertables";
 import { ensureArray } from "@/wab/shared/common";
+import { globalStatic } from "@/wab/shared/urls";
 import { groupBy } from "lodash";
 
 export function groupStoreLibraries(
@@ -25,6 +26,10 @@ export function groupStoreLibraries(
       : entry.items.map((item) => ({ ...entry, key: item.key, items: [item] })),
   )) {
     const meta = group.hostLessPackageInfo;
+    const imageUrl =
+      meta?.codeName === "antd5" || meta?.codeName === "antd6"
+        ? globalStatic(`img/${meta.codeName}.svg`)
+        : (meta?.imageUrl ?? group.items[0]?.previewImageUrl);
     const projectIds = meta ? ensureArray(meta.projectId) : [];
     const key = meta?.syntheticPackage
       ? `synthetic:${meta.codeName}`
@@ -41,7 +46,7 @@ export function groupStoreLibraries(
       ];
       if (meta?.isInstallOnly) {
         existing.category = meta.sectionLabel;
-        existing.imageUrl = meta.imageUrl ?? group.items[0]?.previewImageUrl;
+        existing.imageUrl = imageUrl;
       }
       continue;
     }
@@ -53,7 +58,7 @@ export function groupStoreLibraries(
           ? "Basic elements"
           : "Customizable components"
         : (meta?.sectionLabel ?? "UI kits"),
-      imageUrl: meta?.imageUrl ?? group.items[0]?.previewImageUrl,
+      imageUrl,
       projectIds,
       synthetic: !!meta?.syntheticPackage,
       groups: [group],

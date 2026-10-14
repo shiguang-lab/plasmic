@@ -5,7 +5,6 @@ import { useLibraryPanelStyles } from "@/wab/client/components/ui/layout-styles"
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
-import { Tabs } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -16,36 +15,22 @@ export const LibrariesPanel = observer(function LibrariesPanel() {
   const canViewImports =
     !!studioCtx.appCtx.selfInfo &&
     studioCtx.getLeftTabPermission("imports") !== "hidden";
+  const showImports = canViewImports && studioCtx.libraryTab === "imports";
   const closePanel = () =>
     spawn(studioCtx.changeUnsafe(() => studioCtx.switchLeftTab(undefined)));
   return (
     <div className={styles.root}>
-      <Tabs
-        className="editor-navigation-tabs"
-        classNames={{ header: "editor-panel-header" }}
-        tabBarExtraContent={<PanelCloseButton onClick={closePanel} />}
-        activeKey={canViewImports ? studioCtx.libraryTab : "store"}
-        onChange={(tab) =>
-          studioCtx.setLibraryTab(tab === "imports" ? "imports" : "store")
-        }
-        destroyOnHidden
-        items={[
-          {
-            key: "store",
-            label: t("Component store"),
-            children: <InsertPanel mode="store" onClose={closePanel} />,
-          },
-          ...(canViewImports
-            ? [
-                {
-                  key: "imports",
-                  label: t("Imported projects"),
-                  children: <ProjectDependenciesPanel />,
-                },
-              ]
-            : []),
-        ]}
-      />
+      <div className="editor-panel-header">
+        <span>{t(showImports ? "Imported projects" : "Component store")}</span>
+        <PanelCloseButton onClick={closePanel} />
+      </div>
+      <div className="library-panel-content">
+        {showImports ? (
+          <ProjectDependenciesPanel />
+        ) : (
+          <InsertPanel mode="store" onClose={closePanel} />
+        )}
+      </div>
     </div>
   );
 });

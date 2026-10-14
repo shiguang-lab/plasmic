@@ -1,0 +1,76 @@
+{
+  "desktopMainHash": "4457dfbc3091225b2eecb3b51aa9c898e8b1bc09dae8d83514aa0bee3c3acf52",
+  "mode": "optimized",
+  "runId": "bootstrap-valid-series-parallel-4",
+  "startedAt": "2026-10-14T14:58:40.580Z",
+  "projectName": "海外客群管理平台 P0 原型",
+  "expectedViewport": {
+    "arenaId": "REQ075 · Desktop",
+    "arenaType": "custom",
+    "frameUuid": null,
+    "scale": 0.3557330827067669,
+    "scroll": {
+      "x": 1666,
+      "y": 657.5
+    }
+  },
+  "build": {
+    "revision": "bcdbe494804ea3854892c2134695f6418cafaac5",
+    "dirty": true,
+    "sourceHash": "54160a17cf9e11ef201166bfdb32ea0fe43e522fb99ad6415bacedaaef7e014f",
+    "builtAt": "2026-10-14T14:54:33.131Z",
+    "artifactHash": "38b6098b840c04ed13624b3788ca2917f8a481486bf6302a075516136c5ca421"
+  },
+  "samples": [],
+  "requests": [
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 498,
+      "startAt": 1791989921035,
+      "contentLength": null
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/app-ctx",
+      "method": "GET",
+      "status": 503,
+      "headersMs": 218,
+      "startAt": 1791989922050,
+      "contentLength": "20"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/auth/self",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 261,
+      "startAt": 1791989922048,
+      "contentLength": "294"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/latest-bundle-version",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 261,
+      "startAt": 1791989922052,
+      "contentLength": "50"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/app-config",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 265,
+      "startAt": 1791989922049,
+      "contentLength": null
+    }
+  ],
+  "blockedWrites": [],
+  "errors": [],
+  "status": "FAIL",
+  "error": "Global canvas did not reveal"
+}

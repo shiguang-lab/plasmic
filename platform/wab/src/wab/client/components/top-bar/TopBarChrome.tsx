@@ -9,6 +9,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { MessageKey } from "@/wab/client/i18n/locales";
 import { PlasmicPublishButton } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicPublishButton";
 import PlasmicTopBar from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar";
+import { HistoryOutlined } from "@ant-design/icons";
 import { Button, ButtonProps } from "antd";
 import * as React from "react";
 
@@ -18,14 +19,13 @@ const actionPaths = {
   Comments: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   Preview: "M8 21h8 M12 17v4",
   Code: "M8 6l-6 6 6 6 M16 6l6 6-6 6 M14 3l-4 18",
-  "Published versions": "M3 4v5h5 M3 9a9 9 0 1 1-1 7 M12 7v5l4 2",
   "Open preview in new tab":
     "M15 3h6v6 M10 14L21 3 M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6",
 } satisfies Partial<Record<MessageKey, string>>;
 
 export const EditorIconAction = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { action: keyof typeof actionPaths }
+  ButtonProps & { action: keyof typeof actionPaths | "Published versions" }
 >(function EditorIconAction({ action, ...props }, ref) {
   const { t } = useI18n();
   return (
@@ -35,12 +35,16 @@ export const EditorIconAction = React.forwardRef<
       className="editor-icon-action"
       aria-label={t(action)}
       icon={
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          {action === "Preview" && (
-            <rect x="2" y="3" width="20" height="14" rx="2" />
-          )}
-          <path d={actionPaths[action]} />
-        </svg>
+        action === "Published versions" ? (
+          <HistoryOutlined aria-hidden />
+        ) : (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            {action === "Preview" && (
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+            )}
+            <path d={actionPaths[action]} />
+          </svg>
+        )
       }
       {...props}
     />
@@ -97,7 +101,7 @@ export function TopBarChrome({
       }}
       left={{
         props: {
-          style: mac ? { paddingLeft: 80, borderRadius: 24 } : undefined,
+          style: mac ? { paddingLeft: 96, borderRadius: 24 } : undefined,
         },
         wrapChildren: (children) => (
           <>

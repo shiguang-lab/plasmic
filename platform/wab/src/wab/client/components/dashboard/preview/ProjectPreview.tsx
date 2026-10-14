@@ -46,6 +46,9 @@ export function ProjectPreview({
             setStatus("failed");
             return;
           }
+          if (url) {
+            URL.revokeObjectURL(url);
+          }
           url = URL.createObjectURL(blob);
           setSrc(url);
         });

@@ -266,12 +266,17 @@ export class CanvasCtx {
     );
     this._$body = this._$html.find("body").first();
     this.createCanvasOverlay(arenaFrame);
+    const hostReadyDone = sc.loadTimings.begin(
+      "frame-host-ready",
+      arenaFrame.uuid,
+    );
     yield "user-body-wait";
     this._$userBody = await withTimeout(
       this.waitForUserBody(),
       "Couldn't get userBody",
       CANVAS_CTX_TIMEOUT_PERIOD,
     );
+    hostReadyDone();
     // We reinsert things because some frameworks (Remix Hydrogen dev server) blow away the entire document.
     // We also do it earlier so that we can intercept clicks as much as possible, rather than waiting for __wab_user_body first.
     this._$head = this._$html.find("head");
@@ -299,6 +304,7 @@ export class CanvasCtx {
     if (!this._$body.find(".__wab_canvas_overlay").length) {
       this.createCanvasOverlay(arenaFrame);
     }
+    const scriptsDone = sc.loadTimings.begin("frame-runtime", arenaFrame.uuid);
     yield "script-wait";
     scriptExec(
       this._win,
@@ -317,6 +323,7 @@ export class CanvasCtx {
       ),
     );
 
+    scriptsDone();
     (this._win as any).__PLASMIC__ = {
       EXECUTE_SERVER_QUERY: sc.executeServerQuery,
     } as PlasmicWindowInternals;
@@ -336,6 +343,10 @@ export class CanvasCtx {
     this.usedPkgsDispose = autorun(() =>
       this.updatePkgsList(usedHostLessPkgs(sc.site), sc.site),
     );
+    const hostlessDone = sc.loadTimings.begin(
+      "frame-component-packages",
+      arenaFrame.uuid,
+    );
     yield "hostless-wait";
     await withTimeout(
       this.hostLessPkgsLock,
@@ -343,6 +354,7 @@ export class CanvasCtx {
       CANVAS_CTX_TIMEOUT_PERIOD,
     );
 
+    hostlessDone();
     const hostWin = (DEVFLAGS.artboardEval ? this._win : window) as any;
     const hostVersion = hostWin.__Sub.hostVersion;
 

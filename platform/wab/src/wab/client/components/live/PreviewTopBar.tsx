@@ -136,7 +136,7 @@ const useStyles = createStyles(({ token }) => ({
   },
   desktopLeftSection: {
     "&&": {
-      paddingLeft: 80,
+      paddingLeft: 96,
     },
   },
   centerSection: {

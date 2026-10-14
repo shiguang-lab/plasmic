@@ -16,7 +16,6 @@ import workspaceSection from "@/wab/client/plasmic/plasmic_kit_dashboard/Plasmic
 import actionButton from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
 import insertPanel from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicInsertPanel.module.css";
 import listBottomFade from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicListBottomFade.module.css";
-import storeCard from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicAddDrawerCardItem.module.css";
 import animationsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftAnimationSequencesPanel.module.css";
 import componentsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftComponentsPanel.module.css";
 import expressionsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftExprsSearchPanel.module.css";
@@ -407,7 +406,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       fontSize: 12,
       boxShadow: "none",
     },
-    "& .editor-primary-actions .ant-btn[aria-expanded=true]": {
+    "& .editor-primary-actions .ant-btn[aria-expanded=true], & .editor-primary-actions .ant-btn[aria-pressed=true]": {
       background: token.colorPrimaryBg,
       color: token.colorPrimaryText,
       borderColor: token.colorPrimary,
@@ -492,17 +491,20 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       background: token.colorBorder,
     },
     "& .editor-history-action": {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
       width: 28,
       height: 32,
-      padding: 5,
+      padding: 0,
       borderRadius: 7,
+      color: token.colorTextSecondary,
     },
     "& .editor-history-action svg": {
       width: 18,
       height: 18,
-      fill: "none",
-      stroke: "currentColor",
-      strokeWidth: 1.6,
+      fill: "currentColor",
+      stroke: "none",
     },
     "& .editor-project-trigger": {
       display: "inline-flex",
@@ -532,11 +534,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       margin: "6px 0",
     },
 
-    "& .resource-panel-library-actions": {
-      flexShrink: 0,
-      padding: "12px",
-      borderTop: `1px solid ${token.colorBorderSecondary}`,
-    },
     [`& .canvas-editor__left-pane .${button.root}`]: {
       color: token.colorText,
       "&:hover:not(:disabled)": { background: token.colorFillSecondary },
@@ -1024,8 +1021,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .canvas-editor__canvas-scrollbar": {
       backgroundColor: token.colorBgLayout,
-      backgroundImage: `radial-gradient(circle, ${token.colorBorder} 0.75px, transparent 1px)`,
-      backgroundSize: "20px 20px",
     },
     "& .canvas-editor__right-pane__scroll": {
       scrollbarColor: `${token.colorBorder} transparent`,
@@ -1057,7 +1052,7 @@ export const useAuthenticatedLayoutStyles = createStyles(({ token }) => ({
       alignItems: "center",
       height: 48,
       padding: navigator.userAgent.includes("PlasmicDesktop/darwin")
-        ? "0 12px 0 80px"
+        ? "0 12px 0 96px"
         : "0 12px",
       border: `1px solid ${token.colorBorder}`,
       borderRadius: 24,
@@ -1098,32 +1093,8 @@ export const useResourcePanelStyles = createStyles(({ token }) => ({
     "&[data-component-store=true] .resource-panel-search": {
       padding: "0 20px 12px",
     },
-    "&[data-component-store=true] .resource-panel-library-actions": {
-      padding: "12px 20px",
-      justifyContent: "flex-end",
-    },
     [`&[data-component-store=true] .${insertPanel.freeBox__ocvSo}`]: {
       flexDirection: "column",
-    },
-    [`&[data-component-store=true] .${storeCard.freeBox__e9Vri}`]: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 16,
-      padding: 16,
-    },
-    [`&[data-component-store=true] .${storeCard.freeBox__dwpaf}`]: {
-      width: 64,
-      height: 64,
-      flex: "0 0 64px",
-    },
-    [`&[data-component-store=true] .${storeCard.titleBox}`]: {
-      flex: 1,
-      alignItems: "flex-start",
-    },
-    [`&[data-component-store=true] .${storeCard.slotTargetTitle}`]: {
-      color: token.colorText,
-      textAlign: "left",
-      fontSize: 13,
     },
     "&[data-component-store=true] img[src$='/unstyled.png']": {
       background: token.colorWhite,
@@ -1138,11 +1109,6 @@ export const useResourcePanelStyles = createStyles(({ token }) => ({
       borderBottom: `1px solid ${token.colorBorderSecondary}`,
       "& .ant-select": { maxWidth: 220 },
     },
-    "& .resource-panel-library-actions": {
-      padding: 12,
-      borderTop: `1px solid ${token.colorBorderSecondary}`,
-      flexShrink: 0,
-    },
     "& .resource-panel-content": {
       height: "100%",
       display: "flex",
@@ -1150,12 +1116,11 @@ export const useResourcePanelStyles = createStyles(({ token }) => ({
       minHeight: 0,
     },
     "& .store-library-filters": {
-      display: "flex",
-      flexDirection: "column",
-      gap: 12,
       padding: 16,
       flexShrink: 0,
       borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      "& .store-library-category": { flex: "0 0 120px", minWidth: 0 },
+      "& .store-library-query": { flex: 1, minWidth: 0 },
     },
     "& .store-library-list": {
       padding: 16,
@@ -1261,25 +1226,6 @@ export const useResourcePanelStyles = createStyles(({ token }) => ({
     [`& .${insertPanel.contentContainer}`]: { flex: 1, minHeight: 0 },
     "& .resource-panel-upload": { padding: "8px 12px", flexShrink: 0 },
     "& .resource-panel-search": {
-      [`& .${panelTextbox.root}`]: {
-        minHeight: 36,
-        borderRadius: 8,
-        background: token.colorBgLayout,
-        boxShadow: `inset 0 0 0 1px ${token.colorBorder}`,
-        "&:focus-within": {
-          boxShadow: `inset 0 0 0 1px ${token.colorPrimary}, 0 0 0 2px ${token.colorPrimaryBg}`,
-        },
-        [`& .${panelTextbox.textbox}`]: {
-          border: 0,
-          borderRadius: "inherit",
-          outline: "none",
-          boxShadow: "none",
-          background: "transparent",
-          color: token.colorText,
-          "&:focus": { outline: "none", boxShadow: "none" },
-        },
-      },
-
       padding: "8px 12px",
       flexShrink: 0,
       display: "flex",
@@ -1322,10 +1268,8 @@ export const useLibraryPanelStyles = createStyles(({ token }) => ({
     minHeight: 0,
     display: "flex",
     flexDirection: "column",
-    "& > .ant-tabs": { flex: 1, minHeight: 0, marginRight: 0 },
-    "& .ant-tabs-nav-wrap": { marginRight: 12 },
-    "& .ant-tabs-body-holder": { flex: 1, minHeight: 0, overflow: "hidden" },
-    "& .ant-tabs-body, & .ant-tabs-content": { height: "100%", minHeight: 0 },
+    "& > .editor-panel-header": editorPanelHeaderStyle(token),
+    "& > .library-panel-content": { flex: 1, minHeight: 0, overflow: "hidden" },
     "& .project-library-search": { padding: "14px 16px 8px", flexShrink: 0 },
     "& .project-library-search .ant-input-affix-wrapper": {
       background: token.colorBgLayout,

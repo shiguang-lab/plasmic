@@ -5,6 +5,7 @@ import {
   groupStoreLibrarySections,
 } from "@/wab/client/components/insert-panel/storeLibraries";
 import { AddItemType } from "@/wab/client/definitions/insertables";
+import { globalStatic } from "@/wab/shared/urls";
 
 function group(key: string, installOnly = false): AddItemGroup {
   return {
@@ -84,6 +85,32 @@ it("groups real libraries by catalog category and keeps temporary built-ins sepa
   ]);
   expect(sections.flatMap((section) => section.libraries)).toHaveLength(5);
   expect(sections[4].libraries[0].synthetic).toBe(true);
+});
+
+it("uses the bundled version icon for each Ant Design library even when catalog covers share an image", () => {
+  const groups = ["antd5", "antd6", "custom"].flatMap((codeName) =>
+    [true, false].map((installOnly) => {
+      const entry = group(`${codeName}-${installOnly}`, installOnly);
+      if (entry.hostLessPackageInfo) {
+        Object.assign(entry.hostLessPackageInfo, {
+          codeName,
+          projectId: [`${codeName}-project`],
+          imageUrl: "https://studio.plasmic.shiguanglab.com/static/img/antd6.svg",
+        });
+      }
+      return entry;
+    }),
+  );
+  for (const entries of [groups, [...groups].reverse()]) {
+    const libraries = groupStoreLibraries(entries);
+    expect(libraries).toHaveLength(3);
+    expect(libraries.find((library) => library.key === "antd5-project")?.imageUrl)
+      .toBe(globalStatic("img/antd5.svg"));
+    expect(libraries.find((library) => library.key === "antd6-project")?.imageUrl)
+      .toBe(globalStatic("img/antd6.svg"));
+    expect(libraries.find((library) => library.key === "custom-project")?.imageUrl)
+      .toBe("https://studio.plasmic.shiguanglab.com/static/img/antd6.svg");
+  }
 });
 
 it("keeps distinct UI kits and versions separate and does not invent a component catalog", () => {

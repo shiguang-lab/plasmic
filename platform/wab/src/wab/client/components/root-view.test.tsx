@@ -1,12 +1,13 @@
 import { Root } from "@/wab/client/components/root-view";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import * as React from "react";
 
 const mocks = vi.hoisted(() => ({
   getLastBundleVersion: vi.fn(),
   loadAppCtx: vi.fn(),
+  loadAppCtxData: vi.fn(),
   reportError: vi.fn(),
 }));
 vi.mock("@/wab/client/api", () => ({
@@ -17,6 +18,7 @@ vi.mock("@/wab/client/api", () => ({
 vi.mock("@/wab/client/app-ctx", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/wab/client/app-ctx")>()),
   loadAppCtx: mocks.loadAppCtx,
+  loadAppCtxData: mocks.loadAppCtxData,
   withHostFrameCache: (_key, _caching, _api, loader) => loader(),
 }));
 vi.mock("@/wab/client/ErrorNotifications", async (importOriginal) => ({
@@ -47,6 +49,11 @@ beforeEach(() => {
     latestBundleVersion: "version",
   });
   mocks.loadAppCtx.mockResolvedValue({ selfInfo: null });
+  mocks.loadAppCtxData.mockResolvedValue([
+    null,
+    { config: {} },
+    { teams: [], workspaces: [], perms: [] },
+  ]);
 });
 afterEach(() => {
   cleanup();
@@ -84,4 +91,38 @@ it("retries application data without repeating successful startup initialization
   expect(await screen.findByText("Ready")).toBeTruthy();
   expect(mocks.getLastBundleVersion).toHaveBeenCalledOnce();
   expect(mocks.loadAppCtx).toHaveBeenCalledTimes(2);
+});
+
+it("starts app data before bundle version resolves and reuses the fetched data", async () => {
+  let release!: (value: { latestBundleVersion: string }) => void;
+  mocks.getLastBundleVersion.mockReturnValue(
+    new Promise((resolve) => {
+      release = resolve;
+    }),
+  );
+  setup();
+  await waitFor(() => expect(mocks.loadAppCtxData).toHaveBeenCalledOnce());
+  expect(mocks.loadAppCtx).not.toHaveBeenCalled();
+  release({ latestBundleVersion: "version" });
+  expect(await screen.findByText("Ready")).toBeTruthy();
+  expect(mocks.loadAppCtx).toHaveBeenCalledWith(expect.anything(), true, [
+    null,
+    { config: {} },
+    { teams: [], workspaces: [], perms: [] },
+  ]);
+});
+
+it("retries failed parallel app data without repeating the successful bundle fetch", async () => {
+  mocks.loadAppCtxData.mockRejectedValueOnce(new Error("App data unavailable"));
+  setup();
+  await screen.findByRole("alert");
+  expect(mocks.loadAppCtx).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(await screen.findByText("Ready")).toBeTruthy();
+  expect(mocks.getLastBundleVersion).toHaveBeenCalledOnce();
+  expect(mocks.loadAppCtx).toHaveBeenCalledWith(
+    expect.anything(),
+    true,
+    undefined,
+  );
 });

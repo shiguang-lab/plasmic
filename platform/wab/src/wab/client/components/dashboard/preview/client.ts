@@ -5,6 +5,7 @@ import {
 import { PreviewQueue } from "@/wab/client/components/dashboard/preview/queue";
 import {
   previewChannel,
+  previewFormat,
   type PreviewRequest,
 } from "@/wab/client/components/dashboard/preview/types";
 import { ENV } from "@/wab/client/env";
@@ -85,11 +86,17 @@ export function subscribePreview(
   projectId: string,
   listener: (blob?: Blob) => void,
 ) {
-  const key = `${userId}:${projectId}:${ENV.COMMITHASH}`;
-  return queue.subscribe(
-    key,
-    async (signal) => {
-      // Check permissions and the current shared revision before using a local image.
+  const key = `${userId}:${projectId}`;
+  const controller = new AbortController();
+  const { signal } = controller;
+  let unsubscribe: (() => void) | undefined;
+  void (async () => {
+    const cached = await readPreview(key).catch(() => undefined);
+    signal.throwIfAborted();
+    if (cached) {
+      listener(cached.blob);
+    }
+    try {
       const response = await fetch(
         `/api/v1/projects/${encodeURIComponent(projectId)}/revision-without-data`,
         { signal },
@@ -108,27 +115,45 @@ export function subscribePreview(
       if (!Number.isInteger(revision)) {
         throw new Error("Invalid preview revision");
       }
-      const hit = await readPreview(key, revision).catch(() => undefined);
       signal.throwIfAborted();
-      if (hit) {
-        return hit;
+      if (cached?.revision === revision && cached.build === ENV.COMMITHASH && cached.format === previewFormat) {
+        return;
       }
-      const blob = await renderPreview(
-        {
-          projectId,
-          revision,
-          flags: DEVFLAGS,
-          staticBaseUrl: getStaticBaseUrl(),
+      unsubscribe = queue.subscribe(
+        `${key}:${revision}`,
+        async (renderSignal) => {
+          const blob = await renderPreview(
+            {
+              projectId,
+              revision,
+              flags: DEVFLAGS,
+              staticBaseUrl: getStaticBaseUrl(),
+            },
+            renderSignal,
+          );
+          renderSignal.throwIfAborted();
+          await writePreview(key, revision, blob).catch(() => {
+            /* Storage is optional; retain the generated preview. */
+          });
+          renderSignal.throwIfAborted();
+          return blob;
         },
-        signal,
+        (blob) => {
+          if (!signal.aborted && (blob || !cached)) {
+            listener(blob);
+          }
+        },
       );
-      signal.throwIfAborted();
-      await writePreview(key, revision, blob).catch(() => {
-        /* Storage is optional; retain the generated preview. */
-      });
-      signal.throwIfAborted();
-      return blob;
-    },
-    listener,
-  );
+    } catch {
+      if (!signal.aborted && !cached) {
+        listener(undefined);
+      }
+    }
+  })().catch(() => {
+    /* Unsubscribing cancels cache delivery as well as background work. */
+  });
+  return () => {
+    controller.abort();
+    unsubscribe?.();
+  };
 }

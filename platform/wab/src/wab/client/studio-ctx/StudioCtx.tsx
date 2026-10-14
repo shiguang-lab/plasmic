@@ -1,3 +1,6 @@
+import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
+import type { SavedEditorView } from "@/wab/client/frame-ctx/top-frame-api";
+import { PROTOTYPE_TOOL_META as prototypeToolMeta } from "@/wab/shared/copilot/prototype-tools";
 import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
 import { DragInsertManager } from "@/wab/client/Dnd";
 import {
@@ -463,6 +466,7 @@ const DEFAULT_ZOOM_PADDING = 40;
 
 interface StudioCtxArgs {
   dbCtx: DbCtx;
+  loadTimings?: StudioLoadTimings;
   /**
    * Whether to start the timer that periodically saves the project. Tests turn it off
    * since they never persist anything. Defaults to true.
@@ -680,6 +684,16 @@ export class StudioCtx extends WithDbCtx {
   get initialRouteReady() {
     return this.initialRouteLoaded.get();
   }
+  private initialViewportLoaded = observable.box(true);
+  readonly loadTimings: StudioLoadTimings;
+  private initialCanvasFrames: ArenaFrame[] = [];
+  private initialEditorView: SavedEditorView | null = null;
+  get initialViewportReady() {
+    return this.initialViewportLoaded.get();
+  }
+  get hasInitialEditorView() {
+    return this.initialEditorView !== null;
+  }
   latestVariantCreated: Variant | undefined = undefined;
   latestVariantGroupCreated: VariantGroup | undefined = undefined;
 
@@ -710,6 +724,7 @@ export class StudioCtx extends WithDbCtx {
       isSaving: observable,
     });
 
+    this.loadTimings = args.loadTimings ?? new StudioLoadTimings();
     ({ dbCtx: this._dbCtx } = args);
     this.commentsCtx = new CommentsCtx(this);
 
@@ -1629,25 +1644,30 @@ export class StudioCtx extends WithDbCtx {
     await Promise.all(this.viewCtxs.map((vc) => vc.awaitSync()));
   }
 
-  /**
-   * Returns the ViewCtx backing the the focused frame, the first frame of the
-   * focused arena, or failing that any frame in the current arena.
-   *
-   * Similar to focusedOrFirstViewCtx, but also falls back to a frame in a mixed
-   * arena with nothing focused. Only returns undefined while frames are still mounting.
-   */
+  /** Resolve the actual target even before its ViewCtx has mounted. */
+  get activeCanvasFrame(): ArenaFrame | undefined {
+    const frames = getArenaFrames(this.currentArena);
+    const focused = this.focusedFrame() ?? this.focusedViewCtx()?.arenaFrame();
+    return (focused && frames.includes(focused) ? focused : undefined) ?? frames[0];
+  }
+
+  get activeCanvasReady() {
+    const frame = this.activeCanvasFrame;
+    return this.initialRouteReady &&
+      (!frame || !!this.tryGetViewCtxForFrame(frame)?.initialRenderReady);
+  }
+
   private activeCanvasViewCtx(): ViewCtx | undefined {
-    const focused = this.focusedOrFirstViewCtx();
-    if (focused) {
-      return focused;
+    return this.tryGetViewCtxForFrame(this.activeCanvasFrame);
+  }
+
+  recordCanvasFrameRendered(frame: ArenaFrame) {
+    this.loadTimings.mark("frame-rendered", frame.uuid);
+    if (this.initialRouteReady && this.initialCanvasFrames.every(
+      (item) => this.loadTimings.has("frame-rendered", item.uuid)
+    )) {
+      this.loadTimings.report("all-frames-rendered");
     }
-    const arena = this.currentArena;
-    let vc: ViewCtx | undefined;
-    if (arena) {
-      const frames = new Set(getArenaFrames(arena));
-      vc = this.viewCtxs.find((v) => frames.has(v.arenaFrame()));
-    }
-    return vc ?? this.viewCtxs[0];
   }
 
   /**
@@ -1660,6 +1680,10 @@ export class StudioCtx extends WithDbCtx {
       (async () => {
         // eslint-disable-next-line no-constant-condition
         while (true) {
+          if (!this.initialViewportReady) {
+            await asyncTimeout(100);
+            continue;
+          }
           const viewCtx = this.activeCanvasViewCtx();
           if (viewCtx) {
             while (viewCtx.isStale() && !viewCtx.isDisposed) {
@@ -1801,6 +1825,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   dispose() {
+    this.canvasLoadingDisposed = true;
     this.copilotActivity.dispose();
     this.disposals.forEach((d) => d());
     this.clearUndoLog();
@@ -1865,6 +1890,12 @@ export class StudioCtx extends WithDbCtx {
       styles: true,
       eval: true,
     });
+    this.loadTimings.mark("frame-context-created", frame.uuid);
+    if (this.initialRouteReady && this.initialCanvasFrames.every(
+      (item) => this.loadTimings.has("frame-context-created", item.uuid)
+    )) {
+      this.loadTimings.report("all-frame-contexts-created");
+    }
     return viewCtx;
   }
 
@@ -2204,17 +2235,89 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private async handleInitialRoute() {
-    // initialize initialFocusPreference first, which handleRouteChange depends on
-    const focusPreference = await this.appCtx.api.getStorageItem(
-      this.mkFocusPreferenceKey(),
-    );
+    const routeDone = this.loadTimings.begin("initial-route");
+    const viewportDone = this.loadTimings.begin("initial-viewport");
+    const desktop = navigator.userAgent.includes("PlasmicDesktop/");
+    const [focusPreference] = await Promise.all([
+      this.appCtx.api.getStorageItem(this.mkFocusPreferenceKey()),
+      (async () => {
+        if (desktop && this.appCtx.topFrameApi) {
+          this.initialViewportLoaded.set(false);
+          try {
+            const saved = await this.appCtx.topFrameApi.getSavedEditorView(this.siteInfo.id);
+            const parsed = prototypeToolMeta.restoreEditorView.inputSchema.safeParse(saved);
+            this.initialEditorView = parsed.success ? parsed.data : null;
+          } catch (error) {
+            console.warn("Cannot read saved editor viewport", error);
+          }
+        }
+      })(),
+    ]);
+    // Initialize the focus preference before handleRouteChange reads it.
     if (!isNil(focusPreference)) {
       this.focusPreference.set(focusPreference === "true");
     }
 
     const location = this.appCtx.history.location;
     await this.handleRouteChange(location);
+    this.initialCanvasFrames = getArenaFrames(this.currentArena).slice();
+    this.loadTimings.setInitialFrames(this.initialCanvasFrames.map((frame) => frame.uuid));
     this.initialRouteLoaded.set(true);
+    routeDone();
+    if (this.initialCanvasFrames.length === 0) {
+      this.loadTimings.report("all-frame-contexts-created");
+      this.loadTimings.report("all-frames-rendered");
+    }
+    try {
+      const saved = this.initialEditorView;
+      if (saved) {
+        const arena = getArenaByNameOrUuidOrPath(this.site, saved.arenaId, saved.arenaType);
+        const frame = saved.frameUuid ? getArenaFrames(arena).find((item) => item.uuid === saved.frameUuid) : undefined;
+        if (arena && arena === this.currentArena && (!saved.frameUuid || frame)) {
+          this.setStudioFocusOnFrame({ frame, autoZoom: false });
+          const targetWaitDone = this.loadTimings.begin("initial-target-wait");
+          await when(
+            () => !!this.activeCanvasViewCtx() || !this.activeCanvasFrame,
+            { timeout: 60_000 },
+          );
+          // The saved target may be offscreen until its camera is restored.
+          // Resume its queue without holding restoration on later evaluations.
+          const targetViewCtx = this.activeCanvasViewCtx();
+          if (targetViewCtx) {
+            spawn(targetViewCtx.awaitSync());
+          }
+          targetWaitDone();
+          // Let the inspector mount and determine the viewport padding before restoring.
+          const layoutDone = this.loadTimings.begin("initial-viewport-layout");
+          await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          layoutDone();
+          const commitDone = this.loadTimings.begin("initial-viewport-commit");
+          this.restoreStudioViewportSnapshot({
+            focusedArenaFrame: frame,
+            scale: saved.scale,
+            scroll: new Pt(saved.scroll.x, saved.scroll.y),
+            canvasPadding: ensure(this.viewportCtx, "Canvas viewport is not ready").canvasPadding(),
+          }, false);
+          // The viewport's MobX reaction writes the transform before revealing the canvas.
+          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+          commitDone();
+          const renderWaitDone = this.loadTimings.begin("initial-target-render-wait");
+          await when(() => this.activeCanvasReady, { timeout: 60_000 });
+          renderWaitDone();
+        } else {
+          this.initialEditorView = null;
+          this.tryZoomToFitArena();
+        }
+      }
+    } catch (error) {
+      this.initialEditorView = null;
+      this.tryZoomToFitArena();
+      console.warn("Cannot initialize saved editor viewport", error);
+    } finally {
+      runInAction(() => this.initialViewportLoaded.set(true));
+      this.initialEditorView = null;
+      viewportDone();
+    }
 
     // 'prompt' is prefilled from marketing site AI landing page, which opens up
     // Plasmic AI chat and auto-submits the prompt.
@@ -2494,9 +2597,11 @@ export class StudioCtx extends WithDbCtx {
             autoZoom: false,
           });
 
-          defer(() => {
-            this.tryZoomToFitArena();
-          });
+          if (!this.hasInitialEditorView) {
+            defer(() => {
+              this.tryZoomToFitArena();
+            });
+          }
         }
       }
 
@@ -3153,9 +3258,16 @@ export class StudioCtx extends WithDbCtx {
     return this._showCommentsPanel.get();
   }
 
-  toggleCommentsPanel() {
-    this._showCommentsPanel.set(!this.showCommentsPanel);
-  }
+  toggleCommentsPanel = action(() => {
+    const open = !this.showCommentsPanel;
+    if (open) {
+      this._panelsHidden.set(false);
+      this.setLeftTabGroup(undefined);
+      this.switchLeftTab(undefined);
+      this.setShowAddDrawer(false);
+    }
+    this._showCommentsPanel.set(open);
+  });
 
   private _isCopilotChatOpen = observable.box(false);
 
@@ -4531,6 +4643,9 @@ export class StudioCtx extends WithDbCtx {
   }
 
   tryZoomToFitArena() {
+    if (this.hasInitialEditorView) {
+      return;
+    }
     const arena = this.currentArena;
     if (!arena) {
       return;
@@ -7856,17 +7971,37 @@ export class StudioCtx extends WithDbCtx {
    * frame needs to be loaded.
    */
   private canvasLoadRequests: CanvasLoadRequest[] = [];
+  private canvasLoadingDisposed = false;
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   private canvasLoadQueue = asynclib.queue(
     safeCallbackify(async (_: {}) => {
-      return requestIdleCallbackAsync(async () => {
+      let waitDone: (() => void) | undefined;
+      while (
+        !this.canvasLoadingDisposed &&
+        this.initialRouteReady &&
+        (!this.activeCanvasReady || !this.initialViewportReady) &&
+        !this.canvasLoadRequests.some((r) =>
+          r.arena === this.currentArena && r.frame === this.activeCanvasFrame
+        )
+      ) {
+        waitDone ??= this.loadTimings.begin("background-canvas-wait");
+        // Recheck the active frame so navigation can load its new target.
+        await asyncTimeout(16);
+      }
+      waitDone?.();
+      if (this.canvasLoadingDisposed) {
+        return;
+      }
+      const loadNext = async () => {
+        const targetFrame = this.activeCanvasFrame;
         // Find a request to load for the current arena, or a background arena.
         // If none, bail; even if there are outstanding load requests, if they are
         // for other arenas, then their iframes are display:none, and Chrome
         // may not load them anyway. We will get back to them later when we
         // switch back to that arena (see switchArena()).
         const nextRequest =
+          this.canvasLoadRequests.find((r) => r.arena === this.currentArena && r.frame === targetFrame) ??
           this.canvasLoadRequests.find((r) => r.arena === this.currentArena) ??
           this.canvasLoadRequests.find(
             (r) => this.getArenaStatus(r.arena) === "background",
@@ -7875,6 +8010,8 @@ export class StudioCtx extends WithDbCtx {
           return;
         }
         arrayRemove(this.canvasLoadRequests, nextRequest);
+        const loadDone = this.loadTimings.begin("frame-initialization", nextRequest.frame.uuid);
+        this.loadTimings.mark("frame-load-start", nextRequest.frame.uuid);
 
         // We load the canvas frame.  However, it is possible that in the middle
         // of loading, we switch to a different arena, thus making this iframe
@@ -7887,7 +8024,10 @@ export class StudioCtx extends WithDbCtx {
         // we have switched arena since loading, and we should just bail on this request.
         let done = false;
         await Promise.race([
-          nextRequest.load().then(() => (done = true)),
+          nextRequest.load().then(() => {
+            done = true;
+            loadDone();
+          }),
           (async () => {
             // eslint-disable-next-line no-constant-condition
             while (true) {
@@ -7909,7 +8049,15 @@ export class StudioCtx extends WithDbCtx {
             }
           })(),
         ]);
-      });
+      };
+      const targetFrame = this.activeCanvasFrame;
+      if (this.canvasLoadRequests.some((r) =>
+        r.arena === this.currentArena && r.frame === targetFrame
+      )) {
+        await loadNext();
+      } else {
+        await requestIdleCallbackAsync(loadNext);
+      }
     }),
     1,
   );
@@ -8213,6 +8361,7 @@ interface OnboardingTourState {
 
 interface CanvasLoadRequest {
   arena: AnyArena;
+  frame: ArenaFrame;
   load: () => Promise<void>;
   name: string;
 }

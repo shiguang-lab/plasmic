@@ -1,3 +1,4 @@
+import { ENV } from "@/wab/client/env";
 import { previewFormat } from "@/wab/client/components/dashboard/preview/types";
 
 const maxBytes = 16 * 1024 * 1024;
@@ -5,6 +6,7 @@ const maxEntries = 64;
 interface Metadata {
   key: string;
   revision: number;
+  build?: string;
   format: string;
   size: number;
   usedAt: number;
@@ -29,17 +31,22 @@ function completed(tx: IDBTransaction) {
   });
 }
 
-export async function readPreview(key: string, revision: number) {
+export async function readPreview(key: string) {
   const db = await open();
   try {
     const tx = db.transaction(["images", "metadata"], "readwrite");
     const done = completed(tx);
     let bytes: ArrayBuffer | undefined;
-    const request = tx.objectStore("metadata").get(key);
+    let meta: Metadata | undefined;
+    const request = tx.objectStore("metadata").getAll();
     request.onsuccess = () => {
-      const meta: Metadata | undefined = request.result;
-      if (meta?.revision === revision && meta.format === previewFormat) {
-        const image = tx.objectStore("images").get(key);
+      // Include images written with the former build-specific key on upgrade.
+      const entries = request.result as Metadata[];
+      meta = entries.find((entry) => entry.key === key) ?? entries
+        .filter((entry) => entry.key.startsWith(`${key}:`))
+        .sort((a, b) => b.usedAt - a.usedAt)[0];
+      if (meta) {
+        const image = tx.objectStore("images").get(meta.key);
         image.onsuccess = () => {
           bytes = image.result;
         };
@@ -47,7 +54,9 @@ export async function readPreview(key: string, revision: number) {
       }
     };
     await done;
-    return bytes ? new Blob([bytes], { type: "image/png" }) : undefined;
+    return bytes && meta
+      ? { blob: new Blob([bytes], { type: "image/png" }), revision: meta.revision, build: meta.build, format: meta.format }
+      : undefined;
   } finally {
     db.close();
   }
@@ -68,6 +77,7 @@ export async function writePreview(key: string, revision: number, blob: Blob) {
     metadata.put({
       key,
       revision,
+      build: ENV.COMMITHASH,
       format: previewFormat,
       size: bytes.byteLength,
       usedAt: Date.now(),
@@ -75,9 +85,16 @@ export async function writePreview(key: string, revision: number, blob: Blob) {
     images.put(bytes, key);
     const request = metadata.getAll();
     request.onsuccess = () => {
-      const entries = (request.result as Metadata[]).sort(
-        (a, b) => a.usedAt - b.usedAt,
-      );
+      const entries = (request.result as Metadata[])
+        .filter((item) => {
+          if (item.key.startsWith(`${key}:`)) {
+            metadata.delete(item.key);
+            images.delete(item.key);
+            return false;
+          }
+          return true;
+        })
+        .sort((a, b) => a.usedAt - b.usedAt);
       let size = entries.reduce((total, item) => total + item.size, 0),
         count = entries.length;
       for (const item of entries) {

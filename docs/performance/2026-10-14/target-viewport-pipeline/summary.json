@@ -1,0 +1,68 @@
+{
+  "projectId": "iqBeCQWLFWvGwftodkcHbN",
+  "revision": 16,
+  "pairedRounds": 10,
+  "successfulOpens": 40,
+  "stages": {
+    "cold": {
+      "visible": {
+        "medianMs": {
+          "before": 4675.0,
+          "after": 4365.0
+        },
+        "pairedWins": 9
+      },
+      "targetToReveal": {
+        "medianMs": {
+          "before": 1074.5499999970198,
+          "after": 781.5999999940395
+        },
+        "pairedWins": 10
+      },
+      "restoreTail": {
+        "medianMs": {
+          "before": 278.04999999701977,
+          "after": 2.0999999940395355
+        },
+        "pairedWins": 10
+      },
+      "firstRender": {
+        "medianMs": {
+          "before": 389.70000000298023,
+          "after": 369.70000000298023
+        },
+        "pairedWins": 7
+      }
+    },
+    "reopen": {
+      "visible": {
+        "medianMs": {
+          "before": 3466.0,
+          "after": 3407.5
+        },
+        "pairedWins": 6
+      },
+      "targetToReveal": {
+        "medianMs": {
+          "before": 801.5999999940395,
+          "after": 548.9499999880791
+        },
+        "pairedWins": 10
+      },
+      "restoreTail": {
+        "medianMs": {
+          "before": 267.6000000089407,
+          "after": 2.0
+        },
+        "pairedWins": 10
+      },
+      "firstRender": {
+        "medianMs": {
+          "before": 352.09999999403954,
+          "after": 350.3999999910593
+        },
+        "pairedWins": 6
+      }
+    }
+  }
+}

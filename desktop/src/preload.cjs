@@ -27,6 +27,7 @@ if (window.top === window) {
       ipcRenderer.on("desktop:ui-locale", listener);
       return () => ipcRenderer.removeListener("desktop:ui-locale", listener);
     },
+    getSavedEditorView: (projectId) => ipcRenderer.invoke("desktop:saved-editor-view", projectId),
     systemLanguages: languageArg
       ? JSON.parse(languageArg.slice("--shiguang-system-languages=".length))
       : navigator.languages,

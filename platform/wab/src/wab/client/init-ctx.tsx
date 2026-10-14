@@ -8,6 +8,7 @@ import * as DbMod from "@/wab/client/db";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
+import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ApiBranch, MainBranchId, ProjectId } from "@/wab/shared/ApiSchema";
 import { SiteInfo } from "@/wab/shared/SharedApi";
 import * as slotUtils from "@/wab/shared/SlotUtils";
@@ -30,10 +31,12 @@ export async function loadSiteDbCtx(
   appCtx: AppCtx,
   onRefreshUi: () => void,
   siteId: ProjectId,
+  loadTimings = new StudioLoadTimings(),
 ) {
   const baseApi = appCtx.api;
   const { bundler } = appCtx;
 
+  const projectDone = loadTimings.begin("project-fetch");
   let branch: ApiBranch | undefined = undefined;
   const match = parseProjectLocation(appCtx.history.location);
   if (match) {
@@ -68,6 +71,7 @@ export async function loadSiteDbCtx(
       throw e;
     }
   })();
+  projectDone();
   siteInfo.perms = perms;
   siteInfo.owner = owner;
   siteInfo.latestRevisionSynced = latestRevisionSynced;
@@ -75,6 +79,7 @@ export async function loadSiteDbCtx(
   siteInfo.appAuthProvider = appAuthProvider;
   siteInfo.isMainBranchProtected = isMainBranchProtected;
 
+  const unbundleDone = loadTimings.begin("model-unbundle");
   const bundle = getBundle(rev, appCtx.lastBundleVersion);
   const { site, depPkgs: depPkgVersions } = unbundleSite(
     bundler,
@@ -82,6 +87,7 @@ export async function loadSiteDbCtx(
     bundle,
     depPkgs,
   );
+  unbundleDone();
   appCtx.appConfig = getProjectFlags(site, appCtx.appConfig);
   spawn(checkDepPkgHosts(appCtx, siteInfo, depPkgVersions));
 

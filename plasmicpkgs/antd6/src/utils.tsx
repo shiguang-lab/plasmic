@@ -9,6 +9,7 @@ import {
 import { default as registerToken } from "@plasmicapp/host/registerToken";
 import React from "react";
 import { componentChildren, getComponentSection } from "./componentSections";
+import { getComponentThumbnail } from "./componentThumbnails";
 
 export type Registerable = {
   registerComponent: typeof registerComponent;
@@ -49,6 +50,7 @@ export function registerComponentHelper<P>(
   meta = {
     ...meta,
     displayName: child?.displayName ?? meta.displayName,
+    thumbnailUrl: meta.thumbnailUrl ?? getComponentThumbnail(meta.name),
     section: meta.section ?? getComponentSection(meta.name),
     parentComponentName: child ? `plasmic-antd6-${child.parent}` :
       isStandalone ? undefined : meta.parentComponentName,

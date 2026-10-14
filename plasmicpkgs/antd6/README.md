@@ -16,6 +16,9 @@ pages import the same wrappers from the package's `skinny` entry points.
 
 ## Design behavior
 
+- Visual registrations include self-contained SVG `thumbnailUrl` illustrations
+  for Insert. Add new component illustrations in `src/componentThumbnails.ts`;
+  static subcomponents use their own illustration or their parent's diagram.
 - ConfigProvider and App are supplied by the registered global context. Theme
   tokens use `--antd6-*` CSS variables and `antd6-*` registration names.
 - Date and time controls expose ISO strings; range controls expose arrays.

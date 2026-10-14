@@ -29,15 +29,17 @@
     "skinny"
   ],
   "scripts": {
-    "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/",
+    "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc --module esnext --moduleResolution bundler --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
     "test": "tsx --test src/*.test.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:interactions": "vitest run --config vitest.config.mts"
   },
   "dependencies": {
     "@react/ui": "file:../../vendor/react-ui",
-    "antd": "6.6.5"
+    "antd": "6.6.5",
+    "@shiguang-lab/plasmic-antd6": "file:../antd6"
   },
   "devDependencies": {
     "@plasmicapp/host": "2.0.19",

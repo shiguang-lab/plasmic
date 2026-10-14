@@ -420,7 +420,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     });
     this.props.studioCtx.viewportCtx = viewportCtx;
 
-    if (initArena) {
+    if (initArena && !this.props.studioCtx.hasInitialEditorView) {
       const initArenaChildren = getArenaFrames(initArena);
       if (initArenaChildren.length > 0) {
         this.initialFitFrameUuid = initArenaChildren[0].uuid;
@@ -2063,10 +2063,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     const { studioCtx, viewCtx } = this.props;
     const canvasLoading =
       this.props.canvasLoading ||
-      !studioCtx.initialRouteReady ||
-      getArenaFrames(studioCtx.currentArena).some(
-        (frame) => !studioCtx.tryGetViewCtxForFrame(frame),
-      );
+      !studioCtx.activeCanvasReady;
 
     const watchedPlayer = studioCtx.watchPlayerId
       ? studioCtx.multiplayerCtx.getPlayerDataById(studioCtx.watchPlayerId)
@@ -2093,7 +2090,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
             <TopBar />
             {!this.props.studioCtx.isLiveMode &&
               !this.props.studioCtx.isDocs && (
-                <TopFrameObserver studioReady={!canvasLoading} />
+                <TopFrameObserver studioReady={!canvasLoading && studioCtx.initialViewportReady} />
               )}
           </DevContainer>
 
@@ -2152,7 +2149,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                     ref={this.canvasScaler}
                     className="canvas-editor__scaler"
                   >
-                    {!this.props.canvasLoading &&
+                    {!this.props.canvasLoading && studioCtx.initialRouteReady &&
                       getSiteArenas(studioCtx.site, { noSorting: true }).map(
                         (arena) => (
                           <CanvasArenaShell
@@ -2221,7 +2218,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 </div>
                 {!studioCtx.focusedMode && <VariantsBar />}
               </Scrollbar>
-              {canvasLoading && <widgets.StudioLoading />}
+              {(canvasLoading || !studioCtx.initialViewportReady) && <widgets.StudioLoading />}
               <CanvasDndOverlay container={this.canvasContainer} />
               {this.viewCtx()?.editingTextContext() && (
                 <RichTextToolbar
@@ -2251,7 +2248,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 </>
               )}
             </div>
-            {!canvasLoading && <RightPane studioCtx={studioCtx} />}
+            {!this.props.canvasLoading &&
+              (studioCtx.focusedOrFirstViewCtx() ||
+                (studioCtx.showComments() && studioCtx.showCommentsPanel)) && (
+                <RightPane studioCtx={studioCtx} />
+              )}
             <FloatingWindowLayer>
               <CommentsDialogs studioCtx={studioCtx} />
             </FloatingWindowLayer>

@@ -35,6 +35,12 @@ Form 是标准字段的单一主要数据源，使用类型化 `Form.Item name`�
 
 ## 弹层与提交
 
+设计 wrapper 的触发器 Slot 必须按目标真实 API 转换。目标组件不接受 `trigger`
+时，将 Slot 内容保留在原行/条件作用域的相邻 JSX 中，通过按钮点击与原生关闭
+事件连接 React `open` 状态；不要把不存在的 prop 传给目标组件，也不要连按钮一起
+删除。保留已有点击、禁用、权限、取消默认行为及打开/关闭事件的业务效果。
+React UI 两个授权抽屉的具体规则见[组件契约](../libraries/react_ui/components/resource-authorization.md#native-react-code-generation)。
+
 弹层选择一种生命周期：常驻受控 `open`，或按编辑会话挂载、内部关闭后在退出动画完成时通知父级卸载。关闭动画期间保留标题/数据，不能点击取消立刻清空选中项；A → B 不残留 A 的值、错误或旧响应。使用当前版本公开生命周期 API，不假设 `destroyOnHidden` 清除所有外部 Form/Hook 状态。
 
 根据[所选组件库规范](../libraries/index.md)选择弹窗页脚及原生关闭行为，不套用其他库或主版本的默认值。X、取消、Esc、遮罩执行一致的关闭策略。脏状态比较当前有效保存值与会话基线，修改后还原能判为无变化；只按产品要求确认放弃。嵌套 Diff/确认弹层有独立开关和清理时机。

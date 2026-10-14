@@ -4,6 +4,37 @@ import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mock } from "vitest-mock-extended";
 
+it("opens comments visibly from hidden panels and clears left panels that would conceal the right pane", async () => {
+  const { studioCtx, dbCtx, history } = fakeStudioCtx();
+  try {
+    await Promise.resolve();
+    const revision = dbCtx.revisionNum;
+    const location = history.location;
+    studioCtx.switchLeftTab("libraries");
+    studioCtx.setShowAddDrawer(true);
+    studioCtx.togglePanels();
+    expect(studioCtx.panelsHidden).toBe(true);
+    expect(studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
+
+    studioCtx.toggleCommentsPanel();
+    expect(studioCtx.showCommentsPanel).toBe(true);
+    expect(studioCtx.panelsHidden).toBe(false);
+    expect(studioCtx.leftTabKey).toBeUndefined();
+    expect(studioCtx.leftTabGroup).toBeUndefined();
+    expect(studioCtx.showAddDrawer()).toBe(false);
+    expect(studioCtx.showInlineAddDrawer()).toBe(false);
+    expect(studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
+    expect(dbCtx.revisionNum).toBe(revision);
+    expect(history.location).toBe(location);
+
+    studioCtx.toggleCommentsPanel();
+    expect(studioCtx.showCommentsPanel).toBe(false);
+    expect(studioCtx.panelsHidden).toBe(false);
+  } finally {
+    studioCtx.dispose();
+  }
+});
+
 it.each(["tab", "insert", "inline insert", "group"])(
   "keeps AI mutually exclusive with %s",
   async (panel) => {

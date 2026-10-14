@@ -74,7 +74,10 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
                 { value: "all", label: t("All workspaces") },
                 ...appCtx.workspaces.map((item) => ({
                   value: item.id,
-                  label: item.name,
+                  label:
+                    item.id === appCtx.personalWorkspace?.id
+                      ? t("My Playground")
+                      : item.name,
                 })),
               ]}
             />

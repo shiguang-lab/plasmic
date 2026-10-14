@@ -5,6 +5,7 @@ import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { StudioFrame } from "@/wab/client/components/studio/studio-frame";
 import { ObserverLoadable } from "@/wab/client/components/widgets";
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
+import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { observer } from "mobx-react";
 import React from "react";
@@ -52,17 +53,24 @@ function HostFrameViewInitializer({
   projectId,
 }: ViewInitializerProps) {
   const hostFrameCtx = useHostFrameCtx();
-  const loader = () =>
-    importAndRetry(() => import("./studio-initializer")).then(
-      ({ StudioInitializer }) => (
-        <StudioInitializer
-          hostFrameCtx={hostFrameCtx}
-          appCtx={appCtx}
-          onRefreshUi={onRefreshUi}
-          projectId={projectId}
-        />
-      ),
+  const loader = () => {
+    const loadTimings = new StudioLoadTimings();
+    const importDone = loadTimings.begin("studio-module-import");
+    return importAndRetry(() => import("./studio-initializer")).then(
+      ({ StudioInitializer }) => {
+        importDone();
+        return (
+          <StudioInitializer
+            loadTimings={loadTimings}
+            hostFrameCtx={hostFrameCtx}
+            appCtx={appCtx}
+            onRefreshUi={onRefreshUi}
+            projectId={projectId}
+          />
+        );
+      },
     );
+  };
   const contents = (studioInitializer: React.ReactElement) => studioInitializer;
   return (
     <ObserverLoadable

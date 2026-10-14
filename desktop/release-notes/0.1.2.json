@@ -1,0 +1,7 @@
+{
+  "en": "- Speed up editor startup with parallel requests, target canvas priority and progressive rendering while preserving viewport restoration and undo.\n- Improve project previews, component thumbnails and library browsing.\n- Add ResourceAuthorization component registration and refine Ant Design canvas overlays.\n- Improve Desktop workspace restoration and login behavior.",
+  "zh-CN": "- 并行启动请求、优先加载目标画板并渐进回显，保持视口恢复和编辑撤销正常。\n- 优化项目预览、组件缩略图和组件库浏览。\n- 增加 ResourceAuthorization 组件注册，完善 Ant Design 画布浮层。\n- 优化桌面工作区恢复和登录行为。",
+  "zh-TW": "- 並行啟動請求、優先載入目標畫板並漸進顯示，保持視口恢復和編輯復原正常。\n- 改善專案預覽、元件縮圖和元件庫瀏覽。\n- 新增 ResourceAuthorization 元件註冊，完善 Ant Design 畫布浮層。\n- 改善桌面工作區恢復和登入行為。",
+  "ja": "- 起動リクエストの並列化、対象キャンバスの優先読み込みと段階的描画により、ビューポート復元と編集の取り消しを保ちながら起動を高速化。\n- プロジェクトプレビュー、コンポーネントのサムネイルとライブラリ閲覧を改善。\n- ResourceAuthorizationの登録を追加し、Ant Designのキャンバスオーバーレイを改善。\n- Desktopのワークスペース復元とログイン動作を改善。",
+  "ko": "- 시작 요청 병렬화, 대상 캔버스 우선 로딩과 점진적 렌더링으로 뷰포트 복원과 실행 취소를 유지하면서 시작 속도를 개선했습니다.\n- 프로젝트 미리보기, 컴포넌트 썸네일과 라이브러리 탐색을 개선했습니다.\n- ResourceAuthorization 등록을 추가하고 Ant Design 캔버스 오버레이를 개선했습니다.\n- Desktop 작업 공간 복원과 로그인 동작을 개선했습니다."
+}

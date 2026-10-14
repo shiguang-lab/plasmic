@@ -5,7 +5,7 @@ var Ant = require('antd');
 var React = require('react');
 var registerAdditional = require('./registerAdditional.cjs.js');
 var registerTooltip = require('./registerTooltip.cjs.js');
-var utils = require('./utils-DlS9-CF8.cjs.js');
+var utils = require('./utils-DMWa5SeG.cjs.js');
 require('dayjs');
 require('./canvas-overlay-BCQmyJjQ.cjs.js');
 require('@plasmicapp/host/registerComponent');

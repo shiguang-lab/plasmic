@@ -1,7 +1,8 @@
 import AllProjectsPage from "@/wab/client/components/dashboard/AllProjectsPage";
+import { setLanguagePreference } from "@/wab/client/i18n";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import * as React from "react";
 
@@ -45,11 +46,10 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
     workspaces: [
       { id: "workspace1", name: "Workspace one" },
       { id: "workspace2", name: "Workspace two" },
+      { id: "personal", name: "My playground" },
+      { id: "custom", name: "My playground" },
     ],
   }),
-}));
-vi.mock("@/wab/client/i18n", () => ({
-  useI18n: () => ({ t: (message: string) => message }),
 }));
 vi.mock("@/wab/client/components/ProjectListItem", () => ({
   default: ({ project }: { project: { name: string } }) => (
@@ -60,8 +60,14 @@ vi.mock("@/wab/client/components/NewProjectModal", () => ({
   default: () => <div>Project creation dialog</div>,
 }));
 
+beforeEach(() => {
+  setLanguagePreference("en");
+});
+
 afterEach(() => {
   cleanup();
+  setLanguagePreference("en");
+  window.localStorage.clear();
   mocks.failed = false;
   mocks.loading = false;
   mocks.cached = false;
@@ -78,6 +84,46 @@ function renderProjects() {
   );
   return history;
 }
+
+it.each([
+  ["zh-CN", "个人工作区"],
+  ["zh-TW", "我的試驗場"],
+  ["ja", "マイプレイグラウンド"],
+  ["ko", "내 플레이그라운드"],
+] as const)(
+  "localizes the personal workspace in %s while preserving custom names",
+  async (locale, personalLabel) => {
+    renderProjects();
+    fireEvent.mouseDown(screen.getByLabelText("Workspace"));
+    expect(
+      await screen.findByText("My Playground", {
+        selector: ".ant-select-item-option-content",
+      }),
+    ).toBeInTheDocument();
+
+    act(() => setLanguagePreference(locale));
+    expect(
+      screen.getByText(personalLabel, {
+        selector: ".ant-select-item-option-content",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("My playground", {
+        selector: ".ant-select-item-option-content",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Workspace one", {
+        selector: ".ant-select-item-option-content",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("My Playground", {
+        selector: ".ant-select-item-option-content",
+      }),
+    ).toBeNull();
+  },
+);
 
 it("keeps workspace filtering and search when changing the project display", async () => {
   renderProjects();

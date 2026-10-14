@@ -3,9 +3,9 @@ import {
   StoreLibrary,
 } from "@/wab/client/components/insert-panel/storeLibraries";
 import { useI18n } from "@/wab/client/i18n";
-import { RightOutlined, SearchOutlined } from "@ant-design/icons";
+import { RightOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Avatar, Button, Empty, Input, Select, Tag, Typography } from "antd";
+import { Avatar, Button, Empty, Input, Select, Space, Tag, Typography } from "antd";
 import React from "react";
 
 const sectionDescriptions = [
@@ -57,26 +57,32 @@ export function StoreLibraryCatalog({
   return (
     <div className="resource-panel-content store-library-catalog">
       <div className="store-library-filters">
-        <Input
-          prefix={<SearchOutlined />}
-          placeholder={t("Search libraries")}
-          aria-label={t("Search libraries")}
-          allowClear
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        <Select
-          aria-label={t("Library category")}
-          value={category}
-          onChange={setCategory}
-          options={[
-            { value: "", label: t("All libraries") },
-            ...sections.map(({ category: value }) => ({
-              value,
-              label: label(value),
-            })),
-          ]}
-        />
+        <Space.Compact block>
+          <Select
+            className="store-library-category"
+            aria-label={t("Library category")}
+            value={category}
+            onChange={setCategory}
+            popupMatchSelectWidth={false}
+            options={[
+              { value: "", label: t("All libraries") },
+              ...sections.map(({ category: value }) => ({
+                value,
+                label: label(value),
+              })),
+            ]}
+          />
+          <Input.Search
+            className="store-library-query"
+            placeholder={t("Search libraries")}
+            aria-label={t("Search libraries")}
+            allowClear
+            enterButton
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onSearch={setQuery}
+          />
+        </Space.Compact>
       </div>
       <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
         <div className="store-library-list">

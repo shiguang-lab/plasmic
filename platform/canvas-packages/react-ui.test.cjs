@@ -12,11 +12,16 @@ for (const suffix of ["", "-v2"]) {
       pretendToBeVisual: true,
     });
     const win = dom.window;
+    win.matchMedia = (media) => ({
+      media, matches: false,
+      addListener() {}, removeListener() {},
+      addEventListener() {}, removeEventListener() {},
+    });
     const load = (file) =>
       win.eval(fs.readFileSync(path.join(base, file), "utf8"));
     const entries = () =>
       (win.__PlasmicComponentRegistry ?? []).filter(
-        (x) => x.meta.name === "plasmic-react-ui-action-group",
+        (x) => x.meta.name.startsWith("plasmic-react-ui-"),
       );
     let root;
     try {
@@ -30,7 +35,11 @@ for (const suffix of ["", "-v2"]) {
         "Default host and Overseas must not register React UI",
       );
       load(`canvas-packages/build/react-ui${suffix}.js`);
-      assert.equal(entries().length, 1);
+      assert.deepEqual(Array.from(entries(), (entry) => entry.meta.name).sort(), [
+        "plasmic-react-ui-action-group",
+        "plasmic-react-ui-resource-authorization",
+        "plasmic-react-ui-resource-authorization-record",
+      ]);
       assert.equal(
         entries()[0].meta.importPath,
         "@shiguang-lab/plasmic-react-ui/skinny/registerActionGroup",
@@ -55,6 +64,14 @@ for (const suffix of ["", "-v2"]) {
       assert.match(text, /编辑/);
       assert.match(text, /更多/);
       assert.doesNotMatch(text, /复制|删除/);
+      for (const entry of entries().slice(1)) {
+        assert.deepEqual(JSON.parse(JSON.stringify(entry.meta.canvasOverlay)), { triggerSlot: "trigger" });
+        assert.equal(entry.meta.props.trigger.type, "slot");
+        assert.equal(entry.meta.props.previewOpen.editOnly, true);
+        assert.equal(entry.meta.states.open.onChangeProp, "onOpenChange");
+        assert.equal(entry.meta.importPath,
+          "@shiguang-lab/plasmic-react-ui/skinny/registerResourceAuthorization");
+      }
     } finally {
       if (root) {
         win.__Sub.ReactDOM.flushSync(() => root.unmount());

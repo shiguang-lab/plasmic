@@ -422,37 +422,45 @@ export async function withHostFrameCache<T>(
   return result;
 }
 
+async function getAppCtxData(
+  ctx: Pick<NonAuthCtx, "api" | "topFrameApi">,
+): Promise<AppCtxResponse> {
+  if (isHostFrame()) {
+    const team = await ctx.topFrameApi?.getCurrentTeam();
+    return { workspaces: [], teams: team ? [team] : [], perms: [] };
+  }
+  return ctx.api.getAppCtx();
+}
+
+/** Fetch startup data without applying config or constructing an AppCtx. */
+export async function loadAppCtxData(
+  ctx: Pick<NonAuthCtx, "api" | "topFrameApi">,
+  useCaching: boolean,
+) {
+  return Promise.all([
+    withHostFrameCache("selfInfo", useCaching, ctx.api, () =>
+      swallowAsync(ctx.api.getSelfInfo()),
+    ),
+    withHostFrameCache("appConfig", useCaching, ctx.api, () =>
+      ctx.api.getAppConfig(),
+    ),
+    getAppCtxData(ctx),
+  ]);
+}
+
 export async function loadAppCtx(
   nonAuthCtx: NonAuthCtx,
   useCaching: boolean = false,
+  initialData?: Awaited<ReturnType<typeof loadAppCtxData>>,
 ) {
   const baseApi = nonAuthCtx.api;
 
-  async function getAppCtx(): Promise<AppCtxResponse> {
-    if (isHostFrame()) {
-      // We fetch the current team from the top frame so that
-      // feature checks like chatCopilotEnabled() can access team from appCtx.
-      const team = await nonAuthCtx.topFrameApi?.getCurrentTeam();
-      return { workspaces: [], teams: team ? [team] : [], perms: [] };
-    }
-
-    return baseApi.getAppCtx();
-  }
-
-  async function load() {
+  async function load(data?: Awaited<ReturnType<typeof loadAppCtxData>>) {
     const [
       selfInfo,
       { config: dbConfigOverrides },
       { teams, workspaces, perms },
-    ] = await Promise.all([
-      withHostFrameCache("selfInfo", useCaching, baseApi, () =>
-        swallowAsync(baseApi.getSelfInfo()),
-      ),
-      withHostFrameCache("appConfig", useCaching, baseApi, () =>
-        baseApi.getAppConfig(),
-      ),
-      getAppCtx(),
-    ]);
+    ] = data ?? (await loadAppCtxData(nonAuthCtx, useCaching));
 
     const user = selfInfo?.user || null;
     if (isHostFrame() && user) {
@@ -499,11 +507,11 @@ export async function loadAppCtx(
   }
 
   async function reloadAppCtx() {
-    Object.assign(appCtx, await getAppCtx());
+    Object.assign(appCtx, await getAppCtxData(nonAuthCtx));
     return nonAuthCtx.change(() => {});
   }
 
-  const loaded = await load();
+  const loaded = await load(initialData);
 
   const appCtx = new AppCtx({
     api: baseApi,

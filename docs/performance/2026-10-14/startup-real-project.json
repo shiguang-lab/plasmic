@@ -1,0 +1,445 @@
+{
+  "project": {
+    "id": "iqBeCQWLFWvGwftodkcHbN",
+    "name": "海外客群管理平台 P0 原型",
+    "revision": 16,
+    "artboardCount": 4
+  },
+  "build": {
+    "revision": "bcdbe494804ea3854892c2134695f6418cafaac5",
+    "dirty": true,
+    "sourceHash": "7c795c272a940300064297c2719ff318652b87184b6a555ec16a144c3c14249e",
+    "builtAt": "2026-10-14T12:23:06.915Z",
+    "artifactHash": "198f26a5b606ef55708f8eba26f28367612282483eddb7a872a1854d00a2ccc5"
+  },
+  "methodology": {
+    "backend": "Live authenticated NAS APIs; no recorded model fixtures or network response replay.",
+    "baseline": "Same compiled frontend with diagnostic injection restoring FIFO/idle iframe loading and the all-ViewCtx global loading gate. New single-frame skeleton and instrumentation remain in both modes.",
+    "optimized": "Target-first iframe loading and target-first-render plus restored-viewport reveal gate.",
+    "cold": "New Electron process and empty Chromium HTTP/V8 cache profile, seeded only with login cookies and saved editor viewport. OS file cache and NAS server caches were not cleared.",
+    "reopen": "Same Electron process/session, navigate to about:blank then reopen the same project. Not a dashboard-card-click benchmark.",
+    "timer": "From issuing startDesktop (cold) or loadURL (reopen), until a restored canvas with at least one actually rendered visible artboard is detected by requestAnimationFrame. Initial Electron engine startup before app.whenReady is excluded.",
+    "roundsPerStrategy": 3,
+    "order": [
+      "baseline-1",
+      "optimized-1",
+      "optimized-2",
+      "baseline-2",
+      "baseline-3",
+      "optimized-3"
+    ],
+    "samplesPerStrategy": 6,
+    "instrumentation": "Same CDP pre-document instrumentation for both modes; tracing disabled in the timed series.",
+    "confidence": "Small local sample set; gains describe these successful matched runs, not a production SLA."
+  },
+  "results": {
+    "cold": {
+      "baselineMedianMs": 6881,
+      "optimizedMedianMs": 6029,
+      "savedMs": 852,
+      "reductionPercent": 12.38,
+      "baselineSamplesMs": [
+        6584,
+        6881,
+        7178
+      ],
+      "optimizedSamplesMs": [
+        6176,
+        6029,
+        5946
+      ]
+    },
+    "reopen": {
+      "baselineMedianMs": 4704,
+      "optimizedMedianMs": 4281,
+      "savedMs": 423,
+      "reductionPercent": 8.99,
+      "baselineSamplesMs": [
+        4704,
+        4941,
+        4473
+      ],
+      "optimizedSamplesMs": [
+        4281,
+        4563,
+        4074
+      ]
+    }
+  },
+  "stageMediansMs": {
+    "cold": {
+      "studio-module-import": 23,
+      "startup-preferences": 3.9,
+      "project-fetch": 1058.5,
+      "model-unbundle": 89.8,
+      "studio-context": 28.8,
+      "code-component-sync": 27.8,
+      "initial-route": 583.9,
+      "initial-viewport": 2005.3,
+      "target:frame-host-document": 47.8,
+      "target:frame-host-ready": 6.2,
+      "target:frame-runtime": 42,
+      "target:frame-component-packages": 327.8,
+      "target:frame-first-render": 394.4,
+      "pre-Studio-bootstrap-approximate": 2809.3,
+      "target-rendered-to-viewport-restored": 536.8
+    },
+    "reopen": {
+      "studio-module-import": 16.7,
+      "startup-preferences": 4.1,
+      "project-fetch": 1118,
+      "model-unbundle": 75.2,
+      "studio-context": 22.1,
+      "code-component-sync": 37,
+      "initial-route": 470.5,
+      "initial-viewport": 1402.7,
+      "target:frame-host-document": 59.6,
+      "target:frame-host-ready": 5.5,
+      "target:frame-runtime": 8.1,
+      "target:frame-component-packages": 16.7,
+      "target:frame-first-render": 359.8,
+      "pre-Studio-bootstrap-approximate": 1566.8,
+      "target-rendered-to-viewport-restored": 436.5
+    },
+    "interpretation": "Initial-route and initial-viewport durations overlap other stages and must not be summed. Pre-Studio time is approximated from the reveal clock offset; includes native startup access/auth checks, parent UI initialization and host-frame bootstrap."
+  },
+  "successfulSeriesChecks": {
+    "allTwelveOpensPassed": true,
+    "savedScaleAndPanRestored": true,
+    "sameRevisionAllRounds": true,
+    "designWritesAttempted": 0,
+    "rendererErrors": 0
+  },
+  "editingChecks": {
+    "optimized-prop-edit": {
+      "selection": true,
+      "registeredPropEdit": true,
+      "propName": "productName",
+      "rendered": true,
+      "undoExactModel": true,
+      "viewportRestored": true,
+      "componentUuid": "20ogVdefnlyb",
+      "elementUuid": "lqqzzaSa0OQE",
+      "serverWrites": 0
+    },
+    "optimized-non-first": {
+      "selection": true,
+      "registeredPropEdit": true,
+      "propName": "productName",
+      "rendered": true,
+      "undoExactModel": true,
+      "viewportRestored": true,
+      "componentUuid": "fyjLkD2jIGjk",
+      "elementUuid": "pAOOcnCVxdOW",
+      "serverWrites": 0
+    },
+    "optimized-final-undo": {
+      "selection": true,
+      "registeredPropEdit": true,
+      "propName": "productName",
+      "rendered": true,
+      "undoExactModel": true,
+      "undoRendered": true,
+      "viewportRestored": true,
+      "componentUuid": "fyjLkD2jIGjk",
+      "elementUuid": "pAOOcnCVxdOW",
+      "serverWrites": 0
+    }
+  },
+  "diagnosticOutliers": [
+    {
+      "run": "optimized-diagnostic",
+      "status": "FAIL",
+      "harnessError": "Global canvas did not reveal",
+      "coldVisibleCanvasMs": 7259,
+      "httpErrors": [
+        {
+          "phase": "reopen",
+          "path": "/api/v1/hosts",
+          "status": 502,
+          "headersMs": 3064
+        }
+      ],
+      "includedInMedians": false,
+      "explanation": "Extra trace/acceptance or different-viewport runs. Two harness attempts found no native text; acceptance was corrected to the actual registered AppShell productName prop, without changing the project."
+    },
+    {
+      "run": "optimized-edit-check",
+      "status": "FAIL",
+      "harnessError": "Global canvas did not reveal",
+      "coldVisibleCanvasMs": 9761,
+      "httpErrors": [
+        {
+          "phase": "reopen",
+          "path": "/api/v1/latest-bundle-version",
+          "status": 502,
+          "headersMs": 3073
+        }
+      ],
+      "includedInMedians": false,
+      "explanation": "Extra trace/acceptance or different-viewport runs. Two harness attempts found no native text; acceptance was corrected to the actual registered AppShell productName prop, without changing the project."
+    },
+    {
+      "run": "optimized-native-edit",
+      "status": "FAIL",
+      "harnessError": "No native text available for reversible edit verification",
+      "coldVisibleCanvasMs": 14482,
+      "httpErrors": [
+        {
+          "phase": "cold",
+          "path": "/api/auth/session",
+          "status": 502,
+          "headersMs": 3062
+        }
+      ],
+      "includedInMedians": false,
+      "explanation": "Extra trace/acceptance or different-viewport runs. Two harness attempts found no native text; acceptance was corrected to the actual registered AppShell productName prop, without changing the project."
+    },
+    {
+      "run": "optimized-prop-edit",
+      "status": "PASS",
+      "harnessError": null,
+      "coldVisibleCanvasMs": 11235,
+      "httpErrors": [
+        {
+          "phase": "cold",
+          "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "status": 503,
+          "headersMs": 390
+        }
+      ],
+      "includedInMedians": false,
+      "explanation": "Extra trace/acceptance or different-viewport runs. Two harness attempts found no native text; acceptance was corrected to the actual registered AppShell productName prop, without changing the project."
+    },
+    {
+      "run": "baseline-non-first",
+      "status": "FAIL",
+      "harnessError": "Global canvas did not reveal",
+      "coldVisibleCanvasMs": null,
+      "httpErrors": [
+        {
+          "phase": "cold",
+          "path": "/api/v1/hosts",
+          "status": 502,
+          "headersMs": 3061
+        }
+      ],
+      "includedInMedians": false,
+      "explanation": "Extra trace/acceptance or different-viewport runs. Two harness attempts found no native text; acceptance was corrected to the actual registered AppShell productName prop, without changing the project."
+    }
+  ],
+  "cpuTrace": {
+    "run": "optimized-diagnostic cold only",
+    "includedInMedians": false,
+    "studioRendererSampledNonIdleCpuMs": 3550.6,
+    "scriptExecExclusiveSampledCpuMs": 426,
+    "garbageCollectionExclusiveSampledCpuMs": 179.7,
+    "note": "CPU trace adds overhead and includes background work; exclusive CPU totals must not be added to elapsed phase durations."
+  },
+  "recommendations": [
+    "Prioritize NAS/API reliability and reduce or overlap sequential pre-Studio bootstrap API work; transient 502s prevent startup entirely.",
+    "Avoid starting non-target iframe initialization while the target first render and viewport restoration are still using the main thread.",
+    "Reduce per-iframe component/runtime script execution and duplicate background dependency metadata requests, preserving registration and runtime prop contracts."
+  ],
+  "nonFirstTargetCheck": {
+    "status": "PASS",
+    "targetFrameUuid": "q4gaQqly-YIz",
+    "authoredPosition": 4,
+    "actualLoadOrder": [
+      "q4gaQqly-YIz",
+      "HKxN7vVXvuGQ",
+      "rhooatPnqwVA",
+      "vuPysnS2h1Nm"
+    ],
+    "targetLoadedFirst": true,
+    "savedViewport": {
+      "arenaId": "REQ075 · Desktop",
+      "arenaType": "custom",
+      "frameUuid": "q4gaQqly-YIz",
+      "scale": 0.3557330827067669,
+      "scroll": {
+        "x": 1653,
+        "y": 1050
+      }
+    },
+    "actualViewport": {
+      "arenaId": "REQ075 · Desktop",
+      "arenaType": "custom",
+      "frameUuid": "q4gaQqly-YIz",
+      "scale": 0.3557330827067669,
+      "scroll": {
+        "x": 1653,
+        "y": 1050
+      }
+    },
+    "visibleCanvasMs": 7830,
+    "includedInMedians": false
+  },
+  "sourcemappedCpuHotspots": [
+    {
+      "fn": "to",
+      "ms": 196,
+      "original": {
+        "source": "../../../src/wab/client/dom-utils.ts",
+        "line": 826,
+        "column": 16,
+        "name": "scriptExec"
+      }
+    },
+    {
+      "fn": "to",
+      "ms": 153,
+      "original": {
+        "source": "../../../src/wab/client/dom-utils.ts",
+        "line": 826,
+        "column": 16,
+        "name": "scriptExec"
+      }
+    },
+    {
+      "fn": "",
+      "ms": 149,
+      "original": {
+        "source": "../../../../node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+        "line": 169,
+        "column": 35,
+        "name": null
+      }
+    },
+    {
+      "fn": "to",
+      "ms": 45,
+      "original": {
+        "source": "../../../src/wab/client/dom-utils.ts",
+        "line": 826,
+        "column": 16,
+        "name": "scriptExec"
+      }
+    },
+    {
+      "fn": "to",
+      "ms": 32,
+      "original": {
+        "source": "../../../src/wab/client/dom-utils.ts",
+        "line": 826,
+        "column": 16,
+        "name": "scriptExec"
+      }
+    },
+    {
+      "fn": "",
+      "ms": 15,
+      "original": {
+        "source": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js",
+        "line": 9180,
+        "column": 0,
+        "name": null
+      }
+    },
+    {
+      "fn": "n",
+      "ms": 15,
+      "original": {
+        "source": "../../../../src/wab/client/components/top-bar/TopBar.tsx",
+        "line": 156,
+        "column": 19,
+        "name": null
+      }
+    },
+    {
+      "fn": "t$",
+      "ms": 14,
+      "original": {
+        "source": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js",
+        "line": 6571,
+        "column": 9,
+        "name": null
+      }
+    },
+    {
+      "fn": "",
+      "ms": 13,
+      "original": {
+        "source": "../../../../node_modules/.pnpm/mobx@6.13.6/node_modules/mobx/dist/mobx.esm.js",
+        "line": 3689,
+        "column": 17,
+        "name": null
+      }
+    },
+    {
+      "fn": "H.strictDirective",
+      "ms": 12,
+      "original": {
+        "source": "../../../../node_modules/.pnpm/acorn@8.16.0/node_modules/acorn/dist/acorn.mjs",
+        "line": 692,
+        "column": 23,
+        "name": null
+      }
+    },
+    {
+      "fn": "",
+      "ms": 11,
+      "original": {
+        "source": "../../../../src/wab/client/components/canvas/CanvasFrame/CanvasHeader.tsx",
+        "line": 69,
+        "column": 18,
+        "name": null
+      }
+    },
+    {
+      "fn": "u",
+      "ms": 11,
+      "original": {
+        "source": "../../../../node_modules/.pnpm/@react-aria+i18n@3.12.13_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/@react-aria/i18n/dist/useDefaultLocale.mjs",
+        "line": 20,
+        "column": 9,
+        "name": null
+      }
+    }
+  ],
+  "checksScope": "Selection and registered AppShell productName editing through the existing validated Studio tool/model change pipeline; actual rendered canvas checked. Does not constitute an exhaustive mouse, keyboard, drag/drop or every-control acceptance run.",
+  "productionDeployment": "No publication, installation or NAS service changes. The installed Plasmic app remains on its previous build; tests used current compiled assets in an isolated native diagnostic window.",
+  "originalAppObserved": {
+    "ready": true,
+    "projectId": "iqBeCQWLFWvGwftodkcHbN",
+    "revision": 16,
+    "changeCounter": 0,
+    "selectedElementUuids": [],
+    "editorView": {
+      "arenaId": "REQ075 · Desktop",
+      "arenaType": "custom",
+      "frameUuid": null,
+      "scale": 0.3557330827067669,
+      "scroll": {
+        "x": 1399,
+        "y": 808
+      }
+    },
+    "note": "Read-only check of the existing installed app. No commands mutated that app; any user pan changes during the run were retained."
+  },
+  "artifacts": {
+    "rawMatchedReports": [
+      "baseline-1.json",
+      "optimized-1.json",
+      "optimized-2.json",
+      "baseline-2.json",
+      "baseline-3.json",
+      "optimized-3.json"
+    ],
+    "editorVerificationReports": [
+      "optimized-prop-edit.json",
+      "optimized-non-first.json",
+      "optimized-final-undo.json"
+    ],
+    "screenshots": [
+      "optimized-cold.png",
+      "non-first-target-restored.png"
+    ],
+    "privateTracePath": "/tmp/plasmic-real-startup-20261014/optimized-diagnostic/startup.trace.json"
+  },
+  "measurementSensitivity": {
+    "note": "One reopening screenshot was returned at 1x PNG representation while other matched screenshots were 2x. PNGs were not used as timers; CSS viewport/DPR were not explicitly logged in these initial matched runs.",
+    "optimizedReopenMedianWithoutThatSampleMs": 4422,
+    "reductionPercentWithoutThatSample": 6.0
+  }
+}

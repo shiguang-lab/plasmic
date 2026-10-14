@@ -4,6 +4,7 @@ import {
   NonAuthCtx,
   NonAuthCtxContext,
   loadAppCtx,
+  loadAppCtxData,
   useNonAuthCtx,
   withHostFrameCache,
 } from "@/wab/client/app-ctx";
@@ -521,24 +522,28 @@ export function Root() {
     const topFrameApi = hostFrameCtx?.topFrameApi || null;
     const bundler = new FastBundler();
 
+    const appData = loadAppCtxData({ api, topFrameApi }, true).then(
+      (value) => ({ status: "fulfilled" as const, value }),
+      (reason) => ({ status: "rejected" as const, reason }),
+    );
     const lastBundleVersion = await withHostFrameCache(
-      "bundle",
-      true,
-      api,
-      async () => {
+      "bundle", true, api, async () => {
         const { latestBundleVersion } = await api.getLastBundleVersion();
         return latestBundleVersion;
       },
     );
-    return new NonAuthCtx({
-      api,
-      topFrameApi,
-      history,
-      router: new Router(history),
-      change: forceUpdate,
-      bundler,
-      lastBundleVersion,
-    });
+    return {
+      appData,
+      nonAuthCtx: new NonAuthCtx({
+        api,
+        topFrameApi,
+        history,
+        router: new Router(history),
+        change: forceUpdate,
+        bundler,
+        lastBundleVersion,
+      }),
+    };
   };
   return (
     <widgets.Loadable
@@ -547,8 +552,12 @@ export function Root() {
       failureContents={(retry) => (
         <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />
       )}
-      contents={(nonAuthCtx) => (
-        <InitializedRoot nonAuthCtx={nonAuthCtx} forceUpdate={forceUpdate} />
+      contents={({ nonAuthCtx, appData }) => (
+        <InitializedRoot
+          nonAuthCtx={nonAuthCtx}
+          appData={appData}
+          forceUpdate={forceUpdate}
+        />
       )}
     />
   );
@@ -556,13 +565,22 @@ export function Root() {
 
 function InitializedRoot({
   nonAuthCtx,
+  appData,
   forceUpdate,
 }: {
   nonAuthCtx: NonAuthCtx;
+  appData: Promise<PromiseSettledResult<Awaited<ReturnType<typeof loadAppCtxData>>>>;
   forceUpdate: () => void;
 }) {
+  const initialData = React.useRef<typeof appData | undefined>(appData);
   const loader = async () => {
-    const appCtx = await loadAppCtx(nonAuthCtx, true);
+    const dataPromise = initialData.current;
+    initialData.current = undefined;
+    const data = dataPromise ? await dataPromise : undefined;
+    if (data?.status === "rejected") {
+      throw data.reason;
+    }
+    const appCtx = await loadAppCtx(nonAuthCtx, true, data?.value);
     hackyCast(window).gAppCtx = appCtx;
 
     if (appCtx.selfInfo) {

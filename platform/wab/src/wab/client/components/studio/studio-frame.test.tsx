@@ -44,7 +44,8 @@ afterEach(cleanup);
 it("preserves the visible skeleton through metadata, host registration and dialogs until the canvas is ready", async () => {
   const { appCtx, api } = fakeAppCtx();
   appCtx.appConfigOverrides = {};
-  appCtx.history.replace("/projects/project");
+  appCtx.history.replace("/projects/project?branch=feature");
+  api.listBranchesForProject.mockResolvedValue({ branches: [] });
   const project = mock<ApiProject>({
     id: "project" as ProjectId,
     name: "Project",
@@ -77,6 +78,8 @@ it("preserves the visible skeleton through metadata, host registration and dialo
       </HistoryProvider>,
     );
   const rendered = render(view());
+  // Branch lookup starts while the project metadata request is still pending.
+  expect(api.listBranchesForProject).toHaveBeenCalledWith(project.id);
   const skeleton = screen.getByRole("status");
   const firstInput = skeleton.querySelector(".ant-skeleton-input");
   await act(async () => releaseProject());
