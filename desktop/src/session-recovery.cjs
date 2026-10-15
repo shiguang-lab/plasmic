@@ -1,6 +1,12 @@
 const { AUTH_PATH } = require("./unified-auth-window.cjs");
 
-function createSessionRecovery({ session, studioOrigin, auth }) {
+function createSessionRecovery({
+  session,
+  studioOrigin,
+  auth,
+  restore,
+  isActive = () => true,
+}) {
   let pending;
   return async function recover(response, requestUrl) {
     const request = new URL(requestUrl);
@@ -12,10 +18,16 @@ function createSessionRecovery({ session, studioOrigin, auth }) {
     ) {
       return;
     }
-    if (pending) return pending;
-    const current = new URL(auth.window.webContents.getURL());
-    if (current.origin !== studioOrigin || current.pathname === AUTH_PATH)
+    if (!isActive()) {
       return;
+    }
+    if (pending) {
+      return pending;
+    }
+    const current = new URL(auth.window.webContents.getURL());
+    if (current.origin !== studioOrigin || current.pathname === AUTH_PATH) {
+      return;
+    }
     pending = (async () => {
       // A resource permission failure also uses 401. Only IAM can confirm that
       // the shared login session has expired; never clear a valid session.
@@ -33,13 +45,26 @@ function createSessionRecovery({ session, studioOrigin, auth }) {
       } catch {
         return;
       }
-      if (!expired || auth.window.isDestroyed()) return;
+      if (!expired || auth.window.isDestroyed()) {
+        return;
+      }
+      if (restore) {
+        try {
+          if (await restore()) {
+            return true;
+          }
+        } catch {
+          // An unavailable keyring, network, or IAM service is not a sign-out.
+          return;
+        }
+      }
       const destination = new URL(auth.window.webContents.getURL());
       if (
         destination.origin !== studioOrigin ||
         destination.pathname === AUTH_PATH
-      )
+      ) {
         return;
+      }
       const login = new URL("/login", studioOrigin);
       login.searchParams.set(
         "continueTo",
@@ -48,7 +73,7 @@ function createSessionRecovery({ session, studioOrigin, auth }) {
       await auth.show(login.toString(), { sessionExpired: true });
     })();
     try {
-      await pending;
+      return await pending;
     } finally {
       pending = undefined;
     }

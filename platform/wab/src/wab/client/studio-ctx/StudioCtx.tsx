@@ -1,6 +1,3 @@
-import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
-import type { SavedEditorView } from "@/wab/client/frame-ctx/top-frame-api";
-import { PROTOTYPE_TOOL_META as prototypeToolMeta } from "@/wab/shared/copilot/prototype-tools";
 import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
 import { DragInsertManager } from "@/wab/client/Dnd";
 import {
@@ -88,6 +85,7 @@ import {
 } from "@/wab/client/dom-utils";
 import { fixupChrome, fixupForChanges } from "@/wab/client/fixes-post-change";
 import { FontManager } from "@/wab/client/fonts";
+import type { SavedEditorView } from "@/wab/client/frame-ctx/top-frame-api";
 import {
   getRootSubHostVersion,
   getRootSubReact,
@@ -110,6 +108,7 @@ import {
 } from "@/wab/client/studio-ctx/comments-ctx";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { MultiplayerCtx } from "@/wab/client/studio-ctx/multiplayer-ctx";
+import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { UiActionBus } from "@/wab/client/studio-ctx/ui/UiActionBus";
 import { UiId, parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import {
@@ -148,6 +147,7 @@ import {
   ApiUser,
   ArenaType,
   BranchId,
+  CopilotChatOpenOpts,
   CopilotImage,
   CopilotInteractionId,
   MainBranchId,
@@ -259,6 +259,7 @@ import {
 } from "@/wab/shared/component-arenas";
 import { RootComponentVariantFrame } from "@/wab/shared/component-frame";
 import type { AiOutputFormat } from "@/wab/shared/copilot/copilot-tool-types";
+import { PROTOTYPE_TOOL_META as prototypeToolMeta } from "@/wab/shared/copilot/prototype-tools";
 import {
   CodeComponent,
   ComponentType,
@@ -442,7 +443,6 @@ import defer from "lodash/defer";
 import isEqual from "lodash/isEqual";
 import orderBy from "lodash/orderBy";
 import {
-  IObservableValue,
   action,
   autorun,
   flow,
@@ -654,6 +654,11 @@ export enum RightTabKey {
 }
 
 const RECENT_ARENAS_LIMIT = 5;
+
+export type LeftPanel =
+  | { type: "tab"; tab: LeftTabKey }
+  | { type: "insert"; inline: boolean }
+  | { type: "ai"; opts?: CopilotChatOpenOpts };
 
 export class StudioCtx extends WithDbCtx {
   //
@@ -1648,13 +1653,17 @@ export class StudioCtx extends WithDbCtx {
   get activeCanvasFrame(): ArenaFrame | undefined {
     const frames = getArenaFrames(this.currentArena);
     const focused = this.focusedFrame() ?? this.focusedViewCtx()?.arenaFrame();
-    return (focused && frames.includes(focused) ? focused : undefined) ?? frames[0];
+    return (
+      (focused && frames.includes(focused) ? focused : undefined) ?? frames[0]
+    );
   }
 
   get activeCanvasReady() {
     const frame = this.activeCanvasFrame;
-    return this.initialRouteReady &&
-      (!frame || !!this.tryGetViewCtxForFrame(frame)?.initialRenderReady);
+    return (
+      this.initialRouteReady &&
+      (!frame || !!this.tryGetViewCtxForFrame(frame)?.initialRenderReady)
+    );
   }
 
   private activeCanvasViewCtx(): ViewCtx | undefined {
@@ -1663,9 +1672,12 @@ export class StudioCtx extends WithDbCtx {
 
   recordCanvasFrameRendered(frame: ArenaFrame) {
     this.loadTimings.mark("frame-rendered", frame.uuid);
-    if (this.initialRouteReady && this.initialCanvasFrames.every(
-      (item) => this.loadTimings.has("frame-rendered", item.uuid)
-    )) {
+    if (
+      this.initialRouteReady &&
+      this.initialCanvasFrames.every((item) =>
+        this.loadTimings.has("frame-rendered", item.uuid),
+      )
+    ) {
       this.loadTimings.report("all-frames-rendered");
     }
   }
@@ -1891,9 +1903,12 @@ export class StudioCtx extends WithDbCtx {
       eval: true,
     });
     this.loadTimings.mark("frame-context-created", frame.uuid);
-    if (this.initialRouteReady && this.initialCanvasFrames.every(
-      (item) => this.loadTimings.has("frame-context-created", item.uuid)
-    )) {
+    if (
+      this.initialRouteReady &&
+      this.initialCanvasFrames.every((item) =>
+        this.loadTimings.has("frame-context-created", item.uuid),
+      )
+    ) {
       this.loadTimings.report("all-frame-contexts-created");
     }
     return viewCtx;
@@ -2244,8 +2259,11 @@ export class StudioCtx extends WithDbCtx {
         if (desktop && this.appCtx.topFrameApi) {
           this.initialViewportLoaded.set(false);
           try {
-            const saved = await this.appCtx.topFrameApi.getSavedEditorView(this.siteInfo.id);
-            const parsed = prototypeToolMeta.restoreEditorView.inputSchema.safeParse(saved);
+            const saved = await this.appCtx.topFrameApi.getSavedEditorView(
+              this.siteInfo.id,
+            );
+            const parsed =
+              prototypeToolMeta.restoreEditorView.inputSchema.safeParse(saved);
             this.initialEditorView = parsed.success ? parsed.data : null;
           } catch (error) {
             console.warn("Cannot read saved editor viewport", error);
@@ -2261,7 +2279,9 @@ export class StudioCtx extends WithDbCtx {
     const location = this.appCtx.history.location;
     await this.handleRouteChange(location);
     this.initialCanvasFrames = getArenaFrames(this.currentArena).slice();
-    this.loadTimings.setInitialFrames(this.initialCanvasFrames.map((frame) => frame.uuid));
+    this.loadTimings.setInitialFrames(
+      this.initialCanvasFrames.map((frame) => frame.uuid),
+    );
     this.initialRouteLoaded.set(true);
     routeDone();
     if (this.initialCanvasFrames.length === 0) {
@@ -2271,9 +2291,19 @@ export class StudioCtx extends WithDbCtx {
     try {
       const saved = this.initialEditorView;
       if (saved) {
-        const arena = getArenaByNameOrUuidOrPath(this.site, saved.arenaId, saved.arenaType);
-        const frame = saved.frameUuid ? getArenaFrames(arena).find((item) => item.uuid === saved.frameUuid) : undefined;
-        if (arena && arena === this.currentArena && (!saved.frameUuid || frame)) {
+        const arena = getArenaByNameOrUuidOrPath(
+          this.site,
+          saved.arenaId,
+          saved.arenaType,
+        );
+        const frame = saved.frameUuid
+          ? getArenaFrames(arena).find((item) => item.uuid === saved.frameUuid)
+          : undefined;
+        if (
+          arena &&
+          arena === this.currentArena &&
+          (!saved.frameUuid || frame)
+        ) {
           this.setStudioFocusOnFrame({ frame, autoZoom: false });
           const targetWaitDone = this.loadTimings.begin("initial-target-wait");
           await when(
@@ -2289,19 +2319,31 @@ export class StudioCtx extends WithDbCtx {
           targetWaitDone();
           // Let the inspector mount and determine the viewport padding before restoring.
           const layoutDone = this.loadTimings.begin("initial-viewport-layout");
-          await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          await new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+          );
           layoutDone();
           const commitDone = this.loadTimings.begin("initial-viewport-commit");
-          this.restoreStudioViewportSnapshot({
-            focusedArenaFrame: frame,
-            scale: saved.scale,
-            scroll: new Pt(saved.scroll.x, saved.scroll.y),
-            canvasPadding: ensure(this.viewportCtx, "Canvas viewport is not ready").canvasPadding(),
-          }, false);
+          this.restoreStudioViewportSnapshot(
+            {
+              focusedArenaFrame: frame,
+              scale: saved.scale,
+              scroll: new Pt(saved.scroll.x, saved.scroll.y),
+              canvasPadding: ensure(
+                this.viewportCtx,
+                "Canvas viewport is not ready",
+              ).canvasPadding(),
+            },
+            false,
+          );
           // The viewport's MobX reaction writes the transform before revealing the canvas.
-          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+          await new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          );
           commitDone();
-          const renderWaitDone = this.loadTimings.begin("initial-target-render-wait");
+          const renderWaitDone = this.loadTimings.begin(
+            "initial-target-render-wait",
+          );
           await when(() => this.activeCanvasReady, { timeout: 60_000 });
           renderWaitDone();
         } else {
@@ -2323,9 +2365,7 @@ export class StudioCtx extends WithDbCtx {
     // Plasmic AI chat and auto-submits the prompt.
     const prompt = new URLSearchParams(location.search).get(SEARCH_PROMPT);
     if (prompt) {
-      spawn(
-        this.appCtx.topFrameApi?.openCopilotChat({ prompt, mode: "starter" }),
-      );
+      this.openCopilotChat({ prompt, mode: "starter" });
     }
   }
 
@@ -2545,6 +2585,9 @@ export class StudioCtx extends WithDbCtx {
 
       this.viewportCtx?.setArena(arena);
       this.currentArena = arena;
+      if (this.canvasOverviewViewport.get()?.arena !== arena) {
+        this.canvasOverviewViewport.set(undefined);
+      }
       if (!arena) {
         return;
       }
@@ -3262,41 +3305,56 @@ export class StudioCtx extends WithDbCtx {
     const open = !this.showCommentsPanel;
     if (open) {
       this._panelsHidden.set(false);
-      this.setLeftTabGroup(undefined);
-      this.switchLeftTab(undefined);
-      this.setShowAddDrawer(false);
     }
     this._showCommentsPanel.set(open);
   });
 
-  private _isCopilotChatOpen = observable.box(false);
+  private _leftPanel = observable.box<LeftPanel | undefined>(undefined, {
+    deep: false,
+  });
+
+  get leftPanel(): LeftPanel | undefined {
+    return this.onboardingTourState.flags.forceAddDrawerOpen
+      ? { type: "insert", inline: false }
+      : this._leftPanel.get();
+  }
+
+  private setLeftPanel(panel: LeftPanel | undefined) {
+    if (panel) {
+      this._leftTabGroup.set(undefined);
+      this._panelsHidden.set(false);
+    }
+    this._leftPanel.set(panel);
+  }
 
   get isCopilotChatOpen() {
-    return this._isCopilotChatOpen.get();
+    return this.leftPanel?.type === "ai";
+  }
+
+  get copilotChatOpenOpts() {
+    const panel = this.leftPanel;
+    return panel?.type === "ai" ? panel.opts : undefined;
   }
 
   setCopilotChatOpen(open: boolean) {
-    if (open && !this.isCopilotChatOpen) {
-      this._leftTabGroup.set(undefined);
-      this.switchLeftTab(undefined);
-      this.setShowAddDrawer(false);
+    if (open) {
+      this.setLeftPanel({ type: "ai" });
+    } else if (this.isCopilotChatOpen) {
+      this.setLeftPanel(undefined);
     }
-    this._isCopilotChatOpen.set(open);
   }
 
-  private closeCopilotChat() {
-    if (!this.isCopilotChatOpen) {
-      return;
-    }
-    this._isCopilotChatOpen.set(false);
-    spawn(this.appCtx.topFrameApi?.closeCopilotChat());
+  openCopilotChat(opts: CopilotChatOpenOpts) {
+    this.setLeftPanel({ type: "ai", opts });
+  }
+
+  toggleCopilotChat() {
+    this.setCopilotChatOpen(!this.isCopilotChatOpen);
   }
 
   closeEditorPanels() {
-    this.closeCopilotChat();
+    this.setLeftPanel(undefined);
     this.setLeftTabGroup(undefined);
-    this.switchLeftTab(undefined);
-    this.setShowAddDrawer(false);
     this._showCommentsPanel.set(false);
   }
 
@@ -3401,11 +3459,10 @@ export class StudioCtx extends WithDbCtx {
     this._xLeftPaneWidth.set(width);
   }
 
-  private _xLeftTabKey: IObservableValue<LeftTabKey | undefined> =
-    observable.box(undefined);
   private lastLeftTabKey: LeftTabKey = "outline";
   get leftTabKey() {
-    return this._xLeftTabKey.get();
+    const panel = this.leftPanel;
+    return panel?.type === "tab" ? panel.tab : undefined;
   }
   private _xRightTabKey = observable.box<RightTabKey | undefined>(undefined);
   private lastElementRightTabKey:
@@ -3420,11 +3477,6 @@ export class StudioCtx extends WithDbCtx {
     return this._leftTabGroup.get();
   }
   setLeftTabGroup(group: string | undefined) {
-    if (group) {
-      this.closeCopilotChat();
-      this.switchLeftTab(undefined);
-      this.setShowAddDrawer(false);
-    }
     this._leftTabGroup.set(group);
   }
 
@@ -3433,11 +3485,11 @@ export class StudioCtx extends WithDbCtx {
     opts?: { highlight?: boolean },
   ) {
     if (tabKey) {
-      this._leftTabGroup.set(undefined);
-      this.closeCopilotChat();
       this.lastLeftTabKey = tabKey;
+      this.setLeftPanel({ type: "tab", tab: tabKey });
+    } else if (this.leftPanel?.type === "tab") {
+      this.setLeftPanel(undefined);
     }
-    this._xLeftTabKey.set(tabKey);
     if (opts?.highlight) {
       this.highlightLeftPanel();
     }
@@ -3859,34 +3911,27 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _showAddDrawer = observable.box(false);
   showAddDrawer() {
-    return (
-      this._showAddDrawer.get() ||
-      !!this.onboardingTourState.flags.forceAddDrawerOpen
-    );
+    return this.leftPanel?.type === "insert";
   }
   setShowAddDrawer(show: boolean) {
     if (show) {
-      this._leftTabGroup.set(undefined);
-      this.closeCopilotChat();
+      this.setLeftPanel({ type: "insert", inline: false });
+    } else if (this.showAddDrawer()) {
+      this.setLeftPanel(undefined);
     }
-    this._showInlineAddDrawer.set(false);
-    this._showAddDrawer.set(show);
   }
 
-  //
-  // Managing the "Inline Add Drawer"
-  //
-  private _showInlineAddDrawer = observable.box(false);
-  showInlineAddDrawer = () => this._showInlineAddDrawer.get();
+  showInlineAddDrawer = () => {
+    const panel = this.leftPanel;
+    return panel?.type === "insert" && panel.inline;
+  };
   setShowInlineAddDrawer = (show: boolean) => {
     if (show) {
-      this._leftTabGroup.set(undefined);
-      this.closeCopilotChat();
+      this.setLeftPanel({ type: "insert", inline: true });
+    } else if (this.showInlineAddDrawer()) {
+      this.setLeftPanel(undefined);
     }
-    this._showInlineAddDrawer.set(show);
-    this._showAddDrawer.set(show);
   };
 
   //
@@ -7981,8 +8026,9 @@ export class StudioCtx extends WithDbCtx {
         !this.canvasLoadingDisposed &&
         this.initialRouteReady &&
         (!this.activeCanvasReady || !this.initialViewportReady) &&
-        !this.canvasLoadRequests.some((r) =>
-          r.arena === this.currentArena && r.frame === this.activeCanvasFrame
+        !this.canvasLoadRequests.some(
+          (r) =>
+            r.arena === this.currentArena && r.frame === this.activeCanvasFrame,
         )
       ) {
         waitDone ??= this.loadTimings.begin("background-canvas-wait");
@@ -8001,7 +8047,9 @@ export class StudioCtx extends WithDbCtx {
         // may not load them anyway. We will get back to them later when we
         // switch back to that arena (see switchArena()).
         const nextRequest =
-          this.canvasLoadRequests.find((r) => r.arena === this.currentArena && r.frame === targetFrame) ??
+          this.canvasLoadRequests.find(
+            (r) => r.arena === this.currentArena && r.frame === targetFrame,
+          ) ??
           this.canvasLoadRequests.find((r) => r.arena === this.currentArena) ??
           this.canvasLoadRequests.find(
             (r) => this.getArenaStatus(r.arena) === "background",
@@ -8010,7 +8058,10 @@ export class StudioCtx extends WithDbCtx {
           return;
         }
         arrayRemove(this.canvasLoadRequests, nextRequest);
-        const loadDone = this.loadTimings.begin("frame-initialization", nextRequest.frame.uuid);
+        const loadDone = this.loadTimings.begin(
+          "frame-initialization",
+          nextRequest.frame.uuid,
+        );
         this.loadTimings.mark("frame-load-start", nextRequest.frame.uuid);
 
         // We load the canvas frame.  However, it is possible that in the middle
@@ -8051,9 +8102,11 @@ export class StudioCtx extends WithDbCtx {
         ]);
       };
       const targetFrame = this.activeCanvasFrame;
-      if (this.canvasLoadRequests.some((r) =>
-        r.arena === this.currentArena && r.frame === targetFrame
-      )) {
+      if (
+        this.canvasLoadRequests.some(
+          (r) => r.arena === this.currentArena && r.frame === targetFrame,
+        )
+      ) {
         await loadNext();
       } else {
         await requestIdleCallbackAsync(loadNext);

@@ -57,7 +57,7 @@ import {
 } from "@/wab/shared/ui-config-utils";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Menu, Popover, Tooltip, notification } from "antd";
+import { Button, Menu, Popover, Tooltip, notification, theme } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -72,6 +72,7 @@ interface TopBarProps {
 
 function _TopBar({ preview }: TopBarProps) {
   const { t } = useI18n();
+  const { token } = theme.useToken();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
   const appCtx = useAppCtx();
@@ -510,6 +511,13 @@ function _TopBar({ preview }: TopBarProps) {
                 trigger="click"
                 placement="bottomLeft"
                 align={{ offset: [0, 8] }}
+                styles={{
+                  container: {
+                    padding: 0,
+                    overflow: "hidden",
+                    background: token.colorBgContainer,
+                  },
+                }}
                 open={versionsOpen}
                 onOpenChange={(open) => {
                   setVersionsOpen(open);
@@ -820,7 +828,7 @@ function _TopBar({ preview }: TopBarProps) {
           props: {
             "aria-label": t("AI assistant"),
             active: studioCtx.isCopilotChatOpen,
-            onClick: () => spawn(topFrameApi.toggleCopilotChat()),
+            onClick: () => studioCtx.toggleCopilotChat(),
           },
         }}
         // TODO: We are currently not showing the live popout button on

@@ -1,3 +1,4 @@
+import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import TeamMemberListItem from "@/wab/client/components/dashboard/TeamMemberListItem";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Modal } from "@/wab/client/components/widgets/Modal";
@@ -9,7 +10,6 @@ import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Button, Empty, Flex, Input, Select, Typography } from "antd";
-import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import { sortBy } from "lodash";
 import * as React from "react";
 
@@ -22,8 +22,6 @@ interface TeamMemberListProps extends DefaultTeamMemberListProps {
   onReload: () => Promise<void>;
   disabled?: boolean;
 }
-
-
 
 function TeamMemberList_(
   props: TeamMemberListProps,
@@ -161,6 +159,8 @@ function TeamMemberList_(
           onCancel={() => setSharedModal(false)}
           footer={null}
           closable
+          width={500}
+          styles={{ container: { padding: 0 } }}
         >
           <ShareDialogContent
             resource={{ type: "team", resource: team }}

@@ -108,7 +108,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
 
   const hostFrameApi = React.useMemo<HostFrameApi>(
     () => ({
-      setCopilotChatOpen: async (open) => studioCtx.setCopilotChatOpen(open),
+      openCopilotChat: async (opts) => studioCtx.openCopilotChat(opts),
       switchLeftTab: async (tabKey, opts) =>
         studioCtx.switchLeftTab(tabKey, opts),
       refreshSiteInfo: async () => {
@@ -391,6 +391,13 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
 
     const disposes = filterFalsy([
       autorun(() => {
+        spawn(
+          topFrameApi.setAiPanelOpen(
+            studioCtx.isCopilotChatOpen && !studioCtx.panelsHidden,
+          ),
+        );
+      }),
+      autorun(() => {
         if (
           preview ||
           !studioCtx.showDevControls ||
@@ -404,7 +411,6 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
       autorun(() => {
         spawn(
           topFrameApi.setPrimitiveValues({
-            leftPaneWidth: studioCtx.leftPaneWidth,
             noComponents: noComponents.get(),
             revisionNum: studioCtx.revisionNum,
             isLocalizationEnabled: !!studioCtx.site.flags.usePlasmicTranslation,

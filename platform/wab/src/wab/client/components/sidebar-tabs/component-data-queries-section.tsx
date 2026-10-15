@@ -66,12 +66,7 @@ import React from "react";
 
 // Opens Chat Copilot and sends the migration prompt right away.
 function startQueryMigrationChat(studioCtx: StudioCtx, prompt: string) {
-  spawn(
-    studioCtx.appCtx.topFrameApi?.openCopilotChat({
-      prompt,
-      mode: "query-migration",
-    }),
-  );
+  studioCtx.openCopilotChat({ prompt, mode: "query-migration" });
 }
 
 const DataQueryRow = observer(

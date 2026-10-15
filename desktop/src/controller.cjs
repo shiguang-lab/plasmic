@@ -14,10 +14,16 @@ function resourceName(value) {
   return value.trim();
 }
 class DesktopController {
-  constructor(getWindow, config, waitForStartup = async () => {}) {
+  constructor(
+    getWindow,
+    config,
+    waitForStartup = async () => {},
+    prepareSession = async () => {},
+  ) {
     this.getWindow = getWindow;
     this.config = config;
     this.waitForStartup = waitForStartup;
+    this.prepareSession = prepareSession;
     this.operations = new Map();
     this.pending = new Map();
     this.queue = Promise.resolve();
@@ -144,20 +150,26 @@ class DesktopController {
         method: body === undefined ? "GET" : "POST",
         headers: {
           Accept: "application/json",
-          ...(body === undefined ? {} : {
-            "Content-Type": "application/json",
-            Origin: this.config.studioOrigin,
-          }),
+          ...(body === undefined
+            ? {}
+            : {
+                "Content-Type": "application/json",
+                Origin: this.config.studioOrigin,
+              }),
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       },
     );
     if (!response.ok) {
       throw new Error(
-        "NAS request failed: HTTP " + response.status +
-        (response.status === 401 || response.status >= 300 && response.status < 400
-          ? "; sign in to Plasmic first"
-          : response.status === 403 ? "; access denied" : ""),
+        "NAS request failed: HTTP " +
+          response.status +
+          (response.status === 401 ||
+          (response.status >= 300 && response.status < 400)
+            ? "; sign in to Plasmic first"
+            : response.status === 403
+              ? "; access denied"
+              : ""),
       );
     }
     return response.json();
@@ -227,6 +239,7 @@ class DesktopController {
     if (!win || win.isDestroyed()) {
       throw new Error("Open the desktop editor window");
     }
+    await this.prepareSession();
     if (
       ![
         "list_projects",
@@ -245,21 +258,35 @@ class DesktopController {
       return this.requestStudio("/api/v1/teams/" + input.orgId);
     }
     if (method === "list_orgs") {
-      const query = input.query === undefined ? undefined : resourceName(input.query).toLowerCase();
+      const query =
+        input.query === undefined
+          ? undefined
+          : resourceName(input.query).toLowerCase();
       const result = await this.requestStudio("/api/v1/teams");
       if (query !== undefined) {
-        const teams = result.teams.filter((team) => team.name.toLowerCase().includes(query));
+        const teams = result.teams.filter((team) =>
+          team.name.toLowerCase().includes(query),
+        );
         const ids = new Set(teams.map((team) => team.id));
-        return { ...result, teams, perms: result.perms.filter((perm) => ids.has(perm.teamId)) };
+        return {
+          ...result,
+          teams,
+          perms: result.perms.filter((perm) => ids.has(perm.teamId)),
+        };
       }
       return result;
     }
     if (method === "create_org") {
-      return this.requestStudio("/api/v1/teams", { name: resourceName(input.name) });
+      return this.requestStudio("/api/v1/teams", {
+        name: resourceName(input.name),
+      });
     }
     if (method === "create_workspace") {
       validateResourceId(input.orgId, "orgId");
-      if (input.description !== undefined && typeof input.description !== "string") {
+      if (
+        input.description !== undefined &&
+        typeof input.description !== "string"
+      ) {
         throw new Error("Description must be a string");
       }
       const result = await this.requestStudio("/api/v1/workspaces", {
@@ -268,15 +295,21 @@ class DesktopController {
         description: input.description,
       });
       if (result.paywall !== "pass") {
-        throw new Error("Cannot create workspace: plan restriction (" + result.paywall +
-          (result.description ? ": " + result.description : "") + ")");
+        throw new Error(
+          "Cannot create workspace: plan restriction (" +
+            result.paywall +
+            (result.description ? ": " + result.description : "") +
+            ")",
+        );
       }
       return result.response;
     }
     if (method === "list_workspaces") {
       if (input.orgId !== undefined) {
         validateResourceId(input.orgId, "orgId");
-        return this.requestStudio("/api/v1/teams/" + input.orgId + "/workspaces");
+        return this.requestStudio(
+          "/api/v1/teams/" + input.orgId + "/workspaces",
+        );
       }
       return this.requestStudio("/api/v1/workspaces");
     }
@@ -294,23 +327,33 @@ class DesktopController {
       const key = isOrg ? "orgId" : "workspaceId";
       const id = input[key];
       validateResourceId(id, key);
-      await this.requestStudio(isOrg
-        ? "/api/v1/teams/" + id + "/workspaces"
-        : "/api/v1/workspaces/" + id);
-      const url = this.config.studioOrigin + (isOrg ? "/orgs/" : "/workspaces/") + id;
+      await this.requestStudio(
+        isOrg
+          ? "/api/v1/teams/" + id + "/workspaces"
+          : "/api/v1/workspaces/" + id,
+      );
+      const url =
+        this.config.studioOrigin + (isOrg ? "/orgs/" : "/workspaces/") + id;
       const state = await this.state();
       if (state.url !== url) {
         await this.saveBeforeNavigation(state);
         await win.loadURL(url);
       }
       if (win.webContents.getURL() !== url) {
-        throw new Error("The requested " + (isOrg ? "organization" : "workspace") + " page did not open");
+        throw new Error(
+          "The requested " +
+            (isOrg ? "organization" : "workspace") +
+            " page did not open",
+        );
       }
       return { opened: true, [key]: id, url };
     }
     if (method === "list_projects") {
       const url = new URL("/api/v1/projects", this.config.studioOrigin);
-      url.searchParams.set("query", JSON.stringify(input.workspaceId === undefined ? "all" : "byWorkspace"));
+      url.searchParams.set(
+        "query",
+        JSON.stringify(input.workspaceId === undefined ? "all" : "byWorkspace"),
+      );
       if (input.workspaceId !== undefined) {
         validateResourceId(input.workspaceId, "workspaceId");
         url.searchParams.set("workspaceId", JSON.stringify(input.workspaceId));

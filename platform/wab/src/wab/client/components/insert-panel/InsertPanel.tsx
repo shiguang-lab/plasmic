@@ -261,7 +261,6 @@ export const InsertPanel = observer(function InsertPanel_({
 }: InsertPanelProps) {
   const studioCtx = useStudioCtx();
   const { styles } = useResourcePanelStyles();
-  const [isDragging, setDragging] = React.useState(false);
   const recentItemsRef = React.useRef<AddTplItem[]>([]);
 
   // Only save insertable items like elements and components.
@@ -296,20 +295,12 @@ export const InsertPanel = observer(function InsertPanel_({
     }
   };
 
-  if (mode === "insert" && !studioCtx.showAddDrawer() && !isDragging) {
-    return null;
-  }
-
   return (
     <FocusScope>
       <div
         className={styles.root}
         data-component-store={mode === "store" || undefined}
-        style={
-          mode === "store"
-            ? { border: 0, borderRadius: 0, boxShadow: "none" }
-            : undefined
-        }
+        style={{ border: 0, borderRadius: 0, boxShadow: "none" }}
       >
         <AddDrawerContent
           storeMode={mode === "store"}
@@ -317,13 +308,11 @@ export const InsertPanel = observer(function InsertPanel_({
           onInserted={onInserted}
           onClose={onClose}
           onDragStart={() => {
-            setDragging(true);
             if (mode === "insert") {
               onClose();
             }
           }}
           onDragEnd={(item, result) => {
-            setDragging(false);
             if (result) {
               const [_viewCtx, tplNode] = result;
               trackInsertFromAddDrawer(item, tplNode, {
@@ -1696,7 +1685,10 @@ function getCodeComponentsGroups(studioCtx: StudioCtx): AddItemGroup[] {
               sectionKey: section,
               sectionLabel: section,
               label: subSection,
-              items: createAddTplCodeComponents(studioCtx, subSectionComponents),
+              items: createAddTplCodeComponents(
+                studioCtx,
+                subSectionComponents,
+              ),
             };
           },
         );
@@ -1837,10 +1829,7 @@ export function buildAddItemGroups({
               ),
             ).map((comp) =>
               isCodeComponent(comp)
-                ? createAddTplCodeComponent(
-                    studioCtx,
-                    comp,
-                  )
+                ? createAddTplCodeComponent(studioCtx, comp)
                 : createAddTplComponent(comp),
             ),
             ...dep.site.customFunctions

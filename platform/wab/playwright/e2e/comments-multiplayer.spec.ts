@@ -162,6 +162,11 @@ testMultiplayer.describe("multiplayer comments", () => {
           await session.models.studio.getCommentMarketById(threadIdValue);
         await expect(deletedMarker).not.toBeVisible({ timeout: 10000 });
 
+        // Deleted subjects remain available in the project scope.
+        await session.models.studio.frame
+          .getByText("Entire project", { exact: true })
+          .click();
+
         // But the comment should still exist in the comments tab
         const commentInTab = session.models.studio.frame.locator(
           `.comments-tab [data-test-id="comment-post-${threadIdValue}"]`,

@@ -14,9 +14,9 @@ import * as React from "react";
 const useStyles = createStyles(({ token }) => ({
   root: {
     position: "absolute",
-    top: 96,
-    bottom: 104,
-    right: 352,
+    top: 72,
+    bottom: 74,
+    right: 336,
     minWidth: 0,
     containerType: "inline-size",
     pointerEvents: "none",
@@ -24,9 +24,9 @@ const useStyles = createStyles(({ token }) => ({
     fontFamily: token.fontFamily,
   },
   leftPanelOpen: {
-    "@media (max-width: 1100px)": { right: 16 },
+    "@media (max-width: 1100px)": { right: 8 },
   },
-  panelsHidden: { right: 16 },
+  panelsHidden: { right: 8 },
   scroll: { height: "100%", width: "100%", pointerEvents: "auto" },
   content: {
     boxSizing: "border-box",
@@ -176,7 +176,7 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
       ),
       action: t("Open AI assistant"),
       onClick: () => {
-        void studioCtx.appCtx.topFrameApi?.openCopilotChat({
+        void studioCtx.openCopilotChat({
           prompt: "",
           mode: undefined,
         });
@@ -204,10 +204,10 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
       })}
       style={{
         left: studioCtx.panelsHidden
-          ? 16
+          ? 8
           : studioCtx.leftTabKey
-            ? studioCtx.leftPaneWidth + 100
-            : 100,
+            ? studioCtx.leftPaneWidth + 72
+            : 72,
       }}
       onMouseDown={(event) => event.stopPropagation()}
     >

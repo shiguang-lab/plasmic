@@ -7,15 +7,15 @@ import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
 import { AiResponse } from "@/wab/client/components/copilot/AiResponse";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
-import {
-  editorLeftRailLayout,
-  editorPanelHeaderStyle,
-} from "@/wab/client/components/ui/layout-styles";
+import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
-import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
 import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { useI18n } from "@/wab/client/i18n";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
+import type { AiTask } from "@/wab/shared/copilot/ai-chat";
+import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
+import { getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Image, Tag } from "antd";
 import { createStyles } from "antd-style";
@@ -26,7 +26,9 @@ import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 export interface CopilotChatDialogProps {
   context?: LocalAiContext;
   project: ApiProject;
-  width: number;
+  session: AiSessionView;
+  fetchStatus: () => Promise<LocalAiStatus>;
+  onDownloadAttachment: (file: AiTask["files"][number]) => Promise<void>;
   chatOpenOpts?: CopilotChatOpenOpts;
   onClose: () => void;
   hiddenByModal: boolean;
@@ -35,23 +37,13 @@ export interface CopilotChatDialogProps {
 
 const useStyles = createStyles(({ token }) => ({
   panel: {
-    position: "fixed",
-    top: 82,
-    left:
-      editorLeftRailLayout.left +
-      editorLeftRailLayout.width +
-      editorLeftRailLayout.panelGap,
-    height: "calc(100dvh - 170px)",
-    maxWidth: `calc(100vw - ${editorLeftRailLayout.left + editorLeftRailLayout.width + editorLeftRailLayout.panelGap + 12}px)`,
-    boxSizing: "border-box",
-    zIndex: 1000,
+    height: "100%",
+    minHeight: 0,
+    width: "100%",
     display: "flex",
     flexDirection: "column",
     background: token.colorBgContainer,
     color: token.colorText,
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: token.borderRadiusLG,
-    boxShadow: token.boxShadowSecondary,
     pointerEvents: "auto",
     fontSize: 13,
     fontWeight: 400,
@@ -129,7 +121,9 @@ const useStyles = createStyles(({ token }) => ({
 export function CopilotChatDialog({
   project,
   context,
-  width,
+  session,
+  fetchStatus,
+  onDownloadAttachment,
   chatOpenOpts,
   onClose,
   hiddenByModal,
@@ -139,10 +133,6 @@ export function CopilotChatDialog({
   const { styles } = useStyles();
   const appCtx = useAppCtx();
   const enabled = appCtx.appConfig.enableLocalAiEditing;
-  const session = React.useMemo(
-    () => getLocalEditSession(project.id),
-    [project.id],
-  );
   const tasks = React.useSyncExternalStore(session.subscribe, session.snapshot);
   const model = session.selectedModel;
   const draft = session.draft.prompt;
@@ -155,7 +145,11 @@ export function CopilotChatDialog({
       session.draft = { ...session.draft, attachments };
     },
   );
-  const { data: status, error } = useLocalAiStatus(project.id, enabled);
+  const { data: status, error } = useLocalAiStatus(
+    project.id,
+    enabled,
+    fetchStatus,
+  );
   const consumed = React.useRef<CopilotChatOpenOpts>();
   React.useEffect(() => {
     if (status) {
@@ -232,7 +226,7 @@ export function CopilotChatDialog({
     <section
       className={styles.panel}
       aria-label={t("AI assistant")}
-      style={{ width, visibility: hiddenByModal ? "hidden" : undefined }}
+      style={{ visibility: hiddenByModal ? "hidden" : undefined }}
       data-test-id="local-ai-panel"
       data-ai-busy={session.running}
     >
@@ -337,7 +331,7 @@ export function CopilotChatDialog({
                   </div>
                 )}
                 {task.files?.map((file) => {
-                  const url = `/api/v1/projects/${encodeURIComponent(project.id)}/ai/chat/attachments/${file.id}`;
+                  const url = `${getPublicUrl()}/api/v1/projects/${encodeURIComponent(project.id)}/ai/chat/attachments/${encodeURIComponent(file.id)}`;
                   return (
                     <div key={file.id} className={styles.files}>
                       {file.mediaType.startsWith("image/") && (
@@ -348,7 +342,14 @@ export function CopilotChatDialog({
                           alt={file.name}
                         />
                       )}
-                      <a href={url} download={file.name}>
+                      <a
+                        href={url}
+                        download={file.name}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          void onDownloadAttachment(file);
+                        }}
+                      >
                         {file.name}
                       </a>
                     </div>

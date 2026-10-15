@@ -9,6 +9,11 @@ it("keeps failed comment loading distinct from a loaded empty list and recovers 
   const { studioCtx, api } = fakeStudioCtx();
   vi.spyOn(studioCtx, "showComments").mockReturnValue(true);
   const ctx = studioCtx.commentsCtx;
+  expect(ctx.commentsFilter()).toEqual({
+    scope: "current",
+    status: "unresolved",
+    onlyRelated: false,
+  });
   let rejectRequest: (reason: Error) => void = () => {};
   api.getComments.mockImplementationOnce(
     () =>

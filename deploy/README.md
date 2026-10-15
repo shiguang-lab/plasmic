@@ -199,8 +199,17 @@ Merge [Desktop OAuth registration](shiguang-oauth-client.json) into auth-service
 `https://shiguanglab.com/auth/apps/plasmicapp/callback`, `logoUrl` and `appCallbackUrl`
 from that policy. Website owns app authorization and callback pages; auth-service
 owns registered app metadata, consent validation and token exchange. Desktop uses
-S256 PKCE, scope `web:session`, and a one-use IAM web-session ticket to establish
-its Electron session. It does not persist OAuth access or refresh tokens.
+S256 PKCE, scopes `web:session offline_access`, and a one-use IAM web-session
+ticket to establish its Electron session. The `plasmicapp` registration opts in
+to `sessionPolicy: {"type":"device","idleTimeoutSeconds":2592000}`. IAM issues
+a device grant independent of the browser session and short-lived product
+cookies; Desktop keeps its rotating refresh credential encrypted with the OS
+credential store. Access tokens stay in memory. Device grants expire after
+30 days without use; idle/background requests do not renew them. Clients without
+this registration policy retain their existing browser-session lifetime.
+Deploy auth-service with device-policy support and merge the registration before
+shipping the Desktop build that requests `offline_access`. Existing credentials
+retain their original lifetime; a new authorization establishes a device grant.
 Add both Studio and canvas to auth-service `ALLOWED_RETURN_ORIGINS`, and grant
 `plasmic:access` through the central entitlement policy. Existing explicit environment
 values must be updated even though the service defaults now include Plasmic.
@@ -215,7 +224,8 @@ Directory APIs are POST `/v1/identity/users/batch-get` (`ids`, max 200),
 `id`, `loginName`, `displayName`, `email`, `emailVerified` and `state`.
 Use `SG_IDENTITY_JWKS_URL` for signing keys and `INTEGRATION_SESSION_SECRET` solely
 for ten-minute external data-source OAuth state. Browser sign-out is POST
-`/api/auth/logout` on Studio, routed directly to IAM; it signs out the shared session.
+`/api/auth/logout` on Studio, routed directly to IAM; it signs out the shared
+browser session. A device cookie signs out only its device grant.
 
 Before migrating an existing database, back it up and explicitly set
 `SG_LEGACY_USER_MAPPING` to a JSON object mapping **every local user ID** to a

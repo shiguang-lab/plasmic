@@ -1,4 +1,3 @@
-import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
 import { HostConfig } from "@/wab/client/components/HostConfig";
@@ -13,7 +12,6 @@ import ShareModal from "@/wab/client/components/TopFrame/TopBar/ShareModal";
 import UpsellModal from "@/wab/client/components/TopFrame/TopBar/UpsellModal";
 import { AppAuthSettingsModal } from "@/wab/client/components/app-auth/AppAuthSettings";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
-import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
 import { MergeModalWrapper } from "@/wab/client/components/merge/MergeFlow";
 import { ContentEditorConfigModal } from "@/wab/client/components/modals/ContentEditorConfigModal";
@@ -22,10 +20,15 @@ import {
   TopBarPromptBillingArgs,
   promptTeamUpgrade,
 } from "@/wab/client/components/modals/PricingModal";
-import { FloatingWindowLayer } from "@/wab/client/components/widgets/FloatingWindow";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
-import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
-import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import {
+  applyAiSessionAction,
+  snapshotAiSession,
+} from "@/wab/client/copilot/ai-session-view";
+import {
+  getLocalEditSession,
+  localAiFetch,
+} from "@/wab/client/copilot/local-edit-session";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
 import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import {
@@ -53,7 +56,6 @@ import {
   ApiBranch,
   ApiPermission,
   ApiProject,
-  CopilotChatOpenOpts,
   MergeSrcDst,
   ProjectId,
 } from "@/wab/shared/ApiSchema";
@@ -65,8 +67,8 @@ import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { canEditUiConfig } from "@/wab/shared/ui-config-utils";
 import { message, notification } from "antd";
+import * as Comlink from "comlink";
 import { Action, Location } from "history";
-import { observer } from "mobx-react";
 import { ExtendedKeyboardEvent } from "mousetrap";
 import React from "react";
 import * as Signals from "signals";
@@ -89,7 +91,6 @@ export interface TopFrameChromeProps {
   latestPublishedVersionData:
     { revisionId: string; version: string } | undefined;
   revisionNum: number;
-  leftPaneWidth: number;
   desktopTitleBarDragRegion: TopFrameApiArgs<"setDesktopTitleBarDragRegion">;
   noComponents: boolean;
   isLocalizationEnabled: boolean;
@@ -107,8 +108,7 @@ export interface TopFrameChromeProps {
   setShowUpsellForm: (_: undefined) => void;
   showAppAuthModal: boolean;
   studioModalOpen: boolean;
-  showCopilotChatModal: boolean;
-  copilotChatOpenOpts: CopilotChatOpenOpts | undefined;
+  aiPanelOpen: boolean;
   localAiContext: LocalAiContext | undefined;
   subjectComponentInfo:
     | {
@@ -169,20 +169,10 @@ export function TopFrameChrome({
     spawn(setter(true));
   };
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
-  React.useEffect(() => {
-    if (hostFrameApiReady) {
-      spawn(hostFrameApi.setCopilotChatOpen(rest.showCopilotChatModal));
-    }
-  }, [hostFrameApi, hostFrameApiReady, rest.showCopilotChatModal]);
   const location = useLocation();
   const preview =
     !!APP_ROUTES.projectPreview.parse(location.pathname, false) ||
     !!APP_ROUTES.projectFullPreview.parse(location.pathname, false);
-  React.useEffect(() => {
-    if (preview) {
-      spawn(topFrameApi.closeCopilotChat());
-    }
-  }, [preview, topFrameApi]);
   const fullPreview = !!APP_ROUTES.projectFullPreview.parse(
     location.pathname,
     false,
@@ -440,29 +430,16 @@ export function TopFrameChrome({
             {hostFrameApiReady &&
               editorPerm &&
               rest.localAiContext &&
-              !rest.showCopilotChatModal &&
+              !rest.aiPanelOpen &&
               !preview && (
                 <CanvasAiComposer
                   appCtx={appCtx}
                   projectId={project.id}
                   context={rest.localAiContext}
-                  onSubmit={topFrameApi.openCopilotChat}
+                  onSubmit={hostFrameApi.openCopilotChat}
                   hiddenByModal={rest.studioModalOpen}
                 />
               )}
-            <FloatingWindowLayer>
-              {hostFrameApiReady && rest.showCopilotChatModal && !preview && (
-                <CopilotChat
-                  width={rest.leftPaneWidth}
-                  project={project}
-                  readOnly={!editorPerm}
-                  chatOpenOpts={rest.copilotChatOpenOpts}
-                  context={rest.localAiContext}
-                  studioModalOpen={rest.studioModalOpen}
-                  onClose={() => topFrameApi.toggleCopilotChat()}
-                />
-              )}
-            </FloatingWindowLayer>
             <React.Suspense fallback={null}>
               <TopFrameTours
                 appCtx={appCtx}
@@ -504,21 +481,6 @@ function AnonymousChatUserStudioLock({
 
   return null;
 }
-
-/** Observes top frame modals, Studio's are relayed as `studioModalOpen`. */
-const CopilotChat = observer(function CopilotChat({
-  studioModalOpen,
-  ...props
-}: Omit<React.ComponentProps<typeof CopilotChatDialog>, "hiddenByModal"> & {
-  studioModalOpen: boolean;
-}) {
-  return (
-    <CopilotChatDialog
-      {...props}
-      hiddenByModal={studioModalOpen || isAnyModalOpen()}
-    />
-  );
-});
 
 function ShareFileDrag() {
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
@@ -602,8 +564,6 @@ export function useTopFrameState({
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
     React.useState<{ revisionId: string; version: string }>();
   const [revisionNum, setRevisionNum] = React.useState(0);
-  const [leftPaneWidth, setLeftPaneWidth] =
-    React.useState(LEFT_PANE_INIT_WIDTH);
   const [desktopTitleBarDragRegion, setDesktopTitleBarDragRegion] =
     React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegion">>(null);
   const [deliveryTab, setDeliveryTab] = React.useState<DeliveryTab | null>(
@@ -636,27 +596,10 @@ export function useTopFrameState({
   >(undefined);
   const [showAppAuthModal, setShowAppAuthModal] = React.useState(false);
   const [studioModalOpen, setStudioModalOpen] = React.useState(false);
-  // A new object per request, so a repeat request with identical text is still
-  // a state change that re-triggers the effect in an already open dialog.
-  const [copilotChatOpenOpts, setCopilotChatOpenOpts] = React.useState<
-    CopilotChatOpenOpts | undefined
-  >(undefined);
-
   const [localAiContext, setLocalAiContext] = React.useState<LocalAiContext>();
-  const [showCopilotChatModal, setShowCopilotChatModal] = React.useState(false);
+  const [aiPanelOpen, setAiPanelOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    setShowCopilotChatModal(false);
-    setCopilotChatOpenOpts(undefined);
-  }, [project?.id]);
-
-  // The open options are scoped to one dialog session, clear when the dialog
-  // closes so the prompt can't come back prefilled when reopened.
-  React.useEffect(() => {
-    if (!showCopilotChatModal) {
-      setCopilotChatOpenOpts(undefined);
-    }
-  }, [showCopilotChatModal]);
+  React.useEffect(() => setAiPanelOpen(false), [project?.id]);
 
   const [noComponents, setNoComponents] = React.useState(true);
   const [subjectComponentInfo, setSubjectComponentInfo] = React.useState<{
@@ -722,11 +665,18 @@ export function useTopFrameState({
 
       setStudioReady: asyncWrapper(() => setStudioReady(true)),
       getSavedEditorView: async (projectId: string) => {
-        const desktop = (window as Window & {
-          desktopEnvironment?: {
-            getSavedEditorView(projectId: string): Promise<import("@/wab/client/frame-ctx/top-frame-api").SavedEditorView | null>;
-          };
-        }).desktopEnvironment;
+        const desktop = (
+          window as Window & {
+            desktopEnvironment?: {
+              getSavedEditorView(
+                projectId: string,
+              ): Promise<
+                | import("@/wab/client/frame-ctx/top-frame-api").SavedEditorView
+                | null
+              >;
+            };
+          }
+        ).desktopEnvironment;
         return desktop ? desktop.getSavedEditorView(projectId) : null;
       },
       setDocumentTitle: async (val: string) => {
@@ -734,7 +684,6 @@ export function useTopFrameState({
       },
       setDesktopTitleBarDragRegion: asyncWrapper(setDesktopTitleBarDragRegion),
       setPrimitiveValues: async (vals) => {
-        setLeftPaneWidth(vals.leftPaneWidth);
         setNoComponents(vals.noComponents);
         setRevisionNum(vals.revisionNum);
         setIsLocalizationEnabled(vals.isLocalizationEnabled);
@@ -775,15 +724,43 @@ export function useTopFrameState({
       setShowUpsellForm: asyncWrapper(setShowUpsellForm),
       setShowAppAuthModal: asyncWrapper(setShowAppAuthModal),
       setStudioModalOpen: asyncWrapper(setStudioModalOpen),
-      toggleCopilotChat: async () => {
-        setShowCopilotChatModal((open) => !open);
+      setAiPanelOpen: asyncWrapper(setAiPanelOpen),
+      subscribeAiSession: async (projectId, listener) => {
+        assert(
+          projectId === project?.id,
+          "AI session belongs to the current project",
+        );
+        const session = getLocalEditSession(projectId);
+        const publish = () => listener(snapshotAiSession(session));
+        const dispose = session.subscribe(publish);
+        publish();
+        return Comlink.proxy(dispose);
       },
-      closeCopilotChat: async () => {
-        setShowCopilotChatModal(false);
+      updateAiSession: async (projectId, action) => {
+        assert(
+          projectId === project?.id,
+          "AI session belongs to the current project",
+        );
+        await applyAiSessionAction(getLocalEditSession(projectId), action);
       },
-      openCopilotChat: async (opts) => {
-        setCopilotChatOpenOpts(opts);
-        setShowCopilotChatModal(true);
+      downloadAiAttachment: async (projectId, fileId, name) => {
+        assert(
+          projectId === project?.id,
+          "AI attachment belongs to the current project",
+        );
+        const link = document.createElement("a");
+        link.href = `/api/v1/projects/${encodeURIComponent(projectId)}/ai/chat/attachments/${encodeURIComponent(fileId)}`;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      },
+      getLocalAiStatus: async (projectId) => {
+        assert(
+          projectId === project?.id,
+          "AI session belongs to the current project",
+        );
+        return localAiFetch(projectId, "status");
       },
       setLocalAiContext: asyncWrapper(setLocalAiContext),
       onFrameInteraction: asyncWrapper((event) =>
@@ -834,7 +811,6 @@ export function useTopFrameState({
     topFrameApi,
     latestPublishedVersionData,
     revisionNum,
-    leftPaneWidth,
     desktopTitleBarDragRegion,
     noComponents,
     subjectComponentInfo,
@@ -856,8 +832,7 @@ export function useTopFrameState({
     setShowUpsellForm,
     showAppAuthModal,
     studioModalOpen,
-    showCopilotChatModal,
-    copilotChatOpenOpts,
+    aiPanelOpen,
     localAiContext,
     defaultPageRoleId,
     setDefaultPageRoleId,

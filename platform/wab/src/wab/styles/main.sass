@@ -1947,7 +1947,13 @@ a.btn-link
 
 .tpltree__label__indicator
   position: absolute
-  left: 4px
+  top: 50%
+  transform: translateY(-50%)
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 12px
+  height: 16px
 
 .tpltree__label__visibility
   &:hover
@@ -2029,6 +2035,7 @@ a.btn-link
   .tpltree__nodeLabel__name
     color: $brightfg
     font-weight: 600
+    flex-shrink: 0
     @extend .text-ellipsis
     position: relative
     max-width: 100%

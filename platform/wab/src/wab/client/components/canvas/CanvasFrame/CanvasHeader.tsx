@@ -12,6 +12,7 @@ import {
   useScaledElementRef,
   useZoomStyledRef,
 } from "@/wab/client/hooks/useScaledElementRef";
+import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -42,6 +43,7 @@ import cn from "classnames";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
+import { FiMaximize } from "react-icons/fi";
 
 export const CanvasHeader = observer(CanvasHeader_);
 
@@ -51,6 +53,10 @@ function CanvasHeader_(props: {
   frame: ArenaFrame;
 }) {
   const { studioCtx, frame, arena } = props;
+  const { t } = useI18n();
+  const canFocus =
+    isMixedArena(arena) &&
+    !!studioCtx.getDedicatedArena(frame.container.component);
   const isFocused =
     studioCtx.focusedFrames().includes(frame) ||
     studioCtx.focusedContentFrame() === frame;
@@ -59,9 +65,12 @@ function CanvasHeader_(props: {
     !studioCtx.focusedMode && (!isComponentArena(arena) || isFocusedFrame);
 
   const rootRef = useScaledElementRef<HTMLDivElement>();
+  const focusRef = useScaledElementRef<HTMLButtonElement>();
 
   useZoomStyledRef(
-    (zoom) => ({ maxWidth: `${frame.width * zoom}px` }),
+    (zoom) => ({
+      maxWidth: `${Math.max(0, frame.width * zoom - (canFocus ? 72 : 0))}px`,
+    }),
     rootRef,
   );
 
@@ -109,6 +118,23 @@ function CanvasHeader_(props: {
           arena={arena}
         />
       </div>
+      {canFocus && (
+        <button
+          ref={focusRef}
+          type="button"
+          className={styles.focusButton}
+          aria-label={`${t("Focus artboard")}: ${studioCtx.tplMgr().describeArenaFrame(frame)}`}
+          title={t("Focus artboard")}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            studioCtx.focusCanvasFrame(frame);
+          }}
+        >
+          <FiMaximize size={14} />
+          {t("Focus")}
+        </button>
+      )}
       {shouldShowFrameConfigButton && (
         <CanvasConfigButton showDims studioCtx={studioCtx} frame={frame} />
       )}

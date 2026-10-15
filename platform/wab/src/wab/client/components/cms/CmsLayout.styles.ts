@@ -18,23 +18,18 @@ export const useCmsLayoutStyles = createStyles(({ token }) => ({
       flexDirection: "column",
       flex: 1,
       height: 0,
-      gap: 16,
-      padding: "0 24px 24px",
+      gap: 8,
+      padding: "0 8px 8px",
       overflow: "hidden",
     },
     [`& .${cmsContent.root}, & .${cmsSchema.root}`]: {
       flex: 1,
       height: 0,
-      gap: 16,
+      gap: 8,
       background: "transparent",
       overflow: "hidden",
     },
-    [`& .${cmsModelContent.root}`]: { gap: 16, flex: 1 },
-    "@media (max-width: 900px)": {
-      [`& > .${cmsRoot.freeBox}`]: { padding: "0 12px 12px", gap: 12 },
-      [`& .${cmsContent.root}, & .${cmsSchema.root}, & .${cmsModelContent.root}`]:
-        { gap: 12 },
-    },
+    [`& .${cmsModelContent.root}`]: { gap: 8, flex: 1 },
   },
   navigation: {
     "&&": {

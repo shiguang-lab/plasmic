@@ -1,7 +1,7 @@
 import { AiExecutionProgress } from "@/wab/client/components/copilot/AiExecutionProgress";
 import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
-import type { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
 import { useI18n } from "@/wab/client/i18n";
 import type {
   AiMessagePart,
@@ -61,7 +61,7 @@ export function AiResponse({
   lastRecord,
 }: {
   task: AiTask;
-  session: LocalEditSession;
+  session: AiSessionView;
   lastRecord?: EditRecord;
 }) {
   const { t, label } = useI18n();

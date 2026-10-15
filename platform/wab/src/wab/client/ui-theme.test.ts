@@ -33,6 +33,20 @@ it("syncs external preference changes through the same appearance source", () =>
   expect(setUiAppearance).toHaveBeenLastCalledWith("light");
 });
 
+it.each([null, "invalid"])("defaults to dark for preference %s", (value) => {
+  setAppearancePreference("light");
+  if (value === null) {
+    localStorage.removeItem("shiguang.ui.appearance");
+  } else {
+    localStorage.setItem("shiguang.ui.appearance", value);
+  }
+  window.dispatchEvent(
+    new StorageEvent("storage", { key: "shiguang.ui.appearance" }),
+  );
+  expect(getUiAppearance()).toBe("dark");
+  expect(document.documentElement.dataset.uiAppearance).toBe("dark");
+});
+
 it("retains the startup host appearance until the live frame bridge connects", async () => {
   vi.resetModules();
   Object.defineProperty(window, "__PlasmicStudioArgs", {

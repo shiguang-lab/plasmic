@@ -10,11 +10,30 @@ export const useDocsLayoutStyles = createStyles(({ token }) => ({
   root: {
     ...productPalette(token),
     color: token.colorText,
-    "&&": { background: token.colorBgLayout, color: token.colorText },
+    "&&": {
+      background: token.colorBgLayout,
+      color: token.colorText,
+      boxSizing: "border-box",
+      padding: 8,
+      gap: 8,
+    },
     [`& .${componentView.freeBox__wsP0Q}, & .${componentView.freeBox__vapgF}`]:
       { background: token.colorBgContainer },
     [`& .${header.root}`]: {
-      height: 56,
+      height: 48,
+      boxSizing: "border-box",
+      paddingLeft: navigator.userAgent.includes("PlasmicDesktop/darwin")
+        ? 96
+        : 12,
+      paddingRight: navigator.userAgent.includes("PlasmicDesktop/win32")
+        ? 144
+        : 12,
+      WebkitAppRegion: navigator.userAgent.includes("PlasmicDesktop/")
+        ? "drag"
+        : undefined,
+      "& a, & button, & [role=button], & [role=combobox]": {
+        WebkitAppRegion: "no-drag",
+      },
       flexShrink: 0,
       background: token.colorBgContainer,
       borderColor: token.colorBorderSecondary,
@@ -22,7 +41,12 @@ export const useDocsLayoutStyles = createStyles(({ token }) => ({
     [`& .${header.root} .${button.root}, & .${header.root} .${button.slotTargetChildren}`]:
       { color: token.colorText },
     [`& .${branch.slotTargetSlot}`]: { color: token.colorTextSecondary },
-    [`& .${docs.body}`]: { background: token.colorBgLayout },
+    [`& .${docs.body}`]: {
+      background: token.colorBgLayout,
+      flex: 1,
+      height: 0,
+      gap: 8,
+    },
     [`& .${docs.sidebar}`]: {
       width: 240,
       background: token.colorBgContainer,

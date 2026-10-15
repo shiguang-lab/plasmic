@@ -12,13 +12,13 @@ import * as React from "react";
 const useStyles = createStyles(() => ({
   position: {
     position: "fixed",
-    bottom: 20,
+    bottom: 8,
     left: "50%",
     transform: "translateX(-50%)",
     width: 530,
-    maxWidth: "calc(100% - 32px)",
+    maxWidth: "calc(100% - 16px)",
     zIndex: 1000,
-    "@media (max-width: 1100px)": { bottom: 84 },
+    "@media (max-width: 1100px)": { bottom: 72 },
   },
 }));
 

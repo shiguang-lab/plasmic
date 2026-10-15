@@ -1,8 +1,9 @@
 import { reportError, showError } from "@/wab/client/ErrorNotifications";
 import {
-  CommentFilter,
+  CommentFilters,
   CommentsStats,
   computeCommentStats,
+  filterCommentThreads,
   getCommentThreadsWithModelMetadata,
   isCommentForFrame,
   makeCommonFields,
@@ -29,10 +30,6 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { AnyArena } from "@/wab/shared/Arenas";
 import { mkIdMap } from "@/wab/shared/collections";
-import {
-  extractMentionedEmails,
-  hasUserParticipatedInThread,
-} from "@/wab/shared/comments-utils";
 import {
   assert,
   ensure,
@@ -79,7 +76,11 @@ export class CommentsCtx {
   private readonly _selfNotificationSettings = observable.box<
     ApiNotificationSettings | undefined
   >(undefined);
-  private _commentsFilter = observable.box<CommentFilter>("all");
+  private readonly _commentsFilter = observable.box<CommentFilters>({
+    scope: "current",
+    status: "unresolved",
+    onlyRelated: false,
+  });
   private readonly _loading = observable.box(false);
   private readonly _loadFailed = observable.box(false);
 
@@ -189,7 +190,7 @@ export class CommentsCtx {
     return this._commentsFilter.get();
   }
 
-  setCommentsFilter(filter: CommentFilter) {
+  setCommentsFilter(filter: CommentFilters) {
     this._commentsFilter.set(filter);
   }
 
@@ -212,31 +213,13 @@ export class CommentsCtx {
 
   filteredThreads() {
     const selfInfo = this.studioCtx.appCtx.selfInfo;
-    const filter = this.commentsFilter();
-    const { resolvedThreads, unresolvedThreads, allThreads } =
-      this.computedData();
-
     assert(selfInfo, "Expected selfInfo to exists in AppCtx");
-
-    if (filter === "mentions-and-replies") {
-      return allThreads.filter((thread) =>
-        thread.comments.some((comment) => {
-          if (extractMentionedEmails(comment.body).includes(selfInfo.email)) {
-            return true;
-          }
-          if (hasUserParticipatedInThread(selfInfo.id, thread.comments)) {
-            return true;
-          }
-          return false;
-        }),
-      );
-    }
-
-    if (filter === "resolved") {
-      return resolvedThreads;
-    }
-
-    return unresolvedThreads;
+    return filterCommentThreads(
+      this.computedData().allThreads,
+      this.commentsFilter(),
+      this.studioCtx.currentArena,
+      selfInfo,
+    );
   }
 
   private getQueryParams(): URLSearchParams {

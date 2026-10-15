@@ -195,7 +195,7 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
       },
       TOGGLE_COPILOT_CHAT: async () => {
         if (studioCtx.chatCopilotEnabled()) {
-          await studioCtx.appCtx.topFrameApi?.toggleCopilotChat();
+          studioCtx.toggleCopilotChat();
         }
       },
       SWITCH_TO_TREE_TAB: async () => {

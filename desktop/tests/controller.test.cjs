@@ -49,22 +49,37 @@ test("state and independent media remain responsive while editor operations seri
 });
 test("a lost metadata response expires, releases the queue and ignores a late IPC reply", async () => {
   const sent = [];
-  const webContents = { mainFrame: {}, send: (_channel, request) => sent.push(request) };
+  const webContents = {
+    mainFrame: {},
+    send: (_channel, request) => sent.push(request),
+  };
   const win = { isDestroyed: () => false, webContents };
   const controller = new DesktopController(() => win, {});
-  controller.execute = (method) => method === "snapshot_layout"
-    ? controller.invoke("metadata", {}, 10)
-    : Promise.resolve({ resumed: true });
-  const failed = assert.rejects(controller.dispatch("snapshot_layout", {}), /Editor command timed out: metadata/);
+  controller.execute = (method) =>
+    method === "snapshot_layout"
+      ? controller.invoke("metadata", {}, 10)
+      : Promise.resolve({ resumed: true });
+  const failed = assert.rejects(
+    controller.dispatch("snapshot_layout", {}),
+    /Editor command timed out: metadata/,
+  );
   const next = controller.dispatch("execute", {});
   await failed;
   assert.deepEqual(await next, { resumed: true });
   assert.equal(controller.pending.size, 0);
   assert.equal(controller.operations.size, 0);
-  controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, sent[0].id, { ready: true });
+  controller.receive(
+    { sender: webContents, senderFrame: webContents.mainFrame },
+    sent[0].id,
+    { ready: true },
+  );
   assert.equal(controller.pending.size, 0);
   const healthy = controller.invoke("metadata", {}, 1000);
-  controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, sent[1].id, { ready: true });
+  controller.receive(
+    { sender: webContents, senderFrame: webContents.mainFrame },
+    sent[1].id,
+    { ready: true },
+  );
   assert.deepEqual(await healthy, { ready: true });
   controller.close();
 });
@@ -346,4 +361,41 @@ test("downloads self-hosted pictures and includes their bytes in an export", asy
     controller.close();
     await fs.rm(root, { recursive: true, force: true });
   }
+});
+
+test("native API operations wait for device session restoration, while local state polling does not renew login", async () => {
+  const gate = deferred();
+  let restores = 0;
+  let requests = 0;
+  const win = {
+    isDestroyed: () => false,
+    webContents: {
+      session: {
+        fetch: async () => {
+          requests++;
+          return Response.json({ id: "org" });
+        },
+      },
+    },
+  };
+  const controller = new DesktopController(
+    () => win,
+    { studioOrigin: "https://studio.example" },
+    async () => {},
+    () => {
+      restores++;
+      return gate.promise;
+    },
+  );
+  controller.state = async () => ({ ready: true });
+  await controller.dispatch("get_app_state", {});
+  assert.equal(restores, 0);
+  const operation = controller.dispatch("get_org", { orgId: "org" });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(restores, 1);
+  assert.equal(requests, 0);
+  gate.resolve();
+  assert.deepEqual(await operation, { id: "org" });
+  assert.equal(requests, 1);
+  controller.close();
 });

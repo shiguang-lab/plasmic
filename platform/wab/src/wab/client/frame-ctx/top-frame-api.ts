@@ -1,17 +1,18 @@
 import { Api } from "@/wab/client/api";
 import { MergeModalContext } from "@/wab/client/components/TopFrame/TopFrameChrome";
 import { TopBarPromptBillingArgs } from "@/wab/client/components/modals/PricingModal";
+import type {
+  AiSessionAction,
+  AiSessionSnapshot,
+} from "@/wab/client/copilot/ai-session-view";
 import type { RemoteFileDragEvent } from "@/wab/client/file-drag/file-drag-monitor";
 import type { FrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import type { UiLocale } from "@/wab/client/i18n";
 import { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
 import type { UiAppearance } from "@/wab/client/ui-theme";
-import {
-  ApiBranch,
-  ApiTeam,
-  CopilotChatOpenOpts,
-} from "@/wab/shared/ApiSchema";
+import { ApiBranch, ApiTeam } from "@/wab/shared/ApiSchema";
+import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { DataSourceType } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { Listener } from "history";
@@ -50,7 +51,6 @@ export interface TopFrameApi {
   registerLocationListener(listener: Listener): () => void;
 
   setPrimitiveValues(vals: {
-    leftPaneWidth: number;
     noComponents: boolean;
     revisionNum: number;
     isLocalizationEnabled: boolean;
@@ -104,9 +104,18 @@ export interface TopFrameApi {
   setShowAppAuthModal(val: boolean): Promise<void>;
   setStudioModalOpen(val: boolean): Promise<void>;
   setOnboardingTour(val: TopFrameTourState): Promise<void>;
-  toggleCopilotChat(): Promise<void>;
-  openCopilotChat(opts: CopilotChatOpenOpts): Promise<void>;
-  closeCopilotChat(): Promise<void>;
+  setAiPanelOpen(open: boolean): Promise<void>;
+  subscribeAiSession(
+    projectId: string,
+    listener: (snapshot: AiSessionSnapshot) => void,
+  ): Promise<() => void>;
+  updateAiSession(projectId: string, action: AiSessionAction): Promise<void>;
+  downloadAiAttachment(
+    projectId: string,
+    fileId: string,
+    name: string,
+  ): Promise<void>;
+  getLocalAiStatus(projectId: string): Promise<LocalAiStatus>;
   setLocalAiContext(
     context:
       import("@/wab/shared/copilot/local-edit").LocalAiContext | undefined,

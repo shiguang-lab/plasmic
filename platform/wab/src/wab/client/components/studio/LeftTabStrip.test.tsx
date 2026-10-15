@@ -1,6 +1,12 @@
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { observable } from "mobx";
 import React from "react";
 const mocks = vi.hoisted(() => ({
@@ -31,7 +37,14 @@ vi.mock(
   () => ({ PlasmicLeftTabStrip: ({ buttons }: any) => <div>{buttons}</div> }),
 );
 vi.mock("@/wab/client/components/studio/LeftTabButton", () => ({
-  default: ({ label, onClick, expanded, disabled, isSelected, ...props }: any) => (
+  default: ({
+    label,
+    onClick,
+    expanded,
+    disabled,
+    isSelected,
+    ...props
+  }: any) => (
     <button
       onClick={onClick}
       disabled={disabled}
@@ -58,11 +71,6 @@ beforeEach(() => {
     leftTabGroup: undefined as string | undefined,
     setLeftTabGroup(group: string | undefined) {
       this.leftTabGroup = group;
-      if (group) {
-        this.drawer = false;
-        this.leftTabKey = undefined;
-        this.isCopilotChatOpen = false;
-      }
     },
     panelsHidden: false,
     drawer: true,
@@ -89,6 +97,7 @@ beforeEach(() => {
     togglePanels() {
       this.panelsHidden = !this.panelsHidden;
     },
+    toggleCopilotChat: mocks.toggleAi,
     chatCopilotEnabled: () => false,
   });
 });
@@ -134,11 +143,15 @@ it("places Libraries after Assets and opens its two secondary choices", async ()
   fireEvent.click(entry);
   expect(mocks.ctx.leftTabKey).toBeUndefined();
   expect(mocks.ctx.leftTabGroup).toBe("libraries");
-  expect(mocks.ctx.drawer).toBe(false);
+  expect(mocks.ctx.drawer).toBe(true);
   expect(entry.getAttribute("aria-expanded")).toBe("true");
   expect(entry).toHaveAttribute("aria-current", "true");
-  expect(await screen.findByRole("button", { name: "Component store" })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Imported projects" })).toBeTruthy();
+  expect(
+    await screen.findByRole("button", { name: "Component store" }),
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("button", { name: "Imported projects" }),
+  ).toBeTruthy();
   fireEvent.click(entry);
   expect(mocks.ctx.leftTabGroup).toBeUndefined();
   expect(entry).not.toHaveAttribute("aria-current");
@@ -161,7 +174,9 @@ it("restores hidden panels when choosing a Library destination and honors hidden
   mocks.ctx.panelsHidden = true;
   const { unmount } = render(<LeftTabStrip useVersionsCTA={false} />);
   fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
-  fireEvent.click(await screen.findByRole("button", { name: "Component store" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Component store" }),
+  );
   expect(mocks.ctx.panelsHidden).toBe(false);
   expect(mocks.ctx.leftTabKey).toBe("libraries");
   unmount();
@@ -170,26 +185,47 @@ it("restores hidden panels when choosing a Library destination and honors hidden
   expect(screen.queryByRole("button", { name: "Libraries" })).toBeNull();
 });
 
-it.each(["Component store", "Imported projects"])("opens %s from the Library submenu and keeps the Library tool selected", async (label) => {
-  render(<LeftTabStrip useVersionsCTA={false} />);
-  fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
-  fireEvent.click(await screen.findByRole("button", { name: label }));
-  expect(mocks.ctx.libraryTab).toBe(label === "Component store" ? "store" : "imports");
-  expect(mocks.ctx.leftTabKey).toBe("libraries");
-  expect(mocks.ctx.leftTabGroup).toBeUndefined();
-  expect(mocks.ctx.drawer).toBe(false);
-  expect(screen.getByRole("button", { name: "Libraries" })).toHaveAttribute("aria-current", "true");
-  expect(screen.getByRole("button", { name: "Libraries" })).toHaveAttribute("aria-expanded", "false");
-});
+it.each(["Component store", "Imported projects"])(
+  "opens %s from the Library submenu and keeps the Library tool selected",
+  async (label) => {
+    render(<LeftTabStrip useVersionsCTA={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
+    fireEvent.click(await screen.findByRole("button", { name: label }));
+    expect(mocks.ctx.libraryTab).toBe(
+      label === "Component store" ? "store" : "imports",
+    );
+    expect(mocks.ctx.leftTabKey).toBe("libraries");
+    expect(mocks.ctx.leftTabGroup).toBeUndefined();
+    expect(mocks.ctx.drawer).toBe(false);
+    expect(screen.getByRole("button", { name: "Libraries" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Libraries" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  },
+);
 
-it.each(["hidden", "anonymous"])("hides imported projects in the Library submenu for %s access", async (access) => {
-  if (access === "hidden") mocks.ctx.config = { leftTabs: { imports: "hidden" } };
-  else mocks.ctx.appCtx.selfInfo = null;
-  render(<LeftTabStrip useVersionsCTA={false} />);
-  fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
-  expect(await screen.findByRole("button", { name: "Component store" })).toBeTruthy();
-  expect(screen.queryByRole("button", { name: "Imported projects" })).toBeNull();
-});
+it.each(["hidden", "anonymous"])(
+  "hides imported projects in the Library submenu for %s access",
+  async (access) => {
+    if (access === "hidden") {
+      mocks.ctx.config = { leftTabs: { imports: "hidden" } };
+    } else {
+      mocks.ctx.appCtx.selfInfo = null;
+    }
+    render(<LeftTabStrip useVersionsCTA={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
+    expect(
+      await screen.findByRole("button", { name: "Component store" }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Imported projects" }),
+    ).toBeNull();
+  },
+);
 
 it("Escape closes the Library submenu and restores focus to its tool", async () => {
   render(<LeftTabStrip useVersionsCTA={false} />);
@@ -202,13 +238,13 @@ it("Escape closes the Library submenu and restores focus to its tool", async () 
   expect(mocks.ctx.leftTabGroup).toBeUndefined();
 });
 
-it("opening More closes AI and clicking AI closes More", async () => {
+it("opening More preserves AI and clicking AI closes More", async () => {
   mocks.ctx.isCopilotChatOpen = true;
   mocks.ctx.chatCopilotEnabled = () => true;
   render(<LeftTabStrip useVersionsCTA={false} />);
   fireEvent.click(screen.getByRole("button", { name: "More" }));
   await screen.findByRole("button", { name: "Expressions" });
-  expect(mocks.ctx.isCopilotChatOpen).toBe(false);
+  expect(mocks.ctx.isCopilotChatOpen).toBe(true);
   expect(mocks.ctx.leftTabGroup).toBe("more");
   fireEvent.click(screen.getByRole("button", { name: "AI" }));
   expect(mocks.toggleAi).toHaveBeenCalledOnce();

@@ -26,8 +26,6 @@ import leftPane from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftPane
 import splitsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSplitsPanel.module.css";
 import leftTabButton from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabButton.module.css";
 import themesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel.module.css";
-import navigation from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicNavigationDropdown.module.css";
-import outlinePanel from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicOutlineTab.module.css";
 import navigationSearch from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
 import rowItem from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicRowItem.module.css";
 import textboxLike from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTextboxLike.module.css";
@@ -37,9 +35,17 @@ import type { GlobalToken } from "antd";
 import { createStyles } from "antd-style";
 
 export const editorLeftRailLayout = {
-  left: 16,
+  left: 8,
+  top: 64,
+  bottom: 8,
   width: 48,
-  panelGap: 12,
+  panelGap: 8,
+} as const;
+
+export const editorCanvasControlsLayout = {
+  edgeInset: 8,
+  height: 36,
+  panelGap: 8,
 } as const;
 
 export const editorPanelHeaderStyle = (token: GlobalToken) =>
@@ -51,6 +57,11 @@ export const editorPanelHeaderStyle = (token: GlobalToken) =>
     height: 48,
     flexShrink: 0,
     borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    "& > strong, & > span": {
+      fontSize: 14,
+      fontWeight: 600,
+      lineHeight: "22px",
+    },
   }) as const;
 
 // Popovers render outside the editor root, so generated controls need the same
@@ -186,13 +197,13 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
     color: token.colorText,
     borderBottom: `1px solid ${token.colorBorderSecondary}`,
     boxShadow: "none",
-    height: 80,
+    height: 64,
     lineHeight: "normal",
     padding: 0,
     "&&": {
       background: token.colorBgLayout,
-      height: 80,
-      padding: 16,
+      height: 64,
+      padding: 8,
     },
   },
   wrapper: {
@@ -232,6 +243,26 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .tpltree__nodeLabel__name": { color: token.colorText },
     "& .tpltree__nodeLabel__summary, & .tpltree__label--hidden .tpltree__nodeLabel__name":
       { color: token.colorTextSecondary },
+    "& .tpltree__nodeLabel__name + .tpltree__nodeLabel__summary, & .tpltree__nodeLabel__customLabel + .tpltree__nodeLabel__summary":
+      { color: token.colorTextSecondary, opacity: 1 },
+    "& .tpltree__label": {
+      margin: "0 8px",
+      width: "calc(100% - 16px)",
+      borderRadius: 6,
+      paddingRight: 4,
+      boxSizing: "border-box",
+    },
+    "& .tpltree__label__expander": {
+      height: 20,
+      borderRadius: 4,
+      justifyContent: "center",
+      color: token.colorTextSecondary,
+      "&:not(:empty):hover": {
+        background: token.colorFillSecondary,
+        color: token.colorText,
+      },
+      "&:empty": { pointerEvents: "none" },
+    },
     "& .tpltree__label:hover": { background: token.colorFillTertiary },
     "& .tpltree__label--hovered": { boxShadow: "none" },
     "& .tpltree__label--focused-descendant": {
@@ -243,9 +274,11 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .tpltree__label--focused, & .tpltree__label--focused:hover, & .tpltree__label--drilled-descendant.tpltree__label--focused":
       {
         background: token.colorPrimaryBg,
-        boxShadow: `inset 2px 0 ${token.colorPrimary}`,
-        color: token.colorText,
+        boxShadow: "none",
+        color: token.colorPrimaryText,
       },
+    "& .tpltree__label--focused .tpltree__nodeLabel__name, & .tpltree__label--focused .tpltree__label__expander":
+      { color: token.colorPrimaryText },
     "& .tpltree__label--focused .tpltree__nodeLabel__summary": {
       color: token.colorText,
     },
@@ -279,17 +312,12 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .value-preview--error": { color: token.colorErrorText },
     "& .value-preview--loading": { color: token.colorTextSecondary },
     "& .dimfg, & .panel-section__title": { color: token.colorTextSecondary },
-    "@media (max-width: 1100px)": {
-      "& .canvas-editor--left-panel-open .canvas-editor__right-pane": {
-        display: "none",
-      },
-    },
     "& .canvas-editor__hsplit": { position: "relative", minHeight: 0 },
     "& .canvas-editor__top-bar": {
       position: "absolute",
-      top: 16,
-      left: 16,
-      right: 16,
+      top: 8,
+      left: 8,
+      right: 8,
       height: 48,
       zIndex: 40,
       pointerEvents: "none",
@@ -406,11 +434,12 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       fontSize: 12,
       boxShadow: "none",
     },
-    "& .editor-primary-actions .ant-btn[aria-expanded=true], & .editor-primary-actions .ant-btn[aria-pressed=true]": {
-      background: token.colorPrimaryBg,
-      color: token.colorPrimaryText,
-      borderColor: token.colorPrimary,
-    },
+    "& .editor-primary-actions .ant-btn[aria-expanded=true], & .editor-primary-actions .ant-btn[aria-pressed=true]":
+      {
+        background: token.colorPrimaryBg,
+        color: token.colorPrimaryText,
+        borderColor: token.colorPrimary,
+      },
     "& .editor-primary-actions .ant-btn:focus-visible, & #left-tab-strip button:focus-visible":
       { outline: `2px solid ${token.colorPrimary}`, outlineOffset: 2 },
     "& .canvas-editor__left-pane button:focus-visible, & .canvas-editor__right-pane button:focus-visible":
@@ -556,22 +585,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       color: token.colorText,
     },
     "& .editor-issues-panel .ant-empty": { color: token.colorTextSecondary },
-    "& .editor-navigation-tabs": { flex: 1, minWidth: 0, marginRight: 12 },
-    "& .editor-navigation-tabs .ant-tabs-nav": { margin: 0 },
-    "& .editor-navigation-tabs .ant-tabs-nav::before": { border: 0 },
-    "& .editor-navigation-tabs .ant-tabs-nav-list": {
-      padding: 3,
-      gap: 4,
-      background: token.colorFillTertiary,
-      borderRadius: token.borderRadius,
-      width: "100%",
-    },
-    "& .editor-navigation-tabs .ant-tabs-tab + .ant-tabs-tab": { margin: 0 },
-    "& .editor-navigation-tabs .ant-tabs-tab-active": {
-      background: token.colorBgContainer,
-      boxShadow: token.boxShadowTertiary,
-    },
-    "& .editor-navigation-tabs .ant-tabs-ink-bar": { display: "none" },
     "& .editor-inspector-tabs": { flex: 1, minHeight: 0 },
     "& .editor-inspector-tabs > .ant-tabs-nav": {
       margin: 0,
@@ -642,13 +655,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       textOverflow: "ellipsis",
       whiteSpace: "nowrap",
     },
-    "& .editor-navigation-tabs .ant-tabs-tab": {
-      padding: "4px 12px",
-      flex: 1,
-      justifyContent: "center",
-      borderRadius: token.borderRadiusSM,
-      fontSize: 13,
-    },
     "& .editor-page-navigation": {
       overflow: "hidden",
       minHeight: 0,
@@ -669,25 +675,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .editor-document-label .dimfg": {
       color: token.colorTextSecondary,
       fontSize: 12,
-    },
-    [`& .editor-page-navigation .${navigation.freeBox__n0S7B}`]: {
-      flex: 1,
-      minHeight: 0,
-      overflow: "hidden",
-    },
-    [`& .editor-page-navigation .${navigation.freeBox__qEfvh}`]: {
-      flexShrink: 0,
-      padding: 12,
-      rowGap: 10,
-    },
-    "& .editor-page-navigation .shortcut-combo": {
-      background: token.colorFillSecondary,
-      color: token.colorTextSecondary,
-      boxShadow: "none",
-      border: `1px solid ${token.colorBorderSecondary}`,
-    },
-    "& .editor-page-navigation .bt-dim": {
-      borderTopColor: token.colorBorderSecondary,
     },
     [`& .canvas-editor__left-pane .${navigationSearch.searchInputContainer}`]: {
       height: 34,
@@ -710,34 +697,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       { color: token.colorTextPlaceholder },
     [`& .canvas-editor__left-pane .${navigationSearch.clearFieldIcon}`]: {
       color: token.colorTextSecondary,
-    },
-    [`& .canvas-editor__left-pane .${outlinePanel.freeBox__k743O}`]: {
-      margin: "0 12px",
-    },
-    [`& .canvas-editor__left-pane .${outlinePanel.freeBox__qdVl}`]: {
-      margin: "0 12px",
-      alignItems: "center",
-    },
-    [`& .editor-page-navigation .${navigation.text}`]: {
-      fontSize: 12,
-      fontWeight: 400,
-      padding: 0,
-      color: token.colorTextSecondary,
-    },
-    [`& .editor-page-navigation .${navigation.root}`]: {
-      height: "100%",
-      minHeight: 0,
-      background: token.colorBgContainer,
-      color: token.colorText,
-      borderRadius: 0,
-      transition: "none",
-    },
-    [`& .editor-page-navigation .${button.slotTargetChildren}`]: {
-      color: token.colorText,
-    },
-    "& .editor-page-navigation .editor-navigation-current": {
-      boxShadow: `inset 2px 0 ${token.colorPrimary}`,
-      background: token.colorPrimaryBg,
     },
     [`& .editor-page-navigation .${rowItem.freeBox}`]: { gap: 4 },
     [`& .editor-page-navigation .${rowItem.freeBox} button`]: {
@@ -781,9 +740,11 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       border: 0,
     },
     "& .canvas-editor__top-pane__floating-elements-container": {
-      paddingTop: 82,
+      paddingTop: editorLeftRailLayout.top,
     },
     "& .editor-tool-rail-group": {
+      position: "relative",
+      zIndex: 1,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
@@ -970,7 +931,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       border: `1px solid ${token.colorBorder}`,
       borderRadius: token.borderRadiusLG,
       overflow: "hidden",
-      maxWidth: "calc(100vw - 96px)",
+      maxWidth: "calc(100vw - 72px)",
       background: token.colorBgContainer,
     },
     [`& .${leftPane.root}, & .${topBar.root}`]: {
@@ -980,17 +941,21 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .canvas-editor__right-pane": {
       position: "absolute",
-      right: 16,
-      top: 82,
-      bottom: 88,
+      right: editorCanvasControlsLayout.edgeInset,
+      top: editorLeftRailLayout.top,
+      bottom:
+        editorCanvasControlsLayout.edgeInset +
+        editorCanvasControlsLayout.height +
+        editorCanvasControlsLayout.panelGap,
       width: 320,
-      maxWidth: "calc(100% - 24px)",
+      maxWidth: "calc(100% - 16px)",
       border: `1px solid ${token.colorBorder}`,
       borderRadius: token.borderRadiusLG,
       zIndex: 20,
     },
-    "& .canvas-editor--panels-hidden .canvas-editor__left-pane, & .canvas-editor--panels-hidden .canvas-editor__right-pane":
-      { display: "none" },
+    "& .canvas-editor--panels-hidden .canvas-editor__right-pane": {
+      display: "none",
+    },
     [`& .${sidebarSection.collapsingToggleLabel}`]: {
       background: token.colorFillSecondary,
       color: token.colorTextSecondary,
@@ -1035,16 +1000,20 @@ export const useAuthenticatedLayoutStyles = createStyles(({ token }) => ({
     color: token.colorText,
     fontFamily: token.fontFamily,
     "& .normal-layout__top-bar": {
-      height: 80,
-      padding: 16,
+      height: 64,
+      padding: 8,
       background: token.colorBgLayout,
       WebkitAppRegion: "drag",
       "& a, & button, & [role=button]": { WebkitAppRegion: "no-drag" },
     },
-    "& .normal-layout-content": { paddingInline: 24 },
+    "& .normal-layout-content": {
+      padding: "0 8px 8px",
+      boxSizing: "border-box",
+      maxWidth: "none",
+    },
     "& .normal-layout-content--top-bar": {
       alignItems: "center",
-      paddingInline: 0,
+      padding: 0,
       maxWidth: "none",
     },
     "& .normal-layout__brand": {

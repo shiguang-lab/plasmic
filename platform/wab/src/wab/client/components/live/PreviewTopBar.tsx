@@ -62,7 +62,7 @@ const useStyles = createStyles(({ token }) => ({
     gap: 12,
     minHeight: 48,
     flexShrink: 0,
-    margin: 16,
+    margin: 8,
     color: token.colorText,
     position: "relative",
     zIndex: 100,

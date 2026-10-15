@@ -29,14 +29,14 @@
   > div {
     margin-top: 0;
     min-height: 0;
-    height: calc(100% - 80px);
+    height: calc(100% - 64px);
     flex: 1;
   }
 
   .applicationHeader.applicationHeader {
     position: relative;
-    height: 80px;
-    padding: 16px;
+    height: 64px;
+    padding: 8px;
     background: var(--ui-bg);
     border: 0;
   }
@@ -85,7 +85,7 @@
   .layoutWrapper {
     max-width: none;
     height: 100%;
-    padding: 0 16px 16px;
+    padding: 0 8px 8px;
     align-items: flex-start;
   }
 
@@ -184,7 +184,7 @@
 }
 .spacesContent {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   flex: 1;
   height: 100%;
   min-height: 0;

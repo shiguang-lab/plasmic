@@ -8,20 +8,26 @@ const script = html.slice(
 );
 
 it.each([
-  [null, false, "light"],
+  [null, false, "dark"],
   [null, true, "dark"],
   ["dark", false, "dark"],
   ["light", true, "light"],
   ["system", true, "dark"],
   ["system", false, "light"],
-  ["invalid", false, "light"],
+  ["invalid", false, "dark"],
   ["invalid", true, "dark"],
 ])(
   "resolves initial appearance %s before React mounts",
   (stored, matches, expected) => {
     const root = { dataset: {} as Record<string, string> };
     const media = { matches, addEventListener: vi.fn() };
-    const run = new Function("window", "document", "localStorage", "maybeParams", script);
+    const run = new Function(
+      "window",
+      "document",
+      "localStorage",
+      "maybeParams",
+      script,
+    );
     run(
       { matchMedia: () => media, addEventListener: vi.fn() },
       { documentElement: root },
@@ -32,7 +38,7 @@ it.each([
 );
 
 it.each([false, true])(
-  "follows the system when storage is unavailable (dark: %s)",
+  "defaults to dark when storage is unavailable (system dark: %s)",
   (matches) => {
     const root = { dataset: {} as Record<string, string> };
     new Function("window", "document", "localStorage", "maybeParams", script)(
@@ -47,7 +53,7 @@ it.each([false, true])(
         },
       },
     );
-    expect(root.dataset.uiAppearance).toBe(matches ? "dark" : "light");
+    expect(root.dataset.uiAppearance).toBe("dark");
   },
 );
 
@@ -101,8 +107,14 @@ it.each(["dark", "light"])(
 it.each(["dark", "light"])(
   "paints the host's inherited %s background before host code loads",
   (appearance) => {
-    const host = readFileSync(resolve(process.cwd(), "../sub/public/static/host.html"), "utf8");
-    const startup = host.slice(host.indexOf("<script>") + 8, host.indexOf("</script>"));
+    const host = readFileSync(
+      resolve(process.cwd(), "../sub/public/static/host.html"),
+      "utf8",
+    );
+    const startup = host.slice(
+      host.indexOf("<script>") + 8,
+      host.indexOf("</script>"),
+    );
     const root = document.createElement("html");
     new Function("location", "document", startup)(
       { hash: `#origin=https://studio.example&uiAppearance=${appearance}` },
@@ -115,20 +127,26 @@ it.each(["dark", "light"])(
   },
 );
 
-it.each(["#uiAppearance=dark", "#origin=https://studio.example&canvas=true&uiAppearance=dark"])(
-  "leaves business canvas backgrounds unchanged for %s",
-  (hash) => {
-    const host = readFileSync(resolve(process.cwd(), "../sub/public/static/host.html"), "utf8");
-    const startup = host.slice(host.indexOf("<script>") + 8, host.indexOf("</script>"));
-    const root = document.createElement("html");
-    new Function("location", "document", startup)(
-      { hash },
-      { documentElement: root },
-    );
-    expect(root.style.backgroundColor).toBe("");
-    expect(root.style.colorScheme).toBe("");
-  },
-);
+it.each([
+  "#uiAppearance=dark",
+  "#origin=https://studio.example&canvas=true&uiAppearance=dark",
+])("leaves business canvas backgrounds unchanged for %s", (hash) => {
+  const host = readFileSync(
+    resolve(process.cwd(), "../sub/public/static/host.html"),
+    "utf8",
+  );
+  const startup = host.slice(
+    host.indexOf("<script>") + 8,
+    host.indexOf("</script>"),
+  );
+  const root = document.createElement("html");
+  new Function("location", "document", startup)(
+    { hash },
+    { documentElement: root },
+  );
+  expect(root.style.backgroundColor).toBe("");
+  expect(root.style.colorScheme).toBe("");
+});
 
 it("tracks system changes while retaining the host's inherited appearance", async () => {
   let onChange: () => void = () => {};
@@ -145,6 +163,10 @@ it("tracks system changes while retaining the host's inherited appearance", asyn
   const { setAppearancePreference, setUiAppearance, getUiAppearance } =
     await import("@/wab/client/ui-theme");
   try {
+    expect(getUiAppearance()).toBe("dark");
+    onChange();
+    expect(getUiAppearance()).toBe("dark");
+    setAppearancePreference("system");
     expect(getUiAppearance()).toBe("light");
     media.matches = true;
     onChange();

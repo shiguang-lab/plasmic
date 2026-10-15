@@ -5,6 +5,7 @@ import CommentIndicatorIcon from "@/wab/client/components/comments/CommentIndica
 import { ArenaContextMenu } from "@/wab/client/components/sidebar-tabs/ProjectPanel/ArenaContextMenu";
 import { FolderContextMenu } from "@/wab/client/components/sidebar-tabs/ProjectPanel/FolderContextMenu";
 import { NavigationDropdownContext } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
+import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -12,7 +13,6 @@ import IconButton from "@/wab/client/components/widgets/IconButton";
 import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
-import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import MixedArenaIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__MixedArena";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -28,12 +28,13 @@ import { ensure, spawn, switchType } from "@/wab/shared/common";
 import { PageComponent } from "@/wab/shared/core/components";
 import { getFolderDisplayName } from "@/wab/shared/folders/folders-util";
 import { Arena, ComponentArena, PageArena } from "@/wab/shared/model/classes";
+import { Button } from "antd";
 import cn from "classnames";
 import * as React from "react";
+import { FiChevronDown, FiChevronRight, FiPlus } from "react-icons/fi";
 
-export const HEADER_HEIGHT = 36;
-export const PAGE_HEIGHT = 42;
-export const ROW_HEIGHT = 32;
+export const HEADER_HEIGHT = 28;
+export const ROW_HEIGHT = 30;
 
 export interface Header {
   type: "header";
@@ -48,32 +49,23 @@ export interface PageArenaData {
   type: "page";
   key: string;
   arena: PageArena;
-  isStandalone?: boolean;
 }
 
 export interface CustomArenaData {
   type: "custom";
   key: string;
   arena: Arena;
-  isStandalone?: boolean;
 }
 
 export interface ComponentArenaData {
   type: "component";
   key: string;
   arena: ComponentArena;
-  isStandalone?: boolean;
-}
-
-export interface AnyData {
-  type: "any";
-  key: string;
-  element: React.ReactNode;
 }
 
 export type ArenaData = ComponentArenaData | CustomArenaData | PageArenaData;
 
-export type ArenaPanelRow = Header | FolderElement | ArenaData | AnyData;
+export type ArenaPanelRow = Header | FolderElement | ArenaData;
 
 export type OnAddArena = (
   type: ArenaType,
@@ -115,26 +107,41 @@ export function NavigationHeaderRow({
   toggleExpand,
   ...props
 }: NavigationHeaderRowProps) {
+  const { styles } = useStructurePanelStyles();
+  const { t } = useI18n();
   return (
-    <RowGroup
-      style={{ height: HEADER_HEIGHT }}
-      className="bt-dim"
-      showActions={true}
-      actions={
-        <IconButton
-          onClick={async (e) => {
-            e.stopPropagation();
-            await onAdd();
-            if (!props.isOpen) {
-              toggleExpand();
-            }
-          }}
-        >
-          <Icon icon={PlusIcon} />
-        </IconButton>
-      }
-      {...props}
-    />
+    <div className={styles.category}>
+      <button
+        type="button"
+        className={styles.categoryToggle}
+        onClick={(event) => {
+          event.stopPropagation();
+          toggleExpand();
+        }}
+        aria-expanded={!!props.isOpen}
+      >
+        {props.isOpen ? (
+          <FiChevronDown size={12} />
+        ) : (
+          <FiChevronRight size={12} />
+        )}
+        {props.children}
+        <span className={styles.count}>{props.groupSize}</span>
+      </button>
+      <Button
+        type="text"
+        className={`${styles.categoryAdd} editor-category-add`}
+        aria-label={t("New")}
+        icon={<FiPlus size={13} />}
+        onClick={async (event) => {
+          event.stopPropagation();
+          await onAdd();
+          if (!props.isOpen) {
+            toggleExpand();
+          }
+        }}
+      />
+    </div>
   );
 }
 
@@ -202,7 +209,6 @@ export interface NavigationArenaRowProps {
   arena: AnyArena;
   matcher: Matcher;
   indentMultiplier: number;
-  isStandalone?: boolean;
   isSelected?: boolean;
   onClick: (arena: AnyArena) => void;
 }
@@ -211,7 +217,6 @@ export function NavigationArenaRow({
   arena,
   matcher,
   indentMultiplier,
-  isStandalone,
   isSelected,
   onClick,
 }: NavigationArenaRowProps) {
@@ -223,9 +228,8 @@ export function NavigationArenaRow({
     "Expected NavigationDropdownContext",
   );
   const fullArenaName = getArenaName(arena);
-  const displayName = isStandalone
-    ? fullArenaName
-    : getFolderDisplayName(fullArenaName);
+  const displayName = getFolderDisplayName(fullArenaName);
+  const { styles } = useStructurePanelStyles();
   const isPage = isPageArena(arena);
   const pathName = isPage ? arena.component.pageMeta?.path : undefined;
 
@@ -253,13 +257,14 @@ export function NavigationArenaRow({
   return (
     <RowItem
       className={[
+        styles.navRow,
         studioCtx.currentArena === arena && "editor-navigation-current",
         isSelected && "editor-navigation-keyboard",
       ]
         .filter(Boolean)
         .join(" ")}
       style={{
-        height: isPage ? PAGE_HEIGHT : ROW_HEIGHT,
+        height: ROW_HEIGHT,
         paddingLeft: indentMultiplier * 16 + 12,
       }}
       onClick={() => onClick(arena)}
@@ -304,28 +309,12 @@ export function NavigationArenaRow({
         programmaticallyTriggered
       >
         <div className="flex-col editor-document-label">
-          <span title={displayName}>{matcher.boldSnippets(displayName)}</span>
-          {pathName && (
-            <span className="dimfg" title={pathName}>
-              {matcher.boldSnippets(pathName)}
-            </span>
-          )}
+          <span title={pathName ? `${displayName} · ${pathName}` : displayName}>
+            {matcher.boldSnippets(displayName)}
+          </span>
         </div>
       </EditableLabel>
     </RowItem>
-  );
-}
-
-interface NavigationAnyRowProps {
-  element: React.ReactNode;
-  matcher: Matcher;
-}
-
-export function NavigationAnyRow({ element, matcher }: NavigationAnyRowProps) {
-  return (
-    <div className="ph-lg pv-m fill-width dimfg" style={{ height: ROW_HEIGHT }}>
-      {matcher.boldSnippets(element)}
-    </div>
   );
 }
 

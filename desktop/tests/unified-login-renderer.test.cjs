@@ -27,7 +27,15 @@ const packs = Object.fromEntries(
   ]),
 );
 const tick = () => new Promise((resolve) => setImmediate(resolve));
-async function fixture(t, { delayedStatus = false, delayedCopy = false } = {}) {
+async function fixture(
+  t,
+  {
+    delayedStatus = false,
+    delayedCopy = false,
+    systemDark = true,
+    appearance,
+  } = {},
+) {
   const dom = new JSDOM(html, {
     runScripts: "outside-only",
     url: "https://studio.example/desktop/unified-login",
@@ -39,8 +47,16 @@ async function fixture(t, { delayedStatus = false, delayedCopy = false } = {}) {
   const commands = [],
     appearances = [];
   let mediaChange;
-  const media = { matches: true, addEventListener(_event, callback) { mediaChange = callback; } };
+  const media = {
+    matches: systemDark,
+    addEventListener(_event, callback) {
+      mediaChange = callback;
+    },
+  };
   window.matchMedia = () => media;
+  if (appearance !== undefined) {
+    window.localStorage.setItem("shiguang.ui.appearance", appearance);
+  }
   window.desktopEnvironment = {
     getUiMessages: async () => ({ locale: "en", messages: packs.en }),
     onUiLocale() {},
@@ -58,29 +74,37 @@ async function fixture(t, { delayedStatus = false, delayedCopy = false } = {}) {
     },
     command: async (command) => {
       commands.push(command);
-      if (command === "status" && delayedStatus)
+      if (command === "status" && delayedStatus) {
         return new Promise((resolve) => {
           resolveInitial = resolve;
         });
-      if (command === "copy-link" && delayedCopy)
+      }
+      if (command === "copy-link" && delayedCopy) {
         return new Promise((resolve) => {
           resolveCopy = resolve;
         });
-      if (command === "copy-link")
+      }
+      if (command === "copy-link") {
         return {
           ...current,
           copied: true,
           authorizationUrl:
             "https://private-auth.example/authorize?secret=must-stay-hidden",
         };
-      if (command === "sign-in" || command === "retry")
+      }
+      if (command === "sign-in" || command === "retry") {
         current = { phase: "opening" };
-      if (command === "cancel") current = { phase: "idle" };
+      }
+      if (command === "cancel") {
+        current = { phase: "idle" };
+      }
       return current;
     },
   };
   const inline = [...window.document.querySelectorAll("script:not([src])")];
   window.eval(inline[0].textContent);
+  const startupAppearance =
+    window.document.documentElement.dataset.uiAppearance;
   window.eval(rendererI18n);
   window.eval(inline[1].textContent);
   await tick();
@@ -88,7 +112,11 @@ async function fixture(t, { delayedStatus = false, delayedCopy = false } = {}) {
     window,
     commands,
     appearances,
-    setSystemDark: (value) => { media.matches = value; mediaChange(); },
+    startupAppearance,
+    setSystemDark: (value) => {
+      media.matches = value;
+      mediaChange();
+    },
     element: (id) => window.document.getElementById(id),
     emit: (value) => {
       current = value;
@@ -98,6 +126,34 @@ async function fixture(t, { delayedStatus = false, delayedCopy = false } = {}) {
     resolveCopy: (value) => resolveCopy(value),
   };
 }
+test("login defaults to dark and respects saved preferences on a light system", async (t) => {
+  for (const [appearance, expected] of [
+    [undefined, "dark"],
+    ["invalid", "dark"],
+    ["light", "light"],
+    ["system", "light"],
+  ]) {
+    const f = await fixture(t, { systemDark: false, appearance });
+    assert.equal(f.startupAppearance, expected);
+    assert.equal(
+      f.window.document.documentElement.dataset.uiAppearance,
+      expected,
+    );
+    assert.equal(f.appearances.at(-1), expected);
+    if (appearance === undefined) {
+      assert.equal(
+        f.element("appearance-label").textContent,
+        packs.en["Dark appearance"],
+      );
+      f.setSystemDark(true);
+      f.setSystemDark(false);
+      assert.equal(
+        f.window.document.documentElement.dataset.uiAppearance,
+        "dark",
+      );
+    }
+  }
+});
 test("login commands follow real phases and copied URLs stay out of the DOM", async (t) => {
   const f = await fixture(t);
   f.element("sign-in").click();
@@ -231,7 +287,10 @@ test("blocked preference storage reports the failure without claiming a switch",
   f.element("language-menu").querySelector('[data-value="ko"]').click();
   await tick();
   assert.equal(f.window.document.documentElement.lang, "en");
-  assert.equal(f.element("language-label").textContent, packs.en["Follow system"]);
+  assert.equal(
+    f.element("language-label").textContent,
+    packs.en["Follow system"],
+  );
 });
 test("a late initial status cannot overwrite a live waiting state", async (t) => {
   const f = await fixture(t, { delayedStatus: true });
@@ -257,7 +316,10 @@ test("a delayed copy response cannot restore waiting after cancellation", async 
 
 test("dropdowns support keyboard navigation, dismissal and all appearance preferences", async (t) => {
   const f = await fixture(t);
-  const key = (target, value) => target.dispatchEvent(new f.window.KeyboardEvent("keydown", { key: value, bubbles: true }));
+  const key = (target, value) =>
+    target.dispatchEvent(
+      new f.window.KeyboardEvent("keydown", { key: value, bubbles: true }),
+    );
   assert.equal(f.window.document.querySelector("select"), null);
   key(f.element("language"), "ArrowDown");
   assert.equal(f.element("language-menu").hidden, false);
@@ -270,16 +332,30 @@ test("dropdowns support keyboard navigation, dismissal and all appearance prefer
   f.element("appearance").click();
   assert.equal(f.element("language-menu").hidden, true);
   const menu = f.element("appearance-menu");
-  assert.deepEqual([...menu.querySelectorAll("[data-value]")].map(item => item.dataset.value), ["system", "light", "dark"]);
+  assert.deepEqual(
+    [...menu.querySelectorAll("[data-value]")].map(
+      (item) => item.dataset.value,
+    ),
+    ["system", "light", "dark"],
+  );
   for (const value of ["light", "dark", "system"]) {
     menu.querySelector(`[data-value="${value}"]`).click();
-    assert.equal(f.window.localStorage.getItem("shiguang.ui.appearance"), value);
-    assert.equal(menu.querySelector('[aria-checked="true"]').dataset.value, value);
+    assert.equal(
+      f.window.localStorage.getItem("shiguang.ui.appearance"),
+      value,
+    );
+    assert.equal(
+      menu.querySelector('[aria-checked="true"]').dataset.value,
+      value,
+    );
   }
   f.setSystemDark(false);
   assert.equal(f.window.document.documentElement.dataset.uiAppearance, "light");
   assert.equal(f.appearances.at(-1), "light");
-  assert.equal(f.element("appearance-label").textContent, packs.en["Follow system"]);
+  assert.equal(
+    f.element("appearance-label").textContent,
+    packs.en["Follow system"],
+  );
   f.element("appearance").click();
   f.window.document.body.click();
   assert.equal(menu.hidden, true);

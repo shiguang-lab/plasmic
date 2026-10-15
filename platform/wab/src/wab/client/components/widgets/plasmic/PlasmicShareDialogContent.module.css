@@ -3,12 +3,8 @@
   width: 100%;
   height: auto;
   position: relative;
-  background: var(--ui-surface, var(--token-iR8SeEwQZ));
   flex-direction: column;
-  box-shadow: 0px 12px 60px 0px #00000026, 0px 16px 64px 0px #00005508;
   min-width: 0;
-  border-radius: 1px;
-  border: 1px solid var(--token-JpKJ41ZaDWOC);
 }
 .freeBox__nnT7R {
   display: flex;

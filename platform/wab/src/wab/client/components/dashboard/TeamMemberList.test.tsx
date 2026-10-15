@@ -136,6 +136,9 @@ it("opens an accessible invitation dialog and preserves its permission refresh c
   show();
   fireEvent.click(screen.getByRole("button", { name: "Invite" }));
   expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  expect(
+    screen.getByRole("dialog").querySelector(".ant-modal-container"),
+  ).toHaveStyle({ padding: "0px" });
   fireEvent.click(screen.getByRole("button", { name: "Reload permissions" }));
   expect(mocks.reload).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Finish invite" }));

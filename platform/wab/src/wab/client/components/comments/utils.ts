@@ -6,8 +6,17 @@ import {
   getSetOfPinnedVariantsForViewCtx,
   ViewCtx,
 } from "@/wab/client/studio-ctx/view-ctx";
-import { ApiCommentThread } from "@/wab/shared/ApiSchema";
+import { ApiCommentThread, ApiUser } from "@/wab/shared/ApiSchema";
+import {
+  AnyArena,
+  getArenaFrames,
+  isDedicatedArena,
+} from "@/wab/shared/Arenas";
 import { Bundler } from "@/wab/shared/bundler";
+import {
+  extractMentionedEmails,
+  hasUserParticipatedInThread,
+} from "@/wab/shared/comments-utils";
 import { getOrSetMap, xSymmetricDifference } from "@/wab/shared/common";
 import { allComponentVariants } from "@/wab/shared/core/components";
 import { allGlobalVariants } from "@/wab/shared/core/sites";
@@ -18,7 +27,6 @@ import {
   tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
 import {
-  ArenaFrame,
   Component,
   isKnownVariant,
   ObjInst,
@@ -26,7 +34,7 @@ import {
   Variant,
 } from "@/wab/shared/model/classes";
 import { toVariantComboKey } from "@/wab/shared/Variants";
-import { groupBy, keyBy, partition } from "lodash";
+import { groupBy, keyBy, sortBy } from "lodash";
 import { toJS } from "mobx";
 
 /**
@@ -53,13 +61,11 @@ export interface TplCommentThread extends ApiCommentThread {
 }
 
 export type TplCommentThreads = TplCommentThread[];
-export type CommentFilter = "all" | "mentions-and-replies" | "resolved";
-
-export const FilterValueToLabel = {
-  all: "Opened",
-  "mentions-and-replies": "Mentions and replies",
-  resolved: "Resolved",
-} as const satisfies Record<CommentFilter, string>;
+export interface CommentFilters {
+  scope: "current" | "project";
+  status: "unresolved" | "resolved" | "all";
+  onlyRelated: boolean;
+}
 
 export function hasNonDeletedComments(thread: ApiCommentThread): boolean {
   // hide thread if it has no non-deleted comments
@@ -138,22 +144,53 @@ export function getCommentThreadsWithModelMetadata(
     );
 }
 
-export function partitionThreadsForFrames(
+export function filterCommentThreads(
   threads: TplCommentThreads,
-  arenaFrames: ArenaFrame[],
-  studioCtx: StudioCtx,
+  filters: CommentFilters,
+  currentArena: AnyArena | null | undefined,
+  selfInfo: Pick<ApiUser, "id" | "email">,
 ) {
-  const [current, other] = partition([...threads], (thread) =>
-    arenaFrames.find((arenaFrame) => {
-      const vc = studioCtx.tryGetViewCtxForFrame(arenaFrame);
-      return vc && isCommentForFrame(vc, thread);
-    }),
+  const currentComponents = new Set(
+    isDedicatedArena(currentArena)
+      ? [currentArena.component]
+      : getArenaFrames(currentArena).map((frame) => frame.container.component),
   );
 
-  return {
-    current,
-    other,
-  };
+  return sortBy(
+    threads.filter((thread) => {
+      if (
+        filters.scope === "current" &&
+        (!thread.subjectInfo ||
+          !currentComponents.has(thread.subjectInfo.ownerComponent))
+      ) {
+        return false;
+      }
+      if (
+        filters.status !== "all" &&
+        thread.resolved !== (filters.status === "resolved")
+      ) {
+        return false;
+      }
+      const comments = thread.comments.filter((comment) => !comment.deletedAt);
+      return (
+        !filters.onlyRelated ||
+        hasUserParticipatedInThread(selfInfo.id, comments) ||
+        comments.some((comment) =>
+          extractMentionedEmails(comment.body).includes(selfInfo.email),
+        )
+      );
+    }),
+    (thread) =>
+      -Math.max(
+        +new Date(thread.updatedAt),
+        ...thread.comments
+          .filter((comment) => !comment.deletedAt)
+          .map((comment) => +new Date(comment.updatedAt)),
+        ...thread.commentThreadHistories.map(
+          (history) => +new Date(history.createdAt),
+        ),
+      ),
+  );
 }
 
 /** Number of threads and replies for an element */

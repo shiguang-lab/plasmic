@@ -2,9 +2,13 @@ import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
-import { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import {
+  LocalEditSession,
+  localAiFetch,
+} from "@/wab/client/copilot/local-edit-session";
 import { toOpaque } from "@/wab/commons/types";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
+import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -70,7 +74,9 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
           <CopilotChatDialog
             project={project}
             chatOpenOpts={chatOpenOpts}
-            width={303}
+            onDownloadAttachment={vi.fn().mockResolvedValue(undefined)}
+            session={state.session as LocalEditSession}
+            fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
             hiddenByModal={false}
             onClose={onClose}
           />
@@ -349,7 +355,9 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
           <CopilotChatDialog
             project={project}
             context={context}
-            width={303}
+            onDownloadAttachment={vi.fn().mockResolvedValue(undefined)}
+            session={state.session as LocalEditSession}
+            fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
             hiddenByModal={false}
             chatOpenOpts={opts}
             onClose={() => {

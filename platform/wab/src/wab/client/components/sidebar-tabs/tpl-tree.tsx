@@ -51,7 +51,12 @@ import {
   useChanged,
   useForwardedRef,
 } from "@/wab/commons/components/ReactUtil";
-import { AnyArena } from "@/wab/shared/Arenas";
+import {
+  AnyArena,
+  getArenaFrameDesc,
+  getArenaFrames,
+  isMixedArena,
+} from "@/wab/shared/Arenas";
 import { assert, ensure, maybe, spawn, unexpected } from "@/wab/shared/common";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { Selectable } from "@/wab/shared/core/selection";
@@ -75,6 +80,7 @@ import { asTpl } from "@/wab/shared/core/vals";
 import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
 import { CanvasEnv } from "@/wab/shared/eval";
 import {
+  ArenaFrame,
   Expr,
   isKnownTplNode,
   isKnownTplSlot,
@@ -103,7 +109,7 @@ import {
 } from "@/wab/shared/Variants";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
 import { selectionControlsColor } from "@/wab/styles/css-variables";
-import { notification, Tooltip } from "antd";
+import { Button, notification, Tooltip } from "antd";
 import cx from "classnames";
 import $ from "jquery";
 import L, { isArray } from "lodash";
@@ -121,14 +127,17 @@ import CommentIndicatorIcon from "@/wab/client/components/comments/CommentIndica
 import { getSubjectVariantsKey } from "@/wab/client/components/comments/utils";
 import {
   getNodeSummary,
+  makeNodeKey,
   OutlineCtx,
   OutlineNode,
   OutlineNodeData,
   OutlineNodeKey,
 } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
+import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import BoltIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Bolt";
 import { transformDataTokensToDisplay } from "@/wab/shared/eval/expression-parser";
 import { INTERACTIVE_CAP, REPEATED_CAP } from "@/wab/shared/Labels";
+import { FiHash, FiMaximize } from "react-icons/fi";
 
 function RepIcon() {
   const { t: uiT } = useI18n();
@@ -230,6 +239,9 @@ const TplTreeNode = observer(function TplTreeNode(props: {
 
   const isFocused = computed(
     () => {
+      if (!viewCtx.isFocusedViewCtx()) {
+        return false;
+      }
       const focusedTpls = viewCtx.focusedTpls();
       if (focusedTpls.some((tpl) => tpl === item)) {
         return true;
@@ -922,6 +934,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
         <div
           className={"tpltree__label__indicator"}
           data-test-class="left-panel-indicator"
+          style={{ left: indentPadding(indent) + (isLeaf || isRoot ? 4 : -12) }}
         >
           {indicatedVs && (
             <Indicator
@@ -1688,20 +1701,30 @@ function indentPadding(indent: number) {
   return 16 + indent * 12;
 }
 
+export type OutlineTreeRow =
+  | { type: "artboard"; key: string; indent: number; frame: ArenaFrame }
+  | {
+      type: "node";
+      key: string;
+      indent: number;
+      node: OutlineNodeData;
+      outlineCtx: OutlineCtx;
+    };
+
 interface TreeRowItemData {
-  nodes: OutlineNodeData[];
+  nodes: OutlineTreeRow[];
   outlineCtx: OutlineCtx;
   dndManager: TreeDndManager;
+  studioCtx: StudioCtx;
 }
 
-const ArenaTreeNode = observer(function ArenaTreeNode(props: {
-  index: number;
-  data: TreeRowItemData;
+const OutlineLayerRow = observer(function OutlineLayerRow(props: {
+  node: OutlineNodeData;
+  outlineCtx: OutlineCtx;
+  dndManager: TreeDndManager;
   style?: React.CSSProperties;
 }) {
-  const { index, data, style } = props;
-  const { nodes, outlineCtx, dndManager } = data;
-  const node = nodes[index];
+  const { node, outlineCtx, dndManager, style } = props;
   const viewCtx = ensure(outlineCtx.viewCtx(), "ViewCtx missing");
   const isOpen = outlineCtx.isExpanded(node.key);
   const setOpen = React.useCallback(
@@ -1742,6 +1765,83 @@ const ArenaTreeNode = observer(function ArenaTreeNode(props: {
   );
 });
 
+const ArtboardOutlineRow = observer(function ArtboardOutlineRow(props: {
+  frame: ArenaFrame;
+  outlineCtx: OutlineCtx;
+  studioCtx: StudioCtx;
+  style?: React.CSSProperties;
+}) {
+  const { frame, outlineCtx, studioCtx, style } = props;
+  const { styles } = useStructurePanelStyles();
+  const { t } = useI18n();
+  const arena = ensure(studioCtx.currentArena, "Artboard arena missing");
+  const label = getArenaFrameDesc(arena, frame, studioCtx.site);
+  const expanded = outlineCtx.isFrameExpanded(frame);
+  return (
+    <div className={styles.artboardRow} style={style}>
+      <button
+        type="button"
+        className={styles.artboardToggle}
+        aria-label={label}
+        aria-expanded={expanded}
+        onClick={() => outlineCtx.setFrameExpanded(frame, !expanded)}
+      >
+        {expanded ? EXPANDER_EXPANDED_ICON : EXPANDER_COLLAPSED_ICON}
+      </button>
+      <button
+        type="button"
+        className={styles.artboardLabel}
+        aria-current={studioCtx.focusedViewCtx()?.arenaFrame() === frame}
+        title={label}
+        onClick={() => {
+          outlineCtx.setFrameExpanded(frame, true);
+          void studioCtx.changeUnsafe(() =>
+            studioCtx.setStudioFocusOnFrame({ frame, autoZoom: false }),
+          );
+        }}
+      >
+        <FiHash size={14} />
+        <span>{label}</span>
+      </button>
+      <Button
+        type="text"
+        className={styles.iconButton}
+        aria-label={`${t("Focus artboard")}: ${label}`}
+        title={t("Focus artboard")}
+        icon={<FiMaximize size={14} />}
+        onClick={() => {
+          outlineCtx.setFrameExpanded(frame, true);
+          studioCtx.focusCanvasFrame(frame);
+        }}
+      />
+    </div>
+  );
+});
+
+const ArenaTreeNode = observer(function ArenaTreeNode(props: {
+  index: number;
+  data: TreeRowItemData;
+  style?: React.CSSProperties;
+}) {
+  const { index, data, style } = props;
+  const row = data.nodes[index];
+  return row.type === "artboard" ? (
+    <ArtboardOutlineRow
+      frame={row.frame}
+      outlineCtx={data.outlineCtx}
+      studioCtx={data.studioCtx}
+      style={style}
+    />
+  ) : (
+    <OutlineLayerRow
+      node={row.node}
+      outlineCtx={row.outlineCtx}
+      dndManager={data.dndManager}
+      style={style}
+    />
+  );
+});
+
 export type ArenaTreeRef = FixedSizeList;
 
 // react-window positions rows absolutely, so overflowing row contents cannot
@@ -1775,34 +1875,38 @@ export const ArenaTree = observer(
     outerRef: React.Ref<ArenaTreeRef>,
   ) {
     const { studioCtx, arena, outlineCtx, dndManager } = props;
-    const viewCtx = outlineCtx.viewCtx();
-
     const { ref: listRef, onRef } = useForwardedRef(outerRef);
 
-    const { visibleNodes, getKeyIndex } = useTreeData(
+    const { visibleNodes } = useTreeData(
       studioCtx,
       arena,
       outlineCtx,
       dndManager,
     );
 
-    const focusedKey = outlineCtx.focusedNodeKeyPath()[0];
-    useRevealOnFocus({
-      listRef,
-      getKeyIndex,
-      focusedKey,
-    });
+    const getKeyIndex = React.useCallback(
+      (key: string) => visibleNodes.findIndex((row) => row.key === key),
+      [visibleNodes],
+    );
+    const focusedNodeKey = outlineCtx.focusedNodeKeyPath()[0];
+    const focusedFrame = studioCtx.focusedViewCtx()?.arenaFrame();
+    const focusedKey =
+      isMixedArena(arena) && focusedFrame && focusedNodeKey
+        ? focusedNodeKey === makeNodeKey(focusedFrame)
+          ? focusedFrame.uuid
+          : `${focusedFrame.uuid}:${focusedNodeKey}`
+        : focusedNodeKey;
+    useRevealOnFocus({ listRef, getKeyIndex, focusedKey });
 
     const itemData: TreeRowItemData = React.useMemo(
       () => ({
-        viewCtx,
         outlineCtx,
         dndManager,
         nodes: visibleNodes,
+        studioCtx,
       }),
-      [viewCtx, outlineCtx, dndManager, visibleNodes],
+      [outlineCtx, dndManager, visibleNodes, studioCtx],
     );
-
     const itemKey = React.useCallback(
       (index: number, data: TreeRowItemData) => data.nodes[index].key,
       [],
@@ -1869,43 +1973,57 @@ function useTreeData(
   const buildVisibleNodes = React.useMemo(
     () =>
       computedFn(function _buildVisibleNodes() {
-        const visibleNodes: OutlineNodeData[] = [];
-        const keyToIndex: Record<OutlineNodeKey, number> = {};
-
-        const pushVisibleNodes = (node: OutlineNode) => {
-          if (!outlineCtx.isVisible(node.self.key)) {
-            return;
-          }
-          keyToIndex[node.self.key] = visibleNodes.length;
-          visibleNodes.push(node.self);
-
-          if (outlineCtx.isExpanded(node.self.key)) {
-            node.children.forEach(pushVisibleNodes);
-          }
-        };
-
-        const rootNode = outlineCtx.rootTreeNode();
-        if (rootNode) {
-          pushVisibleNodes(rootNode);
-        }
-        return { visibleNodes, keyToIndex };
+        return buildVisibleOutlineRows(arena, outlineCtx);
       }),
     [studioCtx, arena, outlineCtx, dndManager],
   );
 
-  const { visibleNodes, keyToIndex } = buildVisibleNodes();
+  return { visibleNodes: buildVisibleNodes() };
+}
 
-  const getKeyIndex = React.useCallback(
-    (key: OutlineNodeKey) => {
-      return keyToIndex[key];
-    },
-    [keyToIndex],
-  );
-
-  return {
-    visibleNodes,
-    getKeyIndex,
+export function buildVisibleOutlineRows(
+  arena: AnyArena | null,
+  outlineCtx: OutlineCtx,
+) {
+  const rows: OutlineTreeRow[] = [];
+  const pushNode = (
+    node: OutlineNode,
+    context: OutlineCtx,
+    frame?: ArenaFrame,
+  ) => {
+    if (!context.isVisible(node.self.key)) {
+      return;
+    }
+    const indent = node.self.indent + (frame ? 1 : 0);
+    rows.push({
+      type: "node",
+      key: frame ? `${frame.uuid}:${node.self.key}` : node.self.key,
+      indent,
+      node: { ...node.self, indent },
+      outlineCtx: context,
+    });
+    if (context.isExpanded(node.self.key)) {
+      node.children.forEach((child) => pushNode(child, context, frame));
+    }
   };
+  if (isMixedArena(arena)) {
+    for (const frame of getArenaFrames(arena)) {
+      rows.push({ type: "artboard", key: frame.uuid, indent: 0, frame });
+      if (outlineCtx.isFrameExpanded(frame)) {
+        const context = outlineCtx.getFrameOutline(frame);
+        const root = context.rootTreeNode();
+        if (root) {
+          pushNode(root, context, frame);
+        }
+      }
+    }
+  } else {
+    const root = outlineCtx.rootTreeNode();
+    if (root) {
+      pushNode(root, outlineCtx);
+    }
+  }
+  return rows;
 }
 
 /**
@@ -1913,13 +2031,13 @@ function useTreeData(
  */
 function useRevealOnFocus(opts: {
   listRef: React.MutableRefObject<FixedSizeList | null>;
-  focusedKey: OutlineNodeKey | undefined;
-  getKeyIndex: (key: OutlineNodeKey) => number;
+  focusedKey: string | undefined;
+  getKeyIndex: (key: string) => number;
 }) {
   const { listRef, getKeyIndex, focusedKey } = opts;
 
   const scrollToKey = React.useCallback(
-    (key: OutlineNodeKey | undefined) => {
+    (key: string | undefined) => {
       if (!key) {
         return;
       }

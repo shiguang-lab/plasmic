@@ -157,8 +157,8 @@ function StudioChromeContent({
               style={{
                 position: "absolute",
                 left: editorLeftRailLayout.left,
-                top: 82,
-                height: "calc(100dvh - 170px)",
+                top: editorLeftRailLayout.top,
+                bottom: editorLeftRailLayout.bottom,
               }}
             >
               <EditorToolRail />

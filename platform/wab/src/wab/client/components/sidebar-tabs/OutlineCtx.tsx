@@ -3,7 +3,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { toOpaque } from "@/wab/commons/types";
-import { FrameViewMode } from "@/wab/shared/Arenas";
+import { AnyArena, FrameViewMode, getArenaFrames } from "@/wab/shared/Arenas";
 import { isTplSlotVisible } from "@/wab/shared/cached-selectors";
 import { isPlainObjectPropType } from "@/wab/shared/code-components/code-components";
 import {
@@ -98,12 +98,41 @@ export interface OutlineNode {
 }
 
 export class OutlineCtx {
+  private frameOutlines = new Map<ArenaFrame, OutlineCtx>();
+  private expandedFrames = observable.map<ArenaFrame, boolean>();
   private visible = observable.set<string>();
   private expanded = observable.map<OutlineNodeKey, boolean>();
   private _query = observable.box("");
   private _matcher: IObservableValue<Matcher>;
 
-  viewCtx = computedFn(() => this.studioCtx.focusedOrFirstViewCtx());
+  private lastViewedArtboard = observable.box<
+    { arena: AnyArena; frame: ArenaFrame } | undefined
+  >(undefined, { deep: false });
+
+  viewCtx = computedFn(() => {
+    const arena = this.studioCtx.currentArena;
+    const frames = getArenaFrames(arena);
+    if (this.artboardFrame) {
+      return frames.includes(this.artboardFrame)
+        ? this.studioCtx.tryGetViewCtxForFrame(this.artboardFrame)
+        : undefined;
+    }
+    const focused = this.studioCtx.focusedViewCtx();
+    if (focused && frames.includes(focused.arenaFrame())) {
+      return focused;
+    }
+    const lastViewed = this.lastViewedArtboard.get();
+    if (lastViewed?.arena === arena && frames.includes(lastViewed.frame)) {
+      const retained = this.studioCtx.tryGetViewCtxForFrame(lastViewed.frame);
+      if (retained) {
+        return retained;
+      }
+    }
+    const initial = this.studioCtx.focusedOrFirstViewCtx();
+    return initial && frames.includes(initial.arenaFrame())
+      ? initial
+      : undefined;
+  });
 
   rootTreeNode = computedFn(() => {
     const vc = this.viewCtx();
@@ -122,8 +151,8 @@ export class OutlineCtx {
   });
 
   focusedNodeKeyPath = computedFn(() => {
-    const vc = this.viewCtx();
-    if (!vc) {
+    const vc = this.studioCtx.focusedViewCtx();
+    if (!vc || vc !== this.viewCtx()) {
       return [];
     }
 
@@ -162,6 +191,7 @@ export class OutlineCtx {
   constructor(
     private studioCtx: StudioCtx,
     query: string,
+    private artboardFrame?: ArenaFrame,
   ) {
     const matcher = new Matcher(query);
     this._matcher = observable.box(matcher);
@@ -169,10 +199,44 @@ export class OutlineCtx {
     this.fillVisibleSet();
 
     this.disposals.push(
+      reaction(
+        () => getArenaFrames(this.studioCtx.currentArena).slice(),
+        (frames) => {
+          for (const [frame, outline] of this.frameOutlines) {
+            if (!frames.includes(frame)) {
+              outline.dispose();
+              this.frameOutlines.delete(frame);
+              this.expandedFrames.delete(frame);
+            }
+          }
+        },
+      ),
+      reaction(
+        () => {
+          const arena = this.studioCtx.currentArena;
+          const viewCtx = this.studioCtx.focusedViewCtx();
+          return arena && viewCtx
+            ? { arena, frame: viewCtx.arenaFrame() }
+            : undefined;
+        },
+        (artboard) => {
+          if (
+            artboard &&
+            getArenaFrames(artboard.arena).includes(artboard.frame)
+          ) {
+            this.lastViewedArtboard.set(artboard);
+          }
+        },
+        { fireImmediately: true, name: "OutlineCtx.rememberViewedArtboard" },
+      ),
       autorun(
         () => {
           const focusedNodeKeyPath = this.focusedNodeKeyPath();
           if (focusedNodeKeyPath.length > 0) {
+            const frame = this.studioCtx.focusedViewCtx()?.arenaFrame();
+            if (frame) {
+              this.expandedFrames.set(frame, true);
+            }
             for (const key of focusedNodeKeyPath) {
               this.expanded.set(key, true);
             }
@@ -200,6 +264,25 @@ export class OutlineCtx {
 
   dispose() {
     this.disposals.forEach((d) => d());
+    this.frameOutlines.forEach((outline) => outline.dispose());
+    this.frameOutlines.clear();
+  }
+
+  getFrameOutline(frame: ArenaFrame) {
+    let outline = this.frameOutlines.get(frame);
+    if (!outline) {
+      outline = new OutlineCtx(this.studioCtx, "", frame);
+      this.frameOutlines.set(frame, outline);
+    }
+    return outline;
+  }
+
+  isFrameExpanded(frame: ArenaFrame, defaultExpanded = false) {
+    return this.expandedFrames.get(frame) ?? defaultExpanded;
+  }
+
+  setFrameExpanded(frame: ArenaFrame, expanded: boolean) {
+    this.expandedFrames.set(frame, expanded);
   }
 
   isVisible(key: OutlineNodeKey) {
@@ -211,7 +294,7 @@ export class OutlineCtx {
 
   /**
    * Open/close state behavior:
-   * - Frames share open/close state within an arena.
+   * - Expansion is local to this outline; mixed-arena artboards each have their own outline.
    * - Elements default to closed.
    * - Elements can be manually opened or closed from the outline.
    * - If there's a search query, open all elements.
@@ -256,6 +339,8 @@ export class OutlineCtx {
 
   collapseAll() {
     this.expanded.clear();
+    this.expandedFrames.clear();
+    this.frameOutlines.forEach((outline) => outline.collapseAll());
   }
 
   get query() {

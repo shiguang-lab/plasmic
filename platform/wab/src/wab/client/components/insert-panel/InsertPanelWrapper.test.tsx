@@ -75,13 +75,15 @@ it("leaves dismissal to the rail action so switching tools does not also toggle 
   expect(close).not.toHaveBeenCalled();
 });
 
-it("uses the shared left panel width and viewport limit", () => {
-  render(<InsertPanelWrapper />);
-  expect(
-    screen.getByRole("button", { name: "Delete referenced asset" })
-      .parentElement,
-  ).toHaveStyle({
-    width: "427px",
-    maxWidth: "calc(100vw - 96px)",
-  });
+it("does not dismiss when a submenu overlays the insert content", () => {
+  render(
+    <>
+      <div className="sidebar-popover">
+        <button>Images</button>
+      </div>
+      <InsertPanelWrapper />
+    </>,
+  );
+  fireEvent.mouseDown(screen.getByRole("button", { name: "Images" }));
+  expect(close).not.toHaveBeenCalled();
 });

@@ -1,6 +1,6 @@
 import { withDb } from "@/wab/server/__testonly__/backend-util";
 import { ANON_USER, DbMgr, normalActor } from "@/wab/server/db/DbMgr";
-import type { Team } from "@/wab/server/entities/Entities";
+import type { Team, Workspace } from "@/wab/server/entities/Entities";
 import { createTeam, deleteTeam, mkApiTeam } from "@/wab/server/routes/teams";
 import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import type { TeamId, UserId } from "@/wab/shared/ApiSchema";
@@ -91,7 +91,7 @@ it("serves all self-hosted features for existing free/trial organizations withou
 it("creates additional self-hosted organizations and deletes only the selected organization through the routes", () =>
   withDb(async (_sudo, [user], [db1], existingProject, em) => {
     const originalTeams = await db1().getAffiliatedTeams();
-    const created = [];
+    const created: { team: Team; workspace: Workspace }[] = [];
     for (const name of ["C020 first test org", "C020 second test org"]) {
       const req = Object.assign(mock<Request>(), {
         user,

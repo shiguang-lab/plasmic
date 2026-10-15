@@ -111,8 +111,9 @@ test("only Studio API 401 responses check the session", async () => {
     [500, studioOrigin + "/api/v1/projects"],
     [401, "https://external.example/api/v1/projects"],
     [401, studioOrigin + "/api/auth/session"],
-  ])
+  ]) {
     await f.recover(new Response(null, { status }), url);
+  }
   f.window.url = studioOrigin + AUTH_PATH;
   await f.recover(
     new Response(null, { status: 401 }),
@@ -137,4 +138,59 @@ test("the login page cannot be reopened by requests finishing after navigation",
   finish(Response.json({ authenticated: false }, { status: 401 }));
   await pending;
   assert.deepEqual(f.window.loads, []);
+});
+
+test("device authorization restores an expired cookie without leaving the editor", async () => {
+  const f = fixture(() =>
+    Response.json({ authenticated: false }, { status: 401 }),
+  );
+  let restorations = 0;
+  const recover = createSessionRecovery({
+    auth: f.auth,
+    studioOrigin,
+    session: {
+      fetch: async () =>
+        Response.json({ authenticated: false }, { status: 401 }),
+    },
+    restore: async () => {
+      restorations++;
+      return true;
+    },
+  });
+  assert.equal(
+    await recover(
+      new Response(null, { status: 401 }),
+      studioOrigin + "/api/v1/projects",
+    ),
+    true,
+  );
+  assert.equal(restorations, 1);
+  assert.deepEqual(f.window.loads, []);
+  assert.equal(f.window.url, projectUrl);
+});
+test("an unavailable refresh service and inactive background requests never navigate to login", async () => {
+  for (const active of [false, true]) {
+    const f = fixture(() => assert.fail());
+    let checks = 0;
+    const recover = createSessionRecovery({
+      auth: f.auth,
+      studioOrigin,
+      isActive: () => active,
+      session: {
+        fetch: async () => {
+          checks++;
+          return Response.json({ authenticated: false }, { status: 401 });
+        },
+      },
+      restore: async () => {
+        throw new Error("IAM unavailable");
+      },
+    });
+    await recover(
+      new Response(null, { status: 401 }),
+      studioOrigin + "/api/v1/projects",
+    );
+    assert.equal(checks, active ? 1 : 0);
+    assert.deepEqual(f.window.loads, []);
+  }
 });

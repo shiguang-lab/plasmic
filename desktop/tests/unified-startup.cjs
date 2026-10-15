@@ -36,10 +36,11 @@ Module._load = function (request, parent, isMain) {
     return {
       createAssetHandler: (options) => {
         const handle = createAssetHandler(options);
-        return async (request) => {
-          const response = await handle(request);
-          if (new URL(request.url).pathname !== "/projects/fixture")
+        return async (assetRequest) => {
+          const response = await handle(assetRequest);
+          if (new URL(assetRequest.url).pathname !== "/projects/fixture") {
             return response;
+          }
           const headers = new Headers(response.headers);
           headers.delete("Content-Length");
           // Hold the initial document load open while its bootstrap API detects
@@ -121,7 +122,7 @@ app
       .then((status) => assert.equal(status.phase, "idle"));
     assert.equal(opened, undefined, "Startup must not open the system browser");
     if (process.platform === "darwin") {
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
       const chrome = await win.webContents.executeJavaScript(`(() => {
         const brand = document.querySelector('.chrome-brand');
         const rect = brand.getBoundingClientRect();
@@ -129,8 +130,8 @@ app
           paddingLeft: getComputedStyle(brand).paddingLeft };
       })()`);
       assert.deepEqual(chrome, {
-        left: 16,
-        top: 16,
+        left: 8,
+        top: 8,
         height: 48,
         paddingLeft: "96px",
       });
@@ -139,7 +140,7 @@ app
       win.setSize(bounds.width + 40, bounds.height);
       await resized;
       await new Promise(setImmediate);
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
       const minimized = once(win, "minimize");
       win.minimize();
       await minimized;
@@ -147,7 +148,7 @@ app
       win.restore();
       await restored;
       await new Promise(setImmediate);
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
       const enteredFullScreen = once(win, "enter-full-screen");
       win.setFullScreen(true);
       await enteredFullScreen;
@@ -155,7 +156,7 @@ app
       win.setFullScreen(false);
       await leftFullScreen;
       await new Promise(setImmediate);
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 32, y: 33 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
       win.setBounds(bounds);
       console.log(
         "PASS: Native window buttons stay aligned after resize, restore and fullscreen",
@@ -256,8 +257,9 @@ app
         (await win.webContents.executeJavaScript(
           'document.getElementById("sign-in").textContent.trim()',
         )) === zhPack["Sign in"]
-      )
+      ) {
         break;
+      }
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
     for (const [id, key] of [

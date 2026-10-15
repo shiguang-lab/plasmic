@@ -107,7 +107,7 @@ for (const platform of ["nextjs", "gatsby"] as const) {
 it("omits an unconfigured description and honors skipHead", () => {
   const ctx = context("nextjs");
   ensure(ctx.component.pageMeta, "AuditPage metadata must exist").description =
-    null;
+    "";
   expect(
     render(ctx).document.querySelector('meta[name="description"]'),
   ).toBeNull();

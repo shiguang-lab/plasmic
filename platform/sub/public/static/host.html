@@ -96,7 +96,7 @@
         function updateReady() {
           const inherited = studioParams.get("uiAppearance");
           const appearance = inherited === "dark" || inherited === "light" ? inherited : readPreference("shiguang.ui.appearance");
-          ready.dataset.appearance = appearance === "dark" || appearance === "light" ? appearance : media.matches ? "dark" : "light";
+          ready.dataset.appearance = appearance === "system" ? media.matches ? "dark" : "light" : appearance === "light" ? "light" : "dark";
           const language = studioParams.get("uiLocale") || readPreference("shiguang.ui.language");
           const locale = resolveLocale(dictionaries[language] ? language : "system", navigator.languages);
           const messages = dictionaries[locale];

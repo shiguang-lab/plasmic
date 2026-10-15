@@ -11,9 +11,9 @@ const isPreference = (value: unknown): value is AppearancePreference =>
 function readPreference(): AppearancePreference {
   try {
     const value = localStorage.getItem(APPEARANCE_STORAGE_KEY);
-    return isPreference(value) ? value : "system";
+    return isPreference(value) ? value : "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 }
 

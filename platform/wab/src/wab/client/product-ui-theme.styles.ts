@@ -1,6 +1,5 @@
 import canvasFrame from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import definedIndicator from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
-import shareDialog from "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent.module.css";
 import textbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
 import addCommentMarker from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
 import markdownHints from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicMarkdownHintsPopoverContent.module.css";
@@ -250,7 +249,17 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   "& .defined-indicator__source": {
     color: token.colorTextSecondary,
     padding: "4px 0",
-    alignItems: "baseline",
+    alignItems: "center",
+  },
+  "& .defined-indicator__source > button": {
+    width: 24,
+    minWidth: 24,
+    height: 24,
+    minHeight: 24,
+    flexShrink: 0,
+    padding: 0,
+    marginLeft: 8,
+    alignSelf: "center",
   },
   "& .defined-indicator__source--target": { color: token.colorText },
   "& .defined-indicator__source-name": {
@@ -326,9 +335,6 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   [`& .${leftSettingsPanel.root}`]: {
     background: token.colorBgContainer,
     color: token.colorText,
-  },
-  [`& .${shareDialog.root}`]: {
-    boxShadow: "none",
   },
   // Primary actions need a solid foreground independent of the surface token.
   [`& .${actionMenu.slotTargetChildrentype_primary}, & .${iconButton.slotTargetChildrentype_primary}, & .${iconButton.roottype_primary}:hover .${iconButton.slotTargetChildrentype_primary}, & .${iconButton.roottype_primary}:active .${iconButton.slotTargetChildrentype_primary}`]:

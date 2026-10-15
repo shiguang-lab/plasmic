@@ -3,7 +3,6 @@ import {
   EditorToolRail,
 } from "@/wab/client/components/studio/EditorToolRail";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
-import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 // eslint-disable-next-line no-restricted-imports
 import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
@@ -91,7 +90,6 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
     document.addEventListener("keydown", close, true);
     return () => document.removeEventListener("keydown", close, true);
   }, [openGroup]);
-  const topFrameApi = useTopFrameApi();
   const isLoggedIn = studioCtx.appCtx.selfInfo != null;
   const contentEditorMode = studioCtx.contentEditorMode;
   const hasGlobalContexts = studioCtx.site.globalContexts.length > 0;
@@ -359,6 +357,7 @@ More
                 placement={"right"}
                 align={{ offset: [8, 0] }}
                 overlayClassName={"sidebar-popover"}
+                zIndex={1100}
                 open={openGroup === key}
                 onOpenChange={(open) => {
                   if (open) {
@@ -401,7 +400,8 @@ More
                       (!studioCtx.showAddDrawer() &&
                         !studioCtx.panelsHidden &&
                         Object.values(item.items).some(
-                          (i) => !!i.tabKey && i.tabKey === studioCtx.leftTabKey,
+                          (i) =>
+                            !!i.tabKey && i.tabKey === studioCtx.leftTabKey,
                         ))
                     }
                   />
@@ -487,30 +487,31 @@ More
               items: resourceItems,
             },
           })}
-          {canViewTab("libraries") && renderButtonGroup({
-            libraries: {
-              type: "group",
-              icon: <EditorToolIcon tool="Libraries" />,
-              title: t("Libraries"),
-              items: {
-                store: {
-                  type: "item",
-                  tabKey: "libraries",
-                  icon: <ComponentsvgIcon />,
-                  label: t("Component store"),
-                  onClick: () => studioCtx.setLibraryTab("store"),
-                },
-                imports: {
-                  type: "item",
-                  tabKey: "libraries",
-                  icon: <ComponentssvgIcon />,
-                  label: t("Imported projects"),
-                  cond: isLoggedIn && canViewTab("imports"),
-                  onClick: () => studioCtx.setLibraryTab("imports"),
+          {canViewTab("libraries") &&
+            renderButtonGroup({
+              libraries: {
+                type: "group",
+                icon: <EditorToolIcon tool="Libraries" />,
+                title: t("Libraries"),
+                items: {
+                  store: {
+                    type: "item",
+                    tabKey: "libraries",
+                    icon: <ComponentsvgIcon />,
+                    label: t("Component store"),
+                    onClick: () => studioCtx.setLibraryTab("store"),
+                  },
+                  imports: {
+                    type: "item",
+                    tabKey: "libraries",
+                    icon: <ComponentssvgIcon />,
+                    label: t("Imported projects"),
+                    cond: isLoggedIn && canViewTab("imports"),
+                    onClick: () => studioCtx.setLibraryTab("imports"),
+                  },
                 },
               },
-            },
-          })}
+            })}
           <LeftTabButton
             label={t("AI")}
             tooltip={t("AI assistant")}
@@ -520,7 +521,7 @@ More
             onClick={() => {
               if (studioCtx.chatCopilotEnabled()) {
                 setOpenGroup(undefined);
-                spawn(topFrameApi.toggleCopilotChat());
+                studioCtx.toggleCopilotChat();
               }
             }}
           />

@@ -58,7 +58,7 @@ export async function promptComponentTemplate(
 ) {
   return await showTemporaryPrompt<NewComponentInfo>((onSubmit, onCancel) => (
     <Modal
-      visible={true}
+      open={true}
       onCancel={onCancel}
       style={{
         top: 32,
@@ -84,7 +84,7 @@ export async function promptPageTemplate(
   return await showTemporaryPrompt<NewPageInfo>((onSubmit, onCancel) => (
     <Modal
       width={775}
-      visible={true}
+      open={true}
       style={{
         top: 32,
       }}

@@ -122,7 +122,7 @@ export const VersionsTab = observer(function VersionsTab(
         as: Scrollbar,
         props: {
           scrollX: false,
-          style: { overflow: "hidden" },
+          style: { overflow: "hidden", flex: 1, height: "auto" },
         },
         wrap: (node) => (
           <>

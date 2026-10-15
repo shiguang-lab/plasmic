@@ -14,10 +14,14 @@ function fixture(options = {}) {
     fetch: async (url, init) => {
       calls.push({ url, init });
       if (url.endsWith("/oauth/token")) {
-        if (options.tokenResponse) return options.tokenResponse();
+        if (options.tokenResponse) {
+          return options.tokenResponse();
+        }
         return Response.json({
           access_token: "ephemeral-access-token",
           token_type: "Bearer",
+          refresh_token: "rotating-refresh-token",
+          expires_in: 900,
         });
       }
       if (url.endsWith("/oauth/web-session-ticket")) {
@@ -51,7 +55,13 @@ function fixture(options = {}) {
     return client;
   };
   return {
-    login: new DesktopUnifiedLogin({ session, studioOrigin, request }),
+    login: new DesktopUnifiedLogin({
+      session,
+      studioOrigin,
+      request,
+      credentials: options.credentials,
+      now: options.now,
+    }),
     calls,
   };
 }
@@ -64,8 +74,11 @@ function callback(login, authorization, options = {}) {
     "state",
     options.state ?? auth.searchParams.get("state"),
   );
-  if (options.error) target.searchParams.set("error", options.error);
-  else target.searchParams.set("code", code);
+  if (options.error) {
+    target.searchParams.set("error", options.error);
+  } else {
+    target.searchParams.set("code", code);
+  }
   return login.acceptCallback(target.href);
 }
 test("HTTPS callback delivers a PKCE-bound code and establishes the IAM desktop session", async () => {
@@ -78,7 +91,10 @@ test("HTTPS callback delivers a PKCE-bound code and establishes the IAM desktop 
       assert.equal(authorization.origin, AUTH_ORIGIN);
       assert.equal(authorization.pathname, "/oauth/authorize");
       assert.equal(authorization.searchParams.get("client_id"), "plasmicapp");
-      assert.equal(authorization.searchParams.get("scope"), "web:session");
+      assert.equal(
+        authorization.searchParams.get("scope"),
+        "web:session offline_access",
+      );
       assert.equal(
         authorization.searchParams.get("redirect_uri"),
         AUTH_ORIGIN + "/auth/apps/plasmicapp/callback",
@@ -234,4 +250,181 @@ test("rejects cross-origin return destinations before opening the browser", asyn
     }),
     /destination/,
   );
+});
+
+function storedCredentials(initial = "old-refresh") {
+  let value = initial ? { refreshToken: initial } : undefined;
+  const writes = [];
+  return {
+    read: () => value,
+    write: (next) => {
+      value = next;
+      writes.push(next);
+    },
+    clear: () => {
+      value = undefined;
+    },
+    writes,
+  };
+}
+test("device refresh is shared by concurrent callers, persists rotation and restores cookies without navigation", async () => {
+  const credentials = storedCredentials();
+  const { login, calls } = fixture({
+    credentials,
+    location: studioOrigin + "/",
+  });
+  const results = await Promise.all([
+    login.restore(),
+    login.restore(),
+    login.restore(),
+  ]);
+  assert.deepEqual(results, [true, true, true]);
+  assert.equal(
+    calls.filter((call) => call.url.endsWith("/oauth/token")).length,
+    1,
+  );
+  const form = new URLSearchParams(calls[0].init.body);
+  assert.equal(form.get("grant_type"), "refresh_token");
+  assert.equal(form.get("refresh_token"), "old-refresh");
+  assert.equal(form.get("client_id"), "plasmicapp");
+  assert.equal(credentials.read().refreshToken, "rotating-refresh-token");
+  await login.restore();
+  assert.equal(
+    calls.length,
+    3,
+    "fresh sessions do not refresh on every API request",
+  );
+});
+test("only an explicit invalid_grant removes stored device authorization", async () => {
+  for (const [status, error] of [
+    [400, "invalid_grant"],
+    [503, "temporarily_unavailable"],
+  ]) {
+    const credentials = storedCredentials();
+    const { login } = fixture({
+      credentials,
+      tokenResponse: () => Response.json({ error }, { status }),
+    });
+    if (status === 400) {
+      assert.equal(await login.restore(), false);
+      assert.equal(credentials.read(), undefined);
+    } else {
+      await assert.rejects(login.restore(), /503/);
+      assert.equal(credentials.read().refreshToken, "old-refresh");
+    }
+  }
+  const credentials = storedCredentials();
+  const { login } = fixture({
+    credentials,
+    tokenResponse: () => {
+      throw new Error("Offline");
+    },
+  });
+  await assert.rejects(login.restore(), /Offline/);
+  assert.equal(credentials.read().refreshToken, "old-refresh");
+});
+test("a failed ticket exchange retains the rotated refresh credential", async () => {
+  const credentials = storedCredentials();
+  const { login } = fixture({ credentials, ticketStatus: 400 });
+  await assert.rejects(login.restore(), /ticket was rejected/);
+  assert.equal(credentials.read().refreshToken, "rotating-refresh-token");
+});
+test("idle background requests do not count as user activity; reopening restores a saved authorization", async () => {
+  let now = 1_000_000;
+  const credentials = storedCredentials();
+  const { login, calls } = fixture({
+    credentials,
+    now: () => now,
+    location: studioOrigin + "/",
+  });
+  assert.equal(login.isActive(), false);
+  await login.noteActivity();
+  assert.equal(login.isActive(), true);
+  now += 61_000;
+  assert.equal(login.isActive(), false);
+  now += 20 * 60_000;
+  assert.equal(
+    calls.length,
+    3,
+    "no timer rotates credentials while the user is absent",
+  );
+  await login.noteActivity();
+  assert.equal(calls.length, 6);
+  const reopened = fixture({ credentials, location: studioOrigin + "/" });
+  assert.equal(await reopened.login.noteActivity(), true);
+  assert.equal(
+    new URLSearchParams(reopened.calls[0].init.body).get("refresh_token"),
+    "rotating-refresh-token",
+  );
+});
+test("sign-out revokes the current refresh token and clears local authorization", async () => {
+  const credentials = storedCredentials();
+  const { login } = fixture({ credentials });
+  login.post = async (path, form) => {
+    assert.equal(path, "/oauth/revoke");
+    assert.deepEqual(form, { token: "old-refresh" });
+    return {};
+  };
+  await login.signOut();
+  assert.equal(credentials.read(), undefined);
+  assert.equal(await login.restore(), false);
+});
+
+test("background restoration is explicitly marked inactive and returning to the App records real use", async () => {
+  const credentials = storedCredentials();
+  const { login, calls } = fixture({
+    credentials,
+    location: studioOrigin + "/",
+  });
+  await login.restore();
+  assert.equal(
+    new URLSearchParams(calls[0].init.body).get("user_activity"),
+    "false",
+  );
+  await login.noteActivity();
+  const rotations = calls.filter((call) => call.url.endsWith("/oauth/token"));
+  assert.equal(rotations.length, 2);
+  assert.equal(
+    new URLSearchParams(rotations[1].init.body).get("user_activity"),
+    "true",
+  );
+});
+
+test("foreground use arriving during a background rotation records activity with the rotated credential", async () => {
+  const credentials = storedCredentials();
+  let finish;
+  let rotations = 0;
+  const { login, calls } = fixture({
+    credentials,
+    location: studioOrigin + "/",
+    tokenResponse: () => {
+      rotations++;
+      const response = () =>
+        Response.json({
+          access_token: "access",
+          token_type: "Bearer",
+          refresh_token: "refresh-" + rotations,
+          expires_in: 900,
+        });
+      if (rotations === 1) {
+        return new Promise((resolve) => {
+          finish = () => resolve(response());
+        });
+      }
+      return response();
+    },
+  });
+  const background = login.restore();
+  const foreground = login.noteActivity();
+  finish();
+  assert.deepEqual(await Promise.all([background, foreground]), [true, true]);
+  const forms = calls
+    .filter((call) => call.url.endsWith("/oauth/token"))
+    .map((call) => new URLSearchParams(call.init.body));
+  assert.deepEqual(
+    forms.map((form) => form.get("user_activity")),
+    ["false", "true"],
+  );
+  assert.equal(forms[1].get("refresh_token"), "refresh-1");
+  assert.equal(credentials.read().refreshToken, "refresh-2");
 });

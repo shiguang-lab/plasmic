@@ -600,7 +600,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
   };
 
   return (
-    <div style={{ width: 500 }}>
+    <div style={{ width: "100%", minWidth: 0 }}>
       {" "}
       {showEndUsersTab ? TabsWrapper() : collaboratorShareDialog}{" "}
     </div>

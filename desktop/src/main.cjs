@@ -10,6 +10,7 @@ const {
   clipboard,
   ipcMain,
   nativeTheme,
+  safeStorage,
 } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -25,6 +26,7 @@ const { forwardRemoteRequest } = require("./remote-fetch.cjs");
 const { openBrowser } = require("./open-browser.cjs");
 const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
 const { createSessionRecovery } = require("./session-recovery.cjs");
+const { createDeviceCredentials } = require("./device-credentials.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { serveMcp } = require("./mcp.cjs");
@@ -49,6 +51,7 @@ let mainWindow;
 let desktopSession;
 let unifiedAuth;
 let recoverSession;
+let desktopLogin;
 let startingDesktop;
 let desktopI18n;
 const { createDesktopI18n } = require("./i18n.cjs");
@@ -164,6 +167,14 @@ async function startDesktop() {
   });
   if (!desktopSession) {
     desktopSession = session.fromPartition("persist:plasmic-desktop");
+    desktopLogin = new DesktopUnifiedLogin({
+      session: desktopSession,
+      studioOrigin: config.studioOrigin,
+      credentials: createDeviceCredentials({
+        file: path.join(app.getPath("userData"), "device-credentials"),
+        safeStorage,
+      }),
+    });
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
     if (proxy) {
       await desktopSession.setProxy({
@@ -205,8 +216,34 @@ async function startDesktop() {
           )
           .join("\n"),
         remoteFetch: async (request) => {
+          const url = new URL(request.url);
+          const api =
+            url.origin === config.studioOrigin &&
+            url.pathname.startsWith("/api/v1/");
+          const logout =
+            url.origin === config.studioOrigin &&
+            url.pathname === "/api/auth/logout" &&
+            request.method === "POST";
+          if (api || logout) {
+            try {
+              await desktopLogin.restore();
+            } catch (error) {
+              console.warn("Cannot restore desktop session:", error.message);
+            }
+          }
+          const retry = api ? request.clone() : undefined;
           const response = await forwardRemoteRequest(desktopSession, request);
-          await recoverSession(response, request.url);
+          if (logout && response.ok) {
+            await desktopLogin.signOut().catch((error) => {
+              console.warn(
+                "Cannot clean up revoked device tokens:",
+                error.message,
+              );
+            });
+          }
+          if (await recoverSession(response, request.url)) {
+            return forwardRemoteRequest(desktopSession, retry);
+          }
           return response;
         },
       }),
@@ -223,7 +260,7 @@ async function startDesktop() {
     backgroundColor:
       desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
     ...(process.platform === "darwin"
-      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 32, y: 33 } }
+      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 24, y: 25 } }
       : process.platform === "win32"
         ? {
             titleBarStyle: "hidden",
@@ -253,7 +290,7 @@ async function startDesktop() {
   if (process.platform === "darwin") {
     const alignWindowButtons = () => {
       if (!appearanceWindow.isDestroyed() && !appearanceWindow.isFullScreen()) {
-        appearanceWindow.setWindowButtonPosition({ x: 32, y: 33 });
+        appearanceWindow.setWindowButtonPosition({ x: 24, y: 25 });
       }
     };
     for (const event of [
@@ -286,15 +323,26 @@ async function startDesktop() {
     mainWindow,
     config.studioOrigin,
     openBrowser,
-    new DesktopUnifiedLogin({
-      session: desktopSession,
-      studioOrigin: config.studioOrigin,
-    }),
+    desktopLogin,
   );
   recoverSession = createSessionRecovery({
     session: desktopSession,
     studioOrigin: config.studioOrigin,
     auth: unifiedAuth,
+    restore: () => desktopLogin.restore({ force: true }),
+    isActive: () => desktopLogin.isActive(),
+  });
+  const userActivity = () => {
+    void desktopLogin.noteActivity().catch((error) => {
+      console.warn("Cannot restore desktop session:", error.message);
+    });
+  };
+  mainWindow.on("focus", userActivity);
+  mainWindow.webContents.on("before-input-event", userActivity);
+  mainWindow.webContents.on("before-mouse-event", (_event, mouse) => {
+    if (["mouseDown", "mouseWheel"].includes(mouse.type)) {
+      userActivity();
+    }
   });
   protectWindow(mainWindow);
   if (!controller) {
@@ -326,7 +374,10 @@ async function startDesktop() {
       return desktopAppearance.snapshot();
     });
     ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
-      if (!trustedAuthSender(event) || workspace?.projectId(event.senderFrame.url) !== projectId) {
+      if (
+        !trustedAuthSender(event) ||
+        workspace?.projectId(event.senderFrame.url) !== projectId
+      ) {
         throw new Error("Invalid Studio project");
       }
       return workspace.savedEditorView(event.senderFrame.url);
@@ -365,6 +416,7 @@ async function startDesktop() {
       () => mainWindow,
       config,
       () => startingDesktop,
+      () => desktopLogin.noteActivity(),
     );
     stopRpc = await startRpc(app.getPath("userData"), (method, input) =>
       controller.dispatch(method, input),
@@ -559,12 +611,23 @@ async function startDesktop() {
     }
     menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => {
       void capture();
-      void workspace.refreshRecent(desktopSession).then((changed) => {
-        if (changed && !win.isDestroyed()) buildMenu();
-      });
+      void desktopLogin
+        .noteActivity()
+        .then(() => workspace.refreshRecent(desktopSession))
+        .then((changed) => {
+          if (changed && !win.isDestroyed()) {
+            buildMenu();
+          }
+        })
+        .catch((error) => {
+          console.warn("Cannot refresh desktop workspace:", error.message);
+        });
     });
     Menu.setApplicationMenu(menu);
   }
+  await desktopLogin.noteActivity().catch((error) => {
+    console.warn("Cannot restore desktop session:", error.message);
+  });
   const startupUrl = await workspace.startupUrl(desktopSession);
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {

@@ -243,8 +243,18 @@ Sign-in uses the Shiguang account system. An unauthenticated window first displa
 a sign-in page. Only clicking **Sign in with Shiguang** starts authorization and
 opens `https://shiguanglab.com/oauth/authorize` in the system browser for
 `plasmicapp`. S256 PKCE and random state bind authorization to the running app.
+The client requests `web:session offline_access`. Its registered device session
+policy expires after 30 days without use. The main process encrypts the rotating
+refresh credential with Electron safeStorage (the OS credential store); Linux
+requires a secure keyring and rejects the `basic_text` backend. Access tokens
+remain in memory. Opening or interacting with the App restores its short-lived
+IAM cookie when needed. Background work can restore short cookies without
+extending device authorization,
+and no keep-alive timer runs while the App is closed or idle.
 When a Studio API returns 401, Desktop checks IAM's `/api/auth/session`.
-Only a confirmed unauthenticated session opens the bundled sign-in page, preserving
+For an active user, a confirmed unauthenticated session first attempts silent
+restoration and retries the failed request without navigating the editor. Only
+when device authorization is absent or rejected does it open the sign-in page, preserving
 the current route, query and hash for return after login. Concurrent failures share
 one check. Resource permission errors and failed session checks retain their normal
 error behavior. The sign-in page does not start browser authorization automatically.
@@ -260,8 +270,10 @@ PKCE verifier and consumes a one-use IAM web-session ticket. IAM sets its shared
 HttpOnly cookie in Electron, then the app returns to the requested design.
 The public page confirms browser authorization; the app reports whether session
 establishment succeeded. Cancelling ends the pending request; retrying starts a new one.
-OAuth credentials remain in memory during the exchange. Account management opens
-the central `/account` page. Sign-out revokes the shared IAM session.
+The refresh credential stays in the main process and encrypted storage; it is
+never exposed to the renderer. Account management opens the central `/account`
+page. Sign-out revokes the device authorization, clears its cookie and removes
+the saved refresh credential. The browser SSO session remains independent.
 
 The NAS gateway and auth-service must use the corresponding unified-authentication
 release. Register the Desktop OAuth client, `plasmic:access` entitlement and Studio
@@ -320,26 +332,26 @@ copy it again after moving the application.
 
 The server provides these tools:
 
-| Tool                             | Function                                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------------------------- |
-| `get_app_state`                  | Read readiness, org/workspace/project, focused artboard, selection/editing scope and exact editor schemas |
-| `get_org` / `list_orgs`           | Read an organization by ID or list accessible organizations with an optional name query      |
-| `create_org` / `open_org`         | Create an organization or open its dashboard                                                |
-| `create_workspace` / `list_workspaces` / `open_workspace` | Create, list or open workspaces; lists can be scoped to an organization |
-| `create_project`                 | Create an empty project in a workspace or the account's personal workspace                  |
-| `list_projects` / `open_design`  | List accessible NAS projects, optionally in a workspace, and open a design                   |
-| `read_skill` / `get_style`       | Editing workflow and local palette/spacing presets                                          |
-| `execute` / `execute_batch`      | Validated edits; a batch rolls back completely on failure and is one undo step              |
-| `snapshot_layout`                | Rendered desktop/mobile geometry and image load status                                      |
-| `get_screenshot`                 | Clean static artboard PNG; `mode: "workspace"` captures the editor                          |
-| `import_image` / `read_image`    | Import a local raster into NAS and read design image pixels                                 |
-| `export_design` / `export_pages` | Static exports and ordered multi-page PDF                                                   |
-| `export_code`                    | Editable React/TypeScript/CSS from NAS codegen                                              |
-| `capture_browser` / `browser`    | Reference PNG/DOM and persistent isolated browser CDP                                       |
-| `search_stock_images`            | Commons images with license/source/attribution metadata                                     |
-| `vectorize_image`                | Local raster tracing to SVG paths                                                           |
-| `make_vector`                    | SVG paths and union/intersection/subtraction/xor geometry                                   |
-| `generate_image`                 | Configured Images generation/edit/background service                                        |
+| Tool                                                      | Function                                                                                                  |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `get_app_state`                                           | Read readiness, org/workspace/project, focused artboard, selection/editing scope and exact editor schemas |
+| `get_org` / `list_orgs`                                   | Read an organization by ID or list accessible organizations with an optional name query                   |
+| `create_org` / `open_org`                                 | Create an organization or open its dashboard                                                              |
+| `create_workspace` / `list_workspaces` / `open_workspace` | Create, list or open workspaces; lists can be scoped to an organization                                   |
+| `create_project`                                          | Create an empty project in a workspace or the account's personal workspace                                |
+| `list_projects` / `open_design`                           | List accessible NAS projects, optionally in a workspace, and open a design                                |
+| `read_skill` / `get_style`                                | Editing workflow and local palette/spacing presets                                                        |
+| `execute` / `execute_batch`                               | Validated edits; a batch rolls back completely on failure and is one undo step                            |
+| `snapshot_layout`                                         | Rendered desktop/mobile geometry and image load status                                                    |
+| `get_screenshot`                                          | Clean static artboard PNG; `mode: "workspace"` captures the editor                                        |
+| `import_image` / `read_image`                             | Import a local raster into NAS and read design image pixels                                               |
+| `export_design` / `export_pages`                          | Static exports and ordered multi-page PDF                                                                 |
+| `export_code`                                             | Editable React/TypeScript/CSS from NAS codegen                                                            |
+| `capture_browser` / `browser`                             | Reference PNG/DOM and persistent isolated browser CDP                                                     |
+| `search_stock_images`                                     | Commons images with license/source/attribution metadata                                                   |
+| `vectorize_image`                                         | Local raster tracing to SVG paths                                                                         |
+| `make_vector`                                             | SVG paths and union/intersection/subtraction/xor geometry                                                 |
+| `generate_image`                                          | Configured Images generation/edit/background service                                                      |
 
 Organization tools use `orgId`; the platform stores organizations as Teams and
 returns its existing `team`/`teams`, permissions and member fields. `get_org`

@@ -52,7 +52,7 @@
           document.documentElement.dataset.uiAppearance = inherited;
           return;
         }
-        let preference = "system";
+        let preference = "dark";
         try {
           const stored = localStorage.getItem("shiguang.ui.appearance");
           if (["dark", "light", "system"].includes(stored)) preference = stored;

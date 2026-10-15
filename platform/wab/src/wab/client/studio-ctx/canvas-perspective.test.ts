@@ -8,9 +8,10 @@ import { Box, Pt } from "@/wab/shared/geom";
 import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
 import { mock } from "vitest-mock-extended";
 
-it("focuses existing artboards without replacing pages, and restores overview after resizing", async () => {
-  const { studioCtx } = fakeStudioCtx();
+it("focuses within the same arena and restores its original viewport without opening a page editor", async () => {
+  const { studioCtx, history } = fakeStudioCtx();
   vi.spyOn(studioCtx, "tryZoomToFitArena").mockImplementation(() => undefined);
+  let viewport: ViewportCtx | undefined;
   try {
     const arena = await studioCtx.changeUnsafe(() => {
       const result = studioCtx.addArena("Pages");
@@ -28,9 +29,8 @@ it("focuses existing artboards without replacing pages, and restores overview af
       return result;
     });
     const frames = [...arena.children];
-    const components = [...studioCtx.site.components];
     const dom = mock<DomActions>();
-    const viewport = new ViewportCtx({
+    viewport = new ViewportCtx({
       dom,
       initialArena: arena,
       initialClipperBox: new Box(0, 0, 1440, 900),
@@ -39,18 +39,27 @@ it("focuses existing artboards without replacing pages, and restores overview af
     studioCtx.viewportCtx = viewport;
     viewport.scaleAtMidPt(0.25);
     const overview = studioCtx.getCurrentStudioViewportSnapshot();
-    const zoom = vi
-      .spyOn(studioCtx, "tryZoomToFitFrame")
-      .mockImplementation(() => undefined);
+    const location = history.location;
+    const bundle = () =>
+      studioCtx
+        .bundler()
+        .bundle(
+          studioCtx.site,
+          studioCtx.siteInfo.id,
+          studioCtx.appCtx.lastBundleVersion,
+        );
+    const before = bundle();
     studioCtx.focusCanvasFrame(frames[0]);
-    studioCtx.focusCanvasFrame(frames[2]);
-    expect(zoom).toHaveBeenLastCalledWith(frames[2], 1);
+    expect(studioCtx.currentArena).toBe(arena);
+    expect(studioCtx.focusedFrame()).toBe(frames[0]);
     expect(studioCtx.canvasFocusActive).toBe(true);
-    expect(arena.children).toEqual(frames);
-    expect(studioCtx.site.components).toEqual(components);
-    viewport.scaleAtMidPt(1);
+    expect(viewport.scale()).toBeLessThanOrEqual(1);
+    studioCtx.focusCanvasFrame(frames[2]);
+    expect(studioCtx.currentArena).toBe(arena);
+    expect(studioCtx.focusedFrame()).toBe(frames[2]);
     viewport.setClipperBox(new Box(0, 0, 1024, 768));
     studioCtx.returnToCanvasOverview();
+    expect(studioCtx.currentArena).toBe(arena);
     expect(studioCtx.canvasFocusActive).toBe(false);
     expect(viewport.scale()).toBe(overview.scale);
     expect(dom.scrollTo).toHaveBeenLastCalledWith(
@@ -60,8 +69,16 @@ it("focuses existing artboards without replacing pages, and restores overview af
       false,
     );
     expect(arena.children).toEqual(frames);
-    viewport.dispose();
+    expect(bundle()).toEqual(before);
+    expect(history.location).toBe(location);
+    studioCtx.focusCanvasFrame(frames[0]);
+    studioCtx.switchToComponentArena(frames[1].container.component);
+    const pageArena = studioCtx.currentArena;
+    expect(studioCtx.canvasFocusActive).toBe(false);
+    studioCtx.returnToCanvasOverview();
+    expect(studioCtx.currentArena).toBe(pageArena);
   } finally {
+    viewport?.dispose();
     await new Promise((resolve) => setTimeout(resolve, 10));
     studioCtx.dispose();
   }

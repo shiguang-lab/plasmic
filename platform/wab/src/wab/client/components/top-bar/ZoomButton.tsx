@@ -7,17 +7,31 @@ import {
 import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import PlasmicZoomButton from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicZoomButton";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
-import { InputNumber, Menu } from "antd";
+import { Button, InputNumber, Menu } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { FiChevronDown } from "react-icons/fi";
 
 const ZoomSpinner = observer(ZoomSpinner_);
 const useStyles = createStyles(({ token }) => ({
+  trigger: {
+    "&.ant-btn": {
+      height: 28,
+      minWidth: 68,
+      padding: "0 7px",
+      border: 0,
+      borderRadius: 5,
+      boxShadow: "none",
+      fontSize: 12,
+      fontVariantNumeric: "tabular-nums",
+      gap: 6,
+    },
+    "& svg": { width: 12, height: 12, color: token.colorTextSecondary },
+  },
   menu: {
     width: 248,
     maxWidth: "calc(100vw - 32px)",
@@ -239,18 +253,17 @@ export const ZoomButton = observer(function ZoomButton() {
       onVisibleChange={setOpen}
       overlayStyle={{ maxHeight: "calc(100vh - 120px)", overflow: "hidden" }}
     >
-      <PlasmicZoomButton
-        root={{
-          props: {
-            "aria-label": uiT("Zoom"),
-            "aria-expanded": open,
-            "aria-haspopup": "menu",
-            style: { height: 36 },
-          },
-        }}
-        children={`${Math.round(studioCtx.zoom * 100)}%`}
+      <Button
+        type="text"
+        className={styles.trigger}
+        aria-label={uiT("Zoom")}
+        aria-expanded={open}
+        aria-haspopup="menu"
         disabled={studioCtx.currentArenaEmpty}
-      />
+      >
+        {Math.round(studioCtx.zoom * 100)}%
+        <FiChevronDown aria-hidden="true" />
+      </Button>
     </IFrameAwareDropdownMenu>
   );
 });

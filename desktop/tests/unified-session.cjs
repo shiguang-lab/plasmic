@@ -1,4 +1,4 @@
-const { app, net, session, BrowserWindow } = require("electron");
+const { app, net, session, BrowserWindow, safeStorage } = require("electron");
 const { createServer } = require("node:http");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -46,6 +46,31 @@ app
   .then(async () => {
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     origin = `http://127.0.0.1:${server.address().port}`;
+    const {
+      createDeviceCredentials,
+    } = require("../src/device-credentials.cjs");
+    const credentialFile = path.join(profile, "device-credentials");
+    const credentials = createDeviceCredentials({
+      file: credentialFile,
+      safeStorage,
+    });
+    assert.equal(
+      safeStorage.isEncryptionAvailable(),
+      true,
+      "Native secure storage must be available",
+    );
+    credentials.write({ refreshToken: "native-device-secret" });
+    assert.equal(
+      fs
+        .readFileSync(credentialFile)
+        .includes(Buffer.from("native-device-secret")),
+      false,
+    );
+    assert.deepEqual(
+      createDeviceCredentials({ file: credentialFile, safeStorage }).read(),
+      { refreshToken: "native-device-secret" },
+    );
+    credentials.clear();
     const ses = session.fromPartition("session-ticket-fixture");
     await assert.rejects(
       ses.fetch(origin + "/ticket", {
@@ -108,7 +133,7 @@ app
     clearTimeout(timeout);
     server.close();
     console.log(
-      "Native Electron session redirect, IAM cookie retention, destination validation, cancellation and browser request Origin passed",
+      "Native secure credential storage, Electron session redirect, IAM cookie retention, destination validation, cancellation and browser request Origin passed",
     );
     app.exit(0);
   })

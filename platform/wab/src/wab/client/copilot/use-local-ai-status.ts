@@ -9,11 +9,14 @@ import useSWR from "swr";
 export function useLocalAiStatus(
   projectId: string | undefined,
   enabled: boolean,
+  fetchStatus?: () => Promise<LocalAiStatus>,
 ) {
   return useSWR<LocalAiStatus, Error>(
     enabled && projectId ? ["local-ai-status", projectId] : null,
     async ([, id]: [string, string]) => {
-      const response = await localAiFetch<unknown>(id, "status");
+      const response = fetchStatus
+        ? await fetchStatus()
+        : await localAiFetch<unknown>(id, "status");
       const parsed = localAiStatusSchema.safeParse(response);
       if (!parsed.success) {
         throw new Error(

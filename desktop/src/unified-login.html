@@ -6,10 +6,10 @@
     <title data-ui-message="Sign in to Plasmic">Sign in to Plasmic</title>
     <script>
       (() => {
-        let preference = "system";
+        let preference = "dark";
         try {
-          preference =
-            localStorage.getItem("shiguang.ui.appearance") || "system";
+          const stored = localStorage.getItem("shiguang.ui.appearance");
+          if (["dark", "light", "system"].includes(stored)) preference = stored;
         } catch {}
         document.documentElement.dataset.uiAppearance =
           preference === "light" || preference === "dark"
@@ -126,8 +126,8 @@
       }
       .chrome-brand {
         position: absolute;
-        top: 16px;
-        left: 16px;
+        top: 8px;
+        left: 8px;
         height: 48px;
         padding: 0 12px;
         border: 1px solid var(--border);
@@ -152,7 +152,7 @@
         padding-left: 96px;
       }
       :root[data-platform="mac"] .window-drag-region {
-        height: 80px;
+        height: 64px;
       }
       .auth-settings {
         position: absolute;
@@ -167,8 +167,8 @@
         -webkit-app-region: no-drag;
       }
       :root[data-platform="mac"] .auth-settings {
-        top: 16px;
-        right: 16px;
+        top: 8px;
+        right: 8px;
         height: 48px;
         padding: 0 12px;
         border: 1px solid var(--border);
@@ -822,20 +822,20 @@
         let statusRevision = 0;
         let commandRevision = 0;
         const media = matchMedia("(prefers-color-scheme: dark)");
-        function readPreference(key, allowed) {
+        function readPreference(key, allowed, fallback = "system") {
           try {
             const stored = localStorage.getItem(key);
-            return allowed.includes(stored) ? stored : "system";
+            return allowed.includes(stored) ? stored : fallback;
           } catch {
-            return "system";
+            return fallback;
           }
         }
         function renderAppearance() {
-          const preference = readPreference("shiguang.ui.appearance", [
+          const preference = readPreference(
+            "shiguang.ui.appearance",
+            ["dark", "light", "system"],
             "dark",
-            "light",
-            "system",
-          ]);
+          );
           const appearance =
             preference === "system"
               ? media.matches

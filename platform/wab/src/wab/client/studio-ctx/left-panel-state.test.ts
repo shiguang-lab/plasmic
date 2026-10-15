@@ -1,41 +1,86 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
-import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mock } from "vitest-mock-extended";
 
-it("opens comments visibly from hidden panels and clears left panels that would conceal the right pane", async () => {
-  const { studioCtx, dbCtx, history } = fakeStudioCtx();
-  try {
-    await Promise.resolve();
-    const revision = dbCtx.revisionNum;
-    const location = history.location;
-    studioCtx.switchLeftTab("libraries");
-    studioCtx.setShowAddDrawer(true);
-    studioCtx.togglePanels();
-    expect(studioCtx.panelsHidden).toBe(true);
-    expect(studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
+const leftPanels: Record<string, (ctx: StudioCtx) => void> = {
+  structure: (ctx) => ctx.switchLeftTab("outline"),
+  library: (ctx) => ctx.openLibraries("imports"),
+  insert: (ctx) => ctx.setShowAddDrawer(true),
+  "inline insert": (ctx) => ctx.setShowInlineAddDrawer(true),
+  menu: (ctx) => ctx.setLeftTabGroup("more"),
+  AI: (ctx) => ctx.setCopilotChatOpen(true),
+};
 
-    studioCtx.toggleCommentsPanel();
-    expect(studioCtx.showCommentsPanel).toBe(true);
-    expect(studioCtx.panelsHidden).toBe(false);
-    expect(studioCtx.leftTabKey).toBeUndefined();
-    expect(studioCtx.leftTabGroup).toBeUndefined();
-    expect(studioCtx.showAddDrawer()).toBe(false);
-    expect(studioCtx.showInlineAddDrawer()).toBe(false);
-    expect(studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
-    expect(dbCtx.revisionNum).toBe(revision);
-    expect(history.location).toBe(location);
-
-    studioCtx.toggleCommentsPanel();
-    expect(studioCtx.showCommentsPanel).toBe(false);
-    expect(studioCtx.panelsHidden).toBe(false);
-  } finally {
-    studioCtx.dispose();
-  }
+const leftPanelState = (ctx: StudioCtx) => ({
+  tab: ctx.leftTabKey,
+  group: ctx.leftTabGroup,
+  insert: ctx.showAddDrawer(),
+  inlineInsert: ctx.showInlineAddDrawer(),
+  ai: ctx.isCopilotChatOpen,
 });
 
-it.each(["tab", "insert", "inline insert", "group"])(
+it.each(Object.entries(leftPanels))(
+  "opens and closes comments without changing the %s panel",
+  async (_panel, openLeftPanel) => {
+    const { studioCtx, dbCtx, history } = fakeStudioCtx();
+    try {
+      await Promise.resolve();
+      const revision = dbCtx.revisionNum;
+      const location = history.location;
+      openLeftPanel(studioCtx);
+      const left = leftPanelState(studioCtx);
+      studioCtx.togglePanels();
+      expect(studioCtx.panelsHidden).toBe(true);
+      expect(studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
+
+      studioCtx.toggleCommentsPanel();
+      expect(studioCtx.showCommentsPanel).toBe(true);
+      expect(studioCtx.panelsHidden).toBe(false);
+      expect(leftPanelState(studioCtx)).toEqual(left);
+      expect(studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
+      expect(dbCtx.revisionNum).toBe(revision);
+      expect(history.location).toBe(location);
+
+      studioCtx.toggleCommentsPanel();
+      expect(studioCtx.showCommentsPanel).toBe(false);
+      expect(studioCtx.panelsHidden).toBe(false);
+      expect(leftPanelState(studioCtx)).toEqual(left);
+    } finally {
+      studioCtx.dispose();
+    }
+  },
+);
+
+it.each(Object.entries(leftPanels))(
+  "opens the %s panel without changing comments or the inspector tab",
+  async (_panel, openLeftPanel) => {
+    const { studioCtx, dbCtx, history } = fakeStudioCtx();
+    try {
+      await Promise.resolve();
+      const revision = dbCtx.revisionNum;
+      const location = history.location;
+      studioCtx.switchRightTab(RightTabKey.style);
+      studioCtx.toggleCommentsPanel();
+      openLeftPanel(studioCtx);
+      expect(studioCtx.showCommentsPanel).toBe(true);
+      expect(studioCtx.rightTabKey).toBe(RightTabKey.style);
+      studioCtx.switchLeftTab(undefined);
+      studioCtx.setLeftTabGroup(undefined);
+      studioCtx.setShowAddDrawer(false);
+      studioCtx.setCopilotChatOpen(false);
+      expect(studioCtx.showCommentsPanel).toBe(true);
+      expect(studioCtx.rightTabKey).toBe(RightTabKey.style);
+      expect(dbCtx.revisionNum).toBe(revision);
+      expect(history.location).toBe(location);
+    } finally {
+      studioCtx.dispose();
+    }
+  },
+);
+
+it.each(["tab", "insert", "inline insert"])(
   "keeps AI mutually exclusive with %s",
   async (panel) => {
     const { studioCtx, history } = fakeStudioCtx();
@@ -54,9 +99,6 @@ it.each(["tab", "insert", "inline insert", "group"])(
       } else if (panel === "insert") {
         studioCtx.setShowAddDrawer(true);
         expect(studioCtx.showAddDrawer()).toBe(true);
-      } else if (panel === "group") {
-        studioCtx.setLeftTabGroup("more");
-        expect(studioCtx.leftTabGroup).toBe("more");
       } else {
         studioCtx.setShowInlineAddDrawer(true);
         expect(studioCtx.showInlineAddDrawer()).toBe(true);
@@ -201,3 +243,75 @@ it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
     }
   },
 );
+
+const exclusivePanels = Object.entries(leftPanels).filter(
+  ([name]) => name !== "menu",
+);
+it.each(
+  exclusivePanels.flatMap((first) =>
+    exclusivePanels.map(
+      (second) => [first[0], second[0], first[1], second[1]] as const,
+    ),
+  ),
+)(
+  "replaces %s with %s in one canonical left panel state",
+  async (_first, secondName, first, second) => {
+    const { studioCtx, dbCtx, history } = fakeStudioCtx();
+    try {
+      await Promise.resolve();
+      const location = history.location;
+      const revision = dbCtx.revisionNum;
+      first(studioCtx);
+      second(studioCtx);
+      expect(
+        Number(!!studioCtx.leftTabKey) +
+          Number(studioCtx.showAddDrawer()) +
+          Number(studioCtx.isCopilotChatOpen),
+      ).toBe(1);
+      expect(studioCtx.leftPanel?.type).toBe(
+        secondName === "AI"
+          ? "ai"
+          : secondName.includes("insert")
+            ? "insert"
+            : "tab",
+      );
+      expect(dbCtx.revisionNum).toBe(revision);
+      expect(history.location).toBe(location);
+    } finally {
+      studioCtx.dispose();
+    }
+  },
+);
+it.each(exclusivePanels)(
+  "keeps %s mounted while opening, changing and dismissing submenus",
+  async (_name, open) => {
+    const { studioCtx } = fakeStudioCtx();
+    try {
+      await Promise.resolve();
+      open(studioCtx);
+      const panel = studioCtx.leftPanel;
+      for (const menu of ["assets", "libraries", "more", undefined]) {
+        studioCtx.setLeftTabGroup(menu);
+        expect(studioCtx.leftPanel).toBe(panel);
+      }
+    } finally {
+      studioCtx.dispose();
+    }
+  },
+);
+it("clears AI open options on close and on a different panel selection", () => {
+  const { studioCtx } = fakeStudioCtx();
+  try {
+    studioCtx.openCopilotChat({ prompt: "Edit this page", mode: "starter" });
+    expect(studioCtx.copilotChatOpenOpts?.prompt).toBe("Edit this page");
+    studioCtx.switchLeftTab("outline");
+    expect(studioCtx.copilotChatOpenOpts).toBeUndefined();
+    studioCtx.toggleCopilotChat();
+    expect(studioCtx.isCopilotChatOpen).toBe(true);
+    expect(studioCtx.copilotChatOpenOpts).toBeUndefined();
+    studioCtx.toggleCopilotChat();
+    expect(studioCtx.leftPanel).toBeUndefined();
+  } finally {
+    studioCtx.dispose();
+  }
+});

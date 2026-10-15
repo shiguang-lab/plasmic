@@ -95,6 +95,9 @@ test.describe("comments", () => {
     await test.step("Clicking a comment from a different arena navigates back to the comment's component", async () => {
       await models.studio.createNewPageInOwnArena(pageName);
       await models.studio.openCommentTab();
+      await models.studio.frame
+        .getByText("Entire project", { exact: true })
+        .click();
 
       const firstPost = models.studio.commentPosts.first();
       const postId = await firstPost.getAttribute("data-test-id");
@@ -150,6 +153,9 @@ test.describe("comments", () => {
 
     await test.step("Can still select comment from Comments tab", async () => {
       await models.studio.openCommentTab();
+      await models.studio.frame
+        .getByText("Entire project", { exact: true })
+        .click();
       await models.studio.clickCommentPost(threadIdValue);
       await assertCommentInUrl(page, threadIdValue);
     });
@@ -172,6 +178,9 @@ test.describe("comments", () => {
     await test.step("Clicking comment from different arena navigates to that arena (not deleted component)", async () => {
       await models.studio.createNewPageInOwnArena(pageName);
       await models.studio.openCommentTab();
+      await models.studio.frame
+        .getByText("Entire project", { exact: true })
+        .click();
 
       const firstPost = models.studio.commentPosts.first();
       const postId = await firstPost.getAttribute("data-test-id");
