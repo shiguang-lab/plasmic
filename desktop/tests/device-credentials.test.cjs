@@ -31,7 +31,10 @@ test("credentials survive process recreation encrypted on disk and rotate atomic
     fs.readFileSync(file).includes(Buffer.from("device-refresh-secret")),
     false,
   );
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  // Windows stat mode does not expose its ACL; Unix permission bits apply on POSIX.
+  if (process.platform !== "win32") {
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  }
   const reopened = createDeviceCredentials({ file, safeStorage });
   assert.deepEqual(reopened.read(), { refreshToken: "device-refresh-secret" });
   reopened.write({ refreshToken: "rotated-secret" });

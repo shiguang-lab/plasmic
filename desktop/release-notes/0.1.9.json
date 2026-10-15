@@ -1,0 +1,7 @@
+{
+  "en": "- Streamline editor navigation, structure, comments and AI panels with consistent spacing and shared scrolling.\n- Add compact canvas controls with one-click canvas location, zoom options and aligned panel spacing.\n- Improve comment filtering, page and artboard navigation, property indicators and sharing dialogs.\n- Keep AI editing sessions synchronized across editor frames while preserving draft text and model choices.\n- Restore Desktop sign-in sessions with securely stored device credentials and improve startup theme and window layout.",
+  "zh-CN": "- 整理编辑器导航、结构、评论和 AI 面板，统一间距与滚动体验。\n- 精简画布工具栏，支持一键定位当前画布，并统一缩放控件与面板间距。\n- 优化评论筛选、页面与画板导航、属性指示器和分享对话框。\n- 同步跨框架的 AI 编辑会话，保留输入草稿与模型选择。\n- 通过系统安全存储恢复桌面登录会话，优化启动主题与窗口布局。",
+  "zh-TW": "- 整理編輯器導覽、結構、評論和 AI 面板，統一間距與捲動體驗。\n- 精簡畫布工具列，支援一鍵定位目前畫布，並統一縮放控制項與面板間距。\n- 改善評論篩選、頁面與畫板導覽、屬性指示器和分享對話方塊。\n- 同步跨框架的 AI 編輯工作階段，保留輸入草稿與模型選擇。\n- 透過系統安全儲存恢復桌面登入工作階段，改善啟動主題與視窗配置。",
+  "ja": "- エディターのナビゲーション、構造、コメント、AI パネルを整理し、余白とスクロールを統一。\n- キャンバス操作をコンパクトにし、現在のキャンバスへの移動、ズーム操作、パネルとの余白を改善。\n- コメントの絞り込み、ページとアートボードの移動、プロパティ表示、共有ダイアログを改善。\n- フレーム間で AI 編集セッションを同期し、入力中の下書きとモデル選択を保持。\n- システムの安全な保存領域を使って Desktop のログインセッションを復元し、起動時のテーマとウィンドウ配置を改善。",
+  "ko": "- 편집기 탐색, 구조, 댓글 및 AI 패널을 정리하고 간격과 스크롤 동작을 통일했습니다.\n- 캔버스 도구 모음을 간결하게 만들고 현재 캔버스 위치로 이동, 확대/축소 및 패널 간격을 개선했습니다.\n- 댓글 필터, 페이지와 아트보드 탐색, 속성 표시 및 공유 대화상자를 개선했습니다.\n- 프레임 간 AI 편집 세션을 동기화하고 입력 초안과 모델 선택을 유지합니다.\n- 시스템 보안 저장소를 통해 Desktop 로그인 세션을 복원하고 시작 테마와 창 배치를 개선했습니다."
+}
