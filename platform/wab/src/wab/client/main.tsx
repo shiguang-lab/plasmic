@@ -1,3 +1,4 @@
+import { initializeUiLocale } from "@/wab/client/i18n";
 import { main } from "@/wab/client/components/Shell";
 import { dbg } from "@/wab/shared/dbg";
 import "@/wab/styles/antd-overrides.scss";
@@ -14,4 +15,8 @@ dbg.mobx = mobx;
 //
 // Main application code
 //
-main();
+performance.mark("studio-entry");
+void initializeUiLocale().then(main, (error) => {
+  console.error("Unable to load UI language", error);
+  main();
+});

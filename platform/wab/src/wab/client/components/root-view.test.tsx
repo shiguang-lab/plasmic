@@ -6,12 +6,17 @@ import * as React from "react";
 
 const mocks = vi.hoisted(() => ({
   getLastBundleVersion: vi.fn(),
+  getEditorBootstrap: vi.fn(),
+  getSiteInfo: vi.fn(),
   loadAppCtx: vi.fn(),
   loadAppCtxData: vi.fn(),
   reportError: vi.fn(),
 }));
 vi.mock("@/wab/client/api", () => ({
+  setUser: vi.fn(),
   Api: class {
+    getEditorBootstrap = mocks.getEditorBootstrap;
+    getSiteInfo = mocks.getSiteInfo;
     getLastBundleVersion = mocks.getLastBundleVersion;
   },
 }));
@@ -45,6 +50,7 @@ vi.mock("@/wab/client/components/pages/ShiguangSignIn", () => ({
 }));
 
 beforeEach(() => {
+  mocks.getSiteInfo.mockResolvedValue({});
   mocks.getLastBundleVersion.mockResolvedValue({
     latestBundleVersion: "version",
   });
@@ -59,10 +65,10 @@ afterEach(() => {
   cleanup();
   vi.resetAllMocks();
 });
-function setup() {
+function setup(path = "/login") {
   render(
     <HistoryProvider
-      history={createMemoryHistory({ initialEntries: ["/login"] })}
+      history={createMemoryHistory({ initialEntries: [path] })}
     >
       <Root />
     </HistoryProvider>,
@@ -125,4 +131,16 @@ it("retries failed parallel app data without repeating the successful bundle fet
     true,
     undefined,
   );
+});
+
+it("uses the project bootstrap once and reuses its permission and host metadata", async () => {
+  const data = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
+  mocks.getEditorBootstrap.mockResolvedValue(data);
+  mocks.loadAppCtx.mockRejectedValue(new Error("Stop after bootstrap"));
+  setup("/projects/project");
+  await screen.findByRole("alert");
+  expect(mocks.getEditorBootstrap).toHaveBeenCalledExactlyOnceWith("project", "main");
+  expect(mocks.getLastBundleVersion).not.toHaveBeenCalled();
+  expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
+  expect(mocks.loadAppCtx).toHaveBeenCalledWith(expect.objectContaining({ initialProjectInfo: data, lastBundleVersion: "version" }), true, [undefined, data.appConfig, data.appCtx]);
 });

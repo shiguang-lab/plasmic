@@ -41,7 +41,8 @@ import { translateUiLabel } from "@/wab/client/i18n/locales";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
 import ThemeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Theme";
 import PlasmicLeftMixinsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftMixinsPanel";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import { MIXIN_LOWER } from "@/wab/shared/Labels";
 import {

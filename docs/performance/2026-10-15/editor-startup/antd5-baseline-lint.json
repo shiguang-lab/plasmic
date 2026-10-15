@@ -1,0 +1,59 @@
+[
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/form/Form.tsx",
+    "messages": [
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'InputType' is already declared in the upper scope on line 20 column 13.",
+        "line": 20,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 20,
+        "endColumn": 22
+      },
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'FormType' is already declared in the upper scope on line 63 column 13.",
+        "line": 63,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 63,
+        "endColumn": 21
+      },
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'values' is already declared in the upper scope on line 112 column 11.",
+        "line": 130,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 130,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'values' is already declared in the upper scope on line 112 column 11.",
+        "line": 165,
+        "column": 15,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 165,
+        "endColumn": 21
+      }
+    ],
+    "errorCount": 4,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/index.ts",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  }
+]

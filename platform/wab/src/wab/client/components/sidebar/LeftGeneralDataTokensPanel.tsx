@@ -19,7 +19,7 @@ import {
 } from "@/wab/client/components/sidebar/token-utils";
 import { Matcher } from "@/wab/client/components/view-common";
 import { PlasmicLeftGeneralDataTokensPanel } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftGeneralDataTokensPanel";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useModelUiActionHandler } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import {
   DataTokenType,

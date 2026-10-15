@@ -25,7 +25,7 @@ const mocks = vi.hoisted(() => ({
   promptImport: vi.fn(),
   add: vi.fn(),
 }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
     appCtx: {
       selfInfo: { email: "user@example.com" },

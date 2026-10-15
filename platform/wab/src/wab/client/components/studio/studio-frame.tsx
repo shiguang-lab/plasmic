@@ -68,13 +68,10 @@ export function StudioFrame({
     [appCtx.appConfigOverrides],
   );
   const forceUpdate = useForceUpdate();
+  const initialProjectInfo = React.useRef(appCtx.initialProjectInfo);
   const [project, setProject] = React.useState<ApiProject>();
   const [branch, setBranch] = React.useState<ApiBranch>();
   const [editorPerm, setEditorPerm] = React.useState(false);
-  useLocalAiStatus(
-    projectId,
-    editorPerm && appCtx.appConfig.enableLocalAiEditing,
-  );
   const [untrustedHost, setUntrustedHost] = React.useState(false);
   const [perms, setPerms] = React.useState<ApiPermission[]>([]);
   const [fetchProjectCount, setFetchProjectCount] = React.useState(0);
@@ -137,8 +134,13 @@ export function StudioFrame({
         const branchName = parseProjectLocation(
           appCtx.history.location,
         )?.branchName;
+        const initial = initialProjectInfo.current;
+        initialProjectInfo.current = undefined;
+        appCtx.initialProjectInfo = undefined;
         const [{ projects, perms: permissions }, { trustedHosts }, branches] =
-          await Promise.all([
+          initial?.projectId === projectId && initial.branchName === branchName
+          ? [initial.projectData, initial.hosts, initial.branches]
+          : await Promise.all([
             appCtx.api.getProjects({
               query: "byIds",
               projectIds: [projectId],
@@ -224,6 +226,11 @@ export function StudioFrame({
       project,
       forceUpdate,
     },
+  );
+
+  useLocalAiStatus(
+    projectId,
+    studioReady && editorPerm && appCtx.appConfig.enableLocalAiEditing,
   );
 
   const updateStartup = useStudioStartup();

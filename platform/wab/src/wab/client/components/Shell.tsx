@@ -77,6 +77,7 @@ console.log = function () {};
  * there's no import path to them from the root main.tsx.
  */
 export function main() {
+  performance.mark("studio-shell");
   if (!DEVFLAGS.uncatchErrors) {
     window.onunhandledrejection = (e: PromiseRejectionEvent) => {
       handleError(normalizeError(e.reason));

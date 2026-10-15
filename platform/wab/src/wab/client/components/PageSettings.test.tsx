@@ -5,7 +5,7 @@ import { createSite } from "@/wab/shared/core/sites";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
     projectFlags: () => ({}),
     customFunctionsSchema: () => ({}),

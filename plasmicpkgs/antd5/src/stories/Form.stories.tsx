@@ -6,14 +6,8 @@ import { Button, Checkbox, Input, InputNumber } from "antd";
 import TextArea, { TextAreaRef } from "antd/es/input/TextArea";
 import { FormListOperation, Select } from "antd/lib";
 import React from "react";
-import {
-  FormWrapper as Form,
-  FormRefActions,
-  FormWrapperControlContextData,
-  FormWrapperProps,
-  InputType,
-  SimplifiedFormItemsProp,
-} from "../form/Form";
+import { FormWrapper as Form, FormRefActions, FormWrapperControlContextData, FormWrapperProps, SimplifiedFormItemsProp } from "../form/Form";
+import { InputType } from "../form-meta";
 import { FormGroup } from "../form/FormGroup";
 import { FormItemWrapper as FormItem } from "../form/FormItem";
 import { FormListWrapper } from "../form/FormList";

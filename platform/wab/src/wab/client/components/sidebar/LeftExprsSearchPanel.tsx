@@ -14,11 +14,8 @@ import {
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicLeftExprsSearchPanel } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftExprsSearchPanel";
-import {
-  RightTabKey,
-  StudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import useDebounce from "@/wab/commons/components/use-debounce";
 import { cachedExprsInSite } from "@/wab/shared/cached-selectors";
 import {

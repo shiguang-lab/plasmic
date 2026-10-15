@@ -16,3 +16,5 @@ export const formComponentName = "plasmic-antd5-form";
 export const formGroupComponentName = "plasmic-antd5-form-group";
 export const formItemComponentName = "plasmic-antd5-form-item";
 export const buttonComponentName = "plasmic-antd5-button";
+
+export const datePickerComponentName = "plasmic-antd5-date-picker";

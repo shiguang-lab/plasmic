@@ -8,10 +8,8 @@ import {
   DefaultCommentPostProps,
   PlasmicCommentPost,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentPost";
-import {
-  canUpdateHistory,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ApiComment } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";

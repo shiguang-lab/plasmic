@@ -2,7 +2,7 @@ import { tourSeenTopProjectNavKey } from "@/wab/client/LocalStorageKey";
 import { KeyboardShortcut } from "@/wab/client/components/menu-builder";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Tour } from "@/wab/client/tours/Tour";
 import { observer } from "mobx-react";
 import React from "react";

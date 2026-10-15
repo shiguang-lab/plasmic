@@ -3,19 +3,15 @@ import { mkApiTeam } from "@/wab/server/routes/teams";
 import { superDbMgr, userDbMgr } from "@/wab/server/routes/util";
 import { mkApiWorkspace } from "@/wab/server/routes/workspaces";
 import { ApiTeam, ApiWorkspace, AppCtxResponse } from "@/wab/shared/ApiSchema";
-import { ensureType } from "@/wab/shared/common";
 import { Request, Response } from "express-serve-static-core";
 
-export async function getAppCtx(req: Request, res: Response) {
+export async function getAppCtxData(req: Request): Promise<AppCtxResponse> {
   const userMgr = userDbMgr(req, { allowUnverifiedEmail: true });
 
   if (!userMgr.tryGetNormalActorId()) {
     // Return empty response if called by a non-normal user or user waiting
     // email verification.
-    res.json(
-      ensureType<AppCtxResponse>({ teams: [], workspaces: [], perms: [] }),
-    );
-    return;
+    return { teams: [], workspaces: [], perms: [] };
   }
 
   if (req.user) {
@@ -32,5 +28,9 @@ export async function getAppCtx(req: Request, res: Response) {
     await userMgr.getAffiliatedWorkspaces()
   ).map(mkApiWorkspace);
   const { perms } = await userMgr.getSelfPerms();
-  res.json(ensureType<AppCtxResponse>({ teams, workspaces, perms }));
+  return { teams, workspaces, perms };
+}
+
+export async function getAppCtx(req: Request, res: Response) {
+  res.json(await getAppCtxData(req));
 }

@@ -1,3 +1,4 @@
+import { InputType } from "../form-meta";
 import type { DataOp, TableSchema } from "@plasmicapp/data-sources";
 import { CodeComponentMode, ComponentHelpers } from "@plasmicapp/host";
 import { CanvasComponentProps } from "@plasmicapp/host/registerComponent";
@@ -17,20 +18,6 @@ import {
 } from "./contexts";
 import { InternalFormItemProps } from "./FormItem";
 
-export enum InputType {
-  Text = "Text",
-  TextArea = "Text Area",
-  Password = "Password",
-  Number = "Number",
-  Select = "Select",
-  Option = "Option",
-  OptionGroup = "Option Group",
-  Radio = "Radio",
-  RadioGroup = "Radio Group",
-  Checkbox = "Checkbox",
-  DatePicker = "DatePicker",
-  Unknown = "Unkown",
-}
 
 export const SchemaFormContext = React.createContext<
   | {
@@ -60,10 +47,6 @@ export interface FormWrapperControlContextData
   mergedFields?: SimplifiedFormItemsProp[];
 }
 
-export enum FormType {
-  NewEntry,
-  UpdateEntry,
-}
 
 export interface FormWrapperProps
   extends FormProps,
@@ -345,9 +328,4 @@ export const formHelpers: ComponentHelpers<FormWrapperProps> = {
       },
     },
   },
-};
-
-export const OPTIMIZED_FORM_IMPORT = {
-  name: "FormWrapper",
-  path: "@plasmicpkgs/antd5/skinny/Form",
 };

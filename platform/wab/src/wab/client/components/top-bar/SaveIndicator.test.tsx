@@ -15,7 +15,7 @@ const ctx = vi.hoisted(() => ({
   canSave: vi.fn(),
   save: vi.fn(),
 }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ctx,
 }));
 afterEach(cleanup);

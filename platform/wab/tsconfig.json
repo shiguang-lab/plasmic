@@ -27,6 +27,7 @@
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "paths": {
+      "@plasmicpkgs/antd5/form-meta": ["../../plasmicpkgs/antd5/src/form-meta.ts"],
       // Absolute import paths like "@/wab/shared/common"
       // Should match "resolve.alias" in webpack.config.js
       "@/*": ["./src/*"],

@@ -1,6 +1,7 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
 import { hasLayoutBox } from "@/wab/client/dom";
-import { StudioCtx, withStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { withStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewComponentBase } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure, maybe } from "@/wab/shared/common";
 import { Box, Pt, Side, horizontalSides } from "@/wab/shared/geom";

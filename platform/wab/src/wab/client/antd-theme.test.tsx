@@ -35,8 +35,8 @@ it.each([
   ["ko", "일", "월"],
 ] as const)(
   "uses %s date-library weekdays in product calendars",
-  (locale, firstDay, secondDay) => {
-    setLanguagePreference(locale);
+  async (locale, firstDay, secondDay) => {
+    await setLanguagePreference(locale);
     render(
       <AntdConfigProvider productUI>
         <DatePicker open />

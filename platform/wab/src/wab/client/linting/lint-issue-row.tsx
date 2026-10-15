@@ -6,7 +6,7 @@ import { ERROR_ICON, NOT_RENDERED_ICON } from "@/wab/client/icons";
 import TreeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Tree";
 import UnlockIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Unlock";
 import ResponsivenessIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Responsiveness";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { makeVariantName } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";

@@ -8,7 +8,7 @@ import { Bundler } from "@/wab/shared/bundler";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { flattenTpls } from "@/wab/shared/core/tpls";
 import { Arg, isKnownTplComponent } from "@/wab/shared/model/classes";
-import { formComponentName } from "@plasmicpkgs/antd5";
+import { formComponentName } from "@plasmicpkgs/antd5/form-meta";
 
 export const migrate: UnbundledMigrationFn = async (bundle, db, entity) => {
   const bundler = new Bundler();

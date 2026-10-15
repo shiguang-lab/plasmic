@@ -98,6 +98,9 @@ test("update UI follows download and install events without installing automatic
   ui.send({ phase: "downloading", percent: 140 });
   assert.equal(ui.element("progress").value, 100);
   ui.send({ phase: "downloaded", version: "0.0.24" });
+  assert.equal(ui.dialog.open, false, "Status events must not open the dialog");
+  ui.open();
+  assert.equal(ui.dialog.open, true);
   assert.equal(ui.element("primary").textContent, "Restart and Install");
   assert.equal(ui.commands.includes("install"), false);
   ui.element("primary").click();

@@ -16,9 +16,9 @@ vi.mock("@/wab/client/env", async (importOriginal) => ({
   get SELF_HOSTED() { return deployment.selfHosted; },
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
   deployment.selfHosted = false;
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   setAppearancePreference("dark");
 });
 afterEach(cleanup);

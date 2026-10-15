@@ -2,7 +2,7 @@ import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { useStudioOps } from "@/wab/client/components/sidebar-tabs/ComponentActionsSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { getRootSub } from "@/wab/client/frame-ctx/windows";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { TplComponent } from "@/wab/shared/model/classes";
 import type {

@@ -17,7 +17,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 const fixture = vi.hoisted(() => ({ studioCtx: {} as any }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.studioCtx,
 }));
 vi.mock(

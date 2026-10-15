@@ -1,10 +1,8 @@
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { InnerPropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { Modal } from "@/wab/client/components/widgets/Modal";
-import {
-  StudioCtx,
-  providesStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { providesStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   StudioPropType,
   isPlainObjectPropType,

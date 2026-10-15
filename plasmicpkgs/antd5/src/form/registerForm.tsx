@@ -1,6 +1,7 @@
 import { buttonComponentName, formComponentName } from "../names";
 import { Registerable, registerComponentHelper } from "../utils";
-import { FormWrapperProps, InputType, formHelpers } from "./Form";
+import { FormWrapperProps, formHelpers } from "./Form";
+import { InputType } from "../form-meta";
 import { FormWrapper } from "./SchemaForm";
 import {
   COMMON_ACTIONS,
@@ -44,14 +45,6 @@ const colProp = (
     defaultValue: defaultValue,
   } as const);
 
-export const formTypeDescription = `
-  You can create form with two different behaviors:
-  \n\n
-  1. Create a new entry: The form will be created empty and it will create a new row when submitted.
-  2. Update an entry: The form will be pre-filled with the row values and it will update the table entry when submitted.
-  \n\n
-  For both options, you can customize later.
-`;
 
 export function registerForm(loader?: Registerable) {
   registerComponentHelper(loader, FormWrapper, {

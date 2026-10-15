@@ -1,0 +1,108 @@
+[
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/rollup.config.mjs",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/form-meta.ts",
+    "messages": [
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'InputType' is already declared in the upper scope on line 20 column 13.",
+        "line": 20,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 20,
+        "endColumn": 22
+      },
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'FormType' is already declared in the upper scope on line 35 column 13.",
+        "line": 35,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 35,
+        "endColumn": 21
+      }
+    ],
+    "errorCount": 2,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/form/Form.tsx",
+    "messages": [
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'values' is already declared in the upper scope on line 95 column 11.",
+        "line": 113,
+        "column": 13,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 113,
+        "endColumn": 19
+      },
+      {
+        "ruleId": "no-shadow",
+        "severity": 2,
+        "message": "'values' is already declared in the upper scope on line 95 column 11.",
+        "line": 148,
+        "column": 15,
+        "nodeType": "Identifier",
+        "messageId": "noShadow",
+        "endLine": 148,
+        "endColumn": 21
+      }
+    ],
+    "errorCount": 2,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/form/SchemaForm.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/form/registerForm.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/form/sharedRegistration.ts",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/index.ts",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/names.ts",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/registerDatePicker.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  {
+    "filePath": "<repo>/plasmicpkgs/antd5/src/stories/Form.stories.tsx",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0
+  }
+]

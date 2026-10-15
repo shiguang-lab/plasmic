@@ -2,7 +2,7 @@ import {
   DefaultUserMentionDisplayProps,
   PlasmicUserMentionDisplay,
 } from "@/wab/client/plasmic/plasmic_kit_user_mentions/PlasmicUserMentionDisplay";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getUniqueUsersFromApiPermissions } from "@/wab/shared/perms";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";

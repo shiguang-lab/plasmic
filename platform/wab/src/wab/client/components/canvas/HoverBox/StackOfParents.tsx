@@ -1,7 +1,7 @@
 import styles from "@/wab/client/components/canvas/HoverBox/StackOfParents.module.scss";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { FRAME_ICON, SLOT_ICON } from "@/wab/client/icons";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getSlotSelectionDisplayName } from "@/wab/client/utils/tpl-client-utils";
 import { FrameViewMode } from "@/wab/shared/Arenas";
 import { SQ, Selectable } from "@/wab/shared/core/selection";

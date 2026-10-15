@@ -1,10 +1,8 @@
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
-import {
-  EditorIconAction,
-  TopBarChrome,
-} from "@/wab/client/components/top-bar/TopBarChrome";
+import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
+import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -35,7 +33,7 @@ import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   STUDIO_ONBOARDING_TUTORIALS,
   STUDIO_ONBOARDING_TUTORIALS_LIST,

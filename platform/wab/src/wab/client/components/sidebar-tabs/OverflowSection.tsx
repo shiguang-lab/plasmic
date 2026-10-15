@@ -12,7 +12,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import OverflowHiddenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__OverflowHidden";
 import OverflowVisibleIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__OverflowVisible";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { getCssInitial } from "@/wab/shared/css";
 import { Menu } from "antd";

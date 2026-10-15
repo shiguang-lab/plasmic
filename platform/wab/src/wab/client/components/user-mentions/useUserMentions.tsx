@@ -6,7 +6,7 @@ import {
 import { useMentionsPopover } from "@/wab/client/components/mentions/useMentionsPopover";
 import { UserMentionsPopoverContent } from "@/wab/client/components/user-mentions/UserMentionsPopoverContent";
 import { useQuerySelector } from "@/wab/client/hooks/useQuerySelector";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getUniqueUsersFromApiPermissions } from "@/wab/shared/perms";
 import * as React from "react";
 

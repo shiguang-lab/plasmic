@@ -1,0 +1,1120 @@
+[
+  {
+    "mode": "before",
+    "pid": 87532,
+    "tid": 8813368,
+    "activeSampleMs": 493.10299999999614,
+    "idleSampleMs": 5119.158000000108,
+    "topSources": [
+      {
+        "source": "(anonymous/eval)",
+        "selfMs": 291.56899999999865
+      },
+      {
+        "source": "<benchmark>/desktop-probe.cjs",
+        "selfMs": 58.802000000000056
+      },
+      {
+        "source": "node:internal/deps/undici/undici",
+        "selfMs": 39.42200000000001
+      },
+      {
+        "source": "node:electron/js2c/browser_init",
+        "selfMs": 10.084999999999999
+      },
+      {
+        "source": "node:events",
+        "selfMs": 8.144
+      },
+      {
+        "source": "node:internal/streams/readable",
+        "selfMs": 6.476000000000001
+      },
+      {
+        "source": "node:internal/http2/core",
+        "selfMs": 6.310999999999998
+      },
+      {
+        "source": "<benchmark>/before/desktop/src/i18n.cjs",
+        "selfMs": 5.800000000000001
+      },
+      {
+        "source": "node:internal/bootstrap/realm",
+        "selfMs": 5.167
+      },
+      {
+        "source": "node:internal/stream_base_commons",
+        "selfMs": 5.123
+      },
+      {
+        "source": "node:internal/process/task_queues",
+        "selfMs": 5.0779999999999985
+      },
+      {
+        "source": "node:net",
+        "selfMs": 4.079
+      },
+      {
+        "source": "node:_http_client",
+        "selfMs": 3.329
+      },
+      {
+        "source": "node:internal/webstreams/readablestream",
+        "selfMs": 3.0360000000000005
+      },
+      {
+        "source": "node:internal/streams/writable",
+        "selfMs": 2.978999999999999
+      },
+      {
+        "source": "node:fs",
+        "selfMs": 2.971
+      },
+      {
+        "source": "node:internal/async_hooks",
+        "selfMs": 2.105
+      },
+      {
+        "source": "<benchmark>/before/desktop/src/asset-handler.cjs",
+        "selfMs": 1.877
+      },
+      {
+        "source": "<benchmark>/before/desktop/src/main.cjs",
+        "selfMs": 1.8370000000000002
+      },
+      {
+        "source": "node:internal/buffer",
+        "selfMs": 1.754
+      },
+      {
+        "source": "node:internal/fs/promises",
+        "selfMs": 1.717
+      },
+      {
+        "source": "node:path",
+        "selfMs": 1.6110000000000002
+      },
+      {
+        "source": "node:_http_outgoing",
+        "selfMs": 1.275
+      },
+      {
+        "source": "node:internal/timers",
+        "selfMs": 1.153
+      },
+      {
+        "source": "node:internal/http2/compat",
+        "selfMs": 1.1520000000000001
+      }
+    ],
+    "topFunctions": [
+      {
+        "function": "(anonymous/eval):undefined:(anonymous)",
+        "selfMs": 85.79000000000005
+      },
+      {
+        "function": "(anonymous/eval):undefined:(program)",
+        "selfMs": 80.48300000000015
+      },
+      {
+        "function": "(anonymous/eval):undefined:ImageView",
+        "selfMs": 69.81700000000006
+      },
+      {
+        "function": "<benchmark>/desktop-probe.cjs:83:collect",
+        "selfMs": 52.058000000000014
+      },
+      {
+        "function": "(anonymous/eval):undefined:(garbage collector)",
+        "selfMs": 17.264
+      },
+      {
+        "function": "node:internal/deps/undici/undici:6932:(anonymous)",
+        "selfMs": 14.369000000000002
+      },
+      {
+        "function": "(anonymous/eval):undefined:closeFilePreview",
+        "selfMs": 7.73
+      },
+      {
+        "function": "node:electron/js2c/browser_init:0:(anonymous)",
+        "selfMs": 7.7299999999999995
+      },
+      {
+        "function": "(anonymous/eval):undefined:_loadURL",
+        "selfMs": 7.409
+      },
+      {
+        "function": "node:internal/deps/undici/undici:5185:webidl.util.getCopyOfBytesHeldByBufferSource",
+        "selfMs": 6.0710000000000015
+      },
+      {
+        "function": "(anonymous/eval):undefined:readFileUtf8",
+        "selfMs": 5.615
+      },
+      {
+        "function": "<benchmark>/before/desktop/src/i18n.cjs:7:(anonymous)",
+        "selfMs": 5.133
+      },
+      {
+        "function": "node:internal/bootstrap/realm:382:compileForInternalLoader",
+        "selfMs": 4.906
+      },
+      {
+        "function": "(anonymous/eval):undefined:writeBuffer",
+        "selfMs": 4.529
+      },
+      {
+        "function": "node:events:488:emit",
+        "selfMs": 4.4190000000000005
+      },
+      {
+        "function": "node:internal/process/task_queues:112:nextTick",
+        "selfMs": 3.695
+      },
+      {
+        "function": "node:fs:472:readFileSync",
+        "selfMs": 2.8970000000000002
+      },
+      {
+        "function": "node:internal/http2/core:1966:(anonymous)",
+        "selfMs": 2.803
+      },
+      {
+        "function": "node:internal/deps/undici/undici:4:__require",
+        "selfMs": 2.638
+      },
+      {
+        "function": "<benchmark>/desktop-probe.cjs:59:(anonymous)",
+        "selfMs": 2.3209999999999997
+      },
+      {
+        "function": "<benchmark>/desktop-probe.cjs:47:(anonymous)",
+        "selfMs": 2.318
+      },
+      {
+        "function": "node:internal/stream_base_commons:165:onStreamRead",
+        "selfMs": 2.181
+      },
+      {
+        "function": "node:_http_client:798:socketOnData",
+        "selfMs": 2.154
+      },
+      {
+        "function": "(anonymous/eval):undefined:decodeUTF8",
+        "selfMs": 2.036
+      },
+      {
+        "function": "node:internal/deps/undici/undici:11244:append",
+        "selfMs": 1.4789999999999999
+      },
+      {
+        "function": "(anonymous/eval):undefined:connect",
+        "selfMs": 1.409
+      },
+      {
+        "function": "node:internal/buffer:959:FastBuffer",
+        "selfMs": 1.226
+      },
+      {
+        "function": "<benchmark>/before/desktop/src/asset-handler.cjs:36:handle",
+        "selfMs": 1.223
+      },
+      {
+        "function": "node:path:1331:join",
+        "selfMs": 1.1830000000000003
+      },
+      {
+        "function": "node:events:634:wrapper",
+        "selfMs": 1.1560000000000001
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "pid": 87537,
+    "tid": 8813420,
+    "activeSampleMs": 3716.64400000001,
+    "idleSampleMs": 989.5809999999962,
+    "topSources": [
+      {
+        "source": "(anonymous/eval)",
+        "selfMs": 1099.8989999999883
+      },
+      {
+        "source": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js",
+        "selfMs": 416.6179999999965
+      },
+      {
+        "source": "../../../src/wab/client/dom-utils.ts",
+        "selfMs": 360.5749999999969
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+        "selfMs": 129.78800000000018
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/mobx@6.13.6/node_modules/mobx/dist/mobx.esm.js",
+        "selfMs": 118.61400000000002
+      },
+      {
+        "source": "https://studio.plasmic.shiguanglab.com/static/js/index~24.bfc427a7.js",
+        "selfMs": 108.88200000000023
+      },
+      {
+        "source": "../../../../../node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+        "selfMs": 70.80900000000001
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modules/react-dom/cjs/react-dom.production.min.js",
+        "selfMs": 68.40300000000002
+      },
+      {
+        "source": "https://studio.plasmic.shiguanglab.com/static/desktop/update-ui.js",
+        "selfMs": 65.21900000000001
+      },
+      {
+        "source": "../../../src/wab/shared/bundler.ts",
+        "selfMs": 62.75000000000006
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js",
+        "selfMs": 52.08900000000006
+      },
+      {
+        "source": "../../../src/wab/client/components/canvas/canvas-rendering.ts",
+        "selfMs": 51.52199999999999
+      },
+      {
+        "source": "../../../src/wab/shared/common.ts",
+        "selfMs": 43.554000000000045
+      },
+      {
+        "source": "../../../src/wab/client/react-global-hook/globalHook.ts",
+        "selfMs": 36.616000000000014
+      },
+      {
+        "source": "../../../src/wab/shared/core/observable-model.ts",
+        "selfMs": 32.064
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/lodash.js",
+        "selfMs": 27.606000000000037
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread_props.js",
+        "selfMs": 25.322000000000003
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/overlayscrollbars@2.16.0/node_modules/overlayscrollbars/overlayscrollbars.mjs",
+        "selfMs": 22.593000000000004
+      },
+      {
+        "source": "../../../src/wab/shared/model/model-meta.ts",
+        "selfMs": 21.246999999999996
+      },
+      {
+        "source": "https://js.stripe.com/dahlia/stripe.js",
+        "selfMs": 19.61800000000001
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@rc-component+util@1.13.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/@rc-component/util/es/Dom/dynamicCSS.js",
+        "selfMs": 19.409000000000006
+      },
+      {
+        "source": "../../../src/wab/client/components/canvas/canvas-cache.ts",
+        "selfMs": 18.096
+      },
+      {
+        "source": "../../../../../node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+        "selfMs": 17.747999999999998
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js",
+        "selfMs": 17.090999999999998
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js",
+        "selfMs": 16.566
+      }
+    ],
+    "topFunctions": [
+      {
+        "function": "(anonymous/eval):undefined:(program)",
+        "selfMs": 645.4889999999773
+      },
+      {
+        "function": "../../../src/wab/client/dom-utils.ts:826:scriptExec",
+        "selfMs": 360.36199999999695
+      },
+      {
+        "function": "(anonymous/eval):undefined:(garbage collector)",
+        "selfMs": 135.6040000000002
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs:169:",
+        "selfMs": 118.17600000000016
+      },
+      {
+        "function": "https://studio.plasmic.shiguanglab.com/static/js/index~24.bfc427a7.js:0:i",
+        "selfMs": 108.59800000000023
+      },
+      {
+        "function": "https://studio.plasmic.shiguanglab.com/static/desktop/update-ui.js:262:(anonymous)",
+        "selfMs": 58.952999999999996
+      },
+      {
+        "function": "(anonymous/eval):1:(anonymous)",
+        "selfMs": 57.889000000000046
+      },
+      {
+        "function": "../../../../../node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js:277:e",
+        "selfMs": 55.27900000000006
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:5:e",
+        "selfMs": 30.239999999999995
+      },
+      {
+        "function": "(anonymous/eval):undefined:insertBefore",
+        "selfMs": 30.04100000000001
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread_props.js:16:n",
+        "selfMs": 24.664
+      },
+      {
+        "function": "(anonymous/eval):57:l11",
+        "selfMs": 24.459999999999987
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:1:(anonymous)",
+        "selfMs": 23.016000000000005
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/mobx@6.13.6/node_modules/mobx/dist/mobx.esm.js:1930:",
+        "selfMs": 20.558000000000014
+      },
+      {
+        "function": "../../../src/wab/shared/bundler.ts:696:unbundleInternal",
+        "selfMs": 20.435999999999993
+      },
+      {
+        "function": "(anonymous/eval):1:g11",
+        "selfMs": 20.427000000000003
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:1:la",
+        "selfMs": 19.36400000000002
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:235:(anonymous)",
+        "selfMs": 18.33000000000001
+      },
+      {
+        "function": "(anonymous/eval):undefined:appendChild",
+        "selfMs": 16.852000000000004
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js:1:n",
+        "selfMs": 16.566
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js:1:n",
+        "selfMs": 16.494000000000003
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:6:oK",
+        "selfMs": 16.493000000000006
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js:6571:t$",
+        "selfMs": 16.450000000000006
+      },
+      {
+        "function": "../../../../src/wab/client/components/top-bar/TopBar.tsx:157:n",
+        "selfMs": 15.941
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js:9180:",
+        "selfMs": 14.534000000000002
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:92:T",
+        "selfMs": 14.156
+      },
+      {
+        "function": "../../../src/wab/client/react-global-hook/globalHook.ts:665:G",
+        "selfMs": 13.536000000000001
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/defineProperty.js:2:o",
+        "selfMs": 12.918000000000003
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:1:k",
+        "selfMs": 12.908999999999999
+      },
+      {
+        "function": "(anonymous/eval):8:(anonymous)",
+        "selfMs": 12.839000000000002
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "pid": 87538,
+    "tid": 8813567,
+    "activeSampleMs": 19.675000000000008,
+    "idleSampleMs": 2201.457000000002,
+    "topSources": [
+      {
+        "source": "(anonymous/eval)",
+        "selfMs": 19.407000000000007
+      },
+      {
+        "source": "https://js.stripe.com/v3/fingerprinted/js/m-outer-15a2b40a058ddff1cffdb63779fe3de1.js",
+        "selfMs": 0.268
+      }
+    ],
+    "topFunctions": [
+      {
+        "function": "(anonymous/eval):undefined:(program)",
+        "selfMs": 18.409000000000006
+      },
+      {
+        "function": "(anonymous/eval):undefined:appendChild",
+        "selfMs": 0.405
+      },
+      {
+        "function": "(anonymous/eval):0:bootstrap",
+        "selfMs": 0.37
+      },
+      {
+        "function": "(anonymous/eval):undefined:createElement",
+        "selfMs": 0.141
+      },
+      {
+        "function": "https://js.stripe.com/v3/fingerprinted/js/m-outer-15a2b40a058ddff1cffdb63779fe3de1.js:0:(anonymous)",
+        "selfMs": 0.137
+      },
+      {
+        "function": "(anonymous/eval):undefined:postMessage",
+        "selfMs": 0.135
+      },
+      {
+        "function": "https://js.stripe.com/v3/fingerprinted/js/m-outer-15a2b40a058ddff1cffdb63779fe3de1.js:0:i",
+        "selfMs": 0.131
+      },
+      {
+        "function": "(anonymous/eval):6:sample",
+        "selfMs": -0.053
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "pid": 87539,
+    "tid": 8813591,
+    "activeSampleMs": 73.381,
+    "idleSampleMs": 1648.355999999989,
+    "topSources": [
+      {
+        "source": "https://m.stripe.network/out-4.5.45.js",
+        "selfMs": 62.797000000000054
+      },
+      {
+        "source": "(anonymous/eval)",
+        "selfMs": 10.307999999999996
+      },
+      {
+        "source": "https://m.stripe.network/inner.html",
+        "selfMs": 0.276
+      }
+    ],
+    "topFunctions": [
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:l",
+        "selfMs": 27.41200000000001
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:(anonymous)",
+        "selfMs": 19.081999999999994
+      },
+      {
+        "function": "(anonymous/eval):undefined:(program)",
+        "selfMs": 8.029
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:n",
+        "selfMs": 3.334
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:o",
+        "selfMs": 2.944
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:y",
+        "selfMs": 1.539
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:s",
+        "selfMs": 1.14
+      },
+      {
+        "function": "(anonymous/eval):undefined:(garbage collector)",
+        "selfMs": 1.082
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:b",
+        "selfMs": 1.073
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:_",
+        "selfMs": 0.876
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:h",
+        "selfMs": 0.602
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:v",
+        "selfMs": 0.526
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:c",
+        "selfMs": 0.504
+      },
+      {
+        "function": "(anonymous/eval):undefined:createElement",
+        "selfMs": 0.45599999999999996
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:i",
+        "selfMs": 0.403
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:e",
+        "selfMs": 0.395
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:D",
+        "selfMs": 0.361
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:E",
+        "selfMs": 0.266
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:g",
+        "selfMs": 0.266
+      },
+      {
+        "function": "(anonymous/eval):undefined:appendChild",
+        "selfMs": 0.259
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:t",
+        "selfMs": 0.257
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:I",
+        "selfMs": 0.253
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:u",
+        "selfMs": 0.251
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:m.set",
+        "selfMs": 0.237
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:a",
+        "selfMs": 0.23199999999999998
+      },
+      {
+        "function": "(anonymous/eval):0:bootstrap",
+        "selfMs": 0.208
+      },
+      {
+        "function": "https://m.stripe.network/inner.html:0:e.onload",
+        "selfMs": 0.144
+      },
+      {
+        "function": "(anonymous/eval):undefined:postMessage",
+        "selfMs": 0.141
+      },
+      {
+        "function": "https://m.stripe.network/out-4.5.45.js:0:d",
+        "selfMs": 0.141
+      },
+      {
+        "function": "(anonymous/eval):undefined:requestAnimationFrame",
+        "selfMs": 0.133
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "pid": 87541,
+    "tid": 8813768,
+    "activeSampleMs": 405.66199999999674,
+    "idleSampleMs": 4619.924000000082,
+    "topSources": [
+      {
+        "source": "(anonymous/eval)",
+        "selfMs": 237.38699999999892
+      },
+      {
+        "source": "<benchmark>/desktop-probe.cjs",
+        "selfMs": 55.476000000000035
+      },
+      {
+        "source": "node:internal/deps/undici/undici",
+        "selfMs": 26.662000000000006
+      },
+      {
+        "source": "node:electron/js2c/browser_init",
+        "selfMs": 8.747
+      },
+      {
+        "source": "<benchmark>/after/desktop/src/i18n.cjs",
+        "selfMs": 6.023999999999999
+      },
+      {
+        "source": "node:internal/streams/readable",
+        "selfMs": 5.961999999999999
+      },
+      {
+        "source": "node:events",
+        "selfMs": 5.401999999999999
+      },
+      {
+        "source": "node:internal/process/task_queues",
+        "selfMs": 4.377000000000001
+      },
+      {
+        "source": "node:internal/streams/writable",
+        "selfMs": 4.28
+      },
+      {
+        "source": "node:fs",
+        "selfMs": 3.690000000000001
+      },
+      {
+        "source": "node:internal/http2/core",
+        "selfMs": 3.3099999999999996
+      },
+      {
+        "source": "node:net",
+        "selfMs": 3.2230000000000003
+      },
+      {
+        "source": "node:_http_client",
+        "selfMs": 3.0060000000000002
+      },
+      {
+        "source": "node:internal/fs/promises",
+        "selfMs": 2.844
+      },
+      {
+        "source": "node:internal/webstreams/readablestream",
+        "selfMs": 2.8169999999999993
+      },
+      {
+        "source": "node:internal/bootstrap/realm",
+        "selfMs": 2.08
+      },
+      {
+        "source": "<benchmark>/after/desktop/src/asset-handler.cjs",
+        "selfMs": 1.8070000000000004
+      },
+      {
+        "source": "<benchmark>/after/desktop/src/main.cjs",
+        "selfMs": 1.7070000000000003
+      },
+      {
+        "source": "node:_http_outgoing",
+        "selfMs": 1.6650000000000003
+      },
+      {
+        "source": "node:internal/stream_base_commons",
+        "selfMs": 1.3339999999999999
+      },
+      {
+        "source": "node:internal/http2/compat",
+        "selfMs": 1.287
+      },
+      {
+        "source": "node:internal/timers",
+        "selfMs": 1.2570000000000001
+      },
+      {
+        "source": "node:_http_agent",
+        "selfMs": 1.252
+      },
+      {
+        "source": "node:path",
+        "selfMs": 1.125
+      },
+      {
+        "source": "<benchmark>/probe-common.cjs",
+        "selfMs": 1.0670000000000002
+      }
+    ],
+    "topFunctions": [
+      {
+        "function": "(anonymous/eval):undefined:(anonymous)",
+        "selfMs": 86.60500000000009
+      },
+      {
+        "function": "(anonymous/eval):undefined:ImageView",
+        "selfMs": 58.36800000000003
+      },
+      {
+        "function": "<benchmark>/desktop-probe.cjs:83:collect",
+        "selfMs": 53.379000000000026
+      },
+      {
+        "function": "(anonymous/eval):undefined:(program)",
+        "selfMs": 51.73600000000002
+      },
+      {
+        "function": "(anonymous/eval):undefined:closeFilePreview",
+        "selfMs": 11.248000000000003
+      },
+      {
+        "function": "(anonymous/eval):undefined:(garbage collector)",
+        "selfMs": 8.459000000000001
+      },
+      {
+        "function": "node:electron/js2c/browser_init:0:(anonymous)",
+        "selfMs": 6.418999999999999
+      },
+      {
+        "function": "node:internal/deps/undici/undici:6932:(anonymous)",
+        "selfMs": 5.904
+      },
+      {
+        "function": "<benchmark>/after/desktop/src/i18n.cjs:7:(anonymous)",
+        "selfMs": 5.534999999999999
+      },
+      {
+        "function": "node:internal/deps/undici/undici:5185:webidl.util.getCopyOfBytesHeldByBufferSource",
+        "selfMs": 5.232
+      },
+      {
+        "function": "(anonymous/eval):undefined:readFileUtf8",
+        "selfMs": 4.146000000000001
+      },
+      {
+        "function": "node:fs:472:readFileSync",
+        "selfMs": 3.5620000000000007
+      },
+      {
+        "function": "node:internal/deps/undici/undici:4:__require",
+        "selfMs": 3.268
+      },
+      {
+        "function": "(anonymous/eval):undefined:_loadURL",
+        "selfMs": 2.7889999999999997
+      },
+      {
+        "function": "node:events:488:emit",
+        "selfMs": 2.498
+      },
+      {
+        "function": "node:internal/process/task_queues:112:nextTick",
+        "selfMs": 2.3540000000000005
+      },
+      {
+        "function": "node:_http_client:798:socketOnData",
+        "selfMs": 2.258
+      },
+      {
+        "function": "(anonymous/eval):undefined:writeBuffer",
+        "selfMs": 2.2269999999999994
+      },
+      {
+        "function": "(anonymous/eval):undefined:connect",
+        "selfMs": 1.978
+      },
+      {
+        "function": "node:internal/bootstrap/realm:382:compileForInternalLoader",
+        "selfMs": 1.9680000000000002
+      },
+      {
+        "function": "node:internal/process/task_queues:71:processTicksAndRejections",
+        "selfMs": 1.8739999999999997
+      },
+      {
+        "function": "<benchmark>/after/desktop/src/asset-handler.cjs:36:handle",
+        "selfMs": 1.5810000000000002
+      },
+      {
+        "function": "(anonymous/eval):undefined:execute",
+        "selfMs": 1.2700000000000002
+      },
+      {
+        "function": "(anonymous/eval):undefined:createUnsafeArrayBuffer",
+        "selfMs": 1.234
+      },
+      {
+        "function": "node:internal/deps/undici/undici:12089:_Request",
+        "selfMs": 1.1840000000000002
+      },
+      {
+        "function": "node:internal/streams/readable:655:Readable.read",
+        "selfMs": 1.1680000000000001
+      },
+      {
+        "function": "node:internal/fs/promises:1985:readFile",
+        "selfMs": 1.116
+      },
+      {
+        "function": "(anonymous/eval):undefined:openFileHandle",
+        "selfMs": 0.9610000000000001
+      },
+      {
+        "function": "node:internal/deps/undici/undici:11215:_HeadersList",
+        "selfMs": 0.873
+      },
+      {
+        "function": "node:internal/streams/writable:549:writeOrBuffer",
+        "selfMs": 0.8260000000000001
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "pid": 87545,
+    "tid": 8813802,
+    "activeSampleMs": 3596.0079999999984,
+    "idleSampleMs": 558.7879999999941,
+    "topSources": [
+      {
+        "source": "(anonymous/eval)",
+        "selfMs": 996.4919999999864
+      },
+      {
+        "source": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js",
+        "selfMs": 434.95999999999555
+      },
+      {
+        "source": "../../../src/wab/client/dom-utils.ts",
+        "selfMs": 353.0579999999964
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+        "selfMs": 166.93399999999966
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/mobx@6.13.6/node_modules/mobx/dist/mobx.esm.js",
+        "selfMs": 132.18100000000007
+      },
+      {
+        "source": "https://studio.plasmic.shiguanglab.com/static/js/index~5.425e3d9d.js",
+        "selfMs": 128.8270000000002
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modules/react-dom/cjs/react-dom.production.min.js",
+        "selfMs": 75.4810000000001
+      },
+      {
+        "source": "https://studio.plasmic.shiguanglab.com/static/desktop/update-ui.js",
+        "selfMs": 70.43700000000005
+      },
+      {
+        "source": "../../../../../node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+        "selfMs": 69.017
+      },
+      {
+        "source": "../../../src/wab/shared/bundler.ts",
+        "selfMs": 53.51400000000005
+      },
+      {
+        "source": "../../../../src/wab/client/components/canvas/canvas-rendering.ts",
+        "selfMs": 51.08599999999997
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js",
+        "selfMs": 50.588999999999984
+      },
+      {
+        "source": "../../../src/wab/shared/common.ts",
+        "selfMs": 40.82500000000003
+      },
+      {
+        "source": "../../../../src/wab/client/react-global-hook/globalHook.ts",
+        "selfMs": 35.03100000000002
+      },
+      {
+        "source": "../../../../src/wab/shared/core/observable-model.ts",
+        "selfMs": 30.156000000000024
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/lodash.js",
+        "selfMs": 24.195000000000007
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/overlayscrollbars@2.16.0/node_modules/overlayscrollbars/overlayscrollbars.mjs",
+        "selfMs": 22.157
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js",
+        "selfMs": 19.851000000000013
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread_props.js",
+        "selfMs": 19.207
+      },
+      {
+        "source": "../../../../../node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+        "selfMs": 18.031999999999996
+      },
+      {
+        "source": "../../../src/wab/shared/model/model-meta.ts",
+        "selfMs": 17.532
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@rc-component+util@1.13.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/@rc-component/util/es/Dom/dynamicCSS.js",
+        "selfMs": 16.837
+      },
+      {
+        "source": "../../../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js",
+        "selfMs": 16.735999999999997
+      },
+      {
+        "source": "../../../../src/wab/shared/core/val-nodes.ts",
+        "selfMs": 16.080000000000005
+      },
+      {
+        "source": "../../../../src/wab/client/components/canvas/canvas-cache.ts",
+        "selfMs": 16.056000000000008
+      }
+    ],
+    "topFunctions": [
+      {
+        "function": "(anonymous/eval):undefined:(program)",
+        "selfMs": 544.9699999999815
+      },
+      {
+        "function": "../../../src/wab/client/dom-utils.ts:826:scriptExec",
+        "selfMs": 353.0579999999964
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs:169:",
+        "selfMs": 155.27399999999972
+      },
+      {
+        "function": "(anonymous/eval):undefined:(garbage collector)",
+        "selfMs": 147.3739999999999
+      },
+      {
+        "function": "https://studio.plasmic.shiguanglab.com/static/js/index~5.425e3d9d.js:0:f",
+        "selfMs": 127.91500000000023
+      },
+      {
+        "function": "https://studio.plasmic.shiguanglab.com/static/desktop/update-ui.js:262:(anonymous)",
+        "selfMs": 64.6820000000001
+      },
+      {
+        "function": "(anonymous/eval):1:(anonymous)",
+        "selfMs": 57.57200000000004
+      },
+      {
+        "function": "../../../../../node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js:277:e",
+        "selfMs": 55.31599999999997
+      },
+      {
+        "function": "(anonymous/eval):undefined:insertBefore",
+        "selfMs": 32.19700000000004
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:5:e",
+        "selfMs": 30.00800000000001
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:1:(anonymous)",
+        "selfMs": 27.28400000000002
+      },
+      {
+        "function": "(anonymous/eval):57:l11",
+        "selfMs": 25.415
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/mobx@6.13.6/node_modules/mobx/dist/mobx.esm.js:1930:",
+        "selfMs": 22.887000000000004
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:235:(anonymous)",
+        "selfMs": 19.964000000000002
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js:1:n",
+        "selfMs": 19.09800000000001
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:1:la",
+        "selfMs": 18.671999999999993
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread_props.js:16:n",
+        "selfMs": 18.597000000000005
+      },
+      {
+        "function": "(anonymous/eval):1:g11",
+        "selfMs": 18.363000000000014
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js:1:n",
+        "selfMs": 16.607999999999997
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js:6571:eU",
+        "selfMs": 16.464000000000002
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:6:oK",
+        "selfMs": 15.961000000000002
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:1:k",
+        "selfMs": 14.869000000000002
+      },
+      {
+        "function": "../../../../node_modules/.pnpm/jquery@3.5.1_patch_hash=bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7/node_modules/jquery/dist/jquery.js:9180:",
+        "selfMs": 14.461000000000007
+      },
+      {
+        "function": "(anonymous/eval):undefined:appendChild",
+        "selfMs": 14.419999999999998
+      },
+      {
+        "function": "../../../../src/wab/client/react-global-hook/globalHook.ts:665:j",
+        "selfMs": 14.219999999999999
+      },
+      {
+        "function": "../../../../src/wab/client/components/top-bar/TopBar.tsx:155:n",
+        "selfMs": 14.033
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:92:T",
+        "selfMs": 13.389000000000012
+      },
+      {
+        "function": "../../../src/wab/shared/bundler.ts:696:unbundleInternal",
+        "selfMs": 13.368000000000002
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:92:(anonymous)",
+        "selfMs": 12.593000000000004
+      },
+      {
+        "function": "https://canvas.plasmic.shiguanglab.com/static/sub/build/client.4d512c.js:5:(anonymous)",
+        "selfMs": 12.402999999999997
+      }
+    ]
+  }
+]

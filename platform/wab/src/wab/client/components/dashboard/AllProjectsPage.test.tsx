@@ -60,13 +60,13 @@ vi.mock("@/wab/client/components/NewProjectModal", () => ({
   default: () => <div>Project creation dialog</div>,
 }));
 
-beforeEach(() => {
-  setLanguagePreference("en");
+beforeEach(async () => {
+  await setLanguagePreference("en");
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   window.localStorage.clear();
   mocks.failed = false;
   mocks.loading = false;
@@ -101,7 +101,7 @@ it.each([
       }),
     ).toBeInTheDocument();
 
-    act(() => setLanguagePreference(locale));
+    await act(async () => await setLanguagePreference(locale));
     expect(
       screen.getByText(personalLabel, {
         selector: ".ant-select-item-option-content",

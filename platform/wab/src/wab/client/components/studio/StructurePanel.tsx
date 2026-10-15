@@ -1,6 +1,6 @@
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
 import { OutlineTab } from "@/wab/client/components/sidebar-tabs/outline-tab";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Splitter } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";

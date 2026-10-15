@@ -10,7 +10,7 @@ import {
   DefaultDocsPortalIntroProps,
   PlasmicDocsPortalIntro,
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsPortalIntro";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";

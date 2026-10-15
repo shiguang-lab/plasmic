@@ -5,7 +5,7 @@ import {
   NON_BASE_VARIANT_COLOR,
 } from "@/wab/client/components/studio/GlobalCssVariables";
 import { hasLayoutBox } from "@/wab/client/dom";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { maybes } from "@/wab/shared/common";
 import { Selectable } from "@/wab/shared/core/selection";

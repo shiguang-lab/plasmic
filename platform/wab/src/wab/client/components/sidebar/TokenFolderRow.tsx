@@ -10,7 +10,7 @@ import {
 } from "@/wab/client/components/sidebar/token-utils";
 import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { DataTokenType, DataTokenValue } from "@/wab/commons/DataToken";
 import { StyleTokenType, StyleTokenValue } from "@/wab/commons/StyleToken";
 import { DataToken, StyleToken, Token } from "@/wab/shared/model/classes";

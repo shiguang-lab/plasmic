@@ -60,7 +60,7 @@ describe("AI prototype editor tools", () => {
     await expect(call("changeElement",{componentUuid:component.uuid,elementUuid:component.tplTree.uuid,styles:{reason:"Explain a change"}})).rejects.toThrow("Unsupported CSS property: reason");
     expect(studioCtx._changeCounter).toBe(counter);
   });
-  it("reads installed design contracts in existing-page mode without widening write scope", async () => {
+  it("reads installed contracts while keeping other pages and imported mutations outside scope", async () => {
     const librarySite = createSite();
     const library = mkComponent({
       name: "InstalledForm",
@@ -103,13 +103,11 @@ describe("AI prototype editor tools", () => {
       name: "InstalledForm",
       uuid: library.uuid,
     });
-    await expect(
-      call("executeLocalEdit", {
-        binding,
-        name: "read",
-        input: { componentUuids: [other.uuid] },
-      }),
-    ).rejects.toThrow("pinned subtree");
+    await expect(call("executeLocalEdit", {
+      binding,
+      name: "read",
+      input: { componentUuids: [other.uuid] },
+    })).rejects.toThrow("bound page/canvas");
     expect(beginActivity).not.toHaveBeenCalled();
     await expect(
       call("executeLocalEdit", {
@@ -121,7 +119,7 @@ describe("AI prototype editor tools", () => {
           styles: { padding: "16px" },
         },
       }),
-    ).rejects.toThrow("outside");
+    ).rejects.toThrow("in this project");
     expect(studioCtx.undoLog._log.length).toBe(history);
     expect(studioCtx._changeCounter).toBe(binding.changeCounter);
     studioCtx.copilotActivity.dispose();
@@ -234,37 +232,25 @@ describe("AI prototype editor tools", () => {
     expect(
       flattenTpls(page.tplTree).find((tpl) => tpl.uuid === button.uuid),
     ).toBe(button);
-    const selected = { ...binding, elementUuids: [button.uuid] };
-    await expect(
-      call("executeLocalEdit", {
-        binding: selected,
-        name: "createState",
+    binding = { ...binding, elementUuids: [button.uuid] };
+    await edit("createState", {
+      componentUuid: page.uuid,
+      name: "selectionState",
+      variableType: "boolean",
+      initialValue: false,
+    });
+    await edit("executeBatch", {
+      operations: [{
+        name: "updateState",
         input: {
           componentUuid: page.uuid,
-          name: "outsideState",
-          variableType: "boolean",
-          initialValue: false,
+          stateUuid: state.uuid,
+          initialValue: true,
         },
-      }),
-    ).rejects.toThrow("whole-component");
-    await expect(
-      call("executeLocalEdit", {
-        binding: selected,
-        name: "executeBatch",
-        input: {
-          operations: [
-            {
-              name: "updateState",
-              input: {
-                componentUuid: page.uuid,
-                stateUuid: state.uuid,
-                initialValue: true,
-              },
-            },
-          ],
-        },
-      }),
-    ).rejects.toThrow("whole-component");
+      }],
+    });
+    expect((await readPage()).states.find((entry: { uuid: string }) => entry.uuid === state.uuid).initialValue).toBe(true);
+    expect((await readPage()).states.some((entry: { name: string }) => entry.name === "selectionState")).toBe(true);
     studioCtx.copilotActivity.dispose();
   });
 
@@ -439,7 +425,7 @@ describe("AI prototype editor tools", () => {
     expect(JSON.parse(jsonContext).projectId).toBe(binding.projectId);
     studioCtx.copilotActivity.dispose();
   });
-  it("rejects a scoped commit if human editing occurred during async HTML preparation", async () => {
+  it("rejects a project edit if human editing occurred during async HTML preparation", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("ConcurrentEdit");
     await call("insertHtml", {
@@ -499,7 +485,7 @@ describe("AI prototype editor tools", () => {
     spy.mockRestore();
     studioCtx.copilotActivity.dispose();
   });
-  it("pins scoped edits, keeps identities, and rejects outside or stale writes", async () => {
+  it("keeps node identities and rejects component root changes or stale writes", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("ScopedEditing");
     await call("insertHtml", {
@@ -544,44 +530,19 @@ describe("AI prototype editor tools", () => {
       guard = binding,
     ) => call("executeLocalEdit", { binding: guard, name, input });
     await expect(
-      edit("changeElement", {
-        componentUuid: page.uuid,
-        elementUuid: outside.uuid,
-        text: "Wrong",
-      }),
-    ).rejects.toThrow("outside");
-    await expect(
       edit("deleteElement", {
         componentUuid: page.uuid,
-        elementUuid: region.uuid,
+        elementUuid: page.tplTree.uuid,
       }),
-    ).rejects.toThrow("pinned root");
-    for (const name of ["copyElement", "moveElement"]) {
-      await expect(
-        edit(name, {
-          componentUuid: page.uuid,
-          elementUuid: title.uuid,
-          targetUuid: outside.uuid,
-          location: "after",
-        }),
-      ).rejects.toThrow("outside");
-      await expect(
-        edit(name, {
-          componentUuid: page.uuid,
-          elementUuid: outside.uuid,
-          targetUuid: title.uuid,
-          location: "after",
-        }),
-      ).rejects.toThrow("outside");
-    }
+    ).rejects.toThrow("component root identity");
     await expect(
       edit("insertHtml", {
         componentUuid: page.uuid,
-        elementUuid: region.uuid,
+        elementUuid: page.tplTree.uuid,
         location: "before",
         html: "<p>Outside</p>",
       }),
-    ).rejects.toThrow("pinned root");
+    ).rejects.toThrow("component root identity");
     for (const patch of [
       { projectId: "other" },
       { branchId: "other" },
@@ -648,7 +609,69 @@ describe("AI prototype editor tools", () => {
     studioCtx.copilotActivity.dispose();
   });
 
-  it("rolls back a scoped batch and rejects global operations", async () => {
+  it.each([false, true])("edits only the pages in the bound canvas in one undoable transaction with selection=%s", async (selected) => {
+    const { studioCtx, call, createPage } = fixture();
+    const first = await createPage("FirstPage");
+    const second = await createPage("SecondPage");
+    const outside = await createPage("OutsideCanvas");
+    await call("createCanvas", { name: "PageGroup" });
+    for (const page of [first, second]) {
+      await call("createArtboard", { canvasName: "PageGroup", componentUuid: page.uuid, width: 1440, height: 900 });
+    }
+    const context = await call("getEditorContext");
+    const binding = {
+      projectId: context.projectId,
+      branchId: context.branchId,
+      sessionId: context.sessionId,
+      changeCounter: context.changeCounter,
+      componentUuid: selected ? first.uuid : null,
+      canvasName: "PageGroup",
+      elementUuids: selected ? [first.tplTree.uuid] : [],
+    };
+    await expect(call("executeLocalEdit", { binding, name: "read", input: { componentUuids: [outside.uuid] } })).rejects.toThrow("bound page/canvas");
+    await expect(call("executeLocalEdit", { binding, name: "changeElement", input: { componentUuid: outside.uuid, elementUuid: outside.tplTree.uuid, styles: { padding: "99px" } } })).rejects.toThrow("outside");
+    await expect(call("executeLocalEdit", { binding, name: "navigate", input: { componentUuid: outside.uuid } })).rejects.toThrow("outside");
+    const canvas = ensure(studioCtx.site.arenas.find((arena) => arena.name === "PageGroup"), "Canvas missing");
+    const secondFrame = ensure(canvas.children.find((frame) => frame.container.component === second), "Second artboard missing");
+    const switchArena = vi.spyOn(studioCtx, "switchToArena").mockImplementation(() => undefined);
+    const focusFrame = vi.spyOn(studioCtx, "setStudioFocusOnFrame").mockImplementation(() => undefined);
+    const switchComponent = vi.spyOn(studioCtx, "switchToComponentArena");
+    await call("executeLocalEdit", { binding, name: "navigate", input: { componentUuid: second.uuid } });
+    expect(switchArena).toHaveBeenCalledWith(canvas);
+    expect(focusFrame).toHaveBeenCalledWith({ frame: secondFrame, autoZoom: true });
+    expect(switchComponent).not.toHaveBeenCalled();
+    switchArena.mockRestore();
+    focusFrame.mockRestore();
+    switchComponent.mockRestore();
+    await expect(call("executeLocalEdit", { binding, name: "selectElement", input: { componentUuid: second.uuid, elementUuid: second.tplTree.uuid, frameUuid: "outside-frame" } })).rejects.toThrow("bound canvas");
+    const select = vi.spyOn(COPILOT_TOOLS.selectElement, "execute").mockResolvedValue("{}");
+    await call("executeLocalEdit", { binding, name: "selectElement", input: { componentUuid: second.uuid, elementUuid: second.tplTree.uuid } });
+    expect(select).toHaveBeenCalledTimes(1);
+    expect(select.mock.calls[0][1]).toEqual({ componentUuid: second.uuid, elementUuid: second.tplTree.uuid, frameUuid: secondFrame.uuid, instanceIndex: 0 });
+    expect(select.mock.calls[0][2]).toEqual({ outputFormat: "json" });
+    select.mockRestore();
+    const history = studioCtx.undoLog._log.length;
+    const result = await call("executeLocalEdit", {
+      binding,
+      name: "executeBatch",
+      input: { operations: [first, second].map((page) => ({
+        name: "changeElement",
+        input: { componentUuid: page.uuid, elementUuid: page.tplTree.uuid, styles: { padding: "24px" } },
+      })) },
+    });
+    expect(result.changed).toBe(true);
+    expect(JSON.parse(result.before).results.map((resource: { uuid: string }) => resource.uuid)).toEqual([first.uuid, second.uuid]);
+    expect(result.after).toContain("24px");
+    expect(studioCtx.undoLog._log.length).toBe(history + 1);
+    const checked = await call("executeLocalEdit", { binding: result.binding, name: "validate", input: {} });
+    expect(JSON.parse(checked.result)).toMatchObject({ valid: true, components: 2 });
+    await call("executeLocalEdit", { binding: result.binding, name: "undo", input: {} });
+    const restored = await call("read", { componentUuids: [first.uuid, second.uuid] });
+    expect(restored).toEqual(JSON.parse(result.before));
+    studioCtx.copilotActivity.dispose();
+  });
+
+  it("rolls back a canvas batch and rejects unsupported tools", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("ScopedRollback");
     await call("insertHtml", {

@@ -5,7 +5,7 @@ import {
   DefaultExperimentCanvasButtonProps,
   PlasmicExperimentCanvasButton,
 } from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentCanvasButton";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { SplitType } from "@/wab/shared/core/splits";
 import { Split, VariantGroup } from "@/wab/shared/model/classes";
 import * as React from "react";

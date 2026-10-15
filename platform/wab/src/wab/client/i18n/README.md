@@ -1,6 +1,6 @@
 # UI languages
 
-The application supports English (`en`), Simplified Chinese (`zh-CN`), Traditional Chinese (`zh-TW`), Japanese (`ja`) and Korean (`ko`). Each selectable language has its own JSON message pack, checked for equal keys and interpolation parameters.
+The application supports English (`en`), Simplified Chinese (`zh-CN`), Traditional Chinese (`zh-TW`), Japanese (`ja`) and Korean (`ko`). Each selectable language has its own JSON message pack, checked for equal keys and interpolation parameters. The browser downloads only the selected pack before its first render. Concurrent requests share the same download; loaded packs stay in memory. Language setters return a promise that resolves after the pack is ready, and overlapping changes apply only the latest choice.
 
 `useI18n()` provides `t(message, values)`, `label(displayText)`, the resolved locale, and the language preference. English source messages are typed keys. Add a new message to every language pack before using it. UI translations must not change persisted component props, node names, registration metadata, or business page content.
 

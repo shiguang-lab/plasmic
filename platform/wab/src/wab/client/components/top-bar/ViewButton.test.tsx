@@ -12,7 +12,7 @@ import { Menu } from "antd";
 import React from "react";
 
 const { getStudioCtx } = vi.hoisted(() => ({ getStudioCtx: vi.fn() }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => getStudioCtx(),
 }));
 vi.mock("@/wab/shared/Arenas", async (original) => ({
@@ -133,14 +133,14 @@ const hideMessages = [
   "Turn off content creator mode",
 ] as const;
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 it.each(languageOptions)(
   "renders both states of every View action in $label",
-  ({ value }) => {
-    act(() => setLanguagePreference(value));
+  async ({ value }) => {
+    await act(async () => await setLanguagePreference(value));
     getStudioCtx.mockReturnValue(context(false));
     const view = render(<ViewButton />);
     expect(
@@ -160,7 +160,7 @@ it("updates an already mounted menu and preserves its actions", async () => {
   const studio = context(true);
   getStudioCtx.mockReturnValue(studio);
   render(<ViewButton />);
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.queryByText("Hide placeholders for empty slots")).toBeNull();
   fireEvent.click(screen.getByText("隐藏空插槽占位符"));
   expect(studio.toggleShowSlotPlaceholder).toHaveBeenCalledOnce();

@@ -6,7 +6,7 @@ import {
 import { getEmptyTree } from "@/wab/client/components/QueryBuilder/query-builder-utils";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TraitMeta, TraitRegistration } from "@plasmicapp/host";
 import {
   Config,

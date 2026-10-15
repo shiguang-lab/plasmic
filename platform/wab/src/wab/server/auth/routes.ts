@@ -24,20 +24,22 @@ import fs from "fs";
 import passport from "passport";
 import { AuthenticateOptionsGoogle } from "passport-google-oauth20";
 
-export async function self(req: Request, res: Response) {
+export async function getSelfInfo(req: Request): Promise<SelfResponse> {
   const user = getUser(req);
   await superDbMgr(req).ensurePersonalWorkspace(user);
   const preferences = await req.noTxMgr.findOne(UserPreferences, {
     userId: user.id,
   });
   user.extraData = preferences?.extraData ?? null;
-  res.json(
-    ensureType<SelfResponse>({
+  return ensureType<SelfResponse>({
       user,
       isAdmin: req.shiguangIdentity?.roles.includes("system-admin") ?? false,
       observer: req.cookies?.["plasmic-observer"] === "true",
-    }),
-  );
+    });
+}
+
+export async function self(req: Request, res: Response) {
+  res.json(await getSelfInfo(req));
 }
 
 async function extractApiTeam(req: Request) {

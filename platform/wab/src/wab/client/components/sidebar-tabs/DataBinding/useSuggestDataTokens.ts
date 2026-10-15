@@ -1,6 +1,6 @@
 import { getDataTokenSuggestions } from "@/wab/client/components/sidebar-tabs/DataBinding/data-token-suggestions";
 import { usePropValueEditorContext } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { DataTokenType } from "@/wab/commons/DataToken";
 import { siteDataTokenRefsDirectDeps } from "@/wab/shared/core/site-data-tokens";
 

@@ -26,7 +26,7 @@ import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicI
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
 import { DefaultLeftTabStripProps } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
 import DiamondsIcon from "@/wab/client/plasmic/plasmic_kit_merge_flow/icons/PlasmicIcon__Diamonds";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { spawn, unexpected } from "@/wab/shared/common";
 import {

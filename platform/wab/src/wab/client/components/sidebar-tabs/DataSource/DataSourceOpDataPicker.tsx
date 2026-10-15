@@ -4,7 +4,7 @@ import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/Data
 import { useDataSourceOpExprBottomModals } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { JsonValue } from "@/wab/shared/core/lang";
 import { DATA_QUERY_PLURAL_CAP } from "@/wab/shared/Labels";
 import {

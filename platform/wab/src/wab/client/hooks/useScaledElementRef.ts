@@ -1,5 +1,5 @@
 import { setElementStyles } from "@/wab/client/dom-utils";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { autorun } from "mobx";
 import * as React from "react";
 import { RefObject, useCallback, useMemo } from "react";

@@ -12,7 +12,7 @@ import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem
 import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiActionsOverlay } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkSectionUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { valueAsString } from "@/wab/commons/values";

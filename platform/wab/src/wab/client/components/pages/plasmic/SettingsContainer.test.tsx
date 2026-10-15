@@ -18,11 +18,11 @@ function setup(overrides: Partial<React.ComponentProps<typeof SettingsContainer>
   render(<AntdConfigProvider><SettingsContainer {...props} /></AntdConfigProvider>);
   return props;
 }
-beforeEach(() => { setLanguagePreference("en"); setAppearancePreference("dark"); });
+beforeEach(async () => { await setLanguagePreference("en"); setAppearancePreference("dark"); });
 afterEach(cleanup);
 
-it.each(languageOptions)("renders all settings sections in $label and sets document language", ({ value }) => {
-  setLanguagePreference(value);
+it.each(languageOptions)("renders all settings sections in $label and sets document language", async ({ value }) => {
+  await setLanguagePreference(value);
   setup();
   for (const key of ["Settings", "Account", "Preferences", "Personal access tokens", "Trusted host apps"] as const) {
     expect(screen.getByRole("heading", { name: translate(value, key) })).toBeTruthy();

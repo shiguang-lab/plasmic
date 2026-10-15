@@ -1,11 +1,8 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
-import {
-  cssPropsForInvertTransform,
-  StudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { cssPropsForInvertTransform, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { maybe } from "@/wab/shared/common";

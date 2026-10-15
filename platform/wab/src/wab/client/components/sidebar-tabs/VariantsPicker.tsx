@@ -22,7 +22,7 @@ import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelW
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { useViewCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { assert, ensure, ensureInstance } from "@/wab/shared/common";

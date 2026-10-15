@@ -36,7 +36,6 @@ import {
   PkgVersion,
   Project,
   ProjectRevision,
-  User,
 } from "@/wab/server/entities/Entities";
 import "@/wab/server/extensions";
 import { logger } from "@/wab/server/observability";
@@ -232,10 +231,9 @@ export function mkRevisionBroadcastData(
   };
 }
 
-export async function listProjects(req: Request, res: Response) {
+export async function getProjectsData(req: Request, data: ProjectsRequest): Promise<ProjectsResponse> {
   const mgr = userDbMgr(req);
 
-  const data = parseQueryParams(req) as ProjectsRequest;
 
   const projects =
     data.query === "byIds"
@@ -256,12 +254,14 @@ export async function listProjects(req: Request, res: Response) {
     }),
   );
 
-  res.json(
-    ensureType<ProjectsResponse>({
+  return {
       projects: projects.map((p) => mkApiProject(p)),
       perms,
-    }),
-  );
+  };
+}
+
+export async function listProjects(req: Request, res: Response) {
+  res.json(await getProjectsData(req, parseQueryParams(req) as ProjectsRequest));
 }
 
 export async function createProject(req: Request, res: Response) {
@@ -1595,42 +1595,39 @@ export async function getProjectRev(req: Request, res: Response) {
   const branch = branchId ? await mgr.getBranchById(branchId) : undefined;
   const project = await mgr.getProjectById(projectId);
   req.promLabels.projectId = projectId;
-  const rev =
-    revisionNum !== undefined || revisionId
-      ? await mgr.getProjectRevision(
-          projectId,
-          revisionNum !== undefined ? +revisionNum : revisionId!,
-          branchId,
-        )
-      : await mgr.getLatestProjectRev(projectId, { branchId });
-  const perms = project.readableByPublic
-    ? (await mgr.getPermissionsForProject(projectId)).filter((perm) => {
-        return (
-          accessLevelRank(perm.accessLevel) >= accessLevelRank("commenter")
-        );
-      })
-    : await mgr.getPermissionsForProject(projectId);
-  const depPkgs = await loadDepPackages(
-    mgr,
-    dontMigrateProject ? JSON.parse(rev.data) : await getMigratedBundle(rev),
-    { dontMigrateBundle: dontMigrateProject },
-  );
-  const modelVersion = await getCurrentModelVersion(req.txMgr || req.noTxMgr);
-  const hostlessDataVersion = (await mgr.getHostlessVersion()).versionCount;
-  let owner: User | undefined;
+  const timings: string[] = [];
+  const timed = async <T>(name: string, task: () => Promise<T>) => {
+    const start = performance.now();
+    try { return await task(); }
+    finally { timings.push(`${name};dur=${(performance.now() - start).toFixed(1)}`); }
+  };
+  const revision = timed("revision", () => revisionNum !== undefined || revisionId
+    ? mgr.getProjectRevision(projectId, revisionNum !== undefined ? +revisionNum : ensure(revisionId, "Missing revision"), branchId)
+    : mgr.getLatestProjectRev(projectId, { branchId }));
+  const [rev, perms, depPkgs, modelVersion, hostlessVersion, owner, latestRevisionSynced, appAuthConfig] = await Promise.all([
+    revision,
+    timed("permissions", async () => {
+      const permissions = await mgr.getPermissionsForProject(projectId);
+      return project.readableByPublic ? permissions.filter((perm) => accessLevelRank(perm.accessLevel) >= accessLevelRank("commenter")) : permissions;
+    }),
+    timed("dependencies", async () => {
+      const loadedRevision = await revision;
+      return loadDepPackages(mgr, dontMigrateProject ? JSON.parse(loadedRevision.data) : await getMigratedBundle(loadedRevision), { dontMigrateBundle: dontMigrateProject });
+    }),
+    getCurrentModelVersion(req.txMgr || req.noTxMgr),
+    mgr.getHostlessVersion(),
+    project.createdById ? timed("owner", () => mgr.tryGetUserById(ensure(project.createdById, "Missing project owner"))) : Promise.resolve(undefined),
+    getLatestRevisionSynced(mgr, projectId),
+    mgr.getPublicAppAuthConfig(projectId),
+  ]);
+  const hostlessDataVersion = hostlessVersion.versionCount;
   if (!project.createdById) {
     const actorId = mgr.tryGetNormalActorId();
-    if (actorId && !project.workspaceId) {
-      await mgr.claimPublicProject(project.id, actorId);
-    }
-  } else {
-    owner = await mgr.tryGetUserById(project.createdById);
+    if (actorId && !project.workspaceId) {await mgr.claimPublicProject(project.id, actorId);}
   }
-  const latestRevisionSynced = await getLatestRevisionSynced(mgr, projectId);
-
-  const appAuthConfig = await mgr.getPublicAppAuthConfig(projectId);
   const hasAppAuth = !!appAuthConfig;
   const appAuthProvider = appAuthConfig?.provider;
+  res.append("Server-Timing", timings.join(", "));
 
   req.analytics.track("Open project", {
     projectId: project.id,

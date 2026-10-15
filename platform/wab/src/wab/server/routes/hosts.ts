@@ -1,17 +1,15 @@
 import { userDbMgr } from "@/wab/server/routes/util";
 import { TrustedHostsListResponse } from "@/wab/shared/ApiSchema";
-import { ensureType } from "@/wab/shared/common";
 import { Request, Response } from "express-serve-static-core";
 import { pick } from "lodash";
 
+export async function getTrustedHostsData(req: Request): Promise<TrustedHostsListResponse> {
+  const hosts = await userDbMgr(req).listTrustedHostsForSelf();
+  return { trustedHosts: hosts.map((host) => pick(host, "id", "hostUrl")) };
+}
+
 export async function getTrustedHostsForSelf(req: Request, res: Response) {
-  const mgr = userDbMgr(req);
-  const hosts = await mgr.listTrustedHostsForSelf();
-  res.json(
-    ensureType<TrustedHostsListResponse>({
-      trustedHosts: hosts.map((host) => pick(host, "id", "hostUrl")),
-    }),
-  );
+  res.json(await getTrustedHostsData(req));
 }
 
 export async function addTrustedHost(req: Request, res: Response) {

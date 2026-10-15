@@ -2,7 +2,7 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
 import { ViewEditor } from "@/wab/client/components/studio/view-editor";
-import { StudioLoading } from "@/wab/client/components/widgets";
+import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { waitFor } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";

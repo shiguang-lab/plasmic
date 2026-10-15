@@ -27,7 +27,7 @@ import {
   TplNode,
   isKnownDataSourceOpExpr,
 } from "@/wab/shared/model/classes";
-import { OPTIMIZED_FORM_IMPORT, formComponentName } from "@plasmicpkgs/antd5";
+import { OPTIMIZED_FORM_IMPORT, formComponentName } from "@plasmicpkgs/antd5/form-meta";
 
 import { SerializerBaseContext } from "@/wab/shared/codegen/react-p/types";
 

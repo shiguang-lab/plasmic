@@ -23,8 +23,8 @@ vi.mock("@/wab/client/components/widgets/Textbox", () => ({
   ),
 }));
 
-afterEach(() => {
-  act(() => setLanguagePreference("en"));
+afterEach(async () => {
+  await act(async () => await setLanguagePreference("en"));
 });
 
 it("updates default buttons in an independently mounted confirmation when the language changes", async () => {
@@ -36,7 +36,7 @@ it("updates default buttons in an independently mounted confirmation when the la
     });
   });
   expect(screen.getByRole("button", { name: "Confirm" })).toBeTruthy();
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByText("确认删除")).toBeTruthy();
   expect(screen.getByText("MyComponent")).toBeTruthy();
   expect(screen.getByRole("button", { name: "确认" })).toBeTruthy();
@@ -50,7 +50,7 @@ it("updates default buttons in an independently mounted confirmation when the la
 });
 
 it("localizes destructive action captions without changing the confirmation result", async () => {
-  act(() => setLanguagePreference("ja"));
+  await act(async () => await setLanguagePreference("ja"));
   let result: Promise<boolean | undefined> | undefined;
   act(() => {
     result = confirm({ message: "MyToken", confirmLabel: "Delete" });
@@ -70,7 +70,7 @@ it("updates the prompt submit caption and preserves literal input values", async
       defaultValue: literal,
     });
   });
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByRole("textbox").getAttribute("value")).toBe(literal);
   act(() => {
     fireEvent.click(screen.getByRole("button", { name: "提交" }));
@@ -92,7 +92,7 @@ it("updates metadata field placeholders without translating the component name",
     result = promptForMetadata(component);
   });
   expect(screen.getByPlaceholderText("Metadata key")).toBeTruthy();
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByPlaceholderText("元数据键")).toBeTruthy();
   expect(screen.getByPlaceholderText("元数据值")).toBeTruthy();
   expect(screen.getByText(`“${name}”的新元数据键：`)).toBeTruthy();

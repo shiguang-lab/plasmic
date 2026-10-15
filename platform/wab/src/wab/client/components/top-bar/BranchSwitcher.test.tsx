@@ -23,7 +23,7 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   showPublish: vi.fn(),
 }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
     siteInfo: { id: "project" },
     dbCtx: () => ({ branchInfo: mocks.current }),

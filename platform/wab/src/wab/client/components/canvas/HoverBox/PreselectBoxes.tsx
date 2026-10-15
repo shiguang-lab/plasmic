@@ -9,11 +9,8 @@ import {
 } from "@/wab/client/components/studio/GlobalCssVariables";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
-import {
-  StudioCtx,
-  cssPropsForInvertTransform,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx, cssPropsForInvertTransform } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";

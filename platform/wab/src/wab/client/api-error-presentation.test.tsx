@@ -52,15 +52,15 @@ const businessTypes = [
   LoaderDeprecatedVersionError,
   UnauthorizedError,
 ];
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
   vi.restoreAllMocks();
 });
 
 it.each(businessTypes)(
   "classifies %s as an expected business error after transport",
-  (ErrorType) => {
+  async (ErrorType) => {
     const original = new ErrorType("Untranslated provider diagnostic");
     const error = deserializeApiError(
       JSON.parse(JSON.stringify({ ...original, message: original.message })),
@@ -69,7 +69,7 @@ it.each(businessTypes)(
     expect(getApiErrorPresentation(error).title).not.toBe("Unexpected error");
     expect(getApiErrorPresentation(error).type).toBe("warning");
     for (const { value } of languageOptions.filter((x) => x.value !== "en")) {
-      act(() => setLanguagePreference(value));
+      await act(async () => await setLanguagePreference(value));
       expect(getErrorMessage(error)).not.toContain(
         "Untranslated provider diagnostic",
       );
@@ -78,7 +78,7 @@ it.each(businessTypes)(
   },
 );
 
-it("renders the organization restriction as a localized warning, including locale changes while open", () => {
+it("renders the organization restriction as a localized warning, including locale changes while open", async () => {
   const open = vi
     .spyOn(notification, "open")
     .mockImplementation(() => undefined);
@@ -95,7 +95,7 @@ it("renders the organization restriction as a localized warning, including local
     </>,
   );
   for (const { value } of languageOptions) {
-    act(() => setLanguagePreference(value));
+    await act(async () => await setLanguagePreference(value));
     expect(screen.getByTestId("title").textContent).toBe(
       translate(value, "Action not allowed"),
     );
@@ -127,15 +127,15 @@ it("handles duplicate fields, service outages and genuine server failures distin
   expect(capture).toHaveBeenCalledOnce();
 });
 
-it("subscribes for serialized and unknown HTTP business errors without exposing raw diagnostics", () => {
+it("subscribes for serialized and unknown HTTP business errors without exposing raw diagnostics", async () => {
   const error = {
     name: "HttpError",
     statusCode: 403,
     message: "Opaque provider diagnostic",
   };
   render(<ErrorDescription error={error} />);
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByText("你没有执行此操作的权限。")).toBeTruthy();
-  act(() => setLanguagePreference("ja"));
+  await act(async () => await setLanguagePreference("ja"));
   expect(screen.queryByText("Opaque provider diagnostic")).toBeNull();
 });

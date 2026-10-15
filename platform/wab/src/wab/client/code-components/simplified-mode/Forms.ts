@@ -62,7 +62,7 @@ import {
   deriveFormFieldConfigs,
   formItemComponentName,
   inputTypeToComponentName as inputTypeToAntdComponentName,
-} from "@plasmicpkgs/antd5";
+} from "@plasmicpkgs/antd5/form-meta";
 
 type FormItemProps = {
   [key in keyof SimplifiedFormItemsProp]: Expr | undefined;

@@ -1,5 +1,5 @@
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,

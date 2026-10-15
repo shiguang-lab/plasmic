@@ -27,11 +27,8 @@ import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 
-import {
-  StudioCtx,
-  providesStudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { providesStudioCtx, useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ensureBaseVariantSetting } from "@/wab/shared/Variants";
@@ -65,7 +62,7 @@ import {
   TplComponent,
 } from "@/wab/shared/model/classes";
 import { DataSourceSchema, TableSchema } from "@plasmicapp/data-sources";
-import { FormType, formTypeDescription } from "@plasmicpkgs/antd5";
+import { FormType, formTypeDescription } from "@plasmicpkgs/antd5/form-meta";
 import { notification } from "antd";
 import { isString, size } from "lodash";
 import { ok } from "neverthrow";

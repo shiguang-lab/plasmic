@@ -2,7 +2,7 @@ import { CopilotPromptDialog } from "@/wab/client/components/copilot/CopilotProm
 import { dataPickerShouldHideKey } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerUtil";
 import { useI18n } from "@/wab/client/i18n";
 import PlasmicCopilotCodePrompt from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotCodePrompt";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { CopilotResponseData } from "@/wab/shared/ApiSchema";
 import {
   ensure,

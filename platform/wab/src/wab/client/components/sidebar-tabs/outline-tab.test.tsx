@@ -19,7 +19,7 @@ const fixture = vi.hoisted(() => ({
   ctx: undefined as any,
   collapseAll: vi.fn(),
 }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.ctx,
 }));
 vi.mock("@/wab/client/components/sidebar-tabs/OutlineCtx", () => ({

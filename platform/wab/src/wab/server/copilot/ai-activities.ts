@@ -58,7 +58,9 @@ export async function chooseIntent(id: string) {
     const result = await resolveLocalAiIntent(
       {
         prompt: run.task.prompt,
-        hasCurrentPage: !!run.task.binding.componentUuid,
+        hasCurrentPage:
+          !!run.task.binding.componentUuid ||
+          run.task.binding.canvasName !== undefined,
         model: run.task.model,
       },
       Context.current().cancellationSignal,
@@ -182,14 +184,15 @@ export async function modelStep(
       .map((document) => document.content)
       .join(
         "\n",
-      )}\nEditor context for the pinned page:\n${JSON.stringify(editorContext)}\nEarlier recorded steps (summary only):\n${JSON.stringify(summary)}`,
+      )}\nEditor context for the bound page/canvas (selection is context):\n${JSON.stringify(editorContext)}\nEarlier recorded steps (summary only):\n${JSON.stringify(summary)}`,
     history,
   };
   const recent = await getConnection().query(
-    `SELECT task->>'prompt' AS request,task->'messages' AS response,status FROM ai_run WHERE "projectId"=$1 AND id<>$2 AND task->'binding'->>'componentUuid'=$3 AND task->'binding'->>'branchId' IS NOT DISTINCT FROM $4 ORDER BY "createdAt" DESC LIMIT 3`,
+    `SELECT task->>'prompt' AS request,task->'messages' AS response,status FROM ai_run WHERE "projectId"=$1 AND id<>$2 AND task->'binding'->>'canvasName' IS NOT DISTINCT FROM $3 AND ($3::text IS NOT NULL OR task->'binding'->>'componentUuid' IS NOT DISTINCT FROM $4) AND task->'binding'->>'branchId' IS NOT DISTINCT FROM $5 ORDER BY "createdAt" DESC LIMIT 3`,
     [
       run.projectId,
       id,
+      request.binding.canvasName ?? null,
       request.binding.componentUuid,
       request.binding.branchId,
     ],
@@ -201,7 +204,7 @@ export async function modelStep(
   }));
   request = {
     ...request,
-    resources: `${request.resources}\nRecent conversation in this branch/page (context only):\n${JSON.stringify(conversation)}`,
+    resources: `${request.resources}\nRecent conversation in this branch and page/canvas (context only):\n${JSON.stringify(conversation)}`,
   };
   const attachments: LocalAiAttachment[] = [];
   for (const file of run.task.files) {

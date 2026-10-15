@@ -23,7 +23,7 @@ import {
   canRunInteraction,
   runInteraction,
 } from "@/wab/client/state-management/preview-steps";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ensure, isTruthy } from "@/wab/shared/common";
 import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";

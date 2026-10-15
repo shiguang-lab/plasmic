@@ -13,7 +13,7 @@ import {
   canRunInteraction,
   runInteraction,
 } from "@/wab/client/state-management/preview-steps";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
 import { Interaction } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";

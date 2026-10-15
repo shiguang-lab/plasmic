@@ -10,7 +10,7 @@ import { createMemoryHistory } from "history";
 import { resolve } from "path";
 import * as React from "react";
 
-beforeEach(() => setLanguagePreference("en"));
+beforeEach(async () => await setLanguagePreference("en"));
 afterEach(cleanup);
 
 function setup(path: string, retry?: () => void) {
@@ -27,18 +27,18 @@ function setup(path: string, retry?: () => void) {
   );
 }
 
-it("keeps dashboard navigation and exposes retry when startup fails", () => {
+it("keeps dashboard navigation and exposes retry when startup fails", async () => {
   const retry = vi.fn();
   setup("/projects", retry);
-  expect(screen.getByRole("radio", { name: "Projects" })).toBeTruthy();
+  expect(await screen.findByRole("radio", { name: "Projects" }, { timeout: 10000 })).toBeTruthy();
   expect(screen.getByRole("alert")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(retry).toHaveBeenCalledOnce();
 });
 
-it("uses project skeletons inside main while the dashboard starts", () => {
+it("uses project skeletons inside main while the dashboard starts", async () => {
   const { container } = setup("/projects");
-  const loading = screen.getByRole("status", { name: "Loading projects…" });
+  const loading = await screen.findByRole("status", { name: "Loading projects…" }, { timeout: 10000 });
   expect(screen.getByRole("main").contains(loading)).toBe(true);
   expect(loading.querySelector(".ant-skeleton")).toBeTruthy();
   expect(container.querySelector(".ant-spin, .loader-container")).toBeNull();

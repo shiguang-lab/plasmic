@@ -16,7 +16,7 @@ const fixture = vi.hoisted(() => ({
   resize: undefined as any,
 }));
 
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.ctx,
 }));
 vi.mock("@/wab/client/i18n", () => ({

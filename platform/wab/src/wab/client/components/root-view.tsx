@@ -1,4 +1,4 @@
-import { Api } from "@/wab/client/api";
+import { Api, setUser } from "@/wab/client/api";
 import {
   AppCtx,
   NonAuthCtx,
@@ -12,19 +12,12 @@ import {
   Router,
   getLoginRouteWithContinuation,
   isProjectPath,
+  parseProjectLocation,
 } from "@/wab/client/cli-routes";
 import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
 import PromoBanner from "@/wab/client/components/PromoBanner";
-import { DashboardLayout } from "@/wab/client/components/dashboard/DashboardLayout";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { shouldUpsellRedirect } from "@/wab/client/components/dashboard/useUpsellQueryParam";
-import {
-  NormalLayout,
-  NormalNonAuthLayout,
-} from "@/wab/client/components/normal-layout";
-import { AppAuthPage } from "@/wab/client/components/pages/AppAuthPage";
-import { GithubCallback } from "@/wab/client/components/pages/GithubCallback";
-import { ShiguangSignIn } from "@/wab/client/components/pages/ShiguangSignIn";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { AppView } from "@/wab/client/components/top-view";
 import * as widgets from "@/wab/client/components/widgets";
@@ -54,6 +47,13 @@ import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { getMaximumTierFromTeams } from "@/wab/shared/pricing/pricing-utils";
 import { APP_ROUTES, SEARCH_PROMPT } from "@/wab/shared/route/app-routes";
 import * as React from "react";
+
+const DashboardLayout = React.lazy(() => import("./dashboard/DashboardLayout").then((m) => ({ default: m.DashboardLayout })));
+const NormalLayout = React.lazy(() => import("./normal-layout").then((m) => ({ default: m.NormalLayout })));
+const NormalNonAuthLayout = React.lazy(() => import("./normal-layout").then((m) => ({ default: m.NormalNonAuthLayout })));
+const AppAuthPage = React.lazy(() => import("./pages/AppAuthPage").then((m) => ({ default: m.AppAuthPage })));
+const GithubCallback = React.lazy(() => import("./pages/GithubCallback").then((m) => ({ default: m.GithubCallback })));
+const ShiguangSignIn = React.lazy(() => import("./pages/ShiguangSignIn").then((m) => ({ default: m.ShiguangSignIn })));
 
 type LazyPage = React.LazyExoticComponent<React.ComponentType<any>>;
 
@@ -517,10 +517,41 @@ export function Root() {
   const hostFrameCtx = useHostFrameCtxIfHostFrame();
 
   const loader = async () => {
+    performance.mark("studio-root-start");
     const api: PromisifyMethods<Api> =
       hostFrameCtx?.topFrameApi || promisifyMethods(new Api());
     const topFrameApi = hostFrameCtx?.topFrameApi || null;
     const bundler = new FastBundler();
+
+    const projectLocation = parseProjectLocation(history.location);
+    if (!hostFrameCtx && projectLocation) {
+      const desktop = (window as Window & { desktopEnvironment?: {
+        consumeStartupData?: (projectId: string) => Promise<import("@/wab/shared/ApiSchema").EditorBootstrapResponse | null>;
+      } }).desktopEnvironment;
+      const bootstrap = await desktop?.consumeStartupData?.(projectLocation.projectId)
+        ?? await api.getEditorBootstrap(projectLocation.projectId, projectLocation.branchName);
+      performance.mark("studio-bootstrap-ready");
+      if (bootstrap.selfInfo) {setUser(bootstrap.selfInfo.user);}
+      const branchId = bootstrap.branches.find((branch) => branch.name === bootstrap.branchName)?.id;
+      const initialProjectModel = {
+        projectId: projectLocation.projectId, branchId,
+        data: api.getSiteInfo(projectLocation.projectId, { branchId }),
+      };
+      void initialProjectModel.data.catch(() => undefined);
+      await Promise.all([
+        withHostFrameCache("bundle", true, api, async () => bootstrap.latestBundleVersion),
+        withHostFrameCache("selfInfo", true, api, async () => bootstrap.selfInfo),
+        withHostFrameCache("appConfig", true, api, async () => bootstrap.appConfig),
+      ]);
+      const value: Awaited<ReturnType<typeof loadAppCtxData>> = [bootstrap.selfInfo ?? undefined, bootstrap.appConfig, bootstrap.appCtx];
+      return {
+        appData: Promise.resolve({ status: "fulfilled" as const, value }),
+        nonAuthCtx: new NonAuthCtx({
+          api, topFrameApi, history, router: new Router(history), change: forceUpdate,
+          bundler, lastBundleVersion: bootstrap.latestBundleVersion, initialProjectInfo: bootstrap, initialProjectModel,
+        }),
+      };
+    }
 
     const appData = loadAppCtxData({ api, topFrameApi }, true).then(
       (value) => ({ status: "fulfilled" as const, value }),
@@ -629,7 +660,7 @@ function InitializedRoot({
             )}
             contents={(appCtx: /*TWZ*/ AppCtx) => {
               return providesAppCtx(appCtx)(
-                <NonAuthCtxContext.Provider value={nonAuthCtx}>
+                <React.Suspense fallback={<ApplicationPageLoading />}><NonAuthCtxContext.Provider value={nonAuthCtx}>
                   <div className={"root"} onPointerDown={noopFn}>
                     <Switch
                       cases={[
@@ -703,7 +734,7 @@ function InitializedRoot({
                       ]}
                     />
                   </div>
-                </NonAuthCtxContext.Provider>,
+                </NonAuthCtxContext.Provider></React.Suspense>,
               );
             }}
           />

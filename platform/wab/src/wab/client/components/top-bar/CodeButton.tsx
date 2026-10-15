@@ -1,11 +1,11 @@
-import { EditorIconAction } from "@/wab/client/components/top-bar/TopBarChrome";
+import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useCodegenType } from "@/wab/client/hooks/useCodegenType";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CirclesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__CircleSvg";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { toClassName } from "@/wab/shared/codegen/util";
 import { spawn } from "@/wab/shared/common";
 import { isPlasmicComponent } from "@/wab/shared/core/components";

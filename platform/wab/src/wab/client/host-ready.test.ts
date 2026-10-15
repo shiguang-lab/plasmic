@@ -1,5 +1,8 @@
 import { resolveUiLocale } from "@/wab/client/i18n/locale-resolution.cjs";
-import { messages } from "@/wab/client/i18n/locales";
+import en from "@/wab/client/i18n/locales/en.json";
+import ja from "@/wab/client/i18n/locales/ja.json";
+import zhCN from "@/wab/client/i18n/locales/zh-CN.json";
+const messages = { en, ja, "zh-CN": zhCN };
 import { ensure } from "@/wab/shared/common";
 import { readFileSync } from "fs";
 import { resolve } from "path";
@@ -61,6 +64,7 @@ it("localizes standalone onboarding and applies the stored appearance", () => {
     "shiguang.ui.language": "zh-CN",
   });
   expect(ready.hidden).toBe(false);
+  expect(ready.querySelector("img")?.getAttribute("src")).toContain("/static/host-configure-project.");
   expect(ready.dataset.appearance).toBe("dark");
   expect(ready.querySelector("h1")?.textContent).toBe(
     messages["zh-CN"]["hostReady.title"],
@@ -107,6 +111,7 @@ it.each([
   (hash, embedded) => {
     const ready = render(hash as string, embedded as boolean);
     expect(ready.hidden).toBe(true);
+    expect(ready.querySelector("img")?.hasAttribute("src")).toBe(false);
     expect(ready.dataset.appearance).toBeUndefined();
   },
 );

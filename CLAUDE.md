@@ -57,7 +57,7 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 ## Prototype editor node names
 
 - Use English PascalCase for editable node names, independently of the business page language.
-- Prefer the actual component display name for unique page-level structural components: a standalone page's single shell is `AppShell`. Add stable business scope when repeated components need distinction, such as `AllGroupsTable` and `MyGroupsTable`; business controls retain meaningful action/field names such as `CreateGroup` and `StatusFilter`.
+- Name nodes for their actual role using the shortest clear name in the owning page/component. A component display name is appropriate when it already explains the role; business actions, fields and content may need semantic names. Add scope or type words only when they improve understanding or distinguish instances. Apply this standard equally to roots and descendants; avoid redundant library/product prefixes, repeated context and arbitrary suffixes.
 - Rename instances through Studio's rename operation so state and expression references stay valid. Preserve component identities, node UUIDs, props, slots, routes and interactions. Check the editor label and persisted readback after save/reopen.
 
 ## Admin prototype templates

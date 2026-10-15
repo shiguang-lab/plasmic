@@ -4,19 +4,28 @@ import React from "react";
 
 export const LEFT_PANEL_TRANSITION_MS = 180;
 const useStyles = createStyles(() => ({
-  shell: {
+  viewport: {
     position: "absolute",
     top: 0,
     bottom: 0,
+    // Clip at the panel's left edge; leave room for its shadow and resize handle.
+    clipPath: "inset(-100% -100% -100% 0)",
+    pointerEvents: "none",
+  },
+  shell: {
+    position: "absolute",
+    inset: 0,
     display: "flex",
     flexDirection: "column",
     minHeight: 0,
-    transform: "translateX(calc(-100% - 72px))",
+    transform: "translateX(-100%)",
+    opacity: 0,
     visibility: "hidden",
     pointerEvents: "none",
-    transition: `transform ${LEFT_PANEL_TRANSITION_MS}ms ease, visibility 0s linear ${LEFT_PANEL_TRANSITION_MS}ms`,
+    transition: `transform ${LEFT_PANEL_TRANSITION_MS}ms ease, opacity ${LEFT_PANEL_TRANSITION_MS}ms ease, visibility 0s linear ${LEFT_PANEL_TRANSITION_MS}ms`,
     "&[data-open='true']": {
       transform: "translateX(0)",
+      opacity: 1,
       visibility: "visible",
       pointerEvents: "auto",
       transitionDelay: "0s",
@@ -58,15 +67,16 @@ export const LeftPanelShell = React.forwardRef<
     return () => clearTimeout(timeout);
   }, [open]);
   return (
-    <div
-      ref={mergedRef}
-      className={`canvas-editor__left-pane ${styles.shell}`}
-      style={{ width, left }}
-      data-open={open}
-      data-test-id="left-panel-shell"
-      aria-hidden={!open}
-    >
-      {open ? children : present ? lastContent.current : null}
+    <div className={styles.viewport} style={{ width, left }}>
+      <div
+        ref={mergedRef}
+        className={`canvas-editor__left-pane ${styles.shell}`}
+        data-open={open}
+        data-test-id="left-panel-shell"
+        aria-hidden={!open}
+      >
+        {open ? children : present ? lastContent.current : null}
+      </div>
     </div>
   );
 });

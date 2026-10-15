@@ -1,20 +1,9 @@
-import { InputType } from "./form/Form";
+
 import { registerForm } from "./form/registerForm";
 import { registerFormGroup } from "./form/registerFormGroup";
 import { registerFormItem } from "./form/registerFormItem";
 import { registerFormList } from "./form/registerFormList";
-import {
-  checkboxComponentName,
-  inputComponentName,
-  inputNumberComponentName,
-  optionComponentName,
-  optionGroupComponentName,
-  passwordComponentName,
-  radioComponentName,
-  radioGroupComponentName,
-  selectComponentName,
-  textAreaComponentName,
-} from "./names";
+
 import { registerAvatar, registerAvatarGroup } from "./registerAvatar";
 import {
   registerBreadcrumb,
@@ -29,7 +18,6 @@ import {
   registerTokens,
 } from "./registerConfigProvider";
 import {
-  datePickerComponentName,
   registerDatePicker,
 } from "./registerDatePicker";
 import { registerDateRangePicker } from "./registerDateRangePicker";
@@ -103,26 +91,6 @@ export function registerAll(loader?: Registerable) {
   registerBreadcrumbItem(loader);
 }
 
-export { FormType, InputType, OPTIMIZED_FORM_IMPORT } from "./form/Form";
+export * from "./form-meta";
 export type { SimplifiedFormItemsProp } from "./form/Form";
-export { formTypeDescription, registerForm } from "./form/registerForm";
-export { deriveFormFieldConfigs } from "./form/SchemaForm";
-export * from "./names";
-
-export const componentNameToInputType = {
-  [inputComponentName]: InputType.Text,
-  [textAreaComponentName]: InputType.TextArea,
-  [passwordComponentName]: InputType.Password,
-  [inputNumberComponentName]: InputType.Number,
-  [selectComponentName]: InputType.Select,
-  [optionComponentName]: InputType.Option,
-  [optionGroupComponentName]: InputType.OptionGroup,
-  [radioComponentName]: InputType.Radio,
-  [radioGroupComponentName]: InputType.RadioGroup,
-  [datePickerComponentName]: InputType.DatePicker,
-  [checkboxComponentName]: InputType.Checkbox,
-};
-
-export const inputTypeToComponentName = Object.fromEntries(
-  Object.entries(componentNameToInputType).map((kv) => kv.reverse())
-) as Record<InputType, string>;
+export { registerForm } from "./form/registerForm";

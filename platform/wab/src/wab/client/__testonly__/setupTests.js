@@ -68,3 +68,9 @@ global.BroadcastChannel = class BroadcastChannel extends NodeBroadcastChannel {
 let objectURLCounter = 0;
 global.URL.createObjectURL = () => `blob:${++objectURLCounter}`;
 global.URL.revokeObjectURL = () => {};
+
+beforeAll(async () => {
+  if (typeof window === "undefined") {return;}
+  const { initializeUiLocale } = await vi.importActual("@/wab/client/i18n");
+  await initializeUiLocale();
+});

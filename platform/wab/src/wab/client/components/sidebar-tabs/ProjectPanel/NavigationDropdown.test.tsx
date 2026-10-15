@@ -18,7 +18,7 @@ import {
 import React from "react";
 
 const fixture = vi.hoisted(() => ({ ctx: undefined as any }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.ctx,
 }));
 vi.mock(

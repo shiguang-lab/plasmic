@@ -7,7 +7,7 @@ import {
 import { ApiCommentThreadHistory } from "@/wab/shared/ApiSchema";
 
 import { Avatar } from "@/wab/client/components/studio/Avatar";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { ensure, ensureString } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";

@@ -17,11 +17,8 @@ import {
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
-import {
-  StudioAppUser,
-  StudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioAppUser, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ApiBranch, ArenaRef } from "@/wab/shared/ApiSchema";
 import {

@@ -8,7 +8,7 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { zIndex } from "@/wab/client/z-index";
 import { ApiAppRole } from "@/wab/shared/ApiSchema";
 import { findAllDataSourceOpExprForComponent } from "@/wab/shared/cached-selectors";

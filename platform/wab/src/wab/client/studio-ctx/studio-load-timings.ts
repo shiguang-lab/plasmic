@@ -26,7 +26,8 @@ export class StudioLoadTimings {
       ) {
         return;
       }
-      this.entries.set(key, {
+      performance.mark(`studio:${phase}${frameUuid ? `:${frameUuid}` : ""}`);
+    this.entries.set(key, {
         phase,
         frameUuid,
         startMs: start - this.startedAt,
@@ -43,6 +44,7 @@ export class StudioLoadTimings {
     ) {
       return;
     }
+    performance.mark(`studio:${phase}${frameUuid ? `:${frameUuid}` : ""}`);
     this.entries.set(key, {
       phase,
       frameUuid,

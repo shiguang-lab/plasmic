@@ -1,3 +1,4 @@
+import { getEditorBootstrap } from "@/wab/server/routes/editor-bootstrap";
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
 import { localAiStatus } from "@/wab/server/routes/local-ai";
@@ -531,7 +532,7 @@ function addMiddlewares(
         if (!res.headersSent) {
           res.setHeader(
             "Server-Timing",
-            callsToServerTiming(timingStore.calls),
+            [res.getHeader("Server-Timing"), callsToServerTiming(timingStore.calls)].filter(Boolean).join(", "),
           );
         }
         if (timingStore.calls && timingStore.calls.length > 0) {
@@ -1279,6 +1280,7 @@ export function addMainAppServerRoutes(
   app.post("/api/v1/projects/:projectId/ai/chat/runs/:runId/undo", withNext(aiChatUndo));
   app.get("/api/v1/projects/:projectId/ai/chat/attachments/:attachmentId", withNext(aiChatAttachment));
   app.get("/api/v1/app-ctx", withNext(getAppCtx));
+  app.get("/api/v1/editor-bootstrap/:projectId", withNext(getEditorBootstrap));
 
   /**
    * Pkg routes

@@ -9,7 +9,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftFontsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftFontsPanel";
 import AlertIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { arrayRemove } from "@/wab/shared/collections";

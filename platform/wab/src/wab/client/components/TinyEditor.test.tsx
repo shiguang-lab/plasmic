@@ -25,7 +25,7 @@ vi.mock("@tinymce/tinymce-react", () => ({
 }));
 afterEach(cleanup);
 
-it("uses shared language packs for rich text UI while preserving business content", () => {
+it("uses shared language packs for rich text UI while preserving business content", async () => {
   const onChange = vi.fn();
   render(
     <AntdConfigProvider productUI>
@@ -33,7 +33,7 @@ it("uses shared language packs for rich text UI while preserving business conten
     </AntdConfigProvider>,
   );
   for (const { value } of languageOptions) {
-    act(() => setLanguagePreference(value));
+    await act(async () => await setLanguagePreference(value));
     expect(editorProps.current?.init?.language).toBe(value);
     expect(editorProps.current?.value).toBe("<p>Business 中文</p>");
     expect(translate(value, "Bold")).toBeTruthy();

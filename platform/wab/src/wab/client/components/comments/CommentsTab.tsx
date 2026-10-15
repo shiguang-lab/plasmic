@@ -2,7 +2,7 @@ import RootComment from "@/wab/client/components/comments/RootComment";
 import { CommentFilters } from "@/wab/client/components/comments/utils";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultCommentsTabProps } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentsTab";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   BellOutlined,
   CheckOutlined,

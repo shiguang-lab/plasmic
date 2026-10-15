@@ -35,7 +35,7 @@ vi.mock(
   "@/wab/client/components/sidebar-tabs/ComponentProps/TemplatedTextEditor",
   () => ({ TemplatedTextEditor: () => null }),
 );
-vi.mock("@/wab/client/studio-ctx/StudioCtx", async () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", async () => ({
   useStudioCtx: () => ({
     site: { dataTokens: [] },
     siteInfo: { id: "test" },
@@ -65,12 +65,12 @@ vi.mock("@/wab/client/components/style-controls/StyleSelect", () => {
   return { default: Object.assign(Select, { Option, OptionGroup }) };
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 
-it("changes empty hints in all five languages without replacing real default values", () => {
+it("changes empty hints in all five languages without replacing real default values", async () => {
   const onChange = vi.fn();
   render(
     <>
@@ -84,7 +84,7 @@ it("changes empty hints in all five languages without replacing real default val
     </>,
   );
   for (const { value: locale } of languageOptions) {
-    act(() => setLanguagePreference(locale));
+    await act(async () => await setLanguagePreference(locale));
     expect(
       screen.getAllByPlaceholderText(translate(locale, "unset")),
     ).toHaveLength(2);
@@ -93,7 +93,7 @@ it("changes empty hints in all five languages without replacing real default val
   expect(onChange).not.toHaveBeenCalled();
 });
 
-it("keeps grouped choices in English across all UI languages and preserves values and unset action", () => {
+it("keeps grouped choices in English across all UI languages and preserves values and unset action", async () => {
   const onChange = vi.fn(),
     onDelete = vi.fn();
   const options = [
@@ -114,7 +114,7 @@ it("keeps grouped choices in English across all UI languages and preserves value
     />,
   );
   for (const { value: locale } of languageOptions) {
-    act(() => setLanguagePreference(locale));
+    await act(async () => await setLanguagePreference(locale));
     expect(screen.getByRole("option", { name: "Small" })).toHaveProperty(
       "value",
       "'small'",
@@ -146,13 +146,13 @@ it("keeps searchable choices in English while the clear caption follows the UI l
   );
   fireEvent.mouseDown(screen.getByRole("combobox"));
   for (const { value: locale } of languageOptions) {
-    act(() => setLanguagePreference(locale));
+    await act(async () => await setLanguagePreference(locale));
     expect(await screen.findByText("Is required")).toBeTruthy();
     expect(await screen.findByText(translate(locale, "(Unset)"))).toBeTruthy();
   }
 });
 
-it("keeps property names and registration help in English across all UI languages", () => {
+it("keeps property names and registration help in English across all UI languages", async () => {
   render(
     <>
       {["Direction", "Username", "Language", "Menu items"].map((label) => (
@@ -169,7 +169,7 @@ it("keeps property names and registration help in English across all UI language
     </>,
   );
   for (const { value: locale } of languageOptions) {
-    act(() => setLanguagePreference(locale));
+    await act(async () => await setLanguagePreference(locale));
     for (const label of ["Direction", "Username", "Language", "Menu items"]) {
       expect(screen.getByText(label)).toBeTruthy();
     }

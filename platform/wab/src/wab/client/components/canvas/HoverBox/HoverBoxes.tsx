@@ -43,11 +43,8 @@ import {
 } from "@/wab/client/FreestyleManipulator";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
-import {
-  cssPropsForInvertTransform,
-  StudioCtx,
-  usePlasmicCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { cssPropsForInvertTransform, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import {

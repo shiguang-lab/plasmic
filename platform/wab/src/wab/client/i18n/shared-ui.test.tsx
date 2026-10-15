@@ -16,17 +16,17 @@ beforeEach(() => {
   );
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 
-it("updates shared search defaults without rewriting caller placeholders or input", () => {
+it("updates shared search defaults without rewriting caller placeholders or input", async () => {
   const view = render(<Searchbox value="My project" onChange={vi.fn()} />);
   const input = screen.getByRole("textbox") as HTMLInputElement;
   for (const { value } of languageOptions) {
-    act(() => setLanguagePreference(value));
+    await act(async () => await setLanguagePreference(value));
     expect(input.placeholder).toBe(translate(value, "Search..."));
     expect(input.value).toBe("My project");
   }
@@ -37,15 +37,15 @@ it("updates shared search defaults without rewriting caller placeholders or inpu
       onChange={vi.fn()}
     />,
   );
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(input.placeholder).toBe("Business field");
 });
 
-it("translates Markdown tooltips on language changes and preserves documentation links", () => {
+it("translates Markdown tooltips on language changes and preserves documentation links", async () => {
   const view = render(<AuthProviderTooltip />);
   const english = view.container.textContent;
   for (const value of ["zh-CN", "zh-TW", "ja", "ko"] as const) {
-    act(() => setLanguagePreference(value));
+    await act(async () => await setLanguagePreference(value));
     expect(view.container.textContent).not.toBe(english);
     expect(view.container.querySelector("a")?.getAttribute("href")).toBe(
       "https://docs.plasmic.app/learn/auth",

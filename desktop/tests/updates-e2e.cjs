@@ -10,7 +10,7 @@ const { createWriteStream } = require("node:fs");
 const { requestRpc } = require("../src/local-rpc.cjs");
 const { chromium } = require(require.resolve("playwright", { paths: [path.resolve(__dirname, "../../platform/wab")] }));
 const [source, expectedVersion] = process.argv.slice(2);
-if (process.platform !== "darwin" || !source || !expectedVersion) throw new Error("Usage: node tests/updates-e2e.cjs /absolute/old/Plasmic.app new-version");
+if (process.platform !== "darwin" || !source || !expectedVersion) {throw new Error("Usage: node tests/updates-e2e.cjs /absolute/old/Plasmic.app new-version");}
 const reportDir = process.env.PLASMIC_REPORT_DIR || path.resolve("desktop-report/updates");
 const target = path.join(reportDir, "installed/Plasmic.app");
 const profile = path.join(reportDir, "profile");
@@ -19,7 +19,7 @@ let browser, child;
 async function until(predicate, timeout = 120000) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
-    try { const value = await predicate(); if (value) return value; } catch {}
+    try { const value = await predicate(); if (value) {return value;} } catch {}
     await delay(500);
   }
   throw new Error("Update acceptance timed out");
@@ -30,7 +30,7 @@ async function until(predicate, timeout = 120000) {
   execFileSync("/usr/bin/ditto", [path.resolve(source), target]);
   const port = await new Promise((resolve) => {
     const server = net.createServer();
-    server.listen(0, "127.0.0.1", () => { const port = server.address().port; server.close(() => resolve(port)); });
+    server.listen(0, "127.0.0.1", () => { const assignedPort = server.address().port; server.close(() => resolve(assignedPort)); });
   });
   const log = createWriteStream(path.join(reportDir, "runtime.log"));
   child = spawn(path.join(target, "Contents/MacOS/Plasmic"), [`--remote-debugging-port=${port}`], { env: { ...process.env, PLASMIC_DESKTOP_PROFILE: profile }, stdio: ["ignore", "pipe", "pipe"] });
@@ -38,7 +38,7 @@ async function until(predicate, timeout = 120000) {
   child.stderr.pipe(log);
   await until(async () => (await fetch(`http://127.0.0.1:${port}/json/version`)).ok);
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
-  const page = await until(() => browser.contexts()[0].pages().find((page) => page.url().startsWith("https://studio.plasmic.shiguanglab.com")));
+  const page = await until(() => browser.contexts()[0].pages().find((candidate) => candidate.url().startsWith("https://studio.plasmic.shiguanglab.com")));
   await page.waitForFunction(() => !!window.desktopUpdates, undefined, { timeout: 120000 });
   const before = await page.evaluate(() => window.desktopUpdates.command("status"));
   report.before = before.currentVersion;
@@ -59,18 +59,20 @@ async function until(predicate, timeout = 120000) {
   assert.equal(downloaded.phase, "downloaded", downloaded.error);
   report.downloadVerified = true;
   report.automaticDownload = true;
-  console.log("NAS download completed and verified; installing");
+  console.log("NAS download completed and verified; opening update confirmation");
   const prompt = page;
   const install = prompt.getByRole("button", { name: "Restart and Install", exact: true });
+  assert.equal(await install.isVisible(), false, "Background completion must not open the confirmation");
+  await prompt.locator("#plasmic-desktop-update .update-action").click();
   await install.waitFor({ state: "visible" });
-  assert(await install.isEnabled());
-  report.automaticPrompt = true;
+  assert(await install.isEnabled(), "The downloaded update must be ready to install");
+  report.manualPrompt = true;
   await prompt.screenshot({ path: path.join(reportDir, "downloaded.png") });
   await install.click();
   const after = await until(async () => {
     if (browser.isConnected() && !page.isClosed()) {
       const status = await page.evaluate(() => window.desktopUpdates.command("status"));
-      if (status.phase === "error") return { error: status.error };
+      if (status.phase === "error") {return { error: status.error };}
     }
     const state = await requestRpc(profile, "get_app_state");
     return state.version === expectedVersion && state.windowOpen && state;
@@ -88,8 +90,8 @@ async function until(predicate, timeout = 120000) {
   report.status = "PASS";
   console.log(JSON.stringify(report));
 })().catch((error) => { report.status = "FAIL"; report.error = error.message; console.error(error); process.exitCode = 1; }).finally(async () => {
-  if (browser) await browser.close().catch(() => {});
-  if (child && child.exitCode === null) child.kill();
+  if (browser) {await browser.close().catch(() => {});}
+  if (child && child.exitCode === null) {child.kill();}
   const executable = path.join(target, "Contents/MacOS/Plasmic");
   for (const line of execFileSync("ps", ["-axo", "pid=,comm="], { encoding: "utf8" }).split("\n")) {
     const match = line.trim().match(/^(\d+)\s+(.+)$/);

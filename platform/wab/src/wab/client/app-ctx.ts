@@ -9,6 +9,7 @@ import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import {
+  EditorBootstrapResponse,
   ApiPermission,
   ApiTeam,
   ApiUser,
@@ -46,6 +47,8 @@ export class NonAuthCtx {
   router: Router;
   change: (f: () => void) => void;
   bundler: FastBundler;
+  initialProjectInfo?: EditorBootstrapResponse;
+  initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
   readonly lastBundleVersion: string;
 
   constructor(args: NonAuthCtx) {
@@ -61,6 +64,8 @@ export class NonAuthCtx {
         "change",
         "bundler",
         "lastBundleVersion",
+        "initialProjectInfo",
+        "initialProjectModel",
       ),
     );
   }
@@ -133,6 +138,8 @@ interface AppCtxArgs {
   reloadAppCtx: () => Promise<void>;
   ops: AppOps | null;
   appConfig: typeof DEVFLAGS;
+  initialProjectInfo?: EditorBootstrapResponse;
+  initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
   readonly lastBundleVersion: string;
 }
 
@@ -157,6 +164,8 @@ export class AppCtx {
   /** App config overrides only. */
   appConfigOverrides: Partial<typeof DEVFLAGS>;
 
+  initialProjectInfo?: EditorBootstrapResponse;
+  initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
   readonly lastBundleVersion: string;
 
   private _personalApiTokens = observable.box<PersonalApiToken[] | null>(null);
@@ -526,7 +535,11 @@ export async function loadAppCtx(
     reloadAppCtx,
     ops: null,
     lastBundleVersion: nonAuthCtx.lastBundleVersion,
+    initialProjectInfo: nonAuthCtx.initialProjectInfo,
+    initialProjectModel: nonAuthCtx.initialProjectModel,
   });
+  nonAuthCtx.initialProjectInfo = undefined;
+  nonAuthCtx.initialProjectModel = undefined;
   appCtx.ops = new AppOps({ appCtx });
   return appCtx;
 }

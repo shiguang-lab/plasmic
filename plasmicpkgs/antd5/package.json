@@ -37,6 +37,11 @@
       "types": "./skinny/*.d.ts",
       "require": "./skinny/*.cjs.js",
       "import": "./skinny/*.esm.js"
+    },
+    "./form-meta": {
+      "types": "./skinny/form-meta.d.ts",
+      "require": "./skinny/form-meta.cjs.js",
+      "import": "./skinny/form-meta.esm.js"
     }
   },
   "files": [

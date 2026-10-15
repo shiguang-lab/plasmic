@@ -171,7 +171,7 @@ it("clips a table cell to its nested scrolling viewport instead of highlighting 
 
 it.each(["success", "error"] as const)("shows localized edit feedback and clears %s without failure messages", async (status) => {
   vi.useFakeTimers();
-  setUiLocale("zh-CN");
+  await setUiLocale("zh-CN");
   const { studioCtx } = fakeStudioCtx();
   const finish = studioCtx.copilotActivity.begin([
     { label: "OrdersTable" },
@@ -191,5 +191,5 @@ it.each(["success", "error"] as const)("shows localized edit feedback and clears
   await act(() => vi.advanceTimersByTime(2000));
   expect(screen.queryByRole("status")).toBeNull();
   studioCtx.copilotActivity.dispose();
-  setUiLocale("en");
+  await setUiLocale("en");
 });

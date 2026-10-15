@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   getUrls: vi.fn(),
 }));
 
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => mocks.studio,
 }));
 vi.mock("@/wab/client/route/HistoryProvider", () => ({

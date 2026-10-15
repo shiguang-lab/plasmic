@@ -10,7 +10,7 @@ import {
   executePlasmicDataOp,
   normalizeData,
 } from "@plasmicapp/react-web/lib/data-sources";
-import { formComponentName } from "@plasmicpkgs/antd5";
+import { formComponentName } from "@plasmicpkgs/antd5/form-meta";
 
 export async function updateComponentMode(
   tpl: TplComponent,

@@ -10,14 +10,14 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import React from "react";
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   setAppearancePreference("light");
 });
 
-it("leaves the dialog surface to Modal and keeps primary action text readable in both themes", () => {
-  setLanguagePreference("zh-CN");
+it("leaves the dialog surface to Modal and keeps primary action text readable in both themes", async () => {
+  await setLanguagePreference("zh-CN");
   setAppearancePreference("dark");
   render(
     <AntdConfigProvider productUI>

@@ -8,7 +8,7 @@ import { observable, runInAction } from "mobx";
 import React from "react";
 
 const context = vi.hoisted(() => ({ current: undefined as any }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => context.current,
 }));
 

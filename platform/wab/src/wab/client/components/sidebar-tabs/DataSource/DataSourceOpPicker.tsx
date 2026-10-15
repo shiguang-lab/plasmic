@@ -103,11 +103,8 @@ import {
   extractDataCtx,
 } from "@/wab/client/state-management/interactions-meta";
 import { doesCodeDependsOnPreviousStepsOrEventArgs } from "@/wab/client/state-management/preview-steps";
-import {
-  StudioAppUser,
-  StudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioAppUser, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { Stated } from "@/wab/commons/components/Stated";

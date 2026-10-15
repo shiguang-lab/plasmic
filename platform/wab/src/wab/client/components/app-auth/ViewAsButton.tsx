@@ -22,11 +22,8 @@ import {
   DefaultViewAsButtonProps,
   PlasmicViewAsButton,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewAsButton";
-import {
-  StudioAppUser,
-  isUserProjectEditor,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioAppUser, isUserProjectEditor } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { trackEvent } from "@/wab/client/tracking";
 import { ApiAppUser } from "@/wab/shared/ApiSchema";
 import { DATA_SOURCE_OPERATION_LOWER } from "@/wab/shared/Labels";

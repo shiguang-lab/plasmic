@@ -1,7 +1,7 @@
 import InsertPanel from "@/wab/client/components/insert-panel/InsertPanel";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
 import { useDismissibleStudioOverlay } from "@/wab/client/hooks/useDismissibleStudioOverlay";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { observer } from "mobx-react";
 import React from "react";
 

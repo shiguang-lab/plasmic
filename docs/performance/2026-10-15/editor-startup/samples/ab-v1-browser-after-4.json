@@ -1,0 +1,2371 @@
+{
+  "mode": "after",
+  "runId": "ab-v1-browser-after-4",
+  "startedAt": "2026-10-15T08:49:47.844Z",
+  "samples": [
+    {
+      "phase": "cold",
+      "startAt": 1792054187987,
+      "timingStartAt": 1792054196496.9001,
+      "timeOrigin": 1792054196146.6,
+      "topRevealAt": 1792054200859,
+      "firstRenderedMs": 12827,
+      "visibleCanvasMs": 12872,
+      "editableMs": 12872,
+      "globalRevealMs": 12824,
+      "timings": {
+        "elapsedMs": 5279.399999976158,
+        "frameCount": 4,
+        "entries": [
+          {
+            "phase": "studio-module-import",
+            "startMs": 0.09999999403953552,
+            "durationMs": 1164.7999999821186
+          },
+          {
+            "phase": "startup-preferences",
+            "startMs": 1183.2999999821186,
+            "durationMs": 11.900000005960464
+          },
+          {
+            "phase": "project-fetch",
+            "startMs": 1195.2999999821186,
+            "durationMs": 133.40000000596046
+          },
+          {
+            "phase": "model-unbundle",
+            "startMs": 1328.699999988079,
+            "durationMs": 86.09999999403954
+          },
+          {
+            "phase": "studio-context",
+            "startMs": 1428.699999988079,
+            "durationMs": 31
+          },
+          {
+            "phase": "code-component-sync",
+            "startMs": 1559.7999999821186,
+            "durationMs": 11.800000011920929
+          },
+          {
+            "phase": "app-user-init",
+            "startMs": 1571.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "initializer-ready",
+            "startMs": 1571.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "initial-route",
+            "startMs": 1432.7999999821186,
+            "durationMs": 321.7000000178814
+          },
+          {
+            "phase": "initial-viewport",
+            "startMs": 1432.7999999821186,
+            "durationMs": 321.7000000178814
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1755.5,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1792.2999999821186,
+            "durationMs": 58.80000001192093
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1855.3999999761581,
+            "durationMs": 9.900000005960464
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1865.5999999940395,
+            "durationMs": 969.7999999821186
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 2835.5999999940395,
+            "durationMs": 512.9000000059605
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3367.199999988079,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1755.5,
+            "durationMs": 1742.199999988079
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3367.0999999940395,
+            "durationMs": 752.4000000059605
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 4122.399999976158,
+            "durationMs": 0
+          },
+          {
+            "phase": "canvas-revealed",
+            "startMs": 4124.5,
+            "durationMs": 0
+          },
+          {
+            "phase": "background-canvas-wait",
+            "startMs": 3497.7999999821186,
+            "durationMs": 829
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4410.299999982119,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4414,
+            "durationMs": 56.19999998807907
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4471.5,
+            "durationMs": 1.5
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4473,
+            "durationMs": 40
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4513.0999999940395,
+            "durationMs": 69.7999999821186
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4584.399999976158,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4410.299999982119,
+            "durationMs": 177.59999999403954
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4607.199999988079,
+            "durationMs": 120
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 4727.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4788.0999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4791.5999999940395,
+            "durationMs": 77.90000000596046
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4870.5999999940395,
+            "durationMs": 4.799999982118607
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4875.399999976158,
+            "durationMs": 40.900000005960464
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4916.399999976158,
+            "durationMs": 63.30000001192093
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4980.899999976158,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4788.0999999940395,
+            "durationMs": 195.5
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 4992.5999999940395,
+            "durationMs": 123.19999998807907
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 5116.0999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5123.399999976158,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5126.5,
+            "durationMs": 45.69999998807907
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5173,
+            "durationMs": 3.2999999821186066
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5176.399999976158,
+            "durationMs": 38.20000001788139
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5214.5999999940395,
+            "durationMs": 58.099999994039536
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5273.899999976158,
+            "durationMs": 0
+          },
+          {
+            "phase": "all-frame-contexts-created",
+            "startMs": 5273.899999976158,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 5123.399999976158,
+            "durationMs": 153.80000001192093
+          }
+        ]
+      },
+      "longTasks": [
+        {
+          "startMs": 283,
+          "durationMs": 72
+        },
+        {
+          "startMs": 1400.800000011921,
+          "durationMs": 133
+        },
+        {
+          "startMs": 1557.699999988079,
+          "durationMs": 369
+        },
+        {
+          "startMs": 1948.5,
+          "durationMs": 57
+        },
+        {
+          "startMs": 2025.800000011921,
+          "durationMs": 83
+        },
+        {
+          "startMs": 3108,
+          "durationMs": 78
+        },
+        {
+          "startMs": 3566.4000000059605,
+          "durationMs": 281
+        },
+        {
+          "startMs": 3861.5999999940395,
+          "durationMs": 581
+        },
+        {
+          "startMs": 4476.199999988079,
+          "durationMs": 187
+        },
+        {
+          "startMs": 4822.4000000059605,
+          "durationMs": 115
+        },
+        {
+          "startMs": 4959.800000011921,
+          "durationMs": 113
+        },
+        {
+          "startMs": 5225.0999999940395,
+          "durationMs": 108
+        },
+        {
+          "startMs": 5343,
+          "durationMs": 91
+        }
+      ],
+      "frames": [
+        {
+          "uuid": "HKxN7vVXvuGQ",
+          "ready": true
+        },
+        {
+          "uuid": "rhooatPnqwVA",
+          "ready": true
+        },
+        {
+          "uuid": "vuPysnS2h1Nm",
+          "ready": true
+        },
+        {
+          "uuid": "q4gaQqly-YIz",
+          "ready": false
+        }
+      ],
+      "revision": 18,
+      "cssViewport": {
+        "width": 1512,
+        "height": 887,
+        "dpr": 2
+      },
+      "editorContext": {
+        "projectId": "iqBeCQWLFWvGwftodkcHbN",
+        "branchId": null,
+        "revision": 18,
+        "componentUuid": "20ogVdefnlyb",
+        "frameUuid": "HKxN7vVXvuGQ",
+        "mode": "edit",
+        "canEdit": true,
+        "editorView": {
+          "arenaId": "REQ075 · Desktop",
+          "arenaType": "custom",
+          "frameUuid": "HKxN7vVXvuGQ",
+          "scale": 0.36043233082706766,
+          "scroll": {
+            "x": 1192,
+            "y": 803
+          }
+        }
+      }
+    },
+    {
+      "phase": "reopen",
+      "startAt": 1792054202475,
+      "timingStartAt": 1792054203223.6,
+      "timeOrigin": 1792054202969,
+      "topRevealAt": 1792054205944,
+      "firstRenderedMs": 3436,
+      "visibleCanvasMs": 3469,
+      "editableMs": 3469,
+      "globalRevealMs": 3436,
+      "timings": {
+        "elapsedMs": 3390.5999999940395,
+        "frameCount": 4,
+        "entries": [
+          {
+            "phase": "studio-module-import",
+            "startMs": 0,
+            "durationMs": 109.7000000178814
+          },
+          {
+            "phase": "startup-preferences",
+            "startMs": 124.59999999403954,
+            "durationMs": 14.5
+          },
+          {
+            "phase": "project-fetch",
+            "startMs": 139.09999999403954,
+            "durationMs": 1123.5
+          },
+          {
+            "phase": "model-unbundle",
+            "startMs": 1262.5999999940395,
+            "durationMs": 82.90000000596046
+          },
+          {
+            "phase": "studio-context",
+            "startMs": 1356.300000011921,
+            "durationMs": 23.599999994039536
+          },
+          {
+            "phase": "code-component-sync",
+            "startMs": 1482.2000000178814,
+            "durationMs": 9.399999976158142
+          },
+          {
+            "phase": "app-user-init",
+            "startMs": 1491.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "initializer-ready",
+            "startMs": 1491.7000000178814,
+            "durationMs": 0
+          },
+          {
+            "phase": "initial-route",
+            "startMs": 1358.5999999940395,
+            "durationMs": 280.30000001192093
+          },
+          {
+            "phase": "initial-viewport",
+            "startMs": 1358.5999999940395,
+            "durationMs": 280.30000001192093
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1639.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1644.9000000059605,
+            "durationMs": 32.69999998807907
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1678.5999999940395,
+            "durationMs": 10
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1688.5999999940395,
+            "durationMs": 6.4000000059604645
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1695.0999999940395,
+            "durationMs": 203.60000002384186
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1912,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1639.5999999940395,
+            "durationMs": 366.5
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1912,
+            "durationMs": 585.0999999940395
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 2502.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "canvas-revealed",
+            "startMs": 2504.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "background-canvas-wait",
+            "startMs": 2006.2000000178814,
+            "durationMs": 686
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2748,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2751.0999999940395,
+            "durationMs": 57.400000005960464
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2809.5,
+            "durationMs": 53.20000001788139
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2862.800000011921,
+            "durationMs": 19.299999982118607
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2882.2000000178814,
+            "durationMs": 19
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2903.0999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2748,
+            "durationMs": 159.7000000178814
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 2919.7000000178814,
+            "durationMs": 106.89999997615814
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3026.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3079.7000000178814,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3082.5999999940395,
+            "durationMs": 37.5
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3120.9000000059605,
+            "durationMs": 4
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3124.9000000059605,
+            "durationMs": 8.599999994039536
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3133.5999999940395,
+            "durationMs": 17.600000023841858
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3152.5999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3079.5999999940395,
+            "durationMs": 75.90000000596046
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3174.7000000178814,
+            "durationMs": 127.39999997615814
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3302.4000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3315.0999999940395,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3318.0999999940395,
+            "durationMs": 38.900000005960464
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3358.0999999940395,
+            "durationMs": 0.9000000059604645
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3359,
+            "durationMs": 10.200000017881393
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3369.4000000059605,
+            "durationMs": 14.199999988079071
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3384.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "all-frame-contexts-created",
+            "startMs": 3384.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3315.0999999940395,
+            "durationMs": 72.90000000596046
+          }
+        ]
+      },
+      "longTasks": [
+        {
+          "startMs": 201.69999998807907,
+          "durationMs": 53
+        },
+        {
+          "startMs": 274.5,
+          "durationMs": 107
+        },
+        {
+          "startMs": 1418.4000000059605,
+          "durationMs": 332
+        },
+        {
+          "startMs": 1828.9000000059605,
+          "durationMs": 68
+        },
+        {
+          "startMs": 2117.199999988079,
+          "durationMs": 143
+        },
+        {
+          "startMs": 2272.300000011921,
+          "durationMs": 468
+        },
+        {
+          "startMs": 2760.5,
+          "durationMs": 181
+        },
+        {
+          "startMs": 3176.5999999940395,
+          "durationMs": 101
+        },
+        {
+          "startMs": 3429.5,
+          "durationMs": 95
+        }
+      ],
+      "frames": [
+        {
+          "uuid": "HKxN7vVXvuGQ",
+          "ready": true
+        },
+        {
+          "uuid": "rhooatPnqwVA",
+          "ready": true
+        },
+        {
+          "uuid": "vuPysnS2h1Nm",
+          "ready": true
+        },
+        {
+          "uuid": "q4gaQqly-YIz",
+          "ready": false
+        }
+      ],
+      "revision": 18,
+      "cssViewport": {
+        "width": 1512,
+        "height": 887,
+        "dpr": 2
+      },
+      "editorContext": {
+        "projectId": "iqBeCQWLFWvGwftodkcHbN",
+        "branchId": null,
+        "revision": 18,
+        "componentUuid": "20ogVdefnlyb",
+        "frameUuid": "HKxN7vVXvuGQ",
+        "mode": "edit",
+        "canEdit": true,
+        "editorView": {
+          "arenaId": "REQ075 · Desktop",
+          "arenaType": "custom",
+          "frameUuid": "HKxN7vVXvuGQ",
+          "scale": 0.36043233082706766,
+          "scroll": {
+            "x": 1192,
+            "y": 803
+          }
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "status": "PASS",
+  "proxyRequests": [
+    {
+      "path": "/projects/iqBeCQWLFWvGwftodkcHbN/-/REQ075-Desktop",
+      "method": "GET",
+      "startAt": 1792054187995,
+      "status": 200,
+      "headersMs": 75,
+      "encoding": "gzip",
+      "cacheControl": "no-cache",
+      "bytes": 7738,
+      "durationMs": 76
+    },
+    {
+      "path": "/static/css/index~0.2005f7f7.css",
+      "method": "GET",
+      "startAt": 1792054188076,
+      "status": 200,
+      "headersMs": 41,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 61973,
+      "durationMs": 115
+    },
+    {
+      "path": "/static/css/index~5.876a2688.css",
+      "method": "GET",
+      "startAt": 1792054188077,
+      "status": 200,
+      "headersMs": 70,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 27002,
+      "durationMs": 134
+    },
+    {
+      "path": "/static/js/lib-react.a3eaf980.js",
+      "method": "GET",
+      "startAt": 1792054188077,
+      "status": 200,
+      "headersMs": 72,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 67048,
+      "durationMs": 188
+    },
+    {
+      "path": "/static/js/lib-router.ad69be88.js",
+      "method": "GET",
+      "startAt": 1792054188267,
+      "status": 200,
+      "headersMs": 36,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1570,
+      "durationMs": 54
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054188269,
+      "status": 200,
+      "headersMs": 52,
+      "encoding": "gzip",
+      "cacheControl": "no-cache",
+      "bytes": 3548,
+      "durationMs": 52
+    },
+    {
+      "path": "/static/js/1332.c8a11341.js",
+      "method": "GET",
+      "startAt": 1792054188272,
+      "status": 200,
+      "headersMs": 50,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 315108,
+      "durationMs": 471
+    },
+    {
+      "path": "/static/js/4133.799f1892.js",
+      "method": "GET",
+      "startAt": 1792054188273,
+      "status": 200,
+      "headersMs": 220,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 143641,
+      "durationMs": 1095
+    },
+    {
+      "path": "/static/js/3746.ad0c3af9.js",
+      "method": "GET",
+      "startAt": 1792054188274,
+      "status": 200,
+      "headersMs": 268,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 37749,
+      "durationMs": 620
+    },
+    {
+      "path": "/static/js/9065.9d495f2b.js",
+      "method": "GET",
+      "startAt": 1792054188275,
+      "status": 200,
+      "headersMs": 215,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 164190,
+      "durationMs": 1144
+    },
+    {
+      "path": "/static/js/1077.7e91e421.js",
+      "method": "GET",
+      "startAt": 1792054188276,
+      "status": 200,
+      "headersMs": 168,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 23251,
+      "durationMs": 447
+    },
+    {
+      "path": "/static/js/5611.649bfa9f.js",
+      "method": "GET",
+      "startAt": 1792054188276,
+      "status": 200,
+      "headersMs": 156,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7968,
+      "durationMs": 168
+    },
+    {
+      "path": "/static/js/6385.f502b515.js",
+      "method": "GET",
+      "startAt": 1792054188276,
+      "status": 200,
+      "headersMs": 168,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 56180,
+      "durationMs": 642
+    },
+    {
+      "path": "/static/js/8623.86ea649c.js",
+      "method": "GET",
+      "startAt": 1792054188277,
+      "status": 200,
+      "headersMs": 288,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 21922,
+      "durationMs": 591
+    },
+    {
+      "path": "/static/js/index~0.2ad90359.js",
+      "method": "GET",
+      "startAt": 1792054188277,
+      "status": 200,
+      "headersMs": 231,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 126308,
+      "durationMs": 1623
+    },
+    {
+      "path": "/static/js/index~1.3243eb01.js",
+      "method": "GET",
+      "startAt": 1792054188278,
+      "status": 200,
+      "headersMs": 267,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 6019,
+      "durationMs": 286
+    },
+    {
+      "path": "/static/js/index~2.9c5becbe.js",
+      "method": "GET",
+      "startAt": 1792054188278,
+      "status": 200,
+      "headersMs": 288,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 218775,
+      "durationMs": 1170
+    },
+    {
+      "path": "/static/js/index~3.9772fc96.js",
+      "method": "GET",
+      "startAt": 1792054188279,
+      "status": 200,
+      "headersMs": 239,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 82645,
+      "durationMs": 789
+    },
+    {
+      "path": "/static/js/index~4.9ce65432.js",
+      "method": "GET",
+      "startAt": 1792054188279,
+      "status": 200,
+      "headersMs": 138,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3256,
+      "durationMs": 165
+    },
+    {
+      "path": "/static/js/index~5.425e3d9d.js",
+      "method": "GET",
+      "startAt": 1792054188279,
+      "status": 200,
+      "headersMs": 139,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 10391,
+      "durationMs": 401
+    },
+    {
+      "path": "/static/js/async/7178.3a3379d3.js",
+      "method": "GET",
+      "startAt": 1792054189990,
+      "status": 200,
+      "headersMs": 111,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 82210,
+      "durationMs": 299
+    },
+    {
+      "path": "/api/v1/editor-bootstrap/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054190352,
+      "status": 200,
+      "headersMs": 158,
+      "encoding": "gzip",
+      "cacheControl": "no-store",
+      "bytes": 7641,
+      "durationMs": 158
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054190513,
+      "status": 200,
+      "headersMs": 728,
+      "serverTiming": "owner;dur=13.3, revision;dur=45.7, permissions;dur=81.8, dependencies;dur=163.5",
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 896449,
+      "durationMs": 4853
+    },
+    {
+      "path": "/static/css/async/9204.cb5e8da1.css",
+      "method": "GET",
+      "startAt": 1792054190517,
+      "status": 200,
+      "headersMs": 60,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 275398,
+      "durationMs": 2865
+    },
+    {
+      "path": "/static/js/async/9762.eec1cfbd.js",
+      "method": "GET",
+      "startAt": 1792054190518,
+      "status": 200,
+      "headersMs": 45,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 10169,
+      "durationMs": 199
+    },
+    {
+      "path": "/static/js/async/7462.7fa9df45.js",
+      "method": "GET",
+      "startAt": 1792054190519,
+      "status": 200,
+      "headersMs": 82,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 74760,
+      "durationMs": 3163
+    },
+    {
+      "path": "/static/js/async/1217.e81e1591.js",
+      "method": "GET",
+      "startAt": 1792054190519,
+      "status": 200,
+      "headersMs": 118,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 31064,
+      "durationMs": 402
+    },
+    {
+      "path": "/static/css/async/364.263dba83.css",
+      "method": "GET",
+      "startAt": 1792054190522,
+      "status": 200,
+      "headersMs": 92,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 20992,
+      "durationMs": 308
+    },
+    {
+      "path": "/static/css/async/1433.13787342.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 137,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 8206,
+      "durationMs": 147
+    },
+    {
+      "path": "/static/css/async/4067.05dd5a15.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 103,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 10241,
+      "durationMs": 362
+    },
+    {
+      "path": "/static/css/async/8981.1f6d1841.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 113,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3624,
+      "durationMs": 114
+    },
+    {
+      "path": "/static/css/async/6153.d1084b8a.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 147,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 35267,
+      "durationMs": 457
+    },
+    {
+      "path": "/static/css/async/2175.092f012a.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 102,
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 571,
+      "durationMs": 103
+    },
+    {
+      "path": "/static/css/async/7908.26283106.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 194,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 5827,
+      "durationMs": 194
+    },
+    {
+      "path": "/static/css/async/3728.ab9bb3dd.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 127,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3565,
+      "durationMs": 128
+    },
+    {
+      "path": "/static/css/async/813.f2215abd.css",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 179,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 20527,
+      "durationMs": 527
+    },
+    {
+      "path": "/static/js/async/701.e368306f.js",
+      "method": "GET",
+      "startAt": 1792054190523,
+      "status": 200,
+      "headersMs": 165,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 44340,
+      "durationMs": 810
+    },
+    {
+      "path": "/static/js/async/8163.df49dc8f.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 157,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 124831,
+      "durationMs": 2422
+    },
+    {
+      "path": "/static/js/async/9204.54ed7637.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 230,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 100992,
+      "durationMs": 2651
+    },
+    {
+      "path": "/static/js/async/3185.ade85a84.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 251,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 110242,
+      "durationMs": 1394
+    },
+    {
+      "path": "/static/js/async/6271.ebe87e5f.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 285,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 255538,
+      "durationMs": 3056
+    },
+    {
+      "path": "/static/js/async/8676.195f5cc2.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 237,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 63693,
+      "durationMs": 3369
+    },
+    {
+      "path": "/static/js/async/2873.da49a235.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 414,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 66349,
+      "durationMs": 1712
+    },
+    {
+      "path": "/static/js/async/9453.03747f38.js",
+      "method": "GET",
+      "startAt": 1792054190524,
+      "status": 200,
+      "headersMs": 292,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 17825,
+      "durationMs": 2159
+    },
+    {
+      "path": "/static/js/async/8897.68bbf059.js",
+      "method": "GET",
+      "startAt": 1792054190525,
+      "status": 200,
+      "headersMs": 305,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 20612,
+      "durationMs": 734
+    },
+    {
+      "path": "/static/js/async/4131.f8715ee8.js",
+      "method": "GET",
+      "startAt": 1792054190525,
+      "status": 200,
+      "headersMs": 336,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 10960,
+      "durationMs": 678
+    },
+    {
+      "path": "/static/js/async/9066.02ab0204.js",
+      "method": "GET",
+      "startAt": 1792054190525,
+      "status": 200,
+      "headersMs": 361,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7357,
+      "durationMs": 371
+    },
+    {
+      "path": "/static/js/async/1311.becc8fb8.js",
+      "method": "GET",
+      "startAt": 1792054190525,
+      "status": 200,
+      "headersMs": 372,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7995,
+      "durationMs": 381
+    },
+    {
+      "path": "/static/js/async/6815.4f635002.js",
+      "method": "GET",
+      "startAt": 1792054190525,
+      "status": 200,
+      "headersMs": 336,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 2943,
+      "durationMs": 348
+    },
+    {
+      "path": "/static/js/async/8341.c58afa07.js",
+      "method": "GET",
+      "startAt": 1792054190525,
+      "status": 200,
+      "headersMs": 360,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 109129,
+      "durationMs": 3464
+    },
+    {
+      "path": "/static/js/async/5784.19308244.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 360,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4941,
+      "durationMs": 360
+    },
+    {
+      "path": "/static/js/async/5757.ac94df4c.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 371,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4404,
+      "durationMs": 371
+    },
+    {
+      "path": "/static/js/async/2876.130a7f5a.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 380,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4065,
+      "durationMs": 380
+    },
+    {
+      "path": "/static/js/async/1509.3759e7c6.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 348,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 11640,
+      "durationMs": 677
+    },
+    {
+      "path": "/static/js/async/2695.0d979f91.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 380,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7040,
+      "durationMs": 389
+    },
+    {
+      "path": "/static/js/async/626.47dc3fdc.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 389,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1980,
+      "durationMs": 389
+    },
+    {
+      "path": "/static/js/async/1433.fd69f694.js",
+      "method": "GET",
+      "startAt": 1792054190526,
+      "status": 200,
+      "headersMs": 395,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7635,
+      "durationMs": 412
+    },
+    {
+      "path": "/static/js/async/4067.3d4a4ec4.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 447,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 293590,
+      "durationMs": 2788
+    },
+    {
+      "path": "/static/js/async/8981.e7e841eb.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 536,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 48772,
+      "durationMs": 1134
+    },
+    {
+      "path": "/static/js/async/6153.54b63985.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 580,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 129940,
+      "durationMs": 3997
+    },
+    {
+      "path": "/static/js/async/7607.958aa67a.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 713,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 74217,
+      "durationMs": 2056
+    },
+    {
+      "path": "/static/js/async/2175.36c3f1a8.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 732,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 84552,
+      "durationMs": 2052
+    },
+    {
+      "path": "/static/js/async/7908.cd7836f4.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 1673,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 13544,
+      "durationMs": 1783
+    },
+    {
+      "path": "/static/js/async/744.3309e0ca.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 741,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 5861,
+      "durationMs": 1648
+    },
+    {
+      "path": "/static/js/async/1660.04f5e3a7.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 742,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4168,
+      "durationMs": 1046
+    },
+    {
+      "path": "/static/js/async/1920.5a861991.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 952,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 11247,
+      "durationMs": 1148
+    },
+    {
+      "path": "/static/js/async/3728.76ee481d.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 748,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4094,
+      "durationMs": 751
+    },
+    {
+      "path": "/static/js/async/813.4fccb290.js",
+      "method": "GET",
+      "startAt": 1792054190527,
+      "status": 200,
+      "headersMs": 751,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 122172,
+      "durationMs": 2489
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054194652,
+      "status": 200,
+      "headersMs": 26,
+      "encoding": "gzip",
+      "cacheControl": "no-cache",
+      "bytes": 3934,
+      "durationMs": 53
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "startAt": 1792054194654,
+      "status": 200,
+      "headersMs": 78,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 20,
+      "durationMs": 78
+    },
+    {
+      "path": "/static/sub/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054194683,
+      "status": 200,
+      "headersMs": 38,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 505060,
+      "durationMs": 1406
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054194735,
+      "status": 200,
+      "headersMs": 67,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 67
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054195654,
+      "status": 200,
+      "headersMs": 98,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 98
+    },
+    {
+      "path": "/static/js/studio.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054196109,
+      "status": 200,
+      "headersMs": 34,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 8729,
+      "durationMs": 36
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054196196,
+      "status": 304,
+      "headersMs": 30,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 31
+    },
+    {
+      "path": "/static/css/async/1795.166e6d54.css",
+      "method": "GET",
+      "startAt": 1792054196499,
+      "status": 200,
+      "headersMs": 41,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 9836,
+      "durationMs": 76
+    },
+    {
+      "path": "/static/css/async/6852.2ff000a6.css",
+      "method": "GET",
+      "startAt": 1792054196499,
+      "status": 200,
+      "headersMs": 54,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 35009,
+      "durationMs": 128
+    },
+    {
+      "path": "/static/js/async/1038.3e1fb319.js",
+      "method": "GET",
+      "startAt": 1792054196499,
+      "status": 200,
+      "headersMs": 46,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4399,
+      "durationMs": 76
+    },
+    {
+      "path": "/static/js/async/1670.02f583e3.js",
+      "method": "GET",
+      "startAt": 1792054196500,
+      "status": 200,
+      "headersMs": 44,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4471,
+      "durationMs": 44
+    },
+    {
+      "path": "/static/js/async/2765.bdf7b3d7.js",
+      "method": "GET",
+      "startAt": 1792054196500,
+      "status": 200,
+      "headersMs": 99,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 125900,
+      "durationMs": 504
+    },
+    {
+      "path": "/static/js/async/1795.80355522.js",
+      "method": "GET",
+      "startAt": 1792054196500,
+      "status": 200,
+      "headersMs": 71,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 370813,
+      "durationMs": 812
+    },
+    {
+      "path": "/static/js/async/9344.fdc05569.js",
+      "method": "GET",
+      "startAt": 1792054196500,
+      "status": 200,
+      "headersMs": 88,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 2747,
+      "durationMs": 123
+    },
+    {
+      "path": "/static/js/async/1609.e8111571.js",
+      "method": "GET",
+      "startAt": 1792054196500,
+      "status": 200,
+      "headersMs": 42,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3146,
+      "durationMs": 44
+    },
+    {
+      "path": "/static/js/async/6852.a069ca4c.js",
+      "method": "GET",
+      "startAt": 1792054196500,
+      "status": 200,
+      "headersMs": 71,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 273319,
+      "durationMs": 1046
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054196654,
+      "status": 200,
+      "headersMs": 102,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 102
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054197690,
+      "status": 200,
+      "headersMs": 93,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 93
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054197957,
+      "status": 304,
+      "headersMs": 32,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 32
+    },
+    {
+      "path": "/static/canvas-packages/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054197958,
+      "status": 200,
+      "headersMs": 32,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 553302,
+      "durationMs": 1294
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd6/canvas",
+      "method": "GET",
+      "startAt": 1792054197958,
+      "status": 200,
+      "headersMs": 709,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 64213,
+      "durationMs": 904
+    },
+    {
+      "path": "/api/v1/hostless-libraries/overseas/canvas",
+      "method": "GET",
+      "startAt": 1792054197958,
+      "status": 200,
+      "headersMs": 599,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 12155,
+      "durationMs": 634
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "startAt": 1792054197959,
+      "status": 200,
+      "headersMs": 396,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 388138,
+      "durationMs": 1752
+    },
+    {
+      "path": "/api/v1/hostless-libraries/react-ui/canvas",
+      "method": "GET",
+      "startAt": 1792054197959,
+      "status": 200,
+      "headersMs": 646,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 8933,
+      "durationMs": 679
+    },
+    {
+      "path": "/static/react-web-bundle/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054198023,
+      "status": 200,
+      "headersMs": 45,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 70307,
+      "durationMs": 181
+    },
+    {
+      "path": "/static/live-frame/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054198023,
+      "status": 200,
+      "headersMs": 58,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1354,
+      "durationMs": 64
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054198147,
+      "status": 200,
+      "headersMs": 120,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 120
+    },
+    {
+      "path": "/static/js/async/7154.5e8f709d.js",
+      "method": "GET",
+      "startAt": 1792054198354,
+      "status": 200,
+      "headersMs": 75,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 29550,
+      "durationMs": 142
+    },
+    {
+      "path": "/static/styles/canvas/canvas.4d512c.css",
+      "method": "GET",
+      "startAt": 1792054198355,
+      "status": 200,
+      "headersMs": 69,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1370,
+      "durationMs": 69
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054198654,
+      "status": 200,
+      "headersMs": 128,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 128
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054199654,
+      "status": 200,
+      "headersMs": 102,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 102
+    },
+    {
+      "path": "/api/v1/end-user/app/iqBeCQWLFWvGwftodkcHbN/roles",
+      "method": "GET",
+      "startAt": 1792054200008,
+      "status": 200,
+      "headersMs": 68,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 69
+    },
+    {
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054200825,
+      "status": 200,
+      "headersMs": 349,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 356,
+      "durationMs": 349
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "startAt": 1792054200826,
+      "status": 200,
+      "headersMs": 204,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 204
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "startAt": 1792054200833,
+      "status": 200,
+      "headersMs": 215,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1154,
+      "durationMs": 215
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054200834,
+      "status": 200,
+      "headersMs": 253,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 253
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054200834,
+      "status": 200,
+      "headersMs": 474,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 474
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054200834,
+      "status": 200,
+      "headersMs": 456,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 456
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054200835,
+      "status": 200,
+      "headersMs": 369,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 369
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054200835,
+      "status": 200,
+      "headersMs": 417,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 418
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054200835,
+      "status": 200,
+      "headersMs": 384,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 385
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054200836,
+      "status": 200,
+      "headersMs": 508,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 508
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054200836,
+      "status": 200,
+      "headersMs": 467,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 467
+    },
+    {
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "startAt": 1792054200836,
+      "status": 200,
+      "headersMs": 299,
+      "encoding": "gzip",
+      "cacheControl": "max-age=5",
+      "bytes": 95997,
+      "durationMs": 472
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054200860,
+      "status": 200,
+      "headersMs": 299,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 299
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054200860,
+      "status": 200,
+      "headersMs": 370,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 370
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054200912,
+      "status": 304,
+      "headersMs": 34,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 34
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054201290,
+      "status": 304,
+      "headersMs": 31,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 31
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054201624,
+      "status": 304,
+      "headersMs": 40,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 40
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054201654,
+      "status": 200,
+      "headersMs": 95,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 95
+    },
+    {
+      "path": "/projects/iqBeCQWLFWvGwftodkcHbN/-/REQ075-Desktop",
+      "method": "GET",
+      "startAt": 1792054202477,
+      "status": 304,
+      "headersMs": 32,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 32
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054202519,
+      "status": 304,
+      "headersMs": 34,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 34
+    },
+    {
+      "path": "/api/v1/editor-bootstrap/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054202616,
+      "status": 200,
+      "headersMs": 173,
+      "encoding": "gzip",
+      "cacheControl": "no-store",
+      "bytes": 7641,
+      "durationMs": 208
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054202827,
+      "status": 200,
+      "headersMs": 337,
+      "serverTiming": "owner;dur=5.0, revision;dur=48.6, permissions;dur=106.7, dependencies;dur=171.2",
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 896449,
+      "durationMs": 1531
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054202920,
+      "status": 304,
+      "headersMs": 41,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 41
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "startAt": 1792054202921,
+      "status": 200,
+      "headersMs": 125,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 20,
+      "durationMs": 125
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054202985,
+      "status": 304,
+      "headersMs": 34,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 34
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054203164,
+      "status": 200,
+      "headersMs": 81,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 81
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054203922,
+      "status": 200,
+      "headersMs": 82,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 82
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054204604,
+      "status": 304,
+      "headersMs": 43,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 43
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd6/canvas",
+      "method": "GET",
+      "startAt": 1792054204613,
+      "status": 304,
+      "headersMs": 471,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 471
+    },
+    {
+      "path": "/api/v1/hostless-libraries/overseas/canvas",
+      "method": "GET",
+      "startAt": 1792054204614,
+      "status": 304,
+      "headersMs": 400,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 400
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "startAt": 1792054204614,
+      "status": 304,
+      "headersMs": 253,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 253
+    },
+    {
+      "path": "/api/v1/hostless-libraries/react-ui/canvas",
+      "method": "GET",
+      "startAt": 1792054204614,
+      "status": 304,
+      "headersMs": 343,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 343
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054204784,
+      "status": 200,
+      "headersMs": 231,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 231
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054204926,
+      "status": 200,
+      "headersMs": 219,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 219
+    },
+    {
+      "path": "/api/v1/end-user/app/iqBeCQWLFWvGwftodkcHbN/roles",
+      "method": "GET",
+      "startAt": 1792054205241,
+      "status": 200,
+      "headersMs": 71,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 71
+    },
+    {
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054205918,
+      "status": 200,
+      "headersMs": 254,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 356,
+      "durationMs": 254
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "startAt": 1792054205918,
+      "status": 200,
+      "headersMs": 211,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 211
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "startAt": 1792054205918,
+      "status": 200,
+      "headersMs": 202,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1154,
+      "durationMs": 202
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054205920,
+      "status": 304,
+      "headersMs": 200,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 200
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054205920,
+      "status": 304,
+      "headersMs": 232,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 232
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054205920,
+      "status": 304,
+      "headersMs": 245,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 245
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054205921,
+      "status": 304,
+      "headersMs": 231,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 231
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054205921,
+      "status": 304,
+      "headersMs": 243,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 244
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054205921,
+      "status": 304,
+      "headersMs": 231,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 231
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054205921,
+      "status": 304,
+      "headersMs": 243,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 243
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054205921,
+      "status": 304,
+      "headersMs": 208,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 208
+    },
+    {
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "startAt": 1792054205921,
+      "status": 304,
+      "headersMs": 95,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 95
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054205948,
+      "status": 200,
+      "headersMs": 203,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 204
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054205975,
+      "status": 304,
+      "headersMs": 30,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 30
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054206309,
+      "status": 304,
+      "headersMs": 30,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 30
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054206542,
+      "status": 304,
+      "headersMs": 34,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 34
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054206922
+    }
+  ]
+}

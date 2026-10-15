@@ -11,7 +11,7 @@ import {
 import React from "react";
 
 const close = vi.hoisted(() => vi.fn());
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
     showAddDrawer: () => true,
     leftPaneWidth: 427,

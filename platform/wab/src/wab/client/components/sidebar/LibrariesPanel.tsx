@@ -3,7 +3,7 @@ import { ProjectDependenciesPanel } from "@/wab/client/components/sidebar/Projec
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { useLibraryPanelStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { observer } from "mobx-react";
 import React from "react";

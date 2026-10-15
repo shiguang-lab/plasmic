@@ -87,8 +87,8 @@ vi.mock("@/wab/client/components/NewProjectModal", () => ({
   ),
 }));
 
-beforeEach(() => {
-  setLanguagePreference("en");
+beforeEach(async () => {
+  await setLanguagePreference("en");
   mocks.accessLevel = "editor";
   mocks.enableDataQueries = false;
   mocks.listDataSources.mockResolvedValue([{ dataSources: [] }]);

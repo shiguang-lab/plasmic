@@ -61,7 +61,7 @@ afterEach(async () => {
   }
 });
 
-it.each(["selection", "component", "page"] as const)(
+it.each(["selection", "component", "canvas", "page"] as const)(
   "uses actual SDK tool schemas for scope=%s",
   async (scope) => {
     let body: Record<string, any> = {};
@@ -101,6 +101,9 @@ it.each(["selection", "component", "page"] as const)(
             binding: {
               ...request.binding,
               mode: scope === "page" ? "page" : undefined,
+              componentUuid:
+                scope === "canvas" ? null : request.binding.componentUuid,
+              canvasName: scope === "canvas" ? "PageGroup" : undefined,
               elementUuids: [],
             },
           }
@@ -127,7 +130,7 @@ it.each(["selection", "component", "page"] as const)(
     expect(body.model).toBe(
       scope === "page" ? "alternate-model" : config.model,
     );
-    expect(body.max_tokens).toBe(scope === "selection" ? 4096 : 8192);
+    expect(body.max_tokens).toBe(8192);
     const userContent = body.messages.find(
       (message: any) => message.role === "user",
     ).content;
@@ -153,8 +156,9 @@ it.each(["selection", "component", "page"] as const)(
       ]),
     );
     const names = body.tools.map((t: any) => t.function.name);
-    expect(names.includes("createState")).toBe(scope !== "selection");
-    expect(names.includes("setPageViewport")).toBe(scope !== "selection");
+    expect(names).toContain("createState");
+    expect(names).toContain("setPageViewport");
+    expect(names).toContain("navigate");
     expect(names).toContain("createInteraction");
     expect(names).toContain("updateInteraction");
     expect(names).toContain("deleteInteraction");

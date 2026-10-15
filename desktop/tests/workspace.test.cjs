@@ -23,19 +23,18 @@ test("startup validates the exact saved project before restoring its route", asy
     fetch: async (url, options) => {
       const request = new URL(url);
       assert.equal(request.origin, origin);
-      assert.equal(request.pathname, "/api/v1/projects");
-      assert.equal(JSON.parse(request.searchParams.get("query")), "byIds");
-      assert.deepEqual(JSON.parse(request.searchParams.get("projectIds")), [
-        "saved",
-      ]);
+      assert.equal(request.pathname, "/api/v1/editor-bootstrap/saved");
+      assert.equal(JSON.parse(request.searchParams.get("branchName")), "main");
       assert.equal(options.bypassCustomProtocolHandlers, true);
       assert.equal(options.credentials, "include");
       assert.equal(options.redirect, "manual");
-      return Response.json({ projects: [{ id: "saved" }] });
+      return Response.json({ projectId: "saved", projectData: { projects: [{ id: "saved" }], perms: [] } });
     },
   };
   assert.equal(await workspace.startupUrl(session), savedUrl);
   assert.equal(workspace.recent.length, 2);
+  assert.equal(workspace.consumeStartupData("saved").projectId, "saved");
+  assert.equal(workspace.consumeStartupData("saved"), null);
 });
 for (const status of [200, 401, 403, 404]) {
   test(`startup removes an unavailable project after confirming login (HTTP ${status})`, async (t) => {
@@ -47,10 +46,10 @@ for (const status of [200, 401, 403, 404]) {
         if (request.pathname === "/api/auth/session") {
           return Response.json({ authenticated: true });
         }
-        const [id] = JSON.parse(request.searchParams.get("projectIds"));
+        const id = request.pathname.split("/").at(-1);
         checked.push(id);
         return Response.json(
-          { projects: id === "saved" ? [] : [{ id }] },
+          { projectData: { projects: id === "saved" ? [] : [{ id }], perms: [] } },
           { status: id === "saved" ? status : 200 },
         );
       },
@@ -336,10 +335,10 @@ test("recent projects discard only confirmed unavailable entries and persist acr
     fetch: async (url) => {
       const request = new URL(url);
       if (request.pathname === "/api/auth/session")
-        return Response.json({ authenticated: true });
+        {return Response.json({ authenticated: true });}
       const [id] = JSON.parse(request.searchParams.get("projectIds"));
-      if (id === "saved") return Response.json({}, { status: 404 });
-      if (id === "offline") throw new Error("offline");
+      if (id === "saved") {return Response.json({}, { status: 404 });}
+      if (id === "offline") {throw new Error("offline");}
       return Response.json({ projects: [{ id }] });
     },
   };
@@ -389,4 +388,16 @@ test("a stale recent menu item never opens a deleted project", async (t) => {
     .find((x) => x.label === "Recent Projects")
     .submenu[0].click();
   assert.equal(workspace.recent.length, 0);
+});
+
+test("startup data expires and is scoped to the restored project", async (t) => {
+  const { workspace } = startupFixture(t);
+  const session = { fetch: async () => Response.json({ projectId: "saved", projectData: { projects: [{ id: "saved" }], perms: [] } }) };
+  await workspace.startupUrl(session);
+  assert.equal(workspace.consumeStartupData("other"), null);
+  await workspace.startupUrl(session);
+  const originalNow = Date.now;
+  Date.now = () => originalNow() + 31000;
+  try { assert.equal(workspace.consumeStartupData("saved"), null); }
+  finally { Date.now = originalNow; }
 });

@@ -2,7 +2,7 @@ import { LocalStorageKey } from "@/wab/client/LocalStorageKey";
 import Button from "@/wab/client/components/widgets/Button";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { zIndex } from "@/wab/client/z-index";
 import { spawn } from "@/wab/shared/common";
 import { observer } from "mobx-react";

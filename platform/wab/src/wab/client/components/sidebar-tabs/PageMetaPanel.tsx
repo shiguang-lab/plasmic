@@ -6,7 +6,7 @@ import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRo
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { mkSectionUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { spawn, switchType } from "@/wab/shared/common";

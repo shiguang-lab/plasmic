@@ -34,7 +34,7 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
 vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   usePreviewCtx: () => mocks.preview,
 }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
     site: {},
     siteInfo: {},

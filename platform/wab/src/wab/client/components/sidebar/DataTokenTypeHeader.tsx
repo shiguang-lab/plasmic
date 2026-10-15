@@ -3,7 +3,7 @@ import { isDataTokenPanelReadOnly } from "@/wab/client/components/sidebar/token-
 import PlasmicTokenTypeHeader, {
   DefaultTokenTypeHeaderProps,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicTokenTypeHeader";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { DataTokenType, dataTypes } from "@/wab/commons/DataToken";
 import { MultiChoiceArg } from "@plasmicapp/react-web";
 import * as React from "react";

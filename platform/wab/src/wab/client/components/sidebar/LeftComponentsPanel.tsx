@@ -16,7 +16,7 @@ import {
 } from "@/wab/client/components/sidebar/ComponentFolderRow";
 import { ComponentRow } from "@/wab/client/components/sidebar/ComponentRow";
 import { PlasmicLeftComponentsPanel } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftComponentsPanel";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useModelUiActionHandler } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { isBuiltinCodeComponent } from "@/wab/shared/code-components/builtin-code-components";
 import { isNonNil, unreachable } from "@/wab/shared/common";

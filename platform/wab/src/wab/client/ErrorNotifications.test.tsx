@@ -4,12 +4,12 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { notification } from "antd";
 import React from "react";
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 
-it("localizes connectivity notices and updates mounted notice content on language changes", () => {
+it("localizes connectivity notices and updates mounted notice content on language changes", async () => {
   const open = vi
     .spyOn(notification, "open")
     .mockImplementation(() => undefined);
@@ -24,7 +24,7 @@ it("localizes connectivity notices and updates mounted notice content on languag
   expect(screen.getByTestId("message").textContent).toBe(
     "Temporarily disconnected",
   );
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByText("连接暂时中断")).toBeTruthy();
   expect(
     screen.getByText(
@@ -34,8 +34,8 @@ it("localizes connectivity notices and updates mounted notice content on languag
   args.onClose?.();
 });
 
-it("localizes repeat counts while preserving raw technical error details", () => {
-  act(() => setLanguagePreference("zh-CN"));
+it("localizes repeat counts while preserving raw technical error details", async () => {
+  await act(async () => await setLanguagePreference("zh-CN"));
   const open = vi
     .spyOn(notification, "open")
     .mockImplementation(() => undefined);

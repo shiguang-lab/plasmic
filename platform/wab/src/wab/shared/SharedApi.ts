@@ -2,6 +2,7 @@ import type { PreviewPublication } from "@plasmic-shared/preview";
 import { toOpaque } from "@/wab/commons/types";
 import type { ProjectRevision } from "@/wab/server/entities/Entities";
 import {
+  EditorBootstrapResponse,
   AddCommentReactionRequest,
   AddCommentReactionResponse,
   AddFeatureTierResponse,
@@ -365,6 +366,10 @@ export abstract class SharedApi {
 
   async updateUserPreferences(data: { extraData: string }) {
     await this.post("/settings/preferences", data);
+  }
+
+  getEditorBootstrap(projectId: string, branchName?: string): Promise<EditorBootstrapResponse> {
+    return this.get(`/editor-bootstrap/${projectId}`, { branchName });
   }
 
   getProjects(

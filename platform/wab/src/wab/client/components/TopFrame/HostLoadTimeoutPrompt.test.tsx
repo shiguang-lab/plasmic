@@ -20,10 +20,10 @@ vi.mock("@/wab/client/components/quick-modals", () => ({
   showTemporaryPrompt: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.useFakeTimers();
   frame.hostConnected = false;
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   vi.spyOn(notification, "warning").mockImplementation(() => undefined);
   vi.spyOn(notification, "destroy").mockImplementation(() => undefined);
 });

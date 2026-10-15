@@ -1,7 +1,8 @@
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import sty from "@/wab/client/components/studio/arenas/GridFramesLayout.module.sass";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { AnyArena, getFrameHeight } from "@/wab/shared/Arenas";
 import { maybe, switchType } from "@/wab/shared/common";
 import {

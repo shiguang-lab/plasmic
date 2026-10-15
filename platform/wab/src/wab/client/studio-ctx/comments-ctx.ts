@@ -1,3 +1,4 @@
+import { parseProjectLocation } from "@/wab/client/cli-routes";
 import { reportError, showError } from "@/wab/client/ErrorNotifications";
 import {
   CommentFilters,
@@ -104,6 +105,8 @@ export class CommentsCtx {
     this.disposals.push(
       autorun(
         async () => {
+          const thread = parseProjectLocation(studioCtx.appCtx.history.location)?.threadId;
+          if (!thread && !(studioCtx.initialRouteReady && studioCtx.initialViewportReady && studioCtx.activeCanvasReady)) {return;}
           await this.fetchComments();
         },
         { name: "CommentsCtx.fetchComments" },
@@ -288,7 +291,18 @@ export class CommentsCtx {
     }
   };
 
-  async fetchComments() {
+  private commentsRequest?: { branchId: string | undefined; promise: Promise<void> };
+  fetchComments(): Promise<void> {
+    const branchId = this.studioCtx.dbCtx().branchInfo?.id;
+    if (this.commentsRequest?.branchId === branchId && this.commentsRequest) {return this.commentsRequest.promise;}
+    const promise = this.fetchCommentsInternal().finally(() => {
+      if (this.commentsRequest?.promise === promise) {this.commentsRequest = undefined;}
+    });
+    this.commentsRequest = { branchId, promise };
+    return promise;
+  }
+
+  private async fetchCommentsInternal() {
     const projectId = this.studioCtx.siteInfo.id;
     const branchId = this.studioCtx.dbCtx().branchInfo?.id;
     if (!this.studioCtx.showComments()) {

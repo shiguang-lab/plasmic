@@ -2,7 +2,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useFileDragState } from "@/wab/client/file-drag/useFileDragState";
 import { UiText } from "@/wab/client/i18n/UiText";
 import UploadSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UploadSvg";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import cx from "classnames";
 import { observer } from "mobx-react";
 import * as React from "react";

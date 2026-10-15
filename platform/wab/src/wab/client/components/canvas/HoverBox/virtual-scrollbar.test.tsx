@@ -2,7 +2,7 @@ import { VirtualScrollBar } from "@/wab/client/components/canvas/HoverBox/virtua
 import { act, render } from "@testing-library/react";
 import React from "react";
 
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({ zoom: 1 }),
 }));
 vi.mock("@/wab/commons/components/XDraggable", () => ({

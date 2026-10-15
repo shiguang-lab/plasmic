@@ -5,7 +5,7 @@ import {
   DefaultThreadHistoryStatusProps,
   PlasmicThreadHistoryStatus,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicThreadHistoryStatus";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
 

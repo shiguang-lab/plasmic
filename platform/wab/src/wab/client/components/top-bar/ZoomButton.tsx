@@ -8,7 +8,7 @@ import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { Button, InputNumber, Menu } from "antd";
 import { createStyles } from "antd-style";

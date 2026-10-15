@@ -3,19 +3,31 @@ import type { LocalEditResponse } from "@/wab/shared/copilot/local-edit";
 const fixture = vi.hoisted(() => {
   const order: string[] = [],
     names = new Map<string, string>();
-  const state = { status: "running", changed: false };
+  const state = {
+    status: "running",
+    changed: false,
+    componentUuid: "page" as string | null,
+  };
   const a = {
     loadRun: vi.fn(async () => ({
       status: state.status,
       hasChanges: state.changed,
-      task: { binding: { componentUuid: "page", elementUuids: [] } },
+      task: {
+        binding: {
+          componentUuid: state.componentUuid,
+          canvasName: state.componentUuid ? undefined : "PageGroup",
+          elementUuids: [],
+        },
+      },
     })),
     runState: vi.fn(async () => ({ status: state.status })),
     chooseIntent: vi.fn(async () => undefined),
     requestTool: vi.fn(async (_run: string, id: string, name: string) => {
       names.set(id, name);
       order.push(name);
-      if (name === "changeElement") state.changed = true;
+      if (name === "changeElement") {
+        state.changed = true;
+      }
     }),
     readTool: vi.fn(async (id: string) => ({
       status: "completed",
@@ -27,7 +39,9 @@ const fixture = vi.hoisted(() => {
       },
     })),
     setRun: vi.fn(async (_run: string, patch: { status?: string }) => {
-      if (patch.status) state.status = patch.status;
+      if (patch.status) {
+        state.status = patch.status;
+      }
     }),
     modelStep: vi.fn(
       async (
@@ -67,6 +81,7 @@ beforeEach(() => {
   fixture.order.length = 0;
   fixture.state.status = "running";
   fixture.state.changed = false;
+  fixture.state.componentUuid = "page";
   fixture.names.clear();
 });
 it("validates and saves before requesting the explicit final answer channel", async () => {
@@ -137,6 +152,29 @@ it("passes the explicitly declared failed call identity to the retry operation",
     "bad-context",
     undefined,
     "Invalid arguments",
+  );
+  expect(fixture.a.setRun).toHaveBeenLastCalledWith("run", {
+    status: "completed",
+    phase: "Completed",
+  });
+});
+
+it("runs from the canvas overview without requiring a focused page", async () => {
+  fixture.state.componentUuid = null;
+  await aiChatRun("run");
+  expect(fixture.a.requestTool).toHaveBeenCalledWith(
+    "run",
+    "run:0",
+    "getEditorContext",
+    {},
+    undefined,
+  );
+  expect(fixture.a.requestTool).toHaveBeenCalledWith(
+    "run",
+    "run:1",
+    "read",
+    {},
+    undefined,
   );
   expect(fixture.a.setRun).toHaveBeenLastCalledWith("run", {
     status: "completed",

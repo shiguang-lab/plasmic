@@ -4,7 +4,7 @@ import {
   DefaultArenaSwitcherProps,
   PlasmicArenaSwitcher,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicArenaSwitcher";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   AnyArena,
   getArenaName,

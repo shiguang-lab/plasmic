@@ -91,6 +91,7 @@ export const localEditBindingSchema = z
     sessionId: z.string().min(1),
     changeCounter: z.number().int().nonnegative(),
     componentUuid: z.string().min(1).nullable(),
+    canvasName: z.string().optional(),
     mode: z.enum(["page"]).optional(),
     frameUuid: z.string().nullable().optional(),
     elementUuids: z.array(z.string().min(1)).max(30),
@@ -101,6 +102,7 @@ export const localEditToolNames = [
   "read",
   "queryElements",
   "getEditorContext",
+  "navigate",
   "selectElement",
   "scrollElementIntoView",
   "changeElement",
@@ -117,24 +119,6 @@ export const localEditToolNames = [
   "deleteState",
   "setPageViewport",
 ] as const;
-export const componentEditToolNames = [
-  "createState",
-  "updateState",
-  "deleteState",
-  "setPageViewport",
-] as const;
-export function localEditTools(binding: LocalEditBinding) {
-  return localEditToolNames.filter(
-    (name) =>
-      !binding.elementUuids.length ||
-      !componentEditToolNames.some((componentTool) => componentTool === name),
-  );
-}
-export function localEditLimits(binding: LocalEditBinding) {
-  return binding.elementUuids.length
-    ? { steps: 12, taskMs: 180000 }
-    : { steps: 48, taskMs: 720000 };
-}
 export const localEditCallSchema = z
   .object({
     id: z.string().min(1),

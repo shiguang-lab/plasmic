@@ -56,7 +56,7 @@ import { ColorButton } from "@/wab/client/components/style-controls/ColorButton"
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkTokenRef, tryParseTokenRef } from "@/wab/commons/StyleToken";
 import { unwrap } from "@/wab/commons/neverthrow-utils";

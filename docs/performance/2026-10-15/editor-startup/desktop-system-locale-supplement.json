@@ -1,0 +1,182 @@
+[
+  {
+    "mode": "before",
+    "round": 1,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 4994,
+        "editableMs": 5088,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 3421,
+        "editableMs": 3449,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "round": 2,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 3926,
+        "editableMs": 4018,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 3026,
+        "editableMs": 3097,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "round": 3,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 3849,
+        "editableMs": 3942,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 3205,
+        "editableMs": 3245,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "round": 4,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 4058,
+        "editableMs": 4162,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 3300,
+        "editableMs": 3344,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "before",
+    "round": 5,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 4087,
+        "editableMs": 4122,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 3112,
+        "editableMs": 3141,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "round": 1,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 4268,
+        "editableMs": 4300,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 3002,
+        "editableMs": 3028,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "round": 2,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 3298,
+        "editableMs": 3325,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 2980,
+        "editableMs": 3020,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "round": 3,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 3491,
+        "editableMs": 3532,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 2907,
+        "editableMs": 2936,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "round": 4,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 3599,
+        "editableMs": 3628,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 2859,
+        "editableMs": 2896,
+        "revision": 18
+      }
+    ]
+  },
+  {
+    "mode": "after",
+    "round": 5,
+    "samples": [
+      {
+        "phase": "cold",
+        "visibleCanvasMs": 3327,
+        "editableMs": 3360,
+        "revision": 18
+      },
+      {
+        "phase": "reopen",
+        "visibleCanvasMs": 2877,
+        "editableMs": 2904,
+        "revision": 18
+      }
+    ]
+  }
+]

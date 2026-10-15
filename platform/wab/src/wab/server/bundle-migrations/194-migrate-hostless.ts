@@ -11,7 +11,7 @@ import { ensure } from "@/wab/shared/common";
 import { clone } from "@/wab/shared/core/exprs";
 import { flattenTpls, isTplCodeComponent } from "@/wab/shared/core/tpls";
 import { isKnownDataSourceOpExpr } from "@/wab/shared/model/classes";
-import { formComponentName } from "@plasmicpkgs/antd5";
+import { formComponentName } from "@plasmicpkgs/antd5/form-meta";
 
 // migrates antd5 hostless, plasmic-rich-components
 export const migrate: UnbundledMigrationFn = async (bundle, db, entity) => {

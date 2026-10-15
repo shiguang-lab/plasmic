@@ -5,9 +5,9 @@ import glob from "glob";
 import path from "path";
 import esbuild from "rollup-plugin-esbuild";
 
-const SKINNY_INPUTS = glob.sync(
+const SKINNY_INPUTS = ["./src/form-meta.ts", ...glob.sync(
   "./src/{register*,form/Form*,form/registerForm,form/SchemaForm}.ts*"
-);
+)];
 
 export default [
   {

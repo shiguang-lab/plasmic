@@ -48,7 +48,7 @@ const appCtx = mock<AppCtx>({
   ],
 });
 
-beforeEach(() => setLanguagePreference("en"));
+beforeEach(async () => await setLanguagePreference("en"));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();

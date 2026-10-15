@@ -4,10 +4,8 @@ import { clientToFramePt, clientToFrameRect } from "@/wab/client/coords";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { renderCantAddMsg } from "@/wab/client/messages/parenting-msgs";
-import {
-  cssPropsForInvertTransform,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { cssPropsForInvertTransform } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   XDraggable,

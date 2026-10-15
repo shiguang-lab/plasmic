@@ -19,7 +19,7 @@ import {
   DefaultPageSettingsProps,
   PlasmicPageSettings,
 } from "@/wab/client/plasmic/plasmic_kit_page_settings/PlasmicPageSettings";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { nullToUndefined, spawn } from "@/wab/shared/common";
 import { PageComponent } from "@/wab/shared/core/components";

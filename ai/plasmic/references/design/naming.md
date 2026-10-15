@@ -2,27 +2,24 @@
 
 ## Editor node naming
 
-Use English PascalCase (UpperCamelCase) for editable node names, independent of the business UI language: `AppShell`, `PageBody`, `StatusFilter`, `ExportModal`. Preserve established component/acronym spelling such as `AppShell`, `SQL` and `ID`. Do not use lowerCamelCase, Chinese names, hyphens, underscores, library prefixes or temporary identifiers for instance names.
+Use English PascalCase (UpperCamelCase) for editable node names, independent of the business UI language. Preserve established component/acronym spelling such as `AppShell`, `SQL` and `ID`. Use words without spaces, hyphens or underscores; lowerCamelCase and temporary identifiers do not meet this editor naming standard.
 
-Choose names in this order:
+Choose the shortest name that accurately explains the node in its editing context:
 
-- For a page-level structural component that has one instance in its owning page/component, prefer its actual registered display name: `AppShell`, `SearchForm`, `Tabs`, `Steps`, `Form`. In particular, every standalone page's single shell is `AppShell`, not `OverseasAppShell` or a page/product-prefixed variation. Count authored instances in the owning tree, including inactive Tabs and overlays; do not infer uniqueness from the current visible screen. A component appearing once is not by itself a reason to erase a useful business action or field name.
-- For business controls and content regions, use their verified action, field or content role: `CreateGroup`, `StatusFilter`, `DetailSummary`, `ListToolbar`. An icon-only control uses its action; a decorative icon retains its actual component name, such as `ArrowLeftOutlined`.
-- When multiple instances need distinction, add a stable business scope/role to the component name: `AllGroupsTable`, `MyGroupsTable`, `SelectionRecordsSearchForm`, `ApplicationRecordsSearchForm`, `ExportModal`. Do not add page prefixes to already unique structural components. Avoid redundant type suffixes when the name already explains the business action and Studio displays the type.
-- Native layout wrappers use their semantic or layout role, such as `PageBody`, `DetailHeader` or `MetricGrid`. Nodes without meaningful business context use the actual registered display name or PascalCase layout/tag name. Do not invent a function for a spacer or create wrappers solely to carry a name.
-- Repeated template instances may share a stable template name. Do not append row numbers, mock record names, random IDs, stale `Copy` suffixes or arbitrary numeric suffixes. Resolve authored-name collisions with meaningful scope, and read back the applied name after renaming.
+- **Meaning:** Base the name on the actual component, action, field, content or layout responsibility. A registered display name works when it already explains the role. Use business semantics when they make the node easier to identify, even for a unique instance. Root position and component type do not prescribe a particular name.
+- **Clarity:** Keep words that help a designer identify or distinguish the node. Omit library/registration prefixes, repeated page/product context and type suffixes when they add no useful meaning. Retain a qualifier or type word when removing it would make the name ambiguous or misleading. Native wrappers follow the same standard; use a simple layout/tag name when there is no more specific responsibility, without inventing one.
+- **Scope:** Judge ambiguity in the owning page/component's authored tree, including inactive Tabs, overlays and copied content. Add the smallest stable role or business qualifier needed to distinguish authored instances. Unrelated pages/components may reuse names; runtime repetitions share their template's name. Row numbers, mock record names, random IDs and leftover copy suffixes do not explain a stable role.
+- **Consistency:** Use the same vocabulary and naming pattern for equivalent roles. Reassess names when copying or changing a node's purpose. Preserve a clear existing name rather than replacing it merely to match a preferred example.
 
-| Actual node and purpose | Preferred editor name |
+Examples illustrate these decisions; choose from the actual model and requirement:
+
+| Context | Naming judgment |
 | --- | --- |
-| Single standalone page shell | AppShell |
-| Single page-level query form | SearchForm |
-| Two query forms in record Tabs | SelectionRecordsSearchForm / ApplicationRecordsSearchForm |
-| Dropdown offering group creation choices | CreateGroup |
-| Button opening that creation menu | CreateGroupTrigger |
-| Select filtering by status | StatusFilter |
-| Tables in All/Mine scopes | AllGroupsTable / MyGroupsTable |
-| Native wrapper arranging list actions | ListToolbar |
+| A shell whose display name already describes its responsibility | `AppShell` can be sufficient; add a qualifier only if it conveys a real distinction |
+| A Button that creates a group | `CreateGroup` identifies its action more clearly than `Button` |
+| Tables with different business scopes | `AllGroupsTable` and `MyGroupsTable` distinguish their roles |
+| A wrapper arranging list actions | `ListToolbar` describes the layout responsibility without repeating the page name |
 
-Set names during generation using `data-plasmic-name`; keep `data-plasmic-component` as the real component identity. Rename existing nodes through MCP `changeElement.name`, which uses Studio's rename operation to maintain state/expression references. Preserve node UUIDs, slot names, business prop names, state identity, event/action keys, routes and interactions. Implicit state references may change when the node name changes; inspect readback instead of manually replacing arbitrary expression text. Node names are editor metadata, not UI labels or routing keys. Do not rename registered components, imported library definitions or slots to implement instance naming. On copy/reuse or functional changes, update obsolete names to match the destination purpose.
+Set names during generation using `data-plasmic-name`; keep `data-plasmic-component` as the real component identity. Review default and copied names against the same standard. Rename existing nodes through MCP `changeElement.name`, which uses Studio's rename operation to maintain state/expression references. Preserve node UUIDs, slot names, business prop names, state identity, event/action keys, routes and interactions. Implicit state references may change when the node name changes; inspect readback instead of manually replacing arbitrary expression text. Editor names and normalized code/state reference identifiers have separate purposes; verify the actual node name in model readback. Do not rename registered components, imported library definitions or slots to implement instance naming.
 
-Acceptance: read every changed node, including inactive Tab/overlay children and copied nodes, and compare PascalCase, uniqueness scope and semantic naming against its actual component/content/action. Every standalone page must have exactly one shell instance named `AppShell`. Inspect the editor tree/selection label, save/reopen, and confirm names persist, UUIDs remain, references resolve and affected interactions still work. A formatting check or successful `validate` alone does not establish semantic correctness.
+Acceptance: read every changed node, including roots, inactive Tab/overlay children and copied nodes. Check PascalCase, accurate meaning, concise wording, scope and vocabulary consistency against the actual model. Review unnecessary qualifiers and ambiguous generic names in context. Inspect the editor tree/selection label, save/reopen, and confirm names persist, UUIDs remain, references resolve and affected interactions still work. A formatting check or successful `validate` alone does not establish semantic correctness.

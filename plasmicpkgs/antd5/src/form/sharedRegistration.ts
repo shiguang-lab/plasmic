@@ -7,12 +7,8 @@ import { AntdDatePicker } from "../registerDatePicker";
 import { AntdRadioGroup } from "../registerRadio";
 import { AntdSelect } from "../registerSelect";
 import { arrayEq } from "../utils";
-import {
-  FormWrapperControlContextData,
-  FormWrapperProps,
-  InputType,
-  SimplifiedFormItemsProp,
-} from "./Form";
+import { FormWrapperControlContextData, FormWrapperProps, SimplifiedFormItemsProp } from "./Form";
+import { InputType } from "../form-meta";
 import { FormItemControlContextData, InternalFormItemProps } from "./FormItem";
 import { CommonFormControlContextData } from "./contexts";
 

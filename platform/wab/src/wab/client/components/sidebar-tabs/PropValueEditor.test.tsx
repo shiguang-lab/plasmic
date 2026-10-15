@@ -13,7 +13,7 @@ import { observable, runInAction } from "mobx";
 import React from "react";
 import { vi } from "vitest";
 
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({}),
 }));
 // Keep the real row's context resolution, but isolate its editor chrome.

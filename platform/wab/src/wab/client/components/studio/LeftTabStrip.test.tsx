@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   ctx: undefined as any,
   toggleAi: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => mocks.ctx,
 }));
 vi.mock("@/wab/client/i18n", () => ({

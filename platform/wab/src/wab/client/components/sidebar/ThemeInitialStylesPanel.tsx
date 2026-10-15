@@ -15,7 +15,8 @@ import {
   DefaultThemeInitialStylesPanelProps,
   PlasmicThemeInitialStylesPanel,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicThemeInitialStylesPanel";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { AddItemKey } from "@/wab/shared/add-item-keys";
 import { spawn } from "@/wab/shared/common";
 import { getDefaultStyles } from "@/wab/shared/default-styles";

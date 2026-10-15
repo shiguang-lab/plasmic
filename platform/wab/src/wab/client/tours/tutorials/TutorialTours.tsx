@@ -11,7 +11,7 @@ import { useI18n } from "@/wab/client/i18n";
 
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import HelpIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Help";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialHighlightEffect } from "@/wab/client/tours/tutorials/TutorialHighlightEffect";
 import { TutorialEvent } from "@/wab/client/tours/tutorials/tutorials-events";
 import { waitElementToBeVisible } from "@/wab/client/tours/tutorials/tutorials-helpers";

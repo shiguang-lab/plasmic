@@ -1,7 +1,7 @@
 // So we should just be transforming the angle to 90 - angle.
 import Dial from "@/wab/client/components/style-controls/Dial.svg";
 import { PlainLinkButton } from "@/wab/client/components/widgets";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   XDraggable,
   XDraggableEvent,

@@ -1,0 +1,465 @@
+{
+  "gitRevision": "4d512c93d6d5c9ab5c5df303c30d0fd65ef9a3a8",
+  "projectId": "iqBeCQWLFWvGwftodkcHbN",
+  "projectRevision": 18,
+  "hardware": {
+    "cpu": "Apple M4",
+    "memoryBytes": 25769803776
+  },
+  "electron": "44.5.1",
+  "chromium": "148.0.7778.96",
+  "viewport": {
+    "width": 1512,
+    "height": 887,
+    "deviceScaleFactor": 2
+  },
+  "builds": {
+    "before": {
+      "studio": {
+        "kind": "controlled-before",
+        "revision": "4d512c93d6d5c9ab5c5df303c30d0fd65ef9a3a8",
+        "sourceHash": "8864f359a5759930c9f409c12e32d1c30795f24521af0b9a29355a7b626aaa00",
+        "builtAt": "2026-10-15T08:17:59.277Z",
+        "artifactHash": "ffafdb63cfda708dfd3c1a732a93296ea6cd8e71fc72dbb8295f8b7572c22487"
+      },
+      "desktop": {
+        "kind": "controlled-before",
+        "revision": "4d512c93d6d5c9ab5c5df303c30d0fd65ef9a3a8",
+        "sourceHash": "8864f359a5759930c9f409c12e32d1c30795f24521af0b9a29355a7b626aaa00",
+        "builtAt": "2026-10-15T08:17:59.277Z",
+        "artifactHash": "ffafdb63cfda708dfd3c1a732a93296ea6cd8e71fc72dbb8295f8b7572c22487",
+        "rendererHash": "ffafdb63cfda708dfd3c1a732a93296ea6cd8e71fc72dbb8295f8b7572c22487"
+      },
+      "indexSha256": "2ababf92b62b09da5a437392e757824a3281332489cd3b0bd5714409439ce2c9",
+      "mainSha256": "b2f1d57785190dc767e073a2b24bd31660d971ebb2d996e22fc849bb24c8e731"
+    },
+    "after": {
+      "studio": {
+        "revision": "4d512c93d6d5c9ab5c5df303c30d0fd65ef9a3a8",
+        "dirty": true,
+        "sourceHash": "751749f8209170dce5723a1f7d8b7c830d4d93dcf214d4b7620cb91b6c1836d1",
+        "builtAt": "2026-10-15T08:42:53.884Z",
+        "artifactHash": "d1ccb8020813ce6cce6152e1fca85a0425b22d927464050f4385661fecbef7e1"
+      },
+      "desktop": {
+        "kind": "local",
+        "revision": "4d512c93d6d5c9ab5c5df303c30d0fd65ef9a3a8",
+        "dirty": true,
+        "builtAt": "2026-10-15T08:42:53.884Z",
+        "sourceHash": "751749f8209170dce5723a1f7d8b7c830d4d93dcf214d4b7620cb91b6c1836d1",
+        "rendererHash": "73f60b54568e890e19b4a0b0999a4e69b1aafd16742d52043d84df874c111b3a",
+        "desktopHash": "c719be4d495ed218b1e0c126308d41f15df54ee0e362ebc627875ceea74f73e4"
+      },
+      "indexSha256": "f319bd1022b21279bf0cbcb99c52fc954c028591046f6439efc8a32ffacb0ce5",
+      "mainSha256": "c853be4878b8ad353e0744302a9dee4a3367a5bd376f5f87cfec4bf4c7b93b11"
+    }
+  },
+  "series": [
+    {
+      "platform": "browser",
+      "mode": "before",
+      "round": 1,
+      "runId": "ab-v1-browser-before-1",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 17791,
+          "editableMs": 17791,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3964,
+          "editableMs": 3964,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "after",
+      "round": 1,
+      "runId": "ab-v1-browser-after-1",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 12530,
+          "editableMs": 12530,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 4239,
+          "editableMs": 4239,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "after",
+      "round": 2,
+      "runId": "ab-v1-browser-after-2",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 12747,
+          "editableMs": 12747,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3549,
+          "editableMs": 3549,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "before",
+      "round": 2,
+      "runId": "ab-v1-browser-before-2",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 17292,
+          "editableMs": 17292,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 4172,
+          "editableMs": 4172,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "before",
+      "round": 3,
+      "runId": "ab-v1-browser-before-3",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 17027,
+          "editableMs": 17027,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3929,
+          "editableMs": 3929,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "after",
+      "round": 3,
+      "runId": "ab-v1-browser-after-3",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 14011,
+          "editableMs": 14011,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3081,
+          "editableMs": 3081,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "after",
+      "round": 4,
+      "runId": "ab-v1-browser-after-4",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 12872,
+          "editableMs": 12872,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3469,
+          "editableMs": 3469,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "before",
+      "round": 4,
+      "runId": "ab-v1-browser-before-4",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 16874,
+          "editableMs": 16874,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 4065,
+          "editableMs": 4065,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "before",
+      "round": 5,
+      "runId": "ab-v1-browser-before-5",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 16596,
+          "editableMs": 16596,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 4266,
+          "editableMs": 4266,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "mode": "after",
+      "round": 5,
+      "runId": "ab-v1-browser-after-5",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 12663,
+          "editableMs": 12663,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3361,
+          "editableMs": 3361,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "before",
+      "round": 1,
+      "runId": "ab-v2-desktop-before-1",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 5974,
+          "editableMs": 6078,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3499,
+          "editableMs": 3541,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "after",
+      "round": 1,
+      "runId": "ab-v2-desktop-after-1",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 3963,
+          "editableMs": 3992,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3210,
+          "editableMs": 3248,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "after",
+      "round": 2,
+      "runId": "ab-v2-desktop-after-2",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 3638,
+          "editableMs": 3675,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3624,
+          "editableMs": 3661,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "before",
+      "round": 2,
+      "runId": "ab-v2-desktop-before-2",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 5020,
+          "editableMs": 5047,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 4060,
+          "editableMs": 4089,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "before",
+      "round": 3,
+      "runId": "ab-v2-desktop-before-3",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 4005,
+          "editableMs": 4094,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 4283,
+          "editableMs": 4335,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "after",
+      "round": 3,
+      "runId": "ab-v2-desktop-after-3",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 3846,
+          "editableMs": 3875,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3220,
+          "editableMs": 3258,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "after",
+      "round": 4,
+      "runId": "ab-v2-desktop-after-4",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 3436,
+          "editableMs": 3464,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3037,
+          "editableMs": 3336,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "before",
+      "round": 4,
+      "runId": "ab-v2-desktop-before-4",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 4971,
+          "editableMs": 5014,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3167,
+          "editableMs": 3265,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "before",
+      "round": 5,
+      "runId": "ab-v2-desktop-before-5",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 4073,
+          "editableMs": 4173,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 3370,
+          "editableMs": 3410,
+          "revision": 18
+        }
+      ]
+    },
+    {
+      "platform": "desktop",
+      "mode": "after",
+      "round": 5,
+      "runId": "ab-v2-desktop-after-5",
+      "samples": [
+        {
+          "phase": "cold",
+          "visibleCanvasMs": 3487,
+          "editableMs": 3514,
+          "revision": 18
+        },
+        {
+          "phase": "reopen",
+          "visibleCanvasMs": 2794,
+          "editableMs": 2827,
+          "revision": 18
+        }
+      ]
+    }
+  ],
+  "sourceArchives": {
+    "before-source.tgz": "9c1f8a6c1d17c93944a56782967cb09d6cf0ba9f9bc05de4d5fe1ee65a0be3c1",
+    "after-source-v2.tgz": "8307fc39116b8fb78e8ccd6d054a45fd4c83b44f468501276aef6120ccaa9e43",
+    "before-web.tgz": "21fce2baa936f2fbf419a65ee4c7a0f2bd9ad0661fe35b0ca97a2e5e1948f175",
+    "after-web-v2.tgz": "3c97ae2b958f373fc7079877cc217285d6f5b5409801943fddcd6f6f11de7025"
+  }
+}

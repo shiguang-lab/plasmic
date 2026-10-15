@@ -95,7 +95,7 @@ it("reports a failed initial model and fetches again on retry", async () => {
   expect(wire.getSiteInfo).toHaveBeenCalledTimes(2);
 });
 it("awaits the initial locale callback before allowing the host registration to finish", async () => {
-  setLanguagePreference("zh-CN");
+  await setLanguagePreference("zh-CN");
   const { api } = connect();
   let finish: (() => void) | undefined;
   const initial = new Promise<void>((resolve) => {
@@ -118,15 +118,15 @@ it("awaits the initial locale callback before allowing the host registration to 
   unregister();
 });
 it("keeps the editor synchronized and removes its listener when the frame is disposed", async () => {
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   const { api, mounted } = connect();
   const listener = vitest.fn();
   await api.registerUiLocaleListener(listener);
-  act(() => setLanguagePreference("ko"));
+  await act(async () => { await setLanguagePreference("ko"); });
   expect(listener).toHaveBeenLastCalledWith("ko");
   mounted.unmount();
   listener.mockClear();
-  act(() => setLanguagePreference("ja"));
+  await act(async () => { await setLanguagePreference("ja"); });
   expect(listener).not.toHaveBeenCalled();
 });
 

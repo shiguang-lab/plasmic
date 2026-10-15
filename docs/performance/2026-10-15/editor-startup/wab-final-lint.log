@@ -1,0 +1,162 @@
+
+<repo>/platform/wab/src/wab/client/app-ctx.ts
+  515:36  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+  520:36  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/Shell.tsx
+  71:27  warning  Unexpected empty function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/TinyEditor.tsx
+   6:9  warning  'tinymce' is assigned a value but never used. Allowed unused vars must match /^_/u                                   @typescript-eslint/no-unused-vars
+  30:1  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  32:1  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  35:1  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  37:1  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+<repo>/platform/wab/src/wab/client/components/canvas/FreestyleBox.tsx
+  101:20  warning  'ins' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  142:19  warning  'spec' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/canvas/HoverBox/HoverBoxes.tsx
+  873:46  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/canvas/HoverBox/StackOfParents.tsx
+  52:45  warning  Optional chain expressions can return undefined by design - using a non-null assertion is unsafe and wrong  @typescript-eslint/no-non-null-asserted-optional-chain
+
+<repo>/platform/wab/src/wab/client/components/canvas/MeasureTool.tsx
+  115:12  warning  `ensure` must always be invoked with a message  no-restricted-syntax
+
+<repo>/platform/wab/src/wab/client/components/canvas/VariantsBar/VariantBadge.tsx
+  37:3  warning  'superComp' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/canvas/VariantsBar/VariantsBar.tsx
+  37:8  warning  'defer' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/comments/CanvasCommentMarkers.tsx
+  313:9  warning  'isTargetingSomeNonBaseVariant' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/comments/CommentPost.tsx
+  33:48  warning  'ref' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/comments/ReactionsByEmoji.tsx
+  21:9  warning  'api' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  75:9  warning  'api' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/insert-panel/InsertPanel.tsx
+   96:10  warning  'HighlightBlinker' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+  257:6   warning  'props' is defined but never used. Allowed unused args must match /^_/u                               @typescript-eslint/no-unused-vars
+  419:34  warning  'setSelectedPlacementIndex' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/modals/BillingForm.tsx
+  338:39  warning  `ensure` must always be invoked with a message  no-restricted-syntax
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor.tsx
+  146:22  warning  Unexpected empty method 'focus'  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/ComponentProps/localization.test.tsx
+  23:23  warning  Unexpected empty method 'openMenu'  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker.tsx
+   801:26  warning  Unexpected empty method 'setExecuteQueue'                                                 @typescript-eslint/no-empty-function
+  2809:19  warning  'fieldSettings' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  3706:11  warning  'theme' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/FlexContainerControls.tsx
+   42:6   warning  'AlignmentType' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  108:10  warning  'getCrossAxisProp' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  112:10  warning  'getOppositeAlignmentIf' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  145:10  warning  'PreviewStack' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  493:10  warning  'Aligner' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+  761:30  warning  'isWrap' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/PageURLParametersSection.tsx
+  303:37  warning  Unexpected empty method 'onSave'  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/ResponsivenessPanel/ResponsivenessPanel.tsx
+  20:24  warning  'FRAME_LOWER' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/columns-section.tsx
+  267:25  warning  'studioCtx' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  268:9   warning  'exp' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/style-tab.tsx
+  99:27  warning  Unexpected empty method 'onAnimationAdded'  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/sidebar-tabs/tpl-tree.tsx
+  2072:5  warning  'visibilityDataCond' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  2073:5  warning  'canvasEnv' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/sidebar/LeftGeneralTokensPanel.tsx
+  333:10  warning  'screenGlobalVariants' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/sidebar/UserManagedFonts.tsx
+  25:33  warning  'props' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/splits/ExperimentPanel.tsx
+  59:7  warning  'EditableVariantName' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/studio/studio-initializer.tsx
+  260:25  warning  Include a description after the "@ts-expect-error" directive to explain why the @ts-expect-error is necessary. The description must be 3 characters or longer  @typescript-eslint/ban-ts-comment
+
+<repo>/platform/wab/src/wab/client/components/style-controls/AngleDial.tsx
+  48:29  warning  `ensure` must always be invoked with a message  no-restricted-syntax
+  48:38  warning  `ensure` must always be invoked with a message  no-restricted-syntax
+
+<repo>/platform/wab/src/wab/client/components/style-controls/BorderControls.tsx
+  523:45  warning  'i' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/top-bar/ViewButton.tsx
+  124:49  warning  'props' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/components/top-bar/ZoomButton.test.tsx
+  19:17  warning  Unexpected empty method 'observe'     @typescript-eslint/no-empty-function
+  20:19  warning  Unexpected empty method 'unobserve'   @typescript-eslint/no-empty-function
+  21:20  warning  Unexpected empty method 'disconnect'  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/components/widgets.tsx
+   46:20  warning  'Skeleton' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  367:23  warning  Unexpected empty arrow function                                             @typescript-eslint/no-empty-function
+  368:18  warning  Unexpected empty arrow function                                             @typescript-eslint/no-empty-function
+  369:21  warning  Unexpected empty arrow function                                             @typescript-eslint/no-empty-function
+  630:24  warning  Unexpected empty arrow function                                             @typescript-eslint/no-empty-function
+  631:28  warning  Unexpected empty arrow function                                             @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/copilot/prototype.test.ts
+  450:25  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+  451:25  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/host-ready.test.ts
+  58:10  warning  `ensure` must always be invoked with a message  no-restricted-syntax
+
+<repo>/platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx
+  1042:28  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/client/studio-ctx/comments-ctx.ts
+  473:30  warning  Optional chain expressions can return undefined by design - using a non-null assertion is unsafe and wrong  @typescript-eslint/no-non-null-asserted-optional-chain
+
+<repo>/platform/wab/src/wab/client/tours/Tour.tsx
+  26:3  warning  'onlyUsersCreatedBefore' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/client/tours/tutorials/TutorialTours.tsx
+  573:47  warning  'tour' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/server/AppServer.ts
+   451:3   warning  'opts' is defined but never used. Allowed unused args must match /^_/u                           @typescript-eslint/no-unused-vars
+   692:37  warning  'app' is defined but never used. Allowed unused args must match /^_/u                            @typescript-eslint/no-unused-vars
+   692:63  warning  Unexpected empty function 'addWhiteLabelRoutes'                                                  @typescript-eslint/no-empty-function
+  1046:9   warning  'sensitiveRateLimiter' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  1849:10  warning  'captcha' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/server/bundle-migrations/194-migrate-hostless.ts
+  39:13  warning  'dataParam' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+<repo>/platform/wab/src/wab/server/copilot/ai-workflow.test.ts
+  71:42  warning  Unexpected empty async arrow function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/server/routes/editor-bootstrap.test.ts
+  49:47  warning  Unexpected empty arrow function  @typescript-eslint/no-empty-function
+
+<repo>/platform/wab/src/wab/server/routes/projects.ts
+  572:21  warning  'id' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 74 problems (0 errors, 74 warnings)

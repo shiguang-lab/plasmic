@@ -8,7 +8,7 @@ import IconButton from "@/wab/client/components/widgets/IconButton";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import Trash2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Trash2Svg";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { ensure, notNil } from "@/wab/shared/common";
 import {

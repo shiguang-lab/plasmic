@@ -62,8 +62,12 @@ export function TopFrameCtxProvider({
     );
     // Fetch the model while the trusted host boots, instead of starting this
     // request only after its scripts and frame bridge have initialized.
+    const prefetched = appCtx.initialProjectModel;
+    appCtx.initialProjectModel = undefined;
     let initialSiteInfo: ReturnType<typeof api.getSiteInfo> | undefined =
-      api.getSiteInfo(projectId, { branchId: initialBranchId });
+      prefetched?.projectId === projectId && prefetched.branchId === initialBranchId
+        ? prefetched.data
+        : api.getSiteInfo(projectId, { branchId: initialBranchId });
     void initialSiteInfo.catch(() => undefined);
     const localeDisposers = new Set<() => void>();
     let comlinkState:

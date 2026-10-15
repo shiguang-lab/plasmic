@@ -129,10 +129,6 @@ import {
   maybeToggleTrailingSlash,
 } from "@/wab/client/utils/app-hosting-utils";
 import { drainQueue } from "@/wab/commons/asyncutil";
-import {
-  withConsumer,
-  withProvider,
-} from "@/wab/commons/components/ContextUtil";
 import { safeCallbackify } from "@/wab/commons/control";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
 import { isLatest, latestTag, lt } from "@/wab/commons/semver";
@@ -454,7 +450,7 @@ import {
 } from "mobx";
 import { computedFn } from "mobx-utils";
 import { Result, err, ok } from "neverthrow";
-import React, { useContext } from "react";
+import React from "react";
 import semver from "semver";
 import * as Signals from "signals";
 import { mutate } from "swr";
@@ -792,13 +788,13 @@ export class StudioCtx extends WithDbCtx {
 
     this.isDocs = !!APP_ROUTES.projectDocs.parse(location.pathname, false);
 
-    spawn(
+    this.runAfterInitialCanvasReady(() =>
       this.getProjectReleases().then((releases) =>
         this.releases.replace(releases),
       ),
     );
 
-    spawn(
+    this.runAfterInitialCanvasReady(() =>
       this.listUnpublishedProjectRevisions().then((revision) =>
         this.revisions.replace(revision),
       ),
@@ -1834,6 +1830,13 @@ export class StudioCtx extends WithDbCtx {
     if (focusedVc && !this.viewCtxs.includes(focusedVc)) {
       this.setStudioFocusOnFrame({ frame: undefined });
     }
+  }
+
+  runAfterInitialCanvasReady(task: () => Promise<unknown>) {
+    this.disposals.push(when(
+      () => this.canvasLoadingDisposed || (this.initialRouteReady && this.initialViewportReady && this.activeCanvasReady),
+      () => { if (!this.canvasLoadingDisposed) {spawn(task());} },
+    ));
   }
 
   dispose() {
@@ -8419,21 +8422,6 @@ interface CanvasLoadRequest {
   name: string;
 }
 
-export const StudioCtxContext = React.createContext<StudioCtx | undefined>(
-  // To recover studioCtx after hot reloading
-  (window as any).dbg?.studioCtx,
-);
-export const withStudioCtx = withConsumer(
-  StudioCtxContext.Consumer,
-  "studioCtx",
-);
-export const providesStudioCtx = withProvider(StudioCtxContext.Provider);
-export const useStudioCtx = () => ensure(useContext(StudioCtxContext), "");
-export const usePlasmicCtx = () => {
-  const studioCtx = useStudioCtx();
-  const viewCtx = studioCtx.focusedViewCtx();
-  return { studioCtx, viewCtx };
-};
 
 function canUserEditProject(user: ApiUser | null, project: SiteInfo) {
   if (isUnownedProject(project)) {

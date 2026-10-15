@@ -4,7 +4,7 @@ import {
   DefaultExperimentToggleProps,
   PlasmicExperimentToggle,
 } from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentToggle";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { SplitStatus } from "@/wab/shared/core/splits";
 import { Split } from "@/wab/shared/model/classes";

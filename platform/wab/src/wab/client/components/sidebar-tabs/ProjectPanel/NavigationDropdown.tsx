@@ -55,11 +55,8 @@ import {
   promptComponentTemplate,
   promptPageTemplate,
 } from "@/wab/client/prompts";
-import {
-  StudioCtx,
-  providesStudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { providesStudioCtx, useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { testIds } from "@/wab/client/test-ids";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { valueAsString } from "@/wab/commons/values";

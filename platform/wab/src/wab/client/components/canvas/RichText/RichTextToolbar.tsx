@@ -29,7 +29,7 @@ import {
   DefaultRichTextToolbarProps,
   PlasmicRichTextToolbar,
 } from "@/wab/client/plasmic/plasmic_kit_rich_text_toolbar/PlasmicRichTextToolbar";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { EditingTextContext } from "@/wab/client/studio-ctx/view-ctx";
 import { fontWeightOptions } from "@/wab/client/typography-utils";
 import { INTERACT_OUTSIDE_EXCEPTION_SELECTORS } from "@/wab/commons/components/OnClickAway";

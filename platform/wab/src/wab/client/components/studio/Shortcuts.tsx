@@ -16,7 +16,7 @@ import {
   TOOLS_SHORTCUT_GROUP,
   VIEW_SHORTCUT_GROUP,
 } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Input, Tag } from "antd";
 import cn from "classnames";

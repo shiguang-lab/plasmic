@@ -5,7 +5,7 @@ import { PropEditorRef } from "@/wab/client/components/sidebar-tabs/PropEditorRo
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { useI18n } from "@/wab/client/i18n";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   ExprCtx,

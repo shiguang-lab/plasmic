@@ -252,3 +252,73 @@ it("reports a deleted node and does not try to scroll it into view", async () =>
   expect(session.error?.message).toBe("Element no longer exists.");
   expect(tools.scrollElementIntoView).not.toHaveBeenCalled();
 });
+
+it.each(["send", "retry"] as const)(
+  "keeps an unfocused canvas binding during %s",
+  async (action) => {
+    const tools = mock<PlasmicAiTools>();
+    tools._getLocalContext.mockResolvedValue({
+      success: true,
+      output: JSON.stringify({
+        projectName: "Project",
+        projectId: "project",
+        branchId: null,
+        sessionId: "session",
+        changeCounter: 0,
+        componentUuid: null,
+        frameUuid: null,
+        selectedElementUuids: [],
+        instanceIndex: null,
+        mode: "edit",
+        canEdit: true,
+        editorView: {
+          arenaId: "PageGroup",
+          arenaType: "custom",
+          frameUuid: null,
+          scale: 1,
+          scroll: { x: 0, y: 0 },
+        },
+        selectedSlot: null,
+        previewContext: null,
+        path: [],
+      }),
+    });
+    const session = new LocalEditSession("project", () => tools);
+    session.userId = "user";
+    const binding = {
+      ...task.binding,
+      componentUuid: null,
+      canvasName: "PageGroup",
+    };
+    if (action === "retry") {
+      tools.navigateCanvas.mockResolvedValue({ success: true, output: "{}" });
+      const run = vi.spyOn(session, "run").mockResolvedValue(undefined);
+      await session.retry({ ...task, status: "failed", binding });
+      expect(tools.navigateCanvas).toHaveBeenCalledWith({
+        canvasName: "PageGroup",
+      });
+      expect(tools.navigate).not.toHaveBeenCalled();
+      expect(run).toHaveBeenCalledWith(
+        task.prompt,
+        expect.objectContaining(binding),
+        undefined,
+        [],
+        undefined,
+      );
+    } else {
+      const request = vi
+        .fn()
+        .mockResolvedValue({ ok: true, json: async () => task });
+      vi.stubGlobal("fetch", request);
+      try {
+        await session.run("Update this canvas");
+        expect(session.error).toBeUndefined();
+        const body = JSON.parse(request.mock.calls[0][1].body);
+        expect(body.binding).toMatchObject(binding);
+        expect(body.target).toBeUndefined();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    }
+  },
+);

@@ -4,7 +4,7 @@ import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers"
 import { PageParamsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ensure } from "@/wab/shared/common";
 import { Component } from "@/wab/shared/model/classes";
 import { extractPathParamMetas } from "@/wab/shared/utils/url-utils";

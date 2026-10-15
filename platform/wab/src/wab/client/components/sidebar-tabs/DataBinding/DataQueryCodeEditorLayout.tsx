@@ -7,7 +7,7 @@ import {
   DefaultDataQueryCodeEditorLayoutProps,
   PlasmicDataQueryCodeEditorLayout,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataQueryCodeEditorLayout";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getEnvForPlasmicQueries } from "@/wab/shared/core/custom-functions";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import {

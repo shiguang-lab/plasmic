@@ -95,9 +95,10 @@ class DesktopWorkspace {
     if (!id) {
       return this.lastUrl;
     }
-    const url = new URL("/api/v1/projects", this.origin);
-    url.searchParams.set("query", JSON.stringify("byIds"));
-    url.searchParams.set("projectIds", JSON.stringify([id]));
+    this.startupData = undefined;
+    const url = new URL("/api/v1/editor-bootstrap/" + id, this.origin);
+    const branchName = new URL(this.lastUrl).searchParams.get("branch") || "main";
+    if (branchName) {url.searchParams.set("branchName", JSON.stringify(branchName));}
     const options = {
       bypassCustomProtocolHandlers: true,
       credentials: "include",
@@ -108,11 +109,13 @@ class DesktopWorkspace {
     try {
       const response = await session.fetch(url.toString(), options);
       if (response.ok) {
-        const { projects } = await response.json();
+        const bootstrap = await response.json();
+        const { projects } = bootstrap.projectData;
         if (!Array.isArray(projects)) {
           throw new Error("Invalid project response");
         }
         if (projects.some((project) => project.id === id)) {
+          this.startupData = { data: bootstrap, expiresAt: Date.now() + 30000 };
           return this.lastUrl;
         }
       } else if (![401, 403, 404].includes(response.status)) {
@@ -142,9 +145,14 @@ class DesktopWorkspace {
     }
     return home;
   }
+  consumeStartupData(projectId) {
+    const data = this.startupData;
+    this.startupData = undefined;
+    return data?.data.projectId === projectId && Date.now() < data.expiresAt ? data.data : null;
+  }
   async refreshRecent(session) {
     const entries = [...this.recent];
-    if (!entries.length) return false;
+    if (!entries.length) {return false;}
     const options = {
       bypassCustomProtocolHandlers: true,
       credentials: "include",
@@ -158,7 +166,7 @@ class DesktopWorkspace {
         options,
       );
       if (!login.ok || (await login.json()).authenticated !== true)
-        return false;
+        {return false;}
       const unavailable = await Promise.all(
         entries.map(async (entry) => {
           const id = this.projectId(entry.url);
@@ -167,8 +175,8 @@ class DesktopWorkspace {
           url.searchParams.set("projectIds", JSON.stringify([id]));
           try {
             const response = await session.fetch(url.toString(), options);
-            if ([403, 404].includes(response.status)) return id;
-            if (!response.ok) return undefined;
+            if ([403, 404].includes(response.status)) {return id;}
+            if (!response.ok) {return undefined;}
             const { projects } = await response.json();
             return Array.isArray(projects) &&
               !projects.some((project) => project.id === id)
@@ -238,9 +246,9 @@ function fileMenu({
           ? workspace.recent.map((entry) => ({
               label: entry.name || workspace.projectId(entry.url),
               click: run(async () => {
-                if (await workspace.refreshRecent(session)) refresh();
+                if (await workspace.refreshRecent(session)) {refresh();}
                 if (!workspace.recent.some((item) => item.url === entry.url))
-                  return;
+                  {return;}
                 await controller.dispatch("open_design", {
                   projectId: workspace.projectId(entry.url),
                 });

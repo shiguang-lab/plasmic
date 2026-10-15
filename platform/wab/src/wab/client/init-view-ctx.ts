@@ -4,7 +4,7 @@ import {
   initRootCanvasPkgs,
   PlasmicWindowInternals,
 } from "@/wab/client/frame-ctx/windows";
-import { loadSiteDbCtx } from "@/wab/client/init-ctx";
+import { checkDepPkgHosts, loadSiteDbCtx } from "@/wab/client/init-ctx";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ProjectId } from "@/wab/shared/ApiSchema";
@@ -21,8 +21,10 @@ import * as mobx from "mobx";
 function createStudioCtx({
   dbCtx,
   loadTimings,
+  depPkgVersions,
 }: {
   dbCtx: DbCtx;
+  depPkgVersions: import("@/wab/shared/model/classes").ProjectDependency[];
   siteInfo: SiteInfo;
   loadTimings: StudioLoadTimings;
 }) {
@@ -35,6 +37,7 @@ function createStudioCtx({
         loadTimings,
       }));
   contextDone();
+  studioCtx.runAfterInitialCanvasReady(() => checkDepPkgHosts(studioCtx.appCtx, studioCtx.siteInfo, depPkgVersions));
 
   spawn(initRootCanvasPkgs());
 
@@ -57,11 +60,12 @@ export async function initStudioCtx(
   onRefreshUi,
   loadTimings = new StudioLoadTimings(),
 ) {
-  const dbCtx = await loadSiteDbCtx(appCtx, onRefreshUi, siteId, loadTimings);
+  const { dbCtx, depPkgVersions } = await loadSiteDbCtx(appCtx, onRefreshUi, siteId, loadTimings);
   const { siteInfo } = dbCtx;
 
   return createStudioCtx({
     dbCtx,
+    depPkgVersions,
     siteInfo,
     loadTimings,
   });

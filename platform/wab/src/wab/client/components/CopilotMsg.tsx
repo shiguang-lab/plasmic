@@ -5,7 +5,7 @@ import {
   PlasmicCopilotMsg,
   PlasmicCopilotMsg__OverridesType,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotMsg";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { CopilotInteractionId } from "@/wab/shared/ApiSchema";
 import { assert, maybe, spawn } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";

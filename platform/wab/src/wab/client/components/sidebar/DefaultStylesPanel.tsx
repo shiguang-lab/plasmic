@@ -9,7 +9,7 @@ import {
   DefaultDefaultStylesPanelProps,
   PlasmicDefaultStylesPanel,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicDefaultStylesPanel";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { isScreenVariant } from "@/wab/shared/Variants";
 import { ensure } from "@/wab/shared/common";
 import { getApplicableSelectors } from "@/wab/shared/core/styles";

@@ -79,7 +79,7 @@ export function CanvasAiComposer({
         }}
         onSubmit={open}
         attachmentState={attachmentState}
-        scope={context.scope ?? t("Current page")}
+        scope={context.scope ?? t("Current canvas")}
         models={status?.models}
         model={session.selectedModel ?? status?.model}
         onModelChange={(model) => {
@@ -90,18 +90,18 @@ export function CanvasAiComposer({
         onStop={() => session.stop()}
         stopDisabled={!activeTask || !session.canStop(activeTask)}
         canSubmit={enabled && !!context.binding}
-        placeholder={
+        placeholder={t(
           !context.binding
-            ? t("Create or select a page before using AI.")
-            : t("Describe changes to the current page…")
-        }
+            ? "Open a page or canvas before using AI."
+            : "Describe what you want to change…",
+        )}
         ariaLabel={t("AI canvas editing")}
         testId="canvas-ai-composer"
         availability={
           !enabled
             ? t("Local AI editing is disabled.")
             : !context.binding
-              ? t("Create or select a page before using AI.")
+              ? t("Open a page or canvas before using AI.")
               : undefined
         }
       />

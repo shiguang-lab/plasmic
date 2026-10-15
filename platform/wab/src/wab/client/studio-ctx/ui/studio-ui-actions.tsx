@@ -1,4 +1,4 @@
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiActionType } from "@/wab/client/studio-ctx/ui/UiActionBus";
 import {
   ModelTypeTag,

@@ -1,9 +1,8 @@
+import { deriveFormFieldConfigs, InputType } from "../form-meta";
 import {
-  deriveFieldConfigs,
   ManyRowsResult,
   normalizeData,
   SingleRowResult,
-  TableSchema,
   usePlasmicDataOp,
 } from "@plasmicapp/data-sources";
 import { Input, InputNumber } from "antd";
@@ -17,40 +16,11 @@ import {
   FormRefActions,
   FormWrapper,
   FormWrapperProps,
-  InputType,
   SchemaFormContext,
   SimplifiedFormItemsProp,
 } from "./Form";
 import { FormItemWrapper } from "./FormItem";
 
-export function deriveFormFieldConfigs(
-  dataFormItems: SimplifiedFormItemsProp[],
-  schema: TableSchema,
-  data: any
-) {
-  return deriveFieldConfigs<SimplifiedFormItemsProp>(
-    dataFormItems,
-    schema,
-    (field) => ({
-      inputType: InputType.Text,
-      ...(field && {
-        key: field.id,
-        fieldId: field.id,
-        label: field.label ?? field.id,
-        name: field.id,
-        inputType:
-          field.type === "string"
-            ? InputType.Text
-            : field.type === "number"
-            ? InputType.Number
-            : field.type === "boolean"
-            ? InputType.Checkbox
-            : InputType.Text, //missing date and date-time
-        initialValue: data ? data[field.id] : undefined,
-      }),
-    })
-  );
-}
 
 function useFormItemDefinitions(
   rawData:

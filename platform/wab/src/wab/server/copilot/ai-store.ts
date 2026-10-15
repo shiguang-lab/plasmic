@@ -308,7 +308,7 @@ export async function createRun(
         authorName,
         nodes,
         designRevision: context.revision,
-        scopeLabel: context.componentName ?? undefined,
+        scopeLabel: request.binding.canvasName ?? context.componentName ?? undefined,
         createdAt: new Date().toISOString(),
         prompt: request.prompt,
         model: request.model,

@@ -2056,3 +2056,16 @@ export interface CmsRowData {
 }
 
 export type CmsLocaleSpecificData = Dict<unknown>;
+
+/** Data used once while opening a project; model data is fetched separately. */
+export interface EditorBootstrapResponse {
+  selfInfo: SelfResponse | null;
+  appConfig: AppConfigResponse;
+  appCtx: AppCtxResponse;
+  latestBundleVersion: string;
+  projectId: string;
+  branchName?: string;
+  projectData: ProjectsResponse;
+  hosts: TrustedHostsListResponse;
+  branches: ApiBranch[];
+}

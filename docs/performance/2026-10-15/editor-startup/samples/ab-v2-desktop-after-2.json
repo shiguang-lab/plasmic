@@ -1,0 +1,1697 @@
+{
+  "desktopMainHash": "c853be4878b8ad353e0744302a9dee4a3367a5bd376f5f87cfec4bf4c7b93b11",
+  "mode": "after",
+  "runId": "ab-v2-desktop-after-2",
+  "startedAt": "2026-10-15T08:59:12.950Z",
+  "projectName": "海外客群管理平台 P0 原型",
+  "expectedViewport": {
+    "arenaId": "REQ075 · Desktop",
+    "arenaType": "custom",
+    "frameUuid": null,
+    "scale": 0.3557330827067669,
+    "scroll": {
+      "x": 1666,
+      "y": 657.5
+    }
+  },
+  "build": {
+    "revision": "4d512c93d6d5c9ab5c5df303c30d0fd65ef9a3a8",
+    "dirty": true,
+    "sourceHash": "751749f8209170dce5723a1f7d8b7c830d4d93dcf214d4b7620cb91b6c1836d1",
+    "builtAt": "2026-10-15T08:42:53.884Z",
+    "artifactHash": "d1ccb8020813ce6cce6152e1fca85a0425b22d927464050f4385661fecbef7e1"
+  },
+  "samples": [
+    {
+      "uiLocale": "en",
+      "topRevealAt": 1792054756719,
+      "editableMs": 3675,
+      "firstRenderedMs": 3606,
+      "cssViewport": {
+        "dpr": 2,
+        "height": 887,
+        "width": 1512
+      },
+      "phase": "cold",
+      "startAt": 1792054753081,
+      "timingStartAt": 1792054754232.5,
+      "timeOrigin": 1792054753889.9,
+      "globalRevealMs": 3606,
+      "visibleCanvasMs": 3638,
+      "allContextsMs": 3400.7000000178814,
+      "timings": {
+        "elapsedMs": 3406.9000000059605,
+        "entries": [
+          {
+            "durationMs": 136.2000000178814,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 4.699999988079071,
+            "phase": "startup-preferences",
+            "startMs": 158.7000000178814
+          },
+          {
+            "durationMs": 534.3000000119209,
+            "phase": "project-fetch",
+            "startMs": 163.59999999403954
+          },
+          {
+            "durationMs": 78.30000001192093,
+            "phase": "model-unbundle",
+            "startMs": 697.9000000059605
+          },
+          {
+            "durationMs": 29.599999994039536,
+            "phase": "studio-context",
+            "startMs": 788.8000000119209
+          },
+          {
+            "durationMs": 11.300000011920929,
+            "phase": "code-component-sync",
+            "startMs": 913.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 924.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 924.7000000178814
+          },
+          {
+            "durationMs": 311.19999998807907,
+            "phase": "initial-route",
+            "startMs": 793.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-load-start",
+            "startMs": 1108.800000011921
+          },
+          {
+            "durationMs": 70,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-host-document",
+            "startMs": 1112.5999999940395
+          },
+          {
+            "durationMs": 2.399999976158142,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-host-ready",
+            "startMs": 1183.7000000178814
+          },
+          {
+            "durationMs": 39.79999998211861,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-runtime",
+            "startMs": 1186.2000000178814
+          },
+          {
+            "durationMs": 627.9000000059605,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-component-packages",
+            "startMs": 1226
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-context-created",
+            "startMs": 1856
+          },
+          {
+            "durationMs": 751.5999999940395,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-initialization",
+            "startMs": 1108.800000011921
+          },
+          {
+            "durationMs": 752.3000000119209,
+            "phase": "initial-target-wait",
+            "startMs": 1108.0999999940395
+          },
+          {
+            "durationMs": 4,
+            "phase": "initial-viewport-layout",
+            "startMs": 1860.4000000059605
+          },
+          {
+            "durationMs": 10.400000005960464,
+            "phase": "initial-viewport-commit",
+            "startMs": 1864.5
+          },
+          {
+            "durationMs": 398.09999999403954,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-first-render",
+            "startMs": 1898.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-rendered",
+            "startMs": 2299.5
+          },
+          {
+            "durationMs": 424.90000000596046,
+            "phase": "initial-target-render-wait",
+            "startMs": 1874.9000000059605
+          },
+          {
+            "durationMs": 1513.8999999761581,
+            "phase": "initial-viewport",
+            "startMs": 793.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 2309.5
+          },
+          {
+            "durationMs": 625.5999999940395,
+            "phase": "background-canvas-wait",
+            "startMs": 1860.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-load-start",
+            "startMs": 2510.4000000059605
+          },
+          {
+            "durationMs": 55.60000002384186,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-host-document",
+            "startMs": 2522.5999999940395
+          },
+          {
+            "durationMs": 4.0999999940395355,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-host-ready",
+            "startMs": 2579.5
+          },
+          {
+            "durationMs": 41.5,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-runtime",
+            "startMs": 2583.7000000178814
+          },
+          {
+            "durationMs": 68.40000000596046,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-component-packages",
+            "startMs": 2625.300000011921
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-context-created",
+            "startMs": 2695.4000000059605
+          },
+          {
+            "durationMs": 188.40000000596046,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-initialization",
+            "startMs": 2510.4000000059605
+          },
+          {
+            "durationMs": 115.7000000178814,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-first-render",
+            "startMs": 2722
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-rendered",
+            "startMs": 2838.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-load-start",
+            "startMs": 2890.0999999940395
+          },
+          {
+            "durationMs": 81.59999999403954,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-host-document",
+            "startMs": 2892.7000000178814
+          },
+          {
+            "durationMs": 4.700000017881393,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-host-ready",
+            "startMs": 2975.0999999940395
+          },
+          {
+            "durationMs": 41.599999994039536,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-runtime",
+            "startMs": 2979.800000011921
+          },
+          {
+            "durationMs": 69.30000001192093,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-component-packages",
+            "startMs": 3021.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-context-created",
+            "startMs": 3091.800000011921
+          },
+          {
+            "durationMs": 205.10000002384186,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-initialization",
+            "startMs": 2890.0999999940395
+          },
+          {
+            "durationMs": 125.7000000178814,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-first-render",
+            "startMs": 3106
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-rendered",
+            "startMs": 3231.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-load-start",
+            "startMs": 3245.5
+          },
+          {
+            "durationMs": 37.70000001788139,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-host-document",
+            "startMs": 3248.0999999940395
+          },
+          {
+            "durationMs": 4.299999982118607,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-host-ready",
+            "startMs": 3286.7000000178814
+          },
+          {
+            "durationMs": 41.30000001192093,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-runtime",
+            "startMs": 3291.0999999940395
+          },
+          {
+            "durationMs": 67,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-component-packages",
+            "startMs": 3332.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-context-created",
+            "startMs": 3400.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 3400.7000000178814
+          },
+          {
+            "durationMs": 158.80000001192093,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-initialization",
+            "startMs": 3245.5
+          }
+        ],
+        "frameCount": 4
+      },
+      "longTasks": [
+        {
+          "durationMs": 63,
+          "startMs": 77.90000000596046
+        },
+        {
+          "durationMs": 57,
+          "startMs": 161.09999999403954
+        },
+        {
+          "durationMs": 105,
+          "startMs": 238
+        },
+        {
+          "durationMs": 135,
+          "startMs": 366
+        },
+        {
+          "durationMs": 366,
+          "startMs": 904.6999999880791
+        },
+        {
+          "durationMs": 70,
+          "startMs": 1382.4000000059605
+        },
+        {
+          "durationMs": 145,
+          "startMs": 2057.300000011921
+        },
+        {
+          "durationMs": 385,
+          "startMs": 2243.0999999940395
+        },
+        {
+          "durationMs": 143,
+          "startMs": 2652.300000011921
+        },
+        {
+          "durationMs": 115,
+          "startMs": 2925.5999999940395
+        },
+        {
+          "durationMs": 107,
+          "startMs": 3066.5999999940395
+        },
+        {
+          "durationMs": 116,
+          "startMs": 3321.800000011921
+        },
+        {
+          "durationMs": 91,
+          "startMs": 3449.699999988079
+        }
+      ],
+      "frames": [
+        {
+          "componentName": "客群列表",
+          "componentUuid": "20ogVdefnlyb",
+          "height": 1024,
+          "left": 0,
+          "name": "客群列表",
+          "ready": true,
+          "top": 0,
+          "uuid": "HKxN7vVXvuGQ",
+          "width": 1440
+        },
+        {
+          "componentName": "客群圈选器",
+          "componentUuid": "Av2WxMD0UmJD",
+          "height": 1024,
+          "left": 1520,
+          "name": "客群圈选器",
+          "ready": true,
+          "top": 0,
+          "uuid": "rhooatPnqwVA",
+          "width": 1440
+        },
+        {
+          "componentName": "新建一次性客群",
+          "componentUuid": "T077eWMlWTTj",
+          "height": 1024,
+          "left": 0,
+          "name": "新建一次性客群",
+          "ready": true,
+          "top": 1104,
+          "uuid": "vuPysnS2h1Nm",
+          "width": 1440
+        },
+        {
+          "componentName": "客群详情",
+          "componentUuid": "fyjLkD2jIGjk",
+          "height": 1024,
+          "left": 1520,
+          "name": "客群详情",
+          "ready": false,
+          "top": 1104,
+          "uuid": "q4gaQqly-YIz",
+          "width": 1440
+        }
+      ],
+      "revision": 18,
+      "targetFrameUuid": "HKxN7vVXvuGQ",
+      "editorContext": {
+        "projectId": "iqBeCQWLFWvGwftodkcHbN",
+        "branchId": null,
+        "revision": 18,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "edit",
+        "canEdit": true,
+        "editorView": {
+          "arenaId": "REQ075 · Desktop",
+          "arenaType": "custom",
+          "frameUuid": null,
+          "scale": 0.3557330827067669,
+          "scroll": {
+            "x": 1666,
+            "y": 657.5
+          }
+        }
+      },
+      "viewportRestored": true
+    },
+    {
+      "uiLocale": "en",
+      "topRevealAt": 1792054761681,
+      "editableMs": 3661,
+      "firstRenderedMs": 3594,
+      "cssViewport": {
+        "dpr": 2,
+        "height": 887,
+        "width": 1512
+      },
+      "phase": "reopen",
+      "startAt": 1792054758057,
+      "timingStartAt": 1792054758708.5,
+      "timeOrigin": 1792054758455.9,
+      "globalRevealMs": 3593,
+      "visibleCanvasMs": 3624,
+      "allContextsMs": 3664.7000000178814,
+      "timings": {
+        "elapsedMs": 3670.7000000178814,
+        "entries": [
+          {
+            "durationMs": 101,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 9.599999994039536,
+            "phase": "startup-preferences",
+            "startMs": 121.30000001192093
+          },
+          {
+            "durationMs": 1505.5999999940395,
+            "phase": "project-fetch",
+            "startMs": 130.90000000596046
+          },
+          {
+            "durationMs": 77.7000000178814,
+            "phase": "model-unbundle",
+            "startMs": 1636.5
+          },
+          {
+            "durationMs": 22.5,
+            "phase": "studio-context",
+            "startMs": 1724.0999999940395
+          },
+          {
+            "durationMs": 7.5999999940395355,
+            "phase": "code-component-sync",
+            "startMs": 1841.300000011921
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 1848.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 1848.9000000059605
+          },
+          {
+            "durationMs": 275.7999999821186,
+            "phase": "initial-route",
+            "startMs": 1726.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-load-start",
+            "startMs": 2011.300000011921
+          },
+          {
+            "durationMs": 59.29999998211861,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-host-document",
+            "startMs": 2014.7000000178814
+          },
+          {
+            "durationMs": 3.0999999940395355,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-host-ready",
+            "startMs": 2074.7000000178814
+          },
+          {
+            "durationMs": 11.400000005960464,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-runtime",
+            "startMs": 2077.9000000059605
+          },
+          {
+            "durationMs": 264.09999999403954,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-component-packages",
+            "startMs": 2089.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-context-created",
+            "startMs": 2354.7000000178814
+          },
+          {
+            "durationMs": 347.19999998807907,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-initialization",
+            "startMs": 2011.300000011921
+          },
+          {
+            "durationMs": 348.09999999403954,
+            "phase": "initial-target-wait",
+            "startMs": 2010.4000000059605
+          },
+          {
+            "durationMs": 5.5999999940395355,
+            "phase": "initial-viewport-layout",
+            "startMs": 2358.5
+          },
+          {
+            "durationMs": 7.300000011920929,
+            "phase": "initial-viewport-commit",
+            "startMs": 2364.0999999940395
+          },
+          {
+            "durationMs": 381.09999999403954,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-first-render",
+            "startMs": 2396
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "HKxN7vVXvuGQ",
+            "phase": "frame-rendered",
+            "startMs": 2780.7000000178814
+          },
+          {
+            "durationMs": 409.69999998807907,
+            "phase": "initial-target-render-wait",
+            "startMs": 2371.4000000059605
+          },
+          {
+            "durationMs": 1056.2999999821186,
+            "phase": "initial-viewport",
+            "startMs": 1726.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 2784.4000000059605
+          },
+          {
+            "durationMs": 613.8000000119209,
+            "phase": "background-canvas-wait",
+            "startMs": 2358.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-load-start",
+            "startMs": 3006.5
+          },
+          {
+            "durationMs": 59.599999994039536,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-host-document",
+            "startMs": 3009.2000000178814
+          },
+          {
+            "durationMs": 4.5,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-host-ready",
+            "startMs": 3070.0999999940395
+          },
+          {
+            "durationMs": 7.5999999940395355,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-runtime",
+            "startMs": 3074.7000000178814
+          },
+          {
+            "durationMs": 22.900000005960464,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-component-packages",
+            "startMs": 3082.300000011921
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-context-created",
+            "startMs": 3106.5
+          },
+          {
+            "durationMs": 103.09999999403954,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-initialization",
+            "startMs": 3006.5
+          },
+          {
+            "durationMs": 110.09999999403954,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-first-render",
+            "startMs": 3129.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "rhooatPnqwVA",
+            "phase": "frame-rendered",
+            "startMs": 3239.800000011921
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-load-start",
+            "startMs": 3296.800000011921
+          },
+          {
+            "durationMs": 42.900000005960464,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-host-document",
+            "startMs": 3299.5999999940395
+          },
+          {
+            "durationMs": 2.5999999940395355,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-host-ready",
+            "startMs": 3343.7000000178814
+          },
+          {
+            "durationMs": 7.299999982118607,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-runtime",
+            "startMs": 3346.300000011921
+          },
+          {
+            "durationMs": 20.399999976158142,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-component-packages",
+            "startMs": 3353.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-context-created",
+            "startMs": 3375.300000011921
+          },
+          {
+            "durationMs": 82.5,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-initialization",
+            "startMs": 3296.800000011921
+          },
+          {
+            "durationMs": 92.2999999821186,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-first-render",
+            "startMs": 3394.800000011921
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "vuPysnS2h1Nm",
+            "phase": "frame-rendered",
+            "startMs": 3487.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-load-start",
+            "startMs": 3588.4000000059605
+          },
+          {
+            "durationMs": 41.80000001192093,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-host-document",
+            "startMs": 3591
+          },
+          {
+            "durationMs": 1.9000000059604645,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-host-ready",
+            "startMs": 3633.5999999940395
+          },
+          {
+            "durationMs": 7.200000017881393,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-runtime",
+            "startMs": 3635.5999999940395
+          },
+          {
+            "durationMs": 20.900000005960464,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-component-packages",
+            "startMs": 3642.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-context-created",
+            "startMs": 3664.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 3664.7000000178814
+          },
+          {
+            "durationMs": 79.19999998807907,
+            "frameUuid": "q4gaQqly-YIz",
+            "phase": "frame-initialization",
+            "startMs": 3588.4000000059605
+          }
+        ],
+        "frameCount": 4
+      },
+      "longTasks": [
+        {
+          "durationMs": 58,
+          "startMs": 195.09999999403954
+        },
+        {
+          "durationMs": 103,
+          "startMs": 270.90000000596046
+        },
+        {
+          "durationMs": 331,
+          "startMs": 1774
+        },
+        {
+          "durationMs": 73,
+          "startMs": 2193.699999988079
+        },
+        {
+          "durationMs": 52,
+          "startMs": 2558.699999988079
+        },
+        {
+          "durationMs": 370,
+          "startMs": 2650.699999988079
+        },
+        {
+          "durationMs": 157,
+          "startMs": 3037.0999999940395
+        },
+        {
+          "durationMs": 103,
+          "startMs": 3384.0999999940395
+        },
+        {
+          "durationMs": 90,
+          "startMs": 3649
+        }
+      ],
+      "frames": [
+        {
+          "componentName": "客群列表",
+          "componentUuid": "20ogVdefnlyb",
+          "height": 1024,
+          "left": 0,
+          "name": "客群列表",
+          "ready": true,
+          "top": 0,
+          "uuid": "HKxN7vVXvuGQ",
+          "width": 1440
+        },
+        {
+          "componentName": "客群圈选器",
+          "componentUuid": "Av2WxMD0UmJD",
+          "height": 1024,
+          "left": 1520,
+          "name": "客群圈选器",
+          "ready": true,
+          "top": 0,
+          "uuid": "rhooatPnqwVA",
+          "width": 1440
+        },
+        {
+          "componentName": "新建一次性客群",
+          "componentUuid": "T077eWMlWTTj",
+          "height": 1024,
+          "left": 0,
+          "name": "新建一次性客群",
+          "ready": true,
+          "top": 1104,
+          "uuid": "vuPysnS2h1Nm",
+          "width": 1440
+        },
+        {
+          "componentName": "客群详情",
+          "componentUuid": "fyjLkD2jIGjk",
+          "height": 1024,
+          "left": 1520,
+          "name": "客群详情",
+          "ready": false,
+          "top": 1104,
+          "uuid": "q4gaQqly-YIz",
+          "width": 1440
+        }
+      ],
+      "revision": 18,
+      "targetFrameUuid": "HKxN7vVXvuGQ",
+      "editorContext": {
+        "projectId": "iqBeCQWLFWvGwftodkcHbN",
+        "branchId": null,
+        "revision": 18,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "edit",
+        "canEdit": true,
+        "editorView": {
+          "arenaId": "REQ075 · Desktop",
+          "arenaType": "custom",
+          "frameUuid": null,
+          "scale": 0.3557330827067669,
+          "scroll": {
+            "x": 1666,
+            "y": 657.5
+          }
+        }
+      },
+      "viewportRestored": true
+    }
+  ],
+  "requests": [
+    {
+      "phase": "cold",
+      "path": "/api/v1/editor-bootstrap/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 172,
+      "startAt": 1792054753224,
+      "contentLength": null
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 282,
+      "startAt": 1792054753675,
+      "contentLength": null
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 161,
+      "startAt": 1792054753836,
+      "contentLength": "20"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 162,
+      "startAt": 1792054754122,
+      "contentLength": "2"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 238,
+      "startAt": 1792054755051,
+      "contentLength": null
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 228,
+      "startAt": 1792054755218,
+      "contentLength": "75"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 292,
+      "startAt": 1792054755235,
+      "contentLength": "2"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 118,
+      "startAt": 1792054755828,
+      "contentLength": "2"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 151,
+      "startAt": 1792054756694,
+      "contentLength": "2"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 155,
+      "startAt": 1792054756695,
+      "contentLength": null
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 239,
+      "startAt": 1792054756694,
+      "contentLength": "356"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 246,
+      "startAt": 1792054756697,
+      "contentLength": "831"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 255,
+      "startAt": 1792054756699,
+      "contentLength": "831"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 259,
+      "startAt": 1792054756697,
+      "contentLength": "831"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 289,
+      "startAt": 1792054756699,
+      "contentLength": null
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 312,
+      "startAt": 1792054756696,
+      "contentLength": "830"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 364,
+      "startAt": 1792054756697,
+      "contentLength": "833"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 383,
+      "startAt": 1792054756699,
+      "contentLength": "833"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 384,
+      "startAt": 1792054756698,
+      "contentLength": "830"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 413,
+      "startAt": 1792054756698,
+      "contentLength": "831"
+    },
+    {
+      "phase": "cold",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 216,
+      "startAt": 1792054756936,
+      "contentLength": "2"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/editor-bootstrap/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 133,
+      "startAt": 1792054758190,
+      "contentLength": null
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 127,
+      "startAt": 1792054758409,
+      "contentLength": "20"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 355,
+      "startAt": 1792054758325,
+      "contentLength": null
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 85,
+      "startAt": 1792054758644,
+      "contentLength": "2"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 524,
+      "startAt": 1792054759407,
+      "contentLength": "2"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 197,
+      "startAt": 1792054760462,
+      "contentLength": null
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 285,
+      "startAt": 1792054760633,
+      "contentLength": "2"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 297,
+      "startAt": 1792054760622,
+      "contentLength": "75"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 215,
+      "startAt": 1792054761658,
+      "contentLength": "2"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 232,
+      "startAt": 1792054761662,
+      "contentLength": "830"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 238,
+      "startAt": 1792054761662,
+      "contentLength": "831"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 269,
+      "startAt": 1792054761663,
+      "contentLength": null
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 305,
+      "startAt": 1792054761660,
+      "contentLength": "831"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 308,
+      "startAt": 1792054761657,
+      "contentLength": "2"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 302,
+      "startAt": 1792054761663,
+      "contentLength": "831"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 320,
+      "startAt": 1792054761662,
+      "contentLength": "833"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 323,
+      "startAt": 1792054761659,
+      "contentLength": null
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 336,
+      "startAt": 1792054761662,
+      "contentLength": "831"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 379,
+      "startAt": 1792054761660,
+      "contentLength": "833"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 387,
+      "startAt": 1792054761657,
+      "contentLength": "356"
+    },
+    {
+      "phase": "reopen",
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "status": 200,
+      "headersMs": 419,
+      "startAt": 1792054761660,
+      "contentLength": "830"
+    }
+  ],
+  "blockedWrites": [],
+  "errors": [],
+  "status": "PASS",
+  "proxyRequests": [
+    {
+      "path": "/api/v1/editor-bootstrap/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054753247,
+      "status": 200,
+      "headersMs": 148,
+      "encoding": "gzip",
+      "cacheControl": "no-store",
+      "bytes": 7641,
+      "durationMs": 161
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054753677,
+      "status": 200,
+      "headersMs": 279,
+      "serverTiming": "owner;dur=5.2, revision;dur=22.1, permissions;dur=55.9, dependencies;dur=99.1",
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 896449,
+      "durationMs": 1091
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "startAt": 1792054753839,
+      "status": 200,
+      "headersMs": 157,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 20,
+      "durationMs": 157
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054754124,
+      "status": 200,
+      "headersMs": 159,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 159
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "startAt": 1792054755053,
+      "status": 200,
+      "headersMs": 235,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 388138,
+      "durationMs": 892
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054755219,
+      "status": 200,
+      "headersMs": 226,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 226
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054755236,
+      "status": 200,
+      "headersMs": 290,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 290
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054755829,
+      "status": 200,
+      "headersMs": 116,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 116
+    },
+    {
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054756695,
+      "status": 200,
+      "headersMs": 237,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 356,
+      "durationMs": 237
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "startAt": 1792054756696,
+      "status": 200,
+      "headersMs": 148,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 148
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "startAt": 1792054756700,
+      "status": 200,
+      "headersMs": 149,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1154,
+      "durationMs": 149
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054756701,
+      "status": 200,
+      "headersMs": 307,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 307
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054756702,
+      "status": 200,
+      "headersMs": 240,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 240
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054756703,
+      "status": 200,
+      "headersMs": 358,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 358
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054756704,
+      "status": 200,
+      "headersMs": 251,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 251
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054756704,
+      "status": 200,
+      "headersMs": 377,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 382
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054756705,
+      "status": 200,
+      "headersMs": 404,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 412
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054756705,
+      "status": 200,
+      "headersMs": 376,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 376
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054756706,
+      "status": 200,
+      "headersMs": 247,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 247
+    },
+    {
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "startAt": 1792054756706,
+      "status": 200,
+      "headersMs": 282,
+      "encoding": "gzip",
+      "cacheControl": "max-age=5",
+      "bytes": 95997,
+      "durationMs": 445
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054756937,
+      "status": 200,
+      "headersMs": 214,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 214
+    },
+    {
+      "path": "/api/v1/editor-bootstrap/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054758191,
+      "status": 200,
+      "headersMs": 131,
+      "encoding": "gzip",
+      "cacheControl": "no-store",
+      "bytes": 7641,
+      "durationMs": 133
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054758325,
+      "status": 200,
+      "headersMs": 354,
+      "serverTiming": "owner;dur=5.0, revision;dur=33.7, permissions;dur=89.7, dependencies;dur=194.4",
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 896449,
+      "durationMs": 1881
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "startAt": 1792054758410,
+      "status": 200,
+      "headersMs": 124,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 20,
+      "durationMs": 125
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054758645,
+      "status": 200,
+      "headersMs": 83,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 83
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054759408,
+      "status": 200,
+      "headersMs": 523,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 523
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "startAt": 1792054760463,
+      "status": 200,
+      "headersMs": 196,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 388138,
+      "durationMs": 550
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054760622,
+      "status": 200,
+      "headersMs": 295,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 295
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054760634,
+      "status": 200,
+      "headersMs": 283,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 283
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054761661,
+      "status": 200,
+      "headersMs": 303,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 303
+    },
+    {
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054761663,
+      "status": 200,
+      "headersMs": 380,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 356,
+      "durationMs": 380
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "startAt": 1792054761663,
+      "status": 200,
+      "headersMs": 209,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 209
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "startAt": 1792054761665,
+      "status": 200,
+      "headersMs": 316,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1154,
+      "durationMs": 316
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054761665,
+      "status": 200,
+      "headersMs": 413,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 413
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054761665,
+      "status": 200,
+      "headersMs": 299,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 299
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054761665,
+      "status": 200,
+      "headersMs": 373,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 373
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054761666,
+      "status": 200,
+      "headersMs": 332,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 332
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054761666,
+      "status": 200,
+      "headersMs": 228,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 233
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054761666,
+      "status": 200,
+      "headersMs": 233,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 240
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054761666,
+      "status": 200,
+      "headersMs": 315,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 315
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054761666,
+      "status": 200,
+      "headersMs": 298,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 302
+    },
+    {
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "startAt": 1792054761666,
+      "status": 200,
+      "headersMs": 265,
+      "encoding": "gzip",
+      "cacheControl": "max-age=5",
+      "bytes": 95997,
+      "durationMs": 471
+    }
+  ]
+}

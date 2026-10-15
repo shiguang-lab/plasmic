@@ -1,0 +1,2393 @@
+{
+  "mode": "before",
+  "runId": "ab-v1-browser-before-2",
+  "startedAt": "2026-10-15T08:48:39.365Z",
+  "samples": [
+    {
+      "phase": "cold",
+      "startAt": 1792054119512,
+      "timingStartAt": 1792054130235.7,
+      "timeOrigin": 1792054129861.8,
+      "topRevealAt": 1792054136804,
+      "firstRenderedMs": 17242,
+      "visibleCanvasMs": 17292,
+      "editableMs": 17292,
+      "globalRevealMs": 17240,
+      "timings": {
+        "elapsedMs": 7452.200000017881,
+        "frameCount": 4,
+        "entries": [
+          {
+            "phase": "studio-module-import",
+            "startMs": 0,
+            "durationMs": 3032.300000011921
+          },
+          {
+            "phase": "startup-preferences",
+            "startMs": 3054.800000011921,
+            "durationMs": 13.699999988079071
+          },
+          {
+            "phase": "project-fetch",
+            "startMs": 3068.600000023842,
+            "durationMs": 108.89999997615814
+          },
+          {
+            "phase": "model-unbundle",
+            "startMs": 3177.5,
+            "durationMs": 77.2000000178814
+          },
+          {
+            "phase": "studio-context",
+            "startMs": 3268.7000000178814,
+            "durationMs": 28.799999982118607
+          },
+          {
+            "phase": "code-component-sync",
+            "startMs": 3384.5,
+            "durationMs": 10
+          },
+          {
+            "phase": "app-user-init",
+            "startMs": 3394.5,
+            "durationMs": 0
+          },
+          {
+            "phase": "initializer-ready",
+            "startMs": 3394.600000023842,
+            "durationMs": 0
+          },
+          {
+            "phase": "initial-route",
+            "startMs": 3273.2000000178814,
+            "durationMs": 289.59999999403954
+          },
+          {
+            "phase": "initial-viewport",
+            "startMs": 3273.2000000178814,
+            "durationMs": 289.59999999403954
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3563.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3582.4000000059605,
+            "durationMs": 37.099999994039536
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3621.300000011921,
+            "durationMs": 11.300000011920929
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3632.800000011921,
+            "durationMs": 1598.4000000059605
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 5231.300000011921,
+            "durationMs": 407.09999999403954
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 5656.4000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3563.9000000059605,
+            "durationMs": 2241.300000011921
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 5656.4000000059605,
+            "durationMs": 665.5
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 6324.200000017881,
+            "durationMs": 0
+          },
+          {
+            "phase": "canvas-revealed",
+            "startMs": 6326.300000011921,
+            "durationMs": 0
+          },
+          {
+            "phase": "background-canvas-wait",
+            "startMs": 5805.4000000059605,
+            "durationMs": 721.9000000059605
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6647.100000023842,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6650.100000023842,
+            "durationMs": 54.79999998211861
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6705.800000011921,
+            "durationMs": 0.9000000059604645
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6706.800000011921,
+            "durationMs": 40.5
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6747.300000011921,
+            "durationMs": 60.69999998807907
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6809.300000011921,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6647.100000023842,
+            "durationMs": 164.89999997615814
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6823.600000023842,
+            "durationMs": 114.2999999821186
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 6938.200000017881,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 6985.4000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 6988.600000023842,
+            "durationMs": 65.59999999403954
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 7055.100000023842,
+            "durationMs": 0.7999999821186066
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 7056,
+            "durationMs": 38
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 7094,
+            "durationMs": 56.900000005960464
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 7152.100000023842,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 6985.4000000059605,
+            "durationMs": 169.30000001192093
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 7167.100000023842,
+            "durationMs": 101
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 7268.300000011921,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7308,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7310.700000017881,
+            "durationMs": 30.299999982118607
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7342,
+            "durationMs": 3.5
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7345.5,
+            "durationMs": 39.70000001788139
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7385.300000011921,
+            "durationMs": 59.900000005960464
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7446.300000011921,
+            "durationMs": 0
+          },
+          {
+            "phase": "all-frame-contexts-created",
+            "startMs": 7446.300000011921,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 7308,
+            "durationMs": 141.60000002384186
+          }
+        ]
+      },
+      "longTasks": [
+        {
+          "startMs": 137.69999998807907,
+          "durationMs": 57
+        },
+        {
+          "startMs": 3291.7999999821186,
+          "durationMs": 137
+        },
+        {
+          "startMs": 3455.199999988079,
+          "durationMs": 317
+        },
+        {
+          "startMs": 3861.899999976158,
+          "durationMs": 79
+        },
+        {
+          "startMs": 5529.899999976158,
+          "durationMs": 75
+        },
+        {
+          "startMs": 5883.299999982119,
+          "durationMs": 296
+        },
+        {
+          "startMs": 6190.699999988079,
+          "durationMs": 479
+        },
+        {
+          "startMs": 6703,
+          "durationMs": 186
+        },
+        {
+          "startMs": 7080.199999988079,
+          "durationMs": 105
+        },
+        {
+          "startMs": 7200.199999988079,
+          "durationMs": 107
+        },
+        {
+          "startMs": 7429.299999982119,
+          "durationMs": 99
+        },
+        {
+          "startMs": 7542.699999988079,
+          "durationMs": 99
+        }
+      ],
+      "frames": [
+        {
+          "uuid": "HKxN7vVXvuGQ",
+          "ready": true
+        },
+        {
+          "uuid": "rhooatPnqwVA",
+          "ready": true
+        },
+        {
+          "uuid": "vuPysnS2h1Nm",
+          "ready": true
+        },
+        {
+          "uuid": "q4gaQqly-YIz",
+          "ready": false
+        }
+      ],
+      "revision": 18,
+      "cssViewport": {
+        "width": 1512,
+        "height": 887,
+        "dpr": 2
+      },
+      "editorContext": {
+        "projectId": "iqBeCQWLFWvGwftodkcHbN",
+        "branchId": null,
+        "revision": 18,
+        "componentUuid": "20ogVdefnlyb",
+        "frameUuid": "HKxN7vVXvuGQ",
+        "mode": "edit",
+        "canEdit": true,
+        "editorView": {
+          "arenaId": "REQ075 · Desktop",
+          "arenaType": "custom",
+          "frameUuid": "HKxN7vVXvuGQ",
+          "scale": 0.36043233082706766,
+          "scroll": {
+            "x": 1192,
+            "y": 803
+          }
+        }
+      }
+    },
+    {
+      "phase": "reopen",
+      "startAt": 1792054138340,
+      "timingStartAt": 1792054139142.6,
+      "timeOrigin": 1792054138823.1,
+      "topRevealAt": 1792054142512,
+      "firstRenderedMs": 4135,
+      "visibleCanvasMs": 4172,
+      "editableMs": 4172,
+      "globalRevealMs": 4135,
+      "timings": {
+        "elapsedMs": 3944.600000023842,
+        "frameCount": 4,
+        "entries": [
+          {
+            "phase": "studio-module-import",
+            "startMs": 0,
+            "durationMs": 124.2000000178814
+          },
+          {
+            "phase": "startup-preferences",
+            "startMs": 153.5,
+            "durationMs": 17
+          },
+          {
+            "phase": "project-fetch",
+            "startMs": 170.5,
+            "durationMs": 1129.1000000238419
+          },
+          {
+            "phase": "model-unbundle",
+            "startMs": 1299.7000000178814,
+            "durationMs": 88
+          },
+          {
+            "phase": "studio-context",
+            "startMs": 1399.4000000059605,
+            "durationMs": 24.599999994039536
+          },
+          {
+            "phase": "code-component-sync",
+            "startMs": 1515.2000000178814,
+            "durationMs": 8.699999988079071
+          },
+          {
+            "phase": "app-user-init",
+            "startMs": 1523.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "initializer-ready",
+            "startMs": 1524,
+            "durationMs": 0
+          },
+          {
+            "phase": "initial-route",
+            "startMs": 1402.1000000238419,
+            "durationMs": 278.19999998807907
+          },
+          {
+            "phase": "initial-viewport",
+            "startMs": 1402.1000000238419,
+            "durationMs": 278.19999998807907
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1680.800000011921,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1685.6000000238419,
+            "durationMs": 129.2999999821186
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1816,
+            "durationMs": 1.600000023841858
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1817.6000000238419,
+            "durationMs": 7.5999999940395355
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1825.300000011921,
+            "durationMs": 729.3000000119209
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 2568.600000023842,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 1680.800000011921,
+            "durationMs": 979
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 2568.600000023842,
+            "durationMs": 567.5
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "HKxN7vVXvuGQ",
+            "startMs": 3137.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "canvas-revealed",
+            "startMs": 3139.2000000178814,
+            "durationMs": 0
+          },
+          {
+            "phase": "background-canvas-wait",
+            "startMs": 2659.9000000059605,
+            "durationMs": 678.2000000178814
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3397,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3399.9000000059605,
+            "durationMs": 49.80000001192093
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3450.7000000178814,
+            "durationMs": 3.9000000059604645
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3454.7000000178814,
+            "durationMs": 7.5
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3462.300000011921,
+            "durationMs": 15.099999994039536
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3478.7000000178814,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3397,
+            "durationMs": 84.90000000596046
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3499.600000023842,
+            "durationMs": 109.59999999403954
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "rhooatPnqwVA",
+            "startMs": 3609.5,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3660.2000000178814,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3663,
+            "durationMs": 35.60000002384186
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3699.7000000178814,
+            "durationMs": 1.199999988079071
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3701,
+            "durationMs": 6.5
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3707.5,
+            "durationMs": 14.800000011920929
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3723.7000000178814,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3660.2000000178814,
+            "durationMs": 66.69999998807907
+          },
+          {
+            "phase": "frame-first-render",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3737.800000011921,
+            "durationMs": 124.90000000596046
+          },
+          {
+            "phase": "frame-rendered",
+            "frameUuid": "vuPysnS2h1Nm",
+            "startMs": 3862.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-load-start",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3870.9000000059605,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-host-document",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3874,
+            "durationMs": 35
+          },
+          {
+            "phase": "frame-host-ready",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3910,
+            "durationMs": 3.7000000178813934
+          },
+          {
+            "phase": "frame-runtime",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3913.800000011921,
+            "durationMs": 7.0999999940395355
+          },
+          {
+            "phase": "frame-component-packages",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3920.9000000059605,
+            "durationMs": 16.400000005960464
+          },
+          {
+            "phase": "frame-context-created",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3938.5,
+            "durationMs": 0
+          },
+          {
+            "phase": "all-frame-contexts-created",
+            "startMs": 3938.5,
+            "durationMs": 0
+          },
+          {
+            "phase": "frame-initialization",
+            "frameUuid": "q4gaQqly-YIz",
+            "startMs": 3870.9000000059605,
+            "durationMs": 70.7000000178814
+          }
+        ]
+      },
+      "longTasks": [
+        {
+          "startMs": 101.10000002384186,
+          "durationMs": 55
+        },
+        {
+          "startMs": 339.7000000178814,
+          "durationMs": 136
+        },
+        {
+          "startMs": 1510.1000000238419,
+          "durationMs": 337
+        },
+        {
+          "startMs": 1924.6000000238419,
+          "durationMs": 78
+        },
+        {
+          "startMs": 2837.5,
+          "durationMs": 141
+        },
+        {
+          "startMs": 2991.9000000059605,
+          "durationMs": 450
+        },
+        {
+          "startMs": 3460.300000011921,
+          "durationMs": 191
+        },
+        {
+          "startMs": 3821.7000000178814,
+          "durationMs": 103
+        },
+        {
+          "startMs": 4057.4000000059605,
+          "durationMs": 95
+        }
+      ],
+      "frames": [
+        {
+          "uuid": "HKxN7vVXvuGQ",
+          "ready": true
+        },
+        {
+          "uuid": "rhooatPnqwVA",
+          "ready": true
+        },
+        {
+          "uuid": "vuPysnS2h1Nm",
+          "ready": true
+        },
+        {
+          "uuid": "q4gaQqly-YIz",
+          "ready": false
+        }
+      ],
+      "revision": 18,
+      "cssViewport": {
+        "width": 1512,
+        "height": 887,
+        "dpr": 2
+      },
+      "editorContext": {
+        "projectId": "iqBeCQWLFWvGwftodkcHbN",
+        "branchId": null,
+        "revision": 18,
+        "componentUuid": "20ogVdefnlyb",
+        "frameUuid": "HKxN7vVXvuGQ",
+        "mode": "edit",
+        "canEdit": true,
+        "editorView": {
+          "arenaId": "REQ075 · Desktop",
+          "arenaType": "custom",
+          "frameUuid": "HKxN7vVXvuGQ",
+          "scale": 0.36043233082706766,
+          "scroll": {
+            "x": 1192,
+            "y": 803
+          }
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "status": "PASS",
+  "proxyRequests": [
+    {
+      "path": "/projects/iqBeCQWLFWvGwftodkcHbN/-/REQ075-Desktop",
+      "method": "GET",
+      "startAt": 1792054119521,
+      "status": 200,
+      "headersMs": 69,
+      "encoding": "gzip",
+      "cacheControl": "no-cache",
+      "bytes": 8155,
+      "durationMs": 70
+    },
+    {
+      "path": "/static/css/2069.d3ec7212.css",
+      "method": "GET",
+      "startAt": 1792054119598,
+      "status": 200,
+      "headersMs": 33,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 280375,
+      "durationMs": 437
+    },
+    {
+      "path": "/static/css/index~5.532db485.css",
+      "method": "GET",
+      "startAt": 1792054119599,
+      "status": 200,
+      "headersMs": 84,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 5114,
+      "durationMs": 94
+    },
+    {
+      "path": "/static/css/index~6.4056fd54.css",
+      "method": "GET",
+      "startAt": 1792054119599,
+      "status": 200,
+      "headersMs": 94,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3654,
+      "durationMs": 94
+    },
+    {
+      "path": "/static/css/index~7.537d51fe.css",
+      "method": "GET",
+      "startAt": 1792054119599,
+      "status": 200,
+      "headersMs": 94,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 6378,
+      "durationMs": 99
+    },
+    {
+      "path": "/static/css/index~8.4fce4041.css",
+      "method": "GET",
+      "startAt": 1792054119599,
+      "status": 200,
+      "headersMs": 107,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 11505,
+      "durationMs": 216
+    },
+    {
+      "path": "/static/css/index~9.09d493d5.css",
+      "method": "GET",
+      "startAt": 1792054119599,
+      "status": 200,
+      "headersMs": 94,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 5078,
+      "durationMs": 94
+    },
+    {
+      "path": "/static/css/index~13.a3eb7a37.css",
+      "method": "GET",
+      "startAt": 1792054119600,
+      "status": 200,
+      "headersMs": 160,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 119477,
+      "durationMs": 649
+    },
+    {
+      "path": "/static/css/index~16.c9251d3d.css",
+      "method": "GET",
+      "startAt": 1792054119600,
+      "status": 200,
+      "headersMs": 130,
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 575,
+      "durationMs": 131
+    },
+    {
+      "path": "/static/css/index~24.e9b8c893.css",
+      "method": "GET",
+      "startAt": 1792054119600,
+      "status": 200,
+      "headersMs": 120,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 27003,
+      "durationMs": 236
+    },
+    {
+      "path": "/static/js/lib-react.a3eaf980.js",
+      "method": "GET",
+      "startAt": 1792054119600,
+      "status": 200,
+      "headersMs": 147,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 67048,
+      "durationMs": 454
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054120011,
+      "status": 200,
+      "headersMs": 90,
+      "encoding": "gzip",
+      "cacheControl": "no-cache",
+      "bytes": 3548,
+      "durationMs": 91
+    },
+    {
+      "path": "/static/js/lib-router.ad69be88.js",
+      "method": "GET",
+      "startAt": 1792054120019,
+      "status": 200,
+      "headersMs": 83,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1570,
+      "durationMs": 83
+    },
+    {
+      "path": "/static/js/5083.c1b7e5cb.js",
+      "method": "GET",
+      "startAt": 1792054120020,
+      "status": 200,
+      "headersMs": 100,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 35922,
+      "durationMs": 575
+    },
+    {
+      "path": "/static/js/1235.b69b23c5.js",
+      "method": "GET",
+      "startAt": 1792054120021,
+      "status": 200,
+      "headersMs": 106,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 47084,
+      "durationMs": 598
+    },
+    {
+      "path": "/static/js/5555.6ae7e723.js",
+      "method": "GET",
+      "startAt": 1792054120022,
+      "status": 200,
+      "headersMs": 126,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 352606,
+      "durationMs": 6014
+    },
+    {
+      "path": "/static/js/3440.ec7062dc.js",
+      "method": "GET",
+      "startAt": 1792054120023,
+      "status": 200,
+      "headersMs": 80,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 12558,
+      "durationMs": 226
+    },
+    {
+      "path": "/static/js/8539.a21b02c5.js",
+      "method": "GET",
+      "startAt": 1792054120023,
+      "status": 200,
+      "headersMs": 114,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 27294,
+      "durationMs": 379
+    },
+    {
+      "path": "/static/js/2069.8b54d488.js",
+      "method": "GET",
+      "startAt": 1792054120024,
+      "status": 200,
+      "headersMs": 235,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 329668,
+      "durationMs": 5972
+    },
+    {
+      "path": "/static/js/6166.f8fbdab7.js",
+      "method": "GET",
+      "startAt": 1792054120024,
+      "status": 200,
+      "headersMs": 235,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 71052,
+      "durationMs": 1574
+    },
+    {
+      "path": "/static/js/1998.2e92911b.js",
+      "method": "GET",
+      "startAt": 1792054120025,
+      "status": 200,
+      "headersMs": 454,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 147576,
+      "durationMs": 2211
+    },
+    {
+      "path": "/static/js/9867.e4abf781.js",
+      "method": "GET",
+      "startAt": 1792054120025,
+      "status": 200,
+      "headersMs": 301,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 163576,
+      "durationMs": 5689
+    },
+    {
+      "path": "/static/js/8042.4987f376.js",
+      "method": "GET",
+      "startAt": 1792054120026,
+      "status": 200,
+      "headersMs": 300,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 64711,
+      "durationMs": 1760
+    },
+    {
+      "path": "/static/js/8967.3469b697.js",
+      "method": "GET",
+      "startAt": 1792054120026,
+      "status": 200,
+      "headersMs": 471,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 17727,
+      "durationMs": 3169
+    },
+    {
+      "path": "/static/js/5720.2ce9d436.js",
+      "method": "GET",
+      "startAt": 1792054120026,
+      "status": 200,
+      "headersMs": 354,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 168344,
+      "durationMs": 5117
+    },
+    {
+      "path": "/static/js/1444.004a4df5.js",
+      "method": "GET",
+      "startAt": 1792054120027,
+      "status": 200,
+      "headersMs": 337,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 77800,
+      "durationMs": 4505
+    },
+    {
+      "path": "/static/js/1982.cdc4d80c.js",
+      "method": "GET",
+      "startAt": 1792054120027,
+      "status": 200,
+      "headersMs": 317,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 229382,
+      "durationMs": 5918
+    },
+    {
+      "path": "/static/js/6975.0fcab528.js",
+      "method": "GET",
+      "startAt": 1792054120027,
+      "status": 200,
+      "headersMs": 442,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 23215,
+      "durationMs": 2128
+    },
+    {
+      "path": "/static/js/8464.c8d1ae9c.js",
+      "method": "GET",
+      "startAt": 1792054120027,
+      "status": 200,
+      "headersMs": 496,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 41203,
+      "durationMs": 2583
+    },
+    {
+      "path": "/static/js/4876.d241d687.js",
+      "method": "GET",
+      "startAt": 1792054120027,
+      "status": 200,
+      "headersMs": 287,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 10454,
+      "durationMs": 592
+    },
+    {
+      "path": "/static/js/6493.34384473.js",
+      "method": "GET",
+      "startAt": 1792054120027,
+      "status": 200,
+      "headersMs": 375,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 215650,
+      "durationMs": 3660
+    },
+    {
+      "path": "/static/js/index~0.477f6714.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 399,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7258,
+      "durationMs": 408
+    },
+    {
+      "path": "/static/js/index~1.a5fbb6e0.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 421,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 20861,
+      "durationMs": 1942
+    },
+    {
+      "path": "/static/js/index~2.021f52cc.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 431,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4199,
+      "durationMs": 440
+    },
+    {
+      "path": "/static/js/index~3.9dbaae9a.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 483,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 5370,
+      "durationMs": 486
+    },
+    {
+      "path": "/static/js/index~4.c517abab.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 430,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1985,
+      "durationMs": 430
+    },
+    {
+      "path": "/static/js/index~5.92b2828f.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 408,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 9673,
+      "durationMs": 631
+    },
+    {
+      "path": "/static/js/index~6.c623a52c.js",
+      "method": "GET",
+      "startAt": 1792054120028,
+      "status": 200,
+      "headersMs": 486,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 9478,
+      "durationMs": 654
+    },
+    {
+      "path": "/static/js/index~7.9aa9e1e4.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 512,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 151363,
+      "durationMs": 1815
+    },
+    {
+      "path": "/static/js/index~8.b736eccb.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 440,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 259277,
+      "durationMs": 3617
+    },
+    {
+      "path": "/static/js/index~9.eb04a514.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 129,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 48358,
+      "durationMs": 173
+    },
+    {
+      "path": "/static/js/index~10.1acd7c94.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 183,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3522,
+      "durationMs": 183
+    },
+    {
+      "path": "/static/js/index~11.2460c1cd.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 221,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 8267,
+      "durationMs": 230
+    },
+    {
+      "path": "/static/js/index~12.a5cb64c1.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 508,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 608530,
+      "durationMs": 5421
+    },
+    {
+      "path": "/static/js/index~13.9bf4e517.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 551,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 236705,
+      "durationMs": 5095
+    },
+    {
+      "path": "/static/js/index~14.18bd5479.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 524,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 14034,
+      "durationMs": 551
+    },
+    {
+      "path": "/static/js/index~15.d32a4931.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 566,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 65168,
+      "durationMs": 3681
+    },
+    {
+      "path": "/static/js/index~16.075203f1.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 770,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 28550,
+      "durationMs": 1749
+    },
+    {
+      "path": "/static/js/index~17.5955055e.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 578,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 7770,
+      "durationMs": 1396
+    },
+    {
+      "path": "/static/js/index~18.2c36c37d.js",
+      "method": "GET",
+      "startAt": 1792054120029,
+      "status": 200,
+      "headersMs": 653,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 6260,
+      "durationMs": 908
+    },
+    {
+      "path": "/static/js/index~19.960afae9.js",
+      "method": "GET",
+      "startAt": 1792054120030,
+      "status": 200,
+      "headersMs": 660,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 43497,
+      "durationMs": 1005
+    },
+    {
+      "path": "/static/js/index~20.548b4d52.js",
+      "method": "GET",
+      "startAt": 1792054120030,
+      "status": 200,
+      "headersMs": 691,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 202018,
+      "durationMs": 6619
+    },
+    {
+      "path": "/static/js/index~21.446b8746.js",
+      "method": "GET",
+      "startAt": 1792054120030,
+      "status": 200,
+      "headersMs": 692,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 121176,
+      "durationMs": 5105
+    },
+    {
+      "path": "/static/js/index~22.69d19304.js",
+      "method": "GET",
+      "startAt": 1792054120030,
+      "status": 200,
+      "headersMs": 707,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 3256,
+      "durationMs": 721
+    },
+    {
+      "path": "/static/js/index~23.450815ab.js",
+      "method": "GET",
+      "startAt": 1792054120030,
+      "status": 200,
+      "headersMs": 747,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 11508,
+      "durationMs": 4564
+    },
+    {
+      "path": "/static/js/index~24.bfc427a7.js",
+      "method": "GET",
+      "startAt": 1792054120030,
+      "status": 200,
+      "headersMs": 747,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 4953,
+      "durationMs": 759
+    },
+    {
+      "path": "/api/v1/auth/self",
+      "method": "GET",
+      "startAt": 1792054126888,
+      "status": 200,
+      "headersMs": 141,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 294,
+      "durationMs": 141
+    },
+    {
+      "path": "/api/v1/app-config",
+      "method": "GET",
+      "startAt": 1792054126890,
+      "status": 200,
+      "headersMs": 124,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 5001,
+      "durationMs": 167
+    },
+    {
+      "path": "/api/v1/app-ctx",
+      "method": "GET",
+      "startAt": 1792054126890,
+      "status": 200,
+      "headersMs": 167,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2167,
+      "durationMs": 177
+    },
+    {
+      "path": "/api/v1/latest-bundle-version",
+      "method": "GET",
+      "startAt": 1792054126890,
+      "status": 200,
+      "headersMs": 124,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 50,
+      "durationMs": 124
+    },
+    {
+      "path": "/static/css/async/2956.737e1cb3.css",
+      "method": "GET",
+      "startAt": 1792054127071,
+      "status": 200,
+      "headersMs": 40,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 19162,
+      "durationMs": 117
+    },
+    {
+      "path": "/static/js/async/5654.2f8caa41.js",
+      "method": "GET",
+      "startAt": 1792054127071,
+      "status": 200,
+      "headersMs": 61,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 107214,
+      "durationMs": 484
+    },
+    {
+      "path": "/static/js/async/2956.d45f51e6.js",
+      "method": "GET",
+      "startAt": 1792054127144,
+      "status": 200,
+      "headersMs": 45,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 120054,
+      "durationMs": 359
+    },
+    {
+      "path": "/api/v1/projects",
+      "method": "GET",
+      "startAt": 1792054127589,
+      "status": 200,
+      "headersMs": 125,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1222,
+      "durationMs": 125
+    },
+    {
+      "path": "/api/v1/hosts",
+      "method": "GET",
+      "startAt": 1792054127590,
+      "status": 200,
+      "headersMs": 76,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 98,
+      "durationMs": 76
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054127717,
+      "status": 200,
+      "headersMs": 118,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 118
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054127729,
+      "status": 200,
+      "headersMs": 31,
+      "encoding": "gzip",
+      "cacheControl": "no-cache",
+      "bytes": 3894,
+      "durationMs": 31
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "startAt": 1792054127730,
+      "status": 200,
+      "headersMs": 126,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 20,
+      "durationMs": 126
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054127732,
+      "status": 200,
+      "headersMs": 405,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 896449,
+      "durationMs": 4823
+    },
+    {
+      "path": "/static/host-configure-project.4d512c.png",
+      "method": "GET",
+      "startAt": 1792054127764,
+      "status": 200,
+      "headersMs": 39,
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1417243,
+      "durationMs": 4693
+    },
+    {
+      "path": "/static/sub/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054127764,
+      "status": 200,
+      "headersMs": 44,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 505060,
+      "durationMs": 1880
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054127858,
+      "status": 200,
+      "headersMs": 125,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 125
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054128731,
+      "status": 200,
+      "headersMs": 127,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 127
+    },
+    {
+      "path": "/static/js/studio.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054129665,
+      "status": 200,
+      "headersMs": 184,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 9187,
+      "durationMs": 194
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054129731,
+      "status": 200,
+      "headersMs": 144,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 145
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054129886,
+      "status": 304,
+      "headersMs": 35,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 36
+    },
+    {
+      "path": "/static/css/async/5985.5cfc2155.css",
+      "method": "GET",
+      "startAt": 1792054130237,
+      "status": 200,
+      "headersMs": 41,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 9836,
+      "durationMs": 96
+    },
+    {
+      "path": "/static/css/async/3918.2fb51682.css",
+      "method": "GET",
+      "startAt": 1792054130237,
+      "status": 200,
+      "headersMs": 43,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 31323,
+      "durationMs": 266
+    },
+    {
+      "path": "/static/js/async/377.2abff3a0.js",
+      "method": "GET",
+      "startAt": 1792054130238,
+      "status": 200,
+      "headersMs": 83,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 115749,
+      "durationMs": 1144
+    },
+    {
+      "path": "/static/js/async/5985.721ae44e.js",
+      "method": "GET",
+      "startAt": 1792054130238,
+      "status": 200,
+      "headersMs": 48,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 369400,
+      "durationMs": 2913
+    },
+    {
+      "path": "/static/js/async/3918.214ce9f0.js",
+      "method": "GET",
+      "startAt": 1792054130334,
+      "status": 200,
+      "headersMs": 40,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 243015,
+      "durationMs": 1490
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054130731,
+      "status": 200,
+      "headersMs": 91,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 91
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054131730,
+      "status": 200,
+      "headersMs": 84,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 84
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054132731,
+      "status": 200,
+      "headersMs": 86,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 86
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054133533,
+      "status": 304,
+      "headersMs": 36,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 36
+    },
+    {
+      "path": "/static/canvas-packages/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054133534,
+      "status": 200,
+      "headersMs": 40,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 553302,
+      "durationMs": 1855
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd6/canvas",
+      "method": "GET",
+      "startAt": 1792054133535,
+      "status": 200,
+      "headersMs": 638,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 64213,
+      "durationMs": 1166
+    },
+    {
+      "path": "/api/v1/hostless-libraries/overseas/canvas",
+      "method": "GET",
+      "startAt": 1792054133535,
+      "status": 200,
+      "headersMs": 570,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 12155,
+      "durationMs": 703
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "startAt": 1792054133535,
+      "status": 200,
+      "headersMs": 274,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 388138,
+      "durationMs": 2205
+    },
+    {
+      "path": "/api/v1/hostless-libraries/react-ui/canvas",
+      "method": "GET",
+      "startAt": 1792054133535,
+      "status": 200,
+      "headersMs": 570,
+      "encoding": "gzip",
+      "cacheControl": "private, no-cache",
+      "bytes": 8933,
+      "durationMs": 703
+    },
+    {
+      "path": "/static/react-web-bundle/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054133590,
+      "status": 200,
+      "headersMs": 37,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 70307,
+      "durationMs": 165
+    },
+    {
+      "path": "/static/live-frame/build/client.4d512c.js",
+      "method": "GET",
+      "startAt": 1792054133590,
+      "status": 200,
+      "headersMs": 54,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1354,
+      "durationMs": 54
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 787,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 798
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 787,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 787
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 616,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 616
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 785,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 787
+    },
+    {
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 891,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 356,
+      "durationMs": 892
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 781,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 781
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "startAt": 1792054133652,
+      "status": 200,
+      "headersMs": 781,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1154,
+      "durationMs": 806
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054133719,
+      "status": 200,
+      "headersMs": 731,
+      "cacheControl": "max-age=5",
+      "bytes": 830,
+      "durationMs": 731
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054133719,
+      "status": 200,
+      "headersMs": 731,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 731
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054133720,
+      "status": 200,
+      "headersMs": 795,
+      "cacheControl": "max-age=5",
+      "bytes": 833,
+      "durationMs": 823
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054133720,
+      "status": 200,
+      "headersMs": 730,
+      "cacheControl": "max-age=5",
+      "bytes": 831,
+      "durationMs": 730
+    },
+    {
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "startAt": 1792054133720,
+      "status": 200,
+      "headersMs": 714,
+      "encoding": "gzip",
+      "cacheControl": "max-age=5",
+      "bytes": 95997,
+      "durationMs": 1487
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054133721,
+      "status": 200,
+      "headersMs": 706,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 707
+    },
+    {
+      "path": "/static/js/async/7154.5e8f709d.js",
+      "method": "GET",
+      "startAt": 1792054133821,
+      "status": 200,
+      "headersMs": 121,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 29550,
+      "durationMs": 352
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054133846,
+      "status": 200,
+      "headersMs": 587,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 587
+    },
+    {
+      "path": "/static/styles/canvas/canvas.4d512c.css",
+      "method": "GET",
+      "startAt": 1792054133857,
+      "status": 200,
+      "headersMs": 248,
+      "encoding": "gzip",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "bytes": 1370,
+      "durationMs": 248
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054134731,
+      "status": 200,
+      "headersMs": 138,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 138
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054135731,
+      "status": 200,
+      "headersMs": 110,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 110
+    },
+    {
+      "path": "/api/v1/end-user/app/iqBeCQWLFWvGwftodkcHbN/roles",
+      "method": "GET",
+      "startAt": 1792054136052,
+      "status": 200,
+      "headersMs": 104,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 104
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054136804,
+      "status": 200,
+      "headersMs": 102,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 102
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054136886,
+      "status": 304,
+      "headersMs": 47,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 47
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054137225,
+      "status": 304,
+      "headersMs": 60,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 60
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054137548,
+      "status": 304,
+      "headersMs": 23,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 23
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054137873,
+      "status": 200,
+      "headersMs": 99,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 99
+    },
+    {
+      "path": "/projects/iqBeCQWLFWvGwftodkcHbN/-/REQ075-Desktop",
+      "method": "GET",
+      "startAt": 1792054138342,
+      "status": 304,
+      "headersMs": 28,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 29
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054138382,
+      "status": 304,
+      "headersMs": 30,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 30
+    },
+    {
+      "path": "/api/v1/auth/self",
+      "method": "GET",
+      "startAt": 1792054138539,
+      "status": 200,
+      "headersMs": 74,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 294,
+      "durationMs": 74
+    },
+    {
+      "path": "/api/v1/app-config",
+      "method": "GET",
+      "startAt": 1792054138540,
+      "status": 200,
+      "headersMs": 89,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 5001,
+      "durationMs": 89
+    },
+    {
+      "path": "/api/v1/app-ctx",
+      "method": "GET",
+      "startAt": 1792054138540,
+      "status": 200,
+      "headersMs": 101,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2167,
+      "durationMs": 101
+    },
+    {
+      "path": "/api/v1/latest-bundle-version",
+      "method": "GET",
+      "startAt": 1792054138540,
+      "status": 200,
+      "headersMs": 89,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 50,
+      "durationMs": 89
+    },
+    {
+      "path": "/api/v1/projects",
+      "method": "GET",
+      "startAt": 1792054138666,
+      "status": 200,
+      "headersMs": 105,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1222,
+      "durationMs": 105
+    },
+    {
+      "path": "/api/v1/hosts",
+      "method": "GET",
+      "startAt": 1792054138667,
+      "status": 200,
+      "headersMs": 50,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 98,
+      "durationMs": 50
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/edit/status",
+      "method": "GET",
+      "startAt": 1792054138773,
+      "status": 200,
+      "headersMs": 107,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 75,
+      "durationMs": 107
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054138782,
+      "status": 304,
+      "headersMs": 33,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 33
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat",
+      "method": "GET",
+      "startAt": 1792054138782,
+      "status": 200,
+      "headersMs": 100,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 20,
+      "durationMs": 100
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054138783,
+      "status": 200,
+      "headersMs": 331,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 896449,
+      "durationMs": 1521
+    },
+    {
+      "path": "/static/css/normalize.css",
+      "method": "GET",
+      "startAt": 1792054138846,
+      "status": 304,
+      "headersMs": 35,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 35
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054138890,
+      "status": 200,
+      "headersMs": 92,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 92
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054139782,
+      "status": 200,
+      "headersMs": 101,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 101
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054140567,
+      "status": 304,
+      "headersMs": 382,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 383
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd6/canvas",
+      "method": "GET",
+      "startAt": 1792054140577,
+      "status": 304,
+      "headersMs": 1080,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 1080
+    },
+    {
+      "path": "/api/v1/hostless-libraries/overseas/canvas",
+      "method": "GET",
+      "startAt": 1792054140577,
+      "status": 304,
+      "headersMs": 1022,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 1022
+    },
+    {
+      "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+      "method": "GET",
+      "startAt": 1792054140577,
+      "status": 304,
+      "headersMs": 993,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 993
+    },
+    {
+      "path": "/api/v1/hostless-libraries/react-ui/canvas",
+      "method": "GET",
+      "startAt": 1792054140577,
+      "status": 304,
+      "headersMs": 992,
+      "cacheControl": "private, no-cache",
+      "bytes": 0,
+      "durationMs": 992
+    },
+    {
+      "path": "/api/v1/comments/iqBeCQWLFWvGwftodkcHbN",
+      "method": "GET",
+      "startAt": 1792054140685,
+      "status": 200,
+      "headersMs": 1004,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 356,
+      "durationMs": 1005
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054140686,
+      "status": 304,
+      "headersMs": 887,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 887
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054140686,
+      "status": 304,
+      "headersMs": 913,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 913
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054140686,
+      "status": 304,
+      "headersMs": 662,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 662
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/pkg",
+      "method": "GET",
+      "startAt": 1792054140686,
+      "status": 200,
+      "headersMs": 563,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 563
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/revs/unpublished",
+      "method": "GET",
+      "startAt": 1792054140687,
+      "status": 200,
+      "headersMs": 506,
+      "encoding": "gzip",
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 1154,
+      "durationMs": 506
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054140687,
+      "status": 304,
+      "headersMs": 593,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 593
+    },
+    {
+      "path": "/api/v1/pkgs/b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "method": "GET",
+      "startAt": 1792054140745,
+      "status": 304,
+      "headersMs": 664,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 664
+    },
+    {
+      "path": "/api/v1/pkgs/8785f78a-be85-4369-893e-6f743d1d14b0",
+      "method": "GET",
+      "startAt": 1792054140745,
+      "status": 304,
+      "headersMs": 685,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 685
+    },
+    {
+      "path": "/api/v1/pkgs/e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "method": "GET",
+      "startAt": 1792054140745,
+      "status": 304,
+      "headersMs": 963,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 963
+    },
+    {
+      "path": "/api/v1/pkgs/da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "method": "GET",
+      "startAt": 1792054140745,
+      "status": 304,
+      "headersMs": 517,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 517
+    },
+    {
+      "path": "/api/v1/plume-pkg",
+      "method": "GET",
+      "startAt": 1792054140745,
+      "status": 304,
+      "headersMs": 354,
+      "cacheControl": "max-age=5",
+      "bytes": 0,
+      "durationMs": 354
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054140853,
+      "status": 200,
+      "headersMs": 396,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 396
+    },
+    {
+      "path": "/api/v1/end-user/app/iqBeCQWLFWvGwftodkcHbN/roles",
+      "method": "GET",
+      "startAt": 1792054141815,
+      "status": 200,
+      "headersMs": 84,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 84
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054142279,
+      "status": 200,
+      "headersMs": 86,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 86
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054142544,
+      "status": 304,
+      "headersMs": 35,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 35
+    },
+    {
+      "path": "/api/v1/projects/iqBeCQWLFWvGwftodkcHbN/ai/chat/events",
+      "method": "GET",
+      "startAt": 1792054142798,
+      "status": 200,
+      "headersMs": 64,
+      "cacheControl": "no-store, no-cache, must-revalidate, private",
+      "bytes": 2,
+      "durationMs": 64
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054142807,
+      "status": 304,
+      "headersMs": 29,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 29
+    },
+    {
+      "path": "/static/host.html",
+      "method": "GET",
+      "startAt": 1792054143019,
+      "status": 304,
+      "headersMs": 28,
+      "cacheControl": "no-cache",
+      "bytes": 0,
+      "durationMs": 28
+    }
+  ]
+}

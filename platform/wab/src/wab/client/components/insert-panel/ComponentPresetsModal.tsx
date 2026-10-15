@@ -3,7 +3,7 @@ import { createAddComponentPreset } from "@/wab/client/components/studio/add-dra
 import AddDrawerItem from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
 import { observer } from "mobx-react";

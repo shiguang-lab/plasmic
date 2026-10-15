@@ -1,6 +1,7 @@
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { ZoomButton } from "@/wab/client/components/top-bar/ZoomButton";
-import { StudioCtx, StudioCtxContext } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import {
   cleanup,
   fireEvent,

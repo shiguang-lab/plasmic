@@ -44,7 +44,7 @@ import {
   InputType,
   inputTypeToComponentName as inputTypeToAntdComponentName,
   SimplifiedFormItemsProp,
-} from "@plasmicpkgs/antd5";
+} from "@plasmicpkgs/antd5/form-meta";
 import { isString } from "lodash";
 
 type FormItemProps = {

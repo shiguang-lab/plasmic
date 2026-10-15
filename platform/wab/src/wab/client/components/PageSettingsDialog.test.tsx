@@ -14,7 +14,7 @@ import { observable } from "mobx";
 import React from "react";
 
 const fixture = vi.hoisted(() => ({ viewCtxs: [] as any[] }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture,
 }));
 vi.mock("@/wab/client/components/PageSettings", () => ({

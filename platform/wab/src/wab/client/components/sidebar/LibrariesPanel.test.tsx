@@ -10,7 +10,7 @@ import {
 import { observable } from "mobx";
 import React from "react";
 const mocks = vi.hoisted(() => ({ ctx: undefined as any, close: vi.fn() }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => mocks.ctx,
 }));
 vi.mock("@/wab/client/components/insert-panel/InsertPanel", () => ({
@@ -54,7 +54,7 @@ it("shows the selected Library view with a single title and no tabs", async () =
   );
   expect(header?.textContent).toContain("Imported projects");
   expect(screen.getByText("Imported dependency list")).toBeTruthy();
-  act(() => mocks.ctx.setLibraryTab("store"));
+  await act(async () => { mocks.ctx.setLibraryTab("store"); });
   expect(mocks.ctx.libraryTab).toBe("store");
   expect(header?.textContent).toContain("Component store");
   expect(screen.queryByText("Imported dependency list")).toBeNull();
@@ -63,7 +63,7 @@ it("shows the selected Library view with a single title and no tabs", async () =
 });
 it("closes from the shared header and retains the selected library tab on reopen", async () => {
   const { unmount } = render(<LibrariesPanel />);
-  act(() => mocks.ctx.setLibraryTab("store"));
+  await act(async () => { mocks.ctx.setLibraryTab("store"); });
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   await waitFor(() => expect(mocks.close).toHaveBeenCalledWith(undefined));
   unmount();

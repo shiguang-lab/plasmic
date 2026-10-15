@@ -89,11 +89,8 @@ import {
   DefaultInsertPanelProps,
   PlasmicInsertPanel,
 } from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicInsertPanel";
-import {
-  normalizeTemplateSpec,
-  StudioCtx,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { normalizeTemplateSpec, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { isFlexContainer } from "@/wab/client/utils/tpl-client-utils";
 import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";

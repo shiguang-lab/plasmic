@@ -1,3 +1,4 @@
+import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { translate } from "@/wab/client/i18n/locales";
 
 import { DndAdoptee, DndMarkers, DragMoveManager } from "@/wab/client/Dnd";
@@ -2218,7 +2219,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 {!studioCtx.focusedMode && <VariantsBar />}
               </Scrollbar>
               {(canvasLoading || !studioCtx.initialViewportReady) && (
-                <widgets.StudioLoading />
+                <StudioLoading />
               )}
               <CanvasDndOverlay container={this.canvasContainer} />
               {this.viewCtx()?.editingTextContext() && (

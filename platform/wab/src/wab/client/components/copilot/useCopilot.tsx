@@ -1,10 +1,6 @@
 import { useAsyncFnStrict } from "@/wab/client/hooks/useAsyncStrict";
-import {
-  CopilotInteraction,
-  CopilotPrompt,
-  CopilotType,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { CopilotInteraction, CopilotPrompt, CopilotType } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { trackEvent } from "@/wab/client/tracking";
 import { CopilotInteractionId } from "@/wab/shared/ApiSchema";
 

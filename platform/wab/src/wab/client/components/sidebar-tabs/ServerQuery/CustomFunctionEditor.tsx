@@ -7,7 +7,7 @@ import { useServerQueryBottomModal } from "@/wab/client/components/sidebar-tabs/
 import Button from "@/wab/client/components/widgets/Button";
 import { useI18n } from "@/wab/client/i18n";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { observer } from "@/wab/client/utils/mobx-client-util";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";

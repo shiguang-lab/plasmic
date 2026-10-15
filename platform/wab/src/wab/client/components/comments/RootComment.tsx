@@ -1,7 +1,7 @@
 import CommentPost from "@/wab/client/components/comments/CommentPost";
 import { TplCommentThread } from "@/wab/client/components/comments/utils";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { CheckCircleOutlined } from "@ant-design/icons";
 import { Flex, Tooltip } from "antd";
 import { observer } from "mobx-react";

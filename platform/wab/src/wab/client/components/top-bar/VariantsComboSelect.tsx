@@ -6,7 +6,7 @@ import {
   DefaultVariantsComboSelectProps,
   PlasmicVariantsComboSelect,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   getAllVariantsForTpl,
   getVariantLabel,

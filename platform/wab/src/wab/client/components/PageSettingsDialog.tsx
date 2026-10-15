@@ -2,7 +2,7 @@ import PageSettings from "@/wab/client/components/PageSettings";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { PageComponent } from "@/wab/shared/core/components";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Typography } from "antd";

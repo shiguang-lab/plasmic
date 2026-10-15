@@ -1,0 +1,7 @@
+{
+  "en": "- Improve editor startup by reducing initial JavaScript, loading language packs on demand and reusing project startup data.\n- Let AI editing use the current page or canvas as its scope while keeping the selection as context.\n- Keep downloaded updates in the background until you open the update dialog.",
+  "zh-CN": "- 精简首屏 JavaScript，按需加载语言包并复用项目启动数据，改善编辑器打开速度。\n- AI 编辑以当前页面或画布为操作范围，将选中内容作为上下文。\n- 更新下载完成后保持后台提示，由用户主动打开更新对话框。",
+  "zh-TW": "- 精簡首屏 JavaScript，按需載入語言套件並重用專案啟動資料，改善編輯器開啟速度。\n- AI 編輯以目前頁面或畫布為操作範圍，將選取內容作為上下文。\n- 更新下載完成後保留背景提示，由使用者主動開啟更新對話方塊。",
+  "ja": "- 初期 JavaScript の削減、言語パックの必要時読み込み、プロジェクト起動データの再利用により、エディターの起動を改善。\n- AI 編集は現在のページまたはキャンバスを操作範囲とし、選択内容をコンテキストとして使用。\n- 更新のダウンロード完了後もバックグラウンドの通知を維持し、更新ダイアログはユーザー操作で表示。",
+  "ko": "- 초기 JavaScript를 줄이고 언어 팩을 필요할 때 불러오며 프로젝트 시작 데이터를 재사용하여 편집기 실행 속도를 개선했습니다.\n- AI 편집은 현재 페이지 또는 캔버스를 작업 범위로 사용하고 선택 항목을 컨텍스트로 활용합니다.\n- 업데이트 다운로드가 완료되어도 백그라운드 알림을 유지하며 사용자가 업데이트 대화상자를 직접 엽니다."
+}

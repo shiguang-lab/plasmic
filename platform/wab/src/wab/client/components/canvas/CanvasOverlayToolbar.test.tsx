@@ -19,10 +19,10 @@ import { observable } from "mobx";
 import * as React from "react";
 import { vi } from "vitest";
 
-beforeEach(() => act(() => setLanguagePreference("zh-CN")));
-afterEach(() => {
+beforeEach(async () => await act(async () => await setLanguagePreference("zh-CN")));
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 
 test("one icon toggles effective auto-open state per instance without writing component props", () => {

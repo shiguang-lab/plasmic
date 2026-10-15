@@ -15,7 +15,8 @@ import {
 } from "@/wab/client/components/widgets/EditableLabel";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { spawn } from "@/wab/shared/common";
 import { isTplCodeComponent, isTplTag } from "@/wab/shared/core/tpls";

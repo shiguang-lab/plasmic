@@ -1,7 +1,7 @@
 import styles from "@/wab/client/components/canvas/HoverBox/InlineAddButton.module.scss";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getContainerType } from "@/wab/client/utils/tpl-client-utils";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import {

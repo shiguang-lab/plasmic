@@ -3,9 +3,9 @@ import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { EditorToolRail } from "@/wab/client/components/studio/EditorToolRail";
 import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
-import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
+import { TopBarLoading } from "@/wab/client/components/top-bar/TopBarLoading";
 import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
-import { StudioLoading } from "@/wab/client/components/widgets";
+import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { ensure } from "@/wab/shared/common";
 import * as React from "react";
@@ -149,7 +149,7 @@ function StudioChromeContent({
       <div className="canvas-editor">
         <div className="canvas-editor__outer-main-area">
           <div className="canvas-editor__top-bar">
-            <TopBarChrome projectName={projectName} />
+            <TopBarLoading projectName={projectName} />
           </div>
           <div className="canvas-editor__hsplit">
             <div

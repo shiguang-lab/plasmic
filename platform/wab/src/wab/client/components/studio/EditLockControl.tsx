@@ -2,7 +2,7 @@ import { READ_ONLY_EXPLANATION } from "@/wab/client/components/Messages";
 import { LinkButton } from "@/wab/client/components/widgets";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Tooltip } from "antd";
 import { observer } from "mobx-react";
 import React from "react";

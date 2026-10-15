@@ -12,7 +12,7 @@ import {
   DefaultThemeLayoutPanelProps,
   PlasmicThemeLayoutPanel,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicThemeLayoutPanel";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { RuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
 import {
   CONTENT_LAYOUT_DEFAULTS,

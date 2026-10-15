@@ -4,9 +4,6 @@
 // we remove this `if`.
 if (window && "matchMedia" in window) {
   const tinymce = require("tinymce/tinymce");
-  for (const [locale, pack] of Object.entries(messages)) {
-    tinymce.addI18n(locale, pack);
-  }
 
   require("tinymce/icons/default");
   require("tinymce/models/dom/model");
@@ -43,7 +40,7 @@ import prismCss from "!!raw-loader!../../gen/static/styles/prismjs-css.txt";
 import { getCmsImageUrl } from "@/wab/client/components/sidebar/image-asset-controls";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { messages } from "@/wab/client/i18n/locales";
+import { getMessages } from "@/wab/client/i18n/locales";
 import { Editor, IAllProps } from "@tinymce/tinymce-react";
 import { useTheme } from "antd-style";
 import * as React from "react";
@@ -61,6 +58,7 @@ export function TinyEditor({
 }: TinyEditorProps) {
   const appCtx = useAppCtx();
   const { locale } = useI18n();
+  if ("matchMedia" in window) {require("tinymce/tinymce").addI18n(locale, getMessages(locale) ?? {});}
   const token = useTheme();
   const [editor, setEditor] = React.useState<TinyMceEditor>();
   const contentTheme = `

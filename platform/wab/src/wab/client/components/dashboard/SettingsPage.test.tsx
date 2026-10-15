@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 it("renders settings content through the page wrapper and retains account actions", async () => {
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   const createPersonalApiToken = vi.fn();
   const appCtx = mock<AppCtx>({
     selfInfo: mock<ApiUser>({

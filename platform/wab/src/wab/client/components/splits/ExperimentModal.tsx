@@ -13,7 +13,7 @@ import TitleEditable from "@/wab/client/components/top-bar/TitleEditable";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import Select from "@/wab/client/components/widgets/Select";
 import PlasmicExperimentModal from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentModal";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { SplitType } from "@/wab/shared/core/splits";
 import { Split, SplitSlice } from "@/wab/shared/model/classes";

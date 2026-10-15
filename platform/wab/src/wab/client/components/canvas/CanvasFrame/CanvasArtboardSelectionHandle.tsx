@@ -5,7 +5,7 @@ import { getGlobalCssVariableValue } from "@/wab/client/components/studio/Global
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useScaledElementRef } from "@/wab/client/hooks/useScaledElementRef";
 import PlasmicIcon__Frame from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Frame";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { gridSpacing, hoverBoxTagHeight } from "@/wab/styles/css-variables";
 import cn from "classnames";

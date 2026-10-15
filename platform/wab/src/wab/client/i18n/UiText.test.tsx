@@ -1,15 +1,16 @@
+beforeAll(() => loadMessages("zh-CN"));
 import { setLanguagePreference } from "@/wab/client/i18n";
-import { translateUiLabel } from "@/wab/client/i18n/locales";
+import { translateUiLabel, loadMessages } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import React from "react";
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
-it("updates static messages even below a memoized view", () => {
-  act(() => setLanguagePreference("en"));
+it("updates static messages even below a memoized view", async () => {
+  await act(async () => await setLanguagePreference("en"));
   const View = React.memo(() => (
     <>
       <UiText message="Code" /> / <UiText message="Share" />
@@ -17,9 +18,9 @@ it("updates static messages even below a memoized view", () => {
   ));
   render(<View />);
   expect(screen.getByText("Code / Share")).toBeTruthy();
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByText("代码 / 分享")).toBeTruthy();
-  act(() => setLanguagePreference("ja"));
+  await act(async () => await setLanguagePreference("ja"));
   expect(screen.getByText("コード / 共有")).toBeTruthy();
 });
 it("localizes display metadata while retaining unknown labels and all input values", () => {
@@ -38,7 +39,7 @@ it("localizes display metadata while retaining unknown labels and all input valu
   expect(options[0].label).toBe("Start");
 });
 
-it("preserves rich placeholders, literal user names and actions when the locale changes", () => {
+it("preserves rich placeholders, literal user names and actions when the locale changes", async () => {
   const onClick = vi.fn();
   const name = "<script>{variant}$&</script>";
   const view = render(
@@ -52,7 +53,7 @@ it("preserves rich placeholders, literal user names and actions when the locale 
   );
   expect(view.container.querySelector("script")).toBeNull();
   const button = screen.getByRole("button", { name: "MyVariant" });
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(view.container.textContent).toBe(
     name + " 已被变体 MyVariant 中的设置覆盖。",
   );

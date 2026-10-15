@@ -23,7 +23,7 @@ vi.mock("@/wab/client/components/dashboard/dashboard-actions", () => ({
 afterEach(cleanup);
 
 it("loads self-hosted organization management without any billing requests or controls", async () => {
-  setLanguagePreference("en");
+  await setLanguagePreference("en");
   const team = mock<ApiTeam>({ id: "org" as TeamId, name: "My organization" });
   const api = mock<AppCtx["api"]>();
   api.getTeam.mockResolvedValue({ team, members: [], perms: [] });

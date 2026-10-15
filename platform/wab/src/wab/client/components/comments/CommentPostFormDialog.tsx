@@ -4,7 +4,7 @@ import {
   DefaultCommentPostFormDialogProps,
   PlasmicCommentPostFormDialog,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentPostFormDialog";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { OpenedNewThread } from "@/wab/client/studio-ctx/comments-ctx";
 import { getSetOfPinnedVariantsForViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";

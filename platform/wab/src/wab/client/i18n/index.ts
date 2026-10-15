@@ -1,5 +1,6 @@
 import {
   isLanguagePreference,
+  loadMessages,
   LanguagePreference,
   resolveUiLocale,
   translate,
@@ -35,6 +36,20 @@ let preference = readPreference();
 let locale = resolveUiLocale(preference, systemLanguages());
 const listeners = new Set<() => void>();
 let followsTopFrame = false;
+let localeRequest = 0;
+
+export async function initializeUiLocale() {
+  await loadMessages(locale);
+}
+
+async function applyLocale(value: UiLocale, nextPreference = preference) {
+  const request = ++localeRequest;
+  await loadMessages(value);
+  if (request !== localeRequest) {return;}
+  locale = value;
+  preference = nextPreference;
+  notify();
+}
 
 function syncDesktopLocale() {
   if (window.top === window) {
@@ -63,10 +78,7 @@ export function getUiLocale(): UiLocale {
 // second preference in the custom app host's origin.
 export function setUiLocale(value: UiLocale) {
   followsTopFrame = true;
-  if (locale !== value) {
-    locale = value;
-    notify();
-  }
+  return applyLocale(value);
 }
 
 export function subscribeUiLocale(listener: () => void): () => void {
@@ -79,9 +91,7 @@ export function subscribeUiLocale(listener: () => void): () => void {
 export function setLanguagePreference(value: LanguagePreference) {
   // Save before applying, so a failed write cannot appear to be persisted.
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, value);
-  preference = value;
-  locale = resolveUiLocale(value, systemLanguages());
-  notify();
+  return applyLocale(resolveUiLocale(value, systemLanguages()), value);
 }
 
 window.addEventListener("storage", (event) => {
@@ -89,15 +99,13 @@ window.addEventListener("storage", (event) => {
     !followsTopFrame &&
     (event.key === LANGUAGE_STORAGE_KEY || event.key === null)
   ) {
-    preference = readPreference();
-    locale = resolveUiLocale(preference, systemLanguages());
-    notify();
+    const value = readPreference();
+    void applyLocale(resolveUiLocale(value, systemLanguages()), value).catch(console.error);
   }
 });
 window.addEventListener("languagechange", () => {
   if (!followsTopFrame && preference === "system") {
-    locale = resolveUiLocale(preference, systemLanguages());
-    notify();
+    void applyLocale(resolveUiLocale(preference, systemLanguages())).catch(console.error);
   }
 });
 

@@ -75,7 +75,7 @@
         <h1 data-message="hostReady.title"></h1>
         <p class="subtitle" data-message="hostReady.subtitle"></p>
         <div class="steps">
-          <section><span class="number">01</span><p data-message="hostReady.configure"></p><img src="/static/host-configure-project.<%= commitHash %>.png" /></section>
+          <section><span class="number">01</span><p data-message="hostReady.configure"></p><img data-src="/static/host-configure-project.<%= commitHash %>.png" decoding="async" /></section>
           <section><span class="number">02</span><p data-message="hostReady.connect"></p><input readonly aria-label="App host URL" /><button type="button" data-message="hostReady.copy"></button></section>
         </div>
         <a data-message="hostReady.openStudio"></a>
@@ -87,6 +87,8 @@
       const ready = document.querySelector(".host-ready");
       if (window.parent === window && studioParams.get("canvas") !== "true" && studioParams.get("live") !== "true") {
         ready.hidden = false;
+        const illustration = ready.querySelector("img");
+        illustration.src = illustration.dataset.src;
         const dictionaries = <%= JSON.stringify(hostReadyMessages).replace(/</g, "\\u003c") %>;
         const resolveLocale = <%= resolveUiLocale %>;
         const media = window.matchMedia("(prefers-color-scheme: dark)");

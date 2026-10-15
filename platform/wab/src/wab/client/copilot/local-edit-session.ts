@@ -420,6 +420,9 @@ export class LocalEditSession {
         sessionId: context.sessionId,
         changeCounter: context.changeCounter,
         componentUuid: context.componentUuid,
+        ...(context.editorView?.arenaType === "custom"
+          ? { canvasName: context.editorView.arenaId }
+          : {}),
         elementUuids: context.selectedElementUuids,
         frameUuid: context.frameUuid,
       };
@@ -646,23 +649,26 @@ export class LocalEditSession {
       if (context.branchId !== task.binding.branchId) {
         throw new Error("Open the message's branch before retrying.");
       }
-      if (task.binding.componentUuid) {
+      if (task.binding.canvasName !== undefined) {
+        const navigated = await tools.navigateCanvas({
+          canvasName: task.binding.canvasName,
+        });
+        if (!navigated.success) {
+          throw new Error(navigated.error.message);
+        }
+        context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
+          JSON.parse(await this.raw("getEditorContext", {})),
+        );
+      } else if (task.binding.componentUuid) {
         const navigated = await tools.navigate({
           componentUuid: task.binding.componentUuid,
         });
         if (!navigated.success) {
           throw new Error(navigated.error.message);
         }
-        const checked = await tools.read(
-          task.binding.elementUuids.length
-            ? {
-                elements: task.binding.elementUuids.map((elementUuid) => ({
-                  componentUuid: task.binding.componentUuid,
-                  elementUuid,
-                })),
-              }
-            : { componentUuids: [task.binding.componentUuid] },
-        );
+        const checked = await tools.read({
+          componentUuids: [task.binding.componentUuid],
+        });
         if (!checked.success) {
           throw new Error(checked.error.message);
         }
@@ -697,8 +703,10 @@ export class LocalEditSession {
       this.draft = { prompt: task.prompt, attachments };
       await this.run(
         task.prompt,
-        task.binding.componentUuid ? binding : undefined,
-        task.binding.componentUuid ? undefined : "auto",
+        binding,
+        task.binding.mode === "page" && !task.binding.componentUuid
+          ? "auto"
+          : undefined,
         attachments,
         this.selectedModel ?? task.model,
       );

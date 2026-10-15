@@ -1,7 +1,7 @@
 import { activateTheme } from "@/wab/client/activate-theme";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftThemesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ensure } from "@/wab/shared/common";
 import { getSelectableThemes } from "@/wab/shared/core/theme-styles";
 import { observer } from "mobx-react";

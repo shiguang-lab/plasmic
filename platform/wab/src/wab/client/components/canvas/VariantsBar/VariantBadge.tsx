@@ -10,7 +10,7 @@ import {
   DefaultVariantBadgeProps,
   PlasmicVariantBadge,
 } from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantBadge";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
   StyleVariant,

@@ -1,11 +1,9 @@
 # Studio canvas startup
 
-Before the Studio module loads, Root fetches bundle version and application
-data concurrently. It reuses the raw responses after version resolution and
-applies configuration only when constructing AppCtx. Application-data retries
-fetch fresh responses without repeating a successful bundle lookup. Desktop
-startup checks access to the saved project; recent-project refresh runs when
-the File menu opens rather than delaying navigation.
+Project routes use the startup contract below. Other routes fetch bundle version
+and application data concurrently. Application-data retries reuse a successful
+bundle lookup. Desktop recent-project refresh runs when the File menu opens
+rather than delaying navigation.
 
 The target is the focused frame (including focus inside its content), or the
 first frame of the current arena. Resolve it before its ViewCtx exists. Queue
@@ -79,3 +77,51 @@ it is not a measured business-project speedup. For real projects compare cold
 and warm opens using `canvas-revealed.startMs` and
 `all-frame-contexts-created.startMs`, preserving the same viewport and project
 revision between runs.
+
+## Top-frame startup contract
+
+Project routes fetch `/api/v1/editor-bootstrap/:projectId`, which reuses the
+existing user, configuration, app-context, project-permission, trusted-host and
+branch readers. The response is private and `no-store`; it contains metadata,
+not the project model. The full app-context collections retain their existing
+contract for project navigation, membership and billing controls.
+
+Desktop validates its saved route through the same endpoint. Its trusted main
+frame may consume that response once for the same project within 30 seconds.
+Later opens and retries fetch fresh data. No model response is persisted in this
+startup cache.
+
+Root starts the model request after resolving the project and branch, while the
+editor chunk and host load. The top-frame bridge consumes that promise once for
+an exact project/branch/latest-model match; other projects, revisions and
+subsequent requests use the normal API. Host trust checks still precede editor
+execution in the host. Transient startup metadata and promises are cleared when
+consumed.
+
+Loading chrome imports lightweight contexts and disabled controls. It does not
+import `StudioCtx`, billing dialogs or dashboard screens. Context definitions and
+hooks live in `contexts/StudioContexts.tsx`; the model classes are type-only
+imports there. Form-registration metadata uses the `@plasmicpkgs/antd5/form-meta`
+entry rather than the component-registration barrel.
+
+The selected language pack loads before the first application render. Other
+packs load on selection and concurrent requests share one download. Billing and
+route-specific loading screens load on demand. The built-in host assigns its
+onboarding illustration URL only for the standalone onboarding page, so hidden
+editor/canvas/preview documents do not download it.
+
+Dependency-update checks, imported-host warnings and release summaries wait for
+the initial route, viewport and active target readiness. Ordinary comments wait
+for the same gate; comment-thread deep links load immediately so route resolution
+can consume them. Same-branch comment requests share an in-flight promise.
+Disposal cancels pending readiness work. Local AI capability discovery waits for
+Studio readiness; session recovery and active-edit state keep their earlier
+connection because editing locks depend on them.
+
+Browser performance marks include `studio-entry`, `studio-shell`,
+`studio-root-start`, `studio-bootstrap-ready` and `studio:<phase>:<frameUuid>`.
+These supplement the host snapshot; navigation-to-visible/editable measurements
+must still use a timer outside the application to include entry download,
+parsing and initialization. The project endpoint adds `Server-Timing` stages
+for revision, permission, dependency and owner reads alongside existing database
+timings. Independent reads begin only after project authorization.

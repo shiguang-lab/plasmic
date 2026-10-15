@@ -24,10 +24,8 @@ import "@/wab/client/moment-config";
 import "@/wab/client/react-global-hook/globalHook"; // Run once studio loads to inject our hook
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { initializePlasmicExtension } from "@/wab/client/screenshot-util";
-import {
-  StudioCtx,
-  providesStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { providesStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { isUnownedProject } from "@/wab/shared/EntUtil";
@@ -152,7 +150,7 @@ class StudioInitializer_ extends React.Component<
     if (!appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
       // Version metadata and insertable templates are not needed to paint the
       // current page. Component sync awaits Plume only for missing defaults.
-      spawn(studioCtx.projectDependencyManager.refreshDeps());
+      studioCtx.runAfterInitialCanvasReady(() => studioCtx.projectDependencyManager.refreshDeps());
       const syncDone = studioCtx.loadTimings.begin("code-component-sync");
       await syncCodeComponentsAndHandleErrors(studioCtx);
       syncDone();

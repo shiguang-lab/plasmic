@@ -17,7 +17,7 @@ import {
   renderLintIssue,
 } from "@/wab/client/linting/lint-issue-row";
 import EmojiHappysvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__EmojiHappySvg";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { maybe, xGroupBy } from "@/wab/shared/common";
 import {
   getComponentDisplayName,

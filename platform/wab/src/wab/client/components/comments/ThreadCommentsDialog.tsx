@@ -4,10 +4,8 @@ import {
   DefaultThreadCommentsDialogProps,
   PlasmicThreadCommentsDialog,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicThreadCommentsDialog";
-import {
-  canUpdateHistory,
-  useStudioCtx,
-} from "@/wab/client/studio-ctx/StudioCtx";
+import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { OpenedThread } from "@/wab/client/studio-ctx/comments-ctx";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { summarizeTpl } from "@/wab/shared/core/tpls";

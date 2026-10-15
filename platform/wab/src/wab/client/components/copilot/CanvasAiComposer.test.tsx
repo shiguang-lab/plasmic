@@ -7,11 +7,12 @@ import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import {
+  Arena,
   ArenaFrame,
   ArenaFrameGrid,
   PageArena,
 } from "@/wab/shared/model/classes";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -35,9 +36,12 @@ vi.mock("@/wab/client/components/copilot/AiComposer", () => ({
     availability?: string;
     placeholder?: string;
     scope?: string;
+    onSubmit: () => void;
   }) => (
     <div>
-      <button disabled={!props.canSubmit}>Send</button>
+      <button disabled={!props.canSubmit} onClick={props.onSubmit}>
+        Send
+      </button>
       <p>{props.availability}</p>
       <input placeholder={props.placeholder} />
       <span data-testid="scope">{props.scope}</span>
@@ -45,27 +49,50 @@ vi.mock("@/wab/client/components/copilot/AiComposer", () => ({
   ),
 }));
 afterEach(cleanup);
-it("explains the empty-canvas prerequisite in both the placeholder and visible status", () => {
-  render(
-    <CanvasAiComposer
-      appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
-      projectId="audit"
-      context={{} as LocalAiContext}
-      onSubmit={vi.fn()}
-      hiddenByModal={false}
-    />,
-  );
-  expect(
-    (screen.getByRole("button", { name: "Send" }) as HTMLButtonElement)
-      .disabled,
-  ).toBe(true);
-  expect(
-    screen.getByText("Create or select a page before using AI."),
-  ).toBeTruthy();
-  expect(
-    screen.getByPlaceholderText("Create or select a page before using AI."),
-  ).toBeTruthy();
-});
+it.each([new Arena({ name: "Pages", children: [] })])(
+  "sends canvas requests without a focused page in arena=%s",
+  (currentArena) => {
+    const studio = mock<StudioCtx>({
+      currentArena,
+      siteInfo: { id: "project" } as StudioCtx["siteInfo"],
+      aiSessionId: "session",
+      _changeCounter: 4,
+    });
+    studio.dbCtx.mockReturnValue(mock<ReturnType<StudioCtx["dbCtx"]>>());
+    studio.focusedViewCtx.mockReturnValue(undefined);
+    const context = getLocalAiContext(studio);
+    const onSubmit = vi.fn();
+    render(
+      <CanvasAiComposer
+        appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
+        projectId="project"
+        context={context}
+        onSubmit={onSubmit}
+        hiddenByModal={false}
+      />,
+    );
+    expect(screen.getByTestId("scope").textContent).toBe("Pages");
+    expect(
+      screen.getByPlaceholderText("Describe what you want to change…"),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "Create page",
+        localEditBinding: {
+          projectId: "project",
+          branchId: null,
+          sessionId: "session",
+          changeCounter: 4,
+          componentUuid: null,
+          canvasName: "Pages",
+          frameUuid: null,
+          elementUuids: [],
+        },
+      }),
+    );
+  },
+);
 
 it("keeps page editing available and restores page scope when selection and canvas focus are cleared", () => {
   const selected = mkTplTagX("div", { name: "StatusFilter" });
@@ -93,11 +120,11 @@ it("keeps page editing available and restores page scope when selection and canv
   studio.dbCtx.mockReturnValue(mock<ReturnType<StudioCtx["dbCtx"]>>());
   studio.focusedViewCtx.mockReturnValue(view);
   const context = getLocalAiContext(studio);
-  const composer = (context: LocalAiContext) => (
+  const composer = (nextContext: LocalAiContext) => (
     <CanvasAiComposer
       appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
       projectId="project"
-      context={context}
+      context={nextContext}
       onSubmit={vi.fn()}
       hiddenByModal={false}
     />
@@ -105,18 +132,15 @@ it("keeps page editing available and restores page scope when selection and canv
   const { rerender } = render(composer(context));
   const assertAvailable = () => {
     expect(
-      screen.getByPlaceholderText("Describe changes to the current page…"),
+      screen.getByPlaceholderText("Describe what you want to change…"),
     ).toBeTruthy();
     expect(
       (screen.getByRole("button", { name: "Send" }) as HTMLButtonElement)
         .disabled,
     ).toBe(false);
-    expect(
-      screen.queryByText("Create or select a page before using AI."),
-    ).toBeNull();
   };
   assertAvailable();
-  expect(screen.getByTestId("scope").textContent).toBe("StatusFilter");
+  expect(screen.getByTestId("scope").textContent).toBe(page.name);
   expect(context.binding?.elementUuids).toEqual([selected.uuid]);
 
   view.focusedTpl.mockReturnValue(null);
@@ -140,4 +164,23 @@ it("keeps page editing available and restores page scope when selection and canv
     frameUuid: null,
     elementUuids: [],
   });
+});
+
+it("requires a workspace only when no page or canvas is open", () => {
+  render(
+    <CanvasAiComposer
+      appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
+      projectId="project"
+      context={{}}
+      onSubmit={vi.fn()}
+      hiddenByModal={false}
+    />,
+  );
+  expect(
+    (screen.getByRole("button", { name: "Send" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
+  expect(
+    screen.getByPlaceholderText("Open a page or canvas before using AI."),
+  ).toBeTruthy();
 });

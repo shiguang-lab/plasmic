@@ -376,11 +376,10 @@ export function CopilotChatDialog({
                   </Tag>
                   {task.binding && (
                     <span>
-                      {t("Pinned scope")}:{" "}
-                      {task.scopeLabel ??
-                        (task.binding.elementUuids.length
-                          ? t("Current selection")
-                          : t("Current page"))}
+                      {t("Scope")}:{" "}
+                      {task.binding.canvasName ??
+                        task.scopeLabel ??
+                        t("Current page")}
                     </span>
                   )}
                 </div>
@@ -442,7 +441,7 @@ export function CopilotChatDialog({
             context?.scope ??
             (session.running && lastTask?.scopeLabel
               ? lastTask.scopeLabel
-              : t("Current page"))
+              : t("Current canvas"))
           }
           models={status?.models}
           model={model ?? status?.model}

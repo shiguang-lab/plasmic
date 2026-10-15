@@ -1,5 +1,6 @@
 import MultiplayerCursor from "@/wab/client/components/canvas/Multiplayer/MultiplayerCursor";
-import { StudioCtx, useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { getArenaType, getArenaUuidOrName } from "@/wab/shared/Arenas";
 import { Pt } from "@/wab/shared/geom";

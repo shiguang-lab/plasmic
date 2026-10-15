@@ -1,6 +1,7 @@
 import { mockDeepAuto } from "@/wab/__testonly__/mock";
 import { MeasureTool } from "@/wab/client/components/canvas/MeasureTool";
-import { StudioCtx, StudioCtxContext } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { Box } from "@/wab/shared/geom";
 import { act, render } from "@testing-library/react";
 import $ from "jquery";

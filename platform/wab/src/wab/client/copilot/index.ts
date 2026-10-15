@@ -57,8 +57,7 @@ import {
 import { interpolatedStringToCodeExpr } from "@/wab/shared/copilot/dynamic-value-input";
 import {
   LocalEditBinding,
-  componentEditToolNames,
-  localEditTools,
+  localEditToolNames,
 } from "@/wab/shared/copilot/local-edit";
 import {
   PROTOTYPE_TOOL_META as meta,
@@ -1240,30 +1239,12 @@ function assertLocalBinding(studio: StudioCtx, binding: LocalEditBinding) {
   );
 }
 
-function localRoots(studio: StudioCtx, binding: LocalEditBinding) {
-  const component = findComponent(
-    studio,
-    ensure(binding.componentUuid, "Create or open a page first"),
-    true,
-  );
-  return {
-    component,
-    roots: binding.elementUuids.length
-      ? binding.elementUuids.map((uuid) => findElement(component, uuid))
-      : [component.tplTree],
-  };
-}
-
-function localSnapshot(studio: StudioCtx, binding: LocalEditBinding) {
-  if (!binding.elementUuids.length) {
-    return JSON.stringify(
-      componentResult(studio, localRoots(studio, binding).component),
-    );
-  }
-  const { roots } = localRoots(studio, binding);
+function localSnapshot(studio: StudioCtx, components: Component[]) {
   return JSON.stringify(
     outputResult(
-      roots.map((tpl) => buildElementResource(tpl, { site: studio.site })),
+      components.map((component) =>
+        buildComponentResource(component, { site: studio.site }),
+      ),
     ),
   );
 }
@@ -1377,16 +1358,29 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           ),
         );
       }
-      const { component, roots } = localRoots(studio, binding);
-      const allowed = new Set(
-        roots.flatMap(flattenTpls).map((tpl) => tpl.uuid),
-      );
+      const canvas =
+        binding.canvasName !== undefined
+          ? findCanvas(studio, binding.canvasName)
+          : undefined;
+      const componentsInScope = canvas
+        ? [...new Set(canvas.children.map((frame) => frame.container.component))]
+        : [
+            findComponent(
+              studio,
+              ensure(binding.componentUuid, "Open a page or canvas before using AI."),
+              true,
+            ),
+          ];
       const inScope = (componentUuid: string, elementUuid?: string) => {
+        const component = findComponent(studio, componentUuid, true);
         assert(
-          componentUuid === binding.componentUuid &&
-            allowed.has(elementUuid ?? component.tplTree.uuid),
-          "AI operation is outside the pinned editing scope.",
+          componentsInScope.includes(component),
+          "AI operation is outside the bound page or canvas.",
         );
+        if (elementUuid) {
+          findElement(component, elementUuid);
+        }
+        return component;
       };
       if (input.name === "read") {
         const parsed = meta.read.inputSchema.parse(input.input);
@@ -1395,8 +1389,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           assert(
             isCodeComponent(candidate) ||
               !studio.site.components.includes(candidate) ||
-              (uuid === component.uuid && !binding.elementUuids.length),
-            "Read the pinned subtree or an installed component contract.",
+              componentsInScope.includes(candidate),
+            "Read the bound page/canvas or an installed component contract.",
           );
         }
         for (const target of parsed.elements ?? []) {
@@ -1411,21 +1405,41 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       ) {
         const parsed = meta[input.name].inputSchema.parse(input.input);
         inScope(parsed.componentUuid, parsed.elementUuid);
-        assert(
-          !parsed.frameUuid ||
-            !binding.frameUuid ||
-            parsed.frameUuid === binding.frameUuid,
-          "AI navigation is outside the pinned artboard.",
+        const frames = canvas?.children.filter(
+          (frame) => frame.container.component.uuid === parsed.componentUuid,
         );
+        const frame = frames &&
+          ensure(
+            parsed.frameUuid
+              ? frames.find((candidate) => candidate.uuid === parsed.frameUuid)
+              : frames.find((candidate) => candidate.uuid === binding.frameUuid) ?? frames[0],
+            "AI navigation is outside the bound canvas.",
+          );
         input.input = {
           ...parsed,
-          ...(binding.frameUuid ? { frameUuid: binding.frameUuid } : {}),
+          ...(frame ? { frameUuid: frame.uuid } : {}),
         };
       } else if (input.name === "navigate") {
-        assert(binding.mode === "page", "Local editing cannot change pages.");
-        inScope(meta.navigate.inputSchema.parse(input.input).componentUuid);
+        const target = inScope(
+          meta.navigate.inputSchema.parse(input.input).componentUuid,
+        );
+        if (canvas) {
+          const frame = ensure(
+            canvas.children.find((candidate) => candidate.container.component === target),
+            "Artboard not found",
+          );
+          const result = await COPILOT_TOOLS.navigateCanvas.execute(
+            studio,
+            { canvasName: canvas.name, frameUuid: frame.uuid },
+            { outputFormat: "json" },
+          );
+          assertLocalBinding(studio, binding);
+          return await finish(result);
+        }
       } else if (input.name === "validate") {
-        input.input = { componentUuids: [binding.componentUuid] };
+        input.input = {
+          componentUuids: componentsInScope.map((component) => component.uuid),
+        };
       }
       if (
         [
@@ -1453,32 +1467,27 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const operations = rawOperations.map((raw) => {
         const op = prototypeMutationSchema.parse(raw);
         assert(
-          localEditTools(binding).some((name) => name === op.name),
-          "Tool is not allowed in the pinned scope. State and viewport edits require a whole-component scope.",
+          localEditToolNames.some((name) => name === op.name),
+          "Tool is not allowed for canvas AI editing.",
         );
         assert("componentUuid" in op.input, "Target component is required");
-        if (componentEditToolNames.some((name) => name === op.name)) {
-          inScope(
-            ensure(op.input.componentUuid, "Target component is required"),
-          );
-          return op;
-        }
         const elementUuid =
           "elementUuid" in op.input ? op.input.elementUuid : undefined;
+        const component = inScope(
+          ensure(op.input.componentUuid, "Target component is required"),
+          elementUuid,
+        );
+        if (["createState", "updateState", "deleteState", "setPageViewport"].includes(op.name)) {
+          return op;
+        }
         assert(
           elementUuid || op.name === "insertHtml",
           "Target element is required",
         );
-        inScope(
-          ensure(op.input.componentUuid, "Target component is required"),
-          elementUuid,
-        );
         if (op.name === "copyElement" || op.name === "moveElement") {
           inScope(op.input.componentUuid, op.input.targetUuid);
         }
-        const isRoot = roots.some(
-          (root) => root.uuid === (elementUuid ?? component.tplTree.uuid),
-        );
+        const isRoot = component.tplTree.uuid === (elementUuid ?? component.tplTree.uuid);
         assert(
           !(
             isRoot &&
@@ -1487,12 +1496,16 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               (op.name === "insertHtml" &&
                 ["replace", "before", "after"].includes(op.input.location)))
           ),
-          "Keep the pinned root identity. Select its parent to replace or delete it; use changeElement.text for plain text.",
+          "Keep the component root identity; use changeElement.text for plain text.",
         );
         return op;
       });
       const finishActivity = studio.copilotActivity.begin(
         operations.map((op) => {
+          assert("componentUuid" in op.input, "Target component is required");
+          const component = inScope(
+            ensure(op.input.componentUuid, "Target component is required"),
+          );
           const tpl =
             "elementUuid" in op.input && op.input.elementUuid
               ? findElement(component, op.input.elementUuid)
@@ -1508,13 +1521,19 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         }),
       );
       try {
-        const before = localSnapshot(studio, binding);
+        const components = [
+          ...new Set(operations.map((op) => {
+            assert("componentUuid" in op.input, "Target component is required");
+            return inScope(ensure(op.input.componentUuid, "Target component is required"));
+          })),
+        ];
+        const before = localSnapshot(studio, components);
         const plans: MutationPlan[] = [];
         for (const op of operations) {
           plans.push(await prepareMutation(studio, op));
         }
         // HTML preparation can await asset loading. Recheck inside the recorder.
-        await change(studio, [component], () => {
+        await change(studio, components, () => {
           assertLocalBinding(studio, binding);
           for (const plan of plans) {
             plan.apply();
@@ -1542,7 +1561,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         const result = finish(
           JSON.stringify({ results: summarized }),
           before,
-          localSnapshot(studio, binding),
+          localSnapshot(studio, components),
         );
         finishActivity("success");
         return result;

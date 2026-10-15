@@ -6,7 +6,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { DataTokenIcon } from "@/wab/client/icons";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { DataTokenRef } from "@/wab/commons/DataToken";
 import { BetterAutoComplete } from "@/wab/commons/components/inputs/BetterAutoComplete";
 import { isPageComponent } from "@/wab/shared/core/components";

@@ -1,6 +1,13 @@
+import en from "@/wab/client/i18n/locales/en.json";
+import ja from "@/wab/client/i18n/locales/ja.json";
+import ko from "@/wab/client/i18n/locales/ko.json";
+import zhCN from "@/wab/client/i18n/locales/zh-CN.json";
+import zhTW from "@/wab/client/i18n/locales/zh-TW.json";
+const messages = { en, ja, ko, "zh-CN": zhCN, "zh-TW": zhTW };
+beforeAll(() => loadMessages("zh-CN"));
 import {
   languageOptions,
-  messages,
+  loadMessages,
   resolveUiLocale,
   translate,
 } from "@/wab/client/i18n/locales";
@@ -63,4 +70,16 @@ it("includes the descriptions and contexts of all Studio keyboard shortcuts", as
   expect(labels.filter((label) => !Object.hasOwn(messages.en, label))).toEqual(
     [],
   );
+});
+
+ it("shares an in-flight language download and caches the loaded pack", async () => {
+  vi.resetModules();
+  const fresh = await import("@/wab/client/i18n/locales");
+  expect(fresh.getMessages("ko")).toBeUndefined();
+  const first = fresh.loadMessages("ko");
+  expect(fresh.loadMessages("ko")).toBe(first);
+  const pack = await first;
+  expect(pack.Settings).toBe("설정");
+  expect(fresh.getMessages("ko")).toBe(pack);
+  expect(await fresh.loadMessages("ko")).toBe(pack);
 });

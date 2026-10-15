@@ -7,7 +7,7 @@ import {
   useFrameBgColor,
   useLivePreview,
 } from "@/wab/client/components/live/PreviewFrame";
-import { EditorIconAction } from "@/wab/client/components/top-bar/TopBarChrome";
+import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { untilClosed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -16,7 +16,7 @@ import {
   PlasmicLivePopOutButton,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicLivePopOutButton";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getFrameHeight } from "@/wab/shared/Arenas";
 import { spawn } from "@/wab/shared/common";

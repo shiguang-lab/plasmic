@@ -373,6 +373,12 @@ async function startDesktop() {
       desktopAppearance.set(value);
       return desktopAppearance.snapshot();
     });
+    ipcMain.handle("desktop:startup-data", (event, projectId) => {
+      if (!trustedAuthSender(event) || workspace.projectId(event.senderFrame.url) !== projectId) {
+        throw new Error("Invalid Studio page");
+      }
+      return workspace.consumeStartupData(projectId);
+    });
     ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
       if (
         !trustedAuthSender(event) ||

@@ -1,15 +1,17 @@
+import en from "@/wab/client/i18n/locales/en.json";
+beforeAll(async () => { await Promise.all(languageOptions.map(({value}) => loadMessages(value))); });
 import { getAddItemLabel } from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
 import {
   AddFakeItem,
   AddItemType,
   INSERTABLES_MAP,
 } from "@/wab/client/definitions/insertables";
-import { languageOptions, messages } from "@/wab/client/i18n/locales";
+import { languageOptions, loadMessages } from "@/wab/client/i18n/locales";
 
 it("localizes all built-in insertion captions without modifying insertable metadata", () => {
   for (const item of Object.values(INSERTABLES_MAP)) {
     const originalLabel = item.label;
-    expect(Object.hasOwn(messages.en, originalLabel), originalLabel).toBe(true);
+    expect(Object.hasOwn(en, originalLabel), originalLabel).toBe(true);
     for (const { value } of languageOptions) {
       expect(getAddItemLabel(item, value)).toBeTruthy();
     }

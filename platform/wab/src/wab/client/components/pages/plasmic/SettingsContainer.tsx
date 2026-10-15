@@ -94,9 +94,9 @@ export default function SettingsContainer(props: Partial<SettingsContainerProps>
             className={styles.languageSelect}
             value={preference}
             options={[{ value: "system", label: t("Follow system") }, ...languageOptions]}
-            onChange={(value) => {
+            onChange={async (value) => {
               try {
-                setLanguagePreference(value);
+                await setLanguagePreference(value);
                 setLanguageError(false);
               } catch {
                 setLanguageError(true);

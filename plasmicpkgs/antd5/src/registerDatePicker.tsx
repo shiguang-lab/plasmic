@@ -1,3 +1,4 @@
+import { datePickerComponentName } from "./names";
 import { DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import React from "react";
@@ -110,7 +111,7 @@ export function AntdDatePicker(
   );
 }
 
-export const datePickerComponentName = "plasmic-antd5-date-picker";
+
 
 export const datePickerHelpers = {
   states: {

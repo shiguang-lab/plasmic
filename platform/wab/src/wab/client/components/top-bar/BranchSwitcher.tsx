@@ -1,6 +1,6 @@
 import { BranchPanelTop } from "@/wab/client/components/sidebar-tabs/ProjectPanel/ProjectPanelTop";
 import { useI18n } from "@/wab/client/i18n";
-import { useStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { BranchesOutlined, DownOutlined } from "@ant-design/icons";
 import { Button, Popover } from "antd";

@@ -1,19 +1,37 @@
-import en from "@/wab/client/i18n/locales/en.json";
-import ja from "@/wab/client/i18n/locales/ja.json";
-import ko from "@/wab/client/i18n/locales/ko.json";
-import zhCN from "@/wab/client/i18n/locales/zh-CN.json";
-import zhTW from "@/wab/client/i18n/locales/zh-TW.json";
-
-export type MessageKey = keyof typeof en;
+export type MessageKey = keyof typeof import("./locales/en.json");
 export type Messages = Record<MessageKey, string>;
-export const messages = {
-  en,
-  "zh-CN": zhCN,
-  "zh-TW": zhTW,
-  ja,
-  ko,
-} satisfies Record<string, Messages>;
-export type UiLocale = keyof typeof messages;
+export type UiLocale = "en" | "zh-CN" | "zh-TW" | "ja" | "ko";
+const packs = new Map<UiLocale, Messages>();
+const pendingPacks = new Map<UiLocale, Promise<Messages>>();
+const loaders = {
+  en: () => import("./locales/en.json"),
+  "zh-CN": () => import("./locales/zh-CN.json"),
+  "zh-TW": () => import("./locales/zh-TW.json"),
+  ja: () => import("./locales/ja.json"),
+  ko: () => import("./locales/ko.json"),
+};
+
+export function getMessages(locale: UiLocale) {
+  return packs.get(locale);
+}
+
+export function loadMessages(locale: UiLocale): Promise<Messages> {
+  const loaded = packs.get(locale);
+  if (loaded) {return Promise.resolve(loaded);}
+  const pending = pendingPacks.get(locale);
+  if (pending) {return pending;}
+  const request = loaders[locale]().then(({ default: messages }) => {
+    packs.set(locale, messages);
+    pendingPacks.delete(locale);
+    return messages;
+  }, (error) => {
+    pendingPacks.delete(locale);
+    throw error;
+  });
+  pendingPacks.set(locale, request);
+  return request;
+}
+
 export type LanguagePreference = UiLocale | "system";
 export const languageOptions: { value: UiLocale; label: string }[] = [
   { value: "en", label: "English" },
@@ -39,7 +57,7 @@ export function translate(
   key: MessageKey,
   values: Record<string, string | number> = {},
 ): string {
-  return messages[locale][key].replace(
+  return (packs.get(locale)?.[key] ?? key).replace(
     /\{(\w+)\}/g,
     (placeholder, name: string) =>
       values[name] === undefined ? placeholder : String(values[name]),
@@ -48,7 +66,5 @@ export function translate(
 
 /** Translate presentation labels from editor metadata without changing stored values. */
 export function translateUiLabel(locale: UiLocale, label: string): string {
-  return Object.prototype.hasOwnProperty.call(messages.en, label)
-    ? translate(locale, label as MessageKey)
-    : label;
+  return packs.get(locale)?.[label as MessageKey] ?? label;
 }

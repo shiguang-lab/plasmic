@@ -40,16 +40,16 @@ vi.mock("@/wab/client/components/quick-modals", () => ({
   },
 }));
 
-afterEach(() => {
+afterEach(async () => {
   onSubmit.mockClear();
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 
 it.each(languageOptions)(
   "localizes the duplicate prompt in $value",
   async ({ value }) => {
-    act(() => setLanguagePreference(value));
+    await act(async () => await setLanguagePreference(value));
     const name = "Desktop UX {name} $&";
     await act(async () => {
       await promptWorkspace({
@@ -88,7 +88,7 @@ it.each(languageOptions)(
 );
 
 it("updates an open prompt's captions without rewriting the edited project name", async () => {
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
   await act(async () => {
     await promptWorkspace({
       workspaces: [],
@@ -102,7 +102,7 @@ it("updates an open prompt's captions without rewriting the edited project name"
   const input = screen.getByRole("textbox");
   expect(input).toHaveValue("New Project");
   fireEvent.change(input, { target: { value: "My own project name" } });
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   expect(screen.getByText("选择目标工作区：")).toBeTruthy();
   expect(screen.getByText(translate("zh-CN", "Select..."))).toBeTruthy();
   expect(
@@ -114,7 +114,7 @@ it("updates an open prompt's captions without rewriting the edited project name"
 it.each(["Move", undefined] as const)(
   "localizes %s while retaining workspace and organization names",
   async (operation) => {
-    act(() => setLanguagePreference("zh-CN"));
+    await act(async () => await setLanguagePreference("zh-CN"));
     const team = mock<ApiTeam>({
       id: "team" as ApiTeam["id"],
       name: "Organization Alpha",
@@ -166,8 +166,8 @@ it.each(["Move", undefined] as const)(
   },
 );
 
-it("preserves an explicit Select placeholder", () => {
-  act(() => setLanguagePreference("zh-CN"));
+it("preserves an explicit Select placeholder", async () => {
+  await act(async () => await setLanguagePreference("zh-CN"));
   render(<Select placeholder="Business placeholder" />);
   expect(screen.getByText("Business placeholder")).toBeTruthy();
 });

@@ -15,7 +15,7 @@ import * as slotUtils from "@/wab/shared/SlotUtils";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { getBundle } from "@/wab/shared/bundles";
 import { findAllDataSourceOpExpr } from "@/wab/shared/cached-selectors";
-import { asyncNever, spawn } from "@/wab/shared/common";
+import { asyncNever } from "@/wab/shared/common";
 import * as exprs from "@/wab/shared/core/exprs";
 import { unbundleSite } from "@/wab/shared/core/tagged-unbundle";
 import * as tpls from "@/wab/shared/core/tpls";
@@ -89,7 +89,7 @@ export async function loadSiteDbCtx(
   );
   unbundleDone();
   appCtx.appConfig = getProjectFlags(site, appCtx.appConfig);
-  spawn(checkDepPkgHosts(appCtx, siteInfo, depPkgVersions));
+
 
   // Enable data queries if any components already use them.
   // Occurs after applyPlasmicUserDevFlagOverrides, so skip if already enabled
@@ -122,7 +122,7 @@ export async function loadSiteDbCtx(
     branch,
   });
 
-  return dbCtx;
+  return { dbCtx, depPkgVersions };
 }
 
 export async function checkDepPkgHosts(

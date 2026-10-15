@@ -890,9 +890,9 @@ export const PROTOTYPE_TOOL_META = {
   ...EDIT_TOOL_META,
   executeLocalEdit: {
     toolName: "executeLocalEdit",
-    title: "Execute a scoped local AI operation",
+    title: "Execute a canvas AI operation",
     description:
-      "Execute an existing Studio tool against a pinned project, branch, editor session, change counter and subtree. Reject stale context and writes outside the subtree.",
+      "Execute an existing Studio tool in the bound page or mixed canvas. Selection is context; reject edits outside that page/canvas, stale designs and imported component mutations. New-page generation targets the created page.",
     inputSchema: z
       .object({
         binding: localEditBindingSchema,
@@ -906,7 +906,6 @@ export const PROTOTYPE_TOOL_META = {
         name: z.enum([
           ...localEditToolNames,
           "createComponent",
-          "navigate",
           "validate",
           "save",
           "undo",

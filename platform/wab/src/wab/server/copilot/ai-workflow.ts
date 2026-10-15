@@ -74,6 +74,7 @@ export async function aiChatRun(id: string) {
         binding: {
           ...run.task.binding,
           mode: "page",
+          canvasName: undefined,
           componentUuid: null,
           elementUuids: [],
           frameUuid: null,
@@ -94,20 +95,10 @@ export async function aiChatRun(id: string) {
       contextOperation = (await execute("getEditorContext", {})).operationId;
     }
     run = await a.loadRun(id);
-    if (!run.task.binding.componentUuid) {
-      throw new Error("Open a page or select an element before editing.");
-    }
     const binding = run.task.binding;
     const initial = await execute(
-      "read",
-      binding.elementUuids.length
-        ? {
-            elements: binding.elementUuids.map((elementUuid) => ({
-              componentUuid: binding.componentUuid,
-              elementUuid,
-            })),
-          }
-        : { componentUuids: [binding.componentUuid] },
+      binding.componentUuid ? "read" : "getEditorContext",
+      binding.componentUuid ? { componentUuids: [binding.componentUuid] } : {},
     );
     const overview = await execute("read", {});
     const resources = [
@@ -126,7 +117,7 @@ export async function aiChatRun(id: string) {
       }
     >();
     let rejectedCalls = 0;
-    const limit = binding.elementUuids.length ? 12 : 48;
+    const limit = 48;
     let step = 0;
     for (; step < limit; step++) {
       run = await a.loadRun(id);

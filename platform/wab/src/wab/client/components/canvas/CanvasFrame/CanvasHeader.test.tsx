@@ -10,7 +10,7 @@ import React from "react";
 import { mock } from "vitest-mock-extended";
 
 const fixture = vi.hoisted(() => ({ ctx: undefined as unknown as StudioCtx }));
-vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.ctx,
 }));
 vi.mock(

@@ -23,13 +23,13 @@ function renderDialog(onSubmit: (value: string) => void, onCancel = vi.fn()) {
   );
 }
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
-  act(() => setLanguagePreference("en"));
+  await act(async () => await setLanguagePreference("en"));
 });
 
 it("localizes the title, field and footer of the import dialog", async () => {
-  act(() => setLanguagePreference("zh-CN"));
+  await act(async () => await setLanguagePreference("zh-CN"));
   const onCancel = vi.fn();
   const onSubmit = vi.fn();
   renderDialog(onSubmit, onCancel);

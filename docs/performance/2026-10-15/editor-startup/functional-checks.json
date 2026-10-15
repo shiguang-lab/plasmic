@@ -1,0 +1,44 @@
+{
+  "desktop": {
+    "status": "PASS",
+    "editing": {
+      "selection": true,
+      "registeredPropEdit": true,
+      "editedCanvasRendered": true,
+      "undoExactModel": true,
+      "undoCanvasRendered": true,
+      "previewRendered": true,
+      "previewTextCharacters": 2509,
+      "previewModelUnchanged": true
+    },
+    "blockedProjectWrites": 0
+  },
+  "browser": {
+    "status": "PASS",
+    "editing": {
+      "selection": true,
+      "registeredPropEdit": true,
+      "editedCanvasRendered": true,
+      "undoExactModel": true,
+      "undoCanvasRendered": true,
+      "previewRendered": true,
+      "previewTextCharacters": 2509,
+      "previewModelUnchanged": true
+    },
+    "blockedProjectWrites": 0
+  },
+  "desktopCold": {
+    "status": "PASS",
+    "editing": {
+      "selection": true,
+      "registeredPropEdit": true,
+      "editedCanvasRendered": true,
+      "undoExactModel": true,
+      "undoCanvasRendered": true,
+      "previewRendered": true,
+      "previewTextCharacters": 2509,
+      "previewModelUnchanged": true
+    },
+    "blockedProjectWrites": 0
+  }
+}
