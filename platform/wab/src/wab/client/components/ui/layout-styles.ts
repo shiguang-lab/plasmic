@@ -27,6 +27,7 @@ import splitsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftS
 import leftTabButton from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabButton.module.css";
 import themesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel.module.css";
 import navigationSearch from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
+import labeledListItem from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicLabeledListItem.module.css";
 import rowItem from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicRowItem.module.css";
 import textboxLike from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTextboxLike.module.css";
 import topBar from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar.module.css";
@@ -34,9 +35,15 @@ import { productPalette } from "@/wab/client/product-ui-theme.styles";
 import type { GlobalToken } from "antd";
 import { createStyles } from "antd-style";
 
+export const applicationHeaderLayout = {
+  top: 8,
+  height: 42,
+  controlHeight: 28,
+} as const;
+
 export const editorLeftRailLayout = {
   left: 8,
-  top: 64,
+  top: applicationHeaderLayout.top + applicationHeaderLayout.height + 8,
   bottom: 8,
   width: 48,
   panelGap: 8,
@@ -193,17 +200,18 @@ export const useApplicationLayoutStyles = createStyles(({ token }) => ({
     "--ui-selected": token.colorPrimaryBg,
   },
   header: {
+    boxSizing: "border-box",
     background: token.colorBgLayout,
     color: token.colorText,
     borderBottom: `1px solid ${token.colorBorderSecondary}`,
     boxShadow: "none",
-    height: 64,
+    height: applicationHeaderLayout.top * 2 + applicationHeaderLayout.height,
     lineHeight: "normal",
     padding: 0,
     "&&": {
       background: token.colorBgLayout,
-      height: 64,
-      padding: 8,
+      height: applicationHeaderLayout.top * 2 + applicationHeaderLayout.height,
+      padding: applicationHeaderLayout.top,
     },
   },
   wrapper: {
@@ -315,16 +323,16 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .canvas-editor__hsplit": { position: "relative", minHeight: 0 },
     "& .canvas-editor__top-bar": {
       position: "absolute",
-      top: 8,
+      top: applicationHeaderLayout.top,
       left: 8,
       right: 8,
-      height: 48,
+      height: applicationHeaderLayout.height,
       zIndex: 40,
       pointerEvents: "none",
       background: "transparent",
     },
     [`& .canvas-editor__top-bar .${topBar.root}`]: {
-      height: 48,
+      height: applicationHeaderLayout.height,
       paddingRight: 0,
       justifyContent: "space-between",
       background: "transparent",
@@ -334,7 +342,8 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     [`& .canvas-editor__top-bar .${topBar.left}, & .canvas-editor__top-bar .${topBar.right}`]:
       {
         width: "auto",
-        height: 48,
+        height: applicationHeaderLayout.height,
+        boxSizing: "border-box",
         padding: "0 8px",
         border: `1px solid ${token.colorBorder}`,
         borderRadius: token.borderRadiusLG,
@@ -346,7 +355,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       flexShrink: 1,
       minWidth: 0,
       paddingInline: 12,
-      borderRadius: 24,
+      borderRadius: applicationHeaderLayout.height / 2,
     },
     [`& .canvas-editor__top-bar .${topBar.right}`]: { flexShrink: 0 },
     [`& .canvas-editor__top-bar .${topBar.freeBox___7MgoJ}`]: {
@@ -354,7 +363,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       paddingRight: 0,
     },
     [`& .canvas-editor__top-bar .${topBar.titleSegment}`]: {
-      height: 32,
+      height: applicationHeaderLayout.controlHeight,
       gap: 0,
       minWidth: 0,
       flexShrink: 1,
@@ -366,7 +375,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .editor-project-title": {
       display: "inline-flex",
       alignItems: "center",
-      height: 32,
+      height: applicationHeaderLayout.controlHeight,
       minWidth: 0,
       maxWidth: "30vw",
       padding: "0 8px",
@@ -429,10 +438,18 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       gap: 3,
     },
     "& .editor-primary-actions .ant-btn": {
-      height: 32,
+      height: applicationHeaderLayout.controlHeight,
       borderRadius: 7,
       fontSize: 12,
       boxShadow: "none",
+    },
+    "& .canvas-editor__top-bar #branch-nav-button": {
+      height: applicationHeaderLayout.controlHeight,
+    },
+    "& .editor-primary-actions .Avatar": {
+      width: applicationHeaderLayout.controlHeight,
+      height: applicationHeaderLayout.controlHeight,
+      fontSize: 12,
     },
     "& .editor-primary-actions .ant-btn[aria-expanded=true], & .editor-primary-actions .ant-btn[aria-pressed=true]":
       {
@@ -460,8 +477,8 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       paddingRight: 0,
     },
     "& .editor-history-controls .ant-btn": {
-      width: 32,
-      height: 32,
+      width: applicationHeaderLayout.controlHeight,
+      height: applicationHeaderLayout.controlHeight,
       padding: 0,
       borderRadius: 7,
       display: "inline-flex",
@@ -483,8 +500,8 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       height: 12,
     },
     "& .editor-primary-actions .editor-icon-action": {
-      width: 32,
-      height: 32,
+      width: applicationHeaderLayout.controlHeight,
+      height: applicationHeaderLayout.controlHeight,
       padding: 0,
       display: "inline-flex",
       alignItems: "center",
@@ -524,7 +541,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       alignItems: "center",
       justifyContent: "center",
       width: 28,
-      height: 32,
+      height: applicationHeaderLayout.controlHeight,
       padding: 0,
       borderRadius: 7,
       color: token.colorTextSecondary,
@@ -540,7 +557,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       alignItems: "center",
       justifyContent: "center",
       width: 28,
-      height: 32,
+      height: applicationHeaderLayout.controlHeight,
       padding: 6,
       flexShrink: 0,
       color: token.colorTextSecondary,
@@ -610,6 +627,9 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .canvas-editor__right-pane .SidebarSection__Container:not(.SidebarSection__Container--NoBorder)":
       { borderColor: token.colorBorderSecondary },
+    [`& .canvas-editor__right-pane .${labeledListItem.actionsContainer}`]: {
+      marginRight: 0,
+    },
     "& .canvas-editor__left-pane .right-panel-input-background__no-height, & .canvas-editor__left-pane .dropdown-container":
       {
         background: token.colorFillQuaternary,
@@ -939,7 +959,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       color: token.colorText,
       borderColor: token.colorBorder,
     },
-    "& .canvas-editor__right-pane": {
+    "& .canvas-editor__right-pane-viewport": {
       position: "absolute",
       right: editorCanvasControlsLayout.edgeInset,
       top: editorLeftRailLayout.top,
@@ -949,12 +969,15 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         editorCanvasControlsLayout.panelGap,
       width: 320,
       maxWidth: "calc(100% - 16px)",
-      border: `1px solid ${token.colorBorder}`,
-      borderRadius: token.borderRadiusLG,
       zIndex: 20,
     },
-    "& .canvas-editor--panels-hidden .canvas-editor__right-pane": {
-      display: "none",
+    "& .canvas-editor__right-pane": {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      maxWidth: "100%",
+      border: `1px solid ${token.colorBorder}`,
+      borderRadius: token.borderRadiusLG,
     },
     [`& .${sidebarSection.collapsingToggleLabel}`]: {
       background: token.colorFillSecondary,
@@ -1000,8 +1023,9 @@ export const useAuthenticatedLayoutStyles = createStyles(({ token }) => ({
     color: token.colorText,
     fontFamily: token.fontFamily,
     "& .normal-layout__top-bar": {
-      height: 64,
-      padding: 8,
+      boxSizing: "border-box",
+      height: applicationHeaderLayout.top * 2 + applicationHeaderLayout.height,
+      padding: applicationHeaderLayout.top,
       background: token.colorBgLayout,
       WebkitAppRegion: "drag",
       "& a, & button, & [role=button]": { WebkitAppRegion: "no-drag" },
@@ -1019,15 +1043,22 @@ export const useAuthenticatedLayoutStyles = createStyles(({ token }) => ({
     "& .normal-layout__brand": {
       display: "flex",
       alignItems: "center",
-      height: 48,
+      boxSizing: "border-box",
+      height: applicationHeaderLayout.height,
       padding: navigator.userAgent.includes("PlasmicDesktop/darwin")
         ? "0 12px 0 96px"
         : "0 12px",
       border: `1px solid ${token.colorBorder}`,
-      borderRadius: 24,
+      borderRadius: applicationHeaderLayout.height / 2,
       background: token.colorBgContainer,
     },
     "& .normal-layout__top-bar-right": {
+      height: applicationHeaderLayout.height,
+      "& .ant-btn": { height: applicationHeaderLayout.controlHeight },
+      "& .Avatar": {
+        width: applicationHeaderLayout.controlHeight,
+        height: applicationHeaderLayout.controlHeight,
+      },
       paddingRight: navigator.userAgent.includes("PlasmicDesktop/win32")
         ? 144
         : 0,

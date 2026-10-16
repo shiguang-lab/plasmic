@@ -1,3 +1,4 @@
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import {
   EditorToolIcon,
   EditorToolRail,
@@ -66,6 +67,7 @@ export interface NavMenuGroup {
 
 const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
+  const topFrameApi = useTopFrameApi();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
   const openGroup = studioCtx.leftTabGroup;
@@ -420,6 +422,7 @@ More
   };
   return (
     <EditorToolRail
+      onOpenWebBrowser={() => spawn(topFrameApi.openDesktopBrowser())}
       showAvatar={false}
       insert={{ render: () => null }}
       root={{ className: props.className, id: "left-tab-strip" }}
@@ -528,20 +531,20 @@ More
           <div className="editor-rail-divider" role="separator" />
           {topMenu.lint.type === "item" &&
             renderButton("lint", topMenu.lint, false, undefined)}
-          {renderButtonGroup({
-            more: {
-              ...mainGroups.more,
-              icon: <EditorToolIcon tool="More" />,
-              items: {
-                settings: mainGroups.settingsGroup.items.settings,
-                splits: mainGroups.more.items.splits,
-                expressions: mainGroups.more.items.expressions,
-                figma: mainGroups.more.items.figma,
-              },
-            },
-          })}
         </>
       }
+      moreButton={renderButtonGroup({
+        more: {
+          ...mainGroups.more,
+          icon: <EditorToolIcon tool="More" />,
+          items: {
+            settings: mainGroups.settingsGroup.items.settings,
+            splits: mainGroups.more.items.splits,
+            expressions: mainGroups.more.items.expressions,
+            figma: mainGroups.more.items.figma,
+          },
+        },
+      })}
       bottomButtons={null}
       players={{ render: () => null }}
       avatar={{ render: () => null }}

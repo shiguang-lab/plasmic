@@ -1,5 +1,24 @@
 const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
+  let browserExpanded = false;
+  let editorVisibility, editorInert;
+  ipcRenderer.on("desktop:reference-browser-mode", (_event, { expanded }) => {
+    if (browserExpanded === expanded) return;
+    browserExpanded = expanded;
+    const root = document.documentElement;
+    if (expanded) {
+      editorVisibility = root.style.visibility;
+      editorInert = root.inert;
+      root.style.visibility = "hidden";
+      root.inert = true;
+    } else {
+      root.style.visibility = editorVisibility;
+      root.inert = editorInert;
+    }
+  });
+  contextBridge.exposeInMainWorld("desktopBrowser", {
+    open: () => ipcRenderer.invoke("desktop:open-reference-browser"),
+  });
   window.addEventListener("DOMContentLoaded", () => {
     const appearance = document.documentElement.dataset.uiAppearance;
     if (appearance === "dark" || appearance === "light") {
@@ -27,8 +46,10 @@ if (window.top === window) {
       ipcRenderer.on("desktop:ui-locale", listener);
       return () => ipcRenderer.removeListener("desktop:ui-locale", listener);
     },
-    consumeStartupData: (projectId) => ipcRenderer.invoke("desktop:startup-data", projectId),
-    getSavedEditorView: (projectId) => ipcRenderer.invoke("desktop:saved-editor-view", projectId),
+    consumeStartupData: (projectId) =>
+      ipcRenderer.invoke("desktop:startup-data", projectId),
+    getSavedEditorView: (projectId) =>
+      ipcRenderer.invoke("desktop:saved-editor-view", projectId),
     systemLanguages: languageArg
       ? JSON.parse(languageArg.slice("--shiguang-system-languages=".length))
       : navigator.languages,

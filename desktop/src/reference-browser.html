@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" data-ui-appearance="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self'; script-src 'self'"
+    />
+    <title>Web browser</title>
+    <link rel="stylesheet" href="reference-browser.css" />
+    <link rel="stylesheet" href="../renderer/reference-browser-ui.css" />
+    <script defer src="../renderer/reference-browser-ui.js"></script>
+    <script defer src="renderer-i18n.js"></script>
+    <script defer src="reference-browser-renderer.js"></script>
+  </head>
+  <body>
+    <div id="resize-handle"></div>
+    <form
+      id="toolbar"
+      aria-label="Browser controls"
+      data-ui-message="Browser controls"
+      data-ui-attribute="aria-label"
+    >
+      <div id="app-header" hidden>
+        <span id="window-controls-space" aria-hidden="true"></span>
+        <button
+          type="button"
+          id="app-menu"
+          data-action="application_menu"
+          data-label="Application menu"
+          aria-haspopup="menu"
+        >
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path
+              d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z"
+            /></svg
+          ><span>Plasmic</span>
+        </button>
+        <button
+          type="button"
+          id="open-workspace"
+          data-action="open_workspace"
+          data-label="Open Project…"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3" width="6" height="6" rx="1" />
+            <rect x="15" y="3" width="6" height="6" rx="1" />
+            <rect x="3" y="15" width="6" height="6" rx="1" />
+            <rect x="15" y="15" width="6" height="6" rx="1" />
+          </svg>
+        </button>
+        <span class="separator"></span>
+      </div>
+      <button
+        type="button"
+        data-action="select_element"
+        data-icon="pick"
+        data-label="Select an element"
+      ></button>
+      <button
+        type="button"
+        data-action="back"
+        data-icon="back"
+        data-label="Back"
+      ></button>
+      <button
+        type="button"
+        data-action="forward"
+        data-icon="forward"
+        data-label="Forward"
+      ></button>
+      <button
+        type="button"
+        data-action="reload"
+        data-icon="reload"
+        data-label="Reload"
+      ></button>
+      <div class="address">
+        <button
+          type="button"
+          data-menu="history"
+          data-icon="history"
+          data-label="Browsing history"
+        ></button
+        ><span id="loading" class="spinner" hidden></span
+        ><input
+          id="url"
+          aria-label="Page URL"
+          data-ui-message="Enter a URL or localhost address"
+          data-ui-attribute="placeholder"
+          autocomplete="off"
+          spellcheck="false"
+        /><button
+          type="button"
+          data-action="cycle_device"
+          data-icon="device"
+          data-label="Device preview"
+        ></button
+        ><button
+          type="button"
+          data-action="clear_page"
+          data-icon="close"
+          data-label="Close this page"
+        ></button>
+      </div>
+      <div class="import-group">
+        <button
+          type="button"
+          id="import"
+          data-action="import_to_canvas"
+          data-ui-message="Import"
+        >
+          Import
+        </button>
+      </div>
+      <button
+        type="button"
+        data-action="screenshot"
+        data-icon="camera"
+        data-label="Screenshot"
+      ></button>
+      <span class="separator"></span>
+      <button
+        type="button"
+        data-action="expand"
+        data-icon="expand"
+        data-label="Coding Mode"
+      ></button>
+      <button
+        type="button"
+        data-menu="more"
+        data-icon="more"
+        data-label="More options"
+      ></button>
+      <button
+        type="button"
+        data-action="close"
+        data-icon="hide"
+        data-label="Close Browser View"
+      ></button>
+    </form>
+    <nav
+      id="breadcrumbs"
+      aria-label="Selected element hierarchy"
+      data-ui-message="Selected element hierarchy"
+      data-ui-attribute="aria-label"
+      hidden
+    ></nav>
+    <div id="viewport">
+      <main id="start">
+        <div id="start-scroll">
+          <div id="start-content">
+            <span class="hero-icon" data-icon="globe"></span>
+            <h1 data-ui-message="Import from the web">Import from the web</h1>
+            <p
+              data-ui-message="Open a live site or your localhost dev server, then bring it onto the canvas as editable layers."
+            ></p>
+            <button id="enter-url" data-ui-message="Enter a URL">
+              Enter a URL
+            </button>
+            <div class="capabilities">
+              <div>
+                <span data-icon="code"></span
+                ><strong data-ui-message="Import the full page"></strong
+                ><small
+                  data-ui-message="Editable frames, text and images"
+                ></small>
+              </div>
+              <div>
+                <span data-icon="pick"></span
+                ><strong data-ui-message="Import an element"></strong
+                ><small data-ui-message="Pick only the region you need"></small>
+              </div>
+              <div>
+                <span data-icon="camera"></span
+                ><strong data-ui-message="Import a screenshot"></strong
+                ><small data-ui-message="Capture the page as an image"></small>
+              </div>
+            </div>
+            <section class="recent-section" hidden>
+              <div class="recent-heading">
+                <strong data-ui-message="Recent pages"></strong
+                ><button
+                  data-action="clear_history"
+                  data-ui-message="Clear All"
+                ></button>
+              </div>
+              <div id="recent"></div>
+            </section>
+            <small
+              class="privacy"
+              data-ui-message="Pages run locally in Chromium. Login credentials and session data are isolated from Studio."
+            ></small>
+          </div>
+        </div>
+      </main>
+      <div id="page-space" hidden></div>
+    </div>
+    <div
+      id="height-handle"
+      role="separator"
+      aria-orientation="horizontal"
+      tabindex="0"
+      data-label="Import height"
+      data-tooltip="Drag to clip import height, double-click to import the full page"
+    >
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <circle cx="4" cy="5.5" r="1" />
+        <circle cx="8" cy="5.5" r="1" />
+        <circle cx="12" cy="5.5" r="1" />
+        <circle cx="4" cy="10.5" r="1" />
+        <circle cx="8" cy="10.5" r="1" />
+        <circle cx="12" cy="10.5" r="1" />
+      </svg>
+    </div>
+    <div id="clip-space" aria-hidden="true" hidden></div>
+    <div id="notice" role="status" aria-live="polite" hidden>
+      <span id="notice-icon" aria-hidden="true"></span>
+      <span id="message"></span
+      ><button data-action="cancel" data-ui-message="Cancel" hidden></button
+      ><button data-action="locate" data-ui-message="Locate" hidden></button
+      ><button data-action="undo_import" data-ui-message="Undo" hidden></button
+      ><button
+        data-action="show_warnings"
+        data-ui-message="Details"
+        hidden
+      ></button>
+    </div>
+    <footer
+      id="inspector"
+      aria-label="Selected element styles"
+      data-ui-message="Selected element styles"
+      data-ui-attribute="aria-label"
+      hidden
+    >
+      <div id="inspector-scroll"><div id="inspector-content"></div></div>
+    </footer>
+    <div id="popover" hidden>
+      <div id="menu-scroll"><div id="menu" role="menu"></div></div>
+    </div>
+    <div id="tooltip" role="tooltip" hidden></div>
+    <span
+      id="copy-status"
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+    ></span>
+  </body>
+</html>

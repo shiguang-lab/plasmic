@@ -129,7 +129,7 @@ test("reserves native controls and cleans up the macOS preview drag region", () 
     left: 0,
     top: 0,
     width: 80,
-    height: 48,
+    height: 42,
   });
   unmount();
   expect(mocks.setDragRegion).toHaveBeenLastCalledWith(null);

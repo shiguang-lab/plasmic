@@ -27,8 +27,8 @@ import { MixinsPanel } from "@/wab/client/components/sidebar/MixinControls";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { DefaultStylesPanel } from "@/wab/client/components/sidebar/ThemesControls";
 import { UserManagedFontsPanel } from "@/wab/client/components/sidebar/UserManagedFonts";
-import { LeftPanelShell } from "@/wab/client/components/studio/LeftPanelShell";
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
+import { SidePanelShell } from "@/wab/client/components/studio/SidePanelShell";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
 import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -195,11 +195,14 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
         // onMouseLeave={() => setHover(false)}
       >
         <LeftTabStrip useVersionsCTA={useVersionsCTA} />
-        <LeftPanelShell
+        <SidePanelShell
           ref={leftPaneRef}
           open={!!studioCtx.leftPanel && !studioCtx.panelsHidden}
-          width={studioCtx.leftPaneWidth}
-          left={`calc(100% + ${editorLeftRailLayout.panelGap}px)`}
+          side="left"
+          style={{
+            width: studioCtx.leftPaneWidth,
+            left: `calc(100% + ${editorLeftRailLayout.panelGap}px)`,
+          }}
         >
           {studioCtx.leftTabKey && studioCtx.leftTabKey !== "libraries" && (
             <div className="editor-panel-header">
@@ -237,7 +240,7 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
           >
             <div className="left-pane-resizer auto-pointer-events" />
           </XDraggable>
-        </LeftPanelShell>
+        </SidePanelShell>
       </DevContainer>
       {(studioCtx.findReferencesComponent ||
         studioCtx.findReferencesStyleToken ||

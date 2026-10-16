@@ -106,6 +106,7 @@ class DesktopController {
       ready: metadata.ready,
       editorTools: metadata.tools,
       editorContext: metadata.editorContext ?? null,
+      browser: this.browser?.snapshot() ?? null,
       operations: [...this.operations.values()],
     };
   }
@@ -213,9 +214,12 @@ class DesktopController {
         "list_projects",
         "search_stock_images",
         "generate_image",
-        "browser",
         "capture_browser",
       ].includes(method) ||
+      (method === "browser" &&
+        !["import_to_canvas", "screenshot_to_canvas", "undo_import"].includes(
+          input?.action,
+        )) ||
       (["make_vector", "vectorize_image"].includes(method) &&
         !input?.componentUuid)
     ) {
@@ -576,7 +580,9 @@ class DesktopController {
       return writeCodeBundle(input.outputPath, bundle, dependencies);
     }
     if (method === "browser") {
-      return require("./browser-capture.cjs").browserCommand(input);
+      if (!this.browser)
+        throw new Error("The desktop reference browser is not ready");
+      return this.browser.command(input);
     }
     if (method === "capture_browser") {
       return require("./browser-capture.cjs").captureBrowser(input);
@@ -593,42 +599,7 @@ class DesktopController {
         throw new Error("Provide a raster image file up to 10 MiB");
       }
       const bytes = await fs.readFile(input.path);
-      const image = nativeImage.createFromBuffer(bytes);
-      if (image.isEmpty()) {
-        throw new Error("Image format cannot be decoded");
-      }
-      const options = {
-        bypassCustomProtocolHandlers: true,
-        credentials: "include",
-      };
-      const body = new FormData();
-      body.append(
-        "file",
-        new Blob([image.toPNG()], { type: "image/png" }),
-        path.parse(input.path).name + ".png",
-      );
-      const response = await win.webContents.session.fetch(
-        this.config.studioOrigin + "/api/v1/image/upload",
-        {
-          ...options,
-          method: "POST",
-          body,
-          headers: { Origin: this.config.studioOrigin },
-        },
-      );
-      if (!response.ok) {
-        throw new Error("Image upload failed: HTTP " + response.status);
-      }
-      const result = await response.json();
-      if (!result.dataUri) {
-        throw new Error("NAS did not return an image source");
-      }
-      return {
-        src: result.dataUri,
-        width: result.width || image.getSize().width,
-        height: result.height || image.getSize().height,
-        mimeType: result.mimeType,
-      };
+      return this.uploadImage(bytes, path.parse(input.path).name);
     }
     if (method === "read_image") {
       await this.ready();
@@ -802,6 +773,96 @@ class DesktopController {
     }
     throw new Error("Unknown desktop command");
   }
+  async browserImportContext(input) {
+    await this.ready();
+    const context = await this.editor("getEditorContext");
+    if (!context.canEdit || context.mode !== "edit")
+      throw new Error("Open an editable current project before importing");
+    const componentUuid = input.componentUuid;
+    if (input.elementUuid && !componentUuid)
+      throw new Error("An element requires a component target");
+    return {
+      projectId: context.projectId,
+      ...(componentUuid ? { componentUuid } : {}),
+      ...(input.elementUuid ? { elementUuid: input.elementUuid } : {}),
+    };
+  }
+  async importBrowserHtml(input) {
+    const result = await this.editor("importWebPage", input);
+    const context = await this.editor("getEditorContext");
+    return {
+      ...result,
+      projectId: input.projectId,
+      changeCounter: context.changeCounter,
+    };
+  }
+  async locateBrowserImport(result) {
+    if (!result) throw new Error("Import a page first");
+    const context = await this.editor("getEditorContext");
+    if (context.projectId !== result.projectId)
+      throw new Error("Reopen the imported project first");
+    await this.editor("navigate", { componentUuid: result.componentUuid });
+    if (result.elementUuids[0])
+      await this.editor("selectElement", {
+        componentUuid: result.componentUuid,
+        elementUuid: result.elementUuids[0],
+      });
+    this.getWindow().show();
+    return { located: true };
+  }
+  async undoBrowserImport(result) {
+    if (!result) throw new Error("Import a page first");
+    const context = await this.editor("getEditorContext");
+    if (
+      context.projectId !== result.projectId ||
+      context.changeCounter !== result.changeCounter
+    )
+      throw new Error(
+        "The design changed after import; use Studio undo history instead",
+      );
+    return this.editor("undo");
+  }
+  async uploadImage(bytes, name = "WebScreenshot") {
+    if (bytes.length > 10 * 1024 * 1024)
+      throw new Error("Image exceeds 10 MiB");
+    const win = this.getWindow();
+    const image = nativeImage.createFromBuffer(bytes);
+    if (image.isEmpty()) {
+      throw new Error("Image format cannot be decoded");
+    }
+    const options = {
+      bypassCustomProtocolHandlers: true,
+      credentials: "include",
+    };
+    const body = new FormData();
+    body.append(
+      "file",
+      new Blob([image.toPNG()], { type: "image/png" }),
+      name + ".png",
+    );
+    const response = await win.webContents.session.fetch(
+      this.config.studioOrigin + "/api/v1/image/upload",
+      {
+        ...options,
+        method: "POST",
+        body,
+        headers: { Origin: this.config.studioOrigin },
+      },
+    );
+    if (!response.ok) {
+      throw new Error("Image upload failed: HTTP " + response.status);
+    }
+    const result = await response.json();
+    if (!result.dataUri) {
+      throw new Error("NAS did not return an image source");
+    }
+    return {
+      src: result.dataUri,
+      width: result.width || image.getSize().width,
+      height: result.height || image.getSize().height,
+      mimeType: result.mimeType,
+    };
+  }
   async inspectCanvas(input, read, forExport = false) {
     if (input.mode === "workspace" && input.componentUuid) {
       throw new Error(
@@ -860,6 +921,7 @@ class DesktopController {
     }
   }
   close() {
+    this.browser?.dispose();
     ipcMain.removeListener("desktop:result", this.receive);
     this.cancelPending(undefined, "Desktop closed");
   }

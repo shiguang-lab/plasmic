@@ -11,7 +11,6 @@ import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { NamedPanelHeader } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { VariantsPanel } from "@/wab/client/components/variants/VariantsPanel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { useI18n } from "@/wab/client/i18n";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
@@ -20,6 +19,7 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { PageComponent } from "@/wab/shared/core/components";
 import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
+import { Button, Tooltip } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 import { useLocalStorage } from "react-use";
@@ -67,18 +67,21 @@ export const PageTab = observer(function PageTab(props: {
   const headerControls = React.useMemo(
     () =>
       canEdit(PublicStyleSection.PageMeta) && (
-        <IconButton
-          tooltip={uiT("Page settings")}
-          data-test-id="page-settings-button"
-          onClick={() =>
-            studioCtx.changeUnsafe(() => {
-              studioCtx.pageSettingsPage = page;
-              studioCtx.pageSettingsOpen = true;
-            })
-          }
-        >
-          <Icon icon={GearIcon} />
-        </IconButton>
+        <Tooltip title={uiT("Page settings")}>
+          <Button
+            type="text"
+            size="small"
+            icon={<Icon icon={GearIcon} />}
+            aria-label={uiT("Page settings")}
+            data-test-id="page-settings-button"
+            onClick={() =>
+              studioCtx.changeUnsafe(() => {
+                studioCtx.pageSettingsPage = page;
+                studioCtx.pageSettingsOpen = true;
+              })
+            }
+          />
+        </Tooltip>
       ),
     [uiT, studioCtx, page],
   );

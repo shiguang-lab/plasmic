@@ -17,6 +17,7 @@ import {
   readStudioBuild,
 } from "../../scripts/build-identity.mjs";
 import { bundleStudioFonts } from "../../scripts/bundle-studio-fonts.mjs";
+import { buildReferenceBrowserUi } from "./build-reference-browser-ui.mjs";
 
 const desktop = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -77,6 +78,8 @@ try {
     filter: (file) => !file.endsWith(".map"),
   });
   await bundleStudioFonts(target, config.studioOrigin);
+  if (fromIndex >= 0) await buildReferenceBrowserUi(target);
+  else await readFile(path.join(target, "reference-browser-ui.js"));
   const localeSource = path.join(
     desktop,
     "../platform/wab/src/wab/client/i18n",

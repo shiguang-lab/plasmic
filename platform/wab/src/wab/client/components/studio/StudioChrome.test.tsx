@@ -219,3 +219,37 @@ it("provides a desktop update slot outside and below the loading editor tool rai
   expect(slot?.closest("#left-tab-strip")).toBeNull();
   vi.restoreAllMocks();
 });
+
+
+it("hides web import throughout browser startup", () => {
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+    "Mozilla/5.0 Chrome/130.0.0.0 Safari/537.36",
+  );
+  try {
+    const { container, rerender } = setup(<ApplicationPageLoading />);
+    expect(container.querySelector('[data-test-id="import-from-web-button"]')).toBeNull();
+    rerender(<StudioChrome projectName="Project" />);
+    expect(container.querySelector('[data-test-id="import-from-web-button"]')).toBeNull();
+  } finally {
+    vi.restoreAllMocks();
+  }
+});
+
+it("keeps the Desktop web import action inside the tool rail and opens it through the native bridge", () => {
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue("PlasmicDesktop/darwin");
+  const open = vi.fn();
+  vi.stubGlobal("desktopBrowser", { open });
+  try {
+    const { container, rerender } = setup(<ApplicationPageLoading />);
+    const button = container.querySelector('[data-test-id="import-from-web-button"]');
+    expect(button?.closest("#left-tab-strip")).toBeTruthy();
+    expect(button?.getAttribute("aria-label")).toBe("Import from the web");
+    fireEvent.click(screen.getByRole("button", { name: "Import from the web" }));
+    expect(open).toHaveBeenCalledOnce();
+    rerender(<StudioChrome projectName="Project" />);
+    expect(container.querySelectorAll('[data-test-id="import-from-web-button"]')).toHaveLength(1);
+  } finally {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  }
+});

@@ -3,16 +3,16 @@ import {
   useSource,
 } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import { IconLinkButton, PopupFocuser } from "@/wab/client/components/widgets";
+import { PopupFocuser } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import { PageQueryParamsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiActionsOverlay } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkSectionUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { valueAsString } from "@/wab/commons/values";
@@ -44,7 +44,14 @@ import {
   extractPathParamMetas,
   extractQueryParamMetas,
 } from "@/wab/shared/utils/url-utils";
-import { Input, InputRef, Menu, Popover, Tooltip } from "antd";
+import {
+  Button as AntButton,
+  Input,
+  InputRef,
+  Menu,
+  Popover,
+  Tooltip,
+} from "antd";
 import { defer, isEqual, size } from "lodash";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -277,9 +284,12 @@ export const PageURLParametersSection = observer(
               })
             }
           >
-            <IconLinkButton aria-label={uiT("Add URL parameter")}>
-              <Icon icon={PlusIcon} />
-            </IconLinkButton>
+            <AntButton
+              type="text"
+              size="small"
+              aria-label={uiT("Add URL parameter")}
+              icon={<Icon icon={PlusIcon} />}
+            />
           </AddQueryParamButton>
         }
         zeroBodyPadding

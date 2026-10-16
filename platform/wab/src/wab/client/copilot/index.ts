@@ -38,6 +38,7 @@ import {
   getArenaUuidOrName,
   getFrameHeight,
   isDedicatedArena,
+  mkArenaFrame,
 } from "@/wab/shared/Arenas";
 import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
@@ -70,6 +71,8 @@ import {
   allComponentVariants,
   isCodeComponent,
   isPageComponent,
+  mkComponent,
+  mkPageMeta,
 } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
@@ -80,6 +83,7 @@ import {
   getPageArena,
 } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
+import { isValidStyleProp } from "@/wab/shared/core/style-props";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import {
   ancestorsUp,
@@ -89,11 +93,11 @@ import {
   getAllEventHandlersOfParamType,
   isTplImage,
   isTplTextBlock,
+  mkTplTagX,
   tplChildren,
 } from "@/wab/shared/core/tpls";
-import { ScreenSizeSpec } from "@/wab/shared/css-size";
-import { isValidStyleProp } from "@/wab/shared/core/style-props";
 import { normProp } from "@/wab/shared/css";
+import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { parseDataUrlToSvgXml } from "@/wab/shared/data-urls";
 import { Pt } from "@/wab/shared/geom";
 import {
@@ -131,6 +135,7 @@ const editTools = new Set<string>([
   "executeBatch",
   "installLibrary",
   "upgradeLibrary",
+  "importWebPage",
 ]);
 
 // Keep input/output validation and serialization in the shared tool wrapper.
@@ -853,10 +858,15 @@ async function prepareMutation(
     case "changeElement": {
       const input = operation.input;
       const cssStyle = document.createElement("div").style;
-      for (const [property,value] of Object.entries(input.styles ?? {})) {
+      for (const [property, value] of Object.entries(input.styles ?? {})) {
         const prop = normProp(property);
-        cssStyle.setProperty(prop,"initial");
-        assert(value === null || isValidStyleProp(prop) || cssStyle.getPropertyValue(prop) === "initial",`Unsupported CSS property: ${property}`);
+        cssStyle.setProperty(prop, "initial");
+        assert(
+          value === null ||
+            isValidStyleProp(prop) ||
+            cssStyle.getPropertyValue(prop) === "initial",
+          `Unsupported CSS property: ${property}`,
+        );
         cssStyle.removeProperty(prop);
       }
       assert(
@@ -1265,184 +1275,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           "Page generation requires a whole page scope.",
         );
       }
-      const persistentMutation = input.execution && !["read", "queryElements", "getEditorContext", "selectElement", "scrollElementIntoView", "navigate", "validate", "save"].includes(input.name);
-      if (persistentMutation) {
-        await studio.save();
-        assert(!studio.hasUnsavedChanges(), "Save existing changes before AI editing.");
-        assertLocalBinding(studio, binding);
-        studio.aiSaveReceipt = { operationId: ensure(input.execution, "Execution identity is required").operationId, fence: ensure(input.execution, "Execution identity is required").fence, sessionId: binding.sessionId };
-      }
-      try {
-      const finish = async (
-        result: string,
-        before?: string,
-        after?: string,
-        nextBinding = binding,
-      ) => {
-        const output = { result, before, after, changed: studio._changeCounter !== binding.changeCounter, binding: { ...nextBinding, changeCounter: studio._changeCounter } };
-        if (persistentMutation && output.changed) {
-          ensure(studio.aiSaveReceipt, "Execution receipt is missing").result = output;
-          await studio.save();
-          assert(!studio.hasUnsavedChanges(), "AI changes could not be saved. Verify the design before retrying.");
-        }
-        return output;
-      };
-      if (input.name === "undo") {
-        const result = await COPILOT_TOOLS.undo.execute(
-          studio,
-          {},
-          { outputFormat: "json" },
-        );
-        assert(
-          JSON.parse(result).undone &&
-            studio._changeCounter !== binding.changeCounter,
-          "No design transaction was undone.",
-        );
-        const removed =
-          binding.mode === "page" &&
-          !studio.site.components.some((c) => c.uuid === binding.componentUuid);
-        return await finish(
-          result,
-          undefined,
-          undefined,
-          removed
-            ? { ...binding, componentUuid: null, frameUuid: null }
-            : binding,
-        );
-      }
-      if (input.name === "createComponent") {
-        assert(
-          binding.mode === "page" && binding.componentUuid === null,
-          "Create exactly one new page before generation.",
-        );
-        const parsed = meta.createComponent.inputSchema.parse(input.input);
-        assert(
-          parsed.type === "page" && parsed.path,
-          "Page generation requires a routed page.",
-        );
-        const before = JSON.stringify(
-          buildProjectResource(studio.site, undefined, {
-            projectId: studio.siteInfo.id,
-            components: true,
-          }),
-        );
-        const plan = await prepareMutation(studio, {
-          name: "createComponent",
-          input: parsed,
-        });
-        await change(studio, [], () => {
-          assertLocalBinding(studio, binding);
-          plan.apply();
-        });
-        const result = plan.result();
-        const created = result.results[0];
-        assert(
-          created.__type === "Component",
-          "Created page resource is missing",
-        );
-        return await finish(JSON.stringify(result), before, JSON.stringify(result), {
-          ...binding,
-          componentUuid: created.uuid,
-        });
-      }
-      if (
-        input.name === "save" &&
-        binding.mode === "page" &&
-        binding.componentUuid === null
-      ) {
-        return await finish(
-          await COPILOT_TOOLS.save.execute(
-            studio,
-            {},
-            { outputFormat: "json" },
-          ),
-        );
-      }
-      const canvas =
-        binding.canvasName !== undefined
-          ? findCanvas(studio, binding.canvasName)
-          : undefined;
-      const componentsInScope = canvas
-        ? [...new Set(canvas.children.map((frame) => frame.container.component))]
-        : [
-            findComponent(
-              studio,
-              ensure(binding.componentUuid, "Open a page or canvas before using AI."),
-              true,
-            ),
-          ];
-      const inScope = (componentUuid: string, elementUuid?: string) => {
-        const component = findComponent(studio, componentUuid, true);
-        assert(
-          componentsInScope.includes(component),
-          "AI operation is outside the bound page or canvas.",
-        );
-        if (elementUuid) {
-          findElement(component, elementUuid);
-        }
-        return component;
-      };
-      if (input.name === "read") {
-        const parsed = meta.read.inputSchema.parse(input.input);
-        for (const uuid of parsed.componentUuids ?? []) {
-          const candidate = findComponent(studio, uuid);
-          assert(
-            isCodeComponent(candidate) ||
-              !studio.site.components.includes(candidate) ||
-              componentsInScope.includes(candidate),
-            "Read the bound page/canvas or an installed component contract.",
-          );
-        }
-        for (const target of parsed.elements ?? []) {
-          inScope(target.componentUuid, target.elementUuid);
-        }
-      } else if (input.name === "queryElements") {
-        const parsed = meta.queryElements.inputSchema.parse(input.input);
-        inScope(parsed.componentUuid, parsed.elementUuid);
-      } else if (
-        input.name === "selectElement" ||
-        input.name === "scrollElementIntoView"
-      ) {
-        const parsed = meta[input.name].inputSchema.parse(input.input);
-        inScope(parsed.componentUuid, parsed.elementUuid);
-        const frames = canvas?.children.filter(
-          (frame) => frame.container.component.uuid === parsed.componentUuid,
-        );
-        const frame = frames &&
-          ensure(
-            parsed.frameUuid
-              ? frames.find((candidate) => candidate.uuid === parsed.frameUuid)
-              : frames.find((candidate) => candidate.uuid === binding.frameUuid) ?? frames[0],
-            "AI navigation is outside the bound canvas.",
-          );
-        input.input = {
-          ...parsed,
-          ...(frame ? { frameUuid: frame.uuid } : {}),
-        };
-      } else if (input.name === "navigate") {
-        const target = inScope(
-          meta.navigate.inputSchema.parse(input.input).componentUuid,
-        );
-        if (canvas) {
-          const frame = ensure(
-            canvas.children.find((candidate) => candidate.container.component === target),
-            "Artboard not found",
-          );
-          const result = await COPILOT_TOOLS.navigateCanvas.execute(
-            studio,
-            { canvasName: canvas.name, frameUuid: frame.uuid },
-            { outputFormat: "json" },
-          );
-          assertLocalBinding(studio, binding);
-          return await finish(result);
-        }
-      } else if (input.name === "validate") {
-        input.input = {
-          componentUuids: componentsInScope.map((component) => component.uuid),
-        };
-      }
-      if (
-        [
+      const persistentMutation =
+        input.execution &&
+        ![
           "read",
           "queryElements",
           "getEditorContext",
@@ -1451,126 +1286,376 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           "navigate",
           "validate",
           "save",
-        ].includes(input.name)
-      ) {
-        const result = await ensure(
-          COPILOT_TOOLS[input.name],
-          "Unknown local tool",
-        ).execute(studio, input.input, { outputFormat: "json" });
+        ].includes(input.name);
+      if (persistentMutation) {
+        await studio.save();
+        assert(
+          !studio.hasUnsavedChanges(),
+          "Save existing changes before AI editing.",
+        );
         assertLocalBinding(studio, binding);
-        return await finish(result);
+        studio.aiSaveReceipt = {
+          operationId: ensure(input.execution, "Execution identity is required")
+            .operationId,
+          fence: ensure(input.execution, "Execution identity is required")
+            .fence,
+          sessionId: binding.sessionId,
+        };
       }
-      const rawOperations =
-        input.name === "executeBatch"
-          ? meta.executeBatch.inputSchema.parse(input.input).operations
-          : [{ name: input.name, input: input.input }];
-      const operations = rawOperations.map((raw) => {
-        const op = prototypeMutationSchema.parse(raw);
-        assert(
-          localEditToolNames.some((name) => name === op.name),
-          "Tool is not allowed for canvas AI editing.",
-        );
-        assert("componentUuid" in op.input, "Target component is required");
-        const elementUuid =
-          "elementUuid" in op.input ? op.input.elementUuid : undefined;
-        const component = inScope(
-          ensure(op.input.componentUuid, "Target component is required"),
-          elementUuid,
-        );
-        if (["createState", "updateState", "deleteState", "setPageViewport"].includes(op.name)) {
-          return op;
+      try {
+        const finish = async (
+          result: string,
+          before?: string,
+          after?: string,
+          nextBinding = binding,
+        ) => {
+          const output = {
+            result,
+            before,
+            after,
+            changed: studio._changeCounter !== binding.changeCounter,
+            binding: { ...nextBinding, changeCounter: studio._changeCounter },
+          };
+          if (persistentMutation && output.changed) {
+            ensure(
+              studio.aiSaveReceipt,
+              "Execution receipt is missing",
+            ).result = output;
+            await studio.save();
+            assert(
+              !studio.hasUnsavedChanges(),
+              "AI changes could not be saved. Verify the design before retrying.",
+            );
+          }
+          return output;
+        };
+        if (input.name === "undo") {
+          const result = await COPILOT_TOOLS.undo.execute(
+            studio,
+            {},
+            { outputFormat: "json" },
+          );
+          assert(
+            JSON.parse(result).undone &&
+              studio._changeCounter !== binding.changeCounter,
+            "No design transaction was undone.",
+          );
+          const removed =
+            binding.mode === "page" &&
+            !studio.site.components.some(
+              (c) => c.uuid === binding.componentUuid,
+            );
+          return await finish(
+            result,
+            undefined,
+            undefined,
+            removed
+              ? { ...binding, componentUuid: null, frameUuid: null }
+              : binding,
+          );
         }
-        assert(
-          elementUuid || op.name === "insertHtml",
-          "Target element is required",
-        );
-        if (op.name === "copyElement" || op.name === "moveElement") {
-          inScope(op.input.componentUuid, op.input.targetUuid);
+        if (input.name === "createComponent") {
+          assert(
+            binding.mode === "page" && binding.componentUuid === null,
+            "Create exactly one new page before generation.",
+          );
+          const parsed = meta.createComponent.inputSchema.parse(input.input);
+          assert(
+            parsed.type === "page" && parsed.path,
+            "Page generation requires a routed page.",
+          );
+          const before = JSON.stringify(
+            buildProjectResource(studio.site, undefined, {
+              projectId: studio.siteInfo.id,
+              components: true,
+            }),
+          );
+          const plan = await prepareMutation(studio, {
+            name: "createComponent",
+            input: parsed,
+          });
+          await change(studio, [], () => {
+            assertLocalBinding(studio, binding);
+            plan.apply();
+          });
+          const result = plan.result();
+          const created = result.results[0];
+          assert(
+            created.__type === "Component",
+            "Created page resource is missing",
+          );
+          return await finish(
+            JSON.stringify(result),
+            before,
+            JSON.stringify(result),
+            {
+              ...binding,
+              componentUuid: created.uuid,
+            },
+          );
         }
-        const isRoot = component.tplTree.uuid === (elementUuid ?? component.tplTree.uuid);
-        assert(
-          !(
-            isRoot &&
-            (op.name === "deleteElement" ||
-              op.name === "moveElement" ||
-              (op.name === "insertHtml" &&
-                ["replace", "before", "after"].includes(op.input.location)))
-          ),
-          "Keep the component root identity; use changeElement.text for plain text.",
-        );
-        return op;
-      });
-      const finishActivity = studio.copilotActivity.begin(
-        operations.map((op) => {
+        if (
+          input.name === "save" &&
+          binding.mode === "page" &&
+          binding.componentUuid === null
+        ) {
+          return await finish(
+            await COPILOT_TOOLS.save.execute(
+              studio,
+              {},
+              { outputFormat: "json" },
+            ),
+          );
+        }
+        const canvas =
+          binding.canvasName !== undefined
+            ? findCanvas(studio, binding.canvasName)
+            : undefined;
+        const componentsInScope = canvas
+          ? [
+              ...new Set(
+                canvas.children.map((frame) => frame.container.component),
+              ),
+            ]
+          : [
+              findComponent(
+                studio,
+                ensure(
+                  binding.componentUuid,
+                  "Open a page or canvas before using AI.",
+                ),
+                true,
+              ),
+            ];
+        const inScope = (componentUuid: string, elementUuid?: string) => {
+          const component = findComponent(studio, componentUuid, true);
+          assert(
+            componentsInScope.includes(component),
+            "AI operation is outside the bound page or canvas.",
+          );
+          if (elementUuid) {
+            findElement(component, elementUuid);
+          }
+          return component;
+        };
+        if (input.name === "read") {
+          const parsed = meta.read.inputSchema.parse(input.input);
+          for (const uuid of parsed.componentUuids ?? []) {
+            const candidate = findComponent(studio, uuid);
+            assert(
+              isCodeComponent(candidate) ||
+                !studio.site.components.includes(candidate) ||
+                componentsInScope.includes(candidate),
+              "Read the bound page/canvas or an installed component contract.",
+            );
+          }
+          for (const target of parsed.elements ?? []) {
+            inScope(target.componentUuid, target.elementUuid);
+          }
+        } else if (input.name === "queryElements") {
+          const parsed = meta.queryElements.inputSchema.parse(input.input);
+          inScope(parsed.componentUuid, parsed.elementUuid);
+        } else if (
+          input.name === "selectElement" ||
+          input.name === "scrollElementIntoView"
+        ) {
+          const parsed = meta[input.name].inputSchema.parse(input.input);
+          inScope(parsed.componentUuid, parsed.elementUuid);
+          const frames = canvas?.children.filter(
+            (frame) => frame.container.component.uuid === parsed.componentUuid,
+          );
+          const frame =
+            frames &&
+            ensure(
+              parsed.frameUuid
+                ? frames.find(
+                    (candidate) => candidate.uuid === parsed.frameUuid,
+                  )
+                : (frames.find(
+                    (candidate) => candidate.uuid === binding.frameUuid,
+                  ) ?? frames[0]),
+              "AI navigation is outside the bound canvas.",
+            );
+          input.input = {
+            ...parsed,
+            ...(frame ? { frameUuid: frame.uuid } : {}),
+          };
+        } else if (input.name === "navigate") {
+          const target = inScope(
+            meta.navigate.inputSchema.parse(input.input).componentUuid,
+          );
+          if (canvas) {
+            const frame = ensure(
+              canvas.children.find(
+                (candidate) => candidate.container.component === target,
+              ),
+              "Artboard not found",
+            );
+            const result = await COPILOT_TOOLS.navigateCanvas.execute(
+              studio,
+              { canvasName: canvas.name, frameUuid: frame.uuid },
+              { outputFormat: "json" },
+            );
+            assertLocalBinding(studio, binding);
+            return await finish(result);
+          }
+        } else if (input.name === "validate") {
+          input.input = {
+            componentUuids: componentsInScope.map(
+              (component) => component.uuid,
+            ),
+          };
+        }
+        if (
+          [
+            "read",
+            "queryElements",
+            "getEditorContext",
+            "selectElement",
+            "scrollElementIntoView",
+            "navigate",
+            "validate",
+            "save",
+          ].includes(input.name)
+        ) {
+          const result = await ensure(
+            COPILOT_TOOLS[input.name],
+            "Unknown local tool",
+          ).execute(studio, input.input, { outputFormat: "json" });
+          assertLocalBinding(studio, binding);
+          return await finish(result);
+        }
+        const rawOperations =
+          input.name === "executeBatch"
+            ? meta.executeBatch.inputSchema.parse(input.input).operations
+            : [{ name: input.name, input: input.input }];
+        const operations = rawOperations.map((raw) => {
+          const op = prototypeMutationSchema.parse(raw);
+          assert(
+            localEditToolNames.some((name) => name === op.name),
+            "Tool is not allowed for canvas AI editing.",
+          );
           assert("componentUuid" in op.input, "Target component is required");
+          const elementUuid =
+            "elementUuid" in op.input ? op.input.elementUuid : undefined;
           const component = inScope(
             ensure(op.input.componentUuid, "Target component is required"),
+            elementUuid,
           );
-          const tpl =
-            "elementUuid" in op.input && op.input.elementUuid
-              ? findElement(component, op.input.elementUuid)
-              : component.tplTree;
-          return {
-            componentUuid: component.uuid,
-            elementUuid: tpl.uuid,
-            ancestorUuids: ancestorsUp(tpl, true).map(
-              (ancestor) => ancestor.uuid,
-            ),
-            label: `${component.name} / ${("name" in tpl && tpl.name) || tpl.uuid}`,
-          };
-        }),
-      );
-      try {
-        const components = [
-          ...new Set(operations.map((op) => {
-            assert("componentUuid" in op.input, "Target component is required");
-            return inScope(ensure(op.input.componentUuid, "Target component is required"));
-          })),
-        ];
-        const before = localSnapshot(studio, components);
-        const plans: MutationPlan[] = [];
-        for (const op of operations) {
-          plans.push(await prepareMutation(studio, op));
-        }
-        // HTML preparation can await asset loading. Recheck inside the recorder.
-        await change(studio, components, () => {
-          assertLocalBinding(studio, binding);
-          for (const plan of plans) {
-            plan.apply();
+          if (
+            [
+              "createState",
+              "updateState",
+              "deleteState",
+              "setPageViewport",
+            ].includes(op.name)
+          ) {
+            return op;
           }
+          assert(
+            elementUuid || op.name === "insertHtml",
+            "Target element is required",
+          );
+          if (op.name === "copyElement" || op.name === "moveElement") {
+            inScope(op.input.componentUuid, op.input.targetUuid);
+          }
+          const isRoot =
+            component.tplTree.uuid === (elementUuid ?? component.tplTree.uuid);
+          assert(
+            !(
+              isRoot &&
+              (op.name === "deleteElement" ||
+                op.name === "moveElement" ||
+                (op.name === "insertHtml" &&
+                  ["replace", "before", "after"].includes(op.input.location)))
+            ),
+            "Keep the component root identity; use changeElement.text for plain text.",
+          );
+          return op;
         });
-        const outcomes = plans.map((plan) => plan.result());
-        // Long page tasks discover node IDs with queryElements/read instead of
-        // repeating the entire growing page in every mutation reply.
-        const summarized =
-          binding.mode === "page"
-            ? outcomes.map((outcome) => ({
-                ...outcome,
-                results: outcome.results.map((resource) =>
-                  resource.__type === "Component"
-                    ? {
-                        __type: resource.__type,
-                        uuid: resource.uuid,
-                        name: resource.name,
-                        states: resource.states,
-                      }
-                    : resource,
-                ),
-              }))
-            : outcomes;
-        const result = finish(
-          JSON.stringify({ results: summarized }),
-          before,
-          localSnapshot(studio, components),
+        const finishActivity = studio.copilotActivity.begin(
+          operations.map((op) => {
+            assert("componentUuid" in op.input, "Target component is required");
+            const component = inScope(
+              ensure(op.input.componentUuid, "Target component is required"),
+            );
+            const tpl =
+              "elementUuid" in op.input && op.input.elementUuid
+                ? findElement(component, op.input.elementUuid)
+                : component.tplTree;
+            return {
+              componentUuid: component.uuid,
+              elementUuid: tpl.uuid,
+              ancestorUuids: ancestorsUp(tpl, true).map(
+                (ancestor) => ancestor.uuid,
+              ),
+              label: `${component.name} / ${("name" in tpl && tpl.name) || tpl.uuid}`,
+            };
+          }),
         );
-        finishActivity("success");
-        return result;
-      } catch (error) {
-        finishActivity("error");
-        throw error;
-      }
+        try {
+          const components = [
+            ...new Set(
+              operations.map((op) => {
+                assert(
+                  "componentUuid" in op.input,
+                  "Target component is required",
+                );
+                return inScope(
+                  ensure(
+                    op.input.componentUuid,
+                    "Target component is required",
+                  ),
+                );
+              }),
+            ),
+          ];
+          const before = localSnapshot(studio, components);
+          const plans: MutationPlan[] = [];
+          for (const op of operations) {
+            plans.push(await prepareMutation(studio, op));
+          }
+          // HTML preparation can await asset loading. Recheck inside the recorder.
+          await change(studio, components, () => {
+            assertLocalBinding(studio, binding);
+            for (const plan of plans) {
+              plan.apply();
+            }
+          });
+          const outcomes = plans.map((plan) => plan.result());
+          // Long page tasks discover node IDs with queryElements/read instead of
+          // repeating the entire growing page in every mutation reply.
+          const summarized =
+            binding.mode === "page"
+              ? outcomes.map((outcome) => ({
+                  ...outcome,
+                  results: outcome.results.map((resource) =>
+                    resource.__type === "Component"
+                      ? {
+                          __type: resource.__type,
+                          uuid: resource.uuid,
+                          name: resource.name,
+                          states: resource.states,
+                        }
+                      : resource,
+                  ),
+                }))
+              : outcomes;
+          const result = finish(
+            JSON.stringify({ results: summarized }),
+            before,
+            localSnapshot(studio, components),
+          );
+          finishActivity("success");
+          return result;
+        } catch (error) {
+          finishActivity("error");
+          throw error;
+        }
       } finally {
-        if (persistentMutation && !studio.hasUnsavedChanges()) { studio.aiSaveReceipt = undefined; }
+        if (persistentMutation && !studio.hasUnsavedChanges()) {
+          studio.aiSaveReceipt = undefined;
+        }
       }
     },
   ),
@@ -1792,6 +1877,168 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       );
     },
   ),
+  importWebPage: defineCopilotTool(
+    meta.importWebPage,
+    async (studio, input) => {
+      assertCanEditPrototype(studio);
+      assert(
+        studio.siteInfo.id === input.projectId,
+        "The import project is no longer open",
+      );
+      assert(
+        !input.elementUuid || input.componentUuid,
+        "An element requires a component target",
+      );
+      const existing = input.componentUuid
+        ? findComponent(studio, input.componentUuid, true)
+        : undefined;
+      const component =
+        existing ??
+        mkComponent({
+          name: studio.tplMgr().getUniqueComponentName(input.name),
+          type: ComponentType.Page,
+          pageMeta: mkPageMeta({
+            path: studio.tplMgr().getUniquePagePath("/imported-page"),
+            roleId: studio.site.defaultPageRoleId,
+          }),
+          tplTree: (baseVariant) =>
+            mkTplTagX("div", {
+              name: "PageRoot",
+              baseVariant,
+              styles: {
+                display: "flex",
+                "flex-direction": "column",
+                width: "stretch",
+                height: "stretch",
+              },
+            }),
+        });
+      const frame = existing
+        ? undefined
+        : mkArenaFrame({
+            site: studio.site,
+            component,
+            name: "",
+            width: input.width,
+            height: input.height ?? 900,
+          });
+      const vtm = existing
+        ? variantManager(studio, component)
+        : new VariantTplMgr(
+            [
+              new RootComponentVariantFrame(
+                ensure(frame, "Import frame is missing"),
+              ),
+            ],
+            studio.site,
+            studio.tplMgr(),
+            new GlobalVariantFrame(
+              studio.site,
+              ensure(frame, "Import frame is missing"),
+            ),
+          );
+      // Remote DOM is static content, never an editor program or registration.
+      const doc = new DOMParser().parseFromString(input.html, "text/html");
+      doc
+        .querySelectorAll("script,iframe,object,embed,link,style,meta,base")
+        .forEach((node) => node.remove());
+      for (const original of Array.from(doc.body.querySelectorAll("*"))) {
+        let node = original;
+        if (
+          node.tagName.includes("-") ||
+          ["SLOT", "TEMPLATE"].includes(node.tagName)
+        ) {
+          const replacement = doc.createElement("div");
+          for (const attr of Array.from(node.attributes)) {
+            replacement.setAttribute(attr.name, attr.value);
+          }
+          replacement.append(...Array.from(node.childNodes));
+          node.replaceWith(replacement);
+          node = replacement;
+        }
+        for (const attr of Array.from(node.attributes)) {
+          if (
+            attr.name.startsWith("data-") ||
+            /^on/i.test(attr.name) ||
+            attr.name === "srcdoc" ||
+            /^(javascript|vbscript):/i.test(attr.value.trim())
+          ) {
+            node.removeAttribute(attr.name);
+          }
+        }
+      }
+      const parsed = ensureOk(
+        await htmlToTpl(doc.body.innerHTML, {
+          site: studio.site,
+          vtm,
+          appCtx: studio.appCtx,
+          pageHrefs: false,
+          staticContent: true,
+        }),
+      );
+      const target = input.elementUuid
+        ? findElement(component, input.elementUuid)
+        : component.tplTree;
+      let inserted: TplNode[] = [];
+      const warnings = parsed.errors.map(formatWIError);
+      await change(studio, existing ? [component] : [], () => {
+        assert(
+          studio.siteInfo.id === input.projectId,
+          "The import project is no longer open",
+        );
+        if (existing) {
+          assert(
+            findElement(component, target.uuid) === target,
+            "Import target changed",
+          );
+        } else {
+          assert(
+            !studio.site.components.some(
+              (c) =>
+                c.name === component.name ||
+                c.pageMeta?.path === component.pageMeta?.path,
+            ),
+            "Import destination changed; retry",
+          );
+          studio.tplMgr().attachComponent(component);
+          const arena = ensure(
+            getPageArena(studio.site, component),
+            "Imported page arena is missing",
+          );
+          const baseFrame = getComponentArenaBaseFrame(arena);
+          baseFrame.width = input.width;
+          baseFrame.height = input.height ?? 900;
+          ensureActivatedScreenVariantsForFrameByWidth(studio.site, baseFrame);
+        }
+        warnings.push(
+          ...parsed
+            .finalize({
+              component,
+              tplMgr: studio.tplMgr(),
+              ccRegistry: studio.codeComponentsRegistry,
+            })
+            .map(formatWIError),
+        );
+        const result = pasteTpls(parsed.tpls, target, "append", {
+          site: studio.site,
+          component,
+          vtm: existing ? vtm : variantManager(studio, component),
+          tplMgr: studio.tplMgr(),
+          ccRegistry: studio.codeComponentsRegistry,
+        });
+        assert(
+          !result.errors.length && result.pasted.length === parsed.tpls.length,
+          "The import target cannot contain these elements",
+        );
+        inserted = result.pasted;
+      });
+      return {
+        componentUuid: component.uuid,
+        elementUuids: inserted.map((tpl) => tpl.uuid),
+        warnings,
+      };
+    },
+  ),
   createComponent: defineCopilotTool(meta.createComponent, (studio, input) =>
     runMutation(studio, { name: "createComponent", input }),
   ),
@@ -1923,7 +2170,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       branchId: studio.dbCtx().branchInfo?.id ?? null,
       sessionId: studio.aiSessionId,
       revision: studio.dbCtx().revisionNum,
-      componentName: vc?.currentComponent()?.name ?? (isDedicatedArena(studio.currentArena) ? studio.currentArena.component.name : null),
+      componentName:
+        vc?.currentComponent()?.name ??
+        (isDedicatedArena(studio.currentArena)
+          ? studio.currentArena.component.name
+          : null),
       changeCounter: studio._changeCounter,
       editorView:
         studio.currentArena && studio.viewportCtx
@@ -2039,9 +2290,19 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const frames = getArenaFrames(studio.currentArena);
       const focusedFrame = input.frameUuid
         ? frames.find((frame) => frame.uuid === input.frameUuid)
-        : studio.focusedViewCtx()?.arenaFrame() ?? studio.focusedFrame();
-      if (focusedFrame && frames.includes(focusedFrame) && focusedFrame.container.component === component) {
-        const focusedView = studio.tryGetViewCtxForFrame(focusedFrame) ?? await withTimeout(studio.awaitViewCtxForFrame(focusedFrame), "Timed out waiting for the selected canvas", 30000);
+        : (studio.focusedViewCtx()?.arenaFrame() ?? studio.focusedFrame());
+      if (
+        focusedFrame &&
+        frames.includes(focusedFrame) &&
+        focusedFrame.container.component === component
+      ) {
+        const focusedView =
+          studio.tryGetViewCtxForFrame(focusedFrame) ??
+          (await withTimeout(
+            studio.awaitViewCtxForFrame(focusedFrame),
+            "Timed out waiting for the selected canvas",
+            30000,
+          ));
         await focusedView.awaitSync();
       }
       const candidates = studio.viewCtxs.filter(
@@ -2051,8 +2312,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           vc.renderState.tpl2fullKeys(tpl).length > 0,
       );
       const vc =
-        candidates.find((candidate) => candidate === studio.focusedViewCtx() || candidate.arenaFrame() === focusedFrame) ??
-        (candidates.length === 1 ? candidates[0] : undefined);
+        candidates.find(
+          (candidate) =>
+            candidate === studio.focusedViewCtx() ||
+            candidate.arenaFrame() === focusedFrame,
+        ) ?? (candidates.length === 1 ? candidates[0] : undefined);
       assert(
         vc,
         candidates.length > 1

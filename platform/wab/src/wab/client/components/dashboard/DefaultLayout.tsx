@@ -195,7 +195,7 @@ function DefaultLayout_(
                 </Button>
               </Dropdown>
             ) : (
-              <Skeleton.Avatar active size={32} shape="circle" />
+              <Skeleton.Avatar active size={28} shape="circle" />
             )}
           </div>
         ),

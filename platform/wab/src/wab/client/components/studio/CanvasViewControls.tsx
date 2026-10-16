@@ -48,7 +48,8 @@ const useStyles = createStyles(({ token }) => ({
       minWidth: 28,
       height: 28,
       padding: 0,
-      border: 0,
+      // Match Antd's hover border so its transition cannot flash currentColor.
+      border: "1px solid transparent",
       borderRadius: 5,
       boxShadow: "none",
       "&.ant-btn-icon-only": { width: 28 },

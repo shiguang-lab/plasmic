@@ -27,10 +27,7 @@ import {
   makeVariantGroupMenu,
   makeVariantMenu,
 } from "@/wab/client/components/variants/variant-menu";
-import {
-  IFrameAwareDropdownMenu,
-  IconLinkButton,
-} from "@/wab/client/components/widgets";
+import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import {
   GlobalVariantsTooltip,
   VariantCombosTooltip,
@@ -92,7 +89,7 @@ import {
   isKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { getPlumeVariantDef } from "@/wab/shared/plume/plume-registry";
-import { Menu } from "antd";
+import { Button, Menu, Tooltip } from "antd";
 import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -378,9 +375,12 @@ export const VariantsPanel = observer(
               data-event="variantspanel-add-variant"
             >
               <IFrameAwareDropdownMenu menu={addVariantsMenu}>
-                <IconLinkButton aria-label={uiT("Add variant")}>
-                  <Icon icon={PlusIcon} />
-                </IconLinkButton>
+                <Button
+                  type="text"
+                  size="small"
+                  aria-label={uiT("Add variant")}
+                  icon={<Icon icon={PlusIcon} />}
+                />
               </IFrameAwareDropdownMenu>
             </div>
           }
@@ -610,16 +610,20 @@ export const VariantsPanel = observer(
             </LabelWithDetailedTooltip>
           }
           controls={
-            <IconLinkButton
-              tooltip={uiT("Add group of variants")}
-              aria-label={uiT("Add group of variants")}
-              onClick={handleAddGlobalGroupOfVariants}
-            >
-              <Icon
-                data-test-id="add-global-variant-group-button"
-                icon={PlusIcon}
+            <Tooltip title={uiT("Add group of variants")}>
+              <Button
+                type="text"
+                size="small"
+                aria-label={uiT("Add group of variants")}
+                onClick={handleAddGlobalGroupOfVariants}
+                icon={
+                  <Icon
+                    data-test-id="add-global-variant-group-button"
+                    icon={PlusIcon}
+                  />
+                }
               />
-            </IconLinkButton>
+            </Tooltip>
           }
           defaultExpanded={expandGlobals}
           onExtraContentExpanded={() => setExpandGlobals(true)}

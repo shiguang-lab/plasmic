@@ -83,6 +83,21 @@ app
       ["/", "/"],
       "The failed project document must never load or display its error toast",
     );
+    if (process.platform === "darwin") {
+      await win.loadURL(config.studioOrigin + "/projects/header-fixture");
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
+      const resized = new Promise((resolve) => win.once("resize", resolve));
+      const [width, height] = win.getContentSize();
+      win.setContentSize(width + 40, height);
+      await resized;
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
+      await win.loadURL(config.studioOrigin + "/");
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
+      console.log("Native window buttons stay aligned across application pages and resize");
+    }
     win.destroy();
     clearTimeout(timeout);
     console.log(

@@ -9,19 +9,16 @@ import {
   useServerQueryBottomModal,
 } from "@/wab/client/components/sidebar-tabs/ServerQuery/ServerQueryBottomModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import {
-  IFrameAwareDropdownMenu,
-  IconLinkButton,
-} from "@/wab/client/components/widgets";
+import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { ServerQueriesTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -47,7 +44,7 @@ import {
   isKnownCustomCode,
   isKnownCustomFunctionExpr,
 } from "@/wab/shared/model/classes";
-import { Menu, notification } from "antd";
+import { Button, Menu, Tooltip, notification } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -311,29 +308,37 @@ function ServerQueriesSection_(props: {
       controls={
         otherComponentsWithQueries.length > 0 ? (
           <IFrameAwareDropdownMenu menu={addMenu}>
-            <IconLinkButton
-              id="server-queries-add-btn"
-              aria-label={uiT("Add data query")}
-              tooltip={uiT("Add {part1} to {part2}", {
+            <Tooltip
+              title={uiT("Add {part1} to {part2}", {
                 part1: translateUiLabel(getUiLocale(), SERVER_QUERY_LOWER),
                 part2: componentType,
               })}
             >
-              <Icon icon={PlusIcon} />
-            </IconLinkButton>
+              <Button
+                type="text"
+                size="small"
+                id="server-queries-add-btn"
+                aria-label={uiT("Add data query")}
+                icon={<Icon icon={PlusIcon} />}
+              />
+            </Tooltip>
           </IFrameAwareDropdownMenu>
         ) : (
-          <IconLinkButton
-            id="server-queries-add-btn"
-            aria-label={uiT("Add data query")}
-            tooltip={uiT("Add {part1} to {part2}", {
+          <Tooltip
+            title={uiT("Add {part1} to {part2}", {
               part1: translateUiLabel(getUiLocale(), SERVER_QUERY_LOWER),
               part2: componentType,
             })}
-            onClick={handleAddBlankQuery}
           >
-            <Icon icon={PlusIcon} />
-          </IconLinkButton>
+            <Button
+              type="text"
+              size="small"
+              id="server-queries-add-btn"
+              aria-label={uiT("Add data query")}
+              onClick={handleAddBlankQuery}
+              icon={<Icon icon={PlusIcon} />}
+            />
+          </Tooltip>
         )
       }
     >

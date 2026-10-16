@@ -35,29 +35,20 @@ import {
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
 import { getMergedTextArg } from "@/wab/client/components/canvas/view-ops";
 import { CommentsDialogs } from "@/wab/client/components/comments/CommentsDialogs";
-import CommentsTab from "@/wab/client/components/comments/CommentsTab";
 import { DevContainer } from "@/wab/client/components/dev";
 import { ComponentPresetsModal } from "@/wab/client/components/insert-panel/ComponentPresetsModal";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { makeFrameSizeMenu } from "@/wab/client/components/menus/FrameSizeMenu";
-import { FrameSelectionPanel } from "@/wab/client/components/sidebar-tabs/FrameSelectionPanel";
-import { MultiSelectionPanel } from "@/wab/client/components/sidebar-tabs/MultiSelectionPanel";
-import {
-  ComponentOrPageTab,
-  StyleTab,
-  StyleTabContext,
-} from "@/wab/client/components/sidebar-tabs/style-tab";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { EmptyCanvasPrompt } from "@/wab/client/components/studio/EmptyCanvasPrompt";
 import { FocusedModeToolbar } from "@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar";
 import { GlobalCssVariables } from "@/wab/client/components/studio/GlobalCssVariables";
 import LeftPane from "@/wab/client/components/studio/LeftPane";
+import { RightPane } from "@/wab/client/components/studio/RightPane";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
 import { CodePreviewPanel } from "@/wab/client/components/studio/code-preview/CodePreviewPanel";
-import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
 import { TopBar } from "@/wab/client/components/top-bar";
 import { getContextMenuForFocusedTpl } from "@/wab/client/components/tpl-menu";
-import * as widgets from "@/wab/client/components/widgets";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
 import { DropdownButton } from "@/wab/client/components/widgets/DropdownButton";
 import { FloatingWindowLayer } from "@/wab/client/components/widgets/FloatingWindow";
@@ -77,7 +68,7 @@ import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { shouldHandleStudioShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -110,7 +101,6 @@ import {
   isTplComponent,
   isTplSlot,
   isTplTextBlock,
-  summarizeTpl,
 } from "@/wab/shared/core/tpls";
 import { ValComponent, ValNode, ValTag } from "@/wab/shared/core/val-nodes";
 import { dbg } from "@/wab/shared/dbg";
@@ -124,7 +114,7 @@ import {
 } from "@/wab/shared/model/classes";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Tabs, notification } from "antd";
+import { Alert, notification } from "antd";
 import { ArgsProps } from "antd/lib/notification";
 import { default as cn, default as cx } from "classnames";
 import $ from "jquery";
@@ -2250,11 +2240,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 </>
               )}
             </div>
-            {!this.props.canvasLoading &&
-              (studioCtx.focusedOrFirstViewCtx() ||
-                (studioCtx.showComments() && studioCtx.showCommentsPanel)) && (
-                <RightPane studioCtx={studioCtx} />
-              )}
+            <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />
             <FloatingWindowLayer>
               <CommentsDialogs studioCtx={studioCtx} />
             </FloatingWindowLayer>
@@ -2292,146 +2278,3 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 }
 
 export const ViewEditor = observer(ViewEditor_);
-
-const RightPane = observer(function RightPane(props: { studioCtx: StudioCtx }) {
-  const { studioCtx } = props;
-
-  const [hover, setHover] = React.useState(false);
-
-  const focusedViewCtx = studioCtx.focusedViewCtx();
-  const isFrameSelection = studioCtx.focusedFrames().length > 1;
-  const selectionCount = isFrameSelection
-    ? studioCtx.focusedFrames().length
-    : (focusedViewCtx?.focusedSelectables().length ?? 0);
-  const isMultiSelection = selectionCount > 1;
-  const focusedOrFirstViewCtx = studioCtx.focusedOrFirstViewCtx();
-  const selectedTpl = focusedViewCtx?.focusedTpl();
-  const selectionTitle = selectedTpl
-    ? ((isTplComponent(selectedTpl) || isKnownTplTag(selectedTpl)) &&
-        selectedTpl.name) ||
-      summarizeTpl(selectedTpl)
-    : focusedOrFirstViewCtx?.component.name;
-
-  const inspectorTitle =
-    studioCtx.rightTabKey === RightTabKey.component
-      ? focusedOrFirstViewCtx?.component.name
-      : selectionTitle;
-
-  const tabs: widgets.Tab[] = [];
-
-  // Element tabs are shown if an artboard is focused
-  // and element is selected (not frame)
-  if (focusedViewCtx && !studioCtx.focusedFrame()) {
-    tabs.push(
-      new widgets.Tab({
-        name: <UiText message={"Design"} />,
-        key: RightTabKey.style,
-        contents: () => (
-          <StyleTabContext.Provider value="design">
-            <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
-          </StyleTabContext.Provider>
-        ),
-      }),
-      new widgets.Tab({
-        name: <UiText message={"Interactions"} />,
-        key: RightTabKey.interactions,
-        contents: () => (
-          <StyleTabContext.Provider value="interactions">
-            <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
-          </StyleTabContext.Provider>
-        ),
-      }),
-    );
-  }
-
-  // Page/component tab is shown if an artboard is focused
-  // or defaults to the first artboard for dedicated arenas.
-  if (focusedOrFirstViewCtx) {
-    tabs.push(
-      new widgets.Tab({
-        name: <UiText message={"Data"} />,
-        key: RightTabKey.component,
-        contents: () => (
-          <ComponentOrPageTab
-            studioCtx={studioCtx}
-            viewCtx={focusedOrFirstViewCtx}
-          />
-        ),
-      }),
-    );
-  }
-
-  React.useEffect(() => {
-    if (tabs.length === 1 && !isMultiSelection) {
-      studioCtx.switchRightTab(tabs[0].key as RightTabKey);
-    }
-  }, [tabs.length, isMultiSelection]);
-
-  const showCommentsPanel =
-    studioCtx.showComments() && studioCtx.showCommentsPanel;
-  if (tabs.length === 0 && !showCommentsPanel && !isFrameSelection) {
-    return null;
-  }
-
-  return providesSidebarPopupSetting({ left: false })(
-    <DevContainer
-      className={cx({
-        "canvas-editor__right-pane": true,
-        dimfg: true,
-        monochrome: !hover,
-      })}
-      showControls={studioCtx.showDevControls}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      {showCommentsPanel ? (
-        <CommentsTab />
-      ) : (
-        <>
-          <div className="editor-panel-header">
-            <strong
-              className="editor-panel-title"
-              title={isMultiSelection ? undefined : inspectorTitle}
-            >
-              {isMultiSelection ? (
-                <UiText
-                  message={
-                    isFrameSelection
-                      ? "{count} artboards selected"
-                      : "{count} layers selected"
-                  }
-                  values={{ count: selectionCount }}
-                />
-              ) : (
-                inspectorTitle
-              )}
-            </strong>
-          </div>
-          {isFrameSelection ? (
-            <FrameSelectionPanel studioCtx={studioCtx} />
-          ) : isMultiSelection && focusedViewCtx ? (
-            <MultiSelectionPanel viewCtx={focusedViewCtx} />
-          ) : (
-            <Tabs
-              className="editor-inspector-tabs"
-              activeKey={studioCtx.rightTabKey}
-              onChange={(tabKey) =>
-                studioCtx.switchRightTab(tabKey as RightTabKey)
-              }
-              destroyOnHidden
-              items={tabs.map((tab) => ({
-                key: tab.key,
-                label: tab.name,
-                children: (
-                  <div className="vlist-scrollable-descendant">
-                    {tab.contents()}
-                  </div>
-                ),
-              }))}
-            />
-          )}
-        </>
-      )}
-    </DevContainer>,
-  );
-});

@@ -122,7 +122,7 @@ app
       .then((status) => assert.equal(status.phase, "idle"));
     assert.equal(opened, undefined, "Startup must not open the system browser");
     if (process.platform === "darwin") {
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       const chrome = await win.webContents.executeJavaScript(`(() => {
         const brand = document.querySelector('.chrome-brand');
         const rect = brand.getBoundingClientRect();
@@ -132,15 +132,30 @@ app
       assert.deepEqual(chrome, {
         left: 8,
         top: 8,
-        height: 48,
+        height: 42,
         paddingLeft: "96px",
       });
+      const settings = await win.webContents.executeJavaScript(`(() => {
+        const bar = document.querySelector('.auth-settings').getBoundingClientRect();
+        const button = document.querySelector('.settings-trigger').getBoundingClientRect();
+        return {top:bar.top, height:bar.height, buttonHeight:button.height};
+      })()`);
+      assert.deepEqual(settings, { top: 8, height: 42, buttonHeight: 28 });
+      const focusWindow = new BrowserWindow({ width: 400, height: 200, show: false });
+      focusWindow.show();
+      focusWindow.focus();
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
+      win.focus();
+      await new Promise(setImmediate);
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
+      focusWindow.destroy();
       const bounds = win.getBounds();
       const resized = once(win, "resize");
       win.setSize(bounds.width + 40, bounds.height);
       await resized;
       await new Promise(setImmediate);
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       const minimized = once(win, "minimize");
       win.minimize();
       await minimized;
@@ -148,7 +163,7 @@ app
       win.restore();
       await restored;
       await new Promise(setImmediate);
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       const enteredFullScreen = once(win, "enter-full-screen");
       win.setFullScreen(true);
       await enteredFullScreen;
@@ -156,7 +171,7 @@ app
       win.setFullScreen(false);
       await leftFullScreen;
       await new Promise(setImmediate);
-      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 25 });
+      assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       win.setBounds(bounds);
       console.log(
         "PASS: Native window buttons stay aligned after resize, restore and fullscreen",

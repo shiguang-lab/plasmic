@@ -47,7 +47,7 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
           disabled
         />
       </div>
-      <div className="editor-primary-actions">
+      <div className={`${layout.right} editor-primary-actions`}>
         <div className="editor-history-controls">
           <EditorIconAction action="Undo" disabled />
           <EditorIconAction action="Redo" disabled />

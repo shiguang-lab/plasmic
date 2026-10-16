@@ -97,8 +97,11 @@ class DesktopWorkspace {
     }
     this.startupData = undefined;
     const url = new URL("/api/v1/editor-bootstrap/" + id, this.origin);
-    const branchName = new URL(this.lastUrl).searchParams.get("branch") || "main";
-    if (branchName) {url.searchParams.set("branchName", JSON.stringify(branchName));}
+    const branchName =
+      new URL(this.lastUrl).searchParams.get("branch") || "main";
+    if (branchName) {
+      url.searchParams.set("branchName", JSON.stringify(branchName));
+    }
     const options = {
       bypassCustomProtocolHandlers: true,
       credentials: "include",
@@ -148,11 +151,15 @@ class DesktopWorkspace {
   consumeStartupData(projectId) {
     const data = this.startupData;
     this.startupData = undefined;
-    return data?.data.projectId === projectId && Date.now() < data.expiresAt ? data.data : null;
+    return data?.data.projectId === projectId && Date.now() < data.expiresAt
+      ? data.data
+      : null;
   }
   async refreshRecent(session) {
     const entries = [...this.recent];
-    if (!entries.length) {return false;}
+    if (!entries.length) {
+      return false;
+    }
     const options = {
       bypassCustomProtocolHandlers: true,
       credentials: "include",
@@ -165,8 +172,9 @@ class DesktopWorkspace {
         this.origin + "/api/auth/session",
         options,
       );
-      if (!login.ok || (await login.json()).authenticated !== true)
-        {return false;}
+      if (!login.ok || (await login.json()).authenticated !== true) {
+        return false;
+      }
       const unavailable = await Promise.all(
         entries.map(async (entry) => {
           const id = this.projectId(entry.url);
@@ -175,8 +183,12 @@ class DesktopWorkspace {
           url.searchParams.set("projectIds", JSON.stringify([id]));
           try {
             const response = await session.fetch(url.toString(), options);
-            if ([403, 404].includes(response.status)) {return id;}
-            if (!response.ok) {return undefined;}
+            if ([403, 404].includes(response.status)) {
+              return id;
+            }
+            if (!response.ok) {
+              return undefined;
+            }
             const { projects } = await response.json();
             return Array.isArray(projects) &&
               !projects.some((project) => project.id === id)
@@ -203,9 +215,11 @@ class DesktopWorkspace {
   }
   savedEditorView(url) {
     const id = this.projectId(url);
-    return id ? this.recent.find((entry) => this.projectId(entry.url) === id)?.editorView ?? null : null;
+    return id
+      ? (this.recent.find((entry) => this.projectId(entry.url) === id)
+          ?.editorView ?? null)
+      : null;
   }
-
 }
 
 function fileMenu({
@@ -230,6 +244,7 @@ function fileMenu({
     label: t("File"),
     submenu: [
       {
+        id: "desktop-open-project",
         label: t("Open Project…"),
         accelerator: "CmdOrCtrl+O",
         click: run(async () => {
@@ -246,9 +261,12 @@ function fileMenu({
           ? workspace.recent.map((entry) => ({
               label: entry.name || workspace.projectId(entry.url),
               click: run(async () => {
-                if (await workspace.refreshRecent(session)) {refresh();}
-                if (!workspace.recent.some((item) => item.url === entry.url))
-                  {return;}
+                if (await workspace.refreshRecent(session)) {
+                  refresh();
+                }
+                if (!workspace.recent.some((item) => item.url === entry.url)) {
+                  return;
+                }
                 await controller.dispatch("open_design", {
                   projectId: workspace.projectId(entry.url),
                 });

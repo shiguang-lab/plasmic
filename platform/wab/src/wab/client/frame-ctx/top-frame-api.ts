@@ -44,6 +44,7 @@ export interface SavedEditorView {
 }
 
 export interface TopFrameApi {
+  openDesktopBrowser(): Promise<void>;
   getSavedEditorView(projectId: string): Promise<SavedEditorView | null>;
   setStudioReady(): Promise<void>;
   pushLocation(path?: string, query?: string, hash?: string): void;

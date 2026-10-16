@@ -78,10 +78,10 @@ it("expands in narrow containers and for overflowing text, then returns to compa
     return new Proxy(style, {
       get(target, property) {
         if (property === "paddingLeft" || property === "paddingRight") {
-          return "10px";
+          return "7px";
         }
         if (property === "columnGap") {
-          return "8px";
+          return "6px";
         }
         return Reflect.get(target, property);
       },
@@ -96,13 +96,13 @@ it("expands in narrow containers and for overflowing text, then returns to compa
     function (this: HTMLElement) {
       const part = this.getAttribute("data-composer-part");
       if (part === "attachments") {
-        return 36;
+        return 30;
       }
       if (part === "scope") {
         return 100;
       }
       if (part === "actions") {
-        return 184;
+        return 152;
       }
       return this.getAttribute("aria-hidden") === "true"
         ? (this.textContent?.length ?? 0) * 8

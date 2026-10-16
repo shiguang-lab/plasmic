@@ -1,4 +1,5 @@
 const { BrowserWindow } = require("electron");
+const { capturePage, inPage } = require("./browser-page.cjs");
 
 function checkedUrl(value) {
   const url = new URL(value);
@@ -29,46 +30,24 @@ function createReferenceWindow(input) {
     },
   });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  window.webContents.on("will-navigate", (event, destination) => {
-    if (!["http:", "https:"].includes(new URL(destination).protocol))
+  window.webContents.on("will-navigate", (event) => {
+    try {
+      checkedUrl(event.url);
+    } catch {
       event.preventDefault();
+    }
   });
   return window;
 }
 async function captureReference(window, input) {
-  const result = await window.webContents.executeJavaScript(`(async () => {
-      await Promise.race([document.fonts.ready, new Promise(resolve => setTimeout(resolve, 3000))]);
-      const selector = ${JSON.stringify(input.selector || "body")};
-      const root = document.querySelector(selector);
-      if (!root) throw new Error("Page selector was not found");
-      root.scrollIntoView({block: "start"});
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const clone = root.cloneNode(true);
-      const source = [root, ...root.querySelectorAll("*")];
-      const copies = [clone, ...clone.querySelectorAll("*")];
-      source.forEach((element, index) => {
-        const style = getComputedStyle(element);
-        const properties = ["display", "position", "box-sizing", "width", "height", "padding", "margin", "background-color", "color", "border", "border-radius", "font-family", "font-size", "font-weight", "line-height", "text-align"];
-      if (style.display.includes("flex")) properties.push("gap", "flex-direction", "align-items", "justify-content");
-      if (style.display.includes("grid")) properties.push("gap", "grid-template-columns", "align-items", "justify-content");
-      if (["IMG", "VIDEO"].includes(element.tagName)) properties.push("object-fit");
-      for (const property of properties) copies[index].style.setProperty(property, style.getPropertyValue(property));
-        for (const attr of ["src", "href", "poster"]) if (element.hasAttribute(attr)) copies[index].setAttribute(attr, new URL(element.getAttribute(attr), location.href).href);
-        if (element instanceof HTMLImageElement) copies[index].src = element.currentSrc || element.src;
-      });
-      clone.querySelectorAll("script, iframe, object, embed, link, style").forEach(el => el.remove());
-      [clone, ...clone.querySelectorAll("*")].forEach(el => [...el.attributes].forEach(attr => {
-        if (/^on/i.test(attr.name) || /^(javascript|vbscript):/i.test(attr.value.trim()) || attr.name === "srcdoc") el.removeAttribute(attr.name);
-      }));
-      const rect = root.getBoundingClientRect();
-      return {url: location.href, title: document.title, html: clone.outerHTML, rect: {x: Math.max(0, Math.floor(rect.x)), y: Math.max(0, Math.floor(rect.y)), width: Math.max(1, Math.min(innerWidth - Math.max(0, Math.floor(rect.x)), Math.ceil(rect.right) - Math.max(0, Math.floor(rect.x)))), height: Math.max(1, Math.min(innerHeight - Math.max(0, Math.floor(rect.y)), Math.ceil(rect.bottom) - Math.max(0, Math.floor(rect.y))))}};
-    })()`);
+  const result = await inPage(window.webContents, capturePage, input);
   if (Buffer.byteLength(result.html) > 200000)
     throw new Error(
       "Captured HTML exceeds 200 kB; select a smaller page section",
     );
+  if (input.htmlOnly) return result;
   const image = await window.webContents.capturePage(
-    input.selector ? result.rect : undefined,
+    input.selector || input.target === "selection" ? result.rect : undefined,
   );
   return {
     ...result,
@@ -91,45 +70,4 @@ async function captureBrowser(input) {
     if (!window.isDestroyed()) window.destroy();
   }
 }
-let reference;
-async function browserCommand(input) {
-  if (input.action === "load_page") {
-    const url = checkedUrl(input.url);
-    if (!reference || reference.isDestroyed())
-      reference = createReferenceWindow(input);
-    else reference.setContentSize(input.width || 1366, input.height || 900);
-    await reference.loadURL(url.href);
-    return {
-      loaded: true,
-      url: reference.webContents.getURL(),
-      title: reference.webContents.getTitle(),
-    };
-  }
-  if (!reference || reference.isDestroyed())
-    throw new Error("Call browser load_page first");
-  if (input.action === "close") {
-    reference.destroy();
-    reference = null;
-    return { closed: true };
-  }
-  if (input.action === "cdp") {
-    if (
-      !/^(DOM|Input|Page|Runtime|Emulation|CSS|Accessibility)\.[A-Za-z]+$/.test(
-        input.method || "",
-      )
-    )
-      throw new Error("Unsupported browser CDP domain");
-    if (input.method === "Page.navigate") checkedUrl(input.params?.url);
-    const debuggerApi = reference.webContents.debugger;
-    if (!debuggerApi.isAttached()) debuggerApi.attach("1.3");
-    const result = await debuggerApi.sendCommand(
-      input.method,
-      input.params || {},
-    );
-    if (input.method === "Page.captureScreenshot")
-      return { data: result.data, url: reference.webContents.getURL() };
-    return { result };
-  }
-  return captureReference(reference, input);
-}
-module.exports = { captureBrowser, browserCommand };
+module.exports = { captureBrowser, captureReference, checkedUrl };

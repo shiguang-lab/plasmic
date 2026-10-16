@@ -49,3 +49,31 @@ it("relays one authenticated AI session to the host panel without changing histo
   ).rejects.toThrow("current project");
   mounted.unmount();
 });
+
+it("opens the Desktop browser through the existing host-to-top-frame API", async () => {
+  const { appCtx, history } = fakeAppCtx();
+  const open = vi.fn().mockResolvedValue({ visible: true });
+  vi.stubGlobal("desktopBrowser", { open });
+  const location = history.location;
+  const mounted = renderHook(
+    () =>
+      useTopFrameState({
+        appCtx,
+        project: mock<ApiProject>(),
+        forceUpdate: vi.fn(),
+      }),
+    {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <HistoryProvider history={history}>{children}</HistoryProvider>
+      ),
+    },
+  );
+  try {
+    await mounted.result.current.topFrameApi.openDesktopBrowser();
+    expect(open).toHaveBeenCalledOnce();
+    expect(history.location).toBe(location);
+  } finally {
+    mounted.unmount();
+    vi.unstubAllGlobals();
+  }
+});

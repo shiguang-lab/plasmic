@@ -9,15 +9,12 @@ import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components
 import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import domAlign from "dom-align";
 import L from "lodash";
 import { observer } from "mobx-react";
 import React from "react";
 import { OverlayProvider, useOverlay } from "react-aria";
 import ReactDOM from "react-dom";
-import { animated, useTransition } from "react-spring";
-import { usePrevious } from "react-use";
-import ResizeObserver from "resize-observer-polyfill";
+import { animated, useReducedMotion, useTransition } from "react-spring";
 
 interface Store {
   state: SidebarModalContextState;
@@ -179,6 +176,7 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
   const [element] = React.useState(() => {
     const elt = document.createElement("div");
     elt.classList.add("flex-col");
+    elt.classList.add("flex-fill");
     elt.classList.add("overflow-hidden");
     return elt;
   });
@@ -218,14 +216,14 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
     // if persistOnInteractOutside is true, this is a long-lived modal,
     // so we allow the focus to travel outside of the modal as well
     <ModalScope
-      className="flex-col"
+      className="flex-col flex-fill overflow-hidden"
       allowKeyCombos={[
         STUDIO_SHORTCUTS.UNDO.combos,
         STUDIO_SHORTCUTS.REDO.combos,
       ]}
     >
       <div
-        className="flex-col"
+        className="flex-col flex-fill overflow-hidden"
         onKeyDown={(e) => {
           if (e.key === "Escape" || (e.key === "Enter" && dismissOnEnter)) {
             e.preventDefault();
@@ -234,7 +232,7 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
           }
         }}
       >
-        <div className="panel-popup-title">
+        <div className="panel-popup-title" style={{ minHeight: 48, flexShrink: 0 }}>
           {frame?.element !== state.stack[0]?.element && (
             <IconButton
               type="seamless"
@@ -275,47 +273,19 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
 });
 
 function SidebarModalShell() {
+  const { state } = useSidebarModalContext();
+  // Unmount the transition owner when closed so reopening the same editor
+  // cannot resume the previous editor's unfinished leave animation.
+  return state.stack.length > 0 ? <SidebarModalStack /> : null;
+}
+
+function SidebarModalStack() {
   const popupRef = React.useRef<HTMLDivElement>(null);
   const { state, dispatch } = useSidebarModalContext();
   const { containerSelector, stack } = state;
   const lastFrame = L.last(stack);
-
-  const [modalHeight, setModalHeight] = React.useState(0);
+  const reducedMotion = useReducedMotion();
   const container = document.querySelector(containerSelector);
-  const [minHeight, setMinHeight] = React.useState(
-    container ? Math.min(modalHeight, container.clientHeight - 50) : undefined,
-  );
-  const [contentContainer, setContentContainer] = React.useState<
-    Element | undefined
-  >(undefined);
-  const [titleContainer, setTitleContainer] = React.useState<
-    Element | undefined
-  >(undefined);
-
-  React.useEffect(() => {
-    if (!contentContainer || !titleContainer || !container) {
-      return;
-    }
-
-    const _observer = new ResizeObserver(() => {
-      const newModalHeight =
-        titleContainer.getBoundingClientRect().height +
-        contentContainer.getBoundingClientRect().height +
-        4;
-      const newMinHeight = Math.min(
-        newModalHeight,
-        container.clientHeight - 50,
-      );
-      setMinHeight(newMinHeight);
-      setModalHeight(newModalHeight);
-    });
-
-    _observer.observe(titleContainer);
-    _observer.observe(contentContainer);
-    _observer.observe(container);
-
-    return () => _observer.disconnect();
-  }, [container, contentContainer, titleContainer]);
 
   // We use @react-aria's useOverlay to catch Escape.  We don't use
   // it for catching clicks outside the modal because it always closes
@@ -353,40 +323,24 @@ function SidebarModalShell() {
   // <SidebarModal> whose _descendant_ has another <SidebarModal>, etc.;
   // so we need to keep the previous modals mounted -- otherwise, unmounting
   // the previous modal will also unmount the modal we are trying to display!
-  const isEmpty = state.stack.length === 0;
-  const wasEmpty = usePrevious(isEmpty);
-  // Using left instead of transform, as transform would glitch out a lot more :-/
-  const displayedEffect = { left: "0%" }; // { transform: "translate3d(0%,0,0)" };
-  const preemptedEffect = { left: "-105%" }; // { transform: "translate3d(-105%,0,0)" };
-  const closedEffect = { left: "105%" }; // { transform: "translate3d(105%,0,0)" };
+  const displayedEffect = { left: "0%" };
+  const preemptedEffect = { left: "-100%" };
+  const closedEffect = { left: "100%" };
   const transitions = useTransition(state.stack, {
-    // If this is the very first modal, then we start out without
-    // any animation.
-    from: wasEmpty ? displayedEffect : closedEffect,
+    // The root editor opens in place on every mount, including rapid reopen.
+    // Only nested editors slide; this depends on stack identity, not timing.
+    from: (frame) =>
+      frame === stack[0] ? displayedEffect : closedEffect,
     enter: displayedEffect,
     leave: closedEffect,
     keys: (frame) => frame.id,
+    immediate: !!reducedMotion,
+    config: { duration: 180 },
     // When a new modal is added, then we slide the existing modals
     // to the left (preemptedEffect) and display the new one.
     update: (item) => (item === lastFrame ? displayedEffect : preemptedEffect),
     unique: true,
   });
-
-  // Position the popup within the container
-  React.useEffect(() => {
-    const popup = popupRef.current;
-    if (!popup) {
-      return;
-    }
-    const pane = ensure(
-      document.querySelector(containerSelector),
-      "Unexpected nullish SidebarModal containerSelector",
-    );
-    domAlign(popup, pane, {
-      points: ["tc", "tc"],
-      offset: [0, 40],
-    });
-  }, [isEmpty, containerSelector]);
 
   if (!lastFrame || !container) {
     // Nothing to display
@@ -400,26 +354,39 @@ function SidebarModalShell() {
           ref={popupRef}
           id="sidebar-modal"
           className={cx("dev-env panel-popup absolute")}
-          style={{ minHeight: minHeight }}
+          style={{
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            minHeight: 0,
+            borderRadius: "inherit",
+            boxShadow: "none",
+          }}
           {...overlayProps}
         >
           {transitions((_props, item) => (
             <animated.div
               key={item.id}
               className="flex-col"
+              aria-hidden={item !== lastFrame}
               style={{
                 position: "absolute",
                 overflow: "hidden",
                 top: 0,
                 width: "100%",
                 height: "100%",
+                pointerEvents: item === lastFrame ? "auto" : "none",
                 ..._props,
               }}
             >
               <div
-                className="flex-col overflow-hidden"
+                className="flex-col flex-fill overflow-hidden"
                 ref={(elt) => {
                   if (elt) {
+                    elt.parentElement?.toggleAttribute(
+                      "inert",
+                      item !== lastFrame,
+                    );
                     // We attach the portal modal content rendered by SidebarModal
                     // to the DOM tree here, if it hasn't been yet.  Note that
                     // if item.element.childElementCount has been unmounted, then
@@ -445,22 +412,6 @@ function SidebarModalShell() {
                       if (item.element.parentElement !== elt) {
                         elt.appendChild(item.element);
                       }
-                    }
-                    if (item === lastFrame) {
-                      // Check how tall the content of the modal is.  We reach into
-                      // .panel-popup-content-inner, to bypass any scrolling containers.
-                      setTitleContainer(
-                        ensure(
-                          elt.querySelector(".panel-popup-title"),
-                          "Unexpected nullish title container",
-                        ),
-                      );
-                      setContentContainer(
-                        ensure(
-                          elt.querySelector(".panel-popup-content-inner"),
-                          "Unexpected nullish content container",
-                        ),
-                      );
                     }
                   }
                 }}

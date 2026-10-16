@@ -44,9 +44,14 @@ export function EditorToolIcon({ tool }: { tool: keyof typeof tools }) {
     </svg>
   );
 }
-export function EditorToolRail(
-  props: React.ComponentProps<typeof PlasmicLeftTabStrip>,
-) {
+export function EditorToolRail({
+  onOpenWebBrowser,
+  moreButton,
+  ...props
+}: React.ComponentProps<typeof PlasmicLeftTabStrip> & {
+  onOpenWebBrowser?: () => void;
+  moreButton?: React.ReactNode;
+}) {
   const { t } = useI18n();
   return (
     <div className="editor-tool-rail-group">
@@ -54,23 +59,6 @@ export function EditorToolRail(
         showAvatar={false}
         insert={{ render: () => null }}
         root={{ id: "left-tab-strip" }}
-        buttons={
-          <>
-            {(Object.keys(tools) as (keyof typeof tools)[]).map((tool) => (
-              <React.Fragment key={tool}>
-                {(tool === "Insert" || tool === "Issues") && (
-                  <div className="editor-rail-divider" role="separator" />
-                )}
-                <LeftTabButton
-                  label={t(tool)}
-                  tooltip={t(tool)}
-                  icon={<EditorToolIcon tool={tool} />}
-                  disabled
-                />
-              </React.Fragment>
-            ))}
-          </>
-        }
         bottomButtons={null}
         players={{ render: () => null }}
         avatar={{ render: () => null }}
@@ -78,6 +66,58 @@ export function EditorToolRail(
         figma={{ render: () => null }}
         keyboard={{ render: () => null }}
         {...props}
+        buttons={
+          <>
+            {props.buttons ?? (
+              <>
+                {(Object.keys(tools) as (keyof typeof tools)[]).filter((tool) => tool !== "More").map((tool) => (
+                  <React.Fragment key={tool}>
+                    {(tool === "Insert" || tool === "Issues") && (
+                      <div className="editor-rail-divider" role="separator" />
+                    )}
+                    <LeftTabButton
+                      label={t(tool)}
+                      tooltip={t(tool)}
+                      icon={<EditorToolIcon tool={tool} />}
+                      disabled
+                    />
+                  </React.Fragment>
+                ))}
+              </>
+            )}
+            {navigator.userAgent.includes("PlasmicDesktop/") && (
+              <LeftTabButton
+                label={t("Import from the web")}
+                tooltip={t("Import from the web")}
+                dataTestId="import-from-web-button"
+                icon={
+                  <svg
+                    width={20}
+                    height={20}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    aria-hidden="true"
+                  >
+                    <circle cx={12} cy={12} r={9} />
+                    <path d="M3 12h18 M12 3c5 4 5 14 0 18-5-4-5-14 0-18" />
+                  </svg>
+                }
+                onClick={onOpenWebBrowser}
+                disabled={!onOpenWebBrowser}
+              />
+            )}
+            {moreButton ?? (
+              <LeftTabButton
+                label={t("More")}
+                tooltip={t("More")}
+                icon={<EditorToolIcon tool="More" />}
+                disabled
+              />
+            )}
+          </>
+        }
       />
       {navigator.userAgent.includes("PlasmicDesktop/") && (
         <span

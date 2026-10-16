@@ -1,3 +1,4 @@
+import { openDesktopBrowser } from "@/wab/client/desktop-browser";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
 import { HostConfig } from "@/wab/client/components/HostConfig";
@@ -634,6 +635,7 @@ export function useTopFrameState({
 
   const topFrameApi = React.useMemo<TopFrameApi>(
     () => ({
+      openDesktopBrowser,
       pushLocation(path, query, hash) {
         validateNewLocation(path, history.location);
         // history@5 doesn't resolve missing parts like history@4 did:

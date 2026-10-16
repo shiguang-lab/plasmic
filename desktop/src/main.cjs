@@ -55,6 +55,7 @@ let desktopLogin;
 let startingDesktop;
 let desktopI18n;
 const { createDesktopI18n } = require("./i18n.cjs");
+const { ReferenceBrowser } = require("./reference-browser.cjs");
 const {
   DesktopUnifiedLogin,
   AUTH_ORIGIN,
@@ -260,7 +261,7 @@ async function startDesktop() {
     backgroundColor:
       desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
     ...(process.platform === "darwin"
-      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 24, y: 25 } }
+      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 24, y: 22 } }
       : process.platform === "win32"
         ? {
             titleBarStyle: "hidden",
@@ -290,11 +291,13 @@ async function startDesktop() {
   if (process.platform === "darwin") {
     const alignWindowButtons = () => {
       if (!appearanceWindow.isDestroyed() && !appearanceWindow.isFullScreen()) {
-        appearanceWindow.setWindowButtonPosition({ x: 24, y: 25 });
+        appearanceWindow.setWindowButtonPosition({ x: 24, y: 22 });
       }
     };
     for (const event of [
       "show",
+      "focus",
+      "blur",
       "resize",
       "resized",
       "restore",
@@ -424,6 +427,21 @@ async function startDesktop() {
       () => startingDesktop,
       () => desktopLogin.noteActivity(),
     );
+    controller.browser = new ReferenceBrowser({
+      getParent: () => mainWindow,
+      dispatch: (method, input) => controller.dispatch(method, input),
+      getImportContext: (input) => controller.browserImportContext(input),
+      importHtml: (input) => controller.importBrowserHtml(input),
+      uploadImage: (data) => controller.uploadImage(data),
+      locate: (result) => controller.locateBrowserImport(result),
+      undo: (result) => controller.undoBrowserImport(result),
+      i18n: desktopI18n,
+      appearance: desktopAppearance,
+    });
+    ipcMain.handle("desktop:open-reference-browser", (event) => {
+      if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
+      return controller.dispatch("browser", { action: "open" });
+    });
     stopRpc = await startRpc(app.getPath("userData"), (method, input) =>
       controller.dispatch(method, input),
     );
@@ -581,6 +599,14 @@ async function startDesktop() {
       {
         label: t("View"),
         submenu: [
+          {
+            label: t("Import from the web"),
+            accelerator: "CmdOrCtrl+Shift+U",
+            click: () => {
+              void controller.dispatch("browser", { action: "open" });
+            },
+          },
+          { type: "separator" },
           { role: "reload", label: t("Reload") },
           { role: "forceReload", label: t("Force Reload") },
           { role: "toggleDevTools", label: t("Toggle Developer Tools") },

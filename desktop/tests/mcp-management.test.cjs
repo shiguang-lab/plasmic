@@ -69,6 +69,24 @@ test("management tools expose strict MCP schemas and forward valid calls through
     }));
     const tools = (await client.listTools()).tools;
     const valid = [
+      ["browser", { action: "open" }],
+      [
+        "browser",
+        { action: "load_page", url: "https://example.org", width: 1440 },
+      ],
+      ["browser", { action: "select_element", selector: "main" }],
+      [
+        "browser",
+        {
+          action: "import_to_canvas",
+          target: "selection",
+          componentUuid: "page",
+          elementUuid: "container",
+          name: "ImportedSection",
+        },
+      ],
+      ["browser", { action: "screenshot_to_canvas", target: "full_page" }],
+      ["browser", { action: "screenshot_to_canvas", target: "visible_area" }],
       ["get_org", { orgId: "org" }],
       ["list_orgs", {}],
       ["list_orgs", { query: "Design" }],
@@ -93,6 +111,10 @@ test("management tools expose strict MCP schemas and forward valid calls through
     }
     assert.deepEqual(forwarded, valid.map(([method, input]) => ({ method, input })));
     const invalid = [
+      ["browser", { action: "implicit_import" }],
+      ["browser", { action: "import_to_canvas", target: "viewport" }],
+      ["browser", { action: "import_to_canvas", destination: "current" }],
+      ["browser", { action: "import_to_canvas", name: "bad-name" }],
       ["get_org", {}],
       ["get_org", { orgId: "../private" }],
       ["get_org", { orgId: "org", extra: true }],

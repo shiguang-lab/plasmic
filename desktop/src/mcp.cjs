@@ -29,6 +29,7 @@ const EDITOR_METHODS = [
   "updateVector",
   "createComponent",
   "insertHtml",
+  "importWebPage",
   "changeElement",
   "deleteElement",
   "createState",
@@ -101,7 +102,11 @@ const tools = [
     description:
       "Create a NAS workspace in orgId with a name and optional description. Requires desktop login and organization permission. Returns workspace; plan restrictions are errors. Does not navigate; use open_workspace to open it.",
     inputSchema: {
-      ...object({ orgId: resourceId, name: resourceName, description: { type: "string" } }),
+      ...object({
+        orgId: resourceId,
+        name: resourceName,
+        description: { type: "string" },
+      }),
       required: ["orgId", "name"],
     },
   },
@@ -115,7 +120,10 @@ const tools = [
     name: "open_workspace",
     description:
       "Open the workspace dashboard at /workspaces/:workspaceId after checking access. Saves the current editable design before leaving it. Requires desktop login; returns opened, workspaceId and url.",
-    inputSchema: { ...object({ workspaceId: resourceId }), required: ["workspaceId"] },
+    inputSchema: {
+      ...object({ workspaceId: resourceId }),
+      required: ["workspaceId"],
+    },
   },
   {
     name: "create_project",
@@ -186,12 +194,23 @@ tools.push(
   {
     name: "browser",
     description:
-      "Persistent isolated reference browser: load an HTTP(S) page, read styled DOM and PNG, send CDP commands in DOM/Input/Page/Runtime/Emulation/CSS/Accessibility domains, or close. No Studio cookies or preload are shared. Call load_page first. Use returned HTML with insertHtml for editable design import.",
+      "Shared docked reference browser. open reserves space for a right-side panel inside the editor; load_page navigates; get_state reads URL, viewport and selected element; set_import_height sets the bottom handle height in panel CSS pixels (minimum 240), or omitting height resets full-page import; the clipped height limits full-page editable imports and screenshots; select_element accepts a selector or starts the visual picker; import_to_canvas imports the whole page or current selection as editable layers in one undo transaction. No HTML needs to pass through the agent. Omit componentUuid to create a page, or specify componentUuid and optional elementUuid to append. screenshot_to_canvas imports a raster image through the same destination contract. capture reads styled DOM and PNG; cdp sends a restricted CDP command; close hides the panel and preserves its session. Studio cookies and APIs are isolated.",
     inputSchema: {
       ...object({
         action: {
           type: "string",
-          enum: ["load_page", "capture", "cdp", "close"],
+          enum: [
+            "open",
+            "load_page",
+            "get_state",
+            "set_import_height",
+            "select_element",
+            "import_to_canvas",
+            "screenshot_to_canvas",
+            "capture",
+            "cdp",
+            "close",
+          ],
         },
         url: { type: "string", minLength: 1 },
         selector: { type: "string", minLength: 1, maxLength: 500 },
@@ -199,6 +218,15 @@ tools.push(
         height: { type: "integer", minimum: 1, maximum: 16384 },
         method: { type: "string", minLength: 1 },
         params: { type: "object" },
+        target: {
+          type: "string",
+          enum: ["full_page", "selection", "visible_area"],
+          description:
+            "visible_area is only supported by screenshot_to_canvas and captures the currently scrolled viewport.",
+        },
+        componentUuid: { type: "string", minLength: 1 },
+        elementUuid: { type: "string", minLength: 1 },
+        name: { type: "string", pattern: "^[A-Z][A-Za-z0-9]*$" },
       }),
       required: ["action"],
     },
@@ -477,8 +505,11 @@ async function serveMcp(profile) {
             )
           : request.params.name === "read_skill"
             ? {
-                instructions: "Run npx -y @plasmickit/cli@latest context resolve --mode inspect for read-only page/template explanation or design review, --mode prototype for design edits, or --mode codegen for native development code. Inspection requires accessible reads, not edit permission; it does not save or mutate designs. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with npx -y @plasmickit/cli@latest skill install; it detects supported local Agent CLIs and apps and installs for all detected clients without asking for paths. Use skill install --dry-run to inspect detection and destinations. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
-                resourceManifestUrl: require("../desktop.config.json").updateUrl + "/plasmic/latest.json",
+                instructions:
+                  "Run npx -y @plasmickit/cli@latest context resolve --mode inspect for read-only page/template explanation or design review, --mode prototype for design edits, or --mode codegen for native development code. Inspection requires accessible reads, not edit permission; it does not save or mutate designs. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with npx -y @plasmickit/cli@latest skill install; it detects supported local Agent CLIs and apps and installs for all detected clients without asking for paths. Use skill install --dry-run to inspect detection and destinations. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
+                resourceManifestUrl:
+                  require("../desktop.config.json").updateUrl +
+                  "/plasmic/latest.json",
               }
             : await requestRpc(
                 profile,

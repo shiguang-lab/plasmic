@@ -111,6 +111,67 @@ remains covered until its saved zoom and pan are applied after artboards and the
 inspector mount. Default initial fitting is skipped for a valid saved viewport;
 missing arenas or artboards fall back to the normal initial overview.
 
+## Import from the web
+
+Open the docked browser inside the editor with the Studio sidebar globe button, **View → Import
+from the web**, or **Cmd/Ctrl+Shift+U**. Enter an HTTP(S) or localhost URL and
+browse normally. The element picker highlights a region; use its breadcrumb to
+select a parent. **Import** brings the full page or selected element into a
+new editable page. **Enter** imports a
+selected region; **Cmd/Ctrl+Enter** imports its screenshot. With no selection,
+the camera menu offers full-page and visible-area capture. The viewport button
+cycles Desktop → Phone (390×844) → Tablet (1180×820). Desktop pages reflow to
+the panel width; zoom changes page magnification. **Coding Mode**, navigation and recent URLs
+stay in the right-side panel. It reserves space beside the editor and keeps an
+8 px gap to the window's top, bottom and right edges. Drag its left edge to resize.
+Application header rows are 42 px high with 28 px primary controls across the
+dashboard, CMS, editor, preview and sign-in screens. macOS window buttons use
+the same position on every page and retain it through activation, resize,
+minimize/restore and fullscreen transitions.
+Coding Mode fills the workspace with the same 8 px margins. Its single header
+keeps the native window controls, app menu and project workspace entry beside
+the browser controls. The underlying editor is hidden and inert until exit. Hiding it restores the
+editor's full width and preserves the current reference page and session.
+Selection breadcrumbs navigate to ancestors. The property strip copies computed
+styles, classes, dimensions, position, padding, margin and typography. Drag the
+bottom grip to limit import height; the unused area shows a hatch pattern.
+Double-click the grip to restore full-page import. The limit applies to full-page
+editable imports and screenshots, starting at the top of the page; selected elements
+keep their own bounds. The grip also supports arrow keys, Home (minimum) and End
+or Enter (full page). The privacy note scrolls with the start page. Escape
+clears the selection; the picker remains active after a click until stopped.
+Menus, tooltips, import details and copy feedback follow Desktop's resolved theme.
+Button and icon transitions respect the system reduced-motion preference. The
+property strip scrolls horizontally; recent pages and long menus use the shared
+Scrollbar component with bounded vertical scrolling.
+
+Imports reuse Studio's HTML importer and create one undo step, including the
+new page. The receipt locates the imported layers, reports conversion details and
+can undo the import while it remains the latest edit. Source interactions are
+removed, and source text is treated literally. Grid, generated pseudo-elements,
+embedded frames, video and canvas may need adjustment or a screenshot instead.
+The reference page has its own browser session and no Desktop preload or Studio
+cookies.
+
+MCP uses this same visible browser and selection explicitly:
+
+```json
+{"action":"load_page","url":"http://localhost:3000"}
+{"action":"select_element","selector":"main"}
+{"action":"import_to_canvas","target":"selection","name":"ImportedSection"}
+```
+
+Send each object to `browser`. Omit `componentUuid` to create a page; provide it
+and optional `elementUuid` to append to an existing component/container.
+`get_state` reads the live selection and import height. `set_import_height` accepts
+`height` in panel CSS pixels (minimum 240); omit it to reset to the full page. `screenshot_to_canvas` accepts `full_page`,
+`selection` or `visible_area` and imports an image with
+the same destination contract; `close` hides the browser. `capture_browser`
+remains a separate, temporary reference capture without canvas writes.
+
+Run `npm test` for Desktop checks and `npx electron tests/reference-browser-native.cjs`
+for actual Chromium selection, navigation, isolation and import integration.
+
 ## NAS updates and releases
 
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by

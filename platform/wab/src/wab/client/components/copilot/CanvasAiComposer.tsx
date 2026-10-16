@@ -1,6 +1,10 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
+import {
+  editorCanvasControlsLayout,
+  editorLeftRailLayout,
+} from "@/wab/client/components/ui/layout-styles";
 import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { useI18n } from "@/wab/client/i18n";
@@ -9,16 +13,19 @@ import { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
+const leftInset = editorLeftRailLayout.left + editorLeftRailLayout.width + editorLeftRailLayout.panelGap;
+// Keep the bottom-right canvas controls clear as the editor viewport narrows.
+const rightInset = 180;
 const useStyles = createStyles(() => ({
   position: {
     position: "fixed",
-    bottom: 8,
-    left: "50%",
-    transform: "translateX(-50%)",
+    bottom: editorCanvasControlsLayout.edgeInset,
+    left: leftInset,
+    right: rightInset,
+    marginInline: "auto",
     width: 530,
-    maxWidth: "calc(100% - 16px)",
+    maxWidth: `calc(100% - ${leftInset + rightInset}px)`,
     zIndex: 1000,
-    "@media (max-width: 1100px)": { bottom: 72 },
   },
 }));
 

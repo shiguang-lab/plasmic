@@ -29,8 +29,9 @@
   align-items: center;
   justify-content: center;
   color: var(--artboard-handle-foreground);
+  // Inverse zoom must match the canvas scale in the same frame; interpolating
+  // it independently inflates the handle during rapid zoom.
   transition:
-    transform 200ms,
     background 200ms,
     color 200ms;
 

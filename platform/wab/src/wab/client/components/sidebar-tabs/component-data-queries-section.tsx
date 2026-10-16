@@ -5,7 +5,7 @@ import {
   useDataSourceOpExprBottomModal,
 } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import { IconLinkButton, LinkButton } from "@/wab/client/components/widgets";
+import { LinkButton } from "@/wab/client/components/widgets";
 import {
   DataQueriesDeprecatedTooltip,
   DataQueriesTooltip,
@@ -14,6 +14,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem";
 import { useDataSource } from "@/wab/client/contexts/AppContexts";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   makeAllLegacyQueriesMigrationPrompt,
   makeLegacyQueryMigrationPrompt,
@@ -24,7 +25,6 @@ import { translateUiLabel } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { SparklesSvgIcon } from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SparklesSvg";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -55,7 +55,7 @@ import {
   renameQueryAndFixExprs,
 } from "@/wab/shared/refactoring";
 import { PlasmicDataSourceContextProvider } from "@plasmicapp/react-web";
-import { Menu } from "antd";
+import { Button, Menu, Tooltip } from "antd";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -306,16 +306,24 @@ function ComponentQueriesSection_(props: {
               <UiText message={"Migrate all"} />
             </LinkButton>
           )}
-          <IconLinkButton
-            id="data-queries-add-btn"
-            tooltip={uiT("Add {part1} to {part2}", {
+          <Tooltip
+            title={uiT("Add {part1} to {part2}", {
               part1: translateUiLabel(getUiLocale(), DATA_QUERY_LOWER),
               part2: componentType,
             })}
-            onClick={handleAddDataQuery}
           >
-            <Icon icon={PlusIcon} />
-          </IconLinkButton>
+            <Button
+              type="text"
+              size="small"
+              id="data-queries-add-btn"
+              aria-label={uiT("Add {part1} to {part2}", {
+                part1: translateUiLabel(getUiLocale(), DATA_QUERY_LOWER),
+                part2: componentType,
+              })}
+              onClick={handleAddDataQuery}
+              icon={<Icon icon={PlusIcon} />}
+            />
+          </Tooltip>
         </div>
       }
     >

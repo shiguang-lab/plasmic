@@ -102,6 +102,30 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+it.each([false, true])(
+  "shows web import only in Desktop and before More (Desktop: %s)",
+  (desktop) => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      desktop ? "PlasmicDesktop/darwin" : "Mozilla/5.0 Chrome/130.0.0.0 Safari/537.36",
+    );
+    try {
+      render(<LeftTabStrip useVersionsCTA={false} />);
+      const entry = screen.queryByRole("button", { name: "Import from the web" });
+      if (desktop) {
+        const labels = screen.getAllByRole("button").map((button) => button.textContent);
+        expect(entry).toBeTruthy();
+        expect(labels.indexOf("More")).toBe(
+          labels.indexOf("Import from the web") + 1,
+        );
+      } else {
+        expect(entry).toBeNull();
+      }
+    } finally {
+      vi.restoreAllMocks();
+    }
+  },
+);
+
 it("opens Project settings from More when global contexts are available", async () => {
   mocks.ctx.site.globalContexts.push({});
   render(<LeftTabStrip useVersionsCTA={false} />);

@@ -6,10 +6,10 @@ import * as React from "react";
 
 const useStyles = createStyles(({ token }) => ({
   model: {
-    width: 140,
+    width: 116,
     flexShrink: 1,
     minWidth: 0,
-    "& .ant-select": { width: "100%", fontSize: 12 },
+    "& .ant-select": { width: "100%", fontSize: 11 },
     "& .ant-select-content": {
       color: token.colorTextSecondary,
       textAlign: "right",

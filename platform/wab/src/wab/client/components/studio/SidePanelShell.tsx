@@ -2,14 +2,15 @@ import { mergeRefs } from "@/wab/commons/components/ReactUtil";
 import { createStyles } from "antd-style";
 import React from "react";
 
-export const LEFT_PANEL_TRANSITION_MS = 180;
+export const SIDE_PANEL_TRANSITION_MS = 180;
 const useStyles = createStyles(() => ({
   viewport: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    // Clip at the panel's left edge; leave room for its shadow and resize handle.
+    // Clip the hidden panel at its own edge, leaving room for shadows and handles.
     clipPath: "inset(-100% -100% -100% 0)",
+    "&[data-side='right']": { clipPath: "inset(-100% 0 -100% -100%)" },
     pointerEvents: "none",
   },
   shell: {
@@ -22,7 +23,8 @@ const useStyles = createStyles(() => ({
     opacity: 0,
     visibility: "hidden",
     pointerEvents: "none",
-    transition: `transform ${LEFT_PANEL_TRANSITION_MS}ms ease, opacity ${LEFT_PANEL_TRANSITION_MS}ms ease, visibility 0s linear ${LEFT_PANEL_TRANSITION_MS}ms`,
+    transition: `transform ${SIDE_PANEL_TRANSITION_MS}ms ease, opacity ${SIDE_PANEL_TRANSITION_MS}ms ease, visibility 0s linear ${SIDE_PANEL_TRANSITION_MS}ms`,
+    "&[data-side='right']": { transform: "translateX(100%)" },
     "&[data-open='true']": {
       transform: "translateX(0)",
       opacity: 1,
@@ -35,15 +37,15 @@ const useStyles = createStyles(() => ({
 }));
 
 /** One persistent shell. A content change never changes its transition state. */
-export const LeftPanelShell = React.forwardRef<
+export const SidePanelShell = React.forwardRef<
   HTMLDivElement,
   {
     open: boolean;
-    width: number;
-    left: string;
+    side: "left" | "right";
+    style?: React.CSSProperties;
     children?: React.ReactNode;
   }
->(function LeftPanelShell({ open, width, left, children }, ref) {
+>(function SidePanelShell({ open, side, style, children }, ref) {
   const { styles } = useStyles();
   const shellRef = React.useRef<HTMLDivElement>(null);
   const mergedRef = React.useMemo(() => mergeRefs(ref, shellRef), [ref]);
@@ -62,17 +64,22 @@ export const LeftPanelShell = React.forwardRef<
     }
     const timeout = setTimeout(
       () => setPresent(false),
-      LEFT_PANEL_TRANSITION_MS,
+      SIDE_PANEL_TRANSITION_MS,
     );
     return () => clearTimeout(timeout);
   }, [open]);
   return (
-    <div className={styles.viewport} style={{ width, left }}>
+    <div
+      className={`canvas-editor__${side}-pane-viewport ${styles.viewport}`}
+      data-side={side}
+      style={style}
+    >
       <div
         ref={mergedRef}
-        className={`canvas-editor__left-pane ${styles.shell}`}
+        className={`canvas-editor__${side}-pane ${styles.shell}`}
+        data-side={side}
         data-open={open}
-        data-test-id="left-panel-shell"
+        data-test-id={`${side}-panel-shell`}
         aria-hidden={!open}
       >
         {open ? children : present ? lastContent.current : null}

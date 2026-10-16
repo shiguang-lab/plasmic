@@ -4,6 +4,7 @@ import cmsModelContent from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsMode
 import cmsRoot from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsRoot.module.css";
 import cmsSchema from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsSchemaPage.module.css";
 import { productPalette } from "@/wab/client/product-ui-theme.styles";
+import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-styles";
 import { createStyles } from "antd-style";
 
 export const useCmsLayoutStyles = createStyles(({ token }) => ({
@@ -39,7 +40,7 @@ export const useCmsLayoutStyles = createStyles(({ token }) => ({
       flexDirection: "row",
       flexShrink: 0,
       width: "auto",
-      height: "auto",
+      height: applicationHeaderLayout.height,
       gap: 4,
       padding: 4,
       border: `1px solid ${token.colorBorderSecondary}`,
@@ -53,7 +54,8 @@ export const useCmsLayoutStyles = createStyles(({ token }) => ({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    padding: "6px 12px",
+    height: applicationHeaderLayout.controlHeight,
+    padding: "0 12px",
     borderRadius: token.borderRadius,
     color: token.colorTextSecondary,
     fontSize: token.fontSize,
@@ -101,7 +103,7 @@ export const useCmsLayoutStyles = createStyles(({ token }) => ({
     flex: "0 1 280px",
     minWidth: 0,
     maxWidth: 280,
-    height: 32,
+    height: applicationHeaderLayout.controlHeight,
     WebkitAppRegion: "no-drag",
   },
   cmsName: {

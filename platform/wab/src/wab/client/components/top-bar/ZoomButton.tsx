@@ -23,7 +23,7 @@ const useStyles = createStyles(({ token }) => ({
       height: 28,
       minWidth: 68,
       padding: "0 7px",
-      border: 0,
+      border: "1px solid transparent",
       borderRadius: 5,
       boxShadow: "none",
       fontSize: 12,

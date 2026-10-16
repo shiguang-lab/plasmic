@@ -5,20 +5,20 @@ import {
   SidebarSection,
   SidebarSectionHandle,
 } from "@/wab/client/components/sidebar/SidebarSection";
-import { IconLinkButton } from "@/wab/client/components/widgets";
 import { StateVariablesTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiLabel } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { DefaultVariablesSectionProps } from "@/wab/client/plasmic/plasmic_kit_state_management/PlasmicVariablesSection";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { VARIABLE_PLURAL_CAP } from "@/wab/shared/Labels";
 import { ensure } from "@/wab/shared/common";
 import { Component } from "@/wab/shared/model/classes";
+import { Button } from "antd";
 import cn from "classnames";
 import { groupBy } from "lodash";
 import { observer } from "mobx-react";
@@ -76,12 +76,13 @@ function VariablesSection_(props: VariablesSectionProps) {
         }
         controls={
           <>
-            <IconLinkButton
+            <Button
+              type="text"
+              size="small"
               aria-label={uiT("Add state variable")}
               onClick={() => setNewVariable(true)}
-            >
-              <Icon icon={PlusIcon} data-test-id="add-state-btn" />
-            </IconLinkButton>
+              icon={<Icon icon={PlusIcon} data-test-id="add-state-btn" />}
+            />
           </>
         }
         defaultExtraContentExpanded={isExpanded}

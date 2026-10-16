@@ -23,6 +23,7 @@ import React, { useState } from "react";
 import { MdScreenRotation } from "react-icons/md";
 
 import { BrandLink } from "@/wab/client/components/BrandLink";
+import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-styles";
 import {
   DEVICE_VIEWPORTS,
   isViewportDimension,
@@ -60,14 +61,19 @@ const useStyles = createStyles(({ token }) => ({
     gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
     alignItems: "center",
     gap: 12,
-    minHeight: 48,
+    minHeight: applicationHeaderLayout.height,
     flexShrink: 0,
     margin: 8,
     color: token.colorText,
     position: "relative",
     zIndex: 100,
-    "& .ant-btn": { height: 36, borderRadius: 8, fontSize: 13 },
-    "& .ant-segmented": { padding: 3, borderRadius: 8 },
+    "& .ant-btn": {
+      height: applicationHeaderLayout.controlHeight,
+      borderRadius: 8,
+      fontSize: 13,
+    },
+    "& .ant-segmented": { padding: 2, borderRadius: 8 },
+    "& .ant-segmented-item-label": { minHeight: 24, lineHeight: "24px" },
     "& .ant-segmented-item": { borderRadius: 6 },
     "& .ant-segmented-item-selected": {
       background: token.colorPrimary,
@@ -83,11 +89,11 @@ const useStyles = createStyles(({ token }) => ({
   section: {
     display: "flex",
     alignItems: "center",
-    minHeight: 48,
+    minHeight: applicationHeaderLayout.height,
     minWidth: 0,
     maxWidth: "100%",
     boxSizing: "border-box",
-    padding: "5px 8px",
+    padding: "6px 8px",
     background: token.colorBgContainer,
     border: `1px solid ${token.colorBorder}`,
     borderRadius: token.borderRadiusLG,
@@ -108,7 +114,7 @@ const useStyles = createStyles(({ token }) => ({
     gap: 4,
     justifySelf: "start",
     paddingInline: 12,
-    borderRadius: 24,
+    borderRadius: applicationHeaderLayout.height / 2,
     "@media (max-width: 600px)": { flexWrap: "wrap" },
   },
   navigationTrigger: {
@@ -116,7 +122,7 @@ const useStyles = createStyles(({ token }) => ({
     flexShrink: 1,
     gap: 6,
     "&&": {
-      height: 32,
+      height: applicationHeaderLayout.controlHeight,
       padding: "0 8px",
       border: 0,
       "--ant-btn-border-width": "0px",
@@ -151,7 +157,7 @@ const useStyles = createStyles(({ token }) => ({
     justifySelf: "end",
     justifyContent: "flex-end",
     gap: 4,
-    borderRadius: 24,
+    borderRadius: applicationHeaderLayout.height / 2,
     flexShrink: 0,
   },
   codeControls: {
@@ -290,7 +296,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
           left: bounds.left,
           top: bounds.top,
           width: 80,
-          height: 48,
+          height: applicationHeaderLayout.height,
         }),
       );
     };

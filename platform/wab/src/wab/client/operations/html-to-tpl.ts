@@ -163,6 +163,7 @@ export async function htmlToTpl(
     vtm: VariantTplMgr;
     appCtx: AppCtx;
     pageHrefs: boolean;
+    staticContent?: boolean;
   },
 ): Promise<Result<HtmlToTplResult, WIImportFailedError>> {
   const { site, vtm, appCtx, pageHrefs } = opts;
@@ -182,7 +183,14 @@ export async function htmlToTpl(
     tplRepeatData,
     tplVisibilityData,
     tplMixinsData,
-  } = await wiTreeToTpl(wiTree, { site, vtm, appCtx, errors, pageHrefs });
+  } = await wiTreeToTpl(wiTree, {
+    site,
+    vtm,
+    appCtx,
+    errors,
+    pageHrefs,
+    staticContent: opts.staticContent,
+  });
 
   if (tpls.length === 0) {
     return err(
@@ -534,6 +542,7 @@ async function wiTreeToTpl(
     appCtx: AppCtx;
     errors: WIError[];
     pageHrefs: boolean;
+    staticContent?: boolean;
   },
 ) {
   const { site, vtm, appCtx, errors, pageHrefs } = opts;
@@ -703,9 +712,10 @@ async function wiTreeToTpl(
         }
         continue;
       }
-      result[key] = isDynamicValue(value)
-        ? interpolatedStringToExpr(value)
-        : value;
+      result[key] =
+        !opts.staticContent && isDynamicValue(value)
+          ? interpolatedStringToExpr(value)
+          : value;
     }
     return result;
   }
@@ -718,7 +728,9 @@ async function wiTreeToTpl(
     const markers: NodeMarker[] = [];
     let richText: RichText;
     if (node.content.length === 1 && typeof node.content[0] === "string") {
-      richText = interpolatedStringToRichText(node.content[0]);
+      richText = opts.staticContent
+        ? new RawText({ text: node.content[0], markers: [] })
+        : interpolatedStringToRichText(node.content[0]);
     } else {
       let text = "";
       const addMarkerTpl = (markerTpl: TplTag) => {
@@ -734,7 +746,7 @@ async function wiTreeToTpl(
       for (const part of node.content) {
         if (typeof part !== "string") {
           addMarkerTpl(buildTextBlockTpl(part));
-        } else if (isDynamicValue(part)) {
+        } else if (!opts.staticContent && isDynamicValue(part)) {
           const dynamicValTpl = vtm.mkTplTagX("span", {
             type: TplTagType.Text,
           });
@@ -940,9 +952,10 @@ async function wiTreeToTpl(
       const tpl = vtm.mkTplImage({
         attrs: {
           ...htmlAttrsToTplAttrs(node),
-          src: isDynamicValue(src)
-            ? interpolatedStringToExpr(src)
-            : code(JSON.stringify(src)),
+          src:
+            !opts.staticContent && isDynamicValue(src)
+              ? interpolatedStringToExpr(src)
+              : code(JSON.stringify(src)),
         },
         type: ImageAssetType.Picture,
         name: tplName,
