@@ -72,10 +72,26 @@ macOS uses separate `darwin-arm64` and `darwin-x64` DMG/ZIP pairs for Apple Sili
 and Intel. `package:mac` and macOS defaults build for the current CPU architecture.
 Packaging verifies the executable architecture and signed bundle runtime
 dependencies. Windows and Linux retain their architecture-specific packages.
-macOS produces an ad-hoc signed DMG and ZIP for internal distribution, Windows
-produces a per-user NSIS installer, and Linux produces an AppImage. macOS
-Developer ID signing/notarization requires Apple credentials and a macOS
-build environment. No backend or database is included.
+macOS local builds use an existing **Apple Development** identity in the build
+Mac's keychain. Create it through Xcode's account settings or import the intended
+certificate and private key before packaging. Packaging selects the single valid
+Apple Development identity and fails if it is missing or ambiguous; it never
+falls back to ad-hoc signing. Other build machines and CI must import the intended
+identity before packaging. Do not commit or bundle private keys.
+`CSC_NAME`, when set, selects the exact certificate SHA-1 fingerprint; a different
+certificate is rejected even if it is a valid Apple Development identity.
+
+Packaging verifies the exact signing certificate, bundle identifier, and the
+Apple development certificate chain used by macOS Keychain's Team ID partition
+check. Retain the same developer team across updates. Switching an installed app
+to that team can require initial Keychain authorization. A stable designated
+requirement alone is insufficient for self-signed certificates because Keychain
+also classifies them by their changing code hash; see [Apple securityd](https://github.com/apple-oss-distributions/Security/blob/main/securityd/src/clientid.cpp).
+
+Apple Development signing is for development/local testing. Public downloads
+with Developer ID trust and Apple notarization require a Developer ID identity
+and Apple Developer Program credentials. Windows produces a per-user NSIS
+installer, and Linux produces an AppImage. No backend or database is included.
 
 ## Canvas reads and verification
 
@@ -227,6 +243,18 @@ into `desktop/public/desktop-updates/`, and generates `latest.json` for the webs
 The JSON contains the version, platform, architecture, size, SHA-512 and public HTTPS
 download URL. Installers and manifests ship together in
 `ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v<version>`.
+
+The two macOS jobs import the same Apple Development identity from repository
+Actions secrets `DESKTOP_MAC_CERTIFICATE_P12_BASE64` (base64 of a password-protected
+PKCS#12 containing the certificate and private key) and
+`DESKTOP_MAC_CERTIFICATE_PASSWORD` (its password). The workflow pins its SHA-1
+fingerprint through `CSC_NAME`; replacing a secret with another identity fails
+the build. Both direct Desktop tags and the Studio workflow's reusable call use
+these repository secrets. Each macOS runner creates an isolated temporary
+keychain, grants code-signing access only there, and deletes the keychain and
+PKCS#12 file after use, including failed runs. The signing material is never
+uploaded as a build artifact. Update these secrets and the pinned fingerprint
+together when renewing the identity, keeping the same developer team.
 
 The release image contains the installers and manifests built for that release.
 Existing version tags cannot be overwritten. Make this GHCR package public so NAS
