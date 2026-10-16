@@ -38,6 +38,13 @@ import {
 } from "antd";
 import * as React from "react";
 
+const countSkeletonStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  fontSize: "inherit",
+  lineHeight: "inherit",
+};
+
 function LoadingProjectFilters({
   allWorkspaces = false,
   showView = true,
@@ -140,6 +147,7 @@ export function WorkspacePageLoading({
         <Skeleton.Input
           active
           size="small"
+          styles={{ root: countSkeletonStyle }}
           style={{ width: 24, minWidth: 24, height: 14 }}
         />
       }
@@ -322,6 +330,7 @@ export function DashboardPageLoading() {
                 <Skeleton.Input
                   active
                   size="small"
+                  styles={{ root: countSkeletonStyle }}
                   style={{ width: 24, minWidth: 24, height: 14 }}
                 />
               }
@@ -329,6 +338,7 @@ export function DashboardPageLoading() {
                 <Skeleton.Input
                   active
                   size="small"
+                  styles={{ root: countSkeletonStyle }}
                   style={{ width: 24, minWidth: 24, height: 14 }}
                 />
               }

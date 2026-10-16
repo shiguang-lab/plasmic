@@ -26,17 +26,24 @@ vi.mock("@/wab/client/i18n", () => ({
 }));
 vi.mock("@/wab/client/components/widgets/plasmic/ShareDialogContent", () => ({
   default: ({
+    renderDialog,
     reloadPerms,
     closeDialog,
   }: {
+    renderDialog: (
+      body: React.ReactNode,
+      footer: React.ReactNode,
+    ) => React.ReactNode;
     reloadPerms: () => void;
     closeDialog: () => void;
-  }) => (
-    <>
-      <button onClick={reloadPerms}>Reload permissions</button>
-      <button onClick={closeDialog}>Finish invite</button>
-    </>
-  ),
+  }) =>
+    renderDialog(
+      <>
+        <button onClick={reloadPerms}>Reload permissions</button>
+        <button onClick={closeDialog}>Finish invite</button>
+      </>,
+      null,
+    ),
 }));
 const members: TeamMember[] = [
   { type: "email", email: "invite@example.com" },

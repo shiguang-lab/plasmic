@@ -1,11 +1,8 @@
-import { openDesktopBrowser } from "@/wab/client/desktop-browser";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
 import { HostConfig } from "@/wab/client/components/HostConfig";
 import { DataSourcePicker } from "@/wab/client/components/TopFrame/DataSourcePicker";
 import CloneProjectModal from "@/wab/client/components/TopFrame/TopBar/CloneProjectModal";
-import CodeModal from "@/wab/client/components/TopFrame/TopBar/CodeModal";
-import { DeliveryTab } from "@/wab/client/components/TopFrame/TopBar/DeliveryModal";
 import ProjectNameModal from "@/wab/client/components/TopFrame/TopBar/ProjectNameModal";
 import PublishFlowDialogWrapper from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
 import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame/TopBar/RegenerateSecretTokenModal";
@@ -30,6 +27,7 @@ import {
   getLocalEditSession,
   localAiFetch,
 } from "@/wab/client/copilot/local-edit-session";
+import { openDesktopBrowser } from "@/wab/client/desktop-browser";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
 import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import {
@@ -93,13 +91,11 @@ export interface TopFrameChromeProps {
     { revisionId: string; version: string } | undefined;
   revisionNum: number;
   desktopTitleBarDragRegion: TopFrameApiArgs<"setDesktopTitleBarDragRegion">;
-  noComponents: boolean;
   isLocalizationEnabled: boolean;
   showPublishModal: boolean;
   keepPublishModalOpen: boolean;
   mergeModalContext: MergeModalContext | undefined;
   showShareModal: boolean;
-  showCodeModal: boolean;
   showProjectNameModal: boolean;
   showCloneProjectModal: boolean;
   showHostModal: boolean;
@@ -111,12 +107,6 @@ export interface TopFrameChromeProps {
   studioModalOpen: boolean;
   aiPanelOpen: boolean;
   localAiContext: LocalAiContext | undefined;
-  subjectComponentInfo:
-    | {
-        pathOrComponent: string;
-        componentName: string;
-      }
-    | undefined;
   activatedBranch: ApiBranch | undefined;
   dataSourcePicker:
     | {
@@ -160,15 +150,6 @@ export function TopFrameChrome({
     session.connect();
     return () => session.disconnect();
   }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id]);
-  const selectDelivery = (tab: DeliveryTab) => {
-    const setter =
-      tab === "share"
-        ? topFrameApi.setShowShareModal
-        : tab === "code"
-          ? topFrameApi.setShowCodeModal
-          : topFrameApi.setShowPublishModal;
-    spawn(setter(true));
-  };
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
   const location = useLocation();
   const preview =
@@ -328,7 +309,6 @@ export function TopFrameChrome({
               />
             )}
             <PublishFlowDialogWrapper
-              onSelectDelivery={selectDelivery}
               project={project}
               refreshProjectAndPerms={refreshProjectAndPerms}
               activatedBranch={rest.activatedBranch}
@@ -337,12 +317,9 @@ export function TopFrameChrome({
               revisionNum={rest.revisionNum}
               showPublishModal={rest.showPublishModal}
               keepPublishModalOpen={
-                rest.keepPublishModalOpen &&
-                !rest.showShareModal &&
-                !rest.showCodeModal
+                rest.keepPublishModalOpen && !rest.showShareModal
               }
               setShowPublishModal={topFrameApi.setShowPublishModal}
-              setShowCodeModal={topFrameApi.setShowCodeModal}
             />
             <MergeModalWrapper
               project={project}
@@ -351,7 +328,6 @@ export function TopFrameChrome({
               revisionNum={rest.revisionNum}
               mergeModalContext={rest.mergeModalContext}
               setMergeModalContext={topFrameApi.setMergeModalContext}
-              setShowCodeModal={topFrameApi.setShowCodeModal}
               currentBranch={rest.activatedBranch}
             />
             <ShareModal
@@ -360,14 +336,6 @@ export function TopFrameChrome({
               perms={perms}
               showShareModal={rest.showShareModal}
               setShowShareModal={topFrameApi.setShowShareModal}
-            />
-            <CodeModal
-              onSelectDelivery={selectDelivery}
-              project={project}
-              noComponents={rest.noComponents}
-              subjectComponentInfo={rest.subjectComponentInfo}
-              showCodeModal={rest.showCodeModal}
-              setShowCodeModal={topFrameApi.setShowCodeModal}
             />
             {rest.dataSourcePicker && (
               <DataSourcePicker
@@ -567,16 +535,15 @@ export function useTopFrameState({
   const [revisionNum, setRevisionNum] = React.useState(0);
   const [desktopTitleBarDragRegion, setDesktopTitleBarDragRegion] =
     React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegion">>(null);
-  const [deliveryTab, setDeliveryTab] = React.useState<DeliveryTab | null>(
-    null,
-  );
-  const showPublishModal = deliveryTab === "publish";
+  const [activeModal, setActiveModal] = React.useState<
+    "publish" | "share" | null
+  >(null);
+  const showPublishModal = activeModal === "publish";
   const [keepPublishModalOpen, setKeepPublishModalOpen] = React.useState(false);
   const [mergeModalContext, setMergeModalContext] = React.useState<
     MergeModalContext | undefined
   >(undefined);
-  const showShareModal = deliveryTab === "share";
-  const showCodeModal = deliveryTab === "code";
+  const showShareModal = activeModal === "share";
   const [showCloneProjectModal, setShowCloneProjectModal] =
     React.useState(false);
   const [showProjectNameModal, setShowProjectNameModal] = React.useState(false);
@@ -602,11 +569,6 @@ export function useTopFrameState({
 
   React.useEffect(() => setAiPanelOpen(false), [project?.id]);
 
-  const [noComponents, setNoComponents] = React.useState(true);
-  const [subjectComponentInfo, setSubjectComponentInfo] = React.useState<{
-    pathOrComponent: string;
-    componentName: string;
-  }>();
   const [activatedBranch, setActivatedBranch] = React.useState<
     ApiBranch | undefined
   >();
@@ -686,7 +648,6 @@ export function useTopFrameState({
       },
       setDesktopTitleBarDragRegion: asyncWrapper(setDesktopTitleBarDragRegion),
       setPrimitiveValues: async (vals) => {
-        setNoComponents(vals.noComponents);
         setRevisionNum(vals.revisionNum);
         setIsLocalizationEnabled(vals.isLocalizationEnabled);
         setLocalizationScheme(vals.localizationScheme);
@@ -695,25 +656,19 @@ export function useTopFrameState({
       setLatestPublishedVersionData: asyncWrapper(
         setLatestPublishedVersionData,
       ),
-      setSubjectComponentInfo: asyncWrapper(setSubjectComponentInfo),
       setActivatedBranch: asyncWrapper((x) => {
         setActivatedBranch(x);
       }),
       setMergeModalContext: asyncWrapper(setMergeModalContext),
       setShowPublishModal: asyncWrapper((open: boolean) =>
-        setDeliveryTab((current) =>
+        setActiveModal((current) =>
           open ? "publish" : current === "publish" ? null : current,
         ),
       ),
       setKeepPublishModalOpen: asyncWrapper(setKeepPublishModalOpen),
       setShowShareModal: asyncWrapper((open: boolean) =>
-        setDeliveryTab((current) =>
+        setActiveModal((current) =>
           open ? "share" : current === "share" ? null : current,
-        ),
-      ),
-      setShowCodeModal: asyncWrapper((open: boolean) =>
-        setDeliveryTab((current) =>
-          open ? "code" : current === "code" ? null : current,
         ),
       ),
       setShowProjectNameModal: asyncWrapper(setShowProjectNameModal),
@@ -814,8 +769,6 @@ export function useTopFrameState({
     latestPublishedVersionData,
     revisionNum,
     desktopTitleBarDragRegion,
-    noComponents,
-    subjectComponentInfo,
     activatedBranch,
     isLocalizationEnabled,
     localizationScheme,
@@ -824,7 +777,6 @@ export function useTopFrameState({
     keepPublishModalOpen,
     mergeModalContext,
     showShareModal,
-    showCodeModal,
     showProjectNameModal,
     showCloneProjectModal,
     showHostModal,

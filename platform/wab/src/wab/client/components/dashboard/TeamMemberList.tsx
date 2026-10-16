@@ -1,8 +1,7 @@
 import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import TeamMemberListItem from "@/wab/client/components/dashboard/TeamMemberListItem";
 import { Matcher } from "@/wab/client/components/view-common";
-import { Modal } from "@/wab/client/components/widgets/Modal";
-import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
+import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultTeamMemberListProps } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamMemberList";
 import { ApiPermission, ApiTeam, TeamMember } from "@/wab/shared/ApiSchema";
@@ -154,22 +153,14 @@ function TeamMemberList_(
         ))}
       </section>
       {sharedModal && (
-        <Modal
-          open={true}
-          onCancel={() => setSharedModal(false)}
-          footer={null}
-          closable
-          width={500}
-          styles={{ container: { padding: 0 } }}
-        >
-          <ShareDialogContent
-            resource={{ type: "team", resource: team }}
-            perms={perms}
-            closeDialog={() => setSharedModal(false)}
-            reloadPerms={onReload}
-            updateResourceCallback={onReload}
-          />
-        </Modal>
+        <ShareDialog
+          open={sharedModal}
+          resource={{ type: "team", resource: team }}
+          perms={perms}
+          closeDialog={() => setSharedModal(false)}
+          reloadPerms={onReload}
+          updateResourceCallback={onReload}
+        />
       )}
     </>
   );

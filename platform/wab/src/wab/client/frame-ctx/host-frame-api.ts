@@ -17,6 +17,7 @@ import { PkgVersionInfoMeta } from "@/wab/shared/SharedApi";
 import type { AiOutputFormat } from "@/wab/shared/copilot/copilot-tool-types";
 import { ChangeLogEntry, SemVerReleaseType } from "@/wab/shared/site-diffs";
 import { LeftTabKey } from "@/wab/shared/ui-config-utils";
+import type { PreviewPage } from "@plasmic-shared/preview";
 import { ExtendedKeyboardEvent } from "mousetrap";
 
 export type HostFrameApi = {
@@ -31,6 +32,7 @@ export type HostFrameApi = {
     versionDesc: string,
     branchId: BranchId | undefined,
   ): Promise<PublishResult>;
+  getPublishPages(): Promise<PreviewPage[]>;
   getLatestPublishedVersionId(): Promise<string | undefined>;
   getProjectReleases(opts?: {
     mainBranchOnly: boolean;

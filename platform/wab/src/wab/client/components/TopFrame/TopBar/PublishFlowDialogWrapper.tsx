@@ -1,12 +1,5 @@
-import {
-  DeliveryModal,
-  DeliveryNavigationProps,
-} from "@/wab/client/components/TopFrame/TopBar/DeliveryModal";
-import PreviewPublishSection from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
-import {
-  ensureWebsiteVersionSaved,
-  publishCurrentWebsite,
-} from "@/wab/client/components/TopFrame/TopBar/publish-website";
+import { PublishModal } from "@/wab/client/components/TopFrame/TopBar/PublishModal";
+import { ensureWebsiteVersionSaved } from "@/wab/client/components/TopFrame/TopBar/publish-website";
 import { useI18n } from "@/wab/client/i18n";
 
 /** @format */
@@ -121,7 +114,7 @@ function shouldShowPublishWizard(project: ApiProject, appCtx: AppCtx): boolean {
   return starterProjects.map((p) => p.projectId).includes(starterId);
 }
 
-interface PublishFlowDialogWrapperProps extends DeliveryNavigationProps {
+interface PublishFlowDialogWrapperProps {
   project: ApiProject;
   refreshProjectAndPerms: () => void;
   activatedBranch: ApiBranch | undefined;
@@ -132,7 +125,6 @@ interface PublishFlowDialogWrapperProps extends DeliveryNavigationProps {
   showPublishModal: boolean;
   keepPublishModalOpen: boolean;
   setShowPublishModal: (val: boolean) => Promise<void>;
-  setShowCodeModal: (val: boolean) => Promise<void>;
 }
 
 export const PublishFlowDialogWrapper = observer(
@@ -146,19 +138,36 @@ export const PublishFlowDialogWrapper = observer(
     showPublishModal,
     setShowPublishModal,
     keepPublishModalOpen,
-    setShowCodeModal,
-    onSelectDelivery,
   }: PublishFlowDialogWrapperProps) {
     const { t: studioUiT } = useI18n();
 
     const appCtx = useAppCtx();
     const { hostFrameApi } = useTopFrameCtx();
     const projectId = project.id;
+    const publishModalOpen = showPublishModal || keepPublishModalOpen;
+    const [hasOpenedPublishModal, setHasOpenedPublishModal] =
+      React.useState(publishModalOpen);
+    React.useEffect(() => {
+      if (publishModalOpen) {
+        setHasOpenedPublishModal(true);
+      }
+    }, [publishModalOpen]);
 
-    const [previewEnabled, setPreviewEnabled] = React.useState(false);
+    const [previewSucceeded, setPreviewSucceeded] = React.useState(false);
+    const [previewEnabled, setPreviewEnabled] = React.useState(true);
+    const publishingRef = React.useRef(false);
+    const [publishing, setPublishing] = React.useState(false);
+    const [unpublishing, setUnpublishing] = React.useState(false);
     const [previewEntryPath, setPreviewEntryPath] = React.useState("");
     const [previewBusy, setPreviewBusy] = React.useState(false);
     const [previewError, setPreviewError] = React.useState<unknown>();
+    React.useEffect(() => {
+      if (!publishingRef.current) {
+        setPreviewSucceeded(false);
+        setStatusSaveVersion(undefined);
+        setPreviewError(undefined);
+      }
+    }, [revisionNum]);
     const previewAvailable =
       !!appCtx.appConfig.previewOrigin && !activatedBranch;
     const {
@@ -166,7 +175,7 @@ export const PublishFlowDialogWrapper = observer(
       error: previewLoadError,
       mutate: refreshPreview,
     } = useSWR(
-      previewAvailable && showPublishModal
+      previewAvailable && (publishModalOpen || hasOpenedPublishModal)
         ? apiKey("getPreviewPublication", projectId)
         : null,
       () => appCtx.api.getPreviewPublication(projectId),
@@ -178,59 +187,52 @@ export const PublishFlowDialogWrapper = observer(
       !previewLoadError;
     React.useEffect(() => {
       if (previewResult?.publication) {
-        setPreviewEnabled(previewResult.publication.enabled);
         setPreviewEntryPath(previewResult.publication.entryPath);
       }
     }, [previewResult]);
-    const publishWebsite = async (saveCurrentVersion: boolean) => {
+    const {
+      data: publishPages,
+      error: pagesError,
+      mutate: refreshPages,
+    } = useSWR(
+      previewAvailable && (publishModalOpen || hasOpenedPublishModal)
+        ? ["publishPages", projectId, revisionNum]
+        : null,
+      () => hostFrameApi.getPublishPages(),
+    );
+    const publishWebsite = async () => {
       setPreviewBusy(true);
-      setPreviewError(undefined);
-      if (saveCurrentVersion) {
-        setStatusSaveVersion(undefined);
-      }
       try {
-        const buildWebsite = () =>
-          appCtx.api.publishPreviewPublication(
-            projectId,
-            previewEntryPath || undefined,
-          );
-        const result = saveCurrentVersion
-          ? await publishCurrentWebsite(
-              () =>
-                hostFrameApi.publishVersion(
-                  versionTags,
-                  versionDescription,
-                  undefined,
-                ),
-              buildWebsite,
-            )
-          : await buildWebsite();
-        if (saveCurrentVersion) {
-          setVersionTags([]);
-          setVersionDescription("");
-          setStatusSaveVersion({ enabled: true, result: "Success" });
-        }
+        const result = await appCtx.api.publishPreviewPublication(
+          projectId,
+          previewEntryPath || undefined,
+        );
         await refreshPreview(result, false);
+        setPreviewSucceeded(true);
         refreshProjectAndPerms();
-      } catch (error) {
-        setPreviewError(error);
-        throw error;
       } finally {
         setPreviewBusy(false);
       }
     };
     const unpublishWebsite = async () => {
-      setPreviewBusy(true);
+      if (publishingRef.current || unpublishing || !editorPerm) {
+        return;
+      }
+      setUnpublishing(true);
+      setPreviewSucceeded(false);
       setPreviewError(undefined);
+      setStatusSaveVersion(undefined);
+      setStatusPushDeploy(undefined);
+      setStatusWebhooks(undefined);
+      setDelay(DELAY_PAUSED);
       try {
         await appCtx.api.unpublishPreviewPublication(projectId);
-        setPreviewEnabled(false);
         await refreshPreview();
         refreshProjectAndPerms();
       } catch (error) {
         setPreviewError(error);
       } finally {
-        setPreviewBusy(false);
+        setUnpublishing(false);
       }
     };
 
@@ -390,7 +392,7 @@ export const PublishFlowDialogWrapper = observer(
         webhooks.filter((w) => !w.enable).map((w) => w.id),
       );
       const ww = newWebhooks.map((w) => {
-        return { ...w, enable: !(w.id in disabledIDs) } as ToggleWebhook;
+        return { ...w, enable: !disabledIDs.has(w.id) } as ToggleWebhook;
       });
       setWebhooks(ww);
     };
@@ -474,186 +476,186 @@ export const PublishFlowDialogWrapper = observer(
     };
 
     const publish = () => {
+      if (
+        publishingRef.current ||
+        !editorPerm ||
+        previewLoading ||
+        previewLoadError ||
+        (previewAvailable && (!publishPages || pagesError))
+      ) {
+        return;
+      }
+      publishingRef.current = true;
+      setPublishing(true);
+      setPreviewSucceeded(false);
+      setPreviewError(undefined);
       spawn(
         (async () => {
-          topFrameTourSignals?.dispatch({
-            type: TutorialEventsType.PublishModalButtonClicked,
-          });
-          setView("status");
-          trackEvent("Publish", {
-            save: vebSaveVersion.enable,
-            plasmicHosting: vebPlasmicHosting.enable,
-            github: vebPushDeploy.enable,
-            webhooks: vebWebhooks.enable,
-          });
+          try {
+            topFrameTourSignals?.dispatch({
+              type: TutorialEventsType.PublishModalButtonClicked,
+            });
+            setView("status");
+            trackEvent("Publish", {
+              save: vebSaveVersion.enable,
+              plasmicHosting: vebPlasmicHosting.enable,
+              github: vebPushDeploy.enable,
+              webhooks: vebWebhooks.enable,
+            });
 
-          const _statusSaveVersion: StatusSaveVersion = {
-            enabled: vebSaveVersion.enable,
-          };
-          const _statusPlasmicHosting: StatusPlasmicHosting = {
-            enabled: vebPlasmicHosting.enable,
-            revalidateResult: undefined,
-            revalidateResponse: undefined,
-          };
-          const _statusPushDeploy: StatusPushDeploy = {
-            enabled: vebPushDeploy.enable,
-            projectRepositoryId: gitActionParams.projectRepositoryId,
-            setWorkflowJobUrl: (url: string | undefined) => {
-              _statusPushDeploy.workflowJobUrl = url;
-              setStatusPushDeploy({ ..._statusPushDeploy });
-            },
-            setWorkflowRunId: (id: number) => {
-              _statusPushDeploy.workflowRunId = id;
-              setStatusPushDeploy({ ..._statusPushDeploy });
-            },
-            steps: [],
-            setSteps: (steps: GitWorkflowJobStep[]) => {
-              _statusPushDeploy.steps = steps;
-              setStatusPushDeploy({ ..._statusPushDeploy });
-            },
-          };
-          const _statusWebhooks: StatusWebhooks = {
-            enabled: vebWebhooks.enable,
-            enabledWebhooks: webhooks
-              .filter((w) => w.enable && !!w.url)
-              .map((w) => L.omit(w, "enable")),
-          };
+            const _statusSaveVersion: StatusSaveVersion = {
+              enabled: vebSaveVersion.enable,
+            };
+            const _statusPlasmicHosting: StatusPlasmicHosting = {
+              enabled: vebPlasmicHosting.enable,
+              revalidateResult: undefined,
+              revalidateResponse: undefined,
+            };
+            const _statusPushDeploy: StatusPushDeploy = {
+              enabled: vebPushDeploy.enable,
+              projectRepositoryId: gitActionParams.projectRepositoryId,
+              setWorkflowJobUrl: (url: string | undefined) => {
+                _statusPushDeploy.workflowJobUrl = url;
+                setStatusPushDeploy({ ..._statusPushDeploy });
+              },
+              setWorkflowRunId: (id: number) => {
+                _statusPushDeploy.workflowRunId = id;
+                setStatusPushDeploy({ ..._statusPushDeploy });
+              },
+              steps: [],
+              setSteps: (steps: GitWorkflowJobStep[]) => {
+                _statusPushDeploy.steps = steps;
+                setStatusPushDeploy({ ..._statusPushDeploy });
+              },
+            };
+            const _statusWebhooks: StatusWebhooks = {
+              enabled: vebWebhooks.enable,
+              enabledWebhooks: webhooks
+                .filter((w) => w.enable && !!w.url)
+                .map((w) => L.omit(w, "enable")),
+            };
 
-          if (_statusPushDeploy.enabled) {
-            // Start in fast-polling mode (minimum 50 ms) while waiting for the first workflow run
-            setDelay(DELAY_FAST_POLL);
-          } else {
             setDelay(DELAY_PAUSED);
-          }
 
-          setStatusSaveVersion({ ..._statusSaveVersion });
-          setStatusPlasmicHosting({ ..._statusPlasmicHosting });
-          setStatusPushDeploy({ ..._statusPushDeploy });
-          setStatusWebhooks({ ..._statusWebhooks });
-
-          if (_statusSaveVersion.enabled) {
-            let publishResult: Awaited<
-              ReturnType<typeof hostFrameApi.publishVersion>
-            >;
-            try {
-              publishResult = await hostFrameApi.publishVersion(
-                versionTags,
-                versionDescription,
-                activatedBranch?.id,
-              );
-            } catch (error) {
-              if (!previewAvailable) {
-                throw error;
-              }
-              setPreviewError(error);
-              await refreshPreview();
-              return;
-            }
-            _statusSaveVersion.result = publishResult;
-            setVersionTags([] as string[]);
-            setVersionDescription("");
             setStatusSaveVersion({ ..._statusSaveVersion });
+            setStatusPlasmicHosting({ ..._statusPlasmicHosting });
+            setStatusPushDeploy({ ..._statusPushDeploy });
+            setStatusWebhooks({ ..._statusWebhooks });
 
-            try {
-              ensureWebsiteVersionSaved(publishResult);
-            } catch (error) {
-              if (previewAvailable && previewEnabled) {
-                setPreviewError(error);
-              }
-              return;
-            }
-
-            const versionId = await hostFrameApi.getLatestPublishedVersionId();
-            if (versionId && !(previewAvailable && previewEnabled)) {
-              await waitUntil(
-                async () => {
-                  const { status } =
-                    await appCtx.api.getPkgVersionPublishStatus(
-                      project.id,
-                      versionId,
-                    );
-                  return status === "ready";
-                },
-                { timeout: 5000 },
-              );
-            }
-
-            if (previewAvailable) {
-              if (previewEnabled) {
+            if (_statusSaveVersion.enabled) {
+              let publishResult: Awaited<
+                ReturnType<typeof hostFrameApi.publishVersion>
+              >;
+              try {
+                publishResult = await hostFrameApi.publishVersion(
+                  versionTags,
+                  versionDescription,
+                  activatedBranch?.id,
+                );
+              } catch (error) {
                 setStatusSaveVersion({
                   ..._statusSaveVersion,
-                  result: "Success",
+                  result: "UnknownError",
                 });
-                try {
-                  await publishWebsite(false);
-                } catch {
-                  return;
+                throw error;
+              }
+              _statusSaveVersion.result = publishResult;
+              setVersionTags([] as string[]);
+              setVersionDescription("");
+              setStatusSaveVersion({ ..._statusSaveVersion });
+
+              try {
+                ensureWebsiteVersionSaved(publishResult);
+              } catch (error) {
+                if (previewAvailable) {
+                  throw error;
                 }
-              } else {
-                await refreshPreview();
+                return;
+              }
+
+              const versionId =
+                await hostFrameApi.getLatestPublishedVersionId();
+              if (versionId && !previewAvailable) {
+                await waitUntil(
+                  async () => {
+                    const { status } =
+                      await appCtx.api.getPkgVersionPublishStatus(
+                        project.id,
+                        versionId,
+                      );
+                    return status === "ready";
+                  },
+                  { timeout: 5000 },
+                );
+              }
+
+              setStatusSaveVersion({
+                ..._statusSaveVersion,
+                result: "Success",
+              });
+            }
+
+            if (previewAvailable && previewEnabled) {
+              await publishWebsite();
+            }
+
+            if (_statusPlasmicHosting.enabled) {
+              setStatusPlasmicHosting({
+                ..._statusPlasmicHosting,
+                revalidateResult: "started",
+              });
+              const response =
+                await appCtx.api.revalidatePlasmicHosting(projectId);
+              setStatusPlasmicHosting({
+                ..._statusPlasmicHosting,
+                revalidateResult: "finished",
+                revalidateResponse: response,
+              });
+              topFrameTourSignals.dispatch({
+                type: TutorialEventsType.HostingPublished,
+                params: {
+                  response,
+                },
+              });
+            }
+
+            if (
+              _statusPushDeploy.enabled &&
+              gitActionParams.projectRepositoryId
+            ) {
+              const run = await appCtx.api.fireGitAction(gitActionParams);
+              setGitActionParams({
+                ...gitActionParams,
+                title: "",
+                description: "",
+              });
+              if (run.state === "running") {
+                _statusPushDeploy.workflowRunId = run.workflowRunId;
+                _statusPushDeploy.workflowJobUrl =
+                  run.workflowJobUrl ?? undefined;
+                setStatusPushDeploy({ ..._statusPushDeploy });
+              }
+              setDelay(DELAY_FAST_POLL);
+            }
+
+            if (_statusWebhooks.enabled) {
+              for (const w of _statusWebhooks.enabledWebhooks) {
+                const event = await appCtx.api.triggerProjectWebhook(
+                  projectId,
+                  w,
+                );
+                w.event = event;
+                setStatusWebhooks({ ..._statusWebhooks });
               }
             }
-            setStatusSaveVersion({
-              ..._statusSaveVersion,
-              result: "Success",
-            });
-          }
-
-          if (_statusPlasmicHosting.enabled) {
-            setStatusPlasmicHosting({
-              ..._statusPlasmicHosting,
-              revalidateResult: "started",
-            });
-            const response =
-              await appCtx.api.revalidatePlasmicHosting(projectId);
-            setStatusPlasmicHosting({
-              ..._statusPlasmicHosting,
-              revalidateResult: "finished",
-              revalidateResponse: response,
-            });
-            topFrameTourSignals.dispatch({
-              type: TutorialEventsType.HostingPublished,
-              params: {
-                response,
-              },
-            });
-          }
-
-          if (
-            _statusPushDeploy.enabled &&
-            gitActionParams.projectRepositoryId
-          ) {
-            spawn(
-              (async () => {
-                const run = await appCtx.api.fireGitAction(gitActionParams);
-                setGitActionParams({
-                  ...gitActionParams,
-                  title: "",
-                  description: "",
-                });
-                if (run.state === "running") {
-                  _statusPushDeploy.workflowRunId = run.workflowRunId;
-                  _statusPushDeploy.workflowJobUrl =
-                    run.workflowJobUrl ?? undefined;
-                  setStatusPushDeploy({ ..._statusPushDeploy });
-                }
-              })(),
-            );
-          }
-
-          if (_statusWebhooks.enabled) {
-            spawn(
-              (async () => {
-                for (const w of _statusWebhooks.enabledWebhooks) {
-                  const event = await appCtx.api.triggerProjectWebhook(
-                    projectId,
-                    w,
-                  );
-                  w.event = event;
-                  setStatusWebhooks({ ..._statusWebhooks });
-                }
-              })(),
-            );
+          } catch (error) {
+            if (!previewAvailable) {
+              throw error;
+            }
+            setPreviewError(error);
+          } finally {
+            publishingRef.current = false;
+            setPublishing(false);
           }
         })(),
       );
@@ -664,26 +666,28 @@ export const PublishFlowDialogWrapper = observer(
       setStatusPushDeploy(undefined);
       setStatusWebhooks(undefined);
       setPreviewError(undefined);
+      setPreviewSucceeded(false);
     };
 
     React.useEffect(() => {
       setPublishState(
         previewError
           ? "failure"
-          : previewBusy
+          : publishing
             ? "publishing"
-            : mkPublishState(
+            : (mkPublishState(
                 statusSaveVersion,
                 statusPushDeploy,
                 statusWebhooks,
-              ),
+              ) ?? (previewSucceeded ? "success" : undefined)),
       );
     }, [
       statusSaveVersion,
       statusPushDeploy,
       statusWebhooks,
       previewError,
-      previewBusy,
+      publishing,
+      previewSucceeded,
     ]);
 
     React.useEffect(() => {
@@ -723,58 +727,69 @@ export const PublishFlowDialogWrapper = observer(
           </TopBarModal>
         )}
 
-        {(showPublishModal || keepPublishModalOpen) && (
-          <DeliveryModal
-            tab="publish"
-            open
-            onSelectDelivery={onSelectDelivery}
-            busy={publishState === "publishing" || previewBusy}
-            onClose={() => {
-              void setShowPublishModal(false);
-            }}
-          >
-            <PublishFlowDialog
-              appCtx={appCtx}
-              websiteBusy={
-                previewAvailable &&
-                (previewBusy || previewLoading || !!previewLoadError)
-              }
-              websiteSection={
-                previewAvailable && (
-                  <PreviewPublishSection
-                    publication={previewResult?.publication}
-                    enabled={previewEnabled}
-                    setEnabled={setPreviewEnabled}
-                    entryPath={previewEntryPath}
-                    setEntryPath={setPreviewEntryPath}
-                    busy={
-                      previewBusy ||
+        {(publishModalOpen || hasOpenedPublishModal) && (
+          <PublishFlowDialog
+            renderDialog={(body, footer) => (
+              <PublishModal
+                open={publishModalOpen}
+                compact={previewAvailable}
+                busy={
+                  publishState === "publishing" || previewBusy || unpublishing
+                }
+                onClose={() => {
+                  void setShowPublishModal(false);
+                }}
+                footer={footer}
+              >
+                {body}
+              </PublishModal>
+            )}
+            appCtx={appCtx}
+            revisionNum={revisionNum}
+            website={
+              previewAvailable
+                ? {
+                    publication: previewResult?.publication,
+                    enabled: previewEnabled,
+                    setEnabled: setPreviewEnabled,
+                    pages: publishPages ?? [],
+                    entryPath: previewEntryPath,
+                    setEntryPath: setPreviewEntryPath,
+                    busy: publishing || unpublishing,
+                    phase: unpublishing
+                      ? "unpublishing"
+                      : previewBusy
+                        ? "building"
+                        : previewSucceeded
+                          ? "integrations"
+                          : "saving",
+                    loading:
                       previewLoading ||
-                      publishState === "publishing"
-                    }
-                    error={previewError || previewLoadError}
-                    canEdit={editorPerm && !previewLoadError}
-                    publish={() =>
-                      spawn(publishWebsite(true).catch(() => undefined))
-                    }
-                    unpublish={() => spawn(unpublishWebsite())}
-                  />
-                )
-              }
-              latestPublishedVersionData={latestPublishedVersionData}
-              project={project}
-              refreshProjectAndPerms={refreshProjectAndPerms}
-              activatedBranch={activatedBranch}
-              closeDialog={() => setShowPublishModal(false)}
-              setView={setView}
-              subsectionMeta={subsectionMeta}
-              view={view}
-              publish={publish}
-              resetStatus={resetStatus}
-              setShowCodeModal={setShowCodeModal}
-              publishState={publishState}
-            />
-          </DeliveryModal>
+                      !publishPages ||
+                      !!previewLoadError ||
+                      !!pagesError,
+                    error: previewError || previewLoadError || pagesError,
+                    canEdit: editorPerm,
+                    unpublish: () => spawn(unpublishWebsite()),
+                    retry: () => {
+                      void refreshPreview();
+                      void refreshPages();
+                    },
+                  }
+                : undefined
+            }
+            latestPublishedVersionData={latestPublishedVersionData}
+            project={project}
+            refreshProjectAndPerms={refreshProjectAndPerms}
+            activatedBranch={activatedBranch}
+            closeDialog={() => setShowPublishModal(false)}
+            setView={setView}
+            subsectionMeta={subsectionMeta}
+            view={view}
+            publish={publish}
+            resetStatus={resetStatus}
+            publishState={publishState}
+          />
         )}
       </>
     );

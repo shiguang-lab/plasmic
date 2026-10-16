@@ -1,18 +1,21 @@
 import { useGetDomainsForProject } from "@/wab/client/api-hooks";
 import { AppCtx } from "@/wab/client/app-ctx";
+import PreviewPublishSection, {
+  PreviewPublishSectionProps,
+} from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
 import {
   SetupPlasmicHosting,
   StatusPlasmicHosting,
 } from "@/wab/client/components/TopFrame/TopBar/SubsectionPlasmicHosting";
-import {
+import SubsectionPushDeploy, {
   SetupPushDeploy,
   StatusPushDeploy,
 } from "@/wab/client/components/TopFrame/TopBar/SubsectionPushDeploy";
-import {
+import SubsectionSaveVersion, {
   SetupSaveVersion,
   StatusSaveVersion,
 } from "@/wab/client/components/TopFrame/TopBar/SubsectionSaveVersion";
-import {
+import SubsectionWebhooks, {
   SetupWebhooks,
   StatusWebhooks,
 } from "@/wab/client/components/TopFrame/TopBar/SubsectionWebhooks";
@@ -21,7 +24,7 @@ import {
   SiteDiffs,
   SplitStatusUpdateSummarySection,
 } from "@/wab/client/components/modals/SiteDiffs";
-import { replaceLink } from "@/wab/client/components/view-common";
+import WebhooksHistory from "@/wab/client/components/webhooks/WebhooksHistory";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import {
   useAsyncFnStrict,
@@ -43,8 +46,35 @@ import type {
   SemVerReleaseType,
 } from "@/wab/shared/site-diffs";
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
+import { PlusOutlined } from "@ant-design/icons";
 import { Alert, Button, Skeleton } from "antd";
+import { createStyles } from "antd-style";
 import * as React from "react";
+
+const usePublishActionStyles = createStyles(({ token }) => ({
+  options: { display: "flex", flexDirection: "column", gap: 16 },
+  heading: {
+    margin: 0,
+    textAlign: "center",
+    color: token.colorTextSecondary,
+    fontSize: token.fontSize,
+    fontWeight: 600,
+  },
+  cards: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 8,
+    "@media (max-width: 600px)": { gridTemplateColumns: "minmax(0, 1fr)" },
+  },
+  card: {
+    minWidth: 0,
+    padding: 8,
+    border: `1px solid ${token.colorBorderSecondary}`,
+    borderRadius: token.borderRadiusSM,
+    "& > button": { background: token.colorFillTertiary, fontWeight: 600 },
+    "& > p": { margin: "8px 0 0", color: token.colorText },
+  },
+}));
 
 export interface VisibleEnableBlockReadOnly {
   visible: boolean;
@@ -75,8 +105,23 @@ export interface SubsectionMeta {
 }
 
 interface PublishFlowDialogProps extends DefaultPublishFlowDialogProps {
-  websiteSection?: React.ReactNode;
-  websiteBusy?: boolean;
+  website?: Omit<
+    PreviewPublishSectionProps,
+    | "publish"
+    | "close"
+    | "success"
+    | "current"
+    | "loading"
+    | "nextVersion"
+    | "releaseDetails"
+    | "options"
+    | "renderDialog"
+    | "hasActions"
+    | "currentVersion"
+    | "saveLabel"
+  > & { loading: boolean; retry: () => void };
+  renderDialog: PreviewPublishSectionProps["renderDialog"];
+  revisionNum?: number;
   latestPublishedVersionData:
     { revisionId: string; version: string } | undefined;
   appCtx: AppCtx;
@@ -90,11 +135,11 @@ interface PublishFlowDialogProps extends DefaultPublishFlowDialogProps {
   ) => void;
   publish: () => void;
   resetStatus: () => void;
-  setShowCodeModal: (val: boolean) => Promise<void>;
 }
 
 function PublishFlowDialog(props: PublishFlowDialogProps) {
   const { t } = useI18n();
+  const { styles: actionStyles } = usePublishActionStyles();
   const {
     appCtx,
     project,
@@ -107,9 +152,10 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     setView,
     publish,
     resetStatus,
-    setShowCodeModal,
-    websiteSection,
-    websiteBusy,
+    website,
+    revisionNum,
+    publishState,
+    renderDialog,
     ...rest
   } = props;
   const { hostFrameApi } = useTopFrameCtx();
@@ -131,7 +177,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           try {
             const next = await hostFrameApi.calculateNextPublishVersion();
             setNextVersion(next);
-            if (view !== "status") {
+            if (website || view !== "status") {
               if (next) {
                 subsectionMeta.saveVersion.setVisibleEnableBlock(
                   true,
@@ -156,8 +202,9 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     );
   }, [hostFrameApi, view, loadingVersion]);
 
-  // Push and deploy (Git)
-  const projectRepository = subsectionMeta.pushDeploy.setup.projectRepository;
+  React.useEffect(() => {
+    setLoadingVersion(true);
+  }, [revisionNum, publishState === "success" || publishState === "failure"]);
 
   // Webhooks
   const fetchWebhooks = useAsyncFnStrict(async () => {
@@ -195,16 +242,17 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     mutate: retryDomains,
   } = useGetDomainsForProject(projectId);
 
-  if (loadingDomains) {
-    return (
+  if (!website && loadingDomains) {
+    return renderDialog(
       <div role="status" aria-label={t("Loading publishing settings…")}>
         <Skeleton active />
-      </div>
+      </div>,
+      null,
     );
   }
 
-  if (domainsError) {
-    return (
+  if (!website && domainsError) {
+    return renderDialog(
       <Alert
         type="error"
         showIcon
@@ -218,7 +266,8 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
             {t("Retry")}
           </Button>
         }
-      />
+      />,
+      null,
     );
   }
 
@@ -228,7 +277,197 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     plasmicHostingDomains?.domains ?? [],
   );
 
-  return (
+  if (website) {
+    const websiteCurrent =
+      !!website.publication?.enabled &&
+      !loadingVersion &&
+      !nextVersion &&
+      website.publication.version === latestRelease?.version &&
+      (!website.entryPath ||
+        website.entryPath === website.publication.entryPath);
+    return (
+      <PreviewPublishSection
+        {...website}
+        renderDialog={(body, footer) =>
+          renderDialog(
+            <>
+              {(versionError || (!!website.error && website.loading)) && (
+                <Alert
+                  type="error"
+                  title={t("Failed to load publishing settings")}
+                  action={
+                    <Button
+                      onClick={() => {
+                        setLoadingVersion(true);
+                        website.retry();
+                      }}
+                    >
+                      {t("Retry")}
+                    </Button>
+                  }
+                />
+              )}
+              {body}
+            </>,
+            footer,
+          )
+        }
+        busy={website.busy || publishState === "publishing"}
+        loading={website.loading || loadingVersion || versionError}
+        success={
+          publishState === "success" &&
+          !nextVersion &&
+          (!website.enabled || websiteCurrent)
+        }
+        hasActions={
+          subsectionMeta.saveVersion.enable ||
+          subsectionMeta.pushDeploy.enable ||
+          subsectionMeta.webhooks.enable
+        }
+        currentVersion={latestRelease?.version ?? "0.0.1"}
+        saveLabel={
+          subsectionMeta.pushDeploy.enable || subsectionMeta.webhooks.enable
+            ? subsectionMeta.saveVersion.enable
+              ? "Save version and run integrations"
+              : "Run integrations"
+            : "Save version"
+        }
+        current={
+          websiteCurrent &&
+          !website.error &&
+          publishState !== "failure" &&
+          !subsectionMeta.pushDeploy.enable &&
+          !subsectionMeta.webhooks.enable
+        }
+        error={
+          website.error ||
+          (publishState === "failure"
+            ? t("An error occurred when publishing. Please try again!")
+            : undefined)
+        }
+        nextVersion={
+          subsectionMeta.saveVersion.enable ? nextVersion?.version : undefined
+        }
+        publish={publish}
+        close={closeDialog}
+        releaseDetails={
+          <>
+            {view === "reviewChanges" && (
+              <>
+                <Button onClick={() => setView(undefined)}>{t("Back")}</Button>
+                <SiteDiffs diffs={diffs ?? []} />
+              </>
+            )}
+            <SubsectionSaveVersion
+              project={project}
+              closeDialog={closeDialog}
+              changesSummary={
+                <SplitStatusUpdateSummarySection diffs={diffs ?? []} />
+              }
+              gotoReviewChanges={() => setView("reviewChanges")}
+              loading={loadingVersion}
+              version={nextVersion?.version}
+              releaseType={nextVersion?.releaseType}
+              view={
+                website.busy || publishState === "publishing"
+                  ? "status"
+                  : undefined
+              }
+              {...subsectionMeta.saveVersion}
+            />
+          </>
+        }
+        options={
+          <div
+            style={!website.canEdit ? { display: "none" } : undefined}
+            className={actionStyles.options}
+          >
+            {view === "webhooksHistory" && (
+              <>
+                <Button onClick={() => setView(undefined)}>{t("Back")}</Button>
+                <WebhooksHistory state={webhookEventState} />
+              </>
+            )}
+            <div hidden={!subsectionMeta.pushDeploy.visible}>
+              <SubsectionPushDeploy
+                project={project}
+                appCtx={appCtx}
+                {...subsectionMeta.pushDeploy}
+                view={publishState === "publishing" ? "status" : undefined}
+              />
+            </div>
+            <div hidden={!subsectionMeta.webhooks.visible}>
+              <SubsectionWebhooks
+                appCtx={appCtx}
+                project={project}
+                {...subsectionMeta.webhooks}
+                view={publishState === "publishing" ? "status" : undefined}
+                fetchWebhooks={() => spawn(fetchWebhooks())}
+                webhookEventState={webhookEventState}
+                onViewHistory={() => setView("webhooksHistory")}
+              />
+            </div>
+            {(!subsectionMeta.pushDeploy.visible ||
+              !subsectionMeta.webhooks.visible) && (
+              <section aria-label={t("Add publish actions")}>
+                <h4 className={actionStyles.heading}>
+                  {t("Add publish actions")}
+                </h4>
+                <div className={actionStyles.cards} style={{ marginTop: 8 }}>
+                  {!subsectionMeta.pushDeploy.visible && (
+                    <div className={actionStyles.card}>
+                      <Button
+                        block
+                        type="text"
+                        icon={<PlusOutlined aria-hidden />}
+                        onClick={() =>
+                          subsectionMeta.pushDeploy.setVisibleEnableBlock(
+                            true,
+                            false,
+                            true,
+                          )
+                        }
+                      >
+                        {t("Push to GitHub")}
+                      </Button>
+                      <p>
+                        {t("Generate a new Next.js / Gatsby / React repo.")}
+                      </p>
+                    </div>
+                  )}
+                  {!subsectionMeta.webhooks.visible && (
+                    <div className={actionStyles.card}>
+                      <Button
+                        block
+                        type="text"
+                        icon={<PlusOutlined aria-hidden />}
+                        onClick={() =>
+                          subsectionMeta.webhooks.setVisibleEnableBlock(
+                            true,
+                            true,
+                            true,
+                          )
+                        }
+                      >
+                        {t("Call webhooks")}
+                      </Button>
+                      <p>
+                        {t(
+                          "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline.",
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+        }
+      />
+    );
+  }
+
+  return renderDialog(
     <>
       {versionError && (
         <Alert
@@ -244,6 +483,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
       )}
       <PlasmicPublishFlowDialog
         {...rest}
+        publishState={publishState}
         projectName={project.name}
         view={view}
         currentVersionNumber={!latestRelease ? "v0.0.1" : latestRelease.version}
@@ -276,7 +516,6 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
         }}
         publishButton={{
           disabled:
-            websiteBusy ||
             loadingVersion ||
             versionError ||
             (!subsectionMeta.saveVersion.enable &&
@@ -312,12 +551,6 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           },
         }}
         subsectionSaveVersion={{
-          wrap: (node) => (
-            <>
-              {websiteSection}
-              {node}
-            </>
-          ),
           props: {
             project,
             closeDialog: closeDialog,
@@ -342,7 +575,6 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           },
         }}
         subsectionPlasmicHosting={{
-          ...(websiteSection ? { render: () => null } : {}),
           props: {
             // Important to render the component, since the component is what
             // kicks off the load.
@@ -365,7 +597,6 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
             fetchWebhooks: () => spawn(fetchWebhooks()),
             webhookEventState,
             onViewHistory: () => setView("webhooksHistory"),
-            setShowCodeModal: setShowCodeModal,
             ...subsectionMeta.webhooks,
           },
         }}
@@ -388,23 +619,9 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
             subsectionMeta.webhooks.setVisibleEnableBlock(true, true, true),
         }}
         webhooksDescription={{
-          render: (_props) =>
-            replaceLink(
-              {
-                ..._props,
-                children: t(
-                  "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase].",
-                ),
-              },
-              (text) => (
-                <a
-                  href="javascript: void 0"
-                  onClick={() => spawn(setShowCodeModal(true))}
-                >
-                  {text}
-                </a>
-              ),
-            ),
+          children: t(
+            "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline.",
+          ),
         }}
         addWebhooksPanel={{
           wrap: (node) => !subsectionMeta.webhooks.visible && node,
@@ -452,7 +669,8 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           onClick: () => setView("status"),
         }}
       />
-    </>
+    </>,
+    null,
   );
 }
 

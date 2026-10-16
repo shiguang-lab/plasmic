@@ -84,7 +84,6 @@ interface MergeModalWrapperProps {
   revisionNum: number;
   mergeModalContext: MergeModalContext | undefined;
   setMergeModalContext: (val: MergeModalContext | undefined) => Promise<void>;
-  setShowCodeModal: (val: boolean) => Promise<void>;
   currentBranch: ApiBranch | undefined;
 }
 
@@ -93,7 +92,6 @@ export const MergeModalWrapper = observer(function MergeModalWrapper({
   latestPublishedVersionData,
   mergeModalContext,
   setMergeModalContext,
-  setShowCodeModal,
   editorPerm,
   revisionNum,
   currentBranch,
@@ -108,7 +106,6 @@ export const MergeModalWrapper = observer(function MergeModalWrapper({
               project={project}
               mergeModalContext={mergeModalContext}
               setMergeModalContext={setMergeModalContext}
-              setShowCodeModal={setShowCodeModal}
               editorPerm={editorPerm}
               revisionNum={revisionNum}
               currentBranch={currentBranch}
@@ -131,7 +128,6 @@ function MergeFlow_(
     latestPublishedVersionData,
     mergeModalContext: { subject },
     setMergeModalContext,
-    setShowCodeModal,
     editorPerm,
     revisionNum,
     currentBranch,

@@ -54,7 +54,7 @@ vi.mock(
 vi.mock("@/wab/client/components/widgets/plasmic/ShareDialogContent", () => ({
   default: (props) => {
     mocks.shareContent(props);
-    return (
+    return props.renderDialog(
       <div>
         <input aria-label="Invite email" />
         <Select
@@ -66,7 +66,8 @@ vi.mock("@/wab/client/components/widgets/plasmic/ShareDialogContent", () => ({
           ]}
         />
         <button onClick={props.closeDialog}>Close sharing</button>
-      </div>
+      </div>,
+      null,
     );
   },
 }));
@@ -202,57 +203,69 @@ it("keeps sharing open during content interaction and preserves its state after 
   expect(email.isConnected).toBe(true);
 });
 
-it.each([true, false])("puts filters and creation in the tab bar (personal: %s)", async (personal) => {
-  const { container } = setup(personal);
-  await waitFor(() =>
-    expect(mocks.listDataSources).toHaveBeenCalledWith("personal"),
-  );
-  if (personal) {
-    expect(screen.queryByText("Personal title")).toBeNull();
-  } else {
-    expect(screen.getByText("Personal title")).toBeTruthy();
-    expect(container.querySelector("header")?.contains(screen.getByPlaceholderText("Search…"))).toBe(false);
-  }
-  const bar = container.querySelector(".ant-tabs-nav")?.parentElement;
-  expect(bar?.contains(screen.getByPlaceholderText("Search…"))).toBe(true);
-  expect(
-    bar?.contains(screen.getByRole("combobox", { name: "Order by" })),
-  ).toBe(true);
-  expect(
-    bar?.contains(screen.getByRole("button", { name: "New project" })),
-  ).toBe(true);
-  expect(bar?.contains(screen.getByRole("radio", { name: "List" }))).toBe(true);
-  fireEvent.change(screen.getByPlaceholderText("Search…"), {
-    target: { value: "query" },
-  });
-  expect(mocks.setQuery).toHaveBeenCalledWith("query");
-  fireEvent.click(screen.getByRole("button", { name: "New project" }));
-  expect(screen.getByRole("dialog").textContent).toContain("personal");
-});
+it.each([true, false])(
+  "puts filters and creation in the tab bar (personal: %s)",
+  async (personal) => {
+    const { container } = setup(personal);
+    await waitFor(() =>
+      expect(mocks.listDataSources).toHaveBeenCalledWith("personal"),
+    );
+    if (personal) {
+      expect(screen.queryByText("Personal title")).toBeNull();
+    } else {
+      expect(screen.getByText("Personal title")).toBeTruthy();
+      expect(
+        container
+          .querySelector("header")
+          ?.contains(screen.getByPlaceholderText("Search…")),
+      ).toBe(false);
+    }
+    const bar = container.querySelector(".ant-tabs-nav")?.parentElement;
+    expect(bar?.contains(screen.getByPlaceholderText("Search…"))).toBe(true);
+    expect(
+      bar?.contains(screen.getByRole("combobox", { name: "Order by" })),
+    ).toBe(true);
+    expect(
+      bar?.contains(screen.getByRole("button", { name: "New project" })),
+    ).toBe(true);
+    expect(bar?.contains(screen.getByRole("radio", { name: "List" }))).toBe(
+      true,
+    );
+    fireEvent.change(screen.getByPlaceholderText("Search…"), {
+      target: { value: "query" },
+    });
+    expect(mocks.setQuery).toHaveBeenCalledWith("query");
+    fireEvent.click(screen.getByRole("button", { name: "New project" }));
+    expect(screen.getByRole("dialog").textContent).toContain("personal");
+  },
+);
 
-it.each([true, false])("switches tab content through the URL and restores it with back navigation (personal: %s)", async (personal) => {
-  const { history } = setup(personal);
-  fireEvent.click(screen.getByRole("tab", { name: "Data sources" }));
-  expect(history.location.hash).toBe("#tab=dataSources");
-  expect(await screen.findByText("Connections")).toBeTruthy();
-  expect(
-    screen.getByRole("tabpanel").contains(screen.getByText("Connections")),
-  ).toBe(true);
-  expect(screen.queryByRole("button", { name: "New project" })).toBeNull();
-  expect(screen.queryByRole("radio", { name: "List" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "New CMS" }));
-  expect(mocks.promptNewDatabase).toHaveBeenCalledWith(
-    expect.anything(),
-    history,
-    "personal",
-  );
-  await act(async () => history.back());
-  expect(
-    screen.getByRole("tab", { name: "Projects", selected: true }),
-  ).toBeTruthy();
-  expect(screen.getByText("This workspace has no projects.")).toBeTruthy();
-  expect(screen.queryByText("Connections")).toBeNull();
-});
+it.each([true, false])(
+  "switches tab content through the URL and restores it with back navigation (personal: %s)",
+  async (personal) => {
+    const { history } = setup(personal);
+    fireEvent.click(screen.getByRole("tab", { name: "Data sources" }));
+    expect(history.location.hash).toBe("#tab=dataSources");
+    expect(await screen.findByText("Connections")).toBeTruthy();
+    expect(
+      screen.getByRole("tabpanel").contains(screen.getByText("Connections")),
+    ).toBe(true);
+    expect(screen.queryByRole("button", { name: "New project" })).toBeNull();
+    expect(screen.queryByRole("radio", { name: "List" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "New CMS" }));
+    expect(mocks.promptNewDatabase).toHaveBeenCalledWith(
+      expect.anything(),
+      history,
+      "personal",
+    );
+    await act(async () => history.back());
+    expect(
+      screen.getByRole("tab", { name: "Projects", selected: true }),
+    ).toBeTruthy();
+    expect(screen.getByText("This workspace has no projects.")).toBeTruthy();
+    expect(screen.queryByText("Connections")).toBeNull();
+  },
+);
 
 it("keeps creation controls hidden for a read-only workspace", async () => {
   mocks.accessLevel = "viewer";
@@ -271,7 +284,9 @@ it.each([true, false])(
     await screen.findByText("Connections");
     const button = screen.getByRole("button", { name: "New CMS" });
     expect(screen.getByRole("tabpanel").contains(button)).toBe(false);
-    expect(container.querySelector(".ant-tabs-nav")?.parentElement?.contains(button)).toBe(true);
+    expect(
+      container.querySelector(".ant-tabs-nav")?.parentElement?.contains(button),
+    ).toBe(true);
     expect(container.querySelector("h3")).toBeNull();
     expect(screen.queryByText("Content Management Systems (CMS)")).toBeNull();
     fireEvent.click(button);

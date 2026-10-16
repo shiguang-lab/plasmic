@@ -1,8 +1,7 @@
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { Avatar, MoreUsersAvatar } from "@/wab/client/components/studio/Avatar";
 import { ClickStopper } from "@/wab/client/components/widgets";
-import { Modal } from "@/wab/client/components/widgets/Modal";
-import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
+import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
 import {
   DefaultSharedProps,
   PlasmicShared,
@@ -82,20 +81,13 @@ function Shared_(props: SharedProps, ref: HTMLElementRefOf<"button">) {
         onClick={() => setModal(true)}
         {...rest}
       />
-      <Modal
+      <ShareDialog
         open={modal}
-        onCancel={() => setModal(false)}
-        footer={null}
-        width={500}
-        styles={{ container: { padding: 0 } }}
-      >
-        <ShareDialogContent
-          resource={resource}
-          perms={perms}
-          closeDialog={() => setModal(false)}
-          reloadPerms={reloadPerms}
-        />
-      </Modal>
+        resource={resource}
+        perms={perms}
+        closeDialog={() => setModal(false)}
+        reloadPerms={reloadPerms}
+      />
     </ClickStopper>
   );
 }

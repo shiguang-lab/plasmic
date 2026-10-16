@@ -1,3 +1,4 @@
+import PreviewPublishSection from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
 import PublishFlowDialogWrapper from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
 import {
   act,
@@ -12,6 +13,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   saveVersion: vi.fn(),
+  flowMount: vi.fn(),
+  flowUnmount: vi.fn(),
+  unpublish: vi.fn(),
+  getPages: vi.fn(),
+  saveEnabled: true,
   latestVersionId: vi.fn(),
   getPublication: vi.fn(),
   buildWebsite: vi.fn(),
@@ -25,6 +31,7 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
     appConfig: { previewOrigin: "https://preview.example.com" },
     api: {
       getPreviewPublication: mocks.getPublication,
+      unpublishPreviewPublication: mocks.unpublish,
       publishPreviewPublication: mocks.buildWebsite,
     },
   }),
@@ -33,6 +40,7 @@ vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
   useTopFrameCtx: () => ({
     hostFrameApi: {
       publishVersion: mocks.saveVersion,
+      getPublishPages: mocks.getPages,
       getLatestPublishedVersionId: mocks.latestVersionId,
     },
   }),
@@ -40,16 +48,30 @@ vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
 vi.mock("./PublishFlowDialog", () => ({
   default: (props: any) => {
     React.useEffect(() => {
-      props.subsectionMeta.saveVersion.setVisibleEnableBlock(true, true, false);
+      mocks.flowMount();
+      return () => mocks.flowUnmount();
     }, []);
-    return (
-      <>
-        {props.websiteSection}
-        <button disabled={props.websiteBusy} onClick={props.publish}>
-          Publish version
-        </button>
-      </>
-    );
+    React.useEffect(() => {
+      props.subsectionMeta.saveVersion.setVisibleEnableBlock(
+        true,
+        mocks.saveEnabled,
+        !mocks.saveEnabled,
+      );
+    }, []);
+    return props.website ? (
+      <PreviewPublishSection
+        {...props.website}
+        renderDialog={props.renderDialog}
+        currentVersion="1.0.0"
+        saveLabel="Save version"
+        hasActions={mocks.saveEnabled}
+        publish={props.publish}
+        close={props.closeDialog}
+        success={props.publishState === "success"}
+        current={false}
+        loading={props.website.loading}
+      />
+    ) : null;
   },
 }));
 vi.mock("./PublishWizard", () => ({ default: () => null }));
@@ -119,26 +141,42 @@ async function openDialog(firstPublication = false) {
         showPublishModal={true}
         keepPublishModalOpen={false}
         setShowPublishModal={vi.fn()}
-        setShowCodeModal={vi.fn()}
-        onSelectDelivery={vi.fn()}
       />
     </SWRConfig>,
   );
   const button = await screen.findByRole("button", {
-    name: firstPublication ? "Publish website" : "Update website",
+    name: firstPublication ? "Publish" : "Update publication",
   });
   await waitFor(() => expect(button.hasAttribute("disabled")).toBe(false));
+  expect(button.closest(".ant-modal-footer")).toBeTruthy();
+  expect(button.closest(".ant-modal-body")).toBeNull();
   return button;
 }
 
 describe("website publishing from the dialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.saveEnabled = true;
+    mocks.getPages.mockResolvedValue(oldPublication.pages);
     mocks.saveVersion.mockResolvedValue("PreFilling");
     mocks.latestVersionId.mockResolvedValue("new-version-id");
     mocks.buildWebsite.mockResolvedValue({
       publication: { ...oldPublication, version: "0.0.2" },
     });
+  });
+
+  it("saves the version without building the website when its checkbox is off", async () => {
+    mocks.saveVersion.mockResolvedValue("PreFilling");
+    await openDialog();
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Also update website when saving a version",
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Save version" }));
+    await waitFor(() => expect(mocks.saveVersion).toHaveBeenCalledOnce());
+    await screen.findByRole("button", { name: "Done" });
+    expect(mocks.buildWebsite).not.toHaveBeenCalled();
   });
 
   it.each([false, true])(
@@ -158,7 +196,7 @@ describe("website publishing from the dialog", () => {
       expect(mocks.buildWebsite).not.toHaveBeenCalled();
       expect(
         screen
-          .getByRole("button", { name: "Publish version" })
+          .getByRole("button", { name: "Publishing…" })
           .hasAttribute("disabled"),
       ).toBe(true);
       await act(async () => {
@@ -190,8 +228,7 @@ describe("website publishing from the dialog", () => {
   );
 
   it("saves only once when website publishing is included in the main action", async () => {
-    await openDialog();
-    fireEvent.click(screen.getByRole("button", { name: "Publish version" }));
+    fireEvent.click(await openDialog());
     await screen.findByText("Published version: 0.0.2");
     expect(mocks.saveVersion).toHaveBeenCalledOnce();
     expect(mocks.buildWebsite).toHaveBeenCalledOnce();
@@ -199,8 +236,7 @@ describe("website publishing from the dialog", () => {
 
   it("stops the main action after a failed version save", async () => {
     mocks.saveVersion.mockResolvedValue("SaveFailed");
-    await openDialog();
-    fireEvent.click(screen.getByRole("button", { name: "Publish version" }));
+    fireEvent.click(await openDialog());
     await screen.findByText("Website publishing failed");
     expect(mocks.buildWebsite).not.toHaveBeenCalled();
   });
@@ -212,7 +248,7 @@ describe("website publishing from the dialog", () => {
     fireEvent.click(await openDialog());
     await screen.findByText("Code generation failed");
     expect(screen.getByText("Published version: 0.0.1")).toBeTruthy();
-    const retry = screen.getByRole("button", { name: "Update website" });
+    const retry = screen.getByRole("button", { name: "Retry publishing" });
     await waitFor(() =>
       expect(retry.classList.contains("ant-btn-loading")).toBe(false),
     );
@@ -220,5 +256,78 @@ describe("website publishing from the dialog", () => {
     await screen.findByText("Published version: 0.0.2");
     expect(mocks.saveVersion).toHaveBeenCalledTimes(2);
     expect(mocks.buildWebsite).toHaveBeenCalledTimes(2);
+  });
+  it("reuses the saved version when only website publication is needed", async () => {
+    mocks.saveEnabled = false;
+    fireEvent.click(await openDialog());
+    await screen.findByText("Published version: 0.0.2");
+    expect(mocks.saveVersion).not.toHaveBeenCalled();
+    expect(mocks.buildWebsite).toHaveBeenCalledOnce();
+  });
+
+  it("continues a running publication after closing and reopening its dialog", async () => {
+    let completeBuild: (value: any) => void = () => {
+      throw new Error("Not started");
+    };
+    mocks.getPublication.mockResolvedValue({ publication: oldPublication });
+    mocks.buildWebsite.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          completeBuild = resolve;
+        }),
+    );
+    function Harness() {
+      const [open, setOpen] = React.useState(true);
+      return (
+        <SWRConfig value={{ provider: () => new Map() }}>
+          <button onClick={() => setOpen(true)}>Reopen publication</button>
+          <PublishFlowDialogWrapper
+            project={{ id: "project" } as any}
+            refreshProjectAndPerms={mocks.refreshProject}
+            activatedBranch={undefined}
+            editorPerm
+            latestPublishedVersionData={{
+              revisionId: "revision",
+              version: "0.0.1",
+            }}
+            revisionNum={114}
+            showPublishModal={open}
+            keepPublishModalOpen={false}
+            setShowPublishModal={async (value) => setOpen(value)}
+          />
+        </SWRConfig>
+      );
+    }
+    render(<Harness />);
+    const primary = await screen.findByRole("button", {
+      name: "Update publication",
+    });
+    await waitFor(() => expect(primary.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(primary);
+    await waitFor(() => expect(mocks.buildWebsite).toHaveBeenCalledOnce());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue in background" }),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(mocks.flowUnmount).not.toHaveBeenCalled();
+    expect(mocks.flowMount).toHaveBeenCalledOnce();
+    expect(document.querySelector(".ant-modal-wrap")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Reopen publication" }));
+    expect(mocks.flowMount).toHaveBeenCalledOnce();
+    expect(
+      await screen.findByRole("button", { name: "Publishing…" }),
+    ).toBeTruthy();
+    await act(async () =>
+      completeBuild({ publication: { ...oldPublication, version: "0.0.2" } }),
+    );
+    await screen.findByText("Published version: 0.0.2");
+    expect(mocks.saveVersion).toHaveBeenCalledOnce();
+    expect(mocks.buildWebsite).toHaveBeenCalledOnce();
+  });
+  it("builds the existing version when a concurrent save reports it was already published", async () => {
+    mocks.saveVersion.mockResolvedValue("SkipAlreadyPublished");
+    fireEvent.click(await openDialog());
+    await screen.findByText("Published version: 0.0.2");
+    expect(mocks.buildWebsite).toHaveBeenCalledOnce();
   });
 });

@@ -1,15 +1,18 @@
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import PublishSpinner from "@/wab/client/components/widgets/PublishSpinner";
-import Select from "@/wab/client/components/widgets/Select";
-import PP__PermissionItem from "@/wab/client/components/widgets/plasmic/PlasmicPermissionItem";
+import type { MessageKey } from "@/wab/client/i18n/locales";
 import { AccessLevel, GrantableAccessLevel } from "@/wab/shared/EntUtil";
-import { Tooltip } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+import { Avatar, Button, Select, Tooltip, notification } from "antd";
+import { createStyles } from "antd-style";
 import React, { ReactNode } from "react";
 
 interface PermissionItemProps {
   email?: ReactNode;
   canEdit?: boolean;
+  name?: string;
+  isSelf?: boolean;
+  description?: ReactNode;
   onGrant: (value: GrantableAccessLevel) => Promise<void>;
   onRevoke: () => Promise<void>;
   accessLevel: AccessLevel;
@@ -19,89 +22,187 @@ interface PermissionItemProps {
 export const contentCreatorTooltip = (
   <Tooltip
     zIndex={200000}
-    title={<UiText message={"Can edit pages using existing components, and can update CMS content."} />}
-  ><UiText message={"Content creator"} /></Tooltip>
+    title={
+      <UiText
+        message={
+          "Can edit pages using existing components, and can update CMS content."
+        }
+      />
+    }
+  >
+    <UiText message={"Content creator"} />
+  </Tooltip>
 );
 export const designerTooltip = (
   <Tooltip
     zIndex={200000}
-    title={<UiText message={"Can update Plasmic designs including all styling and layout. Can create design components."} />}
-  ><UiText message={"Designer"} /></Tooltip>
+    title={
+      <UiText
+        message={
+          "Can update Plasmic designs including all styling and layout. Can create design components."
+        }
+      />
+    }
+  >
+    <UiText message={"Designer"} />
+  </Tooltip>
 );
 export const developerTooltip = (
-  <Tooltip zIndex={200000} title={<UiText message={"Can update anything including model schemas."} />}><UiText message={"Developer"} /></Tooltip>
+  <Tooltip
+    zIndex={200000}
+    title={<UiText message={"Can update anything including model schemas."} />}
+  >
+    <UiText message={"Developer"} />
+  </Tooltip>
 );
 export const commenterTooltip = (
-  <Tooltip zIndex={200000} title={<UiText message={"Can view and comment on content."} />}><UiText message={"Commenter"} /></Tooltip>
+  <Tooltip
+    zIndex={200000}
+    title={<UiText message={"Can view and comment on content."} />}
+  >
+    <UiText message={"Commenter"} />
+  </Tooltip>
 );
 export const viewerTooltip = (
-  <Tooltip zIndex={200000} title={<UiText message={"Can view content."} />}><UiText message={"Viewer"} /></Tooltip>
+  <Tooltip zIndex={200000} title={<UiText message={"Can view content."} />}>
+    <UiText message={"Viewer"} />
+  </Tooltip>
 );
 
-function PermissionItem(props: PermissionItemProps) {
- const { t: studioUiT } = useI18n();
+export const permissionRoles = [
+  ["viewer", "Viewer"],
+  ["commenter", "Commenter"],
+  ["content", "Content creator"],
+  ["designer", "Designer"],
+  ["editor", "Developer"],
+] as const;
+export const permissionDescriptions: Record<GrantableAccessLevel, MessageKey> =
+  {
+    viewer: "Can view content.",
+    commenter: "Can view and comment on content.",
+    content:
+      "Can edit pages using existing components, and can update CMS content.",
+    designer:
+      "Can update Plasmic designs including all styling and layout. Can create design components.",
+    editor: "Can update anything including model schemas.",
+    owner: "Owner",
+  };
+const useStyles = createStyles(({ token }) => ({
+  row: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "10px 0",
+    minWidth: 0,
+    flexWrap: "wrap",
+  },
+  identity: { flex: "1 1 120px", minWidth: 0, overflowWrap: "anywhere" },
+  secondary: { color: token.colorTextSecondary, fontSize: 12, marginTop: 2 },
+  actions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    marginLeft: "auto",
+    "& .ant-select": { width: 120 },
+  },
+  avatar: {
+    background: token.colorFillSecondary,
+    color: token.colorTextSecondary,
+    flexShrink: 0,
+  },
+}));
 
-  const { accessLevel, onGrant, onRevoke, canEdit } = props;
+function PermissionItem(props: PermissionItemProps) {
+  const { t } = useI18n();
+  const { styles } = useStyles();
+  const {
+    accessLevel,
+    canEdit,
+    email,
+    name,
+    isSelf,
+    description,
+    onGrant,
+    onRevoke,
+  } = props;
   const [loading, setLoading] = React.useState(false);
-  const [temporary, setTemporary] = React.useState("");
+  const options = permissionRoles.map(([value, label]) => ({
+    value,
+    label: t(label),
+  }));
   return (
-    <PP__PermissionItem
-      email={props.email}
-      role={props.accessLevel == "owner" ? "owner" : undefined}
-      loading={loading}
-      roleDropdown={{
-        value: temporary || accessLevel,
-        "aria-label": studioUiT("Permission level for {part1}", { part1: String(props.email) }),
-        onChange: async (key) => {
-          setLoading(true);
-          setTemporary(key as GrantableAccessLevel);
-          try {
-            await onGrant(key as GrantableAccessLevel);
-          } catch (e) {
-            setTemporary("");
-            throw e;
-          } finally {
-            setLoading(false);
-          }
-        },
-        children: [
-          <Select.Option value="viewer">{viewerTooltip}</Select.Option>,
-          <Select.Option value="commenter">{commenterTooltip}</Select.Option>,
-          <Select.Option value="content">
-            {contentCreatorTooltip}
-          </Select.Option>,
-          <Select.Option value="designer">{designerTooltip}</Select.Option>,
-          <Select.Option value="editor">{developerTooltip}</Select.Option>,
-          <Select.Option
-            value="owner"
-            style={props.showOwnerOption ? {} : { display: "none" }}
-          ><UiText message={"Owner"} /></Select.Option>,
-        ],
-        isDisabled: !canEdit || loading,
-      }}
-      deleteBtn={
-        props.accessLevel === "owner" || !canEdit
-          ? { render: () => null }
-          : {
-              onClick: async () => {
+    <div className={styles.row}>
+      <Avatar className={styles.avatar}>
+        {(name || String(email)).slice(0, 1).toUpperCase()}
+      </Avatar>
+      <div className={styles.identity}>
+        <div>
+          {name || email}
+          {isSelf && <span className={styles.secondary}> {t("(you)")}</span>}
+        </div>
+        {name && <div className={styles.secondary}>{email}</div>}
+        {description && !isSelf && (
+          <div className={styles.secondary}>{description}</div>
+        )}
+      </div>
+      <div className={styles.actions}>
+        {accessLevel === "owner" ? (
+          <span className={styles.secondary}>{t("Owner")}</span>
+        ) : (
+          <>
+            <Select
+              aria-label={t("Permission level for {part1}", {
+                part1: String(email),
+              })}
+              value={accessLevel === "blocked" ? undefined : accessLevel}
+              disabled={!canEdit || loading}
+              loading={loading}
+              options={
+                props.showOwnerOption
+                  ? [...options, { value: "owner", label: t("Owner") }]
+                  : options
+              }
+              onChange={async (value: GrantableAccessLevel) => {
                 setLoading(true);
                 try {
-                  await onRevoke();
-                } catch (e) {
+                  await onGrant(value);
+                } catch {
+                  notification.error({
+                    message: t("Failed to update permissions"),
+                  });
+                } finally {
                   setLoading(false);
-                  throw e;
                 }
-              },
-            }
-      }
-      root={{
-        style: {
-          flexShrink: 0,
-        },
-      }}
-      spinner={<PublishSpinner />}
-    />
+              }}
+            />
+            {canEdit && (
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                aria-label={t("Remove direct permission for {email}", {
+                  email: String(email),
+                })}
+                disabled={loading}
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    await onRevoke();
+                  } catch {
+                    notification.error({
+                      message: t("Failed to update permissions"),
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              />
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
-export default PermissionItem as React.FunctionComponent<PermissionItemProps>;
+export default PermissionItem;

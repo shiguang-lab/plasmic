@@ -25,11 +25,3 @@ export function ensureWebsiteVersionSaved(result: keyof typeof PublishResult) {
       assertNever(result);
   }
 }
-
-export async function publishCurrentWebsite<T>(
-  saveVersion: () => Promise<keyof typeof PublishResult>,
-  publishWebsite: () => Promise<T>,
-): Promise<T> {
-  ensureWebsiteVersionSaved(await saveVersion());
-  return publishWebsite();
-}

@@ -1,5 +1,4 @@
-import { Modal } from "@/wab/client/components/widgets/Modal";
-import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
+import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
 import {
   DefaultShareButtonProps,
   PlasmicShareButton,
@@ -19,20 +18,13 @@ function ShareButton(props: ShareButtonProps) {
   return (
     <>
       <PlasmicShareButton {...rest} onClick={() => setModal(true)} />
-      <Modal
+      <ShareDialog
         open={modal}
-        onCancel={() => setModal(false)}
-        footer={null}
-        width={500}
-        styles={{ container: { padding: 0 } }}
-      >
-        <ShareDialogContent
-          resource={resource}
-          perms={perms}
-          closeDialog={() => setModal(false)}
-          reloadPerms={reloadPerms}
-        />
-      </Modal>
+        resource={resource}
+        perms={perms}
+        closeDialog={() => setModal(false)}
+        reloadPerms={reloadPerms}
+      />
     </>
   );
 }

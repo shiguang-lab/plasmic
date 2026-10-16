@@ -6,6 +6,7 @@ import {
 } from "@/wab/client/components/copilot/resource-mention-utils";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { getLocalAiContext } from "@/wab/client/copilot/local-ai-context";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
@@ -18,17 +19,12 @@ import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { StudioAppUser, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ApiBranch, ArenaRef } from "@/wab/shared/ApiSchema";
-import {
-  getArenaRef,
-  isComponentArena,
-  isPageArena,
-} from "@/wab/shared/Arenas";
+import { getArenaRef } from "@/wab/shared/Arenas";
 import { findAllDataSourceOpExprForComponent } from "@/wab/shared/cached-selectors";
-import { getNormalizedComponentName } from "@/wab/shared/codegen/react-p/serialize-utils";
 import {
+  ensure,
   filterFalsy,
   jsonClone,
   maybe,
@@ -36,16 +32,10 @@ import {
   withoutNils,
 } from "@/wab/shared/common";
 import type { AiOutputFormat } from "@/wab/shared/copilot/copilot-tool-types";
-import {
-  isFrameComponent,
-  isPageComponent,
-  isReusableComponent,
-} from "@/wab/shared/core/components";
+import { isPageComponent } from "@/wab/shared/core/components";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
-import { Component } from "@/wab/shared/model/classes";
 import { notification } from "antd";
-import { sortBy } from "lodash";
-import { autorun, computed } from "mobx";
+import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -121,6 +111,14 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
             }
           : undefined;
       },
+      getPublishPages: async () =>
+        studioCtx.site.components
+          .filter(isPageComponent)
+          .map((component) => ({
+            id: component.uuid,
+            name: component.name,
+            path: ensure(component.pageMeta, "Page metadata is required").path,
+          })),
       getLatestPublishedVersionId: async () => studioCtx.releases[0]?.id,
       getProjectReleases: async (opts) => studioCtx.getProjectReleases(opts),
       publishVersion: async (versionTags, versionDesc, branchId) =>
@@ -351,41 +349,6 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
   }, [topFrameApi]);
 
   React.useEffect(() => {
-    const noComponents = computed(
-      () =>
-        studioCtx.site.components.filter((c) => !isFrameComponent(c)).length ===
-        0,
-    );
-
-    // Get either (in descending preference):
-    //
-    // - the currently viewed or selected page/component (if mixed arena),
-    // - the page at /,
-    // - the first page lexicographically (by name),
-    // - the first component lexicographically,
-    // - or else undefined.
-    const subjectComponent = computed(
-      (): undefined | Component =>
-        [
-          isPageArena(studioCtx.currentArena)
-            ? studioCtx.currentArena.component
-            : isComponentArena(studioCtx.currentArena)
-              ? studioCtx.currentArena.component
-              : studioCtx.focusedViewCtx()?.component,
-          studioCtx.site.components.find(
-            (c) => isPageComponent(c) && c.pageMeta.path === "/",
-          ),
-          sortBy(
-            studioCtx.site.components.filter((c) => isPageComponent(c)),
-            (c) => c.name.toLowerCase(),
-          )[0],
-          sortBy(
-            studioCtx.site.components.filter((c) => isReusableComponent(c)),
-            (c) => c.name.toLowerCase(),
-          )[0],
-        ].filter(Boolean)[0],
-    );
-
     const disposes = filterFalsy([
       autorun(() => {
         spawn(
@@ -408,7 +371,6 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
       autorun(() => {
         spawn(
           topFrameApi.setPrimitiveValues({
-            noComponents: noComponents.get(),
             revisionNum: studioCtx.revisionNum,
             isLocalizationEnabled: !!studioCtx.site.flags.usePlasmicTranslation,
             defaultPageRoleId: studioCtx.site.defaultPageRoleId,
@@ -432,19 +394,6 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
               : undefined,
           ),
         );
-      }),
-      autorun(() => {
-        const subjectComp = subjectComponent.get();
-        const componentInfo = subjectComp
-          ? {
-              pathOrComponent:
-                subjectComp.pageMeta?.path ??
-                getNormalizedComponentName(subjectComp),
-              componentName: getNormalizedComponentName(subjectComp),
-            }
-          : undefined;
-
-        spawn(topFrameApi.setSubjectComponentInfo(componentInfo));
       }),
       studioCtx.showBranching() &&
         autorun(() => {

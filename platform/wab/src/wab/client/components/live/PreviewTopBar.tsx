@@ -23,7 +23,6 @@ import React, { useState } from "react";
 import { MdScreenRotation } from "react-icons/md";
 
 import { BrandLink } from "@/wab/client/components/BrandLink";
-import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-styles";
 import {
   DEVICE_VIEWPORTS,
   isViewportDimension,
@@ -31,14 +30,14 @@ import {
 } from "@/wab/client/components/live/preview-viewport";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
-import CodeButton from "@/wab/client/components/top-bar/CodeButton";
 import VariantsComboSelect from "@/wab/client/components/top-bar/VariantsComboSelect";
+import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-styles";
 import { Icon, SvgIcon } from "@/wab/client/components/widgets/Icon";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ensure, spawn } from "@/wab/shared/common";
 import {
   isCodeComponent,
@@ -159,24 +158,6 @@ const useStyles = createStyles(({ token }) => ({
     gap: 4,
     borderRadius: applicationHeaderLayout.height / 2,
     flexShrink: 0,
-  },
-  codeControls: {
-    display: "flex",
-    alignItems: "center",
-    "& .editor-code-controls": {
-      display: "flex",
-      alignItems: "center",
-      gap: 2,
-    },
-    "& .editor-code-controls svg": {
-      width: 18,
-      height: 18,
-      fill: "none",
-      stroke: "currentColor",
-      strokeWidth: 1.6,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    },
   },
   pageLabel: {
     display: "flex",
@@ -695,11 +676,6 @@ export const PreviewTopBar = observer(function PreviewTopBar({
                 <Button aria-label={t("More")} icon={<EllipsisOutlined />} />
               </Tooltip>
             </Popover>
-          )}
-          {!studioCtx.contentEditorMode && (
-            <div className={styles.codeControls}>
-              <CodeButton showOptions={false} />
-            </div>
           )}
           <Tooltip
             title={t("{part1} · Esc", {

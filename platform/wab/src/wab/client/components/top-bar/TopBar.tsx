@@ -1,8 +1,8 @@
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
-import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
 import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
+import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -21,7 +21,6 @@ import {
 import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
-import CodeButton from "@/wab/client/components/top-bar/CodeButton";
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
 import PublishButton from "@/wab/client/components/top-bar/PublishButton";
 import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
@@ -30,10 +29,10 @@ import { useShareDialog } from "@/wab/client/components/top-bar/useShareDialog";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   STUDIO_ONBOARDING_TUTORIALS,
   STUDIO_ONBOARDING_TUTORIALS_LIST,
@@ -651,9 +650,6 @@ function _TopBar({ preview }: TopBarProps) {
                 </Tooltip>
                 <LivePopOutButton iconOnly />
                 <span className="editor-action-divider" />
-                {!studioCtx.contentEditorMode && (
-                  <CodeButton showOptions={false} />
-                )}
                 <ViewButton />
                 <PublishButton
                   enable={
@@ -801,13 +797,7 @@ function _TopBar({ preview }: TopBarProps) {
 
           ...{ "data-test-id": "exit-live-mode-btn" },
         }}
-        codeButton={
-          !preview || studioCtx.contentEditorMode
-            ? {
-                render: () => null,
-              }
-            : {}
-        }
+        codeButton={{ render: () => null }}
         zoomButton={preview ? {} : { render: () => null }}
         viewButton={{ render: preview ? undefined : () => null }}
         shareButton={{ wrap: () => null }}

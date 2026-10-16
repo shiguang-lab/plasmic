@@ -49,9 +49,6 @@ vi.mock("@/wab/client/components/top-bar/VariantsComboSelect", () => ({
 vi.mock("@/wab/client/components/top-bar/BranchSwitcher", () => ({
   default: () => <button>Branches: main</button>,
 }));
-vi.mock("@/wab/client/components/top-bar/CodeButton", () => ({
-  default: () => <button>Code</button>,
-}));
 vi.mock("@/wab/client/components/widgets/Icon", () => ({ Icon: () => null }));
 vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (text: string) => text }),
@@ -134,14 +131,10 @@ test("reserves native controls and cleans up the macOS preview drag region", () 
   unmount();
   expect(mocks.setDragRegion).toHaveBeenLastCalledWith(null);
 });
-test("places code and back to editor in the right action section", () => {
+test("returns to the editor without a code generation entry", () => {
   render(<PreviewTopBar />);
   const back = screen.getByRole("button", { name: "Back to editor" });
-  const code = screen.getByRole("button", { name: "Code" });
-  expect(back.parentElement?.contains(code)).toBe(true);
-  expect(
-    back.parentElement?.parentElement?.previousElementSibling?.contains(code),
-  ).toBe(false);
+  expect(screen.queryByRole("button", { name: "Code" })).toBeNull();
   fireEvent.click(back);
   expect(mocks.preview.toggleLiveMode).toHaveBeenCalledOnce();
 });

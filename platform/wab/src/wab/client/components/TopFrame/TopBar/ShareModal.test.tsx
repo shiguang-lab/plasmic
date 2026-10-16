@@ -11,18 +11,25 @@ vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
   }),
 }));
 vi.mock("@/wab/client/components/widgets/plasmic/ShareDialogContent", () => ({
-  default: (props: { closeDialog: () => void }) => {
+  default: (props: {
+    closeDialog: () => void;
+    renderDialog: (
+      body: React.ReactNode,
+      footer: React.ReactNode,
+    ) => React.ReactNode;
+  }) => {
     mocks.content(props);
-    return (
+    return props.renderDialog(
       <div>
         Existing permission controls
         <button onClick={props.closeDialog}>Dismiss</button>
-      </div>
+      </div>,
+      <button>Copy project link</button>,
     );
   },
 }));
 afterEach(cleanup);
-test("opens the original standalone permission dialog without delivery tabs", () => {
+test("uses the native modal title and footer without delivery tabs", () => {
   const close = vi.fn().mockResolvedValue(undefined);
   const project = { id: "project" } as React.ComponentProps<
     typeof ShareModal
@@ -37,7 +44,13 @@ test("opens the original standalone permission dialog without delivery tabs", ()
       refreshProjectAndPerms={vi.fn()}
     />,
   );
-  expect(screen.getByRole("dialog")).toBeTruthy();
+  const dialog = screen.getByRole("dialog", { name: "Share project" });
+  expect(dialog.querySelector(".ant-modal-title")?.textContent).toBe(
+    "Share project",
+  );
+  expect(dialog.querySelector(".ant-modal-footer")?.textContent).toBe(
+    "Copy project link",
+  );
   expect(screen.getByText("Existing permission controls")).toBeTruthy();
   expect(screen.queryByRole("tab")).toBeNull();
   expect(mocks.content).toHaveBeenCalledWith(

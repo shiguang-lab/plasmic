@@ -1,0 +1,7 @@
+{
+  "en": "- Keep project sharing in the project menu and hide the code export entry; code generation continues through skills and MCP.\n- Use standard share and publish dialogs with footer actions, preserve publishing settings and improve closing transitions.\n- Clarify project access and inherited permissions, with separate actions to copy the project link or current canvas link.\n- Use a consistent macOS signing identity to retain Keychain authorization across updates after the initial approval.",
+  "zh-CN": "- 项目分享保留在项目菜单中，隐藏代码导出入口，代码生成继续通过 skills 和 MCP 完成。\n- 分享和发布使用标准弹窗结构，操作按钮放入底部，保留发布设置布局并优化关闭动画。\n- 明确项目访问与继承权限，分别提供复制项目链接和当前画板组链接的操作。\n- macOS 更新使用固定签名身份，首次授权后可在后续更新中保留钥匙串访问授权。",
+  "zh-TW": "- 專案分享保留在專案選單中，隱藏程式碼匯出入口，程式碼產生繼續透過 skills 和 MCP 完成。\n- 分享和發佈使用標準對話方塊結構，操作按鈕置於底部，保留發佈設定版面並改善關閉動畫。\n- 清楚呈現專案存取與繼承權限，分別提供複製專案連結和目前畫板群組連結的操作。\n- macOS 更新使用固定簽署身分，首次授權後可在後續更新中保留鑰匙圈存取授權。",
+  "ja": "- プロジェクトの共有はプロジェクトメニューにまとめ、コードのエクスポート入口を非表示にしました。コード生成は引き続き skills と MCP を利用します。\n- 共有と公開に標準ダイアログを使用し、操作ボタンをフッターに配置。公開設定のレイアウトを保ちながら、閉じるアニメーションを改善しました。\n- プロジェクトへのアクセスと継承された権限を明確にし、プロジェクトと現在のキャンバスのリンクを個別にコピーできます。\n- macOS の更新で同じ署名 ID を使用し、初回の許可後は更新後もキーチェーンへのアクセス許可を維持します。",
+  "ko": "- 프로젝트 공유를 프로젝트 메뉴에 유지하고 코드 내보내기 항목을 숨겼습니다. 코드 생성은 계속 skills와 MCP를 통해 진행합니다.\n- 공유와 게시에 표준 대화상자 구조를 사용하고 작업 버튼을 하단에 배치했습니다. 게시 설정 레이아웃을 유지하면서 닫기 애니메이션을 개선했습니다.\n- 프로젝트 접근 및 상속된 권한을 명확히 표시하고 프로젝트 링크와 현재 캔버스 링크를 각각 복사할 수 있습니다.\n- macOS 업데이트에 동일한 서명 ID를 사용하여 최초 승인 후에도 키체인 접근 승인을 유지합니다."
+}

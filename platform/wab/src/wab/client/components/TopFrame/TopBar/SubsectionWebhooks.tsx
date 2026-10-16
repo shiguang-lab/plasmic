@@ -1,7 +1,6 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { VisibleEnableBlock } from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialog";
 import { PublishState } from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
-import { replaceLink } from "@/wab/client/components/view-common";
 import { TriggeredWebhook } from "@/wab/client/components/webhooks/WebhookEvent";
 import WebhooksItem, {
   ToggleWebhook,
@@ -65,7 +64,6 @@ interface SubsectionWebhooksProps
   onViewHistory: () => void;
   setup: SetupWebhooks;
   status?: StatusWebhooks;
-  setShowCodeModal: (val: boolean) => Promise<void>;
 }
 
 function SubsectionWebhooks(props: SubsectionWebhooksProps) {
@@ -81,7 +79,6 @@ function SubsectionWebhooks(props: SubsectionWebhooksProps) {
     onViewHistory,
     setup,
     status,
-    setShowCodeModal,
     ...rest
   } = props;
   const { webhooks, updateWebhook } = setup;
@@ -117,10 +114,6 @@ function SubsectionWebhooks(props: SubsectionWebhooksProps) {
 
   if (props.view === "status" && !status?.enabled) {
     return null;
-  }
-
-  function showCode() {
-    spawn(setShowCodeModal(true));
   }
 
   return (
@@ -161,20 +154,9 @@ function SubsectionWebhooks(props: SubsectionWebhooksProps) {
         },
       }}
       description={{
-        render: (_props) =>
-          replaceLink(
-            {
-              ..._props,
-              children: t(
-                "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline. You should first [add Plasmic to your codebase].",
-              ),
-            },
-            (text) => (
-              <a href="javascript: void 0" onClick={showCode}>
-                {text}
-              </a>
-            ),
-          ),
+        children: t(
+          "Trigger a build in Vercel, Netlify, Jenkins, or any other CI/CD pipeline.",
+        ),
       }}
     >
       {webhooks.map((webhook) => (

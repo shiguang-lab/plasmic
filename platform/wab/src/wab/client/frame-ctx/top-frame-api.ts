@@ -52,7 +52,6 @@ export interface TopFrameApi {
   registerLocationListener(listener: Listener): () => void;
 
   setPrimitiveValues(vals: {
-    noComponents: boolean;
     revisionNum: number;
     isLocalizationEnabled: boolean;
     defaultPageRoleId: string | null | undefined;
@@ -64,14 +63,6 @@ export interface TopFrameApi {
   // the value hasn't changed.
   setLatestPublishedVersionData(
     data: { revisionId: string; version: string } | undefined,
-  ): Promise<void>;
-  setSubjectComponentInfo(
-    info:
-      | {
-          pathOrComponent: string;
-          componentName: string;
-        }
-      | undefined,
   ): Promise<void>;
   setActivatedBranch(branch: ApiBranch | undefined): Promise<void>;
 
@@ -94,7 +85,6 @@ export interface TopFrameApi {
   setKeepPublishModalOpen(val: boolean): Promise<void>;
   setMergeModalContext(val: MergeModalContext | undefined): Promise<void>;
   setShowShareModal(val: boolean): Promise<void>;
-  setShowCodeModal(val: boolean): Promise<void>;
   setShowProjectNameModal(val: boolean): Promise<void>;
   setShowCloneProjectModal(val: boolean): Promise<void>;
   setShowHostModal(val: boolean): Promise<void>;

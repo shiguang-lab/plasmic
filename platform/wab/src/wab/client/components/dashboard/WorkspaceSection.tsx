@@ -2,13 +2,14 @@ import {
   promptNewDatabase,
   WorkspaceMenu,
 } from "@/wab/client/components/dashboard/dashboard-actions";
+import { WorkspaceDataSourcesSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
 import DatabaseListItem from "@/wab/client/components/dashboard/DatabaseListItem";
 import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
-import { WorkspaceTabs } from "@/wab/client/components/dashboard/WorkspaceTabs";
 import ProjectsFilter, {
   ProjectsFilterProps,
 } from "@/wab/client/components/dashboard/ProjectsFilter";
 import WorkspaceDataSources from "@/wab/client/components/dashboard/WorkspaceDataSources";
+import { WorkspaceTabs } from "@/wab/client/components/dashboard/WorkspaceTabs";
 import EditableResourceName from "@/wab/client/components/EditableResourceName";
 import { DataSourceModal } from "@/wab/client/components/modals/DataSourceModal";
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
@@ -16,10 +17,8 @@ import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
 import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
-import { WorkspaceDataSourcesSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
-import { Modal } from "@/wab/client/components/widgets/Modal";
-import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
+import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
@@ -205,23 +204,25 @@ function WorkspaceSection_(
   const projectFilters = (
     <Flex align="center" wrap gap={12}>
       {filterProps && <ProjectsFilter {...filterProps} />}
-      {openTab === "projects" && <Segmented
-        aria-label={t("View")}
-        value={projectView}
-        onChange={setProjectView}
-        options={[
-          {
-            value: "grid",
-            label: t("Grid"),
-            icon: <AppstoreOutlined aria-hidden />,
-          },
-          {
-            value: "list",
-            label: t("List"),
-            icon: <BarsOutlined aria-hidden />,
-          },
-        ]}
-      />}
+      {openTab === "projects" && (
+        <Segmented
+          aria-label={t("View")}
+          value={projectView}
+          onChange={setProjectView}
+          options={[
+            {
+              value: "grid",
+              label: t("Grid"),
+              icon: <AppstoreOutlined aria-hidden />,
+            },
+            {
+              value: "list",
+              label: t("List"),
+              icon: <BarsOutlined aria-hidden />,
+            },
+          ]}
+        />
+      )}
     </Flex>
   );
   const projectList = (
@@ -300,11 +301,15 @@ function WorkspaceSection_(
     >
       {openTab === "projects" ? (
         <div className={styles.workspaceContent}>
-          {projects.length ? projectList : (
+          {projects.length ? (
+            projectList
+          ) : (
             <div className={styles.workspaceEmpty}>{noProjectsText}</div>
           )}
         </div>
-      ) : dataSourcesList}
+      ) : (
+        dataSourcesList
+      )}
     </WorkspaceTabs>
   );
 
@@ -382,9 +387,7 @@ function WorkspaceSection_(
           }
           newProjectButton={{
             render: (props) =>
-              showTabs ? (
-                null
-              ) : (
+              showTabs ? null : (
                 <NewProjectButton
                   className={props.className}
                   onClick={() => setShowNewProjectModal(true)}
@@ -429,10 +432,9 @@ function WorkspaceSection_(
           // If empty, just show default contents (No CMSes indicator)
           databases={databasesList.length > 0 ? databasesList : undefined}
           overrides={{
-            projectsSection:
-              showTabs
-                ? { render: () => workspaceTabs }
-                : undefined,
+            projectsSection: showTabs
+              ? { render: () => workspaceTabs }
+              : undefined,
             databases: {
               render: () => databasesList,
             },
@@ -444,20 +446,13 @@ function WorkspaceSection_(
           {projectList}
         </PlasmicWorkspaceSection>
       )}
-      <Modal
+      <ShareDialog
         open={showShareModal}
-        onCancel={() => setShowShareModal(false)}
-        footer={null}
-        width={500}
-        styles={{ container: { padding: 0 } }}
-      >
-        <ShareDialogContent
-          resource={{ type: "workspace", resource: workspace }}
-          perms={perms}
-          reloadPerms={onUpdate}
-          closeDialog={() => setShowShareModal(false)}
-        />
-      </Modal>
+        resource={{ type: "workspace", resource: workspace }}
+        perms={perms}
+        reloadPerms={onUpdate}
+        closeDialog={() => setShowShareModal(false)}
+      />
       {showNewProjectModal && (
         <NewProjectModal
           onCancel={() => setShowNewProjectModal(false)}

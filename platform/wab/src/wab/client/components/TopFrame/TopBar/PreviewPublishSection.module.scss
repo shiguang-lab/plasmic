@@ -119,3 +119,25 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.scroll {
+  max-height: calc(100dvh - 300px);
+  min-height: 0;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  padding: 4px 0;
+}
+.version {
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 8px;
+}
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
