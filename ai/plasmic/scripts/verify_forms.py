@@ -280,7 +280,7 @@ def check(expectations, overview, readback):
                     if label != field["label"] or re.search(r"[*＊]", label):
                         failures.append("Label must match plain source label")
                     rules = values.get("rules", [])
-                    if not isinstance(rules, list) or any(not any(all(r.get(k) == v for k, v in rule.items()) for r in rules) for rule in field.get("rules", [])):
+                    if not isinstance(rules, list) or any(not any(all(json.dumps(r.get(k), sort_keys=True) == json.dumps(v, sort_keys=True) for k, v in rule.items()) for r in rules) for rule in field.get("rules", [])):
                         failures.append("Missing expected validation rule")
                     if isinstance(rules, list) and any(r.get("ruleType") == "advanced" and not re.fullmatch(r"\s*\{\{[\s\S]+\}\}\s*", str(r.get("custom", ""))) for r in rules):
                         failures.append("Advanced validator must be a dynamic function binding")

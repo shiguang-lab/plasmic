@@ -7,6 +7,7 @@ nodes in unprovided slots. Does not replace runtime or screenshot acceptance.
 import argparse
 import json
 import re
+from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -27,6 +28,9 @@ class Tree(HTMLParser):
     def handle_startendtag(self, tag, attrs):
         self.stack[-1]["children"].append({"tag": tag, "attrs": dict(attrs), "children": []})
 
+    def handle_data(self, data):
+        self.stack[-1]["text"] = self.stack[-1].get("text", "") + data
+
     def handle_endtag(self, tag):
         for i in range(len(self.stack) - 1, 0, -1):
             if self.stack[i]["tag"] == tag:
@@ -41,16 +45,29 @@ def walk(node):
 
 
 def check(intent, actual):
+    intent_tree, actual_tree = Tree(intent).root, Tree(actual).root
+    duplicates = []
+    duplicate_slots = []
+    for source, tree in [("intent", intent_tree), ("actual", actual_tree)]:
+        for node in walk(tree):
+            if node["tag"] == "plasmic-component":
+                slots = [child["attrs"].get("name") for child in node["children"] if child["tag"] == "slot"]
+                duplicate_slots.extend({"source": source, "component": node["attrs"].get("data-plasmic-name"), "slot": name}
+                                       for name, count in Counter(slots).items() if count > 1)
+        names = [n["attrs"]["data-plasmic-name"] for n in walk(tree)
+                 if n["tag"] == "plasmic-component" and "data-plasmic-name" in n["attrs"]]
+        duplicates.extend({"source": source, "name": name} for name, count in Counter(names).items() if count > 1)
     expected = {
         n["attrs"]["data-plasmic-name"]: n
-        for n in walk(Tree(intent).root)
+        for n in walk(intent_tree)
         if n["tag"] == "plasmic-component" and "data-plasmic-name" in n["attrs"]
     }
     found = {
         n["attrs"]["data-plasmic-name"]: n
-        for n in walk(Tree(actual).root)
+        for n in walk(actual_tree)
         if n["tag"] == "plasmic-component" and "data-plasmic-name" in n["attrs"]
     }
+    intent_errors = [] if expected and all(name.strip() for name in expected) else ["Nonempty named component intent required"]
     missing = sorted(expected.keys() - found.keys())
     defaults = []
     wrong_components = []
@@ -64,28 +81,29 @@ def check(intent, actual):
         slots = {n["attrs"].get("name") for n in expected[name]["children"] if n["tag"] == "slot"}
         for slot in found[name]["children"]:
             if slot["tag"] == "slot" and slot["attrs"].get("name") not in slots:
+                if slot.get("text", "").strip():
+                    defaults.append({"component": name, "slot": slot["attrs"].get("name"), "elementUuid": None})
                 for child in slot["children"]:
                     node_id = child["attrs"].get("id")
-                    if node_id:
-                        defaults.append({"component": name, "slot": slot["attrs"].get("name"), "elementUuid": node_id})
+                    defaults.append({"component": name, "slot": slot["attrs"].get("name"), "elementUuid": node_id})
         if identity(expected[name]) == "plasmicantd6card":
             expected_styles = json.loads(expected[name]["attrs"].get("data-props", "{}")).get("styles", {})
             actual_styles = json.loads(found[name]["attrs"].get("data-props", "{}")).get("styles", {})
             expected_body = expected_styles.get("body", {}) if isinstance(expected_styles, dict) else {}
             actual_body = actual_styles.get("body", {}) if isinstance(actual_styles, dict) else {}
             for prop in ["padding", "paddingTop", "paddingBottom", "paddingLeft", "paddingRight"]:
-                if prop in expected_body and expected_body[prop] != actual_body.get(prop):
+                if prop in expected_body and json.dumps(expected_body[prop], sort_keys=True) != json.dumps(actual_body.get(prop), sort_keys=True):
                     wrong_card_padding.append({"card": name, "property": prop, "expected": expected_body[prop], "actual": actual_body.get(prop)})
             expected_content = next((n for n in expected[name]["children"] if n["tag"] == "slot" and n["attrs"].get("name") == "children"), None)
             actual_content = next((n for n in found[name]["children"] if n["tag"] == "slot" and n["attrs"].get("name") == "children"), None)
-            if not actual_content or not actual_content["children"]:
+            if not actual_content or not (actual_content["children"] or actual_content.get("text", "").strip()):
                 empty_cards.append(name)
             node_name = lambda n: n["attrs"].get("data-plasmic-name") or n["attrs"].get("label")
             intended_names = {node_name(n) for n in walk(expected_content) if node_name(n)} if expected_content else set()
             actual_names = {node_name(n) for n in walk(actual_content) if node_name(n)} if actual_content else set()
             for child_name in sorted(intended_names - actual_names):
                 misplaced_card_content.append({"card": name, "component": child_name})
-    return {"missingComponents": missing, "wrongComponents": wrong_components, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "unprovidedSlotChildren": defaults, "passed": not any([missing, wrong_components, empty_cards, misplaced_card_content, wrong_card_padding, defaults])}
+    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, empty_cards, misplaced_card_content, wrong_card_padding, defaults])}
 
 
 def main():
@@ -101,7 +119,7 @@ def main():
         parser.error("Select exactly one public MCP component readback")
     result = check(args.intent_html.read_text(), models[0]["baseVariantTplTree"])
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    structural_errors = any(result[key] for key in ["missingComponents", "wrongComponents", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding"])
+    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding"])
     raise SystemExit(0 if result["passed"] or (args.allow_defaults and not structural_errors) else 1)
 
 

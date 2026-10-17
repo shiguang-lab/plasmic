@@ -70,8 +70,14 @@ const tools = [
   {
     name: "get_app_state",
     description:
-      "Read the desktop URL, active org/workspace/project, focused artboard, selected elements and editing scope, readiness, build identity, running operations and exact editor tool schemas. Read these contracts before execute.",
-    inputSchema: object({}),
+      "Read desktop identity, editing context, readiness, build and running operations. toolNames selects exact editor schemas; [] returns status and availableEditorTools names without schemas. Omit for all schemas. Read each operation's complete contract before execute; reuse it only within the same build/session.",
+    inputSchema: object({
+      toolNames: {
+        type: "array",
+        items: { type: "string", minLength: 1 },
+        uniqueItems: true,
+      },
+    }),
   },
   {
     name: "get_org",
@@ -391,7 +397,7 @@ tools.push(
   {
     name: "execute_batch",
     description:
-      "Run 1–30 validated editor operations in order. The whole batch is one atomic, undoable Studio transaction: any failure rolls back every edit. Only mutation operations are allowed; UUID targets must exist before the call. Save separately.",
+      "Run 1–30 validated editor operations in order. The whole batch is one atomic, undoable Studio transaction: any failure rolls back every edit. Only mutation operations are allowed; UUID targets must exist before the call. Returns ordered operations with resourceIndexes into one shared resources array and per-operation messages. Identical final resources occur once. Save separately.",
     inputSchema: {
       ...object({
         operations: {

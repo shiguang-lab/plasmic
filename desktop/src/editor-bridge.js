@@ -25,7 +25,20 @@
           }
           editorContext = JSON.parse(context.output);
         }
-        result = { ready: !!tools, tools: tools?._meta || {}, editorContext };
+        const metadata = tools?._meta || {};
+        const toolNames = input?.toolNames;
+        const availableEditorTools = Object.keys(metadata);
+        result = {
+          ready: !!tools,
+          tools: toolNames === undefined ? metadata : Object.fromEntries(toolNames.map((name) => {
+            if (!Object.hasOwn(metadata, name)) {
+              throw new Error(`Editor schema unavailable: ${name}`);
+            }
+            return [name, metadata[name]];
+          })),
+          ...(toolNames === undefined ? {} : { availableEditorTools }),
+          editorContext,
+        };
       } else if (method === "renderReady") {
         await document.fonts.ready;
         await new Promise((resolve) =>

@@ -11,6 +11,20 @@ Library: [Ant Design v6](../index.md).
 
 Read the installed Form contract before changing values, validation or submission. Read [Form Field](form.md#formitem) for field controls and [form composition](../compositions/form-layout.md) for page and Modal layouts.
 
+**Reading scope**
+
+Use `scripts/read_reference.py` from resourceRoot with the required `--section` selectors below; it preserves the complete selected sections, including nested headings. Full reading is also valid. Read all sections whose conditions apply; an unknown field/flow scope requires discovery before exclusion.
+
+- Every business Form: `values-and-validation`, `events-and-ref-actions`, `acceptance`, `simplified-and-advanced-modes`.
+- Full-project generation or inventory audit: `project-inventory-and-acceptance`; a focused edit instead reads `focused-form-edits`.
+- Every editable field: `validation-order` and `label-and-control-layout`.
+- Field-label help being added, changed or present in generated fields: `label-help`.
+- Visible field instructions being added, moved or present in generated fields: `field-instructions`.
+- Repeated fields or grouped paths: `formlist-and-form-field-group`.
+- Hidden, conditional or dependent fields: `conditional-and-dependent-fields`.
+
+The section reader retains the Form.Item ownership introduction when selecting its subsections. Use `--section formitem` when all field subsections apply. Never skip a relevant check to meet a context budget.
+
 ## Values and validation
 
 Editable business forms use the registered Antd6 Form with real Form Field/Form.Item instances and their label/children Slots. Give each field its actual name and validation rules through the installed contract; let Form own required indicators, punctuation, error state, error messages and field values. A literal `*` in label text or a separate red error div is not required-field validation. Derive initial values at Form/Item level without competing control value bindings. Use required and whitespace rules for required text when blank-only values are invalid; choose other rules from the requirement. Submit through the supported Form action/validated event or await its registered validateFields action before a mutation. Rejected validation keeps the Modal open, identifies the field, and performs no mutation.

@@ -8,11 +8,13 @@ Library: [Ant Design v6](../index.md).
 
 Read the installed Modal contract before changing its Props, Slots or events. [Overlays](../compositions/modal-drawer.md) owns Modal/Drawer composition, dismissal policy and the generation gate; [form composition](../compositions/form-layout.md#modal-form-layout) owns field columns and Modal width selection.
 
+Read Footer and Registration and runtime verification for every Modal; Submission for confirmation/business actions. Follow Form/layout references only when a business Form is present. Read-only content still requires the overlay generation gate, close/reopen, visual and persistence checks.
+
 ## Footer
 
 For a Modal with one routine confirmation action plus cancel, keep the component's default footer and locale-owned button text. Omit okText/cancelText and custom footer children; do not recreate the two default buttons just to attach events, loading or disabled state. Bind onOk/onCancel and use the real confirmLoading/okButtonProps/cancelButtonProps contracts for submission state. A source-required specific action/risk label may override supported button text while retaining the native footer. A custom footer is appropriate when the required workflow has multiple distinct operation actions (for example draft/save/publish). Follow [overlay footer selection](../compositions/modal-drawer.md#footer-with-only-an-exit-button) and [buttons and action bars](../compositions/action-bars.md#buttons-and-action-bars) for the required actions and their order, types and availability. An explicit user requirement overrides this default. Remove obsolete custom footer buttons and their handlers when replacing them; field cleanup follows [Form](form.md).
 
-An empty footer Slot is still an explicit override and can hide the native footer in preview. Restore defaults through changeElement resetProps after deleting custom footer children; do not insert an empty footer Slot or use footer=null for a default-footer Modal. Reset obsolete okText/cancelText/hideFooter overrides too. Empty-slot cleanup must distinguish removal of unused example content from restoration of a component default. Check actual runtime buttons after that cleanup.
+Studio renders an empty code-component Slot as undefined, preserving the native default; explicit footer=null or hideFooter=true removes the footer. Restore defaults through changeElement resetProps after deleting custom footer children, and reset obsolete okText/cancelText/hideFooter overrides too. Do not use an empty Slot to request footer removal. Check actual runtime buttons after cleanup. Code export can serialize empty RenderExpr Slots differently; Preview evidence does not verify exported-code behavior.
 
 Read-only overlays whose composition requires no footer use the current Antd6 hideFooter=true after verifying the installed contract. footer=null also hides the native footer.
 

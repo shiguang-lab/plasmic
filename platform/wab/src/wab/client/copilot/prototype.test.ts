@@ -53,6 +53,34 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it("returns complete final models once per batch with ordered receipts and one undo", async () => {
+    const { call, createPage, studioCtx } = fixture();
+    const first = await createPage("BatchFirst");
+    const second = await createPage("BatchSecond");
+    const before = await call("read", { componentUuids: [first.uuid, second.uuid] });
+    const operations = Array.from({ length: 10 }, (_, index) => ({
+      name: "insertHtml",
+      input: { componentUuid: index < 8 ? first.uuid : second.uuid,
+        html: `<div data-plasmic-name="Item${index}">Record ${index}</div>` },
+    }));
+    const undoCount = studioCtx.undoLog._log.length;
+    const result = await call("executeBatch", { operations });
+    expect(PROTOTYPE_TOOL_META.executeBatch.outputSchema.safeParse(result).success).toBe(true);
+    expect(result.resources).toHaveLength(2);
+    expect(result.operations.map((op: { name: string }) => op.name)).toEqual(operations.map((op) => op.name));
+    const after = await call("read", { componentUuids: [first.uuid, second.uuid] });
+    expect(result.resources).toEqual(after.results);
+    const expanded = result.operations.map((op: { resourceIndexes: number[]; messages?: string[] }) => ({
+      __type: "OutputResult",
+      ...(op.messages ? { messages: op.messages } : {}),
+      results: op.resourceIndexes.map((index) => result.resources[index]),
+    }));
+    expect(expanded.slice(0, 8).every((op: { results: unknown[] }) => op.results[0] === result.resources[0])).toBe(true);
+    expect(JSON.stringify(result).length).toBeLessThan(JSON.stringify({ results: expanded }).length / 2);
+    expect(studioCtx.undoLog._log.length).toBe(undoCount + 1);
+    await call("undo");
+    expect(await call("read", { componentUuids: [first.uuid, second.uuid] })).toEqual(before);
+  });
   it("rejects model metadata disguised as CSS without changing the design",async () => {
     const {call,createPage,studioCtx}=fixture();
     const component=await createPage();

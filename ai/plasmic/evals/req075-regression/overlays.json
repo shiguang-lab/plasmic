@@ -1,0 +1,126 @@
+{
+  "pages": [
+    {
+      "path": "/req-075/groups",
+      "overlays": [
+        {
+          "name": "CreateOnetimeGroupModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "native",
+          "footerActions": [
+            {
+              "name": "nativeCancel",
+              "effect": "dismiss"
+            },
+            {
+              "name": "nativeOk",
+              "effect": "business",
+              "reason": "Validate basic information and enter one-time SQL creation (§6.5)"
+            }
+          ]
+        },
+        {
+          "name": "MetadataModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "native",
+          "footerActions": [
+            {
+              "name": "nativeCancel",
+              "effect": "dismiss"
+            },
+            {
+              "name": "nativeOk",
+              "effect": "business",
+              "reason": "Validate and update group management fields (§5.2)"
+            }
+          ]
+        },
+        {
+          "name": "ExportModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "native",
+          "footerActions": [
+            {
+              "name": "nativeCancel",
+              "effect": "dismiss"
+            },
+            {
+              "name": "nativeOk",
+              "effect": "business",
+              "reason": "Generate the selected masked export (§3.6)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/req-075/regular",
+      "overlays": [
+        {
+          "name": "PreflightModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "none",
+          "footerActions": []
+        }
+      ]
+    },
+    {
+      "path": "/req-075/onetime",
+      "overlays": [
+        {
+          "name": "PreflightModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "none",
+          "footerActions": []
+        }
+      ]
+    },
+    {
+      "path": "/req-075/detail",
+      "overlays": [
+        {
+          "name": "ViewSQLModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "none",
+          "footerActions": []
+        },
+        {
+          "name": "RecordDrawer",
+          "component": "plasmic-antd6-drawer",
+          "closeIcon": true,
+          "footer": "none",
+          "footerActions": []
+        },
+        {
+          "name": "ApplicationModal",
+          "component": "plasmic-antd6-modal",
+          "closeIcon": true,
+          "footer": "native",
+          "footerActions": [
+            {
+              "name": "nativeCancel",
+              "effect": "dismiss",
+              "props": {
+                "disabled": "{{ $state.applicationBusy }}"
+              }
+            },
+            {
+              "name": "nativeOk",
+              "effect": "business",
+              "reason": "Validate and initiate an ACTIVE-group application (§6.8)",
+              "props": {
+                "disabled": "{{ $state.applicationBusy }}"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -16,6 +16,44 @@ const deferred = () => {
   });
   return { promise, resolve };
 };
+test("schema discovery preserves full contracts while status polling omits their repeated bodies", async (t) => {
+  const controller = new DesktopController(() => null, {});
+  t.after(() => controller.close());
+  const read = { inputSchema: { type: "object" }, outputSchema: { definitions: { node: { type: "object" } }, $ref: "#/definitions/node" } };
+  const state = { ready: true, projectId: "project", build: { hash: "build" },
+    editorContext: { sessionId: "session", changeCounter: 2 }, operations: [{ phase: "running" }],
+    editorTools: { read, save: { inputSchema: { type: "object" } } }, availableEditorTools: ["read", "save"] };
+  const scopes = [];
+  controller.state = async (toolNames) => { scopes.push(toolNames); return state; };
+  assert.equal(await controller.dispatch("get_app_state", {}), state);
+  const status = await controller.dispatch("get_app_state", { toolNames: [] });
+  assert.deepEqual(status, { ...state, availableEditorTools: ["read", "save"], editorTools: {} });
+  const selected = await controller.dispatch("get_app_state", { toolNames: ["read"] });
+  assert.deepEqual(selected.editorTools, { read });
+  assert.deepEqual(scopes, [undefined, [], ["read"]]);
+  assert.equal(selected.editorTools.read, read);
+  assert.deepEqual(state.editorTools, { read, save: { inputSchema: { type: "object" } } });
+  for (const toolNames of [["missing"], ["read", "read"], [""], [0], "read", null]) {
+    await assert.rejects(controller.dispatch("get_app_state", { toolNames }), /toolNames|schema unavailable/);
+  }
+  controller.state = async () => ({ ready: false, projectId: null });
+  assert.deepEqual(await controller.dispatch("get_app_state", { toolNames: [] }), {
+    ready: false, projectId: null, availableEditorTools: [], editorTools: {},
+  });
+});
+test("readiness polling requests context without schemas", async (t) => {
+  const win = { isDestroyed: () => false, webContents: {
+    isLoadingMainFrame: () => false, getURL: () => "https://studio.example/projects/project",
+  } };
+  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  controller.invoke = async (method, input) => {
+    assert.equal(method, "metadata");
+    assert.deepEqual(input, { toolNames: [] });
+    return { ready: true, tools: {}, editorContext: { sessionId: "session" } };
+  };
+  assert.equal((await controller.ready()).ready, true);
+});
 test("state and independent media remain responsive while editor operations serialize", async () => {
   const controller = new DesktopController(() => null, {});
   const gate = deferred();

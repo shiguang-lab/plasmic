@@ -1,4 +1,9 @@
 import unittest
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
 
 from verify_slots import check
 
@@ -8,6 +13,62 @@ CARD = '<plasmic-component data-plasmic-name="listCard" data-plasmic-component="
 
 
 class CardOwnershipTests(unittest.TestCase):
+    def assert_only(self, result, field):
+        self.assertFalse(result['passed'])
+        self.assertTrue(result[field])
+        self.assertTrue(all(not value for key, value in result.items() if key not in {field, 'passed'}), result)
+
+    def test_duplicate_names_cannot_hide_a_wrong_component(self):
+        bad = TABS.replace('plasmic-antd6-tabs', 'plasmic-antd6-input')
+        self.assert_only(check(CARD, bad + CARD), 'duplicateComponents')
+        self.assert_only(check(TABS + CARD, CARD), 'duplicateComponents')
+
+    def test_duplicate_slots_cannot_shadow_reviewed_content(self):
+        actual = CARD.replace('</slot></plasmic-component>', '</slot><slot name="children"><span>Replacement</span></slot></plasmic-component>')
+        self.assert_only(check(CARD, actual), 'duplicateSlots')
+        self.assert_only(check(actual, CARD), 'duplicateSlots')
+        self.assertTrue(check(CARD, CARD)['passed'])
+
+    def test_text_only_card_content_is_not_empty(self):
+        text = CARD.replace(TABS, 'Summary')
+        self.assertTrue(check(text, text)['passed'])
+        self.assert_only(check(text, text.replace('Summary', ' \n ')), 'emptyCards')
+
+
+    def test_unprovided_content_without_uuid_and_plain_text_are_not_empty(self):
+        for child in ['<span>Example</span>', 'Example']:
+            actual = CARD.replace('</plasmic-component>', '<slot name="title">' + child + '</slot></plasmic-component>', 1)
+            with self.subTest(child=child):
+                self.assert_only(check(CARD, actual), 'unprovidedSlotChildren')
+        actual = CARD.replace('</plasmic-component>', '<slot name="title"> \n </slot></plasmic-component>', 1)
+        self.assertTrue(check(CARD, actual)['passed'])
+
+    def test_empty_intent_cannot_disable_the_gate(self):
+        for intent in ['', ' \n', '<div></div>']:
+            with self.subTest(intent=intent):
+                self.assert_only(check(intent, CARD), 'intentErrors')
+
+    def test_card_padding_preserves_json_types(self):
+        expected = CARD.replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"body":{"padding":0}}}' ''')
+        self.assertTrue(check(expected, expected)['passed'])
+        self.assert_only(check(expected, expected.replace('"padding":0', '"padding":false')), 'wrongCardPadding')
+
+    def test_allow_defaults_inspection_cannot_hide_structural_errors(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            intent, model = root / 'intent.html', root / 'pages.json'
+            duplicate_slot = CARD.replace('</slot></plasmic-component>', '</slot><slot name="children"><span>Replacement</span></slot></plasmic-component>')
+            for field, expected, actual in [('duplicateComponents', CARD, TABS + CARD),
+                                            ('duplicateSlots', CARD, duplicate_slot),
+                                            ('intentErrors', '', CARD)]:
+                with self.subTest(field=field):
+                    intent.write_text(expected)
+                    model.write_text(json.dumps({'results': [{'uuid': 'page', 'baseVariantTplTree': actual}]}))
+                    run = subprocess.run([sys.executable, str(Path(__file__).with_name('verify_slots.py')),
+                                          str(intent), str(model), '--allow-defaults'], capture_output=True, text=True)
+                    self.assertEqual(run.returncode, 1, run.stderr)
+                    self.assert_only(json.loads(run.stdout), field)
+
     def test_registered_card_with_tabs_passes(self):
         actual = CARD.replace("plasmic-antd6-card", "plasmicAntd6Card").replace("plasmic-antd6-tabs", "plasmicAntd6Tabs")
         self.assertTrue(check(CARD, actual)["passed"])

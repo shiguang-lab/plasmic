@@ -133,6 +133,7 @@ import {
   outputResult,
   type ReadResultJson,
 } from "@/wab/shared/web-exporter/schema";
+import { batchResult } from "@/wab/shared/copilot/batch-result";
 import { ok } from "neverthrow";
 
 const editTools = new Set<string>([
@@ -1656,7 +1657,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
                 }))
               : outcomes;
           const result = finish(
-            JSON.stringify({ results: summarized }),
+            JSON.stringify(batchResult<(typeof summarized)[number]["results"][number]>(operations.map((op) => op.name), summarized)),
             before,
             localSnapshot(studio, components),
           );
@@ -2161,7 +2162,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         }
       },
     );
-    return { results: plans.map((plan) => plan.result()) };
+    return batchResult(input.operations.map((op) => op.name), plans.map((plan) => plan.result()));
   }),
   getEditorContext: defineCopilotTool(meta.getEditorContext, async (studio) => {
     const vc = studio.focusedViewCtx();

@@ -1,6 +1,6 @@
 # Plasmic task guide
 
-The installed skill resolves a versioned NAS bundle through `@plasmickit/cli`. Read the returned `mustRead` files; select conditional references by the affected task/region. Resolve links relative to their file and scripts relative to `resourceRoot`. Downloading a bundle does not require reading every file.
+The installed skill resolves a versioned NAS bundle through `@plasmickit/cli`. Read the returned `mustRead` files; select conditional references by the affected task/region. Resolve links relative to their file and scripts relative to `resourceRoot`. Downloading a bundle does not require reading every file. Read the [context reading and evidence rules](context-reading.md) before conditional references.
 
 ## Task routing
 

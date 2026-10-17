@@ -8,10 +8,7 @@ The current implementation uses the repository's @react/ui dependency and declar
 
 ActionGroup's underlying menus, confirmations and sizes follow this implementation's Ant Design 6 contract. Read [Ant Design v6](../antd_v6/index.md) for registered Antd components actually composed with it. Do not assume a target project's unrelated @react/ui installation has the same API as this Plasmic wrapper.
 
-| Component | Covered Studio registrations |
-| --- | --- |
-| [ActionGroup](components/action-group.md) | ActionGroup (`plasmic-react-ui-action-group`) |
-| [Resource authorization](components/resource-authorization.md) | ResourceAuthorization (`plasmic-react-ui-resource-authorization`), ResourceAuthorization.Record (`plasmic-react-ui-resource-authorization-record`) |
+Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read.
 
 ## Composition and acceptance
 

@@ -2,6 +2,8 @@
 
 For admin prototype design or revision, read this reference and [the catalog](templates/admin/catalog.json) before composing pages. Both are distributed in the NAS resource bundle: resolve paths from `resourceRoot`, not from the user's business repository or this maintainer's local filesystem. The catalog identifies the published **Admin Templates** library and its ten design compositions. It is a selection index, not a component registration contract or a business requirement.
 
+For composition, read `select-by-scenario`, `read-and-compose-through-public-tools`, `bind-destination-behavior` and `acceptance` with `scripts/read_reference.py`. Read `directory-configuration` when configuring or assessing template-picker availability. The complete catalog and live selected template contracts remain required.
+
 ## Select by scenario
 
 The current catalog uses Ant Design 6, Overseas, React UI and Ant Design Icons. Match its live source dependencies to the target's scopes from the [library index](libraries/index.md). A same-named component from v5 or another library is not an interchangeable template dependency. Do not install/migrate a different library solely to fit this catalog; when the selected library has no compatible template, use its verified components and matching rules.

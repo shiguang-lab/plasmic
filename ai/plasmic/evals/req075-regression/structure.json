@@ -1,0 +1,60 @@
+{
+  "pages": [
+    {
+      "path": "/req-075/groups",
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群"
+    },
+    {
+      "path": "/req-075/regular",
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.3: 常规客群首选 SQL 模式"
+    },
+    {
+      "path": "/req-075/onetime",
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.5: 一次性客群建群，基本信息弹窗确认后进入本页"
+    },
+    {
+      "path": "/req-075/detail",
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示"
+    }
+  ],
+  "navigation": {
+    "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.1: 客群管理 > 客群列表 / 客群圈选器；新建和详情经列表入口；画像/标签 P2",
+    "items": [
+      {
+        "key": "groups",
+        "label": "客群管理",
+        "children": [
+          {
+            "key": "list",
+            "label": "客群列表",
+            "href": "/req-075/groups",
+            "children": [
+              {
+                "key": "onetime",
+                "label": "新建一次性客群",
+                "href": "/req-075/onetime",
+                "hidden": true
+              },
+              {
+                "key": "detail",
+                "label": "客群详情",
+                "href": "/req-075/detail",
+                "hidden": true
+              }
+            ]
+          },
+          {
+            "key": "selector",
+            "label": "客群圈选器",
+            "href": "/req-075/regular"
+          }
+        ]
+      }
+    ],
+    "roleQuery": {
+      "state": "role",
+      "query": "role",
+      "default": "管理员"
+    }
+  }
+}

@@ -8,6 +8,7 @@ import json
 from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
+from verify_bindings import role_menu
 
 
 class Shells(HTMLParser):
@@ -31,15 +32,21 @@ def menu_tree(items):
     for item in items:
         if not isinstance(item, dict) or not isinstance(item.get("key"), str) or not isinstance(item.get("label"), str):
             raise ValueError("Each menu item must have a literal key and label")
-        if any("{{" in str(item.get(key, "")) for key in ["key", "label", "href", "hidden"]):
+        if set(item) - {"key", "label", "href", "hidden", "disabled", "type", "icon", "children"}:
+            raise ValueError("Unsupported menu item properties require explicit contract checks")
+        if any("{{" in json.dumps(item.get(key, "")) for key in ["key", "label", "href", "hidden", "disabled", "type", "icon"]):
             raise ValueError("Dynamic menu items require preview evidence")
-        if not isinstance(item.get("hidden", False), bool):
-            raise ValueError("Menu hidden must be boolean")
+        if any(not isinstance(item.get(key, False), bool) for key in ("hidden", "disabled")):
+            raise ValueError("Menu hidden and disabled must be boolean")
+        if item.get("type", "item") not in {"item", "group", "divider"}:
+            raise ValueError("Menu type must be a literal registered item type")
         if "href" in item and not isinstance(item["href"], str):
             raise ValueError("Menu href must be a literal string")
         result.append({
             "key": item["key"], "label": item["label"], "href": item.get("href"),
-            "hidden": item.get("hidden", False), "children": menu_tree(item.get("children", []))
+            "hidden": item.get("hidden", False), "disabled": item.get("disabled", False),
+            "type": item.get("type", "item"), "icon": item.get("icon"),
+            "children": menu_tree(item.get("children", []))
         })
     return result
 
@@ -92,8 +99,11 @@ def check(expectation, overview, readback):
             if len(shells) != 1:
                 errors.append({"check": "shell", "path": path, "count": len(shells)})
                 continue
-            actual_menu = menu_tree(shells[0].get("menuItems"))
-            if expected_menu is not None and actual_menu != expected_menu:
+            menu = shells[0].get("menuItems")
+            if "roleQuery" in navigation:
+                menu = role_menu(navigation["items"], navigation["roleQuery"], menu)
+            actual_menu = menu_tree(menu)
+            if expected_menu is not None and json.dumps(actual_menu, sort_keys=True) != json.dumps(expected_menu, sort_keys=True):
                 errors.append({"check": "navigation", "path": path, "expected": expected_menu, "actual": actual_menu})
         except (ValueError, TypeError) as exc:
             errors.append({"check": "navigation", "path": path, "message": str(exc)})

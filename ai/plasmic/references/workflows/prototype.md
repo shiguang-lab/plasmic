@@ -1,6 +1,6 @@
 # Product prototype workflow
 
-Create or revise editable designs; explanation/review uses inspect. Resolve the project before editor readiness checks; mutations require `canEdit`. Missing MCP capabilities do not authorize private APIs or platform implementation.
+Create or revise editable designs; explanation/review uses inspect. Resolve the project before editor readiness checks; mutations require `canEdit`.
 
 ## Target project
 
@@ -18,7 +18,7 @@ Read current component identities, Props, Slots, defaults, events/ref actions an
 
 Create routed Pages with registered components and native editable Slots. Reuse one standalone AppShell or the host shell. Configure reviewed routes; read normalized paths before binding links. Before creating/copying/renaming, read the [naming standard](../design/naming.md): concise English PascalCase for actual roles and useful scope, equally for roots and descendants. Rename through Studio operations to preserve references.
 
-`data-props` is JSON, not JSX. Dynamic values use supported `{{ expression }}` bindings. Discover real render-prop scopes before binding cells. Batches are atomic; discover newly created IDs in separate calls before using them. Preserve business UUIDs and interactions when moving existing nodes; remove obsolete structure only within the authorized change.
+`data-props` is JSON, not JSX. Dynamic values use supported `{{ expression }}` bindings. Discover real render-prop scopes before binding cells. Preserve business UUIDs and interactions when moving existing nodes; remove obsolete structure only within the authorized change.
 
 Build structure and behavior together: local state, query/reset, pagination, scopes, forms, navigation and overlays as actually required. Keep drafts/applied values and temporary editor reveal distinct. Use the selected library's component rules and applicable compositions/gates; preserve real Slots and handlers. Record simulated processing in the plan, not the UI, and remove unused demo Slot content before acceptance.
 
@@ -28,8 +28,8 @@ Use the requested platforms/viewport. For PC-only generation use the live Deskto
 
 Run relevant source-derived structural gates from the selected references against public readbacks: route/menu coverage, intended component/Slot ownership, information groups and Forms where applicable. A focused edit does not require rebuilding unrelated pages or expecting unrelated existing content to match a new design inventory. Full regeneration retains full-project gates.
 
-For full-project acceptance use the [unified verifier](../verification.md): supply reviewed inventories, collect overview/full Pages and targeted layouts once, and aggregate the existing gates. Missing expectations remain unverified; runtime and save/reopen evidence are separate.
+For full-project acceptance use the [unified verifier](../verification.md): supply reviewed inventories, collect overview/full Pages and targeted layouts once per design state, and aggregate all existing gates from those files. Reuse through its identity/hash checks; fresh collection is required after save/reopen. Inspect the compact statuses and failed report sections instead of printing full evidence. Missing expectations remain unverified; runtime and save/reopen evidence are separate.
 
 Use [rendered inspection](../desktop-inspection.md) for screenshots, geometry and real Preview interactions at the actual viewport. Every affected standalone AppShell Page must pass [viewport shell height acceptance](../design/layout.md#viewport-shell-height-acceptance), including its model/geometry gate, shorter live Preview and post-reload height check. Exercise required default/hidden states, Tabs, overlays, errors, processing and navigation. Inspect persisted node names, labels, content and long/empty values. Record identity, viewport, concrete observations and pass/fail; a list of captures is not visual review. `validate` proves model integrity only.
 
-Save explicitly and record the revision. Reopen, reread affected models/bindings and initial closed overlays; recheck Preview behavior and images. Report sources/resource release, template mechanism, checks, mock/API boundaries and limitations. Saving is not acceptance; publishing requires user authorization.
+Save explicitly and record the revision. Reopen, reread affected models/bindings and initial closed overlays; recheck Preview behavior and images. Report sources/resource release, template mechanism, checks, mock/API boundaries and limitations.

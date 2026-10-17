@@ -34,7 +34,19 @@ def canonical(model):
 
 
 def load(path):
-    return {m["pageMeta"]["path"]: canonical(m) for m in json.loads(path.read_text())["results"] if m.get("type") == "page"}
+    pages = {}
+    for model in json.loads(path.read_text())["results"]:
+        if model.get("type") != "page":
+            continue
+        route = model["pageMeta"]["path"]
+        if not isinstance(route, str) or not route.strip() or route in pages:
+            raise ValueError("Distinct nonempty Page paths required")
+        pages[route] = canonical(model)
+    return pages
+
+
+def fingerprint(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
 def main():
@@ -47,8 +59,8 @@ def main():
     results = []
     for route in sorted(a.keys() | b.keys()):
         first, second = a.get(route), b.get(route)
-        fingerprint = lambda value: hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-        results.append({"path": route, "equal": first == second, "firstFingerprint": fingerprint(first), "secondFingerprint": fingerprint(second)})
+        first_hash, second_hash = fingerprint(first), fingerprint(second)
+        results.append({"path": route, "equal": first_hash == second_hash, "firstFingerprint": first_hash, "secondFingerprint": second_hash})
     report = {"passed": bool(results) and all(r["equal"] for r in results), "pages": results}
     if args.report:
         args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")

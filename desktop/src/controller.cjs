@@ -77,7 +77,7 @@ class DesktopController {
       return { output: result.output };
     }
   }
-  async state() {
+  async state(toolNames) {
     const win = this.getWindow();
     if (!win || win.isDestroyed()) {
       return { running: true, windowOpen: false, ready: false };
@@ -89,7 +89,7 @@ class DesktopController {
       url.origin === this.config.studioOrigin &&
       url.pathname !== "/desktop/unified-login"
     ) {
-      metadata = await this.invoke("metadata", {}, 3000);
+      metadata = await this.invoke("metadata", toolNames === undefined ? {} : { toolNames }, 3000);
     }
     return {
       imageService: await require("./image-service.cjs").imageServiceStatus(
@@ -105,6 +105,7 @@ class DesktopController {
       projectId: url.pathname.match(/^\/projects\/([^/]+)/)?.[1] || null,
       ready: metadata.ready,
       editorTools: metadata.tools,
+      ...(toolNames === undefined ? {} : { availableEditorTools: metadata.availableEditorTools || [] }),
       editorContext: metadata.editorContext ?? null,
       browser: this.browser?.snapshot() ?? null,
       operations: [...this.operations.values()],
@@ -128,7 +129,7 @@ class DesktopController {
         throw new Error("Sign in to Plasmic first");
       }
       try {
-        const metadata = await this.invoke("metadata", {}, 2000);
+        const metadata = await this.invoke("metadata", { toolNames: [] }, 2000);
         if (metadata.ready) {
           return metadata;
         }
@@ -237,7 +238,27 @@ class DesktopController {
       throw new Error("Arguments must be an object");
     }
     if (method === "get_app_state") {
-      return this.state();
+      const { toolNames } = input;
+      if (toolNames !== undefined && (!Array.isArray(toolNames) ||
+          toolNames.some((name) => typeof name !== "string" || !name) ||
+          new Set(toolNames).size !== toolNames.length)) {
+        throw new Error("toolNames must be an array of distinct nonempty strings");
+      }
+      const state = await this.state(toolNames);
+      if (toolNames === undefined) {
+        return state;
+      }
+      const availableEditorTools = state.availableEditorTools || [];
+      for (const name of toolNames) {
+        if (!availableEditorTools.includes(name)) {
+          throw new Error(`Editor schema unavailable: ${name}`);
+        }
+      }
+      return {
+        ...state,
+        availableEditorTools,
+        editorTools: Object.fromEntries(toolNames.map((name) => [name, state.editorTools[name]])),
+      };
     }
     const win = this.getWindow();
     if (!win || win.isDestroyed()) {
@@ -338,7 +359,7 @@ class DesktopController {
       );
       const url =
         this.config.studioOrigin + (isOrg ? "/orgs/" : "/workspaces/") + id;
-      const state = await this.state();
+      const state = await this.state([]);
       if (state.url !== url) {
         await this.saveBeforeNavigation(state);
         await win.loadURL(url);
@@ -371,7 +392,7 @@ class DesktopController {
       ) {
         throw new Error("Invalid projectId");
       }
-      const state = await this.state();
+      const state = await this.state([]);
       if (state.projectId !== input.projectId) {
         await this.saveBeforeNavigation(state);
         await win.loadURL(

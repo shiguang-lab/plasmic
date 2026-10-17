@@ -10,10 +10,7 @@ The current maintained implementation declares antd 6.6.5 and @ant-design/icons 
 
 Read [Ant Design v6](../antd_v6/index.md) for actual Antd controls placed in SearchForm.Item and [Ant Design Icons](../antd_icons/index.md) when composing its icons. These components keep their own contracts; this business library does not redefine them.
 
-| Component | Covered Studio registrations |
-| --- | --- |
-| [AppShell](components/app-shell.md) | AppShell (`plasmic-overseas-app-shell`) |
-| [SearchForm](components/search-form.md) | SearchForm.Item (`plasmic-overseas-search-form-item`); SearchForm (`plasmic-overseas-search-form`) |
+Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read.
 
 ## Composition and acceptance
 

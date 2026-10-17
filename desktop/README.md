@@ -451,7 +451,7 @@ The server provides these tools:
 
 | Tool                                                      | Function                                                                                                  |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `get_app_state`                                           | Read readiness, org/workspace/project, focused artboard, selection/editing scope and exact editor schemas |
+| `get_app_state`                                           | Read identity, readiness, editing context and schemas; `toolNames: []` returns status/tool names, a name list selects complete schemas, omission returns all |
 | `get_org` / `list_orgs`                                   | Read an organization by ID or list accessible organizations with an optional name query                   |
 | `create_org` / `open_org`                                 | Create an organization or open its dashboard                                                              |
 | `create_workspace` / `list_workspaces` / `open_workspace` | Create, list or open workspaces; lists can be scoped to an organization                                   |

@@ -25,6 +25,15 @@ class FormCheckTests(unittest.TestCase):
     def test_real_fields_pass_with_both_component_name_formats(self):
         self.assertTrue(self.result(self.html)["passed"])
 
+    def test_rule_parameters_preserve_json_types(self):
+        self.expected['pages'][0]['forms'][0]['fields'][0]['rules'].append({'ruleType': 'min', 'length': 1})
+        actual = self.html.replace('"message":"Required"}]', '"message":"Required"},{"ruleType":"min","length":1}]')
+        self.assertTrue(self.result(actual)['passed'])
+        result = self.result(actual.replace('"length":1', '"length":true'))
+        self.assertFalse(result['passed'])
+        self.assertEqual(result['errors'], [{'page': 'page', 'form': 'Form', 'field': 'name', 'errors': ['Missing expected validation rule']}])
+
+
     def test_path_inventory_reuses_new_project_uuids_without_mutation(self):
         page = self.expected["pages"][0]
         page.pop("componentUuid")

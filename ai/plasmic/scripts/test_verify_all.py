@@ -1,11 +1,14 @@
+import copy
+import hashlib
 import json
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from verify_all import GATES, collect, run_suite, write_json
+from verify_all import GATES, collect, run_suite, write_json, reusable_evidence, evidence_hashes
 import test_verify_forms
 import test_verify_shell_height
 
@@ -20,15 +23,16 @@ class SuiteTests(unittest.TestCase):
         form = test_verify_forms.FormCheckTests()
         form.setUp()
         self.model = shell.readback["results"][0]
-        self.model.update(uuid="page", name="Records", pageMeta={"path": "/records"})
+        self.model.update(uuid="page", name="Records", pageMeta={"path": "/records"},
+                          props=[], states=[], interactions=[], variants=[], variantGroups=[])
         menu = [{"key": "records", "label": "Records", "href": "/records"}]
         self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('style="height:100%"',
             'data-plasmic-name="AppShell" data-props=\'' + json.dumps({"menuItems": menu}) + '\' style="height:100%"').replace(
                 '</plasmic-component>', '<slot name="children">' + form.html + '</slot></plasmic-component>')
-        self.overview = {"results": [{"__type": "Project", "components": [self.model]}]}
+        self.overview = {"results": [{"__type": "Project", "id": "project", "components": [self.model]}]}
         self.readback = {"results": [self.model]}
         self.snapshot = shell.snapshot
-        self.context = {"projectId": "project", "branchId": None, "revision": 1, "changeCounter": 0}
+        self.context = {"projectId": "project", "branchId": None, "sessionId": "editor-session", "revision": 1, "changeCounter": 0}
         self.config = {
             "structure": {"inventory": "structure.json"}, "forms": {"inventory": "forms.json"},
             "descriptions": {"inventory": "descriptions.json"}, "overlays": {"inventory": "overlays.json"},
@@ -37,7 +41,7 @@ class SuiteTests(unittest.TestCase):
         write_json(self.root / "overview.json", self.overview)
         write_json(self.root / "pages.json", self.readback)
         write_json(self.root / "layouts.json", {"page": {"snapshot": self.snapshot}})
-        write_json(self.root / "capture.json", {"projectId": "project", "before": self.context, "after": self.context})
+        self.write_capture()
         write_json(self.root / "structure.json", {"pages": [{"path": "/records", "source": "requirement §Records"}],
                    "navigation": {"items": menu, "source": "requirement §Navigation"}})
         form.expected["pages"][0].pop("componentUuid")
@@ -46,6 +50,12 @@ class SuiteTests(unittest.TestCase):
         for gate, key in [("descriptions", "groups"), ("overlays", "overlays")]:
             write_json(self.root / (gate + ".json"), {"pages": [{"path": "/records", key: []}]})
         (self.root / "intent.html").write_text(self.model["baseVariantTplTree"])
+
+    def write_capture(self):
+        self.capture = {"projectId": "project", "desktopVersion": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64},
+                        "collectedAt": "2026-10-17T00:00:00+00:00", "before": copy.deepcopy(self.context),
+                        "after": copy.deepcopy(self.context), "files": evidence_hashes(self.root)}
+        write_json(self.root / "capture.json", self.capture)
 
     def run_suite(self):
         return run_suite(self.config, self.root, self.root, "project")
@@ -59,6 +69,7 @@ class SuiteTests(unittest.TestCase):
     def test_independent_failures_are_aggregated(self):
         (self.root / "forms.json").write_text("invalid JSON")
         write_json(self.root / "layouts.json", {"page": {"error": "Editor command timed out: metadata"}})
+        self.write_capture()
         report = self.run_suite()
         self.assertFalse(report["passed"])
         self.assertEqual({item["gate"] for item in report["checks"] if item["status"] == "failed"}, {"forms", "shell_height"})
@@ -89,20 +100,101 @@ class SuiteTests(unittest.TestCase):
             json.dumps({"menuItems": [{"key": "records", "label": "Records", "href": "/records"}]}),
             json.dumps({"menuItems": "{{ $state.menu }}"}))
         write_json(self.root / "pages.json", self.readback)
+        self.write_capture()
         report = self.run_suite()
         structure = next(item for item in report["checks"] if item["gate"] == "structure")
         self.assertEqual(structure["status"], "failed")
         self.assertIn("Static menuItems", json.dumps(structure))
 
     def test_changed_context_and_incomplete_page_reads_fail(self):
-        for field, value in [("projectId", "other"), ("branchId", "branch"), ("revision", 2), ("changeCounter", 1)]:
+        for field, value in [("projectId", "other"), ("branchId", "branch"), ("sessionId", "other"), ("revision", 2), ("changeCounter", 1)]:
             with self.subTest(field=field):
-                write_json(self.root / "capture.json", {"projectId": "project", "before": self.context,
-                           "after": {**self.context, field: value}})
+                capture = {**self.capture, "after": {**self.context, field: value}}
+                write_json(self.root / "capture.json", capture)
                 self.assertFalse(self.run_suite()["passed"])
-        write_json(self.root / "capture.json", {"projectId": "project", "before": self.context, "after": self.context})
+        self.write_capture()
         write_json(self.root / "pages.json", {"results": [self.model, self.model]})
         self.assertFalse(self.run_suite()["passed"])
+
+    def test_identity_types_cannot_be_bool_or_missing_strings(self):
+        for field, value in [('revision', True), ('changeCounter', False), ('revision', -1),
+                             ('branchId', 0), ('sessionId', ''), ('revision', '1')]:
+            identity = {**self.context, field: value}
+            capture = {**self.capture, 'before': identity, 'after': identity}
+            write_json(self.root / 'capture.json', capture)
+            with self.subTest(field=field, value=value):
+                self.assertFalse(self.run_suite()['passed'])
+
+    def test_collection_timestamp_must_be_an_aware_iso_timestamp(self):
+        for value in ['garbage', '2026-10-17', '2026-10-17T00:00:00', '2026-99-17T00:00:00+00:00']:
+            write_json(self.root / 'capture.json', {**self.capture, 'collectedAt': value})
+            with self.subTest(value=value):
+                self.assertFalse(self.run_suite()['passed'])
+
+    def test_overview_project_identity_cannot_differ_from_capture(self):
+        self.overview['results'][0]['id'] = 'other'
+        write_json(self.root / 'overview.json', self.overview)
+        self.write_capture()
+        report = self.run_suite()
+        self.assertFalse(report['passed'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+
+    def test_manifest_hash_mismatch_is_the_only_failing_gate(self):
+        path = self.root / 'pages.json'
+        path.write_text(path.read_text() + ' ')
+        report = self.run_suite()
+        self.assertFalse(report['passed'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+
+    def test_checked_inventory_and_intent_hashes_bind_the_loaded_bytes(self):
+        original = Path.read_bytes
+        for filename in ['forms.json', 'intent.html']:
+            path = self.root / filename
+            before = path.read_bytes()
+            changed = False
+
+            def replace_after_read(target, *args, **kwargs):
+                nonlocal changed
+                data = original(target, *args, **kwargs)
+                if target.resolve() == path.resolve() and not changed:
+                    changed = True
+                    target.write_text('Unreviewed replacement')
+                return data
+
+            with self.subTest(file=filename), patch.object(Path, 'read_bytes', replace_after_read):
+                report = self.run_suite()
+                self.assertTrue(changed)
+                self.assertFalse(report['passed'])
+                self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+                recorded = {item['path']: item['sha256'] for item in report['checkedInputs']['files']}
+                self.assertEqual(recorded[str(path.resolve())], hashlib.sha256(before).hexdigest())
+            path.write_bytes(before)
+
+    def test_loaded_models_are_bound_to_the_manifest_bytes_during_replay(self):
+        original_text, original_bytes = Path.read_text, Path.read_bytes
+        changed = False
+
+        def replace_after_read(path, data):
+            nonlocal changed
+            if path == self.root / 'pages.json' and not changed:
+                changed = True
+                replacement = copy.deepcopy(self.readback)
+                replacement['results'][0]['baseVariantTplTree'] = '<div>Unverified replacement</div>'
+                write_json(path, replacement)
+                self.write_capture()
+            return data
+
+        def read_text(path, *args, **kwargs):
+            return replace_after_read(path, original_text(path, *args, **kwargs))
+
+        def read_bytes(path, *args, **kwargs):
+            return replace_after_read(path, original_bytes(path, *args, **kwargs))
+
+        with patch.object(Path, 'read_text', read_text), patch.object(Path, 'read_bytes', read_bytes):
+            report = self.run_suite()
+        self.assertTrue(changed)
+        self.assertFalse(report['passed'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
 
     def test_every_page_height_is_checked(self):
         other = {**self.model, "uuid": "other", "pageMeta": {"path": "/other"}}
@@ -113,6 +205,44 @@ class SuiteTests(unittest.TestCase):
         height = next(item for item in self.run_suite()["checks"] if item["gate"] == "shell_height")
         self.assertEqual(height["status"], "failed")
         self.assertEqual(len(height["report"]["pages"]), 2)
+
+    def test_incomplete_or_tampered_offline_capture_cannot_pass(self):
+        original = copy.deepcopy(self.capture)
+        for key in ["files", "desktopVersion", "build", "collectedAt"]:
+            damaged = copy.deepcopy(original)
+            del damaged[key]
+            write_json(self.root / "capture.json", damaged)
+            self.assertFalse(self.run_suite()["passed"], key)
+        for key in ["sessionId", "branchId", "revision", "changeCounter"]:
+            damaged = copy.deepcopy(original)
+            del damaged["before"][key]
+            del damaged["after"][key]
+            write_json(self.root / "capture.json", damaged)
+            self.assertFalse(self.run_suite()["passed"], key)
+        write_json(self.root / "capture.json", original)
+        (self.root / "pages.json").write_text(json.dumps(self.readback) + " ")
+        self.assertFalse(self.run_suite()["passed"])
+
+    def test_hashed_partial_models_cannot_pass_or_be_reused(self):
+        original = copy.deepcopy(self.model)
+        state = {"version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
+        for field in ["props", "states", "interactions", "variants", "variantGroups"]:
+            broken = copy.deepcopy(original)
+            del broken[field]
+            write_json(self.root / "pages.json", {"results": [broken]})
+            self.write_capture()
+            self.assertFalse(self.run_suite()["passed"], field)
+            self.assertFalse(reusable_evidence(self.root, state, self.context), field)
+
+    def test_checked_inputs_record_current_expectations_and_verifier_source(self):
+        first = self.run_suite()["checkedInputs"]
+        files = {Path(item["path"]).name: item["sha256"] for item in first["files"]}
+        self.assertEqual(files["forms.json"], hashlib.sha256((self.root / "forms.json").read_bytes()).hexdigest())
+        self.assertEqual(files["verify_bindings.py"], hashlib.sha256(Path(__file__).with_name("verify_bindings.py").read_bytes()).hexdigest())
+        write_json(self.root / "forms.json", {"pages": []})
+        second = self.run_suite()
+        self.assertFalse(second["passed"])
+        self.assertNotEqual(first["files"], second["checkedInputs"]["files"])
 
     def test_cli_writes_markdown_json_and_preserves_prior_output(self):
         write_json(self.root / "suite.json", self.config)
@@ -135,7 +265,8 @@ class SuiteTests(unittest.TestCase):
             def call(self, method, input=None):
                 calls.append((method, input))
                 if method == "get_app_state":
-                    return {"ready": True, "projectId": "project", "version": "test"}
+                    fixture.assertEqual(input, {"toolNames": []})
+                    return {"ready": True, "projectId": "project", "version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
                 if method == "snapshot_layout":
                     fixture.assertEqual(input, {"componentUuid": "page"})
                     return fixture.snapshot
@@ -152,11 +283,210 @@ class SuiteTests(unittest.TestCase):
                 raise AssertionError(name)
 
         collect(Desktop(), "project", self.root)
-        self.assertEqual([name for name, _ in calls], ["get_app_state", "identify", "getEditorContext", "read", "read", "snapshot_layout", "getEditorContext"])
+        self.assertEqual([name for name, _ in calls], ["get_app_state", "identify", "getEditorContext", "read", "read", "snapshot_layout", "getEditorContext", "get_app_state"])
         calls.clear()
         with self.assertRaisesRegex(ValueError, "never switches"):
             collect(Desktop(), "wrong-project", self.root)
         self.assertEqual(len(calls), 1)
+
+    def test_live_reuse_requires_exact_session_revision_build_and_intact_complete_evidence(self):
+        fixture = self
+        calls = []
+        self.context["sessionId"] = "editor-session"
+        state = {"ready": True, "projectId": "project", "version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
+
+        class Desktop:
+            def call(self, method, input=None):
+                calls.append(method)
+                return state if method == "get_app_state" else fixture.snapshot
+
+            def execute(self, name, input=None):
+                calls.append(name)
+                if name == "identify":
+                    return {}
+                if name == "getEditorContext":
+                    return fixture.context
+                return fixture.readback if input else fixture.overview
+
+        desktop = Desktop()
+        collect(desktop, "project", self.root)
+        self.assertTrue(reusable_evidence(self.root, state, self.context))
+        output = self.root / "reused"
+        output.mkdir()
+        calls.clear()
+        collect(desktop, "project", output, self.root)
+        self.assertEqual(calls, ["get_app_state", "identify", "getEditorContext", "snapshot_layout", "getEditorContext", "get_app_state"])
+        self.assertTrue(run_suite(self.config, self.root, output, "project")["passed"])
+        # Runtime layout can regress without a model/session change. Reuse must
+        # still measure it and fail the same shell-height gate as a fresh capture.
+        original_snapshot = self.snapshot
+        self.snapshot = copy.deepcopy(self.snapshot)
+        self.snapshot["frames"][0]["elements"][0]["height"] = 742
+        changed = self.root / "changed-layout"
+        changed.mkdir()
+        calls.clear()
+        collect(desktop, "project", changed, self.root)
+        self.assertNotIn("read", calls)
+        self.assertIn("snapshot_layout", calls)
+        report = run_suite(self.config, self.root, changed, "project")
+        self.assertEqual(next(item["status"] for item in report["checks"] if item["gate"] == "evidence"), "passed")
+        self.assertEqual(next(item["status"] for item in report["checks"] if item["gate"] == "shell_height"), "failed")
+        self.snapshot = original_snapshot
+        for key, value in [("sessionId", "reopened"), ("revision", 2), ("changeCounter", 1), ("branchId", "other"), ("projectId", "other")]:
+            self.assertFalse(reusable_evidence(self.root, state, {**self.context, key: value}), key)
+        self.assertFalse(reusable_evidence(self.root, {**state, "build": {"hash": "updated"}}, self.context))
+        for key in ("version", "build"):
+            incomplete = {**state, key: None}
+            capture = json.loads((self.root / "capture.json").read_text())
+            write_json(self.root / "capture.json", {**capture, "desktopVersion" if key == "version" else key: None})
+            self.assertFalse(reusable_evidence(self.root, incomplete, self.context))
+            write_json(self.root / "capture.json", capture)
+        # Even a correctly hashed partial capture must be recollected, not cached.
+        capture = json.loads((self.root / "capture.json").read_text())
+        for frames in [[], [{"ready": False}], [{"ready": True, "truncated": True, "height": 1024}]]:
+            write_json(self.root / "layouts.json", {"page": {"snapshot": {"frames": frames}}})
+            write_json(self.root / "capture.json", {**capture, "files": evidence_hashes(self.root)})
+            self.assertFalse(reusable_evidence(self.root, state, self.context))
+        write_json(self.root / "layouts.json", {"page": {"snapshot": self.snapshot}})
+        write_json(self.root / "capture.json", capture)
+        # A bad expectation must still fail when expensive evidence collection is reused.
+        write_json(self.root / "forms.json", {"pages": []})
+        self.assertFalse(run_suite(self.config, self.root, output, "project")["passed"])
+        (self.root / "pages.json").write_text('{"results": []}')
+        self.assertFalse(reusable_evidence(self.root, state, self.context))
+        calls.clear()
+        fresh = self.root / "fresh"
+        fresh.mkdir()
+        collect(desktop, "project", fresh, self.root)
+        self.assertEqual(calls.count("read"), 2)
+        self.assertIn("snapshot_layout", calls)
+
+    def test_reuse_rejects_a_context_change_during_copy(self):
+        fixture = self
+        self.context["sessionId"] = "session"
+
+        class Desktop:
+            contexts = 0
+
+            def call(self, method, input=None):
+                return {"ready": True, "projectId": "project", "version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}} if method == "get_app_state" else fixture.snapshot
+
+            def execute(self, name, input=None):
+                if name == "getEditorContext":
+                    self.contexts += 1
+                    return {**fixture.context, "changeCounter": 1 if self.contexts == 4 else 0}
+                if name == "read":
+                    return fixture.readback if input else fixture.overview
+                return {}
+
+        desktop = Desktop()
+        collect(desktop, "project", self.root)
+        output = self.root / "reused"
+        output.mkdir()
+        with self.assertRaisesRegex(ValueError, "changed during evidence reuse"):
+            collect(desktop, "project", output, self.root)
+
+    def test_reuse_pins_the_validated_manifest_during_copy(self):
+        fixture = self
+
+        class Desktop:
+            def call(self, method, input=None):
+                return {"ready": True, "projectId": "project", "version": "test", "build": fixture.capture["build"]} if method == "get_app_state" else fixture.snapshot
+
+            def execute(self, name, input=None):
+                if name == "getEditorContext":
+                    return fixture.context
+                if name == "read":
+                    return fixture.readback if input else fixture.overview
+                return {}
+
+        def replace_after_validation(*args):
+            validated = reusable_evidence(*args)
+            self.assertTrue(validated)
+            changed = copy.deepcopy(self.readback)
+            changed["results"][0]["states"] = [{"name": "unvalidated"}]
+            write_json(self.root / "pages.json", changed)
+            self.write_capture()
+            return validated
+
+        output = self.root / "replaced"
+        output.mkdir()
+        with patch("verify_all.reusable_evidence", side_effect=replace_after_validation):
+            with self.assertRaisesRegex(ValueError, "Evidence changed during copy"):
+                collect(Desktop(), "project", output, self.root)
+
+    def test_collection_rejects_a_build_change_on_fresh_and_reuse_paths(self):
+        fixture = self
+        for reuse in [None, self.root]:
+            class Desktop:
+                statuses = 0
+
+                def call(self, method, input=None):
+                    if method != "get_app_state":
+                        return fixture.snapshot
+                    self.statuses += 1
+                    build = fixture.capture["build"] if self.statuses == 1 else {**fixture.capture["build"], "rendererHash": "f" * 64}
+                    return {"ready": True, "projectId": "project", "version": "test", "build": build}
+
+                def execute(self, name, input=None):
+                    if name == "getEditorContext":
+                        return fixture.context
+                    if name == "read":
+                        return fixture.readback if input else fixture.overview
+                    return {}
+
+            with self.subTest(reuse=bool(reuse)):
+                output = self.root / ("changed-build-reused" if reuse else "changed-build-fresh")
+                output.mkdir()
+                with self.assertRaisesRegex(ValueError, "Desktop changed during collection"):
+                    collect(Desktop(), "project", output, reuse)
+
+    def test_incomplete_build_fingerprint_cannot_pass_or_be_reused(self):
+        for build in [{"unrelated": 1}, {"rendererHash": "a" * 64}, {"rendererHash": "invalid", "desktopHash": "b" * 64},
+                      {"rendererHash": "a" * 64, "desktopHash": "b" * 64, "sourceHash": None}]:
+            with self.subTest(build=build):
+                capture = {**self.capture, "build": build}
+                write_json(self.root / "capture.json", capture)
+                self.assertFalse(self.run_suite()["passed"])
+                self.assertFalse(reusable_evidence(self.root, {"version": "test", "build": build}, self.context))
+
+    def test_collection_rejects_other_status_changes_on_fresh_and_reuse_paths(self):
+        fixture = self
+        for reuse in [None, self.root]:
+            for key, value in [('ready', False), ('projectId', 'other'), ('version', 'different')]:
+                class Desktop:
+                    statuses = 0
+
+                    def call(self, method, input=None):
+                        if method != 'get_app_state':
+                            return fixture.snapshot
+                        self.statuses += 1
+                        state = dict(ready=True, projectId='project', version='test', build=fixture.capture['build'])
+                        return state if self.statuses == 1 else {**state, key: value}
+
+                    def execute(self, name, input=None):
+                        if name == 'getEditorContext':
+                            return fixture.context
+                        if name == 'read':
+                            return fixture.readback if input else fixture.overview
+                        return {}
+
+                with self.subTest(reuse=bool(reuse), field=key):
+                    output = self.root / f'changed-{key}-{bool(reuse)}'
+                    output.mkdir()
+                    with self.assertRaisesRegex(ValueError, 'Desktop changed during collection'):
+                        collect(Desktop(), 'project', output, reuse)
+
+    def test_reuse_rejects_invalid_layout_flags_and_numeric_viewport(self):
+        state = {'version': 'test', 'build': self.capture['build']}
+        for key, value in [('ready', 1), ('ready', 'true'), ('truncated', 0),
+                           ('truncated', None), ('height', True), ('height', float('nan'))]:
+            snapshot = copy.deepcopy(self.snapshot)
+            snapshot['frames'][0][key] = value
+            write_json(self.root / 'layouts.json', {'page': {'snapshot': snapshot}})
+            self.write_capture()
+            with self.subTest(field=key, value=value):
+                self.assertFalse(reusable_evidence(self.root, state, self.context))
 
 
 if __name__ == "__main__":

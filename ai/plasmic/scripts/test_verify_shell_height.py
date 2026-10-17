@@ -70,6 +70,26 @@ class ShellHeightTests(unittest.TestCase):
         self.assertFalse(check(self.readback, self.snapshot)["passed"])
         self.assertFalse(check({"results": []}, self.snapshot)["passed"])
 
+    def test_nonfinite_or_non_numeric_measurements_cannot_pass_tolerance_checks(self):
+        for value in [float('nan'), float('inf'), float('-inf'), True, None, "1024"]:
+            for field in ['y', 'height']:
+                snapshot = copy.deepcopy(self.snapshot)
+                snapshot['frames'][0]['elements'][0][field] = value
+                with self.subTest(value=value, field=field):
+                    self.assertFalse(check(self.readback, snapshot)['passed'])
+            snapshot = copy.deepcopy(self.snapshot)
+            snapshot['frames'][0]['height'] = value
+            with self.subTest(value=value, field='viewport'):
+                self.assertFalse(check(self.readback, snapshot)['passed'])
+
+    def test_ready_and_truncated_flags_require_literal_booleans(self):
+        for field, values in [('ready', [1, 'true', None]), ('truncated', [0, '', None])]:
+            for value in values:
+                snapshot = copy.deepcopy(self.snapshot)
+                snapshot['frames'][0][field] = value
+                with self.subTest(field=field, value=value):
+                    self.assertFalse(check(self.readback, snapshot)['passed'])
+
 
 if __name__ == "__main__":
     unittest.main()

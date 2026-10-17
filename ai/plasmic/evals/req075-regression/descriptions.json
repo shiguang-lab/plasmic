@@ -1,0 +1,191 @@
+{
+  "pages": [
+    {
+      "path": "/req-075/groups",
+      "groups": []
+    },
+    {
+      "path": "/req-075/regular",
+      "groups": []
+    },
+    {
+      "path": "/req-075/onetime",
+      "groups": [
+        {
+          "name": "GroupSummary",
+          "container": "SQLBasicInformation",
+          "title": "一次性客群基本信息",
+          "column": 2,
+          "itemSlots": [
+            {
+              "name": "GroupSummaryName",
+              "key": "name",
+              "label": "客群名称",
+              "children": "{{ $ctx.query?.name||'到期用户召回' }}"
+            },
+            {
+              "name": "GroupSummaryType",
+              "key": "type",
+              "label": "类型",
+              "children": "一次性（ONETIME）"
+            },
+            {
+              "name": "GroupSummaryKey",
+              "key": "key",
+              "label": "Key",
+              "children": "{{ $ctx.query?.key||'GRP_ONETIME_RECALL_20261006' }}"
+            },
+            {
+              "name": "GroupSummaryScenario",
+              "key": "scenario",
+              "label": "场景",
+              "children": "{{ $ctx.query?.scenario||'贷后' }}"
+            },
+            {
+              "name": "GroupSummaryOwner",
+              "key": "owner",
+              "label": "负责人",
+              "children": "{{ $ctx.query?.owner||'经营 OS 管理员' }}"
+            },
+            {
+              "name": "GroupSummarySource",
+              "key": "source",
+              "label": "客群来源",
+              "children": "写 SQL"
+            },
+            {
+              "name": "GroupSummaryAppSource",
+              "key": "appSource",
+              "label": "App 来源",
+              "children": "TACO"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/req-075/detail",
+      "groups": [
+        {
+          "name": "BasicDetails",
+          "container": "BasicDetailsPanel",
+          "title": "",
+          "column": 2,
+          "itemSlots": [
+            {
+              "name": "BasicDetailsGroupID",
+              "key": "0",
+              "label": "客群 ID",
+              "children": "{{ $ctx.query?.id||'1001' }}"
+            },
+            {
+              "name": "BasicDetailsGroupKey",
+              "key": "1",
+              "label": "客群 Key",
+              "children": "{{ $ctx.query?.key||'GRP_REGULAR_MX_CREDIT_20261006' }}"
+            },
+            {
+              "name": "BasicDetailsGroupName",
+              "key": "2",
+              "label": "客群名称",
+              "children": "{{ $ctx.query?.name||'墨西哥授信用户促活' }}"
+            },
+            {
+              "name": "BasicDetailsType",
+              "key": "3",
+              "label": "类型",
+              "children": "{{ $ctx.query?.type||'常规' }}"
+            },
+            {
+              "name": "BasicDetailsScenario",
+              "key": "4",
+              "label": "业务场景",
+              "children": "{{ $ctx.query?.scenario||'客经' }}"
+            },
+            {
+              "name": "BasicDetailsOwner",
+              "key": "5",
+              "label": "负责人",
+              "children": "{{ $ctx.query?.owner||'经营 OS 管理员' }}"
+            },
+            {
+              "name": "BasicDetailsCreatedAt",
+              "key": "6",
+              "label": "创建时间",
+              "children": "2026-10-06 10:00:00"
+            },
+            {
+              "name": "BasicDetailsAppSource",
+              "key": "7",
+              "label": "App 来源",
+              "children": "TACO"
+            },
+            {
+              "name": "BasicDetailsStatus",
+              "key": "8",
+              "label": "状态",
+              "children": "{{ $ctx.query?.status||'启用' }}"
+            },
+            {
+              "name": "BasicDetailsValidity",
+              "key": "9",
+              "label": "有效期",
+              "children": "{{ ($ctx.query?.type==='一次性')?'2026-10-06 ~ '+new Date(Date.UTC(2026,9,6)+Number($ctx.query?.expiry||14)*86400000).toISOString().slice(0,10):'长期有效' }}"
+            },
+            {
+              "name": "BasicDetailsSource",
+              "key": "10",
+              "label": "客群来源",
+              "children": "写 SQL"
+            },
+            {
+              "name": "BasicDetailsRefreshMode",
+              "key": "11",
+              "label": "刷新模式",
+              "children": "{{ ($ctx.query?.type==='一次性')?'不刷新':'T+1 动态' }}"
+            }
+          ]
+        },
+        {
+          "name": "StorageDescriptions",
+          "container": "StorageDetails",
+          "title": "数据存储",
+          "column": 2,
+          "itemSlots": [
+            {
+              "name": "StorageDescriptionsTable",
+              "key": "table",
+              "label": "存储表",
+              "children": "{{ 'cg_mx_cg_'+($ctx.query?.id||'1001') }}"
+            },
+            {
+              "name": "StorageDescriptionsDays",
+              "key": "days",
+              "label": "数据保存天数",
+              "children": "{{ $ctx.query?.retention||'3 天' }}"
+            },
+            {
+              "name": "StorageDescriptionsRange",
+              "key": "range",
+              "label": "保留分区",
+              "children": "2026-10-04 ~ 2026-10-06"
+            },
+            {
+              "name": "StorageDescriptionsDeadline",
+              "key": "deadline",
+              "label": "每日产出截止时间",
+              "children": "{{ $ctx.query?.deadline||'18:00:00' }}"
+            }
+          ]
+        },
+        {
+          "name": "RecordDescription",
+          "container": "RecordDrawer",
+          "title": "",
+          "column": 1,
+          "items": "{{ Object.entries($state.record).filter(([k])=>k!=='id').map(([k,v])=>({key:k,label:({type:'应用类型',target:'目标活动',status:'状态',operator:'操作人',time:'时间',parameters:'应用参数',response:'返回信息',reason:'失败原因',trigger:'触发方式',count:'命中成员数'})[k]||k,children:String(v)})) }}"
+        }
+      ]
+    }
+  ]
+}

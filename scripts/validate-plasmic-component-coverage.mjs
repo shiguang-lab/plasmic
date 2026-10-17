@@ -16,7 +16,9 @@ export function validateComponentReferences(files, registrations = []) {
     const library = match[1];
     const directory = path.posix.dirname(filename);
     const indexed = new Map();
-    for (const row of index.matchAll(/^\| \[[^\]]+\]\((components\/[^)]+\.md)\) \| (.+) \|$/gm)) {
+    const catalog = resources.get(`${directory}/catalog.md`);
+    assert(library === "antd_icons" || catalog, `Missing component catalog: ${library}`);
+    for (const row of (catalog || "").matchAll(/^\| \[[^\]]+\]\((components\/[^)]+\.md)\) \| (.+) \|$/gm)) {
       const document = `${directory}/${row[1]}`;
       assert(resources.has(document), `Missing component document: ${document}`);
       for (const key of row[2].matchAll(/`(plasmic-[^`]+)`/g)) {

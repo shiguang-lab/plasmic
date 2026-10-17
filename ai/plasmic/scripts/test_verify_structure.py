@@ -102,9 +102,46 @@ class StructureTests(unittest.TestCase):
             self.pages["results"][0]["baseVariantTplTree"] = markup
             self.assertFalse(self.result()["passed"])
 
+    def test_role_query_transform_checks_every_page_against_literal_inventory(self):
+        self.expected["navigation"]["roleQuery"] = {"state": "role", "query": "role", "default": "Reader"}
+        expression = "{{ (()=>{const map=items=>items.map(item=>({...item,...(item.href?{href:item.href+'?role='+encodeURIComponent(($state.role || $ctx.query?.role || 'Reader'))}:{}),...(item.children?{children:map(item.children)}:{})}));return map(" + json.dumps(self.menu) + ");})() }}"
+        for page in self.pages["results"]:
+            page.update(self.page(page["uuid"], page["pageMeta"]["path"], expression))
+        self.assertTrue(self.result()["passed"])
+        self.pages["results"][1].update(self.page("detail", "/detail", expression.replace("/records", "/wrong")))
+        self.assertFalse(self.result()["passed"])
+
     def test_dynamic_navigation_requires_other_evidence(self):
         self.pages["results"][0] = self.page("list", "/records", "{{ $state.menu }}")
         self.assertFalse(self.result()["passed"])
+
+    def test_static_menu_disabled_type_and_icon_changes_are_not_projected_away(self):
+        self.assertTrue(self.result()['passed'])
+        for key, value in [('disabled', True), ('type', 'divider'), ('icon', 'Changed'),
+                           ('disabled', '{{ $state.disabled }}'), ('type', '{{ $state.type }}')]:
+            menu = copy.deepcopy(self.menu)
+            menu[0]['children'][0][key] = value
+            pages = copy.deepcopy(self.pages)
+            pages['results'][0] = self.page('list', '/records', menu)
+            with self.subTest(property=key, value=value):
+                result = check(self.expected, self.overview, pages)
+                self.assertFalse(result['passed'])
+                self.assertTrue(all(e['check'] == 'navigation' for e in result['errors']))
+
+    def test_reviewed_static_menu_flags_pass_but_invalid_flags_do_not(self):
+        menu = copy.deepcopy(self.menu)
+        menu[0]['children'][0].update(disabled=True, type='item', icon='R')
+        expected = copy.deepcopy(self.expected)
+        expected['navigation']['items'] = menu
+        pages = {'results': [self.page('list', '/records', menu), self.page('detail', '/detail', menu)]}
+        self.assertTrue(check(expected, self.overview, pages)['passed'])
+        for key, value in [('disabled', 1), ('type', 'unknown'), ('onClick', 'unexpected')]:
+            invalid = copy.deepcopy(menu)
+            invalid[0]['children'][0][key] = value
+            expected['navigation']['items'] = invalid
+            pages['results'] = [self.page('list', '/records', invalid), self.page('detail', '/detail', invalid)]
+            with self.subTest(property=key, value=value):
+                self.assertFalse(check(expected, self.overview, pages)['passed'])
 
 
 if __name__ == "__main__":

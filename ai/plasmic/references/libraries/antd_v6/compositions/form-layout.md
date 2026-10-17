@@ -2,7 +2,9 @@
 
 Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
 
-Read [Form](../components/form.md) for values, validation and submission, and [Form Field](../components/form.md#formitem) for field ownership, help, instructions and label layout. Read [Modal](../components/modal.md) for native footer/submission behavior and [Overlays](modal-drawer.md) for dismissal. Component rules are maintained in those references; this file owns layout and region acceptance.
+Read [Form](../components/form.md) for values, validation and submission, and [Form Field](../components/form.md#formitem) for field ownership, help, instructions and label layout. For a Form inside a Modal, additionally read [Modal](../components/modal.md) for native footer/submission behavior. For a Form inside any overlay, read [Overlays](modal-drawer.md) for dismissal. A standalone Form does not load overlay rules. Component rules are maintained in those references; this file owns layout and region acceptance.
+
+Read this file through `read_reference.py`: include `layout-ownership` for every Form; include `modal-form-layout` only for Forms in a Modal. All applicable acceptance requirements remain mandatory.
 
 ## Layout ownership
 

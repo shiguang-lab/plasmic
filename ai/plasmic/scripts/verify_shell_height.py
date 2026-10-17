@@ -6,12 +6,17 @@ This checks model sizing and artboard geometry, not Preview scrolling or persist
 """
 import argparse
 import json
+import math
 import re
 from pathlib import Path
 from verify_slots import Tree, walk
 
 
 VIEWPORT_HEIGHTS = {"100vh", "100dvh", "100svh", "100lvh"}
+
+
+def finite_number(value):
+    return type(value) in (int, float) and math.isfinite(value)
 
 
 def styles(node):
@@ -52,7 +57,8 @@ def check(readback, snapshot):
         errors.append("Use a component-targeted snapshot with exactly one frame")
     else:
         frame = frames[0]
-        if not frame.get("ready") or frame.get("truncated") or not frame.get("height", 0) > 0:
+        if (frame.get("ready") is not True or frame.get("truncated") is not False
+                or not finite_number(frame.get("height")) or frame["height"] <= 0):
             errors.append("Snapshot must be ready, complete and have a positive viewport height")
         else:
             elements = frame.get("elements", [])
@@ -71,8 +77,11 @@ def check(readback, snapshot):
                 for name, element in [("AppShell", shell), ("Layout", layout), ("sidebar", sidebars[0])]:
                     if element is None:
                         continue
-                    top = element["y"]
-                    bottom = top + element["height"]
+                    top, height = element.get("y"), element.get("height")
+                    if not finite_number(top) or not finite_number(height) or height <= 0:
+                        errors.append(f"{name} needs finite numeric coordinates and positive height")
+                        continue
+                    bottom = top + height
                     measurements.append({"region": name, "top": top, "height": element["height"], "bottom": bottom})
                     if abs(top) > 1 or abs(bottom - frame["height"]) > 1:
                         errors.append(f"{name} must reach viewport top/bottom: top={top}, bottom={bottom}, viewport={frame['height']}")

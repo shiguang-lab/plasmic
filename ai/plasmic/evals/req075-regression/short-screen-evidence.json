@@ -1,0 +1,322 @@
+{
+  "projectId": "6M9xV1Vz9kawVFdoXVQdSG",
+  "revision": 164,
+  "desktopVersion": "0.1.14",
+  "build": {
+    "kind": "local",
+    "revision": "716f2e5605f5b1234004f92396f9a40730ca0017",
+    "dirty": true,
+    "builtAt": "2026-10-17T13:05:20.354Z",
+    "sourceHash": "cb18ad489dbde49bdfa0605bd5c78c4a1fb725891f5a59c1149b987751d0112e",
+    "rendererHash": "1f76a95ef13dc4358fd19de412b111b44e96fc3e565fdd7b70b7eb4a33db53b8",
+    "desktopHash": "767177f585148ac9746a6f03b18238c7f0d640b8872bed5130a822f5ccf71fc5"
+  },
+  "method": "Native CUA interactions; public Desktop get_screenshot workspace captures live Preview pixels, not static artboard rendering. The listed live states and their layouts were visually reviewed. Physical image 3200×2000 includes app chrome; business CSS viewport is 1440×720.",
+  "passed": true,
+  "modalDrawerCount": 8,
+  "confirmationCount": 5,
+  "cases": [
+    {
+      "surface": "CreateOnetimeGroupModal",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "All fields, required error, Cancel/OK and native X remain visible at 1440×720. Cancel returns to list.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/create-onetime-default.png",
+          "sha256": "b5d798b28d24d9efca6eda92326774e25b61aafc3e953ba0416c8d22c33f520a",
+          "state": "default"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/create-onetime-validation.png",
+          "sha256": "2b14aa24b559eb95b6bbec456065096dfc3a1bae1b742149ccd228a7cf37ce2c",
+          "state": "validation"
+        }
+      ],
+      "overlay": "CreateOnetimeGroupModal"
+    },
+    {
+      "surface": "MetadataModal",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Name, owner, retention, seconds-level deadline and both native actions fit; X closes.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/metadata-modal.png",
+          "sha256": "861f20c7fdabf6087d23ecef78f0826a3006249e165fbba54a6816ff48042764",
+          "state": "default"
+        }
+      ],
+      "overlay": "MetadataModal"
+    },
+    {
+      "surface": "ExportModal",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Masking/audit notice, GROUP/CSV fields, group identity and both actions fit; X closes.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/export-modal.png",
+          "sha256": "55561dcb938b9ee25541958e8975d81cc6217a1ef597294173ae3d2c0f55fc0b",
+          "state": "default"
+        }
+      ],
+      "overlay": "ExportModal"
+    },
+    {
+      "surface": "PreflightModal (regular)",
+      "page": "/req-075/regular",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Running and recoverable error fit. Success retains all five masked sample fields. Scroll reaches final visible sample and pagination while title/X remain fixed. X closes.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/regular-preflight-running.png",
+          "sha256": "af6943ee239c94230f905cfbfa74bc5b6ef3f44e7eaa1ab13830db9745bdedea",
+          "state": "running"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/regular-preflight-failure.png",
+          "sha256": "ae4bea112990ec0f6d186e0a532a2addf9a6f6d70312fde20002c29725c29c74",
+          "state": "failure"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/regular-success-top.png",
+          "sha256": "927ee458c9c765f61b4694cf49460a3a71ad02412d7e3b526e158e3ac37a621a",
+          "state": "success-top"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/regular-success-bottom.png",
+          "sha256": "d96430c94ec0484db82f8ef48049aa8ae59eb9855f6f5a3137a177f90093eab9",
+          "state": "success-bottom"
+        }
+      ],
+      "overlay": "PreflightModal"
+    },
+    {
+      "surface": "PreflightModal (one-time)",
+      "page": "/req-075/onetime",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Running and recoverable error fit. Success table scroll reaches bottom pagination; title/X remain fixed. X closes.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/onetime-failure-running.png",
+          "sha256": "54cb49b092d3af1b7f2345bdae0a352f57ed9678d6dac9762295c01401d0fd51",
+          "state": "running"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/onetime-preflight-failure.png",
+          "sha256": "2b53020fbe201aeeb0f793248dc79b67b38c5ecccf850bbc7522e1a73bb27fbe",
+          "state": "failure"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/onetime-success-top.png",
+          "sha256": "ebe9b6ee74f46196531b65e54e3e4b8f80562a90d1e95d2893ff1ef9d9531c81",
+          "state": "success-top"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/onetime-success-bottom.png",
+          "sha256": "0f0cb8971413afbdcc269cb50588a956cc7a328c3f82cc51cb00a9eb568aba8b",
+          "state": "success-bottom"
+        }
+      ],
+      "overlay": "PreflightModal"
+    },
+    {
+      "surface": "ViewSQLModal",
+      "page": "/req-075/detail",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Read-only five-field SQL and title/X fit; no redundant footer. X closes.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/view-sql-modal.png",
+          "sha256": "201a3f643749e5614138ee933a7d31d8e88da2126026c6c35a2fb661fe42fc9a",
+          "state": "default"
+        }
+      ],
+      "overlay": "ViewSQLModal"
+    },
+    {
+      "surface": "RecordDrawer",
+      "page": "/req-075/detail",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Selection failure preserves numeric zero and reason. Application failure shows all parameters, response and reason. Drawer stays within Preview, native header X reachable and closes.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/selection-record-failure.png",
+          "sha256": "9fb1043be4bafa33369fdc51793019007aa9d88ee34d2473446450fa21de351e",
+          "state": "selection-failure"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/application-record-failure.png",
+          "sha256": "48df68b81e20e4932085c2282b9df2488c3f380184bef7fa87e9fc0e99839cb5",
+          "state": "application-failure"
+        }
+      ],
+      "overlay": "RecordDrawer"
+    },
+    {
+      "surface": "ApplicationModal",
+      "page": "/req-075/detail",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Default and required-field error fit. Busy target/type and Cancel/OK are visibly disabled; loading is visible. Successful completion closes Modal and appends ShortViewportCampaign record.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/application-default.png",
+          "sha256": "79ee106ad6c1d9f47f55f438a0ec426365741f90f8b3c998a7908158036bd6c5",
+          "state": "default"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/application-validation.png",
+          "sha256": "ac1289ba86e2cbfb7c68603bfe1261e801e752a4de1634befc85a52555d2d100",
+          "state": "validation"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/application-busy.png",
+          "sha256": "d0e3dbdff0a8919160b6dcbab612e7d0e01736b8b342ebb4ba1696d232f84df2",
+          "state": "busy"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/application-success.png",
+          "sha256": "8a8b8d4e1a66bd4cdb96ede59fa39c04159609675a0505a50fef4ee9987a2c14",
+          "state": "success"
+        }
+      ],
+      "overlay": "ApplicationModal"
+    },
+    {
+      "surface": "Disable confirmation",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Confirmation text/actions fit. Accept changes ACTIVE row to inactive.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/disable-confirm.png",
+          "sha256": "7ea1d55db2f4d170960372a7379f423d4c58757f490a002e3f19c68b4e7688ed",
+          "state": "confirmation"
+        }
+      ],
+      "action": "disable"
+    },
+    {
+      "surface": "Enable confirmation",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Confirmation text/actions fit. Accept enters reenable-selecting using existing conditions.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/enable-confirm.png",
+          "sha256": "1d5a4b64e0b9e4cb1526946c853b63765255bd364b57b78ffe2c1d740091ee71",
+          "state": "confirmation"
+        }
+      ],
+      "action": "enable"
+    },
+    {
+      "surface": "Delete confirmation",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Confirmation text/actions fit. Cancel preserves initialized row 1002.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/delete-confirm.png",
+          "sha256": "ba921b6d2be7ed9565dc0def6b7420ddcfe5c6cf63c068b48a9db7ca18a11d2c",
+          "state": "confirmation"
+        }
+      ],
+      "action": "delete"
+    },
+    {
+      "surface": "Launch confirmation",
+      "page": "/req-075/groups",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Confirmation text/actions fit. Accept changes initialized one-time row 1002 to selecting.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/launch-confirm.png",
+          "sha256": "3528f2b203404c242e6aa4a2b7f97fbda04a9dcbfdff2ea4742cbdf269e1d7c7",
+          "state": "confirmation"
+        }
+      ],
+      "action": "launch"
+    },
+    {
+      "surface": "Record retry confirmation",
+      "page": "/req-075/detail",
+      "viewport": {
+        "width": 1440,
+        "height": 720
+      },
+      "passed": true,
+      "observation": "Confirm fits. Accept shows reenable-selecting, adds pending zero-member attempt and retains successful/failed history.",
+      "captures": [
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/retry-confirm.png",
+          "sha256": "a660db9cce65a766c891959b35915de9dbbf493cde6f481c9854c2bbd4b9f317",
+          "state": "confirmation"
+        },
+        {
+          "path": "desktop/desktop-report/optimized-context-regression/short-overlays/retry-result.png",
+          "sha256": "1f393a2c74d2ad0def4328fe89ddb9513f56cb8dc31c4c69e747896738433429",
+          "state": "result"
+        }
+      ],
+      "action": "retry"
+    }
+  ],
+  "source": {
+    "path": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md",
+    "sha256": "d6d89d92dfab25cc5d43010d1ae3f8b35cf2206796c90a10762d6370f9c58200"
+  },
+  "modelCapture": {
+    "path": "desktop/desktop-report/optimized-context-regression/revision164-reopened",
+    "pagesSha256": "8594b3c09dff44901e4ffe47278cd8c03c8d45ba908878ef4b4e6077fc008dbd"
+  }
+}

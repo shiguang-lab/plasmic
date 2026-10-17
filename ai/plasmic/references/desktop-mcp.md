@@ -1,18 +1,18 @@
 # Desktop MCP core contract
 
-Discover exact tools and operation schemas through `get_app_state`; registrations and permissions are authoritative. This reference describes operating invariants, not a replacement tool catalog.
+Discover schemas through `get_app_state`; live registrations and permissions are authoritative.
 
 ## Read and target
 
-Start the signed-in Desktop and read `get_app_state`. Follow [project management](desktop-management.md) to resolve and open the target. Then call `execute` → `identify` with the actual model/client and skill `plasmic`. Discovery needs no ready editor; `canEdit` gates Studio mutations. `read` without a target returns an overview; use `componentUuids` for full models and `elements` for subtrees, never `components`. See [minimal examples](desktop-examples.md) and [model-reading](model-reading.md).
+Read `get_app_state` in the signed-in Desktop. Resolve/open the target through [project management](desktop-management.md), then `execute` → `identify` with the actual model/client and skill `plasmic`. Discovery needs no ready editor; mutations require `canEdit`. `read` without a target returns an overview; use `componentUuids` for full models and `elements` for subtrees, never `components`. See [minimal examples](desktop-examples.md) and [model-reading](model-reading.md).
 
 `open_design` saves the current editable project before switching projects. For read-only inspection or coding, use the already open target or readable imported dependencies. Opening the target is safe when no editor is ready, or when it stays in the same project. If switching would save another editable project, finish independent reads and report that side effect; obtain explicit authorization before that switch. Do not silently persist unrelated work to obtain a read.
 
-Obtain editable UUIDs from `read`/`queryElements`, never DOM observations. Read installed component metadata for registered names, Props, choices, Slots, defaults and event/ref signatures. Re-read destination identities after imports/upgrades. Metadata describes the design contract; it does not download wrapper source or establish a npm export.
+Obtain editable UUIDs from `read`/`queryElements`, never DOM. Read installed names, Props, choices, Slots, defaults and event/ref signatures; reread destination identities after imports/upgrades. Metadata neither downloads wrapper source nor establishes npm exports.
 
 ## Mutate and persist
 
-Public operations create/change/move/copy/delete nodes, states, interactions, tokens and variants through Studio transactions. Targets must already exist. `execute_batch` validates and applies one atomic transaction, rolling back on failure; it cannot resolve IDs created by an earlier operation in that same batch. Undo reverses the batch.
+Public operations create/change/move/copy/delete nodes, states, interactions, tokens and variants through Studio transactions. Targets must already exist. `execute_batch` validates and applies one atomic transaction, rolling back on failure; it cannot resolve IDs created by an earlier operation in that same batch. Undo reverses the batch. Resolve every ordered batch receipt/message through its live resource indexes.
 
 Code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME" data-plasmic-project="IMPORTED_PROJECT_ID" data-props='{"prop":"value"}'><slot name="children">Content</slot></plasmic-component>`. Names and values come from the registration. Instance styles affect layout; appearance uses real props. Do not insert scripts or invent native input handlers. Dynamic bindings use the discovered expression contract and available data scopes.
 

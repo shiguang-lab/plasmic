@@ -17,7 +17,7 @@ npx -y @plasmickit/cli@latest context resolve --mode codegen
 
 Inspect uses accessible Desktop MCP reads and does not require edit permission or save/change designs. Prototype mutations require edit permission. Codegen reads models/contracts through MCP and writes code in the target architecture; it does not use `export_code` or official Plasmic sync. For explicitly requested official `@plasmicapp/cli` integration, resolve inspect and follow the guide's official-CLI reference instead of replacing that request with native coding.
 
-The command checks the NAS release manifest every time, downloads changed resources and verifies their hashes before returning absolute paths. Read all returned `mustRead` files, starting with `referencePath`; resolve subsequent links relative to the reference file. Use the returned `resourceRoot` for verification scripts. For a task spanning multiple modes, resolve and read each mode before its work begins.
+The command checks the NAS release manifest every time, downloads changed resources and verifies their hashes before returning absolute paths. Read all returned `mustRead` files, starting with `referencePath`; resolve subsequent links relative to the reference file. Use the returned `resourceRoot` for verification scripts and follow the guide's conditional section-reading/evidence rules. For a task spanning multiple modes, resolve and read each mode before its work begins.
 
 For prototype work, follow the workflow's project-management reference to resolve Team → Workspace → Project before entering Studio design operations.
 

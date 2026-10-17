@@ -1,0 +1,35 @@
+{
+  "structure": {
+    "inventory": "structure.json"
+  },
+  "forms": {
+    "inventory": "forms.json"
+  },
+  "descriptions": {
+    "inventory": "descriptions.json"
+  },
+  "overlays": {
+    "inventory": "overlays.json"
+  },
+  "slots": {
+    "pages": [
+      {
+        "path": "/req-075/groups",
+        "intent": "list-intent.html"
+      },
+      {
+        "path": "/req-075/regular",
+        "intent": "regular-intent.html"
+      },
+      {
+        "path": "/req-075/onetime",
+        "intent": "onetime-intent.html"
+      },
+      {
+        "path": "/req-075/detail",
+        "intent": "detail-intent.html"
+      }
+    ]
+  },
+  "shell_height": {}
+}

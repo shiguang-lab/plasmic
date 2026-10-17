@@ -958,10 +958,17 @@ export const PROTOTYPE_TOOL_META = {
     toolName: "executeBatch",
     title: "Apply one atomic edit transaction",
     description:
-      "Apply 1–30 mutations in order as one undoable Studio transaction. Any failure rolls back every edit. UUID targets must exist before the call; read newly created IDs in a subsequent call. Save separately.",
+      "Apply 1–30 mutations in order as one undoable Studio transaction. Any failure rolls back every edit. UUID targets must exist before the call; read newly created IDs in a subsequent call. Returns ordered operation receipts whose resourceIndexes reference the shared resources array; identical final resources occur once. Messages remain per operation. Save separately.",
     inputSchema: z
       .object({ operations: z.array(prototypeMutationSchema).min(1).max(30) })
       .strict(),
-    outputSchema: z.object({ results: z.array(resources) }),
+    outputSchema: z.object({
+      operations: z.array(z.object({
+        name: z.string(),
+        resourceIndexes: z.array(z.number().int().nonnegative()),
+        messages: z.array(z.string()).optional(),
+      })),
+      resources: z.array(readResultSchema()),
+    }),
   },
 };

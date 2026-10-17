@@ -4,15 +4,18 @@
 See references/libraries/antd_v6/compositions/modal-drawer.md.
 This gate targets Antd-v6 contracts; only inventoried owning components are checked.
 Effects are independently reviewed expectations, not inferred from button labels.
-Expressions are never executed; unresolved visibility requires runtime evidence.
+Expressions are never executed; flat object read bindings retain exact prop checks.
+Unresolved visibility still requires runtime evidence.
 """
 import argparse
 import json
+import math
 import re
 from collections import Counter
 from pathlib import Path
-from verify_forms import TextTree, identity, node_name, props, slot, styles
+from verify_forms import TextTree, identity, node_name, props, slot
 from verify_slots import walk
+from verify_bindings import object_binding
 
 
 OVERLAYS = {"plasmicantd6modal", "plasmicantd6drawer"}
@@ -25,20 +28,57 @@ def conditional(value):
 def visible_button(values, node=None):
     if conditional(values.get("style", {})) or conditional(values.get("hidden", False)):
         raise ValueError("Conditional button visibility requires state-specific evidence")
+    if not isinstance(values.get("hidden", False), bool):
+        raise ValueError("Button hidden must be a literal boolean")
     style = values.get("style", {})
     if not isinstance(style, dict):
         raise ValueError("Unresolved Button style")
+    if any("\\" in str(key) or key in {"display", "visibility", "opacity"} and "\\" in str(value)
+           for key, value in style.items()):
+        raise ValueError("Escaped CSS requires rendered visibility evidence")
     if node:
         visibility = node["attrs"].get("data-visible-if", "true")
         if visibility not in {"true", "false"} or conditional(node["attrs"].get("style", "")):
             raise ValueError("Conditional node visibility requires state-specific evidence")
         if visibility == "false":
             return False
-        style = {**styles(node), **style}
+        raw = node["attrs"].get("style", "")
+        if "/*" in raw:
+            raise ValueError("CSS comments require rendered visibility evidence")
+        inline, priorities = {}, {}
+        for declaration in raw.split(";"):
+            if ":" not in declaration:
+                continue
+            key, value = declaration.split(":", 1)
+            key = key.strip().lower()
+            if "\\" in key or key in {"display", "visibility", "opacity"} and "\\" in value:
+                raise ValueError("Escaped CSS requires rendered visibility evidence")
+            important = bool(re.search(r"\s*!important\s*$", value, flags=re.I))
+            if key not in inline or important or not priorities[key]:
+                inline[key] = re.sub(r"\s*!important\s*$", "", value, flags=re.I).strip()
+                priorities[key] = important
+        style = {**inline, **style, **{key: inline[key] for key in inline if priorities[key]}}
         if "hidden" in node["attrs"]:
             return False
-    return not (values.get("hidden") is True or style.get("display") == "none" or
-                style.get("visibility") in {"hidden", "collapse"})
+    opacity = style.get("opacity")
+    if opacity is not None:
+        try:
+            opacity = float(str(opacity).strip().removesuffix("%"))
+        except (ValueError, TypeError) as error:
+            raise ValueError("Unresolved Button opacity") from error
+        if not math.isfinite(opacity):
+            raise ValueError("Unresolved Button opacity")
+        if opacity <= 0:
+            return False
+    for key in ("display", "visibility"):
+        value = style.get(key)
+        if value is None:
+            continue
+        if (not isinstance(value, str) or re.search(r"/\*|\(|\)|!", value)
+                or value.strip().lower() in {"inherit", "unset", "revert", "revert-layer"}):
+            raise ValueError("Unresolved Button visibility style requires rendered evidence")
+    return not (values.get("hidden") is True or str(style.get("display") or "").strip().lower() == "none" or
+                str(style.get("visibility") or "").strip().lower() in {"hidden", "collapse"})
 
 
 def footer_buttons(region):
@@ -58,10 +98,15 @@ def actual_footer(node):
     values = props(node)
     if conditional(values.get("hideFooter", False)) or conditional(values.get("footer")):
         raise ValueError("Conditional footer requires state-specific evidence")
+    if not isinstance(values.get("hideFooter", False), bool):
+        raise ValueError("hideFooter must be a literal boolean")
     if values.get("hideFooter") is True or ("footer" in values and values["footer"] is None):
         return "none", []
     region = slot(node, "footer")
-    if region is not None:
+    # Studio computeTplComponentArgs maps an empty code-component RenderExpr
+    # to undefined, preserving the native default. Explicit null props above
+    # still suppress it. This gate checks Studio prototypes, not code export.
+    if region is not None and region["children"]:
         buttons = list(footer_buttons(region))
         return "custom", [(node_name(n), props(n)) for n in buttons]
     if "footer" in values:
@@ -70,9 +115,7 @@ def actual_footer(node):
         return "none", []
     actions = []
     for name, key in (("nativeCancel", "cancelButtonProps"), ("nativeOk", "okButtonProps")):
-        button = values.get(key, {})
-        if not isinstance(button, dict) or conditional(button):
-            raise ValueError("Unresolved native Button props require state-specific evidence")
+        button = object_binding(values.get(key, {}))
         if visible_button(button):
             actions.append((name, button))
     return "native", actions
@@ -85,14 +128,35 @@ def usable_close_icon(node):
     if conditional(closable) or conditional(icon):
         raise ValueError("Conditional close icon requires state-specific evidence")
     if isinstance(closable, dict):
-        return not (closable.get("disabled") is True or closable.get("closeIcon", True) in (False, None))
-    if not isinstance(closable, bool):
+        if not isinstance(closable.get("disabled", False), bool):
+            raise ValueError("Close disabled must be a literal boolean")
+        if closable.get("disabled") is True:
+            return False
+    elif not isinstance(closable, bool):
         raise ValueError("Unresolved closable configuration")
-    # An empty explicit closeIcon Slot suppresses the default icon.
-    region = slot(node, "closeIcon")
-    if region is not None and not any(n["tag"] != "text" or n.get("text", "").strip() for n in region["children"]):
+    elif closable is False:
         return False
-    return closable and icon is not False and icon is not None
+    custom = slot(node, "closeIcon")
+    if custom is not None and custom["children"]:
+        raise ValueError("Custom closeIcon Slot requires rendered availability evidence")
+
+    def literal_icon(value):
+        # React renders numbers (including zero), but not booleans/null.
+        if value is None or isinstance(value, bool):
+            return False
+        if isinstance(value, str):
+            return bool(value.strip())
+        if type(value) in (int, float) and math.isfinite(value):
+            return True
+        raise ValueError("Unresolved close icon requires rendered availability evidence")
+
+    if isinstance(closable, dict) and "closeIcon" in closable:
+        return literal_icon(closable["closeIcon"])
+    # Empty code-component Slots preserve native defaults in Studio. Antd6
+    # ignores top-level booleans/null when closable is explicitly true/object.
+    if isinstance(icon, bool) or icon is None:
+        return "closable" in values or icon is not False and icon is not None
+    return literal_icon(icon)
 
 
 def check(inventory, readback):

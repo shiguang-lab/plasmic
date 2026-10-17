@@ -1,0 +1,397 @@
+{
+  "pages": [
+    {
+      "forms": [
+        {
+          "name": "NewGroupForm",
+          "fields": [
+            {
+              "nodeName": "NewNameField",
+              "name": "name",
+              "label": "客群名称（中文）",
+              "control": "NewName",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请输入客群中文名称"
+                },
+                {
+                  "ruleType": "whitespace",
+                  "message": "请输入客群中文名称"
+                },
+                {
+                  "ruleType": "regex",
+                  "pattern": "[\\u4e00-\\u9fff]",
+                  "message": "客群名称需包含中文"
+                }
+              ],
+              "span": 2
+            },
+            {
+              "nodeName": "NewKeyField",
+              "name": "key",
+              "label": "英文名 / Key（自动生成，可编辑）",
+              "control": "NewKey",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请输入客群 Key"
+                },
+                {
+                  "ruleType": "whitespace",
+                  "message": "请输入客群 Key"
+                },
+                {
+                  "ruleType": "regex",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+                  "message": "Key 仅允许英文、数字和下划线"
+                },
+                {
+                  "ruleType": "advanced",
+                  "message": "Key 已存在，请更换"
+                }
+              ],
+              "span": 2
+            },
+            {
+              "nodeName": "NewTypeField",
+              "name": "type",
+              "label": "客群类型",
+              "control": "NewType",
+              "rules": [],
+              "span": 1
+            },
+            {
+              "nodeName": "NewScenarioField",
+              "name": "scenario",
+              "label": "业务场景",
+              "control": "NewScenario",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择业务场景"
+                }
+              ],
+              "span": 1
+            },
+            {
+              "nodeName": "NewOwnerField",
+              "name": "owner",
+              "label": "负责人",
+              "control": "NewOwner",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择负责人"
+                }
+              ],
+              "span": 2
+            }
+          ],
+          "layout": {
+            "container": "NewGroupFields",
+            "columns": 2,
+            "columnGap": 16,
+            "rows": [
+              {
+                "container": "NewTypeScenarioRow",
+                "fields": [
+                  "NewTypeField",
+                  "NewScenarioField"
+                ]
+              }
+            ],
+            "modalWidth": 640
+          }
+        },
+        {
+          "name": "EditGroupForm",
+          "fields": [
+            {
+              "nodeName": "EditNameField",
+              "name": "name",
+              "label": "客群名称",
+              "control": "EditName",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请输入客群名称"
+                },
+                {
+                  "ruleType": "whitespace",
+                  "message": "请输入客群名称"
+                }
+              ],
+              "span": 2
+            },
+            {
+              "nodeName": "EditOwnerField",
+              "name": "owner",
+              "label": "负责人",
+              "control": "EditOwner",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择负责人"
+                }
+              ],
+              "span": 2
+            },
+            {
+              "nodeName": "EditRetentionField",
+              "name": "retention",
+              "label": "数据保存天数",
+              "control": "EditRetention",
+              "rules": [],
+              "tooltip": "存量分区数据保留天数。超期分区每日清理；修改自下次刷新生效。",
+              "span": 1
+            },
+            {
+              "nodeName": "EditDeadlineField",
+              "name": "deadline",
+              "label": "每日产出截止时间",
+              "control": "EditDeadline",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请填写有效的 HH:mm:ss 截止时间"
+                },
+                {
+                  "ruleType": "regex",
+                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$",
+                  "message": "请填写有效的 HH:mm:ss 截止时间"
+                }
+              ],
+              "span": 1
+            }
+          ],
+          "layout": {
+            "container": "MetadataFields",
+            "columns": 2,
+            "columnGap": 16,
+            "rows": [
+              {
+                "container": "RegularMetadata",
+                "fields": [
+                  "EditRetentionField",
+                  "EditDeadlineField"
+                ]
+              }
+            ],
+            "modalWidth": 640
+          }
+        },
+        {
+          "name": "ExportForm",
+          "fields": [
+            {
+              "nodeName": "ExportTypeField",
+              "name": "type",
+              "label": "导出类型",
+              "control": "ExportType",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择导出类型"
+                }
+              ],
+              "span": 1
+            },
+            {
+              "nodeName": "ExportFormatField",
+              "name": "format",
+              "label": "格式",
+              "control": "ExportFormat",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择导出格式"
+                }
+              ],
+              "span": 1
+            }
+          ],
+          "layout": {
+            "container": "ExportFields",
+            "columns": 1,
+            "columnGap": 16,
+            "rows": [],
+            "modalWidth": 480
+          }
+        }
+      ],
+      "componentUuid": "_d5QAoTzLAKE"
+    },
+    {
+      "forms": [
+        {
+          "name": "RegularForm",
+          "fields": [
+            {
+              "nodeName": "GroupNameField",
+              "name": "name",
+              "label": "客群名称",
+              "control": "GroupName",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请输入客群名称"
+                },
+                {
+                  "ruleType": "whitespace",
+                  "message": "请输入客群名称"
+                }
+              ]
+            },
+            {
+              "nodeName": "GroupKeyField",
+              "name": "key",
+              "label": "客群 Key",
+              "control": "GroupKey",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请输入客群 Key"
+                },
+                {
+                  "ruleType": "whitespace",
+                  "message": "请输入客群 Key"
+                },
+                {
+                  "ruleType": "regex",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+                  "message": "Key 仅允许英文、数字和下划线"
+                }
+              ]
+            },
+            {
+              "nodeName": "OwnerField",
+              "name": "owner",
+              "label": "负责人",
+              "control": "Owner",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择负责人"
+                }
+              ]
+            },
+            {
+              "nodeName": "ScenarioField",
+              "name": "scenario",
+              "label": "业务场景",
+              "control": "Scenario",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请选择业务场景"
+                }
+              ]
+            },
+            {
+              "nodeName": "RetentionField",
+              "name": "retention",
+              "label": "数据保存天数",
+              "control": "Retention",
+              "rules": [],
+              "tooltip": "存量分区数据保留天数。超期分区每日清理；修改自下次刷新生效。"
+            },
+            {
+              "nodeName": "DeadlineField",
+              "name": "deadline",
+              "label": "每日产出截止时间",
+              "control": "Deadline",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请填写有效的 HH:mm:ss 截止时间"
+                },
+                {
+                  "ruleType": "regex",
+                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$",
+                  "message": "请填写有效的 HH:mm:ss 截止时间"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "standaloneControls": [
+        {
+          "nodeName": "SQLEditor",
+          "reason": "SQL 编辑器由独立的 SQL 校验、预跑和保存流程管理"
+        }
+      ],
+      "componentUuid": "G3RT9K005oqW"
+    },
+    {
+      "forms": [
+        {
+          "name": "OnetimeForm",
+          "fields": [
+            {
+              "nodeName": "ExpiryField",
+              "name": "expiry",
+              "label": "有效期（天）",
+              "control": "Expiry",
+              "rules": [
+                {
+                  "ruleType": "required",
+                  "message": "请填写有效期"
+                },
+                {
+                  "ruleType": "advanced",
+                  "message": "有效期须为 1 至 365 天的整数"
+                }
+              ],
+              "descriptionPlacement": "afterControl",
+              "descriptionNode": "ExpiryInstructions"
+            }
+          ]
+        }
+      ],
+      "standaloneControls": [
+        {
+          "nodeName": "SQLEditor",
+          "reason": "SQL 编辑器由独立的 SQL 校验、预跑和保存流程管理"
+        }
+      ],
+      "componentUuid": "DLssTe-feXBA"
+    },
+    {
+      "forms": [
+        {
+          "name": "Form",
+          "fields": [
+            {
+              "nodeName": "ApplicationTypeField",
+              "name": "type",
+              "label": "应用类型",
+              "control": "ApplicationType",
+              "rules": [
+                {
+                  "ruleType": "required"
+                }
+              ]
+            },
+            {
+              "nodeName": "ApplicationTargetField",
+              "name": "target",
+              "label": "目标活动 / 通知意向",
+              "control": "ApplicationTarget",
+              "rules": [
+                {
+                  "ruleType": "required"
+                },
+                {
+                  "ruleType": "whitespace"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "componentUuid": "pwwRrDzWwpKg"
+    }
+  ]
+}

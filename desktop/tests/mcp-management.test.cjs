@@ -78,6 +78,9 @@ test("management tools expose strict MCP schemas and forward valid calls through
     );
     const tools = (await client.listTools()).tools;
     const valid = [
+      ["get_app_state", {}],
+      ["get_app_state", { toolNames: [] }],
+      ["get_app_state", { toolNames: ["read", "identify"] }],
       ["browser", { action: "open" }],
       [
         "browser",
@@ -124,6 +127,9 @@ test("management tools expose strict MCP schemas and forward valid calls through
       valid.map(([method, input]) => ({ method, input })),
     );
     const invalid = [
+      ["get_app_state", { toolNames: "read" }],
+      ["get_app_state", { toolNames: [""] }],
+      ["get_app_state", { toolNames: ["read", "read"] }],
       ["browser", { action: "implicit_import" }],
       ["browser", { action: "import_to_canvas", target: "viewport" }],
       ["browser", { action: "import_to_canvas", destination: "current" }],
