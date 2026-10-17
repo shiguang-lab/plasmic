@@ -7,11 +7,6 @@ on:
       release-tag:
         required: true
         type: string
-    secrets:
-      DESKTOP_MAC_CERTIFICATE_P12_BASE64:
-        required: true
-      DESKTOP_MAC_CERTIFICATE_PASSWORD:
-        required: true
 permissions:
   contents: write
 concurrency:
@@ -89,8 +84,6 @@ jobs:
             arch: x64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
-    env:
-      CSC_NAME: ${{ matrix.platform == 'darwin' && '5632B781D5D1F08AB3D7BC1B6CFA2CB110847943' || '' }}
     defaults:
       run:
         shell: bash
@@ -105,29 +98,6 @@ jobs:
         with:
           name: desktop-renderer
       - run: tar -xzf renderer.tar.gz -C desktop
-      - name: Import the macOS signing identity
-        if: matrix.platform == 'darwin'
-        env:
-          CERTIFICATE_P12_BASE64: ${{ secrets.DESKTOP_MAC_CERTIFICATE_P12_BASE64 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.DESKTOP_MAC_CERTIFICATE_PASSWORD }}
-        run: |
-          set -euo pipefail
-          umask 077
-          test -n "$CERTIFICATE_P12_BASE64" || { echo 'Missing macOS signing certificate secret' >&2; exit 1; }
-          test -n "$CERTIFICATE_PASSWORD" || { echo 'Missing macOS signing password secret' >&2; exit 1; }
-          certificate_path="$RUNNER_TEMP/plasmic-signing.p12"
-          keychain_path="$RUNNER_TEMP/plasmic-signing.keychain-db"
-          keychain_password=$(openssl rand -hex 32)
-          echo "::add-mask::$keychain_password"
-          printf '%s' "$CERTIFICATE_P12_BASE64" | base64 --decode > "$certificate_path"
-          security create-keychain -p "$keychain_password" "$keychain_path"
-          security set-keychain-settings -lut 21600 "$keychain_path"
-          security unlock-keychain -p "$keychain_password" "$keychain_path"
-          security import "$certificate_path" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign -k "$keychain_path"
-          rm -f "$certificate_path"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain_path" > /dev/null
-          security list-keychains -d user -s "$keychain_path"
-          node --input-type=module -e 'import { localSigningCertificate } from "./desktop/scripts/local-signing.mjs"; if (!localSigningCertificate()) throw new Error("Expected macOS signing identity is unavailable")'
       - run: npm test --prefix desktop
       - name: Verify expired-session startup
         if: matrix.platform == 'darwin'
@@ -135,6 +105,15 @@ jobs:
       - name: Verify unavailable-project startup
         if: matrix.platform == 'darwin'
         run: npm run test:workspace-startup --prefix desktop
+      - name: Verify file-based sign-in across a packaged upgrade
+        if: matrix.platform == 'darwin'
+        run: npm run test:session-lifecycle --prefix desktop
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.platform == 'darwin'
+        with:
+          name: session-lifecycle-${{ matrix.arch }}
+          path: desktop/desktop-report/session-lifecycle/
+          if-no-files-found: ignore
       - name: Package native installer
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -142,13 +121,6 @@ jobs:
           version=$(node -p 'require("./desktop/package.json").version')
           echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
           node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --notes "desktop/release-notes/$version.md"
-      - name: Remove the temporary macOS signing keychain
-        if: always() && matrix.platform == 'darwin'
-        run: |
-          rm -f "$RUNNER_TEMP/plasmic-signing.p12"
-          if [ -f "$RUNNER_TEMP/plasmic-signing.keychain-db" ]; then
-            security delete-keychain "$RUNNER_TEMP/plasmic-signing.keychain-db"
-          fi
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}

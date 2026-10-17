@@ -40,21 +40,27 @@ function createReferenceWindow(input) {
   return window;
 }
 async function captureReference(window, input) {
-  const result = await inPage(window.webContents, capturePage, input);
-  if (Buffer.byteLength(result.html) > 200000)
-    throw new Error(
-      "Captured HTML exceeds 200 kB; select a smaller page section",
+  const contents = window.webContents;
+  await inPage(contents, () => globalThis.__plasmicWebPicker?.hide());
+  try {
+    const result = await inPage(window.webContents, capturePage, input);
+    if (Buffer.byteLength(result.html) > 200000)
+      throw new Error(
+        "Captured HTML exceeds 200 kB; select a smaller page section",
+      );
+    if (input.htmlOnly) return result;
+    const image = await window.webContents.capturePage(
+      input.selector || input.target === "selection" ? result.rect : undefined,
     );
-  if (input.htmlOnly) return result;
-  const image = await window.webContents.capturePage(
-    input.selector || input.target === "selection" ? result.rect : undefined,
-  );
-  return {
-    ...result,
-    width: image.getSize().width,
-    height: image.getSize().height,
-    data: image.toPNG().toString("base64"),
-  };
+    return {
+      ...result,
+      width: image.getSize().width,
+      height: image.getSize().height,
+      data: image.toPNG().toString("base64"),
+    };
+  } finally {
+    await inPage(contents, () => globalThis.__plasmicWebPicker?.restore());
+  }
 }
 async function captureBrowser(input) {
   const url = checkedUrl(input.url);

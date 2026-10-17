@@ -54,7 +54,7 @@ function createSessionRecovery({
             return true;
           }
         } catch {
-          // An unavailable keyring, network, or IAM service is not a sign-out.
+          // A storage, network, or IAM failure is not a sign-out.
           return;
         }
       }

@@ -13,6 +13,22 @@ const { pathToFileURL } = require("node:url");
 const { checkedUrl, captureReference } = require("./browser-capture.cjs");
 const { installPicker, inPage } = require("./browser-page.cjs");
 
+const CDP_READ_METHODS = new Set([
+  "DOM.getDocument",
+  "DOM.getFlattenedDocument",
+  "DOM.describeNode",
+  "DOM.getOuterHTML",
+  "DOM.getAttributes",
+  "DOM.getBoxModel",
+  "DOM.getContentQuads",
+  "DOM.querySelector",
+  "DOM.querySelectorAll",
+  "CSS.getComputedStyleForNode",
+  "CSS.getMatchedStylesForNode",
+  "Accessibility.getFullAXTree",
+  "Accessibility.getPartialAXTree",
+]);
+
 class ReferenceBrowser {
   constructor({
     getParent,
@@ -244,6 +260,7 @@ class ReferenceBrowser {
     return this.snapshot();
   }
   hide() {
+    void this.picker("clearRead").catch(() => {});
     this.visible = false;
     this.overlay = false;
     this.background?.setVisible(false);
@@ -712,7 +729,12 @@ class ReferenceBrowser {
         });
       return this.menu("screenshot");
     }
-    if (input.action === "capture") return captureReference(this.view, input);
+    if (input.action === "capture") {
+      const generation = this.generation;
+      const result = await captureReference(this.view, input);
+      this.showReadFeedback(input, generation);
+      return result;
+    }
     if (
       input.action === "import_to_canvas" ||
       input.action === "screenshot_to_canvas"
@@ -726,7 +748,22 @@ class ReferenceBrowser {
       )
         throw new Error("Unsupported browser CDP domain");
       if (input.method === "Page.navigate") checkedUrl(input.params?.url);
-      const result = await this.cdp(input.method, input.params);
+      const screenshot = input.method === "Page.captureScreenshot";
+      const read =
+        screenshot ||
+        CDP_READ_METHODS.has(input.method) ||
+        (input.method === "Runtime.evaluate" &&
+          input.params?.throwOnSideEffect === true);
+      const generation = this.generation;
+      if (read) await this.picker(screenshot ? "hide" : "clearRead");
+      let result;
+      try {
+        result = await this.cdp(input.method, input.params);
+      } finally {
+        if (screenshot) await this.picker("restore");
+      }
+      if (read && !result.exceptionDetails)
+        this.showReadFeedback(input, generation);
       return input.method === "Page.captureScreenshot"
         ? { data: result.data, url: contents.getURL() }
         : { result };
@@ -737,6 +774,13 @@ class ReferenceBrowser {
     const api = this.view.webContents.debugger;
     if (!api.isAttached()) api.attach("1.3");
     return api.sendCommand(method, params);
+  }
+  showReadFeedback(input, generation) {
+    if (!this.visible || generation !== this.generation) return;
+    // Feedback runs in the isolated page world and never delays the read result.
+    void this.picker("flashRead", { ...input, zoom: this.state.zoom }).catch(
+      () => {},
+    );
   }
   async importToCanvas(input) {
     if (

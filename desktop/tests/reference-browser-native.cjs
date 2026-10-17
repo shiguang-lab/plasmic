@@ -437,11 +437,143 @@ app
     report.checks.push(
       "picker locks element, blocks business click and selects its parent",
     );
+    const readFeedback = () =>
+      inPage(browser.view.webContents, () => {
+        const root = document.querySelector(
+          '[data-plasmic-browser-feedback="read"]',
+        );
+        if (!root) return null;
+        const { x, y, width, height } = root.getBoundingClientRect();
+        return {
+          x,
+          y,
+          width,
+          height,
+          animations: root.getAnimations({ subtree: true }).length,
+        };
+      });
+    const waitReadFeedback = async () => {
+      for (let i = 0; i < 50; i++) {
+        const result = await readFeedback();
+        if (result) return result;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      throw new Error("Browser read feedback did not appear");
+    };
+    const selectedBeforeRead = browser.state.selection.selector;
+    const firstRead = await browser.command({
+      action: "capture",
+      target: "selection",
+    });
+    const selectedFeedback = await waitReadFeedback();
+    assert(selectedFeedback.animations >= 2);
+    const sourceBounds = await browser.view.webContents.executeJavaScript(
+      '(()=>{const {width,height}=document.getElementById("card").getBoundingClientRect();return {width,height}})()',
+    );
+    assert.equal(selectedFeedback.width, sourceBounds.width);
+    assert.equal(selectedFeedback.height, sourceBounds.height);
+    assert.equal(browser.state.selection.selector, selectedBeforeRead);
+    assert.equal(browser.state.busy, null);
+    const secondRead = await browser.command({
+      action: "capture",
+      target: "selection",
+    });
+    if (secondRead.data !== firstRead.data) {
+      fs.writeFileSync(
+        path.join(directory, "first-read.png"),
+        Buffer.from(firstRead.data, "base64"),
+      );
+      fs.writeFileSync(
+        path.join(directory, "second-read.png"),
+        Buffer.from(secondRead.data, "base64"),
+      );
+    }
+    assert(
+      secondRead.data === firstRead.data,
+      "consecutive captures must exclude read and picker overlays",
+    );
+    assert(!secondRead.html.includes("data-plasmic-browser-feedback"));
+    assert(!secondRead.html.includes("linear-gradient"));
+    await waitReadFeedback();
+    await browser.view.webContents.executeJavaScript("scrollTo(0, 60)");
+    await frame();
+    assert.equal(
+      Math.round((await readFeedback()).y),
+      Math.round(selectedFeedback.y - 60),
+    );
+    await browser.view.webContents.executeJavaScript("scrollTo(0, 0)");
+    await frame();
+    fs.writeFileSync(
+      path.join(directory, "read-scan.png"),
+      (await browser.view.webContents.capturePage()).toPNG(),
+    );
+    await waitReadFeedback();
+    await new Promise((resolve) => setTimeout(resolve, 2100));
+    assert.equal(await readFeedback(), null);
+    const documentRead = await browser.command({
+      action: "cdp",
+      method: "DOM.getDocument",
+    });
+    assert(documentRead.result.root.nodeId);
+    const viewportFeedback = await waitReadFeedback();
+    const viewportSize = await browser.view.webContents.executeJavaScript(
+      "({width:innerWidth,height:innerHeight})",
+    );
+    assert.equal(viewportFeedback.width, viewportSize.width);
+    assert.equal(viewportFeedback.height, viewportSize.height);
+    const firstScreenshot = await browser.command({
+      action: "cdp",
+      method: "Page.captureScreenshot",
+    });
+    await waitReadFeedback();
+    const secondScreenshot = await browser.command({
+      action: "cdp",
+      method: "Page.captureScreenshot",
+    });
+    assert(
+      secondScreenshot.data === firstScreenshot.data,
+      "consecutive CDP screenshots must exclude read overlays",
+    );
+    await assert.rejects(
+      browser.command({ action: "capture", selector: "#missing" }),
+      /not found/,
+    );
+    assert.equal(await readFeedback(), null);
+    await browser.command({
+      action: "cdp",
+      method: "Runtime.evaluate",
+      params: { expression: "document.body.tagName", throwOnSideEffect: true },
+    });
+    await waitReadFeedback();
+    await browser.picker("clearRead");
+    await browser.command({
+      action: "cdp",
+      method: "Runtime.evaluate",
+      params: { expression: "window.browserReadFixture = true" },
+    });
+    assert.equal(await readFeedback(), null);
+    await browser.cdp("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+    });
+    await browser.command({
+      action: "capture",
+      target: "selection",
+      htmlOnly: true,
+    });
+    assert.equal((await waitReadFeedback()).animations, 0);
+    browser.hide();
+    assert.equal(await readFeedback(), null);
+    await browser.open();
+    await browser.cdp("Emulation.setEmulatedMedia", { features: [] });
+    report.checks.push(
+      "successful reads scan their element or viewport without changing selection or import state; feedback tracks scrolling, expires, stays out of HTML/PNG captures, and clears on failure or close; reduced motion shows a static border",
+    );
     const result = await browser.command({
       action: "import_to_canvas",
       target: "selection",
     });
     assert.equal(result.componentUuid, "imported");
+    assert.equal(await readFeedback(), null);
     assert(imports[0].html.includes("{{ literal source text }}"));
     assert(!imports[0].html.includes("onclick"));
     assert(!imports[0].html.includes("data-plasmic-browser-overlay"));

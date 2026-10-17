@@ -6,6 +6,83 @@ function installPicker() {
     picking = false,
     revision = 0,
     suspended = false;
+  let readFeedback;
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  function clearRead() {
+    if (!readFeedback) return;
+    const current = readFeedback;
+    readFeedback = undefined;
+    clearTimeout(current.timer);
+    cancelAnimationFrame(current.frame);
+    for (const animation of current.animations) animation.cancel();
+    current.root.remove();
+  }
+  function flashRead(input) {
+    clearRead();
+    if (suspended) return;
+    const element = globalThis.__plasmicWebPicker.root(
+      input.target,
+      input.selector,
+    );
+    const viewport = !element || ["BODY", "HTML"].includes(element.tagName);
+    const measure = () =>
+      viewport
+        ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
+        : element.getBoundingClientRect();
+    const rect = measure();
+    if (!rect.width || !rect.height) return;
+    const root = document.createElement("div");
+    root.setAttribute("data-plasmic-browser-overlay", "");
+    root.setAttribute("data-plasmic-browser-feedback", "read");
+    root.setAttribute("aria-hidden", "true");
+    root.style.cssText = `position:fixed;left:0;top:0;pointer-events:none;z-index:2147483647;box-sizing:border-box;overflow:hidden;border:${2 / (input.zoom || 1)}px solid #438ff0;`;
+    const animations = [];
+    if (!reducedMotion.matches) {
+      const band = document.createElement("div");
+      band.style.cssText =
+        "position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,transparent,#438ff0);opacity:0.4;transform:translateY(-100%);";
+      root.append(band);
+      animations.push(
+        root.animate(
+          [
+            { opacity: 0 },
+            { opacity: 1, offset: 0.1 },
+            { opacity: 1, offset: 0.85 },
+            { opacity: 0 },
+          ],
+          { duration: 2000 },
+        ),
+        band.animate(
+          [
+            { transform: "translateY(-100%)" },
+            { transform: "translateY(100%)" },
+          ],
+          {
+            duration: Math.min(1960, Math.max(300, (rect.height / 350) * 1000)),
+            delay: 40,
+          },
+        ),
+      );
+    }
+    document.documentElement.append(root);
+    readFeedback = { root, animations, frame: 0, timer: 0 };
+    const track = () => {
+      if (readFeedback?.root !== root) return;
+      if (!root.isConnected || (!viewport && !element.isConnected)) {
+        clearRead();
+        return;
+      }
+      const bounds = measure();
+      root.style.transform = `translate3d(${bounds.x}px,${bounds.y}px,0)`;
+      root.style.width = `${bounds.width}px`;
+      root.style.height = `${bounds.height}px`;
+      readFeedback.frame = requestAnimationFrame(track);
+    };
+    readFeedback.timer = setTimeout(clearRead, 2000);
+    track();
+  }
+  window.addEventListener("pagehide", clearRead);
+  reducedMotion.addEventListener("change", clearRead);
   const overlay = document.createElement("div");
   overlay.setAttribute("data-plasmic-browser-overlay", "");
   overlay.style.cssText =
@@ -105,6 +182,7 @@ function installPicker() {
       return this.snapshot();
     },
     clear() {
+      clearRead();
       picking = false;
       selected = undefined;
       hovered = undefined;
@@ -195,13 +273,20 @@ function installPicker() {
       return document.body;
     },
     hide() {
+      clearRead();
       suspended = true;
       overlay.style.display = "none";
+      // Let Chromium composite the clean page before reading its pixels.
+      return new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
     },
     restore() {
       suspended = false;
       draw(selected);
     },
+    flashRead,
+    clearRead,
   };
 }
 

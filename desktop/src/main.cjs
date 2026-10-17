@@ -10,7 +10,6 @@ const {
   clipboard,
   ipcMain,
   nativeTheme,
-  safeStorage,
 } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -172,8 +171,7 @@ async function startDesktop() {
       session: desktopSession,
       studioOrigin: config.studioOrigin,
       credentials: createDeviceCredentials({
-        file: path.join(app.getPath("userData"), "device-credentials"),
-        safeStorage,
+        file: path.join(app.getPath("userData"), "device-session.json"),
       }),
     });
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;

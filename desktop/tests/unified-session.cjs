@@ -1,4 +1,4 @@
-const { app, net, session, BrowserWindow, safeStorage } = require("electron");
+const { app, net, session, BrowserWindow } = require("electron");
 const { createServer } = require("node:http");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -49,25 +49,19 @@ app
     const {
       createDeviceCredentials,
     } = require("../src/device-credentials.cjs");
-    const credentialFile = path.join(profile, "device-credentials");
+    const credentialFile = path.join(profile, "device-session.json");
     const credentials = createDeviceCredentials({
       file: credentialFile,
-      safeStorage,
     });
-    assert.equal(
-      safeStorage.isEncryptionAvailable(),
-      true,
-      "Native secure storage must be available",
-    );
     credentials.write({ refreshToken: "native-device-secret" });
     assert.equal(
       fs
         .readFileSync(credentialFile)
         .includes(Buffer.from("native-device-secret")),
-      false,
+      true,
     );
     assert.deepEqual(
-      createDeviceCredentials({ file: credentialFile, safeStorage }).read(),
+      createDeviceCredentials({ file: credentialFile }).read(),
       { refreshToken: "native-device-secret" },
     );
     credentials.clear();
@@ -133,7 +127,7 @@ app
     clearTimeout(timeout);
     server.close();
     console.log(
-      "Native secure credential storage, Electron session redirect, IAM cookie retention, destination validation, cancellation and browser request Origin passed",
+      "Native file credential storage, Electron session redirect, IAM cookie retention, destination validation, cancellation and browser request Origin passed",
     );
     app.exit(0);
   })

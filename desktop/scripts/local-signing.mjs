@@ -3,7 +3,9 @@ import { X509Certificate } from "node:crypto";
 
 const LOCAL_SIGNING_IDENTITY = "Apple Development";
 
-export function localSigningCertificate() {
+export function macSigningCertificate() {
+  // Actions packages with ad-hoc signing and must not depend on runner identities.
+  if (process.env.GITHUB_ACTIONS === "true") return undefined;
   const result = spawnSync(
     "/usr/bin/security",
     ["find-certificate", "-a", "-c", LOCAL_SIGNING_IDENTITY, "-p"],
@@ -47,13 +49,20 @@ export function localSigningCertificate() {
   return usable[0];
 }
 
-export function verifyLocalSignature(app, certificate) {
+export function verifyMacSignature(app, certificate) {
+  if (!certificate) {
+    execFileSync("/usr/bin/codesign", [
+      "--verify", "--deep", "--strict", "-R",
+      '=identifier "cn.publib.plasmic.desktop"', app,
+    ]);
+    console.log("macOS application signature and bundle identifier verified");
+    return;
+  }
   const fingerprint = certificate.fingerprint.replaceAll(":", "");
   const teamId = certificate.subject.match(/^OU=([A-Z0-9]{10})$/m)?.[1];
   if (!teamId)
     throw new Error("Apple Development certificate is missing its Team ID");
-  // Match securityd's development-certificate classification, so Keychain uses
-  // a Team ID partition instead of a changing code hash.
+  // Local builds retain the selected Apple Development certificate and Team ID.
   const developmentRequirement =
     "anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.1] exists and certificate leaf[field.1.2.840.113635.100.6.1.12] exists";
   execFileSync("/usr/bin/codesign", [

@@ -76,17 +76,17 @@ macOS local builds use an existing **Apple Development** identity in the build
 Mac's keychain. Create it through Xcode's account settings or import the intended
 certificate and private key before packaging. Packaging selects the single valid
 Apple Development identity and fails if it is missing or ambiguous; it never
-falls back to ad-hoc signing. Other build machines and CI must import the intended
-identity before packaging. Do not commit or bundle private keys.
-`CSC_NAME`, when set, selects the exact certificate SHA-1 fingerprint; a different
+falls back to ad-hoc signing locally. GitHub Actions (`GITHUB_ACTIONS=true`) uses
+ad-hoc signing without looking up or importing a certificate. Do not commit or
+bundle private keys.
+For local builds, `CSC_NAME`, when set, selects the exact certificate SHA-1 fingerprint; a different
 certificate is rejected even if it is a valid Apple Development identity.
 
-Packaging verifies the exact signing certificate, bundle identifier, and the
-Apple development certificate chain used by macOS Keychain's Team ID partition
-check. Retain the same developer team across updates. Switching an installed app
-to that team can require initial Keychain authorization. A stable designated
-requirement alone is insufficient for self-signed certificates because Keychain
-also classifies them by their changing code hash; see [Apple securityd](https://github.com/apple-oss-distributions/Security/blob/main/securityd/src/clientid.cpp).
+All macOS packages must pass strict signature-integrity and bundle-identifier
+verification. Local builds additionally verify the selected certificate and
+Apple development certificate chain. Retain the same developer team for local updates.
+Application sign-in stores its credential in a local JSON file and does not use
+the signing keychain. Cookie encryption is explicitly disabled in packaged apps.
 
 Apple Development signing is for development/local testing. Public downloads
 with Developer ID trust and Apple notarization require a Developer ID identity
@@ -169,6 +169,16 @@ embedded frames, video and canvas may need adjustment or a screenshot instead.
 The reference page has its own browser session and no Desktop preload or Studio
 cookies.
 
+Successful browser `capture` reads show a two-second border and a single downward
+scan over the selected element, or the current viewport for whole-page reads.
+DOM/CSS/accessibility CDP reads, `Page.captureScreenshot`, and `Runtime.evaluate`
+with `throwOnSideEffect: true` use the same feedback. CDP reads use the viewport
+unless a selector or selection target is specified. Feedback starts after a
+successful read without delaying its result; imports keep their separate loading
+state. Scans follow the element's bounds and are removed on completion, browser
+close, navigation or the next capture. Captures exclude both the picker and read
+feedback. Reduced motion replaces the scan with a static border.
+
 MCP uses this same visible browser and selection explicitly:
 
 ```json
@@ -244,17 +254,15 @@ The JSON contains the version, platform, architecture, size, SHA-512 and public 
 download URL. Installers and manifests ship together in
 `ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v<version>`.
 
-The two macOS jobs import the same Apple Development identity from repository
-Actions secrets `DESKTOP_MAC_CERTIFICATE_P12_BASE64` (base64 of a password-protected
-PKCS#12 containing the certificate and private key) and
-`DESKTOP_MAC_CERTIFICATE_PASSWORD` (its password). The workflow pins its SHA-1
-fingerprint through `CSC_NAME`; replacing a secret with another identity fails
-the build. Both direct Desktop tags and the Studio workflow's reusable call use
-these repository secrets. Each macOS runner creates an isolated temporary
-keychain, grants code-signing access only there, and deletes the keychain and
-PKCS#12 file after use, including failed runs. The signing material is never
-uploaded as a build artifact. Update these secrets and the pinned fingerprint
-together when renewing the identity, keeping the same developer team.
+The two macOS jobs use ad-hoc signatures and require no certificate secrets,
+private keys, fixed certificate fingerprint, or signing keychain. This applies
+to both direct Desktop tags and the Studio workflow's reusable call. Packaging
+still verifies the application signature, bundle identifier, CPU architecture,
+and packaged runtime dependencies. The updater retains its signature, identity,
+architecture, version, size and SHA-512 checks. The file-based sign-in lifecycle
+acceptance runs on both macOS architectures before installers are packaged.
+CI packages are for internal distribution; Developer ID signing and notarization
+remain separate from this workflow. Local Apple Development signing is unchanged.
 
 The release image contains the installers and manifests built for that release.
 Existing version tags cannot be overwritten. Make this GHCR package public so NAS
@@ -333,13 +341,27 @@ a sign-in page. Only clicking **Sign in with Shiguang** starts authorization and
 opens `https://shiguanglab.com/oauth/authorize` in the system browser for
 `plasmicapp`. S256 PKCE and random state bind authorization to the running app.
 The client requests `web:session offline_access`. Its registered device session
-policy expires after 30 days without use. The main process encrypts the rotating
-refresh credential with Electron safeStorage (the OS credential store); Linux
-requires a secure keyring and rejects the `basic_text` backend. Access tokens
-remain in memory. Opening or interacting with the App restores its short-lived
+policy expires after 30 days without use. The main process writes the rotating
+refresh credential directly to `device-session.json` in its user-data directory
+(`~/Library/Application Support/Plasmic Desktop/` on macOS). The file is plaintext,
+uses mode `0600` on POSIX, and is replaced atomically when the credential rotates.
+It is independent of the application version and signing certificate, so updates
+reuse it. Desktop does not use the OS keychain or a system keyring for sign-in.
+Access tokens remain in memory. The old encrypted `device-credentials` file is
+not read or decrypted; existing Cookie sessions remain available, but a user
+with only an expired session and an old encrypted credential must sign in once
+to establish the JSON credential. Explicit sign-out or server-side authorization
+expiry still ends the session. Opening or interacting with the App restores its short-lived
 IAM cookie when needed. Background work can restore short cookies without
 extending device authorization,
 and no keep-alive timer runs while the App is closed or idle.
+`npm run test:session-lifecycle` on macOS builds two isolated app versions with
+different code hashes and Cookie encryption disabled. It exercises first launch,
+PKCE login, restart with expired cookies, the real download/install/relaunch
+updater, refresh-token rotation, and sign-out. IAM responses are supplied by a
+local fixture; the test rejects any Electron secure-storage access. Reports are
+written to `desktop-report/session-lifecycle/`, and macOS Actions runs the check
+before packaging installers.
 When a Studio API returns 401, Desktop checks IAM's `/api/auth/session`.
 For an active user, a confirmed unauthenticated session first attempts silent
 restoration and retries the failed request without navigating the editor. Only

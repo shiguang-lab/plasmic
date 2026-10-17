@@ -70,4 +70,3 @@ jobs:
     uses: ./.github/workflows/publish-desktop.yml
     with:
       release-tag: ${{ needs.plan.outputs.desktopTag }}
-    secrets: inherit

@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-identity.mjs";
-import { localSigningCertificate, verifyLocalSignature } from "./local-signing.mjs";
+import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const metadata = JSON.parse(
@@ -38,8 +38,8 @@ const [platform = process.platform, arch = process.arch] =
   process.argv.slice(2);
 const platforms = { darwin: Platform.MAC, win32: Platform.WINDOWS, linux: Platform.LINUX };
 if (!platforms[platform] || !["arm64", "x64"].includes(arch)) throw new Error("Unsupported platform or architecture");
-const signingCertificate = platform === "darwin" ? localSigningCertificate() : undefined;
-if (platform === "darwin" && !signingCertificate) {
+const signingCertificate = platform === "darwin" ? macSigningCertificate() : undefined;
+if (platform === "darwin" && process.env.GITHUB_ACTIONS !== "true" && !signingCertificate) {
   throw new Error("Create or import a valid Apple Development identity in the build Mac keychain before packaging");
 }
 const notesIndex = process.argv.indexOf("--notes");
@@ -56,11 +56,12 @@ const outputs = await build({
     files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     npmRebuild: false,
+    electronFuses: { enableCookieEncryption: false },
     forceCodeSigning: platform === "darwin",
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       const bundle = path.join(context.appOutDir, "Plasmic.app/Contents");
-      verifyLocalSignature(path.dirname(bundle), signingCertificate);
+      verifyMacSignature(path.dirname(bundle), signingCertificate);
       const architectures = [arch === "arm64" ? "arm64" : "x86_64"];
       const actual = execFileSync("/usr/bin/lipo", ["-archs", path.join(bundle, "MacOS/Plasmic")], { encoding: "utf8" }).trim().split(/\s+/);
       if (actual.length !== architectures.length || !architectures.every((name) => actual.includes(name))) throw new Error("Packaged macOS architecture mismatch");
@@ -80,7 +81,7 @@ const outputs = await build({
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
     publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
     releaseInfo: releaseNotes ? { releaseNotes } : undefined,
-    mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: signingCertificate?.fingerprint.replaceAll(":", ""), type: "development", hardenedRuntime: false, notarize: false },
+    mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: signingCertificate ? signingCertificate.fingerprint.replaceAll(":", "") : "-", type: "development", hardenedRuntime: false, notarize: false },
     win: { target: ["nsis"], icon: "assets/icon.ico" },
     nsis: { oneClick: true, perMachine: false, deleteAppDataOnUninstall: false },
     linux: { target: ["AppImage"], executableName: "plasmic", icon: "assets/icon.png", category: "Development" },
