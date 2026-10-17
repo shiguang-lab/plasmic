@@ -62,7 +62,6 @@ test("dashboard only shows update states and opens ready details without install
   );
   const control = ui.document.getElementById("plasmic-desktop-update");
   const button = control.querySelector("button");
-  assert.equal(control.dataset.placement, "header");
   assert.equal(control.parentElement.previousElementSibling.id, "brand");
   for (const phase of ["idle", "checking", "current", "disabled"]) {
     ui.send({ phase });
@@ -78,6 +77,10 @@ test("dashboard only shows update states and opens ready details without install
     assert.equal(control.hidden, false);
     assert.equal(button.disabled, phase !== "downloaded");
   }
+  ui.send({ phase: "downloading", version: "0.2.0", percent: 72 });
+  assert.equal(control.querySelector(".update-tooltip").textContent, "Downloading 0.2.0 · 72%");
+  assert.equal(control.querySelector("button").textContent, "");
+  assert.equal(control.querySelectorAll("svg circle").length, 2);
   ui.send({ phase: "downloaded", version: "0.2.0" });
   assert.equal(control.querySelector("svg").dataset.icon, "download");
   button.click();
@@ -110,7 +113,6 @@ test("dashboard route remount preserves ready state and editor visibility rules"
     ui.document.querySelectorAll("#plasmic-desktop-update").length,
     1,
   );
-  assert.equal(control.dataset.placement, "header");
   assert.equal(control.dataset.phase, "downloaded");
   assert.equal(control.hidden, false);
   ui.document.body.innerHTML =
@@ -118,10 +120,8 @@ test("dashboard route remount preserves ready state and editor visibility rules"
   await flush();
   assert.equal(ui.document.querySelector("#plasmic-desktop-update"), null);
   ui.document.body.innerHTML =
-    '<div id="left-tab-strip"><div></div></div><div class="editor-primary-actions"><span data-desktop-update-slot="header" data-desktop-update-compact="true" data-desktop-update-position="above"></span><button>Avatar</button></div>';
+    '<div id="left-tab-strip"><div></div></div><div class="editor-primary-actions"><span data-desktop-update-slot="header" data-desktop-update-position="above"></span><button>Avatar</button></div>';
   await flush();
-  assert.equal(control.dataset.placement, "header");
-  assert.equal(control.dataset.compact, "true");
   assert.equal(control.dataset.tooltipSide, "above");
   assert.equal(control.closest("#left-tab-strip"), null);
   ui.send({ phase: "current" });
@@ -133,4 +133,23 @@ test("dashboard route remount preserves ready state and editor visibility rules"
   assert.deepEqual(ui.commands, ["status"]);
   ui.send({ phase: "disabled" });
   assert.equal(control.hidden, true);
+});
+
+test("updates only mount in explicit slots, never a sidebar footer", async (t) => {
+  const ui = await fixture(t, '<aside><footer>Settings</footer></aside>', {
+    phase: "downloaded", version: "0.2.0",
+  });
+  assert.equal(ui.document.querySelector("#plasmic-desktop-update"), null);
+  const slot = ui.document.createElement("span");
+  slot.dataset.desktopUpdateSlot = "header";
+  ui.document.body.append(slot);
+  await flush();
+  const control = ui.document.getElementById("plasmic-desktop-update");
+  assert.equal(control.parentElement, slot);
+  assert.equal(control.hidden, false);
+  slot.remove();
+  await flush();
+  ui.send({ phase: "downloading", version: "0.2.0", percent: 72 });
+  assert.equal(ui.document.querySelector("#plasmic-desktop-update"), null);
+  assert.equal(ui.document.querySelector("aside > footer").textContent, "Settings");
 });

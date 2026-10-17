@@ -106,14 +106,17 @@ app
     browser = new ReferenceBrowser({
       getParent: () => parent,
       dispatch: (_method, input) => browser.command(input),
-      getImportContext: async (input) => ({
+      getImportContext: async () => ({
         projectId: "fixture",
-        ...(input.componentUuid ? { componentUuid: input.componentUuid } : {}),
+        sourceArena: { id: "Workspace", type: "custom" },
+        destinationName: "Workspace",
       }),
       importHtml: async (input) => {
         imports.push(input);
         return {
           projectId: "fixture",
+          canvasName: "Workspace",
+          frameUuid: "imported-frame",
           componentUuid: "imported",
           elementUuids: ["root"],
           warnings: [],
@@ -599,14 +602,28 @@ app
     await completed;
     assert.equal(imports.length, 2);
     assert.equal(imports.at(-1).componentUuid, undefined);
+    assert.deepEqual(imports.at(-1).sourceArena, {
+      id: "Workspace",
+      type: "custom",
+    });
+    const selectedBounds = (
+      await browser.command({
+        action: "capture",
+        target: "selection",
+        htmlOnly: true,
+      })
+    ).bounds;
+    assert.equal(imports.at(-1).width, selectedBounds.width);
+    assert.equal(imports.at(-1).height, selectedBounds.height);
     await browser.command({
       action: "import_to_canvas",
       target: "selection",
-      componentUuid: "explicit",
+      name: "AnotherSection",
     });
-    assert.equal(imports.at(-1).componentUuid, "explicit");
+    assert.equal(imports.at(-1).componentUuid, undefined);
+    assert.equal(imports.at(-1).name, "AnotherSection");
     report.checks.push(
-      "visible Import button creates a page without a selected destination; MCP can append to an explicit component",
+      "visible Import button and MCP create independent artboards with selected region dimensions and the captured source canvas",
     );
     await browser.command({ action: "clear_selection" });
     await assert.rejects(

@@ -5402,7 +5402,6 @@
   "Full page": "Full page",
   "Selected element": "Selected element",
   "Import cancelled. The canvas was not changed.": "Import cancelled. The canvas was not changed.",
-  "Imported as editable layers.": "Imported as editable layers.",
   "Import undone.": "Import undone.",
   "Import details": "Import details",
   "Open in system browser": "Open in system browser",
@@ -5417,8 +5416,6 @@
   "Close Browser View": "Close Browser View",
   "Viewport: {device}. Switch to {next}": "Viewport: {device}. Switch to {next}",
   "Stop selecting an element": "Stop selecting an element",
-  "Import the selection as nodes (Enter)": "Import the selection as nodes (Enter)",
-  "Reproduce on canvas": "Reproduce on canvas",
   "Screenshot the selection onto the canvas (Cmd/Ctrl+Enter)": "Screenshot the selection onto the canvas (Cmd/Ctrl+Enter)",
   "Visible area": "Visible area",
   "Reset Zoom to 100%": "Reset Zoom to 100%",
@@ -5487,5 +5484,11 @@
   "Update publication": "Update publication",
   "Version description (optional)": "Version description (optional)",
   "Version tags": "Version tags",
-  "Publish the saved version and update the website.": "Publish the saved version and update the website."
+  "Publish the saved version and update the website.": "Publish the saved version and update the website.",
+  "Free canvas": "Free canvas",
+  "Imported as an independent artboard.": "Imported as an independent artboard.",
+  "Import selection as an independent artboard (Enter)": "Import selection as an independent artboard (Enter)",
+  "Import page as an independent artboard": "Import page as an independent artboard",
+  "Canvas: {name}": "Canvas: {name}",
+  "Cannot move elements": "Cannot move elements"
 }

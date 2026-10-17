@@ -83,6 +83,7 @@ import {
 } from "@/wab/client/operations/insert-tpl";
 import { renameTpl } from "@/wab/client/operations/rename-tpl";
 import { validateComponentExtraction } from "@/wab/client/operations/utils/validate-component-extraction";
+import { validateTplRemoval } from "@/wab/client/operations/utils/validate-tpl-removal";
 import { promptComponentName, promptPageName } from "@/wab/client/prompts";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
@@ -2869,6 +2870,74 @@ export class ViewOps {
       }
       return undefined;
     }
+  }
+
+  /** Called within the drag's change block, so insertion and removal undo together. */
+  moveFreeFrameContent(
+    source: ViewCtx,
+    clips: TplClip[],
+    insertion: Exclude<InsertionSpec, { type: "ErrorInsertion" }>,
+  ) {
+    const component = source.currentComponent();
+    assert(
+      isFrameComponent(component) &&
+        component !== this.viewCtx().currentComponent(),
+      "Expected content from a different free artboard",
+    );
+    const originals = clips.map((clip) =>
+      ensure(clip.origNode, "Dragged source element is missing"),
+    );
+    assert(
+      originals.length > 0 &&
+        originals.every(
+          (tpl) =>
+            tpl !== component.tplTree &&
+            Tpls.tryGetTplOwnerComponent(tpl) === component,
+        ),
+      "Dragged elements no longer belong to the source artboard",
+    );
+    const removalError = validateTplRemoval(
+      computeTplsToDelete(originals),
+      component,
+      this.site(),
+    );
+    if (removalError) {
+      notification.error({
+        message: translate(getUiLocale(), "Cannot move elements"),
+        description: removalError.message,
+      });
+      return false;
+    }
+    const copies = clips.map((clip) => this.adaptTplForPaste(clip));
+    if (copies.some((copy) => !copy)) {
+      return false;
+    }
+    for (const copy of copies) {
+      assert(
+        insertBySpec(
+          this.viewCtx(),
+          insertion,
+          ensure(copy, "Dragged content is missing"),
+          true,
+        ),
+        "The drop target cannot contain these elements",
+      );
+    }
+    const deleted = deleteTpl(originals, {
+      component,
+      site: this.site(),
+      vtm: source.variantTplMgr(),
+    });
+    assert(deleted.isOk(), "The dragged source could not be removed");
+    const arena = this.studioCtx().currentArena;
+    if (
+      isMixedArena(arena) &&
+      Tpls.tplChildren(component.tplTree).length === 0
+    ) {
+      this.tplMgr().removeExistingArenaFrame(arena, source.arenaFrame());
+    }
+    this.studioCtx().setStudioFocusOnFrameContents(this.viewCtx().arenaFrame());
+    return true;
   }
 
   pasteTplClips({

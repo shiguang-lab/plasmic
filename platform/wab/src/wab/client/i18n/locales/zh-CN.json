@@ -5402,7 +5402,6 @@
   "Full page": "整个网页",
   "Selected element": "所选元素",
   "Import cancelled. The canvas was not changed.": "已取消导入，画布未修改。",
-  "Imported as editable layers.": "已导入为可编辑图层。",
   "Import undone.": "已撤销导入。",
   "Import details": "导入详情",
   "Open in system browser": "在系统浏览器中打开",
@@ -5417,8 +5416,6 @@
   "Close Browser View": "关闭浏览器面板",
   "Viewport: {device}. Switch to {next}": "视口：{device}。切换到{next}",
   "Stop selecting an element": "停止选择元素",
-  "Import the selection as nodes (Enter)": "将选区导入为图层（Enter）",
-  "Reproduce on canvas": "导入到画布",
   "Screenshot the selection onto the canvas (Cmd/Ctrl+Enter)": "将选区截图到画布（Cmd/Ctrl+Enter）",
   "Visible area": "可见区域",
   "Reset Zoom to 100%": "重置缩放为 100%",
@@ -5487,5 +5484,11 @@
   "Update publication": "更新发布",
   "Version description (optional)": "版本说明（选填）",
   "Version tags": "版本标签",
-  "Publish the saved version and update the website.": "发布已保存的版本并更新网站。"
+  "Publish the saved version and update the website.": "发布已保存的版本并更新网站。",
+  "Free canvas": "自由画布",
+  "Imported as an independent artboard.": "已导入为独立画板。",
+  "Import selection as an independent artboard (Enter)": "将选区导入为独立画板（Enter）",
+  "Import page as an independent artboard": "将整页导入为独立画板",
+  "Canvas: {name}": "画板组：{name}",
+  "Cannot move elements": "无法移动元素"
 }

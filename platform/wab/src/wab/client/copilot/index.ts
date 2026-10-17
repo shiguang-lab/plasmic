@@ -4,6 +4,10 @@ import {
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
 import {
+  browserImportCanvas,
+  browserImportCanvasName,
+} from "@/wab/client/copilot/browser-import-destination";
+import {
   beginCanvasInspection,
   endCanvasInspection,
 } from "@/wab/client/copilot/canvas-inspection";
@@ -32,6 +36,7 @@ import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { formatWIError } from "@/wab/client/web-importer/errors";
 import { ensureOk } from "@/wab/commons/neverthrow-utils";
 import {
+  cloneArenaFrame,
   ensureActivatedScreenVariantsForFrameByWidth,
   getArenaFrames,
   getArenaType,
@@ -70,9 +75,9 @@ import {
   ComponentType,
   allComponentVariants,
   isCodeComponent,
+  isFrameComponent,
   isPageComponent,
   mkComponent,
-  mkPageMeta,
 } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
@@ -323,13 +328,22 @@ function findElement(component: Component, uuid: string): TplNode {
 }
 
 function variantManager(studio: StudioCtx, component: Component) {
-  const arena = ensure(
-    isPageComponent(component)
-      ? getPageArena(studio.site, component)
-      : getComponentArena(studio.site, component),
-    "Component arena not found",
-  );
-  const frame = getComponentArenaBaseFrame(arena);
+  const arena = isFrameComponent(component)
+    ? undefined
+    : ensure(
+        isPageComponent(component)
+          ? getPageArena(studio.site, component)
+          : getComponentArena(studio.site, component),
+        "Component arena not found",
+      );
+  const frame = arena
+    ? getComponentArenaBaseFrame(arena)
+    : ensure(
+        studio.site.arenas
+          .flatMap((canvas) => canvas.children)
+          .find((candidate) => candidate.container.component === component),
+        "Free artboard not found",
+      );
   return new VariantTplMgr(
     [new RootComponentVariantFrame(frame)],
     studio.site,
@@ -1885,58 +1899,55 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         studio.siteInfo.id === input.projectId,
         "The import project is no longer open",
       );
-      assert(
-        !input.elementUuid || input.componentUuid,
-        "An element requires a component target",
-      );
-      const existing = input.componentUuid
-        ? findComponent(studio, input.componentUuid, true)
-        : undefined;
-      const component =
-        existing ??
-        mkComponent({
-          name: studio.tplMgr().getUniqueComponentName(input.name),
-          type: ComponentType.Page,
-          pageMeta: mkPageMeta({
-            path: studio.tplMgr().getUniquePagePath("/imported-page"),
-            roleId: studio.site.defaultPageRoleId,
-          }),
-          tplTree: (baseVariant) =>
-            mkTplTagX("div", {
-              name: "PageRoot",
-              baseVariant,
-              styles: {
-                display: "flex",
-                "flex-direction": "column",
-                width: "stretch",
-                height: "stretch",
-              },
-            }),
-        });
-      const frame = existing
-        ? undefined
-        : mkArenaFrame({
-            site: studio.site,
-            component,
-            name: "",
-            width: input.width,
-            height: input.height ?? 900,
-          });
-      const vtm = existing
-        ? variantManager(studio, component)
-        : new VariantTplMgr(
-            [
-              new RootComponentVariantFrame(
-                ensure(frame, "Import frame is missing"),
-              ),
-            ],
-            studio.site,
-            studio.tplMgr(),
-            new GlobalVariantFrame(
+      const source = input.sourceArena
+        ? ensure(
+            getArenaByNameOrUuidOrPath(
               studio.site,
-              ensure(frame, "Import frame is missing"),
+              input.sourceArena.id,
+              input.sourceArena.type,
             ),
-          );
+            "Import source arena no longer exists",
+          )
+        : studio.currentArena;
+      const destination = browserImportCanvas(studio, source);
+      const sourceFrame = isDedicatedArena(source)
+        ? getArenaFrames(source)[0]
+        : undefined;
+      const component = mkComponent({
+        name: "",
+        type: ComponentType.Frame,
+        tplTree: (baseVariant) =>
+          mkTplTagX("div", {
+            name: "ArtboardRoot",
+            baseVariant,
+            styles: {
+              display: "flex",
+              "flex-direction": "column",
+              width: "stretch",
+              height: "stretch",
+            },
+          }),
+      });
+      const frame = mkArenaFrame({
+        site: studio.site,
+        component,
+        name: input.name,
+        width: input.width,
+        height: input.height ?? 900,
+      });
+      const vtm = new VariantTplMgr(
+        [
+          new RootComponentVariantFrame(
+            ensure(frame, "Import frame is missing"),
+          ),
+        ],
+        studio.site,
+        studio.tplMgr(),
+        new GlobalVariantFrame(
+          studio.site,
+          ensure(frame, "Import frame is missing"),
+        ),
+      );
       // Remote DOM is static content, never an editor program or registration.
       const doc = new DOMParser().parseFromString(input.html, "text/html");
       doc
@@ -1976,40 +1987,46 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           staticContent: true,
         }),
       );
-      const target = input.elementUuid
-        ? findElement(component, input.elementUuid)
-        : component.tplTree;
+      const target = component.tplTree;
       let inserted: TplNode[] = [];
+      let canvasName = "";
       const warnings = parsed.errors.map(formatWIError);
-      await change(studio, existing ? [component] : [], () => {
+      await change(studio, [], () => {
         assert(
           studio.siteInfo.id === input.projectId,
           "The import project is no longer open",
         );
-        if (existing) {
-          assert(
-            findElement(component, target.uuid) === target,
-            "Import target changed",
-          );
-        } else {
-          assert(
-            !studio.site.components.some(
-              (c) =>
-                c.name === component.name ||
-                c.pageMeta?.path === component.pageMeta?.path,
-            ),
-            "Import destination changed; retry",
-          );
-          studio.tplMgr().attachComponent(component);
-          const arena = ensure(
-            getPageArena(studio.site, component),
-            "Imported page arena is missing",
-          );
-          const baseFrame = getComponentArenaBaseFrame(arena);
-          baseFrame.width = input.width;
-          baseFrame.height = input.height ?? 900;
-          ensureActivatedScreenVariantsForFrameByWidth(studio.site, baseFrame);
+        assert(
+          !destination || studio.site.arenas.includes(destination),
+          "Import destination changed; retry",
+        );
+        const arena =
+          destination ?? studio.tplMgr().addArena(browserImportCanvasName());
+        canvasName = arena.name;
+        if (
+          sourceFrame &&
+          !arena.children.some(
+            (candidate) =>
+              candidate.container.component === sourceFrame.container.component,
+          )
+        ) {
+          const reference = cloneArenaFrame(sourceFrame);
+          reference.name = sourceFrame.container.component.name;
+          studio.tplMgr().addExistingArenaFrame(arena, reference, new Pt(0, 0));
         }
+        studio.tplMgr().attachComponent(component);
+        const insertPt = arena.children.length
+          ? new Pt(
+              Math.max(
+                ...arena.children.map(
+                  (candidate) => (candidate.left ?? 0) + candidate.width,
+                ),
+              ) + 80,
+              arena.children[0].top ?? 0,
+            )
+          : new Pt(0, 0);
+        studio.tplMgr().addExistingArenaFrame(arena, frame, insertPt);
+        ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
         warnings.push(
           ...parsed
             .finalize({
@@ -2022,7 +2039,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         const result = pasteTpls(parsed.tpls, target, "append", {
           site: studio.site,
           component,
-          vtm: existing ? vtm : variantManager(studio, component),
+          vtm,
           tplMgr: studio.tplMgr(),
           ccRegistry: studio.codeComponentsRegistry,
         });
@@ -2033,6 +2050,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         inserted = result.pasted;
       });
       return {
+        canvasName,
+        frameUuid: frame.uuid,
         componentUuid: component.uuid,
         elementUuids: inserted.map((tpl) => tpl.uuid),
         warnings,
@@ -2176,6 +2195,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           ? studio.currentArena.component.name
           : null),
       changeCounter: studio._changeCounter,
+      browserImportCanvasName:
+        browserImportCanvas(studio)?.name ?? browserImportCanvasName(),
       editorView:
         studio.currentArena && studio.viewportCtx
           ? {

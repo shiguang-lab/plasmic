@@ -133,7 +133,7 @@ Open the docked browser inside the editor with the Studio sidebar globe button, 
 from the web**, or **Cmd/Ctrl+Shift+U**. Enter an HTTP(S) or localhost URL and
 browse normally. The element picker highlights a region; use its breadcrumb to
 select a parent. **Import** brings the full page or selected element into a
-new editable page. **Enter** imports a
+new independent editable artboard. **Enter** imports a
 selected region; **Cmd/Ctrl+Enter** imports its screenshot. With no selection,
 the camera menu offers full-page and visible-area capture. The viewport button
 cycles Desktop → Phone (390×844) → Tablet (1180×820). Desktop pages reflow to
@@ -162,7 +162,7 @@ property strip scrolls horizontally; recent pages and long menus use the shared
 Scrollbar component with bounded vertical scrolling.
 
 Imports reuse Studio's HTML importer and create one undo step, including the
-new page. The receipt locates the imported layers, reports conversion details and
+new artboard. The receipt locates the imported layers, reports conversion details and
 can undo the import while it remains the latest edit. Source interactions are
 removed, and source text is treated literally. Grid, generated pseudo-elements,
 embedded frames, video and canvas may need adjustment or a screenshot instead.
@@ -187,8 +187,12 @@ MCP uses this same visible browser and selection explicitly:
 {"action":"import_to_canvas","target":"selection","name":"ImportedSection"}
 ```
 
-Send each object to `browser`. Omit `componentUuid` to create a page; provide it
-and optional `elementUuid` to append to an existing component/container.
+Send each object to `browser`. Whole-page and selection imports both create an
+independent editable artboard in the current mixed canvas. From page/component
+detail, imports use an associated canvas, or create and reuse Free canvas with
+a reference to the original page/component. The result includes `canvasName`
+and `frameUuid`. Artboard content can be dragged into a page, or the artboard
+can be converted to a page or reusable component through its existing menu.
 `get_state` reads the live selection and import height. `set_import_height` accepts
 `height` in panel CSS pixels (minimum 240); omit it to reset to the full page. `screenshot_to_canvas` accepts `full_page`,
 `selection` or `visible_area` and imports an image with
@@ -204,11 +208,13 @@ Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by
 platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an Intel
 process running under Rosetta selects the native arm64 feed. GitHub is not contacted when checking, downloading or installing.
 The application checks immediately at startup and every ten minutes, then downloads
-new versions automatically in the background. The sidebar shows download progress.
+new versions automatically in the background. Update controls mount only in explicit
+page slots: beside the brand on the dashboard and CMS, below the editor tool rail,
+and in the preview toolbar. All download controls show only a progress ring.
+Hover or keyboard focus shows the download percentage and version in a tooltip.
 When the verified download finishes, the main window's Software Update dialog opens with
-**Restart and Install** and **Later**. Choosing Later leaves a blue restart icon;
-hover or keyboard focus expands it into an **Update** button. Clicking the sidebar
-button reopens the update dialog; it does not restart the app directly. Update failures are logged locally and treated as no update; no error indicator or exception is displayed. Automatic checks continue every ten minutes. The dialog uses bundled local frontend
+**Restart and Install** and **Later**. Choosing Later leaves a blue download icon.
+Clicking the update control reopens the dialog; it does not restart the app directly. Update failures are logged locally and treated as no update; no error indicator or exception is displayed. Automatic checks continue every ten minutes. The dialog uses bundled local frontend
 resources, a light appearance and isolated styles in the main document; it creates no
 additional Electron window and works on the login page without a server request.
 Closing the dialog leaves background downloads running. Installation remains in the

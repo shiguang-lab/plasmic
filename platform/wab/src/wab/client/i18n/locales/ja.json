@@ -5402,7 +5402,6 @@
   "Full page": "ページ全体",
   "Selected element": "選択した要素",
   "Import cancelled. The canvas was not changed.": "インポートをキャンセルしました。キャンバスは変更されていません。",
-  "Imported as editable layers.": "編集可能なレイヤーとしてインポートしました。",
   "Import undone.": "インポートを取り消しました。",
   "Import details": "インポートの詳細",
   "Open in system browser": "システムブラウザーで開く",
@@ -5417,8 +5416,6 @@
   "Close Browser View": "ブラウザービューを閉じる",
   "Viewport: {device}. Switch to {next}": "ビューポート：{device}。{next}に切り替え",
   "Stop selecting an element": "要素の選択を停止",
-  "Import the selection as nodes (Enter)": "選択範囲をレイヤーとしてインポート（Enter）",
-  "Reproduce on canvas": "キャンバスに再現",
   "Screenshot the selection onto the canvas (Cmd/Ctrl+Enter)": "選択範囲のスクリーンショットをキャンバスへ（Cmd/Ctrl+Enter）",
   "Visible area": "表示領域",
   "Reset Zoom to 100%": "ズームを100%にリセット",
@@ -5487,5 +5484,11 @@
   "Update publication": "公開を更新",
   "Version description (optional)": "バージョンの説明（任意）",
   "Version tags": "バージョンタグ",
-  "Publish the saved version and update the website.": "保存済みのバージョンを公開し、サイトを更新します。"
+  "Publish the saved version and update the website.": "保存済みのバージョンを公開し、サイトを更新します。",
+  "Free canvas": "自由キャンバス",
+  "Imported as an independent artboard.": "独立したアートボードとしてインポートしました。",
+  "Import selection as an independent artboard (Enter)": "選択範囲を独立したアートボードとしてインポート（Enter）",
+  "Import page as an independent artboard": "ページを独立したアートボードとしてインポート",
+  "Canvas: {name}": "キャンバス：{name}",
+  "Cannot move elements": "要素を移動できません"
 }

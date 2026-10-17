@@ -1,4 +1,4 @@
-// Native header/footer update UI and Electron's ASAR bundle cleanup.
+// Native update slots and Electron's ASAR bundle cleanup.
 const { app, BrowserWindow, nativeTheme } = require("electron");
 const fs = require("original-fs").promises;
 const path = require("node:path");
@@ -50,7 +50,7 @@ app
       const content = isStudio
         ? url.pathname === "/delayed"
           ? ""
-          : `<aside style="width:72px;padding:6px 4px;box-sizing:border-box"><nav>Projects</nav><footer style="display:flex;flex-direction:column;padding:4px 0 0"><button>Create</button></footer></aside><main>Workspace</main>`
+          : `<header><span data-desktop-update-slot="header"></span></header><aside><footer>Settings</footer></aside><main>Workspace</main>`
         : `<script>
           setTimeout(() => {
           const frame = document.createElement("iframe");
@@ -59,14 +59,14 @@ app
           frame.addEventListener("load", () => {
             const inner = frame.contentDocument;
             inner.open();
-            inner.write('<html><head></head><body style="margin:0"><div style="position:absolute;left:16px;top:40px;display:flex;flex-direction:column;align-items:center;gap:12px"><div id="left-tab-strip" style="width:56px;height:160px;border:1px solid #ddd">Tools</div><span data-desktop-update-slot="header" data-desktop-update-compact="true" data-desktop-update-position="above"></span></div></body></html>');
+            inner.write('<html><head><style>.studio{--ui-text:#edeef5;color:var(--ui-text);background:#171821;min-height:100vh}.dev-env{color:#1b1b18}</style></head><body style="margin:0"><div class="studio"><div class="dev-env" style="position:absolute;left:16px;top:40px;display:flex;flex-direction:column;align-items:center;gap:12px"><div id="left-tab-strip" style="width:56px;height:160px;border:1px solid #ddd">Tools</div><span data-desktop-update-slot="header" data-desktop-update-position="above"></span></div></div></body></html>');
             inner.close();
           });
           document.body.append(frame);
           }, 50);
         </script>`;
       return new Response(
-        `<html><head><style>body{margin:0;font:14px sans-serif}aside{height:100vh;display:flex;flex-direction:column}footer{margin-top:auto;padding:8px}</style></head><body>${content}
+        `<html><head><style>body{margin:0;font:14px sans-serif}</style></head><body>${content}
       ${
         isStudio
           ? `<script>
@@ -147,6 +147,14 @@ app
       `document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`,
     );
     assert.equal(
+      await evaluate('document.getElementById("plasmic-desktop-update")'),
+      null,
+      "A sidebar footer must not become an update slot",
+    );
+    await evaluate(
+      `document.body.insertAdjacentHTML("beforeend", '<header><span data-desktop-update-slot="header"></span></header>')`,
+    );
+    assert.equal(
       await evaluate(
         `document.querySelector(".update-action")?.getAttribute("aria-label")`,
       ),
@@ -157,43 +165,17 @@ app
       await evaluate(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
-    return { parent: control.parentElement.tagName, placement: control.dataset.placement, position: getComputedStyle(control).position, icon: !!button.querySelector("svg"), width: button.getBoundingClientRect().width, label: button.getAttribute("aria-label"), visible: !control.hidden };
+    return { parent: control.parentElement.tagName, position: getComputedStyle(control).position, icon: !!button.querySelector("svg"), width: button.getBoundingClientRect().width, label: button.getAttribute("aria-label"), visible: !control.hidden };
   })()`),
       {
-        parent: "FOOTER",
-        placement: "footer",
+        parent: "SPAN",
         position: "relative",
         icon: true,
-        width: 20,
+        width: 32,
         label: "Update 0.0.7 is ready. Restart Plasmic to install.",
         visible: true,
       },
     );
-    for (const phase of [
-      "available",
-      "downloading",
-      "downloaded",
-      "installing",
-    ]) {
-      await evaluate(
-        `window.updateStatus({ phase: ${JSON.stringify(phase)}, version: "0.0.7", percent: 42 }); new Promise(resolve => setTimeout(resolve, 300))`,
-      );
-      const geometry = await evaluate(`(() => {
-        const control = document.getElementById("plasmic-desktop-update");
-        const button = control.querySelector("button").getBoundingClientRect();
-        const footer = control.parentElement.getBoundingClientRect();
-        const bounds = control.getBoundingClientRect();
-        return { horizontal: Math.abs(button.left + button.width / 2 - footer.left - footer.width / 2), vertical: Math.abs(button.top + button.height / 2 - bounds.top - bounds.height / 2), icon: control.querySelector("svg").dataset.icon };
-      })()`);
-      assert(
-        geometry.horizontal < 1,
-        `${phase} must be centered in the narrow dashboard footer`,
-      );
-      assert(geometry.vertical < 1, `${phase} must be vertically centered`);
-      if (phase === "downloaded") {
-        assert.equal(geometry.icon, "download");
-      }
-    }
     await evaluate("window.updateStatus(window.fixtureStatus)");
     const releaseNotes = JSON.parse(
       await fs.readFile(
@@ -276,20 +258,6 @@ app
     await evaluate(
       `document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`,
     );
-    assert(
-      await evaluate(
-        `document.querySelector(".update-action").getBoundingClientRect().width > 20`,
-      ),
-      "Keyboard focus must expand the footer icon label",
-    );
-    assert(
-      await evaluate(`(() => {
-      const button = document.querySelector(".update-action").getBoundingClientRect();
-      const footer = document.querySelector("aside > footer").getBoundingClientRect();
-      return Math.abs(button.left + button.width / 2 - footer.left - footer.width / 2) < 1;
-    })()`),
-      "The expanded update label must remain centered",
-    );
     assert.equal(
       await evaluate(
         `document.querySelector(".update-tooltip").matches(":popover-open")`,
@@ -306,9 +274,9 @@ app
     assert.deepEqual(
       await evaluate(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
-    return { role: control.getAttribute("role"), percent: control.getAttribute("aria-valuenow"), disabled: control.querySelector("button").disabled, label: control.querySelector(".update-label").textContent };
+    return { role: control.getAttribute("role"), percent: control.getAttribute("aria-valuenow"), disabled: control.querySelector("button").disabled, tooltip: control.querySelector(".update-tooltip").textContent };
   })()`),
-      { role: "progressbar", percent: "42", disabled: true, label: "42%" },
+      { role: "progressbar", percent: "42", disabled: true, tooltip: "Downloading 0.0.7 · 42%" },
     );
     await evaluate(
       `window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`,
@@ -325,26 +293,26 @@ app
         true,
       );
     }
-    await evaluate(`document.querySelector("aside").remove()`);
+    await evaluate(`document.querySelector("header").remove()`);
     assert.equal(
       await evaluate(`document.getElementById("plasmic-desktop-update")`),
       null,
     );
     await evaluate(
-      `window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.body.insertAdjacentHTML("beforeend", '<aside><footer>Settings</footer></aside>')`,
+      `window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.body.insertAdjacentHTML("beforeend", '<header><span data-desktop-update-slot="header"></span></header>')`,
     );
     assert.equal(
       await evaluate(
         `document.getElementById("plasmic-desktop-update").parentElement.tagName`,
       ),
-      "FOOTER",
+      "SPAN",
     );
     console.log(
-      "PASS: Sidebar shows download progress, then opens the ready dialog instead of restarting directly",
+      "PASS: Explicit update slots show progress, open details and preserve state after remount",
     );
 
     await evaluate(
-      `document.querySelector("aside").remove(); const frame = document.createElement("iframe"); frame.className = "studio-frame"; frame.src = ${JSON.stringify(canvasOrigin + "/static/host.html")}; frame.style = "border:0;width:100vw;height:100vh"; document.body.append(frame)`,
+      `document.querySelector("header").remove(); const frame = document.createElement("iframe"); frame.className = "studio-frame"; frame.src = ${JSON.stringify(canvasOrigin + "/static/host.html")}; frame.style = "border:0;width:100vw;height:100vh"; document.body.append(frame)`,
     );
     let editor;
     for (let i = 0; i < 100; i++) {
@@ -367,10 +335,9 @@ app
       await editor.executeJavaScript(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
-    return { placement: control.dataset.placement, inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, afterRail: control.parentElement.previousElementSibling.id === "left-tab-strip" };
+    return { inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, afterRail: control.parentElement.previousElementSibling.id === "left-tab-strip" };
   })()`),
       {
-        placement: "header",
         inStrip: false,
         width: 32,
         iconWidth: 16,
@@ -435,6 +402,41 @@ app
         `document.querySelector("#plasmic-desktop-update").getAttribute("aria-valuenow")`,
       ),
       "67",
+    );
+    // Studio's .dev-env resets text to a fixed dark color. The injected control
+    // must use the Studio palette even across that ancestor, including at 0%.
+    for (const [text, background] of [
+      ["#edeef5", "#171821"],
+      ["#252a38", "#ffffff"],
+    ]) {
+      await editor.executeJavaScript(`(() => {
+        const studio = document.querySelector(".studio");
+        studio.style.setProperty("--ui-text", ${JSON.stringify(text)});
+        studio.style.background = ${JSON.stringify(background)};
+      })()`);
+      for (const [phase, percent] of [
+        ["available", 0],
+        ["downloading", 0],
+        ["downloading", 72],
+        ["installing", 100],
+      ]) {
+        await evaluate(
+          `window.updateStatus({phase:${JSON.stringify(phase)},version:"0.0.7",percent:${percent}})`,
+        );
+        assert(
+          await editor.executeJavaScript(`(() => {
+            const control = document.getElementById("plasmic-desktop-update");
+            const icon = control.querySelector("svg");
+            return !control.hidden && icon.getBoundingClientRect().width === 16 &&
+              getComputedStyle(icon).color === getComputedStyle(document.querySelector(".studio")).color &&
+              Number(getComputedStyle(control.querySelector(".update-icon")).opacity) >= 0.65;
+          })()`),
+          `${phase} at ${percent}% must use the ${text} Studio foreground`,
+        );
+      }
+    }
+    await evaluate(
+      `window.updateStatus({phase:"downloading",version:"0.0.7",percent:67})`,
     );
     const commandCount = await evaluate(`window.commands.length`);
     await editor.executeJavaScript(

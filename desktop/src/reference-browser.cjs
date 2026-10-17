@@ -586,6 +586,16 @@ class ReferenceBrowser {
   }
   async command(input) {
     if (input.action === "open") return this.open();
+    if (input.action === "import_context") {
+      try {
+        const context = await this.getImportContext();
+        this.state.importDestination = context.destinationName;
+        this.publish();
+      } catch {
+        this.state.importDestination = null;
+      }
+      return this.snapshot();
+    }
     if (input.action === "get_state") {
       await this.poll();
       return this.snapshot();
@@ -800,7 +810,8 @@ class ReferenceBrowser {
     this.state.notice = null;
     this.publish();
     try {
-      const context = await this.getImportContext(input);
+      const { destinationName, ...context } = await this.getImportContext();
+      this.state.importDestination = destinationName;
       const target =
         input.target || (this.state.selection ? "selection" : "full_page");
       const capture = await captureReference(this.view, {
@@ -853,6 +864,7 @@ class ReferenceBrowser {
             Buffer.from(image.data, "base64"),
           );
           capture.html = `<img src="${asset.src.replaceAll("&", "&amp;").replaceAll('"', "&quot;")}" style="width:${rect.width}px;height:${rect.height}px">`;
+          capture.bounds = rect;
         } finally {
           await this.picker("restore");
         }
@@ -864,12 +876,8 @@ class ReferenceBrowser {
       const result = await this.importHtml({
         ...context,
         html: capture.html,
-        width: this.state.width,
-        ...((target === "full_page" || target === "visible_area") &&
-        !input.selector &&
-        clipHeight !== undefined
-          ? { height: clipHeight }
-          : {}),
+        width: Math.min(4096, Math.round(capture.bounds.width)),
+        height: Math.min(16384, Math.round(capture.bounds.height)),
         name:
           input.name ||
           (target === "selection" ? "ImportedSection" : "ImportedPage"),
@@ -882,7 +890,7 @@ class ReferenceBrowser {
       this.state.notice = this.i18n.t(
         input.action === "screenshot_to_canvas"
           ? "Screenshot added to the canvas."
-          : "Imported as editable layers.",
+          : "Imported as an independent artboard.",
       );
       try {
         await this.locate(this.state.result);

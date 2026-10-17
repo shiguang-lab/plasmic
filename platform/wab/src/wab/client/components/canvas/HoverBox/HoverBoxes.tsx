@@ -31,6 +31,7 @@ import {
 import { OneShortcutCombo } from "@/wab/client/components/studio/Shortcuts";
 import { getContextMenuForFocusedTpl } from "@/wab/client/components/tpl-menu";
 import { LinkButton } from "@/wab/client/components/widgets";
+import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
 import { offsetPxAsUnits } from "@/wab/client/DimManip";
 import { DragMoveManager } from "@/wab/client/Dnd";
 import {
@@ -43,8 +44,10 @@ import {
 } from "@/wab/client/FreestyleManipulator";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
-import { cssPropsForInvertTransform, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
+import {
+  cssPropsForInvertTransform,
+  StudioCtx,
+} from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import {
@@ -280,7 +283,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       studioCtx.showStackOfParents = false;
     }
 
-    const clientPt = new Pt(e.mouseEvent.pageX, e.mouseEvent.pageY);
+    const clientPt = new Pt(e.data.initX, e.data.initY);
     const focusedObjects = studioCtx.hoverBoxControlledObjs;
     if (focusedObjects.length === 1 && isKnownArenaFrame(focusedObjects[0])) {
       if (studioCtx.isPositionManagedFrame(focusedObjects[0])) {
@@ -329,10 +332,14 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     }
   };
 
-  const stopMove = async () => {
+  const stopMove = async (cancelled = false) => {
     await studioCtx.changeUnsafe(() => {
       if (dragMoveManager.current) {
-        dragMoveManager.current.endDrag();
+        if (dragMoveManager.current instanceof DragMoveManager) {
+          dragMoveManager.current.endDrag(cancelled);
+        } else {
+          dragMoveManager.current.endDrag();
+        }
         dragMoveManager.current = undefined;
       }
       studioCtx.setIsDraggingObject(false);
@@ -514,7 +521,12 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     <XDraggable
                       onStart={(e) => startMove(e)}
                       onDrag={(e) => dragMove(e)}
-                      onStop={async () => stopMove()}
+                      onStop={async (e) => {
+                        if (!e.data.aborted) {
+                          await dragMove(e);
+                        }
+                        await stopMove(e.data.aborted);
+                      }}
                     >
                       <div
                         ref={hoverTagRef}

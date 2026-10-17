@@ -262,22 +262,29 @@ const EDIT_TOOL_META = {
     toolName: "importWebPage",
     title: "Import a captured web page",
     description:
-      "Import static captured HTML as editable elements in one undoable transaction. Omit componentUuid to create a new page; otherwise append to the specified local component. Returns inserted element UUIDs and import warnings. Captured content cannot define executable bindings or component registrations.",
+      "Import static captured HTML into an independent editable artboard in one undoable transaction. Uses the current mixed canvas or the source page's associated canvas. Does not create a routed page or reusable component. Returns the destination canvas, artboard, inserted element UUIDs and warnings. Captured content cannot define executable bindings or component registrations.",
     inputSchema: z
       .object({
         html: z.string().min(1).max(200000),
-        componentUuid: uuid.optional(),
-        elementUuid: uuid.optional(),
+        sourceArena: z
+          .object({
+            id: uuid,
+            type: z.enum(["custom", "page", "component"]),
+          })
+          .strict()
+          .optional(),
         name: z
           .string()
           .regex(/^[A-Z][A-Za-z0-9]*$/)
           .default("ImportedPage"),
-        width: z.number().int().min(320).max(4096).default(1440),
+        width: z.number().int().min(1).max(4096).default(1440),
         height: z.number().int().min(1).max(16384).optional(),
         projectId: uuid,
       })
       .strict(),
     outputSchema: z.object({
+      canvasName: z.string(),
+      frameUuid: uuid,
       componentUuid: uuid,
       elementUuids: z.array(uuid),
       warnings: z.array(z.string()),
@@ -557,6 +564,7 @@ const EDIT_TOOL_META = {
       revision: z.number().int().nonnegative().optional(),
       componentName: z.string().nullable().optional(),
       changeCounter: z.number().int().nonnegative(),
+      browserImportCanvasName: z.string(),
       componentUuid: uuid.nullable(),
       frameUuid: uuid.nullable(),
       selectedElementUuids: z.array(uuid),

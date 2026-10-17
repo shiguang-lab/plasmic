@@ -213,7 +213,7 @@ it("provides a desktop update slot outside and below the loading editor tool rai
   );
   const { container } = setup(<ApplicationPageLoading />);
   const slot = container.querySelector('[data-desktop-update-slot="header"]');
-  expect(slot?.getAttribute("data-desktop-update-compact")).toBe("true");
+  expect(slot).toBeTruthy();
   expect(slot?.previousElementSibling?.id).toBe("left-tab-strip");
   expect(slot?.getAttribute("data-desktop-update-position")).toBe("above");
   expect(slot?.closest("#left-tab-strip")).toBeNull();

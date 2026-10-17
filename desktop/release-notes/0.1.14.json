@@ -1,0 +1,7 @@
+{
+  "en": "- Import whole web pages and selected regions as independent editable artboards, including when starting from a page or component detail view.\n- Drag imported artboard content into a page with native drop targets. Import and move each support a single undo step; artboards can also become pages or reusable components.\n- Keep update controls in their designated page locations, show compact progress rings, and display the version and download percentage in tooltips.",
+  "zh-CN": "- 整页网页和局部区域统一导入为独立可编辑画板，从页面或组件明细中导入时也保持一致。\n- 支持将导入画板的内容拖入页面，显示原生落点提示；导入和拖入均可一次撤销，画板也可转为页面或可复用组件。\n- 更新入口统一放在页面指定位置，下载时显示进度环，悬停或键盘聚焦时显示版本和下载百分比。",
+  "zh-TW": "- 整頁網頁和局部區域統一匯入為獨立可編輯畫板，從頁面或元件詳細檢視匯入時也保持一致。\n- 支援將匯入畫板的內容拖入頁面，顯示原生放置位置提示；匯入和拖入均可一次復原，畫板也可轉為頁面或可重複使用的元件。\n- 更新入口統一放在頁面指定位置，下載時顯示進度環，游標停留或鍵盤聚焦時顯示版本和下載百分比。",
+  "ja": "- Web ページ全体と選択範囲を独立した編集可能なアートボードとして取り込みます。ページやコンポーネントの詳細画面からも同じ方法で取り込めます。\n- 取り込んだ内容をページにドラッグでき、配置先を表示します。取り込みと移動はそれぞれ一度で元に戻せます。アートボードをページや再利用可能なコンポーネントに変換することもできます。\n- 更新ボタンを各画面の指定位置に統一しました。ダウンロード中は進行状況のリングを表示し、ホバー時やキーボードフォーカス時にバージョンと進捗率を表示します。",
+  "ko": "- 전체 웹 페이지와 선택 영역을 독립적인 편집 가능 아트보드로 가져옵니다. 페이지나 컴포넌트 상세 화면에서도 동일하게 가져옵니다.\n- 가져온 내용을 페이지로 드래그할 때 기본 배치 위치를 표시합니다. 가져오기와 이동은 각각 한 번에 실행 취소할 수 있으며 아트보드를 페이지나 재사용 가능한 컴포넌트로 전환할 수 있습니다.\n- 업데이트 버튼을 각 화면의 지정된 위치로 통일했습니다. 다운로드 중에는 진행률 링을 표시하고 마우스를 올리거나 키보드로 포커스하면 버전과 다운로드 비율을 표시합니다."
+}

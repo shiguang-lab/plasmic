@@ -653,7 +653,6 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         {navigator.userAgent.includes("PlasmicDesktop/") && (
           <span
             data-desktop-update-slot="header"
-            data-desktop-update-compact="true"
           />
         )}
         <div className={cx(styles.section, styles.rightSection)}>

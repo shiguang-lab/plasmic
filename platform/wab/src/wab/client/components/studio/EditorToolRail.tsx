@@ -123,7 +123,6 @@ export function EditorToolRail({
         <span
           className="editor-update-below-rail"
           data-desktop-update-slot="header"
-          data-desktop-update-compact="true"
           data-desktop-update-position="above"
         />
       )}

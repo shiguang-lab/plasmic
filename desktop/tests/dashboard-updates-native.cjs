@@ -34,7 +34,7 @@ app
     );
     const geometry = () =>
       evaluate(
-        `(()=>{const c=document.getElementById('plasmic-desktop-update');const b=c.querySelector('button');const r=b.getBoundingClientRect();const a=document.getElementById('avatar').getBoundingClientRect();return {height:r.height,width:r.width,right:r.right,avatarLeft:a.left,left:r.left,brandRight:document.getElementById('brand').getBoundingClientRect().right,hidden:c.hidden,iconOpacity:getComputedStyle(c.querySelector('.update-icon')).opacity,labelDisplay:getComputedStyle(c.querySelector('.update-label')).display};})()`,
+        `(()=>{const c=document.getElementById('plasmic-desktop-update');const b=c.querySelector('button');const r=b.getBoundingClientRect();const a=document.getElementById('avatar').getBoundingClientRect();return {height:r.height,width:r.width,right:r.right,avatarLeft:a.left,left:r.left,brandRight:document.getElementById('brand').getBoundingClientRect().right,hidden:c.hidden,iconOpacity:getComputedStyle(c.querySelector('.update-icon')).opacity,buttonText:b.textContent,circles:b.querySelectorAll("circle").length};})()`,
       );
     let g = await geometry();
     assert.equal(g.hidden, true);
@@ -56,7 +56,9 @@ app
       g = await geometry();
       assert.equal(g.hidden, false);
       assert.equal(g.height, 32);
-      assert.ok(g.width <= 112);
+      assert.equal(g.width, 32);
+      assert.equal(g.buttonText, "");
+      if (phase === "downloading") assert.equal(g.circles, 2);
       assert.equal(g.left - g.brandRight, 12);
       if (phase === "downloaded") {
         assert.equal(
@@ -65,7 +67,6 @@ app
           ),
           "download",
         );
-        assert.equal(g.labelDisplay, "none");
         assert.equal(g.width, 32);
         await evaluate(`document.querySelector('.update-action').click()`);
         assert.equal(await evaluate("commands.at(-1)"), "open");
@@ -78,7 +79,7 @@ app
     await new Promise((r) => setTimeout(r, 120));
     g = await geometry();
     assert.equal(g.width, 32);
-    assert.equal(g.labelDisplay, "none");
+    assert.equal(g.buttonText, "");
     await evaluate(
       `window.sendStatus({phase:'current',currentVersion:'0.1.0'})`,
     );
@@ -96,7 +97,7 @@ app
       win.setSize(width, 900);
       await new Promise((r) => setTimeout(r, 120));
       await evaluate(
-        `window.sendStatus({phase:'downloaded',currentVersion:'0.1.0',version:'0.2.0'});document.getElementById('plasmic-desktop-update').dispatchEvent(new Event('mouseenter'))`,
+        `window.sendStatus({phase:'downloading',currentVersion:'0.1.0',version:'0.2.0',percent:42});document.getElementById('plasmic-desktop-update').dispatchEvent(new Event('mouseenter'))`,
       );
       const placement = await evaluate(
         `(()=>{const c=document.getElementById('plasmic-desktop-update'),b=c.querySelector('button').getBoundingClientRect(),t=c.querySelector('.update-tooltip'),r=t.getBoundingClientRect();return {top:r.top,bottom:b.bottom,left:r.left,right:r.right,viewport:innerWidth,arrow:r.left+parseFloat(t.style.getPropertyValue('--update-tooltip-arrow-x')),anchor:b.left+b.width/2,text:t.textContent};})()`,
@@ -105,13 +106,24 @@ app
       assert.ok(placement.left >= 8);
       assert.ok(placement.right <= placement.viewport - 8);
       assert.ok(Math.abs(placement.arrow - placement.anchor) < 1);
-      assert.ok(placement.text.trim().length > 0);
+      assert.equal(placement.text, "Downloading 0.2.0 · 42%");
+      assert.equal((await geometry()).width, 32, "Hover must keep the ring compact");
+      await evaluate(
+        `window.sendStatus({phase:'downloading',currentVersion:'0.1.0',version:'0.2.0',percent:72})`,
+      );
+      assert.deepEqual(
+        await evaluate(`(() => {
+          const c = document.getElementById('plasmic-desktop-update');
+          return { open: c.querySelector('.update-tooltip').matches(':popover-open'), text: c.querySelector('.update-tooltip').textContent, percent: c.getAttribute('aria-valuenow') };
+        })()`),
+        { open: true, text: "Downloading 0.2.0 · 72%", percent: "72" },
+      );
       await evaluate(
         `document.getElementById('plasmic-desktop-update').dispatchEvent(new Event('mouseleave'))`,
       );
     }
     console.log(
-      "PASS: left brand spacing, conditional visibility, download icon, responsive progress, anchored tooltip content and details-only click",
+      "PASS: left brand spacing, conditional visibility, download icon, ring-only progress at all viewport sizes, live percentage tooltips and details-only click",
     );
     win.destroy();
     app.quit();

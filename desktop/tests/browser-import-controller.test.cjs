@@ -10,47 +10,52 @@ Module._load = function (name, ...args) {
 const { DesktopController } = require("../src/controller.cjs");
 Module._load = original;
 
-test("browser imports pin the project, create a page from the overview and only append to an explicit destination", async () => {
-  const controller = new DesktopController(() => ({}), {});
+test("browser imports retain their source arena and locate the exact mixed-canvas artboard", async () => {
+  const controller = new DesktopController(() => ({ show() {} }), {});
   controller.ready = async () => {};
-  controller.editor = async () => ({
+  const calls = [];
+  controller.editor = async (name, input) => {
+    calls.push({ name, input });
+    return name === "getEditorContext"
+      ? {
+          projectId: "project",
+          canEdit: true,
+          mode: "edit",
+          browserImportCanvasName: "Workspace",
+          editorView: { arenaId: "page", arenaType: "page" },
+        }
+      : {};
+  };
+  assert.deepEqual(await controller.browserImportContext(), {
     projectId: "project",
-    componentUuid: "current",
-    mode: "edit",
-    canEdit: true,
+    destinationName: "Workspace",
+    sourceArena: { id: "page", type: "page" },
   });
-  assert.deepEqual(await controller.browserImportContext({}), {
+  await controller.locateBrowserImport({
     projectId: "project",
+    canvasName: "Workspace",
+    frameUuid: "frame",
+    componentUuid: "scratch",
+    elementUuids: ["section"],
   });
-  assert.deepEqual(
-    await controller.browserImportContext({
-      componentUuid: "explicit",
-      elementUuid: "container",
-    }),
+  assert.deepEqual(calls.slice(-2), [
     {
-      projectId: "project",
-      componentUuid: "explicit",
-      elementUuid: "container",
+      name: "navigateCanvas",
+      input: { canvasName: "Workspace", frameUuid: "frame" },
     },
-  );
-  await assert.rejects(
-    controller.browserImportContext({ elementUuid: "orphan" }),
-    /component target/,
-  );
-  controller.editor = async () => ({
-    projectId: "project",
-    componentUuid: null,
-    canEdit: true,
-    mode: "edit",
-  });
-  assert.deepEqual(await controller.browserImportContext({}), {
-    projectId: "project",
-  });
+    {
+      name: "selectElement",
+      input: {
+        componentUuid: "scratch",
+        elementUuid: "section",
+        frameUuid: "frame",
+      },
+    },
+  ]);
   controller.editor = async () => ({ canEdit: false, mode: "edit" });
-  await assert.rejects(controller.browserImportContext({}), /editable/);
+  await assert.rejects(controller.browserImportContext(), /editable/);
   controller.close();
 });
-
 test("the import undo action cannot undo later user edits or a different project", async () => {
   const controller = new DesktopController(() => ({}), {});
   let context = { projectId: "project", changeCounter: 4 };

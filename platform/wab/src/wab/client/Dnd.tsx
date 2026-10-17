@@ -4,6 +4,7 @@ import {
   ModifierStates,
   mkFreestyleManipForFocusedDomElt,
 } from "@/wab/client/FreestyleManipulator";
+import { TplClip } from "@/wab/client/clipboard/local";
 import { hasLinkedSelectable } from "@/wab/client/components/canvas/studio-canvas-util";
 import {
   MeasuredGrid,
@@ -57,13 +58,21 @@ import {
   withoutNils,
 } from "@/wab/shared/common";
 import {
+  isCodeComponent,
+  isFrameComponent,
+} from "@/wab/shared/core/components";
+import {
   SQ,
   SelQuery,
   Selectable,
   isSelectableLocked,
 } from "@/wab/shared/core/selection";
 import { SlotSelection } from "@/wab/shared/core/slots";
-import { isTplVariantable, prepareFocusedTpls } from "@/wab/shared/core/tpls";
+import {
+  clone,
+  isTplVariantable,
+  prepareFocusedTpls,
+} from "@/wab/shared/core/tpls";
 import {
   ValComponent,
   ValNode,
@@ -427,10 +436,7 @@ class ErrorInsertion {
 }
 
 export type InsertionSpec =
-  | FreeBoxInsertion
-  | SiblingInsertion
-  | GridInsertion
-  | ErrorInsertion;
+  FreeBoxInsertion | SiblingInsertion | GridInsertion | ErrorInsertion;
 
 export function calcOffset(domElt: HTMLElement, clientPt: Pt, vc: ViewCtx) {
   const parentFrameBox = Box.fromRect(getPaddingRect(domElt));
@@ -474,7 +480,7 @@ export function insertBySpec(
           ins.insertionBox.loc,
         )
     ) {
-      return;
+      return false;
     }
     targetVal = ins.insertionBox.valNode;
   } else if (ins.type === "FreeBoxInsertion") {
@@ -489,7 +495,7 @@ export function insertBySpec(
         forceFree: !ins.slotted,
       })
     ) {
-      return;
+      return false;
     }
     targetVal =
       ins.nodeBox.selectable instanceof SlotSelection
@@ -499,7 +505,7 @@ export function insertBySpec(
     const wrapper = $$$(newNode).getAsTagOrWrap();
     const parent = ensureInstance(ins.nodeBox.selectable, ValTag).tpl;
     if (!vc.getViewOps().tryInsertAsChild(wrapper, parent, {})) {
-      return;
+      return false;
     }
     vc.variantTplMgr().ensureCurrentVariantSetting(wrapper);
     targetVal = ensureInstance(ins.nodeBox.selectable, ValTag);
@@ -511,6 +517,7 @@ export function insertBySpec(
       ensure(targetVal, "Unexpected undefined targetVal."),
     );
   }
+  return true;
 }
 
 export interface Adoptee {
@@ -534,6 +541,9 @@ export class DragMoveManager {
   private cursorOffset: Pt;
   private positionStyles: (string | undefined)[];
   private _aborted = false;
+  private crossFrameTargeters: NodeTargeter[] = [];
+  private crossFrameTargeter?: NodeTargeter;
+  private clips: TplClip[] = [];
 
   /**
    * @param vc
@@ -622,6 +632,43 @@ export class DragMoveManager {
         this.vc.startUnlogged();
       }
     });
+    // Scratch artboards are independent sources. Reuse canvas targeting and
+    // paste adaptation when their content is moved into a different component.
+    if (
+      !this._aborted &&
+      isFrameComponent(vc.currentComponent()) &&
+      objects.every(
+        (object) =>
+          !(object instanceof ValSlot) &&
+          object.tpl !== vc.currentComponent().tplTree,
+      )
+    ) {
+      this.clips = prepareFocusedTpls(objects.map((object) => object.tpl)).map(
+        (tpl) => ({
+          ...vc.getViewOps().createTplClip(tpl),
+          node: clone(tpl),
+          origNode: tpl,
+        }),
+      );
+      this.crossFrameTargeters = vc.studioCtx.viewCtxs
+        .filter(
+          (target) =>
+            target !== vc &&
+            target.isVisible() &&
+            target.currentComponent() !== vc.currentComponent() &&
+            !isCodeComponent(target.currentComponent()) &&
+            vc.studioCtx.site.components.includes(target.currentComponent()) &&
+            target.valState().maybeValUserRoot(),
+        )
+        .map(
+          (target) =>
+            new NodeTargeter(
+              target,
+              this.clips.map((clip) => clip.node),
+              this.cursorOffset,
+            ),
+        );
+    }
   }
 
   /**
@@ -671,6 +718,27 @@ export class DragMoveManager {
         top: dragPtInScaler.y,
       });
     });
+
+    this.crossFrameTargeters.forEach((targeter) => targeter.clear());
+    this.crossFrameTargeter = undefined;
+    for (const targeter of this.crossFrameTargeters) {
+      const insertion =
+        modifiers.metaKey || modifiers.ctrlKey
+          ? targeter.getAbsInsertion(clientPt)
+          : targeter.getInsertion(clientPt);
+      if (insertion) {
+        this.targeter.clear();
+        this.crossFrameTargeter = targeter;
+        this.tentativeInsertion = insertion;
+        this.$dragHandles.forEach(($handle) =>
+          $handle.css({ visibility: "visible" }),
+        );
+        return;
+      }
+    }
+    this.$dragHandles.forEach(($handle, index) =>
+      $handle.css({ visibility: this.isAbsPos[index] ? "hidden" : "visible" }),
+    );
 
     /**
      * If ctrl/meta key is pressed
@@ -730,7 +798,7 @@ export class DragMoveManager {
    * Ends the drag and drop motion.  If there was a valid insertion upon ending,
    * the node will be moved to the new insertion point.
    */
-  endDrag() {
+  endDrag(cancelled = false) {
     if (this.vc.isUnlogged()) {
       this.vc.change(() => {
         this.vc.stopUnlogged();
@@ -740,11 +808,22 @@ export class DragMoveManager {
         if (this.targeter) {
           this.targeter.clear();
         }
+        this.crossFrameTargeters.forEach((targeter) => targeter.clear());
         if (
+          !cancelled &&
           this.isValidDragState() &&
           this.tentativeInsertion &&
           this.tentativeInsertion.type !== "ErrorInsertion"
         ) {
+          if (this.crossFrameTargeter) {
+            const clips = shouldInsertInReverseOrder(this.tentativeInsertion)
+              ? [...this.clips].reverse()
+              : this.clips;
+            this.crossFrameTargeter.vc
+              .getViewOps()
+              .moveFreeFrameContent(this.vc, clips, this.tentativeInsertion);
+            return;
+          }
           const tplToPositionStyle = new Map<TplNode, string | undefined>();
           for (let i = 0; i < this.objects.length; i++) {
             tplToPositionStyle.set(this.objects[i].tpl, this.positionStyles[i]);
@@ -1416,13 +1495,11 @@ export class NodeTargeter {
     function* genNodeBoxes(viewCtx: ViewCtx) {
       for (const $domElt of domElts) {
         const domElt = $domElt[0];
-        if (
-          !(
-            !$domElt.is(canvasCtx.$userBody()) &&
-            hasLinkedSelectable($domElt, vc) &&
-            hasLayoutBox(domElt)
-          )
-        ) {
+        if (!(
+          !$domElt.is(canvasCtx.$userBody()) &&
+          hasLinkedSelectable($domElt, vc) &&
+          hasLayoutBox(domElt)
+        )) {
           continue;
         }
         const selectable = vc.dom2val($domElt);

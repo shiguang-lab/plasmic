@@ -129,12 +129,10 @@ import { SignalBinding } from "signals";
 
 const minDragPx = 4;
 interface DragState {
-  initPageX: number;
-  initPageY: number;
+  sourceViewCtx: ViewCtx;
+  initClientPt: Pt;
   initScreenX: number;
   initScreenY: number;
-  initClientX: number;
-  initClientY: number;
   /** Whether we've passed the min threshold to start dragging. */
   isDragging: boolean;
   dragMoveManager: DragMoveManager | DragMoveFrameManager | undefined;
@@ -270,7 +268,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       this.handleMouseMove(e, this.viewCtx()),
     );
     this.registerListener("pointerup", (e) =>
-      this.handleMouseUp(e, this.viewCtx()),
+      spawn(this.handleMouseUp(e, this.viewCtx())),
     );
     this.registerListener("pointercancel", this.cancelMarquee);
     window.addEventListener("blur", this.cancelMarquee);
@@ -1146,12 +1144,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
 
     const makeSpeculativeDragState = () => ({
-      initPageX: e.pageX,
-      initPageY: e.pageY,
+      sourceViewCtx: targetVc,
+      initClientPt: isCanvasIframeEvent(e)
+        ? frameToClientPt(new Pt(e.clientX, e.clientY), targetVc)
+        : new Pt(e.clientX, e.clientY),
       initScreenX: e.screenX,
       initScreenY: e.screenY,
-      initClientX: e.clientX,
-      initClientY: e.clientY,
       isDragging: false,
       dragMoveManager: undefined,
     });
@@ -1327,9 +1325,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       return;
     }
 
-    if (!vc || this.props.studioCtx.isLiveMode) {
+    if (s.sourceViewCtx.isDisposed || this.props.studioCtx.isLiveMode) {
       return;
     }
+    vc = s.sourceViewCtx;
     // ignore the events if we are in freestyle mode
     if (this.props.studioCtx.freestyleState()) {
       return;
@@ -1340,7 +1339,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     // could just use clientX/clientY.
     const deltaX = e.screenX - s.initScreenX;
     const deltaY = e.screenY - s.initScreenY;
-    const initClientPt = frameToClientPt(new Pt(s.initPageX, s.initPageY), vc);
+    const initClientPt = s.initClientPt;
     if (!s.isDragging) {
       if (Math.sqrt(deltaX ** 2 + deltaY ** 2) >= minDragPx) {
         // ignore fixed elements, we do this verification here, because we want to warn
@@ -1350,7 +1349,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           focusedTpl &&
           (isKnownTplTag(focusedTpl) || isKnownTplComponent(focusedTpl))
         ) {
-          const position = this.viewOps().getPositionType(focusedTpl);
+          const position = vc.getViewOps().getPositionType(focusedTpl);
           if (position === PositionLayoutType.fixed) {
             this.throttledWarn({
               message: translate(
@@ -1429,9 +1428,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         console.log("dragState set to", this.dragState);
       }
     }
-    if (s.dragMoveManager) {
-      await s.dragMoveManager.drag(clientPt, e);
-      if (s.dragMoveManager && s.dragMoveManager.aborted()) {
+    const dragMoveManager = this.dragState?.dragMoveManager;
+    if (dragMoveManager) {
+      await dragMoveManager.drag(clientPt, e);
+      if (dragMoveManager.aborted()) {
         this.endDrag();
       }
     }
@@ -1441,19 +1441,23 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     if (e.key === "Escape") {
       this.cancelMarquee();
       if (this.dragState) {
-        this.endDrag();
+        this.endDrag(true);
       }
     }
   };
 
-  private endDrag() {
+  private endDrag(cancelled = false) {
     const s = ensure(this.dragState, () => "Expected dragState to exist");
     if (s.isDragging) {
       this.canvasClicks.reset();
       this.pendingCanvasClick = undefined;
     }
     if (s.dragMoveManager) {
-      s.dragMoveManager.endDrag();
+      if (s.dragMoveManager instanceof DragMoveManager) {
+        s.dragMoveManager.endDrag(cancelled);
+      } else {
+        s.dragMoveManager.endDrag();
+      }
     }
     this.dragState = undefined;
     document.removeEventListener("keydown", this.handleDragEscape);
@@ -1572,7 +1576,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     }
   };
 
-  private handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
+  private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
     const click = this.pendingCanvasClick;
     this.pendingCanvasClick = undefined;
     if (
@@ -1663,7 +1667,13 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       return;
     }
     const s = this.dragState;
-    if (s) {
+    if (s?.dragMoveManager) {
+      const end = isCanvasIframeEvent(e)
+        ? frameToClientPt(new Pt(e.clientX, e.clientY), vc)
+        : new Pt(e.clientX, e.clientY);
+      await s.dragMoveManager.drag(end, e);
+    }
+    if (this.dragState) {
       this.endDrag();
     }
     if (!s?.isDragging) {
@@ -2006,7 +2016,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         (e) => spawn(this.handleMouseDown(e, vc)),
         true,
       );
-      doc.addEventListener("pointerup", (e) => this.handleMouseUp(e, vc));
+      doc.addEventListener("pointerup", (e) =>
+        spawn(this.handleMouseUp(e, vc)),
+      );
       doc.addEventListener("pointercancel", this.cancelMarquee);
       doc.addEventListener("pointermove", (e) =>
         spawn(this.handleMouseMove(e, vc)),

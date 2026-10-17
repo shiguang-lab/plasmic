@@ -257,8 +257,8 @@
       [
         "import_to_canvas",
         snapshot.selection
-          ? "Import the selection as nodes (Enter)"
-          : "Reproduce on canvas",
+          ? "Import selection as an independent artboard (Enter)"
+          : "Import page as an independent artboard",
       ],
       [
         "screenshot",
@@ -270,6 +270,10 @@
     ]) {
       button(action).setAttribute("aria-label", t(label));
       button(action).dataset.tooltip = t(label);
+    }
+    if (snapshot.importDestination) {
+      button("import_to_canvas").dataset.tooltip +=
+        " · " + t("Canvas: {name}", { name: snapshot.importDestination });
     }
     button("expand").setAttribute("aria-pressed", snapshot.expanded);
     button("expand")
@@ -524,6 +528,8 @@
   function showTooltip(node) {
     hideTooltip();
     if (!popover.hidden || !node?.dataset.tooltip || node.disabled) return;
+    if (node.dataset.action === "import_to_canvas")
+      void api.command({ action: "import_context" });
     tooltipTimer = setTimeout(() => {
       if (!node.isConnected || !popover.hidden) return;
       tooltipAnchor = node;

@@ -194,7 +194,7 @@ tools.push(
   {
     name: "browser",
     description:
-      "Shared docked reference browser. open reserves space for a right-side panel inside the editor; load_page navigates; get_state reads URL, viewport and selected element; set_import_height sets the bottom handle height in panel CSS pixels (minimum 240), or omitting height resets full-page import; the clipped height limits full-page editable imports and screenshots; select_element accepts a selector or starts the visual picker; import_to_canvas imports the whole page or current selection as editable layers in one undo transaction. No HTML needs to pass through the agent. Omit componentUuid to create a page, or specify componentUuid and optional elementUuid to append. screenshot_to_canvas imports a raster image through the same destination contract. capture reads styled DOM and PNG; successful reads briefly scan the selected element or viewport, separately from import loading. cdp sends a restricted CDP command; DOM/CSS/accessibility reads, Page.captureScreenshot and Runtime.evaluate with throwOnSideEffect=true receive the same feedback. close hides the panel and preserves its session. Studio cookies and APIs are isolated.",
+      "Shared docked reference browser. open reserves space for a right-side panel inside the editor; load_page navigates; get_state reads URL, viewport and selected element; set_import_height sets the bottom handle height in panel CSS pixels (minimum 240), or omitting height resets full-page import; the clipped height limits full-page editable imports and screenshots; select_element accepts a selector or starts the visual picker; import_to_canvas imports the whole page or current selection as editable layers in one undo transaction. No HTML needs to pass through the agent. Whole-page and selection imports always create independent editable artboards in the current or associated mixed canvas; they do not append to the selected page/container. Results include canvasName and frameUuid. Artboards can be moved freely, their content dragged into a page, or converted to pages/components. screenshot_to_canvas creates an independent raster artboard through the same destination contract. capture reads styled DOM and PNG; successful reads briefly scan the selected element or viewport, separately from import loading. cdp sends a restricted CDP command; DOM/CSS/accessibility reads, Page.captureScreenshot and Runtime.evaluate with throwOnSideEffect=true receive the same feedback. close hides the panel and preserves its session. Studio cookies and APIs are isolated.",
     inputSchema: {
       ...object({
         action: {
@@ -224,8 +224,6 @@ tools.push(
           description:
             "visible_area is only supported by screenshot_to_canvas and captures the currently scrolled viewport.",
         },
-        componentUuid: { type: "string", minLength: 1 },
-        elementUuid: { type: "string", minLength: 1 },
         name: { type: "string", pattern: "^[A-Z][A-Za-z0-9]*$" },
       }),
       required: ["action"],

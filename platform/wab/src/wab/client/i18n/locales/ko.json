@@ -5402,7 +5402,6 @@
   "Full page": "전체 페이지",
   "Selected element": "선택한 요소",
   "Import cancelled. The canvas was not changed.": "가져오기가 취소되었습니다. 캔버스는 변경되지 않았습니다.",
-  "Imported as editable layers.": "편집 가능한 레이어로 가져왔습니다.",
   "Import undone.": "가져오기를 실행 취소했습니다.",
   "Import details": "가져오기 세부 정보",
   "Open in system browser": "시스템 브라우저에서 열기",
@@ -5417,8 +5416,6 @@
   "Close Browser View": "브라우저 보기 닫기",
   "Viewport: {device}. Switch to {next}": "뷰포트: {device}. {next}(으)로 전환",
   "Stop selecting an element": "요소 선택 중지",
-  "Import the selection as nodes (Enter)": "선택 영역을 레이어로 가져오기 (Enter)",
-  "Reproduce on canvas": "캔버스로 가져오기",
   "Screenshot the selection onto the canvas (Cmd/Ctrl+Enter)": "선택 영역 스크린샷을 캔버스로 (Cmd/Ctrl+Enter)",
   "Visible area": "표시 영역",
   "Reset Zoom to 100%": "확대/축소를 100%로 재설정",
@@ -5487,5 +5484,11 @@
   "Update publication": "게시 업데이트",
   "Version description (optional)": "버전 설명 (선택 사항)",
   "Version tags": "버전 태그",
-  "Publish the saved version and update the website.": "저장된 버전을 게시하고 웹사이트를 업데이트합니다。"
+  "Publish the saved version and update the website.": "저장된 버전을 게시하고 웹사이트를 업데이트합니다。",
+  "Free canvas": "자유 캔버스",
+  "Imported as an independent artboard.": "독립 아트보드로 가져왔습니다.",
+  "Import selection as an independent artboard (Enter)": "선택 영역을 독립 아트보드로 가져오기 (Enter)",
+  "Import page as an independent artboard": "페이지를 독립 아트보드로 가져오기",
+  "Canvas: {name}": "캔버스: {name}",
+  "Cannot move elements": "요소를 이동할 수 없습니다"
 }

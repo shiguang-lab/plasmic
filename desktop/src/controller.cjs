@@ -773,18 +773,22 @@ class DesktopController {
     }
     throw new Error("Unknown desktop command");
   }
-  async browserImportContext(input) {
+  async browserImportContext() {
     await this.ready();
     const context = await this.editor("getEditorContext");
     if (!context.canEdit || context.mode !== "edit")
       throw new Error("Open an editable current project before importing");
-    const componentUuid = input.componentUuid;
-    if (input.elementUuid && !componentUuid)
-      throw new Error("An element requires a component target");
     return {
       projectId: context.projectId,
-      ...(componentUuid ? { componentUuid } : {}),
-      ...(input.elementUuid ? { elementUuid: input.elementUuid } : {}),
+      destinationName: context.browserImportCanvasName,
+      ...(context.editorView
+        ? {
+            sourceArena: {
+              id: context.editorView.arenaId,
+              type: context.editorView.arenaType,
+            },
+          }
+        : {}),
     };
   }
   async importBrowserHtml(input) {
@@ -801,11 +805,15 @@ class DesktopController {
     const context = await this.editor("getEditorContext");
     if (context.projectId !== result.projectId)
       throw new Error("Reopen the imported project first");
-    await this.editor("navigate", { componentUuid: result.componentUuid });
+    await this.editor("navigateCanvas", {
+      canvasName: result.canvasName,
+      frameUuid: result.frameUuid,
+    });
     if (result.elementUuids[0])
       await this.editor("selectElement", {
         componentUuid: result.componentUuid,
         elementUuid: result.elementUuids[0],
+        frameUuid: result.frameUuid,
       });
     this.getWindow().show();
     return { located: true };

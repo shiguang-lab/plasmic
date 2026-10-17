@@ -64,38 +64,23 @@
 
   const style = document.createElement("style");
   style.textContent = `
-    #plasmic-desktop-update { display: inline-flex; position: relative; flex-shrink: 0; align-items: center; justify-content: center; width: 36px; height: 36px; margin: 4px 0; -webkit-app-region: no-drag; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
+    #plasmic-desktop-update { display: inline-flex; position: relative; flex-shrink: 0; align-items: center; justify-content: center; width: auto; height: 32px; margin: 0; color: var(--ui-text, inherit); -webkit-app-region: no-drag; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
     #plasmic-desktop-update[hidden] { display: none; }
-    #plasmic-desktop-update .update-action { box-sizing: border-box; display: grid; grid-template-columns: 0fr; position: relative; align-items: center; justify-content: center; flex-shrink: 0; width: auto; min-width: 20px; max-width: 144px; height: 20px; padding: 0 10px; overflow: hidden; border: 0; border-radius: 999px; background: #0285ff; color: white; cursor: pointer; font: inherit; transition: grid-template-columns 220ms cubic-bezier(.25,.46,.45,.94), background-color 220ms; }
-    #plasmic-desktop-update .update-action:hover { background: #027aeb; }
+    #plasmic-desktop-update .update-action { box-sizing: border-box; display: flex; position: relative; align-items: center; justify-content: center; flex-shrink: 0; width: 32px; height: 32px; padding: 0 8px; overflow: hidden; border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; font: inherit; transition: background-color 220ms; }
     #plasmic-desktop-update .update-action:focus-visible { outline: 2px solid #0285ff; outline-offset: 2px; }
     #plasmic-desktop-update .update-action:disabled { cursor: default; }
-    #plasmic-desktop-update .update-icon { display: inline-flex; position: absolute; inset: 0; align-items: center; justify-content: center; width: 100%; height: 100%; transition: opacity 80ms, transform 80ms; }
-    #plasmic-desktop-update svg { width: 12px; height: 12px; }
-    #plasmic-desktop-update .update-label { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-align: center; opacity: 0; transition: opacity 80ms 140ms; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    #plasmic-desktop-update[data-placement=footer] { width: 100%; }
-    #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open), #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-action { grid-template-columns: 1fr; }
-    #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open) .update-icon, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-icon { opacity: 0; transform: scale(.9); }
-    #plasmic-desktop-update .update-action:is(:hover,:focus-visible,:popover-open) .update-label, #plasmic-desktop-update[data-placement=footer][data-phase=downloading] .update-label { opacity: 1; }
+    #plasmic-desktop-update .update-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; opacity: .65; transition: opacity 80ms; }
     #plasmic-desktop-update .update-spinner { animation: plasmic-update-spin 1s linear infinite; }
-    #plasmic-desktop-update .update-tooltip { position: fixed; inset: auto; margin: 0; transform: translateY(-50%); width: max-content; max-width: 280px; padding: 6px 10px; border: 0; border-radius: 8px; overflow: visible; background: #27272a; color: white; pointer-events: none; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
+    #plasmic-desktop-update .update-tooltip { position: fixed; inset: auto; margin: 0; box-sizing: border-box; width: max-content; max-width: min(280px, calc(100vw - 16px)); padding: 6px 10px; border: 0; border-radius: 8px; overflow: visible; background: #27272a; color: white; pointer-events: none; font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; }
     [data-desktop-update-slot=header] { display: inline-flex; align-items: center; -webkit-app-region: no-drag; }
     [data-desktop-update-slot=header]:empty, [data-desktop-update-slot=header]:has(> [hidden]) { display: none; }
-    #plasmic-desktop-update[data-placement=header] { width: auto; height: 32px; margin: 0; color: inherit; }
-    #plasmic-desktop-update[data-placement=header] .update-action { display: flex; gap: 6px; height: 32px; min-width: 32px; max-width: 112px; padding: 0 8px; border-radius: 8px; background: transparent; color: inherit; }
-    #plasmic-desktop-update[data-placement=header] .update-action:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
-    #plasmic-desktop-update[data-placement=header] .update-icon { position: static; width: 16px; height: 16px; opacity: .65; transform: none; }
-    #plasmic-desktop-update[data-placement=header] .update-action:is(:hover,:focus-visible) .update-icon { opacity: 1; transform: none; }
-    #plasmic-desktop-update[data-placement=header] svg { width: 16px; height: 16px; }
-    #plasmic-desktop-update[data-placement=header] .update-label { display: none; font-size: 12px; font-weight: 500; opacity: 1; }
-    #plasmic-desktop-update[data-placement=header][data-phase=downloading] .update-label { display: block; }
-    #plasmic-desktop-update[data-placement=header][data-compact=true] .update-label { display: none; }
-    #plasmic-desktop-update[data-placement=header]:is([data-phase=downloading],[data-phase=downloaded]) .update-icon { opacity: 1; }
-    #plasmic-desktop-update[data-placement=header][data-phase=downloaded] .update-action { color: #0285ff; background: color-mix(in srgb, #0285ff 10%, transparent); }
-    #plasmic-desktop-update[data-placement=header] .update-tooltip { box-sizing: border-box; max-width: min(280px, calc(100vw - 16px)); transform: none; }
-    #plasmic-desktop-update[data-placement=header] .update-tooltip::before { content: ""; position: absolute; top: -4px; left: var(--update-tooltip-arrow-x); width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
+    #plasmic-desktop-update .update-action:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+    #plasmic-desktop-update .update-action:is(:hover,:focus-visible) .update-icon { opacity: 1; transform: none; }
+    #plasmic-desktop-update svg { width: 16px; height: 16px; }
+    #plasmic-desktop-update:is([data-phase=downloading],[data-phase=downloaded]) .update-icon { opacity: 1; }
+    #plasmic-desktop-update[data-phase=downloaded] .update-action { color: #0285ff; background: color-mix(in srgb, #0285ff 10%, transparent); }
+    #plasmic-desktop-update .update-tooltip::before { content: ""; position: absolute; top: -4px; left: var(--update-tooltip-arrow-x); width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
     #plasmic-desktop-update[data-tooltip-side=above] .update-tooltip::before { top: auto; bottom: -4px; }
-    @media (max-width: 1200px) { #plasmic-desktop-update[data-placement=header] .update-label { display: none !important; } }
     @keyframes plasmic-update-spin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { #plasmic-desktop-update * { transition: none !important; animation: none !important; } }
   `;
@@ -109,37 +94,31 @@
   const icon = document.createElement("span");
   icon.className = "update-icon";
   icon.setAttribute("aria-hidden", "true");
-  const label = document.createElement("span");
-  label.className = "update-label";
-  label.setAttribute("aria-hidden", "true");
   const tooltip = document.createElement("span");
   tooltip.className = "update-tooltip";
   tooltip.setAttribute("role", "tooltip");
   tooltip.setAttribute("popover", "manual");
   const showTooltip = () => {
     const rect = button.getBoundingClientRect();
-    const header = control.dataset.placement === "header";
-    tooltip.style.left = `${header ? rect.left : rect.left + Math.min(144, Math.max(rect.width, label.scrollWidth + 20)) + 8}px`;
-    tooltip.style.top = `${header ? rect.bottom + 8 : rect.top + rect.height / 2}px`;
+    tooltip.style.left = `${rect.left}px`;
+    tooltip.style.top = `${rect.bottom + 8}px`;
     tooltip.showPopover();
-    if (header) {
-      const width = tooltip.getBoundingClientRect().width;
-      const left = Math.max(
-        8,
-        Math.min(
-          rect.left + (rect.width - width) / 2,
-          window.innerWidth - width - 8,
-        ),
-      );
-      tooltip.style.left = `${left}px`;
-      if (control.dataset.tooltipSide === "above") {
-        tooltip.style.top = `${rect.top - tooltip.getBoundingClientRect().height - 8}px`;
-      }
-      tooltip.style.setProperty(
-        "--update-tooltip-arrow-x",
-        `${rect.left + rect.width / 2 - left}px`,
-      );
+    const width = tooltip.getBoundingClientRect().width;
+    const left = Math.max(
+      8,
+      Math.min(
+        rect.left + (rect.width - width) / 2,
+        window.innerWidth - width - 8,
+      ),
+    );
+    tooltip.style.left = `${left}px`;
+    if (control.dataset.tooltipSide === "above") {
+      tooltip.style.top = `${rect.top - tooltip.getBoundingClientRect().height - 8}px`;
     }
+    tooltip.style.setProperty(
+      "--update-tooltip-arrow-x",
+      `${rect.left + rect.width / 2 - left}px`,
+    );
   };
   const hideTooltip = () => {
     tooltip.hidePopover();
@@ -149,14 +128,11 @@
   control.addEventListener("focusin", showTooltip);
   control.addEventListener("focusout", hideTooltip);
   window.addEventListener("resize", () => {
-    if (
-      control.dataset.placement === "header" &&
-      tooltip.matches(":popover-open")
-    ) {
+    if (tooltip.matches(":popover-open")) {
       showTooltip();
     }
   });
-  button.append(icon, label);
+  button.append(icon);
   control.append(button, tooltip);
   const render = (status) => {
     latestStatus = status;
@@ -173,26 +149,16 @@
       hideTooltip();
     }
     const states = {
-      available: ["Preparing…", t("Preparing update {version}", { version })],
-      downloading: [
-        `${progress}%`,
-        t("Downloading {version} · {progress}%", { version, progress }),
-      ],
-      downloaded: [
-        "Update",
-        t("Update {version} is ready. Restart Plasmic to install.", {
-          version,
-        }),
-      ],
-      installing: [
-        "Installing",
-        "Saving your design and preparing to install…",
-      ],
+      available: t("Preparing update {version}", { version }),
+      downloading: t("Downloading {version} · {progress}%", { version, progress }),
+      downloaded: t("Update {version} is ready. Restart Plasmic to install.", {
+        version,
+      }),
+      installing: t("Saving your design and preparing to install…"),
     };
-    const state = states[phase] || ["Check for Updates", "Check for Updates"];
-    label.textContent = t(state[0]);
-    tooltip.textContent = t(state[1]);
-    button.setAttribute("aria-label", t(state[1]));
+    const description = states[phase] || t("Check for Updates");
+    tooltip.textContent = description;
+    button.setAttribute("aria-label", description);
     const busy = ["available", "downloading", "installing"].includes(phase);
     button.disabled = busy;
     button.setAttribute("aria-busy", String(busy));
@@ -202,7 +168,7 @@
     if (phase === "downloading") {
       control.setAttribute("role", "progressbar");
       control.setAttribute("tabindex", "0");
-      control.setAttribute("aria-label", t(state[1]));
+      control.setAttribute("aria-label", description);
       control.setAttribute("aria-valuemin", "0");
       control.setAttribute("aria-valuemax", "100");
       control.setAttribute("aria-valuenow", String(progress));
@@ -258,13 +224,11 @@
     if (uiDocument.head && style.parentElement !== uiDocument.head) {
       uiDocument.head.append(style);
     }
-    const header = [
+    const parent = [
       ...uiDocument.querySelectorAll('[data-desktop-update-slot="header"]'),
     ].find((slot) =>
       slot.parentElement?.checkVisibility({ checkVisibilityCSS: true }),
     );
-    const footer = uiDocument.querySelector("aside > footer");
-    const parent = header || footer;
     if (!parent) {
       hideTooltip();
       control.remove();
@@ -274,11 +238,8 @@
       return;
     }
     hideTooltip();
-    control.dataset.placement = header ? "header" : "footer";
     control.dataset.tooltipSide =
-      header?.dataset.desktopUpdatePosition || "below";
-    control.dataset.compact =
-      header?.dataset.desktopUpdateCompact === "true" ? "true" : "false";
+      parent.dataset.desktopUpdatePosition || "below";
     parent.append(control);
     if (latestStatus) {
       render(latestStatus);
