@@ -1,0 +1,7 @@
+{
+  "en": "- Reduce AI context usage with deduplicated batch results and focused editor schema discovery, preserving complete contracts and ordered operation receipts.\n- Load design guidance on demand and reuse verified model evidence while refreshing layouts and rerunning every acceptance gate.\n- Strengthen navigation, Form, Slot, overlay and evidence checks with isolated counterexamples; retain Preview and save/reopen acceptance.\n- Use UTF-8 consistently for prototype acceptance evidence on Windows.",
+  "zh-CN": "- 通过批量结果去重和按需读取编辑器接口降低 AI 上下文占用，保留完整契约与有序操作回执。\n- 按需加载设计规范，复用已校验模型证据，同时重新采集布局并运行全部验收检查。\n- 增强导航、表单、Slot、弹窗和证据检查，补充独立反例，保留 Preview 与保存重开验收。\n- 统一使用 UTF-8 读写验收 JSON，修复 Windows 默认编码导致的验收失败。",
+  "zh-TW": "- 透過批次結果去重和按需讀取編輯器介面降低 AI 上下文用量，保留完整契約與有序操作回執。\n- 按需載入設計規範，重用已驗證模型證據，同時重新擷取版面並執行全部驗收檢查。\n- 強化導覽、表單、Slot、彈窗和證據檢查，補充獨立反例，保留 Preview 與儲存重開驗收。\n- 統一使用 UTF-8 讀寫驗收 JSON，修復 Windows 預設編碼導致的驗收失敗。",
+  "ja": "- バッチ結果の重複排除と必要なエディタースキーマの取得で AI コンテキスト量を削減し、完全な契約と順序付き操作結果を維持します。\n- 設計ガイドを必要に応じて読み込み、検証済みモデルを再利用しながらレイアウトを再取得して全検証を実行します。\n- ナビゲーション、フォーム、Slot、オーバーレイ、証跡の検証と独立した反例テストを強化し、Preview と保存後の再表示確認を維持します。\n- 検証 JSON を UTF-8 で読み書きし、Windows の既定エンコーディングによる検証失敗を修正します。",
+  "ko": "- 배치 결과 중복 제거와 필요한 편집기 스키마 조회로 AI 컨텍스트 사용량을 줄이면서 전체 계약과 순서가 있는 작업 결과를 유지합니다.\n- 필요한 설계 지침만 읽고 검증된 모델 증거를 재사용하며 레이아웃을 새로 수집하고 모든 검증을 다시 실행합니다.\n- 탐색, 폼, Slot, 오버레이와 증거 검증 및 독립 반례 테스트를 강화하고 Preview와 저장 후 다시 열기 검증을 유지합니다.\n- 검증 JSON을 UTF-8로 읽고 써 Windows 기본 인코딩으로 인한 검증 실패를 수정합니다。"
+}

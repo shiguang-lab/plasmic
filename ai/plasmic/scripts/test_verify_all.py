@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from verify_all import GATES, collect, run_suite, write_json, reusable_evidence, evidence_hashes
+from verify_all import GATES, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes
 import test_verify_forms
 import test_verify_shell_height
 
@@ -65,6 +65,24 @@ class SuiteTests(unittest.TestCase):
         self.assertTrue(report["passed"], report)
         self.assertEqual([check["gate"] for check in report["checks"]], ["evidence", *GATES])
         self.assertIn("save/reopen persistence", report["notChecked"])
+
+    def test_json_uses_utf8_independently_of_system_encoding(self):
+        path = self.root / "unicode.json"
+        value = {"source": "requirement §记录"}
+        original_write, original_read = Path.write_text, Path.read_text
+
+        def write_text(target, data, *args, **kwargs):
+            kwargs.setdefault("encoding", "cp1252")
+            return original_write(target, data, *args, **kwargs)
+
+        def read_text(target, *args, **kwargs):
+            kwargs.setdefault("encoding", "cp1252")
+            return original_read(target, *args, **kwargs)
+
+        with patch.object(Path, "write_text", write_text), patch.object(Path, "read_text", read_text):
+            write_json(path, value)
+            self.assertEqual(json.loads(path.read_bytes()), value)
+            self.assertEqual(read_json(path), value)
 
     def test_independent_failures_are_aggregated(self):
         (self.root / "forms.json").write_text("invalid JSON")
