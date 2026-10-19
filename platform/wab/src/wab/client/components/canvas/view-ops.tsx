@@ -88,6 +88,7 @@ import { promptComponentName, promptPageName } from "@/wab/client/prompts";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx, ensureBaseRs } from "@/wab/client/studio-ctx/view-ctx";
+import { runInAction } from "mobx";
 import { trackEvent } from "@/wab/client/tracking";
 import {
   fontWeightOptions,
@@ -1628,7 +1629,7 @@ export class ViewOps {
 
   refreshHover(deepSelect: boolean) {
     if (this.lastHoverDom?.[0]?.isConnected) {
-      this.viewCtx().change(() =>
+      runInAction(() =>
         this.tryHoverDomElt(ensure(this.lastHoverDom, "Hover target"), {
           deepSelect,
           exact: false,
@@ -1648,7 +1649,7 @@ export class ViewOps {
     const focusable = this.viewCtx().dom2focusObj($elt);
     const cloneKey = this.viewCtx().sel2cloneKey(focusable);
 
-    this.viewCtx().change(() => {
+    this.viewCtx().changeSelection(() => {
       if (focusable != null) {
         this.tryFocusObj(focusable, { ...opts, anchorCloneKey: cloneKey });
       } else {

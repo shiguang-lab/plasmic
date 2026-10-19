@@ -1,3 +1,7 @@
+import type { AssetModule, CodeModule } from "./runtime-types";
+
+export type { AssetModule, CodeModule };
+
 export interface ComponentMeta {
   id: string;
   usedComponents: string[];
@@ -119,19 +123,6 @@ export interface LoaderBundleOutput extends ApiLoaderBundleOutput {
   // this is used to know which components exist in the project, which allow us to properly
   // handle bundle merging being aware of the deleted components.
   filteredIds: Record<string, string[]>;
-}
-
-export interface CodeModule {
-  fileName: string;
-  code: string;
-  imports: string[];
-  type: "code";
-}
-
-export interface AssetModule {
-  fileName: string;
-  source: string;
-  type: "asset";
 }
 
 const VERSION = "10";

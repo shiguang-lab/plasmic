@@ -15,7 +15,7 @@ import { LocalClipboardAction } from "@/wab/client/clipboard/local";
 import { analytics } from "@/wab/client/observability";
 import { PushPullQueue } from "@/wab/commons/asyncutil";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { ApiError, HttpError } from "@/wab/shared/ApiErrors/ApiError";
+import { ApiError, HttpError, UnknownApiError } from "@/wab/shared/ApiErrors/ApiError";
 import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
 import {
   ApiUser,
@@ -61,8 +61,6 @@ export class XHRStatus0Error extends Error {
     super(`XHRStatus0Error: ${message}`);
   }
 }
-
-export class UnknownApiError extends Error {}
 
 export const ajax = async (
   method: string,

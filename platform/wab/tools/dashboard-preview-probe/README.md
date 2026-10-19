@@ -12,27 +12,17 @@ The fixture cache key includes project ID, saved revision and renderer format. R
 
 ## Running
 
-From `platform/wab`, using read-only fixtures already placed in `/tmp/plasmic-cover-probe`:
+The experiment imports the same `renderer.ts` used by the production Dashboard. Both paths use `buildPreviewModules`, `waitForLiveHost` and `syncPreview`; the experiment has no separate compiler or module loader. Its iframe also uses the production `canvas-preview.html` Host template, without the standalone Host onboarding UI. Artboards render by UUID, retaining their saved Props, local/global variants, global providers and tokens. Both callers await the new runtime’s React commit and reject render errors before settling assets and capturing pixels. Readiness waits for imported stylesheets (including nested imports) before layout and font completion; failed or stalled stylesheets reject capture.
 
-```sh
-./node_modules/.bin/esbuild tools/dashboard-preview-probe/fidelity.tsx --bundle --minify --outfile=/tmp/plasmic-cover-probe/fidelity.js
-NODE_ENV=production PLASMIC_SELF_HOSTED=1 STATIC_URL=http://127.0.0.1:3217/static pnpm exec rsbuild build --config tools/dashboard-preview-probe/rsbuild.config.ts
-node tools/dashboard-preview-probe/serve.cjs
-```
+Use a frozen source checkout with matching Studio and prepared Desktop assets. Build Studio through `scripts/build-studio.mjs`, then run `desktop/scripts/prepare-assets.mjs`.
 
-The server binds only `127.0.0.1:3217`. It serves the project's existing `desktop/renderer/static` runtime, the probe build and local fixtures. Real model fixtures and screenshots are deliberately outside the repository.
+Place read-only fixtures in `/tmp/plasmic-cover-probe`: project API responses named `6M9xV1Vz9kawVFdoXVQdSG.json` and `145nN6S5QQBwgjtNUwuiQZ.json`, `config.json`, and pinned versioned registrations such as `antd6@1.18.0.js` matching every imported library version in those projects. Missing versions fail; the server never substitutes latest or another version. `/fixture/manifest.json` reads actual project identities and revisions; cache keys include revision and renderer build. These are two projects even when a test mounts 100 cards.
 
-Required fixtures are the two project API responses, app configuration, and pinned canvas registration bundles for antd6, overseas, react-ui and antd-icons. The current fixtures are REQ075 revision 137 and Admin Templates revision 37. They exercise a four-artboard canvas and a ten-artboard canvas.
+From `platform/wab` run `pnpm test:preview-probe`. The unified runner checks Studio/Desktop build identity, builds both probe entries with the accepted source hash, starts loopback-only servers, runs `benchmark.cjs`, `browsers.cjs`, `canvas-edge.cjs`, `shadow-fidelity.cjs`, `production.cjs`, `production-memory.cjs` and `../published-hydration/regression.cjs`, and records each exit code. It fails if any check fails, runs all seven tools even after an earlier assertion failure and stops its servers in all cases. It does not overwrite production build artifacts. Port 3218 belongs to the Canvas edge server before the production server starts. Outputs remain in `/tmp/plasmic-cover-probe`; `PLASMIC_PROBE_RENDERER` can select an isolated prepared Desktop asset directory.
 
-```sh
-node tools/dashboard-preview-probe/benchmark.cjs
-node tools/dashboard-preview-probe/browsers.cjs
-node tools/dashboard-preview-probe/canvas-edge.cjs
-```
+`pnpm test` discovers the probe engine, server and migration contract tests. They reject stale runtime hashes, incorrect fixture identity, rendering by component instead of artboard identity, swallowed renderer errors, lost capture assets and old module-loader contracts.
 
-`benchmark.cjs` compares browser screenshots with client-generated PNGs, checks every artboard fits, repeats generation three times, measures Chromium JS heap after forced collection and process RSS, and tests 100 cards against persistent cache after reload with project-model requests blocked. Those 100 cards repeat two projects; they are not 100 distinct cold projects. The measured generation time includes reference screenshots, collection and pixel comparisons.
-
-`browsers.cjs` checks the same pipeline in Firefox and WebKit. `canvas-edge.cjs` checks cross-origin taint and WebGL buffers. Test artifacts are written to `/tmp/plasmic-cover-probe`.
+The browser benchmark retains the pixel difference threshold (less than 1% of pixels differing by more than 20 per channel), requires no lost assets, tests every artboard's geometry, repeats rendering and verifies 100 cache hits after reload with model requests blocked. Production tools cover visibility scheduling, cache reuse, cancellation, PNG transfer and destroyed iframe/worker ownership in Chromium, Firefox and WebKit. Memory measurements record Chromium JS heap, DOM and process RSS separately; RSS is not asserted to return to baseline.
 
 ## Limits
 
@@ -40,14 +30,12 @@ Cross-origin images and fonts must be fetchable with CORS. Tainted Canvas pixels
 
 The JS heap check verifies collection of renderer/model objects. Browser RSS, decoded images, GPU resources and font caches are separate measurements, and allocator pools need not return to the OS immediately. The renderer runs on the client's main thread; serial scheduling bounds concurrency but does not eliminate long tasks.
 
-## Verification status
+## Verification evidence
 
-Chromium passes the strict fixture, cache, geometry and repeated-generation checks. The business snapshots have less than 0.32% of pixels with a channel difference greater than 20 against browser screenshots. The Recharts / Canvas 2D / CSS sample is also checked independently.
+A tool source or old screenshot is not a passing result. Use `regression.json`, the seven tool logs, per-browser metrics and actual live/static PNG pairs from the current build. Each benchmark capture has a unique sequence number, so repeated renders cannot overwrite a failed live/static/diff pair. Raw metrics are saved before assertions. A browser fidelity failure remains a failure; no threshold is relaxed and no engine is silently skipped.
 
-Firefox and WebKit complete multi-artboard generation and persistent cache reads. WebKit’s whole-image fidelity check currently fails the 1% threshold on the CSS sample; Firefox also showed a larger difference in one run. The failure is retained in the test instead of relaxing the threshold. Generated PNGs and browser screenshots are available for comparison. These engines are not declared fully equivalent.
+`shadow-fidelity.cjs` independently compares positive/negative, fractional, inset, multiple and filtered shadows against native browser pixels in all three engines, using the same 1% threshold per 100×100 case. Rasterization detects the actual SVG graphics-context direction and, where needed, paints SVG into a flipped intermediate canvas before restoring orientation from raster pixels; source styles and filter effects remain intact. An inconclusive probe fails.
 
-Chromium's JS heap returns to approximately 2.5 MiB after renderer destruction across three regeneration rounds. Its process RSS remains above its initial level: native resource caches and allocator pools require separate evaluation. The benchmark's optional critical-memory-pressure diagnostic is a DevTools test operation, not something the production web app can invoke.
+The three-engine shadow tool also delays an imported stylesheet by 600 ms and independently requires its load event and final font family before readiness completes. This catches fallback-font captures even when the separate pixel cases happen to pass.
 
-The production implementation lives in `src/wab/client/components/dashboard/preview`. `production.cjs` exercises its queue, visibility cancellation, persistent cache and final PNG transfer in Chromium, Firefox and WebKit. `production-memory.cjs` measures repeated rendering with that implementation, including live DOM documents/nodes and worker targets after cleanup. These tests use 100 cards repeating two fixture projects, not 100 distinct cold projects.
-
-Build `rsbuild.preview.config.ts` with the local static origin `http://127.0.0.1:3218`, compile `client.tsx` with esbuild as an ESM browser entry, then run `production-serve.cjs`. It binds loopback and maps existing read-only model/component-library fixtures to the production API paths. Test outputs remain in `/tmp/plasmic-cover-probe`. Browser RSS is recorded separately from JS/DOM collection; it is not asserted to return to baseline.
+The publishing regression also requires the pinned historical hydration input described in `../published-hydration/README.md`. It verifies that the current sibling hydration build, Studio and Desktop contain identical script bytes and no extra hydration versions.

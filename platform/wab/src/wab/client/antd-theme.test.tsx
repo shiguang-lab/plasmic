@@ -2,6 +2,7 @@ import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { renderInspector } from "@/wab/client/components/coding/CodePreview";
 import ValueViewer from "@/wab/client/components/coding/ValueViewer";
 import { Tooltip as ProductTooltip } from "@/wab/client/components/plexus/Tooltip";
+import { Modal } from "@/wab/client/components/widgets/Modal";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import tooltipStyles from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
 import styleTooltipStyles from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
@@ -10,8 +11,16 @@ import {
   usesProductTheme,
 } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
-import { act, cleanup, render, screen } from "@testing-library/react";
-import { DatePicker, Popover, Tooltip, theme } from "antd";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
+import {
+  ConfigProvider,
+  DatePicker,
+  Drawer,
+  Dropdown,
+  Popover,
+  Tooltip,
+  theme,
+} from "antd";
 import { useTheme } from "antd-style";
 import * as React from "react";
 import { createPortal } from "react-dom";
@@ -124,6 +133,103 @@ it("disables Ant Design tooltip and popover arrows in the shared provider", () =
     document.querySelector(".ant-tooltip-arrow, .ant-popover-arrow"),
   ).toBeNull();
 });
+it.each(["popover", "tooltip", "dropdown", "modal", "drawer"] as const)(
+  "carries the product palette into a %s mounted outside the body theme scope",
+  async (kind) => {
+    const popupHost = document.createElement("div");
+    document.documentElement.appendChild(popupHost);
+    onTestFinished(() => {
+      popupHost.remove();
+      setAppearancePreference("dark");
+    });
+    const content = (
+      <div className="templated-string-input" data-testid="overlay-control">
+        Legacy control
+      </div>
+    );
+    const classNames = { root: "custom-overlay" };
+    let overlay: React.ReactElement;
+    switch (kind) {
+      case "popover":
+        overlay = (
+          <Popover open content={content} classNames={classNames}>
+            <button>Open</button>
+          </Popover>
+        );
+        break;
+      case "tooltip":
+        overlay = (
+          <Tooltip open title={content} classNames={classNames}>
+            <button>Open</button>
+          </Tooltip>
+        );
+        break;
+      case "dropdown":
+        overlay = (
+          <Dropdown open popupRender={() => content} classNames={classNames}>
+            <button>Open</button>
+          </Dropdown>
+        );
+        break;
+      case "modal":
+        overlay = (
+          <Modal
+            open
+            title="Details"
+            getContainer={() => popupHost}
+            classNames={classNames}
+          >
+            {content}
+          </Modal>
+        );
+        break;
+      case "drawer":
+        overlay = (
+          <Drawer
+            open
+            title="Details"
+            getContainer={() => popupHost}
+            classNames={classNames}
+          >
+            {content}
+          </Drawer>
+        );
+        break;
+    }
+    setAppearancePreference("dark");
+    render(
+      <AntdConfigProvider productUI>
+        <ConfigProvider getPopupContainer={() => popupHost}>
+          {overlay}
+        </ConfigProvider>
+      </AntdConfigProvider>,
+    );
+    const control = await within(popupHost).findByTestId("overlay-control");
+    for (const appearance of ["dark", "light", "dark"] as const) {
+      act(() => setAppearancePreference(appearance));
+      const token = theme.getDesignToken(productTheme(appearance));
+      const probe = document.createElement("div");
+      probe.style.backgroundColor = token.colorBgContainer;
+      probe.style.color = token.colorText;
+      document.body.appendChild(probe);
+      expect(getComputedStyle(control).backgroundColor).toBe(
+        getComputedStyle(probe).backgroundColor,
+      );
+      expect(getComputedStyle(control).color).toBe(
+        getComputedStyle(probe).color,
+      );
+      const popup = ensure(
+        control.closest(".custom-overlay"),
+        "Expected the custom popup class to be preserved",
+      );
+      expect(
+        getComputedStyle(popup).getPropertyValue("--ui-surface").trim(),
+      ).toBe(token.colorBgContainer);
+      probe.remove();
+    }
+  },
+);
+
 it("updates Ant Design and antd-style together, while auth keeps its original theme", () => {
   setAppearancePreference("dark");
   const { rerender } = render(

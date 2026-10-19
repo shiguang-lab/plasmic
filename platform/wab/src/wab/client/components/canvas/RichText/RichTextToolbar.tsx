@@ -1,3 +1,4 @@
+import { isForwardedFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import { CustomCssProps } from "@/wab/client/components/canvas/CanvasText";
 import {
   marksForToolbar,
@@ -122,9 +123,8 @@ const blocks: BlockElement[] = [
   },
 ];
 
-// Clicks that don't end the editing session. Clicks on the edited text
-// itself never reach this document (the canvas is an iframe), so only
-// portaled popups and a few chrome widgets need exempting.
+// Studio popups and chrome widgets that retain the current text edit.
+// Forwarded canvas notifications are handled separately by canvas selection.
 const KEEP_EDITING_SELECTORS = [
   ...INTERACT_OUTSIDE_EXCEPTION_SELECTORS,
   // The link prompt's mask. Clicking away should not end the editing session.
@@ -182,6 +182,9 @@ function RichTextToolbar_(
   const rootRef = React.useMemo(() => mergeRefs(ref, rootElt), [ref]);
   React.useEffect(() => {
     const listener = (e: PointerEvent) => {
+      if (isForwardedFrameInteraction(e)) {
+        return;
+      }
       const target = e.target;
       if (
         e.button === 0 &&

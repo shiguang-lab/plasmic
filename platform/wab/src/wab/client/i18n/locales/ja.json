@@ -2430,9 +2430,6 @@
   "You can also transfer the color here {part1}.": "ここでも色を移せます {part1}。",
   "This project is a personal project that is not in any {part1} workspace, so it is limited to {part2} editors and no A/B testing or custom targeting. Please move the project into a {part3} whose plan supports a larger number of seats, or {part4}.": "この個人プロジェクトは {part1} ワークスペースに属していないため、編集者は {part2} 人までで、A/B テストとカスタムターゲティングは使えません。席数の多いプランの {part3} に移すか、{part4}。",
   "You will lose owner status and become an editor. Transfer ownership of {part1} to {part2}?": "所有者ではなく編集者になります。{part1} の所有権を {part2} に移しますか？",
-  "To import Figma layers into a Plasmic project, first install {part1} plugin on your Figma workspace.": "Figma のレイヤーを Plasmic に取り込むには、まず Figma ワークスペースに {part1} プラグインをインストールしてください。",
-  "Then, on a Figma file, load the plugin by right-clicking the canvas, hovering into {part1} and clicking {part2}. Select the layers you want to export and click {part3}.": "次に Figma ファイルのキャンバスを右クリックし、{part1} から {part2} を選びます。書き出すレイヤーを選択して {part3} をクリックします。",
-  "Finally, paste into a Plasmic artboard by pressing Cmd/Ctrl+V.": "最後に Cmd/Ctrl+V で Plasmic のアートボードに貼り付けます。",
   "The {part1} package can be configured in settings.": "{part1} パッケージは設定で構成できます。",
   "{part1} to read more about the new image optimization feature and enable it for this project": "{part1}、新しい画像最適化機能の詳細を確認して、このプロジェクトで有効にできます",
   "Plasmic cannot determine which layer the the clicked element belongs to. This happens typically on code component where Plasmic doesn't know the structure of the DOM in the component. {part1}{part2}Please select nodes from the tree in the left panel.": "クリックした要素が属するレイヤーを特定できません。コードコンポーネント内部の DOM 構造が不明な場合によく発生します。{part1}{part2}左パネルのツリーからノードを選んでください。",
@@ -5490,5 +5487,12 @@
   "Import selection as an independent artboard (Enter)": "選択範囲を独立したアートボードとしてインポート（Enter）",
   "Import page as an independent artboard": "ページを独立したアートボードとしてインポート",
   "Canvas: {name}": "キャンバス：{name}",
-  "Cannot move elements": "要素を移動できません"
+  "Cannot move elements": "要素を移動できません",
+  "Select Figma page to import": "インポートする Figma ページを選択",
+  "Could not import Figma file": "Figma ファイルをインポートできませんでした",
+  "Choose a .fig file saved from Figma.": "Figma から保存した .fig ファイルを選択してください。",
+  "The Figma file has no visible pages.": "この Figma ファイルには表示可能なページがありません。",
+  "The selected Figma page has no supported layers.": "選択した Figma ページにはインポート可能なレイヤーがありません。",
+  "Imported \"{page}\" page from Figma": "Figma から「{page}」ページをインポートしました",
+  "Check that the file is a valid .fig export and try again.": "有効な Figma .fig エクスポートファイルであることを確認して、もう一度お試しください。"
 }

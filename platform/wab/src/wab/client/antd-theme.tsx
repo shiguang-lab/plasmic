@@ -57,6 +57,9 @@ export function AntdConfigProvider({
   }, [locale]);
   const currentTheme = productUI ? productTheme(appearance) : antdTheme;
   const { styles } = useProductThemeStyles(theme.getDesignToken(currentTheme));
+  // Portals can leave the themed body/editor subtree. Bind the palette to
+  // every popup root so legacy controls inside inherit it in any container.
+  const popupClassNames = productUI ? { root: styles.root } : undefined;
   React.useLayoutEffect(() => {
     if (!productUI) {
       return;
@@ -95,8 +98,11 @@ export function AntdConfigProvider({
   return (
     <ConfigProvider
       theme={currentTheme}
-      tooltip={{ arrow: false }}
-      popover={{ arrow: false }}
+      tooltip={{ arrow: false, classNames: popupClassNames }}
+      popover={{ arrow: false, classNames: popupClassNames }}
+      dropdown={{ classNames: popupClassNames }}
+      modal={{ classNames: popupClassNames }}
+      drawer={{ classNames: popupClassNames }}
       locale={
         { en: enUS, "zh-CN": zhCN, "zh-TW": zhTW, ja: jaJP, ko: koKR }[locale]
       }

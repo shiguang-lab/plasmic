@@ -2430,9 +2430,6 @@
   "You can also transfer the color here {part1}.": "You can also transfer the color here {part1}.",
   "This project is a personal project that is not in any {part1} workspace, so it is limited to {part2} editors and no A/B testing or custom targeting. Please move the project into a {part3} whose plan supports a larger number of seats, or {part4}.": "This project is a personal project that is not in any {part1} workspace, so it is limited to {part2} editors and no A/B testing or custom targeting. Please move the project into a {part3} whose plan supports a larger number of seats, or {part4}.",
   "You will lose owner status and become an editor. Transfer ownership of {part1} to {part2}?": "You will lose owner status and become an editor. Transfer ownership of {part1} to {part2}?",
-  "To import Figma layers into a Plasmic project, first install {part1} plugin on your Figma workspace.": "To import Figma layers into a Plasmic project, first install {part1} plugin on your Figma workspace.",
-  "Then, on a Figma file, load the plugin by right-clicking the canvas, hovering into {part1} and clicking {part2}. Select the layers you want to export and click {part3}.": "Then, on a Figma file, load the plugin by right-clicking the canvas, hovering into {part1} and clicking {part2}. Select the layers you want to export and click {part3}.",
-  "Finally, paste into a Plasmic artboard by pressing Cmd/Ctrl+V.": "Finally, paste into a Plasmic artboard by pressing Cmd/Ctrl+V.",
   "The {part1} package can be configured in settings.": "The {part1} package can be configured in settings.",
   "{part1} to read more about the new image optimization feature and enable it for this project": "{part1} to read more about the new image optimization feature and enable it for this project",
   "Plasmic cannot determine which layer the the clicked element belongs to. This happens typically on code component where Plasmic doesn't know the structure of the DOM in the component. {part1}{part2}Please select nodes from the tree in the left panel.": "Plasmic cannot determine which layer the the clicked element belongs to. This happens typically on code component where Plasmic doesn't know the structure of the DOM in the component. {part1}{part2}Please select nodes from the tree in the left panel.",
@@ -5490,5 +5487,12 @@
   "Import selection as an independent artboard (Enter)": "Import selection as an independent artboard (Enter)",
   "Import page as an independent artboard": "Import page as an independent artboard",
   "Canvas: {name}": "Canvas: {name}",
-  "Cannot move elements": "Cannot move elements"
+  "Cannot move elements": "Cannot move elements",
+  "Select Figma page to import": "Select Figma page to import",
+  "Could not import Figma file": "Could not import Figma file",
+  "Choose a .fig file saved from Figma.": "Choose a .fig file saved from Figma.",
+  "The Figma file has no visible pages.": "The Figma file has no visible pages.",
+  "The selected Figma page has no supported layers.": "The selected Figma page has no supported layers.",
+  "Imported \"{page}\" page from Figma": "Imported \"{page}\" page from Figma",
+  "Check that the file is a valid .fig export and try again.": "Check that the file is a valid .fig export and try again."
 }

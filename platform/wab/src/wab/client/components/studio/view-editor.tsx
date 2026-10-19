@@ -162,6 +162,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     viewCtx?: ViewCtx;
     append: boolean;
     click: () => void;
+    restore?: () => void;
     captureTarget?: Element;
     pointerId?: number;
   };
@@ -1089,15 +1090,13 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       eventTarget.classList.contains("canvas-editor__canvas-clipper-grid")
     ) {
       this.startMarquee(e, undefined, () => {
-        spawn(
-          this.props.studioCtx.changeUnsafe(() => {
-            this.props.studioCtx.setStudioFocusOnFrame({
-              frame: undefined,
-              autoZoom: false,
-            });
-          }),
-        );
-      });
+        this.props.studioCtx.changeSelection(() => {
+          this.props.studioCtx.setStudioFocusOnFrame({
+            frame: undefined,
+            autoZoom: false,
+          });
+        });
+      }, true);
       return;
     }
 
@@ -1158,7 +1157,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     if (internalElements.find((elm) => $target.is(elm))) {
       // Clicked on the empty space between root and frame
       this.startMarquee(e, targetVc, () =>
-        targetVc.change(() => {
+        targetVc.changeSelection(() => {
           targetVc.setStudioFocusByTpl(null);
           targetVc.canvasCtx.clearRange();
           targetVc.studioCtx.setStudioFocusOnFrame({
@@ -1166,6 +1165,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
             autoZoom: false,
           });
         }),
+        true,
       );
       this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
       return;
@@ -1375,7 +1375,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           isDragging: true,
         };
         vc.studioCtx.setIsDraggingObject(true);
-        document.addEventListener("keydown", this.handleDragEscape);
+        document.addEventListener("keydown", this.handleDragEscape, true);
         const focusObjs = vc.focusedSelectables();
 
         const filteredFocusObjs = focusObjs.filter((focusObj) => {
@@ -1438,7 +1438,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   }
 
   private handleDragEscape = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
+    if (e.key === "Escape" && (this.marquee || this.dragState)) {
+      // Consume gesture cancellation before the global deselect shortcut.
+      e.preventDefault();
+      e.stopPropagation();
       this.cancelMarquee();
       if (this.dragState) {
         this.endDrag(true);
@@ -1460,7 +1463,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       }
     }
     this.dragState = undefined;
-    document.removeEventListener("keydown", this.handleDragEscape);
+    document.removeEventListener("keydown", this.handleDragEscape, true);
     this.props.studioCtx.setIsDraggingObject(false);
   }
 
@@ -1499,7 +1502,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     if (!targetVc) {
       // mouse visually moved out of the iframe
       if (focusedVc) {
-        focusedVc.change(() =>
+        runInAction(() =>
           focusedVc.getViewOps().tryHoverObj(undefined, { exact: true }),
         );
       }
@@ -1507,7 +1510,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     }
     // Resolve on every hover event: modifier changes can change the candidate
     // even when the pointer stays over the same DOM element.
-    targetVc.change(() => {
+    runInAction(() => {
       if ($target.is(".__wab_root")) {
         targetVc.getViewOps().tryHoverObj(undefined, { exact: true });
         targetVc.setMeasureToolDomElt(null);
@@ -1685,8 +1688,41 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     e: MouseEvent,
     viewCtx: ViewCtx | undefined,
     click: () => void,
+    clearOnPress = false,
   ) {
     maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
+    const sc = this.props.studioCtx;
+    const previousVc = sc.focusedViewCtx();
+    const previousFrames = sc.focusedFrames().slice();
+    const previousFrame = sc.focusedFrame();
+    const previousContext = previousVc?.currentComponentCtx() ?? undefined;
+    const previousStack = previousVc?.componentStackFrames().map((frame) => frame.clone());
+    const previousSelection = previousVc?.focusedSelectables().map((selectable, index) => ({
+      selectable,
+      tpl: previousVc.focusedTpls()[index],
+      cloneKey: previousVc.focusedCloneKeys()[index],
+    }));
+    const eagerClear = clearOnPress && !e.shiftKey;
+    const restore = eagerClear ? () => sc.changeSelection(() => {
+      if (previousVc && !previousVc.isDisposed && previousStack) {
+        previousVc.restoreCurrentComponentCtxAndStack(previousContext, previousStack);
+        previousVc.setStudioFocusByTpl(null);
+        previousSelection?.forEach(({ selectable, tpl, cloneKey }, index) => {
+          const opts = { appendToMultiSelection: index > 0 };
+          if (selectable) {
+            previousVc.setStudioFocusBySelectable(selectable, cloneKey, opts);
+          } else {
+            previousVc.setStudioFocusByTpl(tpl, cloneKey, opts);
+          }
+        });
+      }
+      if (previousFrames.length || previousFrame || !previousVc) {
+        sc.setStudioFocusOnFrames(previousFrames);
+      }
+    }) : undefined;
+    if (eagerClear) {
+      click();
+    }
     const start =
       isCanvasIframeEvent(e) && viewCtx
         ? frameToClientPt(new Pt(e.clientX, e.clientY), viewCtx)
@@ -1702,14 +1738,15 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       isDragging: false,
       viewCtx,
       append: e.shiftKey,
-      click,
+      click: eagerClear || (clearOnPress && e.shiftKey) ? () => {} : click,
+      restore,
       captureTarget,
       pointerId,
     };
     if (pointerId !== undefined) {
       captureTarget.setPointerCapture(pointerId);
     }
-    document.addEventListener("keydown", this.handleDragEscape);
+    document.addEventListener("keydown", this.handleDragEscape, true);
     e.preventDefault();
     e.stopPropagation();
   }
@@ -1723,14 +1760,16 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     ) {
       marquee.captureTarget.releasePointerCapture(marquee.pointerId);
     }
-    document.removeEventListener("keydown", this.handleDragEscape);
+    document.removeEventListener("keydown", this.handleDragEscape, true);
   }
 
   private cancelMarquee = () => {
     this.canvasClicks.reset();
     this.pendingCanvasClick = undefined;
     if (this.marquee) {
+      const restore = this.marquee.restore;
       this.clearMarquee();
+      restore?.();
       this.setState({ marqueeBox: undefined });
     }
   };

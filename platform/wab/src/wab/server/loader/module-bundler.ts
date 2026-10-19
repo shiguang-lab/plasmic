@@ -22,12 +22,15 @@ import {
   PageMetadata,
 } from "@/wab/shared/codegen/types";
 import { ensure, notNil, withoutNils } from "@/wab/shared/common";
+import type { AssetModule, CodeModule } from "@/wab/shared/live-frame-types";
 import esbuild, { Plugin as EsbuildPlugin, Metafile } from "esbuild";
 import { promises as fs } from "fs";
 import { glob } from "glob";
 import { flatMap, kebabCase, sortBy } from "lodash";
 import path from "path";
 import { libraryAssetLoaders } from "@/wab/server/loader/library-artifacts";
+
+export type { AssetModule, CodeModule };
 
 export interface ComponentMeta {
   id: string;
@@ -90,19 +93,6 @@ export interface LoaderBundleOutput {
   // Store this configuration here so we can easily change it
   deferChunksByDefault: boolean;
   disableRootLoadingBoundaryByDefault: boolean;
-}
-
-export interface CodeModule {
-  fileName: string;
-  code: string;
-  imports: string[];
-  type: "code";
-}
-
-export interface AssetModule {
-  fileName: string;
-  source: string;
-  type: "asset";
 }
 
 type BundleOpts = {

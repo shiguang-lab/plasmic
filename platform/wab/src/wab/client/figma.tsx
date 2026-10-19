@@ -53,6 +53,7 @@ import { FrameViewMode, isMixedArena } from "@/wab/shared/Arenas";
 import { extractUsedFontsFromComponents } from "@/wab/shared/codegen/fonts";
 import { toVarName } from "@/wab/shared/codegen/util";
 import {
+  assert,
   crunch,
   ensure,
   swallow,
@@ -146,6 +147,19 @@ export async function pasteFromFigma(
     cancelLabel: translate(getUiLocale(), "No, use basic elements"),
   }));
 
+  return insertFigmaData(
+    figmaData,
+    { studioCtx, cursorClientPt, insertRelLoc },
+    replaceComponentInstances,
+  );
+}
+
+export async function insertFigmaData(
+  figmaData: FigmaClipboard,
+  { studioCtx, cursorClientPt, insertRelLoc }: PasteArgs,
+  replaceComponentInstances: boolean,
+  newArenaName?: string,
+): Promise<PasteResult> {
   const showFigmaError = () => {
     notification.error({
       message: translate(getUiLocale(), "No Figma layers to paste"),
@@ -184,9 +198,11 @@ export async function pasteFromFigma(
               );
               return ok(true);
             } else {
+              assert(!newArenaName, "Could not insert Figma file layers");
               return ok(false);
             }
           } else {
+            assert(!newArenaName, "Figma file has no supported visible layers");
             showFigmaError();
             return ok(false);
           }
@@ -196,7 +212,7 @@ export async function pasteFromFigma(
   } else {
     // No existing artboard, so paste the Figma content as its own artboard
     const arena = studioCtx.currentArena;
-    if (!isMixedArena(arena)) {
+    if (!isMixedArena(arena) && !newArenaName) {
       notification.error({
         message: translate(
           getUiLocale(),
@@ -214,12 +230,21 @@ export async function pasteFromFigma(
       handled: true,
       success: unwrap(
         await studioCtx.change(() => {
+          const targetArena = isMixedArena(arena)
+            ? arena
+            : studioCtx.tplMgr().addArena(newArenaName);
+          if (targetArena !== arena) {
+            studioCtx.switchToArena(targetArena);
+          }
           const newComponent = studioCtx
             .tplMgr()
             .addComponent({ type: ComponentType.Frame });
           const newFrame = studioCtx
             .siteOps()
             .createNewFrameForMixedArena(newComponent);
+          if (newArenaName) {
+            newFrame.name = newArenaName;
+          }
           const tplMgr = studioCtx.tplMgr();
           const vtm = new VariantTplMgr(
             [new RootComponentVariantFrame(newFrame)],
@@ -239,8 +264,9 @@ export async function pasteFromFigma(
             replaceComponentInstances,
           );
           if (!maybeNode) {
+            assert(!newArenaName, "Figma file has no supported visible layers");
             // Paste was unsuccessful, so delete the new frame / component we made :-/
-            tplMgr.removeExistingArenaFrame(arena, newFrame, {
+            tplMgr.removeExistingArenaFrame(targetArena, newFrame, {
               pruneUnnamedComponent: true,
             });
             showFigmaError();

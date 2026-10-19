@@ -1,4 +1,4 @@
-import { ensure } from "@/wab/shared/common";
+import { assert, ensure } from "@/wab/shared/common";
 
 async function asDataUrl(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
@@ -7,6 +7,33 @@ async function asDataUrl(blob: Blob) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(blob);
   });
+}
+
+// SVG-as-image rendering can reverse CSS shadow Y offsets. Detect the actual
+// rasterizer behavior instead of assuming it from a browser name or version.
+let shadowDirection: Promise<boolean> | undefined;
+async function reversedShadowOffsets() {
+  return (shadowDirection ??= (async () => {
+    const image = new Image();
+    const canvas = document.createElement("canvas");
+    try {
+      image.src = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><foreignObject width="32" height="32"><div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:32px;height:32px;background:white"><div style="position:absolute;left:8px;top:8px;width:8px;height:8px;background:blue;box-shadow:0 6px 0 red"></div></div></foreignObject></svg>')}`;
+      await image.decode();
+      canvas.width = canvas.height = 32;
+      const context = ensure(canvas.getContext("2d"), "Shadow probe context");
+      context.drawImage(image, 0, 0);
+      const red = (y: number) => {
+        const [r, g, b, a] = context.getImageData(12, y, 1, 1).data;
+        return r === 255 && g === 0 && b === 0 && a === 255;
+      };
+      const top = red(5), bottom = red(19);
+      assert(top !== bottom, "Could not determine snapshot shadow direction");
+      return top;
+    } finally {
+      image.src = "";
+      canvas.width = canvas.height = 0;
+    }
+  })());
 }
 
 // Preserve browser CSS and pixels from Canvas 2D in the isolated renderer.
@@ -223,29 +250,53 @@ export async function snapshot(doc: Document, width: number, height: number) {
   };
 }
 export async function rasterize(svg: string, width: number, height: number) {
+  const reverse = await reversedShadowOffsets();
   const image = new Image();
   // Embed the document so SVG-as-image has no external dependencies.
   image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   const canvas = document.createElement("canvas");
+  let output: HTMLCanvasElement | undefined;
   try {
     await image.decode();
+    // Decoding can finish before foreignObject text masks have painted.
+    // Cross a complete paint cycle before reading the raster pixels.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
     canvas.width = width;
     canvas.height = height;
-    ensure(canvas.getContext("2d"), "Raster context").drawImage(
+    const context = ensure(canvas.getContext("2d"), "Raster context");
+    if (reverse) {
+      context.translate(0, height);
+      context.scale(1, -1);
+    }
+    context.drawImage(
       image,
       0,
       0,
       width,
       height,
     );
+    if (reverse) {
+      // Paint SVG in an upright graphics context, then restore orientation from
+      // raster pixels. This preserves inset/multiple shadows and CSS filters.
+      output = document.createElement("canvas");
+      output.width = width;
+      output.height = height;
+      const target = ensure(output.getContext("2d"), "Raster output context");
+      target.translate(0, height);
+      target.scale(1, -1);
+      target.drawImage(canvas, 0, 0);
+    }
     return await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob(
+      (output ?? canvas).toBlob(
         (b) => (b ? resolve(b) : reject(new Error("PNG encoding failed"))),
         "image/png",
       ),
     );
   } finally {
     canvas.width = canvas.height = 0;
+    if (output) output.width = output.height = 0;
     image.src = "";
   }
 }

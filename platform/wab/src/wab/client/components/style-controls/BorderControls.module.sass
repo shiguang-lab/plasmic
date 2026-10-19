@@ -33,7 +33,7 @@
   pointer-events: initial
   cursor: pointer
   &:hover .PartShape
-    fill: $fg
+    fill: var(--ui-text, #{$fg})
 
 .SideContainer
   @include PartSelectable
@@ -46,9 +46,9 @@
   position: relative
 
 .PartShape
-  fill: $dimfg
+  fill: var(--ui-muted, #{$dimfg})
 .PartShape__Selected
-  fill: $fg
+  fill: var(--ui-text, #{$fg})
 .PartShape__Set
   stroke: none
 

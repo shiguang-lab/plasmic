@@ -176,6 +176,7 @@ it("locates a structured node on its referenced page without editing the design"
       branchId: null,
       sessionId: "session",
       changeCounter: 0,
+      browserImportCanvasName: "Browser Import",
       componentUuid: "page",
       frameUuid: null,
       selectedElementUuids: [],
@@ -225,6 +226,7 @@ it("reports a deleted node and does not try to scroll it into view", async () =>
       branchId: null,
       sessionId: "session",
       changeCounter: 0,
+      browserImportCanvasName: "Browser Import",
       componentUuid: "page",
       frameUuid: null,
       selectedElementUuids: [],
@@ -265,6 +267,7 @@ it.each(["send", "retry"] as const)(
         branchId: null,
         sessionId: "session",
         changeCounter: 0,
+      browserImportCanvasName: "Browser Import",
         componentUuid: null,
         frameUuid: null,
         selectedElementUuids: [],
@@ -319,6 +322,48 @@ it.each(["send", "retry"] as const)(
       } finally {
         vi.unstubAllGlobals();
       }
+    }
+  },
+);
+
+it.each(["run", "retry", "locate"] as const)(
+  "rejects incomplete editor context before %s can dispatch any work",
+  async (action) => {
+    const tools = mock<PlasmicAiTools>();
+    tools._getLocalContext.mockResolvedValue({
+      success: true,
+      output: JSON.stringify({
+        projectName: "Project", projectId: "project", branchId: null,
+        sessionId: "session", changeCounter: 0, componentUuid: "page",
+        frameUuid: null, selectedElementUuids: [], instanceIndex: null,
+        mode: "edit", canEdit: true, editorView: null,
+        selectedSlot: null, previewContext: null, path: [],
+      }),
+    });
+    const request = vi.fn();
+    vi.stubGlobal("fetch", request);
+    try {
+      const session = new LocalEditSession("project", () => tools);
+      session.userId = "user";
+      if (action === "run") {
+        await session.run("Update this page");
+      } else if (action === "retry") {
+        await session.retry({ ...task, status: "failed" });
+      } else {
+        await session.locate(task, { uuid: "node", name: "Node", page: "page", branch: null });
+      }
+      expect(session.error).toMatchObject({
+        name: "ZodError",
+        issues: [expect.objectContaining({ path: ["browserImportCanvasName"] })],
+      });
+      expect(request).not.toHaveBeenCalled();
+      expect(tools.navigate).not.toHaveBeenCalled();
+      expect(tools.navigateCanvas).not.toHaveBeenCalled();
+      expect(tools.selectElement).not.toHaveBeenCalled();
+      expect(tools.scrollElementIntoView).not.toHaveBeenCalled();
+      expect(tools._executeLocal).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
     }
   },
 );

@@ -1,11 +1,23 @@
 FROM node:24.16.0-bookworm-slim AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends bash git curl wget python3 python3-pip postgresql-client build-essential ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 CYPRESS_INSTALL_BINARY=0
+ENV CI=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 CYPRESS_INSTALL_BINARY=0
 WORKDIR /plasmic
 COPY . .
 RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
-RUN pnpm setup
+# Optional build CA is a local trust input only; never copy it into release images.
+RUN --mount=type=cache,id=plasmic-debian-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    --mount=type=cache,id=plasmic-debian-metadata,target=/root/.cache/pnpm,sharing=locked \
+    --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    pnpm run setup
+RUN --mount=type=cache,id=plasmic-debian-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    --mount=type=cache,id=plasmic-debian-metadata,target=/root/.cache/pnpm,sharing=locked \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    node scripts/deploy-loader-sdk.mjs /opt/plasmic-loader-react \
+    && pnpm install --frozen-lockfile --ignore-scripts --prefer-offline --prod=false
 RUN pnpm --filter @plasmicapp/host pack --out /tmp/plasmic-host.tgz && mkdir /opt/plasmic-host && tar -xzf /tmp/plasmic-host.tgz --strip-components=1 -C /opt/plasmic-host
 RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/public/static/packages
@@ -20,6 +32,7 @@ FROM node:24.16.0-bookworm-slim AS server
 RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 && rm -rf /var/lib/apt/lists/* && corepack enable
 WORKDIR /plasmic/platform/wab
 COPY --from=builder --chown=node:node /opt/plasmic-host /plasmic/packages/host
+COPY --from=builder --chown=node:node /opt/plasmic-loader-react /plasmic/packages/loader-react
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
 COPY --from=builder --chown=node:node /plasmic/platform/package.json /plasmic/platform/pnpm-lock.yaml /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/
 COPY --from=builder --chown=node:node /plasmic/platform/shared /plasmic/platform/shared

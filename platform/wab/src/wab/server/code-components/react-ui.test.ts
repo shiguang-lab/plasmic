@@ -12,14 +12,35 @@ test("React UI is an independent hostless library", async () => {
       minimumReactVersion: "18.0.0",
     }),
   );
-  expect(site.components).toHaveLength(1);
-  expect(site.components[0].name).toBe("plasmic-react-ui-action-group");
-  expect(site.components[0].codeComponentMeta).toMatchObject({
-    isHostLess: true,
-    importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerActionGroup",
-    importName: "ActionGroup",
-  });
-  expect(
-    site.components[0].params.map((param) => param.variable.name),
-  ).toContain("onAction");
+  expect(site.components.map((component) => ({
+    name: component.name,
+    isHostLess: component.codeComponentMeta?.isHostLess,
+    importPath: component.codeComponentMeta?.importPath,
+    importName: component.codeComponentMeta?.importName,
+  })).sort((a, b) => a.name.localeCompare(b.name))).toEqual([
+    {
+      name: "plasmic-react-ui-action-group", isHostLess: true,
+      importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerActionGroup",
+      importName: "ActionGroup",
+    },
+    {
+      name: "plasmic-react-ui-resource-authorization", isHostLess: true,
+      importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerResourceAuthorization",
+      importName: "ResourceAuthorization",
+    },
+    {
+      name: "plasmic-react-ui-resource-authorization-record", isHostLess: true,
+      importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerResourceAuthorization",
+      importName: "ResourceAuthorizationRecord",
+    },
+  ]);
+  for (const component of site.components) {
+    const props = component.params.map((param) => param.variable.name);
+    if (component.name === "plasmic-react-ui-action-group") {
+      expect(props).toContain("onAction");
+    } else {
+      expect(props).toEqual(expect.arrayContaining(["open", "onOpenChange", "onSuccess", "onClose"]));
+      expect(component.states.map((state) => state.param.variable.name)).toContain("open");
+    }
+  }
 });

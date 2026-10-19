@@ -3,12 +3,7 @@ import { SceneNode } from "@/wab/client/figma-importer/plugin-types";
 import { CSSProperties } from "react";
 
 export type Serializable =
-  | number
-  | string
-  | boolean
-  | null
-  | Array<Serializable>
-  | JSONObject;
+  number | string | boolean | null | Array<Serializable> | JSONObject;
 
 export interface JSONObject {
   [key: string]: Serializable;
@@ -30,7 +25,7 @@ export type FigmaClipboard = {
 export type FigmaData = {
   version?: string;
   // Images (as base 64 data)
-  i: Map<string, string>;
+  i: Record<string, string>;
   // Keys
   k: Array<string>;
   // Nodes
@@ -38,7 +33,7 @@ export type FigmaData = {
   // Strings
   s: Array<string>;
   // Vectors (as SVG XML)
-  v: Map<string, string>;
+  v: Record<string, string>;
 };
 
 export type Style = CSSProperties | StyleArray | false | null | undefined;

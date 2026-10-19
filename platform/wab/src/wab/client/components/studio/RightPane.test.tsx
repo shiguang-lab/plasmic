@@ -72,12 +72,14 @@ function setup() {
     focused: true,
     layers: 0,
     frames: 0,
+    pending: false,
   });
   Object.defineProperties(ctx, {
     panelsHidden: { get: () => state.hidden },
     showDevControls: { get: () => state.controls },
     showCommentsPanel: { get: () => state.comments },
     rightTabKey: { get: () => state.tab },
+    isSelectionPending: { get: () => state.pending },
   });
   Object.defineProperty(view, "component", { value: { name: "Page" } });
   ctx.focusedViewCtx.mockImplementation(() =>
@@ -208,4 +210,19 @@ it("animates empty selections, global hiding and loading through one noninteract
   expect(
     mounted.container.querySelectorAll(".canvas-editor__right-pane"),
   ).toHaveLength(1);
+});
+
+
+it("removes stale controls until the latest selection is ready, while retaining the shell and title", () => {
+  const { ctx, state } = setup();
+  state.tab = "component";
+  const mounted = render(<RightPane studioCtx={ctx} canvasLoading={false} />);
+  const shell = mounted.container.querySelector('[data-test-id="right-panel-shell"]');
+  expect(screen.getByText("Data content")).toBeVisible();
+  act(() => { state.pending = true; });
+  expect(screen.queryByText("Data content")).toBeNull();
+  expect(screen.getByText("Page")).toBeVisible();
+  act(() => { state.tab = "component"; state.pending = false; });
+  expect(screen.getByText("Data content")).toBeVisible();
+  expect(mounted.container.querySelector('[data-test-id="right-panel-shell"]')).toBe(shell);
 });

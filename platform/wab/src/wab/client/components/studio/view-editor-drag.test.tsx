@@ -127,11 +127,11 @@ it("cancels a tentative cross-artboard drop when Escape is pressed", () => {
       isDragging: true,
       dragMoveManager: manager,
     });
-    Reflect.get(editor, "handleDragEscape").call(
-      editor,
-      new KeyboardEvent("keydown", { key: "Escape" }),
-    );
+    const escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    Reflect.get(editor, "handleDragEscape").call(editor, escape);
     expect(motion.end).toHaveBeenCalledWith(true);
+    expect(escape.defaultPrevented).toBe(true);
+    expect(escape.cancelBubble).toBe(true);
   } finally {
     studioCtx.dispose();
   }

@@ -7,11 +7,14 @@ import { hashFiles, sourceIdentity } from "./build-identity.mjs";
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wab = path.join(repo, "platform/wab");
 const identity = await sourceIdentity(repo);
-execFileSync(
-  process.platform === "win32" ? "npm.cmd" : "npm",
-  ["run", "build"],
-  { cwd: wab, stdio: "inherit" },
-);
+execFileSync(process.execPath, [path.join(repo, "scripts/build-html-hydrate.mjs")], { cwd: repo, stdio: "inherit" });
+for (const cwd of [path.join(repo, "platform/sub"), path.join(repo, "platform/live-frame"), wab]) {
+  execFileSync(
+    process.platform === "win32" ? "npm.cmd" : "npm",
+    ["run", "build"],
+    { cwd, stdio: "inherit" },
+  );
+}
 if (identity.sourceHash !== (await sourceIdentity(repo)).sourceHash) {
   throw new Error("Sources changed while Studio was building; rebuild Studio.");
 }

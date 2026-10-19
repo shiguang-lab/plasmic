@@ -1,5 +1,5 @@
 import { spawn, unexpected } from "@/wab/shared/common";
-import { isArray, isPlainObject } from "lodash";
+import { isArray, isPlainObject, mapValues, pick } from "lodash";
 
 export type BundledInst = {
   [field: string]: any;
@@ -101,6 +101,15 @@ export function getBundle(obj: HasBundle, expectedVersion: string): Bundle {
   );
 
   return bundle as Bundle;
+}
+
+/** Keeps the partial's instances and fields, taking values from the merged bundle. */
+export function pickPartialBundle(full: Bundle, partial: Bundle): Bundle {
+  const map = mapValues(
+    pick(full.map, Object.keys(partial.map)),
+    (inst, iid) => pick(inst, Object.keys(partial.map[iid])) as BundledInst,
+  );
+  return { ...full, map };
 }
 
 export function swapXrefs(bundle: Bundle, mapping: Record<string, string>) {

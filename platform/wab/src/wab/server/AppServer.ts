@@ -190,11 +190,10 @@ import {
   buildVersionedLoaderHtml,
   buildVersionedLoaderReprV2,
   buildVersionedLoaderReprV3,
-  getHydrationScript,
-  getHydrationScriptVersioned,
   getLoaderChunk,
   prefillPublishedLoader,
 } from "@/wab/server/routes/loader";
+import { getHydrationScript, getHydrationScriptVersioned } from "@/wab/server/routes/loader-assets";
 import { genTranslatableStrings } from "@/wab/server/routes/localization";
 import { getAppConfig, getClip, putClip } from "@/wab/server/routes/misc";
 import {

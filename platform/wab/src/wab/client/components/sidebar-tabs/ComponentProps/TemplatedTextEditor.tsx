@@ -10,18 +10,16 @@ import DataPicker, {
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { useDataTokenSuggestionsMenu } from "@/wab/client/components/sidebar-tabs/DataBinding/useDataTokenSuggestionsMenu";
 import { PropEditorRef } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { zIndex } from "@/wab/client/z-index";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
 import { DropFirst } from "@/wab/commons/types";
 import {
   arrayEqIgnoreOrder,
   cx,
-  delay,
   randUint16,
-  spawn,
   xSetDefault,
 } from "@/wab/shared/common";
 import { interpolatedStringToTemplatedString } from "@/wab/shared/copilot/dynamic-value-input";
@@ -64,7 +62,6 @@ import React, {
   useState,
 } from "react";
 import ReactDOM from "react-dom";
-import { usePrevious } from "react-use";
 import {
   BasePoint,
   Editor,
@@ -746,36 +743,6 @@ function CodeTag({
   const path = ReactEditor.findPath(editor, element as any);
   const selected = useSelected();
 
-  const wasOpen = usePrevious(open);
-  // Restore focus on the input when exiting the popover.
-  useEffect(() => {
-    if (!open && wasOpen) {
-      spawn(
-        (async () => {
-          while (!ReactEditor.isFocused(editor)) {
-            // Some open issues:
-            // - There's a delay before the focusing actually works (can take a few iterations of this loop). Also tried directly .focus()ing on the DOM element, no difference. Something else is going on. So there's a brief flash of unfocused state.
-            // - The fake caret is left at the start for some reason, until you mouse out.
-            ReactEditor.focus(editor);
-
-            try {
-              // By default, we select the node itself. This is if you explicitly clicked on it before.
-              // Still important to be able to select the node so that you can operate on it (delete, cut, copy, paste, etc.).
-              Transforms.select(editor, path);
-              if (!explicitlyOpened) {
-                // If this was open because it's a newly inserted pill, then set caret after it instead so that you can keep on typing.
-                Transforms.move(editor, { distance: 1, unit: "character" });
-              }
-            } catch (e) {
-              // This can happen if the node was deleted (from the Delete button in the modal). That's fine, we just don't want to crash.
-            }
-            await delay(10);
-          }
-        })(),
-      );
-    }
-  }, [open]);
-
   React.useEffect(() => {
     if (element.openDataPicker) {
       Transforms.setNodes(editor, { openDataPicker: false } as any, {
@@ -857,6 +824,22 @@ function CodeTag({
         />
       }
       open={open}
+      afterOpenChange={(visible) => {
+        // Wait until ModalScope releases focus. Retrying while its focus trap
+        // is mounted can keep stealing focus from a subsequently opened picker.
+        if (visible || open) {
+          return;
+        }
+        ReactEditor.focus(editor);
+        try {
+          Transforms.select(editor, path);
+          if (!explicitlyOpened) {
+            Transforms.move(editor, { distance: 1, unit: "character" });
+          }
+        } catch {
+          // The expression may have been deleted when the picker closed.
+        }
+      }}
       // We want this only so that the popover dismisses on click outside,
       // and doesn't dismiss on pointer leave.
       trigger={"click"}
@@ -887,7 +870,7 @@ function CodeTag({
         className={cx(
           "inline-block",
           "code-chip",
-          selected && "right-panel-input-background-selected",
+          (selected || open) && "right-panel-input-background-selected",
         )}
       >
         {children}

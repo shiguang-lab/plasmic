@@ -4,8 +4,13 @@ import textbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css"
 import addCommentMarker from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
 import markdownHints from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicMarkdownHintsPopoverContent.module.css";
 import publishFlow from "@/wab/client/plasmic/plasmic_kit_continuous_deployment/PlasmicPublishFlowDialog.module.css";
+import dataSourceOption from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDataSourceOption.module.css";
+import navWorkspace from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavWorkspaceButton.module.css";
 import copilotPrompt from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotPromptDialog.module.css";
+import dataPicker from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPicker.module.css";
+import dataPickerCode from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerCodeEditorLayout.module.css";
 import actionMenu from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
+import chip from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicChip.module.css";
 import dropdownOverlay from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicDropdownOverlay.module.css";
 import select from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect.module.css";
 import selectOption from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect__Option.module.css";
@@ -13,12 +18,14 @@ import selectOverlay from "@/wab/client/plasmic/plasmic_kit_design_system/Plasmi
 import textarea from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTextarea.module.css";
 import tooltip from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
 import findReferences from "@/wab/client/plasmic/plasmic_kit_find_references_modal/PlasmicFindReferencesModal.module.css";
+import quickInsert from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicQuickInsertItem.module.css";
 import activitiesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftActivitiesPanel.module.css";
 import leftSettingsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSettingsPanel.module.css";
 import presets from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicPresetsSelector.module.css";
 import diffs from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicDiffs.module.css";
 import mergeFlow from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicMergeFlow.module.css";
 import branchPanel from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicBranchPanel.module.css";
+import searchInput from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
 import styleSelectOption from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css";
 import styleOptionGroup from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__OptionGroup.module.css";
 import styleSelectOverlay from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Overlay.module.css";
@@ -99,6 +106,12 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     {
       color: token.colorTextPlaceholder,
     },
+  [`& .${quickInsert.root}:hover:hover, & .${dataSourceOption.root}:hover:hover, & .${navWorkspace.root}:hover:hover`]:
+    { background: token.colorFillSecondary },
+  [`& .${quickInsert.rootisSelected}, & .${quickInsert.rootisSelected}:hover:hover`]:
+    { background: token.colorPrimaryBg },
+  [`& .${quickInsert.slotTargetChildrenisSelected}, & .${quickInsert.slotTargetIconisSelected}`]:
+    { color: token.colorPrimaryText },
   [`& .${markdownHints.root}, & .${userMentions.root}, & .${findReferences.root}, & .${variantsDrawer.root}, & .${mergeFlow.freeBox___5XViU}, & .${mergeFlow.freeBox___8VwQ3}, & .${diffs.freeBox__bU0WY}, & .${publishFlow.root}`]:
     {
       background: token.colorBgElevated,
@@ -177,6 +190,20 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     color: token.colorTextSecondary,
   },
   "& .fg, & .text-set": { color: token.colorText },
+  "& .non-link-btn": { color: token.colorText },
+  "& .non-link-btn:disabled, & .non-link-btn--disabled": {
+    color: token.colorTextDisabled,
+  },
+  "& .icon-link-btn": { color: token.colorTextSecondary },
+  "& .icon-link-btn:hover:not(:disabled)": { color: token.colorText },
+  "& .icon-link-btn--active, & .icon-link-btn--active:hover": {
+    color: token.colorPrimaryText,
+  },
+  "& .icon-link-btn:disabled, & .icon-link-btn--disabled, & .icon-link-btn--disabled:hover":
+    { color: token.colorTextDisabled },
+  "& .SectionSeparator, & .Separator": {
+    background: token.colorBorderSecondary,
+  },
   "& .dimfg, & .panel-section__title": { color: token.colorTextSecondary },
   "& .dimdimfg": { color: token.colorTextTertiary },
   "& .value-preview": { color: token.colorPrimaryText },
@@ -193,6 +220,21 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     },
   "& .code-preview, & .vertical-fill-table .ant-table-container": {
     borderColor: token.colorBorderSecondary,
+  },
+  [`& .${dataPicker.root}`]: {
+    background: token.colorBgElevated,
+    color: token.colorText,
+  },
+  [`& .${dataPicker.header}, & .${dataPicker.footer}, & .${dataPicker.freeBox___3RfRi}, & .${dataPickerCode.envPanelContainer}, & .${dataPickerCode.envToggleButton}, & .${dataPickerCode.previewPanel}`]:
+    {
+      borderColor: token.colorBorderSecondary,
+    },
+  [`& .${dataPicker.footer}, & .${dataPickerCode.envPanelContainer}, & .${dataPickerCode.previewPanel}`]:
+    {
+      background: token.colorBgContainer,
+    },
+  [`& .${dataPickerCode.envLabelText}, & .${dataPickerCode.svg__ckpYw}`]: {
+    color: token.colorTextSecondary,
   },
   "& .textbox, & .select-dropdown__button, & .dropdown-container": {
     background: token.colorBgContainer,
@@ -218,10 +260,11 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     background: token.colorFillSecondary,
     color: token.colorText,
   },
-  "& .dropdown-pill--selected, & .dropdown-pill--selected .icon-link-btn": {
-    background: token.colorPrimary,
-    color: token.colorTextLightSolid,
-  },
+  "& .dropdown-pill--selected, & .dropdown-pill--selected .icon-link-btn, & .dropdown-pill--selected .icon-link-btn:hover":
+    {
+      background: token.colorPrimary,
+      color: token.colorTextLightSolid,
+    },
   "& .no-selector-placeholder, & .xmultiselect-arrow": {
     color: token.colorTextSecondary,
   },
@@ -337,6 +380,10 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     color: token.colorText,
   },
   // Primary actions need a solid foreground independent of the surface token.
+  [`& .${button.root}.${button.roottype_primary} .${button.slotTargetChildren}, & .${button.root}.${button.roottype_primary} .${button.slotTargetStartIcon}, & .${button.root}.${button.roottype_primary} .${button.slotTargetEndIcon}, & .${button.root}.${button.rootcolor_darkRed} .${button.slotTargetChildren}`]:
+    { color: token.colorTextLightSolid },
+  [`& .${button.root}.${button.rootcolor_darkRed} .${button.slotTargetStartIcon}, & .${button.root}.${button.rootcolor_darkRed} .${button.slotTargetEndIcon}`]:
+    { color: token.colorTextLightSolid },
   [`& .${actionMenu.slotTargetChildrentype_primary}, & .${iconButton.slotTargetChildrentype_primary}, & .${iconButton.roottype_primary}:hover .${iconButton.slotTargetChildrentype_primary}, & .${iconButton.roottype_primary}:active .${iconButton.slotTargetChildrentype_primary}`]:
     {
       color: token.colorTextLightSolid,
@@ -387,6 +434,10 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   "& .file-uploader": { borderColor: token.colorBorder },
   "& .file-uploader:hover": { background: token.colorFillTertiary },
   "& .file-uploader .fake-upload": { color: token.colorTextSecondary },
+  [`& .${searchInput.searchInputContainer} .${searchInput.svg}, & .${searchInput.searchInputContainer} .${searchInput.clearFieldIcon}`]:
+    { color: token.colorTextSecondary },
+  [`& .${searchInput.searchInputContainer}:hover .${searchInput.svg}, & .${searchInput.searchInputContainer} .${searchInput.clearFieldIcon}:hover, & .${chip.root} .${chip.closeIcon}:hover, & .${chip.root} .${chip.closeIcon}:active`]:
+    { color: token.colorText },
   "& .plasmic_tokens_95xp9cYcv7HrNWpFWWhbcv": {
     "--token-iR8SeEwQZ": token.colorBgContainer,
     "--token-9jh0BkCENS": token.colorBgContainer,
@@ -404,9 +455,9 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     "--token-0IloF6TmFvF": token.colorText,
     "--token-dqEx_KxIoYV": token.colorPrimaryBg,
     "--token-qP8a3gYPq7fd": token.colorPrimary,
-    "--token-HKVCQ5ZKovK": token.colorPrimaryBg,
+    "--token-HKVCQ5ZKovK": token.colorErrorBgHover,
     "--token-Le11TVejD2x2": token.colorError,
-    "--token-5kjtdCiiOPB": token.colorPrimaryBgHover,
+    "--token-5kjtdCiiOPB": token.colorErrorBgHover,
     "--token-ElMeFHrIrKT": token.colorText,
     "--token-h3n_6qpT3Tc4": token.colorFillTertiary,
     "--token-D666zt2IZPL": token.colorPrimary,
@@ -426,6 +477,28 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     "--token-WsutfVbnQWpY": token.colorWarningBg,
     "--token-680C9kW9i_xC": token.colorWarningBorder,
     "--token-N-GFU-C_NPxa": token.colorWarningText,
+    // Legacy colored actions use the whole scale in their hover/pressed states.
+    "--token-qYuX4XAEbRt": token.colorErrorBg,
+    "--token-iDpByWoW0eF": token.colorError,
+    "--token-Y2CWh0ci95a": token.colorErrorText,
+    "--token-Ift7nNWjir7": token.colorErrorTextActive,
+    "--token-yUAjM3D7ZnY": token.colorErrorBorder,
+    "--token-RhvOnhv_xIi": token.colorPrimaryBgHover,
+    "--token-iP3LxEvLa0xh": token.colorText,
+    "--token-krbUYvO2lx2": token.colorPrimaryTextActive,
+    "--token-h-5XbcO2WhcA": token.colorSuccessBg,
+    "--token-dv0BWWyaHl7H": token.colorSuccessBgHover,
+    "--token-3AptjBfMqvPS": token.colorSuccessBgHover,
+    "--token-GEBK7U4Am62W": token.colorSuccess,
+    "--token-hIvqQBCxyWwX": token.colorSuccessText,
+    "--token-AKguBXlLTkKh": token.colorSuccessTextActive,
+    "--token-n4S9_H7k9rsR": token.colorSuccessBorder,
+    "--token-Cr1odk81N3Y": token.colorPrimaryBg,
+    "--token-oPrqrxbKHqk": token.colorPrimaryBgHover,
+    "--token-I2zAJ678hbp": token.colorPrimaryBgHover,
+    "--token-Izr3_jwKAp1": token.colorPrimary,
+    "--token-UCbZU41E8Mj": token.colorPrimaryText,
+    "--token-ZaJGjVCo3Ue": token.colorPrimaryTextActive,
   },
   "& .plasmic_tokens_dyzP6dbCdycwJpqiR2zkwe": {
     "--token-CWv8jfhWh": token.colorBorderSecondary,

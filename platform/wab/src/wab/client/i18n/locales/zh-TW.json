@@ -2430,9 +2430,6 @@
   "You can also transfer the color here {part1}.": "也可以在這裡轉移顏色 {part1}。",
   "This project is a personal project that is not in any {part1} workspace, so it is limited to {part2} editors and no A/B testing or custom targeting. Please move the project into a {part3} whose plan supports a larger number of seats, or {part4}.": "此個人專案不屬於任何 {part1} 工作區，因此最多支援 {part2} 位編輯者，且無法使用 A/B 測試或自訂定向。請將專案移到支援更多席位的 {part3}，或 {part4}。",
   "You will lose owner status and become an editor. Transfer ownership of {part1} to {part2}?": "你將失去擁有者身分並成為編輯者。將 {part1} 的擁有權轉移給 {part2}？",
-  "To import Figma layers into a Plasmic project, first install {part1} plugin on your Figma workspace.": "要將 Figma 圖層匯入 Plasmic 專案，請先在 Figma 工作區安裝 {part1} 外掛。",
-  "Then, on a Figma file, load the plugin by right-clicking the canvas, hovering into {part1} and clicking {part2}. Select the layers you want to export and click {part3}.": "然後在 Figma 檔案中右鍵點選畫布，進入 {part1} 並點選 {part2}。選擇要匯出的圖層，再點選 {part3}。",
-  "Finally, paste into a Plasmic artboard by pressing Cmd/Ctrl+V.": "最後按 Cmd/Ctrl+V 貼到 Plasmic 畫板。",
   "The {part1} package can be configured in settings.": "可以在設定中配置 {part1} 套件。",
   "{part1} to read more about the new image optimization feature and enable it for this project": "{part1}，瞭解新的圖片最佳化功能並為此專案啟用",
   "Plasmic cannot determine which layer the the clicked element belongs to. This happens typically on code component where Plasmic doesn't know the structure of the DOM in the component. {part1}{part2}Please select nodes from the tree in the left panel.": "Plasmic 無法確定點選的元素屬於哪個圖層。通常是因為無法得知程式碼元件內部的 DOM 結構。{part1}{part2}請從左側樹狀面板選擇節點。",
@@ -5490,5 +5487,12 @@
   "Import selection as an independent artboard (Enter)": "將選取範圍匯入為獨立畫板（Enter）",
   "Import page as an independent artboard": "將整頁匯入為獨立畫板",
   "Canvas: {name}": "畫板群組：{name}",
-  "Cannot move elements": "無法移動元素"
+  "Cannot move elements": "無法移動元素",
+  "Select Figma page to import": "選擇要匯入的 Figma 頁面",
+  "Could not import Figma file": "無法匯入 Figma 檔案",
+  "Choose a .fig file saved from Figma.": "請選擇從 Figma 儲存的 .fig 檔案。",
+  "The Figma file has no visible pages.": "此 Figma 檔案沒有可見頁面。",
+  "The selected Figma page has no supported layers.": "所選 Figma 頁面沒有可匯入的圖層。",
+  "Imported \"{page}\" page from Figma": "已從 Figma 匯入「{page}」頁面",
+  "Check that the file is a valid .fig export and try again.": "請確認檔案是有效的 Figma .fig 匯出檔案，然後重試。"
 }

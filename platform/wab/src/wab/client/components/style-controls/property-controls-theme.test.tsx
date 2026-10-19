@@ -4,12 +4,17 @@ import {
   SidebarModal,
   SidebarModalProvider,
 } from "@/wab/client/components/sidebar/SidebarModal";
-import { SourceRow } from "@/wab/client/components/style-controls/DefinedIndicator";
+import {
+  DefinedIndicator,
+  SourceRow,
+} from "@/wab/client/components/style-controls/DefinedIndicator";
 import indicator from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
 import { ImagePreview } from "@/wab/client/components/style-controls/ImageSelector";
 import Indicator from "@/wab/client/components/style-controls/Indicator";
 import Select from "@/wab/client/components/widgets/Select";
 import Textarea from "@/wab/client/components/widgets/Textarea";
+import { ListBox } from "@/wab/client/components/widgets";
+import { SectionSeparator } from "@/wab/client/components/sidebar/sidebar-helpers";
 import styleSelectOption from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css";
 import styleSelectOverlay from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Overlay.module.css";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
@@ -21,9 +26,26 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
-import { theme } from "antd";
+import { ConfigProvider, theme } from "antd";
+import { observable } from "mobx";
+import { mock } from "vitest-mock-extended";
 import * as React from "react";
+import {
+  ExpsProvider,
+  SingleRsExpsProvider,
+  StylePanelSection,
+} from "@/wab/client/components/style-controls/StyleComponent";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
+import { mkRuleSet } from "@/wab/shared/core/styles";
+import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { RSH } from "@/wab/shared/RuleSetHelpers";
+import { mkBaseVariant } from "@/wab/shared/Variants";
+import { codeLit } from "@/wab/shared/core/exprs";
+import { createSite } from "@/wab/shared/core/sites";
+import { AttrSource } from "@/wab/shared/defined-indicator";
 
 // Codegen tests require unscoped CSS module names in Vitest. Keep these
 // modules distinct, as in Studio, so tooltip slots cannot alias option slots.
@@ -133,21 +155,57 @@ it("themes the image format menu portal and keeps selection working", async () =
     option.querySelector(`.${styleSelectOption.slotTargetChildren}`),
     "Expected the format option label",
   );
-  for (const appearance of ["dark", "light"] as const) {
-    act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
-    const probe = document.createElement("div");
-    probe.style.backgroundColor = token.colorBgElevated;
-    probe.style.color = token.colorText;
-    document.body.appendChild(probe);
-    expect(getComputedStyle(surface).backgroundColor).toBe(
-      getComputedStyle(probe).backgroundColor,
-    );
-    expect(getComputedStyle(label).color).toBe(getComputedStyle(probe).color);
-    probe.remove();
+  const overlay = ensure(
+    surface.closest(`.${styleSelectOverlay.root}`),
+    "Expected the Plume overlay root",
+  );
+  const overlayParent = ensure(overlay.parentElement, "Expected portal container");
+  // A Plume portal must carry its palette even outside the body's theme scope.
+  document.documentElement.appendChild(overlay);
+  try {
+    for (const appearance of ["dark", "light"] as const) {
+      act(() => setAppearancePreference(appearance));
+      const token = theme.getDesignToken(productTheme(appearance));
+      const probe = document.createElement("div");
+      probe.style.backgroundColor = token.colorBgElevated;
+      probe.style.color = token.colorText;
+      document.body.appendChild(probe);
+      expect(getComputedStyle(surface).backgroundColor).toBe(
+        getComputedStyle(probe).backgroundColor,
+      );
+      expect(getComputedStyle(label).color).toBe(getComputedStyle(probe).color);
+      probe.remove();
+    }
+  } finally {
+    overlayParent.appendChild(overlay);
   }
   fireEvent.click(option);
   expect(onChange).toHaveBeenCalledWith("avif");
+});
+
+it.each([false, true])("themes list add actions and sizing separators with disabled=%s", (disabled) => {
+  const add = vi.fn();
+  render(
+    <AntdConfigProvider productUI>
+      <ListBox appendPrepend="append" addText="Add item" onAdd={add} disabled={disabled} />
+      <SectionSeparator className="property-separator" />
+    </AntdConfigProvider>,
+  );
+  const button = screen.getByRole("button", { name: /Add item/ });
+  const separator = ensure(document.querySelector(".property-separator"), "Expected sizing separator");
+  for (const appearance of ["dark", "light", "dark"] as const) {
+    act(() => setAppearancePreference(appearance));
+    const token = theme.getDesignToken(productTheme(appearance));
+    const probe = document.createElement("div");
+    probe.style.backgroundColor = token.colorBorderSecondary;
+    probe.style.color = disabled ? token.colorTextDisabled : token.colorText;
+    document.body.appendChild(probe);
+    expect(getComputedStyle(button).color).toBe(getComputedStyle(probe).color);
+    expect(getComputedStyle(separator).backgroundColor).toBe(getComputedStyle(probe).backgroundColor);
+    probe.remove();
+  }
+  fireEvent.click(button);
+  expect(add).toHaveBeenCalledTimes(disabled ? 0 : 1);
 });
 
 it("keeps selected and focused format options readable across themes", async () => {
@@ -355,4 +413,112 @@ it("themes the source popup and preserves its reset action", async () => {
     fireEvent.click(reset);
   }
   expect(clear).toHaveBeenCalledOnce();
+});
+
+it("themes the actual property-source popup outside the document's product theme scope", async () => {
+  setAppearancePreference("dark");
+  const popupHost = document.createElement("div");
+  // Keep the portal in the document, but outside the body's theme boundary.
+  document.documentElement.appendChild(popupHost);
+  onTestFinished(() => popupHost.remove());
+  const studioCtx = mock<StudioCtx>({ site: createSite() });
+  studioCtx.viewCtxs = observable.array();
+  studioCtx.focusedViewCtx.mockReturnValue(undefined);
+  const source: AttrSource = {
+    type: "attr",
+    combo: [mkBaseVariant()],
+    attr: "timeZone",
+    value: codeLit("America/Mexico_City"),
+  };
+  render(
+    <AntdConfigProvider productUI>
+      <ConfigProvider getPopupContainer={() => popupHost}>
+        <StudioCtxContext.Provider value={studioCtx}>
+          <DefinedIndicator
+            className="time-zone-source"
+            label="Time zone"
+            type={{ source: "set", stack: [source], targetSource: source }}
+          />
+        </StudioCtxContext.Provider>
+      </ConfigProvider>
+    </AntdConfigProvider>,
+  );
+  fireEvent.mouseEnter(
+    ensure(document.querySelector(".time-zone-source"), "Expected source trigger"),
+  );
+  const base = await within(popupHost).findByText("Base");
+  const value = within(popupHost).getByText('"America/Mexico_City"');
+  const stack = ensure(
+    base.closest(".defined-indicator__source-stack"),
+    "Expected source stack",
+  );
+  const icon = ensure(
+    stack.querySelector(".defined-indicator__source-icon"),
+    "Expected source icon",
+  );
+  for (const appearance of ["dark", "light", "dark"] as const) {
+    act(() => setAppearancePreference(appearance));
+    const token = theme.getDesignToken(productTheme(appearance));
+    const probe = document.createElement("div");
+    probe.style.backgroundColor = token.colorBgElevated;
+    probe.style.color = token.colorText;
+    document.body.appendChild(probe);
+    for (const panel of [stack, icon]) {
+      expect(getComputedStyle(panel).backgroundColor).toBe(
+        getComputedStyle(probe).backgroundColor,
+      );
+    }
+    expect(getComputedStyle(value).color).toBe(getComputedStyle(probe).color);
+    const popup = ensure(stack.closest(".ant-popover"), "Expected popup root");
+    expect(
+      getComputedStyle(popup).getPropertyValue("--ui-elevated").trim(),
+    ).toBe(token.colorBgElevated);
+    expect(popup.classList.contains("defined-indicator__popover")).toBe(true);
+    expect(within(popupHost).getByText("Time zone")).toBeTruthy();
+    probe.remove();
+  }
+});
+
+describe("removing a section's styles", () => {
+  function setup(mixin = false) {
+    const rs = mkRuleSet({ values: { color: "blue", position: "absolute" } });
+    const exp = RSH(rs, mkTplTagX("div", {}));
+    const studioCtx = {
+      site: { mixins: [] },
+      focusedViewCtx: () => undefined,
+      changeUnsafe: async (change: () => void) => change(),
+    } as unknown as StudioCtx;
+    const provider = new SingleRsExpsProvider(rs, exp, studioCtx, []);
+    // A Tpl provider and a mixin provider differ only in whether the section's
+    // required layout defaults apply. Keep the actual ruleset operations.
+    const expsProvider: ExpsProvider = mixin ? provider : { ...provider };
+    render(
+      <StudioCtxContext.Provider value={studioCtx}>
+      <StylePanelSection
+        title="Typography"
+        styleProps={["color", "position"]}
+        defaultStyleProps={new Map([["color", "red"], ["position", "relative"]])}
+        unremovableStyleProps={["position"]}
+        expsProvider={expsProvider}
+      >
+        <div>Style controls</div>
+      </StylePanelSection>
+      </StudioCtxContext.Provider>,
+    );
+    return rs;
+  }
+
+  it("clears removable defaults so inherited styles can take effect", async () => {
+    const rs = setup();
+    fireEvent.contextMenu(screen.getByText("Typography"));
+    await act(async () => { fireEvent.click(await screen.findByRole("menuitem", { name: /Remove all Typography styles/ })); });
+    expect(rs.values).toEqual({ position: "relative" });
+  });
+
+  it("clears mixin styles without inserting a component's layout defaults", async () => {
+    const rs = setup(true);
+    fireEvent.contextMenu(screen.getByText("Typography"));
+    await act(async () => { fireEvent.click(await screen.findByRole("menuitem", { name: /Remove all Typography styles/ })); });
+    expect(rs.values).toEqual({});
+  });
 });

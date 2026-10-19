@@ -2,7 +2,7 @@ import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recompu
 import { hasLayoutBox } from "@/wab/client/dom";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { useForceUpdate } from "@/wab/client/useForceUpdate";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import { Box } from "@/wab/shared/geom";
 import { useEffect } from "react";
 import ResizeObserver from "resize-observer-polyfill";
@@ -17,7 +17,7 @@ export function getSelectionBounds(doms: (JQuery | null)[]): Box | undefined {
 }
 
 export function useSelectionBounds(viewCtx: ViewCtx) {
-  const forceUpdate = useForceUpdate();
+  const forceUpdate = useFrameForceUpdate();
   const doms = viewCtx.focusedDomElts();
   const body = viewCtx.canvasCtx.$userBody()?.[0];
   useEffect(() => {
@@ -60,7 +60,7 @@ export function getFrameSelectionBounds(studioCtx: StudioCtx) {
 }
 
 export function useFrameSelectionBounds(studioCtx: StudioCtx) {
-  const forceUpdate = useForceUpdate();
+  const forceUpdate = useFrameForceUpdate();
   const frames = studioCtx.focusedFrames();
   useEffect(() => {
     const observer = new ResizeObserver(forceUpdate);

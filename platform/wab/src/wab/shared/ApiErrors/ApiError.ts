@@ -7,6 +7,9 @@ export abstract class ApiError extends Error {
   statusCode = 400;
 }
 
+/** An API response that does not contain a recognized structured error. */
+export class UnknownApiError extends Error {}
+
 /** A nonstandard API error response still retains its HTTP classification. */
 export class HttpError extends ApiError {
   name = "HttpError";

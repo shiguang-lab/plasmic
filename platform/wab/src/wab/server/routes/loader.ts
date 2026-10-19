@@ -41,9 +41,7 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { context, propagation } from "@opentelemetry/api";
 import execa from "execa";
 import { Request, Response } from "express-serve-static-core";
-import fs from "fs";
 import { isString, pickBy } from "lodash";
-import path from "path";
 
 /**
  * Loader version is used for backwards compatibility (otherwise we could
@@ -1003,45 +1001,6 @@ function trackLoaderCodegenEvent(
     },
     { sampleThreshold: 0.1 },
   );
-}
-
-const getHydrationScriptInfo = () => {
-  const dir = path.resolve(
-    path.join(process.cwd(), "..", "loader-html-hydrate"),
-  );
-  const buildDir = path.join(dir, "build");
-  const files = fs.readdirSync(buildDir);
-  const filename = files.filter(
-    (file) => file.startsWith("loader-") && file.endsWith(".js"),
-  )[0];
-
-  if (!filename) {
-    throw new Error("No hydration script found");
-  }
-
-  return {
-    dir: buildDir,
-    hash: filename.split(".")[1],
-    filename,
-  };
-};
-
-export function getHydrationScript(_: Request, res: Response) {
-  res.setHeader("Cache-Control", "max-age=60, s-maxage=60");
-  res.redirect(
-    `${getCodegenUrl()}/static/js/${getHydrationScriptInfo().filename}`,
-  );
-}
-
-export function getHydrationScriptVersioned(req: Request, res: Response) {
-  const { dir, filename, hash } = getHydrationScriptInfo();
-  if (hash !== req.params.hash) {
-    throw new NotFoundError(
-      `Hydration script with hash=${req.params.hash} is unavailable`,
-    );
-  }
-  res.setHeader("Cache-Control", "max-age=31536000, s-maxage=31536000");
-  res.sendFile(path.join(dir, filename));
 }
 
 export const _testonly = {

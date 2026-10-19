@@ -82,7 +82,7 @@ export const RightPane = observer(function RightPane({
         name: <UiText message={"Data"} />,
         key: RightTabKey.component,
         contents: () => (
-          <ComponentOrPageTab
+          !studioCtx.isSelectionPending && <ComponentOrPageTab
             studioCtx={studioCtx}
             viewCtx={focusedOrFirstViewCtx}
           />
@@ -142,9 +142,9 @@ export const RightPane = observer(function RightPane({
               </strong>
             </div>
             {isFrameSelection ? (
-              <FrameSelectionPanel studioCtx={studioCtx} />
+              !studioCtx.isSelectionPending && <FrameSelectionPanel studioCtx={studioCtx} />
             ) : isMultiSelection && focusedViewCtx ? (
-              <MultiSelectionPanel viewCtx={focusedViewCtx} />
+              !studioCtx.isSelectionPending && <MultiSelectionPanel viewCtx={focusedViewCtx} />
             ) : (
               <Tabs
                 className="editor-inspector-tabs"

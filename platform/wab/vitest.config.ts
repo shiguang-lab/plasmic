@@ -86,6 +86,8 @@ export default defineConfig({
           include: [
             "src/wab/server/**/*.{spec,test}.{js,jsx,ts,tsx}",
             "tools/webpack/**/*.{spec,test}.{js,jsx,ts,tsx}",
+            "tools/dashboard-preview-probe/server.test.ts",
+            "tools/dashboard-preview-probe/migration.test.ts",
           ],
           environment: "node",
         },
@@ -95,7 +97,7 @@ export default defineConfig({
         test: {
           name: "studio",
           // Server and webpack utility tests use the node project above.
-          include: ["src/**/*.{spec,test}.{js,jsx,ts,tsx}"],
+          include: ["src/**/*.{spec,test}.{js,jsx,ts,tsx}", "tools/dashboard-preview-probe/engine.test.ts", "tools/dashboard-preview-probe/entry.test.ts"],
           exclude: ["src/wab/server/**"],
           environment: "jsdom",
           // DEVFLAGS.hostUrl is http://localhost in tests; keep the document on

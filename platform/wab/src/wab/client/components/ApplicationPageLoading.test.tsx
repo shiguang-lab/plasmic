@@ -10,6 +10,11 @@ import { createMemoryHistory } from "history";
 import { resolve } from "path";
 import * as React from "react";
 
+// Load the real lazy route graph before measuring its rendered states. Vite's
+// cold TypeScript transforms are not the application's network loading state.
+beforeAll(async () => {
+  await import("./ApplicationRouteLoading");
+});
 beforeEach(async () => await setLanguagePreference("en"));
 afterEach(cleanup);
 

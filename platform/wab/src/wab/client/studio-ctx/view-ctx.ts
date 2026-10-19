@@ -11,7 +11,7 @@ import {
   getMostRecentFiberVersion,
   globalHookCtx,
 } from "@/wab/client/react-global-hook/globalHook";
-import { mkFrameValKeyToContextDataKey } from "@/wab/client/react-global-hook/utils";
+import { FrameState } from "@/wab/client/react-global-hook/types";
 import { requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
 import {
   FreestyleState,
@@ -21,7 +21,6 @@ import {
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
-import { getRenderState } from "@/wab/client/studio-ctx/renderState";
 import { trackEvent } from "@/wab/client/tracking";
 import { ViewStateSnapshot } from "@/wab/client/undo-log";
 import { mkTokenRef } from "@/wab/commons/StyleToken";
@@ -102,6 +101,7 @@ import {
 import { isDraggableSize } from "@/wab/shared/css-size";
 import { CanvasEnv, evalCodeWithEnv, tryEvalExpr } from "@/wab/shared/eval";
 import { Pt, rectsIntersect } from "@/wab/shared/geom";
+import { disposeOwnedComputedFns } from "@/wab/shared/mobx-util";
 import {
   ArenaFrame,
   Component,
@@ -179,8 +179,6 @@ export interface SpotlightAndVariantsInfo {
   viewMode: string;
   pinnedVariants: { [key: string]: boolean };
   showDefaultSlotContents: boolean;
-  focusedSelectable: Selectable | undefined;
-  focusedTpl: TplNode | undefined;
 }
 
 export class ViewCtx extends WithDbCtx {
@@ -337,38 +335,24 @@ export class ViewCtx extends WithDbCtx {
     return this.arenaFrame().container.component.tplTree;
   }
 
-  private _codeComponentValKeyToContextData = observable.map<string, any>(
-    undefined,
-    {
-      deep: false,
-    },
-  );
-
   getContextData(val: ValComponent) {
     if (!isCodeComponent(val.tpl.component)) {
       return null;
     }
-    if (!this._codeComponentValKeyToContextData.has(val.key)) {
-      this._codeComponentValKeyToContextData.set(val.key, null);
-    }
-    return this._codeComponentValKeyToContextData.get(val.key);
+    return this.frameState.contextData.get(val.key) ?? null;
   }
 
   getContextDataByValKey(valKey: string) {
-    return this._codeComponentValKeyToContextData.get(valKey);
+    return this.frameState.contextData.get(valKey);
   }
 
   createSetContextDataFn = computedFn((valKey: string) => {
     return (value: any) => {
-      const oldValue = this._codeComponentValKeyToContextData.get(valKey);
+      const oldValue = this.frameState.contextData.get(valKey);
       if (isEqual(oldValue, value)) {
         return;
       }
-      globalHookCtx.frameValKeyToContextData.set(
-        mkFrameValKeyToContextDataKey(this.arenaFrame().uid, valKey),
-        value,
-      );
-      this._codeComponentValKeyToContextData.set(valKey, value);
+      this.frameState.contextData.set(valKey, value);
     };
   });
 
@@ -712,8 +696,9 @@ export class ViewCtx extends WithDbCtx {
   }
 
   _viewState: { viewingCode?: boolean };
-  canvasCtx: CanvasCtx;
-  viewOps: ViewOps;
+  readonly canvasCtx: CanvasCtx;
+  readonly frameState: FrameState;
+  readonly viewOps: ViewOps;
   _componentStackFrames = observable.array<ComponentVariantFrame>([]);
 
   getViewOps() {
@@ -754,9 +739,11 @@ export class ViewCtx extends WithDbCtx {
       canvasCtx: this.canvasCtx,
       arenaFrame: this._arenaFrame,
     } = args);
+    this.frameState = this.canvasCtx.frameState;
     this.viewOps = new ViewOps({ viewCtx: this });
     this.csEvaluator = new DevCliSvrEvaluator({
       viewCtx: this,
+      frameState: this.frameState,
     });
     this._componentStackFrames.replace([
       new RootComponentVariantFrame(this.arenaFrame()),
@@ -805,22 +792,27 @@ export class ViewCtx extends WithDbCtx {
   /**
    * Disposes any mobx observers, and try to cut as many cyclic dependencies
    * as possible.
-   *
-   * TODO: it seems a disposed ViewCtx never really gets released from memory.
-   * Still yet to figure out why; at last check, requestIdleCallback may be
-   * holding on to an instance somehow?
    */
   dispose() {
+    if (this._isDisposed) {
+      return;
+    }
+    this._isDisposed = true;
+    if (this.canvasRerenderFrame !== undefined) {
+      cancelAnimationFrame(this.canvasRerenderFrame);
+    }
+    this._canvasRerenderQueue?.clear();
     this.disposals.forEach((d) => d());
     this._highlightParamsDispose?.();
     this._editingTextResizeObserver?.disconnect();
     this.canvasObservers.forEach(
       (reaction) => !reaction.isDisposed && reaction.dispose(),
     );
+    this.canvasObservers.clear();
     this.canvasCtx.dispose();
+    disposeOwnedComputedFns(this);
     this.csEvaluator?.dispose();
     (this.csEvaluator as any) = null;
-    this._isDisposed = true;
   }
 
   get isDisposed() {
@@ -1010,13 +1002,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   get renderState() {
-    // dispose() nulls out csEvaluator to break cyclic references, but lingering mobx
-    // reactions and deferred canvas callbacks can still read renderState while a frame is
-    // being torn down (e.g. tpl-tree remap on a rich-text save). RenderState lives in a
-    // frame-keyed registry independent of csEvaluator, so fall back to it.
-    return (
-      this.csEvaluator?.renderState ?? getRenderState(this.arenaFrame().uid)
-    );
+    return this.frameState.renderState;
   }
 
   /**
@@ -1362,8 +1348,34 @@ export class ViewCtx extends WithDbCtx {
   // Use a set to avoid multiple calls to the same function as it can be registered
   // due to several changes to observables.
   private _canvasRerenderQueue: Set<() => void> = new Set();
+  private canvasRerenderFrame?: number;
   addRerenderObserver(f: () => void) {
+    if (this._isDisposed) {
+      return;
+    }
     this._canvasRerenderQueue.add(f);
+    this.scheduleObserverRefresh();
+  }
+  private scheduleObserverRefresh() {
+    if (this._isDisposed || this.canvasRerenderFrame !== undefined) {
+      return;
+    }
+    this.canvasRerenderFrame = requestAnimationFrame(() => {
+      this.canvasRerenderFrame = undefined;
+      if (this._isDisposed || !this._canvasRerenderQueue.size) {
+        return;
+      }
+      if (!this.syncQueue.idle()) {
+        // The evaluation pass will flush these observers, including paused frames.
+        return;
+      }
+      if (this.studioCtx.hasPendingModelChanges()) {
+        this.scheduleObserverRefresh();
+        return;
+      }
+      this.flushRerenderQueue();
+      mobx.runInAction(() => this.updateCtxPostChange());
+    });
   }
   flushRerenderQueue() {
     const rerenderFns = [...this._canvasRerenderQueue.keys()];
@@ -1471,7 +1483,11 @@ export class ViewCtx extends WithDbCtx {
 
   async awaitSync() {
     this.syncQueue.resume();
-    return drainQueue(this.syncQueue);
+    await drainQueue(this.syncQueue);
+    if (!this._isDisposed && this._canvasRerenderQueue.size) {
+      this.flushRerenderQueue();
+      mobx.runInAction(() => this.updateCtxPostChange());
+    }
   }
 
   triggerEditingTextDataPicker() {
@@ -2244,6 +2260,15 @@ export class ViewCtx extends WithDbCtx {
       return false;
     }
 
+    // Hidden slot/overlay content can mount after its selection observers flush.
+    // Resolve its ValNode as well as its DOM once that content becomes available.
+    const pendingTpl = !this.focusedSelectable() && this.focusedTpl();
+    if (pendingTpl) {
+      this.setViewCtxFocusByTpl(pendingTpl, this.focusedCloneKey(), {
+        noRestoreRightTab: true,
+      });
+    }
+
     const newDoms = this.computeFocus(
       this.focusedSelectable(),
       this.focusedCloneKey(),
@@ -2258,12 +2283,20 @@ export class ViewCtx extends WithDbCtx {
         this.focusedSelectables()?.length === 1 ? [newDoms ?? null] : [];
       return true;
     }
-    return false;
+    return !!pendingTpl && !!this.focusedSelectable();
   }
 
   change(f: () => void) {
     this.studioCtx.changeSpawn(() => {
       // Only invoke f if this ViewCtx has not been disposed in the meanwhile
+      if (!this._isDisposed) {
+        f();
+      }
+    });
+  }
+
+  changeSelection(f: () => void) {
+    this.studioCtx.changeSelection(() => {
       if (!this._isDisposed) {
         f();
       }
@@ -2510,8 +2543,6 @@ export class ViewCtx extends WithDbCtx {
           ),
         ),
       },
-      focusedSelectable: this.focusedSelectable() ?? undefined,
-      focusedTpl: this.focusedTpl() ?? undefined,
     };
   }
 

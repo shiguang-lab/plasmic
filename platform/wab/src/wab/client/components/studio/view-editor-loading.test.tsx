@@ -2,6 +2,8 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
 import { ViewEditor } from "@/wab/client/components/studio/view-editor";
+import LeftPane from "@/wab/client/components/studio/LeftPane";
+import { RightPane } from "@/wab/client/components/studio/RightPane";
 import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { waitFor } from "@testing-library/react";
 import React from "react";
@@ -19,7 +21,7 @@ function elements(tree: React.ReactNode): React.ReactElement[] {
 
 afterEach(() => vi.restoreAllMocks());
 
-it("mounts the comments pane without a focused artboard while keeping the ordinary inspector unmounted", async () => {
+it("keeps both sidebar shells mounted while comments toggle without a focused artboard", async () => {
   const { studioCtx } = fakeStudioCtx();
   vi.spyOn(studioCtx, "showComments").mockReturnValue(true);
   vi.spyOn(studioCtx, "focusedOrFirstViewCtx").mockReturnValue(undefined);
@@ -43,11 +45,17 @@ it("mounts the comments pane without a focused artboard while keeping the ordina
   };
   try {
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-    expect(mountedSidebars()).toHaveLength(1);
+    const checkShells = (comments: boolean) => {
+      const sidebars = mountedSidebars() as React.ReactElement<{ canvasLoading?: boolean }>[];
+      expect(sidebars.map((sidebar) => sidebar.type)).toEqual([LeftPane, RightPane]);
+      expect(sidebars[1].props.canvasLoading).toBe(false);
+      expect(studioCtx.showCommentsPanel).toBe(comments);
+    };
+    checkShells(false);
     studioCtx.toggleCommentsPanel();
-    expect(mountedSidebars()).toHaveLength(2);
+    checkShells(true);
     studioCtx.toggleCommentsPanel();
-    expect(mountedSidebars()).toHaveLength(1);
+    checkShells(false);
   } finally {
     studioCtx.dispose();
   }

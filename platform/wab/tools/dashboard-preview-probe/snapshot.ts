@@ -27,7 +27,7 @@ export async function compose(
   );
   const offsetX = (640 - (bounds.right - bounds.left) * scale) / 2,
     offsetY = (360 - (bounds.bottom - bounds.top) * scale) / 2;
-  const positions = [];
+  const positions: { name: string; left: number; top: number; width: number; height: number }[] = [];
   for (const page of pages) {
     const bitmap = await createImageBitmap(page.blob);
     const rect = {

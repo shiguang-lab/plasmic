@@ -313,6 +313,8 @@ function checkRequiredQueryFunctions(
 interface BuiltinRegisteredModules {
   react: typeof import("react");
   "react-dom": typeof import("react-dom");
+  // DOM mounting APIs belong to the client loader, not the RSC loader.
+  "react-dom/client"?: typeof import("react-dom/client");
   "react/jsx-runtime": typeof import("react/jsx-runtime");
   "react/jsx-dev-runtime": typeof import("react/jsx-dev-runtime");
   "@plasmicapp/query": typeof import("@plasmicapp/query");

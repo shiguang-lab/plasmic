@@ -49,7 +49,7 @@ import {
   StudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { useForceUpdate } from "@/wab/client/useForceUpdate";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import {
   XDraggable,
   XDraggableEvent,
@@ -994,7 +994,7 @@ function HoverBox_({
   viewCtx: ViewCtx;
   target: HoverBoxTarget;
 }) {
-  const forceUpdate = useForceUpdate();
+  const forceUpdate = useFrameForceUpdate();
 
   const focusedElt = !isKnownArenaFrame(target) ? target.node : undefined;
   const viewProps = computeHoverBoxViewState(viewCtx, target);
@@ -1060,16 +1060,17 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
 
   const shouldHideHoverBox = studioCtx.shouldHideUIOverlay(false) || !viewCtx;
 
-  const forceUpdate = useForceUpdate();
+  const forceUpdate = useFrameForceUpdate();
 
   // With React 18, sometimes rendering won't be done in time for a newly-inserted
   // tpl to be rendered and its DOM element set. So we need to monitor the
   // artboard root for DOM mutations, and select the proper DOM element once
   // rendered.
   // https://app.shortcut.com/plasmic/story/23379/urgent-selection-is-not-appearing-for-newly-inserted-pasted-moved-elements
-  const userBody = viewCtx?.canvasCtx.$userBody()?.[0];
+  // Portaled overlays mount next to the user root, so include the canvas body.
+  const canvasBody = viewCtx?.canvasCtx.doc().body;
   React.useEffect(() => {
-    if (!userBody || !viewCtx) {
+    if (!canvasBody || !viewCtx) {
       return;
     }
 
@@ -1088,12 +1089,12 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
         forceUpdate();
       }
     });
-    userBodyObserver.observe(userBody, {
+    userBodyObserver.observe(canvasBody, {
       subtree: true,
       childList: true,
     });
     return () => userBodyObserver.disconnect();
-  }, [viewCtx, userBody]);
+  }, [viewCtx, canvasBody]);
 
   if (studioCtx.focusedFrames().length > 1) {
     return studioCtx.shouldHideUIOverlay(false) ? null : (

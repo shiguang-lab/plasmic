@@ -39,6 +39,8 @@
     "i18n:audit-errors": "node tools/i18n/audit-business-errors.cjs",
     "eslint-all": "pnpm --dir ../.. exec eslint platform/wab",
     "test": "vitest run",
+    "typecheck:preview-probe": "tsc --noEmit --project tools/dashboard-preview-probe/tsconfig.json",
+    "test:preview-probe": "node tools/dashboard-preview-probe/regression.cjs",
     "test:coverage": "vitest run --coverage",
     "test:inspect": "vitest run --inspect-brk --no-file-parallelism",
     "backend": "bash tools/backend-server.bash",
@@ -66,7 +68,8 @@
     "storybook:start": "http-server storybook-static --port 6006",
     "storybook:test": "test-storybook --maxWorkers=2",
     "storybook:test:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"pnpm storybook:build && pnpm storybook:start\" \"playwright install && wait-on tcp:127.0.0.1:6006 && pnpm storybook:test\"",
-    "ai-worker": "bash tools/run.bash src/wab/server/copilot/ai-worker.ts"
+    "ai-worker": "bash tools/run.bash src/wab/server/copilot/ai-worker.ts",
+    "test:published-hydration": "node tools/published-hydration/regression.cjs"
   },
   "author": "Plasmic Team",
   "gitHead": "14cfee473c6a27212c54d536a8bd531c84e9fb68",
@@ -149,7 +152,8 @@
     "vitest": "catalog:",
     "vitest-mock-extended": "^5.1.1",
     "wait-on": "9.0.1",
-    "whatwg-fetch": "^3.6.20"
+    "whatwg-fetch": "^3.6.20",
+    "raw-loader": "4.0.2"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.53",
@@ -191,7 +195,7 @@
     "@plasmicapp/data-sources": "^1.0.29",
     "@plasmicapp/data-sources-context": "0.1.26",
     "@plasmicapp/host": "link:../../packages/host",
-    "@plasmicapp/loader-react": "^2.0.23",
+    "@plasmicapp/loader-react": "link:../../packages/loader-react",
     "@plasmicapp/query": "^0.1.88",
     "@plasmicapp/react-web": "^1.0.39",
     "@plasmicpkgs/antd5": "^0.0.377",
@@ -273,8 +277,10 @@
     "express-rate-limit": "^7.5.1",
     "express-session": "^1.19.0",
     "fast-stringify": "2.0.0",
+    "fflate": "0.8.3",
     "file-type": "^16.5.4",
     "file-type-browser": "^1.0.0",
+    "fzstd": "0.1.1",
     "get-port": "^7.2.0",
     "glob": "^7.1.6",
     "gpt3-tokenizer": "^1.1.5",
@@ -295,6 +301,7 @@
     "jsdom": "^22.1.0",
     "jsonrepair": "3.15.0",
     "jsonwebtoken": "9.0.3",
+    "kiwi-schema": "0.5.0",
     "lodash": "^4.18.1",
     "memoize-one": "^6.0.0",
     "mime": "^2.4.6",
@@ -385,6 +392,7 @@
     "sqlstring": "^2.3.3",
     "strip-css-comments": "^4.1.0",
     "stripe": "22.6.0",
+    "sucrase": "^3.35.1",
     "svgo": "3.3.3",
     "swr": "2.4.1",
     "temporal-polyfill": "0.3.0",
@@ -404,7 +412,8 @@
     "validator": "^13.15.35",
     "workerpool": "^6.5.1",
     "yargs": "16.2.0",
-    "zod": "3.25.76"
+    "zod": "3.25.76",
+    "path": "0.12.7"
   },
   "browserslist": [
     ">0.2%",

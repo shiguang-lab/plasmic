@@ -171,7 +171,19 @@ it("keeps collapsed nested and localized values through local database publish, 
     });
     let view = render(<CmsEntryDetails />);
     expect(screen.queryByLabelText("Label")).toBeNull();
+    // Validation updates publish availability asynchronously; interact only
+    // once the real control allows publishing.
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Publish fixture" }).hasAttribute("disabled")).toBe(false),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Publish fixture" }));
+    expect(mocks.update).toHaveBeenCalledWith(row.id, {
+      identifier: "Local audit",
+      data: content,
+      draftData: null,
+      revision: row.revision,
+    });
+    await mocks.update.mock.results[0].value;
     await waitFor(async () =>
       expect((await mgr.getCmsRowById(row.id)).data).toEqual(content),
     );
@@ -183,6 +195,8 @@ it("keeps collapsed nested and localized values through local database publish, 
       ).toBe(true),
     );
     fireEvent.click(screen.getByText("Unpublish entry"));
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    await mocks.update.mock.results[1].value;
     await waitFor(async () => {
       const unpublished = await mgr.getCmsRowById(row.id);
       expect(unpublished.data).toBeNull();
@@ -199,7 +213,12 @@ it("keeps collapsed nested and localized values through local database publish, 
     mocks.row = await mgr.getCmsRowById(row.id);
     view = render(<CmsEntryDetails />);
     expect(screen.getByDisplayValue("Local audit")).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Publish fixture" }).hasAttribute("disabled")).toBe(false),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Publish fixture" }));
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(3));
+    await mocks.update.mock.results[2].value;
     await waitFor(async () =>
       expect((await mgr.getCmsRowById(row.id)).data).toEqual(content),
     );
@@ -214,5 +233,10 @@ it("keeps collapsed nested and localized values through local database publish, 
     const fresh = await mgr.getCmsRowById(row.id);
     expect(fresh.draftData).toBeNull();
     expect(fresh.data).toEqual(content);
+    expect(mocks.update.mock.calls.map(([id, fields]) => ({ id, ...fields }))).toEqual([
+      { id: row.id, identifier: "Local audit", data: content, draftData: null, revision: row.revision },
+      { id: row.id, identifier: "Local audit", data: null, draftData: content, revision: (row.revision ?? 0) + 1 },
+      { id: row.id, identifier: "Local audit", data: content, draftData: null, revision: (row.revision ?? 0) + 2 },
+    ]);
   });
 });

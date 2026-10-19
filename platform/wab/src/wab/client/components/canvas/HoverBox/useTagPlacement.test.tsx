@@ -2,8 +2,15 @@ import { mockDeepAuto } from "@/wab/__testonly__/mock";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { Box } from "@/wab/shared/geom";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import React from "react";
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
+
+function flushPlacement() {
+  act(() => vi.advanceTimersByTime(20));
+}
 
 function setup(crowded: boolean, frameWidth = 1000, clientWidth = 1000) {
   const vc = mockDeepAuto<ViewCtx>();
@@ -50,6 +57,8 @@ function setup(crowded: boolean, frameWidth = 1000, clientWidth = 1000) {
 
 it("checks content beneath the canvas overlay and moves the label away from a control", () => {
   const vc = setup(false);
+  expect(vc.canvasCtx.getActualTargetUnderCanvasOverlay).not.toHaveBeenCalled();
+  flushPlacement();
   expect(vc.canvasCtx.getActualTargetUnderCanvasOverlay).toHaveBeenCalled();
   const style = screen.getByTestId("placement").style;
   expect(style.top).toBe("65px");
@@ -59,6 +68,7 @@ it("checks content beneath the canvas overlay and moves the label away from a co
 
 it("hides a crowded label and lets input reach the canvas", () => {
   setup(true);
+  flushPlacement();
   const style = screen.getByTestId("placement").style;
   expect(style.pointerEvents).toBe("none");
   expect(style.visibility).toBe("hidden");
@@ -66,6 +76,7 @@ it("hides a crowded label and lets input reach the canvas", () => {
 
 it.each([[0, 1000], [0, 0]])("hides labels when an arena canvas is not laid out (%s / %s)", (frameWidth, clientWidth) => {
   const vc = setup(false, frameWidth, clientWidth);
+  flushPlacement();
   expect(vc.canvasCtx.getActualTargetUnderCanvasOverlay).not.toHaveBeenCalled();
   const style = screen.getByTestId("placement").style;
   expect(style.visibility).toBe("hidden");

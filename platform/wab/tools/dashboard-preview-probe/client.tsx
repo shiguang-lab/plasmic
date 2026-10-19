@@ -4,7 +4,8 @@ import { DEVFLAGS, applyDevFlagOverrides } from "@/wab/shared/devflags";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-const ids = ["6M9xV1Vz9kawVFdoXVQdSG", "145nN6S5QQBwgjtNUwuiQZ"];
+const fixtures: { id: string; revision: number }[] = await fetch("/fixture/manifest.json").then((r) => r.json());
+const ids = fixtures.map((fixture) => fixture.id);
 const root = createRoot(document.getElementById("root") as HTMLElement);
 const config = await fetch("/fixture/config.json").then((r) => r.json());
 applyDevFlagOverrides(config.config);
@@ -16,7 +17,7 @@ let controller: AbortController | undefined;
     const blob = await renderPreview(
       {
         projectId: ids[index],
-        revision: index === 0 ? 137 : 37,
+        revision: fixtures[index].revision,
         flags: DEVFLAGS,
         staticBaseUrl: location.origin + "/static",
       },

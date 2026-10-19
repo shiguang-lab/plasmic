@@ -1,6 +1,8 @@
 import { ensure } from "@/wab/shared/common";
 import { compose } from "./snapshot";
-const fixtureIds = ["6M9xV1Vz9kawVFdoXVQdSG", "145nN6S5QQBwgjtNUwuiQZ"];
+import { DEVFLAGS, applyDevFlagOverrides } from "@/wab/shared/devflags";
+let fixtures: { id: string; revision: number }[];
+const fixtureIds: string[] = [];
 const timings: Record<string, any>[] = [];
 declare global {
   interface Window {
@@ -16,33 +18,18 @@ async function createEngine() {
     frame.onload = () => resolve();
     frame.onerror = () => reject(new Error("Host failed"));
   });
-  frame.src = `/static/host.html#live=true&origin=${encodeURIComponent(location.origin)}&staticBaseUrl=${encodeURIComponent(location.origin + "/static")}`;
+  frame.src = `/canvas-preview/index.html#live=true&origin=${encodeURIComponent(location.origin)}&staticBaseUrl=${encodeURIComponent(location.origin + "/static")}`;
   document.body.append(frame);
   try {
     await loaded;
-    const doc = ensure(frame.contentDocument, "Host document");
-    const html = await fetch("/probe/engine.html").then((r) => r.text());
-    const assets = new DOMParser().parseFromString(html, "text/html");
-    for (const script of [...assets.querySelectorAll("script[src]")]) {
-      const element = doc.createElement("script");
-      const scriptLoaded = new Promise<void>((resolve, reject) => {
-        element.onload = () => resolve();
-        element.onerror = () => reject(new Error("Engine asset failed"));
-      });
-      element.src = new URL(
-        ensure(script.getAttribute("src"), "Engine script"),
-        location.href,
-      ).href;
-      doc.body.append(element);
-      await scriptLoaded;
-    }
+    ensure((frame.contentWindow as any)?.coverEngine, "Probe renderer did not load");
     return frame;
   } catch (e) {
     frame.remove();
     throw e;
   }
 }
-const cacheVersion = "canvas-png-v3";
+const cacheVersion = `canvas-png-v4:${process.env.COMMITHASH}`;
 async function cacheDb() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open("canvas-cover-probe", 1);
@@ -91,12 +78,12 @@ async function generate(id: string) {
     name: string;
   }> = [];
   try {
-    const payload = structuredClone(await win.coverEngine.load(id));
+    const payload = structuredClone(await win.coverEngine.load(id, ensure(fixtures.find((fixture) => fixture.id === id), "Fixture").revision, DEVFLAGS));
     timings.push(payload);
     for (const artboard of payload.pages) {
       frame.style.width = `${artboard.width}px`;
       frame.style.height = `${artboard.height}px`;
-      await win.coverEngine.render(artboard.componentId);
+      await win.coverEngine.render(artboard.uuid);
       const label = `${id}-${artboard.uuid}`;
       if ((window as any).captureReference) {
         await (window as any).captureReference(
@@ -149,10 +136,7 @@ function createProbe() {
     queue = Promise.resolve(),
     cacheHits = 0;
   const urls = new Set<string>();
-  const knownRevisions: Record<string, number> = {
-    [fixtureIds[0]]: 137,
-    [fixtureIds[1]]: 37,
-  };
+  const knownRevisions = Object.fromEntries(fixtures.map((fixture) => [fixture.id, fixture.revision]));
   const get = (id: string) => {
     const job = queue.then(async () => {
       const key = `${id}:${knownRevisions[id]}:${cacheVersion}`;
@@ -190,7 +174,7 @@ function createProbe() {
     async mount(count: number) {
       this.clear();
       const root = ensure(document.getElementById("root"), "Root");
-      const jobs = [];
+      const jobs: Promise<void | undefined>[] = [];
       for (let i = 0; i < count; i++) {
         const card = document.createElement("div");
         card.className = "cover";
@@ -234,7 +218,7 @@ function createProbe() {
         Record<string, any>;
       const doc = ensure(frame.contentDocument, "Document");
       try {
-        await win.coverEngine.load(fixtureIds[0]);
+        await win.coverEngine.load(fixtures[0].id, fixtures[0].revision, DEVFLAGS);
         win.coverEngine.clear();
         frame.style.width = "1000px";
         frame.style.height = "800px";
@@ -276,6 +260,10 @@ function createProbe() {
   css.textContent =
     "#root{display:grid;grid-template-columns:repeat(3,320px);gap:24px;padding:24px}.cover{position:relative;width:320px;height:180px;border:1px solid #555;border-radius:12px;overflow:hidden;background:#202128}.cover img{width:100%;height:100%;object-fit:contain}";
   document.head.append(css);
+  const config = await fetch("/fixture/config.json").then((r) => r.json());
+  applyDevFlagOverrides(config.config);
+  fixtures = await fetch("/fixture/manifest.json").then((r) => r.json());
+  fixtureIds.push(...fixtures.map((fixture) => fixture.id));
   window.coverProbe = createProbe();
   await window.coverProbe.mount(
     Number(new URLSearchParams(location.search).get("count") ?? 2),

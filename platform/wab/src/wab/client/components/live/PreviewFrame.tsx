@@ -2,7 +2,7 @@ import { trapInteractionError } from "@/wab/client/components/canvas/studio-canv
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
 import {
-  onLoadInjectSystemJS,
+  onLoadInjectLiveRuntime,
   pushPreviewModules,
 } from "@/wab/client/components/live/live-syncer";
 import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
@@ -55,6 +55,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const topFrameApi = useTopFrameApi();
   const full = previewCtx.full;
   const frameRef = React.useRef<Window | null>(null);
+  const frameGeneration = React.useRef(0);
   const [frameLoaded, setFrameLoaded] = React.useState(false);
 
   const usedPkgs = usedHostLessPkgs(previewCtx.studioCtx.site);
@@ -63,7 +64,9 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const isMounted = useMountedState();
 
   const reset = () => {
+    frameGeneration.current++;
     frameRef.current = null;
+    setIsInstalling(false);
     setInstalledPkgs([]);
     setFrameLoaded(false);
   };
@@ -95,12 +98,20 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
 
   const onLoad = async () => {
     const frameWindow = ensure(frameRef.current, `Frame must be loaded`);
-    await onLoadInjectSystemJS(
+    const generation = frameGeneration.current;
+    await onLoadInjectLiveRuntime(
       previewCtx.studioCtx,
       frameWindow,
       true,
       onAnchorClick,
     );
+    if (
+      !isMounted() ||
+      frameRef.current !== frameWindow ||
+      frameGeneration.current !== generation
+    ) {
+      return;
+    }
 
     (frameWindow as any).__PlasmicWrapUserFunction = (
       loc: InteractionLoc | InteractionArgLoc,
@@ -145,6 +156,11 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       return;
     }
     const win = frameRef.current;
+    const generation = frameGeneration.current;
+    const isCurrentFrame = () =>
+      isMounted() &&
+      frameRef.current === win &&
+      frameGeneration.current === generation;
     if (
       usedPkgs.some(
         (pkg) =>
@@ -163,14 +179,14 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
             previewCtx.studioCtx.site,
           )) {
             if (!installedPkgsSet.has(pkg)) {
-              if (!isMounted()) {
+              if (!isCurrentFrame()) {
                 return;
               }
               scriptExec(win, pkgModule);
               newInstalledPkgs.push(pkg);
             }
           }
-          if (isMounted()) {
+          if (isCurrentFrame()) {
             setInstalledPkgs(newInstalledPkgs);
             setIsInstalling(false);
           }
@@ -204,21 +220,24 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     }
 
     const win = frameRef.current;
-    const doc = win.document;
-    const onRendered = (event: MessageEvent) => {
-      if (
-        event.source === win &&
-        event.data?.source === "plasmic-live" &&
-        (event.data.type === "rendered" || event.data.type === "error")
-      ) {
-        win.removeEventListener("message", onRendered);
-        spawn(topFrameApi.setStudioReady());
-      }
-    };
-    if (full) {
-      win.addEventListener("message", onRendered);
-    }
-    const dispose = pushPreviewModules(doc, previewCtx, { lazy: false });
+    const generation = frameGeneration.current;
+    let active = true;
+    let readyNotified = false;
+    const dispose = pushPreviewModules(win, previewCtx, {
+      lazy: false,
+      onRendered: () => {
+        if (
+          active &&
+          full &&
+          !readyNotified &&
+          frameRef.current === win &&
+          frameGeneration.current === generation
+        ) {
+          readyNotified = true;
+          spawn(topFrameApi.setStudioReady());
+        }
+      },
+    });
 
     // If previewCtx has a hash, scroll frame to it.
     if (previewCtx.pageHash) {
@@ -226,7 +245,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     }
 
     return () => {
-      win.removeEventListener("message", onRendered);
+      active = false;
       dispose();
     };
   }, [

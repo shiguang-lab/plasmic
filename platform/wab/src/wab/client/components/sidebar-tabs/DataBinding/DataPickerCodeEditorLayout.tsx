@@ -9,13 +9,14 @@ import {
   DataPickerRunCodeActionContext,
   DataPickerTypesSchema,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   DefaultDataPickerCodeEditorLayoutProps,
   PlasmicDataPickerCodeEditorLayout,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerCodeEditorLayout";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { isLiteralObjectByName } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L from "lodash";
 import * as React from "react";
 
@@ -61,6 +62,11 @@ function DataPickerCodeEditorLayout_(
     <PlasmicDataPickerCodeEditorLayout
       root={{ ref }}
       {...rest}
+      envPreviewContainer={{
+        as: Scrollbar,
+        style: { overflow: "hidden", minHeight: 0 },
+      }}
+      previewPanel={{ style: { overflow: "hidden", minHeight: 0 } }}
       codeEditor={
         <LazyFullCodeEditor
           ref={editorRef}
@@ -98,7 +104,9 @@ function DataPickerCodeEditorLayout_(
             data={previewData ?? data}
           />
         ) : (
-          renderInspector(runCodeContext.stepValue)
+          <Scrollbar style={{ width: "100%", height: "100%", minHeight: 0 }}>
+            {renderInspector(runCodeContext.stepValue)}
+          </Scrollbar>
         )
       }
       envPanel={hideEnvPanel ? "hidden" : !showEnv ? "collapsed" : undefined}

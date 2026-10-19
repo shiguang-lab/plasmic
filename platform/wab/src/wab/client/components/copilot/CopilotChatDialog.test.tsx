@@ -12,6 +12,7 @@ import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import "@testing-library/jest-dom/vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -391,10 +392,23 @@ it("switches top-frame modes without losing attachments, scope, model or multili
   expect(
     screen.getByRole("group", { name: "AI canvas editing" }),
   ).toHaveAttribute("data-expanded", "true");
-  fireEvent.change(
-    screen.getByLabelText("Choose requirement documents and reference images"),
-    { target: { files: [new File(["A table"], "requirements.md")] } },
-  );
+  const file = new File(["A table"], "requirements.md");
+  const readAsText = FileReader.prototype.readAsText;
+  let finishRead = () => {};
+  const finishedRead = new Promise<void>((resolve) => { finishRead = resolve; });
+  const read = vi.spyOn(FileReader.prototype, "readAsText").mockImplementation(function (this: FileReader, blob, encoding) {
+    this.addEventListener("loadend", finishRead, { once: true });
+    return readAsText.call(this, blob, encoding);
+  });
+  await act(async () => {
+    fireEvent.change(
+      screen.getByLabelText("Choose requirement documents and reference images"),
+      { target: { files: [file] } },
+    );
+    await finishedRead;
+  });
+  expect(read).toHaveBeenCalledExactlyOnceWith(file);
+  expect(state.session?.draft.attachments).toEqual([{ type: "text", name: "requirements.md", text: "A table" }]);
   await screen.findByRole("button", {
     name: "Remove attachment requirements.md",
   });

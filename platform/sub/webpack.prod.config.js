@@ -8,6 +8,7 @@ module.exports = merge(baseConfig, {
   },
   plugins: [],
   output: {
+    clean: true,
     filename: "[name].js",
     chunkFilename: "[name].chunk.js",
     path: __dirname + "/public/static/sub/build",

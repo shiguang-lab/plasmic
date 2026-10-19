@@ -1,14 +1,9 @@
 # syntax=docker/dockerfile:1
 #
-# Build context is the platform/ workspace root (not platform/wab), e.g.:
-#   docker build -f platform/wab/Dockerfile platform/
-#
-# wab, canvas-packages, loader-bundle-env and loader-html-hydrate share the pnpm
-# workspace rooted at platform/. wab's server reads loader-bundle-env and
-# loader-html-hydrate as sibling directories at runtime
-# (process.cwd()/../loader-bundle-env/node_modules), so the runtime image keeps
-# the /platform/{wab,loader-bundle-env,loader-html-hydrate} peer layout together
-# with the workspace-root node_modules/.pnpm store their symlinks point into.
+# Build context is the repository root, including the local loader SDK workspace:
+#   docker build -f platform/wab/Dockerfile .
+# The platform packages retain their sibling layout; the deployed SDK closure
+# lives at /plasmic/packages/loader-react for the platform link dependencies.
 
 # See https://hub.docker.com/_/node/
 # Pinned to an exact patch (not the floating node:24-alpine tag) to avoid silently
@@ -17,6 +12,7 @@
 # ERR_STREAM_PREMATURE_CLOSE. Bump deliberately once a fixed 24.17.x+ is verified.
 FROM node:24.16.0-alpine AS builder
 
+ENV CI=1
 ENV PUPPETEER_SKIP_DOWNLOAD=1
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
@@ -32,48 +28,25 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
-WORKDIR /platform
-
-# Download every package into the store first, from the lockfile alone, so this
-# expensive layer is invalidated only by lockfile changes — with a plain
-# `COPY . .` before install, any source edit would re-resolve and re-link
-# everything on every build. Patches ride along because patchedDependencies in
-# pnpm-workspace.yaml references them.
-#
-# The store is in a layer (not `--mount=type=cache`), since cache mounts are
-# builder-local, and CI builds on a fresh buildx builder whose mounts start empty
-# while layers come from the registry cache. A mount here leaves every replayed
-# `pnpm fetch` with an empty store, so installs below would refetch. Only the builder
-# stage carries the store.
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY patches/ ./patches/
-# The npmrc secret (registry + short-lived auth token for the Artifact Registry
-# npm mirror) is mounted only for the duration of each install RUN, never baked
-# into a layer. Optional: a plain local `docker build` without the secret falls
-# back to the default public registry.
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm fetch
-
-# Copy the whole workspace (node_modules, build outputs and generated files are
-# excluded via .dockerignore). pnpm needs every workspace member's package.json
-# present to satisfy the frozen lockfile, and canvas-packages links wab's
-# register-library through the workspace.
+WORKDIR /plasmic
 COPY . .
-
-# --prefer-offline (not --offline) since the fetch above normally covers everything,
-# but partial cache restore must degrade into a refetch, not hard failure.
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
-    pnpm install --frozen-lockfile --prefer-offline
-
-# Build loader-bundle-env's internal_pkgs and loader-html-hydrate. wab's server
-# consumes their built output from the sibling directories at runtime.
-# NB: filters match package *names*, and loader-html-hydrate's package name is
-# @plasmicapp/loader-html-hydrate (a bare directory name would silently match
-# nothing).
-RUN pnpm --filter "loader-bundle-env..." --filter "@plasmicapp/loader-html-hydrate..." build
-
-# Code generation (peg parsers, model classes, style tokens, vendored CSS).
-WORKDIR /platform/wab
-RUN mkdir -p src/wab/gen && make
+RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
+# setup builds local component packages, SDK dependencies and the canonical hydration output.
+# Optional build CA is a local trust input only; never copy it into release images.
+RUN --mount=type=cache,id=plasmic-alpine-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    --mount=type=cache,id=plasmic-alpine-metadata,target=/root/.cache/pnpm,sharing=locked \
+    --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    pnpm run setup
+RUN --mount=type=cache,id=plasmic-alpine-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    --mount=type=cache,id=plasmic-alpine-metadata,target=/root/.cache/pnpm,sharing=locked \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    node scripts/deploy-loader-sdk.mjs /opt/plasmic-loader-react \
+    && pnpm install --frozen-lockfile --ignore-scripts --prefer-offline --prod=false
+RUN pnpm --filter @plasmicapp/host pack --out /tmp/plasmic-host.tgz && mkdir /opt/plasmic-host && tar -xzf /tmp/plasmic-host.tgz --strip-components=1 -C /opt/plasmic-host
+WORKDIR /plasmic/platform
 
 # Re-resolve without devDependencies for the runtime image, and only for the
 # three packages that actually ship in it — this keeps canvas-packages',
@@ -81,8 +54,11 @@ RUN mkdir -p src/wab/gen && make
 # NB: `pnpm deploy` would be tidier but flattens node_modules and breaks wab's
 # sibling-dir resolution (../loader-bundle-env/node_modules); see
 # https://github.com/pnpm/pnpm/issues/9283
-WORKDIR /platform
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+WORKDIR /plasmic/platform
+RUN --mount=type=cache,id=plasmic-alpine-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    --mount=type=cache,id=plasmic-alpine-metadata,target=/root/.cache/pnpm,sharing=locked \
+    --mount=type=secret,id=npmrc,target=/root/.npmrc --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     rm -rf node_modules wab/node_modules loader-bundle-env/node_modules \
       loader-html-hydrate/node_modules canvas-packages/node_modules \
     && pnpm install --frozen-lockfile --prefer-offline --prod \
@@ -103,28 +79,35 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV COREPACK_HOME="/pnpm/corepack"
 RUN corepack enable
 
-WORKDIR /platform
+WORKDIR /plasmic/platform
 
 # Workspace-root store plus manifests, then the three peer packages wab needs at
 # runtime. Symlinks inside each package's node_modules point back into
-# /platform/node_modules/.pnpm, so both must be copied together.
-COPY --from=builder --chown=node:node /platform/node_modules ./node_modules
-COPY --from=builder --chown=node:node /platform/pnpm-workspace.yaml /platform/pnpm-lock.yaml /platform/package.json ./
+# /plasmic/platform/node_modules/.pnpm, so both must be copied together.
+COPY --from=builder --chown=node:node /plasmic/plasmicpkgs /plasmic/plasmicpkgs
+COPY --from=builder --chown=node:node /opt/plasmic-host /plasmic/packages/host
+COPY --from=builder --chown=node:node /opt/plasmic-loader-react /plasmic/packages/loader-react
+COPY --from=builder --chown=node:node /plasmic/platform/node_modules ./node_modules
+COPY --from=builder --chown=node:node /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/pnpm-lock.yaml /plasmic/platform/package.json ./
 
 # Bake the pinned pnpm dist into the image; otherwise the first `pnpm ...` in a
 # pod (e.g. `pnpm db:one-time-job`) would download it from the registry at
 # container runtime.
-RUN pnpm --version && chmod -R a+rX "$COREPACK_HOME"
-COPY --from=builder --chown=node:node /platform/shared ./shared
-COPY --from=builder --chown=node:node /platform/wab ./wab
-COPY --from=builder --chown=node:node /platform/loader-bundle-env ./loader-bundle-env
-COPY --from=builder --chown=node:node /platform/loader-html-hydrate ./loader-html-hydrate
+RUN --mount=type=cache,id=plasmic-alpine-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    --mount=type=cache,id=plasmic-alpine-metadata,target=/root/.cache/pnpm,sharing=locked \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    pnpm --version && chmod -R a+rX "$COREPACK_HOME"
+COPY --from=builder --chown=node:node /plasmic/platform/shared ./shared
+COPY --from=builder --chown=node:node /plasmic/platform/wab ./wab
+COPY --from=builder --chown=node:node /plasmic/platform/loader-bundle-env ./loader-bundle-env
+COPY --from=builder --chown=node:node /plasmic/platform/loader-html-hydrate ./loader-html-hydrate
 
 # Expose main server port
 EXPOSE 3004
 
 # Switch workdir back to wab
-WORKDIR /platform/wab
+WORKDIR /plasmic/platform/wab
 
 USER node
 

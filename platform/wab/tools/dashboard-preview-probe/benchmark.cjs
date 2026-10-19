@@ -46,6 +46,7 @@ function compare(a, b) {
       requests = [],
       fidelity = [],
       results = [];
+    let captureIndex = 0;
     let references = new Map(),
       peakMiB = 0;
     page.on("pageerror", (e) => errors.push(e.message));
@@ -82,18 +83,20 @@ function compare(a, b) {
     };
     await page.exposeFunction("captureReference", async (label) => {
       const png = await page.locator("#engine").screenshot({ timeout: 15000 });
-      references.set(label, png);
-      await fs.writeFile(`${outDir}/${label}-live.png`, png);
+      const index = captureIndex++;
+      references.set(label, { png, index });
+      await fs.writeFile(`${outDir}/${index}-${label}-live.png`, png);
       const m = await heap();
       peakMiB = Math.max(peakMiB, m.JSHeapUsedSize / 1048576);
     });
     await page.exposeFunction("captureResult", async (label, url, stats) => {
       const png = Buffer.from(url.split(",")[1], "base64");
-      await fs.writeFile(`${outDir}/${label}-static.png`, png);
-      const { diff, ...numbers } = compare(references.get(label), png);
+      const { png: reference, index } = references.get(label);
+      await fs.writeFile(`${outDir}/${index}-${label}-static.png`, png);
+      const { diff, ...numbers } = compare(reference, png);
       references.delete(label);
-      await fs.writeFile(`${outDir}/${label}-diff.png`, diff);
-      fidelity.push({ label, ...numbers, ...stats });
+      await fs.writeFile(`${outDir}/${index}-${label}-diff.png`, diff);
+      fidelity.push({ label, captureIndex: index, files: { live: `${index}-${label}-live.png`, static: `${index}-${label}-static.png`, diff: `${index}-${label}-diff.png` }, ...numbers, ...stats });
       console.log("fidelity", label, JSON.stringify(numbers));
     });
     const measure = async (name) => {
@@ -163,7 +166,7 @@ function compare(a, b) {
         .slice(before)
         .filter(
           (r) =>
-            r.url.includes("/static/") || /\/fixture\/.+\.json/.test(r.url),
+            r.url.includes("/static/") || r.url.includes("/api/v1/projects/") || /\/fixture\/.+\.json/.test(r.url),
         ).length,
       0,
       "Cache hits must not start any project renderer or download models",
@@ -175,6 +178,18 @@ function compare(a, b) {
       level: "critical",
     });
     await measure("after-native-memory-pressure");
+    const out = {
+      fixtureCount: 2,
+      peakRendererHeapMiB: peakMiB,
+      results,
+      fidelity,
+      errors,
+      nonGetRequests: requests.filter((r) => r.method !== "GET"),
+    };
+    await fs.writeFile(
+      `${outDir}/static-benchmark.json`,
+      JSON.stringify(out, null, 2),
+    );
     assert.equal(errors.length, 0);
     assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
     assert.ok(
@@ -191,6 +206,7 @@ function compare(a, b) {
       sample.pixelsOver20Percent < 1,
       "Chart / Canvas / complex CSS fidelity",
     );
+    assert.ok(fidelity.filter((f) => f.label !== "fidelity").every((f) => f.pixelsOver20Percent < 1), "Every business artboard must retain pixel fidelity");
     assert.ok(
       fidelity.every((f) => f.assetErrors.length === 0),
       "No lost stylesheet, font or image assets",
@@ -203,18 +219,6 @@ function compare(a, b) {
     assert.ok(
       cleared.at(-1).heapMiB - cleared[0].heapMiB < 1,
       "Repeated generation must not retain project models",
-    );
-    const out = {
-      fixtureCount: 2,
-      peakRendererHeapMiB: peakMiB,
-      results,
-      fidelity,
-      errors,
-      nonGetRequests: requests.filter((r) => r.method !== "GET"),
-    };
-    await fs.writeFile(
-      `${outDir}/static-benchmark.json`,
-      JSON.stringify(out, null, 2),
     );
     console.log(
       JSON.stringify(

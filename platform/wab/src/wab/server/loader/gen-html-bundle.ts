@@ -82,6 +82,7 @@ export async function genLoaderHtmlBundle(opts: {
     {},
     React.createElement("div", {
       "data-plasmic-project-id": projectId,
+      "data-plasmic-host": publicCodegenUrl,
       "data-plasmic-project-version": version,
       "data-plasmic-component": component,
       "data-plasmic-project-token":

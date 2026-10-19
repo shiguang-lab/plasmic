@@ -14,9 +14,15 @@ const assert = require("node:assert/strict");
       });
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      let reference;
+      let reference, title;
       await page.exposeFunction("captureReference", async (label) => {
         if (label === "fidelity") {
+          title = await page.locator("#engine").evaluate(frame => {
+            const heading = frame.contentDocument.querySelector("h1.gradient-text");
+            if (!heading) throw new Error("Missing fidelity heading");
+            const rect = heading.getBoundingClientRect();
+            return {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
+          });
           reference = await page.locator("#engine").screenshot();
           await fs.writeFile(
             `/tmp/plasmic-cover-probe/fidelity-${name}-live.png`,
@@ -48,10 +54,21 @@ const assert = require("node:assert/strict");
             changed++;
           }
         }
+        const ink = (image) => {
+          let count = 0;
+          for (let y = Math.floor(title.y); y < Math.ceil(title.y + title.height); y++)
+            for (let x = Math.floor(title.x); x < Math.ceil(title.x + title.width); x++) {
+              const i = (y * image.width + x) * 4;
+              const channels = [...image.data.subarray(i, i + 3)];
+              if (Math.max(...channels) - Math.min(...channels) > 40) count++;
+            }
+          return count;
+        };
         results.push({
           name,
           fidelity: {
             ...stats,
+            titleInk: {live: ink(p), snapshot: ink(q)},
             pixelsOver20Percent: (100 * changed) / (p.width * p.height),
             meanChannelDelta: delta / (p.width * p.height * 3),
           },
@@ -102,6 +119,8 @@ const assert = require("node:assert/strict");
     assert.equal(record.afterReload.cacheHits, 2);
     assert.equal(record.errors.length, 0);
     const sample = results.find((r) => r.name === name && r.fidelity).fidelity;
+    assert.ok(sample.titleInk.live > 100, "Live gradient title must contain visible text");
+    assert.ok(sample.titleInk.snapshot >= sample.titleInk.live * 0.9, "Snapshot must retain gradient title pixels");
     assert.equal(sample.canvases, 1);
     assert.equal(sample.svgs, 4);
     assert.equal(sample.assetErrors.length, 0);

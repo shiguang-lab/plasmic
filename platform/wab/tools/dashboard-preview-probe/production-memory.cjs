@@ -1,5 +1,6 @@
 const { chromium } = require("../../node_modules/playwright");
 const fs = require("node:fs/promises");
+const assert = require("node:assert/strict");
 const { execFileSync } = require("node:child_process");
 (async () => {
   const browser = await chromium.launch();
@@ -57,6 +58,8 @@ const { execFileSync } = require("node:child_process");
     }
     await page.waitForTimeout(3000);
     await measure("idle");
+    assert.ok(measurements.every((m) => m.frames === 0), "No renderer iframe remains after generation");
+    assert.ok(measurements.every((m) => !m.targets.some((t) => /worker/.test(t.type))), "No renderer worker survives cleanup");
     await fs.writeFile(
       "/tmp/plasmic-cover-probe/production-memory.json",
       JSON.stringify(measurements, null, 2),

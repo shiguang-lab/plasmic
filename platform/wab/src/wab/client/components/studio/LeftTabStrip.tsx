@@ -1,14 +1,12 @@
-import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import {
   EditorToolIcon,
   EditorToolRail,
 } from "@/wab/client/components/studio/EditorToolRail";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
-import { useI18n } from "@/wab/client/i18n";
-// eslint-disable-next-line no-restricted-imports
-import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
-import { FigmaModalContent } from "@/wab/client/components/studio/FigmaModalContent";
 import LeftTabButton from "@/wab/client/components/studio/LeftTabButton";
+import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { DataTokenIcon } from "@/wab/client/icons";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
@@ -27,7 +25,6 @@ import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicI
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
 import { DefaultLeftTabStripProps } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
 import DiamondsIcon from "@/wab/client/plasmic/plasmic_kit_merge_flow/icons/PlasmicIcon__Diamonds";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { spawn, unexpected } from "@/wab/shared/common";
 import {
@@ -70,6 +67,8 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const topFrameApi = useTopFrameApi();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
+  const figmaFileInput = React.useRef<HTMLInputElement>(null);
+  const [importingFigma, setImportingFigma] = React.useState(false);
   const openGroup = studioCtx.leftTabGroup;
   const setOpenGroup = (group: string | undefined) =>
     studioCtx.setLeftTabGroup(group);
@@ -249,13 +248,9 @@ More
           label: t("Import from Figma"),
           cond: canViewTab("figma"),
           onClick: () => {
-            spawn(
-              showTemporaryInfo({
-                title: t("Import from Figma"),
-                content: <FigmaModalContent />,
-                width: 640,
-              }),
-            );
+            if (!importingFigma) {
+              figmaFileInput.current?.click();
+            }
           },
         },
       },
@@ -428,6 +423,33 @@ More
       root={{ className: props.className, id: "left-tab-strip" }}
       buttons={
         <>
+          <input
+            ref={figmaFileInput}
+            type="file"
+            accept=".fig"
+            hidden
+            aria-label={t("Import from Figma")}
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = "";
+              if (!file || importingFigma) {
+                return;
+              }
+              setImportingFigma(true);
+              spawn(
+                (async () => {
+                  try {
+                    const { importFigmaFile } =
+                      await import("@/wab/client/figma-importer/import-file");
+                    await importFigmaFile(studioCtx, file);
+                  } finally {
+                    setImportingFigma(false);
+                  }
+                })(),
+              );
+            }}
+          />
+
           <LeftTabButton
             label={t("Select")}
             tooltip={t("Select")}

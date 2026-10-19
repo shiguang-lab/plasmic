@@ -4,6 +4,8 @@ import {
 } from "@plasmicapp/loader-react";
 
 export class PlasmicHtmlHydrater {
+  constructor(private readonly scriptHost?: string) {}
+
   async hydrateElement(element: HTMLElement) {
     const projectId = element.getAttribute("data-plasmic-project-id");
     const version = element.getAttribute("data-plasmic-project-version");
@@ -37,6 +39,8 @@ export class PlasmicHtmlHydrater {
           token: token ?? "",
         },
       ],
+      apiHost: element.getAttribute("data-plasmic-host") || this.scriptHost,
+      cdnHost: element.getAttribute("data-plasmic-host") || this.scriptHost,
     });
 
     element.setAttribute("data-plasmic-hydrating", "true");

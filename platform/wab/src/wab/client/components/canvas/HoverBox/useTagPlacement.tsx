@@ -8,8 +8,12 @@ export function useTagPlacement(
   zoom: number,
   viewCtx?: ViewCtx,
 ) {
-  const [placement, setPlacement] = React.useState<React.CSSProperties>({});
-  React.useLayoutEffect(() => {
+  const [placement, setPlacement] = React.useState<React.CSSProperties>({
+    visibility: "hidden",
+    pointerEvents: "none",
+  });
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => {
     const tag = tagRef.current;
     const parent = tag?.parentElement?.parentElement;
     if (!tag || !parent || !viewCtx) {
@@ -93,6 +97,8 @@ export function useTagPlacement(
     setPlacement((current) =>
       JSON.stringify(current) === JSON.stringify(next) ? current : next,
     );
+    });
+    return () => cancelAnimationFrame(frame);
   });
   return placement;
 }

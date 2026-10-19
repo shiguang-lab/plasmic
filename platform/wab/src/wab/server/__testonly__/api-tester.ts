@@ -1,4 +1,4 @@
-import { UnknownApiError } from "@/wab/client/api";
+import { UnknownApiError } from "@/wab/shared/ApiErrors/ApiError";
 import { testIdentityAssertion } from "@/wab/server/__testonly__/shiguang-fixture";
 import { Project } from "@/wab/server/entities/Entities";
 import { publicCmsReadsContract } from "@/wab/shared/api/cms";

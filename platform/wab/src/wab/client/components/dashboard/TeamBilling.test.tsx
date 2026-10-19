@@ -1,6 +1,9 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import TeamBilling from "@/wab/client/components/dashboard/TeamBilling";
 import PriceTierPicker from "@/wab/client/components/pricing/PriceTierPicker";
+import { setLanguagePreference } from "@/wab/client/i18n";
+import { languageOptions, translate } from "@/wab/client/i18n/locales";
+import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
 import { ApiFeatureTier, ApiTeam, Subscription } from "@/wab/shared/ApiSchema";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import "@testing-library/jest-dom/vitest";
@@ -25,12 +28,6 @@ const mocks = vi.hoisted(() => ({
   reason: vi.fn(),
   hardConfirm: vi.fn(),
   success: vi.fn(),
-}));
-vi.mock("@/wab/client/i18n", () => ({
-  useI18n: () => ({
-    t: (s: string, values?: Record<string, string | number>) =>
-      s.replace(/\{(\w+)\}/g, (_, key) => String(values?.[key] ?? key)),
-  }),
 }));
 vi.mock("@/wab/client/components/modals/PricingModal", () => ({
   promptBilling: mocks.billing,
@@ -118,6 +115,9 @@ function show(extra: Partial<React.ComponentProps<typeof TeamBilling>> = {}) {
     />,
   );
 }
+beforeEach(async () => {
+  await setLanguagePreference("en");
+});
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
@@ -218,4 +218,19 @@ it("disables all modifying controls for read-only members", () => {
     expect(screen.getByRole("button", { name })).toBeDisabled();
   }
   expect(screen.getByLabelText("Billing email")).toBeDisabled();
+});
+
+it.each(languageOptions)("shows the localized billing failure in $label and keeps the submitted email", async ({ value }) => {
+  await setLanguagePreference(value);
+  mocks.update.mockRejectedValueOnce(new HttpError(503, "Provider diagnostic"));
+  show();
+  fireEvent.click(screen.getByRole("button", {
+    name: (name) => name.replace(/([\u4e00-\u9fff]) (?=[\u4e00-\u9fff])/g, "$1") === translate(value, "Save"),
+  }));
+  await screen.findByText(translate(value, "Failed to update billing"));
+  expect(screen.getByText(translate(value, "The service is temporarily unavailable. Please try again later."))).toBeTruthy();
+  expect(screen.queryByText("Provider diagnostic")).toBeNull();
+  expect(screen.getByLabelText(translate(value, "Billing email"))).toHaveValue("billing@example.com");
+  expect(mocks.update).toHaveBeenCalledWith("team1", { billingEmail: "billing@example.com" });
+  expect(mocks.reload).not.toHaveBeenCalled();
 });

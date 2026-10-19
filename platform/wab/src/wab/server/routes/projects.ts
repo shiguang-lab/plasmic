@@ -126,6 +126,7 @@ import {
   getSerializedBundleSize,
   isExpectedBundleVersion,
   parseBundle,
+  pickPartialBundle,
 } from "@/wab/shared/bundles";
 import { componentToDeepReferenced } from "@/wab/shared/cached-selectors";
 import { elementSchemaToTpl } from "@/wab/shared/code-components/code-components";
@@ -1465,16 +1466,13 @@ export async function saveProjectRev(req: Request, res: Response) {
       );
     }
     if (req.body.incremental) {
-      const partial = await (async () => {
-        const bundle = getBundle({ data }, await getLastBundleVersion());
-        const partialData = getBundle(req.body, await getLastBundleVersion());
-        bundle.map = pick(bundle.map, Object.keys(partialData.map)) as any;
-        Object.keys(bundle.map).forEach((iid) => {
-          const fields = Object.keys(partialData.map[iid]);
-          bundle.map[iid] = pick(bundle.map[iid], fields) as any;
-        });
-        return JSON.stringify(bundle);
-      })();
+      // Reuse the merged bundle instead of parsing the full saved data again.
+      const partial = JSON.stringify(
+        pickPartialBundle(
+          mergedBundle,
+          getBundle(req.body, await getLastBundleVersion()),
+        ),
+      );
 
       const deletedIids: string[] = req.body.toDeleteIids || [];
       const modifiedComponentIids: string[] =

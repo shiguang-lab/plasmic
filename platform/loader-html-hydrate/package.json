@@ -9,7 +9,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=18"
   },
   "scripts": {
     "dev": "rollup -c",
@@ -17,7 +17,7 @@
   },
   "author": "Chung Wu",
   "dependencies": {
-    "@plasmicapp/loader-react": "^2.0.23",
+    "@plasmicapp/loader-react": "link:../../packages/loader-react",
     "react": "^18",
     "react-dom": "^18"
   },

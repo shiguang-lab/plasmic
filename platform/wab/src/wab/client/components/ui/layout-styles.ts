@@ -103,6 +103,7 @@ export const useEditorPopupStyles = createStyles(({ token }) => ({
       minHeight: 36,
       borderRadius: token.borderRadius,
     },
+    "& button:disabled": { color: token.colorTextDisabled },
     "& button:focus-visible": {
       outline: `2px solid ${token.colorPrimary}`,
       outlineOffset: 2,
@@ -111,7 +112,7 @@ export const useEditorPopupStyles = createStyles(({ token }) => ({
       background: token.colorPrimaryBg,
       color: token.colorPrimaryText,
     },
-    "& button:hover": { background: token.colorFillSecondary },
+    "& button:hover:not(:disabled)": { background: token.colorFillSecondary },
     "& .editor-management-menu": {
       display: "flex",
       flexDirection: "column",
@@ -131,7 +132,6 @@ export const useEditorPopupStyles = createStyles(({ token }) => ({
       color: token.colorText,
       fontSize: 13,
     },
-    [`& .${button.slotTargetChildren}`]: { color: token.colorText },
   },
 }));
 

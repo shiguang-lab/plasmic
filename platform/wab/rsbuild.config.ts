@@ -237,6 +237,7 @@ const appConfig = defineConfig({
             {
               from: "../loader-html-hydrate/build/",
               to: "static/js/",
+              info: { minimized: true },
             },
           ],
         }),

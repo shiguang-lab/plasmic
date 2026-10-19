@@ -31,7 +31,8 @@ $canvasSpaceTop: -30px;
 
 .columnContent {
   height: $columnHeight;
-  background-color: $columnBackground;
+  background-color: var(--ui-fill, #{$columnBackground});
+  color: var(--ui-text, #{$sand12});
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,7 +47,7 @@ $canvasSpaceTop: -30px;
   height: 8px;
   border-radius: 100%;
   cursor: ew-resize;
-  background-color: $resizerBackground;
+  background-color: var(--ui-muted, #{$resizerBackground});
 }
 
 .canvasColumnBtn {

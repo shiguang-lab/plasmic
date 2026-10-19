@@ -311,6 +311,7 @@ import {
   isTplContainer,
   isTplNamable,
   isTplSlot,
+  isTplVariantable,
   tplChildren,
   trackComponentRoot,
   trackComponentSite,
@@ -1330,6 +1331,71 @@ export class StudioCtx extends WithDbCtx {
     return this._isChanging;
   }
 
+  private selectionPending = observable.box(false);
+  private selectionPaintFrame?: number;
+  private selectionPaintTask?: ReturnType<typeof setTimeout>;
+
+  get isSelectionPending() {
+    return this.selectionPending.get();
+  }
+
+  /** Selection is editor state. Actual variant/context edits still use change(). */
+  changeSelection(f: () => void) {
+    if (this._isChanging) {
+      f();
+      return;
+    }
+    if (this.hasPendingModelChanges()) {
+      this.changeSpawn(() => this.changeSelection(f));
+      return;
+    }
+    const previous = this.viewCtxs.map((vc) => ({
+      vc,
+      context: vc.currentComponentCtx(),
+      info: vc.getSpotlightAndVariantsInfo(),
+    }));
+    if (this.selectionPaintFrame !== undefined) {
+      cancelAnimationFrame(this.selectionPaintFrame);
+    }
+    clearTimeout(this.selectionPaintTask);
+    runInAction(() => {
+      // Unsubscribe expensive inspector controls before publishing the new focus.
+      this.selectionPending.set(true);
+      try {
+        f();
+        const vc = this.focusedViewCtx();
+        const tpl = vc?.focusedTpl();
+        if (
+          vc &&
+          isTplVariantable(tpl) &&
+          !vc.variantTplMgr().tryGetTargetVariantSetting(tpl)
+        ) {
+          this.changeSpawn(() => fixupChrome(this));
+        }
+        this.createViewStateUndoRecord();
+      } catch (error) {
+        this.selectionPending.set(false);
+        throw error;
+      }
+    });
+    for (const { vc, context, info } of previous) {
+      if (
+        context !== vc.currentComponentCtx() ||
+        viewCtxInfoChanged(vc.getSpotlightAndVariantsInfo(), info)
+      ) {
+        vc.scheduleSync({ asap: vc === this.focusedViewCtx(), eval: true, styles: false });
+      }
+    }
+    // Let the selection chrome paint before mounting controls for the latest focus.
+    this.selectionPaintFrame = requestAnimationFrame(() => {
+      this.selectionPaintFrame = undefined;
+      this.selectionPaintTask = setTimeout(() => {
+        this.selectionPaintTask = undefined;
+        runInAction(() => this.selectionPending.set(false));
+      }, 0);
+    });
+  }
+
   /**
    * @deprecated
    * Don't use this function; you should either await or explicitly spawn.
@@ -1807,7 +1873,10 @@ export class StudioCtx extends WithDbCtx {
     if (liveVcs.length !== this.viewCtxs.length) {
       const disposedVcs = this.viewCtxs.filter((vc) => !liveVcs.includes(vc));
       disposedVcs.forEach((vc) => vc.dispose());
-      console.log("PRUNING VCs", disposedVcs);
+      console.log(
+        "PRUNING VCs",
+        disposedVcs.map((vc) => vc.arenaFrame().uid),
+      );
       this.viewCtxs.replace(liveVcs);
     }
 
@@ -1840,6 +1909,10 @@ export class StudioCtx extends WithDbCtx {
   }
 
   dispose() {
+    if (this.selectionPaintFrame !== undefined) {
+      cancelAnimationFrame(this.selectionPaintFrame);
+    }
+    clearTimeout(this.selectionPaintTask);
     this.canvasLoadingDisposed = true;
     this.copilotActivity.dispose();
     this.disposals.forEach((d) => d());
@@ -8580,10 +8653,7 @@ function viewCtxInfoChanged(
       vcPreviousInfo.lastComponentFrame.tplComponent ||
     vcInfo.viewMode !== vcPreviousInfo.viewMode ||
     vcInfo.showDefaultSlotContents !== vcPreviousInfo.showDefaultSlotContents ||
-    !isEqual(vcInfo.pinnedVariants, vcPreviousInfo.pinnedVariants) ||
-    makeSelectableFullKey(vcInfo.focusedSelectable) !==
-      makeSelectableFullKey(vcPreviousInfo.focusedSelectable) ||
-    vcInfo.focusedTpl !== vcPreviousInfo.focusedTpl
+    !isEqual(vcInfo.pinnedVariants, vcPreviousInfo.pinnedVariants)
   );
 }
 

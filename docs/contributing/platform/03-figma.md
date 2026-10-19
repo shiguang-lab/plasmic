@@ -1,4 +1,14 @@
-# Figma plugin setup
+# Figma imports
+
+## Native .fig files
+
+In Studio, choose **More → Import from Figma** and select a `.fig` saved with Figma's **File → Save local copy**. The same entry works in browsers and Desktop. A single visible page imports directly; multiple pages open a name-only list. Selecting a page imports it immediately; canceling leaves the project unchanged.
+
+A module worker reads ZIP or raw `fig-kiwi` files, decodes the embedded Kiwi schema and document with Deflate or Zstandard, and converts the selected page into the existing Figma importer format. Component instances become editable layers. Images and SVGs use Studio's normal project asset storage; the source file and Figma account are not needed after saving. The import uses the normal model transaction and undo flow. When there is no active canvas destination, it creates a canvas for the imported page.
+
+The parser is independent of the installed Pen application. Its file handling and single-page selection flow follow the inspected Pen 1.2.18 implementation. Parsing runs locally; only the selected page's resources are uploaded when importing into the project. Prototype interactions and business component bindings are configured in Studio after import.
+
+## Clipboard plugin setup
 
 The plugin copies a `clipId` and uploads selected layers through a web bridge (`figma-plugin-web`) to `PUT /api/v1/clip/:clipId`. Studio fetches the data on paste with `GET /api/v1/clip/:clipId`.
 

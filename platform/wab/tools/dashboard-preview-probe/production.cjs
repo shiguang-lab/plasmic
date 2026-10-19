@@ -105,6 +105,7 @@ const { chromium, firefox, webkit } = require("../../node_modules/playwright");
       await page.evaluate(() => window.previewTests.clear());
       await page.waitForFunction(() => !document.querySelector("iframe"));
       assert.equal(writes, 0);
+      assert.deepEqual(errors, [], "No production preview runtime errors");
       results.push({
         name,
         maxFrames,

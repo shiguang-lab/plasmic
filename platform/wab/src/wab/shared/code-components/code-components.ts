@@ -1198,11 +1198,17 @@ async function addNewRegisteredComponents(
                   createCodeComponent(ctx.site, r.meta.name, r.meta, fns),
                 ] as const,
             );
-            newComponents.forEach(([_meta, c]) =>
-              ctx.tplMgr().attachComponent(c),
+            const [newContexts, newCodeComponents] = partition(
+              newComponents.map(([_, c]) => c),
+              isContextCodeComponent,
             );
-            ctx.observeComponents(newComponents.map(([_, c]) => c));
-
+            // Attach code components before building params, because building
+            // params looks up other new code components by name in
+            // site.components (e.g. a slot's allowed components).
+            newCodeComponents.forEach((c) => ctx.tplMgr().attachComponent(c));
+            ctx.observeComponents(newCodeComponents);
+            // Fill in each new component's params, states, and slots from its
+            // registration meta.
             for (const [meta, c] of newComponents) {
               c.params = yield* componentMetaToComponentParams(ctx.site, meta);
               c.states = yield* metaToComponentStates(c, meta);
@@ -1212,6 +1218,12 @@ async function addNewRegisteredComponents(
               });
               attachRenderableTplSlots(c);
             }
+            // Attach contexts after their params are set. Attaching a context
+            // can take over the site's entry for the same name copied from a
+            // dependency, which keeps the entry's args by param name, so the
+            // params must exist first.
+            newContexts.forEach((c) => ctx.tplMgr().attachComponent(c));
+            ctx.observeComponents(newContexts);
             return ok();
           }),
         { noUndoRecord: true },
@@ -1772,7 +1784,12 @@ async function checkParentComponents(ctx: SiteCtx) {
             }
             const parentMeta = ccMap.get(meta.parentComponentName)?.meta;
             if (!parentMeta) {
-              return err(new UnknownComponentError(meta.parentComponentName));
+              return err(
+                new UnknownComponentError(
+                  meta.parentComponentName,
+                  `Code component "${meta.name}" has parentComponentName "${meta.parentComponentName}", but no code component with that name is registered`,
+                ),
+              );
             }
             compStatus.set(meta.name, inProgess);
             yield* dfs(parentMeta);
@@ -2528,8 +2545,8 @@ export function attachRenderableTplSlots(component: CodeComponent) {
 export class UnknownComponentError extends CustomError {
   name: "UnknownComponentError";
   componentName: string;
-  constructor(name: string) {
-    super("Unknown component " + name);
+  constructor(name: string, message: string) {
+    super(message);
     this.componentName = name;
   }
 }
@@ -2992,7 +3009,12 @@ export function elementSchemaToTpl(
             (comp) => comp.name === schema.name,
           );
           if (!referencedComponent) {
-            return err(new UnknownComponentError(schema.name));
+            return err(
+              new UnknownComponentError(
+                schema.name,
+                `Element references unknown component "${schema.name}"`,
+              ),
+            );
           }
           if (referencedComponent === component) {
             return err(
@@ -3085,8 +3107,7 @@ export function parseStyles(
 
   const layout = (styles["layout"] ??
     (LAYOUT_VALUES.includes(elementType) ? elementType : undefined)) as
-    | LayoutType
-    | undefined;
+    LayoutType | undefined;
 
   if (layout) {
     Object.assign(sanitized, layoutTypeToStyles(layout, opts));
@@ -4121,7 +4142,12 @@ export function propTypeToWabType(
               (c) => isCodeComponent(c) && c.name === name,
             );
             if (!component) {
-              err(new UnknownComponentError(name));
+              return err(
+                new UnknownComponentError(
+                  name,
+                  `Slot allowedComponents references unknown code component "${name}". If it comes from a @plasmicpkgs/* package, update your @plasmicpkgs/* packages to the latest version.`,
+                ),
+              );
             } else {
               components.push(typeFactory.instance(component));
             }
@@ -4813,8 +4839,7 @@ async function upsertRegisteredFunctions(
         );
       }
       for (const param of functionReg.meta.params as (
-        | string
-        | ParamType<any, any>
+        string | ParamType<any, any>
       )[]) {
         if (isString(param)) {
           if (!isValidJsIdentifier(param)) {
@@ -5323,6 +5348,7 @@ export function appendCodeComponentMetaToModel(
 }
 
 export const _testonly = {
+  addNewRegisteredComponents,
   findDuplicateAriaParams,
   typeCheckRegistrations,
 };

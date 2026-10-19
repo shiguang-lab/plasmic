@@ -72,12 +72,12 @@ it("shows a persistence error if the device cannot store the preference", () => 
   expect(screen.getByRole("heading", { name: "Settings" })).toBeTruthy();
 });
 
-it("defaults to following the system when no appearance is cached", () => {
+it("defaults to dark when no appearance is cached without persisting a preference", () => {
   localStorage.removeItem(APPEARANCE_STORAGE_KEY);
   window.dispatchEvent(new StorageEvent("storage", { key: APPEARANCE_STORAGE_KEY }));
   setup();
-  expect(screen.getByLabelText("Appearance").closest(".ant-select")?.textContent).toContain("Follow system");
-  expect(document.documentElement.dataset.uiAppearance).toBe(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  expect(screen.getByLabelText("Appearance").closest(".ant-select")?.textContent).toContain("Dark");
+  expect(document.documentElement.dataset.uiAppearance).toBe("dark");
   expect(localStorage.getItem(APPEARANCE_STORAGE_KEY)).toBeNull();
 });
 

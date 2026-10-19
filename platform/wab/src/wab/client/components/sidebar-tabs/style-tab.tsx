@@ -78,6 +78,7 @@ import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { createContext, useContext } from "react";
+import ResizeObserver from "resize-observer-polyfill";
 
 export const StyleTabContext = createContext<StyleTabFilter>("design");
 
@@ -452,6 +453,7 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 : undefined
             }
           >
+            <SelectionInspector studioCtx={props.studioCtx}>
             {focused instanceof SlotSelection ? (
               <SlotSelectionMessage node={focused} viewCtx={viewCtx} />
             ) : tpl === component.tplTree && isCodeComponent(component) ? (
@@ -463,10 +465,41 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 <StyleTabForTpl viewCtx={viewCtx} tpl={tpl} />
               </>
             ) : null}
+            </SelectionInspector>
           </Scrollbar>
         </div>
       </SidebarModalProvider>
     </PopoverFrameProvider>
+  );
+});
+
+/** Keep the shared scrollbar and its scroll range while replacing selection controls. */
+const SelectionInspector = observer(function SelectionInspector({
+  studioCtx,
+  children,
+}: {
+  studioCtx: StudioCtx;
+  children: React.ReactNode;
+}) {
+  const pending = studioCtx.isSelectionPending;
+  const content = React.useRef<HTMLDivElement>(null);
+  const height = React.useRef(0);
+  React.useEffect(() => {
+    if (!content.current || pending) {
+      return;
+    }
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        height.current = entry.contentRect.height;
+      }
+    });
+    resizeObserver.observe(content.current);
+    return () => resizeObserver.disconnect();
+  }, [pending]);
+  return (
+    <div ref={content} style={pending ? { height: height.current } : undefined} aria-busy={pending}>
+      {pending ? null : children}
+    </div>
   );
 });
 

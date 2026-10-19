@@ -16,6 +16,7 @@ import { PlasmicModulesFetcher } from "@plasmicapp/loader-core";
 import * as PlasmicQuery from "@plasmicapp/query";
 import React from "react";
 import ReactDOM from "react-dom";
+import * as ReactDOMClient from "react-dom/client";
 import * as jsxDevRuntime from "react/jsx-dev-runtime";
 import * as jsxRuntime from "react/jsx-runtime";
 import { createUseGlobalVariant } from "./global-variants";
@@ -49,6 +50,7 @@ export class InternalPlasmicComponentLoader extends BaseInternalPlasmicComponent
       builtinModules: {
         react: React,
         "react-dom": ReactDOM,
+        "react-dom/client": ReactDOMClient,
         "react/jsx-runtime": jsxRuntime,
         "react/jsx-dev-runtime": jsxDevRuntime,
 

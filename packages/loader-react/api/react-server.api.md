@@ -31,6 +31,7 @@ import { react } from 'react';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { reactDom } from 'react-dom';
+import { reactDomClient } from 'react-dom/client';
 import { reactJsxDevRuntime } from 'react/jsx-dev-runtime';
 import { reactJsxRuntime } from 'react/jsx-runtime';
 import { Registry } from '@plasmicapp/loader-core';
