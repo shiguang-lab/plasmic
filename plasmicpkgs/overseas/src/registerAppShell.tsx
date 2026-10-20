@@ -182,7 +182,17 @@ export function AppShell({
     );
   return (
     <ConfigProvider direction={currentDirection}>
-      <div className={className} style={{ minHeight: 0, overflow: "hidden" }}>
+      <div
+        className={className}
+        style={{
+          width: "100%",
+          height: "100vh",
+          minWidth: 0,
+          minHeight: 0,
+          flexShrink: 0,
+          overflow: "hidden",
+        }}
+      >
         <Layout
           style={{
             width: "100%",
@@ -402,7 +412,7 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
     "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
   importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell",
   importName: "AppShell",
-  defaultStyles: { width: "1440px", height: "1024px" },
+  defaultStyles: { width: "100%", height: "100vh" },
   props: {
     direction: { displayName: "Direction", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
     onDirectionChange: {

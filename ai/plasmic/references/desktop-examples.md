@@ -57,14 +57,7 @@ Call `snapshot_layout` directly for each Page without `navigate`:
 
 This pins a background canvas without changing the active arena/selection. Check frame readiness and truncation. Use [rendered inspection](desktop-inspection.md) for actual Preview interactions.
 
-For a fixed viewport-height AppShell Page, call `execute_batch` to update its actual root and shell in one undoable transaction. The same sizing applies to a newly created Page: configure the root returned by `createComponent`, then insert the shell into it without an extra Page wrapper. Studio root width `stretch` is compatible with fixed height `100vh`; keep percentage widths on child containers and shell instances.
-
-```json
-{"operations":[
-  {"name":"changeElement","input":{"componentUuid":"page-uuid","elementUuid":"root-uuid","styles":{"width":"stretch","min-width":"0","height":"100vh","min-height":"0","overflow":"hidden"}}},
-  {"name":"changeElement","input":{"componentUuid":"page-uuid","elementUuid":"shell-uuid","styles":{"width":"100%","height":"100%","min-width":"0","min-height":"0"}}}
-]}
-```
+For a standalone Overseas/Antd-v6 AppShell Page, keep the default root returned by `createComponent` and insert the shell directly. AppShell owns `width:100%` and `height:100vh` on its outer DOM; no root-height or shell percentage-height mutation is needed. Use the [golden boilerplate](design/layout.md#standalone-appshell-golden-boilerplate) and measure the rendered shell after content edits.
 
 New IDs can be bound and used in the same batch:
 
@@ -76,7 +69,7 @@ New IDs can be bound and used in the same batch:
 ]}
 ```
 
-The receipt's `operations[*].created` contains actual identities; it does not contain full page markup. Bindings resolve only in UUID fields/arrays, action identity fields and `canvasName`; they do not persist across calls. HTML component names resolve during asset preparation and must already exist: instantiate a newly created reusable definition in a subsequent call. A failed batch rolls back its model changes; a successful batch remains unsaved. Make a subsequent content edit and read back root width:stretch and height:100vh before saving; root sizing must survive normal edits. After checking the actual results and validation, call `execute`:
+The receipt's `operations[*].created` contains actual identities; it does not contain full page markup. Bindings resolve only in UUID fields/arrays, action identity fields and `canvasName`; they do not persist across calls. HTML component names resolve during asset preparation and must already exist: instantiate a newly created reusable definition in a subsequent call. A failed batch rolls back its model changes; a successful batch remains unsaved. Make a subsequent content edit and recheck AppShell viewport fill before saving; its component-owned sizing must survive normal edits. After checking the actual results and validation, call `execute`:
 
 ```json
 {"name":"save","input":{}}

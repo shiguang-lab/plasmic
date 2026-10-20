@@ -37,6 +37,7 @@ it("keeps dashboard navigation and exposes retry when startup fails", async () =
   setup("/projects", retry);
   expect(await screen.findByRole("radio", { name: "Projects" }, { timeout: 10000 })).toBeTruthy();
   expect(screen.getByRole("alert")).toBeTruthy();
+  expect(document.querySelector(".ant-alert")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(retry).toHaveBeenCalledOnce();
 });
@@ -158,3 +159,15 @@ it.each([
     expect(shown).toEqual([expected]);
   },
 );
+
+it("replaces the spaces navigation skeleton with a page failure state", async () => {
+  setup("/orgs/org", vi.fn());
+  const failure = await screen.findByRole("alert");
+  expect(screen.getByRole("main").contains(failure)).toBe(true);
+  expect(
+    screen
+      .getByRole("main")
+      .querySelector(".spacesNavigation, .ant-skeleton, .ant-alert"),
+  ).toBeNull();
+  expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+});

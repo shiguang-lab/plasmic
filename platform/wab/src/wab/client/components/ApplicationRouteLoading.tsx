@@ -39,8 +39,18 @@ export default function ApplicationRouteLoading({
   const params = new URLSearchParams(search);
   if (failure) {
     return usesProductTheme(pathname) ? (
-      <DashboardLayout>
-        <div style={{ padding: 24 }}>{failure}</div>
+      <DashboardLayout loadingFailed>
+        <div
+          style={{
+            height: "100%",
+            minHeight: 280,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {failure}
+        </div>
       </DashboardLayout>
     ) : (
       <IntakeFlowForm>{failure}</IntakeFlowForm>

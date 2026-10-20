@@ -1,0 +1,7 @@
+{
+  "en": "- AppShell now fills the viewport height and available width without extra page sizing.\n- Read scans use blue and edit scans use purple, including their completion phase.\n- Improve loading failure screens with centered feedback and retry actions.\n- Align prototype generation guidance and viewport validation with component-owned sizing.",
+  "zh-CN": "- AppShell 自身撑满视口高度和可用宽度，无需额外设置页面高度。\n- 读取扫描框使用蓝色、编辑使用紫色，完成阶段保留动作颜色。\n- 优化加载失败页面，居中显示反馈和重试操作。\n- 同步原型生成规范与视口校验，由组件负责尺寸约束。",
+  "zh-TW": "- AppShell 自身填滿視口高度與可用寬度，無需額外設定頁面高度。\n- 讀取掃描框使用藍色、編輯使用紫色，完成階段保留動作顏色。\n- 改善載入失敗頁面，置中顯示回饋與重試操作。\n- 同步原型產生規範與視口驗證，由元件負責尺寸約束。",
+  "ja": "- AppShell がページ側の高さ設定なしで、ビューポートの高さと利用可能な幅を満たすようになりました。\n- 読み取りのスキャンは青、編集は紫で表示し、完了時も動作ごとの色を維持します。\n- 読み込み失敗画面の案内と再試行操作を中央に配置しました。\n- コンポーネントがサイズを管理する方針に合わせて、プロトタイプ生成ガイドとビューポート検証を更新しました。",
+  "ko": "- AppShell이 별도의 페이지 높이 설정 없이 뷰포트 높이와 사용 가능한 너비를 채웁니다.\n- 읽기 스캔은 파란색, 편집 스캔은 보라색으로 표시하며 완료 단계에서도 색상을 유지합니다.\n- 로딩 실패 화면의 안내와 재시도 작업을 중앙에 배치했습니다.\n- 컴포넌트가 크기를 관리하도록 프로토타입 생성 지침과 뷰포트 검증을 업데이트했습니다."
+}

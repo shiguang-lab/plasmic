@@ -151,215 +151,229 @@ function AppShell({
       ...item.children ? { children: linkedMenu(item.children) } : {}
     }
   );
-  return /* @__PURE__ */ React.createElement(ConfigProvider, { direction: currentDirection }, /* @__PURE__ */ React.createElement("div", { className, style: { minHeight: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement(
-    Layout,
+  return /* @__PURE__ */ React.createElement(ConfigProvider, { direction: currentDirection }, /* @__PURE__ */ React.createElement(
+    "div",
     {
+      className,
       style: {
         width: "100%",
-        height: "100%",
+        height: "100vh",
+        minWidth: 0,
         minHeight: 0,
-        overflow: "hidden",
-        background: "#f0f2f5"
+        flexShrink: 0,
+        overflow: "hidden"
       }
     },
     /* @__PURE__ */ React.createElement(
-      Layout.Sider,
+      Layout,
       {
-        width: 239,
-        collapsedWidth: 80,
-        collapsed: isCollapsed,
-        theme: "light",
         style: {
-          borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
-          overflow: "auto"
+          width: "100%",
+          height: "100%",
+          minHeight: 0,
+          overflow: "hidden",
+          background: "#f0f2f5"
         }
       },
       /* @__PURE__ */ React.createElement(
-        "div",
+        Layout.Sider,
+        {
+          width: 239,
+          collapsedWidth: 80,
+          collapsed: isCollapsed,
+          theme: "light",
+          style: {
+            borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
+            overflow: "auto"
+          }
+        },
+        /* @__PURE__ */ React.createElement(
+          "div",
+          {
+            style: {
+              height: 64,
+              padding: "0 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              overflow: "hidden",
+              whiteSpace: "nowrap"
+            }
+          },
+          logoUrl ? /* @__PURE__ */ React.createElement(
+            "img",
+            {
+              src: logoUrl,
+              alt: "",
+              style: {
+                width: 30,
+                height: 30,
+                objectFit: "contain",
+                flexShrink: 0
+              }
+            }
+          ) : /* @__PURE__ */ React.createElement(Avatar, { shape: "square", size: 30, style: { flexShrink: 0 } }, productName.slice(0, 1)),
+          !isCollapsed && /* @__PURE__ */ React.createElement(
+            "strong",
+            {
+              style: { fontSize: 16, color: token.colorText },
+              title: productName
+            },
+            productName
+          )
+        ),
+        /* @__PURE__ */ React.createElement(
+          Menu,
+          {
+            mode: "inline",
+            theme: "light",
+            inlineCollapsed: isCollapsed,
+            items: linkedMenu(visibleMenuItems(menuItems ?? [])),
+            defaultOpenKeys: menuPath.slice(0, -1).filter((item) => !item.hidden).map((item) => item.key),
+            selectedKeys: selectedKey ? [selectedKey] : [],
+            onClick: ({ key }) => {
+              setMenu(key);
+              onMenuSelect?.(key);
+            },
+            style: { borderInlineEnd: 0 }
+          }
+        )
+      ),
+      /* @__PURE__ */ React.createElement(Layout, { style: { minWidth: 0, minHeight: 0 } }, /* @__PURE__ */ React.createElement(
+        Layout.Header,
         {
           style: {
             height: 64,
-            padding: "0 16px",
+            padding: "0 24px",
+            background: token.colorBgContainer,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            overflow: "hidden",
-            whiteSpace: "nowrap"
-          }
-        },
-        logoUrl ? /* @__PURE__ */ React.createElement(
-          "img",
-          {
-            src: logoUrl,
-            alt: "",
-            style: {
-              width: 30,
-              height: 30,
-              objectFit: "contain",
-              flexShrink: 0
-            }
-          }
-        ) : /* @__PURE__ */ React.createElement(Avatar, { shape: "square", size: 30, style: { flexShrink: 0 } }, productName.slice(0, 1)),
-        !isCollapsed && /* @__PURE__ */ React.createElement(
-          "strong",
-          {
-            style: { fontSize: 16, color: token.colorText },
-            title: productName
-          },
-          productName
-        )
-      ),
-      /* @__PURE__ */ React.createElement(
-        Menu,
-        {
-          mode: "inline",
-          theme: "light",
-          inlineCollapsed: isCollapsed,
-          items: linkedMenu(visibleMenuItems(menuItems ?? [])),
-          defaultOpenKeys: menuPath.slice(0, -1).filter((item) => !item.hidden).map((item) => item.key),
-          selectedKeys: selectedKey ? [selectedKey] : [],
-          onClick: ({ key }) => {
-            setMenu(key);
-            onMenuSelect?.(key);
-          },
-          style: { borderInlineEnd: 0 }
-        }
-      )
-    ),
-    /* @__PURE__ */ React.createElement(Layout, { style: { minWidth: 0, minHeight: 0 } }, /* @__PURE__ */ React.createElement(
-      Layout.Header,
-      {
-        style: {
-          height: 64,
-          padding: "0 24px",
-          background: token.colorBgContainer,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          lineHeight: "normal"
-        }
-      },
-      /* @__PURE__ */ React.createElement(
-        "div",
-        {
-          style: {
-            display: "flex",
-            alignItems: "center",
+            justifyContent: "space-between",
             gap: 16,
-            minWidth: 0
+            lineHeight: "normal"
           }
         },
         /* @__PURE__ */ React.createElement(
-          Button,
-          {
-            type: "text",
-            "aria-label": isCollapsed ? "\u5C55\u5F00\u4FA7\u680F" : "\u6298\u53E0\u4FA7\u680F",
-            icon: isCollapsed ? /* @__PURE__ */ React.createElement(MenuUnfoldOutlined, null) : /* @__PURE__ */ React.createElement(MenuFoldOutlined, null),
-            onClick: () => {
-              setCollapsed(!isCollapsed);
-              onCollapsedChange?.(!isCollapsed);
-            }
-          }
-        ),
-        breadcrumbItems.length > 0 && /* @__PURE__ */ React.createElement(Breadcrumb, { items: breadcrumbItems })
-      ),
-      /* @__PURE__ */ React.createElement(
-        "div",
-        {
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            minWidth: 0
-          }
-        },
-        /* @__PURE__ */ React.createElement(
-          "time",
+          "div",
           {
             style: {
-              color: token.colorTextSecondary,
-              whiteSpace: "nowrap",
-              fontSize: 14
-            }
-          },
-          "\u5F53\u5730\u65F6\u95F4\uFF1A",
-          clock
-        ),
-        appSources.length > 0 && /* @__PURE__ */ React.createElement(
-          AppSourceSelect,
-          {
-            value: currentSource,
-            options: appSources,
-            language: currentLanguage,
-            onChange: (value) => {
-              setSource(value);
-              onAppSourceChange?.(value);
-            }
-          }
-        ),
-        languages.length > 0 && /* @__PURE__ */ React.createElement(
-          Dropdown,
-          {
-            menu: {
-              items: languages.map(({ value, label }) => ({
-                key: value,
-                label
-              })),
-              selectedKeys: [currentLanguage],
-              onClick: ({ key }) => {
-                setLanguage(key);
-                onLanguageChange?.(key);
-              }
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              minWidth: 0
             }
           },
           /* @__PURE__ */ React.createElement(
             Button,
             {
               type: "text",
-              "aria-label": "\u8BED\u8A00",
-              title: languages.find(
-                (option) => option.value === currentLanguage
-              )?.label,
-              icon: /* @__PURE__ */ React.createElement(GlobalOutlined, null)
+              "aria-label": isCollapsed ? "\u5C55\u5F00\u4FA7\u680F" : "\u6298\u53E0\u4FA7\u680F",
+              icon: isCollapsed ? /* @__PURE__ */ React.createElement(MenuUnfoldOutlined, null) : /* @__PURE__ */ React.createElement(MenuFoldOutlined, null),
+              onClick: () => {
+                setCollapsed(!isCollapsed);
+                onCollapsedChange?.(!isCollapsed);
+              }
             }
-          )
+          ),
+          breadcrumbItems.length > 0 && /* @__PURE__ */ React.createElement(Breadcrumb, { items: breadcrumbItems })
         ),
         /* @__PURE__ */ React.createElement(
-          Button,
+          "div",
           {
-            type: currentDirection === "rtl" ? "primary" : "text",
-            "aria-label": currentDirection === "rtl" ? "\u5207\u6362\u4E3A LTR" : "\u5207\u6362\u4E3A RTL",
-            icon: /* @__PURE__ */ React.createElement(SwapOutlined, null),
-            onClick: () => {
-              const next = currentDirection === "rtl" ? "ltr" : "rtl";
-              setDirection(next);
-              onDirectionChange?.(next);
-            }
-          }
-        ),
-        /* @__PURE__ */ React.createElement(
-          Dropdown,
-          {
-            menu: {
-              items: userMenuItems,
-              onClick: ({ key }) => onUserAction?.(key)
+            style: {
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              minWidth: 0
             }
           },
-          /* @__PURE__ */ React.createElement(Button, { type: "text", style: { height: 32, paddingInline: 0 } }, /* @__PURE__ */ React.createElement(Avatar, { size: 32 }, userName.slice(0, 1)), /* @__PURE__ */ React.createElement("span", null, userName), /* @__PURE__ */ React.createElement(DownOutlined, null))
+          /* @__PURE__ */ React.createElement(
+            "time",
+            {
+              style: {
+                color: token.colorTextSecondary,
+                whiteSpace: "nowrap",
+                fontSize: 14
+              }
+            },
+            "\u5F53\u5730\u65F6\u95F4\uFF1A",
+            clock
+          ),
+          appSources.length > 0 && /* @__PURE__ */ React.createElement(
+            AppSourceSelect,
+            {
+              value: currentSource,
+              options: appSources,
+              language: currentLanguage,
+              onChange: (value) => {
+                setSource(value);
+                onAppSourceChange?.(value);
+              }
+            }
+          ),
+          languages.length > 0 && /* @__PURE__ */ React.createElement(
+            Dropdown,
+            {
+              menu: {
+                items: languages.map(({ value, label }) => ({
+                  key: value,
+                  label
+                })),
+                selectedKeys: [currentLanguage],
+                onClick: ({ key }) => {
+                  setLanguage(key);
+                  onLanguageChange?.(key);
+                }
+              }
+            },
+            /* @__PURE__ */ React.createElement(
+              Button,
+              {
+                type: "text",
+                "aria-label": "\u8BED\u8A00",
+                title: languages.find(
+                  (option) => option.value === currentLanguage
+                )?.label,
+                icon: /* @__PURE__ */ React.createElement(GlobalOutlined, null)
+              }
+            )
+          ),
+          /* @__PURE__ */ React.createElement(
+            Button,
+            {
+              type: currentDirection === "rtl" ? "primary" : "text",
+              "aria-label": currentDirection === "rtl" ? "\u5207\u6362\u4E3A LTR" : "\u5207\u6362\u4E3A RTL",
+              icon: /* @__PURE__ */ React.createElement(SwapOutlined, null),
+              onClick: () => {
+                const next = currentDirection === "rtl" ? "ltr" : "rtl";
+                setDirection(next);
+                onDirectionChange?.(next);
+              }
+            }
+          ),
+          /* @__PURE__ */ React.createElement(
+            Dropdown,
+            {
+              menu: {
+                items: userMenuItems,
+                onClick: ({ key }) => onUserAction?.(key)
+              }
+            },
+            /* @__PURE__ */ React.createElement(Button, { type: "text", style: { height: 32, paddingInline: 0 } }, /* @__PURE__ */ React.createElement(Avatar, { size: 32 }, userName.slice(0, 1)), /* @__PURE__ */ React.createElement("span", null, userName), /* @__PURE__ */ React.createElement(DownOutlined, null))
+          )
         )
-      )
-    ), /* @__PURE__ */ React.createElement(
-      Layout.Content,
-      {
-        ref: contentRef,
-        onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
-        style: { padding: 16, minHeight: 0, overflow: "auto" }
-      },
-      /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100%" } }, children)
-    ))
-  )));
+      ), /* @__PURE__ */ React.createElement(
+        Layout.Content,
+        {
+          ref: contentRef,
+          onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
+          style: { padding: 16, minHeight: 0, overflow: "auto" }
+        },
+        /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100%" } }, children)
+      ))
+    )
+  ));
 }
 const optionType = {
   type: "object",
@@ -376,7 +390,7 @@ const appShellMeta = {
   description: "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
   importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell",
   importName: "AppShell",
-  defaultStyles: { width: "1440px", height: "1024px" },
+  defaultStyles: { width: "100%", height: "100vh" },
   props: {
     direction: { displayName: "Direction", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
     onDirectionChange: {

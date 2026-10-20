@@ -1,4 +1,5 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { productTheme } from "@/wab/client/antd-theme";
 import {
   activityBounds,
   CopilotActivityOverlay,
@@ -6,8 +7,11 @@ import {
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { IArenaFrame } from "@/wab/shared/Arenas";
+import { ensure } from "@/wab/shared/common";
 import { Component, TplComponent } from "@/wab/shared/model/classes";
 import { act, cleanup, render } from "@testing-library/react";
+import { theme } from "antd";
+import { ThemeProvider } from "antd-style";
 import { observable } from "mobx";
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -44,18 +48,21 @@ it("renders a single persistent scan DOM node until its last reference expires",
   );
   const region = container.querySelector('[data-copilot-target="page"]');
   expect(region).toBeTruthy();
+  expect(region?.getAttribute("data-kind")).toBe("edit");
   let second = first;
   act(() => {
-    second = activity.begin([target]);
+    second = activity.begin([target], "inspection");
   });
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
+  expect(region?.getAttribute("data-kind")).toBe("inspection");
   act(() => {
     second("error");
     vi.advanceTimersByTime(2000);
   });
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
   expect(region?.getAttribute("data-status")).toBe("running");
+  expect(region?.getAttribute("data-kind")).toBe("edit");
   act(() => {
     first("success");
     vi.advanceTimersByTime(400);
@@ -64,7 +71,12 @@ it("renders a single persistent scan DOM node until its last reference expires",
   activity.dispose();
 });
 
-it("keeps a completed edit animating before showing its static completion", () => {
+it.each([
+  ["inspection", "light"],
+  ["edit", "light"],
+  ["inspection", "dark"],
+  ["edit", "dark"],
+] as const)("preserves the %s color through scanning and completion in %s appearance", (kind, appearance) => {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const { studioCtx } = fakeStudioCtx();
@@ -83,14 +95,22 @@ it("keeps a completed edit animating before showing its static completion", () =
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
   const finish = studioCtx.copilotActivity.begin([
     { componentUuid: "page", label: "Page" },
-  ]);
+  ], kind);
   const { container } = render(
-    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
+    <ThemeProvider appearance={appearance} theme={productTheme(appearance)}>
+      <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />
+    </ThemeProvider>,
   );
-  const region = container.querySelector("[data-copilot-target]");
+  const region = ensure(container.querySelector("[data-copilot-target]"), "Expected activity region");
+  const token = theme.getDesignToken(productTheme(appearance));
+  const color = kind === "inspection" ? token.colorInfo : token.colorPrimary;
+  expect(token.colorInfo).not.toBe(token.colorPrimary);
+  expect(region.getAttribute("data-kind")).toBe(kind);
+  expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
   act(() => finish("success"));
   expect(region?.getAttribute("data-status")).toBe("success");
   expect(region?.getAttribute("data-scanning")).toBe("true");
+  expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
   act(() => {
     vi.advanceTimersByTime(1599);
   });
@@ -99,6 +119,7 @@ it("keeps a completed edit animating before showing its static completion", () =
     vi.advanceTimersByTime(1);
   });
   expect(region?.getAttribute("data-scanning")).toBe("false");
+  expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
   act(() => {
     vi.advanceTimersByTime(400);

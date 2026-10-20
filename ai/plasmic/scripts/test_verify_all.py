@@ -26,8 +26,8 @@ class SuiteTests(unittest.TestCase):
         self.model.update(uuid="page", name="记录列表", pageMeta={"path": "/records"},
                           props=[], states=[], interactions=[], variants=[], variantGroups=[])
         menu = [{"key": "records", "label": "Records", "href": "/records"}]
-        self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('style="height:100%"',
-            'data-plasmic-name="AppShell" data-props=\'' + json.dumps({"menuItems": menu}) + '\' style="height:100%"').replace(
+        self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('data-plasmic-component="plasmicOverseasAppShell"',
+            'data-plasmic-component="plasmicOverseasAppShell" data-plasmic-name="AppShell" data-props=\'' + json.dumps({"menuItems": menu}) + '\'').replace(
                 '</plasmic-component>', '<slot name="children">' + form.html + '</slot></plasmic-component>')
         self.overview = {"results": [{"__type": "Project", "id": "project", "components": [self.model], "devicePresets": [{"name": "Desktop", "width": 1440, "height": 1024}], "pageFrames": [{"componentUuid": "page", "width": 1440, "height": 1024}], "canvases": [{"name": "页面总览", "frames": [{"uuid": "frame", "componentUuid": "page", "x": 0, "y": 0, "width": 1440, "height": 1024}]}]}]}
         self.readback = {"results": [self.model], "read": {"depth": "all", "fields": ["baseVariantTplTree", "props", "states", "variants", "variantGroups", "interactions"]}}

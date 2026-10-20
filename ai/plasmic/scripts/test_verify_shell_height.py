@@ -6,7 +6,7 @@ from verify_shell_height import check
 class ShellHeightTests(unittest.TestCase):
     def setUp(self):
         self.readback = {"results": [{"type": "page", "uuid": "detail", "baseVariantTplTree":
-            '<div style="width:stretch; height:100vh; min-height:0; overflow:hidden"><plasmic-component data-plasmic-component="plasmicOverseasAppShell" style="height:100%"></plasmic-component></div>'}]}
+            '<div style="display:flex; flex-direction:column; width:stretch; height:stretch"><plasmic-component data-plasmic-component="plasmicOverseasAppShell"></plasmic-component></div>'}]}
         self.snapshot = {"frames": [{"frameUuid": "desktop", "height": 1024, "ready": True, "truncated": False, "elements": [
             {"classes": "__wab_instance shell", "y": 0, "height": 1024},
             {"classes": "ant-layout ant-layout-has-sider", "y": 0, "height": 1024},
@@ -27,33 +27,37 @@ class ShellHeightTests(unittest.TestCase):
                 element["height"] = height
             self.assertFalse(check(self.readback, self.snapshot)["passed"])
 
-    def test_default_or_fixed_shell_height_cannot_pass_at_one_matching_viewport(self):
+    def test_component_owned_height_does_not_require_instance_styles(self):
         original = self.readback["results"][0]["baseVariantTplTree"]
-        for height in ["default", "auto", "1024px"]:
-            self.readback["results"][0]["baseVariantTplTree"] = original.replace('style="height:100%"', f'style="height:{height}"')
-            self.assertFalse(check(self.readback, self.snapshot)["passed"])
-        self.readback["results"][0]["baseVariantTplTree"] = original.replace(' style="height:100%"', '')
-        self.assertFalse(check(self.readback, self.snapshot)["passed"])
+        for css in ["", "height:100vh", "height:100%", "height:default", "height:auto", "height:1024px"]:
+            # Instance CSS cannot override the component's inline viewport height.
+            self.readback["results"][0]["baseVariantTplTree"] = original.replace(
+                'data-plasmic-component="plasmicOverseasAppShell"',
+                f'data-plasmic-component="plasmicOverseasAppShell" style="{css}"')
+            self.assertTrue(check(self.readback, self.snapshot)["passed"])
+            snapshot = copy.deepcopy(self.snapshot)
+            snapshot["frames"][0]["elements"][0]["height"] = 742
+            self.assertFalse(check(self.readback, snapshot)["passed"])
 
-    def test_indefinite_root_fails_even_when_geometry_happens_to_fill(self):
+    def test_parent_height_is_not_a_shell_requirement(self):
         original = self.readback["results"][0]["baseVariantTplTree"]
-        for height in ["stretch", "auto", "100%", "1024px"]:
-            self.readback["results"][0]["baseVariantTplTree"] = original.replace("height:100vh;", f"height:{height}; min-height:100vh; max-height:100vh;")
-            self.assertFalse(check(self.readback, self.snapshot)["passed"])
+        for height in ["stretch", "auto", "100%", "1024px", "100vh"]:
+            self.readback["results"][0]["baseVariantTplTree"] = original.replace("height:stretch", f"height:{height}")
+            self.assertTrue(check(self.readback, self.snapshot)["passed"])
 
-    def test_root_width_must_preserve_studio_page_sizing(self):
+    def test_parent_width_does_not_determine_viewport_height(self):
         original = self.readback["results"][0]["baseVariantTplTree"]
         for width in ["100%", "100vw", "1440px", "auto"]:
             self.readback["results"][0]["baseVariantTplTree"] = original.replace("width:stretch;", f"width:{width};")
             result = check(self.readback, self.snapshot)
-            self.assertFalse(result["passed"])
-            self.assertTrue(any("width:stretch" in error for error in result["errors"]))
+            self.assertTrue(result["passed"])
         self.readback["results"][0]["baseVariantTplTree"] = original
         self.assertTrue(check(self.readback, self.snapshot)["passed"])
 
-    def test_shell_percentage_width_is_allowed(self):
-        self.readback["results"][0]["baseVariantTplTree"] = self.readback["results"][0]["baseVariantTplTree"].replace('style="height:100%"', 'style="width:100%; height:100%"')
-        self.assertTrue(check(self.readback, self.snapshot)["passed"])
+    def test_missing_or_multiple_page_roots_fail(self):
+        for html in ["", self.readback["results"][0]["baseVariantTplTree"] + "<div></div>"]:
+            self.readback["results"][0]["baseVariantTplTree"] = html
+            self.assertFalse(check(self.readback, self.snapshot)["passed"])
 
     def test_sidebar_and_outer_shell_are_measured_independently(self):
         for index in [0, 2]:

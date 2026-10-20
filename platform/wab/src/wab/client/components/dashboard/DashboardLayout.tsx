@@ -12,8 +12,10 @@ import * as React from "react";
 
 export const DashboardLayout = observer(function DashboardLayout({
   children,
+  loadingFailed = false,
 }: {
   children: React.ReactNode;
+  loadingFailed?: boolean;
 }) {
   const appCtx = React.useContext(AppCtxContext);
   const { pathname } = useLocation();
@@ -58,7 +60,7 @@ export const DashboardLayout = observer(function DashboardLayout({
         <div className={styles.spacesContent}>
           {appCtx ? (
             <SpacesNavigation team={team} workspace={workspace} />
-          ) : (
+          ) : loadingFailed ? null : (
             <SpacesNavigationSkeleton />
           )}
           <Scrollbar scrollX={false} className={styles.spacesDetail}>

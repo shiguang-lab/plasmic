@@ -2,7 +2,8 @@
 """Check one standalone Overseas/Antd-v6 AppShell Page and its public snapshot.
 
 Inputs are a full execute/read Page result and component-targeted snapshot_layout.
-This checks model sizing and artboard geometry, not Preview scrolling or persistence.
+AppShell owns its viewport sizing. This checks model structure and rendered
+artboard geometry, not ancestor CSS, Preview scrolling or persistence.
 """
 import argparse
 import json
@@ -12,16 +13,8 @@ from pathlib import Path
 from verify_slots import Tree, walk
 
 
-VIEWPORT_HEIGHTS = {"100vh", "100dvh", "100svh", "100lvh"}
-
-
 def finite_number(value):
     return type(value) in (int, float) and math.isfinite(value)
-
-
-def styles(node):
-    declarations = (part.split(":", 1) for part in node["attrs"].get("style", "").split(";") if ":" in part)
-    return {key.strip(): value.strip() for key, value in declarations}
 
 
 def check(readback, snapshot):
@@ -36,23 +29,11 @@ def check(readback, snapshot):
         roots = tree["children"]
         if len(roots) != 1:
             errors.append("Expected one Page root")
-        else:
-            css = styles(roots[0])
-            if css.get("width") != "stretch":
-                errors.append("Page root needs Studio width:stretch so later edits preserve its viewport-height mode")
-            if css.get("height") not in VIEWPORT_HEIGHTS:
-                errors.append("Page root needs a definite viewport height; stretch/auto and min/max-height alone do not fill the shell")
-            if css.get("min-height") not in {"0", "0px"}:
-                errors.append("Page root needs min-height:0")
-            if css.get("overflow") != "hidden":
-                errors.append("Page root must clip; vertical scrolling belongs to shell content")
         shells = [n for n in walk(tree) if re.sub(r"[^a-z0-9]", "", n["attrs"].get("data-plasmic-component", "").lower()) in {
             "plasmicoverseasappshell", "plasmicantd6appshell"
         }]
         if len(shells) != 1:
             errors.append("Expected one registered Overseas/Antd-v6 AppShell")
-        elif styles(shells[0]).get("height") not in {"100%"} | VIEWPORT_HEIGHTS:
-            errors.append("AppShell instance needs explicit height:100% or viewport height; default/auto can grow with content or retain a fixed registration height")
 
     frames = snapshot.get("frames", [])
     if len(frames) != 1:

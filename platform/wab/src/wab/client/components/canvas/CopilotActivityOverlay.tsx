@@ -19,7 +19,7 @@ const useActivityStyles = createStyles(({ token }) => ({
   root: {
     "--scan-color": token.colorPrimary,
     "--activity-label-text": token.colorTextLightSolid,
-    "&[data-status=success]": { "--scan-color": token.colorSuccess },
+    "&[data-kind=inspection]": { "--scan-color": token.colorInfo },
   },
 }));
 
@@ -135,6 +135,7 @@ const ActivityRegion = observer(function ActivityRegion({
   return (
     <div
       className={classNames(styles.region, themeStyles.root)}
+      data-kind={request.kind}
       data-status={request.status}
       data-scanning={scanning}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}

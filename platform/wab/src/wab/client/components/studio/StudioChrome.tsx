@@ -166,7 +166,17 @@ function StudioChromeContent({
             </div>
             <div className="canvas-editor__canvas-container">
               {children ? (
-                <div style={{ padding: 24 }}>{children}</div>
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {children}
+                </div>
               ) : loading ? (
                 <StudioLoading />
               ) : null}
