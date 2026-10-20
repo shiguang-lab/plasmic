@@ -81,22 +81,24 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["get_app_state", {}],
       ["get_app_state", { toolNames: [] }],
       ["get_app_state", { toolNames: ["read", "identify"] }],
-      ["browser", { action: "open" }],
+      ["get_app_state", { view: "tools" }],
+      ["get_app_state", { schemaView: "full", toolNames: ["executeBatch"] }],
+      ["reference_browser", { action: "open" }],
       [
-        "browser",
+        "reference_browser",
         { action: "load_page", url: "https://example.org", width: 1440 },
       ],
-      ["browser", { action: "select_element", selector: "main" }],
+      ["reference_browser", { action: "select_element", selector: "main" }],
       [
-        "browser",
+        "import_reference",
         {
-          action: "import_to_canvas",
+          action: "editable",
           target: "selection",
           name: "ImportedSection",
         },
       ],
-      ["browser", { action: "screenshot_to_canvas", target: "full_page" }],
-      ["browser", { action: "screenshot_to_canvas", target: "visible_area" }],
+      ["import_reference", { action: "screenshot", target: "full_page" }],
+      ["import_reference", { action: "screenshot", target: "visible_area" }],
       ["get_org", { orgId: "org" }],
       ["list_orgs", {}],
       ["list_orgs", { query: "Design" }],
@@ -120,7 +122,7 @@ test("management tools expose strict MCP schemas and forward valid calls through
       assert.equal(tool.inputSchema.additionalProperties, false);
       const result = await client.callTool({ name, arguments: input });
       assert.equal(result.isError, false);
-      assert.deepEqual(result.structuredContent, { method: name, input });
+      if (name !== "reference_browser") assert.deepEqual(JSON.parse(result.content[0].text), { method: name, input });
     }
     assert.deepEqual(
       forwarded,
@@ -130,18 +132,24 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["get_app_state", { toolNames: "read" }],
       ["get_app_state", { toolNames: [""] }],
       ["get_app_state", { toolNames: ["read", "read"] }],
-      ["browser", { action: "implicit_import" }],
-      ["browser", { action: "import_to_canvas", target: "viewport" }],
-      ["browser", { action: "import_to_canvas", destination: "current" }],
+      ["get_app_state", { view: "everything" }],
+      ["get_app_state", { view: "full" }],
+      ["list_projects", { view: "full" }],
+      ["list_projects", { view: "everything" }],
+      ["reference_browser", { action: "implicit_import" }],
+      ["reference_browser", { action: "import_to_canvas" }],
+      ["browser", { action: "open" }],
+      ["import_reference", { action: "editable", target: "viewport" }],
+      ["import_reference", { action: "editable", destination: "current" }],
       [
-        "browser",
+        "import_reference",
         {
-          action: "import_to_canvas",
+          action: "editable",
           componentUuid: "page",
           elementUuid: "container",
         },
       ],
-      ["browser", { action: "import_to_canvas", name: "bad-name" }],
+      ["import_reference", { action: "editable", name: "bad-name" }],
       ["get_org", {}],
       ["get_org", { orgId: "../private" }],
       ["get_org", { orgId: "org", extra: true }],
@@ -168,50 +176,29 @@ test("management tools expose strict MCP schemas and forward valid calls through
   }
 });
 
-test("organization queries retain platform data and filter names with matching permissions", async (t) => {
-  const teams = [
-    { id: "design", name: "Design Team" },
-    { id: "sales", name: "Sales" },
-  ];
-  const perms = [
-    { teamId: "design", accessLevel: "owner" },
-    { teamId: "sales", accessLevel: "viewer" },
-  ];
-  const { controller, win, calls } = fixture(t, { teams, perms });
-  assert.deepEqual(await controller.dispatch("list_orgs", {}), {
-    teams,
-    perms,
-  });
-  assert.deepEqual(
-    await controller.dispatch("list_orgs", { query: " DESIGN " }),
-    {
-      teams: [teams[0]],
-      perms: [perms[0]],
-    },
-  );
-  assert.deepEqual(
-    await controller.dispatch("list_orgs", { query: "missing" }),
-    { teams: [], perms: [] },
-  );
-  const detail = {
-    team: teams[0],
-    perms: [perms[0]],
-    members: [{ id: "owner" }],
-  };
-  win.webContents.session.fetch = async (url) => {
-    assert.equal(url, origin + "/api/v1/teams/design");
-    return { ok: true, json: async () => detail };
-  };
-  assert.deepEqual(
-    await controller.dispatch("get_org", { orgId: "design" }),
-    detail,
-  );
-  assert.ok(calls.every((call) => call.method === "fetch"));
-  for (const call of calls) {
-    assert.equal(call.options.credentials, "include");
-    assert.equal(call.options.bypassCustomProtocolHandlers, true);
-    assert.equal(call.options.redirect, "manual");
-  }
+test("management tools return only resource identities and parents", async (t) => {
+  const team = { id: "design", name: "Design", members: [{ email: "private@example.com" }], defaultAccessLevel: "editor" };
+  const backend = { teams: [team], perms: [{ teamId: team.id, accessLevel: "owner" }], members: team.members };
+  const { controller, calls } = fixture(t, backend);
+  assert.deepEqual(await controller.dispatch("list_orgs", {}), { teams: [{ id: "design", name: "Design" }] });
+  assert.deepEqual(await controller.dispatch("list_orgs", { query: "DESIGN" }), { teams: [{ id: "design", name: "Design" }] });
+  assert.deepEqual(await controller.dispatch("list_orgs", { query: "missing" }), { teams: [] });
+  controller.requestStudio = async () => ({ team, perms: backend.perms, members: team.members });
+  assert.deepEqual(await controller.dispatch("get_org", { orgId: team.id }), { team: { id: "design", name: "Design" } });
+  assert.ok(calls.every((call) => call.options.credentials === "include" && call.options.redirect === "manual"));
+});
+
+test("management creation excludes permissions, settings and credentials without a full bypass", async (t) => {
+  const project = { id: "project", name: "Orders", workspaceId: "workspace", teamId: "org", projectApiToken: "never-return-token",
+    featureTier: { capabilities: "x".repeat(5000) }, createdAt: "audit", uiConfig: { templates: true }, readableByPublic: true, isMainBranchProtected: true };
+  const raw = { projects: [project], perms: [{ projectId: "project", userId: "user", accessLevel: "editor" }] };
+  const { controller, calls } = fixture(t, raw);
+  await assert.rejects(controller.dispatch("create_project", { name: "Orders", view: "full" }), /view is not supported/);
+  assert.equal(calls.length, 0);
+  const identity = { id: "project", name: "Orders", workspaceId: "workspace", teamId: "org" };
+  assert.deepEqual(await controller.dispatch("list_projects", {}), { projects: [identity] });
+  controller.requestStudio = async () => ({ project, rev: { revision: 7, branchId: null } });
+  assert.deepEqual(await controller.dispatch("create_project", { name: "Orders" }), { project: identity });
 });
 
 test("workspace lists use the account or organization access scope", async (t) => {
@@ -262,11 +249,10 @@ test("project lists use the selected workspace and preserve platform permissions
   };
   assert.deepEqual(
     await controller.dispatch("list_projects", { workspaceId: "chosen" }),
-    { projects: [projects[0]], perms: [perms[0]] },
+    { projects: [projects[0]] },
   );
   assert.deepEqual(await controller.dispatch("list_projects", {}), {
     projects,
-    perms,
   });
   assert.deepEqual(calls, []);
   await assert.rejects(
@@ -326,6 +312,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
           /^\/projects\/([^/]+)/,
         )?.[1] || null;
       controller.state = async () => ({
+        availableEditorTools: ["identify", "createComponent"],
         url: win.webContents.getURL(),
         projectId: projectId(),
         ready: projects.some((project) => project.id === projectId()),
@@ -444,7 +431,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
         async function call(name, input = {}) {
           const result = await client.callTool({ name, arguments: input });
           assert.equal(result.isError, false, result.content?.[0]?.text);
-          return result.structuredContent;
+          return JSON.parse(result.content[0].text);
         }
         assert.equal((await call("get_app_state")).ready, false);
         let chosenTeam = (
@@ -504,7 +491,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
         const opened = await call("open_design", { projectId: project.id });
         assert.equal(opened.opened, true);
         assert.equal(opened.projectId, project.id);
-        const state = await call("get_app_state");
+        const state = await call("get_app_state", { toolNames: ["createComponent"] });
         assert.equal(state.ready, true);
         assert.equal(state.projectId, project.id);
         assert.ok(state.editorTools.createComponent.inputSchema);
@@ -586,7 +573,7 @@ test("creation uses authenticated platform requests without leaving or saving th
       name: " App ",
       workspaceId: "workspace",
     }),
-    { project: { id: "project" }, rev: { revision: 1 } },
+    { project: { id: "project" } },
   );
   await controller.dispatch("create_project", { name: "Personal" });
   assert.deepEqual(

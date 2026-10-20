@@ -10,7 +10,7 @@ Look up used registration keys in the [component catalog](catalog.md); read only
 
 ## Compositions and dependent libraries
 
-Read only the actual arrangement: [Form layout](compositions/form-layout.md), [Descriptions + Statistic + Card](compositions/summary-metrics.md), [Modal + Drawer](compositions/modal-drawer.md), [action bars](compositions/action-bars.md) or [detail header](compositions/detail-header.md). Recipes declare cross-library participants. Overseas SearchForm and React UI ActionGroup are separate registrations; use their own indexes rather than treating them as Antd components.
+Read only the actual arrangement: [Form layout](compositions/form-layout.md), [Descriptions + Statistic + Card](compositions/summary-metrics.md), [Modal + Drawer](compositions/modal-drawer.md), [action bars](compositions/action-bars.md) or, only for an explicitly requested heading area, [detail header](compositions/detail-header.md). Recipes declare cross-library participants. Overseas SearchForm and React UI ActionGroup are separate registrations; use their own indexes rather than treating them as Antd components.
 
 For the affected workflow, read [content states](compositions/content-states.md), [Steps + Form](compositions/step-form.md), [Table bulk actions](compositions/bulk-actions.md) or [master-detail](compositions/master-detail.md). Sizing, spacing ownership, responsive scope and keyboard/focus principles remain in [shared layout](../../design/layout.md) and [accessibility](../../design/accessibility.md); component documents own actual registered layout APIs.
 

@@ -14,11 +14,41 @@ Record conflicts and their resolution with sources. If a conflict changes busine
 
 Create a table with one row per required surface: source section and brief excerpt, purpose, entry/return path, surface kind, shared page identity, type/role/state differences, in-scope decision and proposed route. Classify independent Page, shared-page variant, Tab, Modal/Drawer and overview frame separately. A separate screenshot/frame is not automatically a Page; an overview frame referencing a Page is not a duplicate route.
 
+Declare every Page's `name` in that inventory before generating; directory names and business copy default to Chinese unless the current user specifies otherwise. Declare `page_layout.overviewName` (default 页面总览) in the suite. Follow [directory versus internal-node naming](design/naming.md#project-directory-names); English PascalCase applies to tree nodes, not Page/group labels. Keep routes/registered identities unchanged and do not add an in-page title to display a directory name.
+
 When the requirement says common/shared detail or creation page, represent type differences through supported bindings, conditional nodes and slots in one Page. Different entity types or permissions alone do not justify another route. Conversely, retain separately specified flows with different entry contracts or business behavior even when their screenshots are similar. Record an explicit user-authorized split if one is required. Count routed Pages from this inventory, never from the number of types, screenshots or generated objects.
 
 Derive the complete navigation tree separately: preserve the requirement's exact labels, parent hierarchy, order, visible/hidden status and destinations. Keep action-only routes under their business owner; a hidden creation/detail route does not become a top-level menu. Record role visibility and test it in live preview. Do not rename a product menu to its current implementation technology. If a host supplies navigation, use its verified contract rather than inventing another sidebar.
 
 Before generation, review coverage in both directions: every in-scope requirement has an intended surface/behavior, and every proposed Page/menu/action has a source or explicit user decision. Mark inferred design choices as such. Keep the reviewed expectation separate from the generator's output plan and generated UUIDs. Updating it requires new source evidence or a user decision; a failed check is not a reason to redefine the expected result.
+
+## Presentation, copy and native components
+
+Admin Pages inside AppShell start with business content, without a standalone Page title/header/subtitle/intro. Record `pageHeader:null`. Only an explicit current user request permits an exception, recorded as `{"nodeName":"EntityHeader","source":"user decision ..."}`. Reference/template headings do not override this rule. Keep native section, Form/Descriptions, Table/Card and overlay titles when they belong to those regions.
+
+Before markup, apply [native component selection](libraries/index.md#native-component-selection) and map every required functional widget to its real registration in `components`, `controls` and matching region inventories. Include actions, navigation, pagination, feedback and overlays, not just Table/Form/Descriptions. SearchForm owns filters; Form/Item owns submitted fields and Descriptions/Item owns read-only groups. Each required target must resolve to its declared identity. Region/Slot gates still check field ownership and completeness.
+
+Plain semantic text, root/Slot containers, genuine navigation anchors and read-only code do not need exceptions. For a widget with a verified contract gap, add optional `elementFallbacks:[{"nodeName":"CustomWidget","reason":"Checked candidates/contracts and concrete unsupported behavior","source":"requirement section + contract evidence"}]` before generation. Name the exact node; exceptions do not cover descendants or override required native identities or other gates. The structure check rejects unreviewed raw controls/tables/dialogs, ARIA widgets and ordinary-element click targets. It verifies exception shape and exact targets, not the correctness of the rationale; independent contract review remains necessary. A native-component failure is not a reason to add an exception just to pass.
+
+Review `copy` independently of output. `source` cites this review, `excluded` records requirement/process sentences that must not appear, and `help` records necessary user-facing instruction owners/text/sources. Keep scope/release notes, API/implementation rationale, permission-matrix explanations, acceptance steps and simulation/debug controls in the task report. Express behavior through actual UI state and concise actionable feedback. Preserve useful field constraints, irreversible-action warnings and failure guidance; do not remove all help text or use a global keyword blacklist.
+
+```json
+{
+  "pageHeader": null,
+  "components": [
+    {"nodeName":"RecordsTable","component":"plasmic-antd6-table","source":"requirement §Results"},
+    {"nodeName":"EditForm","component":"plasmic-antd6-form","source":"requirement §Edit"},
+    {"nodeName":"Summary","component":"plasmic-antd6-descriptions","source":"requirement §Summary"}
+  ],
+  "copy": {
+    "source":"requirement §Fields + reviewed UI-copy decisions",
+    "excluded":[{"text":"P0 excludes the AI creation flow","source":"requirement §Release scope; implementation context, not UI copy"}],
+    "help":[{"nodeName":"RetentionHelp","text":"Deleting historical partitions cannot be undone.","source":"requirement §Retention"}]
+  }
+}
+```
+
+The structure gate checks required native identities, recognized/unapproved Page-heading structures, declared excluded literal copy and the expected help text/bindings. These are static guards; unnamed visual headings, arbitrary prose meaning and dynamic rendered messages still require image/runtime review. Do not claim that a string scan understands every sentence or that zero generated Forms means no Form was required. Supported controlled tasks require these declarations before their first business write.
 
 ## Behavior and field matrix
 
@@ -33,8 +63,8 @@ Save a task-local `structure-expectation.json` before generating. It contains al
 ```json
 {
   "pages": [
-    {"path": "/records", "source": "requirement.md §List: browse records"},
-    {"path": "/record-detail", "source": "requirement.md §Detail: one shared detail for both types"}
+    {"path": "/records", "name":"记录列表", "source": "requirement.md §List: browse records", "bindings":[{"nodeName":"RecordsTable","source":"requirement.md §List: record data","props":["data"]}]},
+    {"path": "/record-detail", "name":"记录详情", "source": "requirement.md §Detail: one shared detail for both types", "bindings":[{"nodeName":"ReturnButton","source":"requirement.md §Detail: return to list","events":["onClick"]}]}
   ],
   "navigation": {
     "source": "requirement.md §Navigation: Records > Record list; details entered from rows",
@@ -48,6 +78,29 @@ Save a task-local `structure-expectation.json` before generating. It contains al
   }
 }
 ```
+
+Full-project suites require each Page to declare source-derived `bindings` before generating. A purely static Page declares `bindings:[]` plus a reviewed `bindingsNotApplicable` reason; missing scope fails the full suite. Prop/event presence alone is insufficient for interactive data. Add the following to each affected Page plan, using its actual chosen component and native state paths:
+
+```json
+{
+  "controls": [
+    {"nodeName":"SqlEditor","source":"requirement §SQL editing","component":"plasmic-antd6-textarea","events":["onChange"]},
+    {"nodeName":"Expiry","source":"requirement §Validity: 1–365 days","component":"plasmic-antd6-input-number","props":{"min":1,"max":365}}
+  ],
+  "bindings": [
+    {"nodeName":"RecordsTable","source":"requirement §Query results","props":["data"],"dynamicProps":["data"],"propStateDependencies":{"data":["appliedFilters"]}}
+  ],
+  "rowActions": [
+    {"column":"ActionColumn","control":"ViewRecord","event":"onClick","source":"requirement §Record details"}
+  ]
+}
+```
+
+`controls` prevents a required editable control being replaced with a pre/text node and checks declared literal bounds and events. Include only fields that are editable by the source; read-only summaries remain Descriptions inventory entries. Native Forms/Items, read-only groups and required overlays must be inventoried from the source even before they exist in the model. An absent component is a generation failure when its source inventory requires it, not a reason to delete the expectation.
+
+`dynamicProps` requires an expression somewhere in that prop; `propStateDependencies` additionally requires the named `$state` references in the saved prop. This is a necessary syntactic dependency check, not dataflow analysis: dead/incorrect expressions can still pass. Exercise nonmatching query → zero rows/total, reset → original matching data, scope changes and pagination in Preview. Updating filter state while retaining a literal Table dataset fails the required behavior even with a working click event.
+
+`rowActions` requires the named real Button/ActionGroup inside the named Column.render with the registered handler. A text cell formatted as a link is appropriate for actual URLs, not a substitute for a required record-detail action. Declare its real Drawer/Modal in the independent overlay inventory and check two different rows show their own details. Static wiring does not prove the click outcome; the independently exercised behavior matrix remains required.
 
 Read the public MCP overview and all full Page models into separate JSON files. Run:
 

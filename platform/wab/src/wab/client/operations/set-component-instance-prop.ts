@@ -5,7 +5,10 @@ import { GenericError } from "@/wab/shared/error-handling";
 import { TplComponent, VariantSetting } from "@/wab/shared/model/classes";
 import { Result } from "neverthrow";
 
-export type SetComponentInstancePropResult = Result<void, GenericError>;
+export type SetComponentInstancePropResult = Result<
+  void,
+  GenericError & { recoverable?: boolean }
+>;
 
 /**
  * Set a single prop (or variant selection) on a component instance, under
@@ -33,5 +36,10 @@ export function setComponentInstanceProp(
     .map(([param, expr]) => {
       tplMgr.setArg(tpl, vs, param.variable, expr);
     })
-    .mapErr((error) => ({ message: formatWIError(error) }));
+    .mapErr((error) => ({
+      message: formatWIError(error),
+      ...(error.code === "invalid-component-prop" && error.recoverable
+        ? { recoverable: true }
+        : {}),
+    }));
 }

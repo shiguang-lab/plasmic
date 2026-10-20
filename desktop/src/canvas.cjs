@@ -1,4 +1,4 @@
-const { BrowserWindow } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
@@ -61,8 +61,8 @@ async function inspectCanvas() {
     width: innerWidth,
     height: innerHeight,
     contentHeight: document.documentElement.scrollHeight,
-    truncated: visible.length > 2000,
-    elements: visible.slice(0, 2000).map((el, index) => {
+    truncated: false,
+    elements: visible.map((el, index) => {
       const rect = el.getBoundingClientRect();
       const valKey = el.getAttribute("data-plasmic-valkey");
       let left = rect.left;
@@ -101,6 +101,7 @@ async function inspectCanvas() {
       };
     }),
     images: [...document.images].map((el) => ({
+      elementUuid: el.getAttribute("data-plasmic-valkey")?.split(".").at(-1) || null,
       src: el.currentSrc || el.src,
       alt: el.alt,
       loaded: el.complete && el.naturalWidth > 0,
@@ -253,10 +254,8 @@ async function readyDocument() {
   );
 }
 const js = (fn) => `(${fn.toString()})()`;
-async function canvasFrames(win, inspectionId) {
-  const previewMode = new URL(win.webContents.getURL()).pathname.includes(
-    "/preview/",
-  );
+async function canvasFrames(win, inspectionId, inspect = inspectCanvas) {
+  const previewMode = /\/preview(?:\/|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname);
   const end = Date.now() + 20000;
   while (Date.now() < end) {
     const frames = win.webContents.mainFrame.framesInSubtree.filter((frame) => {
@@ -282,7 +281,7 @@ async function canvasFrames(win, inspectionId) {
           );
           if (marker !== inspectionId) continue;
         }
-        const layout = await frame.executeJavaScript(js(inspectCanvas));
+        const layout = await frame.executeJavaScript(js(inspect));
         if (layout.ready) results.push({ frame, layout });
       } catch (error) {
         if (!frame.isDestroyed?.()) throw error;
@@ -332,12 +331,16 @@ async function renderCanvas(win, input = {}) {
   }
   const html = await selected.frame.executeJavaScript(js(snapshotDocument));
   const width = input.width || selected.layout.width;
+  const height = input.height || selected.layout.height;
+  if (height > 16384)
+    throw new Error("Canvas height exceeds 16384 pixels; specify a cropped height");
   const preview = new BrowserWindow({
     show: false,
     width,
-    height: 900,
+    height,
     useContentSize: true,
     webPreferences: {
+      devTools: !app.isPackaged,
       session: win.webContents.session,
       nodeIntegration: false,
       contextIsolation: true,
@@ -352,15 +355,6 @@ async function renderCanvas(win, input = {}) {
     await preview.loadURL(
       "data:text/html;charset=utf-8," + encodeURIComponent(html),
     );
-    const contentHeight = await preview.webContents.executeJavaScript(
-      js(readyDocument),
-    );
-    const height = input.height || contentHeight;
-    if (height > 16384)
-      throw new Error(
-        "Canvas height exceeds 16384 pixels; specify a cropped height",
-      );
-    preview.setContentSize(width, height);
     await preview.webContents.executeJavaScript(js(readyDocument));
     let rect;
     if (input.elementUuid) {
@@ -447,7 +441,7 @@ async function renderCanvas(win, input = {}) {
         width: selected.layout.width,
         height: selected.layout.height,
       },
-      resized: width !== selected.layout.width,
+      resized: width !== selected.layout.width || height !== selected.layout.height,
       pdf:
         input.format === "pdf"
           ? await preview.webContents.printToPDF({

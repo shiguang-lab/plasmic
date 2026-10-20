@@ -1,6 +1,6 @@
 # Admin design reference index
 
-Start with [library and API selection](libraries/index.md). Identify the project's actual imported libraries and used registrations before choosing component rules. Reuse the user's chosen libraries, existing host shell and verified contracts; shared display names do not imply identical Props, Slots, defaults or behavior across libraries/versions.
+Start with [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) before markup. Discover existing components by required role, then verify candidate contracts; do not redraw available widgets with HTML/CSS. Reuse the user's libraries and host shell; display names alone do not identify API versions.
 
 | Affected area | Read |
 | --- | --- |
@@ -11,7 +11,7 @@ Start with [library and API selection](libraries/index.md). Identify the project
 | Actions, navigation, feedback or confirmation | Selected library's action/feedback contracts and matching action-bar recipe |
 | Editable fields and validation | Selected library's Form/field contracts and applicable form-layout/gate rules |
 | Overlay structure, dismissal or footer | Selected library's overlay/close contracts and matching recipe |
-| Detail heading and return navigation | Selected components' navigation/icon contracts and matching detail-header recipe |
+| Detail actions and return navigation | Selected navigation/action/icon contracts; read detail-header only for a current user-requested Page header |
 | Node creation, copying or renaming | [Node naming](design/naming.md) |
 | Library icons | [Icon selection](design/icons.md), then the actual icon-library scope |
 | Keyboard, focus, accessible names or readable feedback | [Shared accessibility](design/accessibility.md), then the affected component contracts |

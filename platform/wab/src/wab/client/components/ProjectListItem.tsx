@@ -19,7 +19,7 @@ import {
 } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { EditOutlined, FileOutlined, MoreOutlined } from "@ant-design/icons";
-import { Dropdown, Input, Menu, notification } from "antd";
+import { Dropdown, Input, Menu, message } from "antd";
 import React from "react";
 
 interface ProjectListItemProps {
@@ -296,8 +296,8 @@ function ProjectListItem(props: ProjectListItemProps) {
                               ),
                             },
                           );
-                          notification.info({
-                            message: t("Project moved to {name}.", {
+                          void message.success({
+                            content: t("Project moved to {name}.", {
                               name:
                                 response.result === "workspace"
                                   ? response.workspace.name
@@ -317,8 +317,8 @@ function ProjectListItem(props: ProjectListItemProps) {
                           await appCtx.api.setSiteInfo(project.id, {
                             isUserStarter: !project.isUserStarter,
                           });
-                          notification.success({
-                            message: t(
+                          void message.success({
+                            content: t(
                               project.isUserStarter
                                 ? 'Project "{name}" removed as workspace starter.'
                                 : 'Project "{name}" set as workspace starter.',

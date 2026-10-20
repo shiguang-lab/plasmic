@@ -60,16 +60,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { extractParamsFromPagePath } from "@/wab/shared/utils/url-utils";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import {
-  Collapse,
-  Dropdown,
-  Form,
-  Input,
-  InputNumber,
-  Menu,
-  message,
-  notification,
-} from "antd";
+import { Collapse, Dropdown, Form, Input, InputNumber, Menu, message } from "antd";
 import { FormInstance, useForm } from "antd/lib/form/Form";
 import L, { isEqual, sortBy } from "lodash";
 import * as React from "react";
@@ -555,8 +546,8 @@ export function CmsModelDetails_(
                       isArchived: !table.isArchived,
                     });
                     await mutateTable(databaseId, tableId);
-                    notification.success({
-                      message: studioUiT(
+                    void message.success({
+                      content: studioUiT(
                         !table.isArchived
                           ? "Model archived successfully"
                           : "Model unarchived successfully",

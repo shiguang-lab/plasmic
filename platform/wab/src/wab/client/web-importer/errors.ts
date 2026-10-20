@@ -45,6 +45,7 @@ export type WIError =
       prop: string;
       reason: string;
       path?: string;
+      recoverable?: boolean;
     }
   | {
       code: "unknown-slot";
@@ -106,6 +107,29 @@ export type WIError =
 export interface WITplRef {
   type: "TplTag" | "TplComponent" | "TplSlot";
   uuid: string;
+}
+
+/** Issues whose invalid input can be discarded without losing a node or binding. */
+export function isRecoverableWIError(error: WIError): boolean {
+  switch (error.code) {
+    case "invalid-style-declaration":
+    case "styles-not-applicable":
+    case "unmatched-screen-variant":
+    case "unsupported-media-query":
+    case "unresolved-token":
+    case "invalid-keyframes":
+    case "unknown-animation":
+    case "unknown-mixin":
+    case "invalid-css":
+    case "unsupported-selector":
+    case "unsupported-style-variant":
+    case "svg-size-fallback":
+      return true;
+    case "invalid-component-prop":
+      return error.recoverable === true;
+    default:
+      return false;
+  }
 }
 
 /** Render a single WIError as a human/LLM-readable message. */

@@ -1909,9 +1909,9 @@ export class ViewCtx extends WithDbCtx {
         ))
     );
   }
-  enterComponentCtxForVal(val: ValComponent, trigger: "ctrl+enter" | "menu") {
+  enterComponentCtxForVal(val: ValComponent, trigger: "alt+enter" | "menu") {
     const cloneKey =
-      trigger === "ctrl+enter" ? this.focusedCloneKey() : undefined;
+      trigger === "alt+enter" ? this.focusedCloneKey() : undefined;
     this.setCurrentComponentCtx(new ComponentCtx({ valComponent: val }));
     if (val.contents && val.contents.length > 0) {
       this.setStudioFocusBySelectable(val.contents[0], cloneKey);

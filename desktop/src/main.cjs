@@ -60,6 +60,25 @@ const {
   AUTH_ORIGIN,
   APP_CALLBACK_URL,
 } = require("./unified-login.cjs");
+function trustedAuthSender(event) {
+  return (
+    mainWindow &&
+    event.sender === mainWindow.webContents &&
+    event.senderFrame === event.sender.mainFrame &&
+    new URL(event.senderFrame.url).origin === config.studioOrigin
+  );
+}
+function openDesktopPreview(event, url) {
+  if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
+  const parsed = new URL(url);
+  if (
+    parsed.origin !== config.studioOrigin ||
+    !/^\/projects\/[^/]+\/preview-full(?:\/|$)/.test(parsed.pathname)
+  ) {
+    throw new Error("Invalid preview URL");
+  }
+  return openBrowser(url);
+}
 const trustedOrigins = new Set([config.studioOrigin, config.canvasOrigin]);
 function isInternal(url) {
   try {
@@ -113,23 +132,16 @@ function protectWindow(win) {
       openExternal(url);
       return { action: "deny" };
     }
-    return {
-      action: "allow",
-      overrideBrowserWindowOptions: {
-        backgroundColor:
-          desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
-        webPreferences: {
-          session: win.webContents.session,
-          nodeIntegration: false,
-          contextIsolation: true,
-          sandbox: true,
-          webSecurity: true,
-        },
-      },
-    };
-  });
-  win.webContents.on("did-create-window", (child) => {
-    protectWindow(child);
+    void (async () => {
+      await controller.saveBeforeNavigation(await controller.state([]));
+      await win.loadURL(url);
+    })().catch((error) => {
+      dialog.showErrorBox(
+        desktopI18n.t("Operation Failed"),
+        desktopI18n.t(error.message),
+      );
+    });
+    return { action: "deny" };
   });
   win.webContents.on("will-attach-webview", (event) => event.preventDefault());
 }
@@ -271,6 +283,7 @@ async function startDesktop() {
           }
         : {}),
     webPreferences: {
+      devTools: !app.isPackaged,
       session: desktopSession,
       preload: path.join(__dirname, "preload.cjs"),
       additionalArguments: [
@@ -359,14 +372,6 @@ async function startDesktop() {
       desktopI18n,
       desktopAppearance,
     );
-    const trustedAuthSender = (event) => {
-      return (
-        mainWindow &&
-        event.sender === mainWindow.webContents &&
-        event.senderFrame === event.sender.mainFrame &&
-        new URL(event.senderFrame.url).origin === config.studioOrigin
-      );
-    };
     ipcMain.handle("desktop:ui-appearance", (event, value) => {
       if (!trustedAuthSender(event)) {
         throw new Error("Invalid Studio page");
@@ -436,6 +441,7 @@ async function startDesktop() {
       i18n: desktopI18n,
       appearance: desktopAppearance,
     });
+    ipcMain.handle("desktop:open-preview", openDesktopPreview);
     ipcMain.handle("desktop:open-reference-browser", (event) => {
       if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
       return controller.dispatch("browser", { action: "open" });
@@ -607,7 +613,9 @@ async function startDesktop() {
           { type: "separator" },
           { role: "reload", label: t("Reload") },
           { role: "forceReload", label: t("Force Reload") },
-          { role: "toggleDevTools", label: t("Toggle Developer Tools") },
+          ...(!app.isPackaged
+            ? [{ role: "toggleDevTools", label: t("Toggle Developer Tools") }]
+            : []),
           { type: "separator" },
           { role: "resetZoom", label: t("Actual Size") },
           { role: "zoomIn", label: t("Zoom In") },

@@ -31,8 +31,9 @@ import {
 } from "@/wab/shared/ApiErrors/errors";
 import * as Sentry from "@sentry/browser";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { notification } from "antd";
+import { message } from "antd";
 import React from "react";
+import { mock } from "vitest-mock-extended";
 const businessTypes = [
   BadRequestError,
   ForbiddenError,
@@ -79,32 +80,22 @@ it.each(businessTypes)(
 );
 
 it("renders the organization restriction as a localized warning, including locale changes while open", async () => {
-  const open = vi
-    .spyOn(notification, "open")
-    .mockImplementation(() => undefined);
+  const open = vi.spyOn(message, "open").mockReturnValue(mock());
   const error = new ForbiddenError(
     "You can only have one unpaid organization. Upgrade or delete your existing organization before creating another.",
   );
   showError(error);
   const args = open.mock.calls[0][0];
   expect(args.type).toBe("warning");
-  render(
-    <>
-      <div data-testid="title">{args.message}</div>
-      <div data-testid="reason">{args.description}</div>
-    </>,
-  );
+  expect(args).not.toHaveProperty("duration");
+  render(<div>{args.content}</div>);
   for (const { value } of languageOptions) {
     await act(async () => await setLanguagePreference(value));
-    expect(screen.getByTestId("title").textContent).toBe(
-      translate(value, "Action not allowed"),
-    );
-    expect(screen.getByTestId("reason").textContent).toBe(
-      getErrorMessage(error),
-    );
-    expect(screen.getByTestId("reason").textContent).not.toContain(
-      "ForbiddenError:",
-    );
+    expect(
+      screen.getByText(translate(value, "Action not allowed")),
+    ).toBeTruthy();
+    expect(screen.getByText(getErrorMessage(error))).toBeTruthy();
+    expect(screen.queryByText(/ForbiddenError:/)).toBeNull();
   }
   expect(error.message).toContain("You can only have one unpaid organization");
   args.onClose?.();

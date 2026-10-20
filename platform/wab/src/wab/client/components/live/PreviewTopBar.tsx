@@ -35,6 +35,7 @@ import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-style
 import { Icon, SvgIcon } from "@/wab/client/components/widgets/Icon";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { TopFrameApiArgs } from "@/wab/client/frame-ctx/top-frame-api";
 import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
@@ -261,34 +262,66 @@ export const PreviewTopBar = observer(function PreviewTopBar({
   const { t } = useI18n();
   const topFrameApi = useTopFrameApi();
   const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
+  const hasWindowOverlay =
+    isMacDesktop || navigator.userAgent.includes("PlasmicDesktop/win32");
+  const topBarRef = React.useRef<HTMLDivElement>(null);
   const leftSectionRef = React.useRef<HTMLDivElement>(null);
+  const centerSectionRef = React.useRef<HTMLDivElement>(null);
+  const rightGroupRef = React.useRef<HTMLDivElement>(null);
   React.useLayoutEffect(() => {
-    if (!isMacDesktop) {
+    if (!hasWindowOverlay) {
       return;
     }
-    const root = ensure(
-      leftSectionRef.current,
-      "Preview navigation is mounted",
-    );
+    const root = ensure(topBarRef.current, "Preview top bar is mounted");
+    const sections = [
+      ensure(leftSectionRef.current, "Preview navigation is mounted"),
+      ensure(centerSectionRef.current, "Preview viewport controls are mounted"),
+      ensure(rightGroupRef.current, "Preview actions are mounted"),
+    ];
     const update = () => {
       const bounds = root.getBoundingClientRect();
-      spawn(
-        topFrameApi.setDesktopTitleBarDragRegion({
-          left: bounds.left,
-          top: bounds.top,
-          width: 80,
-          height: applicationHeaderLayout.height,
-        }),
-      );
+      const occupied = sections.map((section, index) => {
+        const rect = section.getBoundingClientRect();
+        return {
+          left: rect.left + (isMacDesktop && index === 0 ? 80 : 0),
+          right: rect.right,
+          top: Math.max(bounds.top, rect.top),
+          bottom: Math.min(bounds.bottom, rect.bottom),
+        };
+      });
+      // Mirror only empty space into the main frame: Electron does not honor
+      // drag regions inside the Studio iframe. Split rows for wrapped controls.
+      const rows = Array.from(new Set([
+        bounds.top, bounds.bottom,
+        ...occupied.flatMap((rect) => [rect.top, rect.bottom]),
+      ])).sort((a, b) => a - b);
+      const regions: TopFrameApiArgs<"setDesktopTitleBarDragRegions"> = [];
+      for (let row = 0; row < rows.length - 1; row++) {
+        const top = rows[row];
+        const bottom = rows[row + 1];
+        let left = bounds.left;
+        for (const rect of occupied
+          .filter((rect) => rect.top < bottom && rect.bottom > top)
+          .sort((a, b) => a.left - b.left)) {
+          if (rect.left > left) {
+            regions.push({ left, top, width: rect.left - left, height: bottom - top });
+          }
+          left = Math.max(left, rect.right);
+        }
+        if (bounds.right > left) {
+          regions.push({ left, top, width: bounds.right - left, height: bottom - top });
+        }
+      }
+      spawn(topFrameApi.setDesktopTitleBarDragRegions(regions));
     };
     const resizeObserver = new ResizeObserver(update);
-    resizeObserver.observe(root);
+    [root, ...sections].forEach((element) => resizeObserver.observe(element));
     update();
     return () => {
       resizeObserver.disconnect();
-      spawn(topFrameApi.setDesktopTitleBarDragRegion(null));
+      spawn(topFrameApi.setDesktopTitleBarDragRegions([]));
     };
-  }, [isMacDesktop, topFrameApi]);
+  }, [hasWindowOverlay, isMacDesktop, topFrameApi]);
   const previewCtx = usePreviewCtx();
   const studioCtx = useStudioCtx();
 
@@ -401,6 +434,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
 
   return (
     <div
+      ref={topBarRef}
       className={styles.topBar}
       data-desktop-titlebar={isMacDesktop ? "mac" : undefined}
       onKeyDownCapture={(event) => {
@@ -492,7 +526,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         </Dropdown>
       </div>
 
-      <div className={cx(styles.section, styles.centerSection)}>
+      <div ref={centerSectionRef} className={cx(styles.section, styles.centerSection)}>
         <Segmented
           aria-label={t("Preview device")}
           options={[
@@ -649,7 +683,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         )}
       </div>
 
-      <div className={styles.rightGroup}>
+      <div ref={rightGroupRef} className={styles.rightGroup}>
         {navigator.userAgent.includes("PlasmicDesktop/") && (
           <span
             data-desktop-update-slot="header"

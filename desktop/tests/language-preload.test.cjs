@@ -76,3 +76,12 @@ test("passes Studio first-paint appearance to native dialogs before React loads"
   frame.ready();
   assert.deepEqual(frame.calls, []);
 });
+
+
+test("browser preview forwards its URL through awaitable main-frame IPC", async () => {
+  const top = loadPreload(["electron"]);
+  const url = "https://studio.example/projects/test/preview-full";
+  await top.desktopBrowser.openPreview(url);
+  assert.deepEqual(top.calls, [["desktop:open-preview", url]]);
+  assert.equal(loadPreload(["electron"], false).desktopBrowser, undefined);
+});

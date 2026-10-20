@@ -77,3 +77,31 @@ it("opens the Desktop browser through the existing host-to-top-frame API", async
     vi.unstubAllGlobals();
   }
 });
+
+
+it("awaits the native preview handoff across the host-to-top-frame API", async () => {
+  const { appCtx, history } = fakeAppCtx();
+  let finish: () => void = vi.fn();
+  const openPreview = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+  vi.stubGlobal("desktopBrowser", { openPreview });
+  const mounted = renderHook(
+    () => useTopFrameState({ appCtx, project: mock<ApiProject>(), forceUpdate: vi.fn() }),
+    { wrapper: ({ children }: { children: React.ReactNode }) => <HistoryProvider history={history}>{children}</HistoryProvider> },
+  );
+  try {
+    const url = "https://studio.example/projects/test/preview-full";
+    let done = false;
+    const pending = mounted.result.current.topFrameApi.openDesktopPreview(url).then(() => { done = true; });
+    await Promise.resolve();
+    expect(openPreview).toHaveBeenCalledWith(url);
+    expect(done).toBe(false);
+    finish();
+    await pending;
+    expect(done).toBe(true);
+    openPreview.mockRejectedValueOnce(new Error("Launch failed"));
+    await expect(mounted.result.current.topFrameApi.openDesktopPreview(url)).rejects.toThrow("Launch failed");
+  } finally {
+    mounted.unmount();
+    vi.unstubAllGlobals();
+  }
+});

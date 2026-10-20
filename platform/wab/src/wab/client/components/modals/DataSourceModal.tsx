@@ -40,7 +40,7 @@ import {
 } from "@/wab/shared/data-sources-meta/data-sources";
 import { POSTGRES_META } from "@/wab/shared/data-sources-meta/postgres-meta";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { Alert, Form, FormInstance, Input, notification } from "antd";
+import { Alert, Form, FormInstance, Input, notification, message } from "antd";
 import { jsonrepair } from "jsonrepair";
 import { isEqual, noop } from "lodash";
 import React from "react";
@@ -259,8 +259,8 @@ export function DataSourceModal({
         const values = form.getFieldsValue();
 
         if (!isValidValuesData(values)) {
-          notification.error({
-            message: uiT("Missing required data"),
+          void message.error({
+            content: uiT("Missing required data"),
           });
           return { result: { connected: false } };
         }
@@ -281,8 +281,8 @@ export function DataSourceModal({
 
         // Don't test the same successful connection twice
         if (successfulConnections[key]) {
-          notification.success({
-            message: uiT("Connection successful"),
+          void message.success({
+            content: uiT("Connection successful"),
           });
           return { result: { connected: true } };
         }
@@ -335,8 +335,8 @@ export function DataSourceModal({
             });
           }
         } else {
-          notification.success({
-            message: uiT("Connection successful"),
+          void message.success({
+            content: uiT("Connection successful"),
           });
           setSuccessfulConnections((prev) => ({
             ...prev,
@@ -487,8 +487,8 @@ export function DataSourceModal({
               });
             }
           } else {
-            notification.error({
-              message: uiT("Missing required data"),
+            void message.error({
+              content: uiT("Missing required data"),
             });
           }
         }}

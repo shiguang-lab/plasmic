@@ -180,6 +180,7 @@
   "Zoom to fit all": "Zoom to fit all",
   "Zoom to fit selection": "Zoom to fit selection",
   "Zoom to 100%": "Zoom to 100%",
+  "Present": "Present",
   "Open preview in browser": "Open preview in browser",
   "Open preview in new tab": "Open preview in new tab",
   "Preview in default browser": "Preview in default browser",
@@ -305,6 +306,7 @@
   "Duplicate": "Duplicate",
   "Rename": "Rename",
   "Edit": "Edit",
+  "Read": "Read",
   "Save": "Save",
   "Apply": "Apply",
   "Reset": "Reset",
@@ -5494,5 +5496,7 @@
   "The Figma file has no visible pages.": "The Figma file has no visible pages.",
   "The selected Figma page has no supported layers.": "The selected Figma page has no supported layers.",
   "Imported \"{page}\" page from Figma": "Imported \"{page}\" page from Figma",
-  "Check that the file is a valid .fig export and try again.": "Check that the file is a valid .fig export and try again."
+  "Check that the file is a valid .fig export and try again.": "Check that the file is a valid .fig export and try again.",
+  "Inspecting": "Inspecting",
+  "Inspection complete": "Inspection complete"
 }

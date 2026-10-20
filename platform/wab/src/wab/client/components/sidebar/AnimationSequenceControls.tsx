@@ -77,7 +77,7 @@ import {
   ProjectDependency,
 } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
-import { Menu, notification } from "antd";
+import { Menu, message } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -465,8 +465,8 @@ export const AnimationSequencesPanel = observer(
         }),
       );
 
-      notification.success({
-        message: translate(getUiLocale(), 'Duplicated "{part1}"', {
+      void message.success({
+        content: translate(getUiLocale(), 'Duplicated "{part1}"', {
           part1: sequence.name,
         }),
       });

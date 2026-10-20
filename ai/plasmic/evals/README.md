@@ -1,5 +1,15 @@
 # Skill behavior evaluations
 
+Fresh prototype regressions must first pass the resource's `verify_mcp_contract.py` against the actual running Desktop. Pin resource release, buildId and editor session; use the same source checkout for the candidate build and resource bundle. This capability check catches stale candidates advertising tree/contract/context/full while resources require properties/propNames. Existing native unit passes do not establish that the tested candidate contains those sources.
+
+Fresh full-project regressions start prototype_task with independently reviewed source/suite/reference inputs. Desktop enforces real write order and collects Pen/model/layout/image/runtime evidence. Use its evidenceDirectory with verify_page_sequence.py; do not synthesize timeline or success files from the final answer. Actual native Preview click/fill/scroll/assert operations must satisfy the pinned cases. Source-derived forms/groups/overlays remain mandatory inventories; missing components do not justify exemptions. Pen coverage includes every required Page/state with a semantic native-component mapping and layout read plus source image. Recorded visual observations remain independently reviewed. REQ075 §6.8 does not prescribe a named application Form or fixed input schema; fixture names are reviewed design choices, not universal requirements.
+
+Record both RPC and actual MCP transport sizes, provider input/output/cache usage and client compaction events. The MCP result cap does not bound cumulative history. Never load raw reasoning into a user-facing report; use public tool/evidence metadata.
+
+The [repair candidate report](gemini-flash-repair-results.md) records synchronized MCP/reference/verifier changes and native checks. Login is restored; real REQ075 Flash regression and independent acceptance are recorded separately from native test passes.
+
+The template-driven Gemini 3.8 Flash run and independent runtime/persistence review are in [Flash chain results](gemini-flash-chain-results.md). MCP payload bounds hold in the captured calls; P0 business acceptance fails despite the model's success claim.
+
 The recorded bounded evaluation and live acceptance are in [results](results.md).
 The batch/reading/evidence optimization and its four-page regression limits are in [context results](context-results.md).
 The latest dynamic-check, evidence-reuse and counterexample audit is in [REQ075 review](req075-regression/review5-results.md).

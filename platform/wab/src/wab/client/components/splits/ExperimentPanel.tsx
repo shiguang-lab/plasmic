@@ -19,7 +19,7 @@ import { SplitStatus, SplitType } from "@/wab/shared/core/splits";
 import { PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { Split, Variant } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
+import { message } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 
@@ -118,8 +118,8 @@ function ExperimentPanel_(
           tplMgr.copyToVariant(component, variant, base);
         });
         split.status = SplitStatus.Stopped;
-        notification.success({
-          message: studioUiT(
+        void message.success({
+          content: studioUiT(
             "Successfully copied styles from {part1} to the base variant",
             { part1: testVariant?.name ?? studioUiT("variation") },
           ),

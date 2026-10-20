@@ -77,7 +77,7 @@ app
       assert(result.success, result.error?.message || name + " failed");
       return result.output ? JSON.parse(result.output) : null;
     }
-    await call("read", { componentUuids: [componentUuid] });
+    await call("read", { view: "full", componentUuids: [componentUuid] });
     await call("navigate", { componentUuid });
     await new Promise((resolve) => setTimeout(resolve, 3000));
     const validation = await call("validate", {
@@ -116,7 +116,7 @@ app
     );
     await win.loadURL(config.studioOrigin + "/projects/" + projectId);
     await until(win, "!!window.PLASMIC_AI_TOOLS");
-    const restored = await call("read", { componentUuids: [componentUuid] });
+    const restored = await call("read", { view: "full", componentUuids: [componentUuid] });
     assert(
       restored.results[0].baseVariantTplTree.includes("plasmicAntd6Button"),
     );

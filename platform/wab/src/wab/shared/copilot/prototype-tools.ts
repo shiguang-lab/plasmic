@@ -1,3 +1,5 @@
+import { mutationReceiptSchema } from "@/wab/shared/copilot/mutation-receipt";
+import { modelReadOptions, modelReadResultSchema, projectCollections } from "@/wab/shared/copilot/model-read";
 import { tokenTypes } from "@/wab/commons/StyleToken";
 import {
   localEditBindingSchema,
@@ -47,24 +49,26 @@ const EDIT_TOOL_META = {
       projectId: uuid,
       projectName: z.string(),
       canEdit: z.boolean(),
-      model: uuid,
-      client: uuid,
-      skill: uuid,
-      outputFormat: z.enum(["json", "xml"]),
     }),
   },
   read: {
     toolName: "read",
     title: "Read project resources",
     description:
-      "Discover installed components, exact component names/UUIDs, props, slots, style tokens, data tokens and screen breakpoints. Defaults to project overview. Request component UUIDs for full prop contracts and HTML, or elements for subtrees. Nodes marked data-editable=false are inherited slot content; use data-source-component and data-source-element to read their source slot, then use its real node IDs for editing. Imported components can be read but not edited.",
+      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values. contract returns registered Props/Slots/defaults/enums/event signatures; full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects exact fields; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only.",
     inputSchema: z
       .object({
+        ...modelReadOptions,
+        collection: projectCollections.optional(),
+        fromProject: uuid.optional().describe("Read scope: current project or a reachable native dependency ID, including indirect dependencies. Targets must belong to that project. Imported models remain read-only."),
+        nameContains: uuid.optional().describe("Case-insensitive inventory name filter; requires collection"),
+        offset: z.number().int().nonnegative().default(0),
+        limit: z.number().int().min(1).max(100).default(50),
         componentUuids: z.array(uuid).max(30).optional(),
         elements: z.array(z.object(element).strict()).max(30).optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: modelReadResultSchema,
   },
   installLibrary: {
     toolName: "installLibrary",
@@ -95,9 +99,11 @@ const EDIT_TOOL_META = {
     toolName: "queryElements",
     title: "Find editable elements by their contract",
     description:
-      "Search a component subtree by element name, native tag or registered component UUID. Returns editable subtree resources with stable UUIDs; no private model scripting is required.",
+      "Search a component subtree by element name, native tag or registered component UUID. Returns shallow native nodes, with the same depth/view/fields projection as read. total and nextOffset make pagination explicit.",
     inputSchema: z
       .object({
+        ...modelReadOptions,
+        offset: z.number().int().nonnegative().default(0),
         componentUuid: uuid,
         elementUuid: uuid.optional(),
         nameContains: uuid.optional(),
@@ -109,7 +115,7 @@ const EDIT_TOOL_META = {
         limit: z.number().int().min(1).max(50).default(20),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: modelReadResultSchema,
   },
   createCanvas: {
     toolName: "createCanvas",
@@ -117,7 +123,7 @@ const EDIT_TOOL_META = {
     description:
       "Create a native mixed arena for arranging multiple component/page artboards. The unique canvas name is its native identity.",
     inputSchema: z.object({ name: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteCanvas: {
     toolName: "deleteCanvas",
@@ -125,7 +131,7 @@ const EDIT_TOOL_META = {
     description:
       "Remove a mixed arena and its preview frames; referenced pages and named components remain. Undo is supported.",
     inputSchema: z.object({ canvasName: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   updateCanvas: {
     toolName: "updateCanvas",
@@ -133,7 +139,7 @@ const EDIT_TOOL_META = {
     description:
       "Rename an existing mixed arena without recreating its frames.",
     inputSchema: z.object({ canvasName: uuid, name: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   updateArtboard: {
     toolName: "updateArtboard",
@@ -150,7 +156,7 @@ const EDIT_TOOL_META = {
         y: z.number().min(0).max(100000),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   setPageViewport: {
     toolName: "setPageViewport",
@@ -163,7 +169,7 @@ const EDIT_TOOL_META = {
         componentUuid: uuid.optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteBreakpoint: {
     toolName: "deleteBreakpoint",
@@ -171,7 +177,7 @@ const EDIT_TOOL_META = {
     description:
       "Remove an active screen variant through native variant operations, including its style overrides and frame references. Read affected content first; undo is supported.",
     inputSchema: z.object({ variantUuid: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createArtboard: {
     toolName: "createArtboard",
@@ -188,7 +194,7 @@ const EDIT_TOOL_META = {
         y: z.number().min(-100000).max(100000).optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   findEmptySpace: {
     toolName: "findEmptySpace",
@@ -215,7 +221,7 @@ const EDIT_TOOL_META = {
     inputSchema: z
       .object({ canvasName: uuid, frameUuid: uuid.optional() })
       .strict(),
-    outputSchema: resources,
+    outputSchema: z.object({ canvasName: uuid, frameUuid: uuid.optional(), componentUuid: uuid.optional() }),
   },
   readVector: {
     toolName: "readVector",
@@ -239,24 +245,25 @@ const EDIT_TOOL_META = {
     inputSchema: z
       .object({ ...element, svg: z.string().min(1).max(200000) })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createComponent: {
     toolName: "createComponent",
     title: "Create page or reusable component",
     description:
-      "Create an editable empty page/component. Then insertHtml into its root. Names and page paths must be unique; existing designs are never overwritten.",
+      "Create an editable empty page/component. A page starts with one device column using the live Studio preset (Desktop by default) and is referenced in the shared Pages overview canvas. Then insertHtml into its root. Names and page paths must be unique.",
     inputSchema: z
       .object({
         name: uuid,
         type: z.enum(["page", "component"]).default("page"),
+        preset: uuid.default("Desktop").describe("Native device preset for a new page; ignored for reusable components"),
         path: z
           .string()
           .regex(/^\/(?!\/)/)
           .optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   importWebPage: {
     toolName: "importWebPage",
@@ -294,7 +301,7 @@ const EDIT_TOOL_META = {
     toolName: "insertHtml",
     title: "Insert editable prototype markup",
     description:
-      'Convert HTML/CSS and <plasmic-component data-plasmic-component="exact registered name" data-plasmic-project="imported project ID" data-props=\'JSON\'> into editable canvas elements. Use <slot name="children">...</slot> for component slots. Read contracts first. CSS @media must match existing breakpoints. Defaults to append to root; replace requires an explicit elementUuid. Any import error rolls back the entire call.',
+      'Convert HTML/CSS and <plasmic-component data-plasmic-component="exact registered name" data-plasmic-project="imported project ID" data-props=\'JSON\'> into editable canvas elements. Use <slot name="children">...</slot> for component slots. Read contracts first. CSS @media must match existing breakpoints. Defaults to append to root; replace requires an explicit elementUuid. Safely discarded styles, unknown props and invalid optional literal props are reported in successful result messages. Missing components and invalid required props, slots or bindings reject the whole call. For a missing component, read installed names/contracts, correct the reference and retry; do not drop the component or abandon the design task.',
     inputSchema: z
       .object({
         componentUuid: uuid,
@@ -305,13 +312,13 @@ const EDIT_TOOL_META = {
           .default("append"),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   changeElement: {
     toolName: "changeElement",
     title: "Change element name, props or layout",
     description:
-      "Modify an existing element in a local page/component. text updates plain native text without replacing its identity; rich or bound text requires its existing editing contract. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Rejected props roll back the entire call. For text or slot content use insertHtml replace on that text element or its slot child.",
+      "Modify an existing element in a local page/component. text updates plain native text without replacing its identity; rich or bound text requires its existing editing contract. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Unsupported styles, unknown props and invalid optional literal props are ignored with successful result messages; existing valid values are preserved. Invalid required props, slots or bindings reject the whole call. For text or slot content use insertHtml replace on that text element or its slot child.",
     inputSchema: z
       .object({
         ...element,
@@ -338,7 +345,7 @@ const EDIT_TOOL_META = {
           .optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteElement: {
     toolName: "deleteElement",
@@ -346,13 +353,13 @@ const EDIT_TOOL_META = {
     description:
       "Remove an element from a local component using Studio's reference checks. Root elements cannot be deleted. Changes are undoable.",
     inputSchema: z.object(element).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createState: {
     toolName: "createState",
     title: "Create prototype state",
     description:
-      "Add private page/component state for interactive prototypes. Bind props with {{ $state.name }} and use createInteraction to change it. Returns the component including state contracts.",
+      "Add private page/component state for interactive prototypes. Bind props with {{ $state.name }} and use createInteraction to change it. Returns a compact receipt with created state identity; read context explicitly when needed.",
     inputSchema: z
       .object({
         componentUuid: uuid,
@@ -361,7 +368,7 @@ const EDIT_TOOL_META = {
         initialValue: jsonValue.optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createInteraction: {
     toolName: "createInteraction",
@@ -376,7 +383,7 @@ const EDIT_TOOL_META = {
         action: interactionActionSchema(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   updateInteraction: {
     toolName: "updateInteraction",
@@ -391,7 +398,7 @@ const EDIT_TOOL_META = {
         action: interactionActionSchema().optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteInteraction: {
     toolName: "deleteInteraction",
@@ -399,7 +406,7 @@ const EDIT_TOOL_META = {
     description:
       "Remove an event step by its interaction UUID from read. Rejects deletion when sibling steps reference its result. Removes the event handler when its last step is deleted. Undo restores the step and handler.",
     inputSchema: z.object({ ...element, interactionUuid: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createStyleToken: {
     toolName: "createStyleToken",
@@ -409,13 +416,13 @@ const EDIT_TOOL_META = {
     inputSchema: z
       .object({ name: uuid, type: z.enum(tokenTypes), value: uuid })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   copyElement: {
     toolName: "copyElement",
     title: "Copy an editable subtree",
     description:
-      "Copy a subtree with new UUIDs into the same component. Preserves styles, props, slots and interactions. Returns the updated component; read it to discover the copy UUIDs.",
+      "Copy a subtree with new UUIDs into the same component. Preserves styles, props, slots and interactions. Returns copied root identities in created; use the receipt or a batch binding for subsequent edits.",
     inputSchema: z
       .object({
         ...element,
@@ -425,7 +432,7 @@ const EDIT_TOOL_META = {
           .default("after"),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   moveElement: {
     toolName: "moveElement",
@@ -439,7 +446,7 @@ const EDIT_TOOL_META = {
         location: z.enum(["before", "after", "prepend", "append"]),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   updateState: {
     toolName: "updateState",
@@ -455,7 +462,7 @@ const EDIT_TOOL_META = {
         initialValue: jsonValue.optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteState: {
     toolName: "deleteState",
@@ -463,7 +470,7 @@ const EDIT_TOOL_META = {
     description:
       "Delete a local user state. Referenced, implicit and variant-backed states are rejected with no changes.",
     inputSchema: z.object({ componentUuid: uuid, stateUuid: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   updateStyleToken: {
     toolName: "updateStyleToken",
@@ -478,7 +485,7 @@ const EDIT_TOOL_META = {
         variantUuids: z.array(uuid).optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteStyleToken: {
     toolName: "deleteStyleToken",
@@ -486,7 +493,7 @@ const EDIT_TOOL_META = {
     description:
       "Delete a local token and inline its current value at all references, preserving styles. Imported and registered tokens cannot be deleted.",
     inputSchema: z.object({ tokenUuid: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createVariantGroup: {
     toolName: "createVariantGroup",
@@ -500,7 +507,7 @@ const EDIT_TOOL_META = {
         optionsType: z.enum(["standalone", "singleChoice", "multiChoice"]),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createVariant: {
     toolName: "createVariant",
@@ -510,7 +517,7 @@ const EDIT_TOOL_META = {
     inputSchema: z
       .object({ componentUuid: uuid, groupUuid: uuid, name: uuid })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createGlobalVariantGroup: {
     toolName: "createGlobalVariantGroup",
@@ -518,7 +525,7 @@ const EDIT_TOOL_META = {
     description:
       "Create a global variant group for project-wide themes. Returns its group UUID for createGlobalVariant.",
     inputSchema: z.object({ name: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createGlobalVariant: {
     toolName: "createGlobalVariant",
@@ -526,7 +533,7 @@ const EDIT_TOOL_META = {
     description:
       "Add a global variant to a local user theme group. Apply themed values with updateStyleToken and element overrides with changeElement.",
     inputSchema: z.object({ groupUuid: uuid, name: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   createBreakpoint: {
     toolName: "createBreakpoint",
@@ -540,7 +547,7 @@ const EDIT_TOOL_META = {
         maxWidth: z.number().int().min(1).max(10000).optional(),
       })
       .strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
   },
   deleteComponent: {
     toolName: "deleteComponent",
@@ -548,7 +555,26 @@ const EDIT_TOOL_META = {
     description:
       "Remove a local page/reusable component with Studio reference checks. Referenced components, sub-components and the default wrapper are protected. Deletion is undoable.",
     inputSchema: z.object({ componentUuid: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: mutationReceiptSchema,
+  },
+  preview: {
+    toolName: "preview",
+    title: "Open or close native Preview",
+    description:
+      "Open the authenticated in-app Preview or return to the retained editor view, without saving or changing the design. open optionally selects a local Page and a Custom CSS viewport (width and height together); this does not add device columns. Returns route/viewport state, not rendering or behavior approval. Use getEditorContext for current runtime identity and computer UI controls to exercise actual interactions. The reference browser is isolated and cannot substitute for native Preview.",
+    inputSchema: z.object({
+      action: z.enum(["open", "close"]),
+      componentUuid: uuid.optional(),
+      width: z.number().int().min(240).max(7680).optional(),
+      height: z.number().int().min(240).max(7680).optional(),
+    }).strict(),
+    outputSchema: z.object({
+      mode: z.enum(["edit", "preview"]),
+      componentUuid: uuid.nullable(),
+      path: z.string().nullable(),
+      width: z.number().nullable(),
+      height: z.number().nullable(),
+    }),
   },
   getEditorContext: {
     toolName: "getEditorContext",
@@ -611,7 +637,7 @@ const EDIT_TOOL_META = {
     toolName: "restoreEditorView",
     title: "Restore a local editor view",
     description:
-      "Restore the arena, focused artboard, zoom and pan from getEditorContext.editorView. Does not change the project or business props. Missing arenas or frames are rejected.",
+      "Restore the arena, focused artboard, zoom and pan from get_editor_view.view. Does not change project or business props. Missing arenas or frames are rejected.",
     inputSchema: z
       .object({
         arenaId: uuid,
@@ -647,7 +673,7 @@ const EDIT_TOOL_META = {
     description:
       "Open the local component's arena for visual review and screenshots.",
     inputSchema: z.object({ componentUuid: uuid }).strict(),
-    outputSchema: resources,
+    outputSchema: z.object({ componentUuid: uuid, rootElementUuid: uuid }),
   },
   beginCanvasInspection: {
     toolName: "beginCanvasInspection",
@@ -704,7 +730,7 @@ const EDIT_TOOL_META = {
     toolName: "validate",
     title: "Validate prototype structure",
     description:
-      "Check model invariants and return prototype metrics and warnings. This checks structural validity, not visual quality; review screenshots at desktop and mobile widths as well.",
+      "Check model invariants and return errors, structural warnings and checked component counts. Does not enforce a component-library preference or verify business behavior/visual quality; verify Preview at required devices and viewport sizes.",
     inputSchema: z
       .object({ componentUuids: z.array(uuid).optional() })
       .strict(),
@@ -716,8 +742,6 @@ const EDIT_TOOL_META = {
       warnings: z.array(z.string()),
       pages: z.number(),
       components: z.number(),
-      codeComponentInstances: z.number(),
-      antDesign6Instances: z.number(),
     }),
   },
   save: {
@@ -745,174 +769,203 @@ const EDIT_TOOL_META = {
 export const prototypeMutationSchema = z.discriminatedUnion("name", [
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteCanvas"),
       input: EDIT_TOOL_META.deleteCanvas.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateCanvas"),
       input: EDIT_TOOL_META.updateCanvas.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateArtboard"),
       input: EDIT_TOOL_META.updateArtboard.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("setPageViewport"),
       input: EDIT_TOOL_META.setPageViewport.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteBreakpoint"),
       input: EDIT_TOOL_META.deleteBreakpoint.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createCanvas"),
       input: EDIT_TOOL_META.createCanvas.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createArtboard"),
       input: EDIT_TOOL_META.createArtboard.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateVector"),
       input: EDIT_TOOL_META.updateVector.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createComponent"),
       input: EDIT_TOOL_META.createComponent.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("insertHtml"),
       input: EDIT_TOOL_META.insertHtml.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("changeElement"),
       input: EDIT_TOOL_META.changeElement.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteElement"),
       input: EDIT_TOOL_META.deleteElement.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createState"),
       input: EDIT_TOOL_META.createState.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createInteraction"),
       input: EDIT_TOOL_META.createInteraction.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createStyleToken"),
       input: EDIT_TOOL_META.createStyleToken.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateInteraction"),
       input: EDIT_TOOL_META.updateInteraction.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteInteraction"),
       input: EDIT_TOOL_META.deleteInteraction.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("copyElement"),
       input: EDIT_TOOL_META.copyElement.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("moveElement"),
       input: EDIT_TOOL_META.moveElement.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateState"),
       input: EDIT_TOOL_META.updateState.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteState"),
       input: EDIT_TOOL_META.deleteState.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateStyleToken"),
       input: EDIT_TOOL_META.updateStyleToken.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteStyleToken"),
       input: EDIT_TOOL_META.deleteStyleToken.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createVariantGroup"),
       input: EDIT_TOOL_META.createVariantGroup.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createVariant"),
       input: EDIT_TOOL_META.createVariant.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createGlobalVariantGroup"),
       input: EDIT_TOOL_META.createGlobalVariantGroup.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createGlobalVariant"),
       input: EDIT_TOOL_META.createGlobalVariant.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("createBreakpoint"),
       input: EDIT_TOOL_META.createBreakpoint.inputSchema,
     })
     .strict(),
   z
     .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("deleteComponent"),
       input: EDIT_TOOL_META.deleteComponent.inputSchema,
     })
@@ -958,17 +1011,10 @@ export const PROTOTYPE_TOOL_META = {
     toolName: "executeBatch",
     title: "Apply one atomic edit transaction",
     description:
-      "Apply 1–30 mutations in order as one undoable Studio transaction. Any failure rolls back every edit. UUID targets must exist before the call; read newly created IDs in a subsequent call. Returns ordered operation receipts whose resourceIndexes reference the shared resources array; identical final resources occur once. Messages remain per operation. Save separately.",
+      "Apply 1–30 native mutations as one undoable transaction. Any failure rolls back every edit. Name an operation with as; later UUID fields can use $name (first created ID), $name.root (component root), or $name.1 (second created ID). References are call-local and backward-only. Returns compact identities and diagnostics, never implicit full models. Read explicitly for verification. Save separately.",
     inputSchema: z
       .object({ operations: z.array(prototypeMutationSchema).min(1).max(30) })
       .strict(),
-    outputSchema: z.object({
-      operations: z.array(z.object({
-        name: z.string(),
-        resourceIndexes: z.array(z.number().int().nonnegative()),
-        messages: z.array(z.string()).optional(),
-      })),
-      resources: z.array(readResultSchema()),
-    }),
+    outputSchema: z.object({ operations: z.array(mutationReceiptSchema) }),
   },
 };

@@ -157,7 +157,9 @@ export function isValidStylePropForTpl(
   }
 
   if (imageCssProps.includes(prop)) {
-    return Tpls.isTplImage(tpl);
+    // Code components can render an image or video and receive its styles
+    // through className; their underlying DOM tag is not known here.
+    return Tpls.isTplImage(tpl) || Tpls.isTplCodeComponent(tpl);
   }
 
   return false;

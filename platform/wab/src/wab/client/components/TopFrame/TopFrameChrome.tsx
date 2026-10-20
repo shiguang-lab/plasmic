@@ -27,7 +27,10 @@ import {
   getLocalEditSession,
   localAiFetch,
 } from "@/wab/client/copilot/local-edit-session";
-import { openDesktopBrowser } from "@/wab/client/desktop-browser";
+import {
+  openDesktopBrowser,
+  openDesktopPreview,
+} from "@/wab/client/desktop-browser";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
 import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import {
@@ -90,7 +93,7 @@ export interface TopFrameChromeProps {
   latestPublishedVersionData:
     { revisionId: string; version: string } | undefined;
   revisionNum: number;
-  desktopTitleBarDragRegion: TopFrameApiArgs<"setDesktopTitleBarDragRegion">;
+  desktopTitleBarDragRegions: TopFrameApiArgs<"setDesktopTitleBarDragRegions">;
   isLocalizationEnabled: boolean;
   showPublishModal: boolean;
   keepPublishModalOpen: boolean;
@@ -260,15 +263,16 @@ export function TopFrameChrome({
   return (
     <>
       {!fullPreview &&
-        rest.desktopTitleBarDragRegion &&
         (navigator.userAgent.includes("PlasmicDesktop/darwin") ||
-          navigator.userAgent.includes("PlasmicDesktop/win32")) && (
+          navigator.userAgent.includes("PlasmicDesktop/win32")) &&
+        rest.desktopTitleBarDragRegions.map((region, index) => (
           <div
+            key={index}
             className="desktop-titlebar-drag-region"
             aria-hidden="true"
-            style={rest.desktopTitleBarDragRegion}
+            style={region}
           />
-        )}
+        ))}
       {!fullPreview &&
         (APP_ROUTES.projectDocs.parse(pathname, false) ? null : (
           <>
@@ -533,8 +537,8 @@ export function useTopFrameState({
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
     React.useState<{ revisionId: string; version: string }>();
   const [revisionNum, setRevisionNum] = React.useState(0);
-  const [desktopTitleBarDragRegion, setDesktopTitleBarDragRegion] =
-    React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegion">>(null);
+  const [desktopTitleBarDragRegions, setDesktopTitleBarDragRegions] =
+    React.useState<TopFrameApiArgs<"setDesktopTitleBarDragRegions">>([]);
   const [activeModal, setActiveModal] = React.useState<
     "publish" | "share" | null
   >(null);
@@ -598,6 +602,7 @@ export function useTopFrameState({
   const topFrameApi = React.useMemo<TopFrameApi>(
     () => ({
       openDesktopBrowser,
+      openDesktopPreview,
       pushLocation(path, query, hash) {
         validateNewLocation(path, history.location);
         // history@5 doesn't resolve missing parts like history@4 did:
@@ -646,7 +651,7 @@ export function useTopFrameState({
       setDocumentTitle: async (val: string) => {
         document.title = val;
       },
-      setDesktopTitleBarDragRegion: asyncWrapper(setDesktopTitleBarDragRegion),
+      setDesktopTitleBarDragRegions: asyncWrapper(setDesktopTitleBarDragRegions),
       setPrimitiveValues: async (vals) => {
         setRevisionNum(vals.revisionNum);
         setIsLocalizationEnabled(vals.isLocalizationEnabled);
@@ -768,7 +773,7 @@ export function useTopFrameState({
     topFrameApi,
     latestPublishedVersionData,
     revisionNum,
-    desktopTitleBarDragRegion,
+    desktopTitleBarDragRegions,
     activatedBranch,
     isLocalizationEnabled,
     localizationScheme,

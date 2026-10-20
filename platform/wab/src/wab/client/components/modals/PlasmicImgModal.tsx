@@ -3,7 +3,7 @@ import { confirm } from "@/wab/client/components/quick-modals";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawnWrapper } from "@/wab/shared/common";
-import { notification } from "antd";
+import { message } from "antd";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -129,8 +129,8 @@ export async function showPlasmicImgModal(studioCtx: StudioCtx) {
     });
     const saveResult = await studioCtx.save();
     if (saveResult === "Success") {
-      notification.info({
-        message: (
+      void message.info({
+        content: (
           <UiText message="Successfully enabled image optimization. Reloading the project to render the updated images..." />
         ),
         duration: 5,

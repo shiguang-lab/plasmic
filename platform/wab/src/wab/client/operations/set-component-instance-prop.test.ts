@@ -228,13 +228,30 @@ describe("setComponentInstanceProp", () => {
     }
   });
 
-  it("errors on a param type that is not supported yet", () => {
+  it("stores native query result objects without changing the registered type", () => {
+    const { button, instance, getArg, opts } = setupComponentWithInstance();
+    for (const value of [
+      { data: [] },
+      { data: [{ id: "one", amount: 0, enabled: false }], schema: { id: "audiences", fields: [] } },
+      { data: null, isLoading: true },
+      { data: { id: "one" } },
+    ]) {
+      expect(setComponentInstanceProp(instance, "query", value, opts).isOk()).toBe(true);
+      expect(tryExtractJson(getArg(instance, "query")!.expr)).toEqual(value);
+    }
+    expect(button.params.find(p => p.variable.name === "query")!.type.name).toBe("queryData");
+  });
+
+  it("rejects query data with no result envelope and preserves the previous value", () => {
     const { instance, getArg, opts } = setupComponentWithInstance();
-
-    const result = setComponentInstanceProp(instance, "query", {}, opts);
-
-    assert(result.isErr(), "expected error");
-    expect(result.error.message).toContain("is not supported yet");
-    expect(getArg(instance, "query")).toBeUndefined();
+    const value = { data: [{ id: "one" }] };
+    expect(setComponentInstanceProp(instance, "query", value, opts).isOk()).toBe(true);
+    for (const invalid of [{}, [], [{ id: "one" }], null, "rows", 1]) {
+      const result = setComponentInstanceProp(instance, "query", invalid, opts);
+      assert(result.isErr(), "expected error");
+      expect(result.error.message).toContain("query result object with a data field");
+      expect(result.error.recoverable).not.toBe(true);
+      expect(tryExtractJson(getArg(instance, "query")!.expr)).toEqual(value);
+    }
   });
 });

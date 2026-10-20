@@ -13,7 +13,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { arrayMoveIndex } from "@/wab/shared/collections";
 import * as tokens from "@/wab/styles/_tokens";
-import { Menu, notification } from "antd";
+import { Menu, notification, message } from "antd";
 import React from "react";
 
 interface RolesControlProps {
@@ -78,8 +78,8 @@ export function RolesControl({ appCtx, project }: RolesControlProps) {
                   <Menu.Item
                     onClick={async () => {
                       await navigator.clipboard.writeText(role.id);
-                      notification.success({
-                        message: studioUiT("Role ID copied to clipboard"),
+                      void message.success({
+                        content: studioUiT("Role ID copied to clipboard"),
                       });
                     }}
                   >

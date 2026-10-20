@@ -1,5 +1,6 @@
 // Runs only in the separately packaged acceptance app and isolated profile.
 const electron = require("electron");
+require("./src/runtime-security.cjs").configureProductionRuntime(electron.app);
 const Module = require("node:module");
 const load = Module._load;
 const guardedElectron = new Proxy(electron, {

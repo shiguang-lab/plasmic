@@ -10,6 +10,16 @@ Library: [Ant Design v6](../index.md).
 
 Read the installed Table contract and the real [Column](table.md#columns) instances. [SearchForm + Tabs + Table composition](../../overseas/compositions/search-table.md) owns filters, scopes, vertical scrolling and business pagination; [Tab Item](tabs.md#items) owns each panel content Slot.
 
+## Complete editable table
+
+Before inserting each Table, read its live Table and Column contracts and define the required ordered fields, headers, dataIndex/render scopes, widths, operations and pagination in the source-derived Page plan. Insert real Table.Column nodes in the Table children Slot (ColumnGroup only for a real grouped header). Rows do not generate columns automatically. Use an editable render Slot with real controls/ActionGroup and required callbacks for operations; action-name strings are not interactions. Read back the columns and verify visible headers plus at least two distinct rows before advancing to another Page. The structure gate rejects missing data, missing Column nodes and columns with neither dataIndex nor render content.
+
+For a required record action, declare `rowActions` in the [source inventory](../../../requirement-alignment.md#structural-gate). Do not use link cell formatting with a value such as “查看”: link formatting consumes a destination, so that label can become a broken URL. Use Column.render and a real Button/ActionGroup with the live row scope and handler. Its destination or detail overlay must display the clicked record. For query-driven tables declare dynamic data/state dependencies; in Preview enter a nonmatching keyword, check rows **and total** become zero, then reset and check recovery. The presence of onSearch/onClick does not establish this behavior.
+
+## Data contract
+
+The registered `data` is queryData; runtime rows come from `data.data`. Static data uses a JSON result object: `data-props='{"data":{"data":[{"id":"one","count":0}]}}'`; an empty result is `{"data":[]}`. An array alone is invalid. For an existing array state `rows`, use `{"data":{"data":"{{ $state.rows }}"}}` or the whole expression `{{ ({data: $state.rows}) }}`. Native result metadata is retained. Do not delete required data to bypass errors. Build JSON with a serializer; when generating HTML in another language, verify its final binding delimiters before insertion. Read Column scopes; verify visible rows, total, page and pageSize against the requirement.
+
 ## Content and scroll width
 
 Use real Antd6 Table columns and render Slots. Place operations last and fixed right, size the column to visible actions, and use the registered [ActionGroup](../../react_ui/components/action-group.md). Preserve complete source values and meaningful 0/false. Wide content scrolls horizontally within the Table, never widens the viewport. Read [Tooltip](tooltip.md) before configuring overflow content.

@@ -1188,6 +1188,7 @@ export function importedProjectSchema() {
     __type: z.literal("ImportedProject"),
     id: z.string().describe("Imported project id."),
     name: z.string().describe("Imported project name."),
+    version: z.string().optional().describe("Installed native dependency version."),
     ...projectResourcesSchema().shape,
   });
 }

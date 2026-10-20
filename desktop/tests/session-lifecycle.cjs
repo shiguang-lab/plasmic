@@ -9,6 +9,7 @@ const { once } = require("node:events");
 const { setTimeout: delay } = require("node:timers/promises");
 const { build, Platform, Arch } = require("electron-builder");
 const { getCurrentFuseWire, FuseV1Options } = require("@electron/fuses");
+const { productionFuses } = require("../src/runtime-security.cjs");
 const desktop = path.resolve(__dirname, "..");
 const reports = path.join(desktop, "desktop-report/session-lifecycle");
 const report = { status: "RUNNING", architecture: process.arch, phases: {} };
@@ -44,7 +45,7 @@ async function runPhase(app, profile, phase) {
   for (const version of ["1.0.1", "1.0.2"]) {
     const project = path.join(temporary, version);
     await fs.mkdir(path.join(project, "src"), { recursive: true });
-    for (const file of ["device-credentials.cjs", "unified-login.cjs", "ui-error.cjs", "session-ticket.cjs", "mac-updater.cjs", "update-architecture.cjs", "mac-update-install.sh"]) {
+    for (const file of ["runtime-security.cjs", "device-credentials.cjs", "unified-login.cjs", "ui-error.cjs", "session-ticket.cjs", "mac-updater.cjs", "update-architecture.cjs", "mac-update-install.sh"]) {
       await fs.copyFile(path.join(desktop, "src", file), path.join(project, "src", file));
     }
     for (const name of ["semver", "yaml"]) await fs.cp(path.join(desktop, "node_modules", name), path.join(project, "node_modules", name), { recursive: true });
@@ -57,13 +58,16 @@ async function runPhase(app, profile, phase) {
         electronDist: path.join(desktop, "node_modules/electron/dist"), electronLanguages: ["en"],
         directories: { output: path.join(project, "out"), buildResources: path.join(desktop, "assets") },
         files: ["src/**/*", "session-lifecycle-phase.cjs", "package.json"], asar: true, npmRebuild: false, forceCodeSigning: true,
-        electronFuses: { enableCookieEncryption: false },
+        electronFuses: productionFuses,
         // Different code hashes exercise persistence without a stable Keychain identity.
         mac: { identity: "-", hardenedRuntime: false, notarize: false },
       } });
     const app = path.join(project, `out/mac${process.arch === "arm64" ? "-arm64" : ""}/Plasmic.app`);
     const wire = await getCurrentFuseWire(app);
     assert.equal(wire[FuseV1Options.EnableCookieEncryption], 48, "Cookie encryption must be disabled");
+    for (const option of [FuseV1Options.RunAsNode, FuseV1Options.EnableNodeOptionsEnvironmentVariable, FuseV1Options.EnableNodeCliInspectArguments]) {
+      assert.equal(wire[option], 48, "Production Node launch and debugging fuses must be disabled");
+    }
     verifyMacSignature(app);
     const signature = require("node:child_process").spawnSync("/usr/bin/codesign", ["-dv", "--verbose=4", app], { encoding: "utf8" });
     hashes.push(signature.stderr.match(/^CDHash=(.+)$/m)?.[1]);

@@ -45,6 +45,7 @@ export interface SavedEditorView {
 
 export interface TopFrameApi {
   openDesktopBrowser(): Promise<void>;
+  openDesktopPreview(url: string): Promise<void>;
   getSavedEditorView(projectId: string): Promise<SavedEditorView | null>;
   setStudioReady(): Promise<void>;
   pushLocation(path?: string, query?: string, hash?: string): void;
@@ -78,8 +79,8 @@ export interface TopFrameApi {
   promptBilling(): Promise<void>;
 
   setDocumentTitle(val: string): Promise<void>;
-  setDesktopTitleBarDragRegion(
-    region: { left: number; top: number; width: number; height: number } | null,
+  setDesktopTitleBarDragRegions(
+    regions: { left: number; top: number; width: number; height: number }[],
   ): Promise<void>;
   setShowPublishModal(val: boolean): Promise<void>;
   setKeepPublishModalOpen(val: boolean): Promise<void>;

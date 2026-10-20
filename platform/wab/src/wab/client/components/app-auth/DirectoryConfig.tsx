@@ -30,7 +30,7 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { mkUuid, uniqueName } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Menu, notification } from "antd";
+import { Menu, notification, message } from "antd";
 import * as React from "react";
 import { KeyedMutator } from "swr";
 import validator from "validator";
@@ -471,15 +471,15 @@ function AddUserToDirectoryModal(props: {
 
   async function addUserToDirectory() {
     if (!validator.isEmail(userEmail)) {
-      notification.warning({
-        message: uiT("Invalid email"),
+      void message.warning({
+        content: uiT("Invalid email"),
       });
       return;
     }
 
     if (users.some((u) => u.email === userEmail)) {
-      notification.warning({
-        message: uiT("User already in the directory"),
+      void message.warning({
+        content: uiT("User already in the directory"),
       });
       return;
     }
@@ -487,8 +487,8 @@ function AddUserToDirectoryModal(props: {
     await appCtx.api.addDirectoryEndUsers(directory.id, [userEmail]);
     await mutateUsers();
     setUserEmail("");
-    notification.success({
-      message: uiT("User added"),
+    void message.success({
+      content: uiT("User added"),
     });
   }
 

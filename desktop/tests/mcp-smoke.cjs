@@ -50,11 +50,11 @@ app
     console.log("MCP CONNECTED");
     const listing = await client.listTools();
     assert.deepEqual(listing.tools.map((tool) => tool.name).sort(), [
-      "browser",
       "capture_browser",
       "create_org",
       "create_project",
       "create_workspace",
+      "design_reference",
       "execute",
       "execute_batch",
       "export_code",
@@ -66,6 +66,7 @@ app
       "get_screenshot",
       "get_style",
       "import_image",
+      "import_reference",
       "list_orgs",
       "list_projects",
       "list_workspaces",
@@ -73,8 +74,12 @@ app
       "open_design",
       "open_org",
       "open_workspace",
+      "preview",
+      "prototype_task",
       "read_image",
+      "read_result",
       "read_skill",
+      "reference_browser",
       "search_stock_images",
       "snapshot_layout",
       "vectorize_image",
@@ -88,6 +93,27 @@ app
       );
       report.calls.push({ name, args, isError: !!result.isError });
       assert(!result.isError, result.content?.[0]?.text || name + " failed");
+      const value = JSON.parse(result.content[0].text);
+      if (value?.__type === "ResultReference") {
+        async function recover(resultId, path = []) {
+          let offset = 0, output;
+          do {
+            const response = await call("read_result", { resultId, path, offset, limit: 16000 });
+            const page = JSON.parse(response.content[0].text);
+            if (page.type === "string") output = (output || "") + page.text;
+            else if (page.entries) {
+              output ??= page.type === "array" ? [] : {};
+              for (const entry of page.entries) Object.defineProperty(output, entry.key, {
+                value: entry.reference ? await recover(resultId, [...path, entry.key]) : entry.value,
+                enumerable: true, writable: true, configurable: true,
+              });
+            } else return page.value;
+            offset = page.nextOffset;
+          } while (offset !== undefined);
+          return output;
+        }
+        result.content[0].text = JSON.stringify(await recover(value.resultId));
+      }
       return result;
     }
     const state = JSON.parse((await call("get_app_state")).content[0].text);
@@ -95,14 +121,14 @@ app
     const projects = JSON.parse((await call("list_projects")).content[0].text);
     assert(JSON.stringify(projects).includes(projectId));
     await call("open_design", { projectId: projectId });
-    const ready = JSON.parse((await call("get_app_state")).content[0].text);
+    const ready = JSON.parse((await call("get_app_state", { toolNames: ["createComponent"] })).content[0].text);
     assert(ready.ready && ready.editorTools.createComponent.inputSchema);
     async function execute(name, input = {}) {
       return JSON.parse(
         (await call("execute", { name, input })).content[0].text,
       );
     }
-    const overview = await execute("read");
+    const overview = await execute("read", { collection: "importedProjects" });
     assert(
       JSON.stringify(overview).includes("plasmicAntd6Button") ||
         JSON.stringify(overview).includes("plasmic-antd6-button"),
@@ -113,7 +139,7 @@ app
       type: "page",
       path: "/desktop-mcp-" + stamp,
     });
-    const componentUuid = created.results[0].uuid;
+    const componentUuid = created.created[0].uuid;
     await execute("insertHtml", {
       componentUuid,
       html:
@@ -121,7 +147,7 @@ app
         componentProjectId +
         '" data-props=\'{"type":"primary"}\'><slot name="children">Save design</slot></plasmic-component></main>',
     });
-    const page = await execute("read", { componentUuids: [componentUuid] });
+    const page = await execute("read", { view: "full", componentUuids: [componentUuid] });
     const markup = page.results[0].baseVariantTplTree;
     const elementUuid = markup.match(/\bid="([^"]+)"/)?.[1];
     assert(elementUuid, "No editable element ID returned");
@@ -140,14 +166,10 @@ app
     assert(persisted.saved);
     const screenshot = await call("get_screenshot", { componentUuid });
     const image = screenshot.content.find((item) => item.type === "image");
-    assert.equal(image.mimeType, "image/png");
+    assert.equal(image.mimeType, "image/webp");
     const bytes = Buffer.from(image.data, "base64");
-    assert(
-      bytes
-        .subarray(0, 8)
-        .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
-    );
-    fs.writeFileSync(path.join(reportDir, "prototype.png"), bytes);
+    assert.equal((await require("sharp")(bytes).metadata()).format, "webp");
+    fs.writeFileSync(path.join(reportDir, "prototype.webp"), bytes);
     // Reload the app, then use MCP to read the persisted page from NAS.
     await new Promise((resolve) => {
       window.webContents.once("did-finish-load", resolve);
@@ -157,7 +179,7 @@ app
       projectId: projectId,
       componentUuid,
     });
-    const reloaded = await execute("read", { componentUuids: [componentUuid] });
+    const reloaded = await execute("read", { view: "full", componentUuids: [componentUuid] });
     assert(reloaded.results[0].baseVariantTplTree.includes("#eef4ff"));
     // Input rejection belongs to the tool result, not a broken MCP connection.
     const unknown = await client.callTool({

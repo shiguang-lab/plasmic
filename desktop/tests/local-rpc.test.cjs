@@ -7,6 +7,38 @@ const net = require("node:net");
 const { setTimeout: delay } = require("node:timers/promises");
 const { startRpc, requestRpc } = require("../src/local-rpc.cjs");
 
+test("opt-in metrics count script RPC bytes without retaining content or credentials", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-metrics-"));
+  const previous = process.env.PLASMIC_RPC_METRICS;
+  process.env.PLASMIC_RPC_METRICS = path.join(profile, "metrics.jsonl");
+  const result = { secret: "never-record-returned-content" };
+  const stop = await startRpc(profile, async () => result);
+  try {
+    const input = { name: "read", privateValue: "never-record-input-content" };
+    await requestRpc(profile, "execute", input);
+    const text = await fs.readFile(process.env.PLASMIC_RPC_METRICS, "utf8");
+    const record = JSON.parse(text);
+    assert.equal(record.operation, "read");
+    assert.equal(record.inputBytes, Buffer.byteLength(JSON.stringify(input)));
+    assert.equal(record.responseBytes, Buffer.byteLength(JSON.stringify({ result })));
+    assert.equal(record.failed, false);
+    assert.ok(!text.includes("never-record") && !text.includes("token"));
+    const project = { name: "never-record-project-name" };
+    await requestRpc(profile, "create_project", project);
+    const all = await fs.readFile(process.env.PLASMIC_RPC_METRICS, "utf8");
+    const creation = all.trim().split("\n").map(JSON.parse)[1];
+    assert.equal(creation.method, "create_project");
+    assert.equal(creation.operation, undefined);
+    assert.equal(creation.inputBytes, Buffer.byteLength(JSON.stringify(project)));
+    assert.ok(!all.includes("never-record"));
+  } finally {
+    if (previous === undefined) delete process.env.PLASMIC_RPC_METRICS;
+    else process.env.PLASMIC_RPC_METRICS = previous;
+    await stop();
+    await fs.rm(profile, { recursive: true, force: true });
+  }
+});
+
 test("RPC authenticates local clients, returns tool errors and removes its address on stop", async () => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-"));
   let calls = 0;

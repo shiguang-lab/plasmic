@@ -80,7 +80,7 @@ class Preview {
 const originalLoad = Module._load;
 Module._load = function (name, ...args) {
   return name === "electron"
-    ? { BrowserWindow: Preview, ipcMain: { on() {}, removeListener() {} } }
+    ? { app: { isPackaged: true, getPath: () => require("node:os").tmpdir() }, BrowserWindow: Preview, ipcMain: { on() {}, removeListener() {} } }
     : originalLoad.call(this, name, ...args);
 };
 const { renderCanvas } = require("../src/canvas.cjs");
@@ -212,7 +212,7 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
   const controller = new DesktopController(() => windowFor(source), {});
   controller.ready = async () => {};
   try {
-    const layout = await controller.dispatch("snapshot_layout", {});
+    const layout = await controller.dispatch("snapshot_layout", { view: "full" });
     assert.equal(layout.frames[0].problems.length, 1);
     assert.equal(
       layout.frames[0].elements[layout.frames[0].problems[0].index].text,
@@ -223,7 +223,7 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
       value: doc.documentElement,
     });
     Object.defineProperty(doc.documentElement, "clientWidth", { value: 390 });
-    const pageScroll = await controller.dispatch("snapshot_layout", {});
+    const pageScroll = await controller.dispatch("snapshot_layout", { view: "full" });
     assert.equal(pageScroll.frames[0].problems.length, 1);
     scroll.getBoundingClientRect = () => ({
       x: 32,
@@ -234,7 +234,7 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
       height: 20,
     });
     Object.defineProperty(scroll, "clientWidth", { value: 800 });
-    const overflow = await controller.dispatch("snapshot_layout", {});
+    const overflow = await controller.dispatch("snapshot_layout", { view: "full" });
     assert.equal(overflow.frames[0].problems.length, 3);
   } finally {
     controller.close();
@@ -305,7 +305,7 @@ test("layout text excludes descendant CSS, scripts and hidden content", async ()
   const controller = new DesktopController(() => windowFor(source), {});
   controller.ready = async () => {};
   try {
-    const layout = await controller.dispatch("snapshot_layout", {});
+    const layout = await controller.dispatch("snapshot_layout", { view: "full" });
     const section = layout.frames[0].elements.find(
       (el) => el.tag === "section",
     );

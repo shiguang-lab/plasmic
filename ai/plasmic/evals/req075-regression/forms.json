@@ -220,7 +220,7 @@
           }
         }
       ],
-      "componentUuid": "_d5QAoTzLAKE"
+      "path": "/req-075/groups"
     },
     {
       "forms": [
@@ -322,7 +322,7 @@
           "reason": "SQL 编辑器由独立的 SQL 校验、预跑和保存流程管理"
         }
       ],
-      "componentUuid": "G3RT9K005oqW"
+      "path": "/req-075/regular"
     },
     {
       "forms": [
@@ -356,7 +356,7 @@
           "reason": "SQL 编辑器由独立的 SQL 校验、预跑和保存流程管理"
         }
       ],
-      "componentUuid": "DLssTe-feXBA"
+      "path": "/req-075/onetime"
     },
     {
       "forms": [
@@ -391,7 +391,7 @@
           ]
         }
       ],
-      "componentUuid": "pwwRrDzWwpKg"
+      "path": "/req-075/detail"
     }
   ]
 }

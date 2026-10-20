@@ -35,7 +35,7 @@ def canonical(model):
 
 def load(path):
     pages = {}
-    for model in json.loads(path.read_text())["results"]:
+    for model in json.loads(path.read_text(encoding="utf-8"))["results"]:
         if model.get("type") != "page":
             continue
         route = model["pageMeta"]["path"]
@@ -63,7 +63,7 @@ def main():
         results.append({"path": route, "equal": first_hash == second_hash, "firstFingerprint": first_hash, "secondFingerprint": second_hash})
     report = {"passed": bool(results) and all(r["equal"] for r in results), "pages": results}
     if args.report:
-        args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+        args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
     raise SystemExit(0 if report["passed"] else 1)
 

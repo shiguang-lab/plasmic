@@ -24,7 +24,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { isStampedIgnoreError } from "@/wab/shared/error-handling";
 import { TplNode } from "@/wab/shared/model/classes";
 import * as Sentry from "@sentry/browser";
-import { notification } from "antd";
+import { message as antdMessage, notification } from "antd";
 import { IconType } from "antd/lib/notification/interface";
 import React from "react";
 
@@ -75,32 +75,33 @@ export function showError(
   const newCount = 1 + (errorMessageCounters.get(info.title) || 0);
   errorMessageCounters.set(info.title, newCount);
 
-  notification.open({
+  const heading = (
+    <>
+      <UiLabel text={info.title} />
+      {newCount > 1 && (
+        <UiText message=" ({count} occurrences)" values={{ count: newCount }} />
+      )}
+    </>
+  );
+  const detail =
+    description !== undefined ? (
+      <UiLabel text={description} />
+    ) : businessError ? (
+      <ErrorDescription error={businessError} />
+    ) : (
+      <UiLabel text={info.description ?? ""} />
+    );
+  const onClose = () => errorMessageCounters.delete(info.title);
+  void antdMessage.open({
     type: info.type,
     key: info.title,
-    message: (
+    content: (
       <>
-        <UiLabel text={info.title} />
-        {newCount > 1 && (
-          <UiText
-            message=" ({count} occurrences)"
-            values={{ count: newCount }}
-          />
-        )}
+        <div>{heading}</div>
+        <div>{detail}</div>
       </>
     ),
-    description:
-      description !== undefined ? (
-        <UiLabel text={description} />
-      ) : businessError ? (
-        <ErrorDescription error={businessError} />
-      ) : (
-        <UiLabel text={info.description ?? ""} />
-      ),
-    duration: info.type === "warning" ? 10 : 0,
-    onClose: () => {
-      errorMessageCounters.delete(info.title);
-    },
+    onClose,
   });
 }
 

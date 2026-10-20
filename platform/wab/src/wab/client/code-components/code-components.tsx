@@ -77,7 +77,7 @@ import {
 import { PlasmicElement } from "@plasmicapp/host";
 import { type CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import { type GlobalContextMeta } from "@plasmicapp/host/registerGlobalContext";
-import { notification } from "antd";
+import { message as antdMessage, notification } from "antd";
 import { ok, safeTry } from "neverthrow";
 import React from "react";
 
@@ -125,29 +125,18 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
   },
   onSchemaToTplWarnings: (warnings) => {
     warnings.forEach((err) => {
-      notification.error({
-        message: err.message,
-        description: err.description,
-        duration: 0,
-      });
+      console.warn("[code-components]", err.message, err.description);
       if (err.shouldLogError) {
         reportError(new Error(err.message));
       }
     });
   },
   onSchemaToTplError: (err) => {
-    notification.error({
-      message: err.message,
-      duration: 15,
-    });
+    void antdMessage.error(err.message);
   },
   onElementStyleWarnings: (warnings) => {
     warnings.forEach((err) => {
-      notification.error({
-        message: err.message,
-        description: err.description,
-        duration: 0,
-      });
+      console.warn("[code-components]", err.message, err.description);
       if (err.shouldLogError) {
         reportError(new Error(err.message));
       }

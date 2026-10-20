@@ -4,7 +4,7 @@ const Module = require("node:module");
 const original = Module._load;
 Module._load = function (name, ...args) {
   return name === "electron"
-    ? { ipcMain: { on() {}, removeListener() {} } }
+    ? { app: { getPath: () => require("node:os").tmpdir() }, ipcMain: { on() {}, removeListener() {} } }
     : original.call(this, name, ...args);
 };
 const { DesktopController } = require("../src/controller.cjs");

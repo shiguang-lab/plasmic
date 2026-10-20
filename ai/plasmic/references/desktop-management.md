@@ -5,6 +5,8 @@ to the same platform resource: MCP uses `orgId`, and responses retain `team` or
 `teams`. Use public Desktop MCP tools and the signed-in account's permissions.
 Discovery and resource creation work without a ready Studio editor.
 
+Queries/creation return resource IDs/names/parents only. No permissions, members, billing, configuration or full-detail bypass is exposed. The platform enforces access; confirm current edit capability with identify after opening. A creation result supplies project/workspace/team identity, not a revision object; read current revision from the opened editor context.
+
 ## Find or choose each level
 
 | Level | Discovery | Authorized creation | ID to retain |
@@ -50,7 +52,7 @@ requested hierarchy conflicts; check its current identity before editing.
 
 Use the selected `workspace.id` in `create_project`; omitting `workspaceId`
 creates in the personal Workspace and cannot satisfy a chosen Workspace.
-Creation returns `project` and `rev`, and creates an empty private Project.
+Creation returns `project` identity and creates an empty private Project.
 Creation and query tools do not navigate or save the active design.
 
 Call `open_design({projectId: project.id})` only after the full target is resolved.
@@ -59,7 +61,7 @@ Inspect the result, then read `get_app_state`: `projectId` must match and `ready
 must be true. Read its actual editor schemas and call `execute` → `identify`
 with the actual model/client and skill `plasmic`; confirm the same Project and
 `canEdit` before design writes. Read the live project model and installed library
-contracts, then continue the [prototype workflow](workflows/prototype.md#scope-and-selected-references).
+contracts, then continue the [prototype workflow](workflows/prototype.md#resolve-scope-and-contracts).
 Do not edit after a failed open, unexpected identity or missing edit permission.
 
 `open_org({orgId})` opens `/orgs/:orgId`; `open_workspace({workspaceId})` opens

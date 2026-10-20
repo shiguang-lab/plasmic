@@ -1,3 +1,5 @@
+import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "@/wab/shared/copilot/mutation-receipt";
+import { readDepth, selectedReadFields, projectReadFields, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
 import {
   isCanvasElementVisible,
   revealCanvasElement,
@@ -33,7 +35,12 @@ import { updateComponentState } from "@/wab/client/operations/update-component-s
 import { updateInteraction } from "@/wab/client/operations/update-interaction";
 import { selectionPath } from "@/wab/client/selection-context";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { formatWIError } from "@/wab/client/web-importer/errors";
+import {
+  formatWIError,
+  formatWIErrors,
+  isRecoverableWIError,
+  WIError,
+} from "@/wab/client/web-importer/errors";
 import { ensureOk } from "@/wab/commons/neverthrow-utils";
 import {
   cloneArenaFrame,
@@ -81,6 +88,7 @@ import {
 } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
+import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import {
   allGlobalVariants,
   getArenaByNameOrUuidOrPath,
@@ -117,23 +125,24 @@ import {
   isKnownVirtualRenderExpr,
 } from "@/wab/shared/model/classes";
 import { frameSizeGroups } from "@/wab/shared/responsiveness";
+import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
 import {
   assertSiteInvariants,
   genSiteErrors,
 } from "@/wab/shared/site-invariants";
 import {
   buildComponentResource,
+  buildElementTree,
+  buildElementProperties,
   buildElementResource,
+  tplToHtml,
 } from "@/wab/shared/web-exporter/component-exporter";
 import {
   buildProjectResource,
-  buildTokenResource,
 } from "@/wab/shared/web-exporter/project-exporter";
 import {
   outputResult,
-  type ReadResultJson,
 } from "@/wab/shared/web-exporter/schema";
-import { batchResult } from "@/wab/shared/copilot/batch-result";
 import { ok } from "neverthrow";
 
 const editTools = new Set<string>([
@@ -251,14 +260,6 @@ function emptyCanvasSpace(
   }
   throw new Error("Cannot find an empty artboard position");
 }
-function canvasResult(studio: StudioCtx) {
-  return outputResult([
-    buildProjectResource(studio.site, undefined, {
-      projectId: studio.siteInfo.id,
-    }),
-  ]);
-}
-
 function vectorAsset(
   studio: StudioCtx,
   componentUuid: string,
@@ -304,7 +305,7 @@ function findComponent(studio: StudioCtx, uuid: string, local = false) {
     ? studio.site.components
     : [
         ...studio.site.components,
-        ...studio.site.projectDependencies.flatMap(
+        ...walkDependencyTree(studio.site, "all").flatMap(
           (dep) => dep.site.components,
         ),
       ];
@@ -388,35 +389,191 @@ async function change<T>(
   );
 }
 
-function componentResult(
-  studio: StudioCtx,
-  component: Component,
-  messages?: string[],
-) {
-  return outputResult(
-    [buildComponentResource(component, { site: studio.site })],
-    messages,
-  );
+function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode | undefined, options: ModelReadOptions) {
+  const fields = selectedReadFields(options);
+  const depth = readDepth(options);
+  assert(!options.propNames || options.view === "properties", "propNames requires view:properties");
+  let resource: Record<string, unknown>;
+  if (tpl) {
+    resource = {
+      __type: "Element", uuid: tpl.uuid, componentUuid: component.uuid,
+      ...("name" in tpl ? { name: tpl.name } : {}),
+      ...(isKnownTplTag(tpl) ? { tag: tpl.tag } : {}),
+      ...(isKnownTplComponent(tpl) ? { registeredComponentUuid: tpl.component.uuid } : {}),
+      ...(fields.some((field) => ["children", "slots", "editable", "source"].includes(field)) ? buildElementTree(tpl, depth) : {}),
+      ...(fields.some((field) => ["properties", "styles", "attributes", "text"].includes(field)) ? buildElementProperties(tpl, studio.site, options.propNames) : {}),
+      ...(fields.includes("baseVariantTplTree") || fields.includes("interactions")
+        ? buildElementResource(tpl, { site: studio.site, depth, includeInteractions: fields.includes("interactions") }) : {}),
+    };
+  } else {
+    resource = ["tree", "properties"].includes(options.view) && !options.fields?.some((field) =>
+      !["__type", "uuid", "name", "type", "rootElementUuid", "baseVariantTplTree", "tree", "properties", "styles", "attributes", "text", "editable", "source"].includes(field))
+      ? { __type: "Component", uuid: component.uuid, name: component.name, type: component.type,
+          ...(fields.includes("baseVariantTplTree") ? { baseVariantTplTree: tplToHtml(component.tplTree, studio.site, depth) } : {}) }
+      : { ...buildComponentResource(component, { site: studio.site, depth, omitTree: !fields.includes("baseVariantTplTree") }) };
+    resource.rootElementUuid = component.tplTree.uuid;
+    if (fields.includes("fromProject") && !studio.site.components.includes(component) && !resource.fromProject) {
+      resource.fromProject = walkDependencyTree(studio.site, "all").find((dep) => dep.site.components.includes(component))?.projectId;
+    }
+    if (fields.includes("tree")) resource.tree = buildElementTree(component.tplTree, depth);
+    if (fields.some((field) => ["properties", "styles", "attributes", "text"].includes(field))) Object.assign(resource, buildElementProperties(component.tplTree, studio.site, options.propNames));
+    for (const field of ["states", "interactions", "dataQueries", "legacyDataQueries", "variantSettings"]) {
+      if (fields.includes(field) && resource[field] === undefined) { resource[field] = []; }
+    }
+    const actions = fields.includes("refActions") && studio.getCodeComponentMeta(component)?.refActions;
+    if (actions) {
+      resource.refActions = Object.entries(actions).map(([name, action]) => ({
+        name, ...(action.displayName ? { displayName: action.displayName } : {}),
+        args: (action.argTypes ?? []).map((arg) => ({ name: arg.name, ...(arg.displayName ? { displayName: arg.displayName } : {}) })),
+      }));
+    }
+  }
+  return projectReadFields(resource, options);
 }
 
 type MutationPlan = {
   components: Component[];
   apply: () => void;
-  result: () => ReturnType<typeof outputResult<ReadResultJson>>;
+  messages?: string[];
 };
 
-async function runMutation(studio: StudioCtx, operation: PrototypeMutation) {
-  assertCanEditPrototype(studio);
-  const plan = await prepareMutation(studio, operation);
-  await change(studio, plan.components, plan.apply);
-  return plan.result();
+/** Collect identities, without exporting props, HTML, expressions or recursive models. */
+function mutationIdentities(studio: StudioCtx, components: Component[]) {
+  const identities = new Map<string, MutationIdentity & { parentUuid?: string }>();
+  const add = (identity: MutationIdentity & { parentUuid?: string }) => identities.set(`${identity.kind}:${identity.uuid}`, identity);
+  for (const component of components) {
+    add({ kind: "Component", uuid: component.uuid, name: component.name, rootElementUuid: component.tplTree.uuid });
+    for (const group of component.variantGroups) {
+      add({ kind: "VariantGroup", uuid: group.uuid, name: group.param.variable.name, componentUuid: component.uuid });
+    }
+    for (const variant of allComponentVariants(component).filter((v) => v !== getBaseVariant(component))) {
+      add({ kind: "Variant", uuid: variant.uuid, name: variant.name, componentUuid: component.uuid });
+    }
+    for (const state of component.states) {
+      add({ kind: "State", uuid: state.param.uuid, name: state.param.variable.name, componentUuid: component.uuid });
+    }
+    for (const tpl of flattenTpls(component.tplTree)) {
+      add({ kind: "Element", uuid: tpl.uuid, componentUuid: component.uuid, ...(tpl.parent ? { parentUuid: tpl.parent.uuid } : {}), ...("name" in tpl && tpl.name ? { name: tpl.name } : {}) });
+      for (const handler of [...getAllEventHandlersOfAttrType(component, tpl), ...getAllEventHandlersOfParamType(component, tpl)]) {
+        if (isKnownEventHandler(handler.expr)) {
+          for (const step of handler.expr.interactions) {
+            add({ kind: "Interaction", uuid: step.uuid, name: step.interactionName, componentUuid: component.uuid });
+          }
+        }
+      }
+    }
+  }
+  for (const token of studio.site.styleTokens) { add({ kind: "StyleToken", uuid: token.uuid, name: token.name }); }
+  for (const group of studio.site.globalVariantGroups) {
+    add({ kind: "GlobalVariantGroup", uuid: group.uuid, name: group.param.variable.name });
+    for (const variant of group.variants) { add({ kind: "GlobalVariant", uuid: variant.uuid, name: variant.name }); }
+  }
+  for (const canvas of studio.site.arenas) {
+    add({ kind: "Canvas", uuid: canvas.name, name: canvas.name });
+    for (const frame of canvas.children) { add({ kind: "Artboard", uuid: frame.uuid, componentUuid: frame.container.component.uuid }); }
+  }
+  return identities;
 }
 
-/** Preparation is read-only; every apply is synchronous inside one recorder. */
-async function prepareMutation(
+async function runNativeBatch(
   studio: StudioCtx,
-  operation: PrototypeMutation,
-): Promise<MutationPlan> {
+  operations: PrototypeMutation[],
+  validate?: (operation: PrototypeMutation) => void,
+) {
+  assertCanEditPrototype(studio);
+  const changeCounter = studio._changeCounter;
+  const assets: MutationAssets[] = [];
+  const names = new Set<string>();
+  for (const operation of operations) {
+    if (operation.as) {
+      assert(!names.has(operation.as), `Duplicate batch binding ${operation.as}`);
+      names.add(operation.as);
+    }
+    assets.push(await prepareMutationAssets(studio, operation));
+  }
+  const bindings = new Map<string, MutationReceipt>();
+  const receipts: MutationReceipt[] = [];
+  // Existing components are observed before the recorder; newly attached ones are
+  // observed through the native site/component attachment operation.
+  await change(studio, [...studio.site.components], () => {
+    assert(studio._changeCounter === changeCounter, "The design changed while preparing batch assets; reread before retrying");
+    for (const [index, raw] of operations.entries()) {
+      try {
+        const operation = prototypeMutationSchema.parse({ ...raw, input: resolveBatchInput(raw.input, bindings) });
+        validate?.(operation);
+        const plan = planMutation(studio, operation, assets[index]);
+        const existingComponents = new Set(studio.site.components);
+        const before = mutationIdentities(studio, plan.components);
+        plan.apply();
+        const after = mutationIdentities(studio, [...new Set([...plan.components.filter((c) => studio.site.components.includes(c)), ...studio.site.components.filter((c) => !existingComponents.has(c))])]);
+        const added = [...after.entries()].filter(([key]) => !before.has(key)).map(([, identity]) => identity);
+        const created = added.filter((identity) => identity.kind !== "Element" || (
+          !added.some((other) => other.kind === "Component" && other.uuid === identity.componentUuid) &&
+          !added.some((other) => other.kind === "Element" && other.uuid === identity.parentUuid)
+        )).map(({ parentUuid, ...identity }) => identity);
+        const primaryKinds: Partial<Record<PrototypeMutation["name"], string>> = {
+          insertHtml: "Element", copyElement: "Element", createComponent: "Component",
+          createState: "State", createInteraction: "Interaction", createStyleToken: "StyleToken",
+          createVariantGroup: "VariantGroup", createVariant: "Variant",
+          createGlobalVariantGroup: "GlobalVariantGroup", createGlobalVariant: "GlobalVariant",
+          createBreakpoint: "GlobalVariant", createCanvas: "Canvas", createArtboard: "Artboard",
+        };
+        const primaryKind = primaryKinds[operation.name];
+        created.sort((a, b) => Number(b.kind === primaryKind) - Number(a.kind === primaryKind));
+        const receipt: MutationReceipt = {
+          name: operation.name, ...(operation.as ? { as: operation.as } : {}), created,
+          ...("componentUuid" in operation.input && operation.input.componentUuid ? { componentUuid: operation.input.componentUuid } : {}),
+          ...("elementUuid" in operation.input && operation.input.elementUuid ? { elementUuid: operation.input.elementUuid } : {}),
+          ...(plan.messages?.length ? { messages: plan.messages } : {}),
+        };
+        receipts.push(receipt);
+        if (operation.as) { bindings.set(operation.as, receipt); }
+      } catch (error) {
+        throw new Error(`Operation ${index} (${raw.name}): ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  });
+  return receipts;
+}
+
+type MutationAssets = {
+  html?: Awaited<ReturnType<typeof htmlToTpl>>;
+  bindHtml?: (component: Component) => void;
+  image?: Awaited<ReturnType<typeof readAndSanitizeSvgXmlAsImage>>;
+};
+
+/** Assets are prepared off-model; target resolution and all writes are synchronous. */
+async function prepareMutationAssets(studio: StudioCtx, operation: PrototypeMutation): Promise<MutationAssets> {
+  if (operation.name === "updateVector") {
+    return { image: await readAndSanitizeSvgXmlAsImage(studio.appCtx, operation.input.svg) };
+  }
+  if (operation.name !== "insertHtml") {
+    return {};
+  }
+  // A detached native frame lets a batch prepare HTML even before its owner exists.
+  const owner = mkComponent({ name: "", type: ComponentType.Frame, tplTree: mkTplTagX("div") });
+  const frame = mkArenaFrame({ site: studio.site, component: owner, name: "", width: 1440, height: 900 });
+  const vtm = new VariantTplMgr([new RootComponentVariantFrame(frame)], studio.site, studio.tplMgr(), new GlobalVariantFrame(studio.site, frame));
+  const html = await htmlToTpl(operation.input.html, { site: studio.site, vtm, appCtx: studio.appCtx, pageHrefs: true });
+  return { html, bindHtml: (component) => {
+    if (html.isOk()) {
+      const base = getBaseVariant(owner);
+      for (const tpl of html.value.tpls.flatMap(flattenTpls)) {
+        for (const setting of tpl.vsettings) {
+          setting.variants = setting.variants.map((variant) => variant === base ? getBaseVariant(component) : variant);
+        }
+      }
+      frame.container.component = component;
+    }
+  } };
+}
+
+async function runMutation(studio: StudioCtx, operation: PrototypeMutation) {
+  const receipts = await runNativeBatch(studio, [operation]);
+  return ensure(receipts[0], "Missing operation receipt");
+}
+
+function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: MutationAssets): MutationPlan {
   if (operation.name === "deleteCanvas" || operation.name === "updateCanvas") {
     const arena = findCanvas(studio, operation.input.canvasName);
     return {
@@ -438,7 +595,7 @@ async function prepareMutation(
           arena.name = operation.input.name;
         }
       },
-      result: () => canvasResult(studio),
+
     };
   }
   if (operation.name === "updateArtboard") {
@@ -461,7 +618,7 @@ async function prepareMutation(
         frame.top = input.y;
         ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
       },
-      result: () => canvasResult(studio),
+
     };
   }
   if (operation.name === "setPageViewport") {
@@ -504,8 +661,11 @@ async function prepareMutation(
             }
           }
         }
+        if (studio.site.arenas.some((arena) => arena.children.some((frame) => isPageComponent(frame.container.component)))) {
+          ensurePageOverviewArena(studio.tplMgr());
+        }
       },
-      result: () => canvasResult(studio),
+
     };
   }
   if (operation.name === "deleteBreakpoint") {
@@ -524,7 +684,7 @@ async function prepareMutation(
         );
         studio.tplMgr().tryRemoveVariant(variant, undefined);
       },
-      result: () => canvasResult(studio),
+
     };
   }
   if (operation.name === "createCanvas") {
@@ -538,7 +698,7 @@ async function prepareMutation(
         );
         studio.tplMgr().addArena(input.name);
       },
-      result: () => canvasResult(studio),
+
     };
   }
   if (operation.name === "createArtboard") {
@@ -579,7 +739,7 @@ async function prepareMutation(
         frame.left = position.x;
         frame.top = position.y;
       },
-      result: () => canvasResult(studio),
+
     };
   }
   if (operation.name === "updateVector") {
@@ -594,7 +754,7 @@ async function prepareMutation(
       "Cannot update an imported SVG asset",
     );
     const image = ensure(
-      await readAndSanitizeSvgXmlAsImage(studio.appCtx, input.svg),
+      assets.image,
       "SVG sanitization failed",
     );
     return {
@@ -607,12 +767,11 @@ async function prepareMutation(
         );
         studio.siteOps().updateImageAsset(asset, image);
       },
-      result: () => componentResult(studio, component),
+
     };
   }
   if (operation.name === "createComponent") {
     const input = operation.input;
-    let created: Component | undefined;
     return {
       components: [],
       apply: () => {
@@ -631,7 +790,7 @@ async function prepareMutation(
             ),
           `Page path "${input.path}" already exists`,
         );
-        created = ensureOk(
+        const created = ensureOk(
           createComponent({
             tplMgr: studio.tplMgr(),
             name: input.name,
@@ -640,27 +799,32 @@ async function prepareMutation(
             ...(input.path ? { pageMeta: { path: input.path } } : {}),
           }),
         );
+        if (input.type === "page") {
+          const arena = ensure(getPageArena(studio.site, created), "Page arena missing");
+          const size = ensure(frameSizeGroups.flatMap((g) => g.sizes).find((s) => s.name === input.preset), "Unknown Studio device preset");
+          for (const row of arena.matrix.rows) {
+            row.cols.splice(1);
+            for (const { frame } of row.cols) {
+              frame.width = size.width;
+              frame.height = size.height;
+              ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+            }
+          }
+          ensurePageOverviewArena(studio.tplMgr());
+        }
       },
-      result: () =>
-        componentResult(studio, ensure(created, "Component not created")),
+
     };
   }
   if (operation.name === "createStyleToken") {
-    // Capture the resource only after Studio finishes model fixups.
-    let created: import("@/wab/shared/model/classes").StyleToken | undefined;
     return {
       components: [],
       apply: () => {
-        created = ensureOk(
+        ensureOk(
           createStyleToken({ tplMgr: studio.tplMgr(), ...operation.input }),
         );
       },
-      result: () =>
-        outputResult([
-          buildTokenResource(ensure(created, "Token not created"), {
-            site: studio.site,
-          }),
-        ]),
+
     };
   }
   if (
@@ -682,13 +846,7 @@ async function prepareMutation(
           );
           deleteStyleToken({ site: studio.site, token });
         },
-        result: () =>
-          outputResult([
-            buildProjectResource(studio.site, undefined, {
-              projectId: studio.siteInfo.id,
-              tokens: true,
-            }),
-          ]),
+
       };
     }
     const input = operation.input;
@@ -728,8 +886,7 @@ async function prepareMutation(
           }
         }
       },
-      result: () =>
-        outputResult([buildTokenResource(token, { site: studio.site })]),
+
     };
   }
   if (
@@ -737,21 +894,14 @@ async function prepareMutation(
     operation.name === "createGlobalVariant" ||
     operation.name === "createBreakpoint"
   ) {
-    const result = () =>
-      outputResult([
-        buildProjectResource(studio.site, undefined, {
-          projectId: studio.siteInfo.id,
-          globalVariants: true,
-          screenBreakpoints: true,
-        }),
-      ]);
+
     if (operation.name === "createGlobalVariantGroup") {
       return {
         components: studio.site.components,
         apply: () => {
           studio.tplMgr().createGlobalVariantGroup(operation.input.name);
         },
-        result,
+
       };
     }
     if (operation.name === "createGlobalVariant") {
@@ -773,7 +923,7 @@ async function prepareMutation(
           );
           studio.tplMgr().createGlobalVariant(group, input.name);
         },
-        result,
+
       };
     }
     const input = operation.input;
@@ -795,7 +945,7 @@ async function prepareMutation(
           spec: new ScreenSizeSpec(input.minWidth, input.maxWidth),
         });
       },
-      result,
+
     };
   }
   const component = findComponent(studio, operation.input.componentUuid, true);
@@ -811,13 +961,7 @@ async function prepareMutation(
           deleteComponent(component, studio.site, studio, studio.tplMgr()),
         );
       },
-      result: () =>
-        outputResult([
-          buildProjectResource(studio.site, undefined, {
-            projectId: studio.siteInfo.id,
-            components: true,
-          }),
-        ]),
+
     };
   }
   const vtm = variantManager(studio, component);
@@ -826,6 +970,17 @@ async function prepareMutation(
   switch (operation.name) {
     case "insertHtml": {
       const input = operation.input;
+      const collectWarnings = (errors: WIError[]) => {
+        const blocking = errors.filter((error) => !isRecoverableWIError(error));
+        assert(
+          !blocking.length,
+          formatWIErrors(blocking).join("; ") +
+            (blocking.some((error) => error.code === "unknown-component")
+              ? " Read the installed component names and contracts, correct the component reference, and retry this operation. No partial tree was inserted."
+              : ""),
+        );
+        messages.push(...formatWIErrors(errors));
+      };
       assert(
         input.location !== "replace" || !!input.elementUuid,
         "Replacement requires an explicit elementUuid",
@@ -833,29 +988,24 @@ async function prepareMutation(
       const target = input.elementUuid
         ? findElement(component, input.elementUuid)
         : component.tplTree;
-      const parsed = ensureOk(
-        await htmlToTpl(input.html, {
-          site: studio.site,
-          vtm,
-          appCtx: studio.appCtx,
-          pageHrefs: true,
-        }),
-      );
-      assert(
-        !parsed.errors.length,
-        parsed.errors.map(formatWIError).join("; "),
-      );
+      const parsedResult = ensure(assets.html, "HTML not prepared");
+      if (parsedResult.isErr()) {
+        collectWarnings(parsedResult.error.errors);
+      }
+      const parsed = ensureOk(parsedResult);
+      collectWarnings(parsed.errors);
       apply = () => {
         assert(
           findElement(component, target.uuid) === target,
           "Target changed while HTML was being prepared",
         );
+        assets.bindHtml?.(component);
         const errors = parsed.finalize({
           component,
           tplMgr: studio.tplMgr(),
           ccRegistry: studio.codeComponentsRegistry,
         });
-        assert(!errors.length, errors.map(formatWIError).join("; "));
+        collectWarnings(errors);
         const result = pasteTpls(parsed.tpls, target, input.location, {
           site: studio.site,
           component,
@@ -872,16 +1022,19 @@ async function prepareMutation(
     }
     case "changeElement": {
       const input = operation.input;
+      const styles = { ...input.styles };
       const cssStyle = document.createElement("div").style;
       for (const [property, value] of Object.entries(input.styles ?? {})) {
         const prop = normProp(property);
         cssStyle.setProperty(prop, "initial");
-        assert(
+        const supported =
           value === null ||
-            isValidStyleProp(prop) ||
-            cssStyle.getPropertyValue(prop) === "initial",
-          `Unsupported CSS property: ${property}`,
-        );
+          isValidStyleProp(prop) ||
+          cssStyle.getPropertyValue(prop) === "initial";
+        if (!supported) {
+          delete styles[property];
+          messages.push(`Ignored unsupported CSS property "${property}".`);
+        }
         cssStyle.removeProperty(prop);
       }
       assert(
@@ -939,12 +1092,13 @@ async function prepareMutation(
               !(name in (input.props ?? {})),
               `Cannot set and reset ${name} in one call`,
             );
-            const param = ensure(
-              tpl.component.params.find(
-                (p) => paramToVarName(tpl.component, p) === name,
-              ),
-              `Unknown component prop ${name}`,
+            const param = tpl.component.params.find(
+              (p) => paramToVarName(tpl.component, p) === name,
             );
+            if (!param) {
+              messages.push(`Ignored reset of unknown component prop "${name}".`);
+              continue;
+            }
             const arg = setting.args.find((a) => a.param === param);
             assert(
               !arg ||
@@ -981,18 +1135,23 @@ async function prepareMutation(
           );
           const vs = vtm.ensureVariantSetting(tpl, combo);
           for (const [name, value] of Object.entries(input.props)) {
-            ensureOk(
-              setComponentInstanceProp(tpl, name, value, {
-                vs,
-                tplMgr: studio.tplMgr(),
-              }),
-            );
+            const result = setComponentInstanceProp(tpl, name, value, {
+              vs,
+              tplMgr: studio.tplMgr(),
+            });
+            if (result.isErr() && result.error.recoverable) {
+              messages.push(
+                `${result.error.message} The existing value or component default was kept.`,
+              );
+            } else {
+              ensureOk(result);
+            }
           }
         }
         if (input.styles) {
           messages.push(
             ...ensureOk(
-              setTplStyles(tpl, input.styles, {
+              setTplStyles(tpl, styles, {
                 studioCtx: studio,
                 vtm,
                 variantCombo: combo,
@@ -1231,6 +1390,7 @@ async function prepareMutation(
   }
   return {
     components: [component],
+    messages,
     apply: () => {
       assert(
         studio.site.components.includes(component),
@@ -1238,15 +1398,7 @@ async function prepareMutation(
       );
       apply();
     },
-    result: () =>
-      studio.site.components.includes(component)
-        ? componentResult(studio, component, messages)
-        : outputResult([
-            buildProjectResource(studio.site, undefined, {
-              projectId: studio.siteInfo.id,
-              components: true,
-            }),
-          ]),
+
   };
 }
 
@@ -1385,29 +1537,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               components: true,
             }),
           );
-          const plan = await prepareMutation(studio, {
-            name: "createComponent",
-            input: parsed,
-          });
-          await change(studio, [], () => {
-            assertLocalBinding(studio, binding);
-            plan.apply();
-          });
-          const result = plan.result();
-          const created = result.results[0];
-          assert(
-            created.__type === "Component",
-            "Created page resource is missing",
-          );
-          return await finish(
-            JSON.stringify(result),
-            before,
-            JSON.stringify(result),
-            {
-              ...binding,
-              componentUuid: created.uuid,
-            },
-          );
+          const [result] = await runNativeBatch(studio, [{ name: "createComponent", input: parsed }], () => assertLocalBinding(studio, binding));
+          const created = ensure(result.created.find((identity) => identity.kind === "Component"), "Created page resource is missing");
+          return await finish(JSON.stringify(result), before,
+            localSnapshot(studio, [findComponent(studio, created.uuid)]),
+            { ...binding, componentUuid: created.uuid });
         }
         if (
           input.name === "save" &&
@@ -1544,8 +1678,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           input.name === "executeBatch"
             ? meta.executeBatch.inputSchema.parse(input.input).operations
             : [{ name: input.name, input: input.input }];
-        const operations = rawOperations.map((raw) => {
-          const op = prototypeMutationSchema.parse(raw);
+        const validateOperation = (op: PrototypeMutation) => {
+          assertLocalBinding(studio, binding);
           assert(
             localEditToolNames.some((name) => name === op.name),
             "Tool is not allowed for canvas AI editing.",
@@ -1587,6 +1721,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             "Keep the component root identity; use changeElement.text for plain text.",
           );
           return op;
+        };
+        const operations = rawOperations.map((raw) => {
+          const op = prototypeMutationSchema.parse(raw);
+          assert(localEditToolNames.some((name) => name === op.name), "Tool is not allowed for canvas AI editing.");
+          return op;
         });
         const finishActivity = studio.copilotActivity.begin(
           operations.map((op) => {
@@ -1595,7 +1734,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               ensure(op.input.componentUuid, "Target component is required"),
             );
             const tpl =
-              "elementUuid" in op.input && op.input.elementUuid
+              "elementUuid" in op.input && op.input.elementUuid && !op.input.elementUuid.startsWith("$")
                 ? findElement(component, op.input.elementUuid)
                 : component.tplTree;
             return {
@@ -1626,41 +1765,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             ),
           ];
           const before = localSnapshot(studio, components);
-          const plans: MutationPlan[] = [];
-          for (const op of operations) {
-            plans.push(await prepareMutation(studio, op));
-          }
-          // HTML preparation can await asset loading. Recheck inside the recorder.
-          await change(studio, components, () => {
-            assertLocalBinding(studio, binding);
-            for (const plan of plans) {
-              plan.apply();
-            }
-          });
-          const outcomes = plans.map((plan) => plan.result());
-          // Long page tasks discover node IDs with queryElements/read instead of
-          // repeating the entire growing page in every mutation reply.
-          const summarized =
-            binding.mode === "page"
-              ? outcomes.map((outcome) => ({
-                  ...outcome,
-                  results: outcome.results.map((resource) =>
-                    resource.__type === "Component"
-                      ? {
-                          __type: resource.__type,
-                          uuid: resource.uuid,
-                          name: resource.name,
-                          states: resource.states,
-                        }
-                      : resource,
-                  ),
-                }))
-              : outcomes;
-          const result = finish(
-            JSON.stringify(batchResult<(typeof summarized)[number]["results"][number]>(operations.map((op) => op.name), summarized)),
-            before,
-            localSnapshot(studio, components),
-          );
+          const receipts = await runNativeBatch(studio, operations, validateOperation);
+          const result = finish(JSON.stringify({ operations: receipts }), before, localSnapshot(studio, components));
           finishActivity("success");
           return result;
         } catch (error) {
@@ -1677,7 +1783,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   identify: defineCopilotTool(meta.identify, async (studio, input) => {
     studio.setPreferredAiOutputFormat(input.outputFormat);
     return {
-      ...input,
       projectId: studio.siteInfo.id,
       projectName: studio.siteInfo.name,
       canEdit:
@@ -1692,52 +1797,81 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     };
   }),
   read: defineCopilotTool(meta.read, async (studio, input) => {
+    const fields = selectedReadFields(input);
+    const depth = readDepth(input);
+    const read = { fields, depth: Number.isFinite(depth) ? depth : "all" as const,
+      ...(input.propNames ? { propNames: input.propNames } : {}) };
+    assert(!input.propNames || (input.view === "properties" && !!(input.componentUuids?.length || input.elements?.length || input.collection === "components")), "propNames requires targeted view:properties");
+    const dependency = input.fromProject && input.fromProject !== studio.siteInfo.id
+      ? ensure(walkDependencyTree(studio.site, "all").find((dep) => dep.projectId === input.fromProject), "Imported project not found") : undefined;
+    const site = dependency?.site ?? studio.site;
+    const projectId = dependency?.projectId ?? studio.siteInfo.id;
+    const findReadComponent = (uuid: string) => {
+      const component = findComponent(studio, uuid);
+      assert(!input.fromProject || site.components.includes(component), "Component is outside the requested project scope");
+      return component;
+    };
+    assert(!input.nameContains || input.collection, "nameContains requires collection");
     if (!input.componentUuids?.length && !input.elements?.length) {
-      return outputResult([
-        buildProjectResource(studio.site, undefined, {
-          projectId: studio.siteInfo.id,
-          components: true,
-          tokens: true,
-          dataTokens: true,
-          screenBreakpoints: true,
-          globalVariants: true,
-        }),
-      ]);
+      if (!input.collection && !input.fields && input.view !== "full") {
+        return { __type: "OutputResult" as const, results: [{
+          __type: "Project", id: projectId,
+          counts: { components: site.components.length, canvases: site.arenas.length,
+            pageFrames: site.pageArenas.reduce((total, arena) => total + [...arena.matrix.rows, ...arena.customMatrix.rows].reduce((count, row) => count + row.cols.length, 0), 0),
+            devicePresets: frameSizeGroups.reduce((total, group) => total + group.sizes.length, 0),
+            tokens: site.styleTokens.length, dataTokens: site.dataTokens.length,
+            globalVariantGroups: site.globalVariantGroups.filter((group) => !isScreenVariantGroup(group) || group === site.activeScreenVariantGroup).length,
+            screenBreakpoints: site.activeScreenVariantGroup?.variants.length ?? 0,
+            importedProjects: site.projectDependencies.length },
+        }], read: { fields: ["id", "counts"], depth: 0 } };
+      }
+      const requested: readonly string[] | undefined = input.collection ? [input.collection] : input.fields;
+      const includes = (field: string) => !requested || requested.includes(field);
+      const project = buildProjectResource(site, undefined, {
+        projectId,
+        components: includes("components"), tokens: includes("tokens"),
+        dataTokens: includes("dataTokens"), screenBreakpoints: includes("screenBreakpoints"),
+        globalVariants: includes("globalVariantGroups"),
+        imports: false,
+      });
+      if (includes("importedProjects")) {
+        project.importedProjects = site.projectDependencies.map((dep) => ({
+          __type: "ImportedProject" as const, id: dep.projectId, name: dep.name,
+          version: dep.version,
+        }));
+      }
+      if (input.collection) {
+        const values = project[input.collection] ?? [];
+        const items = input.nameContains ? values.filter((item) => "name" in item && String(item.name).toLowerCase().includes(ensure(input.nameContains, "Filter missing").toLowerCase())) : values;
+        const selected = items.slice(input.offset, input.offset + input.limit);
+        const expand = input.collection === "components" && (input.view !== "tree" || !!input.fields);
+        const page = expand
+          ? selected.map((item) => readNativeModel(studio, findReadComponent(ensure("uuid" in item && typeof item.uuid === "string" ? item.uuid : undefined, "Component UUID missing")), undefined, input))
+          : input.fields ? selected.map((item) => projectReadFields(item, input)) : selected;
+        return { __type: "OutputResult" as const,
+          results: [{ __type: "Project", id: project.id, [input.collection]: page }],
+          read: { fields: [input.collection], depth: 0,
+            ...(expand || input.fields ? { itemFields: fields, itemDepth: expand ? read.depth : 0 } : {}),
+            ...(input.propNames ? { propNames: input.propNames } : {}) }, total: items.length,
+          ...(input.offset + page.length < items.length ? { nextOffset: input.offset + page.length } : {}),
+        };
+      }
+      return { __type: "OutputResult" as const,
+        results: [input.fields ? projectReadFields(project, input) : project],
+        read: { fields: input.fields ?? Object.keys(project), depth: 0 },
+      };
     }
-    return outputResult([
-      ...(input.componentUuids ?? []).map((uuid) =>
-        (() => {
-          const component = findComponent(studio, uuid);
-          const resource = buildComponentResource(component, {
-            site: studio.site,
-          });
-          const actions = studio.getCodeComponentMeta(component)?.refActions;
-          return actions
-            ? {
-                ...resource,
-                refActions: Object.entries(actions).map(([name, action]) => ({
-                  name,
-                  ...(action.displayName
-                    ? { displayName: action.displayName }
-                    : {}),
-                  args: (action.argTypes ?? []).map((arg) => ({
-                    name: arg.name,
-                    ...(arg.displayName
-                      ? { displayName: arg.displayName }
-                      : {}),
-                  })),
-                })),
-              }
-            : resource;
-        })(),
-      ),
-      ...(input.elements ?? []).map(({ componentUuid, elementUuid }) =>
-        buildElementResource(
-          findElement(findComponent(studio, componentUuid), elementUuid),
-          { site: studio.site },
-        ),
-      ),
-    ]);
+    assert(!input.collection, "collection requires a project read without component or element targets");
+    return {
+      __type: "OutputResult" as const, read,
+      results: [
+        ...(input.componentUuids ?? []).map((uuid) => readNativeModel(studio, findReadComponent(uuid), undefined, input)),
+        ...(input.elements ?? []).map(({ componentUuid, elementUuid }) => {
+          const component = findReadComponent(componentUuid);
+          return readNativeModel(studio, component, findElement(component, elementUuid), input);
+        }),
+      ],
+    };
   }),
   deleteCanvas: defineCopilotTool(meta.deleteCanvas, (studio, input) =>
     runMutation(studio, { name: "deleteCanvas", input }),
@@ -1782,7 +1916,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       if (frame) {
         studio.setStudioFocusOnFrame({ frame, autoZoom: true });
       }
-      return canvasResult(studio);
+      return { canvasName: arena.name, frameUuid: frame?.uuid, componentUuid: frame?.container.component.uuid };
     },
   ),
   readVector: defineCopilotTool(meta.readVector, async (studio, input) => {
@@ -1885,11 +2019,17 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             (!input.registeredComponentUuid ||
               (isKnownTplComponent(tpl) &&
                 tpl.component.uuid === input.registeredComponentUuid)),
-        )
-        .slice(0, input.limit);
-      return outputResult(
-        matches.map((tpl) => buildElementResource(tpl, { site: studio.site })),
-      );
+        );
+      const depth = readDepth(input);
+      const end = input.offset + input.limit;
+      return {
+        __type: "OutputResult" as const,
+        read: { fields: selectedReadFields(input), depth: Number.isFinite(depth) ? depth : "all" as const,
+          ...(input.propNames ? { propNames: input.propNames } : {}) },
+        total: matches.length,
+        ...(end < matches.length ? { nextOffset: end } : {}),
+        results: matches.slice(input.offset, end).map((tpl) => readNativeModel(studio, component, tpl, input)),
+      };
     },
   ),
   importWebPage: defineCopilotTool(
@@ -2134,36 +2274,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   deleteComponent: defineCopilotTool(meta.deleteComponent, (studio, input) =>
     runMutation(studio, { name: "deleteComponent", input }),
   ),
-  executeBatch: defineCopilotTool(meta.executeBatch, async (studio, input) => {
-    assertCanEditPrototype(studio);
-    // Resolve targets and asynchronous HTML imports before entering the recorder.
-    const plans: MutationPlan[] = [];
-    for (const [index, operation] of input.operations.entries()) {
-      try {
-        plans.push(await prepareMutation(studio, operation));
-      } catch (error) {
-        throw new Error(
-          `Operation ${index} (${operation.name}): ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-    await change(
-      studio,
-      Array.from(new Set(plans.flatMap((plan) => plan.components))),
-      () => {
-        for (const [index, plan] of plans.entries()) {
-          try {
-            plan.apply();
-          } catch (error) {
-            throw new Error(
-              `Operation ${index} (${input.operations[index].name}): ${error instanceof Error ? error.message : String(error)}`,
-            );
-          }
-        }
-      },
-    );
-    return batchResult(input.operations.map((op) => op.name), plans.map((plan) => plan.result()));
-  }),
+  executeBatch: defineCopilotTool(meta.executeBatch, async (studio, input) => ({
+    operations: await runNativeBatch(studio, input.operations),
+  })),
   getEditorContext: defineCopilotTool(meta.getEditorContext, async (studio) => {
     const vc = studio.focusedViewCtx();
     const previewFrame = studio.isLiveMode
@@ -2260,6 +2373,42 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             )
           : [],
     };
+  }),
+  preview: defineCopilotTool(meta.preview, async (studio, input) => {
+    const preview = ensure(studio.previewCtx, "Native Preview is unavailable");
+    assert(!preview.popup, "Close the external Preview window before using in-app Preview");
+    assert(!studio.isInteractiveMode, "Exit interactive canvas mode before opening Preview");
+    assert((input.width === undefined) === (input.height === undefined), "Preview width and height must be supplied together");
+    assert(input.action === "open" || (input.componentUuid === undefined && input.width === undefined && input.height === undefined), "close accepts no Page or viewport overrides");
+    const component = input.componentUuid ? findComponent(studio, input.componentUuid) : undefined;
+    assert(!component || (studio.site.components.includes(component) && isPageComponent(component)), "Preview target must be a local Page");
+    if (input.action === "close") {
+      preview.stopLiveMode();
+    } else {
+      if (!preview.isLive) {
+        await preview.toggleLiveMode();
+        await asyncTimeout(0);
+        await preview.parseRoute();
+      }
+      assert(preview.isLive, "Native Preview did not open");
+      if (component) {
+        await preview.pushComponent(component);
+        await preview.parseRoute();
+      }
+      if (input.width !== undefined && input.height !== undefined) {
+        await preview.pushViewport({ viewport: "custom", width: input.width, height: input.height });
+      }
+    }
+    await asyncTimeout(0);
+    await preview.parseRoute();
+    const active = preview.isLive;
+    assert(active === (input.action === "open"), "Native Preview route change did not complete");
+    assert(!active || !component || preview.component === component, "Native Preview opened a different Page");
+    assert(!active || input.width === undefined || (preview.width === input.width && preview.height === input.height), "Native Preview viewport change did not complete");
+    return { mode: active ? "preview" as const : "edit" as const,
+      componentUuid: active ? preview.component?.uuid ?? null : null,
+      path: active ? `/${preview.previewPath.replace(/^\/+/, "")}` : null,
+      width: active ? preview.width : null, height: active ? preview.height : null };
   }),
   restoreEditorView: defineCopilotTool(
     meta.restoreEditorView,
@@ -2360,7 +2509,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   navigate: defineCopilotTool(meta.navigate, async (studio, input) => {
     const component = findComponent(studio, input.componentUuid, true);
     studio.switchToComponentArena(component);
-    return componentResult(studio, component);
+    return { componentUuid: component.uuid, rootElementUuid: component.tplTree.uuid };
   }),
   beginCanvasInspection: defineCopilotTool(
     meta.beginCanvasInspection,
@@ -2427,19 +2576,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     const components = input.componentUuids
       ? input.componentUuids.map((uuid) => findComponent(studio, uuid, true))
       : studio.site.components.filter((c) => !isCodeComponent(c));
-    const instances = components
-      .flatMap((c) => flattenTpls(c.tplTree).filter(isKnownTplComponent))
-      .filter((t) => isCodeComponent(t.component));
     const errors = [...genSiteErrors(studio.site)].map((e) => e.message);
-    const antDesign6Instances = instances.filter((t) =>
-      t.component.name.startsWith("plasmic-antd6-"),
-    ).length;
     const warnings: string[] = [];
-    if (!antDesign6Instances) {
-      warnings.push(
-        "No Ant Design 6 instances found in the selected prototype.",
-      );
-    }
     for (const component of components) {
       if (flattenTpls(component.tplTree).length === 1) {
         warnings.push(`Component "${component.name}" has no child elements.`);
@@ -2453,8 +2591,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       warnings,
       pages: components.filter(isPageComponent).length,
       components: components.length,
-      codeComponentInstances: instances.length,
-      antDesign6Instances,
     };
   }),
   save: defineCopilotTool(meta.save, async (studio) => {

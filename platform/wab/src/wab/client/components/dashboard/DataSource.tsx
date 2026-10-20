@@ -14,7 +14,7 @@ import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { ApiDataSource } from "@/wab/shared/ApiSchema";
 import { assert } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Dropdown, Menu, notification } from "antd";
+import { Dropdown, Menu, message } from "antd";
 import * as React from "react";
 
 export interface DataSourceProps extends DefaultDataSourceProps {
@@ -55,8 +55,8 @@ function DataSource_(
           await appCtx.api.updateDataSource(source.id, {
             workspaceId: response.workspace.id,
           });
-          notification.success({
-            message: translate(
+          void message.success({
+            content: translate(
               getUiLocale(),
               "Integration {part1} moved to {part2}",
               { part1: source.name, part2: response.workspace.name },

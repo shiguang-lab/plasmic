@@ -2,19 +2,560 @@
   "pages": [
     {
       "path": "/req-075/groups",
-      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群"
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群",
+      "bindings": [
+        {
+          "nodeName": "SearchForm",
+          "source": "REQ v1.36 §6.2 query/reset",
+          "events": [
+            "onSearch",
+            "onReset"
+          ]
+        },
+        {
+          "nodeName": "AllGroupsTable",
+          "source": "REQ v1.36 §6.2 draft/applied filters and All/Mine results",
+          "props": [
+            "data"
+          ],
+          "dynamicProps": [
+            "data"
+          ],
+          "propStateDependencies": {
+            "data": [
+              "applied"
+            ]
+          }
+        },
+        {
+          "nodeName": "MyGroupsTable",
+          "source": "REQ v1.36 §6.2 draft/applied filters and All/Mine results",
+          "props": [
+            "data"
+          ],
+          "dynamicProps": [
+            "data"
+          ],
+          "propStateDependencies": {
+            "data": [
+              "applied"
+            ]
+          }
+        }
+      ],
+      "rowActions": [
+        {
+          "column": "AllGroupsOperationsColumn",
+          "control": "AllGroupsRowActions",
+          "event": "onAction",
+          "source": "REQ v1.36 §6.2 role/state row operations"
+        },
+        {
+          "column": "MyGroupsOperationsColumn",
+          "control": "MyGroupsRowActions",
+          "event": "onAction",
+          "source": "REQ v1.36 §6.2 role/state row operations"
+        }
+      ],
+      "runtimeCases": [
+        {
+          "id": "no-match-search",
+          "source": "REQ v1.36 §6.2 query changes actual rows; fixture first row is 墨西哥授信用户促活",
+          "steps": [
+            {
+              "action": "fill",
+              "role": "textbox",
+              "value": "NO_MATCH_REQ075"
+            },
+            {
+              "action": "click",
+              "role": "button",
+              "name": "查询"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "text",
+              "text": "墨西哥授信用户促活",
+              "present": false
+            }
+          ]
+        },
+        {
+          "id": "reset-search",
+          "source": "REQ v1.36 §6.2 reset restores default results",
+          "steps": [
+            {
+              "action": "click",
+              "role": "button",
+              "name": "重置"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "text",
+              "text": "墨西哥授信用户促活",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "nodeName": "AllGroupsTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群; source-required tabular results"
+        },
+        {
+          "nodeName": "MyGroupsTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群; source-required tabular results"
+        },
+        {
+          "nodeName": "NewGroupForm",
+          "component": "plasmic-antd6-form",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群; reviewed forms inventory"
+        },
+        {
+          "nodeName": "EditGroupForm",
+          "component": "plasmic-antd6-form",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群; reviewed forms inventory"
+        },
+        {
+          "nodeName": "ExportForm",
+          "component": "plasmic-antd6-form",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.2: 客群统一入口，浏览、筛选、检索与新建客群; reviewed forms inventory"
+        }
+      ],
+      "pageHeader": null,
+      "copy": {
+        "source": "REQ v1.36 UI-copy review + current user decision: omit Page title areas and requirement/process commentary",
+        "excluded": [
+          {
+            "text": "统一管理常规 / 一次性客群 · 数据权限按市场隔离（MX / VN）",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          }
+        ],
+        "help": []
+      },
+      "name": "客群列表"
     },
     {
       "path": "/req-075/regular",
-      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.3: 常规客群首选 SQL 模式"
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.3: 常规客群首选 SQL 模式",
+      "bindings": [
+        {
+          "nodeName": "SQLEditor",
+          "source": "REQ v1.36 §6.3/6.5 typing invalidates validation/preflight",
+          "events": [
+            "onChange"
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "nodeName": "SQLEditor",
+          "component": "plasmic-antd6-textarea",
+          "source": "REQ v1.36 §6.3/6.5 editable SQL",
+          "events": [
+            "onChange"
+          ],
+          "props": {
+            "placeholder": "请输入 SQL"
+          }
+        }
+      ],
+      "runtimeCases": [
+        {
+          "id": "editable-sql",
+          "source": "REQ v1.36 §6.3/6.5 SQL must be editable; placeholder is a reviewed fixture design choice",
+          "steps": [
+            {
+              "action": "fill",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "SELECT uid, app_source FROM cdm_users WHERE app_source = 'TACO'"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "value",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "SELECT uid, app_source FROM cdm_users WHERE app_source = 'TACO'"
+            }
+          ]
+        },
+        {
+          "id": "invalid-sql-feedback",
+          "source": "REQ v1.36 §3.1/6.3/6.5 rejects DML and preserves recoverable input; planned message includes 校验失败",
+          "steps": [
+            {
+              "action": "fill",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "DELETE FROM cdm_users"
+            },
+            {
+              "action": "click",
+              "role": "button",
+              "name": "校验 SQL"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "text",
+              "text": "校验失败",
+              "present": true
+            },
+            {
+              "kind": "value",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "DELETE FROM cdm_users"
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "nodeName": "PreflightSampleTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.3: 常规客群首选 SQL 模式; source-required tabular results"
+        },
+        {
+          "nodeName": "RegularForm",
+          "component": "plasmic-antd6-form",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.3: 常规客群首选 SQL 模式; reviewed forms inventory"
+        }
+      ],
+      "pageHeader": null,
+      "copy": {
+        "source": "REQ v1.36 UI-copy review + current user decision: omit Page title areas and requirement/process commentary",
+        "excluded": [
+          {
+            "text": "SQL 导入圈选 · 校验通过后自动预跑，预跑成功后可保存 SQL / 上线",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "圈选方式：SQL 导入（P0）",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "不校验 uid 是否在库内",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "模拟预跑成功",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "模拟预跑失败",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          }
+        ],
+        "help": []
+      },
+      "name": "常规客群新建"
     },
     {
       "path": "/req-075/onetime",
-      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.5: 一次性客群建群，基本信息弹窗确认后进入本页"
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.5: 一次性客群建群，基本信息弹窗确认后进入本页",
+      "bindings": [
+        {
+          "nodeName": "SQLEditor",
+          "source": "REQ v1.36 §6.3/6.5 typing invalidates validation/preflight",
+          "events": [
+            "onChange"
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "nodeName": "SQLEditor",
+          "component": "plasmic-antd6-textarea",
+          "source": "REQ v1.36 §6.3/6.5 editable SQL",
+          "events": [
+            "onChange"
+          ],
+          "props": {
+            "placeholder": "请输入 SQL"
+          }
+        },
+        {
+          "nodeName": "Expiry",
+          "component": "plasmic-antd6-input-number",
+          "source": "REQ v1.36 §6.5 editable validity, default 14, maximum 365",
+          "props": {
+            "min": 1,
+            "max": 365
+          }
+        }
+      ],
+      "runtimeCases": [
+        {
+          "id": "editable-sql",
+          "source": "REQ v1.36 §6.3/6.5 SQL must be editable; placeholder is a reviewed fixture design choice",
+          "steps": [
+            {
+              "action": "fill",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "SELECT uid, app_source FROM cdm_users WHERE app_source = 'TACO'"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "value",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "SELECT uid, app_source FROM cdm_users WHERE app_source = 'TACO'"
+            }
+          ]
+        },
+        {
+          "id": "invalid-sql-feedback",
+          "source": "REQ v1.36 §3.1/6.3/6.5 rejects DML and preserves recoverable input; planned message includes 校验失败",
+          "steps": [
+            {
+              "action": "fill",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "DELETE FROM cdm_users"
+            },
+            {
+              "action": "click",
+              "role": "button",
+              "name": "校验 SQL"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "text",
+              "text": "校验失败",
+              "present": true
+            },
+            {
+              "kind": "value",
+              "role": "textbox",
+              "name": "请输入 SQL",
+              "value": "DELETE FROM cdm_users"
+            }
+          ]
+        },
+        {
+          "id": "editable-expiry",
+          "source": "REQ v1.36 §6.5 editable validity 1-365; native Form label follows forms inventory",
+          "steps": [
+            {
+              "action": "fill",
+              "role": "spinbutton",
+              "name": "有效期（天）",
+              "value": "30"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "value",
+              "role": "spinbutton",
+              "name": "有效期（天）",
+              "value": "30"
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "nodeName": "PreflightSampleTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.5: 一次性客群建群，基本信息弹窗确认后进入本页; source-required tabular results"
+        },
+        {
+          "nodeName": "OnetimeForm",
+          "component": "plasmic-antd6-form",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.5: 一次性客群建群，基本信息弹窗确认后进入本页; reviewed forms inventory"
+        },
+        {
+          "nodeName": "GroupSummary",
+          "component": "plasmic-antd6-descriptions",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.5: 一次性客群建群，基本信息弹窗确认后进入本页; reviewed groups inventory"
+        }
+      ],
+      "pageHeader": null,
+      "copy": {
+        "source": "REQ v1.36 UI-copy review + current user decision: omit Page title areas and requirement/process commentary",
+        "excluded": [
+          {
+            "text": "客群来源仅写 SQL · 名单平台选取 / AI 生成 P0 不做",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "写 SQL · 唯一来源（P0）",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "模拟预跑成功",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "模拟预跑失败",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          }
+        ],
+        "help": [
+          {
+            "nodeName": "ExpiryInstructions",
+            "text": "有效期为 1 至 365 天，默认 14 天。",
+            "source": "REQ v1.36 §6.5 validity constraints; concise field instruction"
+          }
+        ]
+      },
+      "name": "一次性客群新建"
     },
     {
       "path": "/req-075/detail",
-      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示"
+      "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示",
+      "bindings": [
+        {
+          "nodeName": "SelectionRecordsTable",
+          "source": "REQ v1.36 §6.7/6.8 record filtering",
+          "props": [
+            "data"
+          ],
+          "dynamicProps": [
+            "data"
+          ]
+        },
+        {
+          "nodeName": "ApplicationRecordsTable",
+          "source": "REQ v1.36 §6.7/6.8 record filtering",
+          "props": [
+            "data"
+          ],
+          "dynamicProps": [
+            "data"
+          ]
+        }
+      ],
+      "rowActions": [
+        {
+          "column": "SelectionRecordsOperationsColumn",
+          "control": "SelectionRecordsRowActions",
+          "event": "onAction",
+          "source": "REQ v1.36 §6.7/6.8 clicked record details"
+        },
+        {
+          "column": "ApplicationRecordsOperationsColumn",
+          "control": "ApplicationRecordsRowActions",
+          "event": "onAction",
+          "source": "REQ v1.36 §6.7/6.8 clicked record details"
+        }
+      ],
+      "runtimeCases": [
+        {
+          "id": "basic-descriptions",
+          "source": "REQ v1.36 §6.4 Basic tab contains real labeled fields",
+          "steps": [
+            {
+              "action": "click",
+              "role": "tab",
+              "name": "基本信息"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "text",
+              "text": "客群 Key",
+              "present": true
+            },
+            {
+              "kind": "text",
+              "text": "数据保存天数",
+              "present": true
+            }
+          ]
+        },
+        {
+          "id": "record-tab",
+          "source": "REQ v1.36 §6.7 selection records are an in-Page tab",
+          "steps": [
+            {
+              "action": "click",
+              "role": "tab",
+              "name": "圈选记录"
+            }
+          ],
+          "assertions": [
+            {
+              "kind": "text",
+              "text": "触发方式",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "nodeName": "MembersTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; source-required tabular results"
+        },
+        {
+          "nodeName": "SelectionRecordsTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; source-required tabular results"
+        },
+        {
+          "nodeName": "RefreshRecordsTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; source-required tabular results"
+        },
+        {
+          "nodeName": "ApplicationRecordsTable",
+          "component": "plasmic-antd6-table",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; source-required tabular results"
+        },
+        {
+          "nodeName": "Form",
+          "component": "plasmic-antd6-form",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; reviewed forms inventory"
+        },
+        {
+          "nodeName": "BasicDetails",
+          "component": "plasmic-antd6-descriptions",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; reviewed groups inventory"
+        },
+        {
+          "nodeName": "StorageDescriptions",
+          "component": "plasmic-antd6-descriptions",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; reviewed groups inventory"
+        },
+        {
+          "nodeName": "RecordDescription",
+          "component": "plasmic-antd6-descriptions",
+          "source": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/REQ_海外客群管理平台.md v1.36 §6.4: 常规 / 一次性两种类型通用，字段按类型差异化显示; reviewed groups inventory"
+        }
+      ],
+      "pageHeader": null,
+      "copy": {
+        "source": "REQ v1.36 UI-copy review + current user decision: omit Page title areas and requirement/process commentary",
+        "excluded": [
+          {
+            "text": "只读档案 · 负责人经列表页【编辑】可改",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "只读档案 · 一次性快照固定不刷新",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          },
+          {
+            "text": "常规客群 · 启用 · T+1 动态刷新 · 详情页仅查看，操作统一在列表页行操作",
+            "source": "Current user UI-copy correction; retained failed prototype shows this explanatory/debug copy"
+          }
+        ],
+        "help": []
+      },
+      "name": "客群详情"
     }
   ],
   "navigation": {

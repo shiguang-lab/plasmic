@@ -5,15 +5,15 @@ const {EventEmitter} = require('node:events');
 const originalLoad = Module._load;
 let destroyed = 0;
 let capturedRect;
-const image = {toPNG: () => Buffer.from('png'), toJPEG: () => Buffer.from('jpeg'), getSize: () => ({width:1366,height:1000}), crop: rect => {capturedRect=rect;return image;}};
+const image = {toPNG: () => Buffer.from('png'), toJPEG: () => Buffer.from('jpeg'), getSize: () => ({width:1366,height:900}), crop: rect => {capturedRect=rect;return image;}};
 const main = {webContents: {getURL: () => "https://studio.example/projects/test", session: {}, mainFrame: {framesInSubtree: [{url: 'https://canvas.example/static/host.html#canvas=true', executeJavaScript: async (script) => script.includes('snapshotDocument') ? '<html>snapshot</html>' : {ready: true, width: 1366, height: 900, elements: [{tag: "main"}], images: []}}]}}};
 class Preview {
- constructor(options) { assert.equal(options.webPreferences.nodeIntegration, false); assert.equal(options.webPreferences.sandbox, true); this.webContents = Object.assign(new EventEmitter(), {setWindowOpenHandler(){},invalidate(){queueMicrotask(()=>this.emit('paint',{}, {},image));},executeJavaScript: async script => script.includes("Element is not visible") ? {x: 20, y: 30, width: 200, height: 80} : 1000, capturePage: async () => {throw new Error('Offscreen capturePage must not be used');}, printToPDF: async () => Buffer.from('%PDF')}); }
+ constructor(options) { assert.equal(options.height,900); assert.equal(options.webPreferences.nodeIntegration, false); assert.equal(options.webPreferences.sandbox, true); this.webContents = Object.assign(new EventEmitter(), {setWindowOpenHandler(){},invalidate(){queueMicrotask(()=>this.emit('paint',{}, {},image));},executeJavaScript: async script => script.includes("Element is not visible") ? {x: 20, y: 30, width: 200, height: 80} : 1000, capturePage: async () => {throw new Error('Offscreen capturePage must not be used');}, printToPDF: async () => Buffer.from('%PDF')}); }
  async loadURL(url) {assert.ok(url.startsWith('data:text/html'));}
  setContentSize(width,height) {assert.equal(width,1366);assert.equal(height,1000);}
  destroy(){destroyed++;}
 }
-Module._load = function(name,...args) {return name === 'electron' ? {BrowserWindow: Preview} : originalLoad.call(this,name,...args)};
+Module._load = function(name,...args) {return name === 'electron' ? {app: {isPackaged: true}, BrowserWindow: Preview} : originalLoad.call(this,name,...args)};
 const {renderCanvas, exportCanvas, canvasFrames} = require('../src/canvas.cjs');
 Module._load = originalLoad;
 const fs = require('node:fs/promises');
@@ -21,7 +21,7 @@ const os = require('node:os');
 const path = require('node:path');
 test('render uses an isolated static window and destroys it after capture', async () => {
  const result = await renderCanvas(main,{width:1366});
- assert.equal(result.image,image);assert.equal(result.height,1000);assert.equal(destroyed,1);
+ assert.equal(result.image,image);assert.equal(result.height,900);assert.equal(destroyed,1);
  assert.equal((await canvasFrames(main))[0].layout.width,1366);
 });
 test('export checks path and extension, writes PDF bytes, and never overwrites',async()=>{

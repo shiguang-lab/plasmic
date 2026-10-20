@@ -2,8 +2,11 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
+import { RSH } from "@/wab/shared/RuleSetHelpers";
+import { ensureBaseVariantSetting } from "@/wab/shared/Variants";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
 import { fillVirtualSlotContents, isSlot } from "@/wab/shared/SlotUtils";
+import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
@@ -45,7 +48,7 @@ function fixture(site = createSite()) {
       path: `/${name.toLowerCase()}`,
     });
     return ensure(
-      studioCtx.site.components.find((c) => c.uuid === result.results[0].uuid),
+      studioCtx.site.components.find((c) => c.uuid === result.created[0].uuid),
       "Page not created",
     );
   };
@@ -53,41 +56,283 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
-  it("returns complete final models once per batch with ordered receipts and one undo", async () => {
+  it("creates only native Desktop columns and one complete shared page overview", async () => {
+    const { call, createPage, studioCtx } = fixture();
+    await createPage("List");
+    await createPage("Detail");
+    const project = (await call("read", { view: "full" })).results[0];
+    expect(project.pageFrames.map((f: { width: number; height: number }) => [f.width, f.height])).toEqual([[1440, 1024], [1440, 1024]]);
+    expect(project.canvases).toHaveLength(1);
+    expect(project.canvases[0].frames.map((f: { componentUuid: string }) => f.componentUuid).sort()).toEqual(studioCtx.site.components.map((c) => c.uuid).sort());
+    expect(project.canvases[0].frames.every((f: { width: number; height: number }) => f.width === 1440 && f.height === 1024)).toBe(true);
+    const before = await call("read", { view: "full" });
+    await expect(call("createComponent", { name: "InvalidDevice", preset: "Unknown" })).rejects.toThrow("Unknown Studio device preset");
+    expect(await call("read", { view: "full" })).toEqual(before);
+    await call("createComponent", { name: "RequestedMobile", preset: "iPhone 8 Plus" });
+    const mobile = (await call("read", { view: "full" })).results[0].pageFrames.at(-1);
+    expect([mobile.width, mobile.height]).toEqual([414, 736]);
+  });
+
+  it("discovers imported resources by project and name without recursive inventories", async () => {
+    const library = createSite();
+    library.components.push(mkComponent({ name: "SearchForm", type: ComponentType.Plain, tplTree: mkTplTagX("div") }), mkComponent({ name: "DataTable", type: ComponentType.Plain, tplTree: mkTplTagX("div") }));
+    const site = createSite();
+    site.projectDependencies.push(new ProjectDependency({ name: "Library", pkgId: "pkg", projectId: "library", version: "1.2.0", uuid: "dep", site: library }));
+    const { studioCtx, call } = fixture(site);
+    for (const component of library.components) studioCtx.tplMgr().ensureBaseVariantSetting(component.tplTree);
+    const imports = (await call("read", { collection: "importedProjects" })).results[0].importedProjects;
+    expect(imports[0]).toMatchObject({ id: "library", version: "1.2.0" });
+    expect(imports[0]).not.toHaveProperty("components");
+    const found = await call("read", { fromProject: "library", collection: "components", nameContains: "form", limit: 1 });
+    expect(found.total).toBe(1);
+    expect(found.results[0].components[0].name).toBe("SearchForm");
+    const scoped = await call("read", { fromProject: "library", componentUuids: [library.components[0].uuid], view: "contract" });
+    expect(scoped.results[0].props).toEqual([]);
+    const contracts = await call("read", { fromProject: "library", collection: "components", nameContains: "form", view: "contract", fields: ["uuid", "name", "props"] });
+    expect(contracts.results[0].components).toEqual([{ uuid: library.components[0].uuid, name: "SearchForm", props: [] }]);
+    expect(contracts.read.itemFields).toEqual(["uuid", "name", "props"]);
+    const completeContracts = await call("read", { fromProject: "library", collection: "components", view: "contract", limit: 1 });
+    expect(completeContracts.total).toBe(2);
+    expect(completeContracts.nextOffset).toBe(1);
+    expect(completeContracts.results[0].components[0]).toHaveProperty("props");
+    expect(completeContracts.results[0].components[0]).not.toHaveProperty("baseVariantTplTree");
+    const own = await call("read", { fromProject: "library" });
+    expect(own.results[0]).toMatchObject({ id: "library", counts: { components: 2 } });
+    const local = await call("createComponent", { name: "Local" });
+    await expect(call("read", { fromProject: "library", componentUuids: [local.created[0].uuid] })).rejects.toThrow("outside the requested project scope");
+    expect((await call("read", { fromProject: studioCtx.siteInfo.id, componentUuids: [local.created[0].uuid], view: "contract" })).results[0].uuid).toBe(local.created[0].uuid);
+    await expect(call("read", { fromProject: studioCtx.siteInfo.id, componentUuids: [library.components[0].uuid] })).rejects.toThrow("outside the requested project scope");
+    const element = await call("read", { fromProject: "library", elements: [{ componentUuid: library.components[0].uuid, elementUuid: library.components[0].tplTree.uuid }], fields: ["uuid", "componentUuid"] });
+    expect(element.results[0]).toEqual({ uuid: library.components[0].tplTree.uuid, componentUuid: library.components[0].uuid });
+    expect((await call("read", { view: "full" })).results[0].importedProjects[0]).not.toHaveProperty("components");
+    expect((await call("read", { view: "full", fromProject: "library" })).results[0].components).toHaveLength(2);
+    const ownInventory = await call("read", { view: "full", fields: ["__type", "id", "components", "canvases", "pageFrames", "devicePresets"] });
+    expect(ownInventory.results[0].components.map((c: { uuid: string }) => c.uuid)).toEqual([local.created[0].uuid]);
+    expect(ownInventory.results[0]).not.toHaveProperty("importedProjects");
+    expect(ownInventory.results[0]).toHaveProperty("pageFrames");
+  });
+  it("reads complete indirect dependencies without expanding inventories or granting mutation access", async () => {
+    const leaf = createSite();
+    const component = mkComponent({ name: "NestedControl", type: ComponentType.Plain, tplTree: mkTplTagX("div", { name: "NestedRoot" }) });
+    leaf.components.push(component);
+    const library = createSite();
+    library.projectDependencies.push(new ProjectDependency({ name: "Leaf", pkgId: "leaf-pkg", projectId: "leaf", version: "2.0.0", uuid: "leaf-dep", site: leaf }));
+    const site = createSite();
+    site.projectDependencies.push(new ProjectDependency({ name: "Library", pkgId: "library-pkg", projectId: "library", version: "1.0.0", uuid: "library-dep", site: library }));
+    const { studioCtx, call } = fixture(site);
+    studioCtx.tplMgr().ensureBaseVariantSetting(component.tplTree);
+    const counter = studioCtx._changeCounter;
+    const libraryModel = (await call("read", { fromProject: "library", view: "full" })).results[0];
+    expect(libraryModel.importedProjects).toEqual([{ __type: "ImportedProject", id: "leaf", name: "Leaf", version: "2.0.0" }]);
+    const inventory = (await call("read", { fromProject: "leaf", collection: "components" })).results[0];
+    expect(inventory.components[0].uuid).toBe(component.uuid);
+    const model = (await call("read", { fromProject: "leaf", componentUuids: [component.uuid], view: "full" })).results[0];
+    expect(model.fromProject).toBe("leaf");
+    expect(model.baseVariantTplTree).toContain("NestedRoot");
+    expect((await call("queryElements", { componentUuid: component.uuid, nameContains: "NestedRoot" })).results[0].uuid).toBe(component.tplTree.uuid);
+    expect(studioCtx._changeCounter).toBe(counter);
+    await expect(call("deleteComponent", { componentUuid: component.uuid })).rejects.toThrow("not found in this project");
+    expect(leaf.components).toContain(component);
+    studioCtx.copilotActivity.dispose();
+  });
+  it("returns compact creation receipts and applies dependent edits in one undo", async () => {
     const { call, createPage, studioCtx } = fixture();
     const first = await createPage("BatchFirst");
-    const second = await createPage("BatchSecond");
-    const before = await call("read", { componentUuids: [first.uuid, second.uuid] });
-    const operations = Array.from({ length: 10 }, (_, index) => ({
-      name: "insertHtml",
-      input: { componentUuid: index < 8 ? first.uuid : second.uuid,
-        html: `<div data-plasmic-name="Item${index}">Record ${index}</div>` },
-    }));
+    const before = await call("read", { componentUuids: [first.uuid], view: "full" });
     const undoCount = studioCtx.undoLog._log.length;
-    const result = await call("executeBatch", { operations });
+    const result = await call("executeBatch", { operations: [
+      { as: "card", name: "insertHtml", input: { componentUuid: first.uuid, html: '<div data-plasmic-name="Card"><span>Child</span></div>' } },
+      { name: "changeElement", input: { componentUuid: first.uuid, elementUuid: "$card", styles: { width: "320px" } } },
+      { as: "copy", name: "copyElement", input: { componentUuid: first.uuid, elementUuid: "$card", targetUuid: "$card", location: "after" } },
+    ] });
     expect(PROTOTYPE_TOOL_META.executeBatch.outputSchema.safeParse(result).success).toBe(true);
-    expect(result.resources).toHaveLength(2);
-    expect(result.operations.map((op: { name: string }) => op.name)).toEqual(operations.map((op) => op.name));
-    const after = await call("read", { componentUuids: [first.uuid, second.uuid] });
-    expect(result.resources).toEqual(after.results);
-    const expanded = result.operations.map((op: { resourceIndexes: number[]; messages?: string[] }) => ({
-      __type: "OutputResult",
-      ...(op.messages ? { messages: op.messages } : {}),
-      results: op.resourceIndexes.map((index) => result.resources[index]),
-    }));
-    expect(expanded.slice(0, 8).every((op: { results: unknown[] }) => op.results[0] === result.resources[0])).toBe(true);
-    expect(JSON.stringify(result).length).toBeLessThan(JSON.stringify({ results: expanded }).length / 2);
+    expect(result.operations[0].created).toHaveLength(1);
+    expect(result.operations[1].elementUuid).toBe(result.operations[0].created[0].uuid);
+    expect(result.operations[2].created[0].uuid).not.toBe(result.operations[0].created[0].uuid);
+    expect(JSON.stringify(result)).not.toContain("baseVariantTplTree");
     expect(studioCtx.undoLog._log.length).toBe(undoCount + 1);
+    expect((await call("read", { componentUuids: [first.uuid], view: "full" })).results[0].baseVariantTplTree).toContain("320px");
     await call("undo");
-    expect(await call("read", { componentUuids: [first.uuid, second.uuid] })).toEqual(before);
+    expect(await call("read", { componentUuids: [first.uuid], view: "full" })).toEqual(before);
   });
-  it("rejects model metadata disguised as CSS without changing the design",async () => {
-    const {call,createPage,studioCtx}=fixture();
-    const component=await createPage();
-    const counter=studioCtx._changeCounter;
-    await expect(call("changeElement",{componentUuid:component.uuid,elementUuid:component.tplTree.uuid,styles:{reason:"Explain a change"}})).rejects.toThrow("Unsupported CSS property: reason");
+  it("creates an owner, imports HTML and edits its state and root in the same batch", async () => {
+    const { call, studioCtx } = fixture();
+    studioCtx.createViewStateUndoRecord();
+    const result = await call("executeBatch", { operations: [
+      { as: "page", name: "createComponent", input: { name: "NewPage", type: "page", path: "/new" } },
+      { as: "row", name: "insertHtml", input: { componentUuid: "$page", html: '<div data-plasmic-name="Row">New content</div>' } },
+      { as: "state", name: "createState", input: { componentUuid: "$page", name: "opened", variableType: "boolean", initialValue: false } },
+      { name: "updateState", input: { componentUuid: "$page", stateUuid: "$state", initialValue: true } },
+      { name: "changeElement", input: { componentUuid: "$page", elementUuid: "$page.root", name: "Root" } },
+    ] });
+    const page = result.operations[0].created[0];
+    const model = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0];
+    expect(model.baseVariantTplTree).toContain("New content");
+    expect(model.states[0].initialValue).toBe(true);
+    expect(model.rootElementUuid).toBe(page.rootElementUuid);
+    await call("undo");
+    expect(studioCtx.site.components.some((c) => c.uuid === page.uuid)).toBe(false);
+  });
+  it("rolls back dependent writes and rejects missing, forward and duplicate bindings", async () => {
+    const { call, createPage } = fixture();
+    const page = await createPage();
+    const before = await call("read", { componentUuids: [page.uuid], view: "full" });
+    await expect(call("executeBatch", { operations: [
+      { as: "row", name: "insertHtml", input: { componentUuid: page.uuid, html: '<div>Rollback</div>' } },
+      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: "$missing", styles: { width: "100px" } } },
+    ] })).rejects.toThrow("Unknown or forward batch reference");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(before);
+    await expect(call("executeBatch", { operations: [
+      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: "$later", name: "Changed" } },
+      { as: "later", name: "insertHtml", input: { componentUuid: page.uuid, html: "<div>Later</div>" } },
+    ] })).rejects.toThrow("forward batch reference");
+    await expect(call("executeBatch", { operations: [
+      { as: "same", name: "insertHtml", input: { componentUuid: page.uuid, html: "<div>First</div>" } },
+      { as: "same", name: "insertHtml", input: { componentUuid: page.uuid, html: "<div>Second</div>" } },
+    ] })).rejects.toThrow("Duplicate batch binding");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(before);
+  });
+  it("uses bindings within local canvas scope and preserves literal business text", async () => {
+    const { call, createPage } = fixture();
+    const page = await createPage();
+    const context = await call("getEditorContext");
+    const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId,
+      changeCounter: context.changeCounter, componentUuid: page.uuid, elementUuids: [] };
+    const result = await call("executeLocalEdit", { binding, name: "executeBatch", input: { operations: [
+      { as: "button", name: "insertHtml", input: { componentUuid: page.uuid, html: '<button data-plasmic-name="Action">$button</button>' } },
+      { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: "$button", styles: { width: "150px" } } },
+    ] } });
+    const receipts = JSON.parse(result.result).operations;
+    expect(receipts[0].created[0].kind).toBe("Element");
+    expect(receipts[1].elementUuid).toBe(receipts[0].created[0].uuid);
+    expect(result.result).not.toContain("baseVariantTplTree");
+    expect(result.after).toContain("$button");
+    expect(result.after).toContain("150px");
+  });
+  it("resolves a created breakpoint for removal in the same batch", async () => {
+    const { call, studioCtx } = fixture();
+    const result = await call("executeBatch", { operations: [
+      { as: "screen", name: "createBreakpoint", input: { name: "Small", maxWidth: 600 } },
+      { name: "deleteBreakpoint", input: { variantUuid: "$screen" } },
+    ] });
+    expect(result.operations[0].created[0].kind).toBe("GlobalVariant");
+    expect(studioCtx.site.activeScreenVariantGroup?.variants.some((v) => v.uuid === result.operations[0].created[0].uuid)).toBe(false);
+  });
+  it("bounds tree reads, projects fields and pages queries without losing full native models", async () => {
+    const { call, createPage } = fixture();
+    const page = await createPage("LargeTree");
+    await call("insertHtml", { componentUuid: page.uuid, html: Array.from({ length: 40 }, (_, i) =>
+      `<div data-plasmic-name="Section${i}">${Array.from({ length: 8 }, (_, j) => `<p>${i}-${j} ${"Detailed business content ".repeat(18)}</p>`).join("")}</div>`).join("") });
+    const full = await call("read", { componentUuids: [page.uuid], view: "full" });
+    const shallow = await call("read", { componentUuids: [page.uuid] });
+    expect(JSON.stringify(full).length).toBeGreaterThan(100000);
+    expect(JSON.stringify(shallow).length).toBeLessThan(10000);
+    expect(shallow.read.depth).toBe(0);
+    expect(shallow.results[0].tree.children).toHaveLength(40);
+    expect(Object.keys(shallow.results[0].tree.children[0])).toEqual(["uuid"]);
+    expect(shallow.results[0]).not.toHaveProperty("baseVariantTplTree");
+    expect(JSON.stringify(shallow)).not.toContain("Detailed business content");
+    const pageOne = await call("queryElements", { componentUuid: page.uuid, nameContains: "Section", limit: 3, fields: ["uuid", "name"] });
+    expect(pageOne.total).toBe(40);
+    expect(pageOne.nextOffset).toBe(3);
+    expect(Object.keys(pageOne.results[0]).sort()).toEqual(["name", "uuid"]);
+    const pageTwo = await call("queryElements", { componentUuid: page.uuid, nameContains: "Section", offset: pageOne.nextOffset, limit: 3, fields: ["uuid"] });
+    expect(pageTwo.results[0].uuid).not.toBe(pageOne.results[0].uuid);
+    const nodes = await call("read", { elements: pageOne.results.map((node: { uuid: string }) => ({ componentUuid: page.uuid, elementUuid: node.uuid })), view: "full", depth: "all" });
+    expect(nodes.results).toHaveLength(3);
+    expect(nodes.results[0].baseVariantTplTree).toContain("Detailed business content");
+    const contract = await call("read", { componentUuids: [page.uuid], view: "contract" });
+    expect(contract.results[0].props).toEqual([]);
+    expect(contract.results[0]).not.toHaveProperty("baseVariantTplTree");
+    const context = await call("read", { componentUuids: [page.uuid], view: "context" });
+    expect(context.results[0].states).toEqual([]);
+    expect(context.results[0].interactions).toEqual([]);
+    expect(context.results[0]).not.toHaveProperty("baseVariantTplTree");
+    const overview = await call("read", { fields: ["id", "components"] });
+    expect(Object.keys(overview.results[0]).sort()).toEqual(["components", "id"]);
+  });
+  it("separates large instance values from structural reads and preserves full native values", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const owner = (await call("createComponent", { name: "DataCarrier", type: "component" })).created[0];
+    const definition = ensure(studioCtx.site.components.find((c) => c.uuid === owner.uuid), "Definition missing");
+    definition.params.push(
+      mkParam({ name: "data", type: typeFactory.any(), paramType: "prop" }),
+      mkParam({ name: "label", type: typeFactory.text(), paramType: "prop" }),
+      mkParam({ name: "count", type: typeFactory.num(), paramType: "prop" }),
+      mkParam({ name: "disabled", type: typeFactory.bool(), paramType: "prop" }),
+    );
+    const page = await createPage("ReadValues");
+    const values = { data: Array.from({ length: 300 }, (_, id) => ({ id, text: "Large business value ".repeat(20) })), label: "Current label", count: 0, disabled: false };
+    await call("insertHtml", { componentUuid: page.uuid,
+      html: `<plasmic-component data-plasmic-component="DataCarrier" data-plasmic-name="Carrier" data-props='${JSON.stringify(values)}' style="width:320px"></plasmic-component>` });
+    const instance = ensure(flattenTpls(page.tplTree).find(isKnownTplComponent), "Instance missing");
+    const target = { componentUuid: page.uuid, elementUuid: instance.uuid };
+    const full = await call("read", { componentUuids: [page.uuid], view: "full" });
+    const counter = studioCtx._changeCounter;
+    expect(JSON.stringify(full).length).toBeGreaterThan(100000);
+    const tree = await call("read", { elements: [target] });
+    expect(tree.results[0]).toMatchObject({ uuid: instance.uuid, registeredComponentUuid: definition.uuid, slots: [] });
+    expect(JSON.stringify(tree)).not.toContain("Large business value");
+    expect(JSON.stringify(tree)).not.toContain("320px");
+    expect(JSON.stringify(tree).length).toBeLessThan(2000);
+    const properties = await call("read", { elements: [target], view: "properties" });
+    expect(properties.results[0].properties).toEqual(values);
+    expect(properties.results[0].styles.width).toBe("320px");
+    expect(properties.results[0]).not.toHaveProperty("children");
+    const selected = await call("queryElements", { componentUuid: page.uuid, nameContains: "Carrier", view: "properties", propNames: ["label", "count", "disabled"] });
+    expect(selected.results[0].properties).toEqual({ label: "Current label", count: 0, disabled: false });
+    expect(selected.read.propNames).toEqual(["label", "count", "disabled"]);
+    expect(JSON.stringify(selected)).not.toContain("Large business value");
+    for (const field of ["styles", "attributes", "text"]) expect(selected.results[0]).not.toHaveProperty(field);
+    const styles = await call("read", { elements: [target], view: "properties", fields: ["uuid", "styles"] });
+    expect(Object.keys(styles.results[0]).sort()).toEqual(["styles", "uuid"]);
+    await expect(call("read", { elements: [target], propNames: ["data"] })).rejects.toThrow("requires");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(full);
     expect(studioCtx._changeCounter).toBe(counter);
+    const contract = (await call("read", { componentUuids: [definition.uuid], view: "contract" })).results[0];
+    const complete = (await call("read", { componentUuids: [definition.uuid], view: "full" })).results[0];
+    expect(contract.props).toEqual(complete.props.map(({ uuid, __type, ...prop }: Record<string, unknown>) => prop));
+    expect(contract.props.every((prop: { uuid?: string }) => !prop.uuid)).toBe(true);
+    expect(complete.props.every((prop: { uuid?: string }) => !!prop.uuid)).toBe(true);
+    const validation = await call("validate");
+    expect(validation).not.toHaveProperty("antDesign6Instances");
+    expect(validation.warnings.some((warning: string) => warning.includes("Ant Design"))).toBe(false);
   });
+  it("discovers collections without dumping models and paginates the complete inventory", async () => {
+    const { call, createPage } = fixture();
+    await createPage("First");
+    await createPage("Second");
+    const summary = await call("read");
+    expect(summary.results[0].counts.components).toBe(2);
+    expect(summary.results[0]).not.toHaveProperty("components");
+    const first = await call("read", { collection: "components", limit: 1 });
+    const second = await call("read", { collection: "components", offset: first.nextOffset, limit: 1 });
+    const full = await call("read", { view: "full" });
+    expect(first.total).toBe(2);
+    expect(second.nextOffset).toBeUndefined();
+    expect([...first.results[0].components, ...second.results[0].components]).toEqual(full.results[0].components);
+    await call("createCanvas", { name: "Overview" });
+    expect(await call("navigateCanvas", { canvasName: "Overview" })).toEqual({ canvasName: "Overview" });
+  });
+  it("discards unsupported CSS while applying the valid edit", async () => {
+    const { call, createPage } = fixture();
+    const component = await createPage();
+    const result = await call("changeElement", {
+      componentUuid: component.uuid,
+      elementUuid: component.tplTree.uuid,
+      styles: { reason: "Explain a change", width: "320px" },
+    });
+    expect(result.messages).toEqual([
+      'Ignored unsupported CSS property "reason".',
+    ]);
+    const styles = RSH(
+      ensureBaseVariantSetting(component.tplTree).rs,
+      component.tplTree,
+    );
+    expect(styles.getRaw("width")).toBe("320px");
+    expect(styles.has("reason")).toBe(false);
+  });
+
   it("reads installed contracts while keeping other pages and imported mutations outside scope", async () => {
     const librarySite = createSite();
     const library = mkComponent({
@@ -125,7 +370,7 @@ describe("AI prototype editor tools", () => {
     const result = await call("executeLocalEdit", {
       binding,
       name: "read",
-      input: { componentUuids: [library.uuid] },
+      input: { view: "full", componentUuids: [library.uuid] },
     });
     expect(JSON.parse(result.result).results[0]).toMatchObject({
       name: "InstalledForm",
@@ -134,7 +379,7 @@ describe("AI prototype editor tools", () => {
     await expect(call("executeLocalEdit", {
       binding,
       name: "read",
-      input: { componentUuids: [other.uuid] },
+      input: { view: "full", componentUuids: [other.uuid] },
     })).rejects.toThrow("bound page/canvas");
     expect(beginActivity).not.toHaveBeenCalled();
     await expect(
@@ -188,7 +433,7 @@ describe("AI prototype editor tools", () => {
       initialValue: false,
     });
     const readPage = async () =>
-      (await call("read", { componentUuids: [page.uuid] })).results[0];
+      (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0];
     const state = (await readPage()).states.find(
       (entry: { name: string }) => entry.name === "createOpen",
     );
@@ -212,7 +457,7 @@ describe("AI prototype editor tools", () => {
       },
     });
     const step = (await readPage()).interactions[0];
-    const subtree = await edit("read", {
+    const subtree = await edit("read", { view: "full",
       elements: [{ componentUuid: page.uuid, elementUuid: button.uuid }],
     });
     expect(JSON.parse(subtree.result).results[0].interactions[0].uuid).toBe(
@@ -254,7 +499,7 @@ describe("AI prototype editor tools", () => {
       elementUuid: button.uuid,
       interactionUuid: step.uuid,
     });
-    expect((await readPage()).interactions).toBeUndefined();
+    expect((await readPage()).interactions).toEqual([]);
     await edit("undo", {});
     expect((await readPage()).interactions[0].uuid).toBe(step.uuid);
     expect(
@@ -355,13 +600,13 @@ describe("AI prototype editor tools", () => {
       },
     });
     expect(wired.after).toContain("OpenCreate");
-    const readback = (await call("read", { componentUuids: [page.uuid] }))
+    const readback = (await call("read", { view: "full", componentUuids: [page.uuid] }))
       .results[0];
     expect(readback.states).toHaveLength(1);
     expect(readback.interactions).toHaveLength(1);
     await edit("undo", {});
     expect(
-      (await call("read", { componentUuids: [page.uuid] })).results[0]
+      (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0]
         .interactions ?? [],
     ).toHaveLength(0);
     const untouched = studioCtx.site.pageArenas
@@ -441,7 +686,7 @@ describe("AI prototype editor tools", () => {
     const result = await call("executeLocalEdit", {
       binding,
       name: "read",
-      input: { componentUuids: [page.uuid] },
+      input: { view: "full", componentUuids: [page.uuid] },
     });
     expect(JSON.parse(result.result).results[0].name).toBe("OutputFormat");
     expect(studioCtx.preferredAiOutputFormat()).toBe("xml");
@@ -506,7 +751,7 @@ describe("AI prototype editor tools", () => {
     release();
     await expect(pending).rejects.toThrow("design changed");
     const result = JSON.stringify(
-      await call("read", { componentUuids: [page.uuid] }),
+      await call("read", { view: "full", componentUuids: [page.uuid] }),
     );
     expect(result).toContain("Human edit");
     expect(result).not.toContain("AI insertion");
@@ -547,7 +792,7 @@ describe("AI prototype editor tools", () => {
     };
     const beforeOutside = JSON.stringify(
       (
-        await call("read", {
+        await call("read", { view: "full",
           elements: [{ componentUuid: page.uuid, elementUuid: outside.uuid }],
         })
       ).results,
@@ -613,7 +858,7 @@ describe("AI prototype editor tools", () => {
     expect(
       JSON.stringify(
         (
-          await call("read", {
+          await call("read", { view: "full",
             elements: [{ componentUuid: page.uuid, elementUuid: outside.uuid }],
           })
         ).results,
@@ -629,7 +874,7 @@ describe("AI prototype editor tools", () => {
     await edit("undo", {}, result.binding);
     expect(
       JSON.stringify(
-        await call("read", {
+        await call("read", { view: "full",
           elements: [{ componentUuid: page.uuid, elementUuid: title.uuid }],
         }),
       ),
@@ -694,8 +939,9 @@ describe("AI prototype editor tools", () => {
     const checked = await call("executeLocalEdit", { binding: result.binding, name: "validate", input: {} });
     expect(JSON.parse(checked.result)).toMatchObject({ valid: true, components: 2 });
     await call("executeLocalEdit", { binding: result.binding, name: "undo", input: {} });
-    const restored = await call("read", { componentUuids: [first.uuid, second.uuid] });
-    expect(restored).toEqual(JSON.parse(result.before));
+    const restored = await call("read", { view: "full", componentUuids: [first.uuid, second.uuid] });
+    const prior = JSON.parse(result.before).results;
+    expect(restored.results.map((model: Record<string, unknown>, index: number) => Object.fromEntries(Object.keys(prior[index]).map((key) => [key, model[key]])))).toEqual(prior);
     studioCtx.copilotActivity.dispose();
   });
 
@@ -719,7 +965,7 @@ describe("AI prototype editor tools", () => {
       componentUuid: page.uuid,
       elementUuids: [],
     };
-    const before = await call("read", { componentUuids: [page.uuid] });
+    const before = await call("read", { view: "full", componentUuids: [page.uuid] });
     await expect(
       call("executeLocalEdit", {
         binding,
@@ -746,7 +992,7 @@ describe("AI prototype editor tools", () => {
         },
       }),
     ).rejects.toThrow("component instance");
-    expect(await call("read", { componentUuids: [page.uuid] })).toEqual(before);
+    expect(await call("read", { view: "full", componentUuids: [page.uuid] })).toEqual(before);
     await expect(
       call("executeLocalEdit", {
         binding,
@@ -785,7 +1031,7 @@ describe("AI prototype editor tools", () => {
       ).canEdit,
     ).toBe(false);
     const history = studioCtx.undoLog._log.length;
-    const result = await call("read", { componentUuids: [page.uuid] });
+    const result = await call("read", { view: "full", componentUuids: [page.uuid] });
     expect(result.results[0].dataQueries).toEqual([
       {
         __type: "DataQuery",
@@ -843,18 +1089,17 @@ describe("AI prototype editor tools", () => {
       tryExtractJson(ensure(arg("configuration"), "Missing text").expr),
     ).toBeNull();
     expect(arg("footer")).toBeTruthy();
-    await expect(
-      call("changeElement", {
+    const reset = await call("changeElement", {
         componentUuid: page.uuid,
         elementUuid: instance.uuid,
         resetProps: ["configuration", "missing"],
-      }),
-    ).rejects.toThrow("Unknown component prop");
-    expect(arg("configuration")).toBeTruthy();
+      });
+    expect(reset.messages).toEqual(['Ignored reset of unknown component prop "missing".']);
+    expect(arg("configuration")).toBeUndefined();
     await call("changeElement", {
       componentUuid: page.uuid,
       elementUuid: instance.uuid,
-      resetProps: ["configuration", "footer"],
+      resetProps: ["footer"],
     });
     expect(arg("configuration")).toBeUndefined();
     expect(arg("footer")).toBeUndefined();
@@ -1003,6 +1248,34 @@ describe("AI prototype editor tools", () => {
       },
     });
     previewFrame.remove();
+    studioCtx.copilotActivity.dispose();
+  });
+  it("opens native Preview with a temporary viewport without changing Page models or device columns", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage("List");
+    const before = await call("read", { view: "full" });
+    const preview = {
+      isLive: false, popup: undefined as Window | undefined,
+      component: page, previewPath: "list", width: 1440, height: 1024,
+      toggleLiveMode: vi.fn(async () => { preview.isLive = !preview.isLive; }),
+      stopLiveMode: vi.fn(() => { preview.isLive = false; }),
+      parseRoute: vi.fn(async () => {}),
+      pushComponent: vi.fn(async () => {}),
+      pushViewport: vi.fn(async (value: { width: number; height: number }) => { preview.width = value.width; preview.height = value.height; }),
+    };
+    Object.assign(studioCtx, { previewCtx: preview });
+    await expect(call("preview", { action: "open", width: 1440 })).rejects.toThrow("supplied together");
+    expect(preview.toggleLiveMode).not.toHaveBeenCalled();
+    expect(await call("preview", { action: "open", componentUuid: page.uuid, width: 1440, height: 720 })).toEqual({
+      mode: "preview", componentUuid: page.uuid, path: "/list", width: 1440, height: 720,
+    });
+    expect(preview.pushComponent).toHaveBeenCalledWith(page);
+    expect(preview.pushViewport).toHaveBeenCalledWith({ viewport: "custom", width: 1440, height: 720 });
+    await expect(call("preview", { action: "close", height: 720, width: 1440 })).rejects.toThrow("close accepts no");
+    expect(await call("preview", { action: "close" })).toEqual({ mode: "edit", componentUuid: null, path: null, width: null, height: null });
+    expect(await call("read", { view: "full" })).toEqual(before);
+    preview.popup = {} as Window;
+    await expect(call("preview", { action: "open" })).rejects.toThrow("external Preview");
     studioCtx.copilotActivity.dispose();
   });
   it.each(["read", "queryElements"])(
@@ -1254,11 +1527,11 @@ describe("AI prototype editor tools", () => {
   it("imports captured block paragraphs without adding flex-only styles", async () => {
     const { call, createPage } = fixture();
     const page = await createPage();
-    const result = await call("insertHtml", {
+    await call("insertHtml", {
       componentUuid: page.uuid,
       html: '<p style="display:block;width:416px;font-size:14px;line-height:22.4px">Captured paragraph</p>',
     });
-    expect(result.results[0].baseVariantTplTree).toContain(
+    expect((await call("read", { componentUuids: [page.uuid], view: "full" })).results[0].baseVariantTplTree).toContain(
       "Captured paragraph",
     );
     expect((await call("validate")).valid).toBe(true);
@@ -1278,11 +1551,11 @@ describe("AI prototype editor tools", () => {
     const { call, createPage } = fixture();
     const page = await createPage();
     const { xml } = svgData();
-    const result = await call("insertHtml", {
+    await call("insertHtml", {
       componentUuid: page.uuid,
       html: xml,
     });
-    expect(result.results[0].baseVariantTplTree).toContain("svg");
+    expect((await call("read", { componentUuids: [page.uuid], view: "full" })).results[0].baseVariantTplTree).toContain("svg");
     expect((await call("validate")).valid).toBe(true);
   });
 
@@ -1455,7 +1728,7 @@ describe("AI prototype editor tools", () => {
       elementUuid: section.uuid,
       styles: { padding: "32px" },
     });
-    const resource = (await call("read", { componentUuids: [page.uuid] }))
+    const resource = (await call("read", { view: "full", componentUuids: [page.uuid] }))
       .results[0];
     expect(resource.baseVariantTplTree).toContain("Project overview");
     expect(resource.baseVariantTplTree).toContain("32px");
@@ -1513,7 +1786,7 @@ describe("AI prototype editor tools", () => {
       elementUuid: input.uuid,
       name: "GroupName",
     });
-    const resource = (await call("read", { componentUuids: [page.uuid] }))
+    const resource = (await call("read", { view: "full", componentUuids: [page.uuid] }))
       .results[0];
     expect(resource.baseVariantTplTree).toContain("$state.groupName.value");
     expect(resource.baseVariantTplTree).not.toContain(
@@ -1528,12 +1801,12 @@ describe("AI prototype editor tools", () => {
     const { studioCtx, call } = fixture();
     const created = (
       await call("createComponent", { name: "Reusable", type: "component" })
-    ).results[0];
+    ).created[0];
     await call("insertHtml", {
       componentUuid: created.uuid,
       html: '<div><slot-target name="children"><span>Default label</span></slot-target></div>',
     });
-    const resource = (await call("read", { componentUuids: [created.uuid] }))
+    const resource = (await call("read", { view: "full", componentUuids: [created.uuid] }))
       .results[0];
     expect(resource.props).toEqual(
       expect.arrayContaining([
@@ -1562,7 +1835,7 @@ describe("AI prototype editor tools", () => {
       ),
       "Button missing",
     );
-    const before = (await call("read", { componentUuids: [page.uuid] }))
+    const before = (await call("read", { view: "full", componentUuids: [page.uuid] }))
       .results[0].baseVariantTplTree;
     await call("executeBatch", {
       operations: [
@@ -1584,7 +1857,7 @@ describe("AI prototype editor tools", () => {
         },
       ],
     });
-    const after = (await call("read", { componentUuids: [page.uuid] }))
+    const after = (await call("read", { view: "full", componentUuids: [page.uuid] }))
       .results[0].baseVariantTplTree;
     expect(after).toBe(
       before
@@ -1593,7 +1866,7 @@ describe("AI prototype editor tools", () => {
     );
     await call("undo");
     expect(
-      (await call("read", { componentUuids: [page.uuid] })).results[0]
+      (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0]
         .baseVariantTplTree,
     ).toBe(before);
     studioCtx.copilotActivity.dispose();
@@ -1626,22 +1899,168 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx.site.components).toHaveLength(before);
   });
 
-  it("rejects unknown HTML components without inserting a partial tree", async () => {
-    const { call, createPage } = fixture();
-    const page = await createPage();
-    const before = (await call("read", { componentUuids: [page.uuid] }))
-      .results[0].baseVariantTplTree;
-    await expect(
-      call("insertHtml", {
+  it.each([
+    { tool: "insertHtml", fit: "cover", registeredDefault: false },
+    { tool: "insertHtml", fit: "contain", registeredDefault: true },
+    { tool: "executeBatch", fit: "cover", registeredDefault: false },
+    { tool: "executeBatch", fit: "contain", registeredDefault: true },
+  ] as const)(
+    "preserves code component $fit styles through read and $tool",
+    async ({ tool, fit, registeredDefault }) => {
+      const site = createSite();
+      const media = mkCodeComponent(
+        "RegisteredMedia",
+        {
+          name: "RegisteredMedia",
+          importPath: "./registered-media",
+          props: {},
+          ...(registeredDefault ? { defaultStyles: { objectFit: fit } } : {}),
+        },
+        {},
+      );
+      site.components.push(media);
+      const { call, createPage } = fixture(site);
+      const page = await createPage();
+      await call("insertHtml", {
         componentUuid: page.uuid,
-        html: '<div>Valid content</div><plasmic-component data-plasmic-component="DoesNotExist" />',
-      }),
-    ).rejects.toThrow();
-    expect(
-      (await call("read", { componentUuids: [page.uuid] })).results[0]
-        .baseVariantTplTree,
-    ).toBe(before);
-  });
+        html: '<plasmic-component data-plasmic-component="RegisteredMedia"></plasmic-component>',
+      });
+      const original = ensure(
+        flattenTpls(page.tplTree).find(isKnownTplComponent),
+        "Media instance not found",
+      );
+      const updated = await call("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: original.uuid,
+        styles: { "object-position": "25% 75%" },
+      });
+      expect(updated.messages ?? []).toEqual([]);
+      const read = await call("read", { view: "full",
+        elements: [{ componentUuid: page.uuid, elementUuid: original.uuid }],
+      });
+      const html = read.results[0].baseVariantTplTree;
+      expect(html).toContain(`object-fit: ${fit}`);
+      expect(html).toContain("object-position: 25% 75%");
+      const input = { componentUuid: page.uuid, html };
+      const result = await call(
+        tool,
+        tool === "executeBatch"
+          ? { operations: [{ name: "insertHtml", input }] }
+          : input,
+      );
+      const messages =
+        tool === "executeBatch" ? result.operations[0].messages : result.messages;
+      expect(messages ?? []).toEqual([]);
+      const instances = flattenTpls(page.tplTree).filter(isKnownTplComponent);
+      expect(instances).toHaveLength(2);
+      for (const instance of instances) {
+        expect(instance.component).toBe(media);
+        const styles = RSH(ensureBaseVariantSetting(instance).rs, instance);
+        expect(styles.getRaw("object-fit")).toBe(fit);
+        expect(styles.getRaw("object-position")).toBe("25% 75%");
+      }
+      const reread = await call("read", { view: "full",
+        elements: [{ componentUuid: page.uuid, elementUuid: instances[1].uuid }],
+      });
+      expect(reread.results[0].baseVariantTplTree).toContain(
+        "object-position: 25% 75%",
+      );
+    },
+  );
+
+  it.each(["insertHtml", "executeBatch"])(
+    "cleans safe style and prop errors without blocking %s",
+    async (tool) => {
+      const site = createSite();
+      const widget = mkCodeComponent(
+        "Widget",
+        {
+          name: "Widget",
+          importPath: "./widget",
+          props: {},
+        },
+        {},
+      );
+      widget.params.push(
+        mkParam({ name: "label", paramType: "prop", type: typeFactory.text() }),
+        mkParam({
+          name: "disabled",
+          paramType: "prop",
+          type: typeFactory.bool(),
+        }),
+        mkParam({
+          name: "tone",
+          paramType: "prop",
+          type: typeFactory.choice(["primary", "default"]),
+        }),
+      );
+      site.components.push(widget);
+      const { call, createPage } = fixture(site);
+      const page = await createPage();
+      const input = {
+        componentUuid: page.uuid,
+        html: '<style>.widget { reason: ignored; }</style><plasmic-component class="widget" data-plasmic-component="Widget" data-props=\'{"label":"Kept","disabled":"yes","tone":"invalid","extra":42}\' style="width:240px;list-style-type:disc"></plasmic-component>',
+      };
+      const result = await call(
+        tool,
+        tool === "executeBatch"
+          ? { operations: [{ name: "insertHtml", input }] }
+          : input,
+      );
+      const messages: string[] =
+        tool === "executeBatch" ? result.operations[0].messages : result.messages;
+      expect(messages).toHaveLength(5);
+      expect(messages.join(" ")).toContain('Invalid prop "disabled"');
+      expect(messages.join(" ")).toContain('Invalid prop "tone"');
+      expect(messages.join(" ")).toContain('Invalid prop "extra"');
+      expect(messages.join(" ")).toContain("list-style-type");
+      expect(messages.join(" ")).toContain("Unsupported CSS property");
+      const instance = ensure(
+        flattenTpls(page.tplTree).find(isKnownTplComponent),
+        "Widget missing",
+      );
+      const vs = ensureBaseVariantSetting(instance);
+      expect(vs.args.map((arg) => arg.param.variable.name)).toEqual(["label"]);
+      expect(tryExtractJson(vs.args[0].expr)).toBe("Kept");
+      const styles = RSH(vs.rs, instance);
+      expect(styles.getRaw("width")).toBe("240px");
+      expect(styles.has("list-style-type")).toBe(false);
+      expect(styles.has("reason")).toBe(false);
+      expect(vs.attrs.style).toBeUndefined();
+      const changed = await call("changeElement", {
+        componentUuid: page.uuid,
+        elementUuid: instance.uuid,
+        props: { label: "Updated", disabled: "invalid", unknown: 123 },
+      });
+      expect(changed.messages).toHaveLength(2);
+      expect(tryExtractJson(vs.args[0].expr)).toBe("Updated");
+      expect(vs.args).toHaveLength(1);
+      expect((await call("validate")).valid).toBe(true);
+    },
+  );
+
+  it.each([
+    '<plasmic-component data-plasmic-component="DoesNotExist" />',
+    '<div>Valid content</div><plasmic-component data-plasmic-component="DoesNotExist" />',
+  ])(
+    "rejects unknown HTML components without inserting a partial tree: %s",
+    async (html) => {
+      const { call, createPage } = fixture();
+      const page = await createPage();
+      const before = (await call("read", { view: "full", componentUuids: [page.uuid] }))
+        .results[0].baseVariantTplTree;
+      await expect(
+        call("insertHtml", {
+          componentUuid: page.uuid,
+          html,
+        }),
+      ).rejects.toThrow("correct the component reference, and retry");
+      expect(
+        (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0]
+          .baseVariantTplTree,
+      ).toBe(before);
+    },
+  );
 
   it.each(["blocked", "stale", "readOnly", "protectedMain"])(
     "rejects writes in %s sessions",
@@ -1666,7 +2085,7 @@ describe("AI prototype editor tools", () => {
     },
   );
 
-  it("rolls back the whole props transaction after a later prop fails, then accepts valid edits", async () => {
+  it("rolls back the whole props transaction after a required prop fails, then accepts valid edits", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage();
     const result = await call("createComponent", {
@@ -1674,7 +2093,7 @@ describe("AI prototype editor tools", () => {
       type: "component",
     });
     const button = ensure(
-      studioCtx.site.components.find((c) => c.uuid === result.results[0].uuid),
+      studioCtx.site.components.find((c) => c.uuid === result.created[0].uuid),
       "Button not found",
     );
     await studioCtx.change(() => {
@@ -1688,6 +2107,7 @@ describe("AI prototype editor tools", () => {
           name: "tone",
           type: typeFactory.choice(["primary", "default"]),
           paramType: "prop",
+          required: true,
         }),
       );
       return ok();
@@ -1789,7 +2209,7 @@ describe("AI prototype editor tools", () => {
         operation: "Increment",
       },
     });
-    const result = (await call("read", { componentUuids: [page.uuid] }))
+    const result = (await call("read", { view: "full", componentUuids: [page.uuid] }))
       .results[0];
     expect(result.states).toHaveLength(1);
     expect(result.interactions).toHaveLength(1);
@@ -1876,7 +2296,7 @@ describe("AI prototype editor tools", () => {
     const { call, createPage } = fixture();
     const page = await createPage();
     const read = async () =>
-      (await call("read", { componentUuids: [page.uuid] })).results[0]
+      (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0]
         .baseVariantTplTree;
     const before = await read();
     await expect(
@@ -1962,7 +2382,7 @@ describe("AI prototype editor tools", () => {
         type: "Color",
         value: "#123456",
       })
-    ).results[0];
+    ).created[0];
     await call("updateStyleToken", {
       tokenUuid: token.uuid,
       name: "Brand",
@@ -2055,7 +2475,7 @@ describe("AI prototype editor tools", () => {
         type: "Color",
         value: "#fff",
       })
-    ).results[0];
+    ).created[0];
     await call("updateStyleToken", {
       tokenUuid: token.uuid,
       variantUuids: [ensure(group, "Group missing").variants[0].uuid],
@@ -2101,7 +2521,7 @@ describe("AI prototype editor tools", () => {
           },
         ],
       }),
-    ).rejects.toThrow("Component removed during batch");
+    ).rejects.toThrow("not found in this project");
     expect(studioCtx.site.components).toContain(page);
     await call("deleteComponent", { componentUuid: page.uuid });
     expect(studioCtx.site.components).not.toContain(page);
@@ -2121,7 +2541,7 @@ describe("AI prototype editor tools", () => {
       flattenTpls(page.tplTree).find((t) => "name" in t && t.name === "hero"),
       "Hero missing",
     );
-    const queried = await call("queryElements", {
+    const queried = await call("queryElements", { view: "full", depth: "all",
       componentUuid: page.uuid,
       elementUuid: hero.uuid,
       tag: "button",
@@ -2150,7 +2570,7 @@ it("discovers text, number and expression data tokens through project read witho
   site.dataTokens.push(...tokens.map(([name, value]) => new DataToken({ name, value, type: "Data", uuid: name, variantedValues: [], isRegistered: false, regKey: undefined })));
   const { call, studioCtx } = fixture(site);
   const before = studioCtx._changeCounter;
-  const resource = (await call("read")).results[0];
+  const resource = (await call("read", { view: "full" })).results[0];
   expect(resource.dataTokens).toEqual(tokens.map(([name, _value, type, value]) => expect.objectContaining({ name, uuid: name, type, value, reference: expect.stringContaining(name.charAt(0).toLowerCase() + name.slice(1)) })));
   expect(studioCtx._changeCounter).toBe(before);
   studioCtx.copilotActivity.dispose();
@@ -2158,7 +2578,7 @@ it("discovers text, number and expression data tokens through project read witho
 
 it("marks inherited slot nodes as readonly and locates their real source contract", async () => {
   const { studioCtx, call, createPage } = fixture();
-  const source = (await call("createComponent", { name: "AuditReusable", type: "component" })).results[0];
+  const source = (await call("createComponent", { name: "AuditReusable", type: "component" })).created[0];
   await call("insertHtml", { componentUuid: source.uuid, html: '<div><slot-target name="children"><span>Inherited label</span></slot-target></div>' });
   const page = await createPage("AuditConsumer");
   await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="AuditReusable"></plasmic-component>' });
@@ -2166,15 +2586,19 @@ it("marks inherited slot nodes as readonly and locates their real source contrac
   await call("changeElement", { componentUuid: page.uuid, elementUuid: instance.uuid, resetProps: ["children"] });
   const slotParam = ensure(instance.component.params.find(isSlot), "source slot param");
   runInAction(() => fillVirtualSlotContents(studioCtx.tplMgr(), instance, [slotParam.tplSlot]));
-  const model = (await call("read", { componentUuids: [page.uuid] })).results[0];
+  const model = (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0];
   expect(model.baseVariantTplTree).toContain('data-editable="false"');
   expect(model.baseVariantTplTree).toContain('data-source-component="' + source.uuid + '"');
   expect(model.baseVariantTplTree).toContain('data-source-slot="children"');
-  const sourceModel = (await call("read", { componentUuids: [source.uuid] })).results[0];
+  const structure = (await call("read", { elements: [{ componentUuid: page.uuid, elementUuid: instance.uuid }], depth: "all" })).results[0];
+  expect(structure.slots[0].name).toBe("children");
+  expect(structure.slots[0].children[0]).toMatchObject({ editable: false, source: { componentUuid: source.uuid, slotName: "children" } });
+  expect(JSON.stringify(structure)).not.toContain("Inherited label");
+  const sourceModel = (await call("read", { view: "full", componentUuids: [source.uuid] })).results[0];
   expect(sourceModel.baseVariantTplTree).not.toContain('data-editable="false"');
   const sourceComponent = ensure(studioCtx.site.components.find(c => c.uuid === source.uuid), "source");
   const span = ensure(flattenTpls(sourceComponent.tplTree).find(t => isKnownTplTag(t) && t.tag === "span"), "default span");
   await call("changeElement", { componentUuid: source.uuid, elementUuid: span.uuid, text: "Source edited" });
-  expect((await call("read", { componentUuids: [source.uuid] })).results[0].baseVariantTplTree).toContain("Source edited");
+  expect((await call("read", { view: "full", componentUuids: [source.uuid] })).results[0].baseVariantTplTree).toContain("Source edited");
   studioCtx.copilotActivity.dispose();
 });

@@ -2,14 +2,12 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import {
   activityBounds,
   CopilotActivityOverlay,
-  CopilotActivityStatus,
 } from "@/wab/client/components/canvas/CopilotActivityOverlay";
-import { setUiLocale } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { IArenaFrame } from "@/wab/shared/Arenas";
 import { Component, TplComponent } from "@/wab/shared/model/classes";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { observable } from "mobx";
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -167,29 +165,4 @@ it("clips a table cell to its nested scrolling viewport instead of highlighting 
   });
   rect(cell, 401, 220, 200, 80);
   expect(activityBounds([cell], 1440, 1024)).toBeUndefined();
-});
-
-it.each(["success", "error"] as const)("shows localized edit feedback and clears %s without failure messages", async (status) => {
-  vi.useFakeTimers();
-  await setUiLocale("zh-CN");
-  const { studioCtx } = fakeStudioCtx();
-  const finish = studioCtx.copilotActivity.begin([
-    { label: "OrdersTable" },
-  ]);
-  render(<CopilotActivityStatus studioCtx={studioCtx} />);
-  expect(screen.getByRole("status").textContent).toContain(
-    "正在编辑 · OrdersTable",
-  );
-  await act(() => finish(status));
-  if (status === "success") {
-    expect(screen.getByRole("status").textContent).toContain(
-      "编辑完成 · OrdersTable",
-    );
-  } else {
-    expect(screen.queryByRole("status")).toBeNull();
-  }
-  await act(() => vi.advanceTimersByTime(2000));
-  expect(screen.queryByRole("status")).toBeNull();
-  studioCtx.copilotActivity.dispose();
-  await setUiLocale("en");
 });

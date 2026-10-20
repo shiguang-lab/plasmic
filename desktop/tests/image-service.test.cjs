@@ -8,7 +8,11 @@ const {
   requestImage,
   imageServiceStatus,
 } = require("../src/image-service.cjs");
-const png = Buffer.from("test-pixels");
+const { PNG } = require("pngjs");
+const sharp = require("sharp");
+const pixels = new PNG({ width: 2, height: 3 });
+pixels.data.fill(255);
+const png = PNG.sync.write(pixels);
 const nativeImage = {
   createFromBuffer: (buffer) => ({
     isEmpty: () => !buffer.equals(png),
@@ -49,6 +53,10 @@ test("Images generation and background editing send correct requests and never o
       nativeImage,
     );
     assert.equal(result.width, 2);
+    assert.equal(result.mimeType, "image/webp");
+    assert.equal(result.fileMimeType, "image/png");
+    assert.equal((await sharp(Buffer.from(result.data, "base64")).metadata()).format, "webp");
+    assert.deepEqual(await fs.readFile(outputPath), png);
     assert.equal(requests[0].url, "/v1/images/generations");
     assert.equal(JSON.parse(requests[0].body).prompt, "a blue circle");
     await assert.rejects(

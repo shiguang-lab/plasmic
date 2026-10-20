@@ -9,8 +9,9 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { notification } from "antd";
+import { message, notification } from "antd";
 import * as React from "react";
+import { mock } from "vitest-mock-extended";
 
 const mocks = vi.hoisted(() => ({
   database: {
@@ -39,7 +40,7 @@ vi.mock("@/wab/client/route/useMatchedRoute", () => ({
   useMatchedRoute: () => ({ pathParams: { databaseId: "db1" } }),
 }));
 vi.mock("@/wab/client/i18n", () => ({
-  useI18n: () => ({ t: (message: string) => message }),
+  useI18n: () => ({ t: (text: string) => text }),
 }));
 vi.mock("copy-to-clipboard", () => ({ default: mocks.copy }));
 beforeEach(() => {
@@ -54,7 +55,8 @@ beforeEach(() => {
   mocks.updateDatabase.mockResolvedValue({});
   mocks.mutate.mockResolvedValue(undefined);
   vi.spyOn(notification, "success").mockImplementation(() => {});
-  vi.spyOn(notification, "error").mockImplementation(() => {});
+  vi.spyOn(message, "success").mockReturnValue(mock());
+  vi.spyOn(message, "error").mockReturnValue(mock());
 });
 afterEach(() => {
   cleanup();
@@ -119,6 +121,9 @@ it("saves only locale settings and refreshes the database", async () => {
     }),
   );
   expect(mocks.mutate).toHaveBeenCalledWith("db1");
+  expect(message.success).toHaveBeenCalledWith({
+    content: "Successfully saved changes",
+  });
 });
 it("rejects duplicate locale codes before making an API request", async () => {
   render(<CmsSettingsPage />);
@@ -128,8 +133,8 @@ it("rejects duplicate locale codes before making an API request", async () => {
   });
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
   await waitFor(() =>
-    expect(notification.error).toHaveBeenCalledWith({
-      message: "Locales must all be distinct",
+    expect(message.error).toHaveBeenCalledWith({
+      content: "Locales must all be distinct",
     }),
   );
   expect(mocks.updateDatabase).not.toHaveBeenCalled();

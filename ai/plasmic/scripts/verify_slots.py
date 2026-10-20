@@ -44,6 +44,24 @@ def walk(node):
         yield from walk(child)
 
 
+def slot_owners(tree):
+    """Ignore layout markup; keep each named component's native Slot owner."""
+    owners = {}
+
+    def visit(node, owner=None, slot_name=None):
+        name = node["attrs"].get("data-plasmic-name") if node["tag"] == "plasmic-component" else None
+        if name:
+            owners[name] = {"component": owner, "slot": slot_name}
+            for child in node["children"]:
+                visit(child, name, child["attrs"].get("name") if child["tag"] == "slot" else None)
+        else:
+            for child in node["children"]:
+                visit(child, owner, slot_name)
+
+    visit(tree)
+    return owners
+
+
 def check(intent, actual):
     intent_tree, actual_tree = Tree(intent).root, Tree(actual).root
     duplicates = []
@@ -74,6 +92,12 @@ def check(intent, actual):
     empty_cards = []
     misplaced_card_content = []
     wrong_card_padding = []
+    wrong_slot_owners = []
+    if not duplicates:
+        intended_owners, actual_owners = slot_owners(intent_tree), slot_owners(actual_tree)
+        for name in sorted(expected.keys() & found.keys()):
+            if intended_owners[name] != actual_owners[name]:
+                wrong_slot_owners.append({"component": name, "expected": intended_owners[name], "actual": actual_owners[name]})
     for name in sorted(expected.keys() & found.keys()):
         identity = lambda node: re.sub(r"[^a-z0-9]", "", node["attrs"].get("data-plasmic-component", "").lower())
         if identity(expected[name]) != identity(found[name]):
@@ -103,7 +127,7 @@ def check(intent, actual):
             actual_names = {node_name(n) for n in walk(actual_content) if node_name(n)} if actual_content else set()
             for child_name in sorted(intended_names - actual_names):
                 misplaced_card_content.append({"card": name, "component": child_name})
-    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, empty_cards, misplaced_card_content, wrong_card_padding, defaults])}
+    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "wrongSlotOwners": wrong_slot_owners, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, wrong_slot_owners, empty_cards, misplaced_card_content, wrong_card_padding, defaults])}
 
 
 def main():
@@ -113,13 +137,13 @@ def main():
     parser.add_argument("--component", help="Select a component UUID when the read contains multiple results")
     parser.add_argument("--allow-defaults", action="store_true", help="Inspect removable defaults before cleanup; missing intended components still fail")
     args = parser.parse_args()
-    data = json.loads(args.mcp_read.read_text())
+    data = json.loads(args.mcp_read.read_text(encoding="utf-8"))
     models = [m for m in data["results"] if "baseVariantTplTree" in m and (not args.component or m["uuid"] == args.component)]
     if len(models) != 1:
         parser.error("Select exactly one public MCP component readback")
-    result = check(args.intent_html.read_text(), models[0]["baseVariantTplTree"])
+    result = check(args.intent_html.read_text(encoding="utf-8"), models[0]["baseVariantTplTree"])
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding"])
+    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "wrongSlotOwners", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding"])
     raise SystemExit(0 if result["passed"] or (args.allow_defaults and not structural_errors) else 1)
 
 

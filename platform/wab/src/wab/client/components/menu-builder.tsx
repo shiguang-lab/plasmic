@@ -166,11 +166,24 @@ const useKeyboardShortcutStyles = createStyles(({ token }) => ({
       textAlign: "center",
     },
   },
+  tooltip: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 12,
+    whiteSpace: "nowrap",
+  },
+  tooltipKeys: {
+    color: "inherit",
+    opacity: 0.55,
+    fontSize: "inherit",
+    lineHeight: "inherit",
+  },
 }));
 
 export function KeyboardShortcut(props: {
   children?: string;
   tooltip?: React.ReactNode;
+  variant?: "tooltip";
 }) {
   const { styles } = useKeyboardShortcutStyles();
   return props.children ? (
@@ -178,8 +191,14 @@ export function KeyboardShortcut(props: {
       cond={!!props.tooltip}
       wrapper={(x) => <Tooltip title={props.tooltip}>{x}</Tooltip>}
     >
-      <div className={`shortcut-combo inline-block ${styles.root}`}>
-        {normalizeCombo(props.children)}
+      <div
+        className={
+          props.variant === "tooltip"
+            ? styles.tooltipKeys
+            : `shortcut-combo inline-block ${styles.root}`
+        }
+      >
+        {normalizeCombo(props.children, props.variant)}
       </div>
     </MaybeWrap>
   ) : null;
@@ -188,25 +207,38 @@ export function KeyboardShortcut(props: {
 export function TextAndShortcut(props: {
   children: React.ReactNode;
   shortcut?: string;
+  variant?: "tooltip";
 }) {
-  const { children, shortcut } = props;
+  const { children, shortcut, variant } = props;
+  const { styles } = useKeyboardShortcutStyles();
   return (
-    <div className="flex">
-      <div className="flex-fill mr-sm">{children}</div>
-      <KeyboardShortcut>{shortcut}</KeyboardShortcut>
+    <div className={variant === "tooltip" ? styles.tooltip : "flex"}>
+      <div className={variant === "tooltip" ? undefined : "flex-fill mr-sm"}>
+        {children}
+      </div>
+      <KeyboardShortcut variant={variant}>{shortcut}</KeyboardShortcut>
     </div>
   );
 }
 
-function normalizeCombo(combo: string) {
+function normalizeCombo(combo: string, variant?: "tooltip") {
   const keyLabels = comboToKeyLabels(combo);
+  const mac = keyLabels.some(
+    ({ key }) => key === "command" || key === "option",
+  );
+  const tooltipLabels: Record<string, string> = {
+    enter: "Enter",
+    esc: "Esc",
+    ctrl: "Ctrl",
+    shift: mac ? "⇧" : "Shift",
+  };
   return joinReactNodes(
     keyLabels.map(({ key, label }) => (
       <span key={key} title={key}>
-        {label}
+        {variant === "tooltip" ? (tooltipLabels[key] ?? label) : label}
       </span>
     )),
-    "+",
+    variant === "tooltip" && mac ? "" : "+",
   );
 }
 

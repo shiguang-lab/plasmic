@@ -2,10 +2,26 @@ import {
   activityTargets,
   CopilotActivity,
   currentActivity,
+  activityText,
 } from "@/wab/client/copilot/activity";
 import { afterEach, expect, it, vi } from "vitest";
 
 afterEach(() => vi.useRealTimers());
+
+it.each([
+  ["inspection", "Read"],
+  ["edit", "Edit"],
+] as const)("labels %s by operation type throughout completion", (kind, label) => {
+  vi.useFakeTimers();
+  const activity = new CopilotActivity();
+  const finish = activity.begin([{ componentUuid: "page", label: "Records" }], kind);
+  expect(activityText(activity.requests[0])).toBe(label);
+  finish("success");
+  expect(activityText(activity.requests[0])).toBe(label);
+  expect(activity.requests[0].scanning).toBe(true);
+  vi.advanceTimersByTime(2000);
+  expect(activity.requests).toHaveLength(0);
+});
 
 it("shares one counted region for overlapping requests on the same node", () => {
   vi.useFakeTimers();

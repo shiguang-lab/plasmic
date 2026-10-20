@@ -28,6 +28,10 @@ export function beginCanvasInspection(
   }
   const active = leases;
   const inspectionId = mkShortId();
+  const finish = studio.copilotActivity.begin(
+    [{ componentUuid: target.uuid, label: target.name }],
+    "inspection",
+  );
   return new Promise<{
     inspectionId: string;
     componentUuid: string;
@@ -53,7 +57,11 @@ export function beginCanvasInspection(
             const released = new Promise<void>((done) => {
               release = done;
             });
-            const timer = setTimeout(() => release(), 120000);
+            let expired = false;
+            const timer = setTimeout(() => {
+              expired = true;
+              release();
+            }, 120000);
             root.setAttribute("data-plasmic-canvas-inspection", inspectionId);
             active.set(inspectionId, { release: () => release(), finished });
             prepared = true;
@@ -64,6 +72,7 @@ export function beginCanvasInspection(
             });
             try {
               await released;
+              finish(expired ? "error" : "success");
             } finally {
               clearTimeout(timer);
               if (previousId === null) {
@@ -87,9 +96,13 @@ export function beginCanvasInspection(
     );
     finished.then(() => {
       if (!prepared) {
+        finish("error");
         reject(new Error("No canvas renders this component"));
       }
-    }, reject);
+    }, (error) => {
+      finish("error");
+      reject(error);
+    });
   });
 }
 

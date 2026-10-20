@@ -181,3 +181,169 @@ it("runs from the canvas overview without requiring a focused page", async () =>
     phase: "Completed",
   });
 });
+
+it("lets the model read contracts and repair a missing component without ending the design task", async () => {
+  fixture.a.modelStep
+    .mockImplementationOnce(async () => ({
+      text: "Insert widget",
+      calls: [
+        {
+          id: "missing",
+          name: "insertHtml",
+          input: {
+            html: '<plasmic-component data-plasmic-component="Missing" />',
+          },
+        },
+        {
+          id: "dependent",
+          name: "changeElement",
+          input: { elementUuid: "not-created" },
+        },
+      ],
+    }))
+    .mockImplementationOnce(async () => ({
+      text: "Read installed contracts",
+      calls: [{ id: "contracts", name: "read", input: {} }],
+    }))
+    .mockImplementationOnce(async () => ({
+      text: "Retry with the registered name",
+      calls: [
+        {
+          id: "fixed",
+          name: "insertHtml",
+          input: {
+            html: '<plasmic-component data-plasmic-component="Registered" />',
+          },
+          retryOf: "missing",
+        },
+      ],
+    }))
+    .mockImplementationOnce(async () => ({ text: "Done", calls: [] }));
+  const completedTool = async () => ({
+    status: "completed",
+    result: { result: "{}", binding: {}, changed: false },
+  });
+  fixture.a.readTool
+    .mockImplementationOnce(completedTool)
+    .mockImplementationOnce(completedTool)
+    .mockImplementationOnce(async () => ({
+      status: "failed",
+      error:
+        'Component "Missing" was not found. Read installed component contracts and retry.',
+      result: { result: "{}", binding: {}, changed: false },
+    }));
+  await aiChatRun("run");
+  expect(fixture.a.recordModelResult).toHaveBeenCalledWith(
+    "run",
+    0,
+    "missing",
+    undefined,
+    expect.stringContaining('Component "Missing"'),
+  );
+  expect(fixture.a.recordModelResult).toHaveBeenCalledWith(
+    "run",
+    0,
+    "dependent",
+    undefined,
+    expect.stringContaining("Skipped after a rejected call"),
+  );
+  expect(fixture.a.requestTool).not.toHaveBeenCalledWith(
+    "run",
+    expect.anything(),
+    "changeElement",
+    expect.anything(),
+    expect.anything(),
+  );
+  expect(fixture.a.requestTool).toHaveBeenCalledWith(
+    "run",
+    "run:4",
+    "insertHtml",
+    { html: '<plasmic-component data-plasmic-component="Registered" />' },
+    "run:2",
+  );
+  expect(fixture.a.setRun).toHaveBeenLastCalledWith("run", {
+    status: "completed",
+    phase: "Completed",
+  });
+});
+
+it("restores the repair budget after each successful correction", async () => {
+  fixture.a.modelStep.mockImplementation(
+    async (_run, step, _resources, channel) => {
+      if (channel === "answer") {
+        return { text: "Completed the design", calls: [] };
+      }
+      if (step >= 8) {
+        return { text: "Done", calls: [] };
+      }
+      const pair = Math.floor(step / 2);
+      const correcting = step % 2 === 1;
+      return {
+        text: correcting
+          ? "Correct the component reference"
+          : "Insert component",
+        calls: [
+          {
+            id: `${correcting ? "fixed" : "missing"}-${pair}`,
+            name: "insertHtml",
+            input: {
+              html: `<plasmic-component data-plasmic-component="${correcting ? "Registered" : "Missing"}${pair}" />`,
+            },
+            ...(correcting ? { retryOf: `missing-${pair}` } : {}),
+          },
+        ],
+      };
+    },
+  );
+  fixture.a.readTool.mockImplementation(async (id) => {
+    const index = Number(id.split(":").at(-1));
+    return {
+      status:
+        index >= 2 && index < 10 && index % 2 === 0 ? "failed" : "completed",
+      error: "Component not found; correct the reference and retry",
+      result: {
+        result: fixture.names.get(id) === "validate" ? '{"valid":true}' : "{}",
+        binding: {},
+        changed: false,
+      },
+    };
+  });
+  await aiChatRun("run");
+  expect(
+    fixture.a.requestTool.mock.calls.filter((call) => call[2] === "insertHtml"),
+  ).toHaveLength(8);
+  expect(fixture.a.setRun).toHaveBeenLastCalledWith("run", {
+    status: "completed",
+    phase: "Completed",
+  });
+});
+
+it("still stops repeated unsuccessful repairs", async () => {
+  fixture.a.modelStep.mockImplementation(async (_run, step) => ({
+    text: "Correct the component reference",
+    calls: [
+      {
+        id: `attempt-${step}`,
+        name: "insertHtml",
+        input: {
+          html: `<plasmic-component data-plasmic-component="Missing${step}" />`,
+        },
+        ...(step > 0 ? { retryOf: `attempt-${step - 1}` } : {}),
+      },
+    ],
+  }));
+  fixture.a.readTool.mockImplementation(async (id) => ({
+    status: fixture.names.get(id) === "insertHtml" ? "failed" : "completed",
+    error: "Component not found",
+    result: { result: "{}", binding: {}, changed: false },
+  }));
+  await aiChatRun("run");
+  expect(
+    fixture.a.requestTool.mock.calls.filter((call) => call[2] === "insertHtml"),
+  ).toHaveLength(4);
+  expect(fixture.a.setRun).toHaveBeenLastCalledWith("run", {
+    status: "failed",
+    phase: "Failed",
+    error: "Component not found",
+  });
+});

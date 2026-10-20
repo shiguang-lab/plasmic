@@ -1,9 +1,13 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const Module = require("node:module");
+const { PNG } = require("pngjs");
+const sharp = require("sharp");
+const png = PNG.sync.write(new PNG({ width: 320, height: 200 }));
 const windows = [];
 class Window {
   constructor(options) {
+    assert.equal(options.webPreferences.devTools, false);
     this.options = options;
     this.destroyed = false;
     this.webContents = {
@@ -21,7 +25,7 @@ class Window {
       }),
       capturePage: async () => ({
         getSize: () => ({ width: 320, height: 200 }),
-        toPNG: () => Buffer.from("png"),
+        toPNG: () => png,
       }),
       debugger: {
         isAttached: () => true,
@@ -46,7 +50,7 @@ class Window {
 const original = Module._load;
 Module._load = function (name, ...args) {
   return name === "electron"
-    ? { BrowserWindow: Window }
+    ? { app: { isPackaged: true }, BrowserWindow: Window }
     : original.call(this, name, ...args);
 };
 const { captureBrowser } = require("../src/browser-capture.cjs");
@@ -58,5 +62,11 @@ test("stateless reference capture always destroys its window and rejects credent
   );
   const result = await captureBrowser({ url: "https://example.org" });
   assert.equal(result.width, 320);
+  assert.equal(result.mimeType, "image/webp");
+  assert.equal(result.encoding, "lossy");
+  assert.equal((await sharp(Buffer.from(result.data, "base64")).metadata()).format, "webp");
+  assert.equal(windows.at(-1).destroyed, true);
+  const full = await captureBrowser({ url: "https://example.org", fullResolution: true });
+  assert.equal(full.encoding, "lossless");
   assert.equal(windows.at(-1).destroyed, true);
 });

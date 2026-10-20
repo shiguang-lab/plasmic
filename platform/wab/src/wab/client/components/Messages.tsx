@@ -2,7 +2,7 @@ import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import * as common from "@/wab/shared/common";
-import { notification } from "antd";
+import { message, notification } from "antd";
 import L from "lodash";
 import React, { ReactNode } from "react";
 
@@ -99,16 +99,9 @@ export function showReloadError() {
 }
 
 export function showSaveErrorRecoveredNotice() {
-  const key = L.uniqueId();
-  notification.info({
-    key,
-    message: <UiText message={"info"} />,
-    description: (
-      <span>
-        <UiText message={SAVE_ERROR_RECOVERED_EXPLANATION} />
-      </span>
-    ),
-    duration: 0,
+  void message.success({
+    key: "save-recovered",
+    content: <UiText message={SAVE_ERROR_RECOVERED_EXPLANATION} />,
   });
 }
 

@@ -12,7 +12,7 @@ import {
   PlasmicAuthConfig,
 } from "@/wab/client/plasmic/plasmic_kit_end_user_management/PlasmicAuthConfig";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Menu, notification } from "antd";
+import { Menu, notification, message } from "antd";
 import { uniq } from "lodash";
 import * as React from "react";
 
@@ -113,8 +113,8 @@ function AuthConfig_(props: AuthConfigProps, ref: HTMLElementRefOf<"div">) {
                     await mutateHostAppAuthData();
                     await hostFrameApi.refreshSiteInfo();
 
-                    notification.warning({
-                      message: studioUiT(
+                    void message.warning({
+                      content: studioUiT(
                         "App auth has been disabled. You can re-enable it at any time.",
                       ),
                     });

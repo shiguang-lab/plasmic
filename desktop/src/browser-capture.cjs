@@ -1,5 +1,6 @@
-const { BrowserWindow } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const { capturePage, inPage } = require("./browser-page.cjs");
+const { encodeImagePreview } = require("./image-preview.cjs");
 
 function checkedUrl(value) {
   const url = new URL(value);
@@ -21,6 +22,7 @@ function createReferenceWindow(input) {
     height,
     useContentSize: true,
     webPreferences: {
+      devTools: !app.isPackaged,
       partition: "plasmic-reference-browser",
       nodeIntegration: false,
       contextIsolation: true,
@@ -54,9 +56,7 @@ async function captureReference(window, input) {
     );
     return {
       ...result,
-      width: image.getSize().width,
-      height: image.getSize().height,
-      data: image.toPNG().toString("base64"),
+      ...(await encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })),
     };
   } finally {
     await inPage(contents, () => globalThis.__plasmicWebPicker?.restore());

@@ -25,6 +25,7 @@ import issuesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftL
 import leftPane from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftPane.module.css";
 import splitsPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSplitsPanel.module.css";
 import leftTabButton from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabButton.module.css";
+import leftTabStrip from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip.module.css";
 import themesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel.module.css";
 import navigationSearch from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
 import labeledListItem from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicLabeledListItem.module.css";
@@ -45,7 +46,7 @@ export const editorLeftRailLayout = {
   left: 8,
   top: applicationHeaderLayout.top + applicationHeaderLayout.height + 8,
   bottom: 8,
-  width: 48,
+  width: 36,
   panelGap: 8,
 } as const;
 
@@ -470,6 +471,10 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       strokeLinecap: "round",
       strokeLinejoin: "round",
     },
+    "& .editor-primary-actions .anticon-loading svg": {
+      fill: "currentColor",
+      stroke: "none",
+    },
     "& .editor-history-controls": {
       display: "flex",
       alignItems: "center",
@@ -775,24 +780,49 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .editor-update-below-rail": { flexShrink: 0 },
     "& #left-tab-strip": {
+      boxSizing: "border-box",
       minHeight: 0,
       width: editorLeftRailLayout.width,
       height: "auto",
       maxHeight: "100%",
-      padding: "6px 5px",
+      padding: 0,
+      overflow: "hidden",
+      rowGap: 0,
       alignSelf: "flex-start",
       border: `1px solid ${token.colorBorder}`,
-      borderRadius: token.borderRadius,
+      borderRadius: 0,
       boxShadow: token.boxShadowSecondary,
       background: token.colorBgContainer,
+    },
+    [`& #left-tab-strip .${leftTabStrip.freeBox__s2Zn2}`]: {
+      height: "auto",
+      flex: 1,
+    },
+    [`& #left-tab-strip .${leftTabStrip.freeBox___5Ah7Y}`]: {
+      width: "100%",
+      minHeight: 0,
+    },
+    "& .editor-rail-scroll": { width: "100%", minHeight: 0 },
+    "& .editor-rail-tools": {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 4,
+      padding: "4px 3px",
     },
     [`& #left-tab-strip .${leftTabButton.root}`]: {
       alignItems: "center",
       justifyContent: "center",
-      width: 36,
-      height: 36,
+      width: 28,
+      height: 28,
+      flexShrink: 0,
+      borderRadius: "50%",
       padding: 0,
       gap: 0,
+    },
+    [`& #left-tab-strip .${leftTabButton.slotTargetIcon} svg`]: {
+      width: 16,
+      height: 16,
     },
     "& #left-tab-strip button[aria-current='true']": {
       background: token.colorPrimaryBg,

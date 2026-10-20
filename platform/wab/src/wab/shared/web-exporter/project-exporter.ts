@@ -71,6 +71,7 @@ export function buildProjectResource(
     mixins?: boolean;
     animations?: boolean;
     themes?: "active" | "all";
+    imports?: boolean;
   },
 ): ProjectJson {
   const screenBreakpoints = opts.screenBreakpoints
@@ -175,10 +176,11 @@ export function buildProjectResource(
     ...(screenBreakpoints ? { screenBreakpoints } : {}),
     ...buildSections(),
     ...(customFunctions ? { dataQueryFunctions: customFunctions } : {}),
-    importedProjects: site.projectDependencies.map((dep) => ({
+    importedProjects: opts.imports === false ? [] : site.projectDependencies.map((dep) => ({
       __type: "ImportedProject",
       id: dep.projectId,
       name: dep.name,
+      version: dep.version,
       ...buildSections(dep),
     })),
   };

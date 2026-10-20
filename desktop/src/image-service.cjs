@@ -1,5 +1,6 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { encodeImagePreview } = require("./image-preview.cjs");
 
 async function readConfig(profile) {
   const filename = path.join(profile, "image-service.json");
@@ -156,13 +157,13 @@ async function requestImage(profile, input, nativeImage) {
     if (png.length > 10 * 1024 * 1024) {
       throw new Error("Generated image exceeds 10 MiB");
     }
+    const preview = await encodeImagePreview(png);
     await file.writeFile(png);
     completed = true;
     return {
       path: input.outputPath,
-      mimeType: "image/png",
-      ...image.getSize(),
-      data: png.toString("base64"),
+      fileMimeType: "image/png",
+      ...preview,
       action: input.action,
     };
   } finally {

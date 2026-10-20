@@ -13,7 +13,7 @@ import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
 import { ApiTeam } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { notification } from "antd";
+import { message } from "antd";
 import sortBy from "lodash/sortBy";
 
 const UPSELL_QUERY_PARAM = "upsell";
@@ -67,8 +67,8 @@ export function useUpsellQueryParam(team: ApiTeam) {
       return;
     }
     if (!canUpgradeTeam(appCtx, team)) {
-      notification.warning({
-        message: studioUiT(
+      void message.warning({
+        content: studioUiT(
           "You don't have permission to upgrade this {part1}.",
           { part1: String(ORGANIZATION_LOWER) },
         ),

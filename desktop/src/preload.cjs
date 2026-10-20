@@ -18,6 +18,7 @@ if (window.top === window) {
   });
   contextBridge.exposeInMainWorld("desktopBrowser", {
     open: () => ipcRenderer.invoke("desktop:open-reference-browser"),
+    openPreview: (url) => ipcRenderer.invoke("desktop:open-preview", url),
   });
   window.addEventListener("DOMContentLoaded", () => {
     const appearance = document.documentElement.dataset.uiAppearance;

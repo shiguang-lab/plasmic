@@ -38,6 +38,8 @@ def check(readback, snapshot):
             errors.append("Expected one Page root")
         else:
             css = styles(roots[0])
+            if css.get("width") != "stretch":
+                errors.append("Page root needs Studio width:stretch so later edits preserve its viewport-height mode")
             if css.get("height") not in VIEWPORT_HEIGHTS:
                 errors.append("Page root needs a definite viewport height; stretch/auto and min/max-height alone do not fill the shell")
             if css.get("min-height") not in {"0", "0px"}:
@@ -92,7 +94,7 @@ def check(readback, snapshot):
         "viewportHeight": frames[0].get("height") if len(frames) == 1 else None,
         "measurements": measurements,
         "errors": errors,
-        "notChecked": ["live-preview-scrolling", "save-reload-persistence"],
+        "notChecked": ["subsequent-edit-sizing", "live-preview-scrolling", "save-reload-persistence"],
     }
 
 
@@ -101,7 +103,7 @@ def main():
     parser.add_argument("page_read", type=Path)
     parser.add_argument("layout_snapshot", type=Path)
     args = parser.parse_args()
-    result = check(json.loads(args.page_read.read_text()), json.loads(args.layout_snapshot.read_text()))
+    result = check(json.loads(args.page_read.read_text(encoding="utf-8")), json.loads(args.layout_snapshot.read_text(encoding="utf-8")))
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

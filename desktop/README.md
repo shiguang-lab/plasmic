@@ -44,7 +44,7 @@ Both workspaces must already have their dependencies installed. This command
 links these local packages into the consumers' `node_modules` before building;
 reinstalling workspace dependencies restores normal dependency resolution.
 Quit and reopen the packaged app after a successful build. About Plasmic and
-`get_app_state.build` show the source commit, local/release kind, dirty status,
+`get_build_info().build` show the source commit, local/release kind, dirty status,
 build time and renderer hash. Packaging verifies both renderer and desktop
 source hashes and rejects assets changed since preparation.
 Local Studio builds write `studio-build.json` with the source revision, source
@@ -95,6 +95,32 @@ installer, and Linux produces an AppImage. No backend or database is included.
 
 ## Canvas reads and verification
 
+MCP screenshots and image reads use WebP previews at quality 85, preserving
+transparency and aspect ratio, with a maximum long edge of 2,048 pixels and no
+upscaling. `fullResolution: true` on image captures (`get_screenshot`,
+`capture_browser`, `reference_browser`, `design_reference`, `preview`) requests
+original-size lossless WebP (maximum 16,383 pixels per side).
+This changes returned pixels, never the live viewport or saved asset. Image
+metadata reports `width`/`height`, `sourceImageSize` and `encoding`. Base64 appears
+only in the image block. Generated files remain PNG; exports and imported assets
+retain their explicit formats.
+
+JSON tool results appear once in `content.text`, capped at 64 KiB including MCP
+content-envelope escaping (images are separate). Oversized values return a
+`ResultReference`; `read_result` reads that snapshot by key/index `path`, with
+`offset`/`limit` pagination. Entries carry `value` or a nested `reference`;
+append the entry key to the path to descend. Strings return `text` chunks and
+UTF-16 `nextOffset` values. Follow continuation offsets without cutting surrogate
+pairs. Up to 16 snapshots / 64 MiB are retained per MCP connection; references expire
+on disconnection or eviction. Reading does not re-execute edits. SVG and captured
+HTML use references even when small. Authenticated local RPC remains complete
+for the verifier's evidence files.
+
+`read` without targets returns project counts. Use `collection` for a paginated
+inventory, or explicit `view: "full"` for complete evidence. `snapshot_layout`
+defaults to dimensions/counts and paginated problems; use `view: "elements"` or
+`"images"` with fields/target filters for detail, or `view: "full"` for acceptance.
+
 `get_screenshot`, `snapshot_layout` and exports with `componentUuid` pin a
 background canvas until the read completes. They keep the active arena,
 selection and viewport. Workspace screenshots capture the current editor view
@@ -103,8 +129,8 @@ mutations serialize, while state queries and independent media jobs proceed
 without waiting for the editor queue. State reports queued/running operations.
 
 `validate` checks the authored model. `snapshot_layout` checks horizontal
-overflow and unloaded images in rendered DOM, and reports when its 2,000-node
-limit truncates inspection. Neither checks interactions, content overlap or
+overflow and unloaded images in rendered DOM. Full reads include all visible
+elements; summary and detail views declare pagination. Neither checks interactions, content overlap or
 responsive breakpoints. Artboard exports are static; `sourceViewport` and
 `resized` distinguish the source canvas from a resized rendering. Verify
 interactions and responsive behavior in Preview at the actual viewport size.
@@ -179,25 +205,50 @@ state. Scans follow the element's bounds and are removed on completion, browser
 close, navigation or the next capture. Captures exclude both the picker and read
 feedback. Reduced motion replaces the scan with a static border.
 
-MCP uses this same visible browser and selection explicitly:
+MCP reference reads use `reference_browser` with this same visible browser and selection:
 
 ```json
 {"action":"load_page","url":"http://localhost:3000"}
 {"action":"select_element","selector":"main"}
-{"action":"import_to_canvas","target":"selection","name":"ImportedSection"}
 ```
 
-Send each object to `browser`. Whole-page and selection imports both create an
+An explicit `import_reference` call with
+`{"action":"editable","target":"selection","name":"ImportedSection"}` imports
+the selection. Whole-page and selection imports both create an
 independent editable artboard in the current mixed canvas. From page/component
 detail, imports use an associated canvas, or create and reuse Free canvas with
 a reference to the original page/component. The result includes `canvasName`
 and `frameUuid`. Artboard content can be dragged into a page, or the artboard
 can be converted to a page or reusable component through its existing menu.
 `get_state` reads the live selection and import height. `set_import_height` accepts
-`height` in panel CSS pixels (minimum 240); omit it to reset to the full page. `screenshot_to_canvas` accepts `full_page`,
+`height` in panel CSS pixels (minimum 240); omit it to reset to the full page. `import_reference` with action `screenshot` accepts `full_page`,
 `selection` or `visible_area` and imports an image with
 the same destination contract; `close` hides the browser. `capture_browser`
 remains a separate, temporary reference capture without canvas writes.
+
+Use `preview` for the existing authenticated native Preview: paged snapshots,
+click/hover/fill/select/press/scroll, DOM assertions and viewport screenshots.
+The reference browser rejects Studio Preview URLs and exposes read-only CDP.
+It cannot verify authenticated business behavior. Imports are separate operations.
+
+`design_reference` reads supplied `.pen` files through the installed Pen MCP with
+fixed read-only snippets, bounded layout reads and frame screenshots. macOS
+discovers Pen.app; other installs configure an absolute command and args in
+user-data/design-reference.json. It never parses raw Pen documents.
+
+For new full-project prototype generation, `prototype_task` pins reviewed source
+inventories and enforces one Page at a time against actual dispatch calls.
+Reference layout/image coverage, native structural readbacks, image comparisons
+and source-pinned Preview cases precede Page completion. Edits/session changes
+invalidate checkpoints. Task evidence is private under user-data/prototype-runs;
+the final task requires save/reopen and renewed checks. Visual observations are
+recorded judgments requiring independent review, not automatic pixel approval.
+See ai/plasmic/references/prototype-tasks.md for the source/inventory contract.
+
+Optional `PLASMIC_MCP_METRICS=/absolute/private/metrics.jsonl` in the MCP process
+records tool/operation, input/wire/text/image bytes and elapsed time without
+payload text. Task RPC counts include verifier traffic; provider/cache token
+usage must be read from the actual model client, not inferred from byte counts.
 
 Run `npm test` for Desktop checks and `npx electron tests/reference-browser-native.cjs`
 for actual Chromium selection, navigation, isolation and import integration.
@@ -420,17 +471,12 @@ an offline static asset. It never writes credentials or session cookies to its
 report. The desktop application runs on the current computer; only its API
 backend runs on the NAS. Test profiles are isolated from the normal app profile.
 
-After publishing a newer version, verify a real NAS download, bundle replacement,
-restart and backup cleanup with an older update-capable application bundle:
-
-```sh
-npm run test:updates-e2e -- /absolute/path/to/older/Plasmic.app 0.0.6
-```
-
-This copies the old app into `desktop-report/updates/installed`, uses a separate
-profile, and writes `report.json` and screenshots. It does not replace the ordinary
-installed application or use its login profile. This acceptance runner is for macOS
-and uses the repository's Playwright installation.
+Packaged applications disable DevTools, Chromium remote debugging, Node inspector
+arguments, `NODE_OPTIONS` injection and `ELECTRON_RUN_AS_NODE`. Development runs
+retain debugging. AI clients use the registered MCP tools through `--mcp`.
+On macOS, `npm run test:runtime-security` builds an isolated fixture to verify the
+packaged restrictions and MCP startup. `npm run test:session-lifecycle` verifies
+download, replacement, restart and cleanup without a remote debugging port.
 
 ## MCP
 
@@ -451,7 +497,8 @@ The server provides these tools:
 
 | Tool                                                      | Function                                                                                                  |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `get_app_state`                                           | Read identity, readiness, editing context and schemas; `toolNames: []` returns status/tool names, a name list selects complete schemas, omission returns all |
+| `get_app_state` | Compact status/buildId; view:tools lists operations, toolNames selects contracts, schemaView:full adds public output schemas |
+| `get_build_info` / `get_image_service_status` / `get_editor_view` | Explicit build provenance, image-service availability and editor viewport reads |
 | `get_org` / `list_orgs`                                   | Read an organization by ID or list accessible organizations with an optional name query                   |
 | `create_org` / `open_org`                                 | Create an organization or open its dashboard                                                              |
 | `create_workspace` / `list_workspaces` / `open_workspace` | Create, list or open workspaces; lists can be scoped to an organization                                   |
@@ -459,20 +506,27 @@ The server provides these tools:
 | `list_projects` / `open_design`                           | List accessible NAS projects, optionally in a workspace, and open a design                                |
 | `read_skill` / `get_style`                                | Editing workflow and local palette/spacing presets                                                        |
 | `execute` / `execute_batch`                               | Validated edits; a batch rolls back completely on failure and is one undo step                            |
+| `read_result` | Read retained JSON/SVG/HTML results by path and pagination without rerunning operations |
 | `snapshot_layout`                                         | Rendered desktop/mobile geometry and image load status                                                    |
-| `get_screenshot`                                          | Clean static artboard PNG; `mode: "workspace"` captures the editor                                        |
+| `get_screenshot`                                          | Clean static artboard WebP preview; `fullResolution` requests lossless pixels; `mode: "workspace"` captures the editor                                        |
 | `import_image` / `read_image`                             | Import a local raster into NAS and read design image pixels                                               |
 | `export_design` / `export_pages`                          | Static exports and ordered multi-page PDF                                                                 |
 | `export_code`                                             | Editable React/TypeScript/CSS from NAS codegen                                                            |
-| `capture_browser` / `browser`                             | Reference PNG/DOM and persistent isolated browser CDP                                                     |
+| `capture_browser` / `reference_browser`                   | External reference WebP/DOM and read-only isolated browser CDP                                             |
+| `import_reference`                                      | Explicit editable/raster import into an independent artboard                                                |
+| `design_reference`                                      | Read-only Pen MCP frame layout, children and source screenshots                                              |
+| `preview`                                               | Authenticated native Preview snapshots, user interactions and DOM assertions                                 |
+| `prototype_task`                                        | Actual dispatch Page ordering and reference/model/image/runtime evidence                                    |
 | `search_stock_images`                                     | Commons images with license/source/attribution metadata                                                   |
 | `vectorize_image`                                         | Local raster tracing to SVG paths                                                                         |
 | `make_vector`                                             | SVG paths and union/intersection/subtraction/xor geometry                                                 |
 | `generate_image`                                          | Configured Images generation/edit/background service                                                      |
 
 Organization tools use `orgId`; the platform stores organizations as Teams and
-returns its existing `team`/`teams`, permissions and member fields. `get_org`
-reads a single organization by ID. `list_orgs` accepts an optional `query` for
+returns team/teams identities only. Queries and creation whitelist identities,
+hierarchy. No permissions, members, billing,
+configuration, credentials or full-detail bypass is returned.
+`list_orgs` accepts an optional `query` for
 case-insensitive name matching. `create_org` requires `name`; the platform also
 creates the organization's default workspace.
 
@@ -490,12 +544,33 @@ then verify its identity, readiness and edit permission before design writes.
 
 `create_project` requires `name`, with optional `workspaceId`, and creates a
 private project. Without a workspace ID, the platform uses the account's
-personal workspace. It returns `project` and `rev`; call `open_design` with
+personal workspace. It returns project identity; call `open_design` with
 `project.id` to open the editor. Creation and query tools do not navigate or
 save the active design. `open_org` and `open_workspace` check access before
 saving the active editable design and opening their dashboard; a failed save
 prevents navigation. All management tools use the signed-in Desktop session
 and the platform's existing permission checks.
+
+`get_app_state` supplies readiness, target/session/model identity, selection,
+active operations and a buildId. view:tools lists operations; toolNames selects
+input contracts without unrelated status. executeBatch discovery points to the
+existing execute_batch envelope; read constituent contracts. schemaView:full
+retains complete operation inputs and public output schemas. get_build_info
+provides full provenance, get_image_service_status configured/model, and
+get_editor_view a view snapshot for restoreEditorView. Public getEditorContext
+excludes import destinations and viewport persistence; native UI persistence
+and browser import flows retain their internal context.
+
+Native read/queryElements tree projections contain structural node identities,
+children and named slot references, without property values/styles/text. Component
+tree reads expose tree and rootElementUuid. `view:"properties"` reads the target
+node's values (the root for a component target); propNames limits instance values,
+fields selects styles/attributes/text. Registered contract.props remains separate.
+Inherited nodes retain editable:false and source slot identity. Full reads keep
+canonical markup, rich text, expressions and interactions. Project dependencies
+remain identity/version references; read each via fromProject; the verifier requests only Project identity,
+components, canvases, pageFrames and devicePresets, while preserving complete Pages
+and layouts in evidence files.
 
 `execute` supports `identify`, `read`, `createComponent`, `insertHtml`,
 `changeElement`, `deleteElement`, `createState`, `createInteraction`,
@@ -534,7 +609,7 @@ PLASMIC_DESKTOP_PROFILE=/absolute/path/to/acceptance-profile npm run test:mcp
 
 This test connects through the actual stdio MCP transport, lists/opens a project,
 creates an Ant Design 6 page, reads and modifies it, validates and saves it,
-captures a PNG, reloads it from the NAS, and checks rejection of arbitrary code.
+captures a WebP, reloads it from the NAS, and checks rejection of arbitrary code.
 It adds a uniquely named page to the acceptance project. Reports and screenshots
 are written to `PLASMIC_REPORT_DIR` (default `/tmp/plasmic-desktop-mcp-report`).
 
@@ -566,4 +641,4 @@ Create `image-service.json` in the desktop user-data directory (`~/Library/Appli
 }
 ```
 
-The chosen service must implement JSON `/images/generations`, multipart `/images/edits`, and `data[0].b64_json` PNG output. Background removal requires transparency support. `get_app_state` reports whether it is configured, without returning credentials. No image service is enabled by default.
+The chosen service must implement JSON `/images/generations`, multipart `/images/edits`, and `data[0].b64_json` PNG output. Background removal requires transparency support. `get_image_service_status` reports whether it is configured, without returning credentials. No image service is enabled by default.

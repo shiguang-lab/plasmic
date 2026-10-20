@@ -34,7 +34,7 @@ for (const replay of replays) {
         type: "page",
         path: "/accountsettings",
       });
-      const componentUuid = created.results[0].uuid;
+      const componentUuid = created.created[0].uuid;
       await call("insertHtml", {
         componentUuid,
         html: '<div data-plasmic-name="EditCard" style="padding:16px"><div data-plasmic-name="EmailInput">Email field</div></div><div data-plasmic-name="SummaryCard" style="padding:12px">Keep this</div>',
@@ -78,7 +78,7 @@ for (const replay of replays) {
       }
       expect(others()).toEqual(before);
       expect((await call("validate")).errors).toEqual([]);
-      await call("read", { componentUuids: [componentUuid] });
+      await call("read", { componentUuids: [componentUuid], view: "full", depth: "all" });
     } finally {
       studioCtx.copilotActivity.dispose();
     }

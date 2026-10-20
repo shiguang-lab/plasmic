@@ -55,7 +55,7 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
         <span className="editor-action-divider" />
         <EditorIconAction action="Comments" disabled />
         <EditorIconAction action="Preview" disabled />
-        <EditorIconAction action="Open preview in new tab" disabled />
+        <EditorIconAction action="Present" disabled />
         <span className="editor-action-divider" />
         <EditorIconAction action="Code" disabled />
         <EditorViewButton disabled />

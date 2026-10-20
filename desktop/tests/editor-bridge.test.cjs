@@ -17,6 +17,7 @@ function fixture(t) {
       $ref: "#/definitions/node",
     } },
     save: { inputSchema: { type: "object" }, outputSchema: { type: "object" } },
+    executeBatch: { inputSchema: { type: "object", properties: { operations: { type: "array", items: { oneOf: [{ type: "object", properties: { name: { const: "createComponent" } } }] } } } }, outputSchema: { type: "object" } },
   };
   const metadata = Object.defineProperties({}, Object.fromEntries(Object.keys(schemas).map((name) => [name, {
     enumerable: true,
@@ -76,21 +77,28 @@ function fixture(t) {
 }
 
 test("schema scope reaches the editor bridge without reading unrequested contracts", async (t) => {
-  const { state, schemas, reads } = fixture(t);
+  const { controller, state, schemas, reads } = fixture(t);
   const status = await state({ toolNames: [] });
   assert.deepEqual(reads, []);
-  assert.deepEqual(status.editorTools, {});
-  assert.deepEqual(status.availableEditorTools, ["read", "save"]);
+  assert.equal(status.editorTools, undefined);
+  assert.equal(status.availableEditorTools, undefined);
   assert.deepEqual(status.editorContext, { sessionId: "session", changeCounter: 2 });
   const selected = await state({ toolNames: ["read"] });
   assert.deepEqual(reads, ["read"]);
-  assert.deepEqual(selected.editorTools, { read: schemas.read });
-  assert.deepEqual(selected.availableEditorTools, ["read", "save"]);
-  assert.deepEqual(selected.editorContext, status.editorContext);
+  assert.deepEqual(selected.editorTools, { read: { inputSchema: schemas.read.inputSchema } });
+  assert.equal(selected.availableEditorTools, undefined);
+  assert.deepEqual(selected.editorContext, { sessionId: "session" });
   assert.equal(selected.projectId, "project");
-  const full = await state({});
+  const batch = await state({ toolNames: ["executeBatch"] });
+  assert.deepEqual(batch.editorTools, { executeBatch: { mcpTool: "execute_batch" } });
+  assert.deepEqual(reads, ["read"]);
+  const full = await state({ toolNames: ["read", "save", "executeBatch"], schemaView: "full" });
   assert.deepEqual(full.editorTools, schemas);
-  assert.equal(full.availableEditorTools, undefined);
+  const defaultState = await state({});
+  assert.equal(defaultState.editorTools, undefined);
+  assert.equal(defaultState.availableEditorTools, undefined);
+  assert.deepEqual((await state({ view: "tools" })).availableEditorTools, ["read", "save", "executeBatch"]);
+  assert.deepEqual(await controller.dispatch("get_image_service_status", {}), { configured: false });
 });
 
 test("readiness polling retains context and propagates editor failures without fetching schemas", async (t) => {

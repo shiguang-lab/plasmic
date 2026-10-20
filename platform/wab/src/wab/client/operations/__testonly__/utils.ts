@@ -34,8 +34,7 @@ export function setupComponentWithTplTree(tplTree: TplTag) {
 /**
  * Set up a "Button" component with prop params of each type (text, num, bool,
  * any, choice "tone", dateString "publishedAt", dateRangeStrings "activeRange",
- * slot, and a queryData "query" that the data-props converter does not support
- * yet) and variant groups of each kind (single choice "size", multi choice
+ * slot, and queryData "query") and variant groups of each kind (single choice "size", multi choice
  * "features", standalone "dark"), plus an instance of it in a containing
  * component, with the instance's base VariantSetting resolved.
  */

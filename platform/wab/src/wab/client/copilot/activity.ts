@@ -16,6 +16,7 @@ export interface CanvasActivity {
   targets: ActivityTarget[];
   status: "running" | "success";
   scanning: boolean;
+  kind: "edit" | "inspection";
 }
 
 const MIN_SCAN_MS = 1600;
@@ -82,12 +83,13 @@ export class CopilotActivity {
     }));
   }
 
-  begin(targets: ActivityTarget[]) {
+  begin(targets: ActivityTarget[], kind: CanvasActivity["kind"] = "edit") {
     const request: CanvasActivity = {
       id: ++this.nextId,
       targets,
       status: "running",
       scanning: true,
+      kind,
     };
     const started = Date.now();
     let finished = false;
@@ -186,5 +188,5 @@ export function activityTargets(
 }
 
 export function activityText(request: CanvasActivity) {
-  return request.status === "running" ? "Editing" : "Edit complete";
+  return request.kind === "inspection" ? "Read" : "Edit";
 }

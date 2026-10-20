@@ -2,7 +2,7 @@
 
 ## 读取真实模型
 
-通过 Desktop MCP 的实际 `read` schema 读取，不预设参数和返回字段：
+按 [MCP 读取契约](desktop-mcp.md)定位 tree、读取实例 properties 或注册 contract。代码生成与验收用 `view:"full",depth:"all"`；省略字段/子引用不代表空内容：
 
 | 范围 | 需要取得的信息 |
 | --- | --- |
@@ -14,7 +14,7 @@
 
 从页面根递归读取引用的自定义组件与 Slot，包括非活动 Tab、关闭的 Drawer/Modal、隐藏分支和重复模板。对于 opaque 第三方组件，读取其注册信息和实际实现；渲染 DOM 不替代组件的业务语义。
 
-`snapshot_layout` 返回渲染观测，不是模型节点 ID；模型 UUID 来自 `read`/`queryElements`。`get_screenshot` 静态图不执行交互。只读生成不通过改 open/activeKey、初值或保存设计来获取隐藏内容；无法观测的状态明确标注验证限制。
+`snapshot_layout` 默认返回摘要与问题分页；元素/图片用对应 view 按需读取，完整验收明确用 `view:"full"`。它返回渲染观测，不是模型节点 ID；模型 UUID 来自 `read`/`queryElements`。`get_screenshot` 静态图不执行交互。只读生成不通过改 open/activeKey、初值或保存设计来获取隐藏内容；无法观测的状态明确标注验证限制。
 
 ## 根据当前实现决定目标代码
 

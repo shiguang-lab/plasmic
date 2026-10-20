@@ -5,16 +5,15 @@ import {
 } from "@/wab/client/clipboard/common";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
-import { UiText } from "@/wab/client/i18n/UiText";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
-import { formatWIErrors, WIError } from "@/wab/client/web-importer/errors";
+import {
+  formatWIErrors,
+  isRecoverableWIError,
+  WIError,
+} from "@/wab/client/web-importer/errors";
 import { unwrap } from "@/wab/commons/neverthrow-utils";
-import { notification } from "antd";
+import { message } from "antd";
 import { ok } from "neverthrow";
-import React from "react";
-
-/** Issues shown in the warning notification; the full list goes to the console. */
-const MAX_SHOWN_IMPORT_ISSUES = 5;
 
 export async function pasteFromWebImporter(
   text,
@@ -66,34 +65,23 @@ export async function pasteFromWebImporter(
     ),
   );
 
-  const wiErrors = formatWIErrors([...errors, ...finalizeResult.wiErrors]);
+  const issues = [...errors, ...finalizeResult.wiErrors];
+  const wiErrors = formatWIErrors(issues);
   if (wiErrors.length > 0) {
     console.warn(
       `[web-importer] HTML imported with ${wiErrors.length} issue(s):\n` +
         wiErrors.map((e) => `  - ${e}`).join("\n"),
     );
-    notification.warning({
-      message: translate(getUiLocale(), "HTML imported with {part1} issue(s)", {
-        part1: String(wiErrors.length),
+  }
+  const actionableIssues = formatWIErrors(
+    issues.filter((error) => !isRecoverableWIError(error)),
+  );
+  if (actionableIssues.length > 0) {
+    void message.warning({
+      key: "web-importer",
+      content: translate(getUiLocale(), "HTML imported with {part1} issue(s)", {
+        part1: String(actionableIssues.length),
       }),
-      description: (
-        <>
-          <ul style={{ paddingLeft: 16, marginBottom: 0 }}>
-            {wiErrors.slice(0, MAX_SHOWN_IMPORT_ISSUES).map((e) => (
-              <li key={e}>{e}</li>
-            ))}
-          </ul>
-          {wiErrors.length > MAX_SHOWN_IMPORT_ISSUES && (
-            <div>
-              <UiText message={"and"} />{" "}
-              {wiErrors.length - MAX_SHOWN_IMPORT_ISSUES}{" "}
-              <UiText
-                message={"more. See the browser console for the full list."}
-              />{" "}
-            </div>
-          )}
-        </>
-      ),
     });
   }
 

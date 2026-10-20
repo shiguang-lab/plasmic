@@ -106,6 +106,7 @@ import {
   isAnyType,
   isChoiceType,
   isMultiChoiceType,
+  isQueryDataType,
   typeFactory,
   wabToTsType,
 } from "@/wab/shared/model/model-util";
@@ -1130,6 +1131,24 @@ export function getComponentArgFromHtmlProp(
   value: unknown,
   path?: string,
 ): Result<[Param, Expr], WIError> {
+  const name = toVarName(propName);
+  const param =
+    component.params.find((p) => paramToVarName(component, p) === propName) ??
+    component.params.find((p) => paramToVarName(component, p) === name);
+  // Unknown props and invalid optional literal values can be omitted. Slots,
+  // required props, handlers, links and bindings need a corrected request.
+  const recoverable =
+    !param ||
+    (!param.required &&
+      !isSlot(param) &&
+      !isKnownHrefType(param.type) &&
+      !(typeof value === "string" && isDynamicValue(value)) &&
+      (["boolean", "number", "string"].includes(wabToTsType(param.type)) ||
+        isChoiceType(param.type) ||
+        isMultiChoiceType(param.type) ||
+        isKnownColorPropType(param.type) ||
+        isKnownDateString(param.type) ||
+        isKnownDateRangeStrings(param.type)));
   const fail = (reason: string) =>
     err<[Param, Expr], WIError>({
       code: "invalid-component-prop",
@@ -1137,13 +1156,8 @@ export function getComponentArgFromHtmlProp(
       prop: propName,
       reason,
       ...(path && { path }),
+      ...(recoverable && { recoverable: true }),
     });
-  const name = toVarName(propName);
-  const param = component.params.find(
-    (p) => paramToVarName(component, p) === propName,
-  ) ?? component.params.find(
-    (p) => paramToVarName(component, p) === name,
-  );
 
   if (!param) {
     return fail("no such prop exists on the component");
@@ -1294,6 +1308,16 @@ export function getComponentArgFromHtmlProp(
     return ok([param, codeLit(value as JsonValue)]);
   }
 
+  if (isQueryDataType(param.type)) {
+    if (!L.isPlainObject(value) || !Object.prototype.hasOwnProperty.call(value, "data")) {
+      return fail("expects a query result object with a data field, such as {data: rows}; a row array alone is not queryData");
+    }
+    return ok([
+      param,
+      objectLiteralToExpr(JSON.stringify(value)) ?? codeLit(value as JsonValue),
+    ]);
+  }
+
   // Structured props use the same composite expressions as Studio's property
   // editor so nested bindings (e.g. initialValues or rule validators) execute.
   if (isAnyType(param.type)) {
@@ -1303,5 +1327,5 @@ export function getComponentArgFromHtmlProp(
     ]);
   }
 
-  return fail(`prop type "${param.type.name}" is not supported yet`);
+  return fail(`literal prop type "${param.type.name}" is unsupported; use a {{ expression }} binding with the registered runtime value shape, or a <slot> when the contract declares a Slot`);
 }

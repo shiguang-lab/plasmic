@@ -86,6 +86,10 @@ export const VIEW_SHORTCUT_GROUP = mkShortcutGroup("View", {
     combos: "l",
     description: "Toggle Preview mode",
   },
+  PRESENT: {
+    combos: "ctrl+enter",
+    description: "Present",
+  },
   TOGGLE_FOCUSED_MODE: {
     combos: "m",
     description: "Toggle Design mode",
@@ -247,7 +251,7 @@ export const EDIT_SHORTCUT_GROUP = mkShortcutGroup("Edit", {
     description: "Edit text content",
   },
   ENTER_EDIT: {
-    combos: "ctrl+enter",
+    combos: "alt+enter",
     description: "Edit component",
   },
   GO_TO_COMPONENT_ARENA: {

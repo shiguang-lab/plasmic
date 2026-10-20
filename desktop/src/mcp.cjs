@@ -10,6 +10,24 @@ const {
   AjvJsonSchemaValidator,
 } = require("@modelcontextprotocol/sdk/validation/ajv");
 const { requestRpc } = require("./local-rpc.cjs");
+const { McpResults } = require("./mcp-results.cjs");
+const { browserOutput } = require("./browser-output.cjs");
+const { prototypeTools } = require("./prototype-mcp.cjs");
+const fs = require("node:fs/promises");
+async function transportResult(request, response, started) {
+  if (process.env.PLASMIC_MCP_METRICS) {
+    await fs.appendFile(process.env.PLASMIC_MCP_METRICS, JSON.stringify({
+      time: new Date().toISOString(), tool: request.params.name,
+      operation: request.params.name === "execute" ? request.params.arguments?.name : undefined,
+      inputBytes: Buffer.byteLength(JSON.stringify(request.params.arguments || {})),
+      wireBytes: Buffer.byteLength(JSON.stringify(response)),
+      textBytes: response.content.filter((c) => c.type === "text").reduce((n, c) => n + Buffer.byteLength(c.text), 0),
+      imageBytes: response.content.filter((c) => c.type === "image").reduce((n, c) => n + Buffer.from(c.data, "base64").length, 0),
+      ms: Date.now() - started, failed: !!response.isError,
+    }) + "\n", { mode: 0o600 }).catch(() => {});
+  }
+  return response;
+}
 const EDITOR_METHODS = [
   "identify",
   "read",
@@ -34,6 +52,8 @@ const EDITOR_METHODS = [
   "deleteElement",
   "createState",
   "createInteraction",
+  "updateInteraction",
+  "deleteInteraction",
   "createStyleToken",
   "copyElement",
   "moveElement",
@@ -49,6 +69,7 @@ const EDITOR_METHODS = [
   "deleteComponent",
   "executeBatch",
   "getEditorContext",
+  "preview",
   "restoreEditorView",
   "selectElement",
   "navigate",
@@ -68,27 +89,54 @@ const resourceId = { type: "string", pattern: "^[A-Za-z0-9_-]+$" };
 const resourceName = { type: "string", pattern: "\\S" };
 const tools = [
   {
+    name: "read_result",
+    description: "Read a retained MCP result without rerunning its operation. Use resultId from ResultReference; path is an array of object keys/array indices. Returns entries with value or reference; append the entry key to path to inspect a reference. Follow nextOffset for every page. Strings use UTF-16 offsets and text chunks (limit up to 16000); collections return at most 50 entries. Retains up to 16 snapshots / 64 MiB in this connection. Omitted data is not empty; never repeat a successful mutation to obtain its result.",
+    inputSchema: { ...object({
+      resultId: { type: "string", minLength: 1 },
+      path: { type: "array", items: { anyOf: [{ type: "string", maxLength: 1024 }, { type: "integer", minimum: 0 }] } },
+      offset: { type: "integer", minimum: 0 },
+      limit: { type: "integer", minimum: 1, maximum: 16000 },
+    }), required: ["resultId"] },
+  },
+  {
     name: "get_app_state",
     description:
-      "Read desktop identity, editing context, readiness, build and running operations. toolNames selects exact editor schemas; [] returns status and availableEditorTools names without schemas. Omit for all schemas. Read each operation's complete contract before execute; reuse it only within the same build/session.",
+      "Read readiness, current project/session/model identity, selection and active operations. view:tools lists operation names; toolNames selects complete input contracts with buildId/session identity only. executeBatch points to execute_batch; read constituent contracts. schemaView:full adds complete output schemas and native batch inputs. Reuse contracts only within the same buildId/session. Build provenance, image-service status and editor viewport have separate read tools.",
     inputSchema: object({
+      view: { type: "string", enum: ["status", "tools"] },
       toolNames: {
         type: "array",
         items: { type: "string", minLength: 1 },
         uniqueItems: true,
       },
+      schemaView: { type: "string", enum: ["input", "full"], default: "input" },
     }),
+  },
+  {
+    name: "get_build_info",
+    description: "Read the Desktop version, buildId and complete build provenance for diagnostics and verification evidence. Does not open or save a design. Ordinary status/contracts use only buildId.",
+    inputSchema: object({}),
+  },
+  {
+    name: "get_image_service_status",
+    description: "Read whether the image generation/edit service is configured and its model name. Does not return credentials or generate images.",
+    inputSchema: object({}),
+  },
+  {
+    name: "get_editor_view",
+    description: "Read project/branch/session identity and the current editor viewport snapshot in view (arena, frame, zoom and pan). Pass view to execute restoreEditorView after checking the project. view is null without an active arena. Does not change design or UI state.",
+    inputSchema: object({}),
   },
   {
     name: "get_org",
     description:
-      "Read an accessible NAS organization by orgId, including permissions and members. Organizations use the platform Team model; returns team, perms and members. Requires desktop login; does not navigate or save.",
+      "Resolve an accessible organization by orgId. Returns team id/name only for project selection. Requires login; does not navigate or save.",
     inputSchema: { ...object({ orgId: resourceId }), required: ["orgId"] },
   },
   {
     name: "list_orgs",
     description:
-      "List NAS organizations accessible to the signed-in desktop account. Optional query filters organization names by case-insensitive substring. Returns teams and perms from the platform Team model; does not navigate or save.",
+      "List accessible organization identities (teams: id/name). Optional query filters names by case-insensitive substring. Does not navigate or save.",
     inputSchema: object({ query: resourceName }),
   },
   {
@@ -119,7 +167,7 @@ const tools = [
   {
     name: "list_workspaces",
     description:
-      "List NAS workspaces accessible to the signed-in desktop account, optionally within orgId. Preserves the platform response and permissions; does not navigate or save.",
+      "List accessible workspace id/name and parent team id/name, optionally within orgId. Does not return permissions, members or billing/configuration. Does not navigate or save.",
     inputSchema: object({ orgId: resourceId }),
   },
   {
@@ -134,7 +182,7 @@ const tools = [
   {
     name: "create_project",
     description:
-      "Create an empty private NAS project with a name and optional workspaceId. Omitting workspaceId uses the account's personal workspace. Requires desktop login and workspace edit permission. Returns project and rev; does not navigate or save the active design. Use open_design with the returned project.id to open it.",
+      "Create an empty private project with a name and optional workspaceId (omitting it uses the personal workspace). Returns project identity and parent IDs. Requires login and platform edit access. Does not navigate or save the active design; use open_design with project.id.",
     inputSchema: {
       ...object({ name: resourceName, workspaceId: resourceId }),
       required: ["name"],
@@ -143,7 +191,7 @@ const tools = [
   {
     name: "list_projects",
     description:
-      "List NAS projects accessible to the signed-in desktop account, optionally within workspaceId. Returns projects and perms, including each project's workspaceId and teamId. Use the chosen workspaceId when resolving a Team → Workspace → Project target; does not navigate or save.",
+      "List accessible project identities and parent workspace/team IDs and names, optionally within workspaceId. Does not return permissions, credentials or platform configuration. Does not navigate or save.",
     inputSchema: object({ workspaceId: resourceId }),
   },
   {
@@ -161,7 +209,7 @@ const tools = [
   {
     name: "execute",
     description:
-      "Call a validated Studio operation. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Save explicitly after design changes.",
+      "Call a validated Studio operation. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
     inputSchema: {
       ...object({
         name: { type: "string", enum: EDITOR_METHODS },
@@ -173,15 +221,16 @@ const tools = [
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard PNG without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). frameUuid selects an exact artboard. Otherwise captures the focused artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. componentUuid renders in a background canvas without changing the active arena or selection. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid is not accepted. Not an interactive preview.",
+      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). frameUuid selects an exact artboard. Otherwise captures the focused artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. componentUuid renders in a background canvas without changing the active arena or selection. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid is not accepted. Not an interactive preview.",
     inputSchema: object({
+      fullResolution: { type: "boolean", description: "Return original-size lossless WebP instead of the default compressed preview (long edge at most 2048)." },
       componentUuid: { type: "string", minLength: 1 },
       elementUuid: { type: "string", minLength: 1 },
       artboardElementUuid: { type: "string", minLength: 1 },
       frameUuid: { type: "string", minLength: 1 },
       mode: { type: "string", enum: ["artboard", "workspace"] },
       width: { type: "integer", minimum: 320, maximum: 4096 },
-      height: { type: "integer", minimum: 1, maximum: 16384 },
+      height: { type: "integer", minimum: 1, maximum: 16383 },
       rect: {
         ...object(
           Object.fromEntries(
@@ -196,45 +245,8 @@ const tools = [
     }),
   },
 ];
+tools.push(...prototypeTools);
 tools.push(
-  {
-    name: "browser",
-    description:
-      "Shared docked reference browser. open reserves space for a right-side panel inside the editor; load_page navigates; get_state reads URL, viewport and selected element; set_import_height sets the bottom handle height in panel CSS pixels (minimum 240), or omitting height resets full-page import; the clipped height limits full-page editable imports and screenshots; select_element accepts a selector or starts the visual picker; import_to_canvas imports the whole page or current selection as editable layers in one undo transaction. No HTML needs to pass through the agent. Whole-page and selection imports always create independent editable artboards in the current or associated mixed canvas; they do not append to the selected page/container. Results include canvasName and frameUuid. Artboards can be moved freely, their content dragged into a page, or converted to pages/components. screenshot_to_canvas creates an independent raster artboard through the same destination contract. capture reads styled DOM and PNG; successful reads briefly scan the selected element or viewport, separately from import loading. cdp sends a restricted CDP command; DOM/CSS/accessibility reads, Page.captureScreenshot and Runtime.evaluate with throwOnSideEffect=true receive the same feedback. close hides the panel and preserves its session. Studio cookies and APIs are isolated.",
-    inputSchema: {
-      ...object({
-        action: {
-          type: "string",
-          enum: [
-            "open",
-            "load_page",
-            "get_state",
-            "set_import_height",
-            "select_element",
-            "import_to_canvas",
-            "screenshot_to_canvas",
-            "capture",
-            "cdp",
-            "close",
-          ],
-        },
-        url: { type: "string", minLength: 1 },
-        selector: { type: "string", minLength: 1, maxLength: 500 },
-        width: { type: "integer", minimum: 320, maximum: 4096 },
-        height: { type: "integer", minimum: 1, maximum: 16384 },
-        method: { type: "string", minLength: 1 },
-        params: { type: "object" },
-        target: {
-          type: "string",
-          enum: ["full_page", "selection", "visible_area"],
-          description:
-            "visible_area is only supported by screenshot_to_canvas and captures the currently scrolled viewport.",
-        },
-        name: { type: "string", pattern: "^[A-Z][A-Za-z0-9]*$" },
-      }),
-      required: ["action"],
-    },
-  },
   {
     name: "search_stock_images",
     description:
@@ -250,7 +262,7 @@ tools.push(
   {
     name: "vectorize_image",
     description:
-      "Trace a local raster image to SVG paths with local color quantization; suitable for icons and flat artwork, not lossless photo reconstruction. At most 1 megapixel. Optional new SVG output and insertion as a Studio SVG asset.",
+      "Trace a local raster image to SVG paths with local color quantization; suitable for icons and flat artwork, not lossless photo reconstruction. At most 1 megapixel. Optional new SVG output and insertion as a Studio SVG asset; source is returned as a read_result reference.",
     inputSchema: {
       ...object({
         path: { type: "string", minLength: 1 },
@@ -269,7 +281,7 @@ tools.push(
   {
     name: "generate_image",
     description:
-      "Generate, edit, remove or replace an image background using the configured Images service. Writes a new PNG and returns pixels; import_image places it in the design. Requires image-service.json in desktop user data.",
+      "Generate, edit, remove or replace an image background using the configured Images service. Writes a new PNG and returns a lossy WebP preview (quality 85, maximum long edge 2048); path and fileMimeType describe the original file; import_image places it in the design. Requires image-service.json in desktop user data.",
     inputSchema: {
       ...object({
         action: {
@@ -290,7 +302,7 @@ tools.push(
   {
     name: "make_vector",
     description:
-      "Author SVG paths or apply union/intersection/subtraction/xor to closed path geometry. Returns reusable SVG plus area/bounds. Optionally insert or replace a Studio SVG asset through validated insertHtml; the Studio asset is editable by replacing its SVG source, not a tree of native path nodes.",
+      "Author SVG paths or apply union/intersection/subtraction/xor to closed geometry. Returns pathCount, total area, aggregate bounds and an SVG reference; read_result provides complete path source. Optionally insert through validated insertHtml. The asset remains editable by replacing SVG source.",
     inputSchema: {
       ...object({
         width: { type: "integer", minimum: 1, maximum: 4096 },
@@ -360,9 +372,10 @@ tools.push(
   {
     name: "capture_browser",
     description:
-      "Capture an HTTP(S) reference page or CSS-selected node in an isolated browser. Returns a viewport PNG and sanitized markup with computed styles for insertHtml. Does not share Studio cookies, modify the design or execute client-provided JavaScript. Cross-site scripts run only as part of normal browser page loading.",
+      "Capture an HTTP(S) reference page or CSS-selected node in an isolated browser. Returns a compressed WebP preview (fullResolution for original-size lossless pixels) and a read_result reference to sanitized markup with computed styles for insertHtml. Does not share Studio cookies, modify the design or execute client-provided JavaScript. Cross-site scripts run only as part of normal browser page loading.",
     inputSchema: {
       ...object({
+      fullResolution: { type: "boolean", description: "Return original-size lossless WebP instead of the default compressed preview (long edge at most 2048)." },
         url: { type: "string", minLength: 1 },
         selector: { type: "string", minLength: 1 },
         width: { type: "integer", minimum: 320, maximum: 4096 },
@@ -397,7 +410,7 @@ tools.push(
   {
     name: "execute_batch",
     description:
-      "Run 1–30 validated editor operations in order. The whole batch is one atomic, undoable Studio transaction: any failure rolls back every edit. Only mutation operations are allowed; UUID targets must exist before the call. Returns ordered operations with resourceIndexes into one shared resources array and per-operation messages. Identical final resources occur once. Save separately.",
+      "Run 1–30 validated editor operations in order. The whole batch is one atomic, undoable Studio transaction: any failure rolls back every edit. Only mutation operations are allowed. Bind a creation with as; later UUID fields accept $name (first created ID), $name.root (component root), or $name.1 (second created ID). Returns ordered compact creation identities and per-operation messages; read models explicitly. Save separately.",
     inputSchema: {
       ...object({
         operations: {
@@ -406,6 +419,7 @@ tools.push(
           maxItems: 30,
           items: {
             ...object({
+              as: { type: "string", pattern: "^[A-Za-z][A-Za-z0-9_]*$" },
               name: {
                 type: "string",
                 enum: EDITOR_METHODS.filter(
@@ -430,6 +444,7 @@ tools.push(
                       "save",
                       "undo",
                       "executeBatch",
+                      "importWebPage",
                     ].includes(name),
                 ),
               },
@@ -445,7 +460,7 @@ tools.push(
   {
     name: "read_image",
     description:
-      "Read a raster image already used in the active design and return its PNG pixels. Obtain exact src values from snapshot_layout. Supports authenticated NAS uploads; arbitrary URLs are rejected.",
+      "Read a raster image already used in the active design and return a lossy WebP preview (quality 85, maximum long edge 2048, no upscaling); sourceImageSize reports original pixel dimensions. Obtain exact src values from snapshot_layout with view images. Supports authenticated NAS uploads; arbitrary URLs are rejected.",
     inputSchema: {
       ...object({ src: { type: "string", minLength: 1 } }),
       required: ["src"],
@@ -454,8 +469,16 @@ tools.push(
   {
     name: "snapshot_layout",
     description:
-      "Read rendered artboard geometry, visible DOM elements and image sources/load status. componentUuid inspects a background canvas without changing the active arena or selection. Checks horizontal overflow and image loading only; interactions, responsive breakpoints and content overlap require preview testing. Use execute read for editable element UUIDs.",
-    inputSchema: object({ componentUuid: { type: "string", minLength: 1 } }),
+      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Target frameUuid/elementUuid and follow nextOffset per frame. componentUuid inspects a background canvas without changing selection. Checks horizontal overflow/image loading only; interactions, breakpoints and overlap require Preview. Get editable IDs through execute read.",
+    inputSchema: object({
+      componentUuid: { type: "string", minLength: 1 },
+      frameUuid: { type: "string", minLength: 1 },
+      elementUuid: { type: "string", minLength: 1 },
+      view: { type: "string", enum: ["summary", "elements", "images", "problems", "full"] },
+      fields: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", enum: ["index", "elementUuid", "tag", "text", "classes", "x", "y", "width", "height", "horizontalOverflow", "src", "alt", "loaded", "type", "bounds", "viewportWidth"] } },
+      offset: { type: "integer", minimum: 0 },
+      limit: { type: "integer", minimum: 1, maximum: 100 },
+    }),
   },
   {
     name: "export_design",
@@ -487,12 +510,14 @@ const validators = new Map(
   ]),
 );
 async function serveMcp(profile) {
+  const results = new McpResults();
   const server = new Server(
     { name: "plasmic-desktop", version: require("../package.json").version },
     { capabilities: { tools: {} } },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const started = Date.now();
     try {
       const validator = validators.get(request.params.name);
       if (!validator) {
@@ -500,17 +525,23 @@ async function serveMcp(profile) {
       }
       const checked = validator(request.params.arguments || {});
       if (!checked.valid) {
-        throw new Error(checked.errorMessage);
+        const hint = request.params.name === "execute"
+          ? ' Expected envelope: {"name":"read","input":{"collection":"components"}}; native operation fields belong inside input.'
+          : request.params.name === "get_app_state"
+          ? ' Example: {"toolNames":["read","insertHtml"]}.' : "";
+        throw new Error(`${request.params.name}: ${checked.errorMessage}.${hint}`);
       }
-      const result =
-        request.params.name === "get_style"
+      let result =
+        request.params.name === "read_result"
+          ? results.read(request.params.arguments || {})
+          : request.params.name === "get_style"
           ? require("./design-styles.cjs").getStyle(
               request.params.arguments?.id,
             )
           : request.params.name === "read_skill"
             ? {
                 instructions:
-                  "Run npx -y @plasmickit/cli@latest context resolve --mode inspect for read-only page/template explanation or design review, --mode prototype for design edits, or --mode codegen for native development code. Inspection requires accessible reads, not edit permission; it does not save or mutate designs. Read all returned mustRead paths; stop dependent work if the update fails. Install the thin skill with npx -y @plasmickit/cli@latest skill install; it detects supported local Agent CLIs and apps and installs for all detected clients without asking for paths. Use skill install --dry-run to inspect detection and destinations. For a global plasmickit CLI, run version check first. If npm is unavailable, read resourceManifestUrl and install its CLI with npm install -g <feed>/releases/<releaseId>/<artifacts.cli.file>.",
+                  "Run npx -y @plasmickit/cli@latest context resolve --mode inspect for read-only inspection, --mode prototype for design edits, or --mode codegen for native development. Read returned mustRead paths starting with referencePath. Stop dependent work if resolution fails; do not silently use stale references.",
                 resourceManifestUrl:
                   require("../desktop.config.json").updateUrl +
                   "/plasmic/latest.json",
@@ -520,40 +551,22 @@ async function serveMcp(profile) {
                 request.params.name,
                 request.params.arguments || {},
               );
-      if (
-        ["capture_browser", "generate_image", "browser"].includes(
-          request.params.name,
-        ) &&
-        result.data
-      ) {
-        const { data, ...metadata } = result;
-        return {
-          content: [
-            { type: "text", text: JSON.stringify(metadata) },
-            { type: "image", data, mimeType: "image/png" },
-          ],
-          structuredContent: metadata,
-          isError: false,
-        };
+      if (request.params.name === "reference_browser") result = browserOutput(request.params.arguments?.action, result);
+      if (request.params.name === "export_code" && Array.isArray(result.files)) result = { ...result, fileCount: result.files.length, files: results.retain(result.files) };
+      const image = ["get_screenshot", "read_image", "capture_browser", "generate_image", "reference_browser", "design_reference", "preview"].includes(request.params.name) && result.data;
+      const { data, ...metadata } = image ? result : { ...result };
+      // Creation/import results keep geometry/HTML internally. Read it by reference
+      // only when required; do not echo artwork or full captured pages by default.
+      let output = image ? metadata : result;
+      if ((typeof output?.svg === "string" && request.params.name !== "read_result") || typeof output?.html === "string") {
+        const field = typeof output.svg === "string" ? "svg" : "html";
+        output = { ...output, [field]: results.retain(output[field]) };
       }
-      if (["get_screenshot", "read_image"].includes(request.params.name)) {
-        return {
-          content: [
-            { type: "image", data: result.data, mimeType: "image/png" },
-          ],
-          isError: false,
-        };
-      }
-      return {
-        content: [{ type: "text", text: JSON.stringify(result) }],
-        structuredContent: result,
-        isError: false,
-      };
+      const response = results.output(output);
+      if (image) response.content.push({ type: "image", data, mimeType: metadata.mimeType });
+      return transportResult(request, response, started);
     } catch (error) {
-      return {
-        content: [{ type: "text", text: error.message }],
-        isError: true,
-      };
+      return transportResult(request, { ...results.output({ error: error.message }), isError: true }, started);
     }
   });
   await server.connect(new StdioServerTransport());

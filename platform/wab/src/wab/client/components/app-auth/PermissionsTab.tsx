@@ -32,7 +32,7 @@ import { parseEmailAddress } from "@/wab/shared/email-address";
 import { DomainValidator } from "@/wab/shared/hosting";
 import { prodUrlForProject } from "@/wab/shared/project-urls";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Select, Tag, Tooltip, notification } from "antd";
+import { Select, Tag, Tooltip, message } from "antd";
 import { uniqBy, without } from "lodash";
 import * as React from "react";
 import { useEffect, useState } from "react";
@@ -134,8 +134,8 @@ function PermissionsTab_(
     unfilteredEmails.forEach((email) => {
       if (validator.isEmail(email)) {
         if (accessesByEmail.find((u) => u.email === email)) {
-          notification.warning({
-            message: uiT("Email {part1} has already been added", {
+          void message.warning({
+            content: uiT("Email {part1} has already been added", {
               part1: String(email),
             }),
           });
@@ -143,8 +143,8 @@ function PermissionsTab_(
           emails.push(email);
         }
       } else {
-        notification.warning({
-          message: uiT("Email {part1} is not valid", {
+        void message.warning({
+          content: uiT("Email {part1} is not valid", {
             part1: String(email),
           }),
         });
@@ -155,8 +155,8 @@ function PermissionsTab_(
     unfilteredDomains.forEach((domain) => {
       if (domain.startsWith("@") && validator.isFQDN(domain.substring(1))) {
         if (accessesByDomain.find((u) => u.domain === domain)) {
-          notification.warning({
-            message: uiT("Domain {part1} has already been added", {
+          void message.warning({
+            content: uiT("Domain {part1} has already been added", {
               part1: String(domain),
             }),
           });
@@ -164,8 +164,8 @@ function PermissionsTab_(
           domains.push(domain);
         }
       } else {
-        notification.warning({
-          message: uiT("Domain {part1} is not valid", {
+        void message.warning({
+          content: uiT("Domain {part1} is not valid", {
             part1: String(domain),
           }),
         });
@@ -176,8 +176,8 @@ function PermissionsTab_(
     unfilteredGroupIds.forEach((groupId) => {
       if (accessesByGroup.find((u) => u.directoryEndUserGroupId === groupId)) {
         const group = groups.find((g) => g.id === groupId);
-        notification.warning({
-          message: uiT("Group {part1} has already been added", {
+        void message.warning({
+          content: uiT("Group {part1} has already been added", {
             part1: String(group?.name),
           }),
         });

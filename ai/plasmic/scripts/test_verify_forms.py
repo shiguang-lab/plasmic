@@ -11,7 +11,7 @@ from verify_forms import check
 class FormCheckTests(unittest.TestCase):
     def setUp(self):
         self.expected = {"pages": [{"componentUuid": "page", "forms": [{"name": "Form", "fields": [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name", "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}
-        self.html = '''<plasmic-component data-plasmic-component="plasmicAntd6Form" data-plasmic-name="Form"><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-form-item" data-plasmic-name="NameField" data-props='{"name":"name","rules":[{"ruleType":"required","message":"Required"}]}'><slot name="label"><span>Name</span></slot><slot name="tooltip"><span>Help</span></slot><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-name="Name" data-props='{}'></plasmic-component></slot></plasmic-component></slot></plasmic-component>'''
+        self.html = '''<plasmic-component data-plasmic-component="plasmicAntd6Form" data-plasmic-name="Form" data-props='{"mode":"advanced"}'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-form-item" data-plasmic-name="NameField" data-props='{"name":"name","rules":[{"ruleType":"required","message":"Required"}]}'><slot name="label"><span>Name</span></slot><slot name="tooltip"><span>Help</span></slot><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-name="Name" data-props='{}'></plasmic-component></slot></plasmic-component></slot></plasmic-component>'''
 
     def result(self, html):
         return check(self.expected, self.overview(), self.readback(html))
@@ -24,6 +24,12 @@ class FormCheckTests(unittest.TestCase):
 
     def test_real_fields_pass_with_both_component_name_formats(self):
         self.assertTrue(self.result(self.html)["passed"])
+
+    def test_hidden_advanced_children_cannot_pass_in_simplified_mode(self):
+        for html in [self.html.replace('"advanced"', '"simplified"'), self.html.replace(' data-props=\'{"mode":"advanced"}\'', '')]:
+            result = self.result(html)
+            self.assertFalse(result["passed"])
+            self.assertIn("mode=advanced", result["errors"][0]["error"])
 
     def test_rule_parameters_preserve_json_types(self):
         self.expected['pages'][0]['forms'][0]['fields'][0]['rules'].append({'ruleType': 'min', 'length': 1})
@@ -80,7 +86,7 @@ class FormCheckTests(unittest.TestCase):
         form = self.expected["pages"][0]["forms"][0]
         form["formLayout"] = "horizontal"
         form["fields"][0]["validateFirst"] = True
-        html = self.html.replace('data-plasmic-name="Form"', 'data-plasmic-name="Form" data-props=\'{"layout":"horizontal"}\'').replace('"name":"name","rules"', '"name":"name","validateFirst":true,"rules"')
+        html = self.html.replace('{"mode":"advanced"}', '{"mode":"advanced","layout":"horizontal"}').replace('"name":"name","rules"', '"name":"name","validateFirst":true,"rules"')
         self.assertTrue(self.result(html)["passed"])
         self.assertFalse(self.result(html.replace('"horizontal"', '"vertical"'))["passed"])
         self.assertFalse(self.result(html.replace('"validateFirst":true', '"validateFirst":false'))["passed"])

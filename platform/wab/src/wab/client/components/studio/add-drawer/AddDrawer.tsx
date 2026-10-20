@@ -132,7 +132,7 @@ import {
   getSlotLikeType,
 } from "@/wab/shared/parenting";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
-import { notification } from "antd";
+import { notification, message } from "antd";
 import { mapValues, uniqBy } from "lodash";
 import { ok } from "neverthrow";
 import * as React from "react";
@@ -910,8 +910,8 @@ async function installAndCreateDraftQuery(
   const projectIds = ensureArray(packageMeta.projectId);
   const { deps, installed } = await installHostlessPkgs(sc, projectIds);
   if (!deps) {
-    notification.error({
-      message: translate(getUiLocale(), "Couldn't install {part1}", {
+    void message.error({
+      content: translate(getUiLocale(), "Couldn't install {part1}", {
         part1: packageMeta.name,
       }),
     });
@@ -919,16 +919,16 @@ async function installAndCreateDraftQuery(
   }
   const fn = resolveFn(deps);
   if (!fn) {
-    notification.error({
-      message: translate(getUiLocale(), "{part1} has no custom functions", {
+    void message.error({
+      content: translate(getUiLocale(), "{part1} has no custom functions", {
         part1: packageMeta.name,
       }),
     });
     return undefined;
   }
   if (installed) {
-    notification.success({
-      message: translate(
+    void message.success({
+      content: translate(
         getUiLocale(),
         "{part1} has successfully been installed!",
         { part1: displayName },

@@ -35,7 +35,7 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { mkUuid, uniqueName, withoutNils } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
+import { message } from "antd";
 import copy from "copy-to-clipboard";
 import * as React from "react";
 import { KeyedMutator } from "swr";
@@ -125,8 +125,8 @@ function ProviderSettings(props: {
             if (validatedRedirectUri.href) {
               validRedirectUris.push(validatedRedirectUri.href);
             } else {
-              notification.error({
-                message: studioUiT("Invalid redirect URI {part1}", {
+              void message.error({
+                content: studioUiT("Invalid redirect URI {part1}", {
                   part1: String(uri),
                 }),
               });
@@ -154,8 +154,8 @@ function ProviderSettings(props: {
 
           setRedirectUris(validRedirectUris);
 
-          notification.success({
-            message: studioUiT("Redirect URIs saved"),
+          void message.success({
+            content: studioUiT("Redirect URIs saved"),
           });
         }}
       />
@@ -167,8 +167,8 @@ function ProviderSettings(props: {
       token={<code className="text-ellipsis">{config.token}</code>}
       onCopy={() => {
         copy(config.token ?? "");
-        notification.success({
-          message: studioUiT("Token copied to clipboard"),
+        void message.success({
+          content: studioUiT("Token copied to clipboard"),
         });
       }}
     />
@@ -234,8 +234,8 @@ function SettingsTab_(props: SettingsTabProps, ref: HTMLElementRefOf<"div">) {
     );
 
     if (isUsingGroupAccess) {
-      notification.error({
-        message: studioUiT(
+      void message.error({
+        content: studioUiT(
           "Cannot change directory while group is being used in access list",
         ),
       });

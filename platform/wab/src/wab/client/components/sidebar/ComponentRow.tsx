@@ -49,7 +49,7 @@ import {
 import { isTplComponent } from "@/wab/shared/core/tpls";
 import { Component } from "@/wab/shared/model/classes";
 import { mkProjectLocation } from "@/wab/shared/route/app-routes";
-import { Menu, Popover, notification } from "antd";
+import { Menu, Popover, notification, message } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
@@ -421,8 +421,8 @@ function buildCodeComponentMenuItems(
                   ]),
                 );
               } else {
-                notification.info({
-                  message: translate(getUiLocale(), "{part1} is up to date", {
+                void message.success({
+                  content: translate(getUiLocale(), "{part1} is up to date", {
                     part1: getComponentDisplayName(component),
                   }),
                 });

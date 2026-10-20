@@ -8,16 +8,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { GlobalOutlined } from "@ant-design/icons";
 import type { PreviewPage, PreviewPublication } from "@plasmic-shared/preview";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Flex,
-  Select,
-  Steps,
-  Typography,
-  notification,
-} from "antd";
+import { Alert, Button, Checkbox, Flex, Select, Steps, Typography, message } from "antd";
 import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import React from "react";
@@ -110,9 +101,9 @@ export default function PreviewPublishSection(
       return;
     }
     if (copy(publication.url)) {
-      notification.success({ message: t("Link copied") });
+      void message.success({ content: t("Link copied") });
     } else {
-      notification.error({ message: t("Could not copy link") });
+      void message.error({ content: t("Could not copy link") });
     }
   };
   const primaryLabel = busy

@@ -12,7 +12,6 @@ import { PageSettingsDialog } from "@/wab/client/components/PageSettingsDialog";
 import { CanvasDndOverlay } from "@/wab/client/components/canvas/CanvasDndOverlay";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
-import { CopilotActivityStatus } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { FreestyleBox } from "@/wab/client/components/canvas/FreestyleBox";
 import { CloneBoxes } from "@/wab/client/components/canvas/HoverBox/CloneBoxes";
 import { HoverBoxes } from "@/wab/client/components/canvas/HoverBox/HoverBoxes";
@@ -582,7 +581,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               ) {
                 // This is a ValComponent mapping to a Plasmic component, so enter
                 // Master component edit mode
-                vc.enterComponentCtxForVal(focusObj, "ctrl+enter");
+                vc.enterComponentCtxForVal(focusObj, "alt+enter");
               } else {
                 notification.warning({
                   message: translate(
@@ -2163,7 +2162,6 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                   hexColor={watchedPlayer.color}
                 />
               )}
-              <CopilotActivityStatus studioCtx={studioCtx} />
               {studioCtx.showDevControls && (
                 <div className="canvas-editor__top-pane">
                   <div className="canvas-editor__top-pane__floating-elements-container">

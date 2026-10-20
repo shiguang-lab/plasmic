@@ -98,7 +98,7 @@ export async function aiChatRun(id: string) {
     const binding = run.task.binding;
     const initial = await execute(
       binding.componentUuid ? "read" : "getEditorContext",
-      binding.componentUuid ? { componentUuids: [binding.componentUuid] } : {},
+      binding.componentUuid ? { componentUuids: [binding.componentUuid], view: "full" } : {},
     );
     const overview = await execute("read", {});
     const resources = [
@@ -172,6 +172,11 @@ export async function aiChatRun(id: string) {
             name: call.name,
             operationId: output.operationId,
           });
+          if (retry?.failedOperationId) {
+            // A repaired operation must not consume the budget for later,
+            // independent mistakes in the same design task.
+            rejectedCalls = 0;
+          }
           await a.recordModelResult(id, step, call.id, output.operationId);
         } catch (error) {
           if (completed.get(call.id)?.operationId) {

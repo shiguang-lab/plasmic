@@ -10,6 +10,25 @@ Select the library and API version before reading component rules or composition
 | [React UI](react_ui/index.md) | plasmic-react-ui-*; @shiguang-lab/plasmic-react-ui | Current @react/ui wrapper using Ant Design 6 |
 | [Ant Design Icons](antd_icons/index.md) | plasmic-antd-icon-*; @shiguang-lab/plasmic-antd-icons | @ant-design/icons 6 |
 
+## Native component selection
+
+For editable prototypes, choose components **before markup**. Discover the target project's reusable business components/templates and installed registrations through MCP; search the matching catalog by the required role, then read candidate contracts. Do not decide on HTML first and inspect only the few components already chosen.
+
+Prefer an existing business component or matching template, then registered library components, then a composition of those components. A template must still fit the requirement and content-entry rules. Reuse real Props, Slots, states and events; CSS similarity is not component reuse. Do not install another library or add a Card merely to satisfy this preference.
+
+| Required role | Select from the actual installed library |
+| --- | --- |
+| Actions and editable values | Button/ActionGroup, actual Input/Select/date/numeric controls, Form ownership and validation |
+| Navigation and repeated information | Tabs/Menu/Breadcrumb, Table/Column, Pagination, Descriptions, List |
+| Feedback and overlays | Alert/Tag/Badge/Empty/Spin, Tooltip/Popconfirm/Modal/Drawer |
+| Arrangement and surfaces | Flex/Row/Col/Space where their layout role fits; Card only for an independent business surface |
+
+These are role examples, not cross-library API names. Read the chosen library's registration and contract. Map each required functional widget in the source plan's components/controls/overlay inventories, including actions, navigation and feedback; Table/Form/Descriptions alone are not complete coverage. Inspect inactive states as well as the default view. Use real APIs and editable Slots rather than div grids, styled labels, raw controls, Unicode icons or CSS-drawn widget states. Reference pixels guide hierarchy, not implementation primitives.
+
+Plain div/section wrappers, span/p text, real navigation anchors, read-only pre/code and content graphics remain valid. Do not wrap every text node in a component or turn every wrapper into a surface. Root sizing and necessary Slot/semantic containers may use native elements and styles. Typography components are useful when their registered behavior or theme contract is needed.
+
+If verified current components and their supported compositions cannot express a required widget, record the affected named node, checked candidates/contracts, concrete gap and source in the task plan before writing it. Use an elementFallbacks entry as documented in [requirement alignment](../requirement-alignment.md#presentation-copy-and-native-components). A rendering error, unread contract, styling convenience or missing behavior is not a fallback reason. Correct usage or report the blocker; ordinary design work does not create a new component library. A declared fallback cannot override a required native identity, Form ownership or another applicable gate.
+
 ## Read by actual library
 
 1. Match the actual registration and implementation/API family to a scope above. A business-library prefix alone does not establish its underlying UI version; verify dependencies before selecting an Antd-v6 scope. Unknown versions remain unknown.

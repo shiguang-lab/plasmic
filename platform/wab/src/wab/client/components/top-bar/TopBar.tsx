@@ -54,7 +54,7 @@ import {
 } from "@/wab/shared/ui-config-utils";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Menu, Popover, Tooltip, notification, theme } from "antd";
+import { Button, Menu, Popover, Tooltip, theme, message } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -163,15 +163,15 @@ function _TopBar({ preview }: TopBarProps) {
         ) + 8;
       const end = right.getBoundingClientRect().left - 8;
       spawn(
-        topFrameApi.setDesktopTitleBarDragRegion(
+        topFrameApi.setDesktopTitleBarDragRegions(
           end > start
-            ? {
+            ? [{
                 left: start,
                 top: bounds.top,
                 width: end - start,
                 height: bounds.height,
-              }
-            : null,
+              }]
+            : [],
         ),
       );
     };
@@ -189,7 +189,7 @@ function _TopBar({ preview }: TopBarProps) {
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
-      spawn(topFrameApi.setDesktopTitleBarDragRegion(null));
+      spawn(topFrameApi.setDesktopTitleBarDragRegions([]));
     };
   }, [hasWindowOverlay, topFrameApi]);
   const { data } = useSWR("top-bar-config", async () => {
@@ -335,8 +335,8 @@ function _TopBar({ preview }: TopBarProps) {
                             return ok();
                           }),
                         );
-                        notification.info({
-                          message: t(
+                        void message.success({
+                          content: t(
                             "Redundant overrides have been cleaned. You can run this again every time you want to clean them.",
                           ),
                         });
@@ -354,8 +354,8 @@ function _TopBar({ preview }: TopBarProps) {
                             const pruned = pruneUnusedImageAssets(
                               studioCtx.site,
                             );
-                            notification.success({
-                              message: t("Pruned {part1} assets", {
+                            void message.success({
+                              content: t("Pruned {part1} assets", {
                                 part1: String(pruned.size),
                               }),
                             });
@@ -381,8 +381,8 @@ function _TopBar({ preview }: TopBarProps) {
 
                             console.log(result);
 
-                            notification.success({
-                              message: t(
+                            void message.success({
+                              content: t(
                                 "Fixed {part1} invisible elements in {part2}",
                                 {
                                   part1: String(Object.keys(result.total)),
@@ -567,7 +567,7 @@ function _TopBar({ preview }: TopBarProps) {
                     <div className="editor-history-controls">
                       <Tooltip
                         title={
-                          <TextAndShortcut shortcut={getComboForAction("UNDO")}>
+                          <TextAndShortcut variant="tooltip" shortcut={getComboForAction("UNDO")}>
                             {t("Undo")}
                           </TextAndShortcut>
                         }
@@ -583,7 +583,7 @@ function _TopBar({ preview }: TopBarProps) {
                       </Tooltip>
                       <Tooltip
                         title={
-                          <TextAndShortcut shortcut={getComboForAction("REDO")}>
+                          <TextAndShortcut variant="tooltip" shortcut={getComboForAction("REDO")}>
                             {t("Redo")}
                           </TextAndShortcut>
                         }
@@ -625,7 +625,7 @@ function _TopBar({ preview }: TopBarProps) {
                 <Tooltip
                   trigger={["hover", "focus"]}
                   title={
-                    <TextAndShortcut
+                    <TextAndShortcut variant="tooltip"
                       shortcut={getComboForAction("TOGGLE_PREVIEW_MODE")}
                     >
                       {t("Preview")}
@@ -775,7 +775,7 @@ function _TopBar({ preview }: TopBarProps) {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
           tooltip: (
-            <TextAndShortcut
+            <TextAndShortcut variant="tooltip"
               shortcut={getComboForAction("TOGGLE_PREVIEW_MODE")}
             >
               {t("Preview")}
@@ -790,7 +790,7 @@ function _TopBar({ preview }: TopBarProps) {
             void studioCtx.changeUnsafe(() => studioCtx.toggleDevControls());
           },
           tooltip: (
-            <TextAndShortcut shortcut={"esc"}>
+            <TextAndShortcut variant="tooltip" shortcut={"esc"}>
               {t("Back to editor")}
             </TextAndShortcut>
           ),

@@ -93,7 +93,7 @@ def main():
     parser.add_argument("inventory", type=Path)
     parser.add_argument("mcp_read", type=Path)
     args = parser.parse_args()
-    result = check(json.loads(args.inventory.read_text()), json.loads(args.mcp_read.read_text()))
+    result = check(json.loads(args.inventory.read_text(encoding="utf-8")), json.loads(args.mcp_read.read_text(encoding="utf-8")))
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

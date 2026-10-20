@@ -29,7 +29,7 @@ import {
   applyPlasmicUserDevFlagOverrides,
 } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { notification } from "antd";
+import { message } from "antd";
 import { History } from "history";
 import $ from "jquery";
 import L from "lodash";
@@ -268,7 +268,7 @@ export class AppOps extends AppComponent {
   async deleteSite(siteId: string) {
     await this.api().deleteSite(siteId);
     await this.reloadAll();
-    notification.info({ message: translate(getUiLocale(), "Project deleted") });
+    void message.success({ content: translate(getUiLocale(), "Project deleted") });
   }
   async createPersonalApiToken() {
     const token = await this.api().createPersonalApiToken();

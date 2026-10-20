@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from verify_all import GATES, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes
+from verify_all import GATES, OVERVIEW_FIELDS, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes
 import test_verify_forms
 import test_verify_shell_height
 
@@ -23,15 +23,16 @@ class SuiteTests(unittest.TestCase):
         form = test_verify_forms.FormCheckTests()
         form.setUp()
         self.model = shell.readback["results"][0]
-        self.model.update(uuid="page", name="Records", pageMeta={"path": "/records"},
+        self.model.update(uuid="page", name="记录列表", pageMeta={"path": "/records"},
                           props=[], states=[], interactions=[], variants=[], variantGroups=[])
         menu = [{"key": "records", "label": "Records", "href": "/records"}]
         self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('style="height:100%"',
             'data-plasmic-name="AppShell" data-props=\'' + json.dumps({"menuItems": menu}) + '\' style="height:100%"').replace(
                 '</plasmic-component>', '<slot name="children">' + form.html + '</slot></plasmic-component>')
-        self.overview = {"results": [{"__type": "Project", "id": "project", "components": [self.model]}]}
-        self.readback = {"results": [self.model]}
+        self.overview = {"results": [{"__type": "Project", "id": "project", "components": [self.model], "devicePresets": [{"name": "Desktop", "width": 1440, "height": 1024}], "pageFrames": [{"componentUuid": "page", "width": 1440, "height": 1024}], "canvases": [{"name": "页面总览", "frames": [{"uuid": "frame", "componentUuid": "page", "x": 0, "y": 0, "width": 1440, "height": 1024}]}]}]}
+        self.readback = {"results": [self.model], "read": {"depth": "all", "fields": ["baseVariantTplTree", "props", "states", "variants", "variantGroups", "interactions"]}}
         self.snapshot = shell.snapshot
+        self.snapshot["frames"][0].update(width=1440, read={"view": "full"}, images=[], problems=[])
         self.context = {"projectId": "project", "branchId": None, "sessionId": "editor-session", "revision": 1, "changeCounter": 0}
         self.config = {
             "structure": {"inventory": "structure.json"}, "forms": {"inventory": "forms.json"},
@@ -42,7 +43,7 @@ class SuiteTests(unittest.TestCase):
         write_json(self.root / "pages.json", self.readback)
         write_json(self.root / "layouts.json", {"page": {"snapshot": self.snapshot}})
         self.write_capture()
-        write_json(self.root / "structure.json", {"pages": [{"path": "/records", "source": "requirement §Records"}],
+        write_json(self.root / "structure.json", {"pages": [{"path": "/records", "name": "记录列表", "source": "requirement §Records", "pageHeader": None, "components": [], "copy": {"source": "requirement §Copy review", "excluded": [], "help": []}, "bindings": [], "bindingsNotApplicable": "Static fixture for native Form validation; no external business handlers"}],
                    "navigation": {"items": menu, "source": "requirement §Navigation"}})
         form.expected["pages"][0].pop("componentUuid")
         form.expected["pages"][0]["path"] = "/records"
@@ -54,15 +55,93 @@ class SuiteTests(unittest.TestCase):
     def write_capture(self):
         self.capture = {"projectId": "project", "desktopVersion": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64},
                         "collectedAt": "2026-10-17T00:00:00+00:00", "before": copy.deepcopy(self.context),
-                        "after": copy.deepcopy(self.context), "files": evidence_hashes(self.root)}
+                        "after": copy.deepcopy(self.context), "files": evidence_hashes(self.root),
+                        "validation": {"componentUuids": ["page"], "result": {"check": "model", "valid": True, "errors": [], "warnings": []}}}
         write_json(self.root / "capture.json", self.capture)
 
     def run_suite(self):
         return run_suite(self.config, self.root, self.root, "project")
 
-    def test_all_six_existing_gates_pass(self):
+    def test_all_automatic_gates_pass(self):
         report = self.run_suite()
         self.assertTrue(report["passed"], report)
+        self.assertEqual(report["acceptance"]["status"], "unverified")
+
+    def test_native_validation_is_mandatory_exact_and_literal(self):
+        original = copy.deepcopy(self.capture)
+        for change in (lambda c: c.pop("validation"),
+                       lambda c: c["validation"].update(componentUuids=["other"]),
+                       lambda c: c["validation"]["result"].update(valid="true"),
+                       lambda c: c["validation"]["result"].update(valid=True, errors=["Invalid model"])):
+            capture = copy.deepcopy(original)
+            change(capture)
+            write_json(self.root / "capture.json", capture)
+            report = self.run_suite()
+            self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "model"), "failed")
+        for gate in ("model", "rendering"):
+            write_json(self.root / "capture.json", original)
+            config = {**self.config, gate: {"notApplicable": "Already reviewed"}}
+            self.assertFalse(run_suite(config, self.root, self.root, "project")["passed"])
+
+    def test_full_suite_cannot_bypass_source_presentation_and_component_plan(self):
+        original = read_json(self.root / "structure.json")
+        for key in ("name", "pageHeader", "components", "copy"):
+            expected = copy.deepcopy(original)
+            del expected["pages"][0][key]
+            write_json(self.root / "structure.json", expected)
+            report = self.run_suite()
+            self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "structure"), "failed")
+
+    def test_task_evidence_is_loaded_once_and_a_replacement_fails_integrity(self):
+        raw = json.dumps({"id": "task", "projectId": "project", "sessionId": "editor-session", "build": self.capture["build"], "referenceFiles": []}).encode()
+        file = self.root / "reference-evidence.json"
+        file.write_bytes(raw)
+        write_json(self.root / "capture.json", {**self.capture, "prototypeTask": {"runId": "task", "sha256": hashlib.sha256(raw).hexdigest()}})
+        original = Path.read_bytes
+        reads = 0
+
+        def replace_after_load(path, *args, **kwargs):
+            nonlocal reads
+            data = original(path, *args, **kwargs)
+            if path == file:
+                reads += 1
+                if reads == 1:
+                    path.write_bytes(b'{"referenceFiles":["unreviewed.pen"]}')
+            return data
+
+        with patch.object(Path, "read_bytes", replace_after_load):
+            report = self.run_suite()
+        self.assertEqual(reads, 2)  # One pinned read, one final integrity check.
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "references"), "not_applicable")
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "evidence"), "failed")
+
+    def test_reviewed_directory_names_are_checked_in_the_full_suite(self):
+        self.config["page_layout"] = {"overviewName": "记录管理页面总览"}
+        self.overview["results"][0]["canvases"][0]["name"] = "记录管理页面总览"
+        write_json(self.root / "overview.json", self.overview)
+        self.write_capture()
+        self.assertTrue(self.run_suite()["passed"])
+        self.overview["results"][0]["canvases"][0]["name"] = "Custom arena 1"
+        write_json(self.root / "overview.json", self.overview)
+        self.write_capture()
+        report = self.run_suite()
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "page_layout"), "failed")
+        self.overview["results"][0]["canvases"][0]["name"] = "记录管理页面总览"
+        self.model["name"] = "GroupList"
+        write_json(self.root / "overview.json", self.overview)
+        write_json(self.root / "pages.json", self.readback)
+        self.write_capture()
+        report = self.run_suite()
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "structure"), "failed")
+
+    def test_slot_and_page_layout_exemptions_cannot_hide_generated_content(self):
+        for gate in ("slots", "page_layout"):
+            with self.subTest(gate=gate):
+                config = copy.deepcopy(self.config)
+                config[gate] = {"notApplicable": "Checked through another inventory"}
+                report = run_suite(config, self.root, self.root, "project")
+                self.assertFalse(report["passed"])
+                self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == gate), "failed")
         self.assertEqual([check["gate"] for check in report["checks"]], ["evidence", *GATES])
         self.assertIn("save/reopen persistence", report["notChecked"])
 
@@ -90,8 +169,65 @@ class SuiteTests(unittest.TestCase):
         self.write_capture()
         report = self.run_suite()
         self.assertFalse(report["passed"])
-        self.assertEqual({item["gate"] for item in report["checks"] if item["status"] == "failed"}, {"forms", "shell_height"})
-        self.assertEqual(len(report["checks"]), 7)
+        self.assertEqual({item["gate"] for item in report["checks"] if item["status"] == "failed"}, {"forms", "shell_height", "rendering"})
+        self.assertEqual(len(report["checks"]), 1 + len(GATES))
+
+    def test_full_suite_requires_explicit_page_binding_scope(self):
+        original = read_json(self.root / "structure.json")
+        for bindings, reason in [(None, None), ({}, None), ([], None), ([], " ")]:
+            expected = copy.deepcopy(original)
+            expected["pages"][0].pop("bindingsNotApplicable")
+            expected["pages"][0]["bindings"] = bindings
+            if reason is not None:
+                expected["pages"][0]["bindingsNotApplicable"] = reason
+            write_json(self.root / "structure.json", expected)
+            report = self.run_suite()
+            gate = next(check for check in report["checks"] if check["gate"] == "structure")
+            self.assertEqual(gate["status"], "failed")
+            self.assertIn("source-derived bindings", gate["report"]["error"])
+
+    def test_page_scope_checks_current_page_without_passing_full_project(self):
+        sibling = copy.deepcopy(self.model)
+        sibling.update(uuid="next", pageMeta={"path": "/next"}, baseVariantTplTree="<div></div>")
+        project = self.overview["results"][0]
+        project["components"].append(sibling)
+        project["pageFrames"].append({"componentUuid": "next", "width": 1440, "height": 1024})
+        project["canvases"][0]["frames"].append({"uuid": "next-frame", "componentUuid": "next", "x": 1520, "y": 0, "width": 1440, "height": 1024})
+        write_json(self.root / "overview.json", self.overview)
+        expected = read_json(self.root / "structure.json")
+        expected["pages"].append({"path": "/next", "source": "requirement §Next"})
+        write_json(self.root / "structure.json", expected)
+        self.write_capture()
+        write_json(self.root / "capture.json", {**self.capture, "pagePath": "/records"})
+        result = run_suite(self.config, self.root, self.root, "project", "/records")
+        self.assertTrue(result["passed"], result)
+        self.assertEqual(result["pagePath"], "/records")
+        self.assertFalse(self.run_suite()["passed"])
+        self.assertIsNone(reusable_evidence(self.root, {"version": "test", "build": self.capture["build"]}, self.context))
+
+    def test_page_scope_still_checks_current_events_and_global_overview(self):
+        write_json(self.root / "capture.json", {**self.capture, "pagePath": "/records"})
+        expected = read_json(self.root / "structure.json")
+        expected["pages"][0].pop("bindingsNotApplicable")
+        expected["pages"][0]["bindings"] = [{"nodeName": "AppShell", "source": "requirement §Action", "events": ["onClick"]}]
+        write_json(self.root / "structure.json", expected)
+        result = run_suite(self.config, self.root, self.root, "project", "/records")
+        self.assertEqual(next(c["status"] for c in result["checks"] if c["gate"] == "structure"), "failed")
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            run_suite(self.config, self.root, self.root, "project", "/missing")
+
+    def test_declared_bindings_check_real_props_and_events(self):
+        expected = read_json(self.root / "structure.json")
+        page = expected["pages"][0]
+        page.pop("bindingsNotApplicable")
+        page["bindings"] = [{"nodeName": "AppShell", "source": "requirement §Navigation", "props": ["menuItems"]}]
+        write_json(self.root / "structure.json", expected)
+        self.assertTrue(self.run_suite()["passed"])
+        page["bindings"][0]["events"] = ["onMenuSelect"]
+        write_json(self.root / "structure.json", expected)
+        report = self.run_suite()
+        self.assertFalse(report["passed"])
+        self.assertEqual(next(c for c in report["checks"] if c["gate"] == "structure")["status"], "failed")
 
     def test_missing_gates_do_not_pass_and_exemptions_require_reason(self):
         del self.config["forms"]
@@ -99,16 +235,38 @@ class SuiteTests(unittest.TestCase):
         self.assertFalse(report["passed"])
         self.assertEqual(next(item for item in report["checks"] if item["gate"] == "forms")["status"], "unverified")
         self.config["forms"] = {"notApplicable": "No business Forms in this reviewed scope"}
-        self.assertTrue(self.run_suite()["passed"])
+        self.assertFalse(self.run_suite()["passed"])
+        self.config["forms"] = {"inventory": "forms.json"}
+        self.config["descriptions"] = {"notApplicable": "No Descriptions in this reviewed scope or capture"}
+        self.assertFalse(self.run_suite()["passed"])
         self.config["forms"] = {"notApplicable": ""}
         self.assertFalse(self.run_suite()["passed"])
+
+    def test_omitted_implementation_cannot_exempt_source_inventory_gates(self):
+        for gate in ("forms", "descriptions", "overlays"):
+            config = copy.deepcopy(self.config)
+            config[gate] = {"notApplicable": "No component was generated"}
+            report = run_suite(config, self.root, self.root, "project")
+            self.assertEqual(next(item for item in report["checks"] if item["gate"] == gate)["status"], "failed")
+
+    def test_full_project_slot_and_region_checks_reject_missing_page_coverage(self):
+        for gate in ("slots", "descriptions", "overlays"):
+            config = copy.deepcopy(self.config)
+            if gate == "slots":
+                config[gate]["pages"] = []
+            else:
+                inventory = read_json(self.root / (gate + ".json"))
+                inventory["pages"] = []
+                write_json(self.root / (gate + ".json"), inventory)
+            report = run_suite(config, self.root, self.root, "project")
+            self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == gate), "failed")
 
     def test_invalid_gate_input_does_not_abort_remaining_checks(self):
         write_json(self.root / "forms.json", [])
         self.config["shell_height"] = {"pages": []}
         report = self.run_suite()
         self.assertFalse(report["passed"])
-        self.assertEqual(len(report["checks"]), 7)
+        self.assertEqual(len(report["checks"]), 1 + len(GATES))
         failures = {item["gate"]: item for item in report["checks"] if item["status"] == "failed"}
         self.assertIn("errorType", failures["forms"]["report"])
         self.assertIn("shell_height", failures)
@@ -155,14 +313,14 @@ class SuiteTests(unittest.TestCase):
         self.write_capture()
         report = self.run_suite()
         self.assertFalse(report['passed'])
-        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence'])
 
     def test_manifest_hash_mismatch_is_the_only_failing_gate(self):
         path = self.root / 'pages.json'
         path.write_text(path.read_text() + ' ')
         report = self.run_suite()
         self.assertFalse(report['passed'])
-        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence'])
 
     def test_checked_inventory_and_intent_hashes_bind_the_loaded_bytes(self):
         original = Path.read_bytes
@@ -183,7 +341,7 @@ class SuiteTests(unittest.TestCase):
                 report = self.run_suite()
                 self.assertTrue(changed)
                 self.assertFalse(report['passed'])
-                self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+                self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence'])
                 recorded = {item['path']: item['sha256'] for item in report['checkedInputs']['files']}
                 self.assertEqual(recorded[str(path.resolve())], hashlib.sha256(before).hexdigest())
             path.write_bytes(before)
@@ -212,7 +370,7 @@ class SuiteTests(unittest.TestCase):
             report = self.run_suite()
         self.assertTrue(changed)
         self.assertFalse(report['passed'])
-        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] != 'passed'], ['evidence'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence'])
 
     def test_every_page_height_is_checked(self):
         other = {**self.model, "uuid": "other", "pageMeta": {"path": "/other"}}
@@ -243,7 +401,7 @@ class SuiteTests(unittest.TestCase):
 
     def test_hashed_partial_models_cannot_pass_or_be_reused(self):
         original = copy.deepcopy(self.model)
-        state = {"version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
+        state = {"version": "test", "buildId": "fixture-build", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
         for field in ["props", "states", "interactions", "variants", "variantGroups"]:
             broken = copy.deepcopy(original)
             del broken[field]
@@ -281,50 +439,85 @@ class SuiteTests(unittest.TestCase):
 
         class Desktop:
             def call(self, method, input=None):
+                if method == "get_build_info":
+                    return {"version": "test", "buildId": "fixture-build", "build": fixture.capture["build"]}
                 calls.append((method, input))
                 if method == "get_app_state":
                     fixture.assertEqual(input, {"toolNames": []})
-                    return {"ready": True, "projectId": "project", "version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
+                    return {"ready": True, "projectId": "project", "version": "test", "buildId": "fixture-build", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
                 if method == "snapshot_layout":
-                    fixture.assertEqual(input, {"componentUuid": "page"})
+                    fixture.assertEqual(input, {"componentUuid": "page", "view": "full"})
                     return fixture.snapshot
                 raise AssertionError(method)
 
             def execute(self, name, input=None):
                 calls.append((name, input))
+                if name == "validate":
+                    fixture.assertEqual(input, {"componentUuids": ["page"]})
+                    return {"check": "model", "valid": True, "errors": [], "warnings": []}
                 if name == "identify":
                     return {}
                 if name == "getEditorContext":
                     return fixture.context
                 if name == "read":
-                    return fixture.readback if input else fixture.overview
+                    if not input.get("componentUuids"):
+                        fixture.assertEqual(input, {"view": "full", "fields": OVERVIEW_FIELDS})
+                        fixture.assertNotIn("importedProjects", input["fields"])
+                    return fixture.readback if input and input.get("componentUuids") else fixture.overview
                 raise AssertionError(name)
 
         collect(Desktop(), "project", self.root)
-        self.assertEqual([name for name, _ in calls], ["get_app_state", "identify", "getEditorContext", "read", "read", "snapshot_layout", "getEditorContext", "get_app_state"])
+        self.assertEqual([name for name, _ in calls], ["get_app_state", "identify", "getEditorContext", "read", "read", "snapshot_layout", "validate", "getEditorContext", "get_app_state"])
+        self.assertIn(("read", {"view": "full", "fields": OVERVIEW_FIELDS}), calls)
+        self.assertIn(("read", {"componentUuids": ["page"], "view": "full", "depth": "all"}), calls)
+        fixture.readback["read"]["depth"] = 0
+        with self.assertRaisesRegex(ValueError, "complete model reads"):
+            collect(Desktop(), "project", self.root)
         calls.clear()
         with self.assertRaisesRegex(ValueError, "never switches"):
             collect(Desktop(), "wrong-project", self.root)
         self.assertEqual(len(calls), 1)
 
+    def test_build_provenance_is_explicit_and_must_match_current_status(self):
+        calls = []
+        fixture = self
+        class Desktop:
+            def call(self, method, input=None):
+                calls.append(method)
+                if method == "get_app_state":
+                    return {"ready": True, "projectId": "project", "version": "test", "buildId": "current"}
+                if method == "get_build_info":
+                    return {"version": "test", "buildId": "stale", "build": fixture.capture["build"]}
+                raise AssertionError(method)
+            def execute(self, name, input=None):
+                raise AssertionError("No models may be collected from mismatched builds")
+        with self.assertRaisesRegex(ValueError, "Desktop changed"):
+            collect(Desktop(), "project", self.root)
+        self.assertEqual(calls, ["get_app_state", "get_build_info"])
+
     def test_live_reuse_requires_exact_session_revision_build_and_intact_complete_evidence(self):
         fixture = self
         calls = []
         self.context["sessionId"] = "editor-session"
-        state = {"ready": True, "projectId": "project", "version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
+        state = {"ready": True, "projectId": "project", "version": "test", "buildId": "fixture-build", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
 
         class Desktop:
             def call(self, method, input=None):
+                if method == "get_build_info":
+                    return {"version": "test", "buildId": "fixture-build", "build": fixture.capture["build"]}
                 calls.append(method)
                 return state if method == "get_app_state" else fixture.snapshot
 
             def execute(self, name, input=None):
                 calls.append(name)
+                if name == "validate":
+                    fixture.assertEqual(input, {"componentUuids": ["page"]})
+                    return {"check": "model", "valid": True, "errors": [], "warnings": []}
                 if name == "identify":
                     return {}
                 if name == "getEditorContext":
                     return fixture.context
-                return fixture.readback if input else fixture.overview
+                return fixture.readback if input and input.get("componentUuids") else fixture.overview
 
         desktop = Desktop()
         collect(desktop, "project", self.root)
@@ -333,7 +526,7 @@ class SuiteTests(unittest.TestCase):
         output.mkdir()
         calls.clear()
         collect(desktop, "project", output, self.root)
-        self.assertEqual(calls, ["get_app_state", "identify", "getEditorContext", "snapshot_layout", "getEditorContext", "get_app_state"])
+        self.assertEqual(calls, ["get_app_state", "identify", "getEditorContext", "snapshot_layout", "validate", "getEditorContext", "get_app_state"])
         self.assertTrue(run_suite(self.config, self.root, output, "project")["passed"])
         # Runtime layout can regress without a model/session change. Reuse must
         # still measure it and fail the same shell-height gate as a fresh capture.
@@ -387,14 +580,16 @@ class SuiteTests(unittest.TestCase):
             contexts = 0
 
             def call(self, method, input=None):
-                return {"ready": True, "projectId": "project", "version": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}} if method == "get_app_state" else fixture.snapshot
+                if method == "get_build_info":
+                    return {"version": "test", "buildId": "fixture-build", "build": fixture.capture["build"]}
+                return {"ready": True, "projectId": "project", "version": "test", "buildId": "fixture-build", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}} if method == "get_app_state" else fixture.snapshot
 
             def execute(self, name, input=None):
                 if name == "getEditorContext":
                     self.contexts += 1
                     return {**fixture.context, "changeCounter": 1 if self.contexts == 4 else 0}
                 if name == "read":
-                    return fixture.readback if input else fixture.overview
+                    return fixture.readback if input and input.get("componentUuids") else fixture.overview
                 return {}
 
         desktop = Desktop()
@@ -409,13 +604,15 @@ class SuiteTests(unittest.TestCase):
 
         class Desktop:
             def call(self, method, input=None):
-                return {"ready": True, "projectId": "project", "version": "test", "build": fixture.capture["build"]} if method == "get_app_state" else fixture.snapshot
+                if method == "get_build_info":
+                    return {"version": "test", "buildId": "fixture-build", "build": fixture.capture["build"]}
+                return {"ready": True, "projectId": "project", "version": "test", "buildId": "fixture-build", "build": fixture.capture["build"]} if method == "get_app_state" else fixture.snapshot
 
             def execute(self, name, input=None):
                 if name == "getEditorContext":
                     return fixture.context
                 if name == "read":
-                    return fixture.readback if input else fixture.overview
+                    return fixture.readback if input and input.get("componentUuids") else fixture.overview
                 return {}
 
         def replace_after_validation(*args):
@@ -440,17 +637,20 @@ class SuiteTests(unittest.TestCase):
                 statuses = 0
 
                 def call(self, method, input=None):
+                    if method == "get_build_info":
+                        build = fixture.capture["build"] if self.statuses < 2 else {**fixture.capture["build"], "rendererHash": "f" * 64}
+                        return {"version": "test", "buildId": "fixture-build", "build": build}
                     if method != "get_app_state":
                         return fixture.snapshot
                     self.statuses += 1
                     build = fixture.capture["build"] if self.statuses == 1 else {**fixture.capture["build"], "rendererHash": "f" * 64}
-                    return {"ready": True, "projectId": "project", "version": "test", "build": build}
+                    return {"ready": True, "projectId": "project", "version": "test", "buildId": "fixture-build", "build": build}
 
                 def execute(self, name, input=None):
                     if name == "getEditorContext":
                         return fixture.context
                     if name == "read":
-                        return fixture.readback if input else fixture.overview
+                        return fixture.readback if input and input.get("componentUuids") else fixture.overview
                     return {}
 
             with self.subTest(reuse=bool(reuse)):
@@ -466,7 +666,7 @@ class SuiteTests(unittest.TestCase):
                 capture = {**self.capture, "build": build}
                 write_json(self.root / "capture.json", capture)
                 self.assertFalse(self.run_suite()["passed"])
-                self.assertFalse(reusable_evidence(self.root, {"version": "test", "build": build}, self.context))
+                self.assertFalse(reusable_evidence(self.root, {"version": "test", "buildId": "fixture-build", "build": build}, self.context))
 
     def test_collection_rejects_other_status_changes_on_fresh_and_reuse_paths(self):
         fixture = self
@@ -476,17 +676,19 @@ class SuiteTests(unittest.TestCase):
                     statuses = 0
 
                     def call(self, method, input=None):
+                        if method == "get_build_info":
+                            return {"version": "test", "buildId": "fixture-build", "build": fixture.capture["build"]}
                         if method != 'get_app_state':
                             return fixture.snapshot
                         self.statuses += 1
-                        state = dict(ready=True, projectId='project', version='test', build=fixture.capture['build'])
+                        state = dict(ready=True, projectId='project', version='test', buildId='fixture-build', build=fixture.capture['build'])
                         return state if self.statuses == 1 else {**state, key: value}
 
                     def execute(self, name, input=None):
                         if name == 'getEditorContext':
                             return fixture.context
                         if name == 'read':
-                            return fixture.readback if input else fixture.overview
+                            return fixture.readback if input and input.get("componentUuids") else fixture.overview
                         return {}
 
                 with self.subTest(reuse=bool(reuse), field=key):

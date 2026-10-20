@@ -483,11 +483,11 @@ app
     });
     if (secondRead.data !== firstRead.data) {
       fs.writeFileSync(
-        path.join(directory, "first-read.png"),
+        path.join(directory, "first-read.webp"),
         Buffer.from(firstRead.data, "base64"),
       );
       fs.writeFileSync(
-        path.join(directory, "second-read.png"),
+        path.join(directory, "second-read.webp"),
         Buffer.from(secondRead.data, "base64"),
       );
     }

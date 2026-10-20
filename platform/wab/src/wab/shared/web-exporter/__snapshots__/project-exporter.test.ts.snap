@@ -643,7 +643,7 @@ exports[`Project Serialization > serialize project with all filters enabled 1`] 
   <importedProjects>
     <ARRAY>
       <ITEM>
-        <ImportedProject id="vraRvHJQpWZ2nQbXtKvCmD" name="react-aria">
+        <ImportedProject id="vraRvHJQpWZ2nQbXtKvCmD" name="react-aria" version="0.0.1">
           <components>
             <ARRAY>
               <ITEM>
@@ -741,7 +741,7 @@ exports[`Project Serialization > serialize project with all filters enabled 1`] 
         </ImportedProject>
       </ITEM>
       <ITEM>
-        <ImportedProject id="uQew8EvRgLoREu4uLkeKWL" name="[Library] Tabler 3.2 Icons">
+        <ImportedProject id="uQew8EvRgLoREu4uLkeKWL" name="[Library] Tabler 3.2 Icons" version="0.0.1">
           <components>
             <ARRAY>
               <ITEM>
@@ -755,7 +755,7 @@ exports[`Project Serialization > serialize project with all filters enabled 1`] 
         </ImportedProject>
       </ITEM>
       <ITEM>
-        <ImportedProject id="hy5iSgnRhdQaXJLA78LVPv" name="[Library] Tailwind 3.4 Colors">
+        <ImportedProject id="hy5iSgnRhdQaXJLA78LVPv" name="[Library] Tailwind 3.4 Colors" version="0.0.1">
           <components>
             <ARRAY>
               <ITEM>
@@ -2488,7 +2488,7 @@ exports[`Project Serialization > serialize project with all filters enabled 1`] 
         </ImportedProject>
       </ITEM>
       <ITEM>
-        <ImportedProject id="vqJgaHdHtmNa4jCyszhj8z" name="[Library] Tailwind 3.4 Number Tokens">
+        <ImportedProject id="vqJgaHdHtmNa4jCyszhj8z" name="[Library] Tailwind 3.4 Number Tokens" version="0.0.1">
           <components>
             <ARRAY>
               <ITEM>
@@ -2744,7 +2744,7 @@ exports[`Project Serialization > serialize project with all filters enabled 1`] 
         </ImportedProject>
       </ITEM>
       <ITEM>
-        <ImportedProject id="xawVbnXnpTdzmP3BKZNH31" name="[PlasmicKit] Animations">
+        <ImportedProject id="xawVbnXnpTdzmP3BKZNH31" name="[PlasmicKit] Animations" version="0.0.1">
           <components>
             <ARRAY>
               <ITEM>
@@ -3366,6 +3366,7 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
       ],
       "id": "vraRvHJQpWZ2nQbXtKvCmD",
       "name": "react-aria",
+      "version": "0.0.1",
     },
     {
       "__type": "ImportedProject",
@@ -3385,6 +3386,7 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
       ],
       "id": "uQew8EvRgLoREu4uLkeKWL",
       "name": "[Library] Tabler 3.2 Icons",
+      "version": "0.0.1",
     },
     {
       "__type": "ImportedProject",
@@ -5842,6 +5844,7 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
           },
         },
       ],
+      "version": "0.0.1",
     },
     {
       "__type": "ImportedProject",
@@ -6203,6 +6206,7 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
           },
         },
       ],
+      "version": "0.0.1",
     },
     {
       "__type": "ImportedProject",
@@ -6409,6 +6413,7 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
       ],
       "id": "xawVbnXnpTdzmP3BKZNH31",
       "name": "[PlasmicKit] Animations",
+      "version": "0.0.1",
     },
   ],
   "pageFrames": [

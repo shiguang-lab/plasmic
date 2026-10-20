@@ -1,11 +1,24 @@
 import { ensure } from "@/wab/shared/common";
 
+function desktopBrowser() {
+  return ensure(
+    (
+      window as Window & {
+        desktopBrowser?: {
+          open(): Promise<unknown>;
+          openPreview(url: string): Promise<void>;
+        };
+      }
+    ).desktopBrowser,
+    "The Desktop browser is not available",
+  );
+}
+
 // Called in the Desktop main frame, including through Studio's frame API.
 export async function openDesktopBrowser(): Promise<void> {
-  const desktop = (
-    window as Window & {
-      desktopBrowser?: { open(): Promise<unknown> };
-    }
-  ).desktopBrowser;
-  await ensure(desktop, "The Desktop browser is not available").open();
+  await desktopBrowser().open();
+}
+
+export async function openDesktopPreview(url: string): Promise<void> {
+  await desktopBrowser().openPreview(url);
 }

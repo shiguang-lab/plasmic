@@ -53,7 +53,7 @@ import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { getPublicUrl } from "@/wab/shared/urls";
 import { LockOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Select as AntdSelect, Button, Input, notification } from "antd";
+import { Select as AntdSelect, Button, Input, notification, message } from "antd";
 import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import L from "lodash";
@@ -262,7 +262,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     const parsedEmail = parseEmailAddress(email);
     if (!parsedEmail) {
       setEmailInvalid(true);
-      notification.error({ message: uiT("Insert a valid email to invite") });
+      void message.error({ content: uiT("Insert a valid email to invite") });
       return;
     }
     setEmailInvalid(false);
@@ -287,11 +287,11 @@ function ShareDialogContent(props: ShareDialogContentProps) {
           placement: "bottomRight",
         });
       } else {
-        notification.success({ message: uiT("Invitation sent") });
+        void message.success({ content: uiT("Invitation sent") });
       }
       setEmail("");
     } catch {
-      notification.error({ message: uiT("Failed to invite member") });
+      void message.error({ content: uiT("Failed to invite member") });
     } finally {
       setSubmitting(false);
     }
@@ -315,7 +315,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
       setProjectInviteOnly(inviteOnly);
       await updateResourceCallback?.(data);
     } catch {
-      notification.error({ message: uiT("Failed to update permissions") });
+      void message.error({ content: uiT("Failed to update permissions") });
     } finally {
       setUpdatingAccess(false);
     }
@@ -418,9 +418,9 @@ function ShareDialogContent(props: ShareDialogContentProps) {
 
   const copyLinkWithFeedback = (url: string) => {
     if (copy(url)) {
-      notification.success({ message: uiT("Link copied") });
+      void message.success({ content: uiT("Link copied") });
     } else {
-      notification.error({ message: uiT("Could not copy link") });
+      void message.error({ content: uiT("Could not copy link") });
     }
   };
 

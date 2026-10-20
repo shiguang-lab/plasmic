@@ -202,6 +202,9 @@ def check(expectations, overview, readback):
                 errors.append({"page": model["uuid"], "form": form_name, "error": "Expected one registered Form"})
                 continue
             form = candidates[0]
+            if props(form).get("mode", "simplified") != "advanced":
+                errors.append({"page": model["uuid"], "form": form_name, "error": "Form.Item inventory requires effective mode=advanced; simplified mode renders formItems instead of children"})
+                continue
             if "formLayout" in expected_form and props(form).get("layout") != expected_form["formLayout"]:
                 errors.append({"page": model["uuid"], "form": form_name, "error": "Wrong native Form layout"})
             form_children = slot(form, "children")
@@ -343,8 +346,8 @@ def main():
     parser.add_argument("mcp_read", type=Path)
     parser.add_argument("--overview", type=Path, required=True)
     args = parser.parse_args()
-    expected = json.loads(args.expectations.read_text())
-    result = check(expected, json.loads(args.overview.read_text()), json.loads(args.mcp_read.read_text()))
+    expected = json.loads(args.expectations.read_text(encoding="utf-8"))
+    result = check(expected, json.loads(args.overview.read_text(encoding="utf-8")), json.loads(args.mcp_read.read_text(encoding="utf-8")))
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

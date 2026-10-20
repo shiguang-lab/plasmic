@@ -180,6 +180,7 @@
   "Zoom to fit all": "全体に合わせる",
   "Zoom to fit selection": "選択範囲に合わせる",
   "Zoom to 100%": "100% に戻す",
+  "Present": "プレゼンテーション",
   "Open preview in browser": "ブラウザーでプレビューを開く",
   "Open preview in new tab": "新しいタブでプレビューを開く",
   "Preview in default browser": "既定のブラウザーでプレビュー",
@@ -305,6 +306,7 @@
   "Duplicate": "複製",
   "Rename": "名前を変更",
   "Edit": "編集",
+  "Read": "読み取り",
   "Save": "保存",
   "Apply": "適用",
   "Reset": "リセット",
@@ -5494,5 +5496,7 @@
   "The Figma file has no visible pages.": "この Figma ファイルには表示可能なページがありません。",
   "The selected Figma page has no supported layers.": "選択した Figma ページにはインポート可能なレイヤーがありません。",
   "Imported \"{page}\" page from Figma": "Figma から「{page}」ページをインポートしました",
-  "Check that the file is a valid .fig export and try again.": "有効な Figma .fig エクスポートファイルであることを確認して、もう一度お試しください。"
+  "Check that the file is a valid .fig export and try again.": "有効な Figma .fig エクスポートファイルであることを確認して、もう一度お試しください。",
+  "Inspecting": "確認中",
+  "Inspection complete": "検査データの取得完了"
 }

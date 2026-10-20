@@ -141,15 +141,64 @@ import {
  * Renders a tpl subtree to HTML markup, used as the `baseVariantTplTree` string
  * of a component or element in the JSON model.
  */
-export function tplToHtml(tpl: TplNode, site: Site): string {
-  return toXml(buildTplNode(tpl, site));
+export function tplToHtml(tpl: TplNode, site: Site, depth = Infinity): string {
+  return toXml(buildTplNode(tpl, site, depth));
 }
 
-function buildTplNode(tpl: TplNode, site: Site): XmlElement {
-  const node = switchType(tpl)
-    .when(TplTag, (tag) => buildTplTag(tag, site))
-    .when(TplComponent, (comp) => buildTplComponent(comp, site))
-    .when(TplSlot, (slot) => buildTplSlot(slot, site))
+function inheritedElementSource(tpl: TplNode) {
+  const inherited = getAncestorSlotArg(tpl);
+  if (inherited && isKnownVirtualRenderExpr(inherited.arg.expr) && isSlot(inherited.arg.param)) {
+    const slot = inherited.arg.param.tplSlot;
+    assert(slot, "Inherited content must have a source slot");
+    return { editable: false, source: { componentUuid: inherited.tplComponent.component.uuid,
+      slotName: slot.param.variable.name, elementUuid: slot.uuid } };
+  }
+  return {};
+}
+
+/** Structural read projection. Values and markup remain available through explicit reads. */
+export function buildElementTree(tpl: TplNode, depth: number): Record<string, unknown> {
+  const reference = (child: TplNode) => depth > 0
+    ? buildElementTree(child, depth - 1) : { uuid: child.uuid, ...inheritedElementSource(child) };
+  return {
+    uuid: tpl.uuid,
+    ...("name" in tpl && tpl.name ? { name: tpl.name } : {}),
+    ...inheritedElementSource(tpl),
+    ...switchType(tpl)
+      .when(TplTag, (tag) => ({ tag: tag.tag, children: tplChildren(tag).map(reference) }))
+      .when(TplComponent, (instance) => ({ registeredComponentUuid: instance.component.uuid,
+        slots: (tryGetBaseVariantSetting(instance)?.args ?? [])
+          .filter((arg) => isSlot(arg.param) && isKnownRenderExpr(arg.expr))
+          .map((arg) => ({ name: paramToVarName(instance.component, arg.param),
+            children: isKnownRenderExpr(arg.expr) ? arg.expr.tpl.map(reference) : [] })) }))
+      .when(TplSlot, (slot) => ({ slots: [{ name: slot.param.variable.name, children: tplChildren(slot).map(reference) }] }))
+      .result(),
+  };
+}
+
+/** Stored base-variant values, separate from contracts, overrides and descendants. */
+export function buildElementProperties(tpl: TplNode, site: Site, propNames?: string[]) {
+  const attrs = buildTplNode(tpl, site, 0).attributes ?? {};
+  const values: Record<string, unknown> = typeof attrs["data-props"] === "string" ? JSON.parse(attrs["data-props"]) : {};
+  const vs = tryGetBaseVariantSetting(tpl);
+  const identityAttrs = new Set(["id", "label", "style", "data-props", "data-plasmic-component", "data-plasmic-project", "data-plasmic-name", "data-editable", "data-source-component", "data-source-slot", "data-source-element"]);
+  return {
+    properties: propNames ? Object.fromEntries(propNames.filter((name) => Object.hasOwn(values, name)).map((name) => [name, values[name]])) : values,
+    styles: vs ? getStylesFromVariantSetting(vs, tpl) : {},
+    attributes: Object.fromEntries(Object.entries(attrs).filter(([key]) => !identityAttrs.has(key))),
+    ...(vs && isTplTextBlock(tpl) ? { text: isKnownRawText(vs.text) ? vs.text.text
+      : isKnownExprText(vs.text) ? exprToInterpolatedString(vs.text.expr) : undefined } : {}),
+    ...inheritedElementSource(tpl),
+  };
+}
+
+function buildTplNode(tpl: TplNode, site: Site, depth: number): XmlElement {
+  const node = depth < 0
+    ? mkXmlElement("plasmic-node-ref", { id: tpl.uuid }, [])
+    : switchType(tpl)
+    .when(TplTag, (tag) => buildTplTag(tag, site, depth))
+    .when(TplComponent, (comp) => buildTplComponent(comp, site, depth))
+    .when(TplSlot, (slot) => buildTplSlot(slot, site, depth))
     .result();
   const inherited = getAncestorSlotArg(tpl);
   if (
@@ -344,7 +393,7 @@ function getStyleString(vs: VariantSetting, tpl: TplNode): string | undefined {
   return stylesToStyleAttr(styles);
 }
 
-function buildTplTag(tpl: TplTag, site: Site): XmlElement {
+function buildTplTag(tpl: TplTag, site: Site, depth: number): XmlElement {
   const vs = tryGetBaseVariantSetting(tpl);
   assert(vs, "base variant settings must exists");
 
@@ -386,7 +435,7 @@ function buildTplTag(tpl: TplTag, site: Site): XmlElement {
             mkXmlElement("span", { style: stylesToStyleAttr(cssRules) }, [
               text,
             ]),
-          nodeMarker: (markerTpl) => buildTplNode(markerTpl, site),
+          nodeMarker: (markerTpl) => buildTplNode(markerTpl, site, depth - 1),
         },
         { spanClassName: "" },
       );
@@ -408,12 +457,12 @@ function buildTplTag(tpl: TplTag, site: Site): XmlElement {
   }
 
   // Build children
-  const children = tplChildren(tpl).map((child) => buildTplNode(child, site));
+  const children = tplChildren(tpl).map((child) => buildTplNode(child, site, depth - 1));
 
   return mkXmlElement(tpl.tag, attrs, children);
 }
 
-function buildTplComponent(tpl: TplComponent, site: Site): XmlElement {
+function buildTplComponent(tpl: TplComponent, site: Site, depth: number): XmlElement {
   const component = tpl.component;
 
   const vs = tryGetBaseVariantSetting(tpl);
@@ -479,7 +528,7 @@ function buildTplComponent(tpl: TplComponent, site: Site): XmlElement {
       const param = arg.param;
       if (isSlot(param) && isKnownRenderExpr(arg.expr)) {
         const slotName = paramToVarName(component, param);
-        const children = arg.expr.tpl.map((child) => buildTplNode(child, site));
+        const children = arg.expr.tpl.map((child) => buildTplNode(child, site, depth - 1));
         slotElements.push(mkXmlElement("slot", { name: slotName }, children));
       }
     }
@@ -488,13 +537,13 @@ function buildTplComponent(tpl: TplComponent, site: Site): XmlElement {
   return mkXmlElement("plasmic-component", attrs, slotElements);
 }
 
-function buildTplSlot(tpl: TplSlot, site: Site): XmlElement {
+function buildTplSlot(tpl: TplSlot, site: Site, depth: number): XmlElement {
   const attrs: XmlAttrs = {
     name: tpl.param.variable.name,
     id: tpl.uuid,
   };
 
-  const children = tplChildren(tpl).map((child) => buildTplNode(child, site));
+  const children = tplChildren(tpl).map((child) => buildTplNode(child, site, depth - 1));
 
   return mkXmlElement("slot-target", attrs, children);
 }
@@ -1008,6 +1057,8 @@ export function buildComponentResource(
   component: Component,
   opts: {
     site: Site;
+    depth?: number;
+    omitTree?: boolean;
   },
 ): ComponentJson {
   const pageMeta = buildPageMeta(component);
@@ -1138,8 +1189,8 @@ export function buildComponentResource(
     ...(interactions.length > 0 ? { interactions } : {}),
     ...(dataQueries.length ? { dataQueries } : {}),
     ...(legacyDataQueries.length ? { legacyDataQueries } : {}),
-    baseVariantTplTree: component.tplTree
-      ? tplToHtml(component.tplTree, opts.site)
+    baseVariantTplTree: component.tplTree && !opts.omitTree
+      ? tplToHtml(component.tplTree, opts.site, opts.depth)
       : "",
     ...(variantSettings ? { variantSettings } : {}),
   };
@@ -1148,13 +1199,13 @@ export function buildComponentResource(
 /** Build the canonical JSON model for a standalone element (tpl subtree). */
 export function buildElementResource(
   tpl: TplNode,
-  opts: { site: Site },
+  opts: { site: Site; depth?: number; includeInteractions?: boolean },
 ): ElementJson {
   const component = tryGetTplOwnerComponent(tpl);
   return {
     __type: "Element",
-    baseVariantTplTree: tplToHtml(tpl, opts.site),
-    ...(component
+    baseVariantTplTree: tplToHtml(tpl, opts.site, opts.depth),
+    ...(component && opts.includeInteractions !== false
       ? { interactions: buildComponentInteractions(component, tpl) }
       : {}),
   };

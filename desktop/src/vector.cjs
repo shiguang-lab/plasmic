@@ -56,14 +56,12 @@ function makeVector(input) {
     const pathData = result.map((path) => path.pathData);
     return {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${input.width}" height="${input.height}" viewBox="0 0 ${input.width} ${input.height}">${pathData.map((data) => `<path d="${escape(data)}" fill="${escape(fill)}" fill-rule="nonzero"/>`).join("")}</svg>`,
-      paths: pathData,
+      pathCount: pathData.length,
       area: result.reduce((total, path) => total + Math.abs(path.area), 0),
-      bounds: result.map((path) => ({
-        x: path.bounds.x,
-        y: path.bounds.y,
-        width: path.bounds.width,
-        height: path.bounds.height,
-      })),
+      bounds: (() => {
+        const bounds = result.slice(1).reduce((box, path) => box.unite(path.bounds), result[0].bounds);
+        return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height };
+      })(),
     };
   } finally {
     scope.remove();

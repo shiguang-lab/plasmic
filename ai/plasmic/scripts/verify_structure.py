@@ -5,10 +5,12 @@ Does not interpret requirement prose or verify runtime/visual behavior.
 """
 import argparse
 import json
+import re
 from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from verify_bindings import role_menu
+from verify_forms import TextTree, walk, node_name, props, identity, slot, content
 
 
 class Shells(HTMLParser):
@@ -51,7 +53,230 @@ def menu_tree(items):
     return result
 
 
-def check(expectation, overview, readback):
+def check_components(nodes, path):
+    errors = []
+    for node in nodes:
+        context = {"check": "component", "path": path, "node": node_name(node)}
+        if identity(node) == "plasmicantd6table":
+            values = props(node)
+            if values.get("data") is None:
+                errors.append({**context, "message": "Table requires an explicit queryData binding, including for an empty dataset"})
+            children = slot(node, "children")
+            columns = [n for n in walk(children) if identity(n) == "plasmicantd6tablecolumn"] if children else []
+            if not columns:
+                errors.append({**context, "message": "Table requires real Table.Column nodes in its Columns children Slot; data alone does not define columns"})
+            for column in columns:
+                if not props(column).get("dataIndex") and not content(slot(column, "render")) and not any(
+                    n.get("tag") == "plasmic-component" for n in walk(slot(column, "render") or {"children": []})
+                ):
+                    errors.append({**context, "column": node_name(column), "message": "Column requires a dataIndex or nonempty render Slot"})
+        if identity(node) == "plasmicantd6card":
+            children = slot(node, "children")
+            # A SearchForm already owns its surface. Layout-only wrappers do not
+            # turn another surrounding Card into an independent business region.
+            components = [n for n in walk(children) if n["tag"] == "plasmic-component"] if children else []
+            business = [n for n in components if identity(n) not in {
+                "plasmicantd6flex", "plasmicantd6row", "plasmicantd6col", "plasmicantd6space"
+            }]
+            if business and identity(business[0]) in {"plasmicoverseassearchform", "plasmicantd6steps"}:
+                owned = {id(n) for n in walk(business[0])}
+                extra_text = any(n.get("tag") == "text" and content(n) and id(n) not in owned for n in walk(children))
+                if not extra_text and all(id(n) in owned for n in business):
+                    errors.append({**context, "message": "SearchForm/Steps-only layout requires no surrounding Card; use a layout container"})
+    return errors
+
+
+def element_fallbacks(plan):
+    entries = plan.get("elementFallbacks", [])
+    if (not isinstance(entries, list) or any(not isinstance(e, dict) or any(
+            not isinstance(e.get(k), str) or not e[k].strip() for k in ("nodeName", "reason", "source")) for e in entries)
+            or len({e["nodeName"] for e in entries}) != len(entries)):
+        raise ValueError("elementFallbacks requires distinct named nodes, verified contract-gap reasons and source citations")
+    return {e["nodeName"]: e for e in entries}
+
+
+def check_native_widgets(plan, nodes, page, path):
+    """Guard authored widget replacements, not DOM emitted inside components.
+
+    Passive semantic content/layout is allowed. Arbitrary CSS appearance and the
+    validity of a reviewed contract-gap reason still need independent review.
+    """
+    tags = {"button", "input", "select", "textarea", "table", "dialog", "details", "summary", "progress", "meter"}
+    roles = {"button", "checkbox", "combobox", "dialog", "grid", "listbox", "menu", "menubar", "menuitem",
+             "menuitemcheckbox", "menuitemradio", "option", "radio", "radiogroup", "slider", "spinbutton",
+             "switch", "tab", "table", "tablist", "tree", "treegrid", "treeitem"}
+    actions = {i["elementUuid"] for i in page.get("interactions", []) if i.get("elementUuid") and i.get("eventName") in {"onClick", "onDoubleClick"}}
+    exceptions, used, errors = element_fallbacks(plan), set(), []
+    for node in nodes:
+        if node["tag"] in {"root", "text", "slot", "plasmic-component"}:
+            continue
+        attrs = node["attrs"]
+        role = next((r for r in attrs.get("role", "").lower().split() if r in roles), None)
+        navigation = node["tag"] == "a" and bool(attrs.get("href", "").strip()) and attrs["href"].strip() != "#" and not attrs["href"].strip().lower().startswith("javascript:")
+        action = not navigation and (attrs.get("id") in actions or "onclick" in attrs or "ondblclick" in attrs)
+        if node["tag"] not in tags and not role and not action:
+            continue
+        name = node_name(node)
+        if name in exceptions and sum(node_name(n) == name for n in nodes) == 1:
+            used.add(name)
+        else:
+            errors.append({"check": "nativeWidget", "path": path, "node": name, "elementUuid": attrs.get("id"),
+                           "tag": node["tag"], "role": role,
+                           "message": "Use the existing registered widget/composition; an authored HTML/ARIA/click target requires a source-reviewed elementFallbacks contract gap"})
+    for name in exceptions.keys() - used:
+        errors.append({"check": "elementFallback", "path": path, "node": name,
+                       "message": "Fallback must target exactly one authored widget; unused or blanket exceptions are invalid"})
+    return errors
+
+
+def check_required_nodes(plan, nodes, page, path):
+    """Source-declared controls/actions, independent of what was generated.
+
+    These checks establish native structure and wiring only. Actual effects,
+    conditional editability and query semantics still need exercised Preview.
+    """
+    errors = []
+
+    def target(spec, key="nodeName"):
+        found = [n for n in nodes if node_name(n) == spec.get(key)]
+        if not isinstance(spec.get("source"), str) or not spec["source"].strip() or len(found) != 1:
+            errors.append({"check": "requirement", "path": path, "node": spec.get(key), "message": "Source citation and one named target required"})
+            return None
+        return found[0]
+
+    def has_event(node, event):
+        return bool(props(node).get(event)) or any(
+            i.get("elementUuid") == node["attrs"].get("id") and i.get("eventName") == event
+            for i in page.get("interactions", []))
+
+    for spec in plan.get("components", []):
+        node = target(spec)
+        expected = re.sub(r"[^a-z0-9]", "", spec.get("component", "").lower())
+        if node is not None and (not expected or node["tag"] != "plasmic-component" or identity(node) != expected):
+            errors.append({"check": "nativeComponent", "path": path, "node": spec.get("nodeName"), "expected": spec.get("component"), "message": "Required source region must use the registered component; HTML tables, grids or styled text are not replacements"})
+
+    for spec in plan.get("controls", []):
+        node = target(spec)
+        if node is None:
+            continue
+        values = props(node)
+        expected = re.sub(r"[^a-z0-9]", "", spec.get("component", "").lower())
+        if not expected or identity(node) != expected or node["tag"] != "plasmic-component":
+            errors.append({"check": "control", "path": path, "node": spec.get("nodeName"), "message": "Required editable registered control is missing; text, pre and styled labels cannot replace it"})
+        if values.get("disabled") is True or values.get("readOnly") is True:
+            errors.append({"check": "control", "path": path, "node": spec.get("nodeName"), "message": "Required editable control is permanently disabled/read-only"})
+        for key, expected_value in spec.get("props", {}).items():
+            if key not in values or json.dumps(values[key], sort_keys=True) != json.dumps(expected_value, sort_keys=True):
+                errors.append({"check": "control", "path": path, "node": spec.get("nodeName"), "property": key, "expected": expected_value, "actual": values.get(key)})
+        for event in spec.get("events", []):
+            if not has_event(node, event):
+                errors.append({"check": "control", "path": path, "node": spec.get("nodeName"), "missingEvent": event})
+
+    for spec in plan.get("rowActions", []):
+        column = target(spec, "column")
+        control = target(spec, "control")
+        if column is None or control is None:
+            continue
+        render = slot(column, "render")
+        if (identity(column) != "plasmicantd6tablecolumn" or render is None
+                or props(column).get("displayType") not in (None, "custom")
+                or not any(n is control for n in walk(render))
+                or identity(control) not in {"plasmicantd6button", "plasmicreactuiactiongroup"}
+                or not isinstance(spec.get("event"), str) or not spec["event"].strip()
+                or not has_event(control, spec["event"])):
+            errors.append({"check": "rowAction", "path": path, "column": spec.get("column"), "message": "Row action requires a real Button/ActionGroup with its registered event inside Column.render; link-formatted action text is insufficient"})
+    return errors
+
+
+def check_presentation(plan, root, path):
+    """Static heading/copy guards; source interpretation and pixels need review."""
+    errors, nodes = [], list(walk(root))
+    header = plan.get("pageHeader")
+    permitted = set()
+    if header is not None:
+        if not isinstance(header, dict):
+            raise ValueError("pageHeader must be null or an explicitly requested named region with a source")
+        matches = [n for n in nodes if node_name(n) == header.get("nodeName")]
+        if not header.get("source", "").strip() or len(matches) != 1:
+            errors.append({"check": "pageHeader", "path": path, "message": "A requested Page header needs an explicit source and one named region"})
+        else:
+            permitted = {id(n) for n in walk(matches[0])}
+    first_branch = set()
+    for shell in nodes:
+        if identity(shell) != "plasmicoverseasappshell":
+            continue
+        branch = slot(shell, "children")
+        while branch:
+            first_branch.add(id(branch))
+            if branch["tag"] == "plasmic-component" and identity(branch) not in {"plasmicantd6flex", "plasmicantd6space", "plasmicantd6row", "plasmicantd6col"}:
+                break
+            branch = next((n for n in branch.get("children", []) if n["tag"] != "text"), None)
+    for node in nodes:
+        name = re.sub(r"[^a-z0-9]", "", (node_name(node) or "").lower())
+        attrs = node.get("attrs", {})
+        page_heading = (name in {"pageheader", "pageheading", "pagetitle", "pagesubtitle", "pageintro"}
+                        or node["tag"] == "h1" or attrs.get("role") == "heading" and attrs.get("aria-level", "1") == "1"
+                        or id(node) in first_branch and name.endswith("header"))
+        if page_heading and id(node) not in permitted:
+            errors.append({"check": "pageHeader", "path": path, "node": node_name(node), "message": "Unrequested standalone Page title/header/intro area; keep navigation in AppShell and business titles in their owning components"})
+
+    normalize = lambda text: " ".join(text.split())
+    copy = plan.get("copy", {})
+    if copy and (not copy.get("source", "").strip() or not isinstance(copy.get("excluded"), list) or not isinstance(copy.get("help"), list)):
+        raise ValueError("Copy review requires source, excluded and help arrays")
+    ui_keys = {"title", "label", "description", "help", "message", "placeholder", "children"}
+
+    def literals(value):
+        if isinstance(value, str) and "{{" not in value:
+            yield normalize(value)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    yield from literals(item)
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                if key in ui_keys or key in {"items", "options"}:
+                    yield from literals(item)
+
+    texts = [normalize(content(n)) for n in nodes if n["tag"] != "plasmic-component"]
+    for node in nodes:
+        if node["tag"] == "plasmic-component":
+            texts.extend(literals(props(node)))
+    for spec in copy.get("excluded", []):
+        text = normalize(spec.get("text", ""))
+        if not text or not spec.get("source", "").strip():
+            raise ValueError("Excluded requirement/process copy needs text and source")
+        if any(text in actual for actual in texts):
+            errors.append({"check": "uiCopy", "path": path, "text": spec["text"], "message": "Requirement/process explanation leaked into UI copy"})
+    for spec in copy.get("help", []):
+        matches = [n for n in nodes if node_name(n) == spec.get("nodeName")]
+        if not spec.get("source", "").strip() or not spec.get("text", "").strip() or len(matches) != 1:
+            errors.append({"check": "uiCopy", "path": path, "node": spec.get("nodeName"), "message": "User-facing help needs an independently reviewed source, text and one named owner"})
+        elif normalize(spec["text"]) not in [normalize(content(matches[0])), *literals(props(matches[0])), *(normalize(value) for key, value in props(matches[0]).items() if key in ui_keys and isinstance(value, str))]:
+            errors.append({"check": "uiCopy", "path": path, "node": spec["nodeName"], "message": "User-facing help differs from the reviewed text/binding"})
+    return errors
+
+
+def validate_page_plan(plan):
+    def text(value):
+        return isinstance(value, str) and bool(value.strip())
+
+    def entries(value, keys):
+        return isinstance(value, list) and all(isinstance(c, dict) and all(text(c.get(k)) for k in keys) for c in value)
+
+    if not text(plan.get("name")):
+        raise ValueError("Declare the source-reviewed Page directory name before generation; default to Chinese business wording")
+    if "pageHeader" not in plan or plan["pageHeader"] is not None and (not isinstance(plan["pageHeader"], dict) or not all(text(plan["pageHeader"].get(k)) for k in ("nodeName", "source"))):
+        raise ValueError("Declare pageHeader:null, or a named region with an explicit current user request source")
+    components, copy = plan.get("components"), plan.get("copy")
+    if not entries(components, ("nodeName", "component", "source")) or len({c["nodeName"] for c in components}) != len(components):
+        raise ValueError("Required native component identities and sources must be planned independently of output")
+    if not isinstance(copy, dict) or not text(copy.get("source")) or not entries(copy.get("excluded"), ("text", "source")) or not entries(copy.get("help"), ("text", "source", "nodeName")):
+        raise ValueError("Independent UI-copy review requires source, excluded and help arrays")
+    element_fallbacks(plan)
+
+
+def check(expectation, overview, readback, page_path=None):
     errors = []
     planned = expectation.get("pages", [])
     navigation = expectation.get("navigation", {})
@@ -76,17 +301,24 @@ def check(expectation, overview, readback):
     else:
         inventory = [p for p in projects[0]["components"] if p.get("type") == "page"]
     pages = [p for p in readback["results"] if p.get("type") == "page"]
+    for page in inventory + pages:
+        path = page.get("pageMeta", {}).get("path")
+        plan = next((p for p in planned if p.get("path") == path), {})
+        if "name" in plan and (not isinstance(plan["name"], str) or not plan["name"].strip() or page.get("name") != plan["name"]):
+            errors.append({"check": "pageName", "path": path, "expected": plan["name"], "actual": page.get("name"),
+                           "message": "Project-directory Page name must match the source-reviewed business name; node/route names are separate"})
     for name, collection in [("overview", inventory), ("readback", pages)]:
         paths = [p.get("pageMeta", {}).get("path") for p in collection]
         found = set(paths)
-        wanted = set(expected_routes)
+        wanted = {page_path} if name == "readback" and page_path is not None else set(expected_routes)
         duplicates = [path for path, count in Counter(paths).items() if count > 1]
         if found != wanted or duplicates:
             errors.append({
                 "check": name + " routes", "missing": sorted(wanted - found, key=str),
                 "extra": sorted(found - wanted, key=str), "duplicates": duplicates
             })
-    if Counter(p["uuid"] for p in inventory) != Counter(p["uuid"] for p in pages):
+    selected = [p for p in inventory if page_path is None or p.get("pageMeta", {}).get("path") == page_path]
+    if Counter(p["uuid"] for p in selected) != Counter(p["uuid"] for p in pages):
         errors.append({"check": "readback", "message": "Full Page readbacks must cover exactly the overview Page identities"})
     for page in pages:
         path = page.get("pageMeta", {}).get("path")
@@ -94,6 +326,42 @@ def check(expectation, overview, readback):
         if not isinstance(markup, str):
             errors.append({"check": "readback", "path": path, "message": "Full Page markup required"})
             continue
+        root = TextTree(markup).root
+        nodes = list(walk(root))
+        names = [node_name(n) for n in nodes if node_name(n)]
+        invalid = [name for name in names if not re.fullmatch(r"[A-Z][A-Za-z0-9]*", name)]
+        duplicates = [name for name, count in Counter(names).items() if count > 1]
+        if invalid or duplicates:
+            errors.append({"check": "naming", "path": path, "invalid": invalid, "duplicates": duplicates, "message": "Explicit editable node names must be English PascalCase and distinct within the owning Page; meaning still requires review"})
+        errors.extend(check_components(nodes, path))
+        plan = next((p for p in planned if p.get("path") == path), {})
+        errors.extend(check_native_widgets(plan, nodes, page, path))
+        errors.extend(check_required_nodes(plan, nodes, page, path))
+        errors.extend(check_presentation(plan, root, path))
+        for binding in plan.get("bindings", []):
+            matches = [n for n in nodes if node_name(n) == binding.get("nodeName")]
+            if not binding.get("source") or len(matches) != 1:
+                errors.append({"check": "binding", "path": path, "message": "Source citation and one named target required", "binding": binding})
+                continue
+            node = matches[0]
+            values = props(node)
+            for prop in binding.get("props", []):
+                if prop not in values or values[prop] is None or values[prop] == "":
+                    errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "missingProp": prop})
+            for prop in binding.get("dynamicProps", []):
+                encoded = json.dumps(values.get(prop), ensure_ascii=False)
+                if "{{" not in encoded or "}}" not in encoded:
+                    errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "property": prop, "message": "Source requires dynamic data; a literal value is insufficient"})
+            for prop, states in binding.get("propStateDependencies", {}).items():
+                encoded = json.dumps(values.get(prop), ensure_ascii=False)
+                if not isinstance(states, list) or not states or any(not isinstance(s, str) or not re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*", s) for s in states):
+                    errors.append({"check": "expectation", "path": path, "message": "propStateDependencies requires nonempty native state paths"})
+                    continue
+                if "{{" not in encoded or "}}" not in encoded or any(not re.search(r"\$state\." + re.escape(state) + r"(?![\w$])", encoded) for state in states):
+                    errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "property": prop, "requiredStateReferences": states})
+            for event in binding.get("events", []):
+                if not values.get(event) and not any(i.get("elementUuid") == node["attrs"].get("id") and i.get("eventName") == event for i in page.get("interactions", [])):
+                    errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "missingEvent": event})
         try:
             shells = Shells(markup).props
             if len(shells) != 1:
@@ -109,7 +377,7 @@ def check(expectation, overview, readback):
             errors.append({"check": "navigation", "path": path, "message": str(exc)})
     return {
         "passed": not errors, "expectedPageCount": len(planned), "actualPageCount": len(inventory),
-        "errors": errors, "notChecked": ["source-interpretation", "runtime-behavior", "visual-quality"]
+        "errors": errors, "notChecked": ["source-interpretation", "runtime-behavior", "visual-quality", "dynamic UI-copy meaning and unlabeled visual heading inference"]
     }
 
 
@@ -120,10 +388,10 @@ def main():
     parser.add_argument("pages", type=Path)
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
-    report = check(*(json.loads(path.read_text()) for path in [args.expectation, args.overview, args.pages]))
+    report = check(*(json.loads(path.read_text(encoding="utf-8")) for path in [args.expectation, args.overview, args.pages]))
     output = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.report:
-        args.report.write_text(output)
+        args.report.write_text(output, encoding="utf-8")
     print(output)
     raise SystemExit(0 if report["passed"] else 1)
 

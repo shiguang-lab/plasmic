@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Check Pen frame coverage and semantic mappings against actual Desktop evidence.
+
+Checks recorded layout/image acquisition and model region identities, not visual
+fidelity or the correctness of source interpretation/adaptation decisions.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+from verify_forms import TextTree, node_name, walk
+
+REQUIRED_FIELDS = {"id", "type", "layout", "width", "height", "padding", "gap", "justifyContent", "alignItems"}
+
+
+def complete_layout(evidence, node_id):
+    read, pages = evidence.get("read", {}), evidence.get("pages", {})
+    if (evidence.get("complete") is not True or type(read.get("depth")) is not int or not 1 <= read["depth"] <= 3
+            or not REQUIRED_FIELDS.issubset(read.get("fields", [])) or type(read.get("total")) is not int or read["total"] <= 0
+            or not isinstance(pages, dict) or not pages):
+        return False
+    cursor, items = 0, []
+    try:
+        for offset in sorted(pages, key=int):
+            part = pages[offset]
+            if str(int(offset)) != str(offset) or int(offset) != cursor or not isinstance(part, list) or not part:
+                return False
+            items.extend(part)
+            cursor += len(part)
+        return cursor == read["total"] and any(n.get("id") == node_id and n.get("type") in ("frame", "group") for n in items)
+    except (TypeError, ValueError, AttributeError):
+        return False
+
+
+def check(expected, readback, task):
+    errors = []
+    models = {model["uuid"]: model for model in readback["results"]}
+    files = set(task.get("referenceFiles", []))
+    for page in expected["pages"]:
+        model = models.get(page["componentUuid"])
+        refs, regions = page.get("references", []), page.get("regions", [])
+        if not model or not refs or not regions or len({ref.get("id") for ref in refs}) != len(refs):
+            errors.append({"page": page.get("path"), "error": "Exact Page, distinct reference IDs and semantic regions required"})
+            continue
+        names = {node_name(n) for n in walk(TextTree(model["baseVariantTplTree"]).root)}
+        by_id = {ref["id"]: ref for ref in refs}
+        mapped = set()
+        for region in regions:
+            mapped.add(region.get("referenceId"))
+            if (region.get("referenceId") not in by_id or not isinstance(region.get("decision"), str) or not region["decision"].strip()
+                    or not region.get("nodeNames") or any(name not in names for name in region["nodeNames"])):
+                errors.append({"page": page.get("path"), "region": region, "error": "Reference region must map to actual named native nodes with a reviewed semantic decision"})
+        if mapped != set(by_id):
+            errors.append({"page": page.get("path"), "error": "Every reference state requires a semantic region mapping"})
+        for ref in refs:
+            # Pen MCP/Node identifies a document with path.resolve(), which is
+            # lexical. Do not follow /tmp -> /private/tmp symlinks only here.
+            file = os.path.abspath(ref["filePath"])
+            key = json.dumps([file, ref["nodeId"]], ensure_ascii=False, separators=(",", ":"))
+            evidence = task.get("references", {}).get(key, {})
+            if file not in files or not complete_layout(evidence, ref["nodeId"]):
+                errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Complete paginated native Pen layout read required; text-only summaries are insufficient"})
+            image = evidence.get("image", {})
+            try:
+                valid = (image.get("kind") == "reference" and image.get("source", {}).get("provider") == "pen-mcp"
+                         and image["source"]["filePath"] == file and image["source"]["nodeId"] == ref["nodeId"]
+                         and hashlib.sha256(Path(image["file"]).read_bytes()).hexdigest() == image.get("sha256"))
+            except (OSError, KeyError, TypeError):
+                valid = False
+            if not valid:
+                errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Intact screenshot from the original supplied Pen MCP frame required"})
+    return {"passed": not errors, "errors": errors, "notChecked": ["correctness of source interpretation", "visual fidelity and adaptation decisions"]}

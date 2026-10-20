@@ -31,6 +31,7 @@ import {
 } from "@/wab/client/web-importer/types";
 import { findTokenByNameOrUuid } from "@/wab/commons/StyleToken";
 import { ensure, ensureType, isOneOf, withoutNils } from "@/wab/shared/common";
+import { isValidStyleProp } from "@/wab/shared/core/style-props";
 import {
   expandGapProperty,
   parseCss,
@@ -38,6 +39,7 @@ import {
   parseShorthandProperties,
   shorthandProperties,
   ShorthandProperty,
+  normProp,
 } from "@/wab/shared/css";
 import { parseScreenSpec } from "@/wab/shared/css-size";
 import { parseAspectRatioFromValueNode } from "@/wab/shared/css/aspect-ratio";
@@ -63,6 +65,7 @@ import {
   Declaration,
   generate,
   List,
+  lexer,
   Rule,
   Selector,
   walk,
@@ -363,6 +366,15 @@ function fixCSSValueUnsafe(key: string, value: string): Record<string, string> {
   const valueNode = cssParse(fixedValue, { context: "value" });
   if (ignoredStyles.has(fixedKey) || valueNode.type !== "Value") {
     return {};
+  }
+
+  const cssProp = normProp(fixedKey);
+  if (
+    !key.startsWith("--") &&
+    !isValidStyleProp(cssProp) &&
+    lexer.matchProperty(cssProp, "initial").error !== null
+  ) {
+    throw new Error("Unsupported CSS property");
   }
 
   if (shorthandProperties.includes(fixedKey as ShorthandProperty)) {

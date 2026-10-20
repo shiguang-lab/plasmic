@@ -21,7 +21,7 @@ import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, notification } from "antd";
+import { Alert, Button, message } from "antd";
 import * as React from "react";
 
 interface TeamSettingsProps extends DefaultTeamSettingsProps {
@@ -156,8 +156,8 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
                 onTrial: team.onTrial,
               })
             ) {
-              notification.error({
-                message: translate(
+              void message.error({
+                content: translate(
                   getUiLocale(),
                   "Upgrade this {part1} before transferring ownership.",
                   {

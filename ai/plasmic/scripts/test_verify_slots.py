@@ -91,6 +91,13 @@ class CardOwnershipTests(unittest.TestCase):
         actual = CARD.replace('name="children"', 'name="extra"')
         self.assertFalse(check(CARD, actual)["passed"])
 
+    def test_non_card_slot_ownership_ignores_layout_but_rejects_moved_controls(self):
+        intent = CARD.replace("plasmic-antd6-card", "plasmic-antd6-tabs")
+        wrapped = intent.replace(TABS, '<div><section>' + TABS + '</section></div>')
+        self.assertTrue(check(intent, wrapped)["passed"])
+        moved = intent.replace(TABS, '') + TABS
+        self.assertTrue(check(intent, moved)["wrongSlotOwners"])
+
     def test_unprovided_examples_still_fail(self):
         actual = CARD.replace('</plasmic-component>', '<slot name="title"><span id="example">Example</span></slot></plasmic-component>', 1)
         self.assertFalse(check(CARD, actual)["passed"])

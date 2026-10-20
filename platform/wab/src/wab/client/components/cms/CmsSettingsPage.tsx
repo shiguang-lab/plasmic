@@ -15,7 +15,7 @@ import { ApiCmsDatabase } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Button, Form, Input, Tooltip, notification } from "antd";
+import { Button, Form, Input, Tooltip, notification, message } from "antd";
 import copy from "copy-to-clipboard";
 import * as React from "react";
 
@@ -85,8 +85,8 @@ function CmsSettingsPage_(
                             ),
                           });
                         } catch (err) {
-                          notification.error({
-                            message: t("Failed to duplicate CMS"),
+                          void message.error({
+                            content: t("Failed to duplicate CMS"),
                           });
                         } finally {
                           setDuplicating(false);
@@ -168,8 +168,8 @@ function CmsSettingsPage_(
               onFinish={async (values: ApiCmsDatabase) => {
                 const locales = values.extraData.locales;
                 if (new Set(locales).size < locales.length) {
-                  notification.error({
-                    message: t("Locales must all be distinct"),
+                  void message.error({
+                    content: t("Locales must all be distinct"),
                   });
                   return;
                 }
@@ -179,8 +179,8 @@ function CmsSettingsPage_(
                     extraData: { ...database.extraData, locales },
                   });
                   await mutateDatabase(databaseId);
-                  notification.success({
-                    message: t("Successfully saved changes"),
+                  void message.success({
+                    content: t("Successfully saved changes"),
                   });
                 } finally {
                   setSubmitting(false);

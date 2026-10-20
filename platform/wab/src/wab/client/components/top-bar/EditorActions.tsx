@@ -9,9 +9,8 @@ const actionPaths = {
   Redo: "M15 5l5 5-5 5 M20 10H10a6 6 0 0 0 0 12",
   Comments: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   Preview: "M8 21h8 M12 17v4",
+  Present: "M6 4.5a1.5 1.5 0 0 1 2.25-1.3l12 7.5a1.5 1.5 0 0 1 0 2.6l-12 7.5A1.5 1.5 0 0 1 6 19.5z",
   Code: "M8 6l-6 6 6 6 M16 6l6 6-6 6 M14 3l-4 18",
-  "Open preview in new tab":
-    "M15 3h6v6 M10 14L21 3 M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6",
 } satisfies Partial<Record<MessageKey, string>>;
 
 export const EditorIconAction = React.forwardRef<

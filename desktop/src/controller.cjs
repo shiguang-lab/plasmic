@@ -1,7 +1,15 @@
 const { app, ipcMain, nativeImage } = require("electron");
-const { randomUUID } = require("node:crypto");
+const { randomUUID, createHash } = require("node:crypto");
 const { EDITOR_METHODS } = require("./mcp.cjs");
 const { canvasFrames, renderCanvas, exportCanvas } = require("./canvas.cjs");
+const { encodeImagePreview } = require("./image-preview.cjs");
+const { managementResult } = require("./management-result.cjs");
+const { editorOutput, editorOutputSchema } = require("./editor-output.cjs");
+const { PrototypeTask } = require("./prototype-task.cjs");
+const { DesignReference } = require("./design-reference.cjs");
+const { runPreview, previewFrame } = require("./preview-runtime.cjs");
+const { prototypeTools } = require("./prototype-mcp.cjs");
+const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
     throw new Error("Invalid " + label);
@@ -27,6 +35,8 @@ class DesktopController {
     this.operations = new Map();
     this.pending = new Map();
     this.queue = Promise.resolve();
+    this.task = new PrototypeTask(app.getPath("userData"), (name, input) => this.editor(name, input));
+    this.references = new DesignReference(app.getPath("userData"));
     this.receive = (event, id, result) => {
       const pending = this.pending.get(id);
       if (
@@ -77,7 +87,7 @@ class DesktopController {
       return { output: result.output };
     }
   }
-  async state(toolNames) {
+  async state(toolNames = []) {
     const win = this.getWindow();
     if (!win || win.isDestroyed()) {
       return { running: true, windowOpen: false, ready: false };
@@ -89,12 +99,9 @@ class DesktopController {
       url.origin === this.config.studioOrigin &&
       url.pathname !== "/desktop/unified-login"
     ) {
-      metadata = await this.invoke("metadata", toolNames === undefined ? {} : { toolNames }, 3000);
+      metadata = await this.invoke("metadata", { toolNames }, 3000);
     }
     return {
-      imageService: await require("./image-service.cjs").imageServiceStatus(
-        app.getPath("userData"),
-      ),
       running: true,
       windowOpen: true,
       version: require("../package.json").version,
@@ -105,9 +112,8 @@ class DesktopController {
       projectId: url.pathname.match(/^\/projects\/([^/]+)/)?.[1] || null,
       ready: metadata.ready,
       editorTools: metadata.tools,
-      ...(toolNames === undefined ? {} : { availableEditorTools: metadata.availableEditorTools || [] }),
+      availableEditorTools: metadata.availableEditorTools || [],
       editorContext: metadata.editorContext ?? null,
-      browser: this.browser?.snapshot() ?? null,
       operations: [...this.operations.values()],
     };
   }
@@ -189,7 +195,7 @@ class DesktopController {
     }
   }
   dispatch(method, input) {
-    if (method === "get_app_state") {
+    if (["get_app_state", "get_build_info", "get_image_service_status"].includes(method)) {
       return this.execute(method, input);
     }
     const id = randomUUID();
@@ -202,12 +208,17 @@ class DesktopController {
         startedAt: new Date().toISOString(),
       });
       try {
-        return await this.execute(method, input);
+        const scope = await this.task.before(method, input);
+        const result = await this.execute(method, input);
+        return await this.task.after(method, input, result, scope);
+      } catch (error) {
+        if (this.task.active) await this.task.event("call_failed", { method, operation: method === "execute" ? input.name : undefined, message: error.message }).catch(() => {});
+        throw error;
       } finally {
         this.operations.delete(id);
       }
     };
-    if (
+    if (!this.task.active && (
       [
         "get_org",
         "list_orgs",
@@ -217,13 +228,14 @@ class DesktopController {
         "generate_image",
         "capture_browser",
       ].includes(method) ||
+      (method === "reference_browser" || method === "design_reference") ||
       (method === "browser" &&
         !["import_to_canvas", "screenshot_to_canvas", "undo_import"].includes(
           input?.action,
         )) ||
       (["make_vector", "vectorize_image"].includes(method) &&
         !input?.componentUuid)
-    ) {
+    )) {
       return run();
     }
     const result = this.queue.then(run, run);
@@ -237,27 +249,53 @@ class DesktopController {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       throw new Error("Arguments must be an object");
     }
+    if (["get_org", "list_orgs", "create_org", "create_workspace", "list_workspaces", "create_project", "list_projects"].includes(method)
+      && Object.hasOwn(input, "view")) {
+      throw new Error("Management tools return resource identities only; view is not supported");
+    }
+    if (method === "get_build_info") {
+      const build = require("../renderer/desktop-assets.json").build;
+      const fields = ["kind", "revision", "dirty", "builtAt", "sourceHash", "rendererHash", "desktopHash"];
+      return { version: require("../package.json").version, buildId: buildIdentity(build),
+        build: Object.fromEntries(fields.filter((key) => Object.hasOwn(build, key)).map((key) => [key, build[key]])) };
+    }
+    if (method === "get_image_service_status") return require("./image-service.cjs").imageServiceStatus(app.getPath("userData"));
     if (method === "get_app_state") {
-      const { toolNames } = input;
+      const { toolNames = [], schemaView = "input", view = "status" } = input;
+      if (!["status", "tools"].includes(view)) throw new Error("Invalid app state view");
+      if (!["input", "full"].includes(schemaView)) throw new Error("schemaView must be input or full");
       if (toolNames !== undefined && (!Array.isArray(toolNames) ||
           toolNames.some((name) => typeof name !== "string" || !name) ||
           new Set(toolNames).size !== toolNames.length)) {
         throw new Error("toolNames must be an array of distinct nonempty strings");
       }
-      const state = await this.state(toolNames);
-      if (toolNames === undefined) {
-        return state;
-      }
+      const state = await this.state(toolNames.filter((name) => name !== "executeBatch" || schemaView === "full"));
       const availableEditorTools = state.availableEditorTools || [];
       for (const name of toolNames) {
         if (!availableEditorTools.includes(name)) {
           throw new Error(`Editor schema unavailable: ${name}`);
         }
       }
+      const contracts = Object.fromEntries(toolNames.map((name) => {
+          if (name === "executeBatch" && schemaView === "input") return [name, { mcpTool: "execute_batch" }];
+          const { outputSchema, ...contract } = state.editorTools[name];
+          return [name, schemaView === "full" ? { ...contract, outputSchema: editorOutputSchema(name, outputSchema) } : contract];
+        }));
+      const pick = (value, keys) => Object.fromEntries(keys.filter((key) => Object.hasOwn(value, key)).map((key) => [key, value[key]]));
+      const identity = { ...pick(state, ["ready", "version", "orgId", "workspaceId", "projectId"]),
+        ...(state.build ? { buildId: buildIdentity(state.build) } : {}),
+        ...(state.editorContext ? { editorContext: pick(state.editorContext, ["branchId", "sessionId"]) } : {}),
+        ...(this.task.active ? { prototypeTask: this.task.status() } : {}),
+      };
+      if (toolNames.length || view === "tools") return {
+        ...identity,
+        runtimeCapabilities: Object.fromEntries(prototypeTools.map((tool) => [tool.name, tool.inputSchema.properties.action.enum])),
+        ...(toolNames.length ? { editorTools: contracts } : { availableEditorTools }),
+      };
       return {
-        ...state,
-        availableEditorTools,
-        editorTools: Object.fromEntries(toolNames.map((name) => [name, state.editorTools[name]])),
+        ...identity, ...pick(state, ["running", "windowOpen"]),
+        ...(state.editorContext ? { editorContext: pick(state.editorContext, ["projectName", "branchId", "sessionId", "revision", "changeCounter", "componentUuid", "frameUuid", "selectedElementUuids", "mode", "canEdit", "previewContext"]) } : {}),
+        ...(state.operations?.length ? { operations: state.operations } : {}),
       };
     }
     const win = this.getWindow();
@@ -271,6 +309,9 @@ class DesktopController {
         "search_stock_images",
         "generate_image",
         "browser",
+        "reference_browser",
+        "import_reference",
+        "design_reference",
         "capture_browser",
         "make_vector",
         "vectorize_image",
@@ -278,9 +319,44 @@ class DesktopController {
     ) {
       await this.waitForStartup();
     }
+    if (method === "prototype_task") {
+      await this.ready();
+      if (input.action === "start") {
+        this.task.build = require("../renderer/desktop-assets.json").build;
+        const metadata = await this.invoke("metadata", { toolNames: ["read", "queryElements", "preview"] }, 3000);
+        for (const name of ["read", "queryElements"]) {
+          const props = metadata.tools[name]?.inputSchema?.properties;
+          if (!props?.view?.enum?.includes("properties") || props.propNames?.type !== "array") throw new Error("Desktop renderer/resource contract mismatch: " + name + " requires properties/propNames before generation");
+        }
+      }
+      return this.task.command(input);
+    }
+    if (method === "design_reference") return this.references.read(input);
+    if (method === "preview") {
+      await this.ready();
+      const allowed = { open: ["componentUuid", "width", "height"], close: [], state: [], snapshot: ["offset", "limit", "textOffset", "textLimit"], click: ["ref"], hover: ["ref"], fill: ["ref", "value"], select: ["ref", "value"], press: ["ref", "key"], scroll: ["ref", "x", "y"], screenshot: ["fullResolution"], assert: ["checks", "timeoutMs"] };
+      if (!allowed[input.action] || Object.keys(input).some((key) => key !== "action" && !allowed[input.action].includes(key))) throw new Error("Invalid parameters for Preview action");
+      if (["click", "hover", "fill", "select", "press"].includes(input.action) && !input.ref) throw new Error("Preview interaction requires a current snapshot ref");
+      if (["fill", "select"].includes(input.action) && typeof input.value !== "string") throw new Error("Preview input requires a value string");
+      if (input.action === "press" && !input.key) throw new Error("Preview press requires key");
+      if (input.action === "assert" && !input.checks?.length) throw new Error("Preview assert requires checks");
+      const before = await this.editor("getEditorContext");
+      let result;
+      if (["open", "close"].includes(input.action)) {
+        const { action, componentUuid, width, height } = input;
+        result = await this.editor("preview", { action, ...(componentUuid ? { componentUuid } : {}), ...(width !== undefined ? { width } : {}), ...(height !== undefined ? { height } : {}) });
+        if (input.action === "open") await previewFrame(win);
+      } else {
+        if (before.mode !== "preview" || !before.previewContext?.componentUuid) throw new Error("Open authenticated native Preview first");
+        result = input.action === "state" ? { ready: true, viewport: (await previewFrame(win)).layout } : await runPreview(win, { ...input, expectedTarget: this.task.expectedTarget() }, before);
+      }
+      const after = await this.editor("getEditorContext");
+      if (["projectId", "branchId", "sessionId", "revision", "changeCounter"].some((key) => before[key] !== after[key])) throw new Error("Preview operation changed the saved design/session; inspect the model before continuing");
+      return { ...result, context: Object.fromEntries(["projectId", "branchId", "sessionId", "revision", "changeCounter", "mode", "previewContext"].map((key) => [key, after[key]])) };
+    }
     if (method === "get_org") {
       validateResourceId(input.orgId, "orgId");
-      return this.requestStudio("/api/v1/teams/" + input.orgId);
+      return managementResult(await this.requestStudio("/api/v1/teams/" + input.orgId));
     }
     if (method === "list_orgs") {
       const query =
@@ -292,19 +368,17 @@ class DesktopController {
         const teams = result.teams.filter((team) =>
           team.name.toLowerCase().includes(query),
         );
-        const ids = new Set(teams.map((team) => team.id));
-        return {
+        return managementResult({
           ...result,
           teams,
-          perms: result.perms.filter((perm) => ids.has(perm.teamId)),
-        };
+        });
       }
-      return result;
+      return managementResult(result);
     }
     if (method === "create_org") {
-      return this.requestStudio("/api/v1/teams", {
+      return managementResult(await this.requestStudio("/api/v1/teams", {
         name: resourceName(input.name),
-      });
+      }));
     }
     if (method === "create_workspace") {
       validateResourceId(input.orgId, "orgId");
@@ -327,25 +401,25 @@ class DesktopController {
             ")",
         );
       }
-      return result.response;
+      return managementResult(result.response);
     }
     if (method === "list_workspaces") {
       if (input.orgId !== undefined) {
         validateResourceId(input.orgId, "orgId");
-        return this.requestStudio(
+        return managementResult(await this.requestStudio(
           "/api/v1/teams/" + input.orgId + "/workspaces",
-        );
+        ));
       }
-      return this.requestStudio("/api/v1/workspaces");
+      return managementResult(await this.requestStudio("/api/v1/workspaces"));
     }
     if (method === "create_project") {
       if (input.workspaceId !== undefined) {
         validateResourceId(input.workspaceId, "workspaceId");
       }
-      return this.requestStudio("/api/v1/projects", {
+      return managementResult(await this.requestStudio("/api/v1/projects", {
         name: resourceName(input.name),
         workspaceId: input.workspaceId,
-      });
+      }));
     }
     if (method === "open_org" || method === "open_workspace") {
       const isOrg = method === "open_org";
@@ -383,7 +457,7 @@ class DesktopController {
         validateResourceId(input.workspaceId, "workspaceId");
         url.searchParams.set("workspaceId", JSON.stringify(input.workspaceId));
       }
-      return this.requestStudio(url.pathname + url.search);
+      return managementResult(await this.requestStudio(url.pathname + url.search));
     }
     if (method === "open_design") {
       if (
@@ -411,7 +485,7 @@ class DesktopController {
       if (input.componentUuid) {
         await this.editor("navigate", { componentUuid: input.componentUuid });
       }
-      return { opened: true, ...identity };
+      return { opened: true, projectId: identity.projectId, projectName: identity.projectName, canEdit: identity.canEdit };
     }
     if (method === "execute_batch") {
       await this.ready();
@@ -419,7 +493,12 @@ class DesktopController {
     }
     if (method === "execute") {
       await this.ready();
-      return this.editor(input.name, input.input);
+      return editorOutput(input.name, await this.editor(input.name, input.input));
+    }
+    if (method === "get_editor_view") {
+      await this.ready();
+      const context = await this.editor("getEditorContext");
+      return { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId, view: context.editorView ?? null };
     }
     if (method === "search_stock_images") {
       return require("./stock-images.cjs").searchStockImages(input);
@@ -600,12 +679,34 @@ class DesktopController {
       }
       return writeCodeBundle(input.outputPath, bundle, dependencies);
     }
+    if (method === "reference_browser" || method === "import_reference") {
+      if (!this.browser) throw new Error("The desktop reference browser is not ready");
+      const source = input.url || this.browser.state.url;
+      if (source) {
+        const url = new URL(source);
+        if (url.origin === this.config.studioOrigin && /\/projects\/[^/]+\/preview(?:\/|-full|$)/.test(url.pathname)) throw new Error("Studio Preview belongs to the authenticated preview tool; reference browsing/import cannot provide runtime acceptance");
+      }
+      if (method === "import_reference") {
+        if (!["editable", "screenshot"].includes(input.action)) throw new Error("Invalid reference import mode");
+        if (input.action === "editable" && input.target === "visible_area") throw new Error("Editable import supports full_page or selection");
+        return this.browser.command({ ...input, action: input.action === "editable" ? "import_to_canvas" : "screenshot_to_canvas" });
+      }
+      if (!["open", "load_page", "get_state", "select_element", "set_import_height", "capture", "cdp", "close"].includes(input.action)) throw new Error("Reference reads cannot import to canvas");
+      if (input.action === "cdp") {
+        const methods = new Set(["DOM.getDocument", "DOM.getFlattenedDocument", "DOM.describeNode", "DOM.getOuterHTML", "DOM.getAttributes", "DOM.getBoxModel", "DOM.getContentQuads", "DOM.querySelector", "DOM.querySelectorAll", "CSS.getComputedStyleForNode", "CSS.getMatchedStylesForNode", "Accessibility.getFullAXTree", "Accessibility.getPartialAXTree", "Page.captureScreenshot"]);
+        if (input.method === "Runtime.evaluate") input = { ...input, params: { ...input.params, throwOnSideEffect: true, awaitPromise: false } };
+        else if (!methods.has(input.method)) throw new Error("reference_browser CDP is read-only; use native preview for interactions");
+      }
+      return this.browser.command(input);
+    }
     if (method === "browser") {
       if (!this.browser)
         throw new Error("The desktop reference browser is not ready");
       return this.browser.command(input);
     }
     if (method === "capture_browser") {
+      const url = new URL(input.url);
+      if (url.origin === this.config.studioOrigin && /\/projects\/[^/]+\/preview(?:\/|-full|$)/.test(url.pathname)) throw new Error("Use native preview for Studio runtime inspection");
       return require("./browser-capture.cjs").captureBrowser(input);
     }
     if (method === "import_image") {
@@ -654,7 +755,7 @@ class DesktopController {
       if (image.isEmpty()) {
         throw new Error("Image format cannot be decoded");
       }
-      return { data: image.toPNG().toString("base64"), ...image.getSize() };
+      return encodeImagePreview(image.toPNG());
     }
     if (method === "export_pages") {
       await this.ready();
@@ -704,6 +805,9 @@ class DesktopController {
         input,
         async (inspectionId) => {
           if (method === "snapshot_layout") {
+            const frames = (await canvasFrames(win, inspectionId))
+              .filter(({ layout }) => !input.frameUuid || layout.frameUuid === input.frameUuid);
+            if (input.frameUuid && !frames.length) throw new Error("Requested frame has no rendered layout");
             return {
               check: "layout",
               checked: ["horizontal-overflow", "image-load"],
@@ -712,28 +816,7 @@ class DesktopController {
                 "responsive-breakpoints",
                 "content-overlap",
               ],
-              frames: (await canvasFrames(win, inspectionId)).map(
-                ({ layout }) => ({
-                  ...layout,
-                  problems: [
-                    ...layout.elements
-                      .filter((el) => el.horizontalOverflow)
-                      .map((el) => ({
-                        type: "horizontal-overflow",
-                        elementUuid: el.elementUuid,
-                        index: el.index,
-                        bounds: { x: el.x, width: el.width },
-                        viewportWidth: layout.width,
-                      })),
-                    ...layout.images
-                      .filter((image) => !image.loaded)
-                      .map((image) => ({
-                        type: "image-unloaded",
-                        src: image.src,
-                      })),
-                  ],
-                }),
-              ),
+              frames: frames.map(({ layout }) => require("./layout-read.cjs").readLayout(layout, input)),
             };
           }
           if (method === "export_design") {
@@ -751,9 +834,7 @@ class DesktopController {
               inspectionId,
             });
             return {
-              data: result.image.toPNG().toString("base64"),
-              width: result.width,
-              height: result.height,
+              ...(await encodeImagePreview(result.image.toPNG(), { lossless: input.fullResolution === true })),
               rendering: "static",
               sourceViewport: result.sourceViewport,
               resized: result.resized,
@@ -783,11 +864,7 @@ class DesktopController {
             }
           }
           const image = await win.webContents.capturePage(input.rect);
-          return {
-            data: image.toPNG().toString("base64"),
-            width: image.getSize().width,
-            height: image.getSize().height,
-          };
+          return encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true });
         },
         method === "export_design",
       );
@@ -951,6 +1028,7 @@ class DesktopController {
   }
   close() {
     this.browser?.dispose();
+    void this.references.close().catch(() => {});
     ipcMain.removeListener("desktop:result", this.receive);
     this.cancelPending(undefined, "Desktop closed");
   }

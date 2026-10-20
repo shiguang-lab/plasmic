@@ -4,6 +4,28 @@ The native stdio server controls the active local Electron editor. Projects,
 authentication, asset storage and saves use the NAS. Static resources remain
 bundled. This is not full Pen MCP parity.
 
+## Current source contracts awaiting runtime acceptance
+
+- `preview` operates the existing authenticated Preview through typed snapshots,
+  clicks, hover, field entry, keyboard, scrolling, screenshots and DOM assertions.
+- `design_reference` calls the installed Pen MCP for bounded native frame/layout
+  reads and compressed source screenshots; no raw Pen parsing or source writes.
+- `reference_browser` reads isolated external references with read-only CDP;
+  `import_reference` performs explicit editable/raster artboard imports. The
+  public combined `browser` tool has been removed. Studio Preview belongs to
+  `preview`, not the isolated reference browser.
+- `prototype_task` enforces actual per-Page write order and records source,
+  model/layout, images and pinned runtime case outcomes. Visual judgments remain
+  separately reviewable. Save/reopen requires renewed Page evidence.
+- Skill references, native capability preflight, reference/sequence checks and
+  regression fixtures use these contracts. Transport byte metrics are optional;
+  model token/cache usage remains a client/provider measurement.
+
+These changes are source implementations with added regression cases. Their
+runtime tests, packaged build, release and new-model generation acceptance have
+not been executed for this change. Historical acceptance below does not validate
+these new contracts.
+
 ## Accepted on the authenticated desktop, 2026-10-03
 
 An independent page `MCP 验收 · 项目工作台` was created in the existing project:

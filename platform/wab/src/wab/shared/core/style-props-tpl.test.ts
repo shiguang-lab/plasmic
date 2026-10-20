@@ -477,6 +477,25 @@ describe("isGapPropValidForRsh", () => {
 });
 
 describe("isValidStylePropForTpl", () => {
+  it.each(["object-fit", "object-position"])(
+    "allows %s on code components that may render images or videos",
+    (prop) => {
+      const baseVs = rsh();
+      expect(
+        isValidStylePropForTpl(prop, mkCodeComponentTpl(), baseVs, ccRegistry),
+      ).toBe(true);
+      expect(
+        isValidStylePropForTpl(prop, mkImageTpl(), baseVs, ccRegistry),
+      ).toBe(true);
+      expect(
+        isValidStylePropForTpl(prop, mkPlainComponentTpl(), baseVs, ccRegistry),
+      ).toBe(false);
+      expect(
+        isValidStylePropForTpl(prop, mkTplTagX("div"), baseVs, ccRegistry),
+      ).toBe(false);
+    },
+  );
+
   it("is true for valid prop+element combinations", () => {
     const baseVs = rsh();
     // typography

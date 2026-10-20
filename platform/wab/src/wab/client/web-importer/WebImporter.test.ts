@@ -17,6 +17,8 @@ import {
   TplNode,
   isKnownCustomCode,
 } from "@/wab/shared/model/classes";
+import { message, notification } from "antd";
+import { mock } from "vitest-mock-extended";
 
 let studioCtx: StudioCtx;
 let api: ReturnType<typeof fakeStudioCtx>["api"];
@@ -49,6 +51,31 @@ describe("WebImporter", () => {
   });
 
   describe("pasteFromWebImporter", () => {
+    it("silently cleans discarded styles while keeping imported content", async () => {
+      const warning = vi.spyOn(message, "warning").mockReturnValue(mock());
+      const notice = vi.spyOn(notification, "warning");
+      try {
+        pageViewCtx.selectNewTpl(page.tplTree);
+        expect(
+          await paste({
+            clipboard: htmlToClipboard(
+              '<div style="object-fit:cover;width:40px">Kept content</div>',
+            ),
+            studioCtx,
+            cursorClientPt: undefined,
+          }),
+        ).toBe(true);
+        expect(
+          Tpls.getTagOrComponentName(getPastedTpl(page.tplTree).pastedTpl),
+        ).toBe("div");
+        expect(warning).not.toHaveBeenCalled();
+        expect(notice).not.toHaveBeenCalled();
+      } finally {
+        warning.mockRestore();
+        notice.mockRestore();
+      }
+    });
+
     it("pastes simple container with text from web importer", async () => {
       const htmlStr = `<div>Hello World</div>`;
       const clipboard = htmlToClipboard(htmlStr);

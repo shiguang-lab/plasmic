@@ -38,16 +38,34 @@ async function startRpc(profile, dispatch) {
         return;
       }
       accepted = true;
+      const started = Date.now();
+      let request;
+      let authenticated = false;
+      let response;
       try {
-        const request = JSON.parse(buffer.slice(0, buffer.indexOf("\n")));
+        request = JSON.parse(buffer.slice(0, buffer.indexOf("\n")));
         if (request.token !== token) {
           throw new Error("Unauthorized local client");
         }
+        authenticated = true;
         const result = await dispatch(request.method, request.input || {});
-        connection.end(JSON.stringify({ result }) + "\n");
+        response = { result };
       } catch (error) {
-        connection.end(JSON.stringify({ error: error.message }) + "\n");
+        response = { error: error.message };
       }
+      const encoded = JSON.stringify(response);
+      if (authenticated && process.env.PLASMIC_RPC_METRICS) {
+        // Opt-in local evaluation counters cover script/RPC traffic as well as MCP.
+        // Never store the token, argument values, returned content or error text.
+        await fs.appendFile(process.env.PLASMIC_RPC_METRICS, JSON.stringify({
+          time: new Date().toISOString(), method: request.method,
+          operation: request.method === "execute" ? request.input?.name : undefined,
+          inputBytes: Buffer.byteLength(JSON.stringify(request.input || {})),
+          responseBytes: Buffer.byteLength(encoded), ms: Date.now() - started,
+          failed: !!response.error,
+        }) + "\n", { mode: 0o600 }).catch(() => {});
+      }
+      connection.end(encoded + "\n");
     });
   });
   await new Promise((resolve, reject) => {

@@ -12,6 +12,8 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { checkedUrl, captureReference } = require("./browser-capture.cjs");
 const { installPicker, inPage } = require("./browser-page.cjs");
+const { encodeImagePreview } = require("./image-preview.cjs");
+const { sendCdp } = require("./cdp.cjs");
 
 const CDP_READ_METHODS = new Set([
   "DOM.getDocument",
@@ -232,6 +234,7 @@ class ReferenceBrowser {
     if (!this.chrome || this.chrome.webContents.isDestroyed()) {
       this.chrome = new WebContentsView({
         webPreferences: {
+          devTools: !app.isPackaged,
           preload: path.join(__dirname, "reference-browser-preload.cjs"),
           nodeIntegration: false,
           contextIsolation: true,
@@ -344,6 +347,7 @@ class ReferenceBrowser {
     if (this.view && !this.view.webContents.isDestroyed()) return;
     this.view = new WebContentsView({
       webPreferences: {
+        devTools: !app.isPackaged,
         partition: "plasmic-reference-browser",
         nodeIntegration: false,
         contextIsolation: true,
@@ -775,15 +779,16 @@ class ReferenceBrowser {
       if (read && !result.exceptionDetails)
         this.showReadFeedback(input, generation);
       return input.method === "Page.captureScreenshot"
-        ? { data: result.data, url: contents.getURL() }
+        ? {
+            ...(await encodeImagePreview(Buffer.from(result.data, "base64"), { lossless: input.fullResolution === true })),
+            url: contents.getURL(),
+          }
         : { result };
     }
     throw new Error("Unknown browser action");
   }
   async cdp(method, params = {}) {
-    const api = this.view.webContents.debugger;
-    if (!api.isAttached()) api.attach("1.3");
-    return api.sendCommand(method, params);
+    return sendCdp(this.view.webContents, method, params);
   }
   showReadFeedback(input, generation) {
     if (!this.visible || generation !== this.generation) return;

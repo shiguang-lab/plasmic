@@ -3,6 +3,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { MessageKey } from "@/wab/client/i18n/locales";
 import WarningTrianglesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import { PlasmicLeftTabStrip } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 const tools = {
@@ -67,56 +68,63 @@ export function EditorToolRail({
         keyboard={{ render: () => null }}
         {...props}
         buttons={
-          <>
-            {props.buttons ?? (
-              <>
-                {(Object.keys(tools) as (keyof typeof tools)[]).filter((tool) => tool !== "More").map((tool) => (
-                  <React.Fragment key={tool}>
-                    {(tool === "Insert" || tool === "Issues") && (
-                      <div className="editor-rail-divider" role="separator" />
-                    )}
-                    <LeftTabButton
-                      label={t(tool)}
-                      tooltip={t(tool)}
-                      icon={<EditorToolIcon tool={tool} />}
-                      disabled
-                    />
-                  </React.Fragment>
-                ))}
-              </>
-            )}
-            {navigator.userAgent.includes("PlasmicDesktop/") && (
-              <LeftTabButton
-                label={t("Import from the web")}
-                tooltip={t("Import from the web")}
-                dataTestId="import-from-web-button"
-                icon={
-                  <svg
-                    width={20}
-                    height={20}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.6}
-                    aria-hidden="true"
-                  >
-                    <circle cx={12} cy={12} r={9} />
-                    <path d="M3 12h18 M12 3c5 4 5 14 0 18-5-4-5-14 0-18" />
-                  </svg>
-                }
-                onClick={onOpenWebBrowser}
-                disabled={!onOpenWebBrowser}
-              />
-            )}
-            {moreButton ?? (
-              <LeftTabButton
-                label={t("More")}
-                tooltip={t("More")}
-                icon={<EditorToolIcon tool="More" />}
-                disabled
-              />
-            )}
-          </>
+          <Scrollbar className="editor-rail-scroll" scrollX={false}>
+            <div className="editor-rail-tools">
+              {props.buttons ?? (
+                <>
+                  {(Object.keys(tools) as (keyof typeof tools)[])
+                    .filter((tool) => tool !== "More")
+                    .map((tool) => (
+                      <React.Fragment key={tool}>
+                        {(tool === "Insert" || tool === "Issues") && (
+                          <div
+                            className="editor-rail-divider"
+                            role="separator"
+                          />
+                        )}
+                        <LeftTabButton
+                          label={t(tool)}
+                          tooltip={t(tool)}
+                          icon={<EditorToolIcon tool={tool} />}
+                          disabled
+                        />
+                      </React.Fragment>
+                    ))}
+                </>
+              )}
+              {navigator.userAgent.includes("PlasmicDesktop/") && (
+                <LeftTabButton
+                  label={t("Import from the web")}
+                  tooltip={t("Import from the web")}
+                  dataTestId="import-from-web-button"
+                  icon={
+                    <svg
+                      width={20}
+                      height={20}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.6}
+                      aria-hidden="true"
+                    >
+                      <circle cx={12} cy={12} r={9} />
+                      <path d="M3 12h18 M12 3c5 4 5 14 0 18-5-4-5-14 0-18" />
+                    </svg>
+                  }
+                  onClick={onOpenWebBrowser}
+                  disabled={!onOpenWebBrowser}
+                />
+              )}
+              {moreButton ?? (
+                <LeftTabButton
+                  label={t("More")}
+                  tooltip={t("More")}
+                  icon={<EditorToolIcon tool="More" />}
+                  disabled
+                />
+              )}
+            </div>
+          </Scrollbar>
         }
       />
       {navigator.userAgent.includes("PlasmicDesktop/") && (

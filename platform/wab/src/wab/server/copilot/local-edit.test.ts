@@ -131,6 +131,17 @@ it.each(["selection", "component", "canvas", "page"] as const)(
       scope === "page" ? "alternate-model" : config.model,
     );
     expect(body.max_tokens).toBe(8192);
+    const system = body.messages
+      .filter((message: any) => message.role === "system")
+      .map((message: any) => message.content)
+      .join("\n");
+    expect(system).toContain("If a component is not found");
+    expect(system).toContain("retryOf");
+    expect(system).toContain(
+      "Do not retry a successful call merely because it contains cleanup messages",
+    );
+    expect(system).toContain("Audit every ignored item");
+    expect(system).toContain("not lists of discarded style or prop names");
     const userContent = body.messages.find(
       (message: any) => message.role === "user",
     ).content;

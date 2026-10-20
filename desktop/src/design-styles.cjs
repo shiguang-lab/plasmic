@@ -79,8 +79,6 @@ function getStyle(id) {
   return {
     id,
     ...styles[id],
-    instructions:
-      "Read existing project tokens first, then create named tokens and reference them in styles. This is a starting palette, not an automatic theme change. Read the registered Ant Design 6 ConfigProvider contract before setting its theme. Check color contrast and screenshots at desktop/mobile sizes.",
   };
 }
 module.exports = { getStyle };

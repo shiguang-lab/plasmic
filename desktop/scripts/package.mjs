@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-identity.mjs";
 import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
+import runtimeSecurity from "../src/runtime-security.cjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const metadata = JSON.parse(
@@ -56,12 +57,11 @@ const outputs = await build({
     files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     npmRebuild: false,
-    electronFuses: { enableCookieEncryption: false },
+    electronFuses: runtimeSecurity.productionFuses,
     forceCodeSigning: platform === "darwin",
-    afterSign: async (context) => {
+    afterPack: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       const bundle = path.join(context.appOutDir, "Plasmic.app/Contents");
-      verifyMacSignature(path.dirname(bundle), signingCertificate);
       const architectures = [arch === "arm64" ? "arm64" : "x86_64"];
       const actual = execFileSync("/usr/bin/lipo", ["-archs", path.join(bundle, "MacOS/Plasmic")], { encoding: "utf8" }).trim().split(/\s+/);
       if (actual.length !== architectures.length || !architectures.every((name) => actual.includes(name))) throw new Error("Packaged macOS architecture mismatch");
@@ -74,8 +74,12 @@ const outputs = await build({
         for (const name of Object.keys(metadata.dependencies)) {
           if (name !== "@modelcontextprotocol/sdk") packaged(name);
         }
-        console.log("macOS bundle, packaged MCP and runtime dependencies verified");
+        console.log("Packaged MCP and runtime dependencies verified before disabling Node launch modes");
       `, resources], { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, stdio: "inherit" });
+    },
+    afterSign: async (context) => {
+      if (platform !== "darwin" || process.platform !== "darwin") return;
+      verifyMacSignature(path.join(context.appOutDir, "Plasmic.app"), signingCertificate);
     },
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],

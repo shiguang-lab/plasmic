@@ -124,3 +124,29 @@ it("restores editing reveals even when preparing an export fails", async () => {
   ).rejects.toThrow("Render failed");
   expect(viewCtx.canvasExporting.get()).toBe(false);
 });
+
+
+it("shows inspection acquisition while pinned and clears it on success or expiry", async () => {
+  vi.useFakeTimers();
+  try {
+    const { studioCtx, component } = fixture();
+    const inspection = await beginCanvasInspection(studioCtx, component);
+    expect(studioCtx.copilotActivity.requests[0]).toMatchObject({ kind: "inspection", status: "running" });
+    await endCanvasInspection(studioCtx, inspection.inspectionId);
+    expect(studioCtx.copilotActivity.requests[0].status).toBe("success");
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    await beginCanvasInspection(studioCtx, component);
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("clears inspection feedback after a rendering failure", async () => {
+  const { studioCtx, component, viewCtx } = fixture();
+  viewCtx.awaitSync.mockRejectedValueOnce(new Error("render failed"));
+  await expect(beginCanvasInspection(studioCtx, component)).rejects.toThrow("render failed");
+  expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+});

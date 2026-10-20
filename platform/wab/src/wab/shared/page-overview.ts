@@ -1,4 +1,4 @@
-import { FrameViewMode, getArenaFrames } from "@/wab/shared/Arenas";
+import { FrameViewMode, getArenaFrames, ensureActivatedScreenVariantsForFrameByWidth } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { isPageComponent } from "@/wab/shared/core/components";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
@@ -26,7 +26,7 @@ export function findPageOverviewArena(site: Site) {
 export function ensurePageOverviewArena(tplMgr: TplMgr) {
   const site = tplMgr.site();
   const existing = findPageOverviewArena(site);
-  const arena = existing ?? tplMgr.addArena("Pages overview");
+  const arena = existing ?? site.arenas.find((item) => item.children.length === 0) ?? tplMgr.addArena("Pages overview");
   const pages = site.components.filter(isPageComponent);
   const baseFrames = pages.map(
     (page) => getArenaFrames(getDedicatedArena(site, page))[0],
@@ -37,10 +37,16 @@ export function ensurePageOverviewArena(tplMgr: TplMgr) {
     Math.max(900, ...baseFrames.map((frame) => frame?.height ?? 900)) + 80;
   let added = 0;
   for (const [index, page] of pages.entries()) {
-    if (arena.children.some((frame) => frame.container.component === page)) {
+    const base = baseFrames[index];
+    const current = arena.children.find((frame) => frame.container.component === page);
+    if (current) {
+      if (base) {
+        current.width = base.width;
+        current.height = base.height;
+        ensureActivatedScreenVariantsForFrameByWidth(site, current);
+      }
       continue;
     }
-    const base = baseFrames[index];
     const insertPt = existing
       ? new Pt(
           Math.max(

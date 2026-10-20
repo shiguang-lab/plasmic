@@ -3,7 +3,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import type { MessageKey } from "@/wab/client/i18n/locales";
 import { AccessLevel, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Button, Select, Tooltip, notification } from "antd";
+import { Avatar, Button, Select, Tooltip, message } from "antd";
 import { createStyles } from "antd-style";
 import React, { ReactNode } from "react";
 
@@ -167,8 +167,8 @@ function PermissionItem(props: PermissionItemProps) {
                 try {
                   await onGrant(value);
                 } catch {
-                  notification.error({
-                    message: t("Failed to update permissions"),
+                  void message.error({
+                    content: t("Failed to update permissions"),
                   });
                 } finally {
                   setLoading(false);
@@ -189,8 +189,8 @@ function PermissionItem(props: PermissionItemProps) {
                   try {
                     await onRevoke();
                   } catch {
-                    notification.error({
-                      message: t("Failed to update permissions"),
+                    void message.error({
+                      content: t("Failed to update permissions"),
                     });
                   } finally {
                     setLoading(false);

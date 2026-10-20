@@ -19,8 +19,8 @@ test("MCP bootstrap works without an open editor or a bundled workflow file", as
   assert.match(bootstrap.instructions, /--mode inspect/);
   assert.match(bootstrap.instructions, /--mode prototype/);
   assert.match(bootstrap.instructions, /--mode codegen/);
-  assert.match(bootstrap.instructions, /cli@latest skill install;/);
-  assert.match(bootstrap.instructions, /all detected clients/);
+  assert.match(bootstrap.instructions, /mustRead/);
+  assert.doesNotMatch(bootstrap.instructions, /skill install|detected clients|npm install/);
   assert.doesNotMatch(bootstrap.instructions, /--target/);
   assert.equal(bootstrap.resourceManifestUrl, require("../desktop.config.json").updateUrl + "/plasmic/latest.json");
 });

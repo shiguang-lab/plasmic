@@ -29,7 +29,7 @@ const mocks = vi.hoisted(() => ({
   setDragRegion: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
-  useTopFrameApi: () => ({ setDesktopTitleBarDragRegion: mocks.setDragRegion }),
+  useTopFrameApi: () => ({ setDesktopTitleBarDragRegions: mocks.setDragRegion }),
 }));
 vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   usePreviewCtx: () => mocks.preview,
@@ -103,10 +103,16 @@ test("keeps desktop chrome out of the browser preview", () => {
   expect(container.querySelector("[data-desktop-update-slot]")).toBeNull();
   expect(mocks.setDragRegion).not.toHaveBeenCalled();
 });
-test("reserves native controls and cleans up the macOS preview drag region", () => {
-  vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
+test.each(["darwin", "win32"])("registers empty preview regions and cleans up on %s", (platform) => {
+  vi.stubGlobal("navigator", { userAgent: `PlasmicDesktop/${platform}` });
+  let updateRegions = () => {};
+  vi.stubGlobal("ResizeObserver", class {
+    constructor(update: () => void) { updateRegions = update; }
+    observe() {}
+    disconnect() {}
+  });
   const { container, unmount } = render(<PreviewTopBar />);
-  expect(container.querySelector('[data-desktop-titlebar="mac"]')).toBeTruthy();
+  expect(Boolean(container.querySelector('[data-desktop-titlebar="mac"]'))).toBe(platform === "darwin");
   const updateSlot = container.querySelector(
     '[data-desktop-update-slot="header"]',
   );
@@ -122,14 +128,44 @@ test("reserves native controls and cleans up the macOS preview drag region", () 
       screen.getByRole("button", { name: "Select component" }),
     ),
   ).toBe(false);
-  expect(mocks.setDragRegion).toHaveBeenCalledWith({
-    left: 0,
-    top: 0,
-    width: 80,
-    height: 42,
+  const root = container.firstElementChild;
+  const left = screen.getByRole("button", { name: "Select component" }).parentElement;
+  const center = screen.getByRole("button", { name: "Preview viewport" }).parentElement;
+  const right = updateSlot?.parentElement;
+  const rect = (x: number, y: number, width: number, height = 42) =>
+    ({ x, y, left: x, right: x + width, top: y, bottom: y + height, width, height, toJSON() {} });
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    if (this === root) { return rect(8, 8, 1584); }
+    if (this === left) { return rect(8, 8, 400); }
+    if (this === center) { return rect(600, 8, 400); }
+    if (this === right) { return rect(1500, 8, 92); }
+    return rect(0, 0, 0, 0);
   });
+  updateRegions();
+  expect(mocks.setDragRegion).toHaveBeenLastCalledWith([
+    ...(platform === "darwin" ? [{ left: 8, top: 8, width: 80, height: 42 }] : []),
+    { left: 408, top: 8, width: 192, height: 42 },
+    { left: 1000, top: 8, width: 500, height: 42 },
+  ]);
+
+  // The viewport controls move to a second row in a narrower window.
+  vi.mocked(HTMLElement.prototype.getBoundingClientRect).mockImplementation(function (this: HTMLElement) {
+    if (this === root) { return rect(8, 8, 984, 96); }
+    if (this === left) { return rect(8, 8, 400); }
+    if (this === center) { return rect(300, 62, 400); }
+    if (this === right) { return rect(900, 8, 92); }
+    return rect(0, 0, 0, 0);
+  });
+  updateRegions();
+  expect(mocks.setDragRegion).toHaveBeenLastCalledWith([
+    ...(platform === "darwin" ? [{ left: 8, top: 8, width: 80, height: 42 }] : []),
+    { left: 408, top: 8, width: 492, height: 42 },
+    { left: 8, top: 50, width: 984, height: 12 },
+    { left: 8, top: 62, width: 292, height: 42 },
+    { left: 700, top: 62, width: 292, height: 42 },
+  ]);
   unmount();
-  expect(mocks.setDragRegion).toHaveBeenLastCalledWith(null);
+  expect(mocks.setDragRegion).toHaveBeenLastCalledWith([]);
 });
 test("returns to the editor without a code generation entry", () => {
   render(<PreviewTopBar />);

@@ -1,4 +1,4 @@
-const { BrowserWindow, ipcMain, clipboard } = require("electron");
+const { app, BrowserWindow, ipcMain, clipboard } = require("electron");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 function createMcpSettings(integrations, getParent, i18n, appearance) {
@@ -71,6 +71,7 @@ function createMcpSettings(integrations, getParent, i18n, appearance) {
       roundedCorners: false,
       autoHideMenuBar: true,
       webPreferences: {
+        devTools: !app.isPackaged,
         preload: path.join(__dirname, "mcp-settings-preload.cjs"),
         nodeIntegration: false,
         contextIsolation: true,

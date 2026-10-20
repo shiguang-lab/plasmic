@@ -1,0 +1,252 @@
+{
+  "pages": [
+    {
+      "path": "/req-075/groups",
+      "references": [
+        {
+          "id": "list",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "a24Wsd"
+        },
+        {
+          "id": "create-metadata",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "po2Sc"
+        }
+      ],
+      "regions": [
+        {
+          "referenceId": "list",
+          "nodeNames": [
+            "SearchForm",
+            "AllGroupsTable",
+            "MyGroupsTable"
+          ],
+          "decision": "Preserve filter/list hierarchy and density through SearchForm and native Table/Column; avoid a Card per row or filter."
+        },
+        {
+          "referenceId": "create-metadata",
+          "nodeNames": [
+            "CreateOnetimeGroupModal",
+            "NewGroupForm"
+          ],
+          "decision": "Treat this frame as an in-Page native Modal/Form state; do not create an extra routed Page."
+        }
+      ]
+    },
+    {
+      "path": "/req-075/regular",
+      "references": [
+        {
+          "id": "regular-sql",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "iRaBC"
+        },
+        {
+          "id": "preflight-running",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "JEGvs"
+        },
+        {
+          "id": "preflight-success",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "h7EURg"
+        },
+        {
+          "id": "preflight-failure",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "CgYm3"
+        }
+      ],
+      "regions": [
+        {
+          "referenceId": "regular-sql",
+          "nodeNames": [
+            "SQLBasicInformation",
+            "SQLEditor"
+          ],
+          "decision": "Keep metadata and editable SQL sections in one AppShell; replace reference input rectangles with native Form/TextArea controls."
+        },
+        {
+          "referenceId": "preflight-running",
+          "nodeNames": [
+            "PreflightModal",
+            "PreflightRunning"
+          ],
+          "decision": "Use the native modal and processing state; preserve source hierarchy without adding a progress bar."
+        },
+        {
+          "referenceId": "preflight-success",
+          "nodeNames": [
+            "PreflightModal",
+            "PreflightSuccess"
+          ],
+          "decision": "Use native sample Table/Columns for masked Top100 plus scale; preserve the source information hierarchy."
+        },
+        {
+          "referenceId": "preflight-failure",
+          "nodeNames": [
+            "PreflightModal",
+            "PreflightFailed"
+          ],
+          "decision": "Use recoverable native failure feedback and return to the editable SQL flow."
+        }
+      ]
+    },
+    {
+      "path": "/req-075/onetime",
+      "references": [
+        {
+          "id": "onetime-sql",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "qCf11"
+        },
+        {
+          "id": "preflight-running",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "JEGvs"
+        },
+        {
+          "id": "preflight-success",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "h7EURg"
+        },
+        {
+          "id": "preflight-failure",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "CgYm3"
+        }
+      ],
+      "regions": [
+        {
+          "referenceId": "onetime-sql",
+          "nodeNames": [
+            "GroupSummary",
+            "SQLEditor",
+            "Expiry"
+          ],
+          "decision": "Preserve one-time information hierarchy with Descriptions, editable SQL and native expiry input."
+        },
+        {
+          "referenceId": "preflight-running",
+          "nodeNames": [
+            "PreflightModal",
+            "PreflightRunning"
+          ],
+          "decision": "Use the native modal and processing state; preserve source hierarchy without adding a progress bar."
+        },
+        {
+          "referenceId": "preflight-success",
+          "nodeNames": [
+            "PreflightModal",
+            "PreflightSuccess"
+          ],
+          "decision": "Use native sample Table/Columns for masked Top100 plus scale; preserve the source information hierarchy."
+        },
+        {
+          "referenceId": "preflight-failure",
+          "nodeNames": [
+            "PreflightModal",
+            "PreflightFailed"
+          ],
+          "decision": "Use recoverable native failure feedback and return to the editable SQL flow."
+        }
+      ]
+    },
+    {
+      "path": "/req-075/detail",
+      "references": [
+        {
+          "id": "regular-overview",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "T42P55"
+        },
+        {
+          "id": "basic-info",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "fVX7E"
+        },
+        {
+          "id": "onetime-overview",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "MN0Fg"
+        },
+        {
+          "id": "members",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "dUcIA"
+        },
+        {
+          "id": "selection-records",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "tr537"
+        },
+        {
+          "id": "refresh-records",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "OT4dQo"
+        },
+        {
+          "id": "application-records",
+          "filePath": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+          "nodeId": "ow6kJj"
+        }
+      ],
+      "regions": [
+        {
+          "referenceId": "regular-overview",
+          "nodeNames": [
+            "DetailOverview"
+          ],
+          "decision": "Preserve overview metrics hierarchy without wrapping every label/field in Card."
+        },
+        {
+          "referenceId": "basic-info",
+          "nodeNames": [
+            "BasicDetails",
+            "StorageDescriptions"
+          ],
+          "decision": "Use native Descriptions items for the two-column basic information and regular storage fields."
+        },
+        {
+          "referenceId": "onetime-overview",
+          "nodeNames": [
+            "BasicDetails",
+            "DetailOverview"
+          ],
+          "decision": "Render the one-time state in this same Page; omit regular-only storage/refresh through native state bindings."
+        },
+        {
+          "referenceId": "members",
+          "nodeNames": [
+            "MembersTable"
+          ],
+          "decision": "Use native paginated Table/Column and masked member rows, not a Top100 placeholder."
+        },
+        {
+          "referenceId": "selection-records",
+          "nodeNames": [
+            "SelectionRecordsTable",
+            "RecordDrawer"
+          ],
+          "decision": "Use native record Table actions and drawer; retain clicked record context."
+        },
+        {
+          "referenceId": "refresh-records",
+          "nodeNames": [
+            "RefreshRecordsTable"
+          ],
+          "decision": "Use the regular-only Tab and native Table; preserve source columns and filtering."
+        },
+        {
+          "referenceId": "application-records",
+          "nodeNames": [
+            "ApplicationRecordsTable",
+            "RecordDrawer"
+          ],
+          "decision": "Use native Table row actions and record details, preserving application parameters and responses."
+        }
+      ]
+    }
+  ]
+}

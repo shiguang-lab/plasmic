@@ -31,5 +31,11 @@
       }
     ]
   },
-  "shell_height": {}
+  "shell_height": {},
+  "page_layout": {
+    "overviewName": "客群管理页面总览"
+  },
+  "references": {
+    "inventory": "references.json"
+  }
 }

@@ -180,6 +180,7 @@
   "Zoom to fit all": "縮放以顯示全部",
   "Zoom to fit selection": "縮放以顯示選取內容",
   "Zoom to 100%": "縮放至 100%",
+  "Present": "演示",
   "Open preview in browser": "在瀏覽器中開啟預覽",
   "Open preview in new tab": "在新分頁中開啟預覽",
   "Preview in default browser": "在預設瀏覽器中預覽",
@@ -305,6 +306,7 @@
   "Duplicate": "建立複本",
   "Rename": "重新命名",
   "Edit": "編輯",
+  "Read": "讀取",
   "Save": "儲存",
   "Apply": "套用",
   "Reset": "重設",
@@ -5494,5 +5496,7 @@
   "The Figma file has no visible pages.": "此 Figma 檔案沒有可見頁面。",
   "The selected Figma page has no supported layers.": "所選 Figma 頁面沒有可匯入的圖層。",
   "Imported \"{page}\" page from Figma": "已從 Figma 匯入「{page}」頁面",
-  "Check that the file is a valid .fig export and try again.": "請確認檔案是有效的 Figma .fig 匯出檔案，然後重試。"
+  "Check that the file is a valid .fig export and try again.": "請確認檔案是有效的 Figma .fig 匯出檔案，然後重試。",
+  "Inspecting": "正在檢查",
+  "Inspection complete": "檢查擷取完成"
 }

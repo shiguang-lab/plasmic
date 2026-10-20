@@ -34,7 +34,7 @@ import {
 import type { AiOutputFormat } from "@/wab/shared/copilot/copilot-tool-types";
 import { isPageComponent } from "@/wab/shared/core/components";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
-import { notification } from "antd";
+import { notification, message } from "antd";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
@@ -169,8 +169,8 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
             studioCtx.site.flags.keyScheme = undefined;
             studioCtx.site.flags.tagPrefix = undefined;
           }
-          notification.info({
-            message: translate(
+          void message.success({
+            content: translate(
               getUiLocale(),
               studioCtx.site.flags.usePlasmicTranslation
                 ? "Localization is now enabled"

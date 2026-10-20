@@ -3,7 +3,6 @@ import {
   ActivityTarget,
   CanvasActivity,
   activityText,
-  currentActivity,
 } from "@/wab/client/copilot/activity";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -19,7 +18,6 @@ import React from "react";
 const useActivityStyles = createStyles(({ token }) => ({
   root: {
     "--scan-color": token.colorPrimary,
-    "--activity-surface": token.colorBgElevated,
     "--activity-label-text": token.colorTextLightSolid,
     "&[data-status=success]": { "--scan-color": token.colorSuccess },
   },
@@ -84,16 +82,12 @@ const ActivityRegion = observer(function ActivityRegion({
 }) {
   const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
-  const [region, setRegion] = React.useState<{
-    bounds: Bounds;
-    enclosing: boolean;
-  }>();
+  const [region, setRegion] = React.useState<Bounds>();
   React.useEffect(() => {
     let animation: number;
     const update = () => {
       const frame = viewCtx.arenaFrame();
       let bounds: Bounds | undefined;
-      let enclosing = false;
       if (!target.elementUuid) {
         bounds = {
           left: 0,
@@ -110,7 +104,6 @@ const ActivityRegion = observer(function ActivityRegion({
           tpl = target.ancestorUuids
             ?.map((uuid) => tpls.find((node) => node.uuid === uuid))
             .find(Boolean);
-          enclosing = true;
         }
         // Slots and nonvisual code components use their nearest rendered ancestor.
         while (tpl) {
@@ -121,15 +114,13 @@ const ActivityRegion = observer(function ActivityRegion({
             bounds = activityBounds(doms, frame.width, getFrameHeight(frame));
             break;
           }
-          enclosing = true;
           tpl = tpl.parent;
         }
       }
       setRegion((previous) => {
-        const next = bounds ? { bounds, enclosing } : undefined;
-        return JSON.stringify(previous) === JSON.stringify(next)
+        return JSON.stringify(previous) === JSON.stringify(bounds)
           ? previous
-          : next;
+          : bounds;
       });
       animation = requestAnimationFrame(update);
     };
@@ -148,12 +139,11 @@ const ActivityRegion = observer(function ActivityRegion({
       data-scanning={scanning}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}
       aria-hidden="true"
-      style={{ ...region.bounds, borderWidth: 2 / zoom }}
+      style={{ ...region, borderWidth: 2 / zoom }}
     >
       <div className={styles.scan} />
       <div className={styles.label} style={{ transform: `scale(${1 / zoom})` }}>
-        {t(activityText(request))} · {target.label}
-        {region.enclosing ? ` (${t("Containing region")})` : ""}
+        {t(activityText(request))}
       </div>
     </div>
   );
@@ -192,38 +182,5 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           />
         ))}
     </>
-  );
-});
-
-export const CopilotActivityStatus = observer(function CopilotActivityStatus({
-  studioCtx,
-}: {
-  studioCtx: StudioCtx;
-}) {
-  const { t } = useI18n();
-  const { styles: themeStyles } = useActivityStyles();
-  const requests = studioCtx.copilotActivity.requests;
-  const request = currentActivity(requests);
-  if (!request) {
-    return null;
-  }
-  const label = Array.from(
-    new Set(request.targets.map((activityTarget) => activityTarget.label)),
-  ).join(", ");
-  return (
-    <div
-      className={classNames(styles.status, themeStyles.root)}
-      data-status={request.status}
-      role="status"
-      aria-live="polite"
-    >
-      <span className={styles.dot} />
-      <span>
-        {t(activityText(request))} · {label}
-      </span>
-      {requests.length > 1 && (
-        <span>({t("{count} operations", { count: requests.length })})</span>
-      )}
-    </div>
   );
 });

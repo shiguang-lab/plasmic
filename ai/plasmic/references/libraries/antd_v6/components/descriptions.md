@@ -1,5 +1,7 @@
 # Descriptions
 
+Choose Descriptions for source-defined labeled read-only field groups before composition, and inventory their fields independently of output. A group rendered as loose labels/values cannot justify omitting its required native structure from acceptance. Full suites require per-Page inventories (explicit empty groups where the source has none), rather than a project-wide notApplicable based on having generated no Descriptions.
+
 Library: [Ant Design v6](../index.md).
 
 | Registered component | Registration key |
@@ -9,7 +11,7 @@ Library: [Ant Design v6](../index.md).
 
 Read before composing a read-only label/value group. [Descriptions + Statistic + Card](../compositions/summary-metrics.md) owns region selection, metric arrangements and adjacent editable Forms.
 
-Read the installed Descriptions contract. Its children Slot accepts real [Descriptions Item](descriptions.md#descriptionsitem) nodes. The advanced native items array or expression remains available for data-driven groups and takes precedence over children, including an empty array. Do not set items when the fields must be edited as nodes.
+Read the installed Descriptions and Item contracts. A Card is optional; layout and Tab containers are valid. Give each region one heading owner, avoiding a Card title that repeats the Descriptions title. For an editable prototype with a known field set, use real Descriptions.Item nodes with editable label/children Slots. Its children Slot accepts real [Descriptions Item](descriptions.md#descriptionsitem) nodes. The advanced native items array or expression remains available for data-driven groups and takes precedence over children, including an empty array. Do not set items when the fields must be edited as nodes.
 
 Use the real title Slot with editable text for a group heading. Let the component theme own title typography and title-to-fields spacing; do not imitate it with a separate native heading above an untitled Descriptions. Keep spacing between groups on their containing layout. Select `column` and item spans from available width and realistic value lengths. A Key/identifier does not automatically occupy a full row: keep it in a normal cell when the complete expected value fits, and allocate additional span only when real content would otherwise crowd or truncate. Inspect row packing and avoid large unexplained gaps. Preserve the native theme's label/value hierarchy and internal spacing. The outer Card/layout owns spacing between the summary and Form. Check full long values, wrapping and empty values in Preview; do not silently truncate required identifiers or replace valid zero/false with an empty marker.
 

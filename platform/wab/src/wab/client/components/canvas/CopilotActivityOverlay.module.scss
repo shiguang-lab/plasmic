@@ -1,9 +1,5 @@
-.region,
-.status {
-  pointer-events: none;
-}
-
 .region {
+  pointer-events: none;
   position: absolute;
   z-index: 100;
   box-sizing: border-box;
@@ -43,41 +39,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.status {
-  position: absolute;
-  z-index: 100;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 80%;
-  padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--scan-color) 30%, transparent);
-  border-radius: 8px;
-  background: var(--activity-surface);
-  color: var(--scan-color);
-  box-shadow: 0 4px 16px #00000014;
-  font:
-    12px/18px system-ui,
-    sans-serif;
-
-  span {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--scan-color);
 }
 
 [data-scanning="false"] .scan {

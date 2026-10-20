@@ -23,7 +23,7 @@ import { assert } from "@/wab/shared/common";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Menu, notification } from "antd";
+import { Menu, message } from "antd";
 import moment from "moment";
 import * as React from "react";
 
@@ -139,8 +139,8 @@ function DatabaseListItem_(
                       await appCtx.api.updateCmsDatabase(database.id, {
                         workspaceId: response.workspace.id,
                       });
-                      notification.info({
-                        message: translate(
+                      void message.success({
+                        content: translate(
                           getUiLocale(),
                           "CMS moved to {part1}.",
                           { part1: response.workspace.name },
@@ -164,8 +164,8 @@ function DatabaseListItem_(
                     key="duplicate"
                     onClick={async () => {
                       await appCtx.api.cloneCmsDatabase(database.id);
-                      notification.info({
-                        message: translate(
+                      void message.success({
+                        content: translate(
                           getUiLocale(),
                           "CMS schema duplicated successfully.",
                         ),

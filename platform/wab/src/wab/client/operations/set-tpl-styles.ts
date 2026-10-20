@@ -11,6 +11,7 @@ import type { VariantCombo } from "@/wab/shared/Variants";
 import type { CodeComponentsRegistry } from "@/wab/shared/code-components/code-components";
 import { codeLit, tryExtractJson } from "@/wab/shared/core/exprs";
 import type { JsonObject } from "@/wab/shared/core/lang";
+import { isValidStyleProp } from "@/wab/shared/core/style-props";
 import { validateStylesForTpl } from "@/wab/shared/core/style-props-tpl";
 import { normProp } from "@/wab/shared/css";
 import { GenericError } from "@/wab/shared/error-handling";
@@ -34,22 +35,31 @@ export function applySanitizedTplStyles(opts: {
   unsafe: Record<string, string>;
 }): { applied: Record<string, string>; invalid: string[] } {
   const { tpl, vs, effectiveRsh, ccRegistry, safe, unsafe } = opts;
+  const modeledUnsafe = Object.fromEntries(
+    Object.entries(unsafe).filter(([prop]) => isValidStyleProp(normProp(prop))),
+  );
   const { valid, invalid } = validateStylesForTpl(
-    safe,
+    { ...safe, ...modeledUnsafe },
     tpl,
     effectiveRsh,
     ccRegistry,
   );
-  RSH(vs.rs, tpl).merge(valid);
+  const applied = Object.fromEntries(
+    Object.entries(valid).filter(([prop]) => prop in safe),
+  );
+  const applicableUnsafe = Object.fromEntries(
+    Object.entries(unsafe).filter(([prop]) => !(prop in invalid)),
+  );
+  RSH(vs.rs, tpl).merge(applied);
 
-  if (Object.keys(unsafe).length > 0) {
+  if (Object.keys(applicableUnsafe).length > 0) {
     vs.attrs["style"] = codeLit({
       ...(styleAttrStyles(vs) ?? {}),
-      ...unsafe,
+      ...applicableUnsafe,
     });
   }
 
-  return { applied: valid, invalid: Object.keys(invalid).map(normProp) };
+  return { applied, invalid: Object.keys(invalid).map(normProp) };
 }
 
 /**

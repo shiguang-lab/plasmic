@@ -4,7 +4,7 @@ const Module = require("node:module");
 const originalLoad = Module._load;
 Module._load = function (name, ...args) {
   return name === "electron"
-    ? { ipcMain: { on() {}, removeListener() {} } }
+    ? { app: { getPath: () => require("node:os").tmpdir() }, ipcMain: { on() {}, removeListener() {} } }
     : originalLoad.call(this, name, ...args);
 };
 const { DesktopController } = require("../src/controller.cjs");
@@ -16,29 +16,59 @@ const deferred = () => {
   });
   return { promise, resolve };
 };
+test("reference tools reject Studio Preview and keep external CDP read-only", async (t) => {
+  const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
+  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  const calls = [];
+  controller.browser = { state: { url: "https://example.org" }, dispose() {}, command: async (input) => { calls.push(input); return { performed: input.action }; } };
+  await assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://studio.example/projects/p/preview/page#live=true" }), /authenticated preview/);
+  controller.browser.state.url = "https://studio.example/projects/p/preview/page";
+  await assert.rejects(controller.dispatch("import_reference", { action: "editable" }), /authenticated preview/);
+  controller.browser.state.url = "https://example.org";
+  await assert.rejects(controller.dispatch("reference_browser", { action: "cdp", method: "Input.dispatchMouseEvent", params: {} }), /read-only/);
+  await controller.dispatch("reference_browser", { action: "cdp", method: "Runtime.evaluate", params: { expression: "document.title", throwOnSideEffect: false, awaitPromise: true } });
+  assert.equal(calls[0].params.throwOnSideEffect, true); assert.equal(calls[0].params.awaitPromise, false);
+  await controller.dispatch("import_reference", { action: "editable", target: "selection" });
+  assert.equal(calls[1].action, "import_to_canvas");
+});
 test("schema discovery preserves full contracts while status polling omits their repeated bodies", async (t) => {
   const controller = new DesktopController(() => null, {});
   t.after(() => controller.close());
   const read = { inputSchema: { type: "object" }, outputSchema: { definitions: { node: { type: "object" } }, $ref: "#/definitions/node" } };
-  const state = { ready: true, projectId: "project", build: { hash: "build" },
-    editorContext: { sessionId: "session", changeCounter: 2 }, operations: [{ phase: "running" }],
-    editorTools: { read, save: { inputSchema: { type: "object" } } }, availableEditorTools: ["read", "save"] };
+  const batch = { inputSchema: { largeUnion: "native mutation contract" }, outputSchema: {} };
+  const state = { ready: true, projectId: "project", build: { sourceHash: "build", builtAt: "diagnostic" },
+    browser: { appearance: "dark" }, imageService: { configured: false },
+    editorContext: { sessionId: "session", changeCounter: 2, editorView: { scroll: { x: 100, y: 200 } } }, operations: [{ phase: "running" }],
+    editorTools: { read, save: { inputSchema: { type: "object" } }, executeBatch: batch }, availableEditorTools: ["read", "save", "executeBatch"] };
   const scopes = [];
   controller.state = async (toolNames) => { scopes.push(toolNames); return state; };
-  assert.equal(await controller.dispatch("get_app_state", {}), state);
+  assert.equal((await controller.dispatch("get_app_state", {})).editorTools, undefined);
   const status = await controller.dispatch("get_app_state", { toolNames: [] });
-  assert.deepEqual(status, { ...state, availableEditorTools: ["read", "save"], editorTools: {} });
+  assert.deepEqual(status, { ready: true, projectId: "project", buildId: status.buildId,
+    editorContext: { sessionId: "session", changeCounter: 2 }, operations: state.operations });
   const selected = await controller.dispatch("get_app_state", { toolNames: ["read"] });
-  assert.deepEqual(selected.editorTools, { read });
-  assert.deepEqual(scopes, [undefined, [], ["read"]]);
-  assert.equal(selected.editorTools.read, read);
-  assert.deepEqual(state.editorTools, { read, save: { inputSchema: { type: "object" } } });
+  assert.deepEqual(selected.editorTools, { read: { inputSchema: read.inputSchema } });
+  assert.deepEqual(selected.editorContext, { sessionId: "session" });
+  assert.ok(selected.runtimeCapabilities.preview.includes("assert"));
+  assert.equal(status.runtimeCapabilities, undefined);
+  assert.equal(selected.operations, undefined);
+  assert.equal(selected.availableEditorTools, undefined);
+  assert.deepEqual(scopes, [[], [], ["read"]]);
+  assert.deepEqual((await controller.dispatch("get_app_state", { toolNames: ["read"], schemaView: "full" })).editorTools.read, read);
+  assert.match(status.buildId, /^[a-f0-9]{64}$/);
+  await assert.rejects(controller.dispatch("get_app_state", { view: "full" }), /Invalid app state view/);
+  assert.deepEqual((await controller.dispatch("get_app_state", { view: "tools" })).availableEditorTools, state.availableEditorTools);
+  assert.deepEqual((await controller.dispatch("get_app_state", { toolNames: ["executeBatch"] })).editorTools, { executeBatch: { mcpTool: "execute_batch" } });
+  assert.deepEqual(scopes.at(-1), []);
+  assert.deepEqual((await controller.dispatch("get_app_state", { toolNames: ["executeBatch"], schemaView: "full" })).editorTools.executeBatch, batch);
+  assert.deepEqual(state.editorTools, { read, save: { inputSchema: { type: "object" } }, executeBatch: batch });
   for (const toolNames of [["missing"], ["read", "read"], [""], [0], "read", null]) {
     await assert.rejects(controller.dispatch("get_app_state", { toolNames }), /toolNames|schema unavailable/);
   }
   controller.state = async () => ({ ready: false, projectId: null });
   assert.deepEqual(await controller.dispatch("get_app_state", { toolNames: [] }), {
-    ready: false, projectId: null, availableEditorTools: [], editorTools: {},
+    ready: false, projectId: null,
   });
 });
 test("readiness polling requests context without schemas", async (t) => {
@@ -201,13 +231,15 @@ test("exports pin the exact requested frame and release business rendering after
 
 test("workspace screenshots capture the editor when a project uses a custom host", async () => {
   const calls = [];
+  const sharp = require("sharp");
+  const png = await sharp({ create: { width: 1600, height: 1000, channels: 3, background: "white" } }).png().toBuffer();
   const win = {
     isDestroyed: () => false,
     webContents: {
       capturePage: async () => {
         calls.push("capture");
         return {
-          toPNG: () => Buffer.from("image"),
+          toPNG: () => png,
           getSize: () => ({ width: 1600, height: 1000 }),
         };
       },
@@ -221,7 +253,13 @@ test("workspace screenshots capture the editor when a project uses a custom host
   });
   assert.equal(result.width, 1600);
   assert.equal(result.height, 1000);
+  assert.equal(result.mimeType, "image/webp");
+  assert.equal(result.encoding, "lossy");
+  assert.equal((await sharp(Buffer.from(result.data, "base64")).metadata()).format, "webp");
   assert.deepEqual(calls, ["ready", "ready", "renderReady", "capture"]);
+  const full = await controller.dispatch("get_screenshot", { mode: "workspace", fullResolution: true });
+  assert.equal(full.encoding, "lossless");
+  assert.equal(full.width, 1600);
   controller.close();
 });
 
@@ -411,7 +449,7 @@ test("native API operations wait for device session restoration, while local sta
       session: {
         fetch: async () => {
           requests++;
-          return Response.json({ id: "org" });
+          return Response.json({ team: { id: "org" } });
         },
       },
     },
@@ -433,7 +471,7 @@ test("native API operations wait for device session restoration, while local sta
   assert.equal(restores, 1);
   assert.equal(requests, 0);
   gate.resolve();
-  assert.deepEqual(await operation, { id: "org" });
+  assert.deepEqual(await operation, { team: { id: "org" } });
   assert.equal(requests, 1);
   controller.close();
 });

@@ -33,7 +33,7 @@ it("records model and operation fixtures for isolated skill evaluation", async (
       type,
       ...(type === "page" ? { path: `/${name.toLowerCase()}` } : {}),
     });
-    const componentUuid = created.results[0].uuid;
+    const componentUuid = created.created[0].uuid;
     await call("insertHtml", { componentUuid, html });
     return componentUuid;
   };
@@ -78,7 +78,7 @@ it("records model and operation fixtures for isolated skill evaluation", async (
   const reads: Record<string, unknown> = {};
   for (const c of site.components) {
     reads[c.uuid] = (
-      await call("read", { componentUuids: [c.uuid] })
+      await call("read", { componentUuids: [c.uuid], view: "full", depth: "all" })
     ).results[0];
   }
   const allSchemas = mapCopilotToolsToJsonSchema(PROTOTYPE_TOOL_META);
@@ -91,6 +91,8 @@ it("records model and operation fixtures for isolated skill evaluation", async (
       "save",
       "getEditorContext",
       "restoreEditorView",
+      "queryElements",
+      "preview",
     ]
       .filter((name) => name in allSchemas)
       .map((name) => [name, allSchemas[name]]),
@@ -100,7 +102,7 @@ it("records model and operation fixtures for isolated skill evaluation", async (
     JSON.stringify(
       {
         schemas,
-        overview: await call("read"),
+        overview: await call("read", { view: "full" }),
         reads,
         identities: {
           section,

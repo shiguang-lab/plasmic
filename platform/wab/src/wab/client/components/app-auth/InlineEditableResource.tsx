@@ -5,7 +5,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { InlineEdit } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { Stated } from "@/wab/commons/components/Stated";
-import { notification } from "antd";
+import { message } from "antd";
 import React from "react";
 
 interface InlineEditableResourceProps {
@@ -65,8 +65,8 @@ export default function InlineEditableResource(
           <EditableResourceName
             onEdit={() => {
               if (isFake) {
-                notification.warning({
-                  message: studioUiT(
+                void message.warning({
+                  content: studioUiT(
                     "This operation can't be executed right now. Try again in a few seconds.",
                   ),
                 });

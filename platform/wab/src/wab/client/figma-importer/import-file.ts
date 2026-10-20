@@ -8,7 +8,7 @@ import type { FigFileReader } from "@/wab/client/figma-importer/fig-file";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { notification } from "antd";
+import { notification, message } from "antd";
 import { releaseProxy, transfer, wrap } from "comlink";
 
 /** File API and a module worker are shared by Studio in browsers and Electron. */
@@ -110,8 +110,8 @@ export async function importFigmaFile(studioCtx: StudioCtx, file: File) {
             page.name,
           );
           if (result.handled && result.success) {
-            notification.info({
-              message: t('Imported "{page}" page from Figma', {
+            void message.success({
+              content: t('Imported "{page}" page from Figma', {
                 page: page.name,
               }),
             });

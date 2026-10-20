@@ -9,6 +9,7 @@ function setup() {
   const parent = { webContents: {} };
   class BrowserWindow extends EventEmitter {
     constructor(options) {
+      assert.equal(options.webPreferences.devTools, false);
       super();
       this.options = options;
       this.focused = 0;
@@ -51,6 +52,7 @@ function setup() {
     require: (name) =>
       name === "electron"
         ? {
+            app: { isPackaged: true },
             BrowserWindow,
             ipcMain: {
               handle: (_, callback) => {

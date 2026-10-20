@@ -1,35 +1,34 @@
 # Product prototype workflow
 
-Create or revise editable designs; explanation/review uses inspect. Resolve the project before editor readiness checks; mutations require `canEdit`.
+Resolve Team → Workspace → Project through [project management](../desktop-management.md), then reread identity and schemas. Edits require canEdit.
 
-## Target project
+## Resolve scope and contracts
 
-Resolve Team → Workspace → Project through [project management](../desktop-management.md) before reading libraries or editing. Reuse a unique named match or an established target within scope. Otherwise show scoped existing/new choices. Open the chosen Project, reread its identity/schemas and require `canEdit` before edits.
+Read the actual source and [requirement alignment](../requirement-alignment.md). Freeze source-derived routes, fields, actions, native component mappings and UI-copy decisions outside the UI. Follow [context reading](../context-reading.md) for complete source coverage with bounded tool results.
 
-## Scope and selected references
+For admin work read [admin design](../admin-design.md), [templates](../admin-templates.md) and [catalog](../templates/admin/catalog.json). Apply [content entry](../design/layout.md#admin-content-entry): no standalone Page title/header/subtitle/intro, including detail Pages, unless explicitly requested by the current user. Requirement/process explanations stay outside UI; retain real field help. Required tables, submitted fields and labeled read-only groups use registered Table/Column, Form/Item and Descriptions/Item. Card needs its own business surface; it is not a default region wrapper.
 
-Read the actual requirement and target project before changing it. For requirement-driven generation or route/menu changes, read [requirement alignment](../requirement-alignment.md) and freeze source-derived acceptance inputs outside the UI. Previous generated output is reference evidence, not the requirement.
+Before markup, follow [native component selection](../libraries/index.md#native-component-selection): discover existing business/library components by role, read candidate contracts, then choose components/compositions. Apply this to every functional widget, including actions, Tabs, feedback and overlays. Read only selected recipes and live Props/Slots/events/scopes. Install/upgrade required published libraries, then reread contracts. Report actual template reuse. Stability work reads [reproducibility](../reproducibility.md).
 
-Read the [library index](../libraries/index.md) first. Identify actual project imports, registration keys and implementation/API versions; record the selected scopes and unknowns. Read only matching component rules and recipes whose participating libraries fit. Missing coverage uses verified live contracts and shared rules, never another major's defaults. For admin work read the [admin index](../admin-design.md), [template workflow](../admin-templates.md) and [catalog](../templates/admin/catalog.json); choose a template only when its scenario and library scope fit. Stability work also reads [reproducibility](../reproducibility.md).
+Before business writes run `python3 RESOURCE_ROOT/scripts/verify_mcp_contract.py --profile "/absolute/Desktop user-data" --report /absolute/task/mcp-contract.json`. Resolve build/resource capability mismatches before dependent generation; do not guess parameters or extend the platform during ordinary design work.
 
-## Build and bind
+## Complete one Page at a time
 
-Read current component identities, Props, Slots, defaults, events/ref actions and imported project IDs. Install or upgrade a necessary published library through available public operations, then reread its destination contracts. A template composition and a code-component registration are different identities; follow the template workflow's actual insertion/detachment mechanism.
+New full-project generation of standalone fixed-viewport Overseas/Antd-v6 Pages must read and use the [controlled task](../prototype-tasks.md) and [unified verifier](../verification.md). Focused edits, host-owned/content-growing layouts and other library scopes use scoped checks and report unsupported coverage.
 
-Create routed Pages with registered components and native editable Slots. Reuse one standalone AppShell or the host shell. Configure reviewed routes; read normalized paths before binding links. Before creating/copying/renaming, read the [naming standard](../design/naming.md): concise English PascalCase for actual roles and useful scope, equally for roots and descendants. Rename through Studio operations to preserve references.
+Plan routes, source-reviewed regions/behavior, runtime cases and current-Page Slot intent before content. Supplied .pen files require actual design_reference frame reads, paginated layout properties, screenshots and Page/state mappings before begin_page; filenames and HTML alone are insufficient. Follow the task contract for source pinning and phase commands.
 
-`data-props` is JSON, not JSX. Dynamic values use supported `{{ expression }}` bindings. Discover real render-prop scopes before binding cells. Preserve business UUIDs and interactions when moving existing nodes; remove obsolete structure only within the authorized change.
+Create planned empty native Pages first, with source-reviewed Chinese business names. Set page_layout.overviewName and rename the automatic group through updateCanvas before content. Follow [directory/node naming](../design/naming.md): Chinese directory names, English PascalCase internal nodes; explicit user language/name choices prevail. With no device request use one native Desktop column and one shared overview containing each Page UUID once; check devicePresets/pageFrames/canvases. Shorter viewports add no mobile columns. Reuse one [shell/layout](../design/layout.md) and appropriate [icons](../design/icons.md).
 
-Build structure and behavior together: local state, query/reset, pagination, scopes, forms, navigation and overlays as actually required. Keep drafts/applied values and temporary editor reveal distinct. Use the selected library's component rules and applicable compositions/gates; preserve real Slots and handlers. Record simulated processing in the plan, not the UI, and remove unused demo Slot content before acceptance.
+For the current Page:
 
-Use the requested platforms/viewport. For PC-only generation use the live Desktop preset, routed Pages and at most one overview Arena referencing them; do not add per-page duplicate Arenas or mobile layouts. [Layout](../design/layout.md) defines viewport, shell and scrolling ownership. For library icons read [icon selection](../design/icons.md).
+1. Announce its route; build native editable structure and real states/events together. `data-props` is JSON; use supported expressions and actual scopes. Query results/totals must consume query state. Editable SQL uses an editor/TextArea, numeric bounds use InputNumber; `<pre>` is read-only. Mock data still needs working frontend effects and validation.
+2. Save, then run verify_all with `--page /exact-route` and the reviewed suite. Correct failures before advancing. Run its mandatory gates. Missing expectations remain unverified.
+3. Capture and **open** current Page pixels using [rendered inspection](../desktop-inspection.md). Compare hierarchy, copy, actual headers/rows and spacing with the source; inspect Tabs/overlays in their real states. A successful capture or data prop does not prove visible content.
+4. Exercise source-pinned cases through top-level native `preview`, using fresh snapshot refs and actual DOM assertions. Cover applicable query/reset, validation recovery, two records, processing and [short-viewport shell scrolling](../design/layout.md#viewport-shell-height-acceptance). Close Preview before edits. Collect state images before the final review_visual, then complete_page; follow the task contract for deferred cases.
 
-## Verify the affected scope
+Do not write sibling business content until this Page's structure, image comparison and local runtime cases pass. Report failed/unavailable checks as pending. Preserve UUIDs/references when moving or renaming.
 
-Run relevant source-derived structural gates from the selected references against public readbacks: route/menu coverage, intended component/Slot ownership, information groups and Forms where applicable. A focused edit does not require rebuilding unrelated pages or expecting unrelated existing content to match a new design inventory. Full regeneration retains full-project gates.
+## Final acceptance
 
-For full-project acceptance use the [unified verifier](../verification.md): supply reviewed inventories, collect overview/full Pages and targeted layouts once per design state, and aggregate all existing gates from those files. Reuse through its identity/hash checks; fresh collection is required after save/reopen. Inspect the compact statuses and failed report sections instead of printing full evidence. Missing expectations remain unverified; runtime and save/reopen evidence are separate.
-
-Use [rendered inspection](../desktop-inspection.md) for screenshots, geometry and real Preview interactions at the actual viewport. Every affected standalone AppShell Page must pass [viewport shell height acceptance](../design/layout.md#viewport-shell-height-acceptance), including its model/geometry gate, shorter live Preview and post-reload height check. Exercise required default/hidden states, Tabs, overlays, errors, processing and navigation. Inspect persisted node names, labels, content and long/empty values. Record identity, viewport, concrete observations and pass/fail; a list of captures is not visual review. `validate` proves model integrity only.
-
-Save explicitly and record the revision. Reopen, reread affected models/bindings and initial closed overlays; recheck Preview behavior and images. Report sources/resource release, template mechanism, checks, mock/API boundaries and limitations.
+Save explicitly; leave/reopen in a new editor session and repeat affected model/image/runtime checks. Run the verifier without --page for the full project, finish the controlled task and audit its actual events as specified in the task contract. Reuse captures only with matching identity/build/hashes. Report source/resource versions, actual reuse, mock/API boundaries, evidence and limitations. Static checks and recorded observations do not independently prove visual fidelity or source interpretation.

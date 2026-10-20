@@ -14,6 +14,8 @@ Library: [Ant Design v6](../index.md).
 
 Use Input for ordinary text, Input.TextArea for multi-line text and Input.Password for an actual secret field. Keep the real control directly inside its owning [Form.Item](form.md#formitem); the Form owns its value and validation. Standalone Input uses its registered value state. Input/Password/TextArea onChange receives the native event; the registration's state helper extracts event.target.value. Do not bind an event object as the business value or assume all Input variants use that signature.
 
+Editable SQL/code needs an actual installed editor or TextArea. A syntax-colored `<pre>` is read-only content. Bind the editor's real value to formatting/validation/submission; typing after a successful validation/preflight must invalidate that result when required. Test changing the text and reading it back through the workflow, rather than only triggering buttons against an unchanged sample string.
+
 Read actual size, variant, disabled, readOnly, allowClear and maxLength controls. Placeholder is an example or hint, not the label. Prefix/suffix are inside the control; field instructions and external actions belong to the surrounding composition. Do not add unsupported addon props from another Antd version. TextArea autoSize and field width must accommodate its required content without clipping validation below it.
 
 ## Search and OTP
