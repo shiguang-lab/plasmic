@@ -14,15 +14,16 @@ class ReferenceTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.file = Path(self.directory.name) / "reference.webp"
         self.file.write_bytes(b"original Pen image fixture")
-        self.source = {"provider": "pen-mcp", "filePath": "/tmp/original.pen", "nodeId": "frame"}
-        self.expected = {"pages": [{"path": "/list", "componentUuid": "page", "references": [{"id": "main", "filePath": "/tmp/original.pen", "nodeId": "frame"}], "regions": [{"referenceId": "main", "nodeNames": ["SearchForm", "RecordsTable"], "decision": "Preserve hierarchy through native Form/Table contracts"}]}]}
+        reference_file = str(Path(self.directory.name) / "original.pen")
+        self.source = {"provider": "pen-mcp", "filePath": reference_file, "nodeId": "frame"}
+        self.expected = {"pages": [{"path": "/list", "componentUuid": "page", "references": [{"id": "main", "filePath": reference_file, "nodeId": "frame"}], "regions": [{"referenceId": "main", "nodeNames": ["SearchForm", "RecordsTable"], "decision": "Preserve hierarchy through native Form/Table contracts"}]}]}
         self.model = {"results": [{"uuid": "page", "baseVariantTplTree": '<div data-plasmic-name="SearchForm"></div><div data-plasmic-name="RecordsTable"></div>'}]}
-        self.key = json.dumps(["/tmp/original.pen", "frame"], separators=(",", ":"))
-        self.task = {"referenceFiles": ["/tmp/original.pen"], "references": {self.key: {"complete": True, "read": {"depth": 1, "fields": list(REQUIRED_FIELDS), "total": 2}, "pages": {"0": [{"id": "frame", "type": "frame"}], "1": [{"id": "child", "type": "text"}]}, "image": {"kind": "reference", "source": self.source, "file": str(self.file), "sha256": hashlib.sha256(self.file.read_bytes()).hexdigest()}}}}
+        self.key = json.dumps([reference_file, "frame"], separators=(",", ":"))
+        self.task = {"referenceFiles": [reference_file], "references": {self.key: {"complete": True, "read": {"depth": 1, "fields": list(REQUIRED_FIELDS), "total": 2}, "pages": {"0": [{"id": "frame", "type": "frame"}], "1": [{"id": "child", "type": "text"}]}, "image": {"kind": "reference", "source": self.source, "file": str(self.file), "sha256": hashlib.sha256(self.file.read_bytes()).hexdigest()}}}}
 
     def test_original_layout_image_and_native_region_mapping_are_required(self):
         result = check(self.expected, self.model, self.task)
-        self.assertTrue(result["passed"])
+        self.assertTrue(result["passed"], result["errors"])
         self.assertIn("visual fidelity and adaptation decisions", result["notChecked"])
 
     def test_text_only_missing_state_or_invented_native_region_fails(self):
