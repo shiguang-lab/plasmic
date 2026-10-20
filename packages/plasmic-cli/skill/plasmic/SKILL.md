@@ -1,11 +1,19 @@
 ---
 name: plasmic
-description: Explain or review self-hosted Plasmic pages, components and templates; select or create Teams, Workspaces and Projects for editable prototype design; implement or update native React project code from Plasmic designs. Use for Plasmic model/template inspection, prototype design and design-to-code work.
+description: Inspect self-hosted Plasmic pages and templates, create or revise editable prototypes, and implement native React code from Plasmic designs.
 ---
 
 # Plasmic
 
 This is a bootstrap skill. Workflows, component guidance and verification scripts live in a versioned resource bundle on the NAS, outside this installed skill.
+
+## Client implementation boundary
+
+Use the published CLI, documented Desktop MCP tools and resolved skill resources with the task's requirements and design files. Do not unpack, extract or decompile the Plasmic App, or read its internal Desktop/Studio implementation, packaged dependencies, extracted/copied artifacts or equivalent client repository source. This prohibition applies to the acting agent, delegated agents and their tool scripts, including troubleshooting and contract or validator discovery.
+
+If public tool contracts or skill documents are insufficient, retain the exact call and error, stop dependent work and report the missing contract or documentation. Do not inspect client internals or reverse-engineer private interfaces to continue. Codegen may inspect and edit the target application's source within the user's task; this does not authorize reading the Plasmic client implementation.
+
+## Task workflow
 
 Choose the task mode before work: `inspect` for read-only page/template explanation or design review, `prototype` for selecting/creating the design project and design edits, or `codegen` for native React implementation and updates. Run the matching command:
 
@@ -19,9 +27,9 @@ Inspect uses accessible Desktop MCP reads and does not require edit permission o
 
 The command checks the NAS release manifest every time, downloads changed resources and verifies their hashes before returning absolute paths. Read all returned `mustRead` files, starting with `referencePath`; resolve subsequent links relative to the reference file. Use the returned `resourceRoot` for verification scripts and follow the guide's conditional section-reading/evidence rules. For a task spanning multiple modes, resolve and read each mode before its work begins.
 
-For prototype work, resolve Team → Workspace → Project, pass the workflow's MCP contract preflight, then use the workflow's controlled task for supported new full-project generation of standalone fixed-viewport Overseas/Antd-v6 Pages. Before markup, discover existing business/library components by required role and read candidate contracts. Prefer those components and their compositions for every functional widget; plain semantic content/necessary containers remain valid. Follow the resolved component-selection rule for verified gaps. Directory Page/group names and business copy default to Chinese; internal tree nodes use English PascalCase. Explicit user language/name choices prevail. Admin Pages inside AppShell have no standalone Page title/header/subtitle/intro unless explicitly requested by the current user. Keep requirement/process explanations outside UI. Prepare source-reviewed component/copy inventories and current-Page Slot intent before its first content write; omitted components cannot justify an acceptance exemption. Complete each Page's reference mapping, generation, structural checks, image comparison and native Preview interactions before writing sibling business content. Focused edits retain their scoped workflow.
+Follow the resolved workflow for project selection, component discovery and acceptance; load detailed rules only for the affected scope. Switching from inspection to editing requires the corresponding user request and prototype workflow.
 
-The CLI streams readable progress to stderr and reserves stdout for the final JSON result. Tell the user when resource preparation starts, then relay meaningful stage changes in their language: current and latest versions, already up to date, or download and integrity verification. Do not narrate cache saving, update locking, compatibility checks or workflow entrypoints. When the command runs longer than the tool's initial response window, use its background/session mode and retrieve incremental output so the user sees progress while it runs. Waiting messages report elapsed time, not an estimated completion percentage. If the tool buffers all output until exit, explain that limitation and report that preparation is still running; do not invent progress. A ready workflow means its files are available for you to read, not that you have already read or executed them. Read `mustRead` before starting dependent work.
+The CLI streams preparation progress to stderr and returns JSON on stdout. Relay meaningful version/download/verification changes; use incremental output for a long-running command. Report waiting honestly when output is buffered. Resource readiness means files are available, not that they have been read or their workflow completed.
 
 The runner uses the latest published `@plasmickit/cli`, distinct from official `@plasmicapp/cli`. Later commands can use `npx -y @plasmickit/cli@<cliVersion>` from the result to keep the task on that CLI version, or the global `plasmickit` after checking `plasmickit version check`.
 

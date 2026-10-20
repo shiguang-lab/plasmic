@@ -28,7 +28,6 @@ const { createSessionRecovery } = require("./session-recovery.cjs");
 const { createDeviceCredentials } = require("./device-credentials.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
-const { serveMcp } = require("./mcp.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createDesktopAppearance } = require("./ui-appearance.cjs");
@@ -712,21 +711,7 @@ function bootstrap() {
   app.setPath("userData", userData);
   app.setPath("sessionData", userData);
   app.setName("Plasmic");
-  if (process.argv.includes("--mcp")) {
-    // Dedicated stdio process: no BrowserWindow and no instance lock.
-    // The active GUI process owns the editor and local command socket.
-    serveMcp(process.env.PLASMIC_DESKTOP_PROFILE || app.getPath("userData"))
-      .then((server) =>
-        process.stdin.once("end", () => {
-          void server.close();
-          app.quit();
-        }),
-      )
-      .catch((error) => {
-        process.stderr.write(error.message + "\n");
-        app.exit(1);
-      });
-  } else if (!app.requestSingleInstanceLock()) {
+  if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {
     const showDesktop = async () => {

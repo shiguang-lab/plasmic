@@ -125,6 +125,18 @@ test("runtime cases enforce source-pinned target/value/order and actual assertio
   assert.deepEqual(page.cases, {}); assert.equal(page.structural, null); assert.equal(task.run.currentCase, null);
 });
 
+test("closing Preview can recover from an active case without marking the unexecuted case as passed", async (t) => {
+  const { task, context } = await fixture(t);
+  await task.command({ action: "begin_page", pagePath: "/list" });
+  const page = task.run.pages[0]; page.structural = { seq: 1 }; page.visual = { status: "review_recorded" };
+  await task.command({ action: "begin_case", caseId: "edit" });
+  await task.before("preview", { action: "close" });
+  await task.after("preview", { action: "close" }, { context: { ...context, mode: "edit", previewContext: null } });
+  assert.equal(task.run.currentCase, null);
+  assert.deepEqual(page.cases, {});
+  assert.ok(task.status().pendingCases.includes("edit"));
+});
+
 test("an unbound passed JSON file cannot serve as a structural checkpoint", async (t) => {
   const { task, dir } = await fixture(t);
   await task.command({ action: "begin_page", pagePath: "/list" });

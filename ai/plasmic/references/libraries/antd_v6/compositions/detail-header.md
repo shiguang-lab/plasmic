@@ -4,7 +4,7 @@ Applies to [Ant Design v6](../index.md) Card/Button/Tooltip and [Ant Design Icon
 
 ### Detail page header
 
-Use this recipe only when the current user explicitly requests a standalone entity heading area. Admin Pages inside AppShell default to no Page header, including detail Pages: the shell owns navigation/breadcrumbs, entity names remain in information fields and actions use a functional toolbar. A source template, Pen frame or the fact that this is a detail Page does not opt in. Record an approved exception's named region and source in the task inventory before composition; otherwise skip this recipe and use the actual content components.
+Use this recipe only for a current user-requested entity heading area permitted by [admin content entry](../../../design/layout.md#admin-content-entry). Record that exception's named region and source in the task inventory; otherwise skip this recipe.
 
 For an explicitly requested header, use an icon-only return Button immediately before the entity title in the same heading row, with type/status and page actions at the right. Do not allocate a separate return row or repeat the shell breadcrumb. Pattern reference: [Ant Design PageHeader examples](https://4x.ant.design/components/page-header/). This is a composition rule, not a registered PageHeader component: use the actual Button/Tooltip/icon contracts and registered Flex/Space for layout.
 
@@ -21,5 +21,3 @@ For every generated or changed detail header, read back a single heading-row wra
 In live preview, hover and keyboard-focus the return Button to verify the destination Tooltip, keyboard activation and accessible name. Confirm that hovering does not navigate. Enter a record from a list with non-default filters/scope/pagination, return and verify the correct route and preserved list state; also test direct entry to the detail page. Do not mark unexecuted navigation/state cases passed. Check the status preset's meaning as well as its layout; initialization must not inherit the success color.
 
 Save/reopen and recheck the heading structure, Tooltip, destination and relevant state handoff. Identify screenshots by breadcrumb/title and the target business node. Record model/layout, screenshot and interaction evidence separately; a matching screenshot width or a successful save does not establish header acceptance.
-
-Verify structure and visuals after save/reopen. Check exact viewport, shell consistency, one padding owner, control size, readable labels, row count/page totals, fixed operations, scroll reachability, tab content ownership, long values, overlay backdrop/footer, and required state transitions. Validate both default and task-changing states. No visible implementation notes or provenance artboards; keep evidence in the sidecar report. A structurally valid component can still render incorrectly: inspect actual screenshots and exercised interactions before acceptance.

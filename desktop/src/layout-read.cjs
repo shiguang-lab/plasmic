@@ -2,6 +2,10 @@ function readLayout(layout, input = {}) {
   if (input.view === "full" && (input.fields || input.elementUuid || input.offset !== undefined || input.limit !== undefined)) throw new Error("Full layout reads cannot be combined with fields, elementUuid or pagination");
   const { elements, images, ...frame } = layout;
   const problems = [
+    ...elements.filter((el) => el.cellContent?.overflow).map((el) => ({
+      type: "table-cell-control-overflow", elementUuid: el.elementUuid, index: el.index,
+      bounds: { x: el.x, width: el.width }, cellContent: el.cellContent,
+    })),
     ...elements.filter((el) => el.horizontalOverflow).map((el) => ({
       type: "horizontal-overflow", elementUuid: el.elementUuid, index: el.index,
       bounds: { x: el.x, width: el.width }, viewportWidth: layout.width,

@@ -7,6 +7,37 @@ const net = require("node:net");
 const { setTimeout: delay } = require("node:timers/promises");
 const { startRpc, requestRpc } = require("../src/local-rpc.cjs");
 
+test("opt-in RPC audit retains complete payloads/errors/images and correlates metrics without logging authentication", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-audit-"));
+  const previous = { audit: process.env.PLASMIC_RPC_AUDIT, metrics: process.env.PLASMIC_RPC_METRICS };
+  process.env.PLASMIC_RPC_AUDIT = path.join(profile, "audit.jsonl");
+  process.env.PLASMIC_RPC_METRICS = path.join(profile, "metrics.jsonl");
+  const result = { data: "complete-image-base64", nested: { text: "完整返回体" } };
+  const stop = await startRpc(profile, async (method) => {
+    if (method === "fail") throw Object.assign(new Error("wrong mode"), { context: { code: "CONTEXT_MISMATCH" } });
+    return result;
+  });
+  try {
+    const input = { name: "read", source: "完整请求体" };
+    await requestRpc(profile, "execute", input);
+    await assert.rejects(requestRpc(profile, "fail"), /wrong mode/);
+    const rows = (await fs.readFile(process.env.PLASMIC_RPC_AUDIT, "utf8")).trim().split("\n").map(JSON.parse);
+    const metrics = (await fs.readFile(process.env.PLASMIC_RPC_METRICS, "utf8")).trim().split("\n").map(JSON.parse);
+    const { token } = JSON.parse(await fs.readFile(path.join(profile, "mcp-connection.json")));
+    assert.deepEqual(rows[0].input, input); assert.deepEqual(rows[0].response, { result });
+    assert.equal(rows[1].response.error.code, "CONTEXT_MISMATCH");
+    assert.equal(rows[0].requestId, metrics[0].requestId); assert.notEqual(rows[0].requestId, rows[1].requestId);
+    assert.ok(rows.every((row) => row.ms >= 0));
+    assert.ok(!JSON.stringify(rows).includes(token));
+    if (process.platform !== "win32") assert.equal((await fs.stat(process.env.PLASMIC_RPC_AUDIT)).mode & 0o777, 0o600);
+  } finally {
+    for (const [key, value] of [["PLASMIC_RPC_AUDIT", previous.audit], ["PLASMIC_RPC_METRICS", previous.metrics]]) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+    await stop(); await fs.rm(profile, { recursive: true, force: true });
+  }
+});
+
 test("opt-in metrics count script RPC bytes without retaining content or credentials", async () => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-metrics-"));
   const previous = process.env.PLASMIC_RPC_METRICS;
@@ -77,7 +108,7 @@ test("RPC authenticates local clients, returns tool errors and removes its addre
       connection.on("data", (chunk) => (data += chunk));
       connection.on("end", () => resolve(JSON.parse(data)));
     });
-    assert.match(denied.error, /Unauthorized/);
+    assert.match(denied.error.message, /Unauthorized/);
     assert.equal(calls, 2);
   } finally {
     await stop();

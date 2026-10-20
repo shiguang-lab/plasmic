@@ -12,7 +12,7 @@ class ContractTests(unittest.TestCase):
         self.state["runtimeCapabilities"] = {
             "preview": ["open", "close", "state", "snapshot", "click", "hover", "fill", "select", "press", "scroll", "screenshot", "assert"],
             "design_reference": ["index", "read", "screenshot"],
-            "prototype_task": ["validate_plan", "start", "resume", "revise", "begin_page", "structural_check", "review_visual", "begin_case", "cancel_case", "complete_page", "finish"],
+            "prototype_task": ["plan_schema", "validate_plan", "start", "resume", "revise", "begin_page", "structural_check", "review_visual", "begin_case", "cancel_case", "complete_page", "finish"],
             "reference_browser": ["load_page", "capture", "close"], "import_reference": ["editable", "screenshot"],
         }
         self.state["editorTools"]["validate"] = {"inputSchema": {"properties": {"componentUuids": {"type": "array"}}}}

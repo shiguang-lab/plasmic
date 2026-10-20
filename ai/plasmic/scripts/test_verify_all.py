@@ -32,6 +32,7 @@ class SuiteTests(unittest.TestCase):
         self.overview = {"results": [{"__type": "Project", "id": "project", "components": [self.model], "devicePresets": [{"name": "Desktop", "width": 1440, "height": 1024}], "pageFrames": [{"componentUuid": "page", "width": 1440, "height": 1024}], "canvases": [{"name": "页面总览", "frames": [{"uuid": "frame", "componentUuid": "page", "x": 0, "y": 0, "width": 1440, "height": 1024}]}]}]}
         self.readback = {"results": [self.model], "read": {"depth": "all", "fields": ["baseVariantTplTree", "props", "states", "variants", "variantGroups", "interactions"]}}
         self.snapshot = shell.snapshot
+        self.snapshot["checked"] = ["horizontal-overflow", "table-cell-control-overflow", "image-load"]
         self.snapshot["frames"][0].update(width=1440, read={"view": "full"}, images=[], problems=[])
         self.context = {"projectId": "project", "branchId": None, "sessionId": "editor-session", "revision": 1, "changeCounter": 0}
         self.config = {

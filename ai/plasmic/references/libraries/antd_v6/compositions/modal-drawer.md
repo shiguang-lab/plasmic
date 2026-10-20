@@ -15,8 +15,6 @@ This rule does **not** remove Cancel/Close from a multi-button footer. Save + Ca
 - Pagination, table row actions and body controls do not turn an exit-only footer into a multi-button footer. Count buttons in the actual footer only. Disabled buttons still occupy that footer; check each required runtime state when buttons are conditionally hidden.
 - If no usable close icon exists, do not remove the only usable exit. Keep the supported dismissal path or enable the native icon where the requirement permits it. Do not add a custom header close icon.
 
-For the screenshot's SQL result pattern, if “Return to SQL editing” only closes the result, remove that sole footer button and footer space while keeping the table, pagination and top-right close icon. Preserve business data, node identities and unrelated interactions.
-
 ## Structure and close behavior
 
 Keep one native header/title and one footer owner. Bound long content using the shared scrolling contract; the close icon and any business footer stay reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
@@ -29,7 +27,7 @@ Derive an independent acceptance inventory from requirements before generation. 
 
 Declare the exact component identity, expected usable `closeIcon`, footer mode (`none`, `native`, `custom`) and ordered visible `footerActions`. For a native Modal footer use `nativeCancel` and `nativeOk`; for a custom footer use actual Button node names. Each action declares `effect: "dismiss"` or `"business"`; a business action needs a concrete `reason`. Optional action `props` checks required handler/visibility values from the public readback. Review effects against actual interactions; do not derive them solely from labels or generated output.
 
-Example for a read-only SQL result:
+Plan Pages by exact path (or unique name / known componentUuid) through [unified verification](../../../verification.md#reviewed-suite-configuration). Its runner resolves selectors from current readbacks. The standalone command below requires actual componentUuid values already resolved; do not fabricate UUIDs before creating Pages. Example of a resolved inventory for a read-only SQL result:
 
 ```json
 {"pages":[{"componentUuid":"reviewed-owner-uuid","overlays":[{"name":"SQLPreview","component":"plasmic-antd6-modal","closeIcon":true,"footer":"none","footerActions":[]}]}]}

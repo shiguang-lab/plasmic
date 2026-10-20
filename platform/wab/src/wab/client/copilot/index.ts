@@ -153,6 +153,41 @@ const editTools = new Set<string>([
   "importWebPage",
 ]);
 
+const previewEditorViews = new WeakMap<StudioCtx, ReturnType<typeof meta.restoreEditorView.inputSchema.parse>>();
+
+function editorView(studio: StudioCtx) {
+  const vc = studio.focusedViewCtx();
+  return studio.currentArena && studio.viewportCtx
+    ? {
+        arenaId: getArenaUuidOrName(studio.currentArena),
+        arenaType: getArenaType(studio.currentArena),
+        frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
+        scale: studio.viewportCtx.scale(),
+        scroll: { x: studio.viewportCtx.scroll().x, y: studio.viewportCtx.scroll().y },
+      }
+    : null;
+}
+
+async function restoreEditorView(studio: StudioCtx, input: ReturnType<typeof meta.restoreEditorView.inputSchema.parse>) {
+  assert(!studio.isLiveMode && !studio.isInteractiveMode, "Return to edit mode before restoring a view");
+  const arena = getArenaByNameOrUuidOrPath(studio.site, input.arenaId, input.arenaType);
+  assert(arena, "Saved arena no longer exists");
+  const frame = input.frameUuid
+    ? ensure(getArenaFrames(arena).find((candidate) => candidate.uuid === input.frameUuid), "Saved artboard no longer exists")
+    : undefined;
+  studio.switchToArena(arena);
+  await asyncTimeout(0);
+  await studio.awaitStudioReady();
+  studio.restoreStudioViewportSnapshot({ focusedArenaFrame: frame, scale: input.scale,
+    scroll: new Pt(input.scroll.x, input.scroll.y),
+    canvasPadding: ensure(studio.viewportCtx, "Canvas viewport is not ready").canvasPadding() }, true);
+  await studio.awaitStudioReady();
+  await asyncTimeout(0);
+  assert(studio.currentArena === arena, "Editor did not return to the saved canvas");
+  assert(!input.frameUuid || editorView(studio)?.frameUuid === input.frameUuid, "Editor did not return to the saved artboard");
+  return { restored: true };
+}
+
 // Keep input/output validation and serialization in the shared tool wrapper.
 const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
   defineTool(toolMeta, async (studio, input) => {
@@ -556,7 +591,7 @@ async function prepareMutationAssets(studio: StudioCtx, operation: PrototypeMuta
   const owner = mkComponent({ name: "", type: ComponentType.Frame, tplTree: mkTplTagX("div") });
   const frame = mkArenaFrame({ site: studio.site, component: owner, name: "", width: 1440, height: 900 });
   const vtm = new VariantTplMgr([new RootComponentVariantFrame(frame)], studio.site, studio.tplMgr(), new GlobalVariantFrame(studio.site, frame));
-  const html = await htmlToTpl(operation.input.html, { site: studio.site, vtm, appCtx: studio.appCtx, pageHrefs: true });
+  const html = await htmlToTpl(operation.input.html, { site: studio.site, vtm, appCtx: studio.appCtx, pageHrefs: true, ccRegistry: studio.codeComponentsRegistry });
   return { html, bindHtml: (component) => {
     if (html.isOk()) {
       const base = getBaseVariant(owner);
@@ -1140,6 +1175,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
             const result = setComponentInstanceProp(tpl, name, value, {
               vs,
               tplMgr: studio.tplMgr(),
+              registration: studio.getCodeComponentMeta(tpl.component)?.props[name],
             });
             if (result.isErr() && result.error.recoverable) {
               messages.push(
@@ -1805,7 +1841,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       ...(input.propNames ? { propNames: input.propNames } : {}) };
     assert(!input.propNames || (input.view === "properties" && !!(input.componentUuids?.length || input.elements?.length || input.collection === "components")), "propNames requires targeted view:properties");
     const dependency = input.fromProject && input.fromProject !== studio.siteInfo.id
-      ? ensure(walkDependencyTree(studio.site, "all").find((dep) => dep.projectId === input.fromProject), "Imported project not found") : undefined;
+      ? ensure(walkDependencyTree(studio.site, "all").find((dep) => dep.projectId === input.fromProject),
+        `Imported project not found: ${input.fromProject}. fromProject selects an already imported dependency; it does not open or install a project. Read collection:importedProjects in the current project, discover installLibrary through get_app_state, then explicitly install the published library before rereading its contract. To inspect its source without installing, explicitly open_design with that source projectId and later return to the consuming project.`) : undefined;
     const site = dependency?.site ?? studio.site;
     const projectId = dependency?.projectId ?? studio.siteInfo.id;
     const findReadComponent = (uuid: string) => {
@@ -2313,20 +2350,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       changeCounter: studio._changeCounter,
       browserImportCanvasName:
         browserImportCanvas(studio)?.name ?? browserImportCanvasName(),
-      editorView:
-        studio.currentArena && studio.viewportCtx
-          ? {
-              arenaId: getArenaUuidOrName(studio.currentArena),
-              arenaType: getArenaType(studio.currentArena),
-              frameUuid:
-                (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
-              scale: studio.viewportCtx.scale(),
-              scroll: {
-                x: studio.viewportCtx.scroll().x,
-                y: studio.viewportCtx.scroll().y,
-              },
-            }
-          : null,
+      editorView: editorView(studio),
+      previewKind: studio.previewCtx?.popup ? "external" as const
+        : studio.isInteractiveMode ? "interactive" as const
+        : studio.isLiveMode ? "in-app" as const : null,
       previewContext:
         studio.isLiveMode && studio.previewCtx
           ? {
@@ -2379,16 +2406,38 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   preview: defineCopilotTool(meta.preview, async (studio, input) => {
     const preview = ensure(studio.previewCtx, "Native Preview is unavailable");
     assert(!preview.popup, "Close the external Preview window before using in-app Preview");
-    assert(!studio.isInteractiveMode, "Exit interactive canvas mode before opening Preview");
+    assert(input.action === "close" || !studio.isInteractiveMode, "Exit interactive canvas mode before opening Preview");
     assert((input.width === undefined) === (input.height === undefined), "Preview width and height must be supplied together");
     assert(input.action === "open" || (input.componentUuid === undefined && input.width === undefined && input.height === undefined), "close accepts no Page or viewport overrides");
     const component = input.componentUuid ? findComponent(studio, input.componentUuid) : undefined;
     assert(!component || (studio.site.components.includes(component) && isPageComponent(component)), "Preview target must be a local Page");
     if (input.action === "close") {
+      const wasPreview = preview.isLive || studio.isInteractiveMode;
       await preview.stopLiveMode();
+      studio.isInteractiveMode = false;
+      await asyncTimeout(0);
+      await preview.parseRoute();
+      const saved = previewEditorViews.get(studio);
+      if (wasPreview && saved) {
+        await restoreEditorView(studio, saved);
+      } else if (wasPreview && studio.currentArena) {
+        await studio.awaitStudioReady();
+      }
+      previewEditorViews.delete(studio);
     } else {
       if (!preview.isLive) {
-        await preview.toggleLiveMode();
+        const view = editorView(studio);
+        if (view) {
+          previewEditorViews.set(studio, meta.restoreEditorView.inputSchema.parse(view));
+        }
+        try {
+          await preview.toggleLiveMode();
+        } catch (error) {
+          if (!preview.isLive) {
+            previewEditorViews.delete(studio);
+          }
+          throw error;
+        }
         await asyncTimeout(0);
         await preview.parseRoute();
       }
@@ -2414,42 +2463,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   }),
   restoreEditorView: defineCopilotTool(
     meta.restoreEditorView,
-    async (studio, input) => {
-      assert(
-        !studio.isLiveMode && !studio.isInteractiveMode,
-        "Return to edit mode before restoring a view",
-      );
-      const arena = getArenaByNameOrUuidOrPath(
-        studio.site,
-        input.arenaId,
-        input.arenaType,
-      );
-      assert(arena, "Saved arena no longer exists");
-      const frame = input.frameUuid
-        ? ensure(
-            getArenaFrames(arena).find(
-              (candidate) => candidate.uuid === input.frameUuid,
-            ),
-            "Saved artboard no longer exists",
-          )
-        : undefined;
-      studio.switchToArena(arena);
-      await asyncTimeout(0);
-      await studio.awaitStudioReady();
-      studio.restoreStudioViewportSnapshot(
-        {
-          focusedArenaFrame: frame,
-          scale: input.scale,
-          scroll: new Pt(input.scroll.x, input.scroll.y),
-          canvasPadding: ensure(
-            studio.viewportCtx,
-            "Canvas viewport is not ready",
-          ).canvasPadding(),
-        },
-        true,
-      );
-      return { restored: true };
-    },
+    restoreEditorView,
   ),
   selectElement: defineCopilotTool(
     meta.selectElement,

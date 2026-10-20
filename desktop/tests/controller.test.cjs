@@ -9,6 +9,7 @@ Module._load = function (name, ...args) {
 };
 const { DesktopController } = require("../src/controller.cjs");
 Module._load = originalLoad;
+const { currentContext } = require("../src/tool-context.cjs");
 const deferred = () => {
   let resolve;
   const promise = new Promise((done) => {
@@ -79,7 +80,7 @@ test("reference UI, capture and imports require an editable project in edit mode
       ["import_reference", { action: "editable" }],
       ["capture_browser", { url: "https://example.org" }],
       ["browser", { action: "open" }],
-    ]) await assert.rejects(controller.dispatch(method, input), /require a ready, editable Studio project in edit mode/);
+    ]) await assert.rejects(controller.dispatch(method, input), (error) => error.context.code === "CONTEXT_MISMATCH" && error.context.operationExecuted === false);
   }
   assert.deepEqual(calls, []);
   await controller.dispatch("reference_browser", { action: "close" });
@@ -93,6 +94,7 @@ test("failed Preview reports the supported recovery instead of suggesting a refe
   const win = { isDestroyed: () => false };
   const controller = new DesktopController(() => win, {});
   t.after(() => controller.close());
+  controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit" } });
   controller.ready = async () => {};
   controller.editor = async (name) => {
     if (name === "getEditorContext") return { mode: "edit" };
@@ -142,8 +144,8 @@ test("reference navigation checks editor context after a queued Preview transiti
   };
   const preview = controller.dispatch("preview", { action: "open" });
   await entered.promise;
-  const reference = assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://example.org" }), /editable Studio project in edit mode/);
-  const internalBrowser = assert.rejects(controller.dispatch("browser", { action: "open" }), /editable Studio project in edit mode/);
+  const reference = assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://example.org" }), (error) => error.context.actual.mode === "preview");
+  const internalBrowser = assert.rejects(controller.dispatch("browser", { action: "open" }), (error) => error.context.actual.mode === "preview");
   await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(calls, []);
   gate.resolve();
@@ -163,7 +165,7 @@ test("schema discovery preserves full contracts while status polling omits their
   controller.state = async (toolNames) => { scopes.push(toolNames); return state; };
   assert.equal((await controller.dispatch("get_app_state", {})).editorTools, undefined);
   const status = await controller.dispatch("get_app_state", { toolNames: [] });
-  assert.deepEqual(status, { ready: true, projectId: "project", buildId: status.buildId,
+  assert.deepEqual(status, { ready: true, projectId: "project", buildId: status.buildId, context: currentContext(state),
     editorContext: { sessionId: "session", changeCounter: 2 }, operations: state.operations });
   const selected = await controller.dispatch("get_app_state", { toolNames: ["read"] });
   assert.deepEqual(selected.editorTools, { read: { inputSchema: read.inputSchema } });
@@ -186,7 +188,7 @@ test("schema discovery preserves full contracts while status polling omits their
   }
   controller.state = async () => ({ ready: false, projectId: null });
   assert.deepEqual(await controller.dispatch("get_app_state", { toolNames: [] }), {
-    ready: false, projectId: null,
+    ready: false, projectId: null, context: currentContext({ ready: false, projectId: null }),
   });
 });
 test("readiness polling requests context without schemas", async (t) => {
@@ -204,6 +206,7 @@ test("readiness polling requests context without schemas", async (t) => {
 });
 test("state and independent media remain responsive while editor operations serialize", async () => {
   const controller = new DesktopController(() => null, {});
+  controller.checkContext = async () => {};
   const gate = deferred();
   const entered = deferred();
   const calls = [];
@@ -241,6 +244,7 @@ test("a lost metadata response expires, releases the queue and ignores a late IP
   };
   const win = { isDestroyed: () => false, webContents };
   const controller = new DesktopController(() => win, {});
+  controller.checkContext = async () => {};
   controller.execute = (method) =>
     method === "snapshot_layout"
       ? controller.invoke("metadata", {}, 10)
@@ -364,6 +368,7 @@ test("workspace screenshots capture the editor when a project uses a custom host
     },
   };
   const controller = new DesktopController(() => win, {});
+  controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", frameUuid: "frame" } });
   controller.ready = async () => calls.push("ready");
   controller.invoke = async (method) => calls.push(method);
   const result = await controller.dispatch("get_screenshot", {
@@ -374,7 +379,7 @@ test("workspace screenshots capture the editor when a project uses a custom host
   assert.equal(result.mimeType, "image/webp");
   assert.equal(result.encoding, "lossy");
   assert.equal((await sharp(Buffer.from(result.data, "base64")).metadata()).format, "webp");
-  assert.deepEqual(calls, ["ready", "ready", "renderReady", "capture"]);
+  assert.deepEqual(calls, ["renderReady", "capture"]);
   const full = await controller.dispatch("get_screenshot", { mode: "workspace", fullResolution: true });
   assert.equal(full.encoding, "lossless");
   assert.equal(full.width, 1600);
@@ -455,6 +460,7 @@ test("exports transitive library CSS through authenticated codegen requests with
   );
   controller.ready = async () => {};
   controller.editor = async () => ({ projectId: "root" });
+  controller.state = async () => ({ ready: true, projectId: "root", editorContext: { mode: "edit", canEdit: true } });
   try {
     const result = await controller.dispatch("export_code", {
       outputPath: path.join(root, "export"),
@@ -537,6 +543,7 @@ test("downloads self-hosted pictures and includes their bytes in an export", asy
   );
   controller.ready = async () => {};
   controller.editor = async () => ({ projectId: "project" });
+  controller.state = async () => ({ ready: true, projectId: "project", editorContext: { mode: "edit", canEdit: true } });
   try {
     const result = await controller.dispatch("export_code", {
       componentUuids: ["page"],

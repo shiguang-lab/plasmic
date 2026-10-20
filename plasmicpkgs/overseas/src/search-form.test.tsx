@@ -106,6 +106,20 @@ test("default four-column form keeps three fields and actions on one row; explic
   assert(threeColumn.includes('aria-expanded="true"'));
 });
 
+test("five labeled fields keep collapse available when initially expanded without increasing minRows", () => {
+  const fields = ["市场", "场景", "类型", "状态", "关键词"].map((label, i) => (
+    <SearchFormItem key={i} name={`field${i}`} label={label}><Input /></SearchFormItem>
+  ));
+  const expanded = renderToStaticMarkup(<SearchForm colSpan={6} collapsed={false}>{fields}</SearchForm>);
+  assert(expanded.includes('aria-expanded="true"'));
+  assert(expanded.includes("收起"));
+  const folded = renderToStaticMarkup(<SearchForm colSpan={6} collapsed>{fields}</SearchForm>);
+  assert(folded.includes('aria-expanded="false"'));
+  assert(folded.includes("展开"));
+  const twoVisibleRows = renderToStaticMarkup(<SearchForm colSpan={6} minRows={2} collapsed={false}>{fields}</SearchForm>);
+  assert(!twoVisibleRows.includes("aria-expanded="));
+});
+
 test("defaults preserve falsy values and reset business clear values separately", () => {
   assert.deepEqual(
     searchDefaults(

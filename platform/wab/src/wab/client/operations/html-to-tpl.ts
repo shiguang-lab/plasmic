@@ -34,6 +34,7 @@ import {
   objectLiteralToExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
 import { mkNormalizedRep } from "@/wab/shared/copilot/utils";
+import { validateRegisteredValue } from "@/wab/shared/copilot/model-read";
 import {
   code,
   codeLit,
@@ -165,6 +166,7 @@ export async function htmlToTpl(
     appCtx: AppCtx;
     pageHrefs: boolean;
     staticContent?: boolean;
+    ccRegistry?: CodeComponentsRegistry;
   },
 ): Promise<Result<HtmlToTplResult, WIImportFailedError>> {
   const { site, vtm, appCtx, pageHrefs } = opts;
@@ -191,6 +193,7 @@ export async function htmlToTpl(
     errors,
     pageHrefs,
     staticContent: opts.staticContent,
+    ccRegistry: opts.ccRegistry,
   });
 
   if (tpls.length === 0) {
@@ -544,6 +547,7 @@ async function wiTreeToTpl(
     errors: WIError[];
     pageHrefs: boolean;
     staticContent?: boolean;
+    ccRegistry?: CodeComponentsRegistry;
   },
 ) {
   const { site, vtm, appCtx, errors, pageHrefs } = opts;
@@ -861,6 +865,7 @@ async function wiTreeToTpl(
             propName,
             propValue,
             nodePath,
+            opts.ccRegistry?.getRegisteredCodeComponentsMap().get(component.name)?.meta.props[propName],
           ).match(
             ([param, argValue]) => {
               args[param.variable.name] = argValue;
@@ -1130,6 +1135,7 @@ export function getComponentArgFromHtmlProp(
   propName: string,
   value: unknown,
   path?: string,
+  registration?: unknown,
 ): Result<[Param, Expr], WIError> {
   const name = toVarName(propName);
   const param =
@@ -1229,6 +1235,11 @@ export function getComponentArgFromHtmlProp(
   // (non-variant-group) param type regardless of its declared type.
   if (typeof value === "string" && isDynamicValue(value)) {
     return ok([param, interpolatedStringToExpr(value)]);
+  }
+
+  const registrationError = validateRegisteredValue(value, registration, propName);
+  if (registrationError) {
+    return fail(registrationError);
   }
 
   // Color props also accept component-specific presets (such as Ant Design Tag's

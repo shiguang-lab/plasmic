@@ -321,6 +321,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
         url: win.webContents.getURL(),
         projectId: projectId(),
         ready: projects.some((project) => project.id === projectId()),
+        editorContext: { projectId: projectId(), mode: "edit", canEdit: true },
         editorTools: {
           identify: { inputSchema: { type: "object" } },
           createComponent: {

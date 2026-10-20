@@ -69,7 +69,7 @@ New IDs can be bound and used in the same batch:
 ]}
 ```
 
-The receipt's `operations[*].created` contains actual identities; it does not contain full page markup. Bindings resolve only in UUID fields/arrays, action identity fields and `canvasName`; they do not persist across calls. HTML component names resolve during asset preparation and must already exist: instantiate a newly created reusable definition in a subsequent call. A failed batch rolls back its model changes; a successful batch remains unsaved. Make a subsequent content edit and recheck AppShell viewport fill before saving; its component-owned sizing must survive normal edits. After checking the actual results and validation, call `execute`:
+The receipt's `operations[*].created` contains actual identities; it does not contain full page markup. Bindings resolve only in UUID fields/arrays, action identity fields and `canvasName`; they do not persist across calls. HTML component names resolve during asset preparation and must already exist: instantiate a newly created reusable definition in a subsequent call. A failed batch rolls back its model changes; a successful batch remains unsaved. After checking the actual results and validation, call `execute`:
 
 ```json
 {"name":"save","input":{}}

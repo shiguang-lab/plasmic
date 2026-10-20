@@ -627,6 +627,9 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .canvas-editor__right-pane .SidebarSection__Body:not(.SidebarSection__Body__NoBottomPadding):not(.SidebarSection__Body__EmptyBody)":
       { paddingBottom: 12 },
+    [`& .canvas-editor__right-pane .SidebarSection__Body:not(.SidebarSection__Body__NoBottomPadding):not(.SidebarSection__Body__EmptyBody) > .${sidebarSection.collapsingToggle}:not(.${sidebarSection.collapsingToggle_sticky})`]: {
+      marginBottom: -12,
+    },
     [`& .canvas-editor__right-pane .${sidebarSection.headerTitle}`]: {
       color: token.colorText,
     },
@@ -790,7 +793,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       rowGap: 0,
       alignSelf: "flex-start",
       border: `1px solid ${token.colorBorder}`,
-      borderRadius: 0,
+      borderRadius: token.borderRadius,
       boxShadow: token.boxShadowSecondary,
       background: token.colorBgContainer,
     },

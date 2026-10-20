@@ -21,6 +21,7 @@ export function setComponentInstanceProp(
   opts: {
     vs: VariantSetting;
     tplMgr: TplMgr;
+    registration?: unknown;
   },
 ): SetComponentInstancePropResult {
   const { vs, tplMgr } = opts;
@@ -32,6 +33,8 @@ export function setComponentInstanceProp(
     component.name,
     propName,
     value,
+    undefined,
+    opts.registration,
   )
     .map(([param, expr]) => {
       tplMgr.setArg(tpl, vs, param.variable, expr);

@@ -18,7 +18,7 @@ The outer div below represents the actual Page root, not an extra child wrapper.
 <div style="display:flex;flex-direction:column;width:stretch;height:stretch">
   <plasmic-component data-plasmic-component="plasmic-overseas-app-shell"
     data-plasmic-project="IMPORTED_PROJECT_ID" data-plasmic-name="AppShell"
-    data-props='{"menuItems":[{"key":"records","label":"Records","href":"/records"}]}'>
+    data-props='{"menuItems":[{"key":"records","label":"记录","href":"/records"}]}'>
     <slot name="children"><div style="width:100%;min-width:0">Business content</div></slot>
   </plasmic-component>
 </div>
@@ -43,7 +43,7 @@ Before accepting each affected standalone shell page:
 1. Read the Page model and check one root and exactly one registered AppShell, with business content in its own Slot. No explicit root height or instance dimension is required: the shared AppShell owns viewport sizing. Keep the business body content-sized; do not stretch cards or add blank content to make the shell appear taller. After a subsequent content edit, remeasure the shell rather than repairing ancestor heights.
 2. At the required artboard, compare the actual AppShell outer box, internal Layout and sidebar with the frame: top=0 and bottom=viewport height, within 1 CSS px. Reject both a shorter shell and a shell extending below the frame. Root overflow:hidden and a matching document contentHeight can conceal an oversized child; measure its actual box, including the Studio selection bounds, rather than its clipped visible portion. Record page/frame identity, viewport and measured boxes. A code component's instance style or an artboard size alone does not prove its rendered height. Check both short content and a populated long table.
 3. In real Preview, repeat at the actual shorter viewport and with overflowing content. The shell follows the viewport, navigation/header stay in place, the content region owns vertical scrolling and the last action remains reachable. A resized static screenshot does not test a different live viewport.
-4. Save, reload the project and reread the affected Page; repeat the artboard height check. Make a further content edit after reopening, confirm the shell still fills the viewport under the normal Page root, then save and reread. Apply this acceptance to newly created Pages as well as existing ones. Missing geometry or untested Preview scrolling remains unverified. Model validate and snapshot_layout's horizontal-overflow/image checks do not pass vertical-fill acceptance.
+4. After an authorized edit, save/reopen, reread the affected Page and repeat the artboard height check. For an explicitly requested shell/editor regression, additionally test a subsequent content edit using [engineering verification](../engineering/component-contracts.md). Ordinary delivery and read-only review do not introduce artificial edits. Missing geometry or untested Preview scrolling remains unverified; general model/rendering checks do not establish vertical fill.
 
 For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scripts/verify_shell_height.py) from resourceRoot against a full read of one Page and its component-targeted snapshot_layout JSON:
 
@@ -51,7 +51,7 @@ For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scr
 python3 scripts/verify_shell_height.py page-read.json page-layout.json
 ```
 
-The gate rejects a missing/ambiguous Page root, shell or snapshot, and a rendered shell/Layout/sidebar that falls short of or extends beyond the viewport edges. It checks model structure and actual artboard geometry, without requiring authored ancestor heights or instance sizing styles. Subsequent-edit, Preview scroll and save/reload checks above still require separate evidence. Full-project generation checks every routed shell Page separately; one passing page does not pass its siblings. Other shell libraries use their verified registrations and rendered structure with the same height acceptance criteria.
+The gate rejects a missing/ambiguous Page root, shell or snapshot, and a rendered shell/Layout/sidebar that falls short of or extends beyond the viewport edges. It checks model structure and actual artboard geometry, without requiring authored ancestor heights or instance sizing styles. Applicable subsequent-edit regression, Preview scroll and save/reload checks above still require separate evidence. Full-project generation checks every routed shell Page separately; one passing page does not pass its siblings. Other shell libraries use their verified registrations and rendered structure with the same height acceptance criteria.
 
 ## Library and theme ownership
 

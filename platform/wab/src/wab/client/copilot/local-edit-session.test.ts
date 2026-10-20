@@ -185,7 +185,7 @@ it("locates a structured node on its referenced page without editing the design"
       canEdit: true,
       editorView: null,
       selectedSlot: null,
-      previewContext: null,
+      previewKind: null, previewContext: null,
       path: [],
     }),
   });
@@ -235,7 +235,7 @@ it("reports a deleted node and does not try to scroll it into view", async () =>
       canEdit: true,
       editorView: null,
       selectedSlot: null,
-      previewContext: null,
+      previewKind: null, previewContext: null,
       path: [],
     }),
   });
@@ -282,7 +282,7 @@ it.each(["send", "retry"] as const)(
           scroll: { x: 0, y: 0 },
         },
         selectedSlot: null,
-        previewContext: null,
+        previewKind: null, previewContext: null,
         path: [],
       }),
     });
@@ -337,7 +337,7 @@ it.each(["run", "retry", "locate"] as const)(
         sessionId: "session", changeCounter: 0, componentUuid: "page",
         frameUuid: null, selectedElementUuids: [], instanceIndex: null,
         mode: "edit", canEdit: true, editorView: null,
-        selectedSlot: null, previewContext: null, path: [],
+        selectedSlot: null, previewKind: null, previewContext: null, path: [],
       }),
     });
     const request = vi.fn();

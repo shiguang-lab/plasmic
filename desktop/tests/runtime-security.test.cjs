@@ -32,6 +32,7 @@ test("the shipped entry applies production restrictions before importing the app
   const calls = [];
   const app = { isPackaged: true };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/entry.cjs"), "utf8"), {
+    process: { argv: [] },
     require: (name) => {
       if (name === "electron") return { app };
       if (name === "./runtime-security.cjs") return { configureProductionRuntime: (actual) => { assert.equal(actual, app); calls.push("restrict"); } };
@@ -41,6 +42,24 @@ test("the shipped entry applies production restrictions before importing the app
     },
   });
   assert.deepEqual(calls, ["restrict", "import", "bootstrap"]);
+});
+
+test("MCP startup stays a background transport without importing the GUI and exits on stdin close", async () => {
+  const calls = [], stdin = new (require("node:events").EventEmitter)();
+  const app = { setActivationPolicy: (policy) => calls.push(policy), dock: { hide: () => calls.push("hide") },
+    quit: () => calls.push("quit"), exit: () => assert.fail("Unexpected startup failure") };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/entry.cjs"), "utf8"), {
+    process: { argv: ["--mcp"], env: { PLASMIC_DESKTOP_PROFILE: "/test-profile" }, stdin },
+    require: (name) => {
+      if (name === "electron") return { app };
+      if (name === "./runtime-security.cjs") return { configureProductionRuntime: () => calls.push("restrict") };
+      assert.equal(name, "./mcp.cjs");
+      return { serveMcp: async (profile) => { assert.equal(profile, "/test-profile"); calls.push("serve"); return { close: () => calls.push("close") }; } };
+    },
+  });
+  await Promise.resolve();
+  stdin.emit("end");
+  assert.deepEqual(calls, ["restrict", "prohibited", "hide", "serve", "close", "quit"]);
 });
 
 test("the production View menu has no developer tools entry", () => {

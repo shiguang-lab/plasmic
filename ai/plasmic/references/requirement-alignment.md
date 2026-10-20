@@ -6,7 +6,7 @@ Keep business-specific page counts, entity names, routes, menu trees, field dict
 
 ## Source and scope
 
-Read the current requirement body and its page/navigation, field, permission and workflow sections. Record file/URL, version/date and section anchors. Apply explicit user decisions first, then the current requirement; use approved design evidence for presentation and library conventions for unspecified details. History, obsolete screenshots, previous models and generated code are evidence, not authority for current scope. Separate P0/P1/P2 or other release boundaries explicitly.
+Read the current requirement body and its page/navigation, field, permission and workflow sections. Record file/URL, version/date and section anchors. Apply explicit current user decisions first, then current requirements for business scope and behavior. For presentation, preserve approved design evidence; use applicable library/composition defaults for unspecified details. Explicit project policies such as [admin content entry](design/layout.md#admin-content-entry) state when a reference image alone is insufficient to opt into an exception. Record those adaptations; if the user explicitly requires conflicting exact reproduction, resolve that conflict before the affected edit. Live registered contracts determine what can actually be implemented, not permission to drop a required behavior. History, obsolete screenshots, previous models and generated code are evidence, not authority for current scope. Separate P0/P1/P2 or other release boundaries explicitly.
 
 Record conflicts and their resolution with sources. If a conflict changes business behavior and the current text/user decisions do not resolve it, ask a focused question while continuing independent work. Do not silently select the convenient statement. Visual conventions must not remove required fields, change entry points, permission rules or page ownership.
 
@@ -24,7 +24,7 @@ Before generation, review coverage in both directions: every in-scope requiremen
 
 ## Presentation, copy and native components
 
-Admin Pages inside AppShell start with business content, without a standalone Page title/header/subtitle/intro. Record `pageHeader:null`. Only an explicit current user request permits an exception, recorded as `{"nodeName":"EntityHeader","source":"user decision ..."}`. Reference/template headings do not override this rule. Keep native section, Form/Descriptions, Table/Card and overlay titles when they belong to those regions.
+Apply [admin content entry](design/layout.md#admin-content-entry). Record `pageHeader:null`, or an explicit current user exception as `{"nodeName":"EntityHeader","source":"user decision ..."}`. Native region titles remain with their owners.
 
 Before markup, apply [native component selection](libraries/index.md#native-component-selection) and map every required functional widget to its real registration in `components`, `controls` and matching region inventories. Include actions, navigation, pagination, feedback and overlays, not just Table/Form/Descriptions. SearchForm owns filters; Form/Item owns submitted fields and Descriptions/Item owns read-only groups. Each required target must resolve to its declared identity. Region/Slot gates still check field ownership and completeness.
 
@@ -73,7 +73,7 @@ Shared pages must be exercised for every required type, including directly enter
 
 ## Structural gate
 
-Save a task-local `structure-expectation.json` before generating. It contains all planned Page paths and the full expected AppShell menu tree; give every Page and the navigation a requirement section/excerpt or explicit user-decision citation. Keys/routes are implementation choices; labels/hierarchy/ownership are source-derived. Example format (illustrative routes, not a universal page count):
+Save a task-local `structure-expectation.json` before generating. It contains all planned Page paths and the full expected AppShell menu tree; give every Page and the navigation a requirement section/excerpt or explicit user-decision citation. Keys/routes are implementation choices; labels/hierarchy/ownership are source-derived. The following fragment illustrates navigation/binding fields only; it is not a complete controlled plan. Use `plan_schema` for all required declarations and derive routes from the source:
 
 ```json
 {
@@ -84,9 +84,9 @@ Save a task-local `structure-expectation.json` before generating. It contains al
   "navigation": {
     "source": "requirement.md §Navigation: Records > Record list; details entered from rows",
     "items": [
-      {"key": "records", "label": "Records", "children": [
-        {"key": "list", "label": "Record list", "href": "/records", "children": [
-          {"key": "detail", "label": "Record detail", "href": "/record-detail", "hidden": true}
+      {"key": "records", "label": "记录", "children": [
+        {"key": "list", "label": "记录列表", "href": "/records", "children": [
+          {"key": "detail", "label": "记录详情", "href": "/record-detail", "hidden": true}
         ]}
       ]}
     ]
@@ -123,7 +123,7 @@ Read the public MCP overview and all full Page models into separate JSON files. 
 python3 scripts/verify_structure.py structure-expectation.json overview.json pages.json --report structure-report.json
 ```
 
-The check rejects missing/extra/duplicate routes, incomplete full-page readback, missing/extra shells and different menu labels/hierarchy/order/visibility/destinations on any Page. It ignores unrelated menu appearance props. It currently checks standalone Overseas AppShell's static `menuItems`; dynamic menus require exercised role/state evidence and cannot pass this static gate by treating an expression as a menu. For host-owned navigation, record that verification separately rather than presenting this AppShell check as applicable.
+The check rejects missing/extra/duplicate routes, incomplete full-page readback, missing/extra shells and different menu labels/hierarchy/order/visibility/destinations on any Page. It ignores unrelated menu appearance props. It checks standalone Overseas AppShell's static `menuItems` and the restricted, independently inventoried `navigation.roleQuery` transform described in [unified verification](verification.md#reviewed-suite-configuration). Other expressions remain statically unverified and require exercised role/state evidence; extracting a literal menu skeleton is insufficient. For host-owned navigation, record that verification separately rather than presenting this AppShell check as applicable.
 
 This check proves agreement with the supplied expectation, not that the expectation faithfully interprets prose. Review its source citations against the original requirement before running the generator. The behavior matrix, role checks and complete-page screenshots remain necessary; structural success does not establish usability or runtime correctness.
 

@@ -561,7 +561,7 @@ const EDIT_TOOL_META = {
     toolName: "preview",
     title: "Open or close native Preview",
     description:
-      "Open the authenticated in-app Preview or return to the retained editor view, without saving or changing the design. open optionally selects a local Page and a Custom CSS viewport (width and height together); this does not add device columns. Returns route/viewport state, not rendering or behavior approval. Use getEditorContext for current runtime identity and computer UI controls to exercise actual interactions. The reference browser is isolated and cannot substitute for native Preview.",
+      "Open the authenticated in-app Preview or return to the original editor canvas, artboard, zoom and pan without saving or changing the design. close is idempotent and waits for the restored editor canvas, without requiring a working Preview iframe. open optionally selects a local Page and a Custom CSS viewport (width and height together); this does not add device columns. Returns route/viewport state, not rendering or behavior approval. Desktop runtime interactions use the top-level preview tool. The reference browser cannot substitute for native Preview.",
     inputSchema: z.object({
       action: z.enum(["open", "close"]),
       componentUuid: uuid.optional(),
@@ -597,6 +597,7 @@ const EDIT_TOOL_META = {
       instanceIndex: z.number().int().nullable(),
       mode: z.enum(["edit", "preview"]),
       canEdit: z.boolean(),
+      previewKind: z.enum(["in-app", "external", "interactive"]).nullable(),
       editorView: z
         .object({
           arenaId: uuid,

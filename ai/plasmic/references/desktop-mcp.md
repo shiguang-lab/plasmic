@@ -10,7 +10,7 @@ open_design saves before switching editable projects. Read-only work uses the op
 
 Use model UUIDs; reread contracts after library changes. Prop registration preserves declared types, args and nested fields without executing callbacks.
 
-New generation uses [prototype_task](prototype-tasks.md). Reference tools require a ready, editable project's edit page. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
+New generation uses [prototype_task](prototype-tasks.md). External-browser capture/import tools require a ready, editable project's edit page; local Pen reads do not require a canvas. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
 
 ## Mutate and persist
 
@@ -28,4 +28,4 @@ save returns projectId/revision/saved; reopen/reread proves persistence. Batches
 - Admin regions: [admin index](admin-design.md).
 - Explicit platform/component work: [engineering verification](engineering/component-contracts.md).
 
-Use public tools; report missing capabilities instead of assuming source access or upgrading the editor.
+Use public tools; report gaps. Never assume source access or upgrade the editor. Mode errors: [recovery](desktop-context.md).

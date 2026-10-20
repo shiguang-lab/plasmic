@@ -1,4 +1,24 @@
-import { registrationContract, withRegisteredContracts } from "@/wab/shared/copilot/model-read";
+import { registrationContract, withRegisteredContracts, validateRegisteredValue } from "@/wab/shared/copilot/model-read";
+
+test("dynamic choices expose metadata without a fake static enum or callback evaluation", () => {
+  const options = vi.fn(() => ["id"]);
+  const [prop] = withRegisteredContracts([{ name: "rowKey", type: "enum", options: ["Dynamic options"] }], { rowKey: { type: "choice", options } });
+  expect(prop).not.toHaveProperty("options");
+  expect(prop.registration).toMatchObject({ type: "choice", optionsDynamic: true });
+  expect(options).not.toHaveBeenCalled();
+});
+
+test("declared custom rule shapes reject raw Antd rules and preserve dynamic bindings", () => {
+  const metadata = { type: "formValidationRules", itemType: { type: "object", fields: {
+    ruleType: { type: "choice", options: ["required", "regex", "advanced"], required: true }, message: "string", custom: { type: "function", argNames: ["rule", "value"] },
+  } } };
+  expect(validateRegisteredValue([{ required: true }], metadata, "rules")).toBe("rules[0].ruleType is required");
+  expect(validateRegisteredValue([{ ruleType: "unknown" }], metadata, "rules")).toContain("rules[0].ruleType must be one of");
+  expect(validateRegisteredValue([{ ruleType: "required", message: "Enter a value" }], metadata, "rules")).toBeUndefined();
+  expect(validateRegisteredValue("{{ $state.rules }}", metadata, "rules")).toBeUndefined();
+  expect(validateRegisteredValue([{ ruleType: "advanced", custom: "value => true" }], metadata, "rules")).toBe("rules[0].custom expects a function binding");
+  expect(validateRegisteredValue([{ ruleType: "advanced", custom: "{{ (rule, value) => value !== '' }}" }], metadata, "rules")).toBeUndefined();
+});
 
 test("contract reads preserve return-function signatures and nested registration fields without executing callbacks", () => {
   const callback = vi.fn(() => { throw new Error("Must not run metadata"); });

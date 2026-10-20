@@ -68,6 +68,26 @@ async function inspectCanvas() {
     elements: visible.map((el, index) => {
       const rect = el.getBoundingClientRect();
       const valKey = el.getAttribute("data-plasmic-valkey");
+      let cellContent;
+      if (el.tagName === "TD" && getComputedStyle(el).position === "sticky") {
+        const controls = [...el.querySelectorAll('a,button,input,select,[role="button"],[role="link"]')]
+          .filter((control) => control.closest("td,th") === el && isVisible(control));
+        if (controls.length) {
+          const style = getComputedStyle(el);
+          const paddingLeft = parseFloat(style.paddingLeft) || 0;
+          const paddingRight = parseFloat(style.paddingRight) || 0;
+          const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+          const borderRight = parseFloat(style.borderRightWidth) || 0;
+          const bounds = controls.map((control) => control.getBoundingClientRect());
+          const controlsLeft = Math.min(...bounds.map((bound) => bound.left));
+          const controlsRight = Math.max(...bounds.map((bound) => bound.right));
+          const contentLeft = rect.left + paddingLeft + borderLeft;
+          const contentRight = rect.right - paddingRight - borderRight;
+          cellContent = { left: contentLeft, right: contentRight, controlsLeft, controlsRight, paddingLeft, paddingRight,
+            requiredWidth: Math.ceil(controlsRight - controlsLeft + paddingLeft + paddingRight + borderLeft + borderRight),
+            overflow: controlsLeft < contentLeft - 1 || controlsRight > contentRight + 1 };
+        }
+      }
       let left = rect.left;
       let right = rect.right;
       for (
@@ -101,6 +121,7 @@ async function inspectCanvas() {
         height: rect.height,
         horizontalOverflow:
           right > left && (left < -1 || right > innerWidth + 1),
+        ...(cellContent ? { cellContent } : {}),
       };
     }),
     images: [...root.querySelectorAll("img")].filter(isVisible).map((el) => ({
@@ -268,7 +289,7 @@ async function readyDocument() {
 }
 const js = (fn, input) => `(${fn.toString()})(${JSON.stringify(input)})`;
 async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input) {
-  const previewMode = /\/preview(?:\/|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname);
+  const previewMode = /\/preview(?:\/|$|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname);
   const end = Date.now() + 20000;
   while (Date.now() < end) {
     const frames = win.webContents.mainFrame.framesInSubtree.filter((frame) => {

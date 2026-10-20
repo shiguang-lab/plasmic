@@ -13,7 +13,7 @@ import {
   InputType,
   SimplifiedFormItemsProp,
 } from "./Form";
-import { FormItemControlContextData, InternalFormItemProps } from "./FormItem";
+import { FormItemControlContextData, InternalFormItemProps, formRuleTypes } from "./FormItem";
 import { CommonFormControlContextData } from "./contexts";
 
 const mapAntdComponentToInputType = new Map<any, InputType>([
@@ -225,6 +225,16 @@ export function commonFormItemProps(
     rules: {
       displayName: "Validation rules",
       type: "formValidationRules" as const,
+      description: 'Wrapper rules, for example [{"ruleType":"required","message":"Enter a value"}]. Submit through the owning Form; raw Antd required:true rules are not this contract.',
+      itemType: {
+        type: "object",
+        fields: {
+          ruleType: { type: "choice", options: [...formRuleTypes], required: true },
+          length: "number", pattern: "string", message: "string",
+          options: { type: "array", itemType: { type: "object", fields: { value: "any" } } },
+          custom: { type: "function", argNames: ["rule", "value"] },
+        },
+      },
     } as any,
     validateFirst: {
       type: "boolean" as const,

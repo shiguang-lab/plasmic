@@ -15,6 +15,8 @@ Preserve registered motion defaults: animated=true, animateTabBar=true and anima
 
 In live Preview, switch Tabs in both directions and verify the animated ink-bar class, correct indicator bounds and matching content. Recheck delivered props and motion after save/reopen; static screenshots alone do not prove motion.
 
+`tabBarExtraContentRight` is the registered Slot for trailing tab-bar actions. Shared versus scope-specific list action placement follows [query/list composition](../../overseas/compositions/search-table.md#query-and-list-structure).
+
 ## Items
 
 Each Tab Item is a separately registered child of [Tabs](tabs.md), with its unique key, label Slot and children content Slot. Place each scope's real Table, pagination and relevant state in that content Slot rather than under a sibling wrapper. Check inactive as well as active content and save/reopen ownership.

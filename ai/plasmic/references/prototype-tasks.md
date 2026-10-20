@@ -1,24 +1,18 @@
 # Controlled native Page generation
 
-Use for new full-project fixed-viewport Pages covered by the current library suite. Focused edits and other library/layout scopes retain scoped verification. This is task-local evidence and ordering, not another persisted Studio model.
+Use for new full-project standalone fixed-viewport Overseas/Antd-v6 Pages covered by the [unified suite](verification.md). Focused edits and other library/layout scopes retain scoped verification. This is task-local evidence and ordering, not another persisted Studio model.
 
 ## Prepare source expectations
 
-Prepare suite.json and source-derived structure/forms/descriptions/overlays inventories before content. Declare every planned route in each inventory, with empty arrays for reviewed inapplicability. Each Page has path, Chinese business name, source citation and a unique `screen` identifying its logical screen in the requirement. Record types, Tabs, overlays and state frames belonging to that screen share one Page; they do not become separate routes. Source interpretation still needs independent review.
+Call `prototype_task {action:"plan_schema"}` before preparing a new suite. Its `planSchema` is the machine-readable format for `{suite,documents}`; `planExample` contains a complete minimal suite, all four inventories and Slot-intent markup. Save each example document under the matching `suite.*.inventory` path only as a format starting point; replace its source, routes, native contracts, fields and cases from the current requirements. Pen tasks also need the declared reference inventory. `validate_plan` reports independent format errors together and points back to this public action; semantic ownership/coverage checks still apply. Do not inspect client implementation to discover formats.
+
+Prepare suite.json and source-derived structure/forms/descriptions/overlays inventories before content. Declare every planned route in each inventory, with empty arrays for reviewed inapplicability. Each Page has path, Chinese business name, source citation and a unique `screen` identifying its logical screen in the requirement. Record types, Tabs, overlays and state frames of a source-defined shared screen stay on that Page; independently specified business flows retain their separate screen identities under [route inventory](requirement-alignment.md#inventory-before-routes). Source interpretation still needs independent review.
 
 Each Page declares pageHeader:null by default, required native `components`, reviewed `copy:{source,excluded,help}`, and nonempty runtimeCases. Header exceptions require an explicit current user request. elementFallbacks names exact targets, verified registration gaps and source citations; apply [native component selection](libraries/index.md#native-component-selection). Review requirement explanations separately from actual field help.
 
-A compact Page example:
+Inventory applicable SearchForm `onSearch`/`onReset`, row actions and Form submit/ref actions in the reviewed bindings, with their native event arguments and affected data state. Required events cannot be empty callbacks. A nonempty callback or a state named for an action still does not prove its business effect; runtime cases must assert the query/reset result, distinct-record action, validation failure and subsequent success. Read registered rule shapes and handle hidden default Slots explicitly before freezing intent.
 
-```json
-{"path":"/records","name":"记录列表","screen":"requirement.md §Record list","source":"requirement.md §Record list","pageHeader":null,
- "bindings":[{"nodeName":"RecordsTable","source":"requirement.md §Query","props":["data"],"dynamicProps":["data"],"propStateDependencies":{"data":["query"]}}],
- "components":[{"nodeName":"RecordsTable","component":"REGISTERED_COMPONENT","role":"widget","purpose":"Source-reviewed results region","source":"requirement.md §List"}],
- "copy":{"source":"requirement.md §Copy review","excluded":[],"help":[]},
- "runtimeCases":[{"id":"unmatched-query","source":"requirement.md §Query","steps":[{"action":"fill","role":"textbox","name":"关键字","value":"NO_MATCH_TEST"},{"action":"click","role":"button","name":"查询"}],"assertions":[{"kind":"text","text":"暂无数据","present":true}]}]}
-```
-
-Labels and registration above are illustrative: discover live contracts. Declare navigation:{source,items}, including items:[] when absent. controls.props is an object; bindings.props/dynamicProps/events are string arrays; propStateDependencies maps prop names to nonempty state-path arrays. Form layout is a layout-check object; native Form layout uses formLayout. Empty bindings requires a reviewed bindingsNotApplicable reason. Rules are objects. Match the relevant [component references](libraries/index.md), never output-derived expectations.
+Use `plan_schema` for field types and complete runnable examples. The declarations below explain acceptance semantics; they are not an alternative JSON schema. Independently reviewed expectations come from the requirement, not generated output.
 
 Each components entry declares a source-derived role and purpose before selecting its component. In this controlled library suite, role is widget (ordinary region/control), content-scope (Tabs), category (Tag or Column tag display), row-actions (ActionGroup in a reviewed fixed-right Column.render with positive width), or pagination (one native paging owner with a bound showTotal). The role is task acceptance metadata, never a Studio prop. Include every Table.Column and its field/presentation decision. Use props for partial native property constraints, dynamicProps for bound property paths, and owner:{nodeName,slot} for real registered Slot ownership. Binding paths may address nested native fields such as pagination.total. These checks do not infer source meaning from CSS or option text; independently review classification and coverage.
 
@@ -36,7 +30,7 @@ For supplied .pen files, add references.inventory to the suite. Every Page maps 
 {"pages":[{"path":"/records","references":[{"id":"default","filePath":"/absolute/source.pen","nodeId":"ACTUAL_FRAME_ID"}],"regions":[{"referenceId":"default","nodeNames":["RecordsTable"],"decision":"Keep source hierarchy with the registered table"}]}]}
 ```
 
-Use original absolute files. design_reference index discovers top-level frames with pagination. Inside the task, read current-Page frame properties at depth 1 or more, following nextOffset; include id/type/layout/width/height/padding/gap/justifyContent/alignItems. Read relevant descendants for typography/styles and acquire each frame screenshot. Layout text alone does not establish visual fidelity. Map every distinct state; consolidate only genuinely equivalent frames with a source-derived explanation.
+Use original absolute files through public Pen MCP/design_reference, never shell/JSON parsing of `.pen`. Read its live schemas and advertised skill; when `read_skill` advertises `path`, use `{"path":"execute.md"}`. design_reference index discovers top-level frames with pagination. Inside the task, read current-Page frame properties at depth 1 or more, following nextOffset; include id/type/layout/width/height/padding/gap/justifyContent/alignItems. Read relevant descendants for typography/styles and acquire each frame screenshot. Layout text alone does not establish visual fidelity. Map every distinct state; consolidate only genuinely equivalent frames with a source-derived explanation.
 
 Actual calls are archived by Desktop, with source-file and image hashes. cancel/resume retains them; changed source files invalidate reuse. An unchanged paginated read can retain its source image. Native Desktop remains the design device even for narrower references. Inspect image pixels with an image-capable reviewer; delivery of an image block does not prove perception. Without such review leave visual acceptance incomplete. Pen discovery/configuration follows the live design_reference contract.
 
@@ -50,7 +44,7 @@ Use prototype_task directly. sourceFiles contains original requirements or retai
 
 For each Page:
 
-1. Read its Pen frames/screenshots and expected registered component contracts through execute read(view:contract), including source-declared widgets and cross-library dependencies omitted from a draft. Prepare current-Page Slot intent from those contracts; begin_page checks source-expected and used contracts before freezing intent.
+1. Read its Pen frames/screenshots and expected registered component contracts through execute read(view:contract), including source-declared widgets and cross-library dependencies omitted from a draft. Prepare current-Page Slot intent, then call begin_page with the live schema's required arguments. Its contract/intent checks must pass before content writes.
 2. Generate structure, native state and events on this Page. insertHtml requires actual contract reads for every registered widget. Contract failures require correcting the operation, not weakening source expectations.
 3. Save. Run verify_all.py --page /exact-route with the suite. A passing live capture automatically registers structural_check using exact model/layout/validate evidence, session/build and archived input hashes. Correct failures before continuing.
 4. Acquire and inspect a current-Page get_screenshot after structural_check. Exercise native preview cases with begin_case, fresh snapshot refs, pinned actions and exact assert checks. State-specific Preview screenshots cover Tabs, overlays and processing. Saved initial-state changes are not runtime evidence and writes are blocked during active cases. cancel_case leaves the case pending for fixes.
@@ -58,6 +52,8 @@ For each Page:
 6. Close Preview and complete_page. Missing structure, image comparisons or local cases block advancement. Then begin the next Page. Run deferred cases after all Pages complete.
 
 Shared/library or actual untracked changes invalidate affected checks. Save-only revision changes preserve them. Reopen invalidates model/runtime/image acceptance, while unchanged original reference evidence remains available. status reports pending cases and a compact nextAction; keep complete artifacts on disk.
+
+Before each Page's final capture, review every task-owned root/descendant name, native layout component use, hidden demonstration Slot, unrequested title/copy and scroll owner. Follow the source-reviewed column widths and operation-column ownership; changing the output does not change frozen expectations. Any later mutation requires fresh structural, image and runtime evidence. Never use a weakened verifier or single-Page replay as a whole-project acceptance result.
 
 ## Recovery and completion
 

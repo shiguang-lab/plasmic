@@ -4174,14 +4174,17 @@ export function propTypeToWabType(
           }
         }
         case "choice": {
-          const options = Array.isArray(type.options)
-            ? isArrayOfLiterals(type.options)
+          // Context-dependent choices have no static enum. The registration
+          // remains authoritative for Studio's dynamic choice control.
+          if (!Array.isArray(type.options)) {
+            return ok(typeFactory.any());
+          }
+          const options = isArrayOfLiterals(type.options)
               ? type.options
               : (type.options as ChoiceObject[]).map((op) => ({
                   label: op.label,
                   value: op.value,
-                }))
-            : ["Dynamic options"];
+                }));
           return ok(
             // Multi only when explicitly true; anything else — including a
             // context-dependent (function) multiSelect we can't resolve here —

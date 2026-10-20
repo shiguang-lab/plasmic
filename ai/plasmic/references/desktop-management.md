@@ -33,8 +33,7 @@ network errors do not prove that the requested object is absent.
 Do not create a replacement merely because a name was not found. An explicit
 request to create that missing object already authorizes creation; explain the
 lookup result and use that authorization without asking again. Otherwise wait
-for the user's choice to create and obtain its name before the write. Find
-existing named objects first and reuse a unique match. Recheck the new object's
+for the user's choice to create and obtain its name before the write. For an open/select request, find existing named objects and reuse a unique match. An explicit new/fresh-project request creates a new object under the resolved parent, even if an older object has the same name; retain and use the returned new ID. A name search does not authorize reading an old project's content. Recheck the new object's
 parent in the response and scoped list before proceeding. `create_org` also
 creates a default Workspace, so list its Workspaces before selecting or creating
 the requested Workspace. Workspace plan restrictions are errors even on HTTP

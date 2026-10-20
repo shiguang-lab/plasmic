@@ -181,6 +181,7 @@ class PrototypeTask {
   }
   async command(input) {
     await this.loading;
+    if (input.action === "plan_schema") return require("./prototype-plan-schema.cjs");
     if (input.action === "validate_plan") {
       if (!path.isAbsolute(input.suitePath || "")) throw new Error("validate_plan requires an absolute suitePath");
       const suite = JSON.parse(await fs.readFile(input.suitePath)), base = path.dirname(input.suitePath), documents = {};
@@ -361,7 +362,7 @@ class PrototypeTask {
       const current = this.run.currentCase, page = this.run.pages.find((p) => p.path === current.page), spec = page.runtimeCases.find((c) => c.id === current.id);
       if (input.action === "assert") {
         if (current.step !== spec.steps.length || valueHash(input.checks) !== valueHash(spec.assertions)) throw new Error("Execute the pinned runtime steps and exact source-derived assertions");
-      } else if (!["state", "screenshot"].includes(input.action)) {
+      } else if (!["state", "screenshot", "close"].includes(input.action)) {
         const step = spec.steps[current.step];
         const discovery = input.action === "snapshot" && step?.action !== "snapshot";
         if (!discovery && (!step || step.action !== input.action || Object.entries(step).some(([key, value]) => !["role", "name"].includes(key) && canonical(input[key]) !== canonical(value)))) throw new Error("Runtime case expects its next pinned step: " + JSON.stringify(step));
@@ -482,6 +483,10 @@ class PrototypeTask {
       if (current) {
         const page = this.run.pages.find((p) => p.path === current.page), spec = page.runtimeCases.find((c) => c.id === current.id);
         const step = spec.steps[current.step];
+        if (input.action === "close" && step?.action !== "close") {
+          this.run.currentCase = null;
+          await this.event("case_cancelled", { page: current.page, caseId: current.id, step: current.step });
+        }
         if (step?.action === input.action) {
           if (step.role && result.target?.role !== step.role || step.name !== undefined && result.target?.name !== step.name) throw new Error("Runtime action targeted a different control than its reviewed case");
           current.step++;

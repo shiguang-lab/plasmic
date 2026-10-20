@@ -14,6 +14,7 @@ const { McpResults } = require("./mcp-results.cjs");
 const { browserOutput } = require("./browser-output.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const fs = require("node:fs/promises");
+const { errorPayload } = require("./tool-context.cjs");
 async function transportResult(request, response, started) {
   if (process.env.PLASMIC_MCP_METRICS) {
     await fs.appendFile(process.env.PLASMIC_MCP_METRICS, JSON.stringify({
@@ -101,7 +102,7 @@ const tools = [
   {
     name: "get_app_state",
     description:
-      "Read readiness, current project/session/model identity, selection and active operations. view:tools lists operation names; toolNames selects complete input contracts with buildId/session identity only. executeBatch points to execute_batch; read constituent contracts. schemaView:full adds complete output schemas and native batch inputs. Reuse contracts only within the same buildId/session. Build provenance, image-service status and editor viewport have separate read tools.",
+      "Read readiness, current project/session/model identity, selection and active operations. context reports surface, mode, previewKind, project/session, canvas identity and effective canEdit; ready is editor-model availability, not iframe rendering approval. view:tools lists operation names; toolNames selects complete input contracts. executeBatch points to execute_batch; read constituent contracts. schemaView:full adds complete output schemas and native batch inputs. Context mismatches include required/actual and explicit recovery calls; ordinary reads/writes never switch modes or projects. Reuse contracts only within the same buildId/session. Build provenance, image-service status and editor viewport have separate read tools.",
     inputSchema: object({
       view: { type: "string", enum: ["status", "tools"] },
       toolNames: {
@@ -471,13 +472,13 @@ tools.push(
   {
     name: "snapshot_layout",
     description:
-      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Target frameUuid/elementUuid and follow nextOffset per frame. componentUuid inspects a background canvas without changing selection. Checks horizontal overflow/image loading only; interactions, breakpoints and overlap require Preview. Get editable IDs through execute read.",
+      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Target frameUuid/elementUuid and follow nextOffset per frame. componentUuid inspects a background canvas without changing selection. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading; interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       frameUuid: { type: "string", minLength: 1 },
       elementUuid: { type: "string", minLength: 1 },
       view: { type: "string", enum: ["summary", "elements", "images", "problems", "full"] },
-      fields: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", enum: ["index", "elementUuid", "tag", "text", "classes", "x", "y", "width", "height", "horizontalOverflow", "src", "alt", "loaded", "type", "bounds", "viewportWidth"] } },
+      fields: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", enum: ["index", "elementUuid", "tag", "text", "classes", "x", "y", "width", "height", "horizontalOverflow", "src", "alt", "loaded", "type", "bounds", "viewportWidth", "cellContent"] } },
       offset: { type: "integer", minimum: 0 },
       limit: { type: "integer", minimum: 1, maximum: 100 },
     }),
@@ -568,7 +569,8 @@ async function serveMcp(profile) {
       if (image) response.content.push({ type: "image", data, mimeType: metadata.mimeType });
       return transportResult(request, response, started);
     } catch (error) {
-      return transportResult(request, { ...results.output({ error: error.message }), isError: true }, started);
+      const { message, ...details } = errorPayload(error);
+      return transportResult(request, { ...results.output({ error: message, ...details }), isError: true }, started);
     }
   });
   await server.connect(new StdioServerTransport());

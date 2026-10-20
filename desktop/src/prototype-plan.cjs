@@ -1,6 +1,14 @@
 // Source-review contracts, not a second Studio component/property model.
+const { AjvJsonSchemaValidator } = require("@modelcontextprotocol/sdk/validation/ajv-provider.js");
+const { planSchema } = require("./prototype-plan-schema.cjs");
+const validateFormat = new AjvJsonSchemaValidator().getValidator(planSchema);
+const invalidPlan = (message) => Object.assign(new Error(message), {
+  context: { code: "INVALID_PLAN", operationExecuted: false, schemaTool: { tool: "prototype_task", arguments: { action: "plan_schema" } } },
+});
 function validatePlan(suite, documents) {
-  const fail = (at, expected) => { throw new Error(`Invalid reviewed plan at ${at}: expected ${expected}`); };
+  const format = validateFormat({ suite, documents });
+  if (!format.valid) throw invalidPlan("Invalid reviewed plan: " + format.errorMessage);
+  const fail = (at, expected) => { throw invalidPlan(`Invalid reviewed plan at ${at}: expected ${expected}`); };
   const object = (value, at) => { if (!value || typeof value !== "object" || Array.isArray(value)) fail(at, "object"); return value; };
   const text = (value, at) => { if (typeof value !== "string" || !value.trim()) fail(at, "nonempty string"); };
   const list = (value, at, visit = object) => { if (!Array.isArray(value)) fail(at, "array"); value.forEach((v, i) => visit(v, `${at}/${i}`)); return value; };

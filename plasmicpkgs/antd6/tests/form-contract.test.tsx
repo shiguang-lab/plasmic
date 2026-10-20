@@ -4,8 +4,16 @@ import React from "react";
 import { expect, test, vi } from "vitest";
 import { FormRefActions, FormWrapper } from "../src/form/Form";
 
-import { FormItemWrapper } from "../src/form/FormItem";
+import { FormItemWrapper, formRuleTypes } from "../src/form/FormItem";
+import { commonFormItemProps } from "../src/form/sharedRegistration";
 import { FormWrapper as SchemaForm } from "../src/form/SchemaForm";
+
+test("custom validation metadata exposes the same rule kinds accepted by the wrapper", () => {
+  const rules = commonFormItemProps("advanced-form-item").rules as any;
+  expect(rules.type).toBe("formValidationRules");
+  expect(rules.itemType.fields.ruleType).toEqual({ type: "choice", options: [...formRuleTypes], required: true });
+  expect(rules.itemType.fields.custom.argNames).toEqual(["rule", "value"]);
+});
 
 test("FormItem reports one ordered error, keeps its description and clears errors after correction", async () => {
   const ref = React.createRef<FormRefActions>();

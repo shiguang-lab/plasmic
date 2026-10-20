@@ -48,16 +48,10 @@ export interface InternalFormItemProps
   name?: string;
 }
 
+export const formRuleTypes = ["enum", "len", "max", "min", "regex", "required", "whitespace", "advanced"] as const;
+
 interface PlasmicRule {
-  ruleType:
-    | "enum"
-    | "len"
-    | "max"
-    | "min"
-    | "regex"
-    | "required"
-    | "whitespace"
-    | "advanced";
+  ruleType: (typeof formRuleTypes)[number];
   length?: number;
   pattern?: string;
   custom?: (...args: any[]) => any;

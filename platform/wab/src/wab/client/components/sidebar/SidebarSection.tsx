@@ -271,7 +271,8 @@ export function SidebarSection_(
     sticky: scrollable,
     onCollapsed: onExtraContentCollapsed,
     onExpanded: onExtraContentExpanded,
-    noBorder,
+    // The section container owns the divider below the expansion toggle.
+    noBorder: true,
   });
 
   useImperativeHandle(
@@ -394,7 +395,7 @@ export function SidebarSection_(
                 expanded={showMore}
                 onClick={handleToggle}
                 sticky={scrollable}
-                noBorder={noBorder}
+                noBorder
               />
             )}
           </SidebarSectionContext.Provider>

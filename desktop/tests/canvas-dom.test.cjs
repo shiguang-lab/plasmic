@@ -85,6 +85,7 @@ Module._load = function (name, ...args) {
 };
 const { renderCanvas, canvasFrames } = require("../src/canvas.cjs");
 const { DesktopController } = require("../src/controller.cjs");
+const { readLayout } = require("../src/layout-read.cjs");
 Module._load = originalLoad;
 function windowFor(dom) {
   return {
@@ -113,6 +114,26 @@ test("image inspection is scoped to visible business content without hiding real
     assert.equal(frame.layout.images[0].loaded, false);
     dom.window.document.querySelector("#business").hidden = true;
     assert.equal((await canvasFrames(windowFor(dom)))[0].layout.images.length, 0);
+  } finally { dom.window.close(); }
+});
+
+test("layout measures sticky cell controls against native cell padding even when they fit the viewport", async () => {
+  const dom = domFor('<div class="__wab_val_root"><table><tbody><tr><td id="actions" style="position:sticky;right:0;padding:8px;border:0"><button id="detail">详情</button><button id="edit">编辑</button><button id="more">更多</button><button hidden>Hidden action</button></td></tr></tbody></table></div>');
+  let cellWidth = 136;
+  const rect = (x, width) => ({ x, y: 0, left: x, right: x + width, width, height: 30 });
+  dom.window.document.querySelector("#actions").getBoundingClientRect = () => rect(200, cellWidth);
+  for (const [id, x, width] of [["detail", 208, 42], ["edit", 250, 42], ["more", 292, 60]]) {
+    dom.window.document.getElementById(id).getBoundingClientRect = () => rect(x, width);
+  }
+  try {
+    const inspect = async () => readLayout((await canvasFrames(windowFor(dom)))[0].layout, { view: "full" });
+    const narrow = await inspect();
+    const problem = narrow.problems.find((p) => p.type === "table-cell-control-overflow");
+    assert.equal(problem.cellContent.requiredWidth, 160);
+    assert.equal(problem.cellContent.paddingRight, 8);
+    assert.equal(narrow.elements.some((el) => el.horizontalOverflow), false);
+    cellWidth = 160;
+    assert.equal((await inspect()).problems.length, 0);
   } finally { dom.window.close(); }
 });
 
@@ -222,6 +243,7 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
     });
   const controller = new DesktopController(() => windowFor(source), {});
   controller.ready = async () => {};
+  controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "frame" } });
   try {
     const layout = await controller.dispatch("snapshot_layout", { view: "full" });
     assert.equal(layout.frames[0].problems.length, 1);
@@ -315,6 +337,7 @@ test("layout text excludes descendant CSS, scripts and hidden content", async ()
   );
   const controller = new DesktopController(() => windowFor(source), {});
   controller.ready = async () => {};
+  controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "frame" } });
   try {
     const layout = await controller.dispatch("snapshot_layout", { view: "full" });
     const section = layout.frames[0].elements.find(

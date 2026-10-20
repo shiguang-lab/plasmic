@@ -8,6 +8,18 @@ import { ensureKnownVariantsRef } from "@/wab/shared/model/classes";
 import { ComponentType } from "@/wab/shared/core/components";
 
 describe("setComponentInstanceProp", () => {
+  it("rejects invalid declared custom shapes before replacing an existing value", () => {
+    const { instance, getArg, opts } = setupComponentWithInstance();
+    const registration = { type: "formValidationRules", itemType: { type: "object", fields: {
+      ruleType: { type: "choice", options: ["required"], required: true },
+    } } };
+    const valid = [{ ruleType: "required" }];
+    expect(setComponentInstanceProp(instance, "data", valid, { ...opts, registration }).isOk()).toBe(true);
+    const result = setComponentInstanceProp(instance, "data", [{ required: true }], { ...opts, registration });
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr().message).toContain("data[0].ruleType is required");
+    expect(tryExtractJson(getArg(instance, "data")!.expr)).toEqual(valid);
+  });
   it("keeps registered code-component prop names such as aria-label intact", () => {
     const { button, instance, getArg, opts } = setupComponentWithInstance();
     button.type = ComponentType.Code;

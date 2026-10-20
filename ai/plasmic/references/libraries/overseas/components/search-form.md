@@ -7,7 +7,7 @@ Library: [Overseas](../index.md).
 | SearchForm | `plasmic-overseas-search-form` |
 | SearchForm.Item | `plasmic-overseas-search-form-item` |
 
-来源：`fintechgrowthui/src/components/search-form.tsx`。Overseas 实现保留查询卡片、24 栅格、末行右侧操作、展开/收起、字段初始值及业务清除值语义，使用 Ant Design 6。输入控件由画布节点提供。
+设计来源为 fintechgrowthui 的 SearchForm；该来源不是任务必需的本地文件。Overseas 实现保留查询卡片、24 栅格、末行右侧操作、展开/收起、字段初始值及业务清除值语义，使用 Ant Design 6。输入控件由画布节点提供。
 
 ## 可编辑结构
 
@@ -15,7 +15,7 @@ Read [SearchForm.Item](search-form.md#searchformitem) for field Props, control v
 
 `plasmic-overseas-search-form` 的 Fields (`children`) Slot 放置 `plasmic-overseas-search-form-item` 实例。一个实例代表一个字段，字段顺序就是画布节点顺序。插入、复制、删除、移动和修改通过 Studio/MCP 的现有节点操作完成，无独立的字段数组或另一套简化模式。
 
-SearchForm 提供 Extra actions (`extraActions`) Slot。Extra actions 位于查询/重置之后；内置按钮文本通过属性编辑，其行为固定为提交和重置。
+SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作，位于查询/重置之后。新建、导入等业务动作按[列表组合](../compositions/search-table.md#query-and-list-structure)放置，不因存在此 Slot 就放入查询操作列。内置按钮文本通过属性编辑，其行为固定为提交和重置。
 
 ## 布局与状态
 
@@ -37,9 +37,13 @@ SearchForm 提供 Extra actions (`extraActions`) Slot。Extra actions 位于查�
 
 ## 页面生成
 
-后台四列组合（colSpan=6、minRows=1）只有三个普通字段时，查询/重置位于同一行第四格，不显示多余的展开控件。检查每个 Item 的 span 覆盖；日期范围不得沿用旧三列布局的 span=8，除非当前需求明确需要更宽字段。
+每个查询字段默认提供可见的 `label` 或真实 `labelContent`，包括关键词输入；placeholder 仅作为输入提示，不能替代标签，也不能为了给输入框更多空间而把 label 清空。标签文本从业务字段含义确定，并重新测量整个表单的 labelWidth。明确要求无标签的特殊搜索入口需在 source-reviewed Item 的 `props.label:""` 和来源中单独声明；参考图中只有 placeholder 不自动构成这一例外。
 
-列表查询区统一使用 Overseas SearchForm，按需求插入真实 Item 和 Antd6 控件，默认四列 colSpan=6。不得生成另一套原生查询网格、重复查询按钮，或不可编辑的 fields/element JSON。生成前读取已发布 Overseas 和 Antd6 契约，必要时安装/升级库并保存。额外操作使用 extraActions，字段增删排序使用节点操作，查询/重置事件接页面状态。
+标准列表保留 `minRows=1`。希望初始展开并保留收起按钮时，设置 `collapsed=false`，不要通过增加 minRows 实现初始展开。五个 span=6 的字段跨两行：minRows=1 显示展开/收起，minRows=2 会使两行全部成为常驻区域而不显示按钮；只有明确批准常驻两行时才在计划中声明后者。编辑器强制展示全部字段与运行态的折叠设置分别验收。
+
+后台四列组合（colSpan=6、minRows=1）只有三个普通字段时，查询/重置位于同一行第四格，不显示多余的展开控件。检查 Item 的实际 span；日期范围等较宽控件按需求与可用空间决定是否跨列，不继承无依据的覆盖值。
+
+列表查询区统一使用 Overseas SearchForm，按需求插入真实 Item 和 Antd6 控件，默认四列 colSpan=6。不得生成另一套原生查询网格、重复查询按钮，或不可编辑的 fields/element JSON。生成前读取目标已安装 Overseas 和 Antd6 契约；依赖准备遵循[库选择](../../index.md)，缺少能力时明确报告，不把组件升级或发布作为默认修复。字段增删排序使用节点操作，查询/重置事件接页面状态。
 
 ```html
 <plasmic-component
@@ -66,11 +70,9 @@ SearchForm 提供 Extra actions (`extraActions`) Slot。Extra actions 位于查�
 
 ## 交付与验证
 
-按 Page/Tab 清点所有生成的 SearchForm，包括初始不活跃的 Tabs。独立于生成结果记录预期栅格、有效 Item span、共享 labelWidth 和折叠状态。在目标视口检查编辑器和真实 Preview，测量列宽/行位置、标签与标点是否完整、控件可用空间；验证查询/重置、折叠字段的值和双向展开/收起。保存/重开后再次检查，分别记录模型、几何、截图和交互结果。未访问 Tabs 或未测量条件保持未验证；模型验证、Slot/路由检查和 Skill 格式验证不能证明视觉验收。失败时同步修正生成输入和交付模型。
+按 Page/Tab 清点所有生成的 SearchForm，包括初始不活跃的 Tabs。独立于生成结果记录预期栅格、有效 Item span、共享 labelWidth 和折叠状态。在目标视口检查编辑器和真实 Preview，测量列宽/行位置、标签与标点是否完整、控件可用空间；验证查询/重置。有折叠区时验证隐藏字段的值和双向展开/收起；未超出 minRows 时确认不显示多余折叠按钮。保存/重开后再次检查，分别记录模型、几何、截图和交互结果。未访问 Tabs 或未测量条件保持未验证；模型验证、Slot/路由检查和 Skill 格式验证不能证明视觉验收。失败时同步修正生成输入和交付模型。
 
-通过条件：注册包含两种组件及 Slot/event/state/action 契约；类型检查和组件构建通过；栅格/默认值/Slot 遍历测试通过；浏览器验证折叠值提交、重置和清除、校验、Checkbox、自定义控件事件和额外操作。
-
-运行 App 的资源有三层：Overseas dist/skinny、canvas-packages 客户端/服务端产物、Desktop renderer/app.asar。增加注册组件还需要 NAS 原生 hostless 发布，再在项目升级 Overseas；只更新本地桌面 JS 不会使数据库中的组件目录出现新组件。发布使用 deploy/README.md 的正式镜像流程；部署确认后再生成和验收页面。
+组件实现、注册和发布由单独授权的工程任务处理，使用[工程验证](../../../engineering/component-contracts.md)。原型验收针对当前实际版本，不要求 Agent 构建或读取客户端内部产物。
 
 ## SearchForm.Item
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDynamicValue } from "@/wab/shared/dynamic-bindings";
 
 const fullReadFields = [
   "__type", "uuid", "name", "type", "componentUuid", "rootElementUuid",
@@ -76,8 +77,10 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
 
 export function withRegisteredContracts(props: Record<string, unknown>[], metadata: Record<string, unknown>) {
   return props.map((prop) => {
+    prop = { ...prop };
     const registration = registrationContract(metadata[String(prop.name)]);
     if (registration) {
+      if (registration.optionsDynamic) { delete prop.options; }
       for (const key of ["description", "args", "options"]) {
         if (registration[key] !== undefined && JSON.stringify(registration[key]) === JSON.stringify(prop[key])) { delete registration[key]; }
       }
@@ -85,6 +88,34 @@ export function withRegisteredContracts(props: Record<string, unknown>[], metada
     }
     return registration ? { ...prop, registration } : prop;
   });
+}
+
+/** Validate only declared registration shapes; never execute component metadata. */
+export function validateRegisteredValue(value: unknown, metadata: unknown, path: string): string | undefined {
+  const contract = registrationContract(metadata);
+  if (!contract || typeof value === "string" && isDynamicValue(value)) { return undefined; }
+  if (value === undefined || value === null) { return contract.required ? `${path} is required` : undefined; }
+  if (contract.itemType) {
+    if (!Array.isArray(value)) { return `${path} expects an array`; }
+    for (const [i, item] of value.entries()) {
+      const error = validateRegisteredValue(item, contract.itemType, `${path}[${i}]`);
+      if (error) { return error; }
+    }
+  } else if (contract.fields && typeof contract.fields === "object") {
+    if (typeof value !== "object" || Array.isArray(value)) { return `${path} expects an object`; }
+    for (const [name, field] of Object.entries(contract.fields)) {
+      const error = validateRegisteredValue((value as Record<string, unknown>)[name], field, `${path}.${name}`);
+      if (error) { return error; }
+    }
+  } else if (["string", "number", "boolean"].includes(String(contract.type)) && typeof value !== contract.type) {
+    return `${path} expects a ${contract.type}`;
+  } else if (contract.type === "function" && typeof value !== "function") {
+    return `${path} expects a function binding`;
+  } else if (contract.type === "choice" && Array.isArray(contract.options)
+    && !contract.options.some((option) => (typeof option === "object" && option !== null ? option.value : option) === value)) {
+    return `${path} must be one of ${JSON.stringify(contract.options)}`;
+  }
+  return undefined;
 }
 
 export const modelReadResultSchema = z.object({

@@ -36,6 +36,23 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 
 在已准备依赖的仓库根目录运行 `node scripts/validate-plasmic-component-coverage.mjs`，通过各库真实 `registerAll` 核对主组件归属、全部注册 key、最终显示名及图标目录。资源构建会额外检查组件文档与库索引的一致性，再校验链接、标题锚点、可达性和阅读预算。源码覆盖检查不替代组件运行或设计交付验收。
 
+## 规范维护边界
+
+新增规则先确定唯一维护位置；入口只保留适用条件和链接，不复制完整规则。保留组件特有的可观测行为；通用“保存/重开/截图不等于通过”由工作流与验收文档定义，组件可简短引用。规则区分能力事实、产品缺省约定、明确强制项和示例；任务个例不直接升级为全局要求。
+
+| 内容 | 维护位置 |
+| --- | --- |
+| 资源加载、模式选择、客户端实现访问边界 | 薄 SKILL |
+| 任务步骤、受支持范围 | workflows；受控阶段细节在 prototype-tasks |
+| 工具上下文/恢复、渲染、资源操作 | desktop-context / inspection / media |
+| 需求优先级、范围与验收声明含义 | requirement-alignment |
+| 组件 Props/Slots 使用与特有行为 | 匹配库的 components |
+| 跨组件区域关系与动作位置 | 匹配库的 compositions |
+| 脚本输入、证据、复用与通过条件 | verification；格式以公开 plan_schema 为准 |
+| 平台工程验证 | engineering；发布维护说明留在本 README |
+
+修改时检查所有入链、相邻组合及跨模式影响；删除被取代的表述，避免在多个层级追加同一条事故修复。以只读审查、局部编辑、完整生成、不同组件库、缺契约恢复、代码生成等实际场景走读。运行链接/锚点/覆盖/预算及相关行为检查；这些静态检查不能证明模型一定遵守规范。唯一源码是仓库入口和 references，安装副本由 CLI 更新；本地编辑不代表已发布或已安装。
+
 ## 安装和使用
 
 需要 Node.js 22.12 或更高版本。npm 发布完成后：
@@ -111,7 +128,7 @@ plasmickit references path
 
 ### Reference 更新发布
 
-仅修改 references 时无需修改薄 `SKILL.md`、CLI 运行代码或最低 CLI 版本。资源版本仍必须使用一个未发布的新数字 tag；相同版本不能覆盖不同内容。先在仓库根目录完成本地打包检查，例如：
+仅修改 references 时无需修改薄 `SKILL.md`、CLI 运行代码或最低 CLI 版本。资源版本使用一个未发布的 `resources-v<版本>` tag；相同版本不能覆盖不同内容。先在仓库根目录完成本地打包检查，例如：
 
 ```sh
 node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
@@ -119,7 +136,7 @@ node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-
 
 版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换 NAS 清单，也不替代正式发布的 npm 内容比较。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
 
-正式发布沿用下文的 tag 流程：提交本次规范文件，推送新数字 tag，等待资源 workflow 成功，从该次 workflow 下载资源版本对应的 `plasmic-resources-<tag>` artifact，再通过 `publish:resources --from ... --version ...` 部署到 NAS。仅 references 或资源脚本变化时复用 npm 最新 CLI 的版本和原始安装包，不发布新的 npm 版本。该数字 tag 还会触发现有 server/web 镜像 workflow；它不是仅触发 references 的专用 tag。NAS 部署必须使用该次 CI 产物，不要重新构建并覆盖已发布版本。
+正式发布沿用下文的独立 tag 流程：提交规范，推送 `resources-v<版本>`，等待资源 workflow 成功，下载该次资源 artifact，再通过 `publish:resources --from ... --version ...` 部署。仅 references 或资源脚本变化时复用 npm 最新 CLI 的版本和原始安装包；薄 SKILL 发生变化则先发布包含它的 CLI。资源 tag 不触发 Studio/Desktop 发布。NAS 部署必须使用该次 CI 产物，不重新构建覆盖已发布版本。
 
 NAS 部署成功后，客户端执行：
 
@@ -203,7 +220,7 @@ CLI 主/次版本升级会发布当前包内容；补丁版本仅在实际包内
 
 ## 验证
 
-项目原型的六类门禁统一入口为 [verify_all.py](scripts/verify_all.py)，配置和在线采集/离线重放见[统一验收规范](references/verification.md)。表单清单可按页面 path 跨项目复用；需求清单必须独立审核，不能从生成结果反推。此入口汇总自动检查，Preview 交互和保存重开仍需单独验证。
+项目原型的自动门禁统一入口为 [verify_all.py](scripts/verify_all.py)，当前门禁范围、配置和在线采集/离线重放见[统一验收规范](references/verification.md)。表单清单可按页面 path 跨项目复用；需求清单必须独立审核，不能从生成结果反推。此入口汇总自动检查，Preview 交互和保存重开仍需单独验证。
 
 ```sh
 npm --prefix packages/plasmic-cli test
@@ -216,6 +233,6 @@ python3 ai/plasmic/scripts/test_verify_structure.py
 
 ## 渐进式资源检查
 
-构建器在打包前检查本地 reference 链接、标题锚点和从 guide 可达性，包括构建时加入的 SearchForm 文档。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
+构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
 
 官方 `@plasmicapp/cli` 与资源 CLI 分工见 [工具选择](references/guide.md#tool-choice) 和 [官方 CLI](references/official-cli.md)。MCP 完整组件读取包含配置的现代/旧查询定义及注册 import 身份；集成设置和源码不随模型读取下载，未知参数或未核对的迁移条件必须明确。

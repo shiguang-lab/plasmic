@@ -99,9 +99,32 @@ def prop_at(values, path):
     return values
 
 
+def has_event(node, event, page):
+    value = props(node).get(event)
+    if isinstance(value, str) and re.fullmatch(
+        r"\s*\{\{\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*\{\s*\}\s*\}\}\s*", value
+    ):
+        return False
+    return bool(value) or any(
+        i.get("elementUuid") == node["attrs"].get("id") and i.get("eventName") == event
+        for i in page.get("interactions", []))
+
+
 def matches_props(expected, actual):
+    # Readbacks may serialize a static value as a JSON literal expression.
+    # Decode JSON only: never evaluate JavaScript or dynamic bindings.
+    def static(value):
+        if isinstance(value, str) and value.startswith("{{") and value.endswith("}}"):
+            try:
+                return json.loads(value[2:-2].strip())
+            except (ValueError, TypeError):
+                pass
+        return value
+    expected, actual = static(expected), static(actual)
     if isinstance(expected, dict):
         return isinstance(actual, dict) and all(k in actual and matches_props(v, actual[k]) for k, v in expected.items())
+    if isinstance(expected, list):
+        return isinstance(actual, list) and len(expected) == len(actual) and all(matches_props(a, b) for a, b in zip(expected, actual))
     return json.dumps(expected, sort_keys=True) == json.dumps(actual, sort_keys=True)
 
 
@@ -119,6 +142,35 @@ def component_owners(root):
 
     visit(root)
     return owners
+
+
+def check_search_forms(plan, root, path):
+    """Check authored labels and reviewed row policy, not runtime folding."""
+    nodes, errors = list(walk(root)), []
+    owners = component_owners(root)
+    declarations = {c.get("nodeName"): c for c in plan.get("components", [])}
+    for form in (n for n in nodes if identity(n) == "plasmicoverseassearchform"):
+        spec = declarations.get(node_name(form), {})
+        expected_rows = spec.get("props", {}).get("minRows", 1)
+        actual_rows = props(form).get("minRows", 1)
+        if not matches_props(expected_rows, actual_rows):
+            errors.append({"check": "searchFormLayout", "path": path, "node": node_name(form),
+                           "expectedMinRows": expected_rows, "actualMinRows": actual_rows,
+                           "message": "SearchForm minRows must follow the reviewed value (default 1); extra rows can suppress the expand/collapse control"})
+        for field in (n for n in nodes if identity(n) == "plasmicoverseassearchformitem"):
+            parent = owners.get(id(field), (None, None))[0]
+            while parent is not None and identity(parent) != "plasmicoverseassearchform":
+                parent = owners.get(id(parent), (None, None))[0]
+            if parent is not form:
+                continue
+            label, custom = props(field).get("label"), slot(field, "labelContent")
+            has_custom = custom is not None and (content(custom).strip() or any(n["tag"] == "plasmic-component" for n in walk(custom)))
+            field_spec = declarations.get(node_name(field), {})
+            reviewed_empty = field_spec.get("source") and "label" in field_spec.get("props", {}) and field_spec["props"]["label"] == ""
+            if not (isinstance(label, str) and label.strip() or has_custom or reviewed_empty):
+                errors.append({"check": "searchFieldLabel", "path": path, "node": node_name(field),
+                               "message": "SearchForm.Item needs a visible label/labelContent; placeholder is not a label. A deliberate label-free field needs an explicit source-reviewed label constraint"})
+    return errors
 
 
 def element_fallbacks(plan):
@@ -179,11 +231,6 @@ def check_required_nodes(plan, nodes, page, path):
             errors.append({"check": "requirement", "path": path, "node": spec.get(key), "message": "Source citation and one named target required"})
             return None
         return found[0]
-
-    def has_event(node, event):
-        return bool(props(node).get(event)) or any(
-            i.get("elementUuid") == node["attrs"].get("id") and i.get("eventName") == event
-            for i in page.get("interactions", []))
 
     for spec in plan.get("components", []):
         node = target(spec)
@@ -246,7 +293,7 @@ def check_required_nodes(plan, nodes, page, path):
             if key not in values or json.dumps(values[key], sort_keys=True) != json.dumps(expected_value, sort_keys=True):
                 errors.append({"check": "control", "path": path, "node": spec.get("nodeName"), "property": key, "expected": expected_value, "actual": values.get(key)})
         for event in spec.get("events", []):
-            if not has_event(node, event):
+            if not has_event(node, event, page):
                 errors.append({"check": "control", "path": path, "node": spec.get("nodeName"), "missingEvent": event})
 
     for spec in plan.get("rowActions", []):
@@ -260,7 +307,7 @@ def check_required_nodes(plan, nodes, page, path):
                 or not any(n is control for n in walk(render))
                 or identity(control) != "plasmicreactuiactiongroup"
                 or not isinstance(spec.get("event"), str) or not spec["event"].strip()
-                or not has_event(control, spec["event"])):
+                or not has_event(control, spec["event"], page)):
             errors.append({"check": "rowAction", "path": path, "column": spec.get("column"), "message": "Row actions require native ActionGroup with the declared event inside Column.render"})
     return errors
 
@@ -439,6 +486,7 @@ def check(expectation, overview, readback, page_path=None):
             errors.append({"check": "naming", "path": path, "invalid": invalid, "duplicates": duplicates, "message": "Explicit editable node names must be English PascalCase and distinct within the owning Page; meaning still requires review"})
         plan = next((p for p in planned if p.get("path") == path), {})
         errors.extend(check_components(nodes, path, plan))
+        errors.extend(check_search_forms(plan, root, path))
         errors.extend(check_native_widgets(plan, nodes, page, path))
         errors.extend(check_required_nodes(plan, nodes, page, path))
         errors.extend(check_presentation(plan, root, path))
@@ -464,7 +512,7 @@ def check(expectation, overview, readback, page_path=None):
                 if "{{" not in encoded or "}}" not in encoded or any(not re.search(r"\$state\." + re.escape(state) + r"(?![\w$])", encoded) for state in states):
                     errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "property": prop, "requiredStateReferences": states})
             for event in binding.get("events", []):
-                if not values.get(event) and not any(i.get("elementUuid") == node["attrs"].get("id") and i.get("eventName") == event for i in page.get("interactions", [])):
+                if not has_event(node, event, page):
                     errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "missingEvent": event})
         try:
             shells = Shells(markup).props

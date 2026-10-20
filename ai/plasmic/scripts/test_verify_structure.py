@@ -3,10 +3,57 @@ import html
 import json
 import unittest
 
-from verify_structure import check
+from verify_structure import check, matches_props
 
 
 class StructureTests(unittest.TestCase):
+    def test_search_fields_need_labels_and_collapse_rows_cannot_be_changed_without_review(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        def render(label, rows=1, custom=""):
+            form_props = html.escape(json.dumps({"colSpan": 6, "minRows": rows, "collapsed": False}), quote=True)
+            item_props = html.escape(json.dumps({"name": "keyword", "label": label}), quote=True)
+            page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Filters" data-plasmic-component="plasmic-overseas-search-form" data-props="' + form_props + '"><slot name="children"><plasmic-component data-plasmic-name="Keyword" data-plasmic-component="plasmic-overseas-search-form-item" data-props="' + item_props + '">' + custom + '<slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-input" data-props=\'{"placeholder":"搜索客群名称 / Key"}\'></plasmic-component></slot></plasmic-component></slot></plasmic-component>'
+        render("")
+        self.assertTrue(any(e.get("check") == "searchFieldLabel" for e in self.result()["errors"]))
+        render("关键词", 2)
+        self.assertTrue(any(e.get("check") == "searchFormLayout" for e in self.result()["errors"]))
+        render("关键词")
+        self.assertTrue(self.result()["passed"])
+        render("", custom='<slot name="labelContent"><span>关键词</span></slot>')
+        self.assertTrue(self.result()["passed"])
+        self.expected["pages"][0]["components"] = [
+            {"nodeName": "Filters", "component": "plasmic-overseas-search-form", "source": "Explicit approved two-row query", "props": {"minRows": 2}},
+            {"nodeName": "Keyword", "component": "plasmic-overseas-search-form-item", "source": "Explicit approved label-free search", "props": {"label": ""}},
+        ]
+        render("", 2)
+        self.assertTrue(self.result()["passed"])
+
+    def test_reviewed_dropdown_must_occupy_the_tabs_extra_slot(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        self.expected["pages"][0]["components"] = [
+            {"nodeName": "Scopes", "component": "plasmic-antd6-tabs", "source": "Requirement All/Mine"},
+            {"nodeName": "CreateMenu", "component": "plasmic-antd6-dropdown", "source": "Source grouped create menu", "owner": {"nodeName": "Scopes", "slot": "tabBarExtraContentRight"}},
+        ]
+        tabs = '<plasmic-component data-plasmic-name="Scopes" data-plasmic-component="plasmic-antd6-tabs">{}</plasmic-component>'
+        dropdown = '<plasmic-component data-plasmic-name="CreateMenu" data-plasmic-component="plasmic-antd6-dropdown"><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-button"></plasmic-component></slot></plasmic-component>'
+        page["baseVariantTplTree"] = original + tabs.format("") + dropdown
+        self.assertFalse(self.result()["passed"])
+        page["baseVariantTplTree"] = original + tabs.format('<slot name="tabBarExtraContentRight">' + dropdown + '</slot>')
+        self.assertTrue(self.result()["passed"])
+        page["baseVariantTplTree"] = page["baseVariantTplTree"].replace('data-plasmic-component="plasmic-antd6-dropdown"', 'data-plasmic-component="plasmic-antd6-space"')
+        self.assertFalse(self.result()["passed"])
+
+    def test_static_json_expressions_match_without_evaluating_dynamic_code(self):
+        self.assertTrue(matches_props({"rowKey": "id", "pagination": {"pageSize": 10}},
+                                      {"rowKey": '{{ "id" }}', "pagination": '{{ {"pageSize":10,"current":1} }}'}))
+        self.assertTrue(matches_props([{"key": "id"}], '{{ [{"key":"id"}] }}'))
+        for value in ('{{ $state.rowKey }}', '{{ (() => "id")() }}', '{{ process.exit() }}', '{{ "other" }}'):
+            self.assertFalse(matches_props("id", value))
+        self.assertFalse(matches_props(True, '{{ 1 }}'))
+        self.assertFalse(matches_props([1], [1, 2]))
+
     def setUp(self):
         self.menu = [{"key": "records", "label": "Records", "children": [
             {"key": "list", "label": "Record list", "href": "/records", "children": [
@@ -183,6 +230,19 @@ class StructureTests(unittest.TestCase):
         self.assertTrue(self.result()["passed"])
         page["baseVariantTplTree"] += '<plasmic-component data-plasmic-name="Records" data-plasmic-component="plasmic-antd6-table"></plasmic-component>'
         self.assertFalse(self.result()["passed"])
+
+    def test_empty_callbacks_do_not_satisfy_reviewed_search_events(self):
+        plan = self.expected["pages"][0]
+        plan["bindings"] = [{"nodeName": "Filters", "source": "requirement §Query", "events": ["onSearch", "onReset"]}]
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        def render(search, reset):
+            values = html.escape(json.dumps({"onSearch": search, "onReset": reset}), quote=True)
+            page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Filters" data-plasmic-component="plasmic-overseas-search-form" data-props="' + values + '"></plasmic-component>'
+        render('{{ () => {} }}', '{{ (values) => { } }}')
+        self.assertFalse(self.result()["passed"])
+        render('{{ (values) => { $state.query = values; } }}', '{{ () => { $state.query = {}; } }}')
+        self.assertTrue(self.result()["passed"])
 
     def test_other_businesses_use_their_own_page_counts_routes_and_labels(self):
         scenarios = [

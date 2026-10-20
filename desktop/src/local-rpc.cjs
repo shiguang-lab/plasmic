@@ -1,7 +1,8 @@
 const net = require("node:net");
 const fs = require("node:fs/promises");
 const path = require("node:path");
-const { randomBytes, createHash } = require("node:crypto");
+const { randomBytes, randomUUID, createHash } = require("node:crypto");
+const { errorPayload } = require("./tool-context.cjs");
 function socketPath(profile) {
   return process.platform === "win32"
     ? "\\\\.\\pipe\\plasmic-desktop-" +
@@ -39,6 +40,7 @@ async function startRpc(profile, dispatch) {
       }
       accepted = true;
       const started = Date.now();
+      const requestId = randomUUID();
       let request;
       let authenticated = false;
       let response;
@@ -51,19 +53,29 @@ async function startRpc(profile, dispatch) {
         const result = await dispatch(request.method, request.input || {});
         response = { result };
       } catch (error) {
-        response = { error: error.message };
+        response = { error: errorPayload(error) };
       }
       const encoded = JSON.stringify(response);
+      const metrics = authenticated ? {
+        requestId, time: new Date().toISOString(), method: request.method,
+        operation: request.method === "execute" ? request.input?.name : undefined,
+        inputBytes: Buffer.byteLength(JSON.stringify(request.input || {})),
+        responseBytes: Buffer.byteLength(encoded), ms: Date.now() - started,
+        failed: !!response.error,
+      } : undefined;
       if (authenticated && process.env.PLASMIC_RPC_METRICS) {
         // Opt-in local evaluation counters cover script/RPC traffic as well as MCP.
         // Never store the token, argument values, returned content or error text.
-        await fs.appendFile(process.env.PLASMIC_RPC_METRICS, JSON.stringify({
-          time: new Date().toISOString(), method: request.method,
-          operation: request.method === "execute" ? request.input?.name : undefined,
-          inputBytes: Buffer.byteLength(JSON.stringify(request.input || {})),
-          responseBytes: Buffer.byteLength(encoded), ms: Date.now() - started,
-          failed: !!response.error,
-        }) + "\n", { mode: 0o600 }).catch(() => {});
+        await fs.appendFile(process.env.PLASMIC_RPC_METRICS, JSON.stringify(metrics) + "\n", { mode: 0o600 }).catch(() => {});
+      }
+      if (authenticated && process.env.PLASMIC_RPC_AUDIT) {
+        // Explicit local audit opt-in: full content (including images/errors),
+        // shared by every transport. Authentication credentials are excluded.
+        await fs.appendFile(process.env.PLASMIC_RPC_AUDIT, JSON.stringify({
+          ...metrics, input: request.input || {}, response,
+        }) + "\n", { mode: 0o600 }).catch((error) => {
+          process.stderr.write(`RPC audit write failed for ${requestId}: ${error.message}\n`);
+        });
       }
       connection.end(encoded + "\n");
     });
@@ -120,7 +132,8 @@ async function requestRpc(profile, method, input = {}) {
       try {
         const response = JSON.parse(buffer);
         if (response.error) {
-          reject(new Error(response.error));
+          const { message, ...context } = response.error;
+          reject(Object.assign(new Error(message), Object.keys(context).length ? { context } : {}));
         } else {
           resolve(response.result);
         }

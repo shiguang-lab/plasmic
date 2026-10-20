@@ -1,7 +1,49 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const vm = require("node:vm");
+const fs = require("node:fs/promises");
+const path = require("node:path");
+const sharp = require("sharp");
 const { DesignReference } = require("../src/design-reference.cjs");
+
+test("full-resolution references use public 1x export and report actual frame/pixel scale", async () => {
+  const reader = new DesignReference("/unused");
+  const pixels = await sharp({ create: { width: 1008, height: 680, channels: 4, background: "white" } }).png().toBuffer();
+  let directory;
+  reader.connect = async () => ({ callTool: async (request) => {
+    let printed;
+    vm.runInNewContext(request.arguments.input, {
+      Get: (_id, visit) => visit({}, { bounds: { width: 1008, height: 680 } }),
+      Print: (line) => { printed = line; },
+      TakeScreenshot: () => assert.fail("Full resolution must not reuse a thumbnail"),
+      Export: (ids, format, output, options) => {
+        assert.deepEqual(Array.from(ids), ["frame"]); assert.equal(format, "png"); assert.equal(options.scale, 1);
+        directory = output;
+        require("node:fs").writeFileSync(path.join(output, "frame.png"), pixels);
+      },
+    });
+    return { content: [{ type: "text", text: printed }] };
+  } });
+  const result = await reader.read({ action: "screenshot", filePath: "/tmp/source.pen", nodeId: "frame", fullResolution: true });
+  assert.deepEqual(result.sourceFrameSize, { width: 1008, height: 680 });
+  assert.deepEqual(result.scale, { x: 1, y: 1 });
+  assert.equal(result.width, 1008); assert.equal(result.height, 680); assert.equal(result.source.capture, "Export");
+  await assert.rejects(fs.access(directory));
+});
+
+test("thumbnail references disclose their real source dimensions and downscale", async () => {
+  const reader = new DesignReference("/unused");
+  const pixels = await sharp({ create: { width: 400, height: 270, channels: 4, background: "white" } }).png().toBuffer();
+  reader.connect = async () => ({ callTool: async (request) => {
+    let printed;
+    vm.runInNewContext(request.arguments.input, {
+      Get: (_id, visit) => visit({}, { bounds: { width: 1008, height: 680 } }), Print: (line) => { printed = line; }, TakeScreenshot: () => {},
+    });
+    return { content: [{ type: "text", text: printed }, { type: "image", data: pixels.toString("base64"), mimeType: "image/png" }] };
+  } });
+  const result = await reader.read({ action: "screenshot", filePath: "/tmp/source.pen", nodeId: "frame" });
+  assert.equal(result.width, 400); assert.equal(result.scale.x, 400 / 1008);
+});
 
 test("reference reads execute bounded read-only Pen snippets and retain native layout/child IDs", async () => {
   const reader = new DesignReference("/unused"), calls = [];

@@ -1,6 +1,6 @@
 # Registered component catalog
 
-Read the [library rules](index.md), then look up only the registrations used by the task. Each row links to its full component contract.
+Read the [library rules](index.md), then look up only the registrations used by the task. Each row links to usage guidance for that registration; obtain the current Props/Slots contract through MCP.
 
 | Component | Covered Studio registrations |
 | --- | --- |

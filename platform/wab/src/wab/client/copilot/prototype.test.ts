@@ -1,4 +1,7 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { mockDeepAuto } from "@/wab/__testonly__/mock";
+import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
+import { Pt } from "@/wab/shared/geom";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
@@ -1253,6 +1256,7 @@ describe("AI prototype editor tools", () => {
   it("opens native Preview with a temporary viewport without changing Page models or device columns", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("List");
+    vi.spyOn(studioCtx, "awaitStudioReady").mockResolvedValue();
     const before = await call("read", { view: "full" });
     const preview = {
       isLive: false, popup: undefined as Window | undefined,
@@ -1276,6 +1280,53 @@ describe("AI prototype editor tools", () => {
     expect(await call("read", { view: "full" })).toEqual(before);
     preview.popup = {} as Window;
     await expect(call("preview", { action: "open" })).rejects.toThrow("external Preview");
+    studioCtx.copilotActivity.dispose();
+  });
+  it("closes a different Preview Page back to the original overview artboard and viewport, awaiting canvas recovery", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const original = await createPage("Original");
+    const target = await createPage("Target");
+    const arena = ensure(studioCtx.site.arenas[0], "Overview missing");
+    const frame = ensure(arena.children.find((f) => f.container.component === original), "Original artboard missing");
+    studioCtx.currentArena = arena;
+    vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(frame);
+    const viewport = mockDeepAuto<ViewportCtx>();
+    viewport.scale.mockReturnValue(0.75);
+    viewport.scroll.mockReturnValue(new Pt(123, 456));
+    viewport.canvasPadding.mockReturnValue(Pt.zero());
+    vi.spyOn(studioCtx, "viewportCtx", "get").mockReturnValue(viewport);
+    const releases: Array<() => void> = [];
+    const ready = vi.spyOn(studioCtx, "awaitStudioReady").mockImplementation(() => new Promise<void>((resolve) => { releases.push(resolve); }));
+    const restored = vi.spyOn(studioCtx, "restoreStudioViewportSnapshot").mockReturnValue(undefined);
+    const preview = {
+      isLive: false, component: target, previewPath: "target", width: 1440, height: 1024, popup: undefined,
+      toggleLiveMode: vi.fn(async () => { preview.isLive = true; }),
+      stopLiveMode: vi.fn(async () => { preview.isLive = false; }),
+      parseRoute: vi.fn().mockResolvedValue(undefined), pushComponent: vi.fn().mockResolvedValue(undefined),
+    };
+    Object.assign(studioCtx, { previewCtx: preview });
+    const model = await call("read", { view: "full" });
+    await call("preview", { action: "open", componentUuid: target.uuid });
+    studioCtx.currentArena = ensure(studioCtx.site.pageArenas.find((a) => a.component === target), "Target arena missing");
+    let done = false;
+    const close = call("preview", { action: "close" }).then((result) => { done = true; return result; });
+    await vi.waitFor(() => expect(ready).toHaveBeenCalledTimes(1));
+    expect(done).toBe(false);
+    expect(restored).not.toHaveBeenCalled();
+    ready.mockResolvedValue(); ensure(releases[0], "Canvas readiness was not requested")();
+    expect(await close).toMatchObject({ mode: "edit" });
+    expect(studioCtx.currentArena).toBe(arena);
+    expect(restored).toHaveBeenCalledWith({ focusedArenaFrame: frame, scale: 0.75, scroll: new Pt(123, 456), canvasPadding: Pt.zero() }, true);
+    await call("preview", { action: "close" });
+    expect(restored).toHaveBeenCalledTimes(1);
+    await call("preview", { action: "open", componentUuid: target.uuid });
+    preview.isLive = false;
+    const manuallySelected = ensure(studioCtx.site.pageArenas.find((a) => a.component === target), "Target arena missing");
+    studioCtx.currentArena = manuallySelected;
+    await call("preview", { action: "close" });
+    expect(studioCtx.currentArena).toBe(manuallySelected);
+    expect(restored).toHaveBeenCalledTimes(1);
+    expect(await call("read", { view: "full" })).toEqual(model);
     studioCtx.copilotActivity.dispose();
   });
   it.each(["read", "queryElements"])(
@@ -1832,6 +1883,36 @@ describe("AI prototype editor tools", () => {
     const read = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0];
     expect(read.baseVariantTplTree).toContain("(total, range)");
     expect((await call("validate")).valid).toBe(true);
+  });
+
+  it("uses declared custom rule metadata for both HTML insertion and subsequent native edits", async () => {
+    const site = createSite();
+    const rules = { type: "formValidationRules", itemType: { type: "object", fields: {
+      ruleType: { type: "choice", options: ["required"], required: true },
+    } } };
+    const meta = { name: "ValidatedField", importPath: "./field", props: { rules: rules as any } };
+    const definition = mkCodeComponent(meta.name, meta, {});
+    definition.params.push(mkParam({ name: "rules", paramType: "prop", type: typeFactory.any() }));
+    site.components.push(definition);
+    const { studioCtx, call, createPage } = fixture(site);
+    vi.spyOn(studioCtx, "getCodeComponentMeta").mockImplementation((component) => component === definition ? meta : undefined);
+    vi.spyOn(studioCtx.codeComponentsRegistry, "getRegisteredCodeComponentsMap").mockReturnValue(new Map([[meta.name, { impl: () => null, meta }]]));
+    const page = await createPage();
+    const before = await call("read", { componentUuids: [page.uuid], view: "full" });
+    await expect(call("insertHtml", { componentUuid: page.uuid,
+      html: '<plasmic-component data-plasmic-component="ValidatedField" data-props=\'{"rules":[{"required":true}]}\'></plasmic-component>',
+    })).rejects.toThrow("rules[0].ruleType is required");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(before);
+    await call("insertHtml", { componentUuid: page.uuid,
+      html: '<plasmic-component data-plasmic-name="NameField" data-plasmic-component="ValidatedField" data-props=\'{"rules":[{"ruleType":"required"}]}\'></plasmic-component>',
+    });
+    const field = ensure(flattenTpls(page.tplTree).find((tpl) => isKnownTplComponent(tpl) && tpl.component === definition), "Field missing");
+    const saved = await call("read", { componentUuids: [page.uuid], view: "full" });
+    await expect(call("changeElement", { componentUuid: page.uuid, elementUuid: field.uuid,
+      props: { rules: [{ required: true }] },
+    })).rejects.toThrow("rules[0].ruleType is required");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(saved);
+    studioCtx.copilotActivity.dispose();
   });
 
   it("renames existing nodes through an undoable batch without replacing them", async () => {

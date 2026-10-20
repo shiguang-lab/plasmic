@@ -243,19 +243,15 @@
     }
   ],
   "aiWorkflow": [
-    "先按 useWhen、avoidWhen 和 compositions 选结构，再读取模板的实时模型。",
-    "安装并核对现有库；通过真实注册名称、Props、Slots 实例化，布局优先使用 Antd。",
-    "已存在 AppShell 时只使用 section 或 overlay。",
-    "以普通组件方式插入 Overlay 时先解离组合实例，由当前页面绑定原生 Drawer.open 与内部 Form ref。",
-    "替换示例字段、列、选项和数据；沿用组件契约，不另造控件。",
-    "官方模板插入会复制布局，来源自定义 State、事件和查询不能视为自动迁移完成。重新绑定业务状态、事件和路由。",
-    "用 Preview 检查查询与重置、分页、标签切换、表单校验、抽屉打开与关闭；保存后重读。"
+    "本目录用于选型；获取、导入、组合和验收流程统一遵循 references/admin-templates.md。",
+    "目录中的库版本、Slots 和配置状态是编制时记录，通过公开 MCP 核对目标实时契约；普通设计组件名不能直接当作 insertHtml 的注册 key。",
+    "原型业务范围来自当前需求；模板示例不提供业务保存接口，也不自动完成状态、事件和路由绑定。"
   ],
   "directoryConfiguration": {
     "format": "Plasmic UiConfig",
     "file": "ui-config.json",
     "applied": false,
-    "reason": "当前 shuhe 为 Free，组织与工作区官方 Configure Studio UI 入口由 Enterprise 门槛限制。"
+    "reason": "编制时 shuhe 为 Free，组织与工作区官方 Configure Studio UI 入口受 Enterprise 门槛限制；当前状态需实时核对。"
   },
   "preview": {
     "name": "TemplatePreview",

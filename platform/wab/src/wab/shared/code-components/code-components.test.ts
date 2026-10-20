@@ -220,6 +220,12 @@ describe("propTypeToWabType", () => {
     expect(result._unsafeUnwrap().name).toBe("text");
   });
 
+  it("does not turn context-dependent choices into a literal placeholder enum", () => {
+    const options = vi.fn(() => ["id"]);
+    expect(propTypeToWabType(site, { type: "choice", options })._unsafeUnwrap()).toMatchObject({ name: "any" });
+    expect(options).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["slot", "renderable"],
     ["object", "any"],

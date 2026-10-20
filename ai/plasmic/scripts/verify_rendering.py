@@ -17,6 +17,10 @@ def check(layouts, page_ids):
         if len(frames) != 1:
             errors.append({"page": uuid, "error": layout.get("error", "Exactly one component-targeted frame required")})
             continue
+        checks = layout.get("snapshot", {}).get("checked", [])
+        if not isinstance(checks, list) or "table-cell-control-overflow" not in checks:
+            errors.append({"page": uuid, "error": "Fresh Desktop layout with table-cell-control-overflow checking required; older captures cannot establish fixed-cell control containment"})
+            continue
         frame = frames[0]
         if (frame.get("ready") is not True or frame.get("truncated") is not False
                 or frame.get("read", {}).get("view") != "full"
@@ -26,6 +30,6 @@ def check(layouts, page_ids):
             errors.append({"page": uuid, "error": "Complete ready full layout, positive viewport and explicit image/problem lists required"})
             continue
         problems = frame["problems"]
-        if problems or any(e.get("horizontalOverflow") is True for e in frame["elements"]) or any(i.get("loaded") is not True for i in frame["images"]):
+        if problems or any(e.get("horizontalOverflow") is True or e.get("cellContent", {}).get("overflow") is True for e in frame["elements"]) or any(i.get("loaded") is not True for i in frame["images"]):
             errors.append({"page": uuid, "error": "Unresolved rendered overflow/image problems", "problems": problems})
     return {"passed": not errors, "errors": errors, "notChecked": ["visual hierarchy/fidelity", "hidden runtime states", "interaction and scroll behavior"]}
